@@ -5,3 +5,4 @@ mobile/.dart_tool/
 
 .env
 .claude/worktrees/
+scripts/node_modules/
