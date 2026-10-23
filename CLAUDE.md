@@ -2,167 +2,135 @@
 
 Bu dosya, repoda çalışan yapay zekâ ajanları ve geliştiriciler için kılavuzdur. Burada yazanlar koddaki mevcut duruma dayanır; kodla çeliştiğini görürseniz dosyayı güncelleyin.
 
-Yol haritası: [docs/MVP.md](docs/MVP.md) (başka bir ajan tarafından yazılıyor, henüz olmayabilir).
+İlgili belgeler: [docs/MVP.md](docs/MVP.md) (yol haritası), [docs/API_PLAN.md](docs/API_PLAN.md) (modül planı), [docs/ADMIN_API.md](docs/ADMIN_API.md) (yönetim paneli API sözleşmesi), [docs/MESSAGING_DESIGN.md](docs/MESSAGING_DESIGN.md), [docs/ONERILER.md](docs/ONERILER.md) (öncelikli öneri listesi).
 
 ## 1. Proje özeti ve mimari
 
-Bingöl Üniversitesi duyuru/haber/etkinlik ve yemek listesi uygulaması.
+Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve yemek listesi, üyelik (yalnız `bingol.edu.tr`), profil, bildirimler, mesajlaşma, topluluklar, etkinlikler (QR + elle yoklama), favoriler/arama, destek, sözleşmeler, yönetim paneli.
 
-- `backend/` — Spring Boot 4.1.2, Java 17, Maven (JPA, Security, Validation, Actuator, WebSocket, Redis, Bucket4j, JJWT, Mail, jsoup, Lombok)
-- `mobile/` — Flutter (Android). Şimdilik tek dosya: `mobile/lib/main.dart` (`http`, `url_launcher`); mobil çalışma ertelendi
-- Not: `README.md` içindeki "Spring Boot 3" ifadesi eskidir; gerçek sürüm `backend/pom.xml`'dedir.
+- `backend/` — Spring Boot 4.1.x, Java 17, Maven; PostgreSQL 16 (Flyway), Redis, WebSocket/STOMP, JJWT, jsoup, Firebase Admin (isteğe bağlı), Lombok
+- `web/` — React + TypeScript (Vite): herkese açık tanıtım sitesi + `/admin` yönetim paneli (bkz. `web/README.md`)
+- `mobile/` — Flutter (Android). **Ertelendi**: tek dosyalık ilk sürüm (`mobile/lib/main.dart`); Flutter bu makinede kurulu değil
+- `docker-compose.yml` — postgres, redis, backend (ve varsa web)
 
-### Paket yapısı (`backend/src/main/java/edu/bingol/backend/`)
+### Backend paket haritası (`backend/src/main/java/edu/bingol/backend/`)
 
 | Paket | İçerik |
 |---|---|
-| `news` | `NewsItem`, `ContentType`, `NewsRepository`, `NewsScraper` (`parseList` test edilebilir), `NewsSyncService`, `NewsService` (sorgu), `NewsController`, `dto/` |
-| `menu` | `MenuDay`, `MenuRepository`, `MenuScraper` (`parse`), `MenuSyncService`, `MenuService`, `MenuController`, `dto/` |
-| `status` | `SyncStatus` (OK/MAINTENANCE), `StatusService`, `StatusController` (`GET /api/status`), `dto/` |
-| `auth` | `AuthController` (ince: rate limit + HTTP), `AuthService` (iş kuralları), `dto/` (istek/yanıt record'ları) |
-| `auth.jwt` | `JwtService`, `JwtAuthFilter` |
-| `auth.token` | `RefreshTokenService`, `VerificationService` (Redis) |
-| `user` | `User`, `UserRepository` |
-| `mail` | `MailService` (SMTP isteğe bağlı; kapalıyken kod log'a yazılır) |
-| `common` | `ApiException`, `ApiExceptionHandler`, `RateLimiter` (Redis), `Hashing` |
-| `config` | `SecurityConfig` (filtre zinciri, BCrypt, admin kullanıcısı), `WebConfig` (ETag), `JwtProperties` / `MailProperties` / `SyncProperties` (`@ConfigurationProperties` record'ları) |
-| `health` | `HelloController` (`/api/hello`) |
+| `news`, `menu`, `status` | Scraper'lar + senkronizasyon + sorgu servisleri; `SyncStatus` ile bakım durumu (`GET /api/status`) |
+| `auth` (+ `auth.jwt`, `auth.token`) | Kayıt/doğrulama/giriş/refresh; `JwtService`, `JwtAuthFilter`, `RefreshTokenService`, `VerificationService` |
+| `user`, `profile` | `User` varlığı (rol, durum, dil, bölüm…), profil, kullanıcı arama, hesap silme (anonimleştirme) |
+| `notification` (+ `fcm`, `campaign`) | Cihaz kaydı, uygulama içi liste, tercihler, FCM; yönetici push kampanyaları (hedef kitle, 3 dil, zamanlama) |
+| `moderation` | Engelleme, raporlama, `ReportTargetHandler` SPI, kullanıcı askıya alma, admin rapor kuyruğu |
+| `messaging` (+ `ws`) | Birebir/grup sohbet, STOMP `/ws`, Redis pub/sub, presence |
+| `community`, `event` | Topluluklar, kullanıcı etkinlikleri, RSVP, QR + elle yoklama, hatırlatmalar |
+| `bookmark`, `search` | Haber favorileri; `SearchProvider` SPI ile PostgreSQL Türkçe tam metin arama |
+| `support` (`feedback`, `ticket`, `faq`) | Geri bildirim + öneri panosu, destek talepleri, SSS |
+| `legal` | Sürümlü sözleşmeler (tr/en/ar) + kullanıcı onay kayıtları |
+| `appinfo` | Uygulama bilgisi, sürüm kontrolü, bakım modu, banner (`app_setting`) |
+| `export` | `DataExporter` SPI — KVKK "verilerimi indir" (`GET /api/users/me/export`) |
+| `i18n` | `Lang` (tr/en/ar), `I18n` servisi, `Accept-Language` çözümleyici |
+| `common` | `ApiException`, `ApiExceptionHandler`, `RateLimiter`, `CurrentUser`, `CursorPage`, `Hashing`, `storage/` (`FileStorage`, `/files/**`) |
+| `config` | `SecurityConfig`, `WebConfig` (ETag), `*Properties` (`@ConfigurationProperties` record'ları) |
 
-Katman kuralı: Controller → Service → Repository. Controller yalnızca HTTP eşlemesi ve rate limit yapar; entity'ler API'ye doğrudan dönmez, `dto/` record'larına çevrilir.
+Katman kuralı: **Controller → Service → Repository**. Controller yalnızca HTTP eşlemesi + rate limit yapar; entity'ler API'ye doğrudan dönmez, `dto/` (veya modül içi) record'larına çevrilir.
 
-### Veri akışı
-
-```
-Kaynak siteler ──(yalnızca zamanlayıcı)──> Scraper (jsoup) ──> PostgreSQL
-                                                                  │
-                                         StatusService (OK / MAINTENANCE)
-                                                                  ▼
-                                         REST (/api/news, /api/menu, /api/status) ──> Flutter
-```
+### SPI'lar (modüller arası gevşek bağ)
+- `ReportTargetHandler` (moderation): raporlanabilir içerik türleri (USER, MESSAGE, POST, COMMUNITY, EVENT) kendi handler bean'ini yazar.
+- `SearchProvider` (search): genel aramaya katılan türler.
+- `DataExporter` (export): kullanıcının kendi verisini dışa aktaran bölümler.
+- `NotificationService` (notification): `send`, `sendLocalized`, `broadcast(Localized)`, `sendBulk` — diğer modüller bildirimi yalnızca buradan gönderir.
 
 ### Redis'in rolü
+Doğrulama kodu (`vc:*`), refresh token (`rt:*`, yalnız SHA-256 hash), rate limit (`rl:*`), askıya alınan kullanıcı işareti (`suspended:<id>`), presence (`presence:*`, `lastseen:*`), mesajlaşma pub/sub kanalı. Redis yoksa auth/mesajlaşma çalışmaz; haber/menü okuma uçları Redis'e dokunmaz.
 
-Redis haber/yemek verisini tutmaz; yalnızca kimlik doğrulama için kullanılır:
-
-- **Doğrulama kodu:** `vc:<email>` (SHA-256 hash, 10 dk), `vc:att:<email>` (en fazla 5 deneme), `vc:cd:<email>` (60 sn yeniden gönderim bekleme)
-- **Refresh token:** `rt:<sha256(token)>` → kullanıcı id (TTL `jwt.refresh-ttl-days`, varsayılan 30 gün)
-- **Rate limit:** `rl:<anahtar>` sayaçları (`RateLimiter`)
-
-Redis yoksa auth uçları çalışmaz; haber/menü okuma uçları Redis'e dokunmaz.
-
-### Zamanlayıcılar (`@EnableScheduling`, saat dilimi `Europe/Istanbul`)
-
-| Görev | Varsayılan cron | Ayar anahtarı |
+### Zamanlayıcılar (`Europe/Istanbul`)
+| Görev | Varsayılan | Ayar |
 |---|---|---|
-| Haber/duyuru/etkinlik | `0 0 0 * * *` (her gece 00:00) | `news.sync.cron` |
-| Yemek listesi | `0 30 23 L * *` (ayın son günü 23:30) | `menu.sync.cron` |
+| Haber/duyuru/etkinlik çekimi | her gece 00:00 | `news.sync.cron` |
+| Yemek listesi | ayın son günü 23:30 | `menu.sync.cron` |
+| Push kampanya dağıtıcı | 10 sn'de bir (`FOR UPDATE SKIP LOCKED`) | `app.push.poll-ms` |
+| Etkinlik hatırlatma | 1 gün / 1 saat önce | event paketi |
 
-Ek olarak uygulama açılışında (`ApplicationReadyEvent`) tablo **boşsa** bir kez ilk doldurma yapılır. Manuel tetikleme: `POST /api/admin/sync` ve `POST /api/admin/sync-menu` (ADMIN).
+Açılışta tablolar **boşsa** ilk doldurma **arka planda** bir kez yapılır (`app.sync.initial-fill`). Manuel: `POST /api/admin/sync`, `/api/admin/sync-menu`.
 
-### "Bakımda" mekanizması (SyncStatus)
-
-Kaynak site yapısı değişir veya ulaşılamazsa senkronizasyon exception fırlatmaz; `StatusService.markMaintenance(kaynak, mesaj)` çağrılır ve eski veri sunulmaya devam eder. Kaynak anahtarları: `NEWS`, `MENU`. `GET /api/status` her kaynak için `maintenance`, `lastSuccessAt`, `lastAttemptAt`, `message` döner. Haberlerde 3 türün de başarısız olması bakım sayılır; kısmi hata `markOk` ile mesaj taşır. Mobil, `maintenance == true` ise "Sistem şu anda bakımda" bandı gösterir.
+### "Bakımda" mekanizması
+Kaynak site değişir/ulaşılmazsa senkronizasyon exception fırlatmaz; `StatusService.markMaintenance` çağrılır, eski veri sunulur. `GET /api/status` → `{NEWS:{maintenance,…}, MENU:{…}}`. Ek olarak yönetici ayarı `maintenance_mode` uygulama genelinde bakım bandı gösterir (`GET /api/app/info`).
 
 ## 2. Çalıştırma, derleme, test
 
-**Önemli:** Bu makinede yalnızca **Java 8** kurulu; backend Java 17 gerektirir. Derleme/test **Docker içindeki Maven 17 konteynerinde** yapılır. **Flutter kurulu değildir** (mobil kod burada derlenemez/çalıştırılamaz).
-
-Git Bash'ten, `backend/` dizininde:
+**Önemli:** Bu makinede yalnızca **Java 8** var; backend Java 17 ister → derleme/test **Docker'daki Maven 17 konteynerinde** yapılır. Flutter kurulu değil. Node 24/npm 11 yerelde var (web için).
 
 ```bash
-# Derleme
-MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W):/app" -w /app maven:3-eclipse-temurin-17 mvn -q -B -DskipTests compile
+# backend/ içinde (Git Bash)
+MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W):/app" -w /app maven:3-eclipse-temurin-17 mvn -B test
 
-# Test
-MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W):/app" -w /app maven:3-eclipse-temurin-17 mvn -q -B test
-```
-
-Tüm yığını (PostgreSQL + Redis + backend) çalıştırmak:
-
-```bash
-cp .env.example .env      # DB_PASSWORD, JWT_SECRET, ADMIN_PASSWORD doldurulur (zorunlu)
+# tüm yığın
+cp .env.example .env        # DB_PASSWORD, JWT_SECRET, ADMIN_PASSWORD zorunlu
 docker compose up -d --build
 curl localhost:8080/actuator/health
 ```
 
-- Veritabanı PostgreSQL 16 (`ddl-auto=update`; Flyway henüz yok). Testler H2 (`src/test/resources/application.properties`) kullanır, `app.sync.initial-fill=false` ile siteye istek atmaz.
-- Admin uçları (`/api/admin/**`): Basic auth, kullanıcı `admin`, şifre `ADMIN_PASSWORD`.
-- Android emülatöründen API adresi `http://10.0.2.2:8080/api` (`mobile/lib/main.dart` → `apiBase`).
-- Mobil (Flutter kurulu bir makinede): `cd mobile && flutter create --platforms=android --org edu.bingol --project-name bingol_mobile . && flutter run`
+- Şema **yalnızca Flyway** ile yönetilir (`ddl-auto=validate`). Testler H2 + `spring.flyway.enabled=false` + `create-drop` kullanır (`src/test/resources/application.properties`; main'deki dosyanın **yerine geçer**, gerekli anahtarlara orada varsayılan verin).
+- PostgreSQL'e özel native sorgular H2'de çalışmaz: bunlar **duman betikleriyle** doğrulanır.
+- **Duman betikleri** (`scripts/`, çalışan compose yığınına karşı, ASCII, tekrar çalıştırılabilir): `smoke.sh` (çekirdek), `smoke-support.sh` (destek/sözleşme/i18n/kampanya), `smoke-search.sh`, `smoke-messaging.sh`, `SKIP_REMINDER=1 smoke-communities-events.sh`, `SLOW=1 node ws-test.js`. Betikler arasında `docker compose exec -T redis redis-cli flushall` (kayıt ucu IP başına saatte 10 ile sınırlı). Yeni modül = yeni duman betiği.
+- `.env` yalnızca yerel (gitignored). Admin uçları: JWT `ROLE_ADMIN` (kullanıcı `ADMIN_EMAILS` listesindeyse) veya Basic auth `admin:$ADMIN_PASSWORD`.
 
 ### Ortam değişkenleri
-
-| Değişken | Anlamı |
-|---|---|
-| `JWT_SECRET` | JWT imza anahtarı (en az 32 karakter; üretimde zorunlu) |
-| `REDIS_HOST`, `REDIS_PORT` | Redis adresi (varsayılan `localhost:6379`) |
-| `MAIL_ENABLED`, `MAIL_FROM`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | SMTP (varsayılan `MAIL_ENABLED=false`) |
-| `ADMIN_PASSWORD` | `/api/admin/**` Basic auth şifresi (kullanıcı `admin`) |
+`DB_URL/DB_USER/DB_PASSWORD`, `REDIS_HOST/PORT`, `JWT_SECRET` (≥32 karakter, üretimde zorunlu), `ADMIN_PASSWORD`, `ADMIN_EMAILS` (virgüllü; bu adresler ADMIN olur), `MAIL_ENABLED/HOST/PORT/USERNAME/PASSWORD/FROM`, `FCM_CREDENTIALS_FILE`, `STORAGE_DIR`, `CORS_ORIGINS`, `BACKEND_PORT`, `INITIAL_FILL`.
 
 ## 3. Kodlama kuralları
 
 ### Backend
+- **Paket başına özellik**; entity'ler Lombok (`@Getter @Setter`), enum'lar `EnumType.STRING`.
+- **Spring Data depo arayüzleri üst düzey dosyada olmalı.** İç içe (nested) arayüzler taranmaz ve bean oluşmaz. Bean adı çakışmasına dikkat (aynı basit ada sahip iki depo → `BeanDefinitionOverrideException`; modül öneki verin: `SupportMessageRepository`).
+- **Flyway:** sürüm aralıkları modüle ayrılmıştır (V1-V6 çekirdek, V10 topluluk/etkinlik, V20 mesajlaşma, V30 favori/arama, V40 admin/analitik; yeni modül yeni aralık). Uygulanmış bir migration'ı **değiştirmeyin**. **İndeks adları tüm şemada benzersizdir** (önek kullanın). `ddl-auto=validate`: entity ile şema birebir uyuşmalı.
+- **Hata modeli:** `ApiException(status, "KOD", "Türkçe varsayılan mesaj", args…)`. Kullanıcıya giden metin `error.<KOD>` anahtarıyla **istek dilinde** çevrilir (`i18n/messages*.properties`: tr varsayılan, en, ar). **Yeni hata kodu = üç dosyaya da çeviri.** Çeviri argümanları metin olarak geçilir (`String.valueOf(n)`), argümanlı metinlerde kesme işareti (`'`) kullanılmaz.
+- **Bildirim/e-posta metinleri alıcının kayıtlı dilinde** üretilir (`sendLocalized`, `broadcastLocalized`, `mail.*` anahtarları). İçerik kaynaklı metinler (haber başlığı) çevrilmez.
+- Native sorgularda parametre kullanın, `LIKE` girdisini kaçırın (`\`, `%`, `_`); dinamik sıralama alanları beyaz listeyle.
+- Controller DTO'ları `record`; doğrulama `jakarta.validation`; sayfalama: büyük/akan listelerde `CursorPage`, yönetim listelerinde sayfa tabanlı.
+- **Dosya kodlaması UTF-8, BOM'suz.** Dosyaları Write/Edit ile yazın (bu ortamda uzun bash heredoc'lar ve Windows terminali Türkçe/Arapça karakterde güvenilir değil; betiklerde ASCII kullanın).
+- Yorumlar kısa Türkçe, "neden"i anlatır; kimlik/log mesajları ASCII ağırlıklı; kullanıcıya dönen metinler düzgün Türkçe karakterli.
+- Servis sözleşmesi: senkronizasyon/gönderim metotları çağıranına exception sızdırmaz.
 
-- **Paket başına özellik:** yeni özellik kendi paketine (`edu.bingol.backend.<özellik>`) girer; controller, service, repository, entity aynı pakette durur.
-- **Entity'ler Lombok ile** (`@Getter @Setter`), `jakarta.persistence` kullanılır. Enum alanlar `EnumType.STRING`.
-- **Controller'larda DTO'lar `record`** (controller içinde iç içe tanımlı, `static of(Entity)` fabrikasıyla). Entity'yi doğrudan JSON olarak dönmeyin.
-- **Hata modeli:** iş kuralı hatalarında `ApiException(HttpStatus, "KOD", "Türkçe mesaj")` fırlatın; `ApiExceptionHandler` bunu `{"code","message"}` gövdesine çevirir. Doğrulama hataları `VALIDATION_ERROR` koduyla döner. Giriş DTO'larında `jakarta.validation` (`@Valid`, `@Size` vb.) kullanın.
-- **Spring Boot 4 notları:** starter adları 4.x'e göredir (`spring-boot-starter-webmvc`, test starter'ları `...-test`). Jackson ve diğer yardımcıların paket/sürüm farklarını bilerek ekleyin; yeni bağımlılık eklerken Boot 4 ile uyumunu doğrulayın. Lombok, `maven-compiler-plugin` içinde `annotationProcessorPaths` ile bağlanmıştır — bu yapılandırmayı bozmayın.
-- **Dosya kodlaması:** tüm kaynak dosyalar **UTF-8, BOM'suz**. BOM ekleyen editör/araçlardan kaçının (Windows PowerShell `>`/`Set-Content` BOM veya ANSI yazabilir; dosyaları Write/Edit ile yazın).
-- **Stil:** mevcut kodun yorum ve isim stiline uyun — kısa Türkçe javadoc/satır yorumları ("neden"i anlatır), İngilizce tanımlayıcılar, 4 boşluk girinti. Config/log mesajlarında mevcut dosyalar ASCII-ağırlıklı Türkçe kullanır; kullanıcıya dönen `ApiException` mesajları düzgün Türkçe karakterlidir.
-- **Servis sözleşmesi:** `sync()` türü metotlar exception fırlatmaz, `AtomicBoolean` ile eşzamanlı çalışmayı engeller.
+### Web (`web/`)
+Bkz. `web/README.md`. TypeScript strict, CSS Modules + tasarım token'ları, kendi i18n (tr/en/ar, Arapçada RTL — mantıksal CSS özellikleri), react-query, token'lar `sessionStorage`. Yeni sayfa yalnızca kendi dosyasında; rotalar `routes.tsx`, menü `layouts/adminNav.ts`. `npm run lint && typecheck && test && build` yeşil olmalı.
 
-### Mobil (Flutter)
-
-- **Tek API katmanı:** ağ çağrıları tek yardımcı üzerinden yapılır (şu an `getJson` ve `apiBase`). Yeni ekranlar `http.get` çağırmaz; bu katmanı kullanır/genişletir. Auth eklenince token ekleme, 401'de refresh ve hata eşleme de yalnızca burada olmalı.
-- **Durumlar:** her liste/ekran yükleniyor, hata ("Sunucuya ulaşılamadı"), boş ("Henüz içerik yok") ve **bakım** (`/status` → `MaterialBanner`) durumlarını ele almalıdır; bakımda eski veri gösterilmeye devam edilir.
-- **Arayüz metinleri Türkçe**, tarihler `gg.aa.yyyy` (`_fmtDate`).
-- Mobil asla kaynak siteleri (bingol.edu.tr, sks.bingol.edu.tr) doğrudan çağırmaz; yalnızca backend API'si. (Haber "Kaynak sayfada aç" bağlantısı kullanıcı eylemiyle tarayıcıyı açar, scraping değildir.)
+### Mobil (Flutter) — ertelendi
+Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım durumları, kaynak sitelere doğrudan istek yok.
 
 ## 4. Güvenlik kuralları (kesin)
-
-1. **Sırlar kodda ve commit'te olmaz.** `JWT_SECRET`, `MAIL_*`, `ADMIN_PASSWORD` yalnızca ortam değişkeniyle verilir. `application.properties` içindeki `dev-only-...` JWT varsayılanı yalnızca yerel geliştirme içindir; üretimde mutlaka ezilir. `.env`, anahtar/sertifika dosyaları ve `backend/data/` commit'lenmez.
-2. **Kayıt yalnızca `bingol.edu.tr` e-postalarıyla** (alt alanlar dahil, örn. `ogr.bingol.edu.tr`) yapılır (`AuthService.UNIVERSITY_EMAIL`). **E-posta doğrulaması şarttır:** doğrulanmamış hesap giriş yapamaz (`EMAIL_NOT_VERIFIED`) ve refresh edemez. E-postalar küçük harfe normalize edilir.
-3. **Token'lar:** access token kısa ömürlü JWT (`jwt.access-ttl-minutes=15`). Refresh token opak, **tek kullanımlık** (her `/refresh`'te döner, `getAndDelete`) ve Redis'te yalnızca **SHA-256 hash'i** saklanır. Doğrulama kodları da hash'li ve 10 dk ömürlüdür, 5 yanlış denemede iptal olur. Parolalar BCrypt ile saklanır.
-4. **Auth uçlarında rate limit zorunlu** (`RateLimiter.check`): register, resend-code, verify-email, login (IP + e-posta), refresh. Yeni bir auth ucu eklerseniz limit koymadan birleştirmeyin.
-5. **Enumerasyona karşı genel cevaplar:** login yanlış e-posta/şifrede aynı hatayı döner (`INVALID_CREDENTIALS`); `resend-code` hesap var/yok fark etmeksizin aynı cevabı verir; geçersiz/süresi dolmuş/doğrulanmış hesap kodları tek mesajla (`INVALID_CODE`) döner. Yeni uçlarda kullanıcı veya e-posta varlığını sızdırmayın.
-6. **`/api/admin/**` yalnızca ADMIN** rolüne açıktır (Basic auth, `spring.security.user.*`); JWT ile giriş yapan kullanıcılar `ROLE_USER` alır ve admin uçlarına giremez. Bu eşlemeyi gevşetmeyin. Diğer tüm uçlar varsayılan olarak `authenticated()`; yalnızca `SecurityConfig`'te açıkça `permitAll` yazılanlar herkese açıktır.
-7. **Dev modunda doğrulama kodunu log'a yazma yalnızca `app.mail.enabled=false` iken** yapılır (`MailService`). Üretimde `MAIL_ENABLED=true` olmalı; kodları veya token'ları başka hiçbir koşulda log'lamayın.
+1. **Sırlar kodda/commit'te olmaz.** `.env`, anahtarlar, FCM JSON'u, `data/` commit'lenmez. Varsayılan `dev-only-…` JWT anahtarı yalnızca yerel içindir.
+2. **Kayıt yalnızca `bingol.edu.tr`** (alt alanlar dahil) ve **sözleşme kabulüyle** (`acceptTerms=true`; onaylar `legal_acceptance`'a yazılır). **E-posta doğrulaması şart.**
+3. **Token'lar:** access JWT 15 dk (`role` claim'i içerir); refresh opak, tek kullanımlık, Redis'te hash'li. Doğrulama kodları hash'li, 10 dk, 5 deneme.
+4. **Auth ve yazma uçlarında rate limit zorunlu** (`RateLimiter`); yeni uç → limit.
+5. **Enumerasyona karşı genel cevaplar** (login, resend-code, geçersiz kod).
+6. **`/api/admin/**` yalnızca ADMIN.** Askıya alınan kullanıcı Redis anahtarıyla anında reddedilir (HTTP ve WebSocket). Yönetici kendini silemez/rolünü düşüremez; son yönetici korunur.
+7. **Doğrulama kodu log'a yalnız `app.mail.enabled=false` iken** yazılır.
+8. **KVKK:** hesap silme = anonimleştirme; `GET /api/users/me/export`; yeni kişisel veri tutan modül `DataExporter` ekler. Analitik toplulaştırılmıştır; olaylar 180 gün saklanır.
+9. Yüklemeler: tür/boyut doğrulanır, dosya adı sunucuda üretilir; yalnızca `FileStorage` üzerinden.
+10. Push kampanya URL hedefi yalnızca `https://`; CSV dışa aktarımda hücre kaçışı (CSV enjeksiyonu).
 
 ## 5. Scraping kuralları (kesin)
-
-- **Siteye yalnızca zamanlayıcı istek atar** (ve tablo boşken tek seferlik ilk doldurma / ADMIN manuel tetikleme). API isteği sırasında veya mobil tarafından kaynak siteye **asla** istek atılmaz; API yalnızca DB'den okur.
-- **Mevcut kayıtlar tekrar çekilmez:** haberlerde `repo.existsByUrl(url)` ile atlanır; yalnızca yeni kayıtların detay sayfası indirilir. Yemekte yalnızca değişen günler yazılır.
-- **İstekler arası bekleme:** haber detay istekleri arasında `REQUEST_DELAY_MS = 500`. Yeni scraper'larda da benzer bekleme ve zaman aşımı (`timeout`) kullanın; açık bir User-Agent gönderin.
-- **Hata/yapı değişikliğinde exception fırlatma:** beklenen yapı yoksa (boş liste, tablo yok) veya site ulaşılamazsa `StatusService.markMaintenance(...)` çağırın, eski veriyi sunmaya devam edin, loglayın. Senkronizasyon metodu çağıranına exception sızdırmaz.
-- **`http://` linkler `https://`'e çevrilir** (`replaceFirst("^http://", "https://")`).
-- **Kaynaklar:**
-  - Haber/duyuru/etkinlik: `https://www.bingol.edu.tr/buproject/HaberDuyuruEtkinlik.aspx?tip=0|1|2&dil=tr` (`tip`: 0 duyuru, 1 haber, 2 etkinlik — `ContentType.siteCode()`). Detay içeriği yalnızca `www.bingol.edu.tr` sayfalarında `div.sade` içinden alınır.
-  - Yemek: `https://sks.bingol.edu.tr/yemek-listesi` — **ayda bir, ayın son günü 23:30**.
-- Cron değerlerini sıklaştırmayın; kaynak siteye yük bindirmek yasaktır.
+- Kaynak siteye **yalnızca zamanlayıcı** (ve boş tabloda tek seferlik ilk doldurma / ADMIN manuel tetikleme) istek atar; API isteği sırasında asla.
+- Mevcut kayıtlar tekrar çekilmez; istekler arası bekleme (500 ms), zaman aşımı, açık User-Agent. Yapı değişirse exception yok → `markMaintenance`, eski veri sunulur. `http://` linkleri `https://`'e çevrilir.
+- Kaynaklar: `https://www.bingol.edu.tr/buproject/HaberDuyuruEtkinlik.aspx?tip=0|1|2&dil=tr` ve `https://sks.bingol.edu.tr/yemek-listesi` (ayda bir). Cron'ları sıklaştırmayın.
 
 ## 6. Git ve commit kuralları
-
-- Küçük, odaklı commit'ler; mesajlar Türkçe veya İngilizce olabilir ama açık olmalı (ne ve neden).
-- `main`'e doğrudan itmeden önce **derleme geçmeli** (bkz. Bölüm 2, Docker komutu); testi olan değişiklikte test de.
-- Repo **private**'tır; yine de sır içeren hiçbir dosya (`.env`, anahtar, gerçek parola/SMTP bilgisi, `data/` DB dosyaları) eklenmez. `git add` öncesi `git status` ile kontrol edin.
-- Şu an çalışma dizini git deposu olmayabilir; commit'e geçmeden önce `git init`/remote durumunu kontrol edin.
+- Küçük, odaklı commit'ler; açık mesaj. `main`'e itmeden önce **derleme + testler + ilgili duman betikleri geçmeli**.
+- Repo **private**; `git add` öncesi `git status` ile `.env`/sır/`node_modules`/`.claude/worktrees` olmadığını kontrol edin.
+- Paralel ajan çalışması: her ajan kendi git worktree'sinde, ayrı Flyway aralığı ve ayrı Docker portu/proje adıyla (`COMPOSE_PROJECT_NAME`, `BACKEND_PORT`) çalışır; birleştirmede migration indeks adı ve bean adı çakışmalarına bakın.
 
 ## 7. Yapma listesi
-
-- Kaynak siteyi istek sırasında, mobilden veya sık aralıkla çekme.
-- Scraper hatasında exception fırlatıp API'yi 500'e düşürme; bakım durumunu kullanma.
-- Sır/parola/anahtarı koda, loga, commit'e veya örnek dosyaya gerçek değerle yazma.
-- Rate limit'siz auth ucu ekleme; kullanıcı/e-posta varlığını ele veren cevap yazma.
-- `/api/admin/**` yetkisini gevşetme; entity'yi doğrudan API cevabı yapma.
-- Dosyalara BOM ekleme; `target/` ve `data/` çıktılarını düzenleme/commit'leme.
-- İstenmeden yeni dokümantasyon dosyası üretme; mevcut dosyaları düzenlemeyi tercih et.
+- Kaynak siteyi istek sırasında/mobilden/sık çekme; scraper hatasında 500'e düşme.
+- Sır yazma; rate limit'siz uç; kullanıcı varlığını sızdıran cevap; admin yetkisini gevşetme; entity'yi API cevabı yapma.
+- Uygulanmış migration'ı düzenleme; çeviri anahtarsız hata kodu; iç içe depo arayüzü.
+- BOM eklemek; `target/`, `data/`, `node_modules/`, `dist/` commit'lemek.
 
 ## 8. Bilinen sınırlamalar
-
-- **Haberlerde yalnızca ilk sayfa** (liste başına 20 kayıt) çekilir; eski kayıtların geriye dönük doldurulması yoktur.
-- **Harici sitelerdeki duyurularda içerik yoktur:** `www.bingol.edu.tr` dışı bağlantılar için `content` boş kalır, mobil "Kaynak sayfada aç" butonunu gösterir.
-- **Rate limit sabit pencere** (fixed window) mantığındadır ve **IP için `getRemoteAddr()`** kullanır. Reverse proxy/yük dengeleyici arkasında tüm istekler proxy IP'si gibi görünür; üretimde `X-Forwarded-For` işlemesi (ör. `server.forward-headers-strategy`) doğru ayarlanmalıdır, aksi halde limit herkesi ortak sayar.
-- **`/api/auth/register`**, doğrulanmış bir e-posta için `EMAIL_ALREADY_REGISTERED` (409) döner; bu, bingol.edu.tr adresleri için sınırlı bir enumerasyon sızıntısıdır (bilinen taviz; değiştirilecekse mobil akışla birlikte).
-- **Mesajlaşma henüz yok:** WebSocket/Redis/Bucket4j bağımlılıkları eklenmiştir ama mesajlaşma yazılmamıştır; mobilde de henüz giriş/kayıt ekranları yoktur (auth yalnızca backend'dedir).
-- Mobil kod bu makinede derlenip test edilemez (Flutter yok).
+- Haberlerde yalnızca ilk sayfa (20 kayıt/tür) çekilir; harici alt sitelerdeki duyurularda içerik yoktur.
+- Rate limit sabit pencere; IP `getRemoteAddr()` — proxy arkasında `X-Forwarded-For` ayarlanmalı (`server.forward-headers-strategy`).
+- `register`, doğrulanmış e-posta için 409 döner (sınırlı enumerasyon; bilinen taviz).
+- Şifre sıfırlama yok. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
+- Sözleşme metinleri **taslaktır**, hukuki inceleme gerekir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
+- Mobil uygulama ertelendi; Flutter bu makinede yok.

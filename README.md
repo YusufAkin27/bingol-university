@@ -4,8 +4,11 @@
 - `mobile/`  — Flutter (Android)
 
 ## Backend
-Docker gerekir: `cp .env.example .env` (degerleri doldurun) → `docker compose up -d --build` → http://localhost:8080/api/status
-PostgreSQL + Redis + backend birlikte ayaga kalkar. Testler: bkz. CLAUDE.md.
+Docker gerekir: `cp .env.example .env` (degerleri doldurun) → `docker compose up -d --build` → http://localhost:8080/actuator/health
+PostgreSQL + Redis + backend birlikte ayaga kalkar. Ayrintilar: CLAUDE.md. API planlari: docs/.
+
+## Web (tanitim sitesi + yonetim paneli)
+`web/` klasoru (React + TypeScript). Bkz. web/README.md.
 
 ## Mobile
 Flutter SDK kurulu degilse once kurun. Ardindan:
