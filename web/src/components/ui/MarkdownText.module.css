@@ -1,0 +1,28 @@
+.md {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 70ch;
+  line-height: var(--leading-body);
+}
+.md h3 {
+  font-size: var(--text-xl);
+  margin-block-start: var(--space-4);
+}
+.md h4 {
+  font-size: var(--text-lg);
+  margin-block-start: var(--space-3);
+}
+.md h5 {
+  font-size: var(--text-base);
+}
+.md ul,
+.md ol {
+  margin: 0;
+  padding-inline-start: 1.4em;
+  display: grid;
+  gap: var(--space-1);
+}
+.md a {
+  color: var(--link);
+  font-weight: 600;
+}

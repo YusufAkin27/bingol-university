@@ -1,0 +1,34 @@
+/** Tüm rota yolları tek yerde; menü, bağlantı ve routes.tsx buradan beslenir. */
+export const paths = {
+  site: {
+    home: '/',
+    about: '/about',
+    features: '/features',
+    download: '/download',
+    faq: '/faq',
+    contact: '/contact',
+    dataRequest: '/data-request',
+    legal: (type: string) => `/legal/${type.toLowerCase().replace(/_/g, '-')}`,
+  },
+  admin: {
+    login: '/admin/login',
+    dashboard: '/admin',
+    users: '/admin/users',
+    user: (id: number | string) => `/admin/users/${id}`,
+    analytics: (tab?: 'overview' | 'growth' | 'engagement' | 'retention' | 'demographics') =>
+      `/admin/analytics${tab ? `/${tab}` : ''}`,
+    reports: '/admin/reports',
+    tickets: '/admin/support/tickets',
+    ticket: (id: number | string) => `/admin/support/tickets/${id}`,
+    feedback: '/admin/support/feedback',
+    legal: '/admin/content/legal',
+    faq: '/admin/content/faq',
+    news: '/admin/content/news',
+    communities: '/admin/communities',
+    events: '/admin/events',
+    campaigns: '/admin/campaigns',
+    campaignNew: '/admin/campaigns/new',
+    settings: '/admin/settings',
+    audit: '/admin/audit',
+  },
+} as const;

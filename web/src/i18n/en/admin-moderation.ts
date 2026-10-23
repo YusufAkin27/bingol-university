@@ -1,0 +1,20 @@
+const m = {
+  'admin.reports.title': 'Reports',
+  'admin.reports.subtitle': 'Review content flagged by users and decide.',
+  'admin.reports.resolution.DISMISS': 'Dismiss',
+  'admin.reports.resolution.HIDE': 'Hide content',
+  'admin.reports.resolution.WARN': 'Warn',
+  'admin.reports.resolution.SUSPEND_USER': 'Suspend user',
+  'admin.reports.reason.SPAM': 'Spam',
+  'admin.reports.reason.HARASSMENT': 'Harassment',
+  'admin.reports.reason.INAPPROPRIATE': 'Inappropriate content',
+  'admin.reports.reason.IMPERSONATION': 'Impersonation',
+  'admin.reports.reason.OTHER': 'Other',
+  'admin.communities.title': 'Communities',
+  'admin.communities.subtitle': 'Review communities waiting for approval.',
+  'admin.events.title': 'Events',
+  'admin.events.subtitle': 'Approve events created by users.',
+  'admin.review.approve': 'Approve',
+  'admin.review.reject': 'Reject',
+} as const;
+export default m;

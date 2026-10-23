@@ -1,0 +1,42 @@
+.badge,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.neutral {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.info {
+  background: var(--info-soft);
+  color: var(--info);
+}

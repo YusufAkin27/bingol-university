@@ -1,0 +1,102 @@
+/**
+ * TÜM rotalar burada, TEK dosyada. Sayfalar React.lazy ile bölünür; her sayfa kendi dosyasında yaşar.
+ * Yeni sayfa: (1) pages/... altında dosyayı aç, (2) aşağıya lazy satırı + <Route> ekle,
+ * (3) yönetim menüsünde görünecekse layouts/adminNav.ts'e öğe ekle, (4) yolu paths.ts'e yaz.
+ */
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { RequireAdmin } from './auth/RequireAdmin';
+import { Spinner } from './components/ui/Feedback';
+import { AdminLayout } from './layouts/AdminLayout';
+import { SiteLayout } from './layouts/SiteLayout';
+
+// --- tanıtım sitesi ---
+const HomePage = lazy(() => import('./pages/site/HomePage'));
+const AboutPage = lazy(() => import('./pages/site/AboutPage'));
+const FeaturesPage = lazy(() => import('./pages/site/FeaturesPage'));
+const DownloadPage = lazy(() => import('./pages/site/DownloadPage'));
+const FaqPage = lazy(() => import('./pages/site/FaqPage'));
+const ContactPage = lazy(() => import('./pages/site/ContactPage'));
+const LegalPage = lazy(() => import('./pages/site/LegalPage'));
+const DataRequestPage = lazy(() => import('./pages/site/DataRequestPage'));
+const NotFoundPage = lazy(() => import('./pages/site/NotFoundPage'));
+
+// --- yönetim paneli ---
+const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
+const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
+const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
+const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
+const TicketsPage = lazy(() => import('./pages/admin/TicketsPage'));
+const TicketDetailPage = lazy(() => import('./pages/admin/TicketDetailPage'));
+const FeedbackPage = lazy(() => import('./pages/admin/FeedbackPage'));
+const LegalAdminPage = lazy(() => import('./pages/admin/LegalAdminPage'));
+const FaqAdminPage = lazy(() => import('./pages/admin/FaqAdminPage'));
+const NewsAdminPage = lazy(() => import('./pages/admin/NewsAdminPage'));
+const CommunitiesAdminPage = lazy(() => import('./pages/admin/CommunitiesAdminPage'));
+const EventsAdminPage = lazy(() => import('./pages/admin/EventsAdminPage'));
+const CampaignsPage = lazy(() => import('./pages/admin/CampaignsPage'));
+const CampaignComposePage = lazy(() => import('./pages/admin/CampaignComposePage'));
+const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
+const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
+const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
+
+function PageFallback() {
+  return (
+    <div style={{ display: 'grid', placeItems: 'center', minHeight: '50vh' }}>
+      <Spinner size="lg" />
+    </div>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {/* Herkese açık site */}
+        <Route element={<SiteLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="features" element={<FeaturesPage />} />
+          <Route path="download" element={<DownloadPage />} />
+          <Route path="faq" element={<FaqPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="legal/:type" element={<LegalPage />} />
+          <Route path="data-request" element={<DataRequestPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+
+        {/* Yönetim: giriş sayfası korumasızdır */}
+        <Route path="admin/login" element={<LoginPage />} />
+        <Route
+          path="admin"
+          element={
+            <RequireAdmin>
+              <AdminLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route index element={<DashboardPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="users/:id" element={<UserDetailPage />} />
+          <Route path="analytics/:tab?" element={<AnalyticsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="support/tickets" element={<TicketsPage />} />
+          <Route path="support/tickets/:id" element={<TicketDetailPage />} />
+          <Route path="support/feedback" element={<FeedbackPage />} />
+          <Route path="content/legal" element={<LegalAdminPage />} />
+          <Route path="content/faq" element={<FaqAdminPage />} />
+          <Route path="content/news" element={<NewsAdminPage />} />
+          <Route path="communities" element={<CommunitiesAdminPage />} />
+          <Route path="events" element={<EventsAdminPage />} />
+          <Route path="campaigns" element={<CampaignsPage />} />
+          <Route path="campaigns/new" element={<CampaignComposePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="audit" element={<AuditPage />} />
+          <Route path="*" element={<AdminNotFoundPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
+  );
+}

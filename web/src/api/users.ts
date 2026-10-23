@@ -1,0 +1,19 @@
+import { api, apiBlob } from './client';
+import type { AdminUserDetail, AdminUserRow, BasicStats, Page, Role, UserListParams } from './types';
+
+export const listUsers = (p: UserListParams = {}) => api.get<Page<AdminUserRow>>('/admin/users', { ...p });
+export const getUser = (id: number) => api.get<AdminUserDetail>(`/admin/users/${id}`);
+export const setUserRole = (id: number, role: Role) => api.patch(`/admin/users/${id}/role`, { role });
+/** Hesabı anonimleştirir (hesap silmeyle aynı mantık); kendini silemez. */
+export const deleteUser = (id: number) => api.del(`/admin/users/${id}`);
+export const suspendUser = (id: number, reason?: string) =>
+  api.post(`/admin/users/${id}/suspend`, { reason });
+export const unsuspendUser = (id: number) => api.post(`/admin/users/${id}/unsuspend`);
+
+/** CSV (UTF-8 BOM, en çok 50.000 satır). Aynı filtreler; sayfalama alanları yoksayılır. */
+export function exportUsersCsv(p: Omit<UserListParams, 'page' | 'size'> = {}): Promise<Blob> {
+  return apiBlob('/admin/users/export.csv', { query: { ...p } });
+}
+
+/** Basit sayaçlar (genel bakış için hafif uç). */
+export const getBasicStats = () => api.get<BasicStats>('/admin/stats');

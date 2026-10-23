@@ -1,0 +1,33 @@
+.wrap {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+}
+.card {
+  max-width: 440px;
+  text-align: center;
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.title {
+  font-size: var(--text-xl);
+}
+.hint {
+  color: var(--text-muted);
+}

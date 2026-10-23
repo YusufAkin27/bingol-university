@@ -1,0 +1,73 @@
+.region {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: 300;
+  pointer-events: none;
+  display: flex;
+  justify-content: flex-end;
+}
+.stack {
+  display: grid;
+  gap: var(--space-2);
+  width: min(100%, 380px);
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-sm);
+  animation: toast-in 0.2s var(--ease);
+}
+.success {
+  border-inline-start-color: var(--success);
+}
+.success svg {
+  color: var(--success);
+}
+.error {
+  border-inline-start-color: var(--danger);
+}
+.error svg {
+  color: var(--danger);
+}
+.info {
+  border-inline-start-color: var(--info);
+}
+.info svg {
+  color: var(--info);
+}
+.toast > svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+.msg {
+  flex: 1;
+}
+.close {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+}
+.close:hover {
+  color: var(--text);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
