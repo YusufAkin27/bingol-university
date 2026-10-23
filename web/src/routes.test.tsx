@@ -81,8 +81,8 @@ describe('yönlendirme', () => {
       </AuthProvider>,
       { route: '/admin/users' },
     );
-    expect(await screen.findByTestId('placeholder-page')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: 'Kullanıcılar' })).toBeInTheDocument();
+    // /admin/users artık gerçek sayfa (yer tutucu değil)
+    expect(await screen.findByRole('heading', { level: 1, name: 'Kullanıcılar' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: undefined })).toBeTruthy();
   });
 
