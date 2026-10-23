@@ -62,14 +62,16 @@ check "engelli profil 404" 404 "$(code -H "$AUTH2" $A/users/$ID1)"
 check "engel kaldir" 204 "$(code -X DELETE -H "$AUTH2" $A/users/$ID1/block)"
 
 echo "== rapor ve yonetim"
-check "rapor" 201 "$(code -X POST -H "$H" -H "$AUTH1" $A/reports -d "{\"targetType\":\"USER\",\"targetId\":$ID2,\"reason\":\"SPAM\"}")"
+RPT=$(curl -s -w " [%{http_code}]" -X POST -H "$H" -H "$AUTH1" $A/reports -d "{\"targetType\":\"USER\",\"targetId\":$ID2,\"reason\":\"SPAM\"}")
+check "rapor" "201" "$(echo "$RPT" | grep -o "[0-9]*]$" | tr -d "]")"
+RID=$(echo "$RPT" | grep -o "\"id\":[0-9]*" | head -1 | cut -d: -f2)
 check "ayni rapor 409" 409 "$(code -X POST -H "$H" -H "$AUTH1" $A/reports -d "{\"targetType\":\"USER\",\"targetId\":$ID2,\"reason\":\"SPAM\"}")"
 check "kendini raporlama" 400 "$(code -X POST -H "$H" -H "$AUTH1" $A/reports -d "{\"targetType\":\"USER\",\"targetId\":$ID1,\"reason\":\"SPAM\"}")"
 check "normal kullanici admin 403" 403 "$(code -H "$AUTH1" $A/admin/stats)"
 if [ -n "$TA" ]; then
   AUTHA="Authorization: Bearer $TA"
   check "admin stats" 200 "$(code -H "$AUTHA" $A/admin/stats)"
-  RID=$(curl -s -H "$AUTHA" "$A/admin/reports" | idof)
+  # (RID: yukarida olusturulan raporun id si)
   check "rapor coz (askiya al)" 204 "$(code -X POST -H "$H" -H "$AUTHA" $A/admin/reports/$RID/resolve -d '{"action":"SUSPEND_USER","message":"test"}')"
   check "askidaki kullanici token'i gecersiz" 401 "$(code -H "$AUTH2" $A/users/me)"
   check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Sifre1234\"}")"
