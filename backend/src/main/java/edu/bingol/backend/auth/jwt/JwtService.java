@@ -1,8 +1,8 @@
 package edu.bingol.backend.auth.jwt;
 
 import edu.bingol.backend.config.JwtProperties;
+import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.User;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 /** Kisa omurlu access token (JWT, HS256). Refresh token'lar opak ve Redis'te tutulur (RefreshTokenService). */
 @Service
 public class JwtService {
+
+    /** Gecerli bir token'dan okunan kimlik. */
+    public record Identity(Long userId, Role role) {}
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private static final String DEV_SECRET_PREFIX = "dev-only-secret";
@@ -47,17 +50,19 @@ public class JwtService {
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
+                .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTtl.toMillis()))
                 .signWith(key)
                 .compact();
     }
 
-    /** Gecerliyse kullanici id'sini doner, degilse null. */
-    public Long parseUserId(String token) {
+    /** Gecerliyse kimligi doner, degilse null. */
+    public Identity parse(String token) {
         try {
             Claims c = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-            return Long.valueOf(c.getSubject());
+            String role = c.get("role", String.class);
+            return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role));
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }

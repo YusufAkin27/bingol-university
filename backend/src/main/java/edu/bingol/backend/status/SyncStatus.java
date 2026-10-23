@@ -2,6 +2,8 @@ package edu.bingol.backend.status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import java.time.Instant;
 import lombok.Getter;
@@ -23,6 +25,8 @@ public class SyncStatus {
 
     private Instant lastSuccessAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
     private State state = State.OK;
 
     @Column(length = 500)

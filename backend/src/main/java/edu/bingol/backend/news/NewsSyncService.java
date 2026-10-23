@@ -1,6 +1,8 @@
 package edu.bingol.backend.news;
 
 import edu.bingol.backend.config.SyncProperties;
+import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.status.StatusService;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,8 +29,11 @@ public class NewsSyncService {
     private final StatusService status;
     private final AtomicBoolean running = new AtomicBoolean();
     private final SyncProperties props;
+    private final NotificationService notifications;
 
-    public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props) {
+    public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props,
+                           NotificationService notifications) {
+        this.notifications = notifications;
         this.props = props;
         this.scraper = scraper;
         this.repo = repo;
@@ -57,10 +62,12 @@ public class NewsSyncService {
             return added;
         }
         try {
+            // Veritabani bossa (ilk dolum) kimseye bildirim gonderme
+            boolean notify = repo.count() > 0;
             List<String> failures = new ArrayList<>();
             for (ContentType type : ContentType.values()) {
                 try {
-                    added.put(type, syncType(type));
+                    added.put(type, syncType(type, notify));
                 } catch (Exception e) {
                     log.warn("{} senkronizasyonu basarisiz: {}", type, e.toString());
                     failures.add(type + ": " + e.getMessage());
@@ -81,13 +88,14 @@ public class NewsSyncService {
         return added;
     }
 
-    private int syncType(ContentType type) throws Exception {
+    private int syncType(ContentType type, boolean notify) throws Exception {
         List<NewsScraper.ListEntry> entries = scraper.fetchList(type);
         if (entries.isEmpty()) {
             // Sayfa yapisi degismis olabilir.
             throw new IllegalStateException("liste bos / beklenen yapi bulunamadi");
         }
         int count = 0;
+        List<NewsItem> fresh = new ArrayList<>();
         for (NewsScraper.ListEntry e : entries) {
             if (repo.existsByUrl(e.url())) {
                 continue;
@@ -104,11 +112,38 @@ public class NewsSyncService {
                 item.setSummary(NewsScraper.summarize(d.content()));
                 item.setImageUrl(d.imageUrl());
             }
-            repo.save(item);
+            fresh.add(repo.save(item));
             count++;
             Thread.sleep(REQUEST_DELAY_MS);
         }
+        if (notify) {
+            notifyNew(type, fresh);
+        }
         return count;
+    }
+
+    /** En fazla 3 yeni kayit tek tek, fazlasi tek ozet bildirim olarak gider (gece toplu cekimde bildirim yagmuru olmasin). */
+    private void notifyNew(ContentType type, List<NewsItem> fresh) {
+        if (fresh.isEmpty()) {
+            return;
+        }
+        NotificationType nt = switch (type) {
+            case HABER -> NotificationType.NEWS;
+            case DUYURU -> NotificationType.ANNOUNCEMENT;
+            case ETKINLIK -> NotificationType.EVENT;
+        };
+        if (fresh.size() <= 3) {
+            for (NewsItem n : fresh) {
+                notifications.broadcast(nt, n.getTitle(), n.getSummary(), java.util.Map.of("newsId", String.valueOf(n.getId())));
+            }
+        } else {
+            String label = switch (type) {
+                case HABER -> "yeni haber";
+                case DUYURU -> "yeni duyuru";
+                case ETKINLIK -> "yeni etkinlik";
+            };
+            notifications.broadcast(nt, fresh.size() + " " + label, fresh.get(0).getTitle(), java.util.Map.of());
+        }
     }
 
     private static String truncate(String s, int max) {

@@ -6,6 +6,9 @@ import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.config.AdminProperties;
+import edu.bingol.backend.user.Role;
+import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.util.Locale;
@@ -26,9 +29,11 @@ public class AuthService {
     private final JwtService jwt;
     private final RefreshTokenService refresh;
     private final VerificationService verification;
+    private final AdminProperties admin;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
-                       RefreshTokenService refresh, VerificationService verification) {
+                       RefreshTokenService refresh, VerificationService verification, AdminProperties admin) {
+        this.admin = admin;
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
@@ -78,6 +83,7 @@ public class AuthService {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
             }
             user.setEmailVerified(true);
+            promoteIfAdmin(user);
             users.save(user);
         } else {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
@@ -94,12 +100,16 @@ public class AuthService {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Giriş için önce e-posta adresinizi doğrulayın.");
         }
+        requireActive(user);
+        if (promoteIfAdmin(user)) {
+            users.save(user);
+        }
         return tokens(user);
     }
 
     public TokenResponse refresh(String refreshToken) {
         Long userId = refresh.consume(refreshToken);
-        User user = userId == null ? null : users.findById(userId).filter(User::isEmailVerified).orElse(null);
+        User user = userId == null ? null : users.findById(userId).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
         if (user == null) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "Oturum süresi doldu, tekrar giriş yapın.");
         }
@@ -114,6 +124,25 @@ public class AuthService {
         User u = users.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
         return new UserView(u.getId(), u.getEmail(), u.getDisplayName());
+    }
+
+    /** Askiya alinmis hesaplar giris yapamaz; silinmis hesaplar hic var olmamis gibi davranir. */
+    private static void requireActive(User user) {
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alınmıştır.");
+        }
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
+        }
+    }
+
+    /** app.admin.emails listesindeki adresler ADMIN olur. Rol degistiyse true. */
+    private boolean promoteIfAdmin(User user) {
+        if (user.getRole() != Role.ADMIN && admin.isAdminEmail(user.getEmail())) {
+            user.setRole(Role.ADMIN);
+            return true;
+        }
+        return false;
     }
 
     private TokenResponse tokens(User user) {

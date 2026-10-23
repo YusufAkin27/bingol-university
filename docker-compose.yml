@@ -33,7 +33,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/bingol
       DB_USER: bingol
@@ -47,7 +47,12 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_FROM: ${MAIL_FROM:-no-reply@bingol.edu.tr}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      STORAGE_DIR: /data/uploads
+      FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
       TZ: Europe/Istanbul
+    volumes:
+      - uploads:/data/uploads
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/8080 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
       interval: 15s
@@ -58,3 +63,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  uploads:

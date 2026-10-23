@@ -9,7 +9,7 @@ RUN mvn -q -B -DskipTests package
 # --- calistirma ---
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-RUN useradd --system --uid 1001 app
+RUN useradd --system --uid 1001 app && mkdir -p /data/uploads && chown app /data/uploads
 COPY --from=build /build/target/*.jar app.jar
 USER app
 EXPOSE 8080

@@ -2,6 +2,8 @@ package edu.bingol.backend.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,6 +33,36 @@ public class User {
 
     private boolean emailVerified;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(length = 120)
+    private String department;
+
+    private Short classYear;
+
+    @Column(length = 300)
+    private String bio;
+
+    @Column(length = 300)
+    private String avatarUrl;
+
+    private boolean showEmail;
+
+    @Column(length = 300)
+    private String suspendedReason;
+
+    private Instant deletedAt;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    public boolean isActive() {
+        return status == UserStatus.ACTIVE;
+    }
 }

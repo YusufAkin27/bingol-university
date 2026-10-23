@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,7 +45,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, StringRedisTemplate redis) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
@@ -52,11 +53,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
-                .requestMatchers("/api/hello", "/actuator/health").permitAll()
+                .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()
                 .anyRequest().authenticated())
             // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*) korunur.
             .httpBasic(Customizer.withDefaults())
-            .addFilterBefore(new JwtAuthFilter(jwt), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthFilter(jwt, redis), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

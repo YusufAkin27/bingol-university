@@ -9,6 +9,8 @@ import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.config.AdminProperties;
+import java.util.List;
 import edu.bingol.backend.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,7 +22,7 @@ class AuthServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final VerificationService verification = mock(VerificationService.class);
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(),
-            mock(JwtService.class), mock(RefreshTokenService.class), verification);
+            mock(JwtService.class), mock(RefreshTokenService.class), verification, new AdminProperties(List.of()));
 
     @ParameterizedTest
     @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
