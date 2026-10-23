@@ -60,6 +60,14 @@ services:
       retries: 10
       start_period: 40s
 
+  # Tanıtım sitesi + /admin paneli (nginx; /api, /files, /ws backend'e vekillenir)
+  web:
+    build: ./web
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-8090}:80"
+
 volumes:
   pgdata:
   redisdata:

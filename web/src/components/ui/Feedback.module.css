@@ -1,0 +1,77 @@
+.spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border: 2.5px solid var(--border-strong);
+  border-top-color: var(--primary);
+  animation: spin 0.8s linear infinite;
+}
+.sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+.md {
+  width: 24px;
+  height: 24px;
+}
+.lg {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeleton {
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 2em;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-7) var(--space-4);
+  max-width: 460px;
+  margin-inline: auto;
+}
+.compact {
+  padding: var(--space-5) var(--space-4);
+}
+.stateIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.error .stateIcon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.stateTitle {
+  font-size: var(--text-lg);
+}
+.stateText {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

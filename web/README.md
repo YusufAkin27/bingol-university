@@ -1,0 +1,83 @@
+# Bingöl Üniversitesi Web
+
+Tek bir React uygulaması: herkese açık **tanıtım sitesi** (`/`) ve `/admin` altında **yönetim paneli**.
+Bu dizin iskelettir: kabuk, tasarım sistemi, API istemcisi, kimlik, i18n ve rota yer tutucuları hazırdır; sayfalar sırayla doldurulur.
+
+Yığın: Vite 5 · React 18 · TypeScript (strict) · react-router-dom 6 (`<Routes>`, `React.lazy`) · TanStack Query 5 · Recharts 2 ·
+CSS değişkenleri + CSS Modules (Tailwind yok) · Vitest + Testing Library · ESLint (typescript-eslint, react-hooks) + Prettier.
+Dış CDN/font bağımlılığı yoktur (yerel font yığınları, CSP `default-src 'self'`).
+
+## Kurulum ve komutlar
+
+```bash
+cd web
+npm install
+cp .env.example .env     # isteğe bağlı
+npm run dev              # http://localhost:5173  (/api, /files, /ws -> http://localhost:8080)
+npm run lint             # ESLint
+npm run typecheck        # tsc --noEmit (strict)
+npm run test             # Vitest (jsdom)
+npm run build            # typecheck + üretim derlemesi -> dist/
+npm run preview          # derlenmiş uygulama (http://localhost:4173, aynı proxy)
+npm run format           # Prettier
+```
+
+Docker: `docker build -t bingol-web ./web`. Kökten `docker compose up -d --build` → `web` servisi `http://localhost:${WEB_PORT:-8090}`
+(nginx: SPA fallback, `/api` `/files` `/ws` → `backend:8080`, gzip, uzun önbellek, CSP ve güvenlik başlıkları).
+
+## Ortam değişkenleri
+
+| Değişken | Varsayılan | Anlamı |
+|---|---|---|
+| `VITE_API_BASE` | `/api` | API taban yolu (derleme zamanı). Aynı kökenden proxy ile sunulduğu için çoğu zaman değişmez. |
+| `VITE_DEV_BACKEND` | `http://localhost:8080` | Yalnızca dev/preview: Vite proxy hedefi. |
+
+Docker: derleme `VITE_API_BASE=/api` ile yapılır; `WEB_PORT` (compose) dış portu belirler.
+
+## Klasör haritası (`src/`)
+
+| Klasör | İçerik |
+|---|---|
+| `api/` | `client.ts` (fetch, Bearer, `Accept-Language`, `ApiError`, tek-uçuş refresh), `types.ts` (tüm sözleşme tipleri), modül başına ince fonksiyonlar (`auth`, `appInfo`, `legal`, `faq`, `users`, `analytics`, `reports`, `support`, `feedback`, `campaigns`, `settings`, `approvals`, `news`, `audit`), `queryKeys.ts` (`qk`), `hooks.ts` (`useAppInfo`, `useStoreLinks`), `index.ts` |
+| `auth/` | `AuthProvider` (`useAuth`), `RequireAdmin`, `ForbiddenScreen`, `tokens.ts` (sessionStorage) |
+| `i18n/` | `lang.ts`, `I18nProvider` (`useI18n`: `t`, `td`, `formatDate`, `formatNumber`, `dir`), `index.ts` (birleştirici), `{tr,en,ar}/<ad-alanı>.ts` |
+| `components/ui/` | UI kiti (Button, Fields, Card/StatCard, Badge/StatusPill, Table, Pagination/LoadMore, Modal/Drawer/ConfirmDialog, Tabs, Toast, Feedback [Spinner/Skeleton/EmptyState/ErrorState], PageHeader, SearchInput, DateRangePicker, Tooltip, Avatar, CopyButton, MarkdownText, DataToolbar, Icon, ContourBackdrop). `import { ... } from '../../components/ui'` |
+| `components/charts/` | LineAreaChart, BarChart, DonutChart, FunnelChart, CohortTable (Recharts sarmalayıcıları; **ayrı içe aktarılır**, `ui`'dan çıkmaz) |
+| `components/` | `PlaceholderPage`, `Logo`, `StoreBadge`, `LanguageSwitcher`, `ThemeToggle`, `ErrorBoundary` |
+| `layouts/` | `SiteLayout`, `AdminLayout`, `adminNav.ts` (**menünün tek kaynağı**), `QuickNav`, `UserMenu` |
+| `pages/site/`, `pages/admin/` | Her sayfa kendi dosyasında; üstünde kullanacağı API uçlarını yazan yorum vardır |
+| `styles/` | `tokens.css` (renk, aralık, gölge, yarıçap, tipografi; açık/koyu/Arapça), `global.css` |
+| `lib/` | `storage.ts` (hata toleranslı), `theme.tsx`, `hooks.ts` (`useDebouncedValue`, `usePageTitle`), `date.ts`, `errors.ts` (`errorMessage`) |
+| `test/` | `setup.ts`, `utils.tsx` (`renderWithProviders`), `fetchMock.ts` |
+| kök | `routes.tsx` (TÜM rotalar), `paths.ts` (yol sabitleri), `App.tsx`, `main.tsx` |
+
+## Yeni sayfa nasıl eklenir
+
+1. `src/pages/admin/XPage.tsx` (veya `site/`) açın; **ilk satırlara hangi API uçlarını kullandığını** yorum olarak yazın. `export default` bileşen.
+2. `src/routes.tsx` içine `const XPage = lazy(() => import('./pages/admin/XPage'))` ve `<Route path="..." element={<XPage />} />` ekleyin.
+3. Yönetim menüsünde görünecekse `src/layouts/adminNav.ts` içine öğe ekleyin (yol `paths.ts`'ten).
+4. Metinleri **ilgili ad alanı dosyasına** üç dilde ekleyin (`i18n/tr|en|ar/<ad-alanı>.ts`). Anahtarlar `admin.<alan>.*`, `site.*`, `legal.*`, `common.*` önekiyle başlar.
+   Eksik anahtar derlemede (en/ar `Record<TranslationKey,string>`) ve testte (`i18n.test.tsx`: üç sözlüğün anahtar kümesi eşit, yer tutucular aynı) yakalanır.
+5. Veri için `src/api/*.ts` fonksiyonlarını ve `qk` anahtarlarını `useQuery`/`useMutation` ile kullanın. Hata metni: `errorMessage(useI18n(), err)`.
+6. Yer tutucuyu (`PlaceholderPage`) `PageHeader` + gerçek içerikle değiştirin. Yükleniyor/boş/hata durumlarını `Table`, `EmptyState`, `ErrorState` ile verin.
+
+Kurallar: mantıksal CSS (`margin-inline`, `inset-inline-start`…), renkler yalnızca `var(--…)` ile, sayı/e-posta gibi LTR içerik için `className="ltr"`,
+grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe aktaran sayfanın parçasına girer).
+
+## Kimlik ve oturum
+
+- `POST /api/auth/login` → token'lar **sessionStorage**'a (hata toleranslı; admin için localStorage kullanılmaz) → `GET /api/admin/me` ile rol doğrulanır.
+- ADMIN olmayan hesap "yetkiniz yok" ekranını görür (`ForbiddenScreen`). `RequireAdmin` `/admin/**`'i korur.
+- İstemci 401'de **tek-uçuşlu** refresh yapar (refresh token tek kullanımlıdır; eşzamanlı isteklerde tek `/auth/refresh`). Başarısızsa oturum kapanır ve `/admin/login`'e yönlenir.
+- Her istek `Accept-Language: tr|en|ar` taşır (seçim `localStorage` `bu.lang`).
+
+## Çok dillilik
+
+`tr` (varsayılan), `en`, `ar` (`<html dir="rtl" lang="ar">`). Harici kütüphane yok; `useI18n()`:
+`t('key', {param})`, `td(dinamikAnahtar, fallback)`, `formatDate/formatDateTime/formatNumber` (Latin rakamlı `ar`).
+
+## API sözleşmesi
+
+[docs/ADMIN_API.md](../docs/ADMIN_API.md) — tüm uçlar için tip (`api/types.ts`) ve fonksiyon yazılmıştır; henüz uygulanmamış yeni uçlar da sözleşmeye göredir.
+Not: `GET /api/app/info` mağaza bağlantısı vermez; `useStoreLinks()` `GET /api/app/version?platform=…` içindeki `storeUrl`'ü kullanır (sözleşmede `info.stores` gelirse onu öncelikler).
+CSP `img-src 'self' data:` olduğundan harici resimler (okul sitesi haber görselleri) gösterilecekse nginx CSP'si ve/veya backend vekili birlikte düşünülmelidir.

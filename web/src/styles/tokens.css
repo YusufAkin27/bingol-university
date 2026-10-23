@@ -1,0 +1,203 @@
+/*
+ * Tasarım belirteçleri. Kimlik: Bingöl dağları ve Murat Nehri'nden gelen soğuk lacivert tonları,
+ * kar beyazı yüzeyler ve tek bir kırmızı vurgu. Bileşenler yalnızca bu değişkenleri kullanır.
+ */
+:root {
+  color-scheme: light;
+
+  /* Marka */
+  --navy-900: #0e2347;
+  --navy-800: #142d57;
+  --navy-700: #1b3a6b;
+  --navy-600: #2a4f8c;
+  --navy-300: #8fb0ea;
+  --navy-100: #dfe8f7;
+  --red-600: #d53e35;
+  --red-700: #b3302a;
+
+  /* Anlamsal renkler (açık tema) */
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --surface-3: #e3e9f3;
+  --border: #d5ddea;
+  --border-strong: #b5c0d4;
+  --text: #101c33;
+  --text-muted: #53607a;
+  --text-faint: #6f7b93;
+  --primary: var(--navy-700);
+  --primary-hover: var(--navy-800);
+  --primary-contrast: #ffffff;
+  --primary-soft: #e4ebf8;
+  --accent: var(--red-600);
+  --accent-hover: var(--red-700);
+  --accent-contrast: #ffffff;
+  --accent-soft: #fbe6e4;
+  --link: #1b3a6b;
+  --focus: #2f6fe4;
+  --scrim: rgba(10, 20, 40, 0.55);
+
+  --success: #1b7a4b;
+  --success-soft: #dff3e8;
+  --warning: #8a5a00;
+  --warning-soft: #fcefd0;
+  --danger: #b3261e;
+  --danger-soft: #fbe3e1;
+  --info: #1d5fa8;
+  --info-soft: #dcebfa;
+
+  /* Grafik paleti (renk körlüğüne dayanıklı sıra) */
+  --chart-1: #2a4f8c;
+  --chart-2: #d53e35;
+  --chart-3: #1f8a8a;
+  --chart-4: #c68a10;
+  --chart-5: #7a5aa6;
+  --chart-6: #5f7f3a;
+  --chart-grid: #dde4ef;
+  --chart-axis: #53607a;
+
+  /* Aralıklar */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+
+  /* Yarıçap: küçük denetimler yumuşak, büyük yüzeyler biraz daha geniş */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Gölge */
+  --shadow-1: 0 1px 2px rgba(16, 28, 51, 0.06), 0 1px 1px rgba(16, 28, 51, 0.04);
+  --shadow-2: 0 4px 14px rgba(16, 28, 51, 0.09), 0 1px 3px rgba(16, 28, 51, 0.06);
+  --shadow-3: 0 18px 48px rgba(10, 20, 40, 0.22);
+
+  /* Tipografi: yerel yığınlar, dış CDN yok */
+  --font-sans:
+    system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-display:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Noto Serif', Georgia, serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+  --leading-tight: 1.2;
+  --leading-body: 1.6;
+
+  --header-h: 64px;
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 72px;
+  --content-max: 1200px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Koyu tema: sistem tercihi (elle açık seçilmediyse) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0a1220;
+    --surface: #111b30;
+    --surface-2: #17233c;
+    --surface-3: #1f2d4a;
+    --border: #26364f;
+    --border-strong: #3a4d70;
+    --text: #e8edf7;
+    --text-muted: #a2afc7;
+    --text-faint: #8493ae;
+    --primary: #8fb0ea;
+    --primary-hover: #b3c9f2;
+    --primary-contrast: #0a1426;
+    --primary-soft: #1b2b4a;
+    --accent: #f0746b;
+    --accent-hover: #f59a93;
+    --accent-contrast: #1c0b0a;
+    --accent-soft: #3a1b1a;
+    --link: #a9c3f0;
+    --focus: #7fb0ff;
+    --scrim: rgba(2, 6, 14, 0.7);
+    --success: #5fd596;
+    --success-soft: #11301f;
+    --warning: #f0c35c;
+    --warning-soft: #3a2c0b;
+    --danger: #ff8a82;
+    --danger-soft: #3b1816;
+    --info: #85bdf5;
+    --info-soft: #12293f;
+    --chart-1: #7fa6e8;
+    --chart-2: #f0746b;
+    --chart-3: #52c0c0;
+    --chart-4: #e0b04a;
+    --chart-5: #b79ae0;
+    --chart-6: #93bd6a;
+    --chart-grid: #26364f;
+    --chart-axis: #a2afc7;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
+    --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Koyu tema: elle seçim */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a1220;
+  --surface: #111b30;
+  --surface-2: #17233c;
+  --surface-3: #1f2d4a;
+  --border: #26364f;
+  --border-strong: #3a4d70;
+  --text: #e8edf7;
+  --text-muted: #a2afc7;
+  --text-faint: #8493ae;
+  --primary: #8fb0ea;
+  --primary-hover: #b3c9f2;
+  --primary-contrast: #0a1426;
+  --primary-soft: #1b2b4a;
+  --accent: #f0746b;
+  --accent-hover: #f59a93;
+  --accent-contrast: #1c0b0a;
+  --accent-soft: #3a1b1a;
+  --link: #a9c3f0;
+  --focus: #7fb0ff;
+  --scrim: rgba(2, 6, 14, 0.7);
+  --success: #5fd596;
+  --success-soft: #11301f;
+  --warning: #f0c35c;
+  --warning-soft: #3a2c0b;
+  --danger: #ff8a82;
+  --danger-soft: #3b1816;
+  --info: #85bdf5;
+  --info-soft: #12293f;
+  --chart-1: #7fa6e8;
+  --chart-2: #f0746b;
+  --chart-3: #52c0c0;
+  --chart-4: #e0b04a;
+  --chart-5: #b79ae0;
+  --chart-6: #93bd6a;
+  --chart-grid: #26364f;
+  --chart-axis: #a2afc7;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Arapça: Naskh/Tajawal benzeri yerel yığın; harf aralığı sıfır, satır yüksekliği biraz artırılır */
+:root:lang(ar) {
+  --font-sans:
+    'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, 'Geeza Pro', 'Droid Arabic Naskh', system-ui,
+    sans-serif;
+  --font-display:
+    'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', 'Geeza Pro', 'Droid Arabic Naskh', 'Segoe UI', serif;
+  --leading-body: 1.75;
+}

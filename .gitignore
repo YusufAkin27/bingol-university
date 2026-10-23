@@ -6,3 +6,7 @@ mobile/.dart_tool/
 .env
 .claude/worktrees/
 scripts/node_modules/
+
+web/node_modules/
+web/dist/
+web/coverage/

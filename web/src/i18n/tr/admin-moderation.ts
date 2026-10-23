@@ -1,0 +1,20 @@
+const m = {
+  'admin.reports.title': 'Raporlar',
+  'admin.reports.subtitle': 'Kullanıcıların bildirdiği içerikleri incele ve karar ver.',
+  'admin.reports.resolution.DISMISS': 'Reddet',
+  'admin.reports.resolution.HIDE': 'İçeriği gizle',
+  'admin.reports.resolution.WARN': 'Uyar',
+  'admin.reports.resolution.SUSPEND_USER': 'Kullanıcıyı askıya al',
+  'admin.reports.reason.SPAM': 'Spam',
+  'admin.reports.reason.HARASSMENT': 'Taciz',
+  'admin.reports.reason.INAPPROPRIATE': 'Uygunsuz içerik',
+  'admin.reports.reason.IMPERSONATION': 'Kimliğe bürünme',
+  'admin.reports.reason.OTHER': 'Diğer',
+  'admin.communities.title': 'Topluluklar',
+  'admin.communities.subtitle': 'Onay bekleyen toplulukları incele.',
+  'admin.events.title': 'Etkinlikler',
+  'admin.events.subtitle': 'Kullanıcıların oluşturduğu etkinlikleri onayla.',
+  'admin.review.approve': 'Onayla',
+  'admin.review.reject': 'Reddet',
+} as const;
+export default m;

@@ -1,0 +1,40 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-end: var(--space-5);
+}
+.text {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+.title {
+  font-size: var(--text-2xl);
+}
+.desc {
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.crumbs li:not(:last-child)::after {
+  content: '/';
+  margin-inline-start: var(--space-2);
+  color: var(--text-faint);
+}

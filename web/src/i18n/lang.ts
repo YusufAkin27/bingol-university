@@ -1,0 +1,50 @@
+import { readStorage, writeStorage } from '../lib/storage';
+
+export type Lang = 'tr' | 'en' | 'ar';
+export type Dir = 'ltr' | 'rtl';
+
+export const LANGS: { code: Lang; label: string; dir: Dir; locale: string }[] = [
+  { code: 'tr', label: 'Türkçe', dir: 'ltr', locale: 'tr-TR' },
+  { code: 'en', label: 'English', dir: 'ltr', locale: 'en-US' },
+  // Latin rakamlar: tablolar ve grafiklerde tutarlı okunur
+  { code: 'ar', label: 'العربية', dir: 'rtl', locale: 'ar-u-nu-latn' },
+];
+
+export const DEFAULT_LANG: Lang = 'tr';
+const KEY = 'bu.lang';
+
+export function isLang(v: unknown): v is Lang {
+  return v === 'tr' || v === 'en' || v === 'ar';
+}
+
+export function dirOf(lang: Lang): Dir {
+  return lang === 'ar' ? 'rtl' : 'ltr';
+}
+
+export function localeOf(lang: Lang): string {
+  return LANGS.find((l) => l.code === lang)?.locale ?? 'tr-TR';
+}
+
+export function getStoredLang(): Lang {
+  const v = readStorage('local', KEY);
+  return isLang(v) ? v : DEFAULT_LANG;
+}
+
+let current: Lang = getStoredLang();
+
+/** API istemcisi Accept-Language için bunu okur. */
+export function getCurrentLang(): Lang {
+  return current;
+}
+
+export function setCurrentLang(lang: Lang): void {
+  current = lang;
+  writeStorage('local', KEY, lang);
+  applyDocumentLang(lang);
+}
+
+export function applyDocumentLang(lang: Lang): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = dirOf(lang);
+}

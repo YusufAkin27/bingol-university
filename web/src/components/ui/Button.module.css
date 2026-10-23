@@ -1,0 +1,128 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.sm {
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+.md {
+  min-height: 42px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+.lg {
+  min-height: 52px;
+  padding: 0 var(--space-5);
+  font-size: var(--text-base);
+}
+.full {
+  width: 100%;
+}
+
+.primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  color: var(--primary-contrast);
+}
+.accent {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.accent:hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--accent-contrast);
+}
+.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.ghost {
+  background: transparent;
+  color: var(--text);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.danger {
+  background: var(--danger);
+  color: #fff;
+}
+:root[data-theme='dark'] .danger {
+  color: #1c0b0a;
+}
+.danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+  color: #fff;
+}
+
+.spin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  animation: btnspin 0.7s linear infinite;
+}
+@keyframes btnspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease);
+}
+.icon:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.icon.secondary {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+.icon:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.icon-md {
+  width: 42px;
+  height: 42px;
+}
+.icon-sm {
+  width: 34px;
+  height: 34px;
+}

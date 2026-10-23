@@ -1,0 +1,20 @@
+const m = {
+  'admin.reports.title': 'البلاغات',
+  'admin.reports.subtitle': 'راجع المحتوى الذي أبلغ عنه المستخدمون واتخذ قرارًا.',
+  'admin.reports.resolution.DISMISS': 'رفض البلاغ',
+  'admin.reports.resolution.HIDE': 'إخفاء المحتوى',
+  'admin.reports.resolution.WARN': 'تحذير',
+  'admin.reports.resolution.SUSPEND_USER': 'تعليق المستخدم',
+  'admin.reports.reason.SPAM': 'بريد مزعج',
+  'admin.reports.reason.HARASSMENT': 'مضايقة',
+  'admin.reports.reason.INAPPROPRIATE': 'محتوى غير لائق',
+  'admin.reports.reason.IMPERSONATION': 'انتحال هوية',
+  'admin.reports.reason.OTHER': 'أخرى',
+  'admin.communities.title': 'المجتمعات',
+  'admin.communities.subtitle': 'راجع المجتمعات التي تنتظر الموافقة.',
+  'admin.events.title': 'الفعاليات',
+  'admin.events.subtitle': 'وافق على الفعاليات التي ينشئها المستخدمون.',
+  'admin.review.approve': 'موافقة',
+  'admin.review.reject': 'رفض',
+} as const;
+export default m;
