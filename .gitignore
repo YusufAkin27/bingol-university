@@ -4,3 +4,4 @@ mobile/.dart_tool/
 *.log
 
 .env
+.claude/worktrees/

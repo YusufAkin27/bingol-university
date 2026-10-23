@@ -41,7 +41,7 @@ public class LocalFileStorage implements FileStorage {
         }
         if (file.getSize() > maxBytes) {
             throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE",
-                    "Dosya en fazla " + (maxBytes / 1024 / 1024) + " MB olabilir.");
+                    "Dosya en fazla " + (maxBytes / 1024 / 1024) + " MB olabilir.", String.valueOf(maxBytes / 1024 / 1024));
         }
         // Klasor adi koddan gelir, dosya adini biz uretiriz (yol enjeksiyonu yok).
         Path dir = root.resolve(folder).normalize();

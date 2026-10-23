@@ -33,7 +33,8 @@ public class MenuSyncService {
     @EventListener(ApplicationReadyEvent.class)
     public void initialFill() {
         if (props.initialFill() && repo.count() == 0) {
-            sync();
+            // Acilisi bloklamasin (saglik kontrolu hemen UP olsun): ilk dolum arka planda
+            java.util.concurrent.CompletableFuture.runAsync(this::sync);
         }
     }
 

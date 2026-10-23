@@ -15,13 +15,19 @@ check() { # ad beklenen-kod gercek-kod
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
 # kayit + dogrulama -> access token
-register() { # email ad
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\"}"
+register() {
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
   sleep 1
-  local c
+  local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\"}" |
-    grep -o '"accessToken":"[^"]*' | cut -d'"' -f4
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\"}" |
+    grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  # Hesap onceden kayitliysa (ornek: onceki betik) giris yap
+  if [ -z "$t" ]; then
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+      grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  fi
+  echo "$t"
 }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 

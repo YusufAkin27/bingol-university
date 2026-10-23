@@ -33,4 +33,18 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
                                      WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
             """, nativeQuery = true)
     List<String> tokensForBroadcast(@Param("col") String prefColumn);
+
+    /** Belirli dildeki kullanicilarin token'lari (dilde yerellestirilmis toplu bildirim). */
+    @Query(value = """
+            SELECT d.fcm_token FROM device d
+            JOIN app_user u ON u.id = d.user_id AND u.status = 'ACTIVE' AND u.language = :lang
+            LEFT JOIN notification_pref p ON p.user_id = u.id
+            WHERE COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
+                                     WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
+                                     WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
+            """, nativeQuery = true)
+    List<String> tokensForBroadcastLang(@Param("col") String prefColumn, @Param("lang") String lang);
+
+    @Query(value = "SELECT fcm_token FROM device WHERE user_id IN (:ids)", nativeQuery = true)
+    List<String> tokensForUsers(@Param("ids") Collection<Long> userIds);
 }

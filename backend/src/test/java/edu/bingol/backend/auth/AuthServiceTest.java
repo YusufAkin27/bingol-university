@@ -10,6 +10,8 @@ import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
+import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.legal.LegalService;
 import java.util.List;
 import edu.bingol.backend.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -22,12 +24,13 @@ class AuthServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final VerificationService verification = mock(VerificationService.class);
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(),
-            mock(JwtService.class), mock(RefreshTokenService.class), verification, new AdminProperties(List.of()));
+            mock(JwtService.class), mock(RefreshTokenService.class), verification, new AdminProperties(List.of()),
+            mock(LegalService.class));
 
     @ParameterizedTest
     @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
     void rejectsNonUniversityEmails(String email) {
-        ApiException e = assertThrows(ApiException.class, () -> auth.register(email, "Sifre1234", "Ali"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(email, "Sifre1234", "Ali", Lang.TR));
 
         assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
         verifyNoInteractions(users, verification);

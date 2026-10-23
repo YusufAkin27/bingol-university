@@ -1,6 +1,7 @@
 package edu.bingol.backend.news;
 
 import edu.bingol.backend.config.SyncProperties;
+import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.status.StatusService;
@@ -30,10 +31,12 @@ public class NewsSyncService {
     private final AtomicBoolean running = new AtomicBoolean();
     private final SyncProperties props;
     private final NotificationService notifications;
+    private final I18n i18n;
 
     public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props,
-                           NotificationService notifications) {
+                           NotificationService notifications, I18n i18n) {
         this.notifications = notifications;
+        this.i18n = i18n;
         this.props = props;
         this.scraper = scraper;
         this.repo = repo;
@@ -44,7 +47,8 @@ public class NewsSyncService {
     @EventListener(ApplicationReadyEvent.class)
     public void initialFill() {
         if (props.initialFill() && repo.count() == 0) {
-            sync();
+            // Acilisi bloklamasin (saglik kontrolu hemen UP olsun): ilk dolum arka planda
+            java.util.concurrent.CompletableFuture.runAsync(this::sync);
         }
     }
 
@@ -137,12 +141,9 @@ public class NewsSyncService {
                 notifications.broadcast(nt, n.getTitle(), n.getSummary(), java.util.Map.of("newsId", String.valueOf(n.getId())));
             }
         } else {
-            String label = switch (type) {
-                case HABER -> "yeni haber";
-                case DUYURU -> "yeni duyuru";
-                case ETKINLIK -> "yeni etkinlik";
-            };
-            notifications.broadcast(nt, fresh.size() + " " + label, fresh.get(0).getTitle(), java.util.Map.of());
+            String count = String.valueOf(fresh.size());
+            notifications.broadcastLocalized(nt, lang -> i18n.msg("notif.news.many." + type.name(), lang, count),
+                    lang -> fresh.get(0).getTitle(), java.util.Map.of());
         }
     }
 

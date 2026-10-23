@@ -54,6 +54,10 @@ public class User {
 
     private boolean showEmail;
 
+    /** tr | en | ar: bildirim ve e-posta dili. */
+    @Column(nullable = false, length = 2)
+    private String language = "tr";
+
     @Column(length = 300)
     private String suspendedReason;
 

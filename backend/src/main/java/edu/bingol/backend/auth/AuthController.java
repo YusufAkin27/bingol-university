@@ -9,6 +9,9 @@ import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.dto.VerifyRequest;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.i18n.I18n;
+import edu.bingol.backend.i18n.Lang;
+import org.springframework.context.i18n.LocaleContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
@@ -28,8 +31,10 @@ public class AuthController {
 
     private final AuthService auth;
     private final RateLimiter limiter;
+    private final I18n i18n;
 
-    public AuthController(AuthService auth, RateLimiter limiter) {
+    public AuthController(AuthService auth, RateLimiter limiter, I18n i18n) {
+        this.i18n = i18n;
         this.auth = auth;
         this.limiter = limiter;
     }
@@ -38,8 +43,9 @@ public class AuthController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         limiter.check("register:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
-        auth.register(r.email(), r.password(), r.displayName());
-        return new MessageResponse("Doğrulama kodu e-posta adresinize gönderildi.");
+        Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
+        auth.register(r.email(), r.password(), r.displayName(), lang);
+        return new MessageResponse(i18n.current("msg.register.sent"));
     }
 
     @PostMapping("/resend-code")
@@ -47,7 +53,7 @@ public class AuthController {
     public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         limiter.check("resend:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
         auth.resendCode(r.email());
-        return new MessageResponse("Hesap uygunsa yeni kod e-posta adresinize gönderildi.");
+        return new MessageResponse(i18n.current("msg.resend.sent"));
     }
 
     @PostMapping("/verify-email")

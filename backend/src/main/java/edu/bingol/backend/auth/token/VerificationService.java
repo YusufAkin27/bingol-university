@@ -2,6 +2,7 @@ package edu.bingol.backend.auth.token;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.mail.MailService;
 
 import java.nio.charset.StandardCharsets;
@@ -30,7 +31,7 @@ public class VerificationService {
     }
 
     /** Yeni kod uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
-    public void issue(String email) {
+    public void issue(String email, Lang lang) {
         Boolean first = redis.opsForValue().setIfAbsent("vc:cd:" + email, "1", RESEND_COOLDOWN);
         if (!Boolean.TRUE.equals(first)) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
@@ -40,7 +41,7 @@ public class VerificationService {
         redis.opsForValue().set("vc:" + email, hash(email, code), CODE_TTL);
         redis.delete("vc:att:" + email);
         try {
-            mail.sendVerificationCode(email, code, (int) CODE_TTL.toMinutes());
+            mail.sendVerificationCode(email, code, (int) CODE_TTL.toMinutes(), lang);
         } catch (RuntimeException e) {
             // Gonderilemediyse bekleme suresi kullaniciyi cezalandirmasin.
             redis.delete("vc:cd:" + email);

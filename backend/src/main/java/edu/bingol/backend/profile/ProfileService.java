@@ -69,6 +69,9 @@ public class ProfileService {
         if (r.showEmail() != null) {
             u.setShowEmail(r.showEmail());
         }
+        if (r.language() != null) {
+            u.setLanguage(r.language());
+        }
         return users.save(u);
     }
 

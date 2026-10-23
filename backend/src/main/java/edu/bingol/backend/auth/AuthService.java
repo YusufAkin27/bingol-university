@@ -7,6 +7,8 @@ import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
+import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.legal.LegalService;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
@@ -30,10 +32,13 @@ public class AuthService {
     private final RefreshTokenService refresh;
     private final VerificationService verification;
     private final AdminProperties admin;
+    private final LegalService legal;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
-                       RefreshTokenService refresh, VerificationService verification, AdminProperties admin) {
+                       RefreshTokenService refresh, VerificationService verification, AdminProperties admin,
+                       LegalService legal) {
         this.admin = admin;
+        this.legal = legal;
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
@@ -45,7 +50,7 @@ public class AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    public void register(String rawEmail, String password, String displayName) {
+    public void register(String rawEmail, String password, String displayName, Lang lang) {
         String email = normalizeEmail(rawEmail);
         if (!UNIVERSITY_EMAIL.matcher(email).matches()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
@@ -64,13 +69,16 @@ public class AuthService {
         // adresi "rezerve" edemez: dogrulama olmadan hesap kullanilamaz).
         user.setPasswordHash(encoder.encode(password));
         user.setDisplayName(displayName.trim());
-        users.save(user);
-        verification.issue(email);
+        user.setLanguage(lang.code());
+        user = users.save(user);
+        legal.recordSignupConsent(user.getId());
+        verification.issue(email, lang);
     }
 
     public void resendCode(String rawEmail) {
         String email = normalizeEmail(rawEmail);
-        users.findByEmail(email).filter(u -> !u.isEmailVerified()).ifPresent(u -> verification.issue(email));
+        users.findByEmail(email).filter(u -> !u.isEmailVerified())
+                .ifPresent(u -> verification.issue(email, Lang.of(u.getLanguage())));
         // Hesap yoksa/dogrulanmissa da ayni cevap doner (e-posta taramasini engellemek icin).
     }
 

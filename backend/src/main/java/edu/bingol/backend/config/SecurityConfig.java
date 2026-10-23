@@ -32,7 +32,7 @@ public class SecurityConfig {
     /** /api/admin/** icin tek yonetici (Basic auth). Sifre verilmezse rastgele uretilir ve log'a yazilir. */
     @Bean
     UserDetailsService adminUser(PasswordEncoder encoder,
-                                 @Value("${spring.security.user.name}") String name,
+                                 @Value("${spring.security.user.name:admin}") String name,
                                  @Value("${spring.security.user.password:}") String password) {
         String effective = password;
         if (effective.isBlank()) {
@@ -50,7 +50,9 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/auth/me").authenticated()
+                .requestMatchers("/api/auth/me", "/api/legal/consents", "/api/legal/consents/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
+                        "/api/app/info", "/api/app/version").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
                 .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()

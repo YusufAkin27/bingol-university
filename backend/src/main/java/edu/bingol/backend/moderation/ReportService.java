@@ -70,9 +70,9 @@ public class ReportService {
         switch (action) {
             case DISMISS -> { }
             case HIDE -> h.hide(report.getTargetId());
-            case WARN -> owner.ifPresent(uid -> notifications.send(uid, NotificationType.SYSTEM,
-                    "Topluluk kurallarına aykırı içerik uyarısı",
-                    message == null || message.isBlank() ? "İçeriğiniz raporlandı ve incelendi." : message, null));
+            case WARN -> owner.ifPresent(uid -> notifications.sendLocalized(uid, NotificationType.SYSTEM,
+                    "notif.report.warn.title", message == null || message.isBlank() ? "notif.report.warn.body" : null,
+                    message, null));
             case SUSPEND_USER -> owner.ifPresent(uid -> userModeration.suspend(uid, message));
         }
 

@@ -48,7 +48,7 @@ public class UserModerationService {
             users.save(u);
         }
         redis.delete(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId);
-        notifications.send(userId, NotificationType.SYSTEM, "Hesabınız yeniden etkinleştirildi", null, null);
+        notifications.sendLocalized(userId, NotificationType.SYSTEM, "notif.account.reactivated.title", null, null, null);
     }
 
     private User find(Long id) {
