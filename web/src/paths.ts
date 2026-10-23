@@ -8,6 +8,7 @@ export const paths = {
     faq: '/faq',
     contact: '/contact',
     dataRequest: '/data-request',
+    legalIndex: '/legal',
     legal: (type: string) => `/legal/${type.toLowerCase().replace(/_/g, '-')}`,
   },
   admin: {

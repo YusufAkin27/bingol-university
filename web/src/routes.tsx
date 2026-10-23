@@ -18,6 +18,7 @@ const DownloadPage = lazy(() => import('./pages/site/DownloadPage'));
 const FaqPage = lazy(() => import('./pages/site/FaqPage'));
 const ContactPage = lazy(() => import('./pages/site/ContactPage'));
 const LegalPage = lazy(() => import('./pages/site/LegalPage'));
+const LegalListPage = lazy(() => import('./pages/site/LegalListPage'));
 const DataRequestPage = lazy(() => import('./pages/site/DataRequestPage'));
 const NotFoundPage = lazy(() => import('./pages/site/NotFoundPage'));
 
@@ -62,6 +63,7 @@ export function AppRoutes() {
           <Route path="download" element={<DownloadPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="legal" element={<LegalListPage />} />
           <Route path="legal/:type" element={<LegalPage />} />
           <Route path="data-request" element={<DataRequestPage />} />
           <Route path="*" element={<NotFoundPage />} />
