@@ -11,17 +11,17 @@ export default defineConfig(({ mode }) => {
     server: {
       port: Number(env.VITE_DEV_PORT || 5173),
       proxy: {
-        '/api': { target: backend, changeOrigin: true },
-        '/files': { target: backend, changeOrigin: true },
-        '/ws': { target: backend, changeOrigin: true, ws: true },
+        '/api': { target: backend, changeOrigin: false },
+        '/files': { target: backend, changeOrigin: false },
+        '/ws': { target: backend, changeOrigin: false, ws: true },
       },
     },
     // preview de aynı proxy'yi kullanır (derlenmiş uygulamayı yerelde denemek için)
     preview: {
       port: 4173,
       proxy: {
-        '/api': { target: backend, changeOrigin: true },
-        '/files': { target: backend, changeOrigin: true },
+        '/api': { target: backend, changeOrigin: false },
+        '/files': { target: backend, changeOrigin: false },
       },
     },
     build: {
