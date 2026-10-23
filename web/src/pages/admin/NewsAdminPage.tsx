@@ -198,7 +198,7 @@ export default function NewsAdminPage() {
         }}
         searchPlaceholder={t('admin.news.searchPlaceholder')}
         filters={
-          <>
+          <div className={styles.filterRow}>
             <Select className={styles.filter}
               aria-label={t('admin.news.filter.type')}
               value={type}
@@ -226,7 +226,7 @@ export default function NewsAdminPage() {
               <option value="visible">{t('admin.news.filter.visible')}</option>
               <option value="hidden">{t('admin.news.filter.hidden')}</option>
             </Select>
-          </>
+          </div>
         }
       />
 

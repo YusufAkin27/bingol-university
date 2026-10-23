@@ -57,3 +57,9 @@ select.filter {
   flex: 0 1 13rem;
   min-width: 9rem;
 }
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

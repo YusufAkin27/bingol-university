@@ -173,7 +173,7 @@ export default function FeedbackPage() {
       <PageHeader title={t('admin.feedback.title')} description={t('admin.feedback.subtitle')} />
       <DataToolbar
         filters={
-          <>
+          <div className={styles.filterRow}>
             <Select className={styles.filter}
               aria-label={t('admin.feedback.filter.status')}
               value={status}
@@ -198,7 +198,7 @@ export default function FeedbackPage() {
                 </option>
               ))}
             </Select>
-          </>
+          </div>
         }
       />
 
