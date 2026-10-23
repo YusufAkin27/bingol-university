@@ -1,0 +1,206 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-start: var(--space-5);
+  max-width: 860px;
+}
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-block-start: var(--space-5);
+}
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.tabLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tabDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--warning);
+  box-shadow: 0 0 0 2px var(--warning-soft);
+}
+
+/* tek ayar satırı: değişince vurgulanır */
+.row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition:
+    background-color 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+.rowDirty {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+}
+.unsaved {
+  align-self: flex-end;
+}
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.errText {
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+.cardNote {
+  margin-block-start: var(--space-3);
+}
+.cardIntro {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-block-end: var(--space-3);
+}
+.hintLine {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin-block-start: var(--space-2);
+}
+
+/* fakülte çip düzenleyici */
+.facAdd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.facLabel {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+.facAddRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.facAddRow > :first-child {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.facList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.facChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  padding-inline: var(--space-3) var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  min-height: 44px;
+}
+.facIndex {
+  flex: none;
+  min-width: 1.6em;
+  text-align: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.facName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.facBtns {
+  display: inline-flex;
+  flex: none;
+}
+.facEmpty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.facCount {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.facOver {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* banner önizleme */
+.langSwitch {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-block-end: var(--space-3);
+}
+.langBtn {
+  border: 0;
+  background: var(--surface);
+  color: var(--text-muted);
+  padding: 0 var(--space-4);
+  min-height: 34px;
+  font-weight: 700;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+.langBtn + .langBtn {
+  border-inline-start: 1px solid var(--border-strong);
+}
+.langBtnOn {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--navy-800);
+  color: #fff;
+  font-size: var(--text-sm);
+}
+.bannerText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bannerLink {
+  flex: none;
+  font-weight: 700;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.bannerEmpty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
