@@ -1,0 +1,4 @@
+backend/data/
+mobile/build/
+mobile/.dart_tool/
+*.log
