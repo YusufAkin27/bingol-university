@@ -28,7 +28,7 @@ class BookmarkServiceTest {
 
     @Test
     void unknownNewsIs404() {
-        when(news.existsById(5L)).thenReturn(false);
+        when(news.existsByIdAndHiddenFalse(5L)).thenReturn(false);
 
         ApiException e = assertThrows(ApiException.class, () -> service.addNews(1L, 5L));
 
@@ -38,7 +38,7 @@ class BookmarkServiceTest {
 
     @Test
     void addIsIdempotentWhenAlreadyBookmarked() {
-        when(news.existsById(5L)).thenReturn(true);
+        when(news.existsByIdAndHiddenFalse(5L)).thenReturn(true);
         when(repo.existsByUserIdAndTargetTypeAndTargetId(1L, BookmarkTarget.NEWS, 5L)).thenReturn(true);
         // Limit dolu olsa bile mevcut kaydi tekrar PUT etmek basarili olmali
         when(repo.countByUserId(1L)).thenReturn((long) BookmarkService.MAX_PER_USER);
@@ -50,7 +50,7 @@ class BookmarkServiceTest {
 
     @Test
     void addInsertsNewBookmark() {
-        when(news.existsById(5L)).thenReturn(true);
+        when(news.existsByIdAndHiddenFalse(5L)).thenReturn(true);
         when(repo.countByUserId(1L)).thenReturn(10L);
 
         service.addNews(1L, 5L);
@@ -60,7 +60,7 @@ class BookmarkServiceTest {
 
     @Test
     void addRejectsWhenLimitReached() {
-        when(news.existsById(5L)).thenReturn(true);
+        when(news.existsByIdAndHiddenFalse(5L)).thenReturn(true);
         when(repo.countByUserId(1L)).thenReturn((long) BookmarkService.MAX_PER_USER);
 
         ApiException e = assertThrows(ApiException.class, () -> service.addNews(1L, 5L));

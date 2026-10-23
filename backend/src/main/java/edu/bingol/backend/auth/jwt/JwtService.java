@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     /** Gecerli bir token'dan okunan kimlik. */
-    public record Identity(Long userId, Role role) {}
+    public record Identity(Long userId, Role role, Instant issuedAt) {}
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private static final String DEV_SECRET_PREFIX = "dev-only-secret";
@@ -62,7 +63,9 @@ public class JwtService {
         try {
             Claims c = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
             String role = c.get("role", String.class);
-            return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role));
+            Date iat = c.getIssuedAt();
+            return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role),
+                    iat == null ? Instant.EPOCH : iat.toInstant());
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }

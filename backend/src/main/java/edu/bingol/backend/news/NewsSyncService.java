@@ -127,7 +127,9 @@ public class NewsSyncService {
     }
 
     /** En fazla 3 yeni kayit tek tek, fazlasi tek ozet bildirim olarak gider (gece toplu cekimde bildirim yagmuru olmasin). */
-    private void notifyNew(ContentType type, List<NewsItem> fresh) {
+    private void notifyNew(ContentType type, List<NewsItem> all) {
+        // Gizlenmis kayit icin bildirim gitmez
+        List<NewsItem> fresh = all.stream().filter(n -> !n.isHidden()).toList();
         if (fresh.isEmpty()) {
             return;
         }

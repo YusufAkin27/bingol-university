@@ -37,6 +37,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByStatus(UserStatus status);
 
+    long countByRoleAndStatus(Role role, UserStatus status);
+
+    /** Son yonetici kontrolunde yarisi onlemek icin tum yonetici satirlarini kilitler (FOR UPDATE; PostgreSQL). */
+    @Query(value = "SELECT id FROM app_user WHERE role = 'ADMIN' ORDER BY id FOR UPDATE", nativeQuery = true)
+    List<Long> lockAdminIds();
+
     @Query("SELECT u.language FROM User u WHERE u.id = :id")
     Optional<String> findLanguage(@Param("id") Long id);
 

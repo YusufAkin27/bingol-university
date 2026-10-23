@@ -166,3 +166,13 @@ curl localhost:8080/actuator/health
 - **`/api/auth/register`**, doğrulanmış bir e-posta için `EMAIL_ALREADY_REGISTERED` (409) döner; bu, bingol.edu.tr adresleri için sınırlı bir enumerasyon sızıntısıdır (bilinen taviz; değiştirilecekse mobil akışla birlikte).
 - **Mesajlaşma henüz yok:** WebSocket/Redis/Bucket4j bağımlılıkları eklenmiştir ama mesajlaşma yazılmamıştır; mobilde de henüz giriş/kayıt ekranları yoktur (auth yalnızca backend'dedir).
 - Mobil kod bu makinede derlenip test edilemez (Flutter yok).
+
+## 7. Yönetim paneli API'leri (özet)
+
+Ayrıntılı sözleşme: [docs/ADMIN_API.md](docs/ADMIN_API.md).
+
+- `admin` paketi: kullanıcı yönetimi (liste/detay/rol/silme/CSV), denetim kaydı (`AuditInterceptor`, 403 için `AuditAccessDeniedHandler`), haber gizleme, sözleşme sürüm/kabul istatistikleri. `analytics` paketi: olay alımı (`POST /api/analytics/events`), `ActivityTracker` (son görülme/günlük aktiflik), `/api/admin/analytics/*` raporları, 180 gün olay saklama.
+- Dinamik/raporlama sorguları `NamedParameterJdbcTemplate` ile parametreli yazılır (PostgreSQL'e özel; H2 testlerinde çalıştırılmaz). Gün sınırları her yerde `Europe/Istanbul` (`analytics.DateRange`).
+- Redis anahtarları: `seen:<uid>` (5 dk, son görülme kısıtı), `act:<uid>:<gün>` (günlük aktiflik), `rolechg:<uid>` (rol değişim anı, 16 dk; `JwtAuthFilter` eski token'ı reddeder), `suspended:<uid>` (askı/silme).
+- CORS: `app.cors.allowed-origins` (`CORS_ORIGINS`), yalnızca `/api/**` ve `/files/**`.
+- Uçtan uca doğrulama: `scripts/smoke-admin.sh` (diğer smoke betikleri gibi `BASE` ile).

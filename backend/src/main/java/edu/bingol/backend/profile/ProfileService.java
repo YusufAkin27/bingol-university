@@ -1,5 +1,7 @@
 package edu.bingol.backend.profile;
 
+import edu.bingol.backend.analytics.ActivityRepository;
+import edu.bingol.backend.appinfo.AppInfoService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.storage.FileStorage;
 import edu.bingol.backend.moderation.BlockService;
@@ -29,8 +31,13 @@ public class ProfileService {
     private final BlockService blocks;
     private final FileStorage storage;
     private final PasswordEncoder encoder;
+    private final AppInfoService appInfo;
+    private final ActivityRepository activity;
 
-    public ProfileService(UserRepository users, BlockService blocks, FileStorage storage, PasswordEncoder encoder) {
+    public ProfileService(UserRepository users, BlockService blocks, FileStorage storage, PasswordEncoder encoder,
+                          AppInfoService appInfo, ActivityRepository activity) {
+        this.appInfo = appInfo;
+        this.activity = activity;
         this.users = users;
         this.blocks = blocks;
         this.storage = storage;
@@ -56,6 +63,9 @@ public class ProfileService {
         User u = get(id);
         if (r.displayName() != null) {
             u.setDisplayName(r.displayName().trim());
+        }
+        if (r.faculty() != null) {
+            u.setFaculty(validFaculty(blankToNull(r.faculty()), appInfo.faculties()));
         }
         if (r.department() != null) {
             u.setDepartment(blankToNull(r.department()));
@@ -109,11 +119,22 @@ public class ProfileService {
         if (!encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
         }
+        anonymize(u);
+    }
+
+    /** Parolasiz anonimlestirme: yonetici silme akisi da ayni mantigi kullanir (parola kontrolu cagirana aittir). */
+    @Transactional
+    public void anonymizeAccount(Long id) {
+        anonymize(get(id));
+    }
+
+    private void anonymize(User u) {
         storage.delete(u.getAvatarUrl());
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");
         u.setDisplayName("Silinmiş kullanıcı");
         u.setPasswordHash(encoder.encode(java.util.UUID.randomUUID().toString()));
         u.setDepartment(null);
+        u.setFaculty(null);
         u.setClassYear(null);
         u.setBio(null);
         u.setAvatarUrl(null);
@@ -121,10 +142,24 @@ public class ProfileService {
         u.setStatus(UserStatus.DELETED);
         u.setDeletedAt(Instant.now());
         users.save(u);
+        // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
+        activity.purgeUser(u.getId());
+    }
+
+    public List<String> faculties() {
+        return appInfo.faculties();
     }
 
     public List<String> departments() {
         return users.distinctDepartments();
+    }
+
+    /** Fakulte listesi tanimliysa deger listeden biri olmali; liste bos ise serbest metin kabul edilir. */
+    static String validFaculty(String value, List<String> allowed) {
+        if (value != null && !allowed.isEmpty() && !allowed.contains(value)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_FACULTY", "Geçersiz fakülte.");
+        }
+        return value;
     }
 
     private static String blankToNull(String s) {

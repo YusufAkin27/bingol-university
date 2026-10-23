@@ -16,6 +16,9 @@ public interface DocumentRepository extends JpaRepository<LegalDocument, Long> {
 
     List<LegalDocument> findByTypeAndLangOrderByVersionDesc(LegalType type, String lang);
 
+    /** Yonetici: tum diller, en yeni surum once. */
+    List<LegalDocument> findByTypeOrderByVersionDescLangAsc(LegalType type);
+
     @Query("SELECT COALESCE(MAX(d.version), 0) FROM LegalDocument d WHERE d.type = :type")
     int maxVersion(@Param("type") LegalType type);
 

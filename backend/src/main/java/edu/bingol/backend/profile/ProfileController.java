@@ -73,6 +73,12 @@ public class ProfileController {
         return profiles.publicProfile(CurrentUser.id(), id);
     }
 
+    /** Herkese acik fakulte listesi (yonetici `faculties` ayarindan; bos olabilir). */
+    @GetMapping("/faculties")
+    public List<String> faculties() {
+        return profiles.faculties();
+    }
+
     /** Profil formunda otomatik tamamlama icin sistemde kullanilan bolum adlari. */
     @GetMapping("/departments")
     public List<String> departments() {
