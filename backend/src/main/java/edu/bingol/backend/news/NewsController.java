@@ -23,12 +23,13 @@ public class NewsController {
         this.sync = sync;
     }
 
-    /** GET /api/news?type=HABER|DUYURU|ETKINLIK&page=0&size=20 (type bos ise hepsi) */
+    /** GET /api/news?type=HABER|DUYURU|ETKINLIK&q=metin&page=0&size=20 (type bos ise hepsi; q opsiyonel, en az 2 karakter) */
     @GetMapping("/news")
     public NewsPage list(@RequestParam(required = false) ContentType type,
+                         @RequestParam(required = false) String q,
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "20") int size) {
-        return news.list(type, page, size);
+        return news.list(type, q, page, size);
     }
 
     @GetMapping("/news/{id}")
