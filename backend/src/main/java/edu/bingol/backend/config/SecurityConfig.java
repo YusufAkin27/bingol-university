@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
                 .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()
+                // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
+                .requestMatchers("/ws", "/ws/**").permitAll()
                 .anyRequest().authenticated())
             // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*) korunur.
             .httpBasic(Customizer.withDefaults())
