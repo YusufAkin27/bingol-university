@@ -35,7 +35,10 @@ public class NewsScraper {
     public record Detail(String content, String imageUrl) {}
 
     public List<ListEntry> fetchList(ContentType type) throws IOException {
-        Document doc = connect(LIST_URL.formatted(type.siteCode()));
+        return parseList(connect(LIST_URL.formatted(type.siteCode())));
+    }
+
+    static List<ListEntry> parseList(Document doc) {
         List<ListEntry> out = new ArrayList<>();
         for (Element row : doc.select("tr[id^=grid_DXDataRow]")) {
             Element a = row.selectFirst("a[href]");

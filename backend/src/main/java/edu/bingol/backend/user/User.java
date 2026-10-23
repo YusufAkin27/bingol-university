@@ -1,4 +1,4 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

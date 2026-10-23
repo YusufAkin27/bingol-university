@@ -1,4 +1,4 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.user;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

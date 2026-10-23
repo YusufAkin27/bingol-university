@@ -1,4 +1,7 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.auth.jwt;
+
+import edu.bingol.backend.config.JwtProperties;
+import edu.bingol.backend.user.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -10,7 +13,6 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** Kisa omurlu access token (JWT, HS256). Refresh token'lar opak ve Redis'te tutulur (RefreshTokenService). */
@@ -23,8 +25,8 @@ public class JwtService {
     private final SecretKey key;
     private final Duration accessTtl;
 
-    public JwtService(@Value("${jwt.secret}") String secret,
-                      @Value("${jwt.access-ttl-minutes}") long accessMinutes) {
+    public JwtService(JwtProperties props) {
+        String secret = props.secret();
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             throw new IllegalStateException("jwt.secret en az 32 karakter olmali");
@@ -33,7 +35,7 @@ public class JwtService {
             log.warn("Varsayilan gelistirme JWT anahtari kullaniliyor; uretimde JWT_SECRET verin!");
         }
         this.key = Keys.hmacShaKeyFor(bytes);
-        this.accessTtl = Duration.ofMinutes(accessMinutes);
+        this.accessTtl = Duration.ofMinutes(props.accessTtlMinutes());
     }
 
     public Duration accessTtl() {

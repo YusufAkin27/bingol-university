@@ -1,40 +1,30 @@
 package edu.bingol.backend.auth;
 
-import edu.bingol.backend.auth.AuthService.TokenResponse;
-import edu.bingol.backend.auth.AuthService.UserView;
+import edu.bingol.backend.auth.dto.EmailRequest;
+import edu.bingol.backend.auth.dto.LoginRequest;
+import edu.bingol.backend.auth.dto.MessageResponse;
+import edu.bingol.backend.auth.dto.RefreshRequest;
+import edu.bingol.backend.auth.dto.RegisterRequest;
+import edu.bingol.backend.auth.dto.TokenResponse;
+import edu.bingol.backend.auth.dto.UserView;
+import edu.bingol.backend.auth.dto.VerifyRequest;
+import edu.bingol.backend.common.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.Duration;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Uyelik ve oturum uclari. Is kurallari AuthService'te; burada yalnizca rate limit ve HTTP eslemesi var. */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
-    public record RegisterRequest(@NotBlank @Email @Size(max = 254) String email,
-                                  @NotBlank @Size(min = 8, max = 72) String password,
-                                  @NotBlank @Size(max = 80) String displayName) {}
-
-    public record EmailRequest(@NotBlank @Email @Size(max = 254) String email) {}
-
-    public record VerifyRequest(@NotBlank @Email @Size(max = 254) String email,
-                                @NotBlank @Size(min = 6, max = 6) String code) {}
-
-    public record LoginRequest(@NotBlank @Email @Size(max = 254) String email,
-                               @NotBlank @Size(max = 72) String password) {}
-
-    public record RefreshRequest(@NotBlank @Size(max = 200) String refreshToken) {}
 
     private final AuthService auth;
     private final RateLimiter limiter;
@@ -46,22 +36,22 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Map<String, String> register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
+    public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         limiter.check("register:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
         auth.register(r.email(), r.password(), r.displayName());
-        return Map.of("message", "Doğrulama kodu e-posta adresinize gönderildi.");
+        return new MessageResponse("Doğrulama kodu e-posta adresinize gönderildi.");
     }
 
     @PostMapping("/resend-code")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Map<String, String> resend(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
+    public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         limiter.check("resend:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
         auth.resendCode(r.email());
-        return Map.of("message", "Hesap uygunsa yeni kod e-posta adresinize gönderildi.");
+        return new MessageResponse("Hesap uygunsa yeni kod e-posta adresinize gönderildi.");
     }
 
     @PostMapping("/verify-email")
-    public TokenResponse verify(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
+    public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
         limiter.check("verify:ip:" + http.getRemoteAddr(), 20, Duration.ofMinutes(10));
         return auth.verifyEmail(r.email(), r.code());
     }

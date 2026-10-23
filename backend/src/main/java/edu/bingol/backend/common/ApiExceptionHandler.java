@@ -1,4 +1,4 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.common;
 
 import java.util.Map;
 import org.springframework.http.ResponseEntity;

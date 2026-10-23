@@ -1,4 +1,4 @@
-package edu.bingol.backend.controller;
+package edu.bingol.backend.health;
 
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;

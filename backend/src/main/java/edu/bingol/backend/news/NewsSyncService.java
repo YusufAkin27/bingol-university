@@ -1,5 +1,6 @@
 package edu.bingol.backend.news;
 
+import edu.bingol.backend.config.SyncProperties;
 import edu.bingol.backend.status.StatusService;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ public class NewsSyncService {
     private final NewsRepository repo;
     private final StatusService status;
     private final AtomicBoolean running = new AtomicBoolean();
+    private final SyncProperties props;
 
-    public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status) {
+    public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props) {
+        this.props = props;
         this.scraper = scraper;
         this.repo = repo;
         this.status = status;
@@ -35,7 +38,7 @@ public class NewsSyncService {
     /** Sadece ilk kurulumda (veritabani bos) bir kez doldurur; sonraki acilislarda siteye istek atmaz. */
     @EventListener(ApplicationReadyEvent.class)
     public void initialFill() {
-        if (repo.count() == 0) {
+        if (props.initialFill() && repo.count() == 0) {
             sync();
         }
     }

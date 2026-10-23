@@ -1,10 +1,11 @@
 ﻿# Bingöl Üniversitesi Projesi
 
-- `backend/` — Spring Boot 3 (Java 17, Maven, JPA, Security, PostgreSQL/H2)
+- `backend/` — Spring Boot 4 (Java 17, Maven, JPA, Security, PostgreSQL, Redis)
 - `mobile/`  — Flutter (Android)
 
 ## Backend
-Java 17+ gerekir: `cd backend && .\mvnw spring-boot:run` → http://localhost:8080/api/hello
+Docker gerekir: `cp .env.example .env` (degerleri doldurun) → `docker compose up -d --build` → http://localhost:8080/api/status
+PostgreSQL + Redis + backend birlikte ayaga kalkar. Testler: bkz. CLAUDE.md.
 
 ## Mobile
 Flutter SDK kurulu degilse once kurun. Ardindan:

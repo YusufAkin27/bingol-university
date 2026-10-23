@@ -1,4 +1,8 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.auth.token;
+
+import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.mail.MailService;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

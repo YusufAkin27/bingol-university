@@ -1,5 +1,6 @@
 package edu.bingol.backend.menu;
 
+import edu.bingol.backend.config.SyncProperties;
 import edu.bingol.backend.status.StatusService;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,8 +20,10 @@ public class MenuSyncService {
     private final MenuRepository repo;
     private final StatusService status;
     private final AtomicBoolean running = new AtomicBoolean();
+    private final SyncProperties props;
 
-    public MenuSyncService(MenuScraper scraper, MenuRepository repo, StatusService status) {
+    public MenuSyncService(MenuScraper scraper, MenuRepository repo, StatusService status, SyncProperties props) {
+        this.props = props;
         this.scraper = scraper;
         this.repo = repo;
         this.status = status;
@@ -29,7 +32,7 @@ public class MenuSyncService {
     /** Sadece ilk kurulumda (tablo bos) bir kez doldurur. */
     @EventListener(ApplicationReadyEvent.class)
     public void initialFill() {
-        if (repo.count() == 0) {
+        if (props.initialFill() && repo.count() == 0) {
             sync();
         }
     }

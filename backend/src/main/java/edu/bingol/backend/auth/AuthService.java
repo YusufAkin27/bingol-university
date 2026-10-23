@@ -1,5 +1,13 @@
 package edu.bingol.backend.auth;
 
+import edu.bingol.backend.auth.dto.TokenResponse;
+import edu.bingol.backend.auth.dto.UserView;
+import edu.bingol.backend.auth.jwt.JwtService;
+import edu.bingol.backend.auth.token.RefreshTokenService;
+import edu.bingol.backend.auth.token.VerificationService;
+import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.user.User;
+import edu.bingol.backend.user.UserRepository;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
@@ -12,10 +20,6 @@ public class AuthService {
     /** bingol.edu.tr ve alt alan adlari (ogr.bingol.edu.tr gibi). */
     private static final Pattern UNIVERSITY_EMAIL =
             Pattern.compile("^[a-z0-9._%+\\-]+@([a-z0-9\\-]+\\.)*bingol\\.edu\\.tr$");
-
-    public record TokenResponse(String accessToken, String refreshToken, long expiresInSeconds, String tokenType) {}
-
-    public record UserView(Long id, String email, String displayName) {}
 
     private final UserRepository users;
     private final PasswordEncoder encoder;

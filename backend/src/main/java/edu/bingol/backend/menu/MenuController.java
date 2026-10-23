@@ -1,8 +1,7 @@
 package edu.bingol.backend.menu;
 
-import java.time.LocalDate;
+import edu.bingol.backend.menu.dto.MenuResponse;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
@@ -17,42 +16,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class MenuController {
 
-    private static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
-
-    public record MenuResponse(String date, List<String> items) {
-        static MenuResponse of(MenuDay d) {
-            return new MenuResponse(d.getMenuDate().toString(), List.of(d.getItems().split("\n")));
-        }
-    }
-
-    private final MenuRepository repo;
+    private final MenuService menu;
     private final MenuSyncService sync;
 
-    public MenuController(MenuRepository repo, MenuSyncService sync) {
-        this.repo = repo;
+    public MenuController(MenuService menu, MenuSyncService sync) {
+        this.menu = menu;
         this.sync = sync;
     }
 
     /** GET /api/menu?month=2026-10 (varsayilan: icinde bulunulan ay) */
     @GetMapping("/menu")
     public ResponseEntity<List<MenuResponse>> month(@RequestParam(required = false) String month) {
-        YearMonth ym;
         try {
-            ym = month == null ? YearMonth.now(ZONE) : YearMonth.parse(month);
+            YearMonth ym = month == null ? menu.currentMonth() : YearMonth.parse(month);
+            return ResponseEntity.ok(menu.month(ym));
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(repo.findByMenuDateBetweenOrderByMenuDate(ym.atDay(1), ym.atEndOfMonth())
-                .stream().map(MenuResponse::of).toList());
     }
 
     @GetMapping("/menu/today")
     public ResponseEntity<MenuResponse> today() {
-        return repo.findByMenuDate(LocalDate.now(ZONE)).map(d -> ResponseEntity.ok(MenuResponse.of(d)))
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.of(menu.today());
     }
 
-    /** Manuel tetikleme (kimlik dogrulama gerekir). */
+    /** Manuel tetikleme (ADMIN). */
     @PostMapping("/admin/sync-menu")
     public Map<String, Integer> triggerSync() {
         return Map.of("changed", sync.sync());

@@ -1,4 +1,4 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.auth.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

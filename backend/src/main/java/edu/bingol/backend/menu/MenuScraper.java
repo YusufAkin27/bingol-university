@@ -23,7 +23,10 @@ public class MenuScraper {
 
     /** Bos liste = beklenen tablo bulunamadi (sayfa yapisi degismis olabilir). */
     public List<Day> fetch() throws IOException {
-        Document doc = Jsoup.connect(URL).userAgent(UA).timeout(20_000).get();
+        return parse(Jsoup.connect(URL).userAgent(UA).timeout(20_000).get());
+    }
+
+    static List<Day> parse(Document doc) {
         List<Day> days = new ArrayList<>();
         for (Element row : doc.select(".sayfa-icerik table tr")) {
             List<Element> cells = row.select("> td");

@@ -1,15 +1,15 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.common;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
-final class Hashing {
+public final class Hashing {
 
     private Hashing() {}
 
-    static String sha256(String s) {
+    public static String sha256(String s) {
         try {
             return HexFormat.of().formatHex(
                     MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8)));

@@ -1,4 +1,4 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.common;
 
 import java.time.Duration;
 import org.springframework.data.redis.core.StringRedisTemplate;

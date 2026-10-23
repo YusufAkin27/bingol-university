@@ -1,9 +1,11 @@
-package edu.bingol.backend.auth;
+package edu.bingol.backend.auth.token;
+
+import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.config.JwtProperties;
 
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Base64;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +20,9 @@ public class RefreshTokenService {
     private final Duration ttl;
     private final SecureRandom random = new SecureRandom();
 
-    public RefreshTokenService(StringRedisTemplate redis, @Value("${jwt.refresh-ttl-days}") long days) {
+    public RefreshTokenService(StringRedisTemplate redis, JwtProperties props) {
         this.redis = redis;
-        this.ttl = Duration.ofDays(days);
+        this.ttl = Duration.ofDays(props.refreshTtlDays());
     }
 
     public String issue(Long userId) {
