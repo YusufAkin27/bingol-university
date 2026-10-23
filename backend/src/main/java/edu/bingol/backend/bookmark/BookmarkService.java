@@ -40,7 +40,7 @@ public class BookmarkService {
         }
         if (repo.countByUserId(uid) >= MAX_PER_USER) {
             throw new ApiException(HttpStatus.CONFLICT, "BOOKMARK_LIMIT",
-                    "En fazla " + MAX_PER_USER + " kayıt tutulabilir. Önce bazılarını kaldırın.");
+                    "En fazla " + MAX_PER_USER + " kayıt tutulabilir. Önce bazılarını kaldırın.", String.valueOf(MAX_PER_USER));
         }
         repo.insertIfAbsent(uid, BookmarkTarget.NEWS.name(), newsId);
     }

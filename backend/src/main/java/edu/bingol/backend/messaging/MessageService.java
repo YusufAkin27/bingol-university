@@ -87,7 +87,7 @@ public class MessageService {
         }
         if (body.length() > MAX_LENGTH) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MESSAGE_TOO_LONG",
-                    "Mesaj en fazla " + MAX_LENGTH + " karakter olabilir.");
+                    "Mesaj en fazla " + MAX_LENGTH + " karakter olabilir.", String.valueOf(MAX_LENGTH));
         }
         requireMember(conversationId, senderId);
 

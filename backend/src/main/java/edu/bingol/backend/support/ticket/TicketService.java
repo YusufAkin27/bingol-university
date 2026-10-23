@@ -30,11 +30,11 @@ public class TicketService {
     static final int MAX_OPEN_TICKETS = 5;
 
     private final TicketRepository tickets;
-    private final MessageRepository messages;
+    private final SupportMessageRepository messages;
     private final UserRepository users;
     private final NotificationService notifications;
 
-    public TicketService(TicketRepository tickets, MessageRepository messages, UserRepository users,
+    public TicketService(TicketRepository tickets, SupportMessageRepository messages, UserRepository users,
                          NotificationService notifications) {
         this.tickets = tickets;
         this.messages = messages;

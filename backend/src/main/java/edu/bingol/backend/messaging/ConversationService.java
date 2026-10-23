@@ -287,6 +287,7 @@ public class ConversationService {
     }
 
     private static ApiException groupFull() {
-        return new ApiException(HttpStatus.BAD_REQUEST, "GROUP_FULL", "Bir grupta en fazla " + MAX_MEMBERS + " üye olabilir.");
+        return new ApiException(HttpStatus.BAD_REQUEST, "GROUP_FULL", "Bir grupta en fazla " + MAX_MEMBERS + " üye olabilir.",
+                String.valueOf(MAX_MEMBERS));
     }
 }
