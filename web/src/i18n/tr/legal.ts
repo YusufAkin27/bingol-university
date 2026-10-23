@@ -8,6 +8,22 @@ const legal = {
   'legal.publishedAt': 'Yayın tarihi: {date}',
   'legal.notFound': 'Bu belge bulunamadı.',
   'legal.dataRequest': 'Kişisel veri talebi',
+  'legal.list.title': 'Yasal belgeler',
+  'legal.list.lead': 'Uygulamanın kullanımına, gizliliğe ve kişisel verilere ilişkin güncel metinler.',
+  'legal.list.read': 'Oku',
+  'legal.list.error': 'Belge listesi yüklenemedi',
+  'legal.toc': 'İçindekiler',
+  'legal.print': 'Yazdır',
+  'legal.versions': 'Önceki sürümler',
+  'legal.versionsNone': 'Başka sürüm yok.',
+  'legal.versionRow': 'Sürüm {version}, {date}',
+  'legal.current': 'Güncel',
+  'legal.draft': 'Bu metin taslaktır',
+  'legal.draftHint': 'Hukuki inceleme tamamlanana kadar bağlayıcı bir metin olarak değerlendirilmemelidir.',
+  'legal.fallbackLang': 'Bu belge seçtiğiniz dilde yayımlanmadığı için Türkçe sürümü gösteriliyor.',
+  'legal.otherDocs': 'Diğer belgeler',
+  'legal.allDocs': 'Tüm belgeler',
+  'legal.loadError': 'Belge yüklenemedi',
 } as const;
 
 export default legal;

@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+Allow: /
+
+# Yayına alırken alan adını gerçek adresle değiştirip aşağıdaki satırı açın:
+# Sitemap: https://ALAN-ADI/sitemap.xml

@@ -1,0 +1,67 @@
+.stores {
+  display: grid;
+  gap: var(--space-6);
+  justify-items: start;
+}
+.platform {
+  display: grid;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border);
+  width: 100%;
+  max-width: 520px;
+}
+.after {
+  display: grid;
+  gap: var(--space-3);
+}
+.after ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.after li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+.note {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--info-soft);
+  color: var(--text);
+  max-width: 520px;
+}
+.note svg {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--info);
+}
+.note p {
+  color: var(--text-muted);
+}
+.visual {
+  display: grid;
+  place-items: center;
+}
+@media (max-width: 860px) {
+  .visual {
+    display: none;
+  }
+}
