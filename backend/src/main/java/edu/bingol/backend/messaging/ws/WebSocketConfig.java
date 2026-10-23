@@ -83,8 +83,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /** Diger sunuculardan gelen sohbet olaylarini dinler (her sunucu kendi kullanicilarina iletir). */
     @Bean
-    RedisMessageListenerContainer chatEventListenerContainer(RedisConnectionFactory cf, ChatEventBus bus) {
+    RedisMessageListenerContainer chatEventListenerContainer(RedisConnectionFactory cf, ChatEventBus bus,
+            @org.springframework.beans.factory.annotation.Value("${app.messaging.redis-listener:true}") boolean autoStart) {
         RedisMessageListenerContainer c = new RedisMessageListenerContainer();
+        c.setAutoStartup(autoStart); // testlerde Redis olmadan baglam acilabilsin diye kapatilabilir
         c.setConnectionFactory(cf);
         c.addMessageListener(bus, new ChannelTopic(ChatEventBus.CHANNEL));
         return c;
