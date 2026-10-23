@@ -94,7 +94,7 @@ curl localhost:8080/actuator/health
 - Servis sözleşmesi: senkronizasyon/gönderim metotları çağıranına exception sızdırmaz.
 
 ### Web (`web/`)
-Bkz. `web/README.md`. TypeScript strict, CSS Modules + tasarım token'ları, kendi i18n (tr/en/ar, Arapçada RTL — mantıksal CSS özellikleri), react-query, token'lar `sessionStorage`. Yeni sayfa yalnızca kendi dosyasında; rotalar `routes.tsx`, menü `layouts/adminNav.ts`. `npm run lint && typecheck && test && build` yeşil olmalı.
+Bkz. `web/README.md` (komutlar, klasör haritası, E2E). Geliştirme: `cd web && npm run dev` (Vite proxy → backend 8080; `changeOrigin` kapalı kalmalı: Spring CORS Host/Origin eşleşmesine bakar). Üretim: `docker compose` içindeki `web` servisi (nginx, `WEB_PORT`, varsayılan 8090) `/api`, `/files`, `/ws` isteklerini backend'e vekiller, `Host` başlığını korur. TypeScript strict, CSS Modules + tasarım token'ları, kendi i18n (tr/en/ar, Arapçada RTL — mantıksal CSS özellikleri), react-query, token'lar `sessionStorage`. Yeni sayfa yalnızca kendi dosyasında; rotalar `routes.tsx`, menü `layouts/adminNav.ts`. `npm run lint && typecheck && test && build` yeşil olmalı.
 
 ### Mobil (Flutter) — ertelendi
 Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım durumları, kaynak sitelere doğrudan istek yok.

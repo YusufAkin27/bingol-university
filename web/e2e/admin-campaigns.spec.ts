@@ -7,6 +7,7 @@
  * Değiştirilen ayarlar test sonunda eski değerine döner; bakım modu hiç açılmaz.
  */
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -58,7 +59,24 @@ async function cachedLogin(email: string): Promise<Tok> {
 const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 const adminH = () => auth(admin.accessToken);
 
+const ensured = new Set<string>();
+/** Test kullanicisi yoksa scripts/make-user.sh ile olusturur (temiz veritabaninda da calissin). en* kullanicilarin dili en olur. */
+async function ensureUser(email: string): Promise<void> {
+  if (ensured.has(email)) return;
+  ensured.add(email);
+  try {
+    await cachedLogin(email);
+  } catch {
+    execFileSync('bash', ['scripts/make-user.sh', email, 'E2E User'], { cwd: path.resolve(process.cwd(), '..'), stdio: 'ignore' });
+  }
+  if (email.startsWith('en')) {
+    const tok = await cachedLogin(email);
+    await api.patch('/api/users/me', { data: { language: 'en' }, headers: { Authorization: `Bearer ${tok.accessToken}` } });
+  }
+}
+
 async function userToken(email: string): Promise<string> {
+  await ensureUser(email);
   userTokens[email] ??= (await cachedLogin(email)).accessToken;
   return userTokens[email];
 }
@@ -258,6 +276,7 @@ test.describe('kampanyalar', () => {
     const stamp = `${PREFIX}dil-${STAMP}`;
     await openAsAdmin(page, '/admin/campaigns/new');
     await page.getByRole('radio', { name: /Seçili kullanıcılar/ }).check();
+    await ensureUser('en1013@bingol.edu.tr');
     await page.getByLabel(/Kullanıcı ara/).fill('en1013');
     await page.getByRole('button', { name: /en1013@bingol\.edu\.tr/ }).click();
     await expect(page.getByRole('list', { name: 'Seçilen kullanıcılar' })).toContainText('en1013@bingol.edu.tr');

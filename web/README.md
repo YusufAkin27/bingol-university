@@ -81,3 +81,20 @@ grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe 
 [docs/ADMIN_API.md](../docs/ADMIN_API.md) — tüm uçlar için tip (`api/types.ts`) ve fonksiyon yazılmıştır; henüz uygulanmamış yeni uçlar da sözleşmeye göredir.
 Not: `GET /api/app/info` mağaza bağlantısı vermez; `useStoreLinks()` `GET /api/app/version?platform=…` içindeki `storeUrl`'ü kullanır (sözleşmede `info.stores` gelirse onu öncelikler).
 CSP `img-src 'self' data:` olduğundan harici resimler (okul sitesi haber görselleri) gösterilecekse nginx CSP'si ve/veya backend vekili birlikte düşünülmelidir.
+
+## Tarayıcı (E2E) testleri
+
+Playwright, gerçek backend'e karşı çalışır (örn. `docker compose up -d`). Yönetici hesapları için `scripts/make-user.sh`
+(e-posta backend'in `ADMIN_EMAILS` listesinde olmalı) ve demo veri için `scripts/seed-demo.sh` kullanılır.
+
+```bash
+# Vite geliştirme sunucusu (kendi portunda) + backend http://localhost:8080
+E2E_PORT=5190 E2E_ADMIN_EMAIL=admin1@bingol.edu.tr npx playwright test
+
+# Üretim benzeri nginx (docker compose, WEB_PORT) üzerinde
+E2E_BASE_URL=http://localhost:8095 E2E_ADMIN_EMAIL=admin1@bingol.edu.tr npx playwright test site.spec.ts
+```
+
+Notlar: giriş hız sınırı (e-posta başına 15 dk'da 10, IP başına 30) nedeniyle testler belirteçleri yeniden kullanır;
+çok çalıştırdıysanız `docker compose exec -T redis redis-cli flushall` ile sınırlar sıfırlanır. `E2E_SHOTS=1` ekran
+görüntülerini `e2e/.results/` altına yazar (commit'lenmez).
