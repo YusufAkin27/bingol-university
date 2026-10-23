@@ -34,7 +34,7 @@ async function api(method, path, token, body) {
 }
 
 async function register(email, name) {
-  await api('POST', '/auth/register', null, { email, password: 'Sifre1234', displayName: name });
+  await api('POST', '/auth/register', null, { email, password: 'Sifre1234', displayName: name, acceptTerms: true });
   await sleep(1000);
   const logs = execSync('docker compose logs backend', { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const m = [...logs.matchAll(new RegExp(email.replace('.', '\\.') + ' icin dogrulama kodu: (\\d+)', 'g'))].pop();

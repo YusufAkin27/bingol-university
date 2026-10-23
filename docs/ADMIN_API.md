@@ -1,0 +1,75 @@
+# Yönetim Paneli API Sözleşmesi
+
+Web yönetim paneli (`web/`) ve backend bu sözleşmeye göre paralel geliştirilir. **Mevcut** uçlar kodda zaten vardır
+(`backend/src/main/java/.../*Controller.java`); aşağıda **yeni** uçlar ve gerekli değişiklikler tanımlıdır.
+Tüm `/api/admin/**` uçları `ROLE_ADMIN` ister (JWT `role` claim'i). Hata gövdesi: `{"code","message"}`; dil: `Accept-Language: tr|en|ar`.
+Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. Sayfalama: `page` (0 tabanlı) + `size` (≤100) → `{items, page, totalPages, totalItems}`.
+
+## Mevcut uçlar (panel kullanır)
+| Alan | Uçlar |
+|---|---|
+| Kimlik | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me` |
+| Raporlar | `GET /api/admin/reports?status=OPEN&cursor=&size=`, `POST /api/admin/reports/{id}/resolve {action: DISMISS\|HIDE\|WARN\|SUSPEND_USER, message}` |
+| Kullanıcı askı | `POST /api/admin/users/{id}/suspend {reason}`, `/unsuspend` |
+| Geri bildirim | `GET /api/admin/feedback?status=&category=&cursor=&size=`, `PATCH /api/admin/feedback/{id} {status, adminResponse, publicVisible}` |
+| Destek | `GET /api/admin/support/tickets?status=&cursor=`, `GET .../{id}`, `POST .../{id}/reply {text}`, `POST .../{id}/close` |
+| SSS | `GET/POST /api/admin/faq`, `PUT/DELETE /api/admin/faq/{id}` (`lang` tr\|en\|ar) |
+| Sözleşmeler | herkese açık `GET /api/legal`, `/api/legal/{type}`; yönetici `POST /api/admin/legal/{type} {tr:{title,content}, en?, ar?, requireReaccept}` |
+| Ayarlar | `GET /api/admin/settings`, `PUT /api/admin/settings/{key} {value}` (mağaza linkleri, iletişim, banner, bakım modu, sürüm kontrolü) |
+| Push | `POST /api/admin/push/audience-count`, `POST/GET /api/admin/push/campaigns`, `GET .../{id}`, `POST .../{id}/cancel` |
+| Topluluk / etkinlik onayı | `GET /api/admin/communities`, `POST /api/admin/communities/{id}/approve\|reject`, `GET /api/admin/events`, `POST /api/admin/events/{id}/approve\|reject` |
+| Haber senkronu | `POST /api/admin/sync`, `POST /api/admin/sync-menu`, `GET /api/status` |
+| İstatistik (basit) | `GET /api/admin/stats` |
+| Genel (giriş gerekmez) | `GET /api/app/info` (mağaza linkleri, iletişim, banner), `GET /api/faq`, `GET /api/legal*` |
+
+## Yeni uçlar
+
+### Yönetici kimliği
+`GET /api/admin/me` → `{id, email, displayName, role}`
+
+### Kullanıcı yönetimi
+- `GET /api/admin/users?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&page=&size=&sort=createdAt,desc`
+  - `q`: ad veya e-posta (büyük/küçük harf duyarsız, LIKE kaçışlı); `sort`: `createdAt|lastSeenAt|displayName` + `,asc|desc`
+  - → `{items:[AdminUserRow], page, totalPages, totalItems}`
+  - `AdminUserRow`: `{id, email, displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt, lastSeenAt, avatarUrl}`
+- `GET /api/admin/users/{id}` → `AdminUserDetail` = `AdminUserRow` + `{bio, suspendedReason, deletedAt, deviceCount, platforms:["ANDROID"], counts:{feedback, tickets, reportsAgainst, reportsFiled, conversations, communities, eventsCreated, bookmarks}, consents:[{type,version,acceptedAt}], recentActivity:[{day,opens}]}`
+- `PATCH /api/admin/users/{id}/role {role:"USER"|"ADMIN"}` → 204. Kendi rolünü düşüremez; son yönetici düşürülemez (409 `LAST_ADMIN`).
+- `DELETE /api/admin/users/{id}` → 204 (anonimleştirme, hesap silme ile aynı mantık; kendini silemez).
+- `GET /api/admin/users/export.csv` + aynı filtreler → `text/csv` (UTF-8 BOM, hücre CSV-enjeksiyonuna karşı kaçışlı, en çok 50.000 satır).
+
+### Profil: fakülte
+- `User.faculty` (≤120). `PATCH /api/users/me {faculty}`; `ProfileView`/`PublicProfile` içinde `faculty`.
+- `GET /api/faculties` (herkese açık) → `["Mühendislik Fakültesi", …]` — liste `app_setting` anahtarı `faculties` içinde `;` ile ayrılmış tutulur (yönetici `PUT /api/admin/settings/faculties`). Liste boş değilse profildeki fakülte listeden biri olmalıdır (`INVALID_FACULTY`).
+
+### Kullanım takibi (mobil → backend)
+- `POST /api/analytics/events` (giriş gerekli, dakikada 30 istek) gövde `{events:[{name, screen?, props?, at?}]}` (≤50 olay; `name` `[a-z0-9_]{1,40}`; `props` en çok 5 anahtar, değerler ≤100 karakter, kişisel veri yok) → 204. Olaylar `analytics_event` tablosuna yazılır; **180 gün** sonra silinir (zamanlayıcı).
+- Her kimlikli istekte kullanıcı başına günde en çok bir kez `activity_daily(user_id, day, opens)` güncellenir ve `app_user.last_seen_at` en çok 5 dakikada bir yazılır (Redis ile kısıtlanır; istek yolunu yavaşlatmaz).
+- KVKK: yalnızca toplulaştırılmış analitik gösterilir; kullanıcı detayında yalnızca günlük açılış sayıları görünür. `GET /api/users/me/export` bu verileri de içerir.
+
+### Analitik (`/api/admin/analytics/*`, `from`/`to` = `yyyy-MM-dd`, varsayılan son 30 gün, en çok 366 gün)
+- `GET .../overview` → `{totalUsers, verifiedUsers, suspendedUsers, newUsers:{today,last7d,last30d}, activeUsers:{dau,wau,mau}, stickiness, messages:{total,last24h}, communities:{active,pending}, events:{upcoming,pending}, openReports, openTickets, newFeedback, pushCampaignsSent30d, bookmarks, devices:{android,ios,web}}` (`stickiness` = dau/mau, 0-1)
+- `GET .../registrations?from=&to=` → `{points:[{date,count,cumulative}]}` (günlük, boş günler 0 ile doldurulur)
+- `GET .../active-users?from=&to=` → `{points:[{date,dau}], wau, mau}`
+- `GET .../breakdown?dimension=faculty|department|classYear|language|role|status|platform` → `{dimension, total, items:[{key,label,count,percent}]}` (azalan sayı; boş değer `key:"unknown"`; en çok 50 öğe, fazlası `other`)
+- `GET .../engagement?from=&to=` → `{topEvents:[{name,count,uniqueUsers}], screens:[{screen,views}], daily:[{date,messages,posts,rsvps,searches}], funnel:[{step,count}]}` — `funnel` adımları: `registered, verified, profileCompleted, joinedCommunity, sentMessage`
+- `GET .../retention` → `{cohorts:[{weekStart,size,d1,d7,d30}]}` (yüzde 0-100; son 12 hafta)
+- `GET .../support` → `{tickets:{open,answered,closed}, avgFirstResponseMinutes, feedbackByCategory:[{key,count}], feedbackByStatus:[{key,count}]}`
+- `GET .../push` → `{totals:{campaigns,recipients}, recent:[CampaignView]}`
+- `GET .../content?from=&to=` → `{daily:[{date,news,announcements,events}], sources:{NEWS:{maintenance,lastSuccessAt}, MENU:{…}}}`
+
+### Denetim kaydı
+`/api/admin/**` altındaki **GET dışı** tüm istekler (HandlerInterceptor, gövde kaydedilmez) `admin_audit` tablosuna yazılır:
+`GET /api/admin/audit?page=&size=&adminId=&method=&q=` → `{items:[{id,adminId,adminEmail,method,path,status,at,ip}], …}` (en yeni önce).
+
+### Sözleşme yönetimi eksikleri
+`GET /api/admin/legal/{type}/versions` → `[{version, lang, title, content, requireReaccept, active, publishedAt}]` (tüm diller, en yeni önce).
+`GET /api/admin/legal/acceptance-stats` → `[{type, version, accepted, totalActiveUsers}]` (güncel sürüm kabul oranı).
+
+### Haber yönetimi
+`NewsItem.hidden` (varsayılan false). `GET /api/admin/news?q=&type=&hidden=&page=&size=` ve `PATCH /api/admin/news/{id} {hidden}` → 204. Gizli kayıtlar herkese açık liste, detay, arama ve favorilerde görünmez.
+
+### CORS
+`app.cors.allowed-origins` (virgüllü liste, varsayılan `http://localhost:5173,http://localhost:3000`) için yalnızca `/api/**` ve `/files/**`; kimlik bilgisi çerezi kullanılmaz (Bearer başlığı). Üretimde web, nginx ile `/api` → backend proxy'si arkasında aynı kökenden sunulur.
+
+## Hata kodları (yeni)
+`LAST_ADMIN` (409), `CANNOT_MODIFY_SELF` (400), `INVALID_FACULTY` (400), `INVALID_EVENT` (400), `INVALID_RANGE` (400). Her kod için `messages*.properties` içinde `error.<KOD>` çevirisi (tr/en/ar) eklenir.
