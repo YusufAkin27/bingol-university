@@ -1,0 +1,56 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.editor:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.toolbar {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-2);
+  border-block-end: 1px solid var(--border);
+}
+.tool {
+  min-width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.tool:hover {
+  background: var(--surface-3);
+}
+.tool:focus-visible {
+  outline: 2px solid var(--focus);
+}
+.glyph {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1;
+}
+.area {
+  flex: 1;
+  min-height: 20rem;
+  width: 100%;
+  resize: vertical;
+  border: 0;
+  outline: none;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
