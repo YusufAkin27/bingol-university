@@ -63,7 +63,7 @@ public class CommunityService {
     public Community create(Actor a, CreateCommunityRequest r) {
         if (communities.countByOwnerIdAndStatusIn(a.id(), LIVE) >= MAX_OWNED) {
             throw new ApiException(HttpStatus.CONFLICT, "COMMUNITY_LIMIT",
-                    "En fazla " + MAX_OWNED + " topluluğun sahibi olabilirsiniz.");
+                    "En fazla " + MAX_OWNED + " topluluğun sahibi olabilirsiniz.", String.valueOf(MAX_OWNED));
         }
         Community c = new Community();
         c.setName(r.name().trim());
@@ -201,8 +201,7 @@ public class CommunityService {
         if (!open) {
             String who = displayName(a.id());
             for (Long mod : members.moderatorIds(id, CommunityMember.Status.ACTIVE, Role.MEMBER)) {
-                notifications.send(mod, NotificationType.COMMUNITY, "Yeni katılma isteği",
-                        who + " \"" + c.getName() + "\" topluluğuna katılmak istiyor.", data(id));
+                notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id), who, c.getName());
             }
         }
         return st.name();
@@ -250,9 +249,8 @@ public class CommunityService {
         } else {
             members.delete(m);
         }
-        notifications.send(userId, NotificationType.COMMUNITY,
-                approve ? "Katılma isteğiniz onaylandı" : "Katılma isteğiniz reddedildi",
-                "\"" + c.getName() + "\" topluluğu için isteğiniz " + (approve ? "onaylandı." : "reddedildi."), data(id));
+        notifications.sendTemplated(userId, NotificationType.COMMUNITY,
+                approve ? "notif.community.joinApproved" : "notif.community.joinRejected", data(id), c.getName());
     }
 
     /** Yalnizca OWNER (veya ADMIN): aktif bir uyeyi MODERATOR/MEMBER yapar. */
@@ -274,8 +272,7 @@ public class CommunityService {
         m.setRole(role);
         members.save(m);
         if (role == Role.MODERATOR) {
-            notifications.send(userId, NotificationType.COMMUNITY, "Moderatör oldunuz",
-                    "\"" + c.getName() + "\" topluluğunda moderatör olarak atandınız.", data(id));
+            notifications.sendTemplated(userId, NotificationType.COMMUNITY, "notif.community.moderator", data(id), c.getName());
         }
     }
 
@@ -324,9 +321,10 @@ public class CommunityService {
         c.setReviewNote(approve ? null : Texts.blankToNull(reason));
         c.setUpdatedAt(Instant.now());
         communities.save(c);
-        notifications.send(c.getOwnerId(), NotificationType.COMMUNITY,
-                approve ? "Topluluğunuz onaylandı" : "Topluluğunuz reddedildi",
-                "\"" + c.getName() + "\" " + (approve ? "yayına alındı." : "onaylanmadı."), data(id));
+        String note = c.getReviewNote();
+        notifications.sendTemplated(c.getOwnerId(), NotificationType.COMMUNITY,
+                approve ? "notif.community.approved" : note == null ? "notif.community.rejected" : "notif.community.rejectedNote",
+                data(id), approve || note == null ? new String[] {c.getName()} : new String[] {c.getName(), note});
     }
 
     // ---- diger modullerin kullandigi yardimcilar ----

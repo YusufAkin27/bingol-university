@@ -50,7 +50,7 @@ public class EventReminderService {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
             if (rsvps.claimHour(r.getId()) == 1) {
-                send(r, e, "Etkinlik 1 saat içinde başlıyor");
+                send(r, e, "notif.event.reminderHour");
                 sent++;
             }
         }
@@ -60,16 +60,16 @@ public class EventReminderService {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
             if (rsvps.claimDay(r.getId()) == 1) {
-                send(r, e, "Etkinlik yarın başlıyor");
+                send(r, e, "notif.event.reminderDay");
                 sent++;
             }
         }
         return sent;
     }
 
-    private void send(EventRsvp r, UserEvent e, String title) {
+    private void send(EventRsvp r, UserEvent e, String key) {
         String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
-        notifications.send(r.getUserId(), NotificationType.EVENT, title, "\"" + e.getTitle() + "\"" + where,
-                Map.of("eventId", e.getId().toString()));
+        notifications.sendTemplated(r.getUserId(), NotificationType.EVENT, key,
+                Map.of("eventId", e.getId().toString()), e.getTitle() + where);
     }
 }

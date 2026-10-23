@@ -10,6 +10,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const port = Number(process.env.E2E_PORT || 5190);
 const backend = process.env.VITE_DEV_BACKEND || 'http://localhost:8080';
+// E2E_BASE_URL verilirse (ornek: http://localhost:8090 uretim benzeri nginx) Vite sunucusu acilmaz.
+const external = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: './e2e',
@@ -20,13 +22,13 @@ export default defineConfig({
   reporter: [['list']],
   outputDir: './e2e/.results',
   use: {
-    baseURL: `http://localhost:${port}`,
+    baseURL: external || `http://localhost:${port}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     locale: 'tr-TR',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
+  webServer: external ? undefined : {
     command: `npx vite --port ${port} --strictPort`,
     port,
     reuseExistingServer: true,

@@ -126,7 +126,7 @@ public class EventService {
                 e.setCapacity(null);
             } else if (r.capacity() < e.getGoingCount()) {
                 throw new ApiException(HttpStatus.CONFLICT, "CAPACITY_TOO_LOW",
-                        "Kapasite, katılacak kişi sayısından (" + e.getGoingCount() + ") az olamaz.");
+                        "Kapasite, katılacak kişi sayısından (" + e.getGoingCount() + ") az olamaz.", String.valueOf(e.getGoingCount()));
             } else {
                 e.setCapacity(r.capacity());
             }
@@ -147,7 +147,7 @@ public class EventService {
         e.setUpdatedAt(now);
         events.save(e);
         if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
-            notifyGoing(e, "Etkinlik güncellendi", "\"" + e.getTitle() + "\" etkinliğinin zamanı/yeri değişti.");
+            notifyGoing(e, "notif.event.updated");
         }
         return views(List.of(e), a, true).get(0);
     }
@@ -165,7 +165,7 @@ public class EventService {
         e.setUpdatedAt(Instant.now());
         events.save(e);
         if (wasActive) {
-            notifyGoing(e, "Etkinlik iptal edildi", "\"" + e.getTitle() + "\" etkinliği iptal edildi.");
+            notifyGoing(e, "notif.event.cancelled");
         }
     }
 
@@ -327,10 +327,11 @@ public class EventService {
         e.setReviewNote(approve ? null : Texts.blankToNull(reason));
         e.setUpdatedAt(Instant.now());
         events.save(e);
-        notifications.send(e.getCreatedBy(), NotificationType.EVENT,
-                approve ? "Etkinliğiniz onaylandı" : "Etkinliğiniz reddedildi",
-                "\"" + e.getTitle() + "\" " + (approve ? "yayına alındı." : "onaylanmadı."),
-                Map.of("eventId", id.toString()));
+        String note = e.getReviewNote();
+        notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT,
+                approve ? "notif.event.approved" : note == null ? "notif.event.rejected" : "notif.event.rejectedNote",
+                Map.of("eventId", id.toString()),
+                approve || note == null ? new String[] {e.getTitle()} : new String[] {e.getTitle(), note});
     }
 
     // ---- diger siniflarin kullandigi yardimcilar ----
@@ -406,10 +407,10 @@ public class EventService {
                 PageRequest.of(0, limit));
     }
 
-    private void notifyGoing(UserEvent e, String title, String body) {
+    private void notifyGoing(UserEvent e, String key) {
         for (Long uid : rsvps.userIds(e.getId(), EventRsvp.Status.GOING, PageRequest.of(0, NOTIFY_LIMIT))) {
             if (!uid.equals(e.getCreatedBy())) {
-                notifications.send(uid, NotificationType.EVENT, title, body, Map.of("eventId", e.getId().toString()));
+                notifications.sendTemplated(uid, NotificationType.EVENT, key, Map.of("eventId", e.getId().toString()), e.getTitle());
             }
         }
     }

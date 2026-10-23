@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -112,7 +113,7 @@ class CommunityServiceTest {
         when(members.moderatorIds(eq(10L), any(), any())).thenReturn(List.of(99L));
 
         assertEquals("PENDING", svc.join(user, 10L));
-        verify(notifications).send(eq(99L), eq(NotificationType.COMMUNITY), any(), any(), any());
+        verify(notifications).sendTemplated(eq(99L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
     }
 
     @Test
@@ -241,7 +242,7 @@ class CommunityServiceTest {
         svc.decide(user, 10L, 5L, true);
 
         assertEquals(CommunityMember.Status.ACTIVE, pending.getStatus());
-        verify(notifications).send(eq(5L), eq(NotificationType.COMMUNITY), any(), any(), any());
+        verify(notifications).sendTemplated(eq(5L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
     }
 
     @Test
@@ -266,7 +267,7 @@ class CommunityServiceTest {
         svc.review(10L, true, null);
 
         assertEquals(Community.Status.ACTIVE, c.getStatus());
-        verify(notifications).send(eq(99L), eq(NotificationType.COMMUNITY), any(), any(), any());
+        verify(notifications).sendTemplated(eq(99L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
     }
 
     @Test

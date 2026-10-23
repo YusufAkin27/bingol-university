@@ -79,7 +79,9 @@ echo "== SSS"
 has "SSS TR" '"category":"Hesap"' "$(curl -s $A/faq)"
 has "SSS EN" '"category":"Account"' "$(curl -s -H 'Accept-Language: en' $A/faq)"
 has "SSS AR" "$(printf '\xd8\xa7\xd9\x84\xd8\xad\xd8\xb3\xd8\xa7\xd8\xa8')" "$(curl -s -H 'Accept-Language: ar' $A/faq)"
-check "SSS ekle (admin)" 201 "$(code -X POST -H "$H" -H "$AAD" $A/admin/faq -d '{"lang":"tr","category":"Test","question":"Soru?","answer":"Cevap."}')"
+FQ=$(curl -s -w " [%{http_code}]" -X POST -H "$H" -H "$AAD" $A/admin/faq -d '{"lang":"tr","category":"SmokeTest","question":"Soru?","answer":"Cevap."}')
+check "SSS ekle (admin)" 201 "$(echo "$FQ" | grep -o "[0-9]*]$" | tr -d "]")"
+FQID=$(echo "$FQ" | grep -o "\"id\":[0-9]*" | head -1 | cut -d: -f2)
 check "SSS ekle (normal kullanici)" 403 "$(code -X POST -H "$H" -H "$ATR" $A/admin/faq -d '{"lang":"tr","category":"Test","question":"Soru?","answer":"Cevap."}')"
 
 echo "== geri bildirim ve oneri panosu"
@@ -175,6 +177,9 @@ for i in $(seq 1 12); do
 done
 check "SELF testi gonderildi" SENT "$ST"
 has "yonetici bildirimi aldi" "Kendime" "$(curl -s -H "$AAD" $A/notifications)"
+
+# test verisini temizle
+[ -n "${FQID:-}" ] && curl -s -o /dev/null -X DELETE -H "$AAD" $A/admin/faq/$FQID
 
 [ $FAIL -eq 0 ] && echo "TUMU GECTI" || echo "HATA VAR"
 exit $FAIL

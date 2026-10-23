@@ -2,6 +2,7 @@ package edu.bingol.backend.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,7 +39,7 @@ class EventReminderServiceTest {
 
         assertEquals(1, svc.run(now));
 
-        verify(notifications).send(eq(11L), eq(NotificationType.EVENT), any(), any(), any());
+        verify(notifications).sendTemplated(eq(11L), eq(NotificationType.EVENT), eq("notif.event.reminderHour"), any(), any(String[].class));
     }
 
     @Test
@@ -61,6 +62,6 @@ class EventReminderServiceTest {
 
         assertEquals(1, svc.run(now));
 
-        verify(notifications).send(eq(12L), eq(NotificationType.EVENT), eq("Etkinlik yarın başlıyor"), any(), any());
+        verify(notifications).sendTemplated(eq(12L), eq(NotificationType.EVENT), eq("notif.event.reminderDay"), any(), any(String[].class));
     }
 }

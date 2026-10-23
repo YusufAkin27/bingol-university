@@ -4,6 +4,7 @@ import type { CursorPage, ReportStatus, ReportView, ResolveReportRequest } from 
 export const listReports = (p: { status?: ReportStatus; cursor?: number | null; size?: number } = {}) =>
   api.get<CursorPage<ReportView>>('/admin/reports', {
     status: p.status ?? 'OPEN',
+    order: 'desc', // en yeni rapor once
     cursor: p.cursor,
     size: p.size,
   });

@@ -77,6 +77,15 @@ public class NotificationService {
         send(userId, type, i18n.msg(titleKey, lang), body, data);
     }
 
+    /**
+     * Sablon anahtariyla (`<key>.title` ve `<key>.body`), alicinin kayitli dilinde. Argumanlar icerik kaynakli
+     * metinlerdir (topluluk adi, etkinlik basligi...) ve cevrilmez.
+     */
+    public void sendTemplated(Long userId, NotificationType type, String key, Map<String, String> data, String... args) {
+        Lang lang = i18n.langOf(userId);
+        send(userId, type, i18n.msg(key + ".title", lang, (Object[]) args), i18n.msg(key + ".body", lang, (Object[]) args), data);
+    }
+
     public void broadcast(NotificationType type, String title, String body, Map<String, String> data) {
         try {
             notifications.insertForAll(type.name(), truncate(title, 200), truncate(body, 500), toJson(data),

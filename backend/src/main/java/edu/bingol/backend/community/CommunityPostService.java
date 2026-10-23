@@ -116,7 +116,7 @@ public class CommunityPostService {
         communities.requireModerator(a, communities.load(cid));
         CommunityPost p = find(cid, postId);
         if (pinned && !p.isPinned() && posts.countByCommunityIdAndPinnedTrueAndDeletedFalse(cid) >= MAX_PINNED) {
-            throw new ApiException(HttpStatus.CONFLICT, "PIN_LIMIT", "En fazla " + MAX_PINNED + " yazı sabitlenebilir.");
+            throw new ApiException(HttpStatus.CONFLICT, "PIN_LIMIT", "En fazla " + MAX_PINNED + " yazı sabitlenebilir.", String.valueOf(MAX_PINNED));
         }
         p.setPinned(pinned);
         posts.save(p);
