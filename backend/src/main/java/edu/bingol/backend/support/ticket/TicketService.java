@@ -4,6 +4,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
+import edu.bingol.backend.support.ticket.TicketDtos.AdminTicketDetail;
 import edu.bingol.backend.support.ticket.TicketDtos.AdminTicketList;
 import edu.bingol.backend.support.ticket.TicketDtos.AdminTicketSummary;
 import edu.bingol.backend.support.ticket.TicketDtos.CreateTicketRequest;
@@ -101,8 +102,11 @@ public class TicketService {
         return new AdminTicketList(page.items(), page.nextCursor());
     }
 
-    public TicketDetail adminDetail(Long ticketId) {
-        return toDetail(find(ticketId));
+    public AdminTicketDetail adminDetail(Long ticketId) {
+        SupportTicket t = find(ticketId);
+        TicketDetail d = toDetail(t);
+        String email = users.findById(t.getUserId()).map(User::getEmail).orElse(null);
+        return new AdminTicketDetail(d.ticket(), d.messages(), t.getUserId(), email);
     }
 
     @Transactional

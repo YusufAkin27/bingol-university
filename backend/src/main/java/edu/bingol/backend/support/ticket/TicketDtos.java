@@ -31,6 +31,10 @@ public final class TicketDtos {
 
     public record TicketDetail(TicketSummary ticket, List<TicketMessageView> messages) {}
 
+    /** Yonetici detayi: talep sahibi bilgisiyle (TicketDetail alanlari + userId/userEmail). */
+    public record AdminTicketDetail(TicketSummary ticket, List<TicketMessageView> messages, Long userId,
+                                    String userEmail) {}
+
     public record TicketList(List<TicketSummary> items, Long nextCursor) {}
 
     /** Yonetici gorunumu: talep sahibi bilgisiyle. */

@@ -74,7 +74,7 @@ public class TicketController {
     }
 
     @GetMapping("/admin/support/tickets/{id}")
-    public TicketDetail adminDetail(@PathVariable Long id) {
+    public TicketDtos.AdminTicketDetail adminDetail(@PathVariable Long id) {
         return tickets.adminDetail(id);
     }
 

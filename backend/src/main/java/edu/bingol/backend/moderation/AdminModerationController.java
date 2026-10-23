@@ -42,13 +42,14 @@ public class AdminModerationController {
         this.news = news;
     }
 
-    /** GET /api/admin/reports?status=OPEN&cursor=&size=20 (eskiden yeniye) */
+    /** GET /api/admin/reports?status=OPEN&order=asc|desc&cursor=&size=20 (varsayilan eskiden yeniye) */
     @GetMapping("/reports")
     public ReportQueue queue(@RequestParam(defaultValue = "OPEN") Report.Status status,
+                             @RequestParam(defaultValue = "asc") String order,
                              @RequestParam(required = false) Long cursor,
                              @RequestParam(defaultValue = "20") int size) {
         int s = CursorPage.clampSize(size);
-        List<Report> rows = reports.queue(status, cursor, s);
+        List<Report> rows = reports.queue(status, cursor, s, "desc".equalsIgnoreCase(order));
         CursorPage<ReportView> page = CursorPage.of(rows, s, Report::getId, ReportView::of);
         return new ReportQueue(page.items(), page.nextCursor());
     }

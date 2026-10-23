@@ -53,7 +53,12 @@ public class ReportService {
     }
 
     public List<Report> queue(Report.Status status, Long cursor, int size) {
-        return reports.queue(status, cursor, PageRequest.of(0, size + 1));
+        return queue(status, cursor, size, false);
+    }
+
+    public List<Report> queue(Report.Status status, Long cursor, int size, boolean newestFirst) {
+        PageRequest page = PageRequest.of(0, size + 1);
+        return newestFirst ? reports.queueNewestFirst(status, cursor, page) : reports.queue(status, cursor, page);
     }
 
     /** Karar, ayni hedefe bekleyen tum raporlari kapatir. */
