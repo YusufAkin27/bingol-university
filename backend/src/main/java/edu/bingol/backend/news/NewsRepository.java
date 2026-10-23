@@ -15,12 +15,17 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
 
     boolean existsByUrl(String url);
 
-    Page<NewsItem> findByType(ContentType type, Pageable pageable);
+    /** Herkese acik gorunum: gizlenmis (hidden) kayitlar donmez. */
+    boolean existsByIdAndHiddenFalse(Long id);
+
+    Page<NewsItem> findByHiddenFalse(Pageable pageable);
+
+    Page<NewsItem> findByTypeAndHiddenFalse(ContentType type, Pageable pageable);
 
     /** Liste ucu icin metin filtresi (PostgreSQL'e ozel). type null ise tum turler. Siralama sabit: en yeni once. */
-    @Query(value = "SELECT n.* FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND "
+    @Query(value = "SELECT n.* FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND n.hidden = FALSE AND "
             + MATCH + " ORDER BY n.published_date DESC, n.id DESC",
-            countQuery = "SELECT count(*) FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND "
+            countQuery = "SELECT count(*) FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND n.hidden = FALSE AND "
                     + MATCH,
             nativeQuery = true)
     Page<NewsItem> searchPage(@Param("type") String type, @Param("q") String q, @Param("like") String like,
@@ -37,7 +42,7 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
 
     /** Tek tur icin ts_rank sirali sonuclar; baslik ILIKE yedegi rank 0 ile sona duser. */
     @Query(value = "SELECT n.id AS id, n.title AS title, n.summary AS summary, n.image_url AS imageUrl, "
-            + "CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.type = :type AND "
+            + "CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.type = :type AND n.hidden = FALSE AND "
             + MATCH + " ORDER BY ts_rank(" + VEC + ", websearch_to_tsquery('turkish', :q)) DESC, "
             + "n.published_date DESC, n.id DESC LIMIT :lim", nativeQuery = true)
     List<HitRow> searchHits(@Param("type") String type, @Param("q") String q, @Param("like") String like,

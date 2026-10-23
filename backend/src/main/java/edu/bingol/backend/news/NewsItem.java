@@ -41,6 +41,10 @@ public class NewsItem {
 
     private LocalDate publishedDate;
 
+    /** Yonetici gizlediyse herkese acik liste/detay/arama/favorilerde gorunmez. */
+    @Column(nullable = false)
+    private boolean hidden;
+
     @Column(nullable = false)
     private Instant fetchedAt;
 }

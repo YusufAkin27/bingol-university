@@ -134,3 +134,13 @@ Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım d
 - Şifre sıfırlama yok. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
 - Sözleşme metinleri **taslaktır**, hukuki inceleme gerekir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
 - Mobil uygulama ertelendi; Flutter bu makinede yok.
+
+## 9. Yönetim paneli API'leri (özet)
+
+Ayrıntılı sözleşme: [docs/ADMIN_API.md](docs/ADMIN_API.md).
+
+- `admin` paketi: kullanıcı yönetimi (liste/detay/rol/silme/CSV), denetim kaydı (`AuditInterceptor`, 403 için `AuditAccessDeniedHandler`), haber gizleme, sözleşme sürüm/kabul istatistikleri. `analytics` paketi: olay alımı (`POST /api/analytics/events`), `ActivityTracker` (son görülme/günlük aktiflik), `/api/admin/analytics/*` raporları, 180 gün olay saklama.
+- Dinamik/raporlama sorguları `NamedParameterJdbcTemplate` ile parametreli yazılır (PostgreSQL'e özel; H2 testlerinde çalıştırılmaz). Gün sınırları her yerde `Europe/Istanbul` (`analytics.DateRange`).
+- Redis anahtarları: `seen:<uid>` (5 dk, son görülme kısıtı), `act:<uid>:<gün>` (günlük aktiflik), `rolechg:<uid>` (rol değişim anı, 16 dk; `JwtAuthFilter` eski token'ı reddeder), `suspended:<uid>` (askı/silme).
+- CORS: `app.cors.allowed-origins` (`CORS_ORIGINS`), yalnızca `/api/**` ve `/files/**`.
+- Uçtan uca doğrulama: `scripts/smoke-admin.sh` (diğer smoke betikleri gibi `BASE` ile).

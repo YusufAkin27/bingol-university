@@ -44,6 +44,10 @@ public class User {
     @Column(length = 120)
     private String department;
 
+    /** Fakulte (serbest metin; yonetici `faculties` ayarini doldurduysa listeden biri). */
+    @Column(length = 120)
+    private String faculty;
+
     private Short classYear;
 
     @Column(length = 300)
@@ -62,6 +66,9 @@ public class User {
     private String suspendedReason;
 
     private Instant deletedAt;
+
+    /** Son gorulme (en cok 5 dakikada bir guncellenir; bkz. analytics.ActivityTracker). */
+    private Instant lastSeenAt;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();

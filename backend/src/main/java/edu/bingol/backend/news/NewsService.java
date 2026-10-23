@@ -42,13 +42,13 @@ public class NewsService {
         } else {
             Pageable pageable = PageRequest.of(p, s,
                     Sort.by(Sort.Order.desc("publishedDate"), Sort.Order.desc("id")));
-            result = type == null ? repo.findAll(pageable) : repo.findByType(type, pageable);
+            result = type == null ? repo.findByHiddenFalse(pageable) : repo.findByTypeAndHiddenFalse(type, pageable);
         }
         return new NewsPage(result.getContent().stream().map(NewsSummary::of).toList(),
                 result.getNumber(), result.getTotalPages(), result.getTotalElements());
     }
 
     public Optional<NewsDetail> find(Long id) {
-        return repo.findById(id).map(NewsDetail::of);
+        return repo.findById(id).filter(n -> !n.isHidden()).map(NewsDetail::of);
     }
 }

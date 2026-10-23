@@ -32,7 +32,7 @@ public class BookmarkService {
     /** Idempotent: zaten kayitliysa sessizce basarili. Limit yalnizca yeni kayitta kontrol edilir. */
     @Transactional
     public void addNews(Long uid, Long newsId) {
-        if (!news.existsById(newsId)) {
+        if (!news.existsByIdAndHiddenFalse(newsId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Haber bulunamadı.");
         }
         if (repo.existsByUserIdAndTargetTypeAndTargetId(uid, BookmarkTarget.NEWS, newsId)) {
@@ -58,9 +58,9 @@ public class BookmarkService {
         CursorPage<Bookmark> page = CursorPage.of(rows, s, Bookmark::getId, Function.identity());
         Map<Long, NewsItem> items = news.findAllById(page.items().stream().map(Bookmark::getTargetId).toList())
                 .stream().collect(Collectors.toMap(NewsItem::getId, Function.identity()));
-        // Kaynagi silinmis haber (olmamali) listeden dusulur
+        // Kaynagi silinmis veya yonetici tarafindan gizlenmis haber listeden dusulur
         List<BookmarkView> views = page.items().stream()
-                .filter(b -> items.containsKey(b.getTargetId()))
+                .filter(b -> items.containsKey(b.getTargetId()) && !items.get(b.getTargetId()).isHidden())
                 .map(b -> new BookmarkView(b.getTargetType(), b.getTargetId(), b.getCreatedAt(),
                         NewsSummary.of(items.get(b.getTargetId()))))
                 .toList();

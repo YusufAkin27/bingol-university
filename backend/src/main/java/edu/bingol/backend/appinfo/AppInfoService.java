@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AppInfoService {
 
+    public static final String FACULTIES_KEY = "faculties";
+
     private static final Pattern VERSION = Pattern.compile("\\d+(\\.\\d+){0,3}");
     private static final Pattern PLATFORM = Pattern.compile("android|ios", Pattern.CASE_INSENSITIVE);
 
@@ -64,6 +66,18 @@ public class AppInfoService {
 
     // --- yonetici ---
 
+    /** `faculties` ayarindan (';' ile ayrilmis) temiz liste; ayar yoksa/bossa bos liste. */
+    public List<String> faculties() {
+        return repo.findById(FACULTIES_KEY).map(s -> splitFaculties(s.getValue())).orElseGet(List::of);
+    }
+
+    static List<String> splitFaculties(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(raw.split(";")).map(String::trim).filter(s -> !s.isEmpty()).distinct().toList();
+    }
+
     public Map<String, String> all() {
         return repo.findAll().stream().collect(Collectors.toMap(AppSetting::getKey, AppSetting::getValue, (a, b) -> a,
                 TreeMap::new));
@@ -82,6 +96,17 @@ public class AppInfoService {
         if ((key.startsWith("store_url_") || key.equals("banner_url") || key.equals("website")) && !v.isEmpty()
                 && !v.startsWith("https://")) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Bağlantı https:// ile başlamalıdır.");
+        }
+        if (key.equals(FACULTIES_KEY)) {
+            // Her fakulte <=120 karakter, tekrarsiz; toplam <=1000 karakter
+            List<String> list = splitFaculties(v);
+            if (list.stream().anyMatch(s -> s.length() > 120)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Her fakülte adı en fazla 120 karakter olabilir.");
+            }
+            v = String.join(";", list);
+            if (v.length() > 1000) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Fakülte listesi en fazla 1000 karakter olabilir.");
+            }
         }
         setting.setValue(v);
         setting.setUpdatedAt(Instant.now());
