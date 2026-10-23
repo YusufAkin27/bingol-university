@@ -1,0 +1,112 @@
+.layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+}
+.layout:has(.article:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+.toc {
+  position: sticky;
+  inset-block-start: calc(var(--header-h) + var(--space-4));
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+@media (max-width: 900px) {
+  .toc {
+    position: static;
+  }
+}
+.tocTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  margin-block-end: var(--space-2);
+  color: var(--text-muted);
+}
+.toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-1);
+}
+.toc a {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+  text-decoration: none;
+}
+.toc a:hover {
+  background: var(--surface-2);
+  color: var(--primary);
+}
+.article {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  max-width: 72ch;
+}
+.h2 {
+  font-size: var(--text-xl);
+  margin-block-start: var(--space-5);
+  scroll-margin-block-start: calc(var(--header-h) + var(--space-4));
+}
+.h3 {
+  font-size: var(--text-lg);
+  margin-block-start: var(--space-3);
+  scroll-margin-block-start: calc(var(--header-h) + var(--space-4));
+}
+.md {
+  margin-block-start: var(--space-2);
+  font-size: var(--text-base);
+}
+.note {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--info-soft);
+  color: var(--text);
+}
+.note svg {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--info);
+}
+.draft {
+  background: var(--warning-soft);
+  border-inline-start: 4px solid var(--warning);
+}
+.draft svg {
+  color: var(--warning);
+}
+.printTitle {
+  display: none;
+}
+@media print {
+  .layout {
+    display: block;
+  }
+  .toc {
+    display: none;
+  }
+  .article {
+    max-width: none;
+  }
+  .printTitle {
+    display: block;
+    font-size: 1.6rem;
+  }
+}

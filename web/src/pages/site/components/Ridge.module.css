@@ -1,0 +1,21 @@
+.ridge {
+  display: block;
+  width: 100%;
+  height: clamp(48px, 8vw, 110px);
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  pointer-events: none;
+}
+.far {
+  fill: rgba(143, 176, 234, 0.16);
+}
+.mid {
+  fill: rgba(143, 176, 234, 0.3);
+}
+.near {
+  fill: var(--bg);
+}
+:global(:root[dir='rtl']) .ridge {
+  transform: scaleX(-1);
+}

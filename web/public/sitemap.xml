@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Yayına alırken "ALAN-ADI" yerine gerçek alan adını yazın. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://ALAN-ADI/</loc></url>
+  <url><loc>https://ALAN-ADI/features</loc></url>
+  <url><loc>https://ALAN-ADI/about</loc></url>
+  <url><loc>https://ALAN-ADI/download</loc></url>
+  <url><loc>https://ALAN-ADI/faq</loc></url>
+  <url><loc>https://ALAN-ADI/contact</loc></url>
+  <url><loc>https://ALAN-ADI/legal</loc></url>
+  <url><loc>https://ALAN-ADI/legal/terms</loc></url>
+  <url><loc>https://ALAN-ADI/legal/privacy</loc></url>
+  <url><loc>https://ALAN-ADI/legal/kvkk</loc></url>
+  <url><loc>https://ALAN-ADI/legal/community-rules</loc></url>
+  <url><loc>https://ALAN-ADI/data-request</loc></url>
+</urlset>

@@ -1,0 +1,74 @@
+.wrap {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 860px;
+  margin-inline: auto;
+}
+.skeletons {
+  display: grid;
+  gap: var(--space-3);
+}
+.search {
+  position: relative;
+}
+.searchIcon {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  inset-block: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+.input {
+  width: 100%;
+  min-height: 52px;
+  padding-inline: 3rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  font-size: var(--text-base);
+}
+.input:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--focus);
+}
+.clear {
+  position: absolute;
+  inset-inline-end: var(--space-2);
+  inset-block: 0;
+  margin-block: auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.clear:hover {
+  background: var(--surface-2);
+}
+.count {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.group {
+  display: grid;
+  gap: var(--space-3);
+}
+.group > h2 {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 4px solid var(--accent);
+}
+.still {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--primary-soft);
+}

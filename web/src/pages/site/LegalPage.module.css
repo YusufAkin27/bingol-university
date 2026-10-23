@@ -1,0 +1,54 @@
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-5);
+}
+.toolLink {
+  font-weight: 600;
+}
+.skeleton {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 72ch;
+}
+.more {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-block-start: var(--space-7);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .more {
+    grid-template-columns: 1fr;
+  }
+}
+.more h2 {
+  margin-block-end: var(--space-3);
+}
+.more ul {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+  :global(html.print-doc) :global(.skip-link),
+  :global(html.print-doc) body header,
+  :global(html.print-doc) body footer,
+  :global(html.print-doc) :global(#main) ~ * {
+    display: none !important;
+  }
+  :global(html.print-doc) body {
+    background: #fff;
+    color: #000;
+  }
+}
