@@ -72,7 +72,7 @@ textarea {
 }
 
 ::selection {
-  background: var(--navy-600);
+  background: var(--red-700);
   color: #fff;
 }
 

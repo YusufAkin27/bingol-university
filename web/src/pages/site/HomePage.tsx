@@ -47,6 +47,7 @@ export default function HomePage() {
                 to={paths.site.download}
                 size="lg"
                 variant="accent"
+                className={styles.heroCta}
                 leftIcon={<Icon name="download" size={20} />}
               >
                 {t('site.home.ctaDownload')}

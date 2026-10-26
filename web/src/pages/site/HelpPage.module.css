@@ -1,0 +1,36 @@
+.grid {
+  list-style: none;
+  margin: 0 0 var(--space-7);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+.card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.h {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  line-height: 1.25;
+}
+.open {
+  font-weight: 700;
+  margin-block-start: var(--space-2);
+}
+.support {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--primary-soft);
+  border-radius: var(--radius-lg);
+}
+.support p {
+  color: var(--on-soft);
+}

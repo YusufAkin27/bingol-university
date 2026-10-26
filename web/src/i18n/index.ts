@@ -18,6 +18,7 @@ import trAdminSettings from './tr/admin-settings';
 import trAdminSafety from './tr/admin-safety';
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
+import trPages from './tr/pages';
 
 import enCommon from './en/common';
 import enSite from './en/site';
@@ -32,6 +33,7 @@ import enAdminSettings from './en/admin-settings';
 import enAdminSafety from './en/admin-safety';
 import enSiteNew from './en/site-new';
 import enLegal from './en/legal';
+import enPages from './en/pages';
 
 import arCommon from './ar/common';
 import arSite from './ar/site';
@@ -46,6 +48,7 @@ import arAdminSettings from './ar/admin-settings';
 import arAdminSafety from './ar/admin-safety';
 import arSiteNew from './ar/site-new';
 import arLegal from './ar/legal';
+import arPages from './ar/pages';
 
 const tr = {
   ...trCommon,
@@ -61,6 +64,7 @@ const tr = {
   ...trAdminSafety,
   ...trSiteNew,
   ...trLegal,
+  ...trPages,
 };
 
 export type TranslationKey = keyof typeof tr;
@@ -81,6 +85,7 @@ const en: Dictionary = {
   ...enAdminSafety,
   ...enSiteNew,
   ...enLegal,
+  ...enPages,
 };
 
 const ar: Dictionary = {
@@ -97,6 +102,7 @@ const ar: Dictionary = {
   ...arAdminSafety,
   ...arSiteNew,
   ...arLegal,
+  ...arPages,
 };
 
 export const dictionaries: Record<Lang, Dictionary> = { tr, en, ar };

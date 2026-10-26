@@ -1,0 +1,18 @@
+.wrap {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 760px;
+  margin-inline: auto;
+}
+.entry {
+  display: grid;
+  gap: var(--space-3);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 3px solid var(--red-600);
+}
+.entry ul {
+  margin: 0;
+  padding-inline-start: 1.3em;
+  display: grid;
+  gap: var(--space-2);
+}

@@ -27,7 +27,7 @@
 .band {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(165deg, var(--navy-800), var(--navy-900));
+  background: linear-gradient(165deg, var(--chrome-2), var(--chrome));
   color: #fff;
   padding-block: clamp(3rem, 7vw, 5.5rem);
 }
@@ -43,8 +43,8 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  color: #7fa6e8;
-  opacity: 0.22;
+  color: #fff;
+  opacity: 0.08;
   pointer-events: none;
 }
 :global(:root[dir='rtl']) .bandArt {

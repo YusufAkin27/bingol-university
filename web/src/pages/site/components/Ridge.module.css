@@ -8,10 +8,10 @@
   pointer-events: none;
 }
 .far {
-  fill: rgba(143, 176, 234, 0.16);
+  fill: rgba(255, 255, 255, 0.16);
 }
 .mid {
-  fill: rgba(143, 176, 234, 0.3);
+  fill: rgba(255, 255, 255, 0.3);
 }
 .near {
   fill: var(--bg);

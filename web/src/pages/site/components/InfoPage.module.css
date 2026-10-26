@@ -1,0 +1,30 @@
+.body {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 820px;
+  margin-inline: auto;
+}
+.block {
+  display: grid;
+  gap: var(--space-3);
+}
+.block p,
+.block li {
+  color: var(--text);
+  max-width: 68ch;
+}
+.block ul,
+.block ol {
+  margin: 0;
+  padding-inline-start: 1.4em;
+  display: grid;
+  gap: var(--space-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.back {
+  display: none;
+}

@@ -21,7 +21,7 @@
   flex-direction: column;
   border-radius: 3.2em;
   /* açık temada koyu lacivert, koyu temada zeminden ayrışan daha açık lacivert */
-  border: 0.7em solid color-mix(in srgb, var(--navy-900) 60%, var(--primary));
+  border: 0.7em solid color-mix(in srgb, var(--chrome) 60%, var(--primary));
   background: var(--surface);
   box-shadow:
     0 0 0 1px rgba(143, 176, 234, 0.45),
@@ -44,7 +44,7 @@
   align-items: center;
   gap: 0.8em;
   padding: 2.8em 1.4em 1em;
-  background: var(--navy-700);
+  background: var(--red-700);
 }
 .title {
   flex: 1;
@@ -95,7 +95,7 @@
 .hero {
   padding: 1.6em 1.2em;
   border-radius: 1.2em;
-  background: linear-gradient(150deg, var(--navy-600), var(--navy-800));
+  background: linear-gradient(150deg, var(--red-700), var(--chrome-2));
   min-height: 7em;
   display: grid;
   align-content: end;
@@ -137,7 +137,7 @@
   background: var(--surface-3);
 }
 .chips .chipOn {
-  background: var(--navy-700);
+  background: var(--red-700);
 }
 .days {
   display: flex;
@@ -188,7 +188,7 @@
 }
 .me {
   align-self: flex-end;
-  background: var(--navy-600);
+  background: var(--red-700);
   min-width: 45%;
 }
 .composer {
@@ -230,7 +230,7 @@
   margin-block-end: 0.6em;
 }
 .a0 {
-  background: var(--navy-600);
+  background: var(--red-700);
 }
 .a1 {
   background: var(--accent);
@@ -403,7 +403,7 @@
   background: var(--surface);
 }
 .switchOn {
-  background: var(--navy-600);
+  background: var(--red-700);
   justify-content: flex-end;
 }
 .langs {
@@ -423,7 +423,7 @@
   color: var(--text);
 }
 .langOn {
-  outline: 0.14em solid var(--navy-600);
+  outline: 0.14em solid var(--red-700);
 }
 .radio {
   width: 1em;
@@ -432,15 +432,15 @@
   border: 0.14em solid var(--border-strong);
 }
 .langOn .radio {
-  border-color: var(--navy-600);
-  background: radial-gradient(circle, var(--navy-600) 45%, transparent 50%);
+  border-color: var(--red-700);
+  background: radial-gradient(circle, var(--red-700) 45%, transparent 50%);
 }
 .shield {
   display: grid;
   justify-items: center;
   gap: 1em;
   padding: 3em 1.4em;
-  color: var(--navy-600);
+  color: var(--red-700);
 }
 .shield .line {
   width: 70%;

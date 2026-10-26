@@ -6,36 +6,41 @@
   color-scheme: light;
 
   /* Marka */
-  --navy-900: #0e2347;
-  --navy-800: #142d57;
-  --navy-700: #1b3a6b;
-  --navy-600: #2a4f8c;
-  --navy-300: #8fb0ea;
-  --navy-100: #dfe8f7;
-  --red-600: #f73a2e; /* logo.png kirmizisi (brand/dist/colors.json) */
-  --red-700: #c82c21;
+  --ink: #171e33;
+  --red-100: #fde7e4;
+  --red-600: #f73a2e; /* logo kirmizisi: buyuk yuzeyler, hero, dekor (brand/dist/colors.json) */
+  --red-700: #c62a20; /* eylem kirmizisi: dugme/baglanti, beyaz yazi 5,6:1 */
+  --red-800: #8e1b13; /* yumusak zemin ustunde yazi, hero dugmesi yazisi */
+  --chrome: #171e33; /* koyu kabuk: alt bilgi, yonetim yan menusu, ipucu */
+  --chrome-2: #232b47;
+  --hero: #f73a2e;
+  --hero-end: #c62a20;
+  --hero-contrast: #ffffff;
 
   /* Anlamsal renkler (açık tema) */
-  --bg: #f4f6fa;
+  --bg: #faf6f3;
   --surface: #ffffff;
-  --surface-2: #eef2f8;
-  --surface-3: #e3e9f3;
-  --border: #d5ddea;
-  --border-strong: #b5c0d4;
-  --text: #101c33;
-  --text-muted: #53607a;
-  --text-faint: #6f7b93;
-  --primary: var(--navy-700);
-  --primary-hover: var(--navy-800);
+  --surface-2: #f3ece7;
+  --surface-3: #ebe2db;
+  --border: #e8dfd8;
+  --border-strong: #8a7c72;
+  --text: #171e33;
+  --text-muted: #5f6577;
+  --text-faint: #666b7e;
+  --primary: var(--red-700);
+  --primary-hover: #a52018;
   --primary-contrast: #ffffff;
-  --primary-soft: #e4ebf8;
-  --accent: var(--red-600);
-  --accent-hover: var(--red-700);
+  --primary-soft: #fde7e4;
+  --on-soft: #8e1b13;
+  --accent: var(--red-700);
+  --accent-hover: #a52018;
   --accent-contrast: #ffffff;
-  --accent-soft: #fbe6e4;
-  --link: #1b3a6b;
-  --focus: #2f6fe4;
-  --scrim: rgba(10, 20, 40, 0.55);
+  --accent-soft: #fde7e4;
+  --badge: #171e33;
+  --badge-contrast: #ffffff;
+  --link: #c62a20;
+  --focus: #1f5fd1;
+  --scrim: rgba(23, 30, 51, 0.55);
 
   --success: #1b7a4b;
   --success-soft: #dff3e8;
@@ -74,9 +79,9 @@
   --radius-pill: 999px;
 
   /* Gölge */
-  --shadow-1: 0 1px 2px rgba(16, 28, 51, 0.06), 0 1px 1px rgba(16, 28, 51, 0.04);
-  --shadow-2: 0 4px 14px rgba(16, 28, 51, 0.09), 0 1px 3px rgba(16, 28, 51, 0.06);
-  --shadow-3: 0 18px 48px rgba(10, 20, 40, 0.22);
+  --shadow-1: 0 1px 2px rgba(23, 30, 51, 0.06), 0 1px 1px rgba(23, 30, 51, 0.04);
+  --shadow-2: 0 4px 14px rgba(23, 30, 51, 0.09), 0 1px 3px rgba(23, 30, 51, 0.06);
+  --shadow-3: 0 18px 48px rgba(23, 30, 51, 0.22);
 
   /* Tipografi: yerel yığınlar, dış CDN yok */
   --font-sans:
@@ -106,26 +111,34 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #0a1220;
-    --surface: #111b30;
-    --surface-2: #17233c;
-    --surface-3: #1f2d4a;
-    --border: #26364f;
-    --border-strong: #3a4d70;
-    --text: #e8edf7;
-    --text-muted: #a2afc7;
-    --text-faint: #8493ae;
-    --primary: #8fb0ea;
-    --primary-hover: #b3c9f2;
-    --primary-contrast: #0a1426;
-    --primary-soft: #1b2b4a;
-    --accent: #f0746b;
-    --accent-hover: #f59a93;
-    --accent-contrast: #1c0b0a;
-    --accent-soft: #3a1b1a;
-    --link: #a9c3f0;
+    --bg: #14161f;
+    --surface: #1d2030;
+    --surface-2: #24283a;
+    --surface-3: #2c3045;
+    --border: #2e3247;
+    --border-strong: #6a7190;
+    --text: #f4efeb;
+    --text-muted: #a5a9ba;
+    --text-faint: #8e93a6;
+    --primary: #ff6a5f;
+    --primary-hover: #ff8a80;
+    --primary-contrast: #1a0907;
+    --primary-soft: #3a1f22;
+    --on-soft: #ffb4ac;
+    --accent: #ff6a5f;
+    --accent-hover: #ff8a80;
+    --accent-contrast: #1a0907;
+    --accent-soft: #3a1f22;
+    --badge: #f4efeb;
+    --badge-contrast: #171e33;
+    --link: #ff8a80;
     --focus: #7fb0ff;
-    --scrim: rgba(2, 6, 14, 0.7);
+    --scrim: rgba(6, 7, 12, 0.72);
+    --chrome: #0c0e15;
+    --chrome-2: #171a26;
+    --hero: #c62a20;
+    --hero-end: #9e1f17;
+    --hero-contrast: #ffffff;
     --success: #5fd596;
     --success-soft: #11301f;
     --warning: #f0c35c;
@@ -134,14 +147,14 @@
     --danger-soft: #3b1816;
     --info: #85bdf5;
     --info-soft: #12293f;
-    --chart-1: #7fa6e8;
-    --chart-2: #f0746b;
+    --chart-1: #ff6a5f;
+    --chart-2: #7fa6e8;
     --chart-3: #52c0c0;
     --chart-4: #e0b04a;
     --chart-5: #b79ae0;
     --chart-6: #93bd6a;
-    --chart-grid: #26364f;
-    --chart-axis: #a2afc7;
+    --chart-grid: #2e3247;
+    --chart-axis: #a5a9ba;
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
     --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
@@ -151,26 +164,34 @@
 /* Koyu tema: elle seçim */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0a1220;
-  --surface: #111b30;
-  --surface-2: #17233c;
-  --surface-3: #1f2d4a;
-  --border: #26364f;
-  --border-strong: #3a4d70;
-  --text: #e8edf7;
-  --text-muted: #a2afc7;
-  --text-faint: #8493ae;
-  --primary: #8fb0ea;
-  --primary-hover: #b3c9f2;
-  --primary-contrast: #0a1426;
-  --primary-soft: #1b2b4a;
-  --accent: #f0746b;
-  --accent-hover: #f59a93;
-  --accent-contrast: #1c0b0a;
-  --accent-soft: #3a1b1a;
-  --link: #a9c3f0;
+  --bg: #14161f;
+  --surface: #1d2030;
+  --surface-2: #24283a;
+  --surface-3: #2c3045;
+  --border: #2e3247;
+  --border-strong: #6a7190;
+  --text: #f4efeb;
+  --text-muted: #a5a9ba;
+  --text-faint: #8e93a6;
+  --primary: #ff6a5f;
+  --primary-hover: #ff8a80;
+  --primary-contrast: #1a0907;
+  --primary-soft: #3a1f22;
+  --on-soft: #ffb4ac;
+  --accent: #ff6a5f;
+  --accent-hover: #ff8a80;
+  --accent-contrast: #1a0907;
+  --accent-soft: #3a1f22;
+  --badge: #f4efeb;
+  --badge-contrast: #171e33;
+  --link: #ff8a80;
   --focus: #7fb0ff;
-  --scrim: rgba(2, 6, 14, 0.7);
+  --scrim: rgba(6, 7, 12, 0.72);
+  --chrome: #0c0e15;
+  --chrome-2: #171a26;
+  --hero: #c62a20;
+  --hero-end: #9e1f17;
+  --hero-contrast: #ffffff;
   --success: #5fd596;
   --success-soft: #11301f;
   --warning: #f0c35c;
@@ -179,14 +200,14 @@
   --danger-soft: #3b1816;
   --info: #85bdf5;
   --info-soft: #12293f;
-  --chart-1: #7fa6e8;
-  --chart-2: #f0746b;
+  --chart-1: #ff6a5f;
+  --chart-2: #7fa6e8;
   --chart-3: #52c0c0;
   --chart-4: #e0b04a;
   --chart-5: #b79ae0;
   --chart-6: #93bd6a;
-  --chart-grid: #26364f;
-  --chart-axis: #a2afc7;
+  --chart-grid: #2e3247;
+  --chart-axis: #a5a9ba;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
   --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);

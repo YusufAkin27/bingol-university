@@ -21,6 +21,19 @@ const LegalPage = lazy(() => import('./pages/site/LegalPage'));
 const LegalListPage = lazy(() => import('./pages/site/LegalListPage'));
 const DataRequestPage = lazy(() => import('./pages/site/DataRequestPage'));
 const NotFoundPage = lazy(() => import('./pages/site/NotFoundPage'));
+const CookiesPage = lazy(() => import('./pages/site/CookiesPage'));
+const DeleteAccountPage = lazy(() => import('./pages/site/DeleteAccountPage'));
+const AccessibilityPage = lazy(() => import('./pages/site/AccessibilityPage'));
+const SitemapPage = lazy(() => import('./pages/site/SitemapPage'));
+const SecurityPage = lazy(() => import('./pages/site/SecurityPage'));
+const CommunityGuidelinesPage = lazy(() => import('./pages/site/CommunityGuidelinesPage'));
+const HelpPage = lazy(() => import('./pages/site/HelpPage'));
+const StatusPage = lazy(() => import('./pages/site/StatusPage'));
+const NewsListPage = lazy(() => import('./pages/site/NewsListPage'));
+const NewsDetailPage = lazy(() => import('./pages/site/NewsDetailPage'));
+const MenuPage = lazy(() => import('./pages/site/MenuPage'));
+const BrandPage = lazy(() => import('./pages/site/BrandPage'));
+const ChangelogPage = lazy(() => import('./pages/site/ChangelogPage'));
 
 // --- yönetim paneli ---
 const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
@@ -72,6 +85,21 @@ export function AppRoutes() {
           <Route path="legal" element={<LegalListPage />} />
           <Route path="legal/:type" element={<LegalPage />} />
           <Route path="data-request" element={<DataRequestPage />} />
+          <Route path="privacy" element={<LegalPage fixedType="PRIVACY" />} />
+          <Route path="terms" element={<LegalPage fixedType="TERMS" />} />
+          <Route path="cookies" element={<CookiesPage />} />
+          <Route path="delete-account" element={<DeleteAccountPage />} />
+          <Route path="accessibility" element={<AccessibilityPage />} />
+          <Route path="sitemap" element={<SitemapPage />} />
+          <Route path="security" element={<SecurityPage />} />
+          <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
+          <Route path="help" element={<HelpPage />} />
+          <Route path="status" element={<StatusPage />} />
+          <Route path="news" element={<NewsListPage />} />
+          <Route path="news/:id" element={<NewsDetailPage />} />
+          <Route path="menu" element={<MenuPage />} />
+          <Route path="brand" element={<BrandPage />} />
+          <Route path="changelog" element={<ChangelogPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

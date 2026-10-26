@@ -1,0 +1,32 @@
+.wrap {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 760px;
+  margin-inline: auto;
+}
+.article {
+  display: grid;
+  gap: var(--space-4);
+}
+.article p {
+  max-width: 68ch;
+  margin: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.orig {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: 700;
+}
+.skel {
+  display: grid;
+  gap: var(--space-3);
+}

@@ -17,13 +17,13 @@
   flex: none;
   display: flex;
   flex-direction: column;
-  background: var(--navy-900);
-  color: #cdd8ee;
+  background: var(--chrome);
+  color: #d9dce8;
   transition: width 0.2s var(--ease);
   z-index: 90;
 }
 :global(:root[data-theme='dark']) .sidebar {
-  background: #060d1a;
+  background: #0c0e15;
   border-inline-end: 1px solid var(--border);
 }
 .brand {
@@ -42,7 +42,7 @@
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.2;
-  color: #b7c6e4;
+  color: #b3b8cc;
   min-width: 0;
 }
 .nav {
@@ -64,7 +64,7 @@
   margin-block-end: var(--space-1);
   font-size: var(--text-xs);
   font-weight: 700;
-  color: #8ea3cb;
+  color: #a0a6bd;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -85,7 +85,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: none;
-  color: #cdd8ee;
+  color: #d9dce8;
   font-size: var(--text-sm);
   font-weight: 600;
   text-decoration: none;
