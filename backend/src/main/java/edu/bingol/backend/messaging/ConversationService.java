@@ -141,6 +141,7 @@ public class ConversationService {
     @Transactional
     public ConversationView addMembers(Long me, Long id, List<Long> userIds) {
         Conversation c = requireGroupAdmin(id, me);
+        convs.lockById(id); // uye sayisi siniri es zamanli eklemelerde asilmasin
         Set<Long> ids = new LinkedHashSet<>(userIds);
         ids.remove(me);
         if (ids.isEmpty()) {
@@ -265,7 +266,10 @@ public class ConversationService {
             Long peerId = direct ? peerOf(ms, me) : null;
             UserSummary peer = peerId == null || !peers.containsKey(peerId) ? null : UserSummary.of(peers.get(peerId));
             Message last = c.getLastMessageId() == null ? null : lastMessages.get(c.getLastMessageId());
-            MessageView lastView = last == null ? null
+            // Gruba sonradan katilan, katilmadan onceki son mesaji onizlemede de gormez (gecmisle tutarli).
+            Instant joined = ms.stream().filter(m -> m.getUserId().equals(me)).map(ConversationMember::getJoinedAt)
+                    .findFirst().orElse(Instant.EPOCH);
+            MessageView lastView = last == null || (!direct && last.getCreatedAt().isBefore(joined)) ? null
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me));
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             return new ConversationView(c.getId(), c.getType().name(), c.getTitle(), peer, ms.size(), admin, lastView,

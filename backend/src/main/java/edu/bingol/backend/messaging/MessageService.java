@@ -85,11 +85,16 @@ public class MessageService {
         if (body.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMPTY_MESSAGE", "Mesaj boş olamaz.");
         }
-        if (body.length() > MAX_LENGTH) {
+        // Sinir kod noktasi sayar (DB VARCHAR(2000) de oyle): emoji 2 UTF-16 birimi olsa da 1 karakterdir.
+        if (body.codePointCount(0, body.length()) > MAX_LENGTH) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MESSAGE_TOO_LONG",
                     "Mesaj en fazla " + MAX_LENGTH + " karakter olabilir.", String.valueOf(MAX_LENGTH));
         }
         requireMember(conversationId, senderId);
+        // Hesabi silinen/askiya alinan gonderenin (suresi dolmamis) eski token'i ile yazmasi engellenir.
+        if (users.findById(senderId).filter(User::isActive).isEmpty()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alındı.");
+        }
 
         // Tekrar gonderim: limite sayilmaz, ayni mesaj doner.
         Optional<Message> dup = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId);

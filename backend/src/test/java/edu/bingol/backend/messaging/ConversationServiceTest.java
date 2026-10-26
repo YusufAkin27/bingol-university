@@ -172,4 +172,51 @@ class ConversationServiceTest {
 
         assertEquals("NOT_A_GROUP", assertThrows(ApiException.class, () -> service.leave(1L, 5L)).code());
     }
+
+    @Test
+    void lateJoinerDoesNotSeeLastMessageThatPredatesJoinInListPreview() {
+        Conversation g = conv(5L, Conversation.Type.GROUP);
+        g.setLastMessageId(40L);
+        ConversationMember late = ConversationMember.of(5L, 2L, ConversationMember.Role.MEMBER);
+        late.setJoinedAt(java.time.Instant.now());
+        Message old = new Message();
+        old.setId(40L);
+        old.setConversationId(5L);
+        old.setSenderId(1L);
+        old.setBody("katilmadan once yazildi");
+        old.setCreatedAt(late.getJoinedAt().minusSeconds(60));
+        when(members.findByConversationIdInAndLeftAtIsNull(any())).thenReturn(List.of(
+                ConversationMember.of(5L, 1L, ConversationMember.Role.ADMIN), late));
+        when(messages.findAllById(any())).thenReturn(List.of(old));
+        when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
+        when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
+        when(convs.page(eq(2L), any(), any())).thenReturn(List.of(g));
+        when(convs.findById(5L)).thenReturn(Optional.of(g));
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(5L, 2L)).thenReturn(Optional.of(late));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(5L)).thenReturn(List.of(late));
+        when(users.findAllById(any())).thenReturn(List.of(user(2L)));
+
+        assertEquals(null, service.list(2L, null, 20).items().get(0).lastMessage());
+        assertEquals(null, service.detail(2L, 5L).conversation().lastMessage());
+    }
+
+    @Test
+    void memberWhoJoinedBeforeLastMessageSeesPreview() {
+        Conversation g = conv(5L, Conversation.Type.GROUP);
+        g.setLastMessageId(40L);
+        ConversationMember early = ConversationMember.of(5L, 2L, ConversationMember.Role.MEMBER);
+        early.setJoinedAt(java.time.Instant.now().minusSeconds(3600));
+        Message last = new Message();
+        last.setId(40L);
+        last.setConversationId(5L);
+        last.setSenderId(1L);
+        last.setBody("merhaba");
+        when(members.findByConversationIdInAndLeftAtIsNull(any())).thenReturn(List.of(early));
+        when(messages.findAllById(any())).thenReturn(List.of(last));
+        when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
+        when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
+        when(convs.page(eq(2L), any(), any())).thenReturn(List.of(g));
+
+        assertEquals("merhaba", service.list(2L, null, 20).items().get(0).lastMessage().text());
+    }
 }

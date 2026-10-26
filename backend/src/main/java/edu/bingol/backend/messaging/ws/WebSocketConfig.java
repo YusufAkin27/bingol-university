@@ -65,6 +65,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         heartbeat.initialize();
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
+        // Ayni oturumdan gelen komutlar sirayla islenir (aksi halde ardisik SEND'ler is parcaciklarinda yer degistirip
+        // mesaj id'leri gonderim sirasini bozar) ve istemciye teslim sirasi korunur.
+        registry.setPreservePublishOrder(true);
         registry.enableSimpleBroker("/queue").setHeartbeatValue(new long[] {10_000, 10_000}).setTaskScheduler(heartbeat);
     }
 
