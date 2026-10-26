@@ -56,11 +56,18 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
             WHERE e.status = :active AND e.endsAt >= :now
               AND (e.startsAt > :cs OR (e.startsAt = :cs AND e.id > :cid))
               AND e.id IN (SELECT r.eventId FROM EventRsvp r WHERE r.userId = :uid)
+              AND (e.communityId IS NULL OR e.communityId IN (
+                    SELECT c.id FROM Community c WHERE c.status = :cActive AND (c.visibility = :pub
+                      OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
             ORDER BY e.startsAt, e.id
             """)
     List<UserEvent> attending(@Param("active") UserEvent.Status active, @Param("now") Instant now,
                               @Param("cs") Instant cursorStart, @Param("cid") long cursorId,
-                              @Param("uid") Long userId, Pageable page);
+                              @Param("uid") Long userId,
+                              @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                              @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                              @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                              Pageable page);
 
     /** Duzenlediklerim (iptal edilenler haric), yeniden eskiye. */
     @Query("SELECT e FROM UserEvent e WHERE e.createdBy = :uid AND e.status <> :cancelled AND e.id < :cursor ORDER BY e.id DESC")

@@ -43,6 +43,9 @@ public class EventService {
 
     static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
     static final Instant FAR_FUTURE = Instant.parse("2100-01-01T00:00:00Z");
+    static final Instant MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
+    static final YearMonth MIN_MONTH = YearMonth.of(2000, 1);
+    static final YearMonth MAX_MONTH = YearMonth.of(2100, 1);
     static final int NOTIFY_LIMIT = 500;
     private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long COVER_MAX_BYTES = 3L * 1024 * 1024;
@@ -146,6 +149,10 @@ public class EventService {
         e.setEndsAt(end);
         e.setUpdatedAt(now);
         events.save(e);
+        if (startChanged) {
+            // Yeni saat icin hatirlatmalar yeniden gonderilebilsin.
+            rsvps.resetReminders(e.getId());
+        }
         if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
             notifyGoing(e, "notif.event.updated");
         }
@@ -164,7 +171,7 @@ public class EventService {
         e.setStatus(UserEvent.Status.CANCELLED);
         e.setUpdatedAt(Instant.now());
         events.save(e);
-        if (wasActive) {
+        if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
             notifyGoing(e, "notif.event.cancelled");
         }
     }
@@ -188,7 +195,9 @@ public class EventService {
     @Transactional(readOnly = true)
     public CursorPage<EventView> list(Actor a, Instant from, Instant to, Long communityId, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
-        List<UserEvent> rows = query(a, from == null ? Instant.now() : from, to == null ? FAR_FUTURE : to,
+        Instant f = from == null ? Instant.now() : from.isBefore(MIN_DATE) ? MIN_DATE : from;
+        Instant t = to == null || to.isAfter(FAR_FUTURE) ? FAR_FUTURE : to;
+        List<UserEvent> rows = query(a, f, t,
                 communityId == null ? 0L : communityId, cursor, s + 1);
         return Paging.map(rows, s, UserEvent::getId, items -> views(items, a, false));
     }
@@ -208,6 +217,7 @@ public class EventService {
         } else {
             Cursor c = cursorOf(cursor);
             rows = events.attending(UserEvent.Status.ACTIVE, Instant.now(), c.start(), c.id(), a.id(),
+                    Community.Status.ACTIVE, Community.Visibility.PUBLIC, CommunityMember.Status.ACTIVE,
                     PageRequest.of(0, s + 1));
         }
         return Paging.map(rows, s, UserEvent::getId, items -> views(items, a, false));
@@ -216,6 +226,9 @@ public class EventService {
     /** Aylik takvim: kullanici etkinlikleri + siteden gelen resmi ETKINLIK haberleri (kaynak USER/OFFICIAL). */
     @Transactional(readOnly = true)
     public List<CalendarItem> calendar(Actor a, YearMonth month) {
+        if (month.isBefore(MIN_MONTH) || month.isAfter(MAX_MONTH)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Tarih aralığı geçersiz.");
+        }
         Instant from = month.atDay(1).atStartOfDay(ZONE).toInstant();
         Instant to = month.plusMonths(1).atDay(1).atStartOfDay(ZONE).toInstant();
         List<CalendarItem> out = new ArrayList<>();
@@ -255,8 +268,6 @@ public class EventService {
                     events.decrementGoing(id);
                 }
                 r.setStatus(status);
-                r.setRemindedDay(false);
-                r.setRemindedHour(false);
                 rsvps.save(r);
             }
         } else {
@@ -352,6 +363,8 @@ public class EventService {
 
     public UserEvent requireManager(Actor a, UserEvent e) {
         if (!canManage(a, e)) {
+            // Gorunmeyen (onay bekleyen/gizli topluluk) etkinligin varligi sizmasin: once 404, gorunenlerde 403.
+            ensureVisible(a, e);
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için etkinlik organizatörü olmalısınız.");
         }
         return e;
@@ -359,7 +372,10 @@ public class EventService {
 
     /** Yayindaki etkinlik (gizli topluluk kisitiyla) herkese; diger durumlar yalnizca organizatore, aksi halde 404. */
     public UserEvent loadVisible(Actor a, Long id) {
-        UserEvent e = load(id);
+        return ensureVisible(a, load(id));
+    }
+
+    private UserEvent ensureVisible(Actor a, UserEvent e) {
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             if (canManage(a, e)) {
                 return e;
@@ -380,6 +396,10 @@ public class EventService {
     static void validateDates(Instant start, Instant end) {
         if (!end.isAfter(start)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Bitiş zamanı başlangıçtan sonra olmalı.");
+        }
+        // Asiri uzak tarih veritabani zaman damgasi araligini tasirip 500 uretmesin.
+        if (end.isAfter(FAR_FUTURE) || start.isBefore(MIN_DATE)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Tarih aralığı geçersiz.");
         }
     }
 
