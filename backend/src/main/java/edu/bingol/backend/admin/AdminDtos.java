@@ -35,7 +35,31 @@ public final class AdminDtos {
                                   boolean emailVerified, String createdAt, String lastSeenAt, String avatarUrl,
                                   String bio, String suspendedReason, String deletedAt, long deviceCount,
                                   List<String> platforms, Counts counts, List<Consent> consents,
-                                  List<DayOpens> recentActivity) {}
+                                  List<DayOpens> recentActivity, Extras extras) {}
+
+    // --- kullanici detayi icin ek ayrintilar (mesaj ICERIGI hicbir zaman dahil degildir; yalnizca sayilar) ---
+
+    public record Device(String platform, String registeredAt) {}
+
+    public record CommunityInfo(Long id, String name, String role, String status, String joinedAt) {}
+
+    public record EventInfo(Long id, String title, String startsAt, String status, String rsvp) {}
+
+    public record FeedbackInfo(Long id, String category, String subject, String status, String createdAt) {}
+
+    public record TicketInfo(Long id, String category, String subject, String status, String createdAt) {}
+
+    public record ReportInfo(Long id, String targetType, Long targetId, String reason, String status, String createdAt) {}
+
+    public record NotificationPrefs(boolean news, boolean announcements, boolean events, boolean messages,
+                                    boolean communities) {}
+
+    /** Kullanici detayinin ek bolumleri. */
+    public record Extras(boolean showEmail, NotificationPrefs notificationPrefs, long notificationsTotal,
+                         long notificationsUnread, long messagesSent, long blocking, long blockedBy,
+                         List<Device> devices, List<CommunityInfo> communities, List<EventInfo> eventsCreated,
+                         List<EventInfo> eventsAttending, List<FeedbackInfo> feedback, List<TicketInfo> tickets,
+                         List<ReportInfo> reportsAgainst, List<ReportInfo> reportsFiled) {}
 
     public record RoleRequest(@NotNull Role role) {}
 

@@ -79,7 +79,63 @@ public class AdminUserRepository {
         return Optional.of(new AdminUserDetail(d.id(), d.email(), d.displayName(), d.faculty(), d.department(),
                 d.classYear(), d.language(), d.role(), d.status(), d.emailVerified(), d.createdAt(), d.lastSeenAt(),
                 d.avatarUrl(), d.bio(), d.suspendedReason(), d.deletedAt(), d.deviceCount(), platforms, d.counts(),
-                consents, activity.recentDays(id, RECENT_ACTIVITY_DAYS)));
+                consents, activity.recentDays(id, RECENT_ACTIVITY_DAYS), extras(id, p)));
+    }
+
+    /** Ek ayrintilar: her liste en fazla 50 kayit; mesaj icerigi okunmaz (yalnizca sayi). */
+    private AdminDtos.Extras extras(Long id, MapSqlParameterSource p) {
+        boolean showEmail = Boolean.TRUE.equals(jdbc.queryForObject(
+                "SELECT show_email FROM app_user WHERE id = :id", p, Boolean.class));
+        List<AdminDtos.NotificationPrefs> prefs = jdbc.query("SELECT news, announcements, events, messages, communities "
+                + "FROM notification_pref WHERE user_id = :id", p, (rs, i) -> new AdminDtos.NotificationPrefs(
+                rs.getBoolean(1), rs.getBoolean(2), rs.getBoolean(3), rs.getBoolean(4), rs.getBoolean(5)));
+        AdminDtos.NotificationPrefs np = prefs.isEmpty()
+                ? new AdminDtos.NotificationPrefs(true, true, true, true, true) : prefs.get(0);
+        long total = count("SELECT count(*) FROM notification WHERE user_id = :id", p);
+        long unread = count("SELECT count(*) FROM notification WHERE user_id = :id AND read_at IS NULL", p);
+        long sent = count("SELECT count(*) FROM message WHERE sender_id = :id", p);
+        long blocking = count("SELECT count(*) FROM user_block WHERE blocker_id = :id", p);
+        long blockedBy = count("SELECT count(*) FROM user_block WHERE blocked_id = :id", p);
+        return new AdminDtos.Extras(showEmail, np, total, unread, sent, blocking, blockedBy,
+                jdbc.query("SELECT platform, created_at FROM device WHERE user_id = :id ORDER BY created_at DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.Device(rs.getString("platform"), ts(rs, "created_at"))),
+                jdbc.query("SELECT c.id, c.name, m.role, m.status, m.joined_at FROM community_member m "
+                        + "JOIN community c ON c.id = m.community_id WHERE m.user_id = :id "
+                        + "ORDER BY m.joined_at DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.CommunityInfo(rs.getLong("id"), rs.getString("name"),
+                                rs.getString("role"), rs.getString("status"), ts(rs, "joined_at"))),
+                jdbc.query("SELECT id, title, starts_at, status FROM user_event WHERE created_by = :id "
+                        + "ORDER BY starts_at DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.EventInfo(rs.getLong("id"), rs.getString("title"),
+                                ts(rs, "starts_at"), rs.getString("status"), null)),
+                jdbc.query("SELECT e.id, e.title, e.starts_at, e.status, r.status AS rsvp FROM event_rsvp r "
+                        + "JOIN user_event e ON e.id = r.event_id WHERE r.user_id = :id "
+                        + "ORDER BY e.starts_at DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.EventInfo(rs.getLong("id"), rs.getString("title"),
+                                ts(rs, "starts_at"), rs.getString("status"), rs.getString("rsvp"))),
+                jdbc.query("SELECT id, category, subject, status, created_at FROM feedback WHERE user_id = :id "
+                        + "ORDER BY id DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.FeedbackInfo(rs.getLong("id"), rs.getString("category"),
+                                rs.getString("subject"), rs.getString("status"), ts(rs, "created_at"))),
+                jdbc.query("SELECT id, category, subject, status, created_at FROM support_ticket WHERE user_id = :id "
+                        + "ORDER BY id DESC LIMIT 50", p,
+                        (rs, i) -> new AdminDtos.TicketInfo(rs.getLong("id"), rs.getString("category"),
+                                rs.getString("subject"), rs.getString("status"), ts(rs, "created_at"))),
+                jdbc.query("SELECT id, target_type, target_id, reason, status, created_at FROM report "
+                        + "WHERE target_type = 'USER' AND target_id = :id ORDER BY id DESC LIMIT 50", p,
+                        (rs, i) -> reportInfo(rs)),
+                jdbc.query("SELECT id, target_type, target_id, reason, status, created_at FROM report "
+                        + "WHERE reporter_id = :id ORDER BY id DESC LIMIT 50", p, (rs, i) -> reportInfo(rs)));
+    }
+
+    private long count(String sql, MapSqlParameterSource p) {
+        Long n = jdbc.queryForObject(sql, p, Long.class);
+        return n == null ? 0 : n;
+    }
+
+    private static AdminDtos.ReportInfo reportInfo(ResultSet rs) throws SQLException {
+        return new AdminDtos.ReportInfo(rs.getLong("id"), rs.getString("target_type"), rs.getLong("target_id"),
+                rs.getString("reason"), rs.getString("status"), ts(rs, "created_at"));
     }
 
     private static AdminUserRow row(ResultSet rs) throws SQLException {
@@ -99,7 +155,7 @@ public class AdminUserRepository {
                 List.of(), new Counts(rs.getLong("c_feedback"), rs.getLong("c_tickets"), rs.getLong("c_against"),
                         rs.getLong("c_filed"), rs.getLong("c_conv"), rs.getLong("c_comm"), rs.getLong("c_events"),
                         rs.getLong("c_bookmarks")),
-                List.of(), List.of());
+                List.of(), List.of(), null);
     }
 
     static String ts(ResultSet rs, String col) throws SQLException {

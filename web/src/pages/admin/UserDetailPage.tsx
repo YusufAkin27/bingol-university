@@ -22,6 +22,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { ActivityBars } from './users/ActivityBars';
 import { UserActions } from './users/UserActions';
+import { UserExtras } from './users/UserExtras';
 import styles from './users/users.module.css';
 
 const COUNT_KEYS = [
@@ -158,6 +159,8 @@ export default function UserDetailPage() {
               ))}
             </dl>
           </Card>
+
+          <UserExtras u={u} />
 
           <Card title={t('admin.users.detail.activity')}>
             <p className={styles.hint}>{t('admin.users.detail.activityHint')}</p>

@@ -90,3 +90,9 @@ Sözleşme alanları değişmedi; aşağıdakiler belirsiz kalan noktaların kes
 - **Haber:** `GET /api/admin/news` satırı `{id,type,title,summary,url,imageUrl,publishedDate,fetchedAt,hidden}`. Gizli haber `GET /api/news/{id}`'de 404, listede/aramada/favorilerde yok, favoriye eklenemez, yeni-haber bildiriminde gönderilmez.
 - **Sözleşme kabul oranı:** `accepted`/`totalActiveUsers` yalnızca ACTIVE ve e-postası doğrulanmış kullanıcıları sayar.
 - **CORS:** `CORS_ORIGINS` (docker-compose) `app.cors.allowed-origins` değerini besler; `*` verilirse tüm kökenler, boş bırakılırsa CORS kapalıdır. Yanıtta `Content-Disposition` ve `ETag` okunabilir.
+
+### Kullanıcı detayı: `extras` (eklendi)
+`GET /api/admin/users/{id}` yanıtına `extras` alanı eklendi: `showEmail`, `notificationPrefs{news,announcements,events,messages,communities}`,
+`notificationsTotal`, `notificationsUnread`, `messagesSent` (yalnızca sayı; mesaj içeriği ASLA dönmez), `blocking`, `blockedBy`,
+`devices[{platform,registeredAt}]`, `communities[{id,name,role,status,joinedAt}]`, `eventsCreated[...]`, `eventsAttending[...rsvp]`,
+`feedback[...]`, `tickets[...]`, `reportsAgainst[...]`, `reportsFiled[...]` (her liste en fazla 50 kayıt).

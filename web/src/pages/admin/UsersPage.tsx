@@ -88,6 +88,11 @@ export default function UsersPage() {
   const dash = <span className={styles.muted}>—</span>;
   const columns: Column<AdminUserRow>[] = [
     {
+      key: 'id',
+      header: t('admin.users.col.id'),
+      render: (u) => <span className={styles.muted}>#{u.id}</span>,
+    },
+    {
       key: 'displayName',
       header: t('admin.users.col.name'),
       headerLabel: t('admin.users.col.name'),
@@ -106,10 +111,10 @@ export default function UsersPage() {
       key: 'faculty',
       header: t('admin.users.col.faculty'),
       render: (u) =>
-        u.faculty ? (
+        u.faculty || u.department ? (
           <div className={styles.personText}>
-            <span>{u.faculty}</span>
-            {u.department && <span className={styles.personMail}>{u.department}</span>}
+            <span>{u.faculty ?? u.department}</span>
+            {u.faculty && u.department && <span className={styles.personMail}>{u.department}</span>}
           </div>
         ) : (
           dash
@@ -119,6 +124,11 @@ export default function UsersPage() {
       key: 'classYear',
       header: t('admin.users.col.classYear'),
       render: (u) => (u.classYear ? formatNumber(u.classYear) : dash),
+    },
+    {
+      key: 'language',
+      header: t('admin.users.filter.language'),
+      render: (u) => (u.language ? td(`admin.users.lang.${u.language}`, u.language) : dash),
     },
     {
       key: 'role',

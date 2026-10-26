@@ -175,6 +175,24 @@ export interface AdminUserDetail extends AdminUserRow {
   };
   consents: { type: LegalType; version: number; acceptedAt: string }[];
   recentActivity: { day: string; opens: number }[];
+  extras?: UserExtras;
+}
+export interface UserExtras {
+  showEmail: boolean;
+  notificationPrefs: { news: boolean; announcements: boolean; events: boolean; messages: boolean; communities: boolean };
+  notificationsTotal: number;
+  notificationsUnread: number;
+  messagesSent: number;
+  blocking: number;
+  blockedBy: number;
+  devices: { platform: string; registeredAt: string }[];
+  communities: { id: number; name: string; role: string; status: string; joinedAt: string | null }[];
+  eventsCreated: { id: number; title: string; startsAt: string; status: string; rsvp: string | null }[];
+  eventsAttending: { id: number; title: string; startsAt: string; status: string; rsvp: string | null }[];
+  feedback: { id: number; category: string; subject: string; status: string; createdAt: string }[];
+  tickets: { id: number; category: string; subject: string; status: string; createdAt: string }[];
+  reportsAgainst: { id: number; targetType: string; targetId: number; reason: string; status: string; createdAt: string }[];
+  reportsFiled: { id: number; targetType: string; targetId: number; reason: string; status: string; createdAt: string }[];
 }
 export interface UserListParams {
   q?: string;
