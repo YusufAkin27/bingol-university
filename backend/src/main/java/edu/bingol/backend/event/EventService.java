@@ -11,6 +11,7 @@ import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.Paging;
 import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
+import edu.bingol.backend.event.extras.CoOrganizerLookup;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
 import edu.bingol.backend.event.dto.EventDtos.CreateEventRequest;
@@ -77,6 +78,14 @@ public class EventService {
     @Autowired
     public void setAdmission(@Lazy EventAdmissionHooks admission) {
         this.admission = admission;
+    }
+
+    /** T14: ortak organizatorler de yonetici sayilir (setter + @Lazy; null iken eski davranis). */
+    private CoOrganizerLookup coOrganizers;
+
+    @Autowired
+    public void setCoOrganizers(@Lazy CoOrganizerLookup coOrganizers) {
+        this.coOrganizers = coOrganizers;
     }
 
     // ---- olusturma / guncelleme / silme ----
@@ -383,6 +392,9 @@ public class EventService {
     /** Organizator mi: ADMIN, olusturan veya bagli toplulugun MODERATOR+'si. */
     public boolean canManage(Actor a, UserEvent e) {
         if (a.admin() || e.getCreatedBy().equals(a.id())) {
+            return true;
+        }
+        if (coOrganizers != null && coOrganizers.isCoOrganizer(e.getId(), a.id())) {
             return true;
         }
         return e.getCommunityId() != null
