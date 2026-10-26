@@ -1,0 +1,20 @@
+# Yerel SonarQube (Community). Yalnizca kalite taramasi icin; uygulama yigininden bagimsiz.
+# Calistirma: scripts/sonar/run-sonar.sh
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: bu_sonarqube
+    mem_limit: 2800m
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_WEB_JAVAADDITIONALOPTS: "-Xmx512m"
+      SONAR_CE_JAVAADDITIONALOPTS: "-Xmx768m"
+      SONAR_SEARCH_JAVAADDITIONALOPTS: "-Xmx512m -Xms512m"
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_ext:/opt/sonarqube/extensions
+volumes:
+  sonar_data:
+  sonar_ext:
