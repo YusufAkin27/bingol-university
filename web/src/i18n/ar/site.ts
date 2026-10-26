@@ -13,7 +13,7 @@ const site = {
   'site.footer.legal': 'قانوني',
   'site.footer.get': 'احصل على التطبيق',
   'site.footer.contact': 'اتصل بنا',
-  'site.footer.rights': '© {year} جامعة بينغول. جميع الحقوق محفوظة.',
+  'site.footer.rights': '© {year} BÜ Kampüs. جميع الحقوق محفوظة.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
   'site.store.getItOn': 'احصل عليه من',
@@ -29,11 +29,11 @@ const site = {
   'site.meta.home':
     'الإعلانات والأخبار وقائمة الطعام والفعاليات والتواصل داخل الحرم الجامعي لطلاب وموظفي جامعة بينغول في تطبيق واحد.',
   'site.meta.features':
-    'الأخبار والإعلانات وقائمة الطعام والمراسلة والمجتمعات والفعاليات مع تسجيل الحضور برمز QR والدعم والإشعارات: مزايا تطبيق جامعة بينغول.',
-  'site.meta.about': 'هدف تطبيق جامعة بينغول وقيمه وطريقة عمله. يُستخدم فقط بحسابات bingol.edu.tr.',
-  'site.meta.download': 'حمّل تطبيق جامعة بينغول لأجهزة أندرويد وiOS.',
-  'site.meta.faq': 'الأسئلة الشائعة حول تطبيق جامعة بينغول مع إجاباتها.',
-  'site.meta.contact': 'بيانات التواصل وطلبات الدعم من داخل تطبيق جامعة بينغول.',
+    'الأخبار والإعلانات وقائمة الطعام والمراسلة والمجتمعات والفعاليات مع تسجيل الحضور برمز QR والدعم والإشعارات: مزايا تطبيق BÜ Kampüs.',
+  'site.meta.about': 'هدف تطبيق BÜ Kampüs وقيمه وطريقة عمله. يُستخدم فقط بحسابات bingol.edu.tr.',
+  'site.meta.download': 'حمّل تطبيق BÜ Kampüs لأجهزة أندرويد وiOS.',
+  'site.meta.faq': 'الأسئلة الشائعة حول تطبيق BÜ Kampüs مع إجاباتها.',
+  'site.meta.contact': 'بيانات التواصل وطلبات الدعم من داخل تطبيق BÜ Kampüs.',
   'site.meta.dataRequest':
     'حقوقك بموجب قانون حماية البيانات الشخصية التركي (KVKK)، وكيفية تنزيل بياناتك وحذف حسابك وتقديم الطلب.',
   'site.meta.legal': 'شروط الاستخدام وسياسة الخصوصية ونص KVKK وقواعد المجتمع.',
@@ -43,7 +43,7 @@ const site = {
   'site.home.title': 'الرئيسية',
   'site.home.heroTitle': 'حياة الحرم الجامعي في تطبيق واحد',
   'site.home.heroLead':
-    'الإعلانات والأخبار والفعاليات وقائمة الطعام والمجتمعات الطلابية في تطبيق جامعة بينغول.',
+    'الإعلانات والأخبار والفعاليات وقائمة الطعام والمجتمعات الطلابية في تطبيق BÜ Kampüs.',
   'site.home.ctaDownload': 'حمّل التطبيق',
   'site.home.ctaFeatures': 'اكتشف المزايا',
   'site.home.trust': 'يُستخدم فقط بحسابات bingol.edu.tr.',
@@ -125,7 +125,7 @@ const site = {
   'site.about.readPrivacy': 'سياسة الخصوصية ونص KVKK',
 
   'site.download.title': 'حمّل التطبيق',
-  'site.download.lead': 'احصل على تطبيق جامعة بينغول من متجر جهازك.',
+  'site.download.lead': 'احصل على تطبيق BÜ Kampüs من متجر جهازك.',
   'site.download.android': 'أندرويد',
   'site.download.ios': 'آيفون وآيباد',
   'site.download.afterTitle': 'بعد التثبيت',

@@ -33,10 +33,10 @@ describe('usePageMeta', () => {
     const { unmount } = renderWithProviders(<Meta title="Özellikler" ld={{ '@type': 'MobileApplication' }} />, {
       route: '/features',
     });
-    expect(document.title).toBe('Özellikler · Bingöl Üniversitesi');
+    expect(document.title).toBe('Özellikler · BÜ Kampüs');
     const q = (s: string) => document.head.querySelector(s);
     expect(q('meta[name="description"]')).toHaveAttribute('content', 'Açıklama metni');
-    expect(q('meta[property="og:title"]')).toHaveAttribute('content', 'Özellikler · Bingöl Üniversitesi');
+    expect(q('meta[property="og:title"]')).toHaveAttribute('content', 'Özellikler · BÜ Kampüs');
     expect(q('meta[property="og:locale"]')).toHaveAttribute('content', 'tr_TR');
     expect(q('link[rel="canonical"]')).toHaveAttribute('href', `${window.location.origin}/features`);
     expect(q('script[type="application/ld+json"]')?.textContent).toContain('MobileApplication');
@@ -49,7 +49,7 @@ describe('usePageMeta', () => {
 
   it('dil değişince og:locale güncellenir', () => {
     renderWithProviders(<Meta title="" />, { lang: 'ar' });
-    expect(document.title).toBe('جامعة بينغول');
+    expect(document.title).toBe('BÜ Kampüs');
     expect(document.head.querySelector('meta[property="og:locale"]')).toHaveAttribute('content', 'ar_AR');
   });
 });

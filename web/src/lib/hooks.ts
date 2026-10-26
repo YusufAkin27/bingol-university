@@ -11,7 +11,7 @@ export function useDebouncedValue<T>(value: T, delay = 300): T {
   return v;
 }
 
-/** Sayfa başlığını ayarlar: "Başlık · Bingöl Üniversitesi" (ek, seçili dile göre). */
+/** Sayfa başlığını ayarlar: "Başlık · BÜ Kampüs" (ek, seçili dile göre). */
 export function usePageTitle(title: string) {
   const { t } = useI18n();
   const suffix = t('common.appName');

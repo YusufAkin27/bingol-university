@@ -1,6 +1,7 @@
 // Ortak ifadeler, hata kodları, yönetim paneli kabuğu (menü, giriş, yetki ekranı).
 const common = {
-  'common.appName': 'Bingöl Üniversitesi',
+  'common.appName': 'BÜ Kampüs',
+  'common.logoAlt': 'BÜ Kampüs logosu',
   'common.save': 'Kaydet',
   'common.cancel': 'Vazgeç',
   'common.delete': 'Sil',
@@ -108,7 +109,7 @@ const common = {
   'admin.login.showPassword': 'Şifreyi göster',
   'admin.login.hidePassword': 'Şifreyi gizle',
   'admin.login.required': 'Bu alan zorunludur.',
-  'admin.login.brandLine': 'Bingöl Üniversitesi uygulamasının yönetim merkezi.',
+  'admin.login.brandLine': 'BÜ Kampüs yönetim merkezi.',
   'admin.forbidden.title': 'Bu alana erişim yetkiniz yok',
   'admin.forbidden.hint':
     'Bu panel yalnızca yönetici hesaplarına açıktır. Başka bir hesapla giriş yapabilirsiniz.',

@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo } from '../api/hooks';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { Logo } from '../components/Logo';
+import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Icon, IconButton, Spinner } from '../components/ui';
 import { useI18n } from '../i18n/I18nProvider';
@@ -59,12 +59,14 @@ export function AdminLayout() {
         aria-label={t('admin.nav.aria')}
       >
         <div className={styles.brand}>
-          <Logo
-            to={paths.admin.dashboard}
-            subtitle={t('admin.nav.title')}
-            onDark
-            compact={collapsed && !mobileOpen}
-          />
+          {collapsed && !mobileOpen ? (
+            <Logo to={paths.admin.dashboard} variant="mark" height={36} />
+          ) : (
+            <>
+              <Logo to={paths.admin.dashboard} tone="dark" height={32} />
+              <span className={styles.brandSub}>{t('admin.nav.title')}</span>
+            </>
+          )}
         </div>
         <nav className={styles.nav}>
           {adminNav.map((g) => (

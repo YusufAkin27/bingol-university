@@ -13,7 +13,7 @@ const site = {
   'site.footer.legal': 'Legal',
   'site.footer.get': 'Get the app',
   'site.footer.contact': 'Contact',
-  'site.footer.rights': '© {year} Bingöl University. All rights reserved.',
+  'site.footer.rights': '© {year} BÜ Kampüs. All rights reserved.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
   'site.store.getItOn': 'Get it on',
@@ -29,12 +29,12 @@ const site = {
   'site.meta.home':
     'Announcements, news, the dining menu, events and campus communication for Bingöl University students and staff, in one app.',
   'site.meta.features':
-    'News and announcements, dining menu, messaging, communities, events with QR attendance, support and notifications: the features of the Bingöl University app.',
+    'News and announcements, dining menu, messaging, communities, events with QR attendance, support and notifications: the features of the BÜ Kampüs app.',
   'site.meta.about':
-    'The purpose, values and workings of the Bingöl University app. Available only with bingol.edu.tr accounts.',
-  'site.meta.download': 'Download the Bingöl University app for Android and iOS.',
-  'site.meta.faq': 'Frequently asked questions about the Bingöl University app, with answers.',
-  'site.meta.contact': 'Contact details and in-app support requests for the Bingöl University app.',
+    'The purpose, values and workings of the BÜ Kampüs app. Available only with bingol.edu.tr accounts.',
+  'site.meta.download': 'Download the BÜ Kampüs app for Android and iOS.',
+  'site.meta.faq': 'Frequently asked questions about the BÜ Kampüs app, with answers.',
+  'site.meta.contact': 'Contact details and in-app support requests for the BÜ Kampüs app.',
   'site.meta.dataRequest':
     'Your rights under the Turkish data protection law (KVKK), how to download your data, delete your account and apply.',
   'site.meta.legal': 'Terms of use, privacy policy, KVKK notice and community rules.',
@@ -44,7 +44,7 @@ const site = {
   'site.home.title': 'Home',
   'site.home.heroTitle': 'Campus life in one app',
   'site.home.heroLead':
-    'Announcements, news, events, the dining menu and student communities in the Bingöl University app.',
+    'Announcements, news, events, the dining menu and student communities in the BÜ Kampüs app.',
   'site.home.ctaDownload': 'Download the app',
   'site.home.ctaFeatures': 'Explore features',
   'site.home.trust': 'Available only with bingol.edu.tr accounts.',
@@ -129,7 +129,7 @@ const site = {
   'site.about.readPrivacy': 'Privacy policy and KVKK notice',
 
   'site.download.title': 'Download the app',
-  'site.download.lead': 'Get the Bingöl University app from the store on your device.',
+  'site.download.lead': 'Get the BÜ Kampüs app from the store on your device.',
   'site.download.android': 'Android',
   'site.download.ios': 'iPhone and iPad',
   'site.download.afterTitle': 'After you install',

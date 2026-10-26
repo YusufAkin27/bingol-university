@@ -12,8 +12,8 @@
   --navy-600: #2a4f8c;
   --navy-300: #8fb0ea;
   --navy-100: #dfe8f7;
-  --red-600: #d53e35;
-  --red-700: #b3302a;
+  --red-600: #f73a2e; /* logo.png kirmizisi (brand/dist/colors.json) */
+  --red-700: #c82c21;
 
   /* Anlamsal renkler (açık tema) */
   --bg: #f4f6fa;

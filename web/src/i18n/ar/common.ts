@@ -1,5 +1,6 @@
 const common = {
-  'common.appName': 'جامعة بينغول',
+  'common.appName': 'BÜ Kampüs',
+  'common.logoAlt': 'شعار BÜ Kampüs',
   'common.save': 'حفظ',
   'common.cancel': 'إلغاء',
   'common.delete': 'حذف',
@@ -107,7 +108,7 @@ const common = {
   'admin.login.showPassword': 'إظهار كلمة المرور',
   'admin.login.hidePassword': 'إخفاء كلمة المرور',
   'admin.login.required': 'هذا الحقل مطلوب.',
-  'admin.login.brandLine': 'مركز إدارة تطبيق جامعة بينغول.',
+  'admin.login.brandLine': 'مركز إدارة تطبيق BÜ Kampüs.',
   'admin.forbidden.title': 'ليست لديك صلاحية الوصول إلى هذه المنطقة',
   'admin.forbidden.hint': 'هذه اللوحة متاحة لحسابات المسؤولين فقط. يمكنك تسجيل الدخول بحساب آخر.',
   'admin.forbidden.logout': 'تسجيل الدخول بحساب آخر',
