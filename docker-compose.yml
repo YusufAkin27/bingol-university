@@ -56,6 +56,11 @@ services:
       FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
       TZ: Europe/Istanbul
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
+      # T21: mesaj sifreleme ana anahtarlari (bos = uyarili gelistirme anahtari; bkz. docs/ENCRYPTION.md)
+      CRYPTO_MASTER_KEYS: ${CRYPTO_MASTER_KEYS:-}
+      CRYPTO_ACTIVE_KEY_ID: ${CRYPTO_ACTIVE_KEY_ID:-}
+      CRYPTO_REQUIRE_KEYS: ${CRYPTO_REQUIRE_KEYS:-false}
+      CRYPTO_ADMIN_DECRYPT_ENABLED: ${CRYPTO_ADMIN_DECRYPT_ENABLED:-true}
     volumes:
       - uploads:/data/uploads
     healthcheck:
