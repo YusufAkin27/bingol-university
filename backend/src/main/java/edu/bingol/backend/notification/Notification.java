@@ -37,6 +37,16 @@ public class Notification {
     @Column(length = 1000)
     private String data;
 
+    @Column(length = 32)
+    private String subtype;
+
+    /** Ayni anahtarli okunmamis bildirimler tek satirda birlesir (ornek: "conv:42"). */
+    @Column(length = 120)
+    private String collapseKey;
+
+    @Column(nullable = false)
+    private int groupCount = 1;
+
     private Instant readAt;
 
     @Column(nullable = false)

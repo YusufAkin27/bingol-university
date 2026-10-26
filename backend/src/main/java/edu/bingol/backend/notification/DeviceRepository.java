@@ -15,6 +15,8 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     List<Device> findByUserId(Long userId);
 
+    List<Device> findByUserIdOrderByUpdatedAtDesc(Long userId);
+
     @Transactional
     @Modifying
     void deleteByFcmTokenAndUserId(String fcmToken, Long userId);
@@ -23,7 +25,10 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     @Modifying
     void deleteByFcmTokenIn(Collection<String> tokens);
 
-    /** Verilen turu kapatmamis, aktif kullanicilarin cihaz token'lari (toplu bildirim icin). */
+    /**
+     * Verilen turu kapatmamis, aktif ve sessiz saatte olmayan kullanicilarin cihaz token'lari (toplu bildirim icin).
+     * Sessiz saatteki kullanicilarin uygulama ici kaydi dusulur, yalnizca push atlanir (SYSTEM haric).
+     */
     @Query(value = """
             SELECT d.fcm_token FROM device d
             JOIN app_user u ON u.id = d.user_id AND u.status = 'ACTIVE'
@@ -31,7 +36,7 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
             WHERE COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
                                      WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
-            """, nativeQuery = true)
+              AND """ + QuietSql.NOT_QUIET, nativeQuery = true)
     List<String> tokensForBroadcast(@Param("col") String prefColumn);
 
     /** Belirli dildeki kullanicilarin token'lari (dilde yerellestirilmis toplu bildirim). */
@@ -42,9 +47,13 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
             WHERE COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
                                      WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
-            """, nativeQuery = true)
+              AND """ + QuietSql.NOT_QUIET, nativeQuery = true)
     List<String> tokensForBroadcastLang(@Param("col") String prefColumn, @Param("lang") String lang);
 
-    @Query(value = "SELECT fcm_token FROM device WHERE user_id IN (:ids)", nativeQuery = true)
-    List<String> tokensForUsers(@Param("ids") Collection<Long> userIds);
+    /** Kullanici listesi icin token'lar; sessiz saatteki kullanicilar (SYSTEM haric) atlanir. */
+    @Query(value = """
+            SELECT d.fcm_token FROM device d
+            LEFT JOIN notification_pref p ON p.user_id = d.user_id
+            WHERE d.user_id IN (:ids) AND """ + QuietSql.NOT_QUIET, nativeQuery = true)
+    List<String> tokensForUsers(@Param("ids") Collection<Long> userIds, @Param("col") String prefColumn);
 }

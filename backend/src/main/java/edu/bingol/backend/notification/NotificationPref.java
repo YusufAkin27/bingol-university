@@ -19,6 +19,12 @@ public class NotificationPref {
     private boolean messages = true;
     private boolean communities = true;
 
+    /** Sessiz saatler: gunun dakikasi (0-1439); varsayilan 22:00-07:00, kullanici saat diliminde. */
+    private boolean quietEnabled = false;
+    private int quietStart = 1320;
+    private int quietEnd = 420;
+    private String timezone = "Europe/Istanbul";
+
     public static NotificationPref defaults(Long userId) {
         NotificationPref p = new NotificationPref();
         p.setUserId(userId);

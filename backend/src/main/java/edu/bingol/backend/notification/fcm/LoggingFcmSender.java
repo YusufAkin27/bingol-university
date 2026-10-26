@@ -6,10 +6,12 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /** FCM kimlik bilgisi (app.fcm.credentials-file) yokken kullanilir: push gondermez, yalnizca log'lar. */
 @Component
+@Profile("!test") // test profilinde FakeFcmSender kullanilir
 @ConditionalOnExpression("'${app.fcm.credentials-file:}'.isEmpty()")
 public class LoggingFcmSender implements FcmSender {
 

@@ -3,9 +3,9 @@ package edu.bingol.backend.notification;
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.notification.fcm.FcmSender;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -32,14 +32,16 @@ public class NotificationService {
 
     private final NotificationRepository notifications;
     private final NotificationPrefRepository prefs;
+    private final NotificationSubtypePrefRepository subtypePrefs;
     private final DeviceRepository devices;
     private final FcmSender fcm;
     private final I18n i18n;
 
     public NotificationService(NotificationRepository notifications, NotificationPrefRepository prefs,
-                               DeviceRepository devices, FcmSender fcm, I18n i18n) {
+                               NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices, FcmSender fcm, I18n i18n) {
         this.notifications = notifications;
         this.prefs = prefs;
+        this.subtypePrefs = subtypePrefs;
         this.devices = devices;
         this.fcm = fcm;
         this.i18n = i18n;
@@ -47,20 +49,48 @@ public class NotificationService {
 
     /** Hazir metinle tek kullaniciya (icerik zaten dilden bagimsizsa: haber basligi, kullanici girdisi vb.). */
     public void send(Long userId, NotificationType type, String title, String body, Map<String, String> data) {
+        // Geriye uyumluluk: ayni konusmanin mesajlari otomatik gruplanir.
+        String key = type == NotificationType.MESSAGE && data != null && data.get("conversationId") != null
+                ? "conv:" + data.get("conversationId") : null;
+        send(userId, type, null, key, title, body, data);
+    }
+
+    /**
+     * Alt tur ve gruplama anahtariyla tek kullaniciya. Ayni collapseKey ile okunmamis bildirim varsa yenisi
+     * eklenmez, o satir guncellenir ve sayaci artar. Sessiz saatte uygulama ici kayit dusulur, push atlanir (SYSTEM haric).
+     */
+    public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
+                     String title, String body, Map<String, String> data) {
         try {
-            if (!enabled(userId, type)) {
+            NotificationPref pref = prefs.findById(userId).orElse(null);
+            if (!enabled(pref, type) || !subtypeEnabled(userId, type, subtype)) {
                 return;
             }
-            Notification n = new Notification();
-            n.setUserId(userId);
-            n.setType(type);
+            String key = collapseKey == null ? null : truncate(collapseKey, 120);
+            Notification n = key == null ? null
+                    : notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(userId, key).orElse(null);
+            if (n == null) {
+                n = new Notification();
+                n.setUserId(userId);
+                n.setType(type);
+                n.setCollapseKey(key);
+            } else {
+                n.setGroupCount(n.getGroupCount() + 1);
+                n.setCreatedAt(Instant.now());
+            }
+            n.setSubtype(subtype == null ? null : subtype.name());
             n.setTitle(truncate(title, 200));
             n.setBody(truncate(body, 500));
-            n.setData(toJson(data));
+            String json = toJson(data);
+            n.setData(json != null && json.length() > 1000 ? null : json);
             notifications.save(n);
 
+            if (type != NotificationType.SYSTEM && QuietHours.isQuiet(pref, Instant.now())) {
+                return; // sessiz saat: yalnizca uygulama ici kayit
+            }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
-            push(tokens, title, body, type, data);
+            int count = n.getGroupCount();
+            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, body, type, subtype, data, count, key);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }
@@ -83,14 +113,27 @@ public class NotificationService {
      */
     public void sendTemplated(Long userId, NotificationType type, String key, Map<String, String> data, String... args) {
         Lang lang = i18n.langOf(userId);
-        send(userId, type, i18n.msg(key + ".title", lang, (Object[]) args), i18n.msg(key + ".body", lang, (Object[]) args), data);
+        NotificationSubtype sub = NotificationTemplates.find(key).map(NotificationTemplates.Template::subtype).orElse(null);
+        send(userId, type, sub, null, i18n.msg(key + ".title", lang, (Object[]) args),
+                i18n.msg(key + ".body", lang, (Object[]) args), data);
+    }
+
+    /**
+     * Kayitli sablonla (NotificationTemplates), alicinin dilinde. Alt tur sablondan gelir; collapseKey null degilse
+     * okunmamis benzer bildirimler birlestirilir.
+     */
+    public void sendTemplate(Long userId, NotificationTemplates.Template t, Map<String, String> data,
+                             String collapseKey, String... args) {
+        Lang lang = i18n.langOf(userId);
+        send(userId, t.type(), t.subtype(), collapseKey, i18n.msg(t.key() + ".title", lang, (Object[]) args),
+                i18n.msg(t.key() + ".body", lang, (Object[]) args), data);
     }
 
     public void broadcast(NotificationType type, String title, String body, Map<String, String> data) {
         try {
             notifications.insertForAll(type.name(), truncate(title, 200), truncate(body, 500), toJson(data),
                     type.prefColumn());
-            push(devices.tokensForBroadcast(type.prefColumn()), title, body, type, data);
+            push(devices.tokensForBroadcast(type.prefColumn()), title, body, type, null, data, 1, null);
         } catch (RuntimeException e) {
             log.warn("Toplu bildirim gonderilemedi: {}", e.toString());
         }
@@ -105,7 +148,7 @@ public class NotificationService {
                 String b = body == null ? null : body.apply(lang);
                 notifications.insertForLang(type.name(), truncate(t, 200), truncate(b, 500), toJson(data),
                         type.prefColumn(), lang.code());
-                push(devices.tokensForBroadcastLang(type.prefColumn(), lang.code()), t, b, type, data);
+                push(devices.tokensForBroadcastLang(type.prefColumn(), lang.code()), t, b, type, null, data, 1, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu bildirim ({}) gonderilemedi: {}", lang, e.toString());
             }
@@ -139,7 +182,7 @@ public class NotificationService {
                 }
                 notifications.saveAll(rows);
                 total += rows.size();
-                push(devices.tokensForUsers(allowed), title, body, type, data);
+                push(devices.tokensForUsers(allowed, type.prefColumn()), title, body, type, null, data, 1, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu gonderim parcasi basarisiz: {}", e.toString());
             }
@@ -147,8 +190,7 @@ public class NotificationService {
         return total;
     }
 
-    private boolean enabled(Long userId, NotificationType type) {
-        NotificationPref p = prefs.findById(userId).orElse(null);
+    private static boolean enabled(NotificationPref p, NotificationType type) {
         if (p == null) {
             return true;
         }
@@ -162,14 +204,22 @@ public class NotificationService {
         };
     }
 
-    private void push(List<String> tokens, String title, String body, NotificationType type, Map<String, String> data) {
+    /** Alt tur kapatilmissa (satir enabled=false) gonderilmez; SYSTEM ve alt turu olmayanlar etkilenmez. */
+    private boolean subtypeEnabled(Long userId, NotificationType type, NotificationSubtype subtype) {
+        if (subtype == null || type == NotificationType.SYSTEM) {
+            return true;
+        }
+        return subtypePrefs.findByUserIdAndSubtype(userId, subtype.name()).map(NotificationSubtypePref::isEnabled).orElse(true);
+    }
+
+    private void push(List<String> tokens, String title, String body, NotificationType type, NotificationSubtype subtype,
+                      Map<String, String> data, int count, String collapseKey) {
         if (tokens.isEmpty()) {
             return;
         }
-        Map<String, String> payload = new HashMap<>(data == null ? Map.of() : data);
-        payload.put("type", type.name());
-        List<String> invalid = fcm.send(tokens, title, body == null ? "" : body, payload);
-        if (!invalid.isEmpty()) {
+        Map<String, String> payload = PushPayload.build(type, subtype, data, count);
+        List<String> invalid = fcm.send(tokens, title, body == null ? "" : body, payload, collapseKey);
+        if (invalid != null && !invalid.isEmpty()) {
             devices.deleteByFcmTokenIn(invalid);
         }
     }

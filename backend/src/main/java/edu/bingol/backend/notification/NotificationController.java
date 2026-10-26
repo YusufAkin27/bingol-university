@@ -1,16 +1,18 @@
 package edu.bingol.backend.notification;
 
-import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CurrentUser;
-import edu.bingol.backend.common.CursorPage;
+import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.notification.dto.NotificationDtos.DeletedCount;
 import edu.bingol.backend.notification.dto.NotificationDtos.DeviceRequest;
+import edu.bingol.backend.notification.dto.NotificationDtos.DeviceView;
 import edu.bingol.backend.notification.dto.NotificationDtos.MarkReadRequest;
 import edu.bingol.backend.notification.dto.NotificationDtos.NotificationPage;
-import edu.bingol.backend.notification.dto.NotificationDtos.NotificationView;
+import edu.bingol.backend.notification.dto.NotificationDtos.PrefsUpdate;
 import edu.bingol.backend.notification.dto.NotificationDtos.PrefsView;
+import edu.bingol.backend.notification.dto.NotificationDtos.UnreadCount;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import java.util.List;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,77 +25,107 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Cihaz kaydi, bildirim listesi ve tercihler. */
+/** Cihaz kaydi, bildirim kutusu ve tercihler. */
 @RestController
 @RequestMapping("/api")
 public class NotificationController {
 
-    private final NotificationRepository notifications;
-    private final NotificationPrefRepository prefs;
-    private final DeviceRepository devices;
+    private static final Duration MINUTE = Duration.ofMinutes(1);
 
-    public NotificationController(NotificationRepository notifications, NotificationPrefRepository prefs,
-                                  DeviceRepository devices) {
-        this.notifications = notifications;
+    private final NotificationInboxService inbox;
+    private final NotificationPrefService prefs;
+    private final DeviceService devices;
+    private final RateLimiter limiter;
+
+    public NotificationController(NotificationInboxService inbox, NotificationPrefService prefs, DeviceService devices,
+                                  RateLimiter limiter) {
+        this.inbox = inbox;
         this.prefs = prefs;
         this.devices = devices;
+        this.limiter = limiter;
     }
 
-    /** Ayni token baska kullaniciya aitse (cihaz el degistirdi) yeni kullaniciya tasinir. */
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void registerDevice(@Valid @RequestBody DeviceRequest r) {
         Long uid = CurrentUser.id();
-        Device d = devices.findByFcmToken(r.fcmToken()).orElseGet(Device::new);
-        d.setFcmToken(r.fcmToken());
-        d.setUserId(uid);
-        d.setPlatform(r.platform());
-        devices.save(d);
+        limiter.check("dev-reg:" + uid, 30, Duration.ofHours(1));
+        devices.register(uid, r.fcmToken(), r.platform());
+    }
+
+    @GetMapping("/devices")
+    public List<DeviceView> myDevices() {
+        return devices.list(CurrentUser.id());
     }
 
     @DeleteMapping("/devices/{token}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unregisterDevice(@PathVariable String token) {
-        devices.deleteByFcmTokenAndUserId(token, CurrentUser.id());
+        Long uid = CurrentUser.id();
+        limiter.check("dev-reg:" + uid, 30, Duration.ofHours(1));
+        devices.unregister(uid, token);
     }
 
+    /** type=EVENT gibi tur filtresi ve unread=true (yalnizca okunmamislar) destekler. */
     @GetMapping("/notifications")
     public NotificationPage list(@RequestParam(required = false) Long cursor,
-                                 @RequestParam(defaultValue = "20") int size) {
+                                 @RequestParam(defaultValue = "20") int size,
+                                 @RequestParam(required = false) String type,
+                                 @RequestParam(defaultValue = "false") boolean unread) {
+        return inbox.list(CurrentUser.id(), cursor, size, type, unread);
+    }
+
+    /** Hafif sayac (rozet icin sik cagrilabilir). */
+    @GetMapping("/notifications/unread-count")
+    public UnreadCount unreadCount() {
         Long uid = CurrentUser.id();
-        int s = CursorPage.clampSize(size);
-        List<Notification> rows = notifications.page(uid, cursor, PageRequest.of(0, s + 1));
-        CursorPage<NotificationView> page = CursorPage.of(rows, s, Notification::getId, NotificationView::of);
-        return new NotificationPage(page.items(), page.nextCursor(), notifications.countByUserIdAndReadAtIsNull(uid));
+        limiter.check("notif-count:" + uid, 120, MINUTE);
+        return new UnreadCount(inbox.unreadCount(uid));
     }
 
     @PostMapping("/notifications/read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void markRead(@RequestBody MarkReadRequest r) {
         Long uid = CurrentUser.id();
-        if (Boolean.TRUE.equals(r.all())) {
-            notifications.markAllRead(uid);
-        } else if (r.ids() != null && !r.ids().isEmpty()) {
-            notifications.markRead(uid, r.ids());
-        } else {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "ids veya all gerekli.");
-        }
+        limiter.check("notif-write:" + uid, 120, MINUTE);
+        inbox.markRead(uid, r.ids(), Boolean.TRUE.equals(r.all()));
+    }
+
+    @PostMapping("/notifications/{id}/read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markOneRead(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("notif-write:" + uid, 120, MINUTE);
+        inbox.markOneRead(uid, id);
+    }
+
+    @DeleteMapping("/notifications/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOne(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("notif-write:" + uid, 120, MINUTE);
+        inbox.delete(uid, id);
+    }
+
+    /** Hepsini sil; type ile tek tur, readOnly=true ile yalnizca okunmuslar. */
+    @DeleteMapping("/notifications")
+    public DeletedCount deleteAll(@RequestParam(required = false) String type,
+                                  @RequestParam(defaultValue = "false") boolean readOnly) {
+        Long uid = CurrentUser.id();
+        limiter.check("notif-write:" + uid, 120, MINUTE);
+        return new DeletedCount(inbox.deleteAll(uid, type, readOnly));
     }
 
     @GetMapping("/notifications/preferences")
     public PrefsView getPrefs() {
-        Long uid = CurrentUser.id();
-        return PrefsView.of(prefs.findById(uid).orElseGet(() -> NotificationPref.defaults(uid)));
+        return prefs.get(CurrentUser.id());
     }
 
+    /** Kismi guncelleme: gonderilmeyen alanlar degismez (eski 5 bayrakli istemci aynen calisir). */
     @PutMapping("/notifications/preferences")
-    public PrefsView putPrefs(@RequestBody PrefsView r) {
-        NotificationPref p = prefs.findById(CurrentUser.id()).orElseGet(() -> NotificationPref.defaults(CurrentUser.id()));
-        p.setNews(r.news());
-        p.setAnnouncements(r.announcements());
-        p.setEvents(r.events());
-        p.setMessages(r.messages());
-        p.setCommunities(r.communities());
-        return PrefsView.of(prefs.save(p));
+    public PrefsView putPrefs(@Valid @RequestBody PrefsUpdate r) {
+        Long uid = CurrentUser.id();
+        limiter.check("notif-prefs:" + uid, 30, MINUTE);
+        return prefs.update(uid, r);
     }
 }
