@@ -71,6 +71,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Etkinlik yoklaması için QR kodu taramak ve profil fotoğrafı çekmek amacıyla kamerayı kullanırız.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil, kulüp ve etkinlik görseli seçebilmeniz için fotoğraf arşivinize erişiriz.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Görselleri fotoğraf arşivinize kaydedebilmemiz için izin gerekir.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Geliştirme sunucusuna bağlanmak için yerel ağ erişimi gerekir.</string>
 </dict>

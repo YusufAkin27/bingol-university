@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../../core/theme.dart';
+import '../../widgets/bu_widgets.dart';
+
+/// QR tarar; ilk okunan değeri `Navigator.pop(context, code)` ile döndürür.
+/// Kamera izni reddedilir/yoksa elle kod girişi sunulur.
+class QrScanPage extends StatefulWidget {
+  const QrScanPage({super.key, this.title = 'QR kodu tara'});
+
+  final String title;
+
+  @override
+  State<QrScanPage> createState() => _QrScanPageState();
+}
+
+class _QrScanPageState extends State<QrScanPage> {
+  final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
+  final _manual = TextEditingController();
+  bool _done = false;
+  bool _torch = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _manual.dispose();
+    super.dispose();
+  }
+
+  void _finish(String code) {
+    final c = code.trim();
+    if (_done || c.isEmpty) return;
+    _done = true;
+    Navigator.of(context).pop(c);
+  }
+
+  void _onDetect(BarcodeCapture cap) {
+    for (final b in cap.barcodes) {
+      final v = b.rawValue;
+      if (v != null && v.isNotEmpty) {
+        _finish(v);
+        return;
+      }
+    }
+  }
+
+  Widget _manualEntry(BuildContext context, {String? note}) {
+    final t = context.bu;
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (note != null) ...[
+            Text(note, style: TextStyle(color: t.mut, fontSize: 14)),
+            const SizedBox(height: 12),
+          ],
+          TextField(
+            controller: _manual,
+            textInputAction: TextInputAction.done,
+            onSubmitted: _finish,
+            decoration: const InputDecoration(labelText: 'Kodu elle gir'),
+          ),
+          const SizedBox(height: 12),
+          BuButton(label: 'Onayla', onPressed: () => _finish(_manual.text)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Scaffold(
+      backgroundColor: t.bg,
+      resizeToAvoidBottomInset: true,
+      body: Column(
+        children: [
+          BuHeader(title: widget.title, onBack: () => Navigator.of(context).maybePop()),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    MobileScanner(
+                      controller: _controller,
+                      onDetect: _onDetect,
+                      errorBuilder: (ctx, e) {
+                        final denied = e.errorCode == MobileScannerErrorCode.permissionDenied;
+                        return Container(
+                          color: t.sf2,
+                          alignment: Alignment.center,
+                          child: SingleChildScrollView(
+                            child: _manualEntry(
+                              ctx,
+                              note: denied
+                                  ? 'Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir '
+                                      'ya da kodu elle girebilirsiniz.'
+                                  : 'Kamera açılamadı. Kodu elle girebilirsiniz.',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: BuIconButton(
+                        icon: _torch ? LucideIcons.zapOff : LucideIcons.zap,
+                        tooltip: 'El feneri',
+                        onTap: () async {
+                          try {
+                            await _controller.toggleTorch();
+                            if (mounted) setState(() => _torch = !_torch);
+                          } catch (_) {}
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: ExpansionTile(
+                title: const Text('Kodu elle gir'),
+                shape: const Border(),
+                collapsedShape: const Border(),
+                children: [_manualEntry(context)],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
