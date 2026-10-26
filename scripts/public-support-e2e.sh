@@ -68,7 +68,7 @@ has "202 CODE_SENT" "CODE_SENT" "$R"
 sleep 1
 CODE=$(last_code "$EM")
 [ -n "$CODE" ] && echo "  ok   kod e-postaya gitti (log)" || { echo "  FAIL kod logda yok"; FAIL=1; }
-has "e-posta konusu EN + talep no" "Your support request" "$(logs | grep "$EM icin e-posta" | tail -1)"
+has "e-posta konusu EN" "Support request verification code" "$(logs | grep "$EM icin e-posta" | tail -1)"
 has "kod e-postasi EN" "verification code" "$(logs | grep "$EM icin e-posta" | tail -1)"
 
 echo "== dogrulanmamis talep yonetim listesinde YOK"
@@ -105,7 +105,7 @@ RP=$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/support/tickets/$TID/reply -d '{
 has "emailStatus SENT" '"emailStatus":"SENT"' "$RP"
 sleep 1
 RL=$(logs | grep "$EM icin e-posta" | tail -1)
-has "yanit e-postasi konusu" "Destek talebiniz #$TID" "$RL"
+has "yanit e-postasi konusu" "Your support request #$TID" "$RL"
 has "yanit metni e-postada" "Uygulamayi guncelleyin" "$RL"
 TOKEN2=$(last_token "$EM")
 [ -n "$TOKEN2" ] && [ "$TOKEN2" != "$TOKEN" ] && echo "  ok   yanit e-postasinda yeni baglanti" || { echo "  FAIL yeni baglanti yok"; FAIL=1; }
