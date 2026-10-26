@@ -51,8 +51,12 @@ public class AdminChatViewerService {
 
     public record RevisionView(String text, String error, String revisedAt) {}
 
-    /** Mesaj eki (T8 ile uyumlu bicim); ek yoksa liste bos. previewUrl yonetici onizleme ucuna isaret eder. */
-    public record AttachmentView(String id, String kind, String mime, long size, String previewUrl) {}
+    /**
+     * Mesaj eki (T8 `message_attachment`); gizli/silinmis mesajin eki de listelenir. previewUrl/thumbUrl yonetici
+     * onizleme ucuna (`/api/admin/media/attachments/{id}/preview`) isaret eder (Bearer ile istenir).
+     */
+    public record AttachmentView(long id, String kind, String contentType, int width, int height, long bytes,
+                                 boolean hidden, String previewUrl, String thumbUrl) {}
 
     public record MessageItem(long id, long senderId, String senderName, boolean mine, String createdAt, String text,
                               String error, boolean edited, String editedAt, List<RevisionView> revisions,
@@ -179,6 +183,7 @@ public class AdminChatViewerService {
         Map<Long, List<ReactionView>> reactions = reactions(ids);
         Map<Long, List<RevisionView>> revisions = revisions(conversationId, rows);
         Map<Long, ReplyView> replies = replies(conversationId, rows);
+        Map<Long, List<AttachmentView>> attachments = attachments(ids);
         Set<Long> userIds = new LinkedHashSet<>();
         rows.forEach(r -> {
             userIds.add(r.senderId());
@@ -199,7 +204,7 @@ public class AdminChatViewerService {
                     r.editedAt() == null ? null : r.editedAt().toString(), revs, r.deletedAt() != null,
                     r.deletedAt() == null ? null : r.deletedAt().toString(), r.deletedBy(),
                     r.deletedBy() == null ? null : names.get(r.deletedBy()), r.hidden(),
-                    replies.get(r.id()), reactions.getOrDefault(r.id(), List.of()), List.of()));
+                    replies.get(r.id()), reactions.getOrDefault(r.id(), List.of()), attachments.getOrDefault(r.id(), List.of())));
         }
         Long from = ids.isEmpty() ? null : ids.get(0);
         Long to = ids.isEmpty() ? null : ids.get(ids.size() - 1);
@@ -313,6 +318,23 @@ public class AdminChatViewerService {
                 new MapSqlParameterSource("ids", messageIds), rs -> {
                     out.computeIfAbsent(rs.getLong("message_id"), k -> new ArrayList<>())
                             .add(new ReactionView(rs.getString("emoji"), rs.getLong("user_id")));
+                });
+        return out;
+    }
+
+    private Map<Long, List<AttachmentView>> attachments(List<Long> messageIds) {
+        Map<Long, List<AttachmentView>> out = new HashMap<>();
+        if (messageIds.isEmpty()) {
+            return out;
+        }
+        named.query("SELECT id, message_id, kind, content_type, width, height, bytes, hidden_at FROM message_attachment "
+                        + "WHERE message_id IN (:ids) ORDER BY id", new MapSqlParameterSource("ids", messageIds), rs -> {
+                    long id = rs.getLong("id");
+                    String base = "/api/admin/media/attachments/" + id + "/preview";
+                    out.computeIfAbsent(rs.getLong("message_id"), k -> new ArrayList<>())
+                            .add(new AttachmentView(id, rs.getString("kind"), rs.getString("content_type"),
+                                    rs.getInt("width"), rs.getInt("height"), rs.getLong("bytes"),
+                                    rs.getTimestamp("hidden_at") != null, base, base + "?thumb=true"));
                 });
         return out;
     }

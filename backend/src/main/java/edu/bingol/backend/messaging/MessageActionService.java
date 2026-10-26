@@ -158,9 +158,8 @@ public class MessageActionService {
             return; // es zamanli baska silme kazandi
         }
         reactions.removeAll(m.getId());
-        if (attachments != null) {
-            attachments.purgeForMessage(m.getId()); // gorsel baytlari da silinir (erisim zaten kapanir)
-        }
+        // Ekler SILINMEZ: kullanici erisimi kapanir (MessageAttachmentService.accessible mesaj silinmisse bos doner,
+        // goruntu meta verisi de donmez); bayt yonetici onizlemesi icin saklanir (T24).
         publish(m.getConversationId(), userId, new MessageEvent("deleted", m.getConversationId(), m.getId(), userId,
                 null, null, null, now.toString()));
     }
