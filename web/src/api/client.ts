@@ -1,3 +1,4 @@
+import { paths } from '../paths';
 import { getCurrentLang } from '../i18n/lang';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
 import type { ApiErrorBody, TokenResponse } from './types';
@@ -45,8 +46,8 @@ export function buildUrl(path: string, query?: Query): string {
 
 // ---------- oturum sonu ----------
 let unauthorizedHandler: () => void = () => {
-  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
-    window.location.assign('/admin/login');
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith(paths.admin.login)) {
+    window.location.assign(paths.admin.login);
   }
 };
 

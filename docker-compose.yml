@@ -72,7 +72,10 @@ services:
 
   # Tanıtım sitesi + /admin paneli (nginx; /api, /files, /ws backend'e vekillenir)
   web:
-    build: ./web
+    build:
+      context: ./web
+      args:
+        VITE_ADMIN_PATH: ${ADMIN_PATH:-}
     depends_on:
       - backend
     ports:

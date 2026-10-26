@@ -1,3 +1,4 @@
+import { useNoIndex } from '../lib/useNoIndex';
 import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo } from '../api/hooks';
@@ -16,6 +17,7 @@ import styles from './AdminLayout.module.css';
 const COLLAPSE_KEY = 'bu.admin.sidebar';
 
 export function AdminLayout() {
+  useNoIndex();
   const { t, dir } = useI18n();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(() => readStorage('local', COLLAPSE_KEY) === '1');

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { paths } from '../paths';
 import { useAuth } from './AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { Button } from '../components/ui/Button';
@@ -21,7 +22,7 @@ export function ForbiddenScreen() {
         <Button
           onClick={async () => {
             await logout();
-            navigate('/admin/login', { replace: true });
+            navigate(paths.admin.login, { replace: true });
           }}
         >
           {t('admin.forbidden.logout')}

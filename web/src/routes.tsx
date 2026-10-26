@@ -9,6 +9,7 @@ import { RequireAdmin } from './auth/RequireAdmin';
 import { Spinner } from './components/ui/Feedback';
 import { AdminLayout } from './layouts/AdminLayout';
 import { SiteLayout } from './layouts/SiteLayout';
+import { ADMIN_BASE } from './adminBase';
 
 // --- tanıtım sitesi ---
 const HomePage = lazy(() => import('./pages/site/HomePage'));
@@ -104,7 +105,7 @@ export function AppRoutes() {
         </Route>
 
         {/* Yönetim: giriş sayfası korumasızdır */}
-        <Route path="admin/login" element={<LoginPage />} />
+        <Route path={`${ADMIN_BASE.slice(1)}/login`} element={<LoginPage />} />
         <Route
           path="admin"
           element={

@@ -1,3 +1,4 @@
+import { paths } from '../paths';
 import {
   createContext,
   useCallback,
@@ -80,8 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus('anonymous');
       queryClient.clear();
       const from = window.location.pathname + window.location.search;
-      if (!window.location.pathname.startsWith('/admin/login')) {
-        navigateRef.current('/admin/login', { replace: true, state: { from } });
+      if (!window.location.pathname.startsWith(paths.admin.login)) {
+        navigateRef.current(paths.admin.login, { replace: true, state: { from } });
       }
     });
     return () => setUnauthorizedHandler(null);

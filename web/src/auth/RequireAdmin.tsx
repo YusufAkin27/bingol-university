@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { paths } from '../paths';
 import { useAuth } from './AuthProvider';
 import { ForbiddenScreen } from './ForbiddenScreen';
 import { Spinner } from '../components/ui/Feedback';
@@ -17,7 +18,7 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
     );
   }
   if (status === 'anonymous') {
-    return <Navigate to="/admin/login" replace state={{ from: location.pathname + location.search }} />;
+    return <Navigate to={paths.admin.login} replace state={{ from: location.pathname + location.search }} />;
   }
   if (status === 'forbidden') return <ForbiddenScreen />;
   return <>{children}</>;

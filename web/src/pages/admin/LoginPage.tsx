@@ -1,3 +1,4 @@
+import { useNoIndex } from '../../lib/useNoIndex';
 // SAYFA: Yönetici girişi (/admin/login) — iskelet tarafından tamamlanmıştır.
 // API: POST /api/auth/login, ardından GET /api/admin/me (AuthProvider.login); rol ADMIN değilse "yetkiniz yok" ekranı.
 import { useState, type FormEvent } from 'react';
@@ -15,6 +16,7 @@ import { paths } from '../../paths';
 import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
+  useNoIndex();
   const i18n = useI18n();
   const { t } = i18n;
   const { status, login } = useAuth();
