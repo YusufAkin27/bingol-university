@@ -58,6 +58,8 @@ public class SecurityConfig {
             .exceptionHandling(e -> e.accessDeniedHandler(denied))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
+                // T7: OpenAPI belgesi ve Swagger arayuzu yalnizca ADMIN (arayuz ayrica varsayilan kapali)
+                .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/me", "/api/legal/consents", "/api/legal/consents/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
