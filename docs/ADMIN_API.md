@@ -12,7 +12,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 | Raporlar | `GET /api/admin/reports?status=OPEN&cursor=&size=`, `POST /api/admin/reports/{id}/resolve {action: DISMISS\|HIDE\|WARN\|SUSPEND_USER, message}` |
 | Kullanıcı askı | `POST /api/admin/users/{id}/suspend {reason}`, `/unsuspend` |
 | Geri bildirim | `GET /api/admin/feedback?status=&category=&cursor=&size=`, `PATCH /api/admin/feedback/{id} {status, adminResponse, publicVisible}` |
-| Destek | `GET /api/admin/support/tickets?status=&cursor=`, `GET .../{id}`, `POST .../{id}/reply {text}`, `POST .../{id}/close` |
+| Destek | `GET /api/admin/support/tickets?status=&publicOnly=&cursor=` (herkese açık talepler `publicTicket:true`, `userId` null; doğrulanmamışlar listelenmez), `GET .../{id}`, `POST .../{id}/reply {text}` (cevap + `emailStatus`: NOT_APPLICABLE/SENT/FAILED), `POST .../{id}/close` |
 | SSS | `GET/POST /api/admin/faq`, `PUT/DELETE /api/admin/faq/{id}` (`lang` tr\|en\|ar) |
 | Sözleşmeler | herkese açık `GET /api/legal`, `/api/legal/{type}`; yönetici `POST /api/admin/legal/{type} {tr:{title,content}, en?, ar?, requireReaccept}` |
 | Ayarlar | `GET /api/admin/settings`, `PUT /api/admin/settings/{key} {value}` (mağaza linkleri, iletişim, banner, bakım modu, sürüm kontrolü) |

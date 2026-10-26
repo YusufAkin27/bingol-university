@@ -13,6 +13,7 @@ import {
   PageHeader,
   Select,
   StatusPill,
+  Badge,
   Table,
   toneFor,
   type Column,
@@ -31,11 +32,12 @@ export default function TicketsPage() {
   usePageTitle(t('admin.tickets.title'));
   const navigate = useNavigate();
   const [status, setStatus] = useState<TicketStatus | ''>('');
+  const [publicOnly, setPublicOnly] = useState(false);
 
   const query = useInfiniteQuery({
-    queryKey: qk.tickets.list(status || undefined),
+    queryKey: qk.tickets.list(status || undefined, publicOnly),
     queryFn: ({ pageParam }) =>
-      supportApi.listTickets({ status: status || undefined, cursor: pageParam, size: 20 }),
+      supportApi.listTickets({ status: status || undefined, publicOnly, cursor: pageParam, size: 20 }),
     initialPageParam: null as number | null,
     getNextPageParam: (p) => p.nextCursor,
   });
@@ -60,7 +62,16 @@ export default function TicketsPage() {
       header: t('admin.tickets.col.status'),
       render: (r) => <StatusPill tone={toneFor(r.status)}>{t(`admin.tickets.status.${r.status}`)}</StatusPill>,
     },
-    { key: 'user', header: t('admin.tickets.col.user'), render: (r) => <span className="ltr">{r.userEmail}</span> },
+    {
+      key: 'user',
+      header: t('admin.tickets.col.user'),
+      render: (r) => (
+        <span style={{ display: 'grid', gap: 4 }}>
+          <span className="ltr">{r.userEmail}</span>
+          {r.publicTicket && <Badge tone="info">{t('admin.tickets.public.badge')}</Badge>}
+        </span>
+      ),
+    },
     { key: 'updated', header: t('admin.tickets.col.updated'), render: (r) => formatDateTime(r.updatedAt) },
   ];
 
@@ -69,6 +80,7 @@ export default function TicketsPage() {
       <PageHeader title={t('admin.tickets.title')} description={t('admin.tickets.subtitle')} />
       <DataToolbar
         filters={
+          <>
           <Select className={styles.filter}
             aria-label={t('admin.tickets.filter.status')}
             value={status}
@@ -81,6 +93,11 @@ export default function TicketsPage() {
               </option>
             ))}
           </Select>
+          <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+            <input type="checkbox" checked={publicOnly} onChange={(e) => setPublicOnly(e.target.checked)} />
+            {t('admin.tickets.public.filter')}
+          </label>
+          </>
         }
       />
       {query.isError ? (

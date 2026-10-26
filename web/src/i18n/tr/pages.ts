@@ -276,7 +276,6 @@ const m = {
   'pg.menu.noMonth': 'Bu ay için menü yayımlanmadı',
   'pg.menu.noMonthHint': 'Menü yayımlandığında burada görünür.',
   'pg.menu.error': 'Yemek listesi yüklenemedi',
-  'pg.menu.source': 'Kaynak: Bingöl Üniversitesi Sağlık, Kültür ve Spor Daire Başkanlığı (sks.bingol.edu.tr).',
   'pg.menu.maintenance': 'Yemek listesi kaynağı şu an bakımda; son başarılı liste gösteriliyor.',
 
   // --- Marka kiti ---

@@ -447,8 +447,11 @@ export type TicketStatus = 'OPEN' | 'ANSWERED' | 'CLOSED';
 export type TicketCategory = 'ACCOUNT' | 'TECHNICAL' | 'CONTENT' | 'OTHER';
 export interface AdminTicketSummary {
   id: number;
-  userId: number;
-  userEmail: string;
+  /** Herkese açık (hesapsız) taleplerde null. */
+  userId: number | null;
+  userEmail: string | null;
+  /** Herkese açık, e-postası doğrulanmış talep. */
+  publicTicket: boolean;
   category: TicketCategory;
   subject: string;
   status: TicketStatus;
@@ -457,6 +460,7 @@ export interface AdminTicketSummary {
 }
 export interface TicketSummary {
   id: number;
+  publicTicket?: boolean;
   category: TicketCategory;
   subject: string;
   status: TicketStatus;
@@ -472,6 +476,14 @@ export interface TicketMessage {
 export interface TicketDetail {
   ticket: TicketSummary;
   messages: TicketMessage[];
+  /** Yalnızca yönetici ayrıntısında. */
+  userEmail?: string | null;
+}
+
+/** Yanıt sonrası: herkese açık talepte e-posta sonucu. */
+export type TicketEmailStatus = 'NOT_APPLICABLE' | 'SENT' | 'FAILED';
+export interface StaffReplyResult extends TicketDetail {
+  emailStatus: TicketEmailStatus;
 }
 
 // ---------- Geri bildirim ----------

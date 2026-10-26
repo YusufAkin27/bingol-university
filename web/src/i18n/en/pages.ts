@@ -273,7 +273,6 @@ const m = {
   'pg.menu.noMonth': 'No menu published for this month',
   'pg.menu.noMonthHint': 'It will appear here once published.',
   'pg.menu.error': 'Could not load the menu',
-  'pg.menu.source': 'Source: Bingöl University Department of Health, Culture and Sports (sks.bingol.edu.tr).',
   'pg.menu.maintenance': 'The menu source is under maintenance; the last successful menu is shown.',
 
   // --- Brand kit ---

@@ -26,8 +26,10 @@ public class TicketController {
 
     private final TicketService tickets;
     private final RateLimiter limiter;
+    private final PublicSupportService publicSupport;
 
-    public TicketController(TicketService tickets, RateLimiter limiter) {
+    public TicketController(TicketService tickets, RateLimiter limiter, PublicSupportService publicSupport) {
+        this.publicSupport = publicSupport;
         this.tickets = tickets;
         this.limiter = limiter;
     }
@@ -68,9 +70,10 @@ public class TicketController {
 
     @GetMapping("/admin/support/tickets")
     public AdminTicketList adminQueue(@RequestParam(required = false) SupportTicket.Status status,
+                                      @RequestParam(defaultValue = "false") boolean publicOnly,
                                       @RequestParam(required = false) Long cursor,
                                       @RequestParam(defaultValue = "20") int size) {
-        return tickets.adminQueue(status, cursor, size);
+        return tickets.adminQueue(status, publicOnly, cursor, size);
     }
 
     @GetMapping("/admin/support/tickets/{id}")
@@ -79,8 +82,12 @@ public class TicketController {
     }
 
     @PostMapping("/admin/support/tickets/{id}/reply")
-    public TicketDetail staffReply(@PathVariable Long id, @Valid @RequestBody ReplyRequest r) {
-        return tickets.staffReply(CurrentUser.id(), id, r.text());
+    public TicketDtos.StaffReplyResult staffReply(@PathVariable Long id, @Valid @RequestBody ReplyRequest r) {
+        TicketDetail d = tickets.staffReply(CurrentUser.id(), id, r.text());
+        // Yanit kaydedildi; herkese acik talepte e-posta sonucu ayrica bildirilir (basarisizlik yaniti geri almaz)
+        String mail = d.ticket().publicTicket()
+                ? (publicSupport.sendStaffReplyMail(id, r.text()) ? "SENT" : "FAILED") : "NOT_APPLICABLE";
+        return new TicketDtos.StaffReplyResult(d.ticket(), d.messages(), mail);
     }
 
     @PostMapping("/admin/support/tickets/{id}/close")

@@ -1,8 +1,10 @@
 package edu.bingol.backend.support.ticket;
 
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,8 +17,25 @@ public interface TicketRepository extends JpaRepository<SupportTicket, Long> {
 
     long countByUserIdAndStatusNot(Long userId, SupportTicket.Status status);
 
-    /** Yonetici kuyrugu: en eski once (bekleyen talepler once cevaplanir). */
-    @Query("SELECT t FROM SupportTicket t WHERE (:status IS NULL OR t.status = :status) AND (:cursor IS NULL OR t.id > :cursor) ORDER BY t.id ASC")
-    List<SupportTicket> queue(@Param("status") SupportTicket.Status status, @Param("cursor") Long cursor,
-                              Pageable pageable);
+    /**
+     * Yonetici kuyrugu: en eski once. Dogrulanmamis herkese acik talepler hic gorunmez;
+     * publicOnly=true yalnizca herkese acik talepleri getirir.
+     */
+    @Query("SELECT t FROM SupportTicket t WHERE t.emailVerified = true AND (:status IS NULL OR t.status = :status) "
+            + "AND (:publicOnly = false OR t.publicTicket = true) AND (:cursor IS NULL OR t.id > :cursor) ORDER BY t.id ASC")
+    List<SupportTicket> queue(@Param("status") SupportTicket.Status status, @Param("publicOnly") boolean publicOnly,
+                              @Param("cursor") Long cursor, Pageable pageable);
+
+    /** Bu e-posta icin en yeni dogrulanmamis herkese acik talep. */
+    @Query("SELECT t FROM SupportTicket t WHERE t.publicTicket = true AND t.emailVerified = false "
+            + "AND t.contactEmail = :email ORDER BY t.id DESC")
+    List<SupportTicket> pendingByEmail(@Param("email") String email, Pageable pageable);
+
+    @Modifying
+    @Query("DELETE FROM SupportTicket t WHERE t.publicTicket = true AND t.emailVerified = false AND t.createdAt < :before")
+    int deleteUnverifiedBefore(@Param("before") Instant before);
+
+    @Modifying
+    @Query("DELETE FROM SupportTicket t WHERE t.publicTicket = true AND t.updatedAt < :before")
+    int deletePublicUpdatedBefore(@Param("before") Instant before);
 }

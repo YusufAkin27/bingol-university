@@ -67,6 +67,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
                         "/api/app/info", "/api/app/version", "/api/faculties").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                // T27: herkese acik destek talebi (hiz siniri + e-posta dogrulamasi servis katmaninda)
+                .requestMatchers("/api/public/support/**").permitAll()
                 // T14: katilim sertifikasi dogrulama herkese acik (kod tahmin edilemez, IP hiz siniri var)
                 .requestMatchers(HttpMethod.GET, "/api/certificates/verify/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/news","/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()

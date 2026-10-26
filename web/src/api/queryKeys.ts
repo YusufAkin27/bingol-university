@@ -73,7 +73,8 @@ export const qk = {
   },
   tickets: {
     all: ['tickets'] as const,
-    list: (status?: TicketStatus) => ['tickets', 'list', status ?? 'ALL'] as const,
+    list: (status?: TicketStatus, publicOnly?: boolean) =>
+      ['tickets', 'list', status ?? 'ALL', publicOnly ? 'PUBLIC' : 'ALL'] as const,
     detail: (id: number) => ['tickets', 'detail', id] as const,
   },
   feedback: {

@@ -1,0 +1,83 @@
+.wrap {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 760px;
+  margin-inline: auto;
+}
+.skel {
+  display: grid;
+  gap: var(--space-3);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.subject {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--text-xl);
+  overflow-wrap: anywhere;
+}
+.meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.msg {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 90%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.msg p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.me {
+  justify-self: end;
+  background: var(--primary-soft);
+}
+.staff {
+  justify-self: start;
+}
+.who {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--info-soft);
+  color: var(--info);
+}
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+.formLabel {
+  font-weight: 700;
+}
+.err {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 600;
+}
+.ok {
+  margin: 0;
+  color: var(--success);
+  font-weight: 600;
+}

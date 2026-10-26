@@ -90,22 +90,26 @@ public class TicketService {
 
     // --- yonetici ---
 
-    public AdminTicketList adminQueue(SupportTicket.Status status, Long cursor, int size) {
+    public AdminTicketList adminQueue(SupportTicket.Status status, boolean publicOnly, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
-        List<SupportTicket> rows = tickets.queue(status, cursor, PageRequest.of(0, s + 1));
+        List<SupportTicket> rows = tickets.queue(status, publicOnly, cursor, PageRequest.of(0, s + 1));
         List<SupportTicket> pageRows = rows.size() > s ? rows.subList(0, s) : rows;
-        Map<Long, User> byId = users.findAllById(pageRows.stream().map(SupportTicket::getUserId).distinct().toList())
+        Map<Long, User> byId = users.findAllById(pageRows.stream().map(SupportTicket::getUserId).filter(java.util.Objects::nonNull).distinct().toList())
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         CursorPage<AdminTicketSummary> page = CursorPage.of(rows, s, SupportTicket::getId, t -> new AdminTicketSummary(
-                t.getId(), t.getUserId(), byId.containsKey(t.getUserId()) ? byId.get(t.getUserId()).getEmail() : null,
-                t.getCategory(), t.getSubject(), t.getStatus(), t.getCreatedAt().toString(), t.getUpdatedAt().toString()));
+                t.getId(), t.getUserId(),
+                t.isPublicTicket() ? t.getContactEmail()
+                        : (byId.containsKey(t.getUserId()) ? byId.get(t.getUserId()).getEmail() : null),
+                t.getCategory(), t.getSubject(), t.getStatus(), t.getCreatedAt().toString(), t.getUpdatedAt().toString(),
+                t.isPublicTicket()));
         return new AdminTicketList(page.items(), page.nextCursor());
     }
 
     public AdminTicketDetail adminDetail(Long ticketId) {
         SupportTicket t = find(ticketId);
         TicketDetail d = toDetail(t);
-        String email = users.findById(t.getUserId()).map(User::getEmail).orElse(null);
+        String email = t.isPublicTicket() ? t.getContactEmail()
+                : users.findById(t.getUserId()).map(User::getEmail).orElse(null);
         return new AdminTicketDetail(d.ticket(), d.messages(), t.getUserId(), email);
     }
 
@@ -119,8 +123,10 @@ public class TicketService {
         t.setStatus(SupportTicket.Status.ANSWERED);
         t.setUpdatedAt(Instant.now());
         tickets.save(t);
-        notifications.sendLocalized(t.getUserId(), NotificationType.SYSTEM, "notif.ticket.answered.title", null,
-                t.getSubject(), Map.of("ticketId", String.valueOf(t.getId())));
+        if (t.getUserId() != null) {
+            notifications.sendLocalized(t.getUserId(), NotificationType.SYSTEM, "notif.ticket.answered.title", null,
+                    t.getSubject(), Map.of("ticketId", String.valueOf(t.getId())));
+        }
         return toDetail(t);
     }
 
@@ -128,8 +134,10 @@ public class TicketService {
     public void staffClose(Long ticketId) {
         SupportTicket t = find(ticketId);
         close(t);
-        notifications.sendLocalized(t.getUserId(), NotificationType.SYSTEM, "notif.ticket.closed.title", null,
-                t.getSubject(), Map.of("ticketId", String.valueOf(t.getId())));
+        if (t.getUserId() != null) {
+            notifications.sendLocalized(t.getUserId(), NotificationType.SYSTEM, "notif.ticket.closed.title", null,
+                    t.getSubject(), Map.of("ticketId", String.valueOf(t.getId())));
+        }
     }
 
     // --- yardimcilar ---
@@ -159,6 +167,7 @@ public class TicketService {
 
     private SupportTicket find(Long id) {
         return tickets.findById(id)
+                .filter(t -> t.isEmailVerified()) // dogrulanmamis herkese acik talep yok sayilir
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "TICKET_NOT_FOUND", "Talep bulunamadı."));
     }
 
