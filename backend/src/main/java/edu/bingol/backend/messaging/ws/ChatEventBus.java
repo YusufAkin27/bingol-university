@@ -1,5 +1,6 @@
 package edu.bingol.backend.messaging.ws;
 
+import edu.bingol.backend.auth.jwt.JwtAuthFilter;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
@@ -56,6 +57,14 @@ public class ChatEventBus implements MessageListener {
         }
     }
 
+    private boolean suspended(Long uid) {
+        try {
+            return Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid));
+        } catch (RuntimeException e) {
+            return false; // Redis okunamazsa teslimi engelleme
+        }
+    }
+
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
@@ -68,7 +77,8 @@ public class ChatEventBus implements MessageListener {
     private void deliverLocal(Envelope env) {
         for (Long uid : env.userIds()) {
             String name = String.valueOf(uid);
-            if (registry.getUser(name) != null) {
+            // Askiya alinan kullanicinin acik oturumu varsa bile (WS ortasinda askiya alma) teslim yapilmaz.
+            if (registry.getUser(name) != null && !suspended(uid)) {
                 template.convertAndSendToUser(name, "/queue/" + env.dest(), env.payload());
             }
         }

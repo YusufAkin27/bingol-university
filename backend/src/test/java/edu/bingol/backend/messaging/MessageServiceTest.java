@@ -242,4 +242,64 @@ class MessageServiceTest {
         assertEquals("MESSAGE_NOT_FOUND", e.code());
         verifyNoInteractions(reports);
     }
+
+    // --- T2 regresyon testleri ---
+
+    @Test
+    void lengthLimitCountsCodePointsNotUtf16Units() {
+        String emoji = new String(Character.toChars(0x1F600));
+        assertTrue(service.send(ME, CONV, emoji.repeat(2000), "e1").created()); // 4000 UTF-16 birimi, 2000 karakter
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, emoji.repeat(2001), "e2"));
+        assertEquals("MESSAGE_TOO_LONG", e.code());
+    }
+
+    @Test
+    void deletedOrSuspendedSenderWithStaleTokenCannotSend() {
+        User gone = new User();
+        gone.setId(ME);
+        gone.setStatus(edu.bingol.backend.user.UserStatus.DELETED);
+        when(users.findById(ME)).thenReturn(Optional.of(gone));
+
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "hayalet", "c1"));
+
+        assertEquals(HttpStatus.FORBIDDEN, e.status());
+        verify(messages, never()).saveAndFlush(any());
+        verifyNoInteractions(bus);
+    }
+
+    @Test
+    void nonParticipantGetsNotFoundEvenIfAccountInactive() {
+        // Uyelik kontrolu once gelir: yabanci icin yanit hesap durumuna gore degismez (varlik sizmaz).
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, 99L)).thenReturn(Optional.empty());
+        assertEquals(HttpStatus.NOT_FOUND, assertThrows(ApiException.class, () -> service.send(99L, CONV, "x", "c1")).status());
+    }
+
+    @Test
+    void typingFromNonParticipantIsRejectedAndNothingPublished() {
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, 99L)).thenReturn(Optional.empty());
+        assertThrows(ApiException.class, () -> service.typing(99L, CONV));
+        verifyNoInteractions(bus);
+    }
+
+    @Test
+    void groupHistoryMasksBlockedSendersMessages() {
+        Conversation g = new Conversation();
+        g.setId(11L);
+        g.setType(Conversation.Type.GROUP);
+        when(convs.findById(11L)).thenReturn(Optional.of(g));
+        ConversationMember me = ConversationMember.of(11L, ME, ConversationMember.Role.MEMBER);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(11L, ME)).thenReturn(Optional.of(me));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of(PEER));
+        Message m = new Message();
+        m.setId(5L);
+        m.setConversationId(11L);
+        m.setSenderId(PEER);
+        m.setBody("gizli");
+        when(messages.before(eq(11L), any(), any(), any())).thenReturn(List.of(m));
+
+        var page = service.history(ME, 11L, null, null, 30);
+
+        assertTrue(page.items().get(0).removed());
+        assertFalse(page.items().get(0).text().contains("gizli"));
+    }
 }
