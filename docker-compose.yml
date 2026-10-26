@@ -2,6 +2,8 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: ${POSTGRES_MEM_LIMIT:-1g}
     environment:
       POSTGRES_DB: bingol
       POSTGRES_USER: bingol
@@ -16,6 +18,8 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    mem_limit: ${REDIS_MEM_LIMIT:-256m}
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redisdata:/data
@@ -30,6 +34,9 @@ services:
     # Gelistirme makinesinde bellek tasarrufu icin .env ile ezilebilir (ornek: BACKEND_MEM_LIMIT=512m,
     # JAVA_TOOL_OPTIONS=-Xmx300m -XX:+UseSerialGC). Varsayilan davranis degismez.
     mem_limit: ${BACKEND_MEM_LIMIT:-1g}
+    cpus: ${BACKEND_CPUS:-2}
+    restart: unless-stopped
+    stop_grace_period: 40s   # server.shutdown=graceful (30 sn) + pay
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,6 +63,11 @@ services:
       FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
       TZ: Europe/Istanbul
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
+      # Uretimde "prod" (zorunlu ayarlar acilista dogrulanir); bos = profilsiz yerel davranis
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      INITIAL_FILL: ${INITIAL_FILL:-true}
+      SWAGGER_UI_ENABLED: ${SWAGGER_UI_ENABLED:-false}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:8090}
       # T21: mesaj sifreleme ana anahtarlari (bos = uyarili gelistirme anahtari; bkz. docs/ENCRYPTION.md)
       CRYPTO_MASTER_KEYS: ${CRYPTO_MASTER_KEYS:-}
       CRYPTO_ACTIVE_KEY_ID: ${CRYPTO_ACTIVE_KEY_ID:-}
@@ -76,6 +88,7 @@ services:
       context: ./web
       args:
         VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+    restart: unless-stopped
     depends_on:
       - backend
     ports:

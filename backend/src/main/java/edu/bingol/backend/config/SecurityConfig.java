@@ -21,6 +21,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -58,10 +64,26 @@ public class SecurityConfig {
             .cors(c -> c.configurationSource(cors))
             // Yetkisiz yonetici istekleri (403) denetim kaydina da yazilir
             .exceptionHandling(e -> e.accessDeniedHandler(denied))
+            // Guvenlik basliklari. HSTS yalnizca HTTPS isteklerde yazilir (proxy arkasinda forward-headers ile).
+            // CSP yalnizca API/dosya yanitlari icin kisitli; Swagger arayuzu (dev) betik yukleyebilsin diye haric.
+            .headers(h -> h
+                .contentTypeOptions(Customizer.withDefaults())
+                .frameOptions(f -> f.deny())
+                .httpStrictTransportSecurity(t -> t.includeSubDomains(true).maxAgeInSeconds(31536000))
+                .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
+                .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                        new NegatedRequestMatcher(new OrRequestMatcher(
+                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
+                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"))),
+                        new StaticHeadersWriter("Content-Security-Policy",
+                                "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 // T7: OpenAPI belgesi ve Swagger arayuzu yalnizca ADMIN (arayuz ayrica varsayilan kapali)
                 .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").hasRole("ADMIN")
+                // Actuator: yalnizca saglik denetimi herkese acik (orkestrator/proxy); digerleri ADMIN (prod'da zaten kapali)
+                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/me", "/api/legal/consents", "/api/legal/consents/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
