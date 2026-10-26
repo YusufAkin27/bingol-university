@@ -25,9 +25,10 @@ const TYPES: LegalType[] = ['TERMS', 'PRIVACY', 'KVKK', 'COMMUNITY_RULES'];
 /** paths.ts'te liste yolu yok; /legal NotFoundPage üzerinden LegalListPage'e düşer (routes.tsx'e dokunulmadı). */
 const LEGAL_INDEX = '/legal';
 
-export default function LegalPage() {
+/** `fixedType`: /privacy ve /terms gibi sabit kısa URL'ler aynı bileşeni kullanır (Play/App Store için kalıcı adres). */
+export default function LegalPage({ fixedType }: { fixedType?: LegalType } = {}) {
   const { type } = useParams();
-  const parsed = parseLegalType(type);
+  const parsed = fixedType ?? parseLegalType(type);
   if (!parsed) return <NotFoundPage />;
   return <LegalDocPage type={parsed} />;
 }
@@ -41,7 +42,11 @@ function LegalDocPage({ type }: { type: LegalType }) {
     queryFn: () => listPublicLegalVersions(type),
   });
   const title = doc.data?.title ?? t(`legal.title.${type}`);
-  usePageMeta({ title, description: t('site.meta.legal') });
+  usePageMeta({
+    title,
+    description: t('site.meta.legal'),
+    path: type === 'PRIVACY' ? paths.site.privacy : type === 'TERMS' ? paths.site.terms : paths.site.legal(type),
+  });
 
   // Yazdırma görünümü: site üst/alt bilgisi gizlenir (LegalPage.module.css)
   useEffect(() => {
@@ -59,7 +64,11 @@ function LegalDocPage({ type }: { type: LegalType }) {
   return (
     <>
       <div className={styles.noPrint}>
-        <PageHero title={title} lead={lead} />
+        <PageHero
+          title={title}
+          lead={lead}
+          crumbs={[{ label: t('legal.allDocs'), to: LEGAL_INDEX }, { label: title }]}
+        />
       </div>
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className="container">

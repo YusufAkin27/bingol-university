@@ -1,0 +1,39 @@
+.banner {
+  position: fixed;
+  inset-inline: var(--space-4);
+  inset-block-end: var(--space-4);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 760px;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+.text {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-sm);
+}
+.link {
+  font-weight: 700;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .banner {
+    flex-direction: column;
+    align-items: stretch;
+    inset-inline: var(--space-3);
+    inset-block-end: var(--space-3);
+  }
+}
+@media print {
+  .banner {
+    display: none;
+  }
+}

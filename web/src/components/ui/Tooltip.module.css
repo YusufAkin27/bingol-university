@@ -10,7 +10,7 @@
   z-index: 150;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  background: var(--navy-900);
+  background: var(--chrome);
   color: #fff;
   font-size: var(--text-xs);
   font-weight: 600;

@@ -11,7 +11,7 @@
   width: min(100%, 300px);
   border-radius: 34px;
   padding: 10px;
-  background: #0b1220;
+  background: #171e33;
   box-shadow:
     0 0 0 2px #26324a,
     var(--shadow-2);
@@ -32,8 +32,8 @@
   min-height: 220px;
   padding: 52px 12px 24px;
   background:
-    radial-gradient(120% 70% at 20% 0%, #2a4f8c 0%, transparent 60%),
-    linear-gradient(170deg, #142d57 0%, #0e2347 55%, #0a1220 100%);
+    radial-gradient(120% 70% at 20% 0%, #c62a20 0%, transparent 60%),
+    linear-gradient(170deg, #232b47 0%, #171e33 55%, #0c0e15 100%);
   direction: ltr;
 }
 .clock {

@@ -1,16 +1,16 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(165deg, var(--navy-800), var(--navy-900) 75%);
-  color: #fff;
+  background: linear-gradient(165deg, var(--hero), var(--hero-end) 78%);
+  color: var(--hero-contrast);
 }
 .art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  color: #7fa6e8;
-  opacity: 0.3;
+  color: #fff;
+  opacity: 0.2;
   pointer-events: none;
 }
 :global(:root[dir='rtl']) .art {
@@ -33,7 +33,8 @@
 .lead {
   font-size: var(--text-lg);
   max-width: 58ch;
-  color: #d5def0;
+  color: var(--hero-contrast);
+  font-weight: 600;
 }
 .maintenance {
   display: inline-flex;

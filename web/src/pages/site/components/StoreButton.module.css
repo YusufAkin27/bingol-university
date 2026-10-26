@@ -11,8 +11,8 @@
   min-width: 220px;
   padding: 10px 20px;
   border-radius: var(--radius-md);
-  border: 2px solid var(--navy-700);
-  background: var(--navy-700);
+  border: 2px solid var(--red-700);
+  background: var(--red-700);
   color: #fff;
   text-decoration: none;
   font: inherit;
@@ -23,18 +23,18 @@
     transform 0.15s var(--ease);
 }
 a.btn:hover {
-  background: var(--navy-900);
+  background: var(--chrome);
   color: #fff;
   transform: translateY(-1px);
 }
 .onDark {
   background: #fff;
   border-color: #fff;
-  color: var(--navy-900);
+  color: var(--chrome);
 }
 a.onDark:hover {
-  background: var(--navy-100);
-  color: var(--navy-900);
+  background: var(--red-100);
+  color: var(--chrome);
 }
 .soon {
   cursor: not-allowed;
@@ -44,7 +44,7 @@ a.onDark:hover {
 }
 .soon.onDark {
   background: transparent;
-  color: #d5def0;
+  color: #d9dce8;
   border-color: rgba(255, 255, 255, 0.45);
 }
 .glyph {
@@ -68,5 +68,5 @@ a.onDark:hover {
 }
 .onDark ~ .note,
 .dark .note {
-  color: #c9d6ef;
+  color: #d9dce8;
 }

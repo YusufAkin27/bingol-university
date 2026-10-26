@@ -1,31 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo, useStoreLinks } from '../api/hooks';
+import { CookieBanner } from '../components/CookieBanner';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { Logo } from '../components/brand/Logo';
 import { StoreBadge } from '../components/StoreBadge';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ButtonLink, ContourBackdrop, Icon, IconButton } from '../components/ui';
 import { useI18n } from '../i18n/I18nProvider';
-import type { TranslationKey } from '../i18n';
 import { paths } from '../paths';
+import { MAIN_NAV, SITE_GROUPS } from './siteLinks';
 import styles from './SiteLayout.module.css';
 
-const NAV: { to: string; key: TranslationKey; end?: boolean }[] = [
-  { to: paths.site.home, key: 'site.nav.home', end: true },
-  { to: paths.site.features, key: 'site.nav.features' },
-  { to: paths.site.about, key: 'site.nav.about' },
-  { to: paths.site.faq, key: 'site.nav.faq' },
-  { to: paths.site.contact, key: 'site.nav.contact' },
-];
-
-const LEGAL: { type: string; key: TranslationKey }[] = [
-  { type: 'TERMS', key: 'legal.title.TERMS' },
-  { type: 'PRIVACY', key: 'legal.title.PRIVACY' },
-  { type: 'KVKK', key: 'legal.title.KVKK' },
-  { type: 'COMMUNITY_RULES', key: 'legal.title.COMMUNITY_RULES' },
-];
-
+/**
+ * Herkese açık site kabuğu: atlama bağlantısı, banner, üst menü (dil + tema + mobil hamburger),
+ * sayfa içeriği (ErrorBoundary ile korunur), sütunlu alt bilgi ve çerez bilgilendirme bandı.
+ * Yönetim paneline giden hiçbir bağlantı burada bulunmaz.
+ */
 export function SiteLayout() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -65,14 +57,14 @@ export function SiteLayout() {
             aria-label={t('site.nav.main')}
             className={`${styles.nav} ${open ? styles.navOpen : ''}`}
           >
-            {NAV.map((n) => (
+            {MAIN_NAV.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
               >
-                {t(n.key)}
+                {t(n.label)}
               </NavLink>
             ))}
             <ButtonLink
@@ -102,7 +94,9 @@ export function SiteLayout() {
       </header>
 
       <main id="main" className={styles.main} tabIndex={-1}>
-        <Outlet />
+        <ErrorBoundary resetKey={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <footer className={styles.footer}>
@@ -111,29 +105,12 @@ export function SiteLayout() {
           <div className={styles.footBrand}>
             <Logo to={paths.site.home} tone="dark" height={40} />
             <p>{t('site.footer.tagline')}</p>
-          </div>
-          <div>
-            <h2 className={styles.footTitle}>{t('site.footer.legal')}</h2>
-            <ul className={styles.footList}>
-              {LEGAL.map((l) => (
-                <li key={l.type}>
-                  <Link to={paths.site.legal(l.type)}>{t(l.key)}</Link>
-                </li>
-              ))}
-              <li>
-                <Link to={paths.site.dataRequest}>{t('site.dataRequest.title')}</Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h2 className={styles.footTitle}>{t('site.footer.get')}</h2>
+            <h2 className={styles.footTitle}>{t('pg.foot.get')}</h2>
             <div className={styles.badges}>
               <StoreBadge store="android" href={stores.android} />
               <StoreBadge store="ios" href={stores.ios} />
             </div>
-          </div>
-          <div>
-            <h2 className={styles.footTitle}>{t('site.footer.contact')}</h2>
+            <h2 className={styles.footTitle}>{t('pg.foot.contactTitle')}</h2>
             <ul className={styles.footList}>
               {data?.contactEmail && (
                 <li>
@@ -171,18 +148,28 @@ export function SiteLayout() {
                   </a>
                 </li>
               )}
-              <li>
-                <Link to={paths.admin.login} className={styles.adminLink}>
-                  {t('site.nav.admin')}
-                </Link>
-              </li>
             </ul>
           </div>
+          {SITE_GROUPS.map((g) => (
+            <nav key={g.title} aria-labelledby={`foot-${g.title}`}>
+              <h2 id={`foot-${g.title}`} className={styles.footTitle}>
+                {t(g.title)}
+              </h2>
+              <ul className={styles.footList}>
+                {g.links.map((l) => (
+                  <li key={l.to}>
+                    <Link to={l.to}>{t(l.label)}</Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
         <div className={`container ${styles.copy}`}>
           {t('site.footer.rights', { year: new Date().getFullYear() })}
         </div>
       </footer>
+      <CookieBanner />
     </div>
   );
 }

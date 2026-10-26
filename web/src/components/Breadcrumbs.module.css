@@ -1,0 +1,36 @@
+.nav {
+  font-size: var(--text-sm);
+}
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.item + .item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-block-start: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.7;
+}
+:global(:root[dir='rtl']) .item + .item::before {
+  transform: rotate(-135deg);
+}
+.item a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.item span {
+  font-weight: 700;
+}

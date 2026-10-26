@@ -25,7 +25,7 @@ describe('sözlükler', () => {
   });
 
   it('anahtarlar ad alanı önekleriyle başlar', () => {
-    for (const k of Object.keys(dictionaries.tr)) expect(k).toMatch(/^(common|site|admin|legal)\./);
+    for (const k of Object.keys(dictionaries.tr)) expect(k).toMatch(/^(common|site|admin|legal|pg)\./);
   });
 
   it('yer tutucuları doldurur, eksik anahtarda anahtarı döner', () => {

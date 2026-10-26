@@ -1,6 +1,6 @@
 User-agent: *
-Disallow: /admin
 Disallow: /api/
+Disallow: /files/
 Allow: /
 
 # Yayına alırken alan adını gerçek adresle değiştirip aşağıdaki satırı açın:
