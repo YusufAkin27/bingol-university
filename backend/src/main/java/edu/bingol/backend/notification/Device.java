@@ -29,4 +29,8 @@ public class Device {
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    /** Her kayitta yenilenir; kullanici basina cihaz siniri asilinca en eskiler silinir. */
+    @Column(nullable = false)
+    private Instant updatedAt = Instant.now();
 }
