@@ -13,7 +13,10 @@ Hedef (kullanıcı isteği): kullanıcılar birbirine anlık mesaj atar, sohbet 
 ## Varsayılan kararlar (değiştirmek için söyleyin)
 1. **Bağımsız etkinlikler yönetici onayı beklemez**: hemen yayınlanır; şikâyet + hız sınırı ile denetlenir (`events_require_approval` ayarı, varsayılan `false`). Kulüp etkinliği yetkisi olan üyelerce açılır.
 2. **Sohbet görselleri özeldir**: herkese açık `/files/**` altında DEĞİL; yalnızca konuşma katılımcılarına, yetkili uçtan servis edilir.
-3. **Görsel işleme**: yalnızca JPEG/PNG/WebP; sihirli bayt doğrulaması, yeniden kodlama (EXIF/GPS temizliği), boyut sınırı, küçük resim.
+3. **Görsel işleme**: yalnızca JPEG/PNG/WebP; sihirli bayt doğrulaması, yeniden kodlama (EXIF/GPS temizliği), **sıkıştırma**, küçük resim. Tüm görseller **sunucunun yerel diskinde** (S3/bulut yok); **boyut ve kalite sınırları `application.properties`'ten ayarlanır** (tür bazlı: avatar/cover/chat; yüklenen ham üst sınır + sıkıştırma sonrası saklanan üst sınır + uzun kenar + JPEG kalitesi).
+4. **Mesaj şifreleme (T21)**: mesaj metinleri ve sohbet görselleri **veritabanında/diskte şifreli** saklanır (AES-256-GCM, JCE'nin standart ilkeli; kendi şifre algoritması YAZILMAZ — şifreleme *servisini/anahtar yönetimini* biz yazarız). Zarf şifreleme: konuşma başına veri anahtarı, ana anahtar ortam değişkeni/dosyadan. Sunucular arası (Redis) yayın da şifreli. İletim şifresi = TLS/WSS (nginx örneği + HSTS).
+5. **Yönetici mesaj çözme**: istenildiğinde mümkün; ancak **zorunlu gerekçe + değiştirilemez erişim kaydı + hız sınırı** ile. Bu **uçtan uca şifreleme DEĞİLDİR** (sunucu anahtarı tutar): gizlilik politikası/KVKK metni buna göre güncellenmelidir (T20 taslağı hazırlar, hukuki inceleme gerekir).
+6. **Mesaj araması** sunucuda yapılmaz (şifreli veri aranamaz); T13'te yalnızca açık konuşma içinde bellekte çözerek sınırlı arama düşünülür.
 
 ## Dalgalar ve bağımlılıklar
 Aynı dosyalara dokunan görevler aynı dalgada çalıştırılmaz. Her dalga bitince ben birleştirir, tüm testleri koşar, sonraki dalgayı başlatırım.
@@ -21,8 +24,8 @@ Aynı dosyalara dokunan görevler aynı dalgada çalıştırılmaz. Her dalga bi
 | Dalga | Görevler | Not |
 |---|---|---|
 | **1 — Temel + QA** (7 paralel) | T1–T7 | Medya hattı, mevcut modüllerin test/denetimi, güvenlik, performans, API belgesi |
-| **2 — Özellikler** (5 paralel) | T8–T12 | T1'in medya hattına ve W1 düzeltmelerine dayanır |
-| **3 — Tamamlama** (8 paralel) | T13–T20 | Aynı paketlere ikinci geçiş, web paneli, uçtan uca QA, sertleştirme, yayın |
+| **2 — Şifreleme + özellikler** (5 paralel) | **T21** (mesaj şifreleme), T9, T10, T11, T12 | T21 mesajlaşma çekirdeğine dokunduğu için sohbet görevleri (T8, T13) bunun ARDINDAN |
+| **3 — Tamamlama** (9 paralel) | T8, T13, T14, T15, T16, T17, T18, T19, T20 | Sohbet görseli/özellikleri (şifreli altyapı üzerinde), ikinci geçişler, web paneli, uçtan uca QA, sertleştirme, yayın |
 
 ## Sürüm aralıkları, portlar, proje adları
 | Görev | Flyway | Port | Compose adı |
@@ -47,6 +50,7 @@ Aynı dosyalara dokunan görevler aynı dalgada çalıştırılmaz. Her dalga bi
 | T18 | — | 8118 | wt_t18 |
 | T19 | V80 | 8119 | wt_t19 |
 | T20 | — | 8120 | wt_t20 |
+| T21 | V68–V69 | 8121 | wt_t21 |
 
 ---
 
@@ -77,9 +81,10 @@ Aynı dosyalara dokunan görevler aynı dalgada çalıştırılmaz. Her dalga bi
 
 ---
 
-## Dalga 2 (T1 ve dalga-1 düzeltmeleri birleştikten sonra)
+## Dalga 2 (T1 ve dalga-1 düzeltmeleri birleştikten sonra; T21 burada, T8 Dalga 3'te)
 
 ## T8 — Sohbette görsel gönderme (özel medya)
+**Dalga 3** (T21 sonrası). Görseller yerel diskte **şifreli** (T21 `BlobCipher`), T1 sıkıştırma/boyut ayarlarına (`app.media.chat.*`) tabidir.
 **Sahip:** `messaging/media/**`, `Message` varlığına tür/ek alanları (`V60–V61`), yeni uçlar. **İş:** `POST /api/conversations/{id}/media` (T1 hattıyla işlenir, özel depoya), mesaj türü `IMAGE` (+ isteğe bağlı başlık metni), WS ile teslim (medya meta verisi + küçük resim URL'si), **yalnızca katılımcılar erişir** (kimlikli medya ucu; engel/ayrılma sonrası erişim kuralı, ör. ayrılan üye eski görselleri göremez), push önizleme ("📷 Fotoğraf" yerelleştirilmiş), mesaj başına en çok N görsel, kullanıcı başına yükleme kotası/hız sınırı, rapor edilen görselin gizlenmesi (MESSAGE handler), silinen/askıdaki kullanıcı, retention + yetim temizliği, KVKK dışa aktarım. Testler: yetkisiz erişim, boyut/tür saldırıları, iki kullanıcı arası uçtan uca (WS + REST), engel sonrası.
 
 ## T9 — Etkinlik katılım yönetimi (organizatör alımı)
@@ -94,11 +99,15 @@ Aynı dosyalara dokunan görevler aynı dalgada çalıştırılmaz. Her dalga bi
 ## T12 — Yeni içerikler için moderasyon
 **Sahip:** `moderation/**`, `V67`. **İş:** görsel mesaj, avatar, kulüp/etkinlik kapağı raporlanabilir; `ReportTargetHandler` genişletmeleri; otomatik gizleme eşiği (aynı hedefe N bağımsız rapor → geçici gizleme + yönetici kuyruğu), tekrarlayan ihlalde otomatik uyarı/askı önerisi, yasaklı görsel özet (hash) listesi (yönetici ekler), moderasyon kuyruğu için görsel önizleme uç(ları), denetim kaydı, bildirimler 3 dilde, istismara karşı limitler (rapor spamı).
 
+## T21 — Mesaj şifreleme (veritabanında şifreli) + yönetici çözme
+**Sahip:** yeni `edu.bingol.backend.crypto` paketi, `messaging/**` içinde saklama/okuma/yayın katmanı (yeni özellik ekleme yok), `V68–V69`, `scripts/crypto-*`, `docs/ENCRYPTION.md`. **Tasarım (zorunlu ilkeler):** (1) Şifreleme ilkeli olarak **JCE AES-256-GCM** (rastgele 96-bit nonce, 128-bit etiket); *kendi şifre algoritmanı icat etme*; sarmalayıcı servis ve anahtar yönetimi bizim kodumuz: `CryptoService`, `KeyProvider`. (2) **Zarf şifreleme:** konuşma başına rastgele 256-bit veri anahtarı (DEK), ana anahtarla (KEK) sarılıp `conversation_key` tablosunda saklanır; mesaj gövdesi `ciphertext+nonce+key_version` olarak saklanır, **AAD** = konuşma/mesaj kimliği bağlamı (başka mesaja taşınan şifreli metin çözülmez). (3) **Ana anahtar** ortam değişkeni/dosya (`app.crypto.master-keys`, çoklu sürüm: `id:base64`), repoda ASLA; üretimde yoksa uygulama açılmaz; geliştirme için açıkça uyarılı varsayılan. **Anahtar rotasyonu:** yeni ana anahtar sürümü → DEK'ler yeniden sarılır (mesajlara dokunulmaz), yönetici betiği/ucu. (4) **Mevcut düz metin mesajlar** için çevrimiçi, idempotent toplu şifreleme geçişi, ardından düz metin sütunu silinir (iki aşamalı migration; geri alma planı belgeli). (5) **Redis pub/sub** ve çok sunuculu yayın yükleri şifreli; WS teslimi alıcıya TLS üzerinden çözülmüş gider. (6) Günlüklerde, hata gövdelerinde, bildirim önizlemesi dışında düz metin YOK; push önizlemesi ayarla kapatılabilir (`app.push.message-preview`). (7) **Yönetici çözme:** `POST /api/admin/messages/decrypt` (konuşma + mesaj/aralık, **zorunlu gerekçe ≥ 10 karakter**), yanıtta düz metin; her çağrı **değiştirilemez** `message_access_audit` kaydı (yönetici, konuşma, adet, gerekçe, zaman, IP) yazar, hız sınırı, `app.crypto.admin-decrypt-enabled` ile kapatılabilir; raporlanan mesajlar moderasyon görünümünde aynı yolla (kayıtlı) çözülür; kullanıcı detayındaki "mesaj içeriği gösterilmez" notu güncellenir (web T17). (8) Şifre çözme başarısızlığı (anahtar yok/etiket hatası) açık hata kodu + metrik/log (içeriksiz). (9) Görseller için ortak `BlobCipher` (T1) uygulaması: akış şifreleme, aynı AES-GCM (parça başına), özel medya diske şifreli yazılır (T8 kullanacak). **Testler:** gidiş-dönüş, kurcalama (etiket bozma) tespiti, AAD uyumsuzluğu, nonce tekrarı yok, rotasyon, yanlış anahtar, eşzamanlılık, geçiş betiği, **veritabanında düz metin bulunmadığını psql ile doğrulayan betik**, mevcut tüm sohbet testleri geçmeye devam eder. **docs/ENCRYPTION.md:** tehdit modeli (ne korur: veritabanı/yedek sızıntısı; ne korumaz: ana anahtara sahip sunucu/yönetici), anahtar yedekleme (anahtar kaybı = mesaj kaybı), TLS/WSS kurulumu (nginx TLS örneği, HSTS), KVKK notu.
+
 ---
 
 ## Dalga 3
 
 ## T13 — Sohbet özellikleri
+(Şifreli mesaj altyapısı üzerinde; düzenleme/silme yeni şifreli gövde yazar, silinen şifreli içerik ve DEK ilişkisi temizlenir; arama notu için karar 6.)
 Yanıtlama (reply-to), mesaj düzenleme/silme (herkes için, süre sınırlı; silinen içerik kaldırılır), tepkiler (emoji), konuşma bazlı okunmamış sayaçları, sessize alma, mesaj arama (yalnız kendi konuşmaları), konuşmayı arşivleme. `messaging/**`, `V70`.
 
 ## T14 — Etkinlik ekstraları
