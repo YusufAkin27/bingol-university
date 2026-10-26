@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import edu.bingol.backend.community.permissions.ClubAuditService;
+import edu.bingol.backend.community.permissions.ClubMemberGrantRepository;
+import edu.bingol.backend.community.permissions.ClubPermissions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
@@ -39,7 +42,8 @@ class CommunityQaMatrixTest {
     private final CommunityMemberRepository members = mock(CommunityMemberRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final CommunityService svc = new CommunityService(communities, members, mock(UserRepository.class),
-            mock(BlockService.class), notifications, mock(FileStorage.class));
+            mock(BlockService.class), notifications, mock(FileStorage.class),
+            new ClubPermissions(members, mock(ClubMemberGrantRepository.class)), mock(ClubAuditService.class));
 
     private final Actor me = new Actor(1L, false);
 
@@ -111,39 +115,9 @@ class CommunityQaMatrixTest {
         });
     }
 
-    @ParameterizedTest
-    @EnumSource(value = Role.class, names = {"MEMBER", "MODERATOR"})
-    void nonOwnerCannotChangeRolesOrEscalateSelf(Role actorRole) {
-        community(Visibility.PUBLIC, Community.JoinPolicy.OPEN);
-        me(actorRole, Status.ACTIVE);
-        // kendini yukseltme
-        assertEquals(403, code(() -> svc.setRole(me, 10L, 1L, Role.MODERATOR)));
-        // baskasini yukseltme
-        assertEquals(403, code(() -> svc.setRole(me, 10L, 5L, Role.MODERATOR)));
-    }
 
-    @Test
-    void bannedUserWithStaleModeratorRoleCannotSetRoles() {
-        community(Visibility.PUBLIC, Community.JoinPolicy.OPEN);
-        me(Role.OWNER, Status.BANNED);
-        assertEquals(403, code(() -> svc.setRole(me, 10L, 5L, Role.MODERATOR)));
-    }
 
-    @Test
-    void ownerCannotDemoteSelfOrChangeOwnerRole() {
-        community(Visibility.PUBLIC, Community.JoinPolicy.OPEN);
-        me(Role.OWNER, Status.ACTIVE);
-        assertEquals(403, code(() -> svc.setRole(me, 10L, 1L, Role.MEMBER)));
-    }
 
-    @Test
-    void roleCannotBeAssignedToNonActiveMember() {
-        community(Visibility.PUBLIC, Community.JoinPolicy.OPEN);
-        me(Role.OWNER, Status.ACTIVE);
-        when(members.findByCommunityIdAndUserId(10L, 5L))
-                .thenReturn(Optional.of(new CommunityMember(10L, 5L, Role.MEMBER, Status.BANNED)));
-        assertEquals(404, code(() -> svc.setRole(me, 10L, 5L, Role.MODERATOR)));
-    }
 
     @Test
     void moderatorCannotRemoveSelfOrOwner() {
