@@ -9,15 +9,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 /** Testlerde ortak kurulum: H2 uzerinde gercek JDBC deposu + gercek servisler. */
-final class CryptoTestSupport {
+public final class CryptoTestSupport {
 
-    final JdbcTemplate jdbc;
-    final CryptoService crypto = new CryptoService();
+    public final JdbcTemplate jdbc;
+    public final CryptoService crypto = new CryptoService();
     final SimpleMeterRegistry registry = new SimpleMeterRegistry();
     final CryptoMetrics metrics = new CryptoMetrics(registry);
     final JdbcConversationKeyStore store;
 
-    CryptoTestSupport() {
+    public CryptoTestSupport() {
         DriverManagerDataSource ds = new DriverManagerDataSource(
                 "jdbc:h2:mem:crypto" + UUID.randomUUID().toString().replace("-", "")
                         + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1", "sa", "");
@@ -32,7 +32,7 @@ final class CryptoTestSupport {
         store = new JdbcConversationKeyStore(jdbc);
     }
 
-    static String b64(int fill) {
+    public static String b64(int fill) {
         byte[] k = new byte[32];
         java.util.Arrays.fill(k, (byte) fill);
         return Base64.getEncoder().encodeToString(k);
@@ -46,11 +46,11 @@ final class CryptoTestSupport {
         return new CryptoProperties(masterKeys, "", active, false, adminEnabled, 300, 1024, 30, maxMsgs);
     }
 
-    static KeyProvider provider(String masterKeys, String active) {
+    public static KeyProvider provider(String masterKeys, String active) {
         return new ConfiguredKeyProvider(props(masterKeys, active), new StandardEnvironment());
     }
 
-    ConversationKeyService keyService(KeyProvider kp) {
+    public ConversationKeyService keyService(KeyProvider kp) {
         return new ConversationKeyService(store, kp, crypto, metrics, props("", ""));
     }
 
@@ -59,7 +59,7 @@ final class CryptoTestSupport {
                 new CryptoProperties("", "", "", false, true, ttlSeconds, 1024, 30, 200), clock);
     }
 
-    EnvelopeMessageCipher cipher(ConversationKeyService ks) {
+    public EnvelopeMessageCipher cipher(ConversationKeyService ks) {
         return new EnvelopeMessageCipher(ks, crypto, metrics);
     }
 }

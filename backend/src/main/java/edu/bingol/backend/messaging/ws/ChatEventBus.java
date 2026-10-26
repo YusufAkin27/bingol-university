@@ -1,6 +1,7 @@
 package edu.bingol.backend.messaging.ws;
 
 import edu.bingol.backend.auth.jwt.JwtAuthFilter;
+import edu.bingol.backend.crypto.BusCipher;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
@@ -34,9 +35,12 @@ public class ChatEventBus implements MessageListener {
     private final SimpMessagingTemplate template;
     private final SimpUserRegistry registry;
     private final JsonMapper mapper;
+    /** Redis'e yazilan her olay sifreli cerceve olarak gider (mesaj metni Redis'te duz durmaz). */
+    private final BusCipher busCipher;
 
     public ChatEventBus(StringRedisTemplate redis, SimpMessagingTemplate template, SimpUserRegistry registry,
-                        JsonMapper mapper) {
+                        JsonMapper mapper, BusCipher busCipher) {
+        this.busCipher = busCipher;
         this.redis = redis;
         this.template = template;
         this.registry = registry;
@@ -50,7 +54,7 @@ public class ChatEventBus implements MessageListener {
         }
         Envelope env = new Envelope(dest, List.copyOf(userIds), mapper.valueToTree(payload));
         try {
-            redis.convertAndSend(CHANNEL, mapper.writeValueAsString(env));
+            redis.convertAndSend(CHANNEL, busCipher.seal(mapper.writeValueAsString(env)));
         } catch (RuntimeException e) {
             log.warn("Redis yayini basarisiz, yalnizca yerel teslim: {}", e.toString());
             deliverLocal(env);
@@ -68,7 +72,8 @@ public class ChatEventBus implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            deliverLocal(mapper.readValue(new String(message.getBody(), StandardCharsets.UTF_8), Envelope.class));
+            String json = busCipher.open(new String(message.getBody(), StandardCharsets.UTF_8));
+            deliverLocal(mapper.readValue(json, Envelope.class));
         } catch (RuntimeException e) {
             log.warn("Gecersiz sohbet olayi atlandi: {}", e.toString());
         }

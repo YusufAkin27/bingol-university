@@ -23,7 +23,7 @@ CONV=$(curl -s -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations -
 [ -n "$CONV" ] && ok "konusma $CONV" || { bad "konusma acilamadi"; exit 1; }
 
 for i in 1 2 3; do
-  curl -s -o /dev/null -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations/$CONV/messages -d "{\"body\":\"mesaj $i\"}"
+  curl -s -o /dev/null -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations/$CONV/messages -d "{\"text\":\"mesaj $i\",\"clientId\":\"col-$i-$RANDOM\"}"
 done
 
 L=$(curl -s -H "Authorization: Bearer $T2" "$A/notifications?type=MESSAGE")
@@ -38,7 +38,7 @@ NID=$(echo "$L" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 R=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $T2" $A/notifications/$NID/read)
 [ "$R" = 204 ] && ok "tekil okundu" || bad "okundu $R"
 # okunduktan sonra yeni mesaj yeni bildirim olusturur
-curl -s -o /dev/null -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations/$CONV/messages -d '{"body":"yeni"}'
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations/$CONV/messages -d "{\"text\":\"yeni\",\"clientId\":\"col-new-$RANDOM\"}"
 C=$(curl -s -H "Authorization: Bearer $T2" $A/notifications/unread-count)
 [ "$C" = '{"unreadCount":1}' ] && ok "okunduktan sonra yeni bildirim" || bad "sayac $C"
 # baska kullanici baskasinin bildirimini goremez/silemez

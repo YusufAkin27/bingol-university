@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,9 +29,22 @@ public class Message {
     @Column(nullable = false, length = 64)
     private String clientId;
 
-    /** Duz metin (HTML yorumlanmaz); istemci kacis yaparak gostermelidir. */
-    @Column(nullable = false, length = 2000)
+    /**
+     * Duz metin (HTML yorumlanmaz; istemci kacis yaparak gostermelidir). KALICI DEGILDIR: veritabaninda yalnizca
+     * sifreli govde (bodyCiphertext/bodyNonce/keyVersion) tutulur; bu alani {@link MessageCodec} doldurur.
+     */
+    @Transient
     private String body;
+
+    /** AES-256-GCM sifreli govde (etiket sonda), 96-bit nonce ve konusma DEK surumu; bkz. docs/ENCRYPTION.md. */
+    @Column(name = "body_ciphertext")
+    private byte[] bodyCiphertext;
+
+    @Column(name = "body_nonce")
+    private byte[] bodyNonce;
+
+    @Column(name = "key_version")
+    private Integer keyVersion;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();

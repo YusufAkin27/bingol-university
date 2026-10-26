@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# T21 Asama 1 duman testi: V68 nesneleri, denetim tablosunun degistirilemezligi, yonetici cozme/anahtar uclari.
+# T21 Asama 1+2 duman testi: V68 nesneleri, denetim tablosunun degistirilemezligi, yonetici cozme/anahtar uclari.
 # Kullanim: BASE=http://localhost:8121 COMPOSE_PROJECT_NAME=wt_t21 ./scripts/crypto-smoke.sh
 # Onkosul: calisan compose yigini (postgres, redis, backend), MAIL_ENABLED=false, ADMIN_EMAILS=boss@bingol.edu.tr.
 # Tekrar calistirilabilir: her seferinde benzersiz kullanici; yalnizca test denetim satirlari eklenir (silinemez, beklenen).
@@ -49,10 +49,10 @@ R=$(curl -s -H "Accept-Language: en" -X POST -H "$H" -H "Authorization: Bearer $
 has "ingilizce hata metni" 'at least' "$R"
 R=$(curl -s -H "Accept-Language: ar" -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":1,"fromMessageId":1,"reason":"x"}')
 has "arapca hata kodu" 'DECRYPT_REASON_REQUIRED' "$R"
-# Asama 1'de MessageReader baglanmamistir: gecerli istek 501 doner ve denetim satiri YAZILMAZ.
+# Asama 2: MessageReader (messaging) bagli. Olmayan konusma icin gecerli istek 200 + 0 mesaj doner ve denetim satiri YAZILIR.
 BEFORE=$($PSQL -c "select count(*) from message_access_audit")
-check "okuyucu yok -> 501" "501" "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":1,"fromMessageId":1,"reason":"yeterince uzun gerekce"}')"
-check "501'de denetim satiri yok" "$BEFORE" "$($PSQL -c "select count(*) from message_access_audit")"
+check "gecerli istek 200" "200" "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":999999999,"fromMessageId":1,"reason":"yeterince uzun gerekce"}')"
+check "denetim satiri eklendi" "$((BEFORE + 1))" "$($PSQL -c "select count(*) from message_access_audit")"
 
 echo "== Rotasyon ucu =="
 check "rewrap bilinmeyen anahtar -> 400" "400" "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/crypto/rewrap -d '{"targetKeyId":"yok-boyle-anahtar"}')"
