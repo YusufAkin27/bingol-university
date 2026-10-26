@@ -80,7 +80,7 @@ export default function CryptoPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.crypto.title')} description={t('admin.crypto.subtitle')} />
+      <PageHeader title={t('admin.crypto.title')} />
       <div className={styles.stack}>
         <section className={styles.warnBox} aria-labelledby="crypto-warn" data-testid="decrypt-warning">
           <h2 id="crypto-warn">{t('admin.crypto.warn.title')}</h2>
@@ -130,7 +130,6 @@ export default function CryptoPage() {
                   </li>
                 ))}
               </ul>
-              <p className={styles.muted}>{t('admin.crypto.status.rewrapHint')}</p>
             </>
           )}
         </Card>

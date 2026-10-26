@@ -39,7 +39,6 @@ import {
   containsDraftMarker,
   emptyDrafts,
   isDirty,
-  isEmptyDraft,
   isFilled,
   nextVersion,
   type LegalDrafts,
@@ -156,7 +155,7 @@ export default function LegalAdminPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.legal.title')} description={t('admin.legal.subtitle')} />
+      <PageHeader title={t('admin.legal.title')} />
 
       {summaries.isError && (
         <ErrorState compact onRetry={() => void summaries.refetch()} description={errorMessage(i18n, summaries.error)} />
@@ -281,8 +280,6 @@ export default function LegalAdminPage() {
               </Button>
             </div>
           </div>
-
-          {lang !== 'tr' && isEmptyDraft(d) && <p className={styles.info}>{t('admin.legal.fallback')}</p>}
 
           <FormField label={t('admin.legal.editor.title')} required={lang === 'tr'}>
             <Input

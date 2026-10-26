@@ -60,6 +60,12 @@
   font-weight: inherit;
   cursor: pointer;
 }
+@media (max-width: 960px), (pointer: coarse) {
+  .sortBtn {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}
 .sortBtn:hover {
   color: var(--text);
 }

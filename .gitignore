@@ -12,6 +12,7 @@ web/dist/
 web/coverage/
 
 web/e2e/.results/
+web/e2e/.report/
 web/playwright-report/
 .playwright-mcp/
 brand/node_modules/

@@ -189,7 +189,6 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         <div className={styles.modalForm}>
           <FormField
             label={t('admin.users.actions.suspend.reason')}
-            hint={t('admin.users.actions.suspend.reasonHint')}
             error={reasonError}
             required
           >

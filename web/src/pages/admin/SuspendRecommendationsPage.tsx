@@ -71,7 +71,7 @@ export default function SuspendRecommendationsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.suspend.title')} description={t('admin.suspend.subtitle')} />
+      <PageHeader title={t('admin.suspend.title')} />
       <Tabs
         label={t('admin.suspend.tabs')}
         value={status}

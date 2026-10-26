@@ -26,7 +26,6 @@ const m = {
   'admin.reports.preview.image': 'Raporlanan görsel',
   'admin.reports.preview.decrypt': 'Mesajı gerekçeyle çöz',
   'admin.reports.reasonCode.label': 'Karar nedeni',
-  'admin.reports.reasonCode.hint': 'İçerik sahibine giden bildirimde kullanılır.',
   'admin.reports.reasonCode.none': 'Belirtme',
   'admin.reports.reasonCode.SPAM': 'Spam',
   'admin.reports.reasonCode.HARASSMENT': 'Taciz',
@@ -52,7 +51,6 @@ const m = {
 
   // İtirazlar
   'admin.appeals.title': 'İtirazlar',
-  'admin.appeals.subtitle': 'Gizlenen içeriğin sahibinin itirazları. Kabul edilirse içerik yeniden görünür olur ve ihlal iptal edilir.',
   'admin.appeals.tabs': 'İtiraz durumu',
   'admin.appeals.status.OPEN': 'Açık',
   'admin.appeals.status.ACCEPTED': 'Kabul edildi',
@@ -76,7 +74,6 @@ const m = {
 
   // Askı önerileri
   'admin.suspend.title': 'Askı önerileri',
-  'admin.suspend.subtitle': 'Kısa sürede tekrarlanan ihlaller sistem tarafından öneri olarak listelenir. Karar yöneticiye aittir.',
   'admin.suspend.tabs': 'Öneri durumu',
   'admin.suspend.status.OPEN': 'Açık',
   'admin.suspend.status.ACCEPTED': 'Kabul edildi',
@@ -94,10 +91,8 @@ const m = {
 
   // Yasaklı görsel özetleri
   'admin.blocklist.title': 'Yasaklı görseller',
-  'admin.blocklist.subtitle': 'SHA-256 özeti burada olan görseller yüklenirken reddedilir. Görselin kendisi saklanmaz.',
   'admin.blocklist.add': 'Özet ekle',
   'admin.blocklist.sha': 'SHA-256 özeti',
-  'admin.blocklist.shaHint': '64 onaltılık karakter (büyük/küçük harf fark etmez).',
   'admin.blocklist.shaInvalid': 'Özet 64 onaltılık karakterden oluşmalıdır.',
   'admin.blocklist.note': 'Not (isteğe bağlı)',
   'admin.blocklist.addBtn': 'Listeye ekle',
@@ -112,7 +107,6 @@ const m = {
 
   // Mesaj çözme ve şifreleme durumu
   'admin.crypto.title': 'Mesaj çözme ve şifreleme',
-  'admin.crypto.subtitle': 'Şifreleme anahtarı durumu ve gerekçeli mesaj erişimi.',
   'admin.crypto.warn.title': 'Dikkat: denetimli erişim',
   'admin.crypto.warn.body':
     'Mesajlar şifreli iletilir ve şifreli saklanır. Bu ekran yalnızca bir şikâyet, güvenlik olayı veya yasal yükümlülük gibi somut bir gerekçe varsa kullanılmalıdır.',
@@ -128,7 +122,6 @@ const m = {
   'admin.crypto.status.devKey': 'Üretimde gerçek bir ana anahtar tanımlanmalıdır. Geliştirme anahtarı yalnızca yerel kullanım içindir.',
   'admin.crypto.status.deks': 'Ana anahtar başına sarılı veri anahtarı sayısı',
   'admin.crypto.status.rewrapNeeded': 'Yeniden sarma gerekli',
-  'admin.crypto.status.rewrapHint': 'Anahtar döndürme ve yeniden sarma işlemi sunucu tarafında betikle yapılır; bu ekran yalnızca durumu gösterir.',
   'admin.crypto.disabled': 'Yönetici mesaj çözme sunucu ayarıyla kapatılmış. Form devre dışıdır.',
   'admin.crypto.form.title': 'Gerekçeli mesaj çözme',
   'admin.crypto.form.conversation': 'Konuşma kimliği',
@@ -152,7 +145,6 @@ const m = {
 
   // Etkinlik başvuruları ve kulüp denetimi
   'admin.admission.title': 'Etkinlik başvuruları',
-  'admin.admission.subtitle': 'Bir etkinliğin başvuru özeti (salt okunur). Kabul ve ret kararlarını etkinliği düzenleyen kişi verir.',
   'admin.admission.eventId': 'Etkinlik kimliği',
   'admin.admission.invalidId': 'Geçerli bir sayı girin.',
   'admin.admission.show': 'Göster',
@@ -172,7 +164,6 @@ const m = {
   'admin.admission.rejected': 'Reddedilen',
   'admin.admission.cancelled': 'İptal / geri çekilen',
   'admin.clubAudit.title': 'Kulüp yetki ve denetim kaydı',
-  'admin.clubAudit.subtitle': 'Bir kulübün yetki değişikliklerini, üye kararlarını, sahiplik devrini ve davet işlemlerini listeler.',
   'admin.clubAudit.communityId': 'Topluluk kimliği',
   'admin.clubAudit.openCommunities': 'Topluluk onay kuyruğu',
   'admin.clubAudit.empty.title': 'Bir topluluk kimliği girin',
@@ -199,9 +190,7 @@ const m = {
   // Genel bakış sayaçları
   'admin.dashboard.section.moderation': 'Moderasyon',
   'admin.dashboard.kpi.openAppeals': 'Açık itiraz',
-  'admin.dashboard.kpi.openAppealsHint': 'İlk 50 kayıt sayılır',
   'admin.dashboard.kpi.openSuspend': 'Açık askı önerisi',
-  'admin.dashboard.kpi.openSuspendHint': 'Tekrarlayan ihlaller',
 
   // Ayarlar: etkinlik grubu
   'admin.settings.group.events': 'Etkinlikler',
@@ -209,11 +198,9 @@ const m = {
   'admin.settings.key.events_require_approval': 'Bağımsız etkinlikler için yönetici onayı',
   'admin.settings.key.event_max_open_per_user': 'Kullanıcı başına en çok açık etkinlik',
   'admin.settings.key.event_daily_create_limit': 'Kullanıcı başına günlük etkinlik açma sınırı',
-  'admin.settings.events.explain': 'Kullanıcıların açtığı bağımsız etkinliklerin onay ve sınır kuralları. Değişiklikler hemen geçerli olur.',
   'admin.settings.events.approvalTitle': 'Onay',
   'admin.settings.events.approvalOn': 'Yeni etkinlikler yönetici onayı bekler',
   'admin.settings.events.approvalOff': 'Yeni etkinlikler doğrudan yayımlanır',
-  'admin.settings.events.approvalHint': 'Kapalıyken etkinlikler onay beklemeden görünür; topluluk etkinlikleri kendi kurallarına uyar.',
   'admin.settings.events.limitsTitle': 'Sınırlar',
   'admin.settings.events.zeroUnlimited': '0 = sınırsız. Yöneticiler sınırlara takılmaz.',
 

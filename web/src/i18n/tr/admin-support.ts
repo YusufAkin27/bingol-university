@@ -1,6 +1,5 @@
 const m = {
   'admin.tickets.title': 'Destek talepleri',
-  'admin.tickets.subtitle': 'Kullanıcı sorularını yanıtla.',
   'admin.tickets.detail.title': 'Talep ayrıntısı',
   'admin.tickets.status.OPEN': 'Yanıt bekliyor',
   'admin.tickets.status.ANSWERED': 'Yanıtlandı',
@@ -47,7 +46,6 @@ const m = {
   'admin.tickets.tpl.remove': 'Şablonu sil',
   'admin.tickets.tpl.full': 'En fazla 20 şablon saklanır.',
   'admin.feedback.title': 'Geri bildirim ve öneriler',
-  'admin.feedback.subtitle': 'Gelen geri bildirimleri değerlendir, yanıtla ve yayınla.',
   'admin.feedback.status.NEW': 'Yeni',
   'admin.feedback.status.IN_REVIEW': 'İnceleniyor',
   'admin.feedback.status.PLANNED': 'Planlandı',

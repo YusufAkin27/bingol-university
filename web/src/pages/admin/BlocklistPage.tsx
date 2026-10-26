@@ -75,7 +75,7 @@ export default function BlocklistPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.blocklist.title')} description={t('admin.blocklist.subtitle')} />
+      <PageHeader title={t('admin.blocklist.title')} />
       <div className={styles.stack}>
         <Card title={t('admin.blocklist.add')}>
           <form
@@ -89,7 +89,6 @@ export default function BlocklistPage() {
             <div className={styles.wide}>
               <FormField
                 label={t('admin.blocklist.sha')}
-                hint={t('admin.blocklist.shaHint')}
                 error={touched && shaInvalid ? t('admin.blocklist.shaInvalid') : null}
                 required
               >

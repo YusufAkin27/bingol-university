@@ -19,10 +19,8 @@ const m = {
   'admin.review.reject.title': 'رفض «{name}»؟',
   'admin.review.reject.intro': 'يُبلَّغ المالك بأنه لم تتم الموافقة، ثم ينتقل العنصر إلى تبويب المرفوضة.',
   'admin.review.reject.reason': 'سبب الرفض (اختياري)',
-  'admin.review.reject.hint': 'يُحفظ كملاحظة مراجعة ولا يظهر للمالك. حتى 300 حرف.',
 
   'admin.communities.title': 'المجتمعات',
-  'admin.communities.subtitle': 'راجع المجتمعات التي أنشأها الطلاب وانشر المناسب منها.',
   'admin.communities.tabs': 'حالة المجتمع',
   'admin.communities.status.PENDING_REVIEW': 'بانتظار المراجعة',
   'admin.communities.status.ACTIVE': 'نشطة',
@@ -46,7 +44,6 @@ const m = {
   'admin.communities.created': 'تاريخ الإنشاء',
 
   'admin.events.title': 'الفعاليات',
-  'admin.events.subtitle': 'راجع الفعاليات التي أنشأها المستخدمون وانشر المناسب منها.',
   'admin.events.tabs': 'حالة الفعالية',
   'admin.events.status.PENDING_REVIEW': 'بانتظار المراجعة',
   'admin.events.status.ACTIVE': 'نشطة',
@@ -72,7 +69,6 @@ const m = {
   'admin.events.timing.soon': 'تبدأ قريبًا ({when})',
 
   'admin.campaigns.title': 'الحملات',
-  'admin.campaigns.subtitle': 'الإشعارات المرسلة إلى مستخدمي الجوال.',
   'admin.campaigns.new': 'حملة جديدة',
   'admin.campaigns.status.SCHEDULED': 'مجدولة',
   'admin.campaigns.status.SENDING': 'قيد الإرسال',
@@ -129,7 +125,6 @@ const m = {
   'admin.campaigns.toast.scheduled': 'تمت جدولة الحملة.',
 
   'admin.campaigns.compose.title': 'إنشاء حملة',
-  'admin.campaigns.compose.subtitle': 'اختر من سيتلقى الإشعار وماذا سيقول، وشاهد معاينة الهاتف لترى كيف سيظهر.',
   'admin.campaigns.compose.reset': 'حملة جديدة',
   'admin.campaigns.compose.resetTitle': 'تجاهل المسودة؟',
   'admin.campaigns.compose.resetMessage': 'ستُمسح المسودة الحالية وتبدأ من جديد.',
@@ -174,8 +169,6 @@ const m = {
   'admin.campaigns.content.empty': 'فارغ',
   'admin.campaigns.content.title': 'العنوان',
   'admin.campaigns.content.body': 'النص',
-  'admin.campaigns.content.fallbackTr': 'إذا تُركت لغة «{lang}» فارغة فسيتلقى مستخدموها النص التركي.',
-  'admin.campaigns.content.ownLang': 'سيتلقى مستخدمو لغة «{lang}» هذا النص.',
   'admin.campaigns.content.err.TOO_LONG': 'تم تجاوز حد الأحرف.',
   'admin.campaigns.content.err.TR_REQUIRED': 'العنوان والنص بالتركية مطلوبان.',
   'admin.campaigns.content.err.PARTIAL': 'املأ العنوان والنص معًا أو اتركهما فارغين.',
@@ -187,7 +180,6 @@ const m = {
   'admin.campaigns.type.SYSTEM.warn':
     'تصل إشعارات النظام حتى إلى المستخدمين الذين أوقفوا الإشعارات. استخدمها للإعلانات المهمة فقط (الأمان، الانقطاع، التغييرات العاجلة).',
   'admin.campaigns.target.type': 'الوجهة',
-  'admin.campaigns.target.hint': 'تُفتح في التطبيق عندما ينقر المستخدم على الإشعار.',
   'admin.campaigns.target.urlLabel': 'الرابط',
   'admin.campaigns.target.idLabel': 'رقم السجل',
   'admin.campaigns.target.err.URL_HTTPS': 'يجب أن يبدأ الرابط بـ https://',
@@ -198,7 +190,6 @@ const m = {
   'admin.campaigns.schedule.laterHint': 'حتى {days} يومًا قادمة. يمكن إلغاؤها قبل الإرسال.',
   'admin.campaigns.schedule.when': 'وقت الإرسال (بتوقيتك المحلي)',
   'admin.campaigns.schedule.utc': 'يُرسل إلى الخادم بتوقيت UTC: {utc}',
-  'admin.campaigns.schedule.localHint': 'اختر التاريخ والوقت.',
   'admin.campaigns.schedule.err.REQUIRED': 'اختر التاريخ والوقت.',
   'admin.campaigns.schedule.err.PAST': 'هذا الوقت انقضى. اختر وقتًا مستقبليًا أو استخدم «إرسال الآن».',
   'admin.campaigns.schedule.err.TOO_FAR': 'يمكن الجدولة حتى 30 يومًا قادمة فقط.',

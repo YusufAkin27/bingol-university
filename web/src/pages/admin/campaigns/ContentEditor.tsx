@@ -10,7 +10,7 @@ import {
   type ContentError,
   type LangContent,
 } from './lib';
-import { Callout, CharCounter } from './shared';
+import { CharCounter } from './shared';
 import styles from './campaigns.module.css';
 
 /** tr / en / ar sekmeleri; başlık ≤100, metin ≤300 sayaçlı. */
@@ -85,13 +85,6 @@ export function ContentEditor({
         <div className={styles.counterRight}>
           <CharCounter length={cur.body.length} max={BODY_MAX} tone={counterTone(cur.body.length, BODY_MAX)} />
         </div>
-        {lang !== 'tr' && (
-          <Callout tone="info">
-            {t(filled(lang) ? 'admin.campaigns.content.ownLang' : 'admin.campaigns.content.fallbackTr', {
-              lang: t(`admin.campaigns.lang.${lang}`),
-            })}
-          </Callout>
-        )}
       </div>
     </div>
   );

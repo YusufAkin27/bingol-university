@@ -49,7 +49,7 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.analytics.title')} description={t('admin.analytics.subtitle')} />
+      <PageHeader title={t('admin.analytics.title')} />
       <p className={styles.kvkk} role="note">
         <Icon name="shield" size={18} />
         <span>{t('admin.analytics.kvkk')}</span>

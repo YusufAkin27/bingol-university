@@ -145,7 +145,7 @@ export default function FaqAdminPage() {
     <>
       <PageHeader
         title={t('admin.faq.title')}
-        description={t('admin.faq.subtitle')}
+       
         actions={
           <Button leftIcon={<Icon name="plus" size={18} />} onClick={openNew}>
             {t('admin.faq.add')}
@@ -241,7 +241,6 @@ export default function FaqAdminPage() {
         <div className={styles.form} dir={formLang === 'ar' ? 'rtl' : 'ltr'}>
           <FormField
             label={t('admin.faq.field.category')}
-            hint={t('admin.faq.field.categoryHint')}
             required
             error={req(form.category)}
           >
@@ -273,7 +272,7 @@ export default function FaqAdminPage() {
             />
           </FormField>
           <div className={styles.formRow}>
-            <FormField label={t('admin.faq.field.order')} hint={t('admin.faq.field.orderHint')}>
+            <FormField label={t('admin.faq.field.order')}>
               <Input
                 type="number"
                 inputMode="numeric"

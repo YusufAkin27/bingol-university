@@ -19,7 +19,7 @@ export default defineConfig({
   expect: { timeout: 7_000 },
   fullyParallel: false,
   workers: 1,
-  reporter: [['list']],
+  reporter: [['list'], ['html', { open: 'never', outputFolder: './e2e/.report' }]],
   outputDir: './e2e/.results',
   use: {
     baseURL: external || `http://localhost:${port}`,

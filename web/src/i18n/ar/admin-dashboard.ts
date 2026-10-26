@@ -1,6 +1,5 @@
 const m = {
   'admin.dashboard.title': 'نظرة عامة',
-  'admin.dashboard.subtitle': 'حالة التطبيق اليوم.',
   'admin.dashboard.section.users': 'المستخدمون',
   'admin.dashboard.section.signups': 'التسجيلات الجديدة',
   'admin.dashboard.section.activity': 'النشاط',
@@ -17,7 +16,6 @@ const m = {
   'admin.dashboard.kpi.wau': 'النشطون أسبوعيًا',
   'admin.dashboard.kpi.mau': 'النشطون شهريًا',
   'admin.dashboard.kpi.stickiness': 'معدل الالتصاق',
-  'admin.dashboard.kpi.stickinessHint': 'النشطون يوميًا / النشطون شهريًا',
   'admin.dashboard.kpi.messages': 'الرسائل (الإجمالي)',
   'admin.dashboard.kpi.messages24': '{n} في آخر 24 ساعة',
   'admin.dashboard.kpi.communities': 'مجتمعات نشطة',
@@ -26,7 +24,6 @@ const m = {
   'admin.dashboard.kpi.eventsPending': '{n} بانتظار الموافقة',
   'admin.dashboard.kpi.bookmarks': 'أخبار مفضّلة',
   'admin.dashboard.kpi.push': 'حملات مُرسلة',
-  'admin.dashboard.kpi.pushHint': 'آخر 30 يومًا',
   'admin.dashboard.kpi.openReports': 'بلاغات مفتوحة',
   'admin.dashboard.kpi.openTickets': 'طلبات دعم مفتوحة',
   'admin.dashboard.kpi.newFeedback': 'ملاحظات جديدة',

@@ -163,7 +163,6 @@ export default function UserDetailPage() {
           <UserExtras u={u} />
 
           <Card title={t('admin.users.detail.activity')}>
-            <p className={styles.hint}>{t('admin.users.detail.activityHint')}</p>
             <ActivityBars data={u.recentActivity} />
           </Card>
         </div>

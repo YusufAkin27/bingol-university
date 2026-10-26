@@ -1,6 +1,5 @@
 const m = {
   'admin.settings.title': 'Settings',
-  'admin.settings.subtitle': 'Store links, contact details, announcement banner and maintenance mode.',
   'admin.settings.maintenance': 'Maintenance mode',
   'admin.settings.storeLinks': 'Store links',
   'admin.audit.title': 'Audit log',
@@ -54,15 +53,10 @@ const m = {
   'admin.settings.general.contact': 'Contact',
   'admin.settings.general.social': 'Social media',
 
-  'admin.settings.stores.forceTitle': 'How forced updates work',
-  'admin.settings.stores.force':
-    'Apps whose version is below the “minimum version” ask the user to update before continuing. Raise this value only once the new version is live in the store.',
   'admin.settings.stores.android': 'Android',
   'admin.settings.stores.ios': 'iOS',
   'admin.settings.stores.min': 'Minimum version (forced)',
-  'admin.settings.stores.minHint': 'Versions below this ask for an update.',
   'admin.settings.stores.latest': 'Latest version',
-  'admin.settings.stores.latestHint': 'The newest store version; older apps get an optional update prompt.',
   'admin.settings.stores.url': 'Store link',
   'admin.settings.stores.inverted': 'The minimum version looks higher than the latest version. Check the values.',
 
@@ -70,14 +64,10 @@ const m = {
   'admin.settings.banner.previewLang': 'Preview language',
   'admin.settings.banner.texts': 'Banner text and link',
   'admin.settings.banner.intro': 'If the text is empty, no banner is shown. A language left empty shows the Turkish text.',
-  'admin.settings.banner.urlHint': 'Optional. Opens on tap; must start with https://.',
   'admin.settings.banner.none': 'The banner text is empty; no banner is shown in the app.',
   'admin.settings.banner.open': 'Open',
-  'admin.settings.banner.fallback': 'No text in this language; Turkish is shown.',
 
   'admin.settings.maintenance.on': 'ON',
-  'admin.settings.maintenance.explain':
-    'When you turn maintenance mode on, all users see the maintenance message in the app. Use it for short outages.',
   'admin.settings.maintenance.activeTitle': 'Maintenance mode is on right now',
   'admin.settings.maintenance.activeText': 'All users see the maintenance message. Remember to turn it off when you are done.',
   'admin.settings.maintenance.switchOn': 'Maintenance mode will be on',
@@ -88,8 +78,6 @@ const m = {
     'As soon as it is on, all users see the maintenance message. The app stays on the maintenance screen until you turn it off.',
   'admin.settings.maintenance.confirmBtn': 'Turn on maintenance mode',
 
-  'admin.settings.faculties.explain':
-    'Users pick their faculty from this list in their profile. The choices feed the faculty breakdown (demographics) in analytics. While the list is not empty, a profile faculty must be one of these names; renaming an entry can invalidate earlier choices.',
   'admin.settings.faculties.add': 'Add a faculty',
   'admin.settings.faculties.placeholder': 'Type a faculty name and press Enter',
   'admin.settings.faculties.addBtn': 'Add',

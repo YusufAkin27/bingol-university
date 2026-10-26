@@ -1,6 +1,5 @@
 const m = {
   'admin.reports.title': 'Raporlar',
-  'admin.reports.subtitle': 'Kullanıcıların bildirdiği içerikleri incele ve karar ver.',
   'admin.reports.resolution.DISMISS': 'Reddet',
   'admin.reports.resolution.HIDE': 'İçeriği gizle',
   'admin.reports.resolution.WARN': 'Uyar',
@@ -63,9 +62,7 @@ const m = {
   'admin.reports.shortcut.pick': 'Karar seç',
   'admin.reports.shortcut.apply': 'Uygula',
   'admin.communities.title': 'Topluluklar',
-  'admin.communities.subtitle': 'Onay bekleyen toplulukları incele.',
   'admin.events.title': 'Etkinlikler',
-  'admin.events.subtitle': 'Kullanıcıların oluşturduğu etkinlikleri onayla.',
   'admin.review.approve': 'Onayla',
   'admin.review.reject': 'Reddet',
 } as const;

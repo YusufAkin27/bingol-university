@@ -162,7 +162,7 @@ export default function CampaignComposePage() {
     <div>
       <PageHeader
         title={t('admin.campaigns.compose.title')}
-        description={t('admin.campaigns.compose.subtitle')}
+       
         breadcrumbs={[{ label: t('admin.campaigns.title'), to: paths.admin.campaigns }, { label: t('admin.campaigns.new') }]}
         actions={
           <Button
@@ -297,7 +297,7 @@ export default function CampaignComposePage() {
 
           <Card title={t('admin.campaigns.compose.target')}>
             <div className={styles.targetRow}>
-              <FormField label={t('admin.campaigns.target.type')} hint={t('admin.campaigns.target.hint')}>
+              <FormField label={t('admin.campaigns.target.type')}>
                 <Select
                   value={state.targetType}
                   onChange={(e) => patch({ targetType: e.target.value as ComposeTargetType, targetValue: '' })}
@@ -349,7 +349,7 @@ export default function CampaignComposePage() {
                 <FormField
                   label={t('admin.campaigns.schedule.when')}
                   error={scheduleErrText}
-                  hint={iso ? t('admin.campaigns.schedule.utc', { utc: iso }) : t('admin.campaigns.schedule.localHint')}
+                  hint={iso ? t('admin.campaigns.schedule.utc', { utc: iso }) : undefined}
                 >
                   <Input
                     type="datetime-local"

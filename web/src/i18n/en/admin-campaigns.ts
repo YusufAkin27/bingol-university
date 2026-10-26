@@ -19,10 +19,8 @@ const m = {
   'admin.review.reject.title': 'Reject “{name}”?',
   'admin.review.reject.intro': 'The owner is told the item was not approved. It then moves to the Rejected tab.',
   'admin.review.reject.reason': 'Reason (optional)',
-  'admin.review.reject.hint': 'Kept as a review note; it is not shown to the owner. Up to 300 characters.',
 
   'admin.communities.title': 'Communities',
-  'admin.communities.subtitle': 'Review communities opened by students and publish the suitable ones.',
   'admin.communities.tabs': 'Community status',
   'admin.communities.status.PENDING_REVIEW': 'Awaiting review',
   'admin.communities.status.ACTIVE': 'Active',
@@ -46,7 +44,6 @@ const m = {
   'admin.communities.created': 'Created',
 
   'admin.events.title': 'Events',
-  'admin.events.subtitle': 'Review events created by users and publish the suitable ones.',
   'admin.events.tabs': 'Event status',
   'admin.events.status.PENDING_REVIEW': 'Awaiting review',
   'admin.events.status.ACTIVE': 'Active',
@@ -72,7 +69,6 @@ const m = {
   'admin.events.timing.soon': 'Starting soon ({when})',
 
   'admin.campaigns.title': 'Campaigns',
-  'admin.campaigns.subtitle': 'Notifications sent to mobile users.',
   'admin.campaigns.new': 'New campaign',
   'admin.campaigns.status.SCHEDULED': 'Scheduled',
   'admin.campaigns.status.SENDING': 'Sending',
@@ -129,7 +125,6 @@ const m = {
   'admin.campaigns.toast.scheduled': 'Campaign scheduled.',
 
   'admin.campaigns.compose.title': 'Create a campaign',
-  'admin.campaigns.compose.subtitle': 'Choose who gets it and what it says; watch the phone preview to see how it will look.',
   'admin.campaigns.compose.reset': 'New campaign',
   'admin.campaigns.compose.resetTitle': 'Discard the draft?',
   'admin.campaigns.compose.resetMessage': 'The current draft is cleared and you start over.',
@@ -174,8 +169,6 @@ const m = {
   'admin.campaigns.content.empty': 'Empty',
   'admin.campaigns.content.title': 'Title',
   'admin.campaigns.content.body': 'Text',
-  'admin.campaigns.content.fallbackTr': 'If {lang} is left empty, people using it receive the Turkish text.',
-  'admin.campaigns.content.ownLang': 'People using {lang} will receive this text.',
   'admin.campaigns.content.err.TOO_LONG': 'Character limit exceeded.',
   'admin.campaigns.content.err.TR_REQUIRED': 'Turkish title and text are required.',
   'admin.campaigns.content.err.PARTIAL': 'Fill in both the title and the text, or leave both empty.',
@@ -187,7 +180,6 @@ const m = {
   'admin.campaigns.type.SYSTEM.warn':
     'System notifications also reach users who turned notifications off. Use them only for important notices (security, outages, urgent changes).',
   'admin.campaigns.target.type': 'Destination',
-  'admin.campaigns.target.hint': 'Opens in the app when the user taps the notification.',
   'admin.campaigns.target.urlLabel': 'Link (https://)',
   'admin.campaigns.target.idLabel': 'Record number',
   'admin.campaigns.target.err.URL_HTTPS': 'The link must start with https://.',
@@ -198,7 +190,6 @@ const m = {
   'admin.campaigns.schedule.laterHint': 'Up to {days} days ahead. Can be cancelled before it is sent.',
   'admin.campaigns.schedule.when': 'Send time (your local time)',
   'admin.campaigns.schedule.utc': 'Sent to the server as UTC: {utc}',
-  'admin.campaigns.schedule.localHint': 'Pick a date and time.',
   'admin.campaigns.schedule.err.REQUIRED': 'Pick a date and time.',
   'admin.campaigns.schedule.err.PAST': 'That time has passed. Pick a future time or use “Send now”.',
   'admin.campaigns.schedule.err.TOO_FAR': 'You can schedule at most 30 days ahead.',

@@ -44,7 +44,7 @@ export default function ClubAuditPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.clubAudit.title')} description={t('admin.clubAudit.subtitle')} />
+      <PageHeader title={t('admin.clubAudit.title')} />
       <div className={styles.stack}>
         <form
           className={styles.toolbar}
