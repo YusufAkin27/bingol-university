@@ -87,6 +87,7 @@ public class AuthController {
     @PostMapping("/verify-email")
     public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
         limiter.check("verify:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
+        limiter.check("verify:email:" + AuthService.normalizeEmail(r.email()), 10, Duration.ofMinutes(10));
         return auth.verifyEmail(r.email(), r.code());
     }
 
@@ -108,6 +109,14 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(@Valid @RequestBody RefreshRequest r) {
         auth.logout(r.refreshToken());
+    }
+
+    @PostMapping("/logout-all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logoutAll(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        limiter.check("logoutall:user:" + userId, 5, Duration.ofMinutes(15));
+        auth.logoutAll(userId);
     }
 
     @GetMapping("/me")

@@ -3,7 +3,10 @@ package edu.bingol.backend.auth;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.jwt.JwtService;
+import edu.bingol.backend.auth.token.PendingRegistrationStore;
+import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.RefreshTokenService;
+import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
@@ -15,12 +18,16 @@ import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     /** bingol.edu.tr ve alt alan adlari (ogr.bingol.edu.tr gibi). */
     private static final Pattern UNIVERSITY_EMAIL =
@@ -33,10 +40,14 @@ public class AuthService {
     private final VerificationService verification;
     private final AdminProperties admin;
     private final LegalService legal;
+    private final PendingRegistrationStore pending;
+    private final SessionService sessions;
+    /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
+    private final String dummyHash;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
                        RefreshTokenService refresh, VerificationService verification, AdminProperties admin,
-                       LegalService legal) {
+                       LegalService legal, PendingRegistrationStore pending, SessionService sessions) {
         this.admin = admin;
         this.legal = legal;
         this.users = users;
@@ -44,12 +55,19 @@ public class AuthService {
         this.jwt = jwt;
         this.refresh = refresh;
         this.verification = verification;
+        this.pending = pending;
+        this.sessions = sessions;
+        this.dummyHash = encoder.encode("dummy-password-for-timing");
     }
 
     public static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * Kayit verisi dogrulanana kadar yalnizca Redis'te tutulur; veritabaninda hesap olusmaz. Boylece baskasinin
+     * e-postasiyla onceden kayit acip sifreyi belirleyen biri, sahibi dogruladiginda hesabi ele gecirmez.
+     */
     public void register(String rawEmail, String password, String displayName, Lang lang) {
         String email = normalizeEmail(rawEmail);
         if (!UNIVERSITY_EMAIL.matcher(email).matches()) {
@@ -61,24 +79,25 @@ public class AuthService {
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
-        if (user == null) {
-            user = new User();
-            user.setEmail(email);
-        }
-        // Dogrulanmamis kayit tekrar gelirse bilgiler guncellenir (e-postanin sahibi olmayan biri
-        // adresi "rezerve" edemez: dogrulama olmadan hesap kullanilamaz).
-        user.setPasswordHash(encoder.encode(password));
-        user.setDisplayName(displayName.trim());
-        user.setLanguage(lang.code());
-        user = users.save(user);
-        legal.recordSignupConsent(user.getId());
+        // Kod once gider (bekleme suresi doluysa burada 429); bekleme sirasinda bekleyen kayit ezilmez.
         verification.issue(email, lang);
+        pending.save(email, new Pending(encoder.encode(password), displayName.trim(), lang.code()));
     }
 
     public void resendCode(String rawEmail) {
         String email = normalizeEmail(rawEmail);
-        users.findByEmail(email).filter(u -> !u.isEmailVerified())
-                .ifPresent(u -> verification.issue(email, Lang.of(u.getLanguage())));
+        Pending p = pending.find(email);
+        if (p == null) {
+            return;
+        }
+        try {
+            verification.issue(email, Lang.of(p.language()));
+        } catch (ApiException e) {
+            // Bekleme suresi cevabi hesabin varligini sizdirirdi: ayni genel cevap doner.
+            log.debug("resend-code atlandi: {}", e.code());
+        } catch (RuntimeException e) {
+            log.warn("Dogrulama e-postasi gonderilemedi: {}", e.getMessage());
+        }
         // Hesap yoksa/dogrulanmissa da ayni cevap doner (e-posta taramasini engellemek icin).
     }
 
@@ -117,28 +136,37 @@ public class AuthService {
         }
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
+        // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
+        sessions.revokeAll(user.getId());
     }
 
     public TokenResponse verifyEmail(String rawEmail, String code) {
         String email = normalizeEmail(rawEmail);
-        User user = users.findByEmail(email)
-                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
-        if (!user.isEmailVerified()) {
-            if (!verification.verify(email, code.trim())) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
-            }
-            user.setEmailVerified(true);
-            promoteIfAdmin(user);
-            users.save(user);
-        } else {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
+        Pending p = pending.find(email);
+        User existing = users.findByEmail(email).orElse(null);
+        if (p == null || (existing != null && existing.isEmailVerified())) {
+            throw invalidCode();
         }
+        if (!verification.verify(email, code.trim())) {
+            throw invalidCode();
+        }
+        User user = existing != null ? existing : new User();
+        user.setEmail(email);
+        user.setPasswordHash(p.passwordHash());
+        user.setDisplayName(p.displayName());
+        user.setLanguage(p.language());
+        user.setEmailVerified(true);
+        promoteIfAdmin(user);
+        user = users.save(user);
+        legal.recordSignupConsent(user.getId());
+        pending.delete(email);
         return tokens(user);
     }
 
     public TokenResponse login(String rawEmail, String password) {
         User user = users.findByEmail(normalizeEmail(rawEmail)).orElse(null);
-        if (user == null || !encoder.matches(password, user.getPasswordHash())) {
+        boolean passwordOk = encoder.matches(password, user == null ? dummyHash : user.getPasswordHash());
+        if (user == null || !passwordOk) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
         }
         if (!user.isEmailVerified()) {
@@ -165,10 +193,19 @@ public class AuthService {
         refresh.revoke(refreshToken);
     }
 
+    /** Tum cihazlardaki oturumlari kapatir (refresh token'lar + eski access token'lar). */
+    public void logoutAll(Long userId) {
+        sessions.revokeAll(userId);
+    }
+
     public UserView me(Long userId) {
         User u = users.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
         return new UserView(u.getId(), u.getEmail(), u.getDisplayName());
+    }
+
+    private static ApiException invalidCode() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
     }
 
     /** Askiya alinmis hesaplar giris yapamaz; silinmis hesaplar hic var olmamis gibi davranir. */

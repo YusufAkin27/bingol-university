@@ -85,7 +85,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/auth/me", "/api/legal/consents", "/api/legal/consents/**").authenticated()
+                .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/legal/consents", "/api/legal/consents/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
                         "/api/app/info", "/api/app/version", "/api/faculties").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()

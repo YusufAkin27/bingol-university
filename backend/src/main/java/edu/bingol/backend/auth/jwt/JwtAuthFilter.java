@@ -25,6 +25,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Deger: rol degisim aninin epoch saniyesi. */
     public static final String ROLE_CHANGED_KEY_PREFIX = "rolechg:";
 
+    /** Deger: sifre degisimi / "tum cihazlardan cik" aninin epoch saniyesi (rolechg ile ayni mantik). */
+    public static final String PASSWORD_CHANGED_KEY_PREFIX = "pwchg:";
+
     private final JwtService jwt;
     private final StringRedisTemplate redis;
 
@@ -50,14 +53,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Tek Redis turunda hem askiya hem rol degisimi kontrolu. */
     private boolean allowed(JwtService.Identity id) {
         List<String> v = redis.opsForValue()
-                .multiGet(List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId()));
+                .multiGet(List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId(),
+                        PASSWORD_CHANGED_KEY_PREFIX + id.userId()));
         if (v == null) {
             return true;
         }
         if (v.get(0) != null) {
             return false;
         }
-        return !tokenPredatesRoleChange(id.issuedAt().getEpochSecond(), v.get(1));
+        long iat = id.issuedAt().getEpochSecond();
+        return !tokenPredatesRoleChange(iat, at(v, 1)) && !tokenPredatesRoleChange(iat, at(v, 2));
+    }
+
+    private static String at(List<String> values, int index) {
+        return index < values.size() ? values.get(index) : null;
     }
 
     /** iat saniye hassasiyetindedir: degisimden onceki saniyede uretilen token reddedilir. */
