@@ -4,6 +4,7 @@ import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.event.dto.EventDtos.AttendanceRow;
+import edu.bingol.backend.event.dto.EventDtos.AttendeePreview;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.BulkRequest;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
@@ -48,10 +49,13 @@ public class EventController {
     private final EventService events;
     private final AttendanceService attendance;
     private final RateLimiter limiter;
+    private final EventAttendeePreviewService previews;
 
-    public EventController(EventService events, AttendanceService attendance, RateLimiter limiter) {
+    public EventController(EventService events, AttendanceService attendance, RateLimiter limiter,
+                           EventAttendeePreviewService previews) {
         this.events = events;
         this.attendance = attendance;
+        this.previews = previews;
         this.limiter = limiter;
     }
 
@@ -74,10 +78,14 @@ public class EventController {
         return events.list(Actor.current(), from, to, communityId, cursor, size);
     }
 
-    /** Aylik birlesik takvim: kullanici etkinlikleri (USER) + resmi site etkinlikleri (OFFICIAL). month=YYYY-MM */
+    /**
+     * Aylik birlesik takvim: kullanici etkinlikleri (USER) + resmi site etkinlikleri (OFFICIAL). month=YYYY-MM.
+     * Sinira (300/200) carpildiysa govde degismeden {@code X-Truncated: true} basligi eklenir.
+     */
     @GetMapping("/events/calendar")
-    public List<CalendarItem> calendar(@RequestParam YearMonth month) {
-        return events.calendar(Actor.current(), month);
+    public ResponseEntity<List<CalendarItem>> calendar(@RequestParam YearMonth month) {
+        EventService.CalendarResult r = events.calendarResult(Actor.current(), month);
+        return ResponseEntity.ok().header("X-Truncated", String.valueOf(r.truncated())).body(r.items());
     }
 
     @GetMapping("/events/{id}")
@@ -124,6 +132,14 @@ public class EventController {
                                               @RequestParam(required = false) Long cursor,
                                               @RequestParam(defaultValue = "50") int size) {
         return events.attendees(Actor.current(), id, status, cursor, size);
+    }
+
+    /** Etkinligi gorebilen herkese: sayilar + gizlilik ayari izin veren en cok 8 avatar. */
+    @GetMapping("/events/{id}/attendees/preview")
+    public AttendeePreview attendeesPreview(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-preview:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return previews.preview(a, id);
     }
 
     @GetMapping("/me/events")

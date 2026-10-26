@@ -21,6 +21,10 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
 
     List<EventRsvp> findByUserIdAndEventIdIn(Long userId, Collection<Long> eventIds);
 
+    /** Toplu sayim [eventId, adet]: takvim/liste goruntulerinde etkinlik basina sorgu atmamak icin. */
+    @Query("SELECT r.eventId, COUNT(r) FROM EventRsvp r WHERE r.eventId IN :ids AND r.status = :status GROUP BY r.eventId")
+    List<Object[]> countByEvents(@Param("ids") Collection<Long> eventIds, @Param("status") EventRsvp.Status status);
+
     @Query("SELECT r FROM EventRsvp r WHERE r.eventId = :eid AND r.status = :status AND r.id > :cursor ORDER BY r.id")
     List<EventRsvp> page(@Param("eid") Long eventId, @Param("status") EventRsvp.Status status,
                          @Param("cursor") long cursor, Pageable page);

@@ -57,9 +57,23 @@ public final class EventDtos {
                                Instant rsvpAt) {
     }
 
-    /** source: USER | OFFICIAL. Resmi kayitlarda saat yok (startsAt null), url kaynak sayfadir. */
+    /**
+     * source: USER | OFFICIAL. Resmi kayitlarda saat yok (startsAt null), url kaynak sayfadir ve date haberin
+     * YAYIN tarihidir (kaynak sitede ayri etkinlik tarihi alani yok). USER'da date takvim gunudur; onceki aydan
+     * suren etkinlikte ayin ilk gunune kisitlanir. myRsvp/goingCount/interestedCount/capacity/status/communityName
+     * yalnizca USER ogelerinde dolu, OFFICIAL'da null.
+     */
     public record CalendarItem(String source, Long id, String title, LocalDate date, Instant startsAt,
-                               Instant endsAt, String location, String url, String imageUrl, Long communityId) {
+                               Instant endsAt, String location, String url, String imageUrl, Long communityId,
+                               EventRsvp.Status myRsvp, Integer goingCount, Long interestedCount, Integer capacity,
+                               UserEvent.Status status, String communityName) {
+    }
+
+    public record AttendeeAvatar(Long userId, String displayName, String avatarUrl) {
+    }
+
+    /** Herkese acik onizleme: sayilar + gizlilik ayari izin veren en cok 8 avatar. */
+    public record AttendeePreview(long goingCount, long interestedCount, List<AttendeeAvatar> avatars) {
     }
 
     public record CheckinCode(String code, String qrPayload, Instant expiresAt, int validForSeconds) {

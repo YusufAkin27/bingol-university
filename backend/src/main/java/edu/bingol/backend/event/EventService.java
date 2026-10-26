@@ -24,11 +24,13 @@ import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +54,8 @@ public class EventService {
     static final YearMonth MIN_MONTH = YearMonth.of(2000, 1);
     static final YearMonth MAX_MONTH = YearMonth.of(2100, 1);
     static final int NOTIFY_LIMIT = 500;
+    static final int CALENDAR_USER_LIMIT = 300;
+    static final int CALENDAR_OFFICIAL_LIMIT = 200;
     private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long COVER_MAX_BYTES = 3L * 1024 * 1024;
 
@@ -285,26 +289,78 @@ public class EventService {
         return Paging.map(rows, s, UserEvent::getId, items -> views(items, a, false));
     }
 
-    /** Aylik takvim: kullanici etkinlikleri + siteden gelen resmi ETKINLIK haberleri (kaynak USER/OFFICIAL). */
+    /** Takvim yaniti: ogeler + sinira (kullanici 300 / resmi 200) carpildi mi (X-Truncated basligi). */
+    public record CalendarResult(List<CalendarItem> items, boolean truncated) {}
+
+    /** Geriye uyumlu: yalnizca ogeler. */
     @Transactional(readOnly = true)
     public List<CalendarItem> calendar(Actor a, YearMonth month) {
+        return calendarResult(a, month).items();
+    }
+
+    /**
+     * Aylik takvim: kullanici etkinlikleri + siteden gelen resmi ETKINLIK haberleri (kaynak USER/OFFICIAL).
+     * Onceki aydan suren etkinlikler de gelir; date ayin icinde kalir (baslangic ay disindaysa ayin ilk gunu).
+     */
+    @Transactional(readOnly = true)
+    public CalendarResult calendarResult(Actor a, YearMonth month) {
         if (month.isBefore(MIN_MONTH) || month.isAfter(MAX_MONTH)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Tarih aralığı geçersiz.");
         }
         Instant from = month.atDay(1).atStartOfDay(ZONE).toInstant();
         Instant to = month.plusMonths(1).atDay(1).atStartOfDay(ZONE).toInstant();
-        List<CalendarItem> out = new ArrayList<>();
-        for (UserEvent e : query(a, from, to, 0L, null, 300)) {
-            out.add(new CalendarItem("USER", e.getId(), e.getTitle(), e.getStartsAt().atZone(ZONE).toLocalDate(),
-                    e.getStartsAt(), e.getEndsAt(), e.getLocation(), null, e.getCoverUrl(), e.getCommunityId()));
-        }
-        for (NewsItem n : official.inRange(ContentType.ETKINLIK, month.atDay(1), month.atEndOfMonth(),
-                PageRequest.of(0, 200))) {
+        // Sinira carpildigini anlamak icin bir fazla satir istenir.
+        List<UserEvent> userRows = query(a, from, to, 0L, null, CALENDAR_USER_LIMIT + 1);
+        List<NewsItem> news = official.inRange(ContentType.ETKINLIK, month.atDay(1), month.atEndOfMonth(),
+                PageRequest.of(0, CALENDAR_OFFICIAL_LIMIT + 1));
+        boolean truncated = userRows.size() > CALENDAR_USER_LIMIT || news.size() > CALENDAR_OFFICIAL_LIMIT;
+        List<CalendarItem> out = new ArrayList<>(calendarUserItems(a, month, firstN(userRows, CALENDAR_USER_LIMIT)));
+        for (NewsItem n : firstN(news, CALENDAR_OFFICIAL_LIMIT)) {
             out.add(new CalendarItem("OFFICIAL", n.getId(), n.getTitle(), n.getPublishedDate(), null, null, null,
-                    n.getUrl(), n.getImageUrl(), null));
+                    n.getUrl(), n.getImageUrl(), null, null, null, null, null, null, null));
         }
         out.sort(Comparator.comparing(CalendarItem::date, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(CalendarItem::startsAt, Comparator.nullsLast(Comparator.naturalOrder())));
+        return new CalendarResult(out, truncated);
+    }
+
+    private static <T> List<T> firstN(List<T> list, int n) {
+        return list.size() > n ? list.subList(0, n) : list;
+    }
+
+    /** Kullanici ogeleri: RSVP, sayaclar ve topluluk adlari tek toplu sorguyla (N+1 yok). */
+    private List<CalendarItem> calendarUserItems(Actor a, YearMonth month, List<UserEvent> rows) {
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = rows.stream().map(UserEvent::getId).toList();
+        Map<Long, EventRsvp.Status> mine = myRsvps(a, ids);
+        Map<Long, Long> interested = interestedCounts(ids);
+        Map<Long, String> names = communities.namesById(
+                rows.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList());
+        LocalDate first = month.atDay(1);
+        List<CalendarItem> out = new ArrayList<>();
+        for (UserEvent e : rows) {
+            LocalDate day = e.getStartsAt().atZone(ZONE).toLocalDate();
+            out.add(new CalendarItem("USER", e.getId(), e.getTitle(), day.isBefore(first) ? first : day,
+                    e.getStartsAt(), e.getEndsAt(), e.getLocation(), null, e.getCoverUrl(), e.getCommunityId(),
+                    mine.get(e.getId()), e.getGoingCount(), interested.getOrDefault(e.getId(), 0L), e.getCapacity(),
+                    e.getStatus(), e.getCommunityId() == null ? null : names.get(e.getCommunityId())));
+        }
+        return out;
+    }
+
+    private Map<Long, EventRsvp.Status> myRsvps(Actor a, List<Long> eventIds) {
+        Map<Long, EventRsvp.Status> mine = new HashMap<>();
+        rsvps.findByUserIdAndEventIdIn(a.id(), eventIds).forEach(r -> mine.put(r.getEventId(), r.getStatus()));
+        return mine;
+    }
+
+    private Map<Long, Long> interestedCounts(List<Long> eventIds) {
+        Map<Long, Long> out = new HashMap<>();
+        for (Object[] row : rsvps.countByEvents(eventIds, EventRsvp.Status.INTERESTED)) {
+            out.put((Long) row[0], ((Number) row[1]).longValue());
+        }
         return out;
     }
 
@@ -484,13 +540,16 @@ public class EventService {
 
     private record Cursor(Instant start, long id) {}
 
-    /** Imec = son kaydin id'si; (baslangic, id) anahtari o kayittan okunur. */
+    /**
+     * Imec = son kaydin id'si; (baslangic, id) anahtari o kayittan okunur. Kayit artik yoksa bos sayfa doner
+     * (basa sarip ayni ogeleri tekrar gostermek istemciyi donguye sokar).
+     */
     private Cursor cursorOf(Long cursor) {
         if (cursor == null) {
             return new Cursor(Instant.EPOCH, 0L);
         }
         return events.findById(cursor).map(e -> new Cursor(e.getStartsAt(), e.getId()))
-                .orElse(new Cursor(Instant.EPOCH, 0L));
+                .orElse(new Cursor(FAR_FUTURE, Long.MAX_VALUE));
     }
 
     private List<UserEvent> query(Actor a, Instant from, Instant to, long communityId, Long cursor, int limit) {
@@ -513,21 +572,53 @@ public class EventService {
             return List.of();
         }
         List<Long> ids = list.stream().map(UserEvent::getId).toList();
-        Map<Long, EventRsvp.Status> mine = new HashMap<>();
-        rsvps.findByUserIdAndEventIdIn(a.id(), ids).forEach(r -> mine.put(r.getEventId(), r.getStatus()));
-        Map<Long, String> communityNames = new HashMap<>();
-        communities.namesById(list.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList())
-                .forEach(communityNames::put);
+        Map<Long, EventRsvp.Status> mine = myRsvps(a, ids);
+        Map<Long, Long> interested = detail ? interestedCounts(ids) : Map.of();
+        Map<Long, String> communityNames = communities.namesById(
+                list.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList());
         Map<Long, User> organizers = communities.usersById(list.stream().map(UserEvent::getCreatedBy).toList());
+        Set<Long> manageable = manageableIds(list, a);
         List<EventView> out = new ArrayList<>();
         for (UserEvent e : list) {
             User o = organizers.get(e.getCreatedBy());
             out.add(new EventView(e.getId(), e.getTitle(), e.getDescription(), e.getStartsAt(), e.getEndsAt(),
                     e.getLocation(), e.getCoverUrl(), e.getCapacity(), e.getGoingCount(),
-                    detail ? rsvps.countByEventIdAndStatus(e.getId(), EventRsvp.Status.INTERESTED) : null,
-                    e.getCommunityId(), communityNames.get(e.getCommunityId()), e.getCreatedBy(),
+                    detail ? interested.getOrDefault(e.getId(), 0L) : null,
+                    e.getCommunityId(), e.getCommunityId() == null ? null : communityNames.get(e.getCommunityId()),
+                    e.getCreatedBy(),
                     o == null ? null : o.getDisplayName(), e.getStatus(), mine.get(e.getId()),
-                    canManage(a, e), e.getCreatedAt()));
+                    manageable.contains(e.getId()), e.getCreatedAt()));
+        }
+        return out;
+    }
+
+    /**
+     * canManage kuraliyla ayni sonuc, liste icin toplu: ortak organizatorler tek sorguda, kulup yetkisi
+     * kulup basina bir kez hesaplanir.
+     */
+    private Set<Long> manageableIds(List<UserEvent> list, Actor a) {
+        Set<Long> out = new HashSet<>();
+        List<UserEvent> rest = new ArrayList<>();
+        for (UserEvent e : list) {
+            if (a.admin() || e.getCreatedBy().equals(a.id())) {
+                out.add(e.getId());
+            } else {
+                rest.add(e);
+            }
+        }
+        if (rest.isEmpty()) {
+            return out;
+        }
+        if (coOrganizers != null) {
+            out.addAll(coOrganizers.coOrganizedAmong(rest.stream().map(UserEvent::getId).toList(), a.id()));
+        }
+        Map<Long, Boolean> clubCan = new HashMap<>();
+        for (UserEvent e : rest) {
+            if (!out.contains(e.getId()) && e.getCommunityId() != null
+                    && clubCan.computeIfAbsent(e.getCommunityId(),
+                            c -> communities.can(a, c, ClubPermission.MANAGE_EVENTS))) {
+                out.add(e.getId());
+            }
         }
         return out;
     }
