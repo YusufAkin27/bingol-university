@@ -178,7 +178,7 @@ export default function UsersPage() {
     <div>
       <PageHeader
         title={t('admin.users.title')}
-        description={t('admin.users.subtitle')}
+       
         actions={
           <Button
             variant="secondary"

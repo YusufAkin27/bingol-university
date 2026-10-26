@@ -33,7 +33,7 @@ export default function EventApplicationsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.admission.title')} description={t('admin.admission.subtitle')} />
+      <PageHeader title={t('admin.admission.title')} />
       <div className={styles.stack}>
         <form
           className={styles.toolbar}

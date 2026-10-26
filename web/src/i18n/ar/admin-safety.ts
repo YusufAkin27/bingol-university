@@ -25,7 +25,6 @@ const m = {
   'admin.reports.hidden.YES': 'مخفي',
   'admin.reports.preview.image': 'الصورة المبلَّغ عنها',
   'admin.reports.reasonCode.label': 'سبب القرار',
-  'admin.reports.reasonCode.hint': 'يُستخدم في الإشعار المرسل إلى صاحب المحتوى.',
   'admin.reports.reasonCode.none': 'بدون تحديد',
   'admin.reports.reasonCode.SPAM': 'بريد مزعج',
   'admin.reports.reasonCode.HARASSMENT': 'مضايقة',
@@ -51,7 +50,6 @@ const m = {
 
   // الاعتراضات
   'admin.appeals.title': 'الاعتراضات',
-  'admin.appeals.subtitle': 'اعتراضات أصحاب المحتوى المخفي. عند القبول يظهر المحتوى مجدداً وتُلغى المخالفة.',
   'admin.appeals.tabs': 'حالة الاعتراض',
   'admin.appeals.status.OPEN': 'مفتوح',
   'admin.appeals.status.ACCEPTED': 'مقبول',
@@ -75,7 +73,6 @@ const m = {
 
   // مقترحات الإيقاف
   'admin.suspend.title': 'مقترحات الإيقاف',
-  'admin.suspend.subtitle': 'يعرض النظام المخالفات المتكررة خلال مدة قصيرة كمقترحات. القرار للمسؤول.',
   'admin.suspend.tabs': 'حالة المقترح',
   'admin.suspend.status.OPEN': 'مفتوح',
   'admin.suspend.status.ACCEPTED': 'مقبول',
@@ -93,10 +90,8 @@ const m = {
 
   // بصمات الصور المحظورة
   'admin.blocklist.title': 'الصور المحظورة',
-  'admin.blocklist.subtitle': 'تُرفض عند الرفع الصور التي تظهر بصمتها SHA-256 هنا. لا تُحفظ الصورة نفسها.',
   'admin.blocklist.add': 'إضافة بصمة',
   'admin.blocklist.sha': 'بصمة SHA-256',
-  'admin.blocklist.shaHint': '64 خانة سداسية عشرية (لا فرق بين الأحرف الكبيرة والصغيرة).',
   'admin.blocklist.shaInvalid': 'يجب أن تتكون البصمة من 64 خانة سداسية عشرية.',
   'admin.blocklist.note': 'ملاحظة (اختياري)',
   'admin.blocklist.addBtn': 'إضافة إلى القائمة',
@@ -111,7 +106,6 @@ const m = {
 
   // الوصول إلى الرسائل وحالة التشفير
   'admin.crypto.title': 'المحادثات والتشفير',
-  'admin.crypto.subtitle': 'حالة مفتاح التشفير وعارض المحادثات لكل مستخدم.',
   'admin.crypto.status.title': 'حالة التشفير',
   'admin.crypto.status.active': 'المفتاح الرئيسي النشط',
   'admin.crypto.status.keys': 'المفاتيح المعرَّفة',
@@ -122,7 +116,6 @@ const m = {
   'admin.crypto.status.devKey': 'يجب تعريف مفتاح رئيسي حقيقي في بيئة الإنتاج. مفتاح التطوير للاستخدام المحلي فقط.',
   'admin.crypto.status.deks': 'عدد مفاتيح البيانات المغلّفة لكل مفتاح رئيسي',
   'admin.crypto.status.rewrapNeeded': 'يلزم إعادة التغليف',
-  'admin.crypto.status.rewrapHint': 'تتم تدوير المفاتيح وإعادة التغليف على الخادم عبر سكربت؛ تعرض هذه الشاشة الحالة فقط.',
   'admin.crypto.open.title': 'فتح رسائل مستخدم',
   'admin.crypto.open.hint': 'ابحث عن مستخدم لعرض جميع محادثاته ورسائله. يُسجَّل كل طلب صفحة في سجل التدقيق غير القابل للتعديل.',
   'admin.crypto.open.search': 'ابحث عن مستخدم',
@@ -133,7 +126,6 @@ const m = {
 
   // طلبات الفعاليات وتدقيق النوادي
   'admin.admission.title': 'طلبات الفعاليات',
-  'admin.admission.subtitle': 'ملخص طلبات فعالية (للقراءة فقط). قرارات القبول والرفض يتخذها منظّم الفعالية.',
   'admin.admission.eventId': 'معرّف الفعالية',
   'admin.admission.invalidId': 'أدخل رقماً صالحاً.',
   'admin.admission.show': 'عرض',
@@ -153,7 +145,6 @@ const m = {
   'admin.admission.rejected': 'المرفوضون',
   'admin.admission.cancelled': 'ملغاة / مسحوبة',
   'admin.clubAudit.title': 'صلاحيات النادي وسجل التدقيق',
-  'admin.clubAudit.subtitle': 'يعرض تغييرات صلاحيات النادي وقرارات الأعضاء ونقل الملكية والدعوات.',
   'admin.clubAudit.communityId': 'معرّف المجتمع',
   'admin.clubAudit.openCommunities': 'طابور اعتماد المجتمعات',
   'admin.clubAudit.empty.title': 'أدخل معرّف مجتمع',
@@ -180,9 +171,7 @@ const m = {
   // عدادات اللوحة الرئيسية
   'admin.dashboard.section.moderation': 'الإشراف',
   'admin.dashboard.kpi.openAppeals': 'اعتراضات مفتوحة',
-  'admin.dashboard.kpi.openAppealsHint': 'تُحسب أول 50 سجلاً',
   'admin.dashboard.kpi.openSuspend': 'مقترحات إيقاف مفتوحة',
-  'admin.dashboard.kpi.openSuspendHint': 'مخالفات متكررة',
 
   // الإعدادات: مجموعة الفعاليات
   'admin.settings.group.events': 'الفعاليات',
@@ -190,11 +179,9 @@ const m = {
   'admin.settings.key.events_require_approval': 'موافقة المسؤول على الفعاليات المستقلة',
   'admin.settings.key.event_max_open_per_user': 'الحد الأقصى للفعاليات المفتوحة لكل مستخدم',
   'admin.settings.key.event_daily_create_limit': 'الحد اليومي لإنشاء الفعاليات لكل مستخدم',
-  'admin.settings.events.explain': 'قواعد الاعتماد والحدود للفعاليات المستقلة التي ينشئها المستخدمون. تسري التغييرات فوراً.',
   'admin.settings.events.approvalTitle': 'الاعتماد',
   'admin.settings.events.approvalOn': 'تنتظر الفعاليات الجديدة موافقة المسؤول',
   'admin.settings.events.approvalOff': 'تُنشر الفعاليات الجديدة مباشرة',
-  'admin.settings.events.approvalHint': 'عند التعطيل تظهر الفعاليات دون انتظار الموافقة؛ وتتبع فعاليات المجتمعات قواعدها الخاصة.',
   'admin.settings.events.limitsTitle': 'الحدود',
   'admin.settings.events.zeroUnlimited': '0 = غير محدود. لا تسري الحدود على المسؤولين.',
 

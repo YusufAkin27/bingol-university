@@ -1,10 +1,8 @@
 const m = {
   'admin.settings.title': 'Ayarlar',
-  'admin.settings.subtitle': 'Mağaza bağlantıları, iletişim bilgileri, duyuru bandı ve bakım modu.',
   'admin.settings.maintenance': 'Bakım modu',
   'admin.settings.storeLinks': 'Mağaza bağlantıları',
   'admin.audit.title': 'Denetim kaydı',
-  'admin.audit.subtitle': 'Yöneticilerin yaptığı değişiklikler.',
   'admin.audit.col.admin': 'Yönetici',
   'admin.audit.col.action': 'İşlem',
   'admin.audit.col.at': 'Zaman',
@@ -54,15 +52,10 @@ const m = {
   'admin.settings.general.contact': 'İletişim',
   'admin.settings.general.social': 'Sosyal medya',
 
-  'admin.settings.stores.forceTitle': 'Zorunlu güncelleme nasıl çalışır?',
-  'admin.settings.stores.force':
-    'Sürümü “en düşük sürüm”ün altında olan uygulamalar kullanıma devam etmeden önce güncelleme ister. Bu değeri yalnızca mağazada yeni sürüm yayındayken yükseltin.',
   'admin.settings.stores.android': 'Android',
   'admin.settings.stores.ios': 'iOS',
   'admin.settings.stores.min': 'En düşük sürüm (zorunlu)',
-  'admin.settings.stores.minHint': 'Bunun altındaki sürümler güncelleme ister.',
   'admin.settings.stores.latest': 'Güncel sürüm',
-  'admin.settings.stores.latestHint': 'Mağazadaki son sürüm; eski sürümlere isteğe bağlı güncelleme önerilir.',
   'admin.settings.stores.url': 'Mağaza bağlantısı',
   'admin.settings.stores.inverted': 'En düşük sürüm güncel sürümden büyük görünüyor. Değerleri kontrol edin.',
 
@@ -70,14 +63,10 @@ const m = {
   'admin.settings.banner.previewLang': 'Önizleme dili',
   'admin.settings.banner.texts': 'Bant metni ve bağlantı',
   'admin.settings.banner.intro': 'Metin boşsa uygulamada bant gösterilmez. Boş bırakılan dilde Türkçe metin gösterilir.',
-  'admin.settings.banner.urlHint': 'İsteğe bağlı. Dokununca açılır; https:// ile başlamalıdır.',
   'admin.settings.banner.none': 'Bant metni boş; uygulamada bant görünmüyor.',
   'admin.settings.banner.open': 'Aç',
-  'admin.settings.banner.fallback': 'Bu dilde metin yok; Türkçe gösterilir.',
 
   'admin.settings.maintenance.on': 'AÇIK',
-  'admin.settings.maintenance.explain':
-    'Bakım modunu açtığınızda tüm kullanıcılar uygulamada bakım mesajını görür. Kısa süreli kesintiler için kullanın.',
   'admin.settings.maintenance.activeTitle': 'Bakım modu şu an açık',
   'admin.settings.maintenance.activeText': 'Tüm kullanıcılar bakım mesajını görüyor. İşiniz bitince kapatmayı unutmayın.',
   'admin.settings.maintenance.switchOn': 'Bakım modu açık olacak',
@@ -88,8 +77,6 @@ const m = {
     'Açıldığı anda tüm kullanıcılar bakım mesajını görür. Kapatana kadar uygulama bakım ekranında kalır.',
   'admin.settings.maintenance.confirmBtn': 'Bakım modunu aç',
 
-  'admin.settings.faculties.explain':
-    'Kullanıcılar profillerinde bu listeden fakülte seçer. Seçimler analitikte fakülte dağılımı (demografi) için kullanılır. Liste doluyken profildeki fakülte listedeki adlardan biri olmalıdır; adı değiştirirseniz eski seçimler geçersiz sayılabilir.',
   'admin.settings.faculties.add': 'Fakülte ekle',
   'admin.settings.faculties.placeholder': 'Fakülte adı yazıp Enter’a basın',
   'admin.settings.faculties.addBtn': 'Ekle',

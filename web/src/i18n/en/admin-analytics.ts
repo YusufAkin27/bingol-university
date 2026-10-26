@@ -1,6 +1,5 @@
 const m = {
   'admin.analytics.title': 'Analytics',
-  'admin.analytics.subtitle': 'Aggregated usage data. Individual behaviour is never shown.',
   'admin.analytics.tab.overview': 'Overview',
   'admin.analytics.tab.growth': 'Growth',
   'admin.analytics.tab.engagement': 'Engagement',

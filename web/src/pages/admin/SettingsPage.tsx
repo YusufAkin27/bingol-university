@@ -152,7 +152,7 @@ export default function SettingsPage() {
 
   return (
     <SettingsProvider value={ctx}>
-      <PageHeader title={t('admin.settings.title')} description={t('admin.settings.subtitle')} />
+      <PageHeader title={t('admin.settings.title')} />
       <Tabs tabs={tabs} value={group} onChange={(id) => setGroup(id as SettingGroup)} label={t('admin.settings.groups')} />
 
       {q.isError ? (
@@ -193,9 +193,6 @@ export default function SettingsPage() {
 
           {group === 'stores' && (
             <>
-              <Callout tone="info" title={t('admin.settings.stores.forceTitle')}>
-                {t('admin.settings.stores.force')}
-              </Callout>
               {(['android', 'ios'] as const).map((p) => {
                 const min = valueOf({ server, edits }, `min_version_${p}`).trim();
                 const latest = valueOf({ server, edits }, `latest_version_${p}`).trim();
@@ -209,14 +206,12 @@ export default function SettingsPage() {
                       <SettingRow
                         k={`min_version_${p}`}
                         label={t('admin.settings.stores.min')}
-                        hint={t('admin.settings.stores.minHint')}
                         ltr
                         placeholder="1.0.0"
                       />
                       <SettingRow
                         k={`latest_version_${p}`}
                         label={t('admin.settings.stores.latest')}
-                        hint={t('admin.settings.stores.latestHint')}
                         ltr
                         placeholder="1.0.0"
                       />
@@ -276,7 +271,6 @@ export default function SettingsPage() {
                   <SettingRow
                     k="banner_url"
                     label={t('admin.settings.key.banner_url')}
-                    hint={t('admin.settings.banner.urlHint')}
                     kind="url"
                     placeholder="https://"
                   />
@@ -287,12 +281,10 @@ export default function SettingsPage() {
 
           {group === 'maintenance' && (
             <>
-              {server.maintenance_mode === 'true' ? (
+              {server.maintenance_mode === 'true' && (
                 <Callout tone="danger" role="status" title={t('admin.settings.maintenance.activeTitle')}>
                   {t('admin.settings.maintenance.activeText')}
                 </Callout>
-              ) : (
-                <Callout tone="info">{t('admin.settings.maintenance.explain')}</Callout>
               )}
               <Card title={t('admin.settings.key.maintenance_mode')}>
                 <div
@@ -407,7 +399,6 @@ function BannerPreview({ lang, text, fallback, url }: { lang: Lang; text: string
         <span className={styles.bannerText}>{shown}</span>
         {url.trim() && <span className={styles.bannerLink}>{t('admin.settings.banner.open')}</span>}
       </div>
-      {!own && lang !== 'tr' && <p className={styles.hintLine}>{t('admin.settings.banner.fallback')}</p>}
     </div>
   );
 }

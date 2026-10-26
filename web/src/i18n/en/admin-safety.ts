@@ -25,7 +25,6 @@ const m = {
   'admin.reports.hidden.YES': 'Hidden',
   'admin.reports.preview.image': 'Reported image',
   'admin.reports.reasonCode.label': 'Decision reason',
-  'admin.reports.reasonCode.hint': 'Used in the notification sent to the content owner.',
   'admin.reports.reasonCode.none': 'Not specified',
   'admin.reports.reasonCode.SPAM': 'Spam',
   'admin.reports.reasonCode.HARASSMENT': 'Harassment',
@@ -51,7 +50,6 @@ const m = {
 
   // Appeals
   'admin.appeals.title': 'Appeals',
-  'admin.appeals.subtitle': 'Appeals from owners of hidden content. If accepted, the content becomes visible again and the strike is cancelled.',
   'admin.appeals.tabs': 'Appeal status',
   'admin.appeals.status.OPEN': 'Open',
   'admin.appeals.status.ACCEPTED': 'Accepted',
@@ -75,7 +73,6 @@ const m = {
 
   // Suspension suggestions
   'admin.suspend.title': 'Suspension suggestions',
-  'admin.suspend.subtitle': 'Repeated violations in a short time are listed by the system as suggestions. The decision is yours.',
   'admin.suspend.tabs': 'Suggestion status',
   'admin.suspend.status.OPEN': 'Open',
   'admin.suspend.status.ACCEPTED': 'Accepted',
@@ -93,10 +90,8 @@ const m = {
 
   // Blocked image hashes
   'admin.blocklist.title': 'Blocked images',
-  'admin.blocklist.subtitle': 'Images whose SHA-256 digest is listed here are rejected on upload. The image itself is not stored.',
   'admin.blocklist.add': 'Add digest',
   'admin.blocklist.sha': 'SHA-256 digest',
-  'admin.blocklist.shaHint': '64 hexadecimal characters (case does not matter).',
   'admin.blocklist.shaInvalid': 'The digest must be 64 hexadecimal characters.',
   'admin.blocklist.note': 'Note (optional)',
   'admin.blocklist.addBtn': 'Add to list',
@@ -111,7 +106,6 @@ const m = {
 
   // Message access and encryption status
   'admin.crypto.title': 'Chats and encryption',
-  'admin.crypto.subtitle': 'Encryption key status and the per-user chat viewer.',
   'admin.crypto.status.title': 'Encryption status',
   'admin.crypto.status.active': 'Active master key',
   'admin.crypto.status.keys': 'Configured keys',
@@ -122,7 +116,6 @@ const m = {
   'admin.crypto.status.devKey': 'A real master key must be configured in production. The development key is for local use only.',
   'admin.crypto.status.deks': 'Wrapped data keys per master key',
   'admin.crypto.status.rewrapNeeded': 'Rewrap needed',
-  'admin.crypto.status.rewrapHint': 'Key rotation and rewrapping are done on the server with a script; this screen only shows the status.',
   'admin.crypto.open.title': 'Open a user\'s messages',
   'admin.crypto.open.hint': 'Search for a user to view all of their conversations and messages. Every page request is written to the immutable audit log.',
   'admin.crypto.open.search': 'Search users',
@@ -133,7 +126,6 @@ const m = {
 
   // Event applications and club audit
   'admin.admission.title': 'Event applications',
-  'admin.admission.subtitle': 'Application summary of an event (read only). Accept and reject decisions are made by the event organizer.',
   'admin.admission.eventId': 'Event ID',
   'admin.admission.invalidId': 'Enter a valid number.',
   'admin.admission.show': 'Show',
@@ -153,7 +145,6 @@ const m = {
   'admin.admission.rejected': 'Rejected',
   'admin.admission.cancelled': 'Cancelled / withdrawn',
   'admin.clubAudit.title': 'Club permissions and audit log',
-  'admin.clubAudit.subtitle': 'Lists a club’s permission changes, member decisions, ownership transfers and invitations.',
   'admin.clubAudit.communityId': 'Community ID',
   'admin.clubAudit.openCommunities': 'Community approval queue',
   'admin.clubAudit.empty.title': 'Enter a community ID',
@@ -180,9 +171,7 @@ const m = {
   // Dashboard counters
   'admin.dashboard.section.moderation': 'Moderation',
   'admin.dashboard.kpi.openAppeals': 'Open appeals',
-  'admin.dashboard.kpi.openAppealsHint': 'The first 50 records are counted',
   'admin.dashboard.kpi.openSuspend': 'Open suspension suggestions',
-  'admin.dashboard.kpi.openSuspendHint': 'Repeated violations',
 
   // Settings: events group
   'admin.settings.group.events': 'Events',
@@ -190,11 +179,9 @@ const m = {
   'admin.settings.key.events_require_approval': 'Admin approval for independent events',
   'admin.settings.key.event_max_open_per_user': 'Maximum open events per user',
   'admin.settings.key.event_daily_create_limit': 'Daily event creation limit per user',
-  'admin.settings.events.explain': 'Approval and limit rules for independent events created by users. Changes take effect immediately.',
   'admin.settings.events.approvalTitle': 'Approval',
   'admin.settings.events.approvalOn': 'New events wait for admin approval',
   'admin.settings.events.approvalOff': 'New events are published directly',
-  'admin.settings.events.approvalHint': 'When off, events appear without waiting for approval; community events follow their own rules.',
   'admin.settings.events.limitsTitle': 'Limits',
   'admin.settings.events.zeroUnlimited': '0 = unlimited. Admins are not subject to the limits.',
 

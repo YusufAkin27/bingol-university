@@ -1,10 +1,8 @@
 const m = {
   'admin.settings.title': 'الإعدادات',
-  'admin.settings.subtitle': 'روابط المتاجر وبيانات الاتصال وشريط الإعلان ووضع الصيانة.',
   'admin.settings.maintenance': 'وضع الصيانة',
   'admin.settings.storeLinks': 'روابط المتاجر',
   'admin.audit.title': 'سجل التدقيق',
-  'admin.audit.subtitle': 'التغييرات التي أجراها المسؤولون.',
   'admin.audit.col.admin': 'المسؤول',
   'admin.audit.col.action': 'الإجراء',
   'admin.audit.col.at': 'الوقت',
@@ -54,15 +52,10 @@ const m = {
   'admin.settings.general.contact': 'التواصل',
   'admin.settings.general.social': 'وسائل التواصل الاجتماعي',
 
-  'admin.settings.stores.forceTitle': 'كيف يعمل التحديث الإجباري',
-  'admin.settings.stores.force':
-    'التطبيقات التي يقل إصدارها عن «الحد الأدنى للإصدار» تطلب من المستخدم التحديث قبل المتابعة. ارفع هذه القيمة فقط بعد نشر الإصدار الجديد في المتجر.',
   'admin.settings.stores.android': 'أندرويد',
   'admin.settings.stores.ios': 'iOS',
   'admin.settings.stores.min': 'الحد الأدنى للإصدار (إجباري)',
-  'admin.settings.stores.minHint': 'الإصدارات الأقل من هذا تطلب التحديث.',
   'admin.settings.stores.latest': 'أحدث إصدار',
-  'admin.settings.stores.latestHint': 'آخر إصدار في المتجر؛ تظهر للإصدارات الأقدم دعوة اختيارية للتحديث.',
   'admin.settings.stores.url': 'رابط المتجر',
   'admin.settings.stores.inverted': 'يبدو أن الحد الأدنى للإصدار أعلى من أحدث إصدار. تحقق من القيم.',
 
@@ -70,14 +63,10 @@ const m = {
   'admin.settings.banner.previewLang': 'لغة المعاينة',
   'admin.settings.banner.texts': 'نص الشريط والرابط',
   'admin.settings.banner.intro': 'إذا كان النص فارغًا فلن يظهر شريط. اللغة التي تُترك فارغة يظهر فيها النص التركي.',
-  'admin.settings.banner.urlHint': 'اختياري. يُفتح عند النقر؛ يجب أن يبدأ بـ https://',
   'admin.settings.banner.none': 'نص الشريط فارغ؛ لن يظهر شريط في التطبيق.',
   'admin.settings.banner.open': 'فتح',
-  'admin.settings.banner.fallback': 'لا يوجد نص بهذه اللغة؛ يُعرض النص التركي.',
 
   'admin.settings.maintenance.on': 'مفعّل',
-  'admin.settings.maintenance.explain':
-    'عند تفعيل وضع الصيانة يرى جميع المستخدمين رسالة الصيانة في التطبيق. استخدمه للانقطاعات القصيرة.',
   'admin.settings.maintenance.activeTitle': 'وضع الصيانة مفعّل الآن',
   'admin.settings.maintenance.activeText': 'يرى جميع المستخدمين رسالة الصيانة. لا تنسَ إيقافه عند الانتهاء.',
   'admin.settings.maintenance.switchOn': 'سيكون وضع الصيانة مفعّلًا',
@@ -88,8 +77,6 @@ const m = {
     'بمجرد التفعيل يرى جميع المستخدمين رسالة الصيانة. يبقى التطبيق على شاشة الصيانة حتى توقفه.',
   'admin.settings.maintenance.confirmBtn': 'تفعيل وضع الصيانة',
 
-  'admin.settings.faculties.explain':
-    'يختار المستخدمون كليتهم من هذه القائمة في ملفهم الشخصي. تُستخدم الاختيارات في توزيع الكليات (التركيبة السكانية) ضمن التحليلات. ما دامت القائمة غير فارغة يجب أن تكون كلية الملف الشخصي أحد هذه الأسماء؛ وقد يؤدي تغيير اسم إلى إبطال اختيارات سابقة.',
   'admin.settings.faculties.add': 'إضافة كلية',
   'admin.settings.faculties.placeholder': 'اكتب اسم الكلية واضغط Enter',
   'admin.settings.faculties.addBtn': 'إضافة',

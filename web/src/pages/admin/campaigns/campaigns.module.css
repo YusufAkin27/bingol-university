@@ -343,7 +343,7 @@
   background: var(--surface);
   color: var(--text-muted);
   padding: 0 var(--space-4);
-  min-height: 34px;
+  min-height: 40px;
   font-weight: 700;
   font-size: var(--text-xs);
   cursor: pointer;

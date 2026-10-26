@@ -170,7 +170,7 @@ export default function FeedbackPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.feedback.title')} description={t('admin.feedback.subtitle')} />
+      <PageHeader title={t('admin.feedback.title')} />
       <DataToolbar
         filters={
           <div className={styles.filterRow}>

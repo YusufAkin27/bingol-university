@@ -46,7 +46,7 @@ export function RejectDialog({
       }
     >
       <p className={styles.rejectIntro}>{t('admin.review.reject.intro')}</p>
-      <FormField label={t('admin.review.reject.reason')} hint={t('admin.review.reject.hint')}>
+      <FormField label={t('admin.review.reject.reason')}>
         <Textarea
           rows={3}
           value={reason}

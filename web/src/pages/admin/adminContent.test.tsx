@@ -160,7 +160,7 @@ describe('Talep ayrıntısı', () => {
 });
 
 describe('Sözleşme editörü', () => {
-  it('TASLAK uyarısı verir, özet penceresinden sonra yalnızca dolu dilleri yayınlar', async () => {
+  it('özet penceresinden sonra yalnızca dolu dilleri yayınlar', async () => {
     const calls: { url: string; init: RequestInit }[] = [];
     mockFetch((url, init) => {
       calls.push({ url, init });
@@ -177,7 +177,6 @@ describe('Sözleşme editörü', () => {
     fireEvent.change(document.getElementById('legal-content') as HTMLTextAreaElement, {
       target: { value: '## Madde\nTASLAK metin' },
     });
-    expect(screen.getAllByText(/TASLAK/, { selector: 'p' }).length).toBeGreaterThan(0);
 
     await userEvent.click(screen.getByRole('switch', { name: /yeniden onay/i }));
     await userEvent.click(screen.getAllByRole('button', { name: 'Yayınla' })[0]);

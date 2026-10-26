@@ -64,13 +64,12 @@ describe('kampanya oluşturucu', () => {
     expect(screen.getAllByText('Karakter sınırı aşıldı.').length).toBeGreaterThan(0);
   });
 
-  it('boş bırakılan dilde Türkçe gideceğini söyler ve önizleme Türkçeye düşer', async () => {
+  it('boş bırakılan dilde önizleme Türkçeye düşer', async () => {
     setup();
     const user = userEvent.setup();
     await user.type(screen.getByLabelText('Başlık'), 'Duyuru');
     await user.type(screen.getByLabelText('Metin', { exact: true }), 'Metin');
     await user.click(screen.getByRole('tab', { name: /English/ }));
-    expect(screen.getByText(/boş bırakılırsa bu dili kullanan kişilere Türkçe metin gider/)).toBeInTheDocument();
     expect(screen.getByTestId('phone-notification')).toHaveTextContent('Duyuru');
     expect(screen.getByTestId('phone-notification')).toHaveAttribute('lang', 'tr');
   });

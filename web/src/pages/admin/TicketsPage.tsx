@@ -77,7 +77,7 @@ export default function TicketsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.tickets.title')} description={t('admin.tickets.subtitle')} />
+      <PageHeader title={t('admin.tickets.title')} />
       <DataToolbar
         filters={
           <>

@@ -1,6 +1,5 @@
 const m = {
   'admin.tickets.title': 'تذاكر الدعم',
-  'admin.tickets.subtitle': 'أجب عن أسئلة المستخدمين.',
   'admin.tickets.detail.title': 'تفاصيل التذكرة',
   'admin.tickets.status.OPEN': 'بانتظار الرد',
   'admin.tickets.status.ANSWERED': 'تمت الإجابة',
@@ -47,7 +46,6 @@ const m = {
   'admin.tickets.tpl.remove': 'حذف القالب',
   'admin.tickets.tpl.full': 'يُحفظ 20 قالبًا كحد أقصى.',
   'admin.feedback.title': 'الملاحظات والاقتراحات',
-  'admin.feedback.subtitle': 'راجع الملاحظات الواردة وأجب عنها وانشرها.',
   'admin.feedback.status.NEW': 'جديدة',
   'admin.feedback.status.IN_REVIEW': 'قيد المراجعة',
   'admin.feedback.status.PLANNED': 'مخطط لها',

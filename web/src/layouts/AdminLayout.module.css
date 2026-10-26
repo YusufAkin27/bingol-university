@@ -144,8 +144,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: var(--header-h);
-  padding-inline: var(--space-4);
+  min-height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px)) max(var(--space-4), env(safe-area-inset-right, 0px));
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(8px);
   border-block-end: 1px solid var(--border);
@@ -201,7 +202,7 @@
 }
 .main {
   flex: 1;
-  padding: var(--space-5) var(--space-4) var(--space-7);
+  padding: var(--space-5) var(--space-4) calc(var(--space-7) + env(safe-area-inset-bottom, 0px));
   width: 100%;
   max-width: calc(var(--content-max) + 2 * var(--space-6));
   margin-inline: auto;
@@ -272,6 +273,12 @@
   }
   .searchBtn kbd {
     display: none;
+  }
+}
+@media (max-width: 960px) {
+  .item,
+  .collapseBtn {
+    min-height: 44px;
   }
 }
 @media (max-width: 560px) {

@@ -1,6 +1,5 @@
 const m = {
   'admin.analytics.title': 'التحليلات',
-  'admin.analytics.subtitle': 'بيانات استخدام مجمّعة. لا يُعرض سلوك الأفراد.',
   'admin.analytics.tab.overview': 'عام',
   'admin.analytics.tab.growth': 'النمو',
   'admin.analytics.tab.engagement': 'التفاعل',

@@ -232,7 +232,7 @@ export default function ReportsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.reports.title')} description={t('admin.reports.subtitle')} />
+      <PageHeader title={t('admin.reports.title')} />
       <Tabs
         label={t('admin.reports.tabs')}
         value={status}

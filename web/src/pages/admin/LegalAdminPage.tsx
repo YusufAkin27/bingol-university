@@ -36,10 +36,8 @@ import {
   acceptanceRatio,
   activeVersion,
   buildPublishRequest,
-  containsDraftMarker,
   emptyDrafts,
   isDirty,
-  isEmptyDraft,
   isFilled,
   nextVersion,
   type LegalDrafts,
@@ -71,7 +69,6 @@ export default function LegalAdminPage() {
 
   const built = useMemo(() => buildPublishRequest(drafts, reaccept), [drafts, reaccept]);
   const rows = versions.data ?? [];
-  const hasDraftMarker = LEGAL_LANGS.some((l) => containsDraftMarker(`${drafts[l].title}\n${drafts[l].content}`));
 
   const publish = useMutation({
     mutationFn: () => legalApi.publishLegal(type, built.request!),
@@ -156,7 +153,7 @@ export default function LegalAdminPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.legal.title')} description={t('admin.legal.subtitle')} />
+      <PageHeader title={t('admin.legal.title')} />
 
       {summaries.isError && (
         <ErrorState compact onRetry={() => void summaries.refetch()} description={errorMessage(i18n, summaries.error)} />
@@ -282,8 +279,6 @@ export default function LegalAdminPage() {
             </div>
           </div>
 
-          {lang !== 'tr' && isEmptyDraft(d) && <p className={styles.info}>{t('admin.legal.fallback')}</p>}
-
           <FormField label={t('admin.legal.editor.title')} required={lang === 'tr'}>
             <Input
               value={d.title}
@@ -325,11 +320,6 @@ export default function LegalAdminPage() {
             <p className={styles.hint}>{t('admin.legal.reaccept.hint')}</p>
           </div>
 
-          {hasDraftMarker && (
-            <p className={styles.danger} role="alert">
-              {t('admin.legal.draftWarning')}
-            </p>
-          )}
           {dirty && <p className={styles.warn}>{t('admin.legal.dirty')}</p>}
           {showErrors && built.errors.length > 0 && (
             <ul className={styles.errors} role="alert">
@@ -385,7 +375,6 @@ export default function LegalAdminPage() {
             <dd>{reaccept ? t('admin.legal.publish.reacceptOn') : t('admin.legal.publish.reacceptOff')}</dd>
           </div>
         </dl>
-        {hasDraftMarker && <p className={styles.danger}>{t('admin.legal.draftWarning')}</p>}
         <p className={styles.irreversible}>{t('admin.legal.publish.irreversible')}</p>
       </Modal>
 

@@ -22,11 +22,9 @@ const m = {
   'admin.review.reject.title': '“{name}” reddedilsin mi?',
   'admin.review.reject.intro': 'Sahibine kaydın onaylanmadığı bildirilir. Bu işlem sonrasında kayıt “Reddedilen” sekmesine taşınır.',
   'admin.review.reject.reason': 'Red nedeni (isteğe bağlı)',
-  'admin.review.reject.hint': 'Denetim notu olarak saklanır; sahibine gösterilmez. En çok 300 karakter.',
 
   // ---- topluluklar ----
   'admin.communities.title': 'Topluluklar',
-  'admin.communities.subtitle': 'Öğrencilerin açtığı toplulukları inceleyin; uygun olanları yayına alın.',
   'admin.communities.tabs': 'Topluluk durumu',
   'admin.communities.status.PENDING_REVIEW': 'Onay bekleyen',
   'admin.communities.status.ACTIVE': 'Aktif',
@@ -51,7 +49,6 @@ const m = {
 
   // ---- etkinlikler ----
   'admin.events.title': 'Etkinlikler',
-  'admin.events.subtitle': 'Kullanıcıların oluşturduğu etkinlikleri inceleyin; uygun olanları yayına alın.',
   'admin.events.tabs': 'Etkinlik durumu',
   'admin.events.status.PENDING_REVIEW': 'Onay bekleyen',
   'admin.events.status.ACTIVE': 'Aktif',
@@ -78,7 +75,6 @@ const m = {
 
   // ---- kampanyalar: liste ----
   'admin.campaigns.title': 'Kampanyalar',
-  'admin.campaigns.subtitle': 'Mobil kullanıcılara gönderilen bildirimler.',
   'admin.campaigns.new': 'Yeni kampanya',
   'admin.campaigns.status.SCHEDULED': 'Zamanlandı',
   'admin.campaigns.status.SENDING': 'Gönderiliyor',
@@ -137,7 +133,6 @@ const m = {
 
   // ---- oluşturucu ----
   'admin.campaigns.compose.title': 'Yeni kampanya oluştur',
-  'admin.campaigns.compose.subtitle': 'Kime, ne söyleyeceğinizi seçin; sağdaki telefon önizlemesinde nasıl görüneceğini izleyin.',
   'admin.campaigns.compose.reset': 'Yeni kampanya',
   'admin.campaigns.compose.resetTitle': 'Taslak silinsin mi?',
   'admin.campaigns.compose.resetMessage': 'Şu anki taslak temizlenir ve baştan başlanır.',
@@ -183,8 +178,6 @@ const m = {
   'admin.campaigns.content.empty': 'Boş',
   'admin.campaigns.content.title': 'Başlık',
   'admin.campaigns.content.body': 'Metin',
-  'admin.campaigns.content.fallbackTr': '{lang} boş bırakılırsa bu dili kullanan kişilere Türkçe metin gider.',
-  'admin.campaigns.content.ownLang': '{lang} kullanan kişilere bu metin gidecek.',
   'admin.campaigns.content.err.TOO_LONG': 'Karakter sınırı aşıldı.',
   'admin.campaigns.content.err.TR_REQUIRED': 'Türkçe başlık ve metin zorunludur.',
   'admin.campaigns.content.err.PARTIAL': 'Başlık ve metin birlikte doldurulmalı ya da ikisi de boş bırakılmalı.',
@@ -196,7 +189,6 @@ const m = {
   'admin.campaigns.type.SYSTEM.warn':
     'Sistem bildirimleri, bildirimleri kapatmış kullanıcılara da gider. Yalnızca önemli duyurular için kullanın (güvenlik, kesinti, acil değişiklik).',
   'admin.campaigns.target.type': 'Açılacak yer',
-  'admin.campaigns.target.hint': 'Kullanıcı bildirime dokununca uygulamada açılır.',
   'admin.campaigns.target.urlLabel': 'Bağlantı (https://)',
   'admin.campaigns.target.idLabel': 'Kayıt numarası',
   'admin.campaigns.target.err.URL_HTTPS': 'Bağlantı https:// ile başlamalıdır.',
@@ -207,7 +199,6 @@ const m = {
   'admin.campaigns.schedule.laterHint': 'En çok {days} gün sonrası. Gönderimden önce iptal edilebilir.',
   'admin.campaigns.schedule.when': 'Gönderim zamanı (yerel saatiniz)',
   'admin.campaigns.schedule.utc': 'Sunucuya UTC olarak gider: {utc}',
-  'admin.campaigns.schedule.localHint': 'Tarih ve saati seçin.',
   'admin.campaigns.schedule.err.REQUIRED': 'Tarih ve saat seçin.',
   'admin.campaigns.schedule.err.PAST': 'Zaman geçmişte. Gelecekte bir zaman seçin ya da “Hemen gönder”i kullanın.',
   'admin.campaigns.schedule.err.TOO_FAR': 'En çok 30 gün sonrası zamanlanabilir.',

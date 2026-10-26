@@ -29,7 +29,7 @@ export default function CryptoPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.crypto.title')} description={t('admin.crypto.subtitle')} />
+      <PageHeader title={t('admin.crypto.title')} />
       <div className={styles.stack}>
         <Card title={t('admin.crypto.status.title')}>
           {status.isError ? (
@@ -73,7 +73,6 @@ export default function CryptoPage() {
                   </li>
                 ))}
               </ul>
-              <p className={styles.muted}>{t('admin.crypto.status.rewrapHint')}</p>
             </>
           )}
         </Card>

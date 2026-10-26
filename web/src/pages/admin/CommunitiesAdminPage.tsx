@@ -108,7 +108,7 @@ export default function CommunitiesAdminPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.communities.title')} description={t('admin.communities.subtitle')} />
+      <PageHeader title={t('admin.communities.title')} />
       <div className={styles.tabsWrap}>
         <Tabs
           tabs={tabs}

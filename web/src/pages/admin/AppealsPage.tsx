@@ -66,7 +66,7 @@ export default function AppealsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.appeals.title')} description={t('admin.appeals.subtitle')} />
+      <PageHeader title={t('admin.appeals.title')} />
       <Tabs
         label={t('admin.appeals.tabs')}
         value={status}
