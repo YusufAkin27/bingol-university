@@ -25,7 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Deger: rol degisim aninin epoch saniyesi. */
     public static final String ROLE_CHANGED_KEY_PREFIX = "rolechg:";
 
-    /** Deger: sifre degisimi / "tum cihazlardan cik" aninin epoch saniyesi (rolechg ile ayni mantik). */
+    /** Deger: sifre degisimi / "tum cihazlardan cik" aninin epoch milisaniyesi (eski surumlerde saniye olabilir). */
     public static final String PASSWORD_CHANGED_KEY_PREFIX = "pwchg:";
 
     private final JwtService jwt;
@@ -62,7 +62,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return false;
         }
         long iat = id.issuedAt().getEpochSecond();
-        return !tokenPredatesRoleChange(iat, at(v, 1)) && !tokenPredatesRoleChange(iat, at(v, 2));
+        return !tokenPredatesRoleChange(iat, at(v, 1)) && !tokenRevoked(id.issuedAtMillis(), at(v, 2));
     }
 
     private static String at(List<String> values, int index) {
@@ -76,6 +76,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         try {
             return issuedAtEpochSecond < Long.parseLong(changedAt);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Oturum iptali ms hassasiyetindedir: iptal anindan once (veya ayni anda) uretilen token reddedilir, sonra
+     * acilan oturum kabul edilir. Saniye cinsinden eski isaretler (&lt; 1e11) ms'ye cevrilir.
+     */
+    public static boolean tokenRevoked(long issuedAtMillis, String revokedAt) {
+        if (revokedAt == null) {
+            return false;
+        }
+        try {
+            long r = Long.parseLong(revokedAt);
+            if (r < 100_000_000_000L) {
+                r = r * 1000 + 999;
+            }
+            return issuedAtMillis <= r;
         } catch (NumberFormatException e) {
             return false;
         }

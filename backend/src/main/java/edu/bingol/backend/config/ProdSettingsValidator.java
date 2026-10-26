@@ -68,7 +68,12 @@ public class ProdSettingsValidator {
         }
 
         if (!env.getProperty("app.mail.enabled", Boolean.class, false)) {
-            warnings.add("MAIL_ENABLED=false: dogrulama kodlari e-posta yerine log'a yazilir; uretimde MAIL_* verin");
+            if (env.getProperty("app.mail.allow-log-only", Boolean.class, false)) {
+                warnings.add("MAIL_ENABLED=false (allow-log-only): dogrulama kodlari e-posta yerine log'a yazilir");
+            } else {
+                errors.add("MAIL_ENABLED=true ve MAIL_* zorunlu; kodlarin log'a yazilmasi icin bilincli olarak "
+                        + "app.mail.allow-log-only=true verin");
+            }
         } else if (!notBlank(env, "spring.mail.host") || "localhost".equals(env.getProperty("spring.mail.host"))) {
             errors.add("MAIL_ENABLED=true iken MAIL_HOST zorunlu");
         }

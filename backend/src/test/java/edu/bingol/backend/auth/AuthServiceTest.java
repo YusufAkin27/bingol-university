@@ -22,7 +22,7 @@ import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
-import edu.bingol.backend.legal.LegalService;
+
 import java.util.List;
 import java.util.Optional;
 import edu.bingol.backend.user.User;
@@ -41,11 +41,11 @@ class AuthServiceTest {
     private final VerificationService verification = mock(VerificationService.class);
     private final PendingRegistrationStore pending = mock(PendingRegistrationStore.class);
     private final SessionService sessions = mock(SessionService.class);
-    private final LegalService legal = mock(LegalService.class);
+    private final AccountCreator accounts = mock(AccountCreator.class);
     private final JwtService jwt = mock(JwtService.class);
     private final RefreshTokenService refresh = mock(RefreshTokenService.class);
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh,
-            verification, new AdminProperties(List.of()), legal, pending, sessions);
+            verification, new AdminProperties(List.of()), accounts, pending, sessions);
 
     @ParameterizedTest
     @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
@@ -136,20 +136,42 @@ class AuthServiceTest {
     }
 
     @Test
-    void verifyEmailCreatesAccountFromFirstRegistrationData() {
-        when(pending.find(EMAIL)).thenReturn(new Pending("hash-1", "Ali", "en"));
+    void verifyEmailCreatesAccountViaTransactionalCreatorAndClearsPending() {
+        Pending p = new Pending("hash-1", "Ali", "en");
+        when(pending.find(EMAIL)).thenReturn(p);
         when(verification.verify(EMAIL, "123456")).thenReturn(true);
-        when(users.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        User created = verifiedUser();
+        when(accounts.create(EMAIL, p)).thenReturn(created);
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
 
         auth.verifyEmail(EMAIL, " 123456 ");
 
-        org.mockito.ArgumentCaptor<User> saved = org.mockito.ArgumentCaptor.forClass(User.class);
-        verify(users).save(saved.capture());
-        assertEquals("hash-1", saved.getValue().getPasswordHash());
-        assertEquals("Ali", saved.getValue().getDisplayName());
-        assertEquals("en", saved.getValue().getLanguage());
-        assertTrue(saved.getValue().isEmailVerified());
+        verify(accounts).create(EMAIL, p);
         verify(pending).delete(EMAIL);
+    }
+
+    @Test
+    void verifyEmailUniqueViolationBecomes409NotServerError() {
+        Pending p = new Pending("hash-1", "Ali", "en");
+        when(pending.find(EMAIL)).thenReturn(p);
+        when(verification.verify(EMAIL, "123456")).thenReturn(true);
+        when(accounts.create(EMAIL, p)).thenThrow(new org.springframework.dao.DataIntegrityViolationException("uq"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456"));
+
+        assertEquals("EMAIL_ALREADY_REGISTERED", e.code());
+        assertEquals(HttpStatus.CONFLICT, e.status());
+    }
+
+    @Test
+    void registerWithPendingRegistrationOnlyResendsCodeAndKeepsOriginalData() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        when(pending.find(EMAIL)).thenReturn(new Pending("orijinal-hash", "Ali", "en"));
+
+        auth.register(EMAIL, "SaldirganSifre1", "Mallory", Lang.TR);
+
+        verify(verification).issue(EMAIL, Lang.EN);
+        verify(pending, never()).save(any(), any());
     }
 
     @Test

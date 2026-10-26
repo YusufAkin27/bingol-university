@@ -48,6 +48,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class EventService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EventService.class);
+
     static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
     static final Instant FAR_FUTURE = Instant.parse("2100-01-01T00:00:00Z");
     static final Instant MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
@@ -104,21 +106,42 @@ public class EventService {
         if (rooms == null || canManage(a, e)) {
             return;
         }
-        try {
-            rooms.removeMember(edu.bingol.backend.messaging.room.RoomKind.EVENT, e.getId(), a.id());
-        } catch (RuntimeException ex) {
-            // sozlesme: senkron hatasi RSVP islemini bozmaz; sohbet erisiminde canli yetki kontrolu zaten var
-        }
+        Long eventId = e.getId();
+        Long userId = a.id();
+        // Ortak transaction'da hata rollback-only birakmasin: commit sonrasi, ayri transaction'da.
+        afterCommit(() -> rooms.removeMemberIsolated(edu.bingol.backend.messaging.room.RoomKind.EVENT, eventId, userId));
     }
 
     private void closeRoom(UserEvent e) {
         if (rooms == null) {
             return;
         }
-        try {
-            rooms.closeRoom(edu.bingol.backend.messaging.room.RoomKind.EVENT, e.getId());
-        } catch (RuntimeException ex) {
-            // iptal islemini bozma
+        Long eventId = e.getId();
+        afterCommit(() -> rooms.closeRoomIsolated(edu.bingol.backend.messaging.room.RoomKind.EVENT, eventId));
+    }
+
+    /**
+     * Oda senkronu: islem commit olduktan sonra calisir (transaction yoksa hemen); hata yutulur ve loglanir
+     * (sozlesme: senkron hatasi RSVP/iptal islemini bozmaz; sohbet erisiminde canli yetki kontrolu zaten var).
+     */
+    private void afterCommit(Runnable action) {
+        Runnable safe = () -> {
+            try {
+                action.run();
+            } catch (RuntimeException ex) {
+                log.warn("Etkinlik odasi senkronu basarisiz: {}", ex.toString());
+            }
+        };
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            safe.run();
+                        }
+                    });
+        } else {
+            safe.run();
         }
     }
 
@@ -316,7 +339,8 @@ public class EventService {
         boolean truncated = userRows.size() > CALENDAR_USER_LIMIT || news.size() > CALENDAR_OFFICIAL_LIMIT;
         List<CalendarItem> out = new ArrayList<>(calendarUserItems(a, month, firstN(userRows, CALENDAR_USER_LIMIT)));
         for (NewsItem n : firstN(news, CALENDAR_OFFICIAL_LIMIT)) {
-            out.add(new CalendarItem("OFFICIAL", n.getId(), n.getTitle(), n.getPublishedDate(), null, null, null,
+            out.add(new CalendarItem("OFFICIAL", n.getId(), n.getTitle(),
+                    n.getEventDate() != null ? n.getEventDate() : n.getPublishedDate(), null, null, null,
                     n.getUrl(), n.getImageUrl(), null, null, null, null, null, null, null));
         }
         out.sort(Comparator.comparing(CalendarItem::date, Comparator.nullsLast(Comparator.naturalOrder()))

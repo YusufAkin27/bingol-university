@@ -1,10 +1,12 @@
 package edu.bingol.backend.messaging.ws;
 
+import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -41,6 +43,30 @@ public class TokenExpiryGuard {
                 super.afterConnectionClosed(session, status);
             }
         };
+    }
+
+    static final CloseStatus REVOKED = new CloseStatus(CloseStatus.POLICY_VIOLATION.getCode(), "SESSION_REVOKED");
+
+    /** Tum oturumlar iptal edilince (logout-all, sifre sifirlama) kullanicinin acik WS baglantilarini kapatir. */
+    @EventListener
+    public void onSessionsRevoked(SessionsRevokedEvent e) {
+        closeUser(e.userId());
+    }
+
+    int closeUser(Long userId) {
+        int closed = 0;
+        for (WebSocketSession s : sessions.values()) {
+            if (userId != null && userId.equals(s.getAttributes().get(StompAuthInterceptor.USER_ID_ATTR))) {
+                sessions.remove(s.getId());
+                try {
+                    s.close(REVOKED);
+                    closed++;
+                } catch (Exception ex) {
+                    log.debug("Iptal edilen WS oturumu kapatilamadi: {}", ex.toString());
+                }
+            }
+        }
+        return closed;
     }
 
     @Scheduled(fixedDelay = 30_000)

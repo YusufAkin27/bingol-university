@@ -45,6 +45,23 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
+    void uniqueViolationIsRetriedOnceAndOwnershipUpdated() {
+        Device winner = new Device();
+        winner.setUserId(9L);
+        winner.setFcmToken("tok-race-xxxxxxxxxxxx");
+        when(devices.findByFcmToken("tok-race-xxxxxxxxxxxx")).thenReturn(Optional.empty(), Optional.of(winner));
+        when(devices.saveAndFlush(any(Device.class)))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("uq"))
+                .thenAnswer(i -> i.getArgument(0));
+        when(devices.findByUserIdOrderByUpdatedAtDesc(4L)).thenReturn(List.of(winner));
+
+        deviceSvc.register(4L, "tok-race-xxxxxxxxxxxx", "ANDROID");
+
+        assertEquals(4L, winner.getUserId());
+        verify(devices, org.mockito.Mockito.times(2)).saveAndFlush(any(Device.class));
+    }
+
+    @Test
     void registerNormalizesPlatformAndStoresMeta() {
         when(devices.findByFcmToken(anyString())).thenReturn(Optional.empty());
         when(devices.findByUserIdOrderByUpdatedAtDesc(3L)).thenReturn(List.of());

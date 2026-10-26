@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -139,6 +140,21 @@ public class RoomConversations {
         m.setLeftAt(Instant.now());
         members.save(m);
         return true;
+    }
+
+    /**
+     * removeMember'in bagimsiz (REQUIRES_NEW) surumu: cagiranin transaction'i commit olduktan sonra (afterCommit)
+     * calistirilir; hata cagiranin transaction'ini rollback-only yapmaz.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean removeMemberIsolated(RoomKind kind, Long refId, Long userId) {
+        return removeMember(kind, refId, userId);
+    }
+
+    /** closeRoom'un bagimsiz (REQUIRES_NEW) surumu; bkz. {@link #removeMemberIsolated}. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void closeRoomIsolated(RoomKind kind, Long refId) {
+        closeRoom(kind, refId);
     }
 
     /** Odayi kapatir: herkes cikarilir, yeni uye eklenmez. Gecmis veritabaninda kalir. Idempotent. */

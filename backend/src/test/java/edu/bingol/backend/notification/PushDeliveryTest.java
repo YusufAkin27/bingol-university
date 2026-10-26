@@ -98,6 +98,17 @@ class PushDeliveryTest {
     }
 
     @Test
+    void droppedPushIsCountedWhenQueueIsFull() {
+        PushDispatcher full = new PushDispatcher(fcm, devices, r -> {
+            throw new java.util.concurrent.RejectedExecutionException("dolu");
+        }, (task, ms) -> { });
+        full.dispatch(List.of("tok-aaaaaaaaaaaaaaaa", "tok-bbbbbbbbbbbbbbbb"),
+                edu.bingol.backend.notification.fcm.PushMessage.simple("T", "B", Map.of(), null));
+        org.junit.jupiter.api.Assertions.assertEquals(2, full.droppedCount());
+        org.junit.jupiter.api.Assertions.assertEquals(1, full.failureCount());
+    }
+
+    @Test
     void invalidTokensAreRemoved() {
         fcm.markInvalid("tok-aaaaaaaaaaaaaaaa");
 

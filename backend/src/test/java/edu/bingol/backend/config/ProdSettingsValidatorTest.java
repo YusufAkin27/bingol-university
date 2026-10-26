@@ -55,11 +55,18 @@ class ProdSettingsValidatorTest {
     }
 
     @Test
-    void mailAndFcmOffOnlyWarn() {
-        var env = valid().withProperty("app.mail.enabled", "false").withProperty("app.fcm.credentials-file", "");
+    void mailAndFcmOffOnlyWarnWhenLogOnlyAllowed() {
+        var env = valid().withProperty("app.mail.enabled", "false").withProperty("app.fcm.credentials-file", "")
+                .withProperty("app.mail.allow-log-only", "true");
         var r = ProdSettingsValidator.validate(env);
         assertTrue(r.errors().isEmpty());
         assertTrue(r.warnings().size() >= 2);
+    }
+
+    @Test
+    void mailOffIsAnErrorInProdWithoutExplicitFlag() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("app.mail.enabled", "false"));
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("MAIL_ENABLED")));
     }
 
     @Test

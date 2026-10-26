@@ -63,7 +63,32 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void tokenWithoutMarkersIsAccepted() throws Exception {
+    void revokeMarkerHasMillisecondPrecision() {
+        assertFalse(JwtAuthFilter.tokenRevoked(1_700_000_000_500L, null));
+        // Ayni saniyede ama iptalden once uretilen eski token reddedilir
+        assertTrue(JwtAuthFilter.tokenRevoked(1_700_000_000_100L, "1700000000400"));
+        // Iptalden sonra (ayni saniye) acilan oturum kabul edilir
+        assertFalse(JwtAuthFilter.tokenRevoked(1_700_000_000_700L, "1700000000400"));
+        // Eski surumden kalan saniye isareti: o saniyedeki token reddedilir, sonraki saniye kabul
+        assertTrue(JwtAuthFilter.tokenRevoked(1_700_000_000_100L, "1700000000"));
+        assertFalse(JwtAuthFilter.tokenRevoked(1_700_000_001_000L, "1700000000"));
+        assertFalse(JwtAuthFilter.tokenRevoked(1_700_000_000_100L, "bozuk"));
+    }
+
+    @Test
+    void tokenIssuedBeforeRevokeInSameSecondIsRejected() throws Exception {
+        when(redis.opsForValue()).thenReturn(ops);
+        String old = token(Role.USER);
+        long revokeAt = System.currentTimeMillis() + 5;
+        when(ops.multiGet(anyList())).thenReturn(Arrays.asList(null, null, String.valueOf(revokeAt)));
+        assertFalse(authenticated(old));
+
+        when(ops.multiGet(anyList())).thenReturn(Arrays.asList(null, null, String.valueOf(System.currentTimeMillis() - 5000)));
+        assertTrue(authenticated(token(Role.USER)));
+    }
+
+    @Test
+    void tokenWithoutMarkersIsAccepted()throws Exception {
         when(redis.opsForValue()).thenReturn(ops);
         when(ops.multiGet(anyList())).thenReturn(Arrays.asList(null, null));
 

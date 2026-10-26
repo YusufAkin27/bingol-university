@@ -53,4 +53,17 @@ class TokenExpiryGuardTest {
 
         assertEquals(0, guard.sweep(1_000_000));
     }
+
+    @Test
+    void revokedUserSessionsAreClosed() throws Exception {
+        WebSocketSession mine = connect("a", 99_999L);
+        mine.getAttributes().put(StompAuthInterceptor.USER_ID_ATTR, 7L);
+        WebSocketSession other = connect("b", 99_999L);
+        other.getAttributes().put(StompAuthInterceptor.USER_ID_ATTR, 8L);
+
+        guard.onSessionsRevoked(new edu.bingol.backend.auth.token.SessionsRevokedEvent(7L));
+
+        verify(mine).close(TokenExpiryGuard.REVOKED);
+        verify(other, never()).close(any(CloseStatus.class));
+    }
 }

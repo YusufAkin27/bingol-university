@@ -11,7 +11,6 @@ import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
-import edu.bingol.backend.legal.LegalService;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
@@ -20,6 +19,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class AuthService {
     private final RefreshTokenService refresh;
     private final VerificationService verification;
     private final AdminProperties admin;
-    private final LegalService legal;
+    private final AccountCreator accounts;
     private final PendingRegistrationStore pending;
     private final SessionService sessions;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
@@ -47,9 +47,9 @@ public class AuthService {
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
                        RefreshTokenService refresh, VerificationService verification, AdminProperties admin,
-                       LegalService legal, PendingRegistrationStore pending, SessionService sessions) {
+                       AccountCreator accounts, PendingRegistrationStore pending, SessionService sessions) {
         this.admin = admin;
-        this.legal = legal;
+        this.accounts = accounts;
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
@@ -78,6 +78,13 @@ public class AuthService {
         if (user != null && user.isEmailVerified()) {
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
                     "Bu e-posta ile zaten kayıt olunmuş.");
+        }
+        Pending waiting = pending.find(email);
+        if (waiting != null) {
+            // Bekleyen kayit varken sifre/ad ezilmez (baskasinin e-postasiyla kaydi ele gecirme penceresi);
+            // yalnizca yeni kod gider (bekleme suresi doluysa burada 429).
+            verification.issue(email, Lang.of(waiting.language()));
+            return;
         }
         // Kod once gider (bekleme suresi doluysa burada 429); bekleme sirasinda bekleyen kayit ezilmez.
         verification.issue(email, lang);
@@ -150,15 +157,15 @@ public class AuthService {
         if (!verification.verify(email, code.trim())) {
             throw invalidCode();
         }
-        User user = existing != null ? existing : new User();
-        user.setEmail(email);
-        user.setPasswordHash(p.passwordHash());
-        user.setDisplayName(p.displayName());
-        user.setLanguage(p.language());
-        user.setEmailVerified(true);
-        promoteIfAdmin(user);
-        user = users.save(user);
-        legal.recordSignupConsent(user.getId());
+        User user;
+        try {
+            user = accounts.create(email, p);
+        } catch (DataIntegrityViolationException e) {
+            // Es zamanli kayit/benzersizlik ihlali: 500 yerine anlamli cevap; bekleyen kayit artik gereksiz.
+            pending.delete(email);
+            throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
+                    "Bu e-posta ile zaten kayıt olunmuş.");
+        }
         pending.delete(email);
         return tokens(user);
     }

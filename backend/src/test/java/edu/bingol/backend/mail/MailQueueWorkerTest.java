@@ -35,7 +35,7 @@ class MailQueueWorkerTest {
     }
 
     private MailQueueWorker workerWith(boolean enabled) {
-        MailProperties props = new MailProperties(enabled, "no-reply@bingol.edu.tr", "BÜ Kampüs", 5000, 2, 20);
+        MailProperties props = new MailProperties(enabled, "no-reply@bingol.edu.tr", "BÜ Kampüs", 5000, 2, 20, false);
         return new MailQueueWorker(outbox, new MailRenderer(), transport, props, JsonMapper.builder().build(),
                 metrics);
     }
@@ -89,6 +89,25 @@ class MailQueueWorkerTest {
 
         verify(transport, never()).send(any(), any(), any(), any(), any());
         assertThat(m.getStatus()).isEqualTo(MailStatus.SENT);
+    }
+
+    @Test
+    void staleCodeMailIsKilledWithoutSendingAndScrubbed() throws Exception {
+        MailOutbox m = queued();
+        m.setCreatedAt(Instant.now().minus(java.time.Duration.ofMinutes(11)));
+
+        worker.processDue();
+
+        verify(transport, never()).send(any(), any(), any(), any(), any());
+        assertThat(m.getStatus()).isEqualTo(MailStatus.DEAD);
+        assertThat(m.getVarsJson()).isEqualTo("{}");
+        verify(outbox).save(m);
+    }
+
+    @Test
+    void purgeDeletesEverythingOlderThanRetention() {
+        worker.purgeOld();
+        verify(outbox).deleteFinishedBefore(any());
     }
 
     @Test

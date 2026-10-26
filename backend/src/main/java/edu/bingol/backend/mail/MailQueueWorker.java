@@ -29,6 +29,8 @@ public class MailQueueWorker {
     /** Bir turda alinan kaydin baska sunucularca tekrar alinmamasi icin kira suresi. */
     private static final Duration LEASE = Duration.ofMinutes(5);
     private static final Duration RETENTION = Duration.ofDays(30);
+    /** Kodlu sablonlar bu sureden sonra gonderilmez: kod (VerificationService.CODE_TTL) zaten gecersizdir. */
+    static final Duration CODE_MAIL_MAX_AGE = Duration.ofMinutes(10);
     private static final TypeReference<Map<String, String>> VARS_TYPE = new TypeReference<>() {
     };
 
@@ -69,7 +71,7 @@ public class MailQueueWorker {
         processDue();
     }
 
-    /** Eski gonderilmis/olu kayitlari siler (her gece). */
+    /** 30 gunden eski her durumdaki kayitlari siler (her gece). */
     @Scheduled(cron = "0 40 3 * * *", zone = "Europe/Istanbul")
     public void purgeOld() {
         try {
@@ -98,6 +100,12 @@ public class MailQueueWorker {
         if (m == null || (m.getStatus() != MailStatus.PENDING && m.getStatus() != MailStatus.FAILED)) {
             return;
         }
+        if (isStaleCodeMail(m)) {
+            m.markExpired("kod suresi doldu, gonderilmedi");
+            metrics.counter("mail.queue.expired").increment();
+            outbox.save(m);
+            return;
+        }
         try {
             deliver(m);
             m.markSent(Instant.now());
@@ -106,6 +114,11 @@ public class MailQueueWorker {
             recordFailure(m, e);
         }
         outbox.save(m);
+    }
+
+    private static boolean isStaleCodeMail(MailOutbox m) {
+        return (m.getTemplate() == MailTemplate.VERIFICATION_CODE || m.getTemplate() == MailTemplate.PASSWORD_RESET_CODE)
+                && m.getCreatedAt() != null && m.getCreatedAt().isBefore(Instant.now().minus(CODE_MAIL_MAX_AGE));
     }
 
     private void deliver(MailOutbox m) throws Exception {

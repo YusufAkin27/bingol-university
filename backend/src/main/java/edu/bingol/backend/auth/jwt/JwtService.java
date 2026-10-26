@@ -21,9 +21,11 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     /** Gecerli bir token'dan okunan kimlik. */
-    public record Identity(Long userId, Role role, Instant issuedAt) {}
+    public record Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis) {}
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+    /** iat saniye hassasiyetinde oldugu icin oturum iptali karsilastirmasinda kullanilan ms hassasiyetli ek talep. */
+    static final String IAT_MS_CLAIM = "iatms";
     private static final String DEV_SECRET_PREFIX = "dev-only-secret";
 
     private final SecretKey key;
@@ -52,6 +54,7 @@ public class JwtService {
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
+                .claim(IAT_MS_CLAIM, now.getTime())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTtl.toMillis()))
                 .signWith(key)
@@ -64,8 +67,10 @@ public class JwtService {
             Claims c = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
             String role = c.get("role", String.class);
             Date iat = c.getIssuedAt();
+            Long ms = c.get(IAT_MS_CLAIM, Long.class);
+            long iatMs = ms != null ? ms : (iat == null ? 0L : iat.getTime());
             return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role),
-                    iat == null ? Instant.EPOCH : iat.toInstant());
+                    iat == null ? Instant.EPOCH : iat.toInstant(), iatMs);
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }

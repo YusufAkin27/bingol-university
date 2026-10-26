@@ -30,7 +30,7 @@ class MailServiceTest {
         outbox = mock(MailOutboxRepository.class);
         transport = mock(MailTransport.class);
         events = mock(ApplicationEventPublisher.class);
-        MailProperties props = new MailProperties(false, "no-reply@bingol.edu.tr", "BÜ Kampüs", 5000, 5, 20);
+        MailProperties props = new MailProperties(false, "no-reply@bingol.edu.tr", "BÜ Kampüs", 5000, 5, 20, false);
         service = new MailService(outbox, transport, props, JsonMapper.builder().build(), events);
     }
 

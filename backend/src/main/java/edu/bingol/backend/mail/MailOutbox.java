@@ -76,6 +76,13 @@ public class MailOutbox {
         }
     }
 
+    /** Gonderilmeden vazgecildi (ornegin kodun suresi doldu): DEAD yapilir, degiskenler temizlenir. */
+    public void markExpired(String reason) {
+        status = MailStatus.DEAD;
+        lastError = reason;
+        scrubVars();
+    }
+
     /** Kod gibi hassas degiskenler isi bitince (gonderildi/olu) veritabaninda tutulmaz. */
     private void scrubVars() {
         varsJson = "{}";

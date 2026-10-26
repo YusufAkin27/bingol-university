@@ -12,7 +12,10 @@ import org.springframework.data.repository.query.Param;
 /** Takvim gorunumu icin siteden gelen resmi ETKINLIK kayitlari (news modulune dokunmadan, salt okunur). */
 public interface OfficialEventRepository extends JpaRepository<NewsItem, Long> {
 
-    @Query("SELECT n FROM NewsItem n WHERE n.type = :type AND n.hidden = false AND n.publishedDate >= :from AND n.publishedDate <= :to ORDER BY n.publishedDate, n.id")
+    /** Etkinligin gercek gunu (eventDate) varsa ona, yoksa yayin tarihine gore aralik ve siralama. */
+    @Query("SELECT n FROM NewsItem n WHERE n.type = :type AND n.hidden = false "
+            + "AND COALESCE(n.eventDate, n.publishedDate) >= :from AND COALESCE(n.eventDate, n.publishedDate) <= :to "
+            + "ORDER BY COALESCE(n.eventDate, n.publishedDate), n.id")
     List<NewsItem> inRange(@Param("type") ContentType type, @Param("from") LocalDate from,
                            @Param("to") LocalDate to, Pageable page);
 }

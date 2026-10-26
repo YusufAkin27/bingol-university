@@ -29,6 +29,23 @@ public class DeviceService {
      * son gorulmeyi yeniler.
      */
     public void register(Long userId, String token, String platform, String appVersion, String locale) {
+        try {
+            upsert(userId, token, platform, appVersion, locale);
+        } catch (DataIntegrityViolationException e) {
+            // Es zamanli iki kayit: token benzersizligi. Digeri kazandi; yeniden okuyup sahipligi biz guncelleriz.
+            try {
+                upsert(userId, token, platform, appVersion, locale);
+            } catch (DataIntegrityViolationException again) {
+                return;
+            }
+        }
+        List<Device> mine = devices.findByUserIdOrderByUpdatedAtDesc(userId);
+        if (mine.size() > MAX_DEVICES) {
+            devices.deleteAll(mine.subList(MAX_DEVICES, mine.size()));
+        }
+    }
+
+    private void upsert(Long userId, String token, String platform, String appVersion, String locale) {
         Device d = devices.findByFcmToken(token).orElseGet(Device::new);
         Instant now = Instant.now();
         d.setFcmToken(token);
@@ -38,16 +55,7 @@ public class DeviceService {
         d.setLocale(locale);
         d.setUpdatedAt(now);
         d.setLastSeenAt(now);
-        try {
-            devices.saveAndFlush(d);
-        } catch (DataIntegrityViolationException e) {
-            // Es zamanli iki kayit: token benzersizligi; digeri kazandi, bu cagri yenileme sayilir.
-            return;
-        }
-        List<Device> mine = devices.findByUserIdOrderByUpdatedAtDesc(userId);
-        if (mine.size() > MAX_DEVICES) {
-            devices.deleteAll(mine.subList(MAX_DEVICES, mine.size()));
-        }
+        devices.saveAndFlush(d);
     }
 
     public List<DeviceView> list(Long userId) {

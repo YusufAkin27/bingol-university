@@ -47,14 +47,17 @@ public class PushDispatcher {
     private final AtomicLong delivered = new AtomicLong();
     private final AtomicLong failures = new AtomicLong();
     private final AtomicLong retries = new AtomicLong();
+    private final AtomicLong dropped = new AtomicLong();
     private volatile Instant lastFailureAt;
 
     @Autowired
     public PushDispatcher(FcmSender fcm, DeviceRepository devices) {
         this.fcm = fcm;
         this.devices = devices;
-        this.ownPool = new ThreadPoolExecutor(1, 4, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(2000),
+        // core=max: sinirli kuyrukta max thread hic devreye girmez, bu yuzden esit tutulur.
+        this.ownPool = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(2000),
                 r -> daemon(r, "push-send"));
+        this.ownPool.allowCoreThreadTimeOut(true);
         this.ownTimer = new ScheduledThreadPoolExecutor(1, r -> daemon(r, "push-retry"));
         this.executor = ownPool;
         this.scheduler = (task, ms) -> ownTimer.schedule(task, ms, TimeUnit.MILLISECONDS);
@@ -89,7 +92,7 @@ public class PushDispatcher {
         try {
             executor.execute(() -> sendChunks(all, message, 0));
         } catch (RejectedExecutionException e) {
-            recordFailure("kuyruk dolu");
+            recordDropped(all.size());
         }
     }
 
@@ -126,7 +129,7 @@ public class PushDispatcher {
             try {
                 executor.execute(() -> sendChunks(tokens, message, attempt + 1));
             } catch (RejectedExecutionException e) {
-                recordFailure("kuyruk dolu");
+                recordDropped(tokens.size());
             }
         }, backoffMillis(attempt));
     }
@@ -140,6 +143,16 @@ public class PushDispatcher {
         failures.incrementAndGet();
         lastFailureAt = Instant.now();
         log.warn("Push gonderimi basarisiz: {}", reason);
+    }
+
+    /** Kuyruk dolunca dusen push: WARN log + hata sayaci + ayri dusen sayaci. */
+    private void recordDropped(int tokenCount) {
+        dropped.addAndGet(tokenCount);
+        recordFailure("kuyruk dolu, " + tokenCount + " cihaz icin push dusuruldu");
+    }
+
+    public long droppedCount() {
+        return dropped.get();
     }
 
     public long deliveredCount() {
@@ -162,6 +175,15 @@ public class PushDispatcher {
     void shutdown() {
         if (ownPool != null) {
             ownPool.shutdown();
+            try {
+                // Kuyruktaki gonderimlere kisa sure tani; bitmezse kalanlar atilir.
+                if (!ownPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                    ownPool.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                ownPool.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
         if (ownTimer != null) {
             ownTimer.shutdownNow();

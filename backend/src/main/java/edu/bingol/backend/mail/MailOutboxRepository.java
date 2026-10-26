@@ -27,10 +27,9 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
 
     long countByStatus(MailStatus status);
 
-    /** Temizlik: eski gonderilmis/olu kayitlar (kisisel veri tutmamak icin). */
+    /** Temizlik: belirtilen tarihten eski her durumdaki kayit (takilmis PENDING/FAILED dahil; kisisel veri tutmamak icin). */
     @Transactional
     @Modifying
-    @Query("DELETE FROM MailOutbox m WHERE m.status IN (edu.bingol.backend.mail.MailStatus.SENT, "
-            + "edu.bingol.backend.mail.MailStatus.DEAD) AND m.createdAt < :before")
+    @Query("DELETE FROM MailOutbox m WHERE m.createdAt < :before")
     int deleteFinishedBefore(@Param("before") Instant before);
 }
