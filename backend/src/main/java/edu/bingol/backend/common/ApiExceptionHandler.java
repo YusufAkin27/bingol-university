@@ -4,6 +4,7 @@ import edu.bingol.backend.i18n.I18n;
 import java.util.Locale;
 import java.util.Map;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -29,6 +30,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Map<String, String>> api(ApiException e) {
         return body(e.status(), e.code(), i18n.error(e.code(), e.getMessage(), locale(), e.args()));
+    }
+
+    @ExceptionHandler(RateLimitedException.class)
+    ResponseEntity<Map<String, String>> rateLimited(RateLimitedException e) {
+        return ResponseEntity.status(e.status()).header(HttpHeaders.RETRY_AFTER, String.valueOf(e.retryAfterSeconds()))
+                .body(Map.of("code", e.code(), "message", i18n.error(e.code(), e.getMessage(), locale(), e.args())));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

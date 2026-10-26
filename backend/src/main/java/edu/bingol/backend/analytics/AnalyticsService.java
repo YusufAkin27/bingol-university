@@ -31,6 +31,8 @@ public class AnalyticsService {
 
     private static final Pattern NAME = Pattern.compile("[a-z0-9_]{1,40}");
     private static final Pattern PROP_KEY = Pattern.compile("[a-z0-9_]{1,40}");
+    /** 10+ ardisik rakam telefon/TC kimlik no benzeri kisisel veri sayilir. */
+    private static final Pattern LONG_DIGITS = Pattern.compile("\\d{10,}");
     private static final Pattern SCREEN = Pattern.compile("[A-Za-z0-9_./-]{1,60}");
 
     /** Dogrulanmis, veritabanina yazilmaya hazir olay. */
@@ -100,7 +102,8 @@ public class AnalyticsService {
                 throw invalid();
             }
             String text = String.valueOf(v);
-            if (text.length() > MAX_VALUE_LEN || text.indexOf('@') >= 0) {
+            if (text.length() > MAX_VALUE_LEN || text.indexOf('@') >= 0
+                    || LONG_DIGITS.matcher(text).find()) {
                 throw invalid();
             }
             if (!first) {

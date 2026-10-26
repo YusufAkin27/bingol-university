@@ -1,6 +1,7 @@
 package edu.bingol.backend.support.faq;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.SlicePaging;
 import edu.bingol.backend.i18n.Lang;
 import org.springframework.context.i18n.LocaleContextHolder;
 import jakarta.validation.constraints.Pattern;
@@ -12,13 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,9 +68,12 @@ public class FaqController {
         return grouped.entrySet().stream().map(e -> new FaqGroup(e.getKey(), e.getValue())).toList();
     }
 
+    /** Yonetici listesi sayfalidir (?cursor=&limit=, en cok 50); devam varsa X-Next-Cursor basligi. */
     @GetMapping("/admin/faq")
-    public List<FaqAdminView> adminList() {
-        return repo.findAllByOrderByLangAscCategoryAscSortOrderAscIdAsc().stream().map(FaqAdminView::of).toList();
+    public ResponseEntity<List<FaqAdminView>> adminList(@RequestParam(required = false) Long cursor,
+                                                        @RequestParam(required = false) Integer limit) {
+        Slice<FaqItem> slice = repo.findAllByOrderByLangAscCategoryAscSortOrderAscIdAsc(SlicePaging.request(cursor, limit));
+        return SlicePaging.respond(slice, slice.getContent().stream().map(FaqAdminView::of).toList());
     }
 
     @PostMapping("/admin/faq")

@@ -2,7 +2,6 @@ package edu.bingol.backend.common;
 
 import java.time.Duration;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 /** Redis tabanli sabit pencere (fixed window) rate limit. Birden fazla sunucuda da ortak calisir. */
@@ -26,8 +25,8 @@ public class RateLimiter {
             redis.expire(k, window);
         }
         if (n > max) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMITED",
-                    "Cok fazla deneme. Lutfen daha sonra tekrar deneyin.");
+            Long ttl = redis.getExpire(k);
+            throw new RateLimitedException(ttl == null || ttl < 0 ? window.toSeconds() : ttl);
         }
     }
 }

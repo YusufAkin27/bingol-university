@@ -1,6 +1,8 @@
 package edu.bingol.backend.moderation;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 public interface UserBlockRepository extends JpaRepository<UserBlock, UserBlock.Key> {
 
     List<UserBlock> findByBlockerIdOrderByCreatedAtDesc(Long blockerId);
+
+    Slice<UserBlock> findByBlockerIdOrderByCreatedAtDescBlockedIdDesc(Long blockerId, Pageable pageable);
 
     boolean existsByBlockerIdAndBlockedId(Long blockerId, Long blockedId);
 

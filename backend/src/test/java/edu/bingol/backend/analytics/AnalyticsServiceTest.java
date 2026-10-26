@@ -96,6 +96,10 @@ class AnalyticsServiceTest {
         assertEquals(1, ok(new EventIn("e", null, Map.of("q", "x".repeat(100)), null)).size());
         // E-posta benzeri deger kisisel veri sayilir
         rejected(new EventIn("e", null, Map.of("who", "ali@bingol.edu.tr"), null));
+        // Telefon / TC kimlik no benzeri uzun rakam dizisi
+        rejected(new EventIn("e", null, Map.of("tel", "05321234567"), null));
+        rejected(new EventIn("e", null, Map.of("tc", 12345678901L), null));
+        assertEquals(1, ok(new EventIn("e", null, Map.of("count", 123456789), null)).size());
         // Anahtar bicimi
         rejected(new EventIn("e", null, Map.of("Bad-Key", "v"), null));
         // Ic ice nesne / dizi yasak

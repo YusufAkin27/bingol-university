@@ -4,6 +4,8 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.user.UserRepository;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,10 @@ public class BlockService {
     /** Kullanicinin engelledigi + kendisini engelleyen kullanicilar (listelerden gizlemek icin). */
     public Set<Long> hiddenFrom(Long userId) {
         return Set.copyOf(blocks.relatedIds(userId));
+    }
+
+    public Slice<UserBlock> blockedPage(Long userId, Pageable pageable) {
+        return blocks.findByBlockerIdOrderByCreatedAtDescBlockedIdDesc(userId, pageable);
     }
 
     public List<UserBlock> blockedBy(Long userId) {
