@@ -18,4 +18,5 @@ export * as newsApi from './news';
 export * as auditApi from './audit';
 export * as moderationApi from './moderation';
 export * as cryptoApi from './crypto';
+export * as adminChatApi from './adminChat';
 export * as admissionApi from './admission';

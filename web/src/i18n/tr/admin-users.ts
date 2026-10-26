@@ -124,7 +124,7 @@ const m = {
   'admin.users.x.messagesSent': 'Gönderdiği mesaj',
   'admin.users.x.blocking': 'Engellediği kişi',
   'admin.users.x.blockedBy': 'Onu engelleyen',
-  'admin.users.x.privacyNote': 'Mesaj içerikleri bu ekranda gösterilmez; yalnızca sayılar görünür. İçerik yalnızca gerekçeli ve denetimli erişimle açılabilir.',
+  'admin.users.x.privacyNote': 'Mesaj içerikleri bu ekranda gösterilmez; yalnızca sayılar görünür. İçerik yalnızca kullanıcının Mesajlar görünümünde, her sayfa isteği denetim kaydına yazılarak açılır.',
   'admin.users.x.prefs': 'Bildirim tercihleri',
   'admin.users.x.pref.news': 'Haber',
   'admin.users.x.pref.announcements': 'Duyuru',

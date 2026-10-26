@@ -41,6 +41,7 @@ const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
+const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
 const TicketsPage = lazy(() => import('./pages/admin/TicketsPage'));
@@ -117,6 +118,7 @@ export function AppRoutes() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
+          <Route path="users/:id/messages" element={<UserMessagesPage />} />
           <Route path="analytics/:tab?" element={<AnalyticsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="support/tickets" element={<TicketsPage />} />

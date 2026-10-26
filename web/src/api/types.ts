@@ -391,25 +391,91 @@ export interface HashCursorPage<T> {
   nextCursor: string | null;
 }
 
-// ---------- Mesaj çözme / şifreleme durumu ----------
-export interface DecryptRequest {
-  conversationId: number;
-  fromMessageId: number;
-  toMessageId?: number;
-  reason: string;
+// ---------- Yönetici sohbet görüntüleyici (kullanıcı bazlı) / şifreleme durumu ----------
+export interface ChatPerson {
+  id: number | null;
+  displayName: string | null;
+  avatarUrl: string | null;
 }
-export interface DecryptedMessage {
+export interface ChatLastMessage {
   id: number;
   senderId: number;
+  mine: boolean;
+  text: string | null;
+  error: string | null;
+  deleted: boolean;
+  hidden: boolean;
+  createdAt: string;
+}
+export interface AdminChatConversation {
+  id: number;
+  type: 'DIRECT' | 'GROUP';
+  title: string | null;
+  peer: ChatPerson | null;
+  memberCount: number;
+  /** Toplam mesaj sayısı (okunmamış değil; silinenler dahil). */
+  totalMessages: number;
+  lastActivityAt: string | null;
+  left: boolean;
+  lastMessage: ChatLastMessage | null;
+}
+export interface AdminChatConversationPage {
+  user: ChatPerson;
+  items: AdminChatConversation[];
+  nextCursor: number | null;
+}
+export interface AdminChatAttachment {
+  id: number;
+  kind: string;
+  contentType: string | null;
+  width: number;
+  height: number;
+  bytes: number;
+  hidden: boolean;
+  /** Yönetici önizleme ucu (Bearer ile istenir): /api/admin/media/attachments/{id}/preview */
+  previewUrl: string;
+  thumbUrl: string;
+}
+export interface AdminChatRevision {
+  text: string | null;
+  error: string | null;
+  revisedAt: string;
+}
+export interface AdminChatReply {
+  id: number;
+  senderId: number | null;
+  text: string | null;
+  error: string | null;
+  deleted: boolean;
+}
+export interface AdminChatMessage {
+  id: number;
+  senderId: number;
+  senderName: string | null;
+  /** Açılan kullanıcının kendi mesajı mı (balon yönü). */
+  mine: boolean;
   createdAt: string;
   text: string | null;
   error: string | null;
+  edited: boolean;
+  editedAt: string | null;
+  revisions: AdminChatRevision[];
+  deleted: boolean;
+  deletedAt: string | null;
+  deletedBy: number | null;
+  deletedByName: string | null;
+  hidden: boolean;
+  replyTo: AdminChatReply | null;
+  reactions: { emoji: string; userId: number }[];
+  attachments: AdminChatAttachment[];
 }
-export interface DecryptResponse {
-  auditId: number;
-  conversationId: number;
-  count: number;
-  messages: DecryptedMessage[];
+export interface AdminChatMessagePage {
+  user: ChatPerson;
+  conversation: { id: number; type: 'DIRECT' | 'GROUP'; title: string | null; peer: ChatPerson | null; left: boolean };
+  /** Eskiden yeniye sıralı. */
+  items: AdminChatMessage[];
+  /** Daha eski sayfa için `before` imleci; yoksa null. */
+  nextBefore: number | null;
 }
 export interface CryptoStatus {
   activeKeyId: string;

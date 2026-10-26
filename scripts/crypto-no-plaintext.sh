@@ -5,7 +5,7 @@
 # 2) pg_dump --data-only icinde kanarya YOK (hem duz hem hex); message.body bos, body_ciphertext dolu
 # 3) message_access ve notification tablolarinda kanarya YOK; bildirim govdesi sabit "Yeni mesaj"
 # 4) Redis chat:events dinlenir (kanal 6 sn): kanarya YOK
-# 5) alici gecmisten duz metni okur; yonetici POST /api/admin/messages/decrypt ile okur ve denetim satiri +1 olur;
+# 5) alici gecmisten duz metni okur; yonetici GET /api/admin/users/{id}/conversations/{cid}/messages ile okur ve denetim satiri +1 olur;
 #    KVKK disa aktarim (GET /api/users/me/export) duz metni icerir; backend gunlugunde kanarya YOK
 # Kullanim: BASE=http://localhost:8121 COMPOSE_PROJECT_NAME=wt_t21 ./scripts/crypto-no-plaintext.sh
 # Onkosul: yigin calisiyor, MAIL_ENABLED=false, ADMIN_EMAILS=boss@bingol.edu.tr, app.push.message-preview=false (varsayilan).
@@ -70,17 +70,17 @@ check "alici duz metni gorur" "1" "$(echo "$GOT" | grep -qF "$CANARY" && echo 1 
 EXP=$(curl -s -H "Authorization: Bearer $TA" $A/users/me/export)
 check "KVKK disa aktarim cozulmus metni icerir" "1" "$(echo "$EXP" | grep -qF "$CANARY" && echo 1 || echo 0)"
 
-echo "== Yonetici cozme =="
+echo "== Yonetici sohbet goruntuleyici =="
+# Gonderen kimligi: kanarya mesajini gonderen kullanici (MID mesajinin sahibi)
+SENDER=$($PSQL -c "select sender_id from message where id=$MID")
 BEFORE=$($PSQL -c "select count(*) from message_access_audit")
-R=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H "Authorization: Bearer $TADM" $A/admin/messages/decrypt \
-  -d "{\"conversationId\":$CONV,\"fromMessageId\":$MID,\"reason\":\"duman testi gerekcesi $S\"}")
-check "yonetici cozme 200" "200" "${R##* }"
+R=$(curl -s -w ' %{http_code}' -H "Authorization: Bearer $TADM" "$A/admin/users/$SENDER/conversations/$CONV/messages?size=50")
+check "yonetici goruntuleme 200" "200" "${R##* }"
 check "yanitta duz metin" "1" "$(echo "$R" | grep -qF "$CANARY" && echo 1 || echo 0)"
 check "denetim satiri eklendi" "$((BEFORE + 1))" "$($PSQL -c "select count(*) from message_access_audit")"
-check "denetim gerekce kaydi" "1" "$($PSQL -c "select count(*) from message_access_audit where reason like '%$S' and conversation_id=$CONV")"
-R=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" -H "Authorization: Bearer $TA" $A/admin/messages/decrypt \
-  -d "{\"conversationId\":$CONV,\"fromMessageId\":$MID,\"reason\":\"yetkisiz deneme gerekcesi\"}")
-check "normal kullanici cozemez" "403" "$R"
+check "denetim hedef kullanici/kind" "1" "$($PSQL -c "select count(*) from message_access_audit where target_user_id=$SENDER and conversation_id=$CONV and kind='VIEW_MESSAGES'")"
+R=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TA" "$A/admin/users/$SENDER/conversations/$CONV/messages")
+check "normal kullanici goremez" "403" "$R"
 
 echo "== Gunluk =="
 check "kanarya backend gunlugunde yok" "0" "$(docker compose logs backend 2>&1 | grep -c "$CANARY")"

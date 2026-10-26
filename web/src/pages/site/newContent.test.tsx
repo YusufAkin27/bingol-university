@@ -53,7 +53,7 @@ describe('Tanıtım sitesi: yeni özellikler', () => {
     mockFetch(() => jsonResponse(200, []));
     renderWithProviders(<LegalListPage />);
     const notice = await screen.findByTestId('admin-access-notice');
-    expect(notice).toHaveTextContent('Yönetici gerekçeli ve denetimli erişimi');
+    expect(notice).toHaveTextContent('Yönetici erişimi ve silinen mesajların saklanması');
     expect(notice).toHaveTextContent('taslaktır');
     expect(notice).toHaveTextContent('hukuki inceleme');
   });

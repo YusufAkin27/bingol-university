@@ -124,7 +124,7 @@ const m = {
   'admin.users.x.messagesSent': 'Messages sent',
   'admin.users.x.blocking': 'People blocked',
   'admin.users.x.blockedBy': 'Blocked by',
-  'admin.users.x.privacyNote': 'Message contents are not shown on this screen; only counts are visible. Content can be opened only through justified, audited access.',
+  'admin.users.x.privacyNote': 'Message contents are not shown on this screen; only counts are visible. Content is opened only in the user\'s Messages view, and every page request is written to the audit log.',
   'admin.users.x.prefs': 'Notification preferences',
   'admin.users.x.pref.news': 'News',
   'admin.users.x.pref.announcements': 'Announcements',

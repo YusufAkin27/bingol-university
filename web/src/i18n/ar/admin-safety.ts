@@ -5,7 +5,7 @@ const m = {
   'admin.nav.blocklist': 'الصور المحظورة',
   'admin.nav.eventApplications': 'طلبات الفعاليات',
   'admin.nav.clubAudit': 'تدقيق النوادي',
-  'admin.nav.crypto': 'الوصول إلى الرسائل والتشفير',
+  'admin.nav.crypto': 'المحادثات والتشفير',
 
   // طابور البلاغات
   'admin.reports.targetType.MESSAGE_IMAGE': 'صورة رسالة',
@@ -24,7 +24,6 @@ const m = {
   'admin.reports.hidden.ADMIN': 'أخفاه مسؤول',
   'admin.reports.hidden.YES': 'مخفي',
   'admin.reports.preview.image': 'الصورة المبلَّغ عنها',
-  'admin.reports.preview.decrypt': 'فتح الرسالة بمبرِّر',
   'admin.reports.reasonCode.label': 'سبب القرار',
   'admin.reports.reasonCode.hint': 'يُستخدم في الإشعار المرسل إلى صاحب المحتوى.',
   'admin.reports.reasonCode.none': 'بدون تحديد',
@@ -111,13 +110,8 @@ const m = {
   'admin.blocklist.toast.removed': 'تمت إزالة البصمة من القائمة.',
 
   // الوصول إلى الرسائل وحالة التشفير
-  'admin.crypto.title': 'الوصول إلى الرسائل والتشفير',
-  'admin.crypto.subtitle': 'حالة مفاتيح التشفير والوصول المبرَّر إلى الرسائل.',
-  'admin.crypto.warn.title': 'تنبيه: وصول خاضع للتدقيق',
-  'admin.crypto.warn.body':
-    'تُرسل الرسائل مشفّرة وتُخزَّن مشفّرة. استخدم هذه الشاشة فقط عند وجود سبب محدد مثل شكوى أو حادث أمني أو التزام قانوني.',
-  'admin.crypto.warn.audit':
-    'يُكتب كل وصول في سجل تدقيق غير قابل للتعديل يتضمن من قام به، والمحادثة ونطاق الرسائل، والمبرِّر المذكور، والوقت. إذا تعذّر كتابة السجل فلن تُعرض أي رسالة.',
+  'admin.crypto.title': 'المحادثات والتشفير',
+  'admin.crypto.subtitle': 'حالة مفتاح التشفير وعارض المحادثات لكل مستخدم.',
   'admin.crypto.status.title': 'حالة التشفير',
   'admin.crypto.status.active': 'المفتاح الرئيسي النشط',
   'admin.crypto.status.keys': 'المفاتيح المعرَّفة',
@@ -129,26 +123,13 @@ const m = {
   'admin.crypto.status.deks': 'عدد مفاتيح البيانات المغلّفة لكل مفتاح رئيسي',
   'admin.crypto.status.rewrapNeeded': 'يلزم إعادة التغليف',
   'admin.crypto.status.rewrapHint': 'تتم تدوير المفاتيح وإعادة التغليف على الخادم عبر سكربت؛ تعرض هذه الشاشة الحالة فقط.',
-  'admin.crypto.disabled': 'وصول المسؤول إلى الرسائل معطّل بإعداد على الخادم. النموذج غير متاح.',
-  'admin.crypto.form.title': 'وصول مبرَّر إلى الرسائل',
-  'admin.crypto.form.conversation': 'معرّف المحادثة',
-  'admin.crypto.form.from': 'معرّف أول رسالة',
-  'admin.crypto.form.to': 'معرّف آخر رسالة (اختياري)',
-  'admin.crypto.form.toHint': 'إذا تُرك فارغاً تُفتح رسالة واحدة. بحد أقصى {max} رسالة في الطلب الواحد.',
-  'admin.crypto.form.reason': 'المبرِّر',
-  'admin.crypto.form.reasonHint': '{min} أحرف على الأقل. يُكتب المبرِّر في سجل التدقيق.',
-  'admin.crypto.form.ack': 'أفهم أن هذا الوصول سيُكتب في سجل تدقيق غير قابل للتعديل.',
-  'admin.crypto.form.submit': 'فتح الرسائل',
-  'admin.crypto.err.reasonShort': 'يجب ألا يقل المبرِّر عن {min} أحرف.',
-  'admin.crypto.err.reasonLong': 'يجب ألا يزيد المبرِّر عن {max} حرفاً.',
-  'admin.crypto.err.conversation': 'أدخل معرّف محادثة صالحاً.',
-  'admin.crypto.err.range': 'معرّفات الرسائل غير صالحة؛ لا يمكن أن يكون المعرّف الأخير أصغر من الأول.',
-  'admin.crypto.result.title': 'الرسائل المفتوحة ({n})',
-  'admin.crypto.result.audit': 'رقم سجل التدقيق: {id}',
-  'admin.crypto.result.empty': 'لا توجد رسائل في هذا النطاق',
-  'admin.crypto.result.sender': 'المرسل: #{id}',
-  'admin.crypto.result.failed': 'تعذّر الفتح ({reason})',
-  'admin.crypto.result.clear': 'مسح من الشاشة',
+  'admin.crypto.open.title': 'فتح رسائل مستخدم',
+  'admin.crypto.open.hint': 'ابحث عن مستخدم لعرض جميع محادثاته ورسائله. يُسجَّل كل طلب صفحة في سجل التدقيق غير القابل للتعديل.',
+  'admin.crypto.open.search': 'ابحث عن مستخدم',
+  'admin.crypto.open.placeholder': 'الاسم أو البريد الإلكتروني (حرفان على الأقل)',
+  'admin.crypto.open.none': 'لا يوجد مستخدمون مطابقون',
+  'admin.crypto.open.go': 'فتح الرسائل',
+  'admin.crypto.disabled': 'عرض الرسائل للمسؤول معطّل بإعداد الخادم.',
 
   // طلبات الفعاليات وتدقيق النوادي
   'admin.admission.title': 'طلبات الفعاليات',
@@ -228,6 +209,6 @@ const m = {
   'admin.err.MESSAGE_READER_UNAVAILABLE': 'قراءة الرسائل غير مفعّلة على هذا الخادم بعد.',
   'admin.err.CRYPTO_KEY_UNKNOWN': 'معرّف المفتاح الرئيسي غير معروف.',
 
-  'admin.users.x.decryptLink': 'فتح صفحة الوصول المبرَّر إلى الرسائل',
+  'admin.users.x.decryptLink': 'فتح رسائل المستخدم',
 } as const;
 export default m;

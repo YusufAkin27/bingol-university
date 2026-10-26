@@ -129,7 +129,7 @@ const m = {
   'pg.security.s1.l2':
     'Mesajlar sunucuda şifreli olarak saklanır. Anahtarları sunucu yönetir; bu nedenle mesajlar yalnızca sizin cihazınızda çözülebilen bir korumaya sahip değildir ve yetkili süreçlerce çözülebilir.',
   'pg.security.s1.l3':
-    'Yönetici erişimi gerekçelidir: bir konuşmaya bakmak için yazılı gerekçe gerekir ve her erişim değiştirilemez bir denetim kaydına yazılır.',
+    'Yönetici erişimi kayıt altındadır: yetkili yöneticiler güvenlik ve yasal yükümlülükler için konuşmaları görüntüleyebilir ve her erişim değiştirilemez bir denetim kaydına yazılır. Silinen mesajlar güvenlik ve yasal yükümlülükler için saklanabilir.',
   'pg.security.s1.l4':
     'Şifreler geri döndürülemeyecek biçimde (özet olarak) saklanır; oturum yenileme anahtarları da yalnızca özet olarak tutulur.',
   'pg.security.s1.l5': 'Kayıt yalnızca bingol.edu.tr e-posta adresleriyle ve e-posta doğrulamasıyla yapılabilir.',
@@ -321,7 +321,7 @@ const m = {
   'pg.changelog.empty': 'Henüz sürüm notu yok',
   'pg.changelog.e1.date': '2026-10',
   'pg.changelog.e1.title': 'Ekim 2026',
-  'pg.changelog.e1.l1': 'Mesajlar sunucuda şifreli saklanıyor; yönetici erişimi gerekçeli ve denetim kaydına bağlı.',
+  'pg.changelog.e1.l1': 'Mesajlar sunucuda şifreli saklanıyor; yönetici erişimi denetim kaydına bağlı, silinen mesajlar güvenlik amacıyla saklanabilir.',
   'pg.changelog.e1.l2': 'Etkinlik başvurusu ve kabul akışı: kabul, ret ve bekleme listesi.',
   'pg.changelog.e1.l3': 'Kulüp yetkileri, sahiplik devri ve davet kodu.',
   'pg.changelog.e1.l4': 'Sohbette görsel paylaşımı; uygunsuz görsel raporlama ve itiraz süreci.',

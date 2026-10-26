@@ -33,26 +33,19 @@ echo "== Yetki =="
 ADMIN=$(token "$ADMIN_EMAIL")
 USER=$(token "crypto-user-$RANDOM$RANDOM@bingol.edu.tr")
 [ -n "$ADMIN" ] && [ -n "$USER" ] || { echo "  FAIL token alinamadi"; exit 1; }
-check "anonim decrypt -> 401/403" "1" "$([ "$(code -X POST -H "$H" $A/admin/messages/decrypt -d '{}')" -ge 401 ] && echo 1 || echo 0)"
-check "normal kullanici decrypt -> 403" "403" "$(code -X POST -H "$H" -H "Authorization: Bearer $USER" $A/admin/messages/decrypt -d '{}')"
+check "anonim sohbet goruntuleme -> 401/403" "1" "$([ "$(code $A/admin/users/1/conversations)" -ge 401 ] && echo 1 || echo 0)"
+check "normal kullanici sohbet goruntuleme -> 403" "403" "$(code -H "Authorization: Bearer $USER" $A/admin/users/1/conversations)"
 check "normal kullanici status -> 403" "403" "$(code -H "Authorization: Bearer $USER" $A/admin/crypto/status)"
 
 echo "== Durum ve dogrulamalar =="
 ST=$(curl -s -H "Authorization: Bearer $ADMIN" $A/admin/crypto/status)
 has "status activeKeyId" '"activeKeyId"' "$ST"
 has "status sir icermez" '"dekCountsByMasterKey"' "$ST"
-R=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":1,"fromMessageId":1,"reason":"kisa"}')
-has "kisa gerekce reddi" 'DECRYPT_REASON_REQUIRED' "$R"
-R=$(curl -s -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"fromMessageId":1,"reason":"yeterince uzun gerekce"}')
-has "aralik reddi" 'DECRYPT_RANGE_INVALID' "$R"
-R=$(curl -s -H "Accept-Language: en" -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":1,"fromMessageId":1,"reason":"x"}')
-has "ingilizce hata metni" 'at least' "$R"
-R=$(curl -s -H "Accept-Language: ar" -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":1,"fromMessageId":1,"reason":"x"}')
-has "arapca hata kodu" 'DECRYPT_REASON_REQUIRED' "$R"
-# Asama 2: MessageReader (messaging) bagli. Olmayan konusma icin gecerli istek 200 + 0 mesaj doner ve denetim satiri YAZILIR.
+check "eski decrypt ucu kaldirildi" "1" "$([ "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{}')" -ge 400 ] && echo 1 || echo 0)"
+check "olmayan kullanici -> 404" "404" "$(code -H "Authorization: Bearer $ADMIN" $A/admin/users/999999999/conversations)"
 BEFORE=$($PSQL -c "select count(*) from message_access_audit")
-check "gecerli istek 200" "200" "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/messages/decrypt -d '{"conversationId":999999999,"fromMessageId":1,"reason":"yeterince uzun gerekce"}')"
-check "denetim satiri eklendi" "$((BEFORE + 1))" "$($PSQL -c "select count(*) from message_access_audit")"
+R=$(curl -s -w ' %{http_code}' -H "Authorization: Bearer $ADMIN" "$A/admin/users/1/conversations?size=5")
+check "konusma listesi 200" "200" "${R##* }"
 
 echo "== Rotasyon ucu =="
 check "rewrap bilinmeyen anahtar -> 400" "400" "$(code -X POST -H "$H" -H "Authorization: Bearer $ADMIN" $A/admin/crypto/rewrap -d '{"targetKeyId":"yok-boyle-anahtar"}')"
