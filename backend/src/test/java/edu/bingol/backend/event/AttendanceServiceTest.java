@@ -195,7 +195,7 @@ class AttendanceServiceTest {
     @Test
     void manualMarkRequiresOrganizer() {
         assertEquals(HttpStatus.FORBIDDEN, error(() -> svc.mark(user, 5L, 2L, true, start)).status());
-        verify(attendance, never()).save(any());
+        verify(attendance, never()).saveAndFlush(any());
     }
 
     @Test
@@ -205,7 +205,7 @@ class AttendanceServiceTest {
 
         svc.mark(organizer, 5L, 2L, true, start.plusSeconds(5));
 
-        verify(attendance).save(org.mockito.ArgumentMatchers.argThat(a ->
+        verify(attendance).saveAndFlush(org.mockito.ArgumentMatchers.argThat(a ->
                 a.isPresent() && a.getUserId().equals(2L) && a.getMarkedBy().equals(99L)
                         && a.getMethod() == EventAttendance.Method.MANUAL));
     }
@@ -234,7 +234,7 @@ class AttendanceServiceTest {
         var res = svc.bulk(organizer, 5L, List.of(new BulkEntry(2L, true), new BulkEntry(3L, false)), start);
 
         assertEquals(2, res.updated());
-        verify(attendance, times(2)).save(any());
+        verify(attendance, times(2)).saveAndFlush(any());
     }
 
     @Test

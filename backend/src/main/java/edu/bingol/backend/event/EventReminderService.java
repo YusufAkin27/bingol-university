@@ -49,8 +49,7 @@ public class EventReminderService {
         for (Object[] row : hour) {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimHour(r.getId()) == 1) {
-                send(r, e, "notif.event.reminderHour");
+            if (rsvps.claimHour(r.getId()) == 1 && send(r, e, "notif.event.reminderHour")) {
                 sent++;
             }
         }
@@ -59,17 +58,23 @@ public class EventReminderService {
         for (Object[] row : day) {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimDay(r.getId()) == 1) {
-                send(r, e, "notif.event.reminderDay");
+            if (rsvps.claimDay(r.getId()) == 1 && send(r, e, "notif.event.reminderDay")) {
                 sent++;
             }
         }
         return sent;
     }
 
-    private void send(EventRsvp r, UserEvent e, String key) {
+    /** Tek kisinin hatasi digerlerinin hatirlatmasini engellemesin. */
+    private boolean send(EventRsvp r, UserEvent e, String key) {
         String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
-        notifications.sendTemplated(r.getUserId(), NotificationType.EVENT, key,
-                Map.of("eventId", e.getId().toString()), e.getTitle() + where);
+        try {
+            notifications.sendTemplated(r.getUserId(), NotificationType.EVENT, key,
+                    Map.of("eventId", e.getId().toString()), e.getTitle() + where);
+            return true;
+        } catch (RuntimeException ex) {
+            log.warn("Hatirlatma gonderilemedi (rsvp {}): {}", r.getId(), ex.toString());
+            return false;
+        }
     }
 }

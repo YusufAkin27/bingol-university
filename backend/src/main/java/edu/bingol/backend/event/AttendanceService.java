@@ -127,7 +127,7 @@ public class AttendanceService {
             EventAttendance r = recs.get(uid);
             EventRsvp rsvp = going.get(uid);
             User by = r == null ? null : users.get(r.getMarkedBy());
-            rows.add(new AttendanceRow(uid, u == null ? "Kullanıcı" : u.getDisplayName(),
+            rows.add(new AttendanceRow(uid, u == null || u.getDisplayName() == null ? "Kullanıcı" : u.getDisplayName(),
                     u == null ? null : u.getDepartment(), rsvp == null ? null : rsvp.getStatus(),
                     r != null && r.isPresent(), r == null ? null : r.getMethod(), r == null ? null : r.getMarkedBy(),
                     by == null ? null : by.getDisplayName(), r == null ? null : r.getMarkedAt()));
@@ -211,7 +211,12 @@ public class AttendanceService {
         rec.setMethod(Method.MANUAL);
         rec.setMarkedBy(a.id());
         rec.setMarkedAt(now);
-        attendance.save(rec);
+        try {
+            attendance.saveAndFlush(rec);
+        } catch (DataIntegrityViolationException ex) {
+            // Es zamanli ilk kayit (QR okutma ile elle isaretleme yarisi): 500 yerine tekrar denenebilir 409.
+            throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CONFLICT", "Yoklama işleniyor, tekrar deneyin.");
+        }
     }
 
     private MyAttendance toMine(UserEvent e, EventRsvp rsvp, EventAttendance rec, Instant now) {
