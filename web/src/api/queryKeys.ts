@@ -8,7 +8,9 @@ import type {
   FeedbackStatus,
   LegalType,
   NewsListParams,
+  ReportOrder,
   ReportStatus,
+  ReportTargetType,
   TicketStatus,
   UserListParams,
 } from './types';
@@ -54,7 +56,20 @@ export const qk = {
   },
   reports: {
     all: ['reports'] as const,
-    list: (status: ReportStatus) => ['reports', 'list', status] as const,
+    list: (status: ReportStatus, order: ReportOrder = 'desc', targetType: ReportTargetType | null = null) =>
+      ['reports', 'list', status, order, targetType ?? 'ALL'] as const,
+    templates: () => ['reports', 'templates'] as const,
+  },
+  moderation: {
+    all: ['moderation'] as const,
+    appeals: (status: string) => ['moderation', 'appeals', status] as const,
+    recommendations: (status: string) => ['moderation', 'recommendations', status] as const,
+    blocklist: () => ['moderation', 'blocklist'] as const,
+  },
+  crypto: { status: () => ['crypto', 'status'] as const },
+  admission: {
+    summary: (eventId: number) => ['admission', 'summary', eventId] as const,
+    clubAudit: (communityId: number) => ['club', 'audit', communityId] as const,
   },
   tickets: {
     all: ['tickets'] as const,

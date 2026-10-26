@@ -48,7 +48,11 @@ export function moveItem<T>(list: T[], index: number, delta: -1 | 1): T[] {
 
 const VERSION = /^\d+(\.\d+){0,3}$/;
 
-export type SettingError = 'HTTPS' | 'VERSION' | 'BOOL' | 'EMAIL' | 'TOO_LONG';
+export type SettingError = 'HTTPS' | 'VERSION' | 'BOOL' | 'EMAIL' | 'TOO_LONG' | 'INT';
+
+/** Etkinlik ayarları: açma/kapama anahtarı ve 0-1000 arası sınırlar (0 = sınırsız). */
+export const EVENT_BOOL_KEYS = ['events_require_approval'];
+export const EVENT_INT_KEYS = ['event_max_open_per_user', 'event_daily_create_limit'];
 
 /** Anahtara göre istemci doğrulaması (sunucu kurallarıyla aynı + e-posta biçimi). Hata yoksa null. */
 export function validateSetting(key: string, value: string): SettingError | null {
@@ -56,7 +60,12 @@ export function validateSetting(key: string, value: string): SettingError | null
   if (key.startsWith('min_version_') || key.startsWith('latest_version_')) {
     return VERSION.test(v) ? null : 'VERSION';
   }
-  if (key === 'maintenance_mode') return v === 'true' || v === 'false' ? null : 'BOOL';
+  if (key === 'maintenance_mode' || EVENT_BOOL_KEYS.includes(key)) {
+    return v === 'true' || v === 'false' ? null : 'BOOL';
+  }
+  if (EVENT_INT_KEYS.includes(key)) {
+    return /^\d{1,4}$/.test(v) && Number(v) <= 1000 ? null : 'INT';
+  }
   if ((key.startsWith('store_url_') || key === 'banner_url' || key === 'website') && v) {
     return /^https:\/\/\S+$/i.test(v) ? null : 'HTTPS';
   }
@@ -80,7 +89,7 @@ export function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-export type SettingGroup = 'general' | 'stores' | 'banner' | 'maintenance' | 'faculties';
+export type SettingGroup = 'general' | 'stores' | 'banner' | 'maintenance' | 'faculties' | 'events';
 export const GROUP_KEYS: Record<SettingGroup, string[]> = {
   general: [
     'app_name',
@@ -104,4 +113,5 @@ export const GROUP_KEYS: Record<SettingGroup, string[]> = {
   banner: ['banner_text_tr', 'banner_text_en', 'banner_text_ar', 'banner_url'],
   maintenance: ['maintenance_mode', 'maintenance_message_tr', 'maintenance_message_en', 'maintenance_message_ar'],
   faculties: ['faculties'],
+  events: ['events_require_approval', 'event_max_open_per_user', 'event_daily_create_limit'],
 };

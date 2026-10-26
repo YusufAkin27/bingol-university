@@ -1,5 +1,5 @@
 // SAYFA: Genel bakış (/admin)
-// API: GET /api/admin/analytics/overview, /registrations, /active-users (api/analytics.ts), GET /api/status, GET /api/admin/audit?size=5.
+// API: GET /api/admin/moderation/appeals + suspend-recommendations (açık sayaçlar), GET /api/admin/analytics/overview, /registrations, /active-users (api/analytics.ts), GET /api/status, GET /api/admin/audit?size=5.
 // Her kart kendi sorgusunu yapar ve bağımsız hata verir; mini grafikler (recharts) tembel yüklenir.
 import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense, useMemo, type ReactNode } from 'react';
@@ -11,6 +11,7 @@ import { errorMessage } from '../../lib/errors';
 import { lastDays } from '../../lib/date';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './dashboard/dashboard.module.css';
+import { ModerationCounters } from './dashboard/ModerationCounters';
 import { AttentionPanel, DevicePanel, RecentAudit, SourcesPanel } from './dashboard/panels';
 
 const Trends = lazy(() => import('./dashboard/Trends'));
@@ -157,6 +158,10 @@ export default function DashboardPage() {
               loading={loading}
             />
             <StatCard title={t('admin.dashboard.kpi.newFeedback')} value={n(o?.newFeedback)} loading={loading} />
+          </Section>
+
+          <Section title={t('admin.dashboard.section.moderation')}>
+            <ModerationCounters />
           </Section>
         </>
       )}

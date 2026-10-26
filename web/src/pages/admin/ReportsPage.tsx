@@ -1,21 +1,32 @@
 // SAYFA: Raporlar (/admin/reports)
-// API: GET /api/admin/reports?status=&cursor=&size= (imeç tabanlı; <LoadMore>), POST /api/admin/reports/{id}/resolve (api/reports.ts),
+// API: GET /api/admin/reports?status=&order=priority|desc|asc&targetType=&cursor=&size= (imeç tabanlı; priority modunda imeç = sayfa no),
+//      POST /api/admin/reports/{id}/resolve {action,message,reasonCode}, POST /api/admin/reports/bulk-resolve, GET /api/admin/reports/reason-templates (api/reports.ts),
 //      GET /api/admin/users/{id} (kullanıcı raporlarında hedef önizlemesi). Askıya alma, resolve eylemiyle (SUSPEND_USER) yapılır.
+//      Satırda sunucu önizlemesi (preview), priority, hidden/hiddenBy, openReporters bulunur; görseller AuthImage ile yetkili çekilir.
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { qk, reportsApi, usersApi } from '../../api';
-import type { ReportResolution, ReportStatus, ReportView } from '../../api/types';
+import type {
+  ReportOrder,
+  ReportReasonCode,
+  ReportResolution,
+  ReportStatus,
+  ReportTargetType,
+  ReportView,
+} from '../../api/types';
 import {
   Badge,
   Button,
   Card,
+  Checkbox,
   ConfirmDialog,
   EmptyState,
   ErrorState,
   FormField,
   LoadMore,
   PageHeader,
+  Select,
   Skeleton,
   StatusPill,
   Tabs,
@@ -36,6 +47,11 @@ import {
   targetKey,
   validateDecision,
 } from './reports/reportLogic';
+import { AuthImage } from './moderation/AuthImage';
+import { TARGET_TYPES, cleanReasonCode, toggleSelected } from './moderation/modLogic';
+import modStyles from './moderation/moderation.module.css';
+import { BulkBar } from './reports/BulkBar';
+import { ReasonFields } from './reports/ReasonFields';
 import styles from './reports/Reports.module.css';
 
 function isTypingTarget(t: EventTarget | null): boolean {
@@ -83,12 +99,23 @@ function TargetPreview({ report }: { report: ReportView }) {
           </div>
         </dl>
       )}
-      {!isUser && <p className={styles.muted}>{t('admin.reports.preview.none')}</p>}
+      {report.preview?.kind === 'IMAGE' && (
+        <AuthImage url={report.preview.url} alt={t('admin.reports.preview.image')} />
+      )}
+      {report.preview?.kind === 'TEXT' && report.preview.text && (
+        <p className={modStyles.body} dir="auto">
+          {report.preview.text}
+        </p>
+      )}
+      {!isUser && !report.preview && <p className={styles.muted}>{t('admin.reports.preview.none')}</p>}
       <div className={styles.previewLinks}>
         {isUser && (
           <Link to={paths.admin.user(report.targetId)}>{t('admin.reports.preview.openUser')}</Link>
         )}
         {listLink && <Link to={listLink}>{t('admin.reports.preview.openList')}</Link>}
+        {(report.targetType === 'MESSAGE' || report.targetType === 'MESSAGE_IMAGE') && (
+          <Link to={`${paths.admin.crypto}?from=${report.targetId}`}>{t('admin.reports.preview.decrypt')}</Link>
+        )}
       </div>
     </div>
   );
@@ -102,6 +129,10 @@ export default function ReportsPage() {
   const qc = useQueryClient();
 
   const [status, setStatus] = useState<ReportStatus>('OPEN');
+  const [order, setOrder] = useState<ReportOrder>('priority');
+  const [typeFilter, setTypeFilter] = useState<ReportTargetType | ''>('');
+  const [reasonCode, setReasonCode] = useState<ReportReasonCode | ''>('');
+  const [bulkIds, setBulkIds] = useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [action, setAction] = useState<ReportResolution>('DISMISS');
   const [message, setMessage] = useState('');
@@ -111,12 +142,15 @@ export default function ReportsPage() {
   const lastIndex = useRef(0);
 
   const query = useInfiniteQuery({
-    queryKey: qk.reports.list(status),
-    queryFn: ({ pageParam }) => reportsApi.listReports({ status, cursor: pageParam, size: 20 }),
+    queryKey: qk.reports.list(status, order, typeFilter || null),
+    queryFn: ({ pageParam }) =>
+      reportsApi.listReports({ status, order, targetType: typeFilter || null, cursor: pageParam, size: 20 }),
     initialPageParam: null as number | null,
     getNextPageParam: (p) => p.nextCursor,
   });
   const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
+  const templatesQ = useQuery({ queryKey: qk.reports.templates(), queryFn: reportsApi.reasonTemplates, retry: false });
+  const templates = Array.isArray(templatesQ.data) ? templatesQ.data : [];
   const counts = useMemo(() => countByTarget(items), [items]);
   const index = items.findIndex((r) => r.id === selectedId);
   const selected = index >= 0 ? items[index] : null;
@@ -139,16 +173,18 @@ export default function ReportsPage() {
     setAction('DISMISS');
     setMessage('');
     setTouched(false);
+    setReasonCode('');
   }, [selectedId, status]);
 
   const error = validateDecision(action, message);
   const needsMessage = action === 'WARN' || action === 'SUSPEND_USER';
 
   const resolve = useMutation({
-    mutationFn: (r: ReportView) => reportsApi.resolveReport(r.id, buildResolveRequest(action, message)),
+    mutationFn: (r: ReportView) => reportsApi.resolveReport(r.id, buildResolveRequest(action, message, cleanReasonCode(reasonCode))),
     onSuccess: () => {
       toast.success(t('admin.reports.resolvedToast', { action: t(`admin.reports.resolution.${action}`) }));
       setConfirmOpen(false);
+      setBulkIds((ids) => ids.filter((x) => x !== selectedId));
       void qc.invalidateQueries({ queryKey: qk.reports.all });
     },
     onError: (e) => {
@@ -213,6 +249,50 @@ export default function ReportsPage() {
           { id: 'RESOLVED', label: t('admin.reports.tab.RESOLVED') },
         ]}
       />
+      <div className={modStyles.toolbar}>
+        <FormField label={t('admin.reports.order.label')}>
+          <Select
+            value={order}
+            onChange={(e) => {
+              setOrder(e.target.value as ReportOrder);
+              setSelectedId(null);
+              lastIndex.current = 0;
+            }}
+          >
+            <option value="priority">{t('admin.reports.order.priority')}</option>
+            <option value="desc">{t('admin.reports.order.desc')}</option>
+            <option value="asc">{t('admin.reports.order.asc')}</option>
+          </Select>
+        </FormField>
+        <FormField label={t('admin.reports.filter.type')}>
+          <Select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value as ReportTargetType | '');
+              setSelectedId(null);
+              lastIndex.current = 0;
+            }}
+          >
+            <option value="">{t('admin.reports.filter.all')}</option>
+            {TARGET_TYPES.map((tt) => (
+              <option key={tt} value={tt}>
+                {t(`admin.reports.targetType.${tt}`)}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+      </div>
+      {status === 'OPEN' && (
+        <BulkBar
+          ids={bulkIds}
+          templates={templates}
+          onClear={() => setBulkIds([])}
+          onDone={() => {
+            setBulkIds([]);
+            void qc.invalidateQueries({ queryKey: qk.reports.all });
+          }}
+        />
+      )}
 
       {query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={errorMessage(i18n, query.error)} />
@@ -238,7 +318,14 @@ export default function ReportsPage() {
                 const n = counts.get(targetKey(r)) ?? 1;
                 const active = r.id === selectedId;
                 return (
-                  <li key={r.id}>
+                  <li key={r.id} className={status === 'OPEN' ? modStyles.rowWrap : undefined}>
+                    {status === 'OPEN' && (
+                      <Checkbox
+                        label={<span className="sr-only">{t('admin.reports.bulk.select', { id: r.id })}</span>}
+                        checked={bulkIds.includes(r.id)}
+                        onChange={() => setBulkIds((ids) => toggleSelected(ids, r.id))}
+                      />
+                    )}
                     <button
                       type="button"
                       id={`report-${r.id}`}
@@ -254,7 +341,28 @@ export default function ReportsPage() {
                       </span>
                       <span className={styles.reason}>{t(`admin.reports.reason.${r.reason}`)}</span>
                       {r.note && <span className={styles.note}>{r.note}</span>}
+                      {r.preview?.kind === 'TEXT' && r.preview.text && (
+                        <span className={styles.note} dir="auto">
+                          {r.preview.text}
+                        </span>
+                      )}
                       <span className={styles.cardMeta}>
+                        {(r.priority ?? 0) > 0 && (
+                          <Badge tone={r.priority >= 100 ? 'danger' : 'warning'}>
+                            {t('admin.reports.priority', { n: r.priority })}
+                          </Badge>
+                        )}
+                        {(r.openReporters ?? 0) > 0 && (
+                          <Badge tone="neutral">{t('admin.reports.openReporters', { n: r.openReporters })}</Badge>
+                        )}
+                        {r.hidden && (
+                          <Badge tone="info">
+                            {r.hiddenBy ? t(`admin.reports.hidden.${r.hiddenBy}`) : t('admin.reports.hidden.YES')}
+                          </Badge>
+                        )}
+                        {r.reasonCode && (
+                          <Badge tone="neutral">{i18n.td(`admin.reports.reasonCode.${r.reasonCode}`, r.reasonCode)}</Badge>
+                        )}
                         {r.status === 'RESOLVED' && r.resolution ? (
                           <StatusPill tone="success">
                             {t(`admin.reports.resolution.${r.resolution}`)}
@@ -329,6 +437,12 @@ export default function ReportsPage() {
                         </button>
                       ))}
                     </div>
+                    <ReasonFields
+                      value={reasonCode}
+                      onChange={setReasonCode}
+                      templates={templates}
+                      onTemplateText={needsMessage ? setMessage : undefined}
+                    />
                     {needsMessage && (
                       <FormField
                         label={t(`admin.reports.decision.message.${action as 'WARN' | 'SUSPEND_USER'}`)}

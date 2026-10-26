@@ -10,6 +10,7 @@ import { errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
 import { FaqAccordion } from './components/FaqAccordion';
 import { countFaq, filterFaq } from './components/faqFilter';
+import { buildNewFaq } from './components/newFaq';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -110,6 +111,12 @@ export default function FaqPage() {
               </aside>
             </>
           )}
+          <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
+            <h2 id="faq-new-title" className={shared.h3}>
+              {t('site.faq.new.title')}
+            </h2>
+            <FaqAccordion items={buildNewFaq(t)} />
+          </section>
         </div>
       </section>
     </>

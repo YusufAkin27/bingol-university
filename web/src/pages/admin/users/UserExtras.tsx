@@ -1,9 +1,11 @@
 // Kullanıcı ayrıntısının ek bölümleri: hesap bilgisi, bildirim tercihleri, topluluk/etkinlik, destek, geri bildirim,
 // raporlar ve cihaz kayıtları. API: GET /api/admin/users/{id} → extras. Mesaj İÇERİĞİ gösterilmez (yalnızca sayı).
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import type { AdminUserDetail } from '../../../api/types';
 import { Badge, Card } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { paths } from '../../../paths';
 import styles from './users.module.css';
 
 function Row({ left, right }: { left: ReactNode; right?: ReactNode }) {
@@ -64,6 +66,9 @@ export function UserExtras({ u }: { u: AdminUserDetail }) {
           </div>
         </dl>
         <p className={styles.hint}>{t('admin.users.x.privacyNote')}</p>
+        <p className={styles.hint}>
+          <Link to={paths.admin.crypto}>{t('admin.users.x.decryptLink')}</Link>
+        </p>
       </Card>
 
       <Card title={t('admin.users.x.prefs')}>

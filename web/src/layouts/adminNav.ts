@@ -51,8 +51,19 @@ export const adminNav: AdminNavGroup[] = [
         to: paths.admin.communities,
         labelKey: 'admin.nav.communities',
         icon: 'community',
+        end: true,
       },
-      { id: 'events', to: paths.admin.events, labelKey: 'admin.nav.events', icon: 'calendar' },
+      { id: 'events', to: paths.admin.events, labelKey: 'admin.nav.events', icon: 'calendar', end: true },
+      { id: 'appeals', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'alert' },
+      { id: 'suspensions', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'users' },
+      { id: 'blocklist', to: paths.admin.blocklist, labelKey: 'admin.nav.blocklist', icon: 'eyeOff' },
+      {
+        id: 'eventApplications',
+        to: paths.admin.eventApplications,
+        labelKey: 'admin.nav.eventApplications',
+        icon: 'list',
+      },
+      { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
     ],
   },
   {
@@ -83,6 +94,7 @@ export const adminNav: AdminNavGroup[] = [
     items: [
       { id: 'settings', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'audit', to: paths.admin.audit, labelKey: 'admin.nav.audit', icon: 'list' },
+      { id: 'crypto', to: paths.admin.crypto, labelKey: 'admin.nav.crypto', icon: 'shield' },
     ],
   },
 ];

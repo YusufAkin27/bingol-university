@@ -1,5 +1,6 @@
 // SAYFA: Ayarlar (/admin/settings)
 // API: GET /api/admin/settings, PUT /api/admin/settings/{key} {value} (api/settings.ts). Her alan tek tek kaydedilir.
+//      Etkinlik grubu: events_require_approval, event_max_open_per_user, event_daily_create_limit (backend V62 ile tohumlar).
 //      Anahtarlar: app_name, website, iletişim, sosyal, store_url_*, min/latest_version_*, banner_*, maintenance_*, faculties (`;` ile ayrılmış).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,6 +23,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage, Callout } from './campaigns/shared';
+import { EventSettings } from './settings/EventSettings';
 import { FacultyEditor } from './settings/FacultyEditor';
 import {
   compareVersions,
@@ -39,7 +41,7 @@ import {
 } from './settings/SettingRow';
 import styles from './settings/settings.module.css';
 
-const GROUPS: SettingGroup[] = ['general', 'stores', 'banner', 'maintenance', 'faculties'];
+const GROUPS: SettingGroup[] = ['general', 'stores', 'banner', 'maintenance', 'events', 'faculties'];
 const LANGS: Lang[] = ['tr', 'en', 'ar'];
 
 export default function SettingsPage() {
@@ -332,6 +334,8 @@ export default function SettingsPage() {
               </Card>
             </>
           )}
+
+          {group === 'events' && <EventSettings />}
 
           {group === 'faculties' && (
             <Card title={t('admin.settings.group.faculties')}>

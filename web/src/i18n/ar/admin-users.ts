@@ -124,7 +124,7 @@ const m = {
   'admin.users.x.messagesSent': 'الرسائل المرسلة',
   'admin.users.x.blocking': 'الأشخاص المحظورون',
   'admin.users.x.blockedBy': 'محظور من قبل',
-  'admin.users.x.privacyNote': 'لا تُعرض محتويات الرسائل للمسؤولين؛ تظهر الأعداد فقط.',
+  'admin.users.x.privacyNote': 'لا تُعرض محتويات الرسائل في هذه الشاشة؛ تظهر الأعداد فقط. لا يمكن فتح المحتوى إلا عبر وصول مبرَّر وخاضع للتدقيق.',
   'admin.users.x.prefs': 'تفضيلات الإشعارات',
   'admin.users.x.pref.news': 'الأخبار',
   'admin.users.x.pref.announcements': 'الإعلانات',
