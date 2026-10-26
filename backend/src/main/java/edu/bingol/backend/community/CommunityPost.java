@@ -35,6 +35,9 @@ public class CommunityPost {
 
     private boolean pinned;
 
+    /** Kulup duyurusu (T15): yetkili yazar, tum aktif uyelere bildirim gider, gunluk sinirli. */
+    private boolean announcement;
+
     /** Yumusak silme (yazar/moderator silmesi veya rapor sonucu gizleme). */
     private boolean deleted;
 

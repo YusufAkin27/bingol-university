@@ -44,6 +44,10 @@ public class Community {
     @Column(length = 300)
     private String coverUrl;
 
+    /** Kulup logosu (T15): kapakla ayni gorsel hatti, ayri alan. */
+    @Column(length = 300)
+    private String logoUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private JoinPolicy joinPolicy = JoinPolicy.OPEN;

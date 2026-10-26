@@ -33,7 +33,7 @@ class ClubInviteServiceTest {
     private final ClubInviteRepository invites = mock(ClubInviteRepository.class);
     private final ClubAuditService audit = mock(ClubAuditService.class);
     private final ClubInviteService svc = new ClubInviteService(invites, t.communities, t.members, t.permissions,
-            t.grants, audit);
+            t.grants, audit, mock(edu.bingol.backend.community.extras.ClubExtrasHooks.class));
 
     private final Actor mod = new Actor(2L, false);
     private final Actor joiner = new Actor(7L, false);

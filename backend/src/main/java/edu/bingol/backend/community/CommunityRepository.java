@@ -15,6 +15,11 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     boolean existsBySlug(String slug);
 
+    /** Topluluk satirini kilitler: gunluk duyuru siniri gibi say-sonra-ekle kontrollerini seri hale getirir. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c.id FROM Community c WHERE c.id = :id")
+    Optional<Long> lockById(@Param("id") Long id);
+
     /** Kullanici satirini kilitler: ayni kullanicinin eszamanli olusturma isteklerini siraya dizer (3 kulup siniri yarisi). */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u WHERE u.id = :id")

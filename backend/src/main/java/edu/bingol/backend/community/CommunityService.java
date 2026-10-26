@@ -2,7 +2,9 @@ package edu.bingol.backend.community;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.community.extras.ClubExtrasHooks;
+import edu.bingol.backend.media.ImageKind;
+import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Community.JoinPolicy;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
@@ -39,8 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class CommunityService {
 
     static final int MAX_OWNED = 3;
-    private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
-    private static final long COVER_MAX_BYTES = 3L * 1024 * 1024;
     private static final List<Community.Status> LIVE = List.of(Community.Status.PENDING_REVIEW, Community.Status.ACTIVE);
 
     private final CommunityRepository communities;
@@ -48,19 +48,21 @@ public class CommunityService {
     private final UserRepository users;
     private final BlockService blocks;
     private final NotificationService notifications;
-    private final FileStorage storage;
+    private final MediaService media;
     private final ClubPermissions permissions;
     private final ClubAuditService audit;
+    private final ClubExtrasHooks hooks;
 
     public CommunityService(CommunityRepository communities, CommunityMemberRepository members, UserRepository users,
-                            BlockService blocks, NotificationService notifications, FileStorage storage,
-                            ClubPermissions permissions, ClubAuditService audit) {
+                            BlockService blocks, NotificationService notifications, MediaService media,
+                            ClubPermissions permissions, ClubAuditService audit, ClubExtrasHooks hooks) {
+        this.hooks = hooks;
         this.communities = communities;
         this.members = members;
         this.users = users;
         this.blocks = blocks;
         this.notifications = notifications;
-        this.storage = storage;
+        this.media = media;
         this.permissions = permissions;
         this.audit = audit;
     }
@@ -152,10 +154,12 @@ public class CommunityService {
     public CommunityView update(Actor a, Long id, UpdateCommunityRequest r) {
         Community c = load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
+        boolean renamed = false;
         if (r.name() != null && !r.name().isBlank()) {
             if (r.name().trim().length() < 3) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
             }
+            renamed = !r.name().trim().equals(c.getName());
             c.setName(r.name().trim());
         }
         if (r.description() != null) {
@@ -172,19 +176,56 @@ public class CommunityService {
         }
         c.setUpdatedAt(Instant.now());
         communities.save(c);
+        if (renamed) {
+            hooks.onRenamed(c);
+        }
         return views(List.of(c), a).get(0);
     }
 
+    /** Kapak: T1 hatti (dogrula, yeniden kodla/sikistir, EXIF temizle); eski dosya referans yoksa silinir. */
     @Transactional
     public CommunityView setCover(Actor a, Long id, MultipartFile file) {
         Community c = load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
-        String url = storage.save("covers", file, IMAGE_TYPES, COVER_MAX_BYTES);
+        String url = media.storeImage(file, ImageKind.COVER).url();
         String old = c.getCoverUrl();
         c.setCoverUrl(url);
         c.setUpdatedAt(Instant.now());
-        communities.save(c);
-        storage.delete(old);
+        communities.saveAndFlush(c);
+        if (old != null && !old.equals(url)) {
+            media.release(old);
+        }
+        return views(List.of(c), a).get(0);
+    }
+
+    /** Logo: kare/kucuk gorsel icin AVATAR boyut-kalite sinirlari; baska bir hatta gerek yok (T1 hatti). */
+    @Transactional
+    public CommunityView setLogo(Actor a, Long id, MultipartFile file) {
+        Community c = load(id);
+        permissions.require(a, id, ClubPermission.EDIT_INFO);
+        String url = media.storeImage(file, ImageKind.AVATAR).url();
+        String old = c.getLogoUrl();
+        c.setLogoUrl(url);
+        c.setUpdatedAt(Instant.now());
+        communities.saveAndFlush(c);
+        if (old != null && !old.equals(url)) {
+            media.release(old);
+        }
+        return views(List.of(c), a).get(0);
+    }
+
+    /** Logoyu kaldirir (idempotent). */
+    @Transactional
+    public CommunityView removeLogo(Actor a, Long id) {
+        Community c = load(id);
+        permissions.require(a, id, ClubPermission.EDIT_INFO);
+        String old = c.getLogoUrl();
+        if (old != null) {
+            c.setLogoUrl(null);
+            c.setUpdatedAt(Instant.now());
+            communities.saveAndFlush(c);
+            media.release(old);
+        }
         return views(List.of(c), a).get(0);
     }
 
@@ -208,7 +249,7 @@ public class CommunityService {
             }
         }
         // Kimlikler tahmin edilebilir: ozel kulube dogrudan katilim olamaz, her zaman onay gerekir.
-        boolean open = c.getJoinPolicy() == JoinPolicy.OPEN && c.getVisibility() != Community.Visibility.PRIVATE;
+        boolean open = isOpenJoin(c);
         CommunityMember.Status st = open ? CommunityMember.Status.ACTIVE : CommunityMember.Status.PENDING;
         try {
             members.saveAndFlush(new CommunityMember(id, a.id(), Role.MEMBER, st));
@@ -220,8 +261,15 @@ public class CommunityService {
             for (Long mod : permissions.holders(id, ClubPermission.MANAGE_MEMBERS)) {
                 notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id), who, c.getName());
             }
+        } else {
+            hooks.onMemberActivated(id, a.id());
         }
         return st.name();
+    }
+
+    /** Dogrudan katilima acik mi: ozel (PRIVATE) kulup her zaman onay ister (kimlikler tahmin edilebilir). */
+    public static boolean isOpenJoin(Community c) {
+        return c.getJoinPolicy() == JoinPolicy.OPEN && c.getVisibility() != Community.Visibility.PRIVATE;
     }
 
     /** Sahip ayrilamaz; yasakli kullanici ayrilarak yasagi kaldiramaz; bekleyen istek iptal edilir. */
@@ -237,6 +285,7 @@ public class CommunityService {
         }
         members.delete(m);
         permissions.clearGrants(id, a.id());
+        hooks.onMemberGone(id, a.id());
     }
 
     /** Uye listesi: PRIVATE toplulukta yalnizca uyeler gorur; engel iliskisi olanlar listelenmez. */
@@ -265,8 +314,10 @@ public class CommunityService {
             m.setStatus(CommunityMember.Status.ACTIVE);
             m.setJoinedAt(Instant.now());
             members.save(m);
+            hooks.onMemberActivated(id, userId);
         } else {
             members.delete(m);
+            hooks.onMemberGone(id, userId);
         }
         audit.record(id, a.id(), userId, approve ? ClubAuditService.MEMBER_APPROVED : ClubAuditService.MEMBER_REJECTED, null);
         notifications.sendTemplated(userId, NotificationType.COMMUNITY,
@@ -301,6 +352,7 @@ public class CommunityService {
             members.delete(m);
         }
         permissions.clearGrants(id, userId);
+        hooks.onMemberGone(id, userId);
         audit.record(id, a.id(), userId, ban ? ClubAuditService.MEMBER_BANNED : ClubAuditService.MEMBER_REMOVED, null);
     }
 
@@ -323,6 +375,9 @@ public class CommunityService {
         c.setReviewNote(approve ? null : Texts.blankToNull(reason));
         c.setUpdatedAt(Instant.now());
         communities.save(c);
+        if (approve) {
+            hooks.onCommunityActivated(c); // sohbet odasi kulup yayina girince kurulur
+        }
         String note = c.getReviewNote();
         notifications.sendTemplated(c.getOwnerId(), NotificationType.COMMUNITY,
                 approve ? "notif.community.approved" : note == null ? "notif.community.rejected" : "notif.community.rejectedNote",
@@ -436,7 +491,7 @@ public class CommunityService {
             out.add(new CommunityView(c.getId(), c.getName(), c.getSlug(), hideDesc ? null : c.getDescription(), c.getCategory(),
                     c.getCoverUrl(), c.getJoinPolicy(), c.getVisibility(), c.getStatus(), c.getOwnerId(),
                     counts.getOrDefault(c.getId(), 0L), m == null ? "NONE" : m.getStatus().name(),
-                    m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt()));
+                    m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt(), c.getLogoUrl()));
         }
         return out;
     }
