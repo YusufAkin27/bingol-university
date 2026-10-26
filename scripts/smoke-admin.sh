@@ -77,8 +77,9 @@ check "gecersiz fakulte 400" 400 "$(code -X PATCH -H "$H" -H "$A4" $A/users/me -
 check "fakulte > 120 karakter" 400 "$(code -X PATCH -H "$H" -H "$A4" $A/users/me -d "{\"faculty\":\"$(printf 'z%.0s' $(seq 1 121))\"}")"
 has "profilde fakulte" "\"faculty\":\"$FA\"" "$(curl -s -H "$A1" $A/users/me)"
 has "baskasinin profilinde fakulte" "\"faculty\":\"$FA\"" "$(curl -s -H "$A2" $A/users/$ID1)"
-# u3'un gorunen adi formul benzeri (CSV enjeksiyonu testi icin)
-check "gorunen ad formul" 200 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"displayName":"=SUM(1+1)"}')"
+# u3 bolumu formul benzeri (CSV enjeksiyonu testi; gorunen ad politikasi =,+,@ karakterlerini reddeder)
+check "bolum formul" 200 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"department":"=SUM(1+1)"}')"
+check "gorunen ad formul reddi" 400 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"displayName":"=SUM(1+1)"}')"
 
 echo "== yetki: anonim 401, normal kullanici 403"
 for P in admin/me admin/users admin/users/$ID1 admin/users/export.csv admin/audit admin/news admin/legal/terms/versions admin/legal/acceptance-stats \
@@ -106,7 +107,7 @@ check "51 olay 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d 
 check "govde eksik 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{}')"
 # u2 de ekran goruntuler (benzersiz kullanici sayisi)
 check "olay u2" 204 "$(code -X POST -H "$H" -H "$A2" $A/analytics/events -d '{"events":[{"name":"screen_view","screen":"home"}]}')"
-check "cihaz kaydi (platform dagilimi)" 204 "$(code -X POST -H "$H" -H "$A1" $A/devices -d "{\"fcmToken\":\"smoke-tok-$SFX\",\"platform\":\"ANDROID\"}")"
+check "cihaz kaydi (platform dagilimi)" 204 "$(code -X POST -H "$H" -H "$A1" $A/devices -d "{\"fcmToken\":\"smoke-device-token-$SFX\",\"platform\":\"ANDROID\"}")"
 sleep 3   # arka plan aktiflik yazimi
 
 echo "== analitik: bilinen verilerle sayilar"

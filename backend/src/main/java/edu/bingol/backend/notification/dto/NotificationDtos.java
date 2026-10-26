@@ -5,6 +5,7 @@ import edu.bingol.backend.notification.Notification;
 import edu.bingol.backend.notification.NotificationPref;
 import edu.bingol.backend.notification.NotificationSubtype;
 import edu.bingol.backend.notification.NotificationType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -84,5 +85,5 @@ public final class NotificationDtos {
 
     /** Kismi guncelleme: null alan degismez (eski 5 bayrakli istemciler geriye uyumlu). */
     public record PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
-                              Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {}
+                              Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes) {}
 }
