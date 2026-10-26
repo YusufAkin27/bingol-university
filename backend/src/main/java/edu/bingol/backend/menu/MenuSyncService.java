@@ -16,6 +16,8 @@ public class MenuSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(MenuSyncService.class);
 
+    private static final int MAX_ITEMS_LEN = 1000;
+
     private final MenuScraper scraper;
     private final MenuRepository repo;
     private final StatusService status;
@@ -79,5 +81,14 @@ public class MenuSyncService {
         } finally {
             running.set(false);
         }
+    }
+
+    /** menu_day.items 1000 karakterle sinirli; tasan kayit tum senkronu bozmasin diye satir sinirinda kirpilir. */
+    static String fit(String items) {
+        if (items.length() <= MAX_ITEMS_LEN) {
+            return items;
+        }
+        int cut = items.lastIndexOf('\n', MAX_ITEMS_LEN);
+        return items.substring(0, cut > 0 ? cut : MAX_ITEMS_LEN);
     }
 }

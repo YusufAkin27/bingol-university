@@ -1,5 +1,6 @@
 package edu.bingol.backend.news;
 
+import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.news.dto.NewsDetail;
 import edu.bingol.backend.news.dto.NewsPage;
 import edu.bingol.backend.news.dto.NewsSummary;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,17 @@ public class NewsService {
         this.repo = repo;
     }
 
-    /** type null ise tum turler; en yeni once. */
+    /** Metin turunu (buyuk/kucuk harf toleransli) cozer; bos ise null, taninmazsa 400 NEWS_TYPE_INVALID. */
+    public static ContentType parseType(String raw) {
+        try {
+            return ContentType.parse(raw);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "NEWS_TYPE_INVALID",
+                    "Geçersiz tür. Geçerli değerler: DUYURU, HABER, ETKINLIK.");
+        }
+    }
+
+    /** type null ise tum turler; en yeni once (tarihsizler sonda). */
     public NewsPage list(ContentType type, int page, int size) {
         return list(type, null, page, size);
     }
@@ -41,7 +53,7 @@ public class NewsService {
                     PageRequest.of(p, s));
         } else {
             Pageable pageable = PageRequest.of(p, s,
-                    Sort.by(Sort.Order.desc("publishedDate"), Sort.Order.desc("id")));
+                    Sort.by(Sort.Order.desc("publishedDate").nullsLast(), Sort.Order.desc("id")));
             result = type == null ? repo.findByHiddenFalse(pageable) : repo.findByTypeAndHiddenFalse(type, pageable);
         }
         return new NewsPage(result.getContent().stream().map(NewsSummary::of).toList(),

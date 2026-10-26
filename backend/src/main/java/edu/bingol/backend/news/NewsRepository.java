@@ -15,6 +15,13 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
 
     boolean existsByUrl(String url);
 
+    /** Icerigi hic cekilememis ana-site kayitlari: deneme hakki kalmis ve son denemeden beri yeterli sure gecmis. */
+    @Query("SELECT n FROM NewsItem n WHERE n.content IS NULL AND n.url LIKE 'https://www.bingol.edu.tr/%' "
+            + "AND n.contentAttempts < :maxAttempts AND (n.contentAttemptedAt IS NULL OR n.contentAttemptedAt < :before) "
+            + "ORDER BY n.id DESC")
+    List<NewsItem> findContentRetryCandidates(@Param("maxAttempts") int maxAttempts,
+                                              @Param("before") java.time.Instant before, Pageable pageable);
+
     /** Herkese acik gorunum: gizlenmis (hidden) kayitlar donmez. */
     boolean existsByIdAndHiddenFalse(Long id);
 
@@ -24,7 +31,7 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
 
     /** Liste ucu icin metin filtresi (PostgreSQL'e ozel). type null ise tum turler. Siralama sabit: en yeni once. */
     @Query(value = "SELECT n.* FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND n.hidden = FALSE AND "
-            + MATCH + " ORDER BY n.published_date DESC, n.id DESC",
+            + MATCH + " ORDER BY n.published_date DESC NULLS LAST, n.id DESC",
             countQuery = "SELECT count(*) FROM news_item n WHERE (CAST(:type AS varchar) IS NULL OR n.type = :type) AND n.hidden = FALSE AND "
                     + MATCH,
             nativeQuery = true)
@@ -44,7 +51,7 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
     @Query(value = "SELECT n.id AS id, n.title AS title, n.summary AS summary, n.image_url AS imageUrl, "
             + "CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.type = :type AND n.hidden = FALSE AND "
             + MATCH + " ORDER BY ts_rank(" + VEC + ", websearch_to_tsquery('turkish', :q)) DESC, "
-            + "n.published_date DESC, n.id DESC LIMIT :lim OFFSET :off", nativeQuery = true)
+            + "n.published_date DESC NULLS LAST, n.id DESC LIMIT :lim OFFSET :off", nativeQuery = true)
     List<HitRow> searchHits(@Param("type") String type, @Param("q") String q, @Param("like") String like,
                             @Param("lim") int limit, @Param("off") int offset);
 }

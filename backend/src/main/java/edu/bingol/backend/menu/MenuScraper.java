@@ -17,7 +17,7 @@ public class MenuScraper {
 
     private static final String URL = "https://sks.bingol.edu.tr/yemek-listesi";
     private static final String UA = "Mozilla/5.0 (compatible; BingolMobileBot/1.0)";
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d.M.yyyy");
 
     public record Day(LocalDate date, List<String> items) {}
 

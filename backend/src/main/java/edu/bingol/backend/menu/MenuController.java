@@ -24,15 +24,10 @@ public class MenuController {
         this.sync = sync;
     }
 
-    /** GET /api/menu?month=2026-10 (varsayilan: icinde bulunulan ay) */
+    /** GET /api/menu?month=2026-10 (varsayilan: icinde bulunulan ay). Gecersiz ay -> 400 MENU_MONTH_INVALID. */
     @GetMapping("/menu")
-    public ResponseEntity<List<MenuResponse>> month(@RequestParam(required = false) String month) {
-        try {
-            YearMonth ym = month == null ? menu.currentMonth() : YearMonth.parse(month);
-            return ResponseEntity.ok(menu.month(ym));
-        } catch (DateTimeParseException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public List<MenuResponse> month(@RequestParam(required = false) String month) {
+        return menu.month(menu.resolveMonth(month));
     }
 
     @GetMapping("/menu/today")

@@ -5,7 +5,10 @@ import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.status.StatusService;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -15,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +28,11 @@ public class NewsSyncService {
     private static final Logger log = LoggerFactory.getLogger(NewsSyncService.class);
     /** Siteyi yormamak icin ardisik detay istekleri arasindaki bekleme. */
     private static final long REQUEST_DELAY_MS = 500;
+    private static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
+    private static final int MAX_CONTENT_ATTEMPTS = 5;
+    private static final int RETRY_BATCH = 20;
+    /** Gece cekimi gunde bir kez calistigindan ayni kayit en cok gunde bir denenir. */
+    private static final Duration RETRY_INTERVAL = Duration.ofHours(20);
 
     private final NewsScraper scraper;
     private final NewsRepository repo;
@@ -77,6 +86,7 @@ public class NewsSyncService {
                     failures.add(type + ": " + e.getMessage());
                 }
             }
+            retryMissingContentSafely();
             if (failures.size() == ContentType.values().length) {
                 status.markMaintenance(StatusService.NEWS, "Kaynak site okunamadi: " + String.join("; ", failures));
             } else {
@@ -92,6 +102,16 @@ public class NewsSyncService {
         return added;
     }
 
+    private void retryMissingContentSafely() {
+        try {
+            log.info("Icerigi eksik {} kayit tamamlandi", retryMissingContent());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            log.warn("Icerik yeniden deneme basarisiz: {}", e.toString());
+        }
+    }
+
     private int syncType(ContentType type, boolean notify) throws Exception {
         List<NewsScraper.ListEntry> entries = scraper.fetchList(type);
         if (entries.isEmpty()) {
@@ -104,18 +124,14 @@ public class NewsSyncService {
             if (repo.existsByUrl(e.url())) {
                 continue;
             }
-            NewsScraper.Detail d = scraper.fetchDetail(e.url());
+            Instant now = Instant.now();
             NewsItem item = new NewsItem();
             item.setType(type);
             item.setUrl(e.url());
             item.setTitle(truncate(e.title(), 1000));
-            item.setPublishedDate(e.date());
-            item.setFetchedAt(Instant.now());
-            if (d != null) {
-                item.setContent(d.content());
-                item.setSummary(NewsScraper.summarize(d.content()));
-                item.setImageUrl(d.imageUrl());
-            }
+            item.setFetchedAt(now);
+            item.setPublishedDate(e.date() != null ? e.date() : LocalDate.ofInstant(now, ZONE));
+            applyDetail(item, scraper.fetchDetail(e.url()), now);
             fresh.add(repo.save(item));
             count++;
             Thread.sleep(REQUEST_DELAY_MS);
@@ -124,6 +140,38 @@ public class NewsSyncService {
             notifyNew(type, fresh);
         }
         return count;
+    }
+
+    /** Detay sonucunu kayda isler; null ise deneme sayaci artar ki bos kalan kayit sinirli sayida yeniden denensin. */
+    private static void applyDetail(NewsItem item, NewsScraper.Detail d, Instant now) {
+        item.setContentAttempts(item.getContentAttempts() + 1);
+        item.setContentAttemptedAt(now);
+        if (d == null) {
+            return;
+        }
+        item.setContent(d.content());
+        item.setSummary(NewsScraper.summarize(d.content()));
+        item.setImageUrl(d.imageUrl());
+        if (item.getType() == ContentType.ETKINLIK) {
+            item.setEventDate(d.eventDate());
+        }
+    }
+
+    /** Detayi alinamamis kayitlari gunde bir kez, en cok MAX_CONTENT_ATTEMPTS denemeye kadar tekrar dener. */
+    private int retryMissingContent() throws InterruptedException {
+        Instant now = Instant.now();
+        List<NewsItem> pending = repo.findContentRetryCandidates(MAX_CONTENT_ATTEMPTS,
+                now.minus(RETRY_INTERVAL), PageRequest.of(0, RETRY_BATCH));
+        int filled = 0;
+        for (NewsItem item : pending) {
+            applyDetail(item, scraper.fetchDetail(item.getUrl()), now);
+            repo.save(item);
+            if (item.getContent() != null) {
+                filled++;
+            }
+            Thread.sleep(REQUEST_DELAY_MS);
+        }
+        return filled;
     }
 
     /** En fazla 3 yeni kayit tek tek, fazlasi tek ozet bildirim olarak gider (gece toplu cekimde bildirim yagmuru olmasin). */

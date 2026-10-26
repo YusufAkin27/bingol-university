@@ -39,7 +39,17 @@ public class NewsItem {
     @Column(length = 1000)
     private String imageUrl;
 
+    /** Liste tarihi; ayristirilamazsa cekim gunu (fetchedAt, Istanbul) yazilir. */
     private LocalDate publishedDate;
+
+    /** Yalnizca ETKINLIK: detay sayfasinda etiketli bulunan baslangic tarihi (yoksa null). */
+    private LocalDate eventDate;
+
+    /** Detay (icerik) cekimi denemeleri; content bos kalan kayitlar sinirli sayida yeniden denenir. */
+    @Column(nullable = false)
+    private int contentAttempts;
+
+    private Instant contentAttemptedAt;
 
     /** Yonetici gizlediyse herkese acik liste/detay/arama/favorilerde gorunmez. */
     @Column(nullable = false)
