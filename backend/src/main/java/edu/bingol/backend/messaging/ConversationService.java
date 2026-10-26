@@ -7,6 +7,8 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MemberView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.UserSummary;
+import edu.bingol.backend.messaging.media.AttachmentView;
+import edu.bingol.backend.messaging.media.MessageAttachmentService;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
@@ -42,6 +44,13 @@ public class ConversationService {
     private final UserRepository users;
     private final BlockService blocks;
     private final MessageCodec codec;
+    /** T8: son mesaj onizlemesinde gorsel ekleri (setter enjeksiyonu; yoksa eksiz). */
+    private MessageAttachmentService attachments;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAttachments(MessageAttachmentService attachments) {
+        this.attachments = attachments;
+    }
 
     public ConversationService(ConversationRepository convs, ConversationMemberRepository members,
                                MessageRepository messages, UserRepository users, BlockService blocks, MessageCodec codec) {
@@ -263,6 +272,7 @@ public class ConversationService {
                 page.stream().map(Conversation::getLastMessageId).filter(java.util.Objects::nonNull).toList()).stream()
                 .collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
+        Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(lastMessages.keySet());
         Map<Long, Long> unread = new HashMap<>();
         for (Object[] row : messages.unreadCounts(me, ids)) {
             unread.put((Long) row[0], (Long) row[1]);
@@ -279,7 +289,8 @@ public class ConversationService {
             Instant joined = ms.stream().filter(m -> m.getUserId().equals(me)).map(ConversationMember::getJoinedAt)
                     .findFirst().orElse(Instant.EPOCH);
             MessageView lastView = last == null || (!direct && last.getCreatedAt().isBefore(joined)) ? null
-                    : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me));
+                    : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me))
+                    .withAttachments(lastAtt.get(last.getId()));
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();

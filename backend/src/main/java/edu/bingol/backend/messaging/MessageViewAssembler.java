@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import edu.bingol.backend.messaging.media.AttachmentView;
+import edu.bingol.backend.messaging.media.MessageAttachmentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,6 +30,14 @@ public class MessageViewAssembler {
     private final MessageRepository messages;
     private final MessageReactionRepository reactions;
     private final MessageCodec codec;
+
+    /** T8: gorsel ekleri (setter enjeksiyonu: yapici imzasi degismesin; yoksa eksiz). */
+    private MessageAttachmentService attachments;
+
+    @Autowired(required = false)
+    void setAttachments(MessageAttachmentService attachments) {
+        this.attachments = attachments;
+    }
 
     public MessageViewAssembler(MessageRepository messages, MessageReactionRepository reactions, MessageCodec codec) {
         this.messages = messages;
@@ -62,6 +73,7 @@ public class MessageViewAssembler {
                 : messages.findAllById(parentIds).stream().collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new ArrayList<>(parents.values()));
 
+        Map<Long, List<AttachmentView>> att = attachments == null ? Map.of() : attachments.viewsFor(ids);
         List<MessageView> out = new ArrayList<>(opened.size());
         for (Message m : opened) {
             boolean blocked = blockedSenders.contains(m.getSenderId()) && !m.getSenderId().equals(viewerId);
@@ -72,7 +84,7 @@ public class MessageViewAssembler {
                         m.getReplyToMessageId());
             }
             out.add(v.withExtras(blocked ? null : preview, blocked || m.isDeleted() ? List.of()
-                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId())));
+                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId())).withAttachments(blocked ? null : att.get(m.getId())));
         }
         return out;
     }

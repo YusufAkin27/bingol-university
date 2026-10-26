@@ -66,8 +66,20 @@ public class PrivateMediaStore {
 
     /** Ham baytlardan (ornek test) ayni islem. */
     public PrivateMedia store(String bucket, byte[] raw, ImageKind kind) {
+        return store(bucket, raw, kind, null);
+    }
+
+    /**
+     * Islenmis (yeniden kodlanmis) cikti diske yazilmadan ONCE {@code inspector}a verilir; exception firlatirsa
+     * hicbir sey yazilmaz (ornek: yasakli icerik ozeti denetimi).
+     */
+    public PrivateMedia store(String bucket, byte[] raw, ImageKind kind,
+                              java.util.function.Consumer<ProcessedImage> inspector) {
         checkBucket(bucket);
         ProcessedImage img = processor.process(raw, kind);
+        if (inspector != null) {
+            inspector.accept(img);
+        }
         String id = UUID.randomUUID().toString();
         String key = id + "." + img.ext();
         String thumbKey = id + "-t." + img.ext();
@@ -109,6 +121,26 @@ public class PrivateMediaStore {
             log.warn("Ozel medya okunamadi {}/{}: {}", bucket, key, e.toString());
             return null;
         }
+    }
+
+    /**
+     * Ana dosya + kucuk resmi YENI rastgele anahtarlarla kopyalar (eski anahtarlari SILMEZ; cagiran DB guncellenip
+     * commit edildikten sonra siler). Eski imzali URL'ler boylece gecersiz olur. Kaynak yoksa/okunamazsa null.
+     * @return {anahtar, kucukResimAnahtari}
+     */
+    public String[] copy(String bucket, String key, String thumbKey) {
+        byte[] main = read(bucket, key);
+        byte[] thumb = read(bucket, thumbKey);
+        if (main == null || thumb == null) {
+            return null;
+        }
+        String ext = key.substring(key.lastIndexOf('.') + 1);
+        String id = UUID.randomUUID().toString();
+        String nk = id + "." + ext;
+        String nt = id + "-t." + thumbKey.substring(thumbKey.lastIndexOf('.') + 1);
+        write(bucket, nk, main);
+        write(bucket, nt, thumb);
+        return new String[] {nk, nt};
     }
 
     /** Ana dosyayi ve kucuk resmini siler (yoksa sessiz). */
