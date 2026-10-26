@@ -15,7 +15,7 @@ const NEW_ROUTES: [string, RegExp][] = [
   ['/admin/moderation/blocklist', /Yasaklı görseller/],
   ['/admin/events/applications', /Etkinlik başvuruları/],
   ['/admin/communities/audit', /Kulüp yetki ve denetim kaydı/],
-  ['/admin/crypto', /Mesaj çözme ve şifreleme/],
+  ['/admin/crypto', /Sohbetler ve şifreleme/],
 ];
 
 test.describe('Yeni yonetim sayfalari', () => {
@@ -77,6 +77,6 @@ test.describe('Arapca ve RTL', () => {
     await ensureAdminMe(page, request);
     await page.goto('/admin/crypto');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    await expect(page.getByTestId('decrypt-warning')).toBeVisible();
+    await expect(page.getByTestId('decrypt-warning')).toHaveCount(0);
   });
 });

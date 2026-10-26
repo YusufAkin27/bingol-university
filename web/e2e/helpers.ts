@@ -12,17 +12,27 @@ export interface Tokens {
   refreshToken: string;
 }
 
-/** API uzerinden giris yapar (arayuz girisini her testte tekrarlamamak icin). */
+let cached: Tokens | null = null;
+let cachedAt = 0;
+
+/** API uzerinden giris yapar; varsayilan hesapta token 10 dk onbellege alinir (giris ucu IP basina 15 dk'da 10 istekle sinirli). */
 export async function apiLogin(
   request: APIRequestContext,
   email = ADMIN_EMAIL,
   password = ADMIN_PASSWORD,
 ): Promise<Tokens> {
+  const isDefault = email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
+  if (isDefault && cached && Date.now() - cachedAt < 10 * 60_000) return cached;
   const res = await request.post('/api/auth/login', { data: { email, password } });
   if (!res.ok()) {
     throw new Error(`Giris basarisiz (${res.status()}): ${await res.text()}. scripts/smoke.sh ile yonetici hesabini olusturun.`);
   }
-  return res.json();
+  const tokens = (await res.json()) as Tokens;
+  if (isDefault) {
+    cached = tokens;
+    cachedAt = Date.now();
+  }
+  return tokens;
 }
 
 /** Tokenlari sessionStorage'a koyar; sayfa acilmadan once cagrilir. */
