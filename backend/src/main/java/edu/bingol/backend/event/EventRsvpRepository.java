@@ -35,6 +35,7 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
             SELECT r, e FROM EventRsvp r, UserEvent e
             WHERE r.eventId = e.id AND r.status = :going AND e.status = :active
               AND e.startsAt > :lo AND e.startsAt <= :hi AND r.remindedDay = FALSE AND r.remindedHour = FALSE
+              AND r.userId IN (SELECT u.id FROM User u WHERE u.status = edu.bingol.backend.user.UserStatus.ACTIVE)
             ORDER BY e.startsAt, r.id
             """)
     List<Object[]> dayCandidates(@Param("going") EventRsvp.Status going, @Param("active") UserEvent.Status active,
@@ -44,6 +45,7 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
             SELECT r, e FROM EventRsvp r, UserEvent e
             WHERE r.eventId = e.id AND r.status = :going AND e.status = :active
               AND e.startsAt > :lo AND e.startsAt <= :hi AND r.remindedHour = FALSE
+              AND r.userId IN (SELECT u.id FROM User u WHERE u.status = edu.bingol.backend.user.UserStatus.ACTIVE)
             ORDER BY e.startsAt, r.id
             """)
     List<Object[]> hourCandidates(@Param("going") EventRsvp.Status going, @Param("active") UserEvent.Status active,
@@ -60,4 +62,10 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
     @Modifying
     @Query("UPDATE EventRsvp r SET r.remindedHour = TRUE, r.remindedDay = TRUE WHERE r.id = :id AND r.remindedHour = FALSE")
     int claimHour(@Param("id") Long id);
+
+    /** Etkinlik saati degisince hatirlatma isaretlerini sifirlar (yeni saat icin tekrar hatirlatilir). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE EventRsvp r SET r.remindedDay = FALSE, r.remindedHour = FALSE WHERE r.eventId = :eid")
+    int resetReminders(@Param("eid") Long eventId);
 }
