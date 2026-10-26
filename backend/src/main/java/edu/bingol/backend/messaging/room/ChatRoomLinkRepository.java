@@ -40,5 +40,8 @@ public interface ChatRoomLinkRepository extends JpaRepository<ChatRoomLink, Long
     @Query("UPDATE ConversationMember m SET m.leftAt = :now WHERE m.leftAt IS NULL AND m.conversationId = :cid")
     int leaveAll(@Param("cid") Long conversationId, @Param("now") Instant now);
 
+    /** Konusma listesi gorunumu icin toplu arama. */
+    List<ChatRoomLink> findByConversationIdIn(java.util.Collection<Long> conversationIds);
+
     List<ChatRoomLink> findByKind(RoomKind kind);
 }

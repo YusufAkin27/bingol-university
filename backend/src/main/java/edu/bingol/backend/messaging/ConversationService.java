@@ -52,6 +52,14 @@ public class ConversationService {
         this.attachments = attachments;
     }
 
+    /** Kulup/etkinlik odasi baglantilari: gorunumde tur (CLUB/EVENT) ve kaynak kimligi buradan turetilir. */
+    private edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRoomLinks(edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks) {
+        this.roomLinks = roomLinks;
+    }
+
     public ConversationService(ConversationRepository convs, ConversationMemberRepository members,
                                MessageRepository messages, UserRepository users, BlockService blocks, MessageCodec codec) {
         this.codec = codec;
@@ -143,6 +151,14 @@ public class ConversationService {
         return new ConversationDetail(views(me, List.of(c)).get(0), list);
     }
 
+    /** Tek konusmanin gorunumu (yalnizca aktif uye). Kulup/etkinlik sohbet uclari kullanir. */
+    @Transactional(readOnly = true)
+    public ConversationView view(Long me, Long id) {
+        requireMember(id, me);
+        Conversation c = convs.findById(id).orElseThrow(ConversationService::notFound);
+        return views(me, List.of(c)).get(0);
+    }
+
     @Transactional
     public ConversationView rename(Long me, Long id, String title) {
         Conversation c = requireGroupAdmin(id, me);
@@ -209,7 +225,8 @@ public class ConversationService {
     public void leave(Long me, Long id) {
         Conversation c = convs.findById(id).orElseThrow(ConversationService::notFound);
         ConversationMember self = requireMember(id, me);
-        if (c.getType() != Conversation.Type.GROUP) {
+        // Kulup/etkinlik odasindan elle ayrilinmaz: uyelik kaynaga (kulup/RSVP) bagli, oradan senkronlanir.
+        if (c.getType() != Conversation.Type.GROUP || (roomLinks != null && !roomLinks.findByConversationIdIn(List.of(id)).isEmpty())) {
             throw notGroup();
         }
         self.setLeftAt(Instant.now());
@@ -278,6 +295,9 @@ public class ConversationService {
             unread.put((Long) row[0], (Long) row[1]);
         }
         Set<Long> related = blocks.hiddenFrom(me);
+        Map<Long, edu.bingol.backend.messaging.room.ChatRoomLink> roomOf = roomLinks == null ? Map.of()
+                : roomLinks.findByConversationIdIn(ids).stream().collect(Collectors.toMap(
+                        edu.bingol.backend.messaging.room.ChatRoomLink::getConversationId, Function.identity(), (x, y) -> x));
 
         return page.stream().map(c -> {
             List<ConversationMember> ms = membersBy.getOrDefault(c.getId(), List.of());
@@ -294,10 +314,15 @@ public class ConversationService {
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();
-            return new ConversationView(c.getId(), c.getType().name(), c.getTitle(), peer, ms.size(), admin, lastView,
+            var room = roomOf.get(c.getId());
+            boolean club = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.COMMUNITY;
+            boolean event = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.EVENT;
+            String type = club ? "CLUB" : event ? "EVENT" : c.getType().name();
+            return new ConversationView(c.getId(), type, c.getTitle(), peer, ms.size(), admin, lastView,
                     unread.getOrDefault(c.getId(), 0L), direct && peerId != null && related.contains(peerId),
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
-                    mine != null && mine.getArchivedAt() != null);
+                    mine != null && mine.getArchivedAt() != null,
+                    club ? room.getRefId() : null, event ? room.getRefId() : null);
         }).toList();
     }
 

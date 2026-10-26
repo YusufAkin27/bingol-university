@@ -88,6 +88,36 @@ public class EventService {
         this.coOrganizers = coOrganizers;
     }
 
+    /** Etkinlik sohbet odasi senkronu (setter; yoksa eski davranis). RSVP'den cikan oda disi kalir, iptalde oda kapanir. */
+    private edu.bingol.backend.messaging.room.RoomConversations rooms;
+
+    @Autowired(required = false)
+    public void setRooms(edu.bingol.backend.messaging.room.RoomConversations rooms) {
+        this.rooms = rooms;
+    }
+
+    private void leaveRoom(Actor a, UserEvent e) {
+        if (rooms == null || canManage(a, e)) {
+            return;
+        }
+        try {
+            rooms.removeMember(edu.bingol.backend.messaging.room.RoomKind.EVENT, e.getId(), a.id());
+        } catch (RuntimeException ex) {
+            // sozlesme: senkron hatasi RSVP islemini bozmaz; sohbet erisiminde canli yetki kontrolu zaten var
+        }
+    }
+
+    private void closeRoom(UserEvent e) {
+        if (rooms == null) {
+            return;
+        }
+        try {
+            rooms.closeRoom(edu.bingol.backend.messaging.room.RoomKind.EVENT, e.getId());
+        } catch (RuntimeException ex) {
+            // iptal islemini bozma
+        }
+    }
+
     // ---- olusturma / guncelleme / silme ----
 
     /**
@@ -205,6 +235,7 @@ public class EventService {
         if (admission != null) {
             admission.onEventCancelled(e);
         }
+        closeRoom(e);
     }
 
     @Transactional
@@ -322,6 +353,7 @@ public class EventService {
     public void cancelRsvp(Actor a, Long id) {
         UserEvent e = loadVisible(a, id);
         if (admission != null && admission.withdrawAccepted(a, e)) {
+            leaveRoom(a, e);
             return;
         }
         rsvps.findByEventIdAndUserId(id, a.id()).ifPresent(r -> {
@@ -330,6 +362,7 @@ public class EventService {
             }
             rsvps.delete(r);
         });
+        leaveRoom(a, e);
     }
 
     private void reserveSeat(Long eventId) {
