@@ -21,6 +21,7 @@ import edu.bingol.backend.event.admission.AdmissionDtos.ConfigView;
 import edu.bingol.backend.event.admission.AdmissionDtos.DecisionItem;
 import edu.bingol.backend.event.admission.AdmissionDtos.DecisionResult;
 import edu.bingol.backend.event.admission.EventAdmission.Mode;
+import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.event.admission.EventApplication.Status;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.notification.NotificationService;
@@ -87,6 +88,14 @@ public class EventAdmissionService implements EventAdmissionHooks {
         this.blocks = blocks;
         this.communities = communities;
         this.settings = settings;
+    }
+
+    /** T25: etkinlik sohbet odasi senkronu (setter + @Lazy; null iken no-op). */
+    private EventChatHooks chat;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setChat(@org.springframework.context.annotation.Lazy EventChatHooks chat) {
+        this.chat = chat;
     }
 
     // ---- yapilandirma ----
@@ -502,6 +511,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             r.setRemindedHour(false);
             rsvps.save(r);
         }
+        if (chat != null) {
+            chat.onGoing(eventId, userId);
+        }
         return true;
     }
 
@@ -510,6 +522,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
         rsvps.findByEventIdAndUserId(e.getId(), userId).ifPresent(r -> {
             if (r.getStatus() == EventRsvp.Status.GOING) {
                 eventRepo.decrementGoing(e.getId());
+                if (chat != null) {
+                    chat.onLeft(e.getId(), userId);
+                }
             }
             rsvps.delete(r);
         });

@@ -1,5 +1,5 @@
 // SAYFA: İletişim (/contact)
-// API: GET /api/app/info (contactEmail, supportEmail, phone, address, social). Formsuz: mailto + uygulama içi destek yönlendirmesi.
+// API: GET /api/app/info (contactEmail, supportEmail, phone, address, social); herkese açık 'Bize ulaşın' formu (POST /api/public/support/*, T27).
 import { Link } from 'react-router-dom';
 import { useAppInfo } from '../../api/hooks';
 import { ErrorState, Icon } from '../../components/ui';
@@ -9,6 +9,7 @@ import { paths } from '../../paths';
 import { ContactList, contactItems } from './components/ContactList';
 import { organizationLd } from './components/jsonLd';
 import { PageHero } from './components/PageHero';
+import { PublicSupportForm } from './components/PublicSupportForm';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './ContactPage.module.css';
@@ -44,6 +45,8 @@ export default function ContactPage() {
                 ))}
               </ol>
             </div>
+
+            <PublicSupportForm />
 
             {info.isError ? (
               <ErrorState

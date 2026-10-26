@@ -1,93 +1,36 @@
-// SAYFA: Mesaj çözme ve şifreleme durumu (/admin/crypto)
-// API: GET /api/admin/crypto/status (anahtar kimlikleri, ana anahtar başına DEK sayısı; sır yok),
-//      POST /api/admin/messages/decrypt {conversationId, fromMessageId, toMessageId?, reason>=10} (api/crypto.ts).
-// Her çözme isteği düz metin dönmeden ÖNCE değiştirilemez erişim denetim kaydına yazılır; yalnızca JWT'li ADMIN (saatte 30 istek).
-// Düz metin yalnızca bileşen durumunda tutulur (önbelleğe/depoya yazılmaz) ve sayfadan çıkınca silinir.
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { cryptoApi, qk } from '../../api';
-import {
-  Badge,
-  Button,
-  Card,
-  Checkbox,
-  EmptyState,
-  ErrorState,
-  FormField,
-  Input,
-  PageHeader,
-  Skeleton,
-  Textarea,
-  useToast,
-} from '../../components/ui';
+// SAYFA: Şifreleme durumu ve kullanıcı sohbetlerini açma (/admin/crypto)
+// API: GET /api/admin/crypto/status (anahtar kimlikleri, ana anahtar başına DEK sayısı; sır yok) ve kullanıcı arama (GET /api/admin/users?q=).
+// Mesajlar kullanıcı bazlı görüntüleyicide açılır (UserMessagesPage); tek tek çözme formu ve uyarı kutusu T24 ile kaldırıldı.
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { cryptoApi, qk, usersApi } from '../../api';
+import { Badge, Card, EmptyState, ErrorState, FormField, Input, PageHeader, Skeleton } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
-import { usePageTitle } from '../../lib/hooks';
+import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
+import { paths } from '../../paths';
 import { adminErrorMessage, Callout } from './campaigns/shared';
-import {
-  DECRYPT_MAX_MESSAGES,
-  DECRYPT_MAX_REASON,
-  DECRYPT_MIN_REASON,
-  buildDecryptRequest,
-  validateDecrypt,
-  type DecryptForm,
-} from './moderation/modLogic';
 import styles from './moderation/moderation.module.css';
 
 export default function CryptoPage() {
   const i18n = useI18n();
-  const { t, formatDateTime, formatNumber } = i18n;
+  const { t, formatNumber } = i18n;
   usePageTitle(t('admin.crypto.title'));
-  const toast = useToast();
-  const [params] = useSearchParams();
-  const [form, setForm] = useState<DecryptForm>({
-    conversationId: params.get('conversationId') ?? '',
-    fromMessageId: params.get('from') ?? '',
-    toMessageId: params.get('to') ?? '',
-    reason: '',
-  });
-  const [ack, setAck] = useState(false);
-  const [touched, setTouched] = useState(false);
+  const [q, setQ] = useState('');
+  const term = useDebouncedValue(q.trim(), 300);
 
   const status = useQuery({ queryKey: qk.crypto.status(), queryFn: cryptoApi.getCryptoStatus });
   const disabled = status.data ? !status.data.adminDecryptEnabled : false;
-
-  const decrypt = useMutation({
-    mutationFn: () => cryptoApi.decryptMessages(buildDecryptRequest(form)),
-    onError: (e) => toast.error(adminErrorMessage(i18n, e)),
+  const found = useQuery({
+    queryKey: qk.users.list({ q: term, size: 8 }),
+    queryFn: () => usersApi.listUsers({ q: term, size: 8 }),
+    enabled: term.length >= 2,
   });
-  // Sayfadan çıkınca düz metin bellekten atılır
-  const { reset } = decrypt;
-  useEffect(() => () => reset(), [reset]);
-
-  const err = validateDecrypt(form);
-  const set = (k: keyof DecryptForm) => (e: { target: { value: string } }) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-  const errFor = (field: 'reason' | 'conversation' | 'range') => {
-    if (!touched || !err) return null;
-    if (field === 'reason' && (err === 'reasonShort' || err === 'reasonLong')) {
-      return t(err === 'reasonShort' ? 'admin.crypto.err.reasonShort' : 'admin.crypto.err.reasonLong', {
-        min: DECRYPT_MIN_REASON,
-        max: DECRYPT_MAX_REASON,
-      });
-    }
-    if (field === 'conversation' && err === 'conversation') return t('admin.crypto.err.conversation');
-    if (field === 'range' && err === 'range') return t('admin.crypto.err.range');
-    return null;
-  };
-
-  const data = decrypt.data;
 
   return (
     <>
       <PageHeader title={t('admin.crypto.title')} />
       <div className={styles.stack}>
-        <section className={styles.warnBox} aria-labelledby="crypto-warn" data-testid="decrypt-warning">
-          <h2 id="crypto-warn">{t('admin.crypto.warn.title')}</h2>
-          <p>{t('admin.crypto.warn.body')}</p>
-          <p>{t('admin.crypto.warn.audit')}</p>
-        </section>
-
         <Card title={t('admin.crypto.status.title')}>
           {status.isError ? (
             <ErrorState compact description={adminErrorMessage(i18n, status.error)} onRetry={() => void status.refetch()} />
@@ -134,91 +77,43 @@ export default function CryptoPage() {
           )}
         </Card>
 
-        <Card title={t('admin.crypto.form.title')}>
+        <Card title={t('admin.crypto.open.title')}>
+          <p className={styles.muted}>{t('admin.crypto.open.hint')}</p>
           {disabled && (
             <Callout tone="warning" role="status">
               {t('admin.crypto.disabled')}
             </Callout>
           )}
-          <form
-            className={styles.formGrid}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setTouched(true);
-              if (!err && ack && !disabled) decrypt.mutate();
-            }}
-          >
-            <FormField label={t('admin.crypto.form.conversation')} error={errFor('conversation')} required>
-              <Input className="ltr" inputMode="numeric" value={form.conversationId} onChange={set('conversationId')} />
-            </FormField>
-            <FormField label={t('admin.crypto.form.from')} error={errFor('range')} required>
-              <Input className="ltr" inputMode="numeric" value={form.fromMessageId} onChange={set('fromMessageId')} />
-            </FormField>
-            <FormField
-              label={t('admin.crypto.form.to')}
-              hint={t('admin.crypto.form.toHint', { max: DECRYPT_MAX_MESSAGES })}
-            >
-              <Input className="ltr" inputMode="numeric" value={form.toMessageId} onChange={set('toMessageId')} />
-            </FormField>
-            <div className={styles.wide}>
-              <FormField
-                label={t('admin.crypto.form.reason')}
-                hint={t('admin.crypto.form.reasonHint', { min: DECRYPT_MIN_REASON })}
-                error={errFor('reason')}
-                required
-              >
-                <Textarea rows={3} dir="auto" value={form.reason} maxLength={DECRYPT_MAX_REASON + 50} onChange={set('reason')} />
-              </FormField>
-            </div>
-            <div className={styles.wide}>
-              <Checkbox
-                checked={ack}
-                onChange={(e) => setAck(e.target.checked)}
-                label={t('admin.crypto.form.ack')}
+          <div className={styles.formGrid}>
+            <FormField label={t('admin.crypto.open.search')}>
+              <Input
+                value={q}
+                dir="auto"
+                autoComplete="off"
+                placeholder={t('admin.crypto.open.placeholder')}
+                onChange={(e) => setQ(e.target.value)}
               />
-            </div>
-            <div className={styles.wide}>
-              <Button type="submit" variant="danger" loading={decrypt.isPending} disabled={!ack || disabled}>
-                {t('admin.crypto.form.submit')}
-              </Button>
-            </div>
-          </form>
-        </Card>
-
-        {data && (
-          <Card title={t('admin.crypto.result.title', { n: formatNumber(data.count) })}>
-            <p className={styles.muted} role="status">
-              {t('admin.crypto.result.audit', { id: data.auditId })}
-            </p>
-            {data.messages.length === 0 ? (
-              <EmptyState compact icon="message" title={t('admin.crypto.result.empty')} description=" " />
+            </FormField>
+          </div>
+          {term.length >= 2 &&
+            (found.isError ? (
+              <ErrorState compact description={adminErrorMessage(i18n, found.error)} onRetry={() => void found.refetch()} />
+            ) : found.isLoading ? (
+              <Skeleton height="4rem" width="100%" />
+            ) : found.data && found.data.items.length === 0 ? (
+              <EmptyState compact icon="search" title={t('admin.crypto.open.none')} description=" " />
             ) : (
               <ul className={styles.msgList}>
-                {data.messages.map((m) => (
-                  <li key={m.id} className={styles.msg}>
-                    <div className={styles.msgMeta}>
-                      <span className="ltr">#{m.id}</span>
-                      <span>{t('admin.crypto.result.sender', { id: m.senderId })}</span>
-                      <span>{formatDateTime(m.createdAt)}</span>
-                    </div>
-                    {m.text !== null ? (
-                      <p className={styles.body} dir="auto">
-                        {m.text}
-                      </p>
-                    ) : (
-                      <p className={styles.muted}>{t('admin.crypto.result.failed', { reason: m.error ?? '?' })}</p>
-                    )}
+                {found.data?.items.map((u) => (
+                  <li key={u.id} className={styles.msgMeta}>
+                    <strong dir="auto">{u.displayName}</strong>
+                    <span className="ltr">{u.email}</span>
+                    {!disabled && <Link to={paths.admin.userMessages(u.id)}>{t('admin.crypto.open.go')}</Link>}
                   </li>
                 ))}
               </ul>
-            )}
-            <div className={styles.actions}>
-              <Button variant="secondary" onClick={() => decrypt.reset()}>
-                {t('admin.crypto.result.clear')}
-              </Button>
-            </div>
-          </Card>
-        )}
+            ))}
+        </Card>
       </div>
     </>
   );

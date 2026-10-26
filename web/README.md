@@ -80,7 +80,7 @@ grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe 
 
 [docs/ADMIN_API.md](../docs/ADMIN_API.md) — tüm uçlar için tip (`api/types.ts`) ve fonksiyon yazılmıştır; henüz uygulanmamış yeni uçlar da sözleşmeye göredir.
 Not: `GET /api/app/info` mağaza bağlantısı vermez; `useStoreLinks()` `GET /api/app/version?platform=…` içindeki `storeUrl`'ü kullanır (sözleşmede `info.stores` gelirse onu öncelikler).
-CSP `img-src 'self' data:` olduğundan harici resimler (okul sitesi haber görselleri) gösterilecekse nginx CSP'si ve/veya backend vekili birlikte düşünülmelidir.
+CSP `img-src` yalnızca `'self' data: https://www.bingol.edu.tr https://*.bingol.edu.tr` içerir (haber görselleri okul sitesinden gelir); başka harici görsel kaynağı eklenmemelidir. Görsel yüklenemezse sayfalar gradyan/ikon yedeği gösterir.
 
 ## Tarayıcı (E2E) testleri
 

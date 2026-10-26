@@ -3,7 +3,6 @@ const m = {
   'admin.settings.maintenance': 'Bakım modu',
   'admin.settings.storeLinks': 'Mağaza bağlantıları',
   'admin.audit.title': 'Denetim kaydı',
-  'admin.audit.subtitle': 'Yöneticilerin yaptığı değişiklikler.',
   'admin.audit.col.admin': 'Yönetici',
   'admin.audit.col.action': 'İşlem',
   'admin.audit.col.at': 'Zaman',

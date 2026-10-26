@@ -20,10 +20,10 @@ export const paths = {
     security: '/security',
     guidelines: '/community-guidelines',
     help: '/help',
-    status: '/status',
     news: '/news',
     newsItem: (id: number | string) => `/news/${id}`,
     menu: '/menu',
+    supportTrack: '/support/track',
     brand: '/brand',
     changelog: '/changelog',
     legal: (type: string) => `/legal/${type.toLowerCase().replace(/_/g, '-')}`,
@@ -33,6 +33,8 @@ export const paths = {
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
+    userMessages: (id: number | string, conversationId?: number | string) =>
+      `${ADMIN_BASE}/users/${id}/messages${conversationId === undefined ? '' : `?c=${conversationId}`}`,
     analytics: (tab?: 'overview' | 'growth' | 'engagement' | 'retention' | 'demographics') =>
       `${ADMIN_BASE}/analytics${tab ? `/${tab}` : ''}`,
     reports: `${ADMIN_BASE}/reports`,

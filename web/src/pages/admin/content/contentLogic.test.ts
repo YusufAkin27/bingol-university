@@ -5,7 +5,6 @@ import {
   acceptanceRatio,
   activeVersion,
   buildPublishRequest,
-  containsDraftMarker,
   emptyDrafts,
   isDirty,
   nextVersion,
@@ -70,11 +69,6 @@ describe('buildPublishRequest', () => {
 });
 
 describe('yardımcılar', () => {
-  it('TASLAK ibaresini algılar', () => {
-    expect(containsDraftMarker('Bu metin TASLAK tır')).toBe(true);
-    expect(containsDraftMarker('taslak')).toBe(true);
-    expect(containsDraftMarker('Kesin metin')).toBe(false);
-  });
   it('kirli durumu ve sürüm numarasını hesaplar', () => {
     expect(isDirty(emptyDrafts())).toBe(false);
     expect(isDirty({ ...emptyDrafts(), en: { title: 'a', content: '' } })).toBe(true);

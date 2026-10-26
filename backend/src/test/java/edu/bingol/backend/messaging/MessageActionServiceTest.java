@@ -238,12 +238,33 @@ class MessageActionServiceTest {
     }
 
     @Test
-    void deleteClearsLegacyPlaintextColumn() {
+    void deleteKeepsCiphertextAndDoesNotTouchLegacyColumn() {
         when(codec.legacyColumnPresent()).thenReturn(true);
 
         service.delete(ME, MSG);
 
-        verify(jdbc).update(anyString(), eq(MSG));
+        // Govde silinmez: yalnizca isaretleme (deleted_at/deleted_by); duz metin sutununa dokunulmaz
+        verify(messages).tombstone(eq(MSG), any(), eq(ME));
+        verify(jdbc, never()).update(anyString(), eq(MSG));
+        assertNotNull(msg.getBodyCiphertext());
+    }
+
+    @Test
+    void editArchivesPreviousVersionBeforeOverwriting() {
+        service.edit(ME, MSG, "yeni");
+
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(messages);
+        order.verify(messages).archiveRevision(MSG);
+        order.verify(messages).applyEdit(eq(MSG), any(), any(), any(), any());
+    }
+
+    @Test
+    void unchangedEditDoesNotArchiveRevision() {
+        msg.setBody("ayni");
+
+        service.edit(ME, MSG, "ayni");
+
+        verify(messages, never()).archiveRevision(anyLong());
     }
 
     @Test

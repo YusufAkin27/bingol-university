@@ -18,6 +18,7 @@ const FeaturesPage = lazy(() => import('./pages/site/FeaturesPage'));
 const DownloadPage = lazy(() => import('./pages/site/DownloadPage'));
 const FaqPage = lazy(() => import('./pages/site/FaqPage'));
 const ContactPage = lazy(() => import('./pages/site/ContactPage'));
+const SupportTrackPage = lazy(() => import('./pages/site/SupportTrackPage'));
 const LegalPage = lazy(() => import('./pages/site/LegalPage'));
 const LegalListPage = lazy(() => import('./pages/site/LegalListPage'));
 const DataRequestPage = lazy(() => import('./pages/site/DataRequestPage'));
@@ -29,7 +30,6 @@ const SitemapPage = lazy(() => import('./pages/site/SitemapPage'));
 const SecurityPage = lazy(() => import('./pages/site/SecurityPage'));
 const CommunityGuidelinesPage = lazy(() => import('./pages/site/CommunityGuidelinesPage'));
 const HelpPage = lazy(() => import('./pages/site/HelpPage'));
-const StatusPage = lazy(() => import('./pages/site/StatusPage'));
 const NewsListPage = lazy(() => import('./pages/site/NewsListPage'));
 const NewsDetailPage = lazy(() => import('./pages/site/NewsDetailPage'));
 const MenuPage = lazy(() => import('./pages/site/MenuPage'));
@@ -41,6 +41,7 @@ const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
+const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
 const TicketsPage = lazy(() => import('./pages/admin/TicketsPage'));
@@ -83,6 +84,7 @@ export function AppRoutes() {
           <Route path="download" element={<DownloadPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="support/track" element={<SupportTrackPage />} />
           <Route path="legal" element={<LegalListPage />} />
           <Route path="legal/:type" element={<LegalPage />} />
           <Route path="data-request" element={<DataRequestPage />} />
@@ -95,7 +97,6 @@ export function AppRoutes() {
           <Route path="security" element={<SecurityPage />} />
           <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
           <Route path="help" element={<HelpPage />} />
-          <Route path="status" element={<StatusPage />} />
           <Route path="news" element={<NewsListPage />} />
           <Route path="news/:id" element={<NewsDetailPage />} />
           <Route path="menu" element={<MenuPage />} />
@@ -117,6 +118,7 @@ export function AppRoutes() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
+          <Route path="users/:id/messages" element={<UserMessagesPage />} />
           <Route path="analytics/:tab?" element={<AnalyticsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="support/tickets" element={<TicketsPage />} />

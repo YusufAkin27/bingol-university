@@ -4,7 +4,6 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.crypto.ConversationKeyService.RewrapResult;
-import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,34 +15,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Yonetici sifreleme uclari (`/api/admin/**` yalnizca ADMIN; SecurityConfig). Yonetici kimligi JWT'den gelir. */
+/** Yonetici sifreleme uclari (mesaj goruntuleme: admin.chat.AdminChatViewerController) (`/api/admin/**` yalnizca ADMIN; SecurityConfig). Yonetici kimligi JWT'den gelir. */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminCryptoController {
 
     public record RewrapRequest(String targetKeyId) {}
 
-    private final AdminDecryptService decryptService;
     private final ConversationKeyService keyService;
     private final KeyProvider keyProvider;
     private final CryptoProperties props;
     private final RateLimiter limiter;
 
-    public AdminCryptoController(AdminDecryptService decryptService, ConversationKeyService keyService,
+    public AdminCryptoController(ConversationKeyService keyService,
                                  KeyProvider keyProvider, CryptoProperties props, RateLimiter limiter) {
-        this.decryptService = decryptService;
         this.keyService = keyService;
         this.keyProvider = keyProvider;
         this.props = props;
         this.limiter = limiter;
-    }
-
-    /** POST /api/admin/messages/decrypt  {conversationId, fromMessageId, toMessageId?, reason} */
-    @PostMapping("/messages/decrypt")
-    public AdminDecryptService.Response decrypt(@RequestBody AdminDecryptService.Request req, HttpServletRequest http) {
-        long adminId = CurrentUser.id();
-        limiter.check("admindecrypt:" + adminId, Math.max(1, props.adminDecryptPerHour()), Duration.ofHours(1));
-        return decryptService.decrypt(adminId, req, http.getRemoteAddr());
     }
 
     /** GET /api/admin/crypto/status: anahtar kimlikleri ve hangi ana anahtarla kac DEK sarili (gizli veri yok). */

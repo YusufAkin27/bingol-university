@@ -52,6 +52,40 @@ public class MailService {
         }
     }
 
+    /**
+     * T27: duz metin + (kacisli) HTML alternatifli e-posta. Servis sozlesmesi: istisna sizdirmaz, basari bool doner.
+     * E-posta kapaliyken govde log a yazilir (yalnizca gelistirme; dogrulama kodu/baglanti buradan okunur).
+     */
+    public boolean sendRich(String to, String subject, String plain, String html, String replyTo) {
+        try {
+            if (!props.enabled()) {
+                // Tek satir: betikler kodu/baglantiyi log'dan grep ile okur
+                log.warn("[DEV] {} icin e-posta: {} | {}", to, subject, plain.replace("\r", "").replace("\n", " / "));
+                return true;
+            }
+            JavaMailSender mailSender = sender.getIfAvailable();
+            if (mailSender == null) {
+                log.error("app.mail.enabled=true ama spring.mail.host ayarli degil");
+                return false;
+            }
+            jakarta.mail.internet.MimeMessage mm = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper h =
+                    new org.springframework.mail.javamail.MimeMessageHelper(mm, true, "UTF-8");
+            h.setFrom(props.from());
+            h.setTo(to);
+            if (replyTo != null && !replyTo.isBlank()) {
+                h.setReplyTo(replyTo);
+            }
+            h.setSubject(subject);
+            h.setText(plain, html);
+            mailSender.send(mm);
+            return true;
+        } catch (Exception e) {
+            log.error("E-posta gonderilemedi: {}", e.toString());
+            return false;
+        }
+    }
+
     private static ApiException mailUnavailable() {
         return new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_UNAVAILABLE",
                 "Doğrulama e-postası şu anda gönderilemiyor. Lütfen daha sonra tekrar deneyin.");

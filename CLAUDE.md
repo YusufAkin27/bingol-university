@@ -132,7 +132,7 @@ Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım d
 - Rate limit sabit pencere; IP `getRemoteAddr()` — proxy arkasında `X-Forwarded-For` ayarlanmalı (`server.forward-headers-strategy`).
 - `register`, doğrulanmış e-posta için 409 döner (sınırlı enumerasyon; bilinen taviz).
 - Şifre sıfırlama yok. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
-- Sözleşme metinleri **taslaktır**, hukuki inceleme gerekir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
+- Sözleşme metinleri (V99, 2. sürüm) yayın öncesi hukuk danışmanı tarafından gözden geçirilmelidir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
 - Mobil uygulama ertelendi; Flutter bu makinede yok.
 
 ## 9. Yönetim paneli API'leri (özet)
@@ -144,3 +144,4 @@ Ayrıntılı sözleşme: [docs/ADMIN_API.md](docs/ADMIN_API.md).
 - Redis anahtarları: `seen:<uid>` (5 dk, son görülme kısıtı), `act:<uid>:<gün>` (günlük aktiflik), `rolechg:<uid>` (rol değişim anı, 16 dk; `JwtAuthFilter` eski token'ı reddeder), `suspended:<uid>` (askı/silme).
 - CORS: `app.cors.allowed-origins` (`CORS_ORIGINS`), yalnızca `/api/**` ve `/files/**`.
 - Uçtan uca doğrulama: `scripts/smoke-admin.sh` (diğer smoke betikleri gibi `BASE` ile).
+- **Herkese açık destek talebi (T27):** `/api/public/support/**` (permitAll; hesapsız, her domain e-postası). `POST /tickets` (honeypot `website` + `elapsedMs` ≥ `app.support.min-fill-seconds`; elenenlere de genel 202) → e-postaya 6 haneli kod (10 dk, 5 deneme, hash'li, `support_ticket.code_hash`) → `POST /tickets/verify` → talep doğrulanır ve admin listesine düşer (`public_ticket`, `email_verified`); doğrulanmamışlar admin listesinde görünmez, 24 saatte silinir. Durum bağlantısı `/support/track?token=` (token yalnızca SHA-256, `support_track_token`; her e-posta yeni bağlantı üretir; `POST /track`, `POST /track/messages`). Yönetici yanıtı e-posta ile gider (`PublicSupportMailer`, Reply-To = `app_setting support_email`, HTML kaçışlı); gönderim başarısızsa yanıt kaydedilir, cevapta `emailStatus=FAILED`. Hız sınırı: IP 5 talep/saat, e-posta 5/gün. Saklama `app.support.public-ticket-retention-days` (365) + gecelik temizlik. Duman: `scripts/public-support-e2e.sh`.

@@ -17,11 +17,6 @@ export const emptyDrafts = (): LegalDrafts => ({
   ar: { title: '', content: '' },
 });
 
-/** İçerikte "TASLAK" ibaresi var mı (Türkçe büyük/küçük harf duyarsız). */
-export function containsDraftMarker(text: string): boolean {
-  return text.toLocaleUpperCase('tr').includes('TASLAK') || text.toUpperCase().includes('TASLAK');
-}
-
 export function isFilled(d: LegalDraft): boolean {
   return d.title.trim() !== '' && d.content.trim() !== '';
 }

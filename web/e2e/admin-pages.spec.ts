@@ -64,6 +64,7 @@ const EMPTY_BODY = {
   totalPages: 0,
   totalItems: 0,
   nextCursor: null,
+  user: { id: 1, displayName: 'Test', email: 'test@bingol.edu.tr' },
   pending: 0,
   total: 0,
 };
@@ -207,7 +208,10 @@ test.describe('yonetim sayfalari', () => {
     if (users.ok()) {
       const j = await users.json();
       const id = j.items?.[0]?.id;
-      if (id) dynamic.push({ name: 'user-detail', path: `/admin/users/${id}` });
+      if (id) {
+        dynamic.push({ name: 'user-detail', path: `/admin/users/${id}` });
+        dynamic.push({ name: 'user-messages', path: `/admin/users/${id}/messages` });
+      }
     }
     const tickets = await request.get('/api/admin/support/tickets?size=1', { headers: h });
     if (tickets.ok()) {
@@ -264,6 +268,18 @@ test.describe('yonetim sayfalari', () => {
   test.afterAll(() => {
     if (mocked.size) {
       console.log(`[eski backend derlemesi nedeniyle mock'lanan uclar] ${ADMIN_EMAIL}\n  ${Array.from(mocked).sort().join('\n  ')}`);
+    }
+  });
+
+  test('dinamik rotalar arapca (RTL) telefon', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 360, height: 800 });
+    await loginAsAdmin(page);
+    await setLang(page, 'ar');
+    await installApiFallback(page);
+    for (const rc of dynamic.filter((d) => d.name !== 'user-detail-missing')) {
+      const errors = await visit(page, rc);
+      await assertPage(page, rc, errors, 'ar');
     }
   });
 

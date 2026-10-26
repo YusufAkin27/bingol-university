@@ -56,10 +56,10 @@ public class Message {
     @Column(name = "reply_to_message_id")
     private Long replyToMessageId;
 
-    /** Gonderen duzenlediyse zamani; gecmis surum TUTULMAZ (eski sifreli govde ezilir). */
+    /** Gonderen duzenlediyse zamani; onceki sifreli surumler `message_revision` tablosunda (yonetici goruntuleyici). */
     private Instant editedAt;
 
-    /** Herkes icin silindi (tombstone): sifreli govde/nonce/surum NULL'dir, icerik geri getirilemez. */
+    /** Herkes icin silindi: kullanici API'sinde icerik kapali; sifreli govde/nonce/surum VERITABANINDA KALIR (T24, yalniz yonetici goruntuleyici). */
     private Instant deletedAt;
 
     private Long deletedBy;

@@ -5,8 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { qk, supportApi } from '../../api';
-import type { TicketDetail } from '../../api/types';
+import type { StaffReplyResult } from '../../api/types';
 import {
+  Badge,
   Button,
   Card,
   ConfirmDialog,
@@ -45,7 +46,7 @@ export default function TicketDetailPage() {
   const { t, formatDateTime } = i18n;
   const id = Number(useParams().id);
   const location = useLocation();
-  const email = (location.state as { email?: string } | null)?.email;
+  const stateEmail = (location.state as { email?: string } | null)?.email;
   const toast = useToast();
   const qc = useQueryClient();
   usePageTitle(t('admin.tickets.detail.title'));
@@ -62,8 +63,8 @@ export default function TicketDetailPage() {
     enabled: Number.isFinite(id),
   });
 
-  function applyDetail(d: TicketDetail) {
-    qc.setQueryData(qk.tickets.detail(id), d);
+  function applyDetail(d: StaffReplyResult) {
+    qc.setQueryData(qk.tickets.detail(id), (old: unknown) => ({ ...(old as object), ticket: d.ticket, messages: d.messages }));
     void qc.invalidateQueries({ queryKey: ['tickets', 'list'] });
     void qc.invalidateQueries({ queryKey: qk.analytics.all });
   }
@@ -71,7 +72,8 @@ export default function TicketDetailPage() {
   const reply = useMutation({
     mutationFn: () => supportApi.replyTicket(id, text.trim()),
     onSuccess: (d) => {
-      toast.success(t('admin.tickets.reply.sent'));
+      if (d.emailStatus === 'FAILED') toast.error(t('admin.tickets.reply.mailFailed'));
+      else toast.success(t(d.emailStatus === 'SENT' ? 'admin.tickets.reply.sentMail' : 'admin.tickets.reply.sent'));
       setText('');
       applyDetail(d);
     },
@@ -92,6 +94,8 @@ export default function TicketDetailPage() {
   });
 
   const ticket = query.data?.ticket;
+  const email = query.data?.userEmail ?? stateEmail;
+  const isPublic = !!ticket?.publicTicket;
   const open = ticket ? canReply(ticket.status) : false;
   const canSend = open && text.trim().length > 0 && text.length <= MAX_REPLY && !reply.isPending;
 
@@ -137,6 +141,7 @@ export default function TicketDetailPage() {
               <span>{t(`admin.tickets.category.${ticket.category}`)}</span>
               <span>{t('admin.tickets.detail.opened', { date: formatDateTime(ticket.createdAt) })}</span>
               {email && <span className="ltr">{t('admin.tickets.detail.user', { email })}</span>}
+              {isPublic && <Badge tone="info">{t('admin.tickets.public.badge')}</Badge>}
             </span>
           ) : undefined
         }
@@ -180,7 +185,9 @@ export default function TicketDetailPage() {
                   onKeyDown={onKeyDown}
                 />
                 <div className={styles.composeFoot}>
-                  <span className={styles.hint}>{t('admin.tickets.reply.hint')}</span>
+                  <span className={styles.hint}>
+                    {t(isPublic ? 'admin.tickets.reply.hintMail' : 'admin.tickets.reply.hint')}
+                  </span>
                   <span
                     className={`${styles.counter} ${text.length > MAX_REPLY - 100 ? styles.counterWarn : ''} ltr`}
                     aria-live="polite"

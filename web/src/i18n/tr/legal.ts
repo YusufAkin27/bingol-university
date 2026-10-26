@@ -18,8 +18,6 @@ const legal = {
   'legal.versionsNone': 'Başka sürüm yok.',
   'legal.versionRow': 'Sürüm {version}, {date}',
   'legal.current': 'Güncel',
-  'legal.draft': 'Bu metin taslaktır',
-  'legal.draftHint': 'Hukuki inceleme tamamlanana kadar bağlayıcı bir metin olarak değerlendirilmemelidir.',
   'legal.fallbackLang': 'Bu belge seçtiğiniz dilde yayımlanmadığı için Türkçe sürümü gösteriliyor.',
   'legal.otherDocs': 'Diğer belgeler',
   'legal.allDocs': 'Tüm belgeler',

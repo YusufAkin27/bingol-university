@@ -1,4 +1,4 @@
-// Tanıtım sitesi: standart site sayfaları (çerez, hesap silme, erişilebilirlik, güvenlik, topluluk kuralları, yardım, durum,
+// Tanıtım sitesi: standart site sayfaları (çerez, hesap silme, erişilebilirlik, güvenlik, topluluk kuralları, yardım,
 // haberler, yemek listesi, marka kiti, sürüm notları, site haritası), üst menü/alt bilgi ve hata ekranları.
 // Bölüm tabanlı sayfalar için anahtar kalıbı: pg.<sayfa>.<bölüm>.h | .p1.. | .l1.. (madde) | .o1.. (numaralı).
 const m = {
@@ -36,7 +36,6 @@ const m = {
   'pg.err.maint.title': 'Bakım çalışması',
   'pg.err.maint.text': 'Hizmet kısa süreliğine bakımda. Lütfen biraz sonra yeniden deneyin.',
   'pg.err.home': 'Ana sayfaya dön',
-  'pg.err.statusLink': 'Güncel durumu gör',
 
   // --- Çerez Politikası ---
   'pg.cookies.title': 'Çerez Politikası',
@@ -129,7 +128,7 @@ const m = {
   'pg.security.s1.l2':
     'Mesajlar sunucuda şifreli olarak saklanır. Anahtarları sunucu yönetir; bu nedenle mesajlar yalnızca sizin cihazınızda çözülebilen bir korumaya sahip değildir ve yetkili süreçlerce çözülebilir.',
   'pg.security.s1.l3':
-    'Yönetici erişimi gerekçelidir: bir konuşmaya bakmak için yazılı gerekçe gerekir ve her erişim değiştirilemez bir denetim kaydına yazılır.',
+    'Yönetici erişimi kayıt altındadır: yetkili yöneticiler güvenlik ve yasal yükümlülükler için konuşmaları görüntüleyebilir ve her erişim değiştirilemez bir denetim kaydına yazılır. Silinen mesajlar güvenlik ve yasal yükümlülükler için saklanabilir.',
   'pg.security.s1.l4':
     'Şifreler geri döndürülemeyecek biçimde (özet olarak) saklanır; oturum yenileme anahtarları da yalnızca özet olarak tutulur.',
   'pg.security.s1.l5': 'Kayıt yalnızca bingol.edu.tr e-posta adresleriyle ve e-posta doğrulamasıyla yapılabilir.',
@@ -205,8 +204,6 @@ const m = {
   'pg.help.cat.rules.text': 'Topluluk kuralları, raporlama ve itiraz.',
   'pg.help.cat.data.title': 'Hesap ve veriler',
   'pg.help.cat.data.text': 'Hesabı silme, verileri indirme ve KVKK başvuruları.',
-  'pg.help.cat.status.title': 'Bir şey çalışmıyor mu?',
-  'pg.help.cat.status.text': 'Haber ve yemek listesi kaynaklarının güncel durumu.',
   'pg.help.open': 'Aç',
   'pg.help.supportTitle': 'Hâlâ yardıma mı ihtiyacınız var?',
   'pg.help.supportText':
@@ -214,27 +211,6 @@ const m = {
   'pg.help.faq': 'Sık sorulan sorular',
   'pg.help.contact': 'Bize ulaşın',
 
-  // --- Güncel durum ---
-  'pg.status.title': 'Güncel durum',
-  'pg.status.lead': 'Haber ve yemek listesi kaynaklarının ve uygulama genelindeki bakım durumunun özeti.',
-  'pg.status.meta': 'BÜ Kampüs güncel durum: haber ve yemek listesi kaynakları ile bakım bildirimi.',
-  'pg.status.allOk': 'Tüm kaynaklar çalışıyor',
-  'pg.status.someMaint': 'Bazı kaynaklar bakımda',
-  'pg.status.appMaint': 'Uygulama genelinde bakım var',
-  'pg.status.appOk': 'Uygulama hizmetleri normal',
-  'pg.status.src.NEWS': 'Haberler ve duyurular',
-  'pg.status.src.MENU': 'Yemek listesi',
-  'pg.status.ok': 'Çalışıyor',
-  'pg.status.maint': 'Bakımda',
-  'pg.status.lastOk': 'Son başarılı güncelleme: {date}',
-  'pg.status.lastTry': 'Son deneme: {date}',
-  'pg.status.never': 'Henüz güncellenmedi',
-  'pg.status.note':
-    'Kaynak site değiştiğinde veya ulaşılamadığında son başarılı veriler gösterilmeye devam eder.',
-  'pg.status.empty': 'Durum bilgisi bulunamadı',
-  'pg.status.emptyHint': 'Kaynak durumları henüz bildirilmedi.',
-  'pg.status.error': 'Durum bilgisi alınamadı',
-  'pg.status.refresh': 'Yenile',
 
   // --- Haberler ---
   'pg.news.title': 'Haberler ve duyurular',
@@ -248,9 +224,6 @@ const m = {
   'pg.news.empty': 'Bu türde içerik yok',
   'pg.news.emptyHint': 'Kaynak sitede yeni içerik yayımlandığında burada görünür.',
   'pg.news.error': 'Haberler yüklenemedi',
-  'pg.news.source': 'Kaynak: Bingöl Üniversitesi',
-  'pg.news.attribution':
-    'İçerikler Bingöl Üniversitesi’ne aittir; BÜ Kampüs yalnızca derleyip gösterir. Güncel ve bağlayıcı metin için orijinal sayfaya bakın.',
   'pg.news.original': 'Orijinal sayfayı aç (bingol.edu.tr)',
   'pg.news.back': 'Tüm haberler',
   'pg.news.notFound': 'İçerik bulunamadı',
@@ -276,15 +249,10 @@ const m = {
   'pg.menu.noMonth': 'Bu ay için menü yayımlanmadı',
   'pg.menu.noMonthHint': 'Menü yayımlandığında burada görünür.',
   'pg.menu.error': 'Yemek listesi yüklenemedi',
-  'pg.menu.source': 'Kaynak: Bingöl Üniversitesi Sağlık, Kültür ve Spor Daire Başkanlığı (sks.bingol.edu.tr).',
   'pg.menu.maintenance': 'Yemek listesi kaynağı şu an bakımda; son başarılı liste gösteriliyor.',
 
   // --- Marka kiti ---
   'pg.brand.title': 'Basın ve marka kiti',
-  'pg.brand.lead': 'BÜ Kampüs logoları, renkleri ve kullanım kuralları.',
-  'pg.brand.meta': 'BÜ Kampüs logo varyantları, marka renkleri ve kullanım kuralları; basın için indirilebilir kit.',
-  'pg.brand.logos': 'Logolar',
-  'pg.brand.logosText': 'Açık zeminde “açık”, koyu zeminde “koyu” sürümü kullanın. Tek renk sürümler yoğun veya renkli zemin içindir.',
   'pg.brand.logo.mark': 'Simge',
   'pg.brand.logo.horizontalLight': 'Yatay · açık zemin',
   'pg.brand.logo.horizontalDark': 'Yatay · koyu zemin',
@@ -295,24 +263,6 @@ const m = {
   'pg.brand.logo.markWhite': 'Simge · tek renk beyaz',
   'pg.brand.logo.markBlack': 'Simge · tek renk siyah',
   'pg.brand.download': '{name} indir ({format})',
-  'pg.brand.colors': 'Renkler',
-  'pg.brand.color.brand': 'Logo kırmızısı',
-  'pg.brand.color.brandUse': 'Logo, büyük yüzeyler, başlık alanı',
-  'pg.brand.color.action': 'Eylem kırmızısı',
-  'pg.brand.color.actionUse': 'Düğme ve bağlantılar; beyaz yazıyla AA kontrast',
-  'pg.brand.color.ink': 'Mürekkep',
-  'pg.brand.color.inkUse': 'Metin, rozet ve koyu yüzeyler',
-  'pg.brand.color.bg': 'Zemin',
-  'pg.brand.color.bgUse': 'Sayfa arka planı',
-  'pg.brand.rules': 'Kullanım kuralları',
-  'pg.brand.rule.1': 'Ürün adı her yerde “BÜ Kampüs” biçiminde yazılır; Arapça metinde de çevrilmez.',
-  'pg.brand.rule.2': 'Logonun çevresinde simge yüksekliğinin %25’i kadar boşluk bırakın.',
-  'pg.brand.rule.3': 'En küçük boyut: simge 16 px, yatay kilit 28 px yükseklik.',
-  'pg.brand.rule.4': 'Logoyu döndürmeyin, germeyin, gölge veya parlama eklemeyin, renklerini değiştirmeyin.',
-  'pg.brand.rule.5': 'Kırmızı veya yoğun renkli zeminde renkli logo yerine tek renk sürümü kullanın.',
-  'pg.brand.rule.6': 'Bingöl Üniversitesi’nin resmî logosu bu kitin parçası değildir; kurumsal kullanım için üniversiteye başvurun.',
-  'pg.brand.pressTitle': 'Basın iletişimi',
-  'pg.brand.pressText': 'Basın soruları ve görsel talepleri için iletişim sayfasındaki adresleri kullanın.',
 
   // --- Sürüm notları ---
   'pg.changelog.title': 'Sürüm notları',
@@ -321,7 +271,7 @@ const m = {
   'pg.changelog.empty': 'Henüz sürüm notu yok',
   'pg.changelog.e1.date': '2026-10',
   'pg.changelog.e1.title': 'Ekim 2026',
-  'pg.changelog.e1.l1': 'Mesajlar sunucuda şifreli saklanıyor; yönetici erişimi gerekçeli ve denetim kaydına bağlı.',
+  'pg.changelog.e1.l1': 'Mesajlar sunucuda şifreli saklanıyor; yönetici erişimi denetim kaydına bağlı, silinen mesajlar güvenlik amacıyla saklanabilir.',
   'pg.changelog.e1.l2': 'Etkinlik başvurusu ve kabul akışı: kabul, ret ve bekleme listesi.',
   'pg.changelog.e1.l3': 'Kulüp yetkileri, sahiplik devri ve davet kodu.',
   'pg.changelog.e1.l4': 'Sohbette görsel paylaşımı; uygunsuz görsel raporlama ve itiraz süreci.',
@@ -338,5 +288,93 @@ const m = {
   'pg.sitemap.title': 'Site haritası',
   'pg.sitemap.lead': 'Sitedeki tüm herkese açık sayfalar.',
   'pg.sitemap.meta': 'BÜ Kampüs web sitesindeki tüm sayfaların listesi.',
+
+  'pg.news.search': 'Haberlerde ara',
+  'pg.news.searchPlaceholder': 'Başlık veya içerikte ara…',
+  'pg.news.featured': 'Öne çıkan',
+  'pg.news.share': 'Paylaş',
+  'pg.news.linkCopied': 'Bağlantı kopyalandı',
+  'pg.news.related': 'İlgili içerikler',
+  'pg.news.prev': 'Önceki haber',
+  'pg.news.next': 'Sonraki haber',
+  'pg.news.prevNext': 'Önceki ve sonraki içerik',
+  'pg.news.emptySearch': 'Aramanızla eşleşen içerik yok',
+  'pg.news.emptySearchHint':
+    'Farklı anahtar sözcükler deneyin (en az 2 karakter) veya tür filtresini değiştirin.',
+  'pg.news.resultCount': '{count} sonuç bulundu',
+  'pg.brand.lead':
+    'BÜ Kampüs logoları, Kampüs Kırmızısı renk paleti, tipografi ve kullanım kuralları. Dosyaları doğrudan indirebilirsiniz.',
+  'pg.brand.meta':
+    'BÜ Kampüs basın kiti: logo varyantları (PNG/SVG), Kampüs Kırmızısı renk paleti, koruma alanı, tipografi ve kullanım kuralları.',
+  'pg.brand.logos': 'Logolar',
+  'pg.brand.logosText':
+    'Açık zeminde “açık”, koyu zeminde “koyu” sürümü kullanın. Kırmızı veya yoğun renkli zeminde tek renk beyaz ya da siyah sürümü tercih edin.',
+  'pg.brand.group.horizontal': 'Yatay logo',
+  'pg.brand.group.horizontalText': 'Başlıklar, üst çubuk ve geniş alanlar için ana kilit.',
+  'pg.brand.group.vertical': 'Dikey logo',
+  'pg.brand.group.verticalText': 'Kare ve dar alanlar, afiş ve kapak kullanımı için.',
+  'pg.brand.group.mark': 'Amblem',
+  'pg.brand.group.markText': 'Uygulama ikonu, avatar ve çok küçük alanlar için.',
+  'pg.brand.pngMeta': 'PNG · {w} × {h} px · {kb} KB',
+  'pg.brand.svgMeta': 'SVG · {kb} KB',
+  'pg.brand.space.title': 'Koruma alanı',
+  'pg.brand.space.text':
+    'Logonun her yönünde amblem yüksekliğinin %25’i (x) kadar boşluk bırakın. Bu alana başka öğe, metin veya kenar girmez.',
+  'pg.brand.min.title': 'En küçük boyut',
+  'pg.brand.min.text': 'Bu boyutların altında logo okunaksız hâle gelir.',
+  'pg.brand.min.mark': 'Amblem: 16 px',
+  'pg.brand.min.horizontal': 'Yatay: 28 px yükseklik',
+  'pg.brand.min.vertical': 'Dikey: 64 px yükseklik',
+  'pg.brand.dont.title': 'Yapmayın',
+  'pg.brand.dont.text': 'Logoyu aşağıdaki biçimlerde değiştirmeyin.',
+  'pg.brand.dont.stretch': 'Germeyin veya sıkıştırmayın',
+  'pg.brand.dont.rotate': 'Döndürmeyin',
+  'pg.brand.dont.recolor': 'Renklerini değiştirmeyin',
+  'pg.brand.dont.shadow': 'Gölge veya parlama eklemeyin',
+  'pg.brand.dont.busy': 'Renkli logoyu kırmızı veya yoğun zemine koymayın',
+  'pg.brand.do.label': 'Doğru kullanım',
+  'pg.brand.dont.label': 'Yanlış kullanım',
+  'pg.brand.colors': 'Kampüs Kırmızısı paleti',
+  'pg.brand.colorsText':
+    'Marka kırmızı, lacivert-mürekkep ve sıcak bir zeminden oluşur. Değerler arayüz tasarım belirteçleriyle aynıdır.',
+  'pg.brand.copyHex': '{hex} kodunu kopyala',
+  'pg.brand.color.campus': 'Kampüs Kırmızısı',
+  'pg.brand.color.campusUse': 'Logo, büyük yüzeyler ve görsel vurgu.',
+  'pg.brand.color.campusContrast': 'Beyaz yazıyla 3,8:1: yalnızca büyük ve kalın metinde kullanın.',
+  'pg.brand.color.action': 'Eylem Kırmızısı',
+  'pg.brand.color.actionUse': 'Düğmeler, bağlantılar ve etkileşimli öğeler.',
+  'pg.brand.color.actionContrast': 'Beyaz yazıyla 5,6:1 (AA).',
+  'pg.brand.color.deep': 'Derin Kırmızı',
+  'pg.brand.color.deepUse': 'Yumuşak zemin üzerindeki vurgulu metin, basılı durum.',
+  'pg.brand.color.deepContrast': 'Yumuşak Kırmızı üzerinde 7,7:1 (AAA).',
+  'pg.brand.color.soft': 'Yumuşak Kırmızı',
+  'pg.brand.color.softUse': 'Rozet ve hafif vurgu zeminleri.',
+  'pg.brand.color.softContrast': 'Mürekkep yazıyla 14:1 (AAA).',
+  'pg.brand.color.ink': 'Mürekkep',
+  'pg.brand.color.inkUse': 'Ana metin, koyu yüzeyler ve logo yazısı.',
+  'pg.brand.color.inkContrast': 'Sıcak zeminde 15,4:1 (AAA).',
+  'pg.brand.color.paper': 'Sıcak Zemin',
+  'pg.brand.color.paperUse': 'Sayfa ve kart arka planı.',
+  'pg.brand.color.paperContrast': 'Mürekkep yazıyla 15,4:1 (AAA).',
+  'pg.brand.type.title': 'Tipografi',
+  'pg.brand.type.text':
+    'Ek yazı tipi yüklenmez: gövde metni için cihazın sistem sans-serif yazı tipi, başlıklar için serif yığını kullanılır.',
+  'pg.brand.type.display': 'Başlık · serif',
+  'pg.brand.type.displaySample': 'BÜ Kampüs',
+  'pg.brand.type.body': 'Metin · sistem sans-serif',
+  'pg.brand.type.bodySample': 'Bingöl Üniversitesi öğrencileri ve personeli için kampüs uygulaması.',
+  'pg.brand.rules': 'Kısa kullanım kuralları',
+  'pg.brand.rule.1': 'Ürün adı her yerde “BÜ Kampüs” biçiminde yazılır; Arapça metinde de çevrilmez.',
+  'pg.brand.rule.2':
+    'Zemine uygun sürümü seçin: açık zeminde açık, koyu zeminde koyu, kırmızı zeminde tek renk beyaz.',
+  'pg.brand.rule.3': 'Koruma alanına ve en küçük boyuta uyun.',
+  'pg.brand.rule.4':
+    'Logoyu yalnızca verilen dosyalardan kullanın; yeniden çizmeyin veya başka bir yazı tipiyle dizmeyin.',
+  'pg.brand.rule.5':
+    'Bingöl Üniversitesi’nin resmî logosu bu kitin parçası değildir; kurumsal kullanım için üniversiteye başvurun.',
+  'pg.brand.pressTitle': 'Basın iletişimi',
+  'pg.brand.pressText': 'Basın soruları, görsel talepleri ve logo kullanım onayı için bize yazın.',
+  'pg.brand.pressEmail': 'E-posta: {email}',
+  'pg.brand.pressContact': 'İletişim sayfası',
 } as const;
 export default m;

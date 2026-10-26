@@ -14,8 +14,8 @@ const m = {
     'You choose who can see what on your profile. You can change the visibility of your email address and other details at any time.',
   'site.feat.secure.title': 'Encrypted transfer and storage',
   'site.feat.secure.text':
-    'Your messages are encrypted in transit and stored encrypted on the server. Administrator access requires a written justification, and every access is written to an audit record.',
-  'site.home.privacy4': 'Messages are sent and stored encrypted; administrator access is justified and audited.',
+    'Your messages are encrypted in transit and stored encrypted on the server. The server manages the keys; authorized administrators can view messages when needed and every access is written to an immutable audit log.',
+  'site.home.privacy4': 'Messages are sent and stored encrypted; administrator access is written to the audit log. Deleted messages may be retained for security and legal obligations.',
 
   'site.faq.new.title': 'About the new features',
   'site.faq.new.apply.q': 'How do I apply to an event?',
@@ -35,13 +35,12 @@ const m = {
     'Messages are encrypted in transit and stored encrypted on the server. Keys are managed separately from message content.',
   'site.faq.new.adminAccess.q': 'Can administrators read my messages?',
   'site.faq.new.adminAccess.a':
-    'Messages are not shown to administrators by default. In a concrete situation such as a complaint, a security incident or a legal obligation, access is possible only with a written justification, and every access is written to an immutable audit record.',
+    'Yes, authorized administrators can view messages for security, report review and legal obligations. Every page of that access is written to an immutable audit log. Because the server manages the keys, messages are not protected in a way that only the two parties could read them. Messages you delete become invisible to you but may be retained for security and legal obligations.',
 
-  'legal.adminAccess.title': 'Administrator access with justification and audit',
+  'legal.adminAccess.title': 'Administrator access and retention of deleted messages',
   'legal.adminAccess.body1':
-    'Messages are encrypted in transit and stored encrypted. Administrators cannot access message content by default.',
+    'Messages are encrypted in transit and stored encrypted on the server. The server manages the keys, so messages are not protected in a way that only your device can decrypt.',
   'legal.adminAccess.body2':
-    'In a concrete situation such as a complaint, a security incident or a legal obligation, an authorized administrator may request access only for the relevant conversation and message range by giving a written justification. Every access is written to an immutable audit record that shows who did it, when and for what reason.',
-  'legal.adminAccess.draft': 'This text is a draft; legal review is required before it is published.',
+    'Authorized administrators may view users\' conversations for security, report review or legal obligations; administrator access is recorded and every access is written to an immutable audit log. Messages you delete or edit become invisible to you but, together with earlier versions, may be retained for security and legal obligations for a limited time or indefinitely.',
 } as const;
 export default m;

@@ -5,7 +5,7 @@ const m = {
   'admin.nav.blocklist': 'Yasaklı görseller',
   'admin.nav.eventApplications': 'Etkinlik başvuruları',
   'admin.nav.clubAudit': 'Kulüp denetimi',
-  'admin.nav.crypto': 'Mesaj çözme ve şifreleme',
+  'admin.nav.crypto': 'Sohbetler ve şifreleme',
 
   // Rapor kuyruğu
   'admin.reports.targetType.MESSAGE_IMAGE': 'Mesaj görseli',
@@ -24,7 +24,6 @@ const m = {
   'admin.reports.hidden.ADMIN': 'Yönetici gizledi',
   'admin.reports.hidden.YES': 'Gizli',
   'admin.reports.preview.image': 'Raporlanan görsel',
-  'admin.reports.preview.decrypt': 'Mesajı gerekçeyle çöz',
   'admin.reports.reasonCode.label': 'Karar nedeni',
   'admin.reports.reasonCode.none': 'Belirtme',
   'admin.reports.reasonCode.SPAM': 'Spam',
@@ -106,12 +105,7 @@ const m = {
   'admin.blocklist.toast.removed': 'Özet listeden kaldırıldı.',
 
   // Mesaj çözme ve şifreleme durumu
-  'admin.crypto.title': 'Mesaj çözme ve şifreleme',
-  'admin.crypto.warn.title': 'Dikkat: denetimli erişim',
-  'admin.crypto.warn.body':
-    'Mesajlar şifreli iletilir ve şifreli saklanır. Bu ekran yalnızca bir şikâyet, güvenlik olayı veya yasal yükümlülük gibi somut bir gerekçe varsa kullanılmalıdır.',
-  'admin.crypto.warn.audit':
-    'Her erişim, kim tarafından, hangi konuşma ve mesaj aralığı için, hangi gerekçeyle ve ne zaman yapıldığıyla birlikte değiştirilemez denetim kaydına yazılır. Kayıt yazılamazsa mesaj gösterilmez.',
+  'admin.crypto.title': 'Sohbetler ve şifreleme',
   'admin.crypto.status.title': 'Şifreleme durumu',
   'admin.crypto.status.active': 'Etkin ana anahtar',
   'admin.crypto.status.keys': 'Tanımlı anahtarlar',
@@ -122,26 +116,13 @@ const m = {
   'admin.crypto.status.devKey': 'Üretimde gerçek bir ana anahtar tanımlanmalıdır. Geliştirme anahtarı yalnızca yerel kullanım içindir.',
   'admin.crypto.status.deks': 'Ana anahtar başına sarılı veri anahtarı sayısı',
   'admin.crypto.status.rewrapNeeded': 'Yeniden sarma gerekli',
-  'admin.crypto.disabled': 'Yönetici mesaj çözme sunucu ayarıyla kapatılmış. Form devre dışıdır.',
-  'admin.crypto.form.title': 'Gerekçeli mesaj çözme',
-  'admin.crypto.form.conversation': 'Konuşma kimliği',
-  'admin.crypto.form.from': 'İlk mesaj kimliği',
-  'admin.crypto.form.to': 'Son mesaj kimliği (isteğe bağlı)',
-  'admin.crypto.form.toHint': 'Boş bırakılırsa tek mesaj çözülür. Tek istekte en çok {max} mesaj.',
-  'admin.crypto.form.reason': 'Gerekçe',
-  'admin.crypto.form.reasonHint': 'En az {min} karakter. Gerekçe denetim kaydına yazılır.',
-  'admin.crypto.form.ack': 'Bu erişimin değiştirilemez denetim kaydına yazılacağını anlıyorum.',
-  'admin.crypto.form.submit': 'Mesajları çöz',
-  'admin.crypto.err.reasonShort': 'Gerekçe en az {min} karakter olmalıdır.',
-  'admin.crypto.err.reasonLong': 'Gerekçe en çok {max} karakter olabilir.',
-  'admin.crypto.err.conversation': 'Geçerli bir konuşma kimliği girin.',
-  'admin.crypto.err.range': 'Mesaj kimlikleri geçersiz; son kimlik ilkinden küçük olamaz.',
-  'admin.crypto.result.title': 'Çözülen mesajlar ({n})',
-  'admin.crypto.result.audit': 'Denetim kaydı numarası: {id}',
-  'admin.crypto.result.empty': 'Bu aralıkta mesaj bulunamadı',
-  'admin.crypto.result.sender': 'Gönderen: #{id}',
-  'admin.crypto.result.failed': 'Çözülemedi ({reason})',
-  'admin.crypto.result.clear': 'Ekrandan temizle',
+  'admin.crypto.open.title': 'Kullanıcı mesajlarını aç',
+  'admin.crypto.open.hint': 'Bir kullanıcıyı arayın; tüm konuşmalarını ve mesajlarını görüntüleyin. Her sayfa isteği değiştirilemez denetim kaydına yazılır.',
+  'admin.crypto.open.search': 'Kullanıcı ara',
+  'admin.crypto.open.placeholder': 'Ad veya e-posta (en az 2 karakter)',
+  'admin.crypto.open.none': 'Eşleşen kullanıcı yok',
+  'admin.crypto.open.go': 'Mesajları aç',
+  'admin.crypto.disabled': 'Yönetici mesaj görüntüleme sunucu ayarıyla kapatılmış.',
 
   // Etkinlik başvuruları ve kulüp denetimi
   'admin.admission.title': 'Etkinlik başvuruları',
@@ -215,6 +196,6 @@ const m = {
   'admin.err.MESSAGE_READER_UNAVAILABLE': 'Mesaj okuma bu sunucuda henüz etkin değil.',
   'admin.err.CRYPTO_KEY_UNKNOWN': 'Bilinmeyen ana anahtar kimliği.',
 
-  'admin.users.x.decryptLink': 'Gerekçeli mesaj çözme sayfasını aç',
+  'admin.users.x.decryptLink': 'Kullanıcının mesajlarını aç',
 } as const;
 export default m;
