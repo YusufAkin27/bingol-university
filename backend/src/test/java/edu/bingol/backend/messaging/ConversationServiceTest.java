@@ -190,7 +190,7 @@ class ConversationServiceTest {
         when(members.findByConversationIdInAndLeftAtIsNull(any())).thenReturn(List.of(
                 ConversationMember.of(5L, 1L, ConversationMember.Role.ADMIN), late));
         when(messages.findAllById(any())).thenReturn(List.of(old));
-        when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
+        when(messages.unreadCounts(anyLong(), any(), any())).thenReturn(List.of());
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
         when(convs.page(eq(2L), any(), anyBoolean(), any())).thenReturn(List.of(g));
         when(convs.findById(5L)).thenReturn(Optional.of(g));
@@ -215,7 +215,7 @@ class ConversationServiceTest {
         last.setBody("merhaba");
         when(members.findByConversationIdInAndLeftAtIsNull(any())).thenReturn(List.of(early));
         when(messages.findAllById(any())).thenReturn(List.of(last));
-        when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
+        when(messages.unreadCounts(anyLong(), any(), any())).thenReturn(List.of());
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
         when(convs.page(eq(2L), any(), anyBoolean(), any())).thenReturn(List.of(g));
 

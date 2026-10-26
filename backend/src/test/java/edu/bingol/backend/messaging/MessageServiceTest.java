@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -188,7 +190,7 @@ class MessageServiceTest {
 
     @Test
     void sendPersistsPublishesAndNotifiesOnlyOfflineRecipients() {
-        when(presence.isOnline(PEER)).thenReturn(false);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         MessageService.SendResult r = service.send(ME, CONV, "  <b>selam</b> & hos  ", "c1");
 
@@ -204,7 +206,7 @@ class MessageServiceTest {
 
     @Test
     void sendSealsBodyBeforePersistAndNeverPassesPlaintextToNotificationWhenPreviewOff() {
-        when(presence.isOnline(PEER)).thenReturn(false);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         service.send(ME, CONV, "cok gizli metin", "c1");
 
@@ -220,7 +222,7 @@ class MessageServiceTest {
     void previewEnabledSendsTruncatedPreviewOnlyAsPushBody() {
         MessageService withPreview = new MessageService(convs, members, messages, users, blocks, limiter, bus,
                 presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler, true);
-        when(presence.isOnline(PEER)).thenReturn(false);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         withPreview.send(ME, CONV, "a".repeat(150), "c9");
 
@@ -243,7 +245,7 @@ class MessageServiceTest {
 
     @Test
     void onlineRecipientGetsNoPushNotification() {
-        when(presence.isOnline(PEER)).thenReturn(true);
+        when(presence.onlineAmong(any())).thenReturn(Set.of(PEER));
 
         service.send(ME, CONV, "selam", "c1");
 
@@ -260,6 +262,45 @@ class MessageServiceTest {
 
         service.markRead(ME, CONV, 10L);
         verify(bus, org.mockito.Mockito.times(1)).publish(anyString(), anyCollection(), any());
+    }
+
+    @Test
+    void markReadOnEmptyConversationIsNoOp() {
+        direct.setLastMessageId(null);
+
+        service.markRead(ME, CONV, 5L); // 400 degil: sessizce donmeli
+
+        verify(members, never()).advanceRead(anyLong(), anyLong(), anyLong());
+        verifyNoInteractions(bus);
+    }
+
+    @Test
+    void markReadOverRateLimitIsSilentlyDropped() {
+        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMITED", "x"))
+                .when(limiter).check(startsWith("read:"), anyInt(), any());
+
+        service.markRead(ME, CONV, 40L);
+
+        verify(members, never()).advanceRead(anyLong(), anyLong(), anyLong());
+    }
+
+    @Test
+    void manyOfflineRecipientsAreNotifiedInOneBulkCall() {
+        direct.setType(Conversation.Type.GROUP); // birebirde karsi taraf tek; toplu yol grup/oda icindir
+        List<ConversationMember> room = new java.util.ArrayList<>();
+        room.add(ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER));
+        List<Long> others = new java.util.ArrayList<>();
+        for (long id = 100; id < 100 + MessageService.BULK_NOTIFY_THRESHOLD + 5; id++) {
+            room.add(ConversationMember.of(CONV, id, ConversationMember.Role.MEMBER));
+            others.add(id);
+        }
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(room);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendBulk(eq(others), eq(NotificationType.MESSAGE), anyString(), anyString(), any());
+        verify(notifications, never()).sendNewMessage(anyLong(), anyString(), any(), any());
     }
 
     @Test
@@ -449,7 +490,7 @@ class MessageServiceTest {
         mutedPeer.setMutedUntil(java.time.Instant.now().plusSeconds(3600));
         when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
                 ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), mutedPeer));
-        when(presence.isOnline(PEER)).thenReturn(false);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         service.send(ME, CONV, "selam", "c1");
 
@@ -465,7 +506,7 @@ class MessageServiceTest {
         expired.setMutedUntil(java.time.Instant.now().minusSeconds(5));
         when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
                 ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), expired));
-        when(presence.isOnline(PEER)).thenReturn(false);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         service.send(ME, CONV, "selam", "c1");
 

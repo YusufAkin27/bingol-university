@@ -37,16 +37,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
 
     private final StompAuthInterceptor stompAuth;
+    private final TokenExpiryGuard expiryGuard;
     private final RateLimiter limiter;
     private final String[] allowedOrigins;
 
     private final edu.bingol.backend.common.ClientIp clientIp;
 
-    public WebSocketConfig(StompAuthInterceptor stompAuth, RateLimiter limiter,
+    public WebSocketConfig(StompAuthInterceptor stompAuth, TokenExpiryGuard expiryGuard, RateLimiter limiter,
                            edu.bingol.backend.common.ClientIp clientIp,
                            @Value("${app.messaging.allowed-origins:}") String[] allowedOrigins) {
         this.clientIp = clientIp;
         this.stompAuth = stompAuth;
+        this.expiryGuard = expiryGuard;
         this.limiter = limiter;
         this.allowedOrigins = allowedOrigins;
     }
@@ -82,7 +84,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        registration.setMessageSizeLimit(16 * 1024)
+        registration.addDecoratorFactory(expiryGuard::decorate)
+                .setMessageSizeLimit(16 * 1024)
                 .setSendBufferSizeLimit(512 * 1024)
                 .setSendTimeLimit(10_000)
                 .setTimeToFirstMessage(10_000); // CONNECT gondermeyen baglanti kapatilir

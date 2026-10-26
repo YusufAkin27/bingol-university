@@ -5,6 +5,7 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.MessageEvent;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReactionCount;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReactionSummary;
+import edu.bingol.backend.messaging.room.RoomModeration;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.user.User;
@@ -77,6 +78,18 @@ public class MessageActionService {
         this.allowedReactions = set;
     }
 
+    /** Kulup/etkinlik odasi moderasyonu (setter enjeksiyonu; yoksa yalnizca grup yoneticisi yetkilidir). */
+    private RoomModeration roomModeration;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRoomModeration(RoomModeration roomModeration) {
+        this.roomModeration = roomModeration;
+    }
+
+    private boolean isRoomModerator(Long conversationId, Long userId) {
+        return roomModeration != null && roomModeration.canModerate(conversationId, userId);
+    }
+
     /** T8: gorsel ekleri (setter enjeksiyonu; yoksa eksiz). */
     private edu.bingol.backend.messaging.media.MessageAttachmentService attachments;
 
@@ -143,7 +156,9 @@ public class MessageActionService {
             return;
         }
         boolean owner = m.getSenderId().equals(userId);
-        boolean groupAdmin = a.conversation.getType() == Conversation.Type.GROUP && a.member.isAdmin();
+        // Grup yoneticisi ya da kulup/etkinlik odasinin moderatoru/organizatoru: baskasinin mesajini suresiz silebilir
+        boolean groupAdmin = a.conversation.getType() == Conversation.Type.GROUP
+                && (a.member.isAdmin() || (!owner && isRoomModerator(m.getConversationId(), userId)));
         if (!owner && !groupAdmin) {
             throw new ApiException(HttpStatus.FORBIDDEN, "MESSAGE_DELETE_FORBIDDEN", "Bu mesajı silme yetkiniz yok.");
         }

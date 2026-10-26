@@ -13,6 +13,9 @@ public interface ChatRoomLinkRepository extends JpaRepository<ChatRoomLink, Long
 
     Optional<ChatRoomLink> findByKindAndRefId(RoomKind kind, Long refId);
 
+    /** Konusma bir oda ise baglantisi (moderasyon yetkisi icin). */
+    Optional<ChatRoomLink> findByConversationId(Long conversationId);
+
     /**
      * Baglantiyi atomik ekler; (tur, kaynak) zaten varsa 0 doner, hata firlatmaz (hata cagiran islemi
      * rollback-only yapardi).

@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,8 +55,15 @@ public class ConversationMember {
     @Column(nullable = false)
     private boolean archiveSticky = false;
 
+    /** Sure secenekleri en fazla 1 yildir; bunun cok ustu "suresiz" sayilir (ConversationPrefsService.FOREVER 100 yil). */
+    private static final Duration FOREVER_THRESHOLD = Duration.ofDays(365L * 10);
+
     public boolean isMuted() {
         return mutedUntil != null && mutedUntil.isAfter(Instant.now());
+    }
+
+    public boolean isMutedForever() {
+        return mutedUntil != null && mutedUntil.isAfter(Instant.now().plus(FOREVER_THRESHOLD));
     }
 
     public static ConversationMember of(Long conversationId, Long userId, Role role) {

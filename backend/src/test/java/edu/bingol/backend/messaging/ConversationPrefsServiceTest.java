@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,10 +14,12 @@ import static org.mockito.Mockito.when;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationDetail;
 import edu.bingol.backend.messaging.dto.MessagingDtos.UnreadSummary;
+import edu.bingol.backend.moderation.BlockService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -28,7 +32,8 @@ class ConversationPrefsServiceTest {
     private final ConversationMemberRepository members = mock(ConversationMemberRepository.class);
     private final MessageRepository messages = mock(MessageRepository.class);
     private final ConversationService conversations = mock(ConversationService.class);
-    private final ConversationPrefsService service = new ConversationPrefsService(members, messages, conversations);
+    private final BlockService blocks = mock(BlockService.class);
+    private final ConversationPrefsService service = new ConversationPrefsService(members, messages, conversations, blocks);
 
     private ConversationMember mine;
 
@@ -108,7 +113,8 @@ class ConversationPrefsServiceTest {
         muted.setMutedUntil(Instant.now().plusSeconds(600));
         ConversationMember quiet = ConversationMember.of(12L, ME, ConversationMember.Role.MEMBER);
         when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine, muted, quiet));
-        when(messages.unreadAll(ME)).thenReturn(List.<Object[]>of(new Object[] {CONV, 3L}, new Object[] {11L, 5L}));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of());
+        when(messages.unreadCounts(eq(ME), any(), any())).thenReturn(List.<Object[]>of(new Object[] {CONV, 3L}, new Object[] {11L, 5L}));
 
         UnreadSummary s = service.unreadSummary(ME);
 
@@ -116,5 +122,41 @@ class ConversationPrefsServiceTest {
         assertEquals(5, s.mutedTotal());
         assertEquals(2, s.conversations().size()); // 12 numarali konusmada okunmamis yok
         assertTrue(s.conversations().stream().anyMatch(i -> i.conversationId().equals(11L) && i.muted()));
+    }
+
+    @Test
+    void unreadSummaryUsesSameQueryAndBlockFilterAsConversationList() {
+        when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of(77L));
+        when(messages.unreadCounts(ME, List.of(CONV), List.of(77L)))
+                .thenReturn(List.<Object[]>of(new Object[] {CONV, 2L}));
+
+        UnreadSummary s = service.unreadSummary(ME);
+
+        assertEquals(2, s.total());
+        verify(messages).unreadCounts(ME, List.of(CONV), List.of(77L)); // engelli gonderen filtre olarak gecti
+    }
+
+    @Test
+    void unreadSummaryWithoutBlocksPassesPlaceholderForNotInClause() {
+        when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of());
+        when(messages.unreadCounts(ME, List.of(CONV), List.of(-1L))).thenReturn(List.of());
+
+        assertEquals(0, service.unreadSummary(ME).total());
+        verify(messages).unreadCounts(ME, List.of(CONV), List.of(-1L));
+    }
+
+    @Test
+    void mutedForeverFlagDistinguishesIndefiniteFromTimedMute() {
+        service.mute(ME, CONV, null, true);
+        assertTrue(mine.isMutedForever());
+
+        service.mute(ME, CONV, 525_600, null);
+        assertTrue(mine.isMuted());
+        assertFalse(mine.isMutedForever());
+
+        service.unmute(ME, CONV);
+        assertFalse(mine.isMutedForever());
     }
 }

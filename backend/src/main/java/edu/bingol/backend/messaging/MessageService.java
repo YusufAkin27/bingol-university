@@ -24,9 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +48,10 @@ public class MessageService {
     public static final int MAX_LENGTH = 2000;
     public static final int RATE_PER_MINUTE = 30;
     private static final int PUSH_PREVIEW = 100;
+    static final int READ_PER_WINDOW = 20;
+    static final Duration READ_WINDOW = Duration.ofSeconds(10);
+    /** Bu sayidan fazla cevrimdisi alici varsa bildirimler tek toplu cagriyla gider. */
+    static final int BULK_NOTIFY_THRESHOLD = 20;
 
     /** Gonderim sonucu: `created` false ise ayni clientId ile daha once kaydedilmis mesaj doner. */
     public record SendResult(MessageView message, boolean created) {}
@@ -89,6 +96,14 @@ public class MessageService {
         this.notifications = notifications;
         this.reports = reports;
         this.tx = new TransactionTemplate(txManager);
+    }
+
+    /** Bildirim dagitimi icin (buyuk odalarda gondericiyi bekletmesin); varsayilan: cagiran is parcacigi. */
+    private Executor fanout = Runnable::run;
+
+    @Autowired(required = false)
+    void setFanout(@Qualifier("chatFanoutExecutor") Executor fanout) {
+        this.fanout = fanout;
     }
 
     @Autowired(required = false)
@@ -240,21 +255,50 @@ public class MessageService {
         // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
         Set<Long> muted = active.stream().filter(ConversationMember::isMuted).map(ConversationMember::getUserId)
                 .collect(java.util.stream.Collectors.toSet());
-        List<Long> offline = recipients.stream()
-                .filter(id -> !id.equals(senderId) && !muted.contains(id) && !presence.isOnline(id)).toList();
-        if (offline.isEmpty()) {
+        List<Long> candidates = recipients.stream().filter(id -> !id.equals(senderId) && !muted.contains(id)).toList();
+        if (candidates.isEmpty()) {
             return;
         }
-        String senderName = users.findById(senderId).map(User::getDisplayName).orElse("Yeni mesaj");
-        String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null
-                ? conv.getTitle() + " - " + senderName : senderName;
-        // Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj").
-        String preview = !pushPreview ? null
-                : m.getBody().isEmpty() ? "📷" // yalniz gorsel
-                : m.getBody().length() > PUSH_PREVIEW ? m.getBody().substring(0, PUSH_PREVIEW) + "…" : m.getBody();
+        String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null ? conv.getTitle() : null;
+        String preview = previewOf(m);
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()));
-        offline.forEach(id -> notifications.sendNewMessage(id, title, preview, data));
+        try {
+            fanout.execute(() -> notifyOffline(senderId, title, preview, data, candidates));
+        } catch (RejectedExecutionException e) {
+            log.warn("Bildirim kuyrugu dolu, mesaj {} icin bildirim atlandi", m.getId());
+        }
+    }
+
+    /** Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj"). */
+    private String previewOf(Message m) {
+        if (!pushPreview) {
+            return null;
+        }
+        String body = m.getBody();
+        return body.isEmpty() ? "📷" // yalniz gorsel
+                : body.length() > PUSH_PREVIEW ? body.substring(0, PUSH_PREVIEW) + "…" : body;
+    }
+
+    /** Cevrimdisi alicilara bildirim (asenkron calisir; hata gondericiyi etkilemez). Cevrimici durum tek MGET ile okunur. */
+    private void notifyOffline(Long senderId, String groupTitle, String preview, Map<String, String> data,
+                               List<Long> candidates) {
+        try {
+            Set<Long> online = presence.onlineAmong(candidates);
+            List<Long> offline = candidates.stream().filter(id -> !online.contains(id)).toList();
+            if (offline.isEmpty()) {
+                return;
+            }
+            String senderName = users.findById(senderId).map(User::getDisplayName).orElse("Yeni mesaj");
+            String title = groupTitle == null ? senderName : groupTitle + " - " + senderName;
+            if (offline.size() > BULK_NOTIFY_THRESHOLD) {
+                notifications.sendBulk(offline, NotificationType.MESSAGE, title, preview == null ? "Yeni mesaj" : preview, data);
+            } else {
+                offline.forEach(id -> notifications.sendNewMessage(id, title, preview, data));
+            }
+        } catch (RuntimeException e) {
+            log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());
+        }
     }
 
     private Instant parentTime(Long parentId) {
@@ -290,9 +334,17 @@ public class MessageService {
     public void markRead(Long userId, Long conversationId, Long lastMessageId) {
         requireMember(conversationId, userId);
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
-        if (lastMessageId == null || lastMessageId <= 0
-                || conv.getLastMessageId() == null || lastMessageId > conv.getLastMessageId()) {
+        if (conv.getLastMessageId() == null) {
+            return; // bos konusma: okunacak bir sey yok (no-op)
+        }
+        if (lastMessageId == null || lastMessageId <= 0 || lastMessageId > conv.getLastMessageId()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_MESSAGE_ID", "Geçersiz mesaj kimliği.");
+        }
+        // Sessiz limit (typing gibi): fazla sik okundu istekleri atilir, sonraki istek imleci yine ilerletir
+        try {
+            limiter.check("read:" + userId + ":" + conversationId, READ_PER_WINDOW, READ_WINDOW);
+        } catch (ApiException e) {
+            return;
         }
         if (members.advanceRead(conversationId, userId, lastMessageId) > 0) {
             bus.publish("read-receipts", othersOf(conversationId, userId, true),

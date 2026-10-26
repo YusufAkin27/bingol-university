@@ -134,7 +134,7 @@ public final class MessagingDtos {
     public record ConversationView(Long id, String type, String title, UserSummary peer, int memberCount,
                                    boolean admin, MessageView lastMessage, long unreadCount, boolean blocked,
                                    String createdAt, boolean muted, String mutedUntil, boolean archived,
-                                   Long communityId, Long eventId) {}
+                                   boolean mutedForever, Long communityId, Long eventId) {}
 
     public record MemberView(Long userId, String displayName, String avatarUrl, String role) {}
 

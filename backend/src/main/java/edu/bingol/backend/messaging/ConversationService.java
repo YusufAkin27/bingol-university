@@ -290,11 +290,11 @@ public class ConversationService {
                 .collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
         Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(lastMessages.keySet());
-        Map<Long, Long> unread = new HashMap<>();
-        for (Object[] row : messages.unreadCounts(me, ids)) {
-            unread.put((Long) row[0], (Long) row[1]);
-        }
         Set<Long> related = blocks.hiddenFrom(me);
+        Map<Long, Long> unread = new HashMap<>();
+        for (Object[] row : messages.unreadCounts(me, ids, MessageRepository.excludedSenders(related))) {
+            unread.put((Long) row[0], ((Number) row[1]).longValue());
+        }
         Map<Long, edu.bingol.backend.messaging.room.ChatRoomLink> roomOf = roomLinks == null ? Map.of()
                 : roomLinks.findByConversationIdIn(ids).stream().collect(Collectors.toMap(
                         edu.bingol.backend.messaging.room.ChatRoomLink::getConversationId, Function.identity(), (x, y) -> x));
@@ -321,7 +321,7 @@ public class ConversationService {
             return new ConversationView(c.getId(), type, c.getTitle(), peer, ms.size(), admin, lastView,
                     unread.getOrDefault(c.getId(), 0L), direct && peerId != null && related.contains(peerId),
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
-                    mine != null && mine.getArchivedAt() != null,
+                    mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
                     club ? room.getRefId() : null, event ? room.getRefId() : null);
         }).toList();
     }

@@ -4,6 +4,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.UnreadItem;
 import edu.bingol.backend.messaging.dto.MessagingDtos.UnreadSummary;
+import edu.bingol.backend.moderation.BlockService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,9 +28,11 @@ public class ConversationPrefsService {
     private final ConversationMemberRepository members;
     private final MessageRepository messages;
     private final ConversationService conversations;
+    private final BlockService blocks;
 
     public ConversationPrefsService(ConversationMemberRepository members, MessageRepository messages,
-                                    ConversationService conversations) {
+                                    ConversationService conversations, BlockService blocks) {
+        this.blocks = blocks;
         this.members = members;
         this.messages = messages;
         this.conversations = conversations;
@@ -40,14 +43,21 @@ public class ConversationPrefsService {
      * olusturulmaz. Rozet toplami (`total`) sessizdekileri disarida birakir, `mutedTotal` ayri doner.
      */
     public UnreadSummary unreadSummary(Long userId) {
+        List<ConversationMember> mine = members.findByUserIdAndLeftAtIsNull(userId);
+        if (mine.isEmpty()) {
+            return new UnreadSummary(0, 0, List.of());
+        }
+        // Liste satirlariyla AYNI sorgu ve ayni engel filtresi: sayilar birebir tutarli
+        List<Long> ids = mine.stream().map(ConversationMember::getConversationId).toList();
         Map<Long, Long> unread = new HashMap<>();
-        for (Object[] row : messages.unreadAll(userId)) {
+        for (Object[] row : messages.unreadCounts(userId, ids,
+                MessageRepository.excludedSenders(blocks.hiddenFrom(userId)))) {
             unread.put((Long) row[0], ((Number) row[1]).longValue());
         }
         long total = 0;
         long mutedTotal = 0;
         List<UnreadItem> items = new ArrayList<>();
-        for (ConversationMember m : members.findByUserIdAndLeftAtIsNull(userId)) {
+        for (ConversationMember m : mine) {
             long n = unread.getOrDefault(m.getConversationId(), 0L);
             if (n == 0) {
                 continue;

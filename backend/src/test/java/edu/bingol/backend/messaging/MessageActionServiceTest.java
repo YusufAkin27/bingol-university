@@ -19,6 +19,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageEvent;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReactionSummary;
+import edu.bingol.backend.messaging.room.RoomModeration;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.user.User;
@@ -305,6 +306,40 @@ class MessageActionServiceTest {
         service.delete(ME, MSG);
 
         verify(messages).tombstone(eq(MSG), any(), eq(ME));
+    }
+
+    private void joinedLongAgo(Long uid) {
+        ConversationMember m = ConversationMember.of(CONV, uid, ConversationMember.Role.MEMBER);
+        m.setJoinedAt(Instant.now().minus(Duration.ofDays(1)));
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, uid)).thenReturn(Optional.of(m));
+    }
+
+    @Test
+    void roomModeratorDeletesOthersMessageInRoomEvenAfterWindow() {
+        service = build(15, 5);
+        RoomModeration moderation = mock(RoomModeration.class);
+        service.setRoomModeration(moderation);
+        conv.setType(Conversation.Type.GROUP);
+        msg.setSenderId(PEER);
+        joinedLongAgo(ME);
+        when(moderation.canModerate(CONV, ME)).thenReturn(true);
+
+        service.delete(ME, MSG);
+
+        verify(messages).tombstone(eq(MSG), any(), eq(ME));
+    }
+
+    @Test
+    void nonModeratorMemberCannotDeleteOthersMessageInRoom() {
+        RoomModeration moderation = mock(RoomModeration.class);
+        service.setRoomModeration(moderation);
+        conv.setType(Conversation.Type.GROUP);
+        msg.setSenderId(PEER);
+        joinedLongAgo(ME);
+        when(moderation.canModerate(CONV, ME)).thenReturn(false);
+
+        assertEquals("MESSAGE_DELETE_FORBIDDEN", fail(() -> service.delete(ME, MSG)).code());
+        verify(messages, never()).tombstone(anyLong(), any(), anyLong());
     }
 
     // --- tepkiler ---

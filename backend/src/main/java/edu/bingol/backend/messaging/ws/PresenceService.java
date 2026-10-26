@@ -6,6 +6,10 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.PresenceView;
 import edu.bingol.backend.moderation.BlockService;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -67,6 +71,26 @@ public class PresenceService {
             return Boolean.TRUE.equals(redis.hasKey(ONLINE_PREFIX + userId));
         } catch (RuntimeException e) {
             return false;
+        }
+    }
+
+    /** Toplu sorgu (tek MGET): cevrimici olanlar. Redis erisilemezse bos kume (hepsi cevrimdisi sayilir). */
+    public Set<Long> onlineAmong(Collection<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            List<Long> ids = List.copyOf(userIds);
+            List<String> values = redis.opsForValue().multiGet(ids.stream().map(id -> ONLINE_PREFIX + id).toList());
+            Set<Long> online = new HashSet<>();
+            for (int i = 0; values != null && i < values.size(); i++) {
+                if (values.get(i) != null) {
+                    online.add(ids.get(i));
+                }
+            }
+            return online;
+        } catch (RuntimeException e) {
+            return Set.of();
         }
     }
 

@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/conversations")
 public class ConversationController {
 
+    static final int MANAGE_PER_MINUTE = 30;
+
     private final ConversationService conversations;
     private final RateLimiter limiter;
 
@@ -106,28 +108,43 @@ public class ConversationController {
 
     @GetMapping("/{id}")
     public ConversationDetail detail(@PathVariable Long id) {
-        return conversations.detail(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        limiter.check("conv:detail:" + uid, 120, Duration.ofMinutes(1));
+        return conversations.detail(uid, id);
     }
 
     @PatchMapping("/{id}")
     public ConversationView rename(@PathVariable Long id, @Valid @RequestBody RenameRequest r) {
-        return conversations.rename(CurrentUser.id(), id, r.title());
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        return conversations.rename(uid, id, r.title());
     }
 
     @PostMapping("/{id}/members")
     public ConversationView addMembers(@PathVariable Long id, @Valid @RequestBody AddMembersRequest r) {
-        return conversations.addMembers(CurrentUser.id(), id, r.userIds());
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        return conversations.addMembers(uid, id, r.userIds());
     }
 
     @DeleteMapping("/{id}/members/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeMember(@PathVariable Long id, @PathVariable Long userId) {
-        conversations.removeMember(CurrentUser.id(), id, userId);
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        conversations.removeMember(uid, id, userId);
     }
 
     @PostMapping("/{id}/leave")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void leave(@PathVariable Long id) {
-        conversations.leave(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        conversations.leave(uid, id);
+    }
+
+    /** Grup yonetimi (ad, uye ekle/cikar, ayril) icin kullanici basina ortak dakikalik sinir. */
+    private void limitManage(Long uid) {
+        limiter.check("conv:manage:" + uid, MANAGE_PER_MINUTE, Duration.ofMinutes(1));
     }
 }
