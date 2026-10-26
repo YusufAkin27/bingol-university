@@ -1,7 +1,11 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.user.User;
+import jakarta.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +14,11 @@ import org.springframework.data.repository.query.Param;
 public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     boolean existsBySlug(String slug);
+
+    /** Kullanici satirini kilitler: ayni kullanicinin eszamanli olusturma isteklerini siraya dizer (3 kulup siniri yarisi). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> lockOwner(@Param("id") Long id);
 
     /** Kullanicinin sahibi oldugu ve hala "canli" sayilan (bekleyen + aktif) topluluklar. */
     long countByOwnerIdAndStatusIn(Long ownerId, Collection<Community.Status> statuses);
