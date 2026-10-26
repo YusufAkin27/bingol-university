@@ -56,7 +56,7 @@ public class MessageCodec {
 
     /** Duz metni belleğe koyar (gizli mesajlar cozulmez). Cozulemezse body null kalir; hata mesaj basina yutulur. */
     public Message open(Message m) {
-        if (m.isHidden() || m.getBody() != null) {
+        if (m.isHidden() || m.isDeleted() || m.getBody() != null) {
             return m;
         }
         if (m.getBodyCiphertext() == null) {

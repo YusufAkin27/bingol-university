@@ -214,3 +214,8 @@ Güncel olan bu bölümdür; §8 ile çeliştiğinde bu bölüm geçerlidir.
 8. **KVKK dışa aktarım:** `MessageExporters` → `sentMessages` bölümü (kullanıcının kendi son 5000 mesajı, çözülmüş).
 9. **Testler:** `MessageEncryptionTest`, `BusAndMediaCipherTest`; güncellenenler: `MessageServiceTest`, `ChatEventBusTest`, `ConversationServiceTest`, `NotificationServiceTest`.
 10. **Betikler:** `crypto-no-plaintext.sh` (kanarya cümle: pg_dump, hex, bildirim tablosu, Redis kanalı, günlük; API/KVKK/yönetici gidiş-dönüş), `crypto-smoke.sh`, `crypto-contract.sh`; `notification-collapse.sh` düzeltildi (istek alanları `text` + `clientId`).
+
+### 10.x T13 notu — düzenleme ve silme
+- **Düzenleme:** `MessageCodec.seal` yeniden çağrılır (yeni nonce, güncel DEK sürümü); eski şifreli içerik `UPDATE` ile ezilir, geçmiş tutulmaz. AAD (`"m1"‖senderId‖clientId`) değişmez.
+- **Silme (tombstone):** `body_ciphertext/body_nonce/key_version` NULL, `deleted_at` dolu. V92, `message_body_present` kısıtını `deleted_at IS NOT NULL` ile genişletir; `db/contract/V69_1` `NOT NULL` yerine aynı kısıtı yeniden kurar. `MessageStoreReader` ve geçiş işi NULL gövdeli satırı atlar; yönetici çözme silinmiş mesajda içerik döndüremez. Raporlanmış mesaj silinirse içerik kopyası tutulmaz (bkz. docs/MESSAGING_DESIGN.md T13).
+- **Yeni olay tipleri** (`edited`, `deleted`, `reaction`) `ChatEventBus` -> `BusCipher` yolundan geçer; düzenleme olayı düz metni yalnız şifreli çerçevede taşır.

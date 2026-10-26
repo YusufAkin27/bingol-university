@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -191,7 +192,7 @@ class ConversationServiceTest {
         when(messages.findAllById(any())).thenReturn(List.of(old));
         when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
-        when(convs.page(eq(2L), any(), any())).thenReturn(List.of(g));
+        when(convs.page(eq(2L), any(), anyBoolean(), any())).thenReturn(List.of(g));
         when(convs.findById(5L)).thenReturn(Optional.of(g));
         when(members.findByConversationIdAndUserIdAndLeftAtIsNull(5L, 2L)).thenReturn(Optional.of(late));
         when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(5L)).thenReturn(List.of(late));
@@ -216,7 +217,7 @@ class ConversationServiceTest {
         when(messages.findAllById(any())).thenReturn(List.of(last));
         when(messages.unreadCounts(anyLong(), any())).thenReturn(List.of());
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
-        when(convs.page(eq(2L), any(), any())).thenReturn(List.of(g));
+        when(convs.page(eq(2L), any(), anyBoolean(), any())).thenReturn(List.of(g));
 
         assertEquals("merhaba", service.list(2L, null, 20).items().get(0).lastMessage().text());
     }
