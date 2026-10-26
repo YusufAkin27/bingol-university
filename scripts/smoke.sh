@@ -82,7 +82,7 @@ fi
 
 echo "== bildirim"
 check "tercih" 200 "$(code -X PUT -H "$H" -H "$AUTH1" $A/notifications/preferences -d '{"news":false,"announcements":true,"events":true,"messages":true,"communities":true}')"
-check "cihaz kaydi" 204 "$(code -X POST -H "$H" -H "$AUTH1" $A/devices -d '{"fcmToken":"tok-smoke","platform":"ANDROID"}')"
+check "cihaz kaydi" 204 "$(code -X POST -H "$H" -H "$AUTH1" $A/devices -d '{"fcmToken":"tok-smoke-0123456789","platform":"ANDROID"}')"
 check "liste" 200 "$(code -H "$AUTH1" $A/notifications)"
 check "tumunu okundu" 204 "$(code -X POST -H "$H" -H "$AUTH1" $A/notifications/read -d '{"all":true}')"
 

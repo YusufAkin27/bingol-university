@@ -16,6 +16,7 @@ class ProfilePagedList extends StatefulWidget {
     required this.emptyIcon,
     required this.emptyText,
     required this.itemBuilder,
+    this.header,
   });
 
   final Session session;
@@ -24,6 +25,9 @@ class ProfilePagedList extends StatefulWidget {
   final IconData emptyIcon;
   final String emptyText;
   final Widget Function(BuildContext context, Map<String, dynamic> item) itemBuilder;
+
+  /// Başlığın altında sabit duran isteğe bağlı alan (örn. filtre çipleri).
+  final Widget? header;
 
   @override
   State<ProfilePagedList> createState() => _ProfilePagedListState();
@@ -42,7 +46,17 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
     _loadMore();
   }
 
+  @override
+  void didUpdateWidget(ProfilePagedList old) {
+    super.didUpdateWidget(old);
+    // Yol değişirse (filtre) liste baştan yüklenir.
+    if (old.path != widget.path) _reload();
+  }
+
+  int _gen = 0; // eski yanıtların yeni filtreye karışmasını engeller
+
   Future<void> _reload() async {
+    _gen++;
     setState(() {
       _items.clear();
       _cursor = null;
@@ -59,16 +73,19 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
       _loading = true;
       _error = null;
     });
+    final gen = _gen;
     try {
       final sep = widget.path.contains('?') ? '&' : '?';
       final c = _cursor == null ? '' : '&cursor=$_cursor';
       final r = await widget.session.api.get('${widget.path}${sep}size=20$c') as Map<String, dynamic>;
+      if (gen != _gen) return;
       for (final e in (r['items'] as List? ?? const [])) {
         if (e is Map<String, dynamic>) _items.add(e);
       }
       _cursor = (r['nextCursor'] as num?)?.toInt();
       _hasMore = _cursor != null;
     } catch (e) {
+      if (gen != _gen) return;
       _error = e;
       _hasMore = false;
     }
@@ -128,6 +145,7 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
       body: Column(
         children: [
           BuHeader(title: widget.title, onBack: () => Navigator.pop(context)),
+          if (widget.header != null) widget.header!,
           Expanded(child: body),
         ],
       ),

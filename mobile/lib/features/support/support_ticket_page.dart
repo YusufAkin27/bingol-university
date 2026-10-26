@@ -71,7 +71,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       _changed = true;
       await _load(silent: true);
     } catch (e) {
-      if (mounted) supportSnack(context, errorText(e));
+      if (mounted) supportSnack(context, supportError(e));
     }
     if (mounted) setState(() => _sending = false);
   }
@@ -95,7 +95,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       _changed = true;
       await _load(silent: true);
     } catch (e) {
-      if (mounted) supportSnack(context, errorText(e));
+      if (mounted) supportSnack(context, supportError(e));
     }
     if (mounted) setState(() => _closing = false);
   }

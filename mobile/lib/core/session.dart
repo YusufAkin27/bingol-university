@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'api.dart';
 import 'badges.dart';
+import 'realtime/chat_realtime.dart';
 
 enum SessionState { loading, signedOut, signedIn }
 
@@ -11,12 +12,19 @@ class Session extends ChangeNotifier {
   Session(this.api) {
     api.onTokensChanged = _persist;
     api.onSessionExpired = () => signOut(remote: false);
+    realtime = ChatRealtime(this);
   }
 
   final ApiClient api;
 
   /// Alt gezinme/üst çan rozetleri; sayfalar okuyunca değerini düşürür.
   final badges = AppBadges();
+
+  /// Kabuğun başlattığı tek sohbet gerçek zamanlı bağlantısı (ekranlar `session.realtime` ile erişir).
+  ChatRealtime? realtime;
+
+  /// Çıkışta (token hâlâ geçerliyken) çalışır: örn. FCM cihaz kaydını silme. Hatalar yutulur.
+  final List<Future<void> Function()> beforeSignOut = [];
   final _storage = const FlutterSecureStorage();
 
   SessionState state = SessionState.loading;
@@ -115,8 +123,30 @@ class Session extends ChangeNotifier {
         false,
       );
 
+  /// Tüm cihazlardaki oturumları kapatır (POST /auth/logout-all), ardından yerel çıkış yapar.
+  /// Sunucu hatasında (ağ dahil) fırlatır ve yerel oturumu KORUR; 401 ise oturum zaten bitmiştir.
+  Future<void> logoutAll() async {
+    try {
+      await api.post('/auth/logout-all');
+    } on ApiError catch (e) {
+      if (e.status != 401) rethrow;
+    }
+    await signOut(remote: false);
+  }
+
   Future<void> signOut({bool remote = true}) async {
     final refresh = api.tokens?.refresh;
+    // Önce yerel kancalar (push token silme); token geçerliyken, kısa zaman aşımıyla.
+    if (remote) {
+      for (final h in List.of(beforeSignOut)) {
+        try {
+          await h().timeout(const Duration(seconds: 5));
+        } catch (_) {}
+      }
+    }
+    try {
+      realtime?.stop();
+    } catch (_) {}
     if (remote && refresh != null) {
       try {
         await api.post('/auth/logout', {'refreshToken': refresh}, false);

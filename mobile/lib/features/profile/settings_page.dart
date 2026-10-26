@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
+import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme.dart';
@@ -16,9 +19,12 @@ import 'notification_prefs_page.dart';
 const _langs = [('tr', 'Türkçe'), ('en', 'English'), ('ar', 'العربية')];
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.session, required this.themeController});
+  const SettingsPage({super.key, required this.session, required this.themeController, this.push});
 
   final Session session;
+
+  /// Verilirse push durumu buradan okunur; yoksa Firebase başlatılmış mı diye bakılır.
+  final PushService? push;
   final ThemeController themeController;
 
   @override
@@ -30,11 +36,61 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _showEmail = false;
   bool _loaded = false;
   bool _exporting = false;
+  String _pushStatus = '...';
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadPushStatus();
+  }
+
+  Future<void> _loadPushStatus() async {
+    var text = 'Henüz yapılandırılmadı';
+    try {
+      final configured = (widget.push?.enabled ?? false) || Firebase.apps.isNotEmpty;
+      if (configured) {
+        final st = await FirebaseMessaging.instance.getNotificationSettings();
+        text = switch (st.authorizationStatus) {
+          AuthorizationStatus.authorized || AuthorizationStatus.provisional => 'Açık',
+          AuthorizationStatus.denied => 'Kapalı (sistem ayarlarından açın)',
+          _ => 'İzin verilmedi',
+        };
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _pushStatus = text);
+  }
+
+  Future<void> _logoutAll() async {
+    final t = context.bu;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: t.sf,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: Text('Tüm cihazlardan çıkış', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
+        content: Text('Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.',
+            style: TextStyle(fontSize: 14, height: 1.4, color: t.mut)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: Text('Vazgeç', style: TextStyle(color: t.mut, fontWeight: FontWeight.w700))),
+          TextButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: Text('Çıkış yap', style: TextStyle(color: t.danger, fontWeight: FontWeight.w800))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      // Session.logoutAll henüz yoksa uç doğrudan çağrılır.
+      await widget.session.api.post('/auth/logout-all');
+    } catch (e) {
+      if (mounted) _toast(errorText(e));
+      return;
+    }
+    await widget.session.signOut(remote: false);
+    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
   Future<void> _loadProfile() async {
@@ -187,6 +243,25 @@ class _SettingsPageState extends State<SettingsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: NotificationPrefsGroup(session: widget.session),
                 ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: BuGroup(children: [
+                    BuMenuRow(
+                      icon: LucideIcons.bellRing,
+                      label: 'Bildirim izni (push)',
+                      showChevron: false,
+                      onTap: () => _toast(_pushStatus == 'Açık'
+                          ? 'Anlık bildirimler açık.'
+                          : 'Anlık bildirimler: $_pushStatus'),
+                      trailing: Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Text(_pushStatus,
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
+                      ),
+                    ),
+                  ]),
+                ),
                 _label('GİZLİLİK VE HESAP'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -215,6 +290,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         icon: LucideIcons.circleQuestionMark,
                         label: 'Destek ve SSS',
                         onTap: () => _push(SupportPage(session: widget.session))),
+                    BuMenuRow(
+                        icon: LucideIcons.logOut,
+                        label: 'Tüm cihazlardan çıkış yap',
+                        showChevron: false,
+                        onTap: _logoutAll),
                     BuMenuRow(
                         icon: LucideIcons.trash2,
                         label: 'Hesabımı sil',

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -68,7 +67,7 @@ class ApiClient {
   static const _maxCache = 100;
 
   // ETag önbelleği (LRU, kullanıcıya özel): anahtar = dil + yetkili mi + yol.
-  final _cache = LinkedHashMap<String, _CacheEntry>();
+  final _cache = <String, _CacheEntry>{}; // LinkedHashMap: ekleme sırası = LRU sırası
   DateTime? _lastNetHint;
 
   void clearCache() => _cache.clear();

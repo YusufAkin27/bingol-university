@@ -64,9 +64,12 @@ class PushService {
           await Future<void>.delayed(const Duration(milliseconds: 500));
         }
       }
+      // Yeni register()/onRegistered FCM jetonu değil Firebase Installation ID verir; sunucu FCM jetonu bekler.
+      // ignore: deprecated_member_use
       final token = await fm.getToken();
       if (token != null) await _register(token);
 
+      // ignore: deprecated_member_use
       _refreshSub ??= fm.onTokenRefresh.listen(_register, onError: (_) {});
       _fgSub ??= FirebaseMessaging.onMessage.listen(_showBanner);
       _openSub ??= FirebaseMessaging.onMessageOpenedApp.listen((m) => _open(m.data));
@@ -91,6 +94,7 @@ class PushService {
     } catch (_) {}
     if (_enabled) {
       try {
+        // ignore: deprecated_member_use
         await FirebaseMessaging.instance.deleteToken();
       } catch (_) {}
     }
@@ -142,6 +146,8 @@ class PushService {
       // Yalnız https şemasına güvenilir; tarayıcı açma çağıran tarafın işi, burada bildirim listesine düşer.
       if (url is! String || !url.startsWith('https://')) return;
     }
-    PushRouter.open(data);
+    // Soğuk açılışta kabuk çizildikten sonra yönlendir.
+    WidgetsBinding.instance.addPostFrameCallback((_) => PushRouter.open(data));
+    WidgetsBinding.instance.scheduleFrame();
   }
 }

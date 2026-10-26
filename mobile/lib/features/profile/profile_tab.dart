@@ -32,24 +32,19 @@ class _ProfileTabState extends State<ProfileTab> {
     return p;
   }
 
-  Future<String?> _count(String path) async {
-    try {
-      final r = await widget.session.api.get('$path?size=50') as Map<String, dynamic>;
-      final n = (r['items'] as List? ?? const []).length;
-      return r['nextCursor'] != null ? '$n+' : '$n';
-    } catch (_) {
-      return null;
-    }
-  }
-
+  // Tek istekte kulüp / etkinlik / kayıtlı haber sayıları.
   Future<void> _loadStats() async {
-    final r = await Future.wait([_count('/me/communities'), _count('/me/events'), _count('/bookmarks')]);
-    if (!mounted) return;
-    setState(() {
-      _clubs = r[0];
-      _events = r[1];
-      _saved = r[2];
-    });
+    try {
+      final r = await widget.session.api.get('/me/summary') as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() {
+        _clubs = '${(r['communities'] as num?)?.toInt() ?? 0}';
+        _events = '${(r['events'] as num?)?.toInt() ?? 0}';
+        _saved = '${(r['bookmarks'] as num?)?.toInt() ?? 0}';
+      });
+    } catch (_) {
+      // Sayılar alınamazsa "–" gösterilir; sayfa çalışmaya devam eder.
+    }
   }
 
   void _reload() => setState(() => _future = _fetch());

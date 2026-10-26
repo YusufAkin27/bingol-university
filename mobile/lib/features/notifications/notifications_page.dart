@@ -10,6 +10,8 @@ import '../chat/chat_detail_page.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../support/support_page.dart';
+import '../support/support_ticket_page.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
 class NotificationsPage extends StatefulWidget {
@@ -137,13 +139,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Future<void> _open(Map<String, dynamic> n) async {
     _markOne(n);
     final d = _data(n);
-    // Kampanya hedefi: target + value; aksi halde doğrudan anahtarlar.
-    final target = d['target']?.toString();
-    final value = d['value'];
-    final newsId = _id(d['newsId'] ?? (target == 'NEWS' ? value : null));
+    // Yeni yük: targetType + targetId; eski yük: target + value veya doğrudan anahtarlar.
+    final target = (d['targetType'] ?? d['target'])?.toString().toUpperCase();
+    final value = d['targetId'] ?? d['value'];
+    final newsId = _id(d['newsId'] ?? (target == 'NEWS' || target == 'ANNOUNCEMENT' ? value : null));
     final eventId = _id(d['eventId'] ?? (target == 'EVENT' ? value : null));
     final communityId = _id(d['communityId'] ?? (target == 'COMMUNITY' ? value : null));
-    final convId = _id(d['conversationId']);
+    final convId = _id(d['conversationId'] ?? (target == 'CONVERSATION' || target == 'MESSAGE' ? value : null));
+    final ticketId = _id(d['ticketId'] ?? (target == 'TICKET' ? value : null));
+    final feedbackId = _id(d['feedbackId'] ?? (target == 'FEEDBACK' ? value : null));
 
     Widget? page;
     if (convId != null) {
@@ -159,6 +163,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
       page = EventDetailPage(session: _s, eventId: eventId);
     } else if (communityId != null) {
       page = ClubDetailPage(session: _s, communityId: communityId);
+    } else if (ticketId != null) {
+      page = SupportTicketPage(session: _s, ticketId: ticketId);
+    } else if (feedbackId != null) {
+      page = SupportPage(session: _s);
     } else if (newsId != null) {
       page = NewsDetailPage(session: _s, item: {'id': newsId, 'title': n['title']});
     }

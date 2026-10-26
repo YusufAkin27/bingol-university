@@ -71,9 +71,11 @@ echo "== etkinlik sohbeti"
 NOW=$(date -u +%s)
 S=$(date -u -d "@$((NOW + 172800))" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r $((NOW + 172800)) +%Y-%m-%dT%H:%M:%SZ)
 E=$(date -u -d "@$((NOW + 180000))" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r $((NOW + 180000)) +%Y-%m-%dT%H:%M:%SZ)
-step "etkinlik olustur (onay bekler)" 202 POST /events "$T1" "{\"title\":\"Sohbet Etkinligi $SFX\",\"description\":\"chat\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"location\":\"Salon\"}"
+# events_require_approval kapaliysa 201 (ACTIVE), aciksa 202 (PENDING_REVIEW) doner; ikisi de gecerli.
+call POST /events "$T1" "{\"title\":\"Sohbet Etkinligi $SFX\",\"description\":\"chat\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"location\":\"Salon\"}"
+if [ "$CODE" = "202" ]; then check "etkinlik olustur (onay bekler)" 202 "$CODE"; else check "etkinlik olustur" 201 "$CODE"; fi
 EV=$(printf '%s' "$BODY" | idof)
-step "admin onayla" 204 POST /admin/events/$EV/approve "$TA"
+if [ "$CODE" = "202" ]; then step "admin onayla" 204 POST /admin/events/$EV/approve "$TA"; fi
 step "RSVP'siz yabanci 403" 403 GET /events/$EV/chat "$T3"
 step "T3 ilgileniyor" 200 PUT /events/$EV/rsvp "$T3" '{"status":"INTERESTED"}'
 step "RSVP'li sohbeti alir" 200 GET /events/$EV/chat "$T3"

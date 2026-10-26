@@ -49,7 +49,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = errorText(e);
+        _error = supportError(e);
       });
     }
   }

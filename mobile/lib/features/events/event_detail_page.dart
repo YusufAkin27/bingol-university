@@ -8,7 +8,10 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../chat/chat_detail_page.dart';
+import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
+import '../platform/qr_scan_page.dart';
+import 'qr_painter.dart';
 
 const _monthsShort = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
 
@@ -28,7 +31,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Object? _error;
   bool _loading = true;
 
-  List<Map<String, dynamic>> _attendees = [];
+  Map<String, dynamic>? _preview; // herkese açık: sayılar + en çok 8 avatar
+  List<Map<String, dynamic>> _attendees = []; // yalnızca organizatör, sayfalı
+  int? _attNext;
+  bool _attBusy = false;
   Map<String, dynamic>? _myAtt;
   Map<String, dynamic>? _code;
   List<Map<String, dynamic>> _attendance = [];
@@ -86,10 +92,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
   /// İkincil veriler: hata verirse sayfa bozulmaz.
   Future<void> _loadExtras() async {
     final api = widget.session.api;
+    try {
+      final r = await api.get('$_path/attendees/preview');
+      if (mounted && r is Map) setState(() => _preview = Map<String, dynamic>.from(r));
+    } catch (_) {}
     if (_manage) {
       try {
-        final r = await api.get('$_path/attendees?size=50');
-        if (mounted) setState(() => _attendees = _list(r is Map ? r['items'] : null));
+        final r = await api.get('$_path/attendees?size=20');
+        if (mounted) {
+          setState(() {
+            _attendees = _list(r is Map ? r['items'] : null);
+            _attNext = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
+          });
+        }
       } catch (_) {}
       try {
         final r = await api.get('$_path/attendance');
@@ -104,6 +119,23 @@ class _EventDetailPageState extends State<EventDetailPage> {
       } catch (_) {}
     } else if (mounted) {
       setState(() => _myAtt = null);
+    }
+  }
+
+  Future<void> _moreAttendees() async {
+    if (_attBusy || _attNext == null) return;
+    setState(() => _attBusy = true);
+    try {
+      final r = await widget.session.api.get('$_path/attendees?size=20&cursor=$_attNext');
+      if (!mounted) return;
+      setState(() {
+        _attendees = [..._attendees, ..._list(r is Map ? r['items'] : null)];
+        _attNext = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
+      });
+    } catch (e) {
+      _toast(errorText(e));
+    } finally {
+      if (mounted) setState(() => _attBusy = false);
     }
   }
 
@@ -143,24 +175,64 @@ class _EventDetailPageState extends State<EventDetailPage> {
       _toast('Kontenjan doldu. "İlgileniyorum" ile takipte kalabilirsin.');
       return;
     }
-    setState(() => _rsvpBusy = true);
+    // İyimser güncelleme: sayaç ve durum hemen değişir, hata olursa geri alınır.
+    final old = Map<String, dynamic>.from(ev);
+    final next = _rsvp == status ? null : status;
+    var g = going;
+    if (_rsvp == 'GOING') g--;
+    if (next == 'GOING') g++;
+    var i = (ev['interestedCount'] as num?)?.toInt();
+    if (i != null) {
+      if (_rsvp == 'INTERESTED') i--;
+      if (next == 'INTERESTED') i++;
+    }
+    setState(() {
+      _rsvpBusy = true;
+      _ev = {...ev, 'myRsvp': next, 'goingCount': g < 0 ? 0 : g, if (i != null) 'interestedCount': i < 0 ? 0 : i};
+    });
     try {
-      if (_rsvp == status) {
+      if (next == null) {
         await widget.session.api.delete('$_path/rsvp');
       } else {
         await widget.session.api.put('$_path/rsvp', {'status': status});
       }
+      if (mounted) setState(() => _rsvpBusy = false);
       await _load(refresh: true);
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _ev = old;
+          _rsvpBusy = false;
+        });
+      }
       _toast(errorText(e));
-    } finally {
-      if (mounted) setState(() => _rsvpBusy = false);
     }
   }
 
   Future<void> _checkIn() async {
-    final code = _codeCtl.text.trim();
+    await _submitCode(_codeCtl.text);
+  }
+
+  /// QR ile tara; kod başka bir etkinliğe aitse uyar.
+  Future<void> _scan() async {
+    final raw = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const QrScanPage(title: 'Yoklama QR kodunu tara')),
+    );
+    if (raw != null && mounted) await _submitCode(raw);
+  }
+
+  /// Kod biçimi "bingol-checkin:{etkinlikId}.{pencere}.{imza}"; önek elle girişte olmayabilir.
+  Future<void> _submitCode(String raw) async {
+    var code = raw.trim();
+    const prefix = 'bingol-checkin:';
+    if (code.startsWith(prefix)) code = code.substring(prefix.length);
     if (code.isEmpty || _checkBusy) return;
+    final id = int.tryParse(code.split('.').first);
+    if (id != null && id != widget.eventId) {
+      _toast('Bu kod başka bir etkinliğe ait.');
+      return;
+    }
     setState(() => _checkBusy = true);
     try {
       final r = await widget.session.api.post('$_path/check-in', {'code': code});
@@ -272,6 +344,25 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               ),
             ),
+            if (!_manage)
+              Positioned(
+                right: 20,
+                top: pad.top + 12,
+                child: Semantics(
+                  button: true,
+                  label: 'Şikâyet et',
+                  child: GestureDetector(
+                    onTap: () => ReportSheet.show(context, widget.session,
+                        targetType: 'EVENT', targetId: widget.eventId, title: 'Etkinliği şikâyet et'),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.flag, size: 20, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
             if (starts != null)
               Positioned(
                 left: 20,
@@ -350,7 +441,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: Row(children: [
-          if (_attendees.isNotEmpty) ...[
+          if (_avatars.isNotEmpty) ...[
             _avatarStack(),
             const SizedBox(width: 12),
           ],
@@ -422,27 +513,32 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Widget _circle(double s, double a) => Container(
       width: s, height: s, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: a)));
 
+  List<Map<String, dynamic>> get _avatars => _list(_preview?['avatars']);
+
   Widget _avatarStack() {
-    final shown = _attendees.take(5).toList();
-    final more = (_ev?['goingCount'] as num? ?? 0).toInt() - shown.length;
+    final shown = _avatars.take(8).toList();
+    final total = (_preview?['goingCount'] as num?)?.toInt() ?? (_ev?['goingCount'] as num? ?? 0).toInt();
+    final more = total - shown.length;
     final t = context.bu;
     const size = 30.0;
     return SizedBox(
       height: size,
-      width: size + (shown.length - 1) * 22 + (more > 0 ? 30 : 0),
+      width: size + (shown.length - 1) * 20 + (more > 0 ? 34 : 0),
       child: Stack(children: [
         for (var i = 0; i < shown.length; i++)
           Positioned(
-            left: i * 22.0,
+            left: i * 20.0,
             child: Container(
               decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
               child: BuAvatar(
-                  name: shown[i]['displayName'] as String?, url: shown[i]['avatarUrl'] as String?, size: size - 4),
+                  name: shown[i]['displayName'] as String?,
+                  url: fileUrl(shown[i]['avatarUrl'] as String?),
+                  size: size - 4),
             ),
           ),
         if (more > 0)
           Positioned(
-            left: shown.length * 22.0,
+            left: shown.length * 20.0 + 6,
             child: Container(
               height: size,
               alignment: Alignment.center,
@@ -473,8 +569,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
       return Text('Yoklama etkinlik saatinde açılır.', style: TextStyle(fontSize: 12, color: t.mut));
     }
     if (!_enterCode) {
-      return BuButton(
-          label: 'Yoklama için kod gir', icon: LucideIcons.qrCode, onPressed: () => setState(() => _enterCode = true));
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        BuButton(label: 'QR kodu tara', icon: LucideIcons.scanLine, busy: _checkBusy, onPressed: _scan),
+        const SizedBox(height: 8),
+        BuButton(
+            label: 'Kodu elle gir',
+            icon: LucideIcons.qrCode,
+            kind: BuButtonKind.outline,
+            onPressed: () => setState(() => _enterCode = true)),
+      ]);
     }
     return BuCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -484,12 +587,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
         TextField(
           controller: _codeCtl,
           autofocus: true,
-          textCapitalization: TextCapitalization.characters,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
+          enableSuggestions: false,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _checkIn(),
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 3, color: t.ink),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink),
           decoration: InputDecoration(
-            hintText: 'KOD',
+            hintText: 'Yoklama kodu',
             hintStyle: TextStyle(color: t.mut),
             filled: true,
             fillColor: t.sf2,
@@ -505,6 +610,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Widget _manageBlock() {
     final t = context.bu;
     final code = _code?['code'] as String?;
+    final qr = _code?['qrPayload'] as String?;
     final exp = DateTime.tryParse('${_code?['expiresAt']}')?.toLocal();
     final present = _attendance.where((r) => r['present'] == true).length;
     final total = _attendance.length;
@@ -517,9 +623,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
           if (code == null)
             Text(_codeBusy ? 'Kod hazırlanıyor…' : 'Kod alınamadı.', style: TextStyle(color: t.mut))
           else ...[
-            SelectableText(code.toUpperCase(),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: 6, color: t.pr)),
+            QrView(
+              data: qr ?? code,
+              size: 220,
+              fallback: SelectableText(code,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.pr)),
+            ),
+            const SizedBox(height: 8),
+            Text('Katılımcılar bu QR kodunu uygulamadan taratır.',
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: t.mut)),
             const SizedBox(height: 6),
             Text(
               exp == null
@@ -552,6 +665,33 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
         ]),
       ),
+      if (_attendees.isNotEmpty) ...[
+        const SizedBox(height: 18),
+        Text('Katılımcılar', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
+        const SizedBox(height: 10),
+        for (final a in _attendees)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(children: [
+              BuAvatar(name: a['displayName'] as String?, url: fileUrl(a['avatarUrl'] as String?), size: 36),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('${a['displayName'] ?? ''}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+              ),
+              if (a['status'] == 'INTERESTED') Text('İlgileniyor', style: TextStyle(fontSize: 12, color: t.mut)),
+            ]),
+          ),
+        if (_attNext != null)
+          BuButton(
+              label: 'Daha fazla göster',
+              kind: BuButtonKind.soft,
+              compact: true,
+              busy: _attBusy,
+              onPressed: _moreAttendees),
+      ],
     ]);
   }
 

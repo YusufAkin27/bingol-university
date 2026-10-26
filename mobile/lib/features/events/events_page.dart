@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
+import '../platform/qr_scan_page.dart';
 import 'event_detail_page.dart';
 
 const _monthNames = [
@@ -32,12 +33,17 @@ Map<String, dynamic> _norm(Map e, {required bool calendar}) {
   if (start != null) {
     day = DateTime(start.year, start.month, start.day);
   } else {
-    final p = DateTime.tryParse('${m['date'] ?? ''}');
+    // Resmi öğede haberin etkinlik tarihi varsa o, yoksa yayın tarihi.
+    final p = DateTime.tryParse('${m['eventDate'] ?? m['date'] ?? ''}') ?? DateTime.tryParse('${m['date'] ?? ''}');
     if (p != null) day = DateTime(p.year, p.month, p.day);
   }
+  final end = DateTime.tryParse('${m['endsAt'] ?? ''}')?.toLocal();
   m['_day'] = day;
   m['_start'] = start;
-  m['_end'] = DateTime.tryParse('${m['endsAt'] ?? ''}')?.toLocal();
+  m['_end'] = end;
+  m['_endDay'] = (end != null && day != null && !DateTime(end.year, end.month, end.day).isBefore(day))
+      ? DateTime(end.year, end.month, end.day)
+      : day;
   return m;
 }
 
@@ -55,9 +61,12 @@ class _EventsPageState extends State<EventsPage> {
   int _tab = 0;
   late final DateTime _today;
   late DateTime _month; // ayın 1'i
+  late DateTime _stripStart; // 7 günlük şeridin ilk günü
   DateTime? _selected;
+  bool _checkinBusy = false;
 
   final Map<String, List<Map<String, dynamic>>> _cache = {};
+  final Set<String> _truncated = {}; // X-Truncated: true dönen aylar
   final Map<int, Map<String, dynamic>> _rsvpState = {}; // etkinlik id -> {myRsvp, goingCount}
   final Set<int> _rsvpBusy = {};
 
@@ -77,6 +86,7 @@ class _EventsPageState extends State<EventsPage> {
     final n = DateTime.now();
     _today = DateTime(n.year, n.month, n.day);
     _month = DateTime(n.year, n.month);
+    _stripStart = _today;
     _scroll.addListener(() {
       if (_tab == 1 && _scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMoreMine();
     });
@@ -96,8 +106,13 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchMonth(DateTime m) async {
-    final res = await widget.session.api.get('/events/calendar?month=${_ym(m)}');
-    return [for (final e in _parse(res)) _norm(e, calendar: true)];
+    final res = await widget.session.api.getResponse('/events/calendar?month=${_ym(m)}');
+    if (res.headers['x-truncated'] == 'true') {
+      _truncated.add(_ym(m));
+    } else {
+      _truncated.remove(_ym(m));
+    }
+    return [for (final e in _parse(res.body)) _norm(e, calendar: true)];
   }
 
   /// Takvim ayları (şerit 7 gün + seçili ay) ve RSVP durumları.
@@ -108,21 +123,14 @@ class _EventsPageState extends State<EventsPage> {
       if (_tab == 0) {
         final months = <DateTime>{_month};
         for (var i = 0; i < 7; i++) {
-          final d = _today.add(Duration(days: i));
+          final d = _stripStart.add(Duration(days: i));
           months.add(DateTime(d.year, d.month));
         }
         final results = await Future.wait(months.map(_fetchMonth));
-        // RSVP durumları (hata olursa yok sayılır).
-        try {
-          final mine = await widget.session.api.get('/me/events?size=50');
-          for (final e in _parse(mine)) {
-            final id = (e['id'] as num?)?.toInt();
-            if (id != null) _rsvpState[id] = {'myRsvp': e['myRsvp'], 'goingCount': e['goingCount']};
-          }
-        } catch (_) {}
         if (!mounted || gen != _gen) return;
         setState(() {
           var i = 0;
+          _rsvpState.clear(); // takvim öğesi RSVP için tek kaynak
           for (final m in months) {
             _cache[_ym(m)] = results[i++];
           }
@@ -172,14 +180,25 @@ class _EventsPageState extends State<EventsPage> {
     setState(() {
       _month = DateTime(_month.year, _month.month + delta);
       _selected = null;
+      final cur = _month.year == _today.year && _month.month == _today.month;
+      _stripStart = cur ? _today : _month;
     });
-    if (_cache.containsKey(_ym(_month))) return;
+    final stripMonths = <DateTime>{
+      _month,
+      for (var i = 0; i < 7; i++) DateTime(_stripStart.add(Duration(days: i)).year, _stripStart.add(Duration(days: i)).month),
+    }.where((m) => !_cache.containsKey(_ym(m))).toList();
+    if (stripMonths.isEmpty) return;
     final gen = ++_gen;
     setState(() { _loading = true; _error = null; });
     try {
-      final items = await _fetchMonth(_month);
+      final results = await Future.wait(stripMonths.map(_fetchMonth));
       if (!mounted || gen != _gen) return;
-      setState(() { _cache[_ym(_month)] = items; _loading = false; });
+      setState(() {
+        for (var i = 0; i < stripMonths.length; i++) {
+          _cache[_ym(stripMonths[i])] = results[i];
+        }
+        _loading = false;
+      });
     } catch (e) {
       if (!mounted || gen != _gen) return;
       setState(() { _error = e; _loading = false; });
@@ -195,20 +214,40 @@ class _EventsPageState extends State<EventsPage> {
     if (!sameMonth && !_cache.containsKey(_ym(_month))) _load();
   }
 
+  bool get _isPastMonth => DateTime(_month.year, _month.month + 1).isBefore(DateTime(_today.year, _today.month + 1));
+
+  /// Ay dışından süren etkinliklerin günü ay sınırına çekilir (sunucu `date` alanıyla uyumlu).
+  DateTime _effDay(Map<String, dynamic> e) {
+    var d = e['_day'] as DateTime;
+    final first = DateTime(_month.year, _month.month);
+    final last = DateTime(_month.year, _month.month + 1, 0);
+    if (d.isBefore(first)) d = first;
+    if (d.isAfter(last)) d = last;
+    // Güncel ayda süren etkinlik "bugün" altında görünür.
+    if (!_isPastMonth && d.isBefore(_today) && !(e['_endDay'] as DateTime).isBefore(_today)) d = _today;
+    return d;
+  }
+
   List<Map<String, dynamic>> get _monthItems {
     final all = _cache[_ym(_month)] ?? const [];
     return [
       for (final e in all)
-        if (e['_day'] != null && !(e['_day'] as DateTime).isBefore(_today)) e,
+        if (e['_day'] != null && (_isPastMonth || !(e['_endDay'] as DateTime).isBefore(_today))) e,
     ];
   }
 
-  Set<String> get _busyDays {
+  Set<String> _busyDaySet() {
     final s = <String>{};
     for (final list in _cache.values) {
       for (final e in list) {
         final d = e['_day'] as DateTime?;
-        if (d != null) s.add(_ymd(d));
+        if (d == null) continue;
+        final end = (e['_endDay'] as DateTime?) ?? d;
+        var x = d;
+        for (var n = 0; n < 31 && !x.isAfter(end); n++) {
+          s.add(_ymd(x));
+          x = DateTime(x.year, x.month, x.day + 1);
+        }
       }
     }
     return s;
@@ -231,15 +270,22 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _rsvp(Map<String, dynamic> ev, String? status) async {
     final id = (ev['id'] as num).toInt();
     if (_rsvpBusy.contains(id)) return;
-    _rsvpBusy.add(id);
     final oldRsvp = _myRsvp(ev);
     final oldGoing = _going(ev);
+    final cap = (ev['capacity'] as num?)?.toInt();
+    if (status == 'GOING' && oldRsvp != 'GOING' && cap != null && (oldGoing ?? 0) >= cap) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Kontenjan doldu. "İlgileniyorum" ile takipte kalabilirsin.')));
+      return;
+    }
     int? going = oldGoing;
     if (going != null) {
       if (oldRsvp == 'GOING') going--;
       if (status == 'GOING') going++;
       if (going < 0) going = 0;
     }
+    _rsvpBusy.add(id);
     setState(() => _rsvpState[id] = {'myRsvp': status, 'goingCount': going});
     try {
       final api = widget.session.api;
@@ -271,6 +317,7 @@ class _EventsPageState extends State<EventsPage> {
             'type': 'ETKINLIK',
             'imageUrl': ev['imageUrl'],
             'publishedDate': ev['date'],
+            if (ev['eventDate'] != null) 'eventDate': ev['eventDate'],
             'url': ev['url'],
           }),
         ),
@@ -286,23 +333,44 @@ class _EventsPageState extends State<EventsPage> {
     if (mounted) _load(silent: true);
   }
 
-  void _openCheckin() {
-    final going = <Map<String, dynamic>>[
-      for (final e in [..._monthItems, ..._mine])
-        if (e['source'] != 'OFFICIAL' && _myRsvp(e) == 'GOING') e,
-    ];
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.bu.bg,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (_) => _CheckinSheet(session: widget.session, events: going),
+  /// QR'ı tara (ya da elle kod gir); koddaki etkinlik kimliğiyle yoklama gönder.
+  /// Kod biçimi: "bingol-checkin:{etkinlikId}.{pencere}.{imza}" (elle girişte önek olmayabilir).
+  Future<void> _scanCheckin() async {
+    if (_checkinBusy) return;
+    final raw = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const QrScanPage(title: 'Yoklama QR kodunu tara')),
     );
+    if (raw == null || !mounted) return;
+    const prefix = 'bingol-checkin:';
+    final code = raw.trim().startsWith(prefix) ? raw.trim().substring(prefix.length) : raw.trim();
+    final id = int.tryParse(code.split('.').first);
+    if (id == null) {
+      _snack('Bu bir yoklama kodu değil.');
+      return;
+    }
+    setState(() => _checkinBusy = true);
+    try {
+      await widget.session.api.post('/events/$id/check-in', {'code': code});
+      _snack('Yoklaman alındı.');
+    } catch (e) {
+      _snack(errorText(e));
+    } finally {
+      if (mounted) setState(() => _checkinBusy = false);
+    }
+  }
+
+  void _snack(String m) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(m)));
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final busy = _tab == 0 ? _busyDaySet() : const <String>{};
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -316,12 +384,14 @@ class _EventsPageState extends State<EventsPage> {
                 shape: StadiumBorder(side: BorderSide(color: t.bd)),
                 child: InkWell(
                   customBorder: const StadiumBorder(),
-                  onTap: _openCheckin,
+                  onTap: _checkinBusy ? null : _scanCheckin,
                   child: Container(
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.scanLine, size: 16, color: t.ink),
+                      _checkinBusy
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                          : Icon(LucideIcons.scanLine, size: 16, color: t.ink),
                       const SizedBox(width: 6),
                       Text('Yoklama', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.ink)),
                     ]),
@@ -347,7 +417,7 @@ class _EventsPageState extends State<EventsPage> {
                     tooltip: 'Önceki ay',
                     visualDensity: VisualDensity.compact,
                     icon: Icon(LucideIcons.chevronLeft, size: 20, color: t.ink),
-                    onPressed: (_month.year == _today.year && _month.month == _today.month) ? null : () => _goMonth(-1),
+                    onPressed: _month.isBefore(DateTime(_today.year - 1, _today.month)) ? null : () => _goMonth(-1),
                   ),
                   IconButton(
                     tooltip: 'Sonraki ay',
@@ -364,7 +434,7 @@ class _EventsPageState extends State<EventsPage> {
                 children: [
                   for (var i = 0; i < 7; i++) ...[
                     if (i > 0) const SizedBox(width: 8),
-                    Expanded(child: _dayCell(_today.add(Duration(days: i)))),
+                    Expanded(child: _dayCell(_stripStart.add(Duration(days: i)), busy)),
                   ],
                 ],
               ),
@@ -377,10 +447,10 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-  Widget _dayCell(DateTime d) {
+  Widget _dayCell(DateTime d, Set<String> busyDays) {
     final t = context.bu;
     final on = _selected == d;
-    final dot = _busyDays.contains(_ymd(d));
+    final dot = busyDays.contains(_ymd(d));
     return GestureDetector(
       onTap: () => _pickDay(d),
       child: Container(
@@ -423,10 +493,16 @@ class _EventsPageState extends State<EventsPage> {
       rows.addAll(_mine);
       emptyText = 'Katılacağın bir etkinlik yok.';
     } else {
-      final items = _monthItems.where((e) => _selected == null || e['_day'] == _selected).toList();
+      final sel = _selected;
+      final items = _monthItems.where((e) {
+        if (sel == null) return true;
+        final d = e['_day'] as DateTime;
+        return !d.isAfter(sel) && !(e['_endDay'] as DateTime).isBefore(sel);
+      }).toList()
+        ..sort((a, b) => _effDay(a).compareTo(_effDay(b)));
       DateTime? last;
       for (final e in items) {
-        final d = e['_day'] as DateTime;
+        final d = _effDay(e);
         if (_selected == null && d != last) {
           rows.add(d);
           last = d;
@@ -434,6 +510,10 @@ class _EventsPageState extends State<EventsPage> {
         rows.add(e);
       }
       emptyText = _selected != null ? 'Bu gün için etkinlik yok.' : 'Bu ay için etkinlik yok.';
+      final note = _isPastMonth
+          ? 'Geçmiş ay: yalnızca görüntüleme.'
+          : (_truncated.contains(_ym(_month)) ? 'Bu ayın tamamı gösterilemiyor; bazı etkinlikler listede yok.' : null);
+      if (note != null) rows.insert(0, note);
     }
 
     return RefreshIndicator(
@@ -453,6 +533,16 @@ class _EventsPageState extends State<EventsPage> {
                   return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()));
                 }
                 final r = rows[i];
+                if (r is String) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(children: [
+                      Icon(LucideIcons.info, size: 14, color: context.bu.mut),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(r, style: TextStyle(fontSize: 12, color: context.bu.mut))),
+                    ]),
+                  );
+                }
                 if (r is DateTime) {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(2, 10, 0, 8),
@@ -472,7 +562,8 @@ class _EventsPageState extends State<EventsPage> {
   Widget _card(Map<String, dynamic> ev) {
     final t = context.bu;
     final official = ev['source'] == 'OFFICIAL';
-    final day = ev['_day'] as DateTime?;
+    final day = ev['_day'] == null ? null : (_tab == 0 ? _effDay(ev) : ev['_day'] as DateTime);
+    final past = _isPastMonth && _tab == 0;
     final start = ev['_start'] as DateTime?;
     final end = ev['_end'] as DateTime?;
     final my = _myRsvp(ev);
@@ -542,7 +633,7 @@ class _EventsPageState extends State<EventsPage> {
                 if (time.isNotEmpty) meta(LucideIcons.clock, time),
                 if (place != null && place.isNotEmpty) meta(LucideIcons.mapPin, place),
                 if (!official && going > 0) meta(LucideIcons.userCheck, '$going katılıyor'),
-                if (!official) ...[
+                if (!official && !past) ...[
                   const SizedBox(height: 10),
                   Wrap(spacing: 8, runSpacing: 8, children: _actions(ev, my)),
                 ],
@@ -568,161 +659,5 @@ class _EventsPageState extends State<EventsPage> {
       else
         BuButton(label: 'İlgileniyorum', compact: true, kind: BuButtonKind.outline, onPressed: busy ? null : () => _rsvp(ev, 'INTERESTED')),
     ];
-  }
-}
-
-/// Elle kod girişiyle yoklama: etkinlik seçilir, QR metni yapıştırılır.
-class _CheckinSheet extends StatefulWidget {
-  const _CheckinSheet({required this.session, required this.events});
-
-  final Session session;
-  final List<Map<String, dynamic>> events;
-
-  @override
-  State<_CheckinSheet> createState() => _CheckinSheetState();
-}
-
-class _CheckinSheetState extends State<_CheckinSheet> {
-  final _code = TextEditingController();
-  int? _eventId;
-  bool _busy = false;
-  String? _error;
-  bool _done = false;
-  List<Map<String, dynamic>> _options = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _options = widget.events;
-    if (_options.isNotEmpty) _eventId = (_options.first['id'] as num).toInt();
-    _loadMine();
-  }
-
-  @override
-  void dispose() {
-    _code.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadMine() async {
-    try {
-      final res = await widget.session.api.get('/me/events?size=50');
-      final list = res is Map ? res['items'] : null;
-      if (list is List && mounted) {
-        final mine = [
-          for (final e in list)
-            if (e is Map && e['myRsvp'] == 'GOING') e.cast<String, dynamic>(),
-        ];
-        final byId = {for (final e in [..._options, ...mine]) (e['id'] as num).toInt(): e};
-        setState(() {
-          _options = byId.values.toList();
-          _eventId ??= _options.isEmpty ? null : (_options.first['id'] as num).toInt();
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _submit() async {
-    final code = _code.text.trim();
-    if (_eventId == null || code.isEmpty) {
-      setState(() => _error = _eventId == null ? 'Önce katılacağın bir etkinlik seç.' : 'Kodu yaz.');
-      return;
-    }
-    setState(() { _busy = true; _error = null; });
-    try {
-      await widget.session.api.post('/events/$_eventId/check-in', {'code': code});
-      if (mounted) setState(() { _busy = false; _done = true; });
-    } catch (e) {
-      if (mounted) setState(() { _busy = false; _error = errorText(e); });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Yoklama', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: t.ink)),
-            const SizedBox(height: 6),
-            Text('Organizatörün gösterdiği QR kodunun metnini yaz ya da yapıştır.',
-                style: TextStyle(fontSize: 13, color: t.mut)),
-            const SizedBox(height: 16),
-            if (_done) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(16)),
-                child: Row(children: [
-                  Icon(LucideIcons.circleCheck, color: t.ok),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text('Yoklaman alındı.', style: TextStyle(fontWeight: FontWeight.w800, color: t.ok)),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 16),
-              BuButton(label: 'Tamam', onPressed: () => Navigator.pop(context)),
-            ] else ...[
-              if (_options.isEmpty)
-                Text('Yoklama için önce bir etkinliğe "Katılıyorum" demelisin.',
-                    style: TextStyle(fontSize: 13, color: t.mut))
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                      color: t.sf, borderRadius: BorderRadius.circular(14), border: Border.all(color: t.bd)),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      isExpanded: true,
-                      value: _eventId,
-                      dropdownColor: t.sf,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink),
-                      items: [
-                        for (final e in _options)
-                          DropdownMenuItem(
-                            value: (e['id'] as num).toInt(),
-                            child: Text('${e['title']}', maxLines: 1, overflow: TextOverflow.ellipsis),
-                          ),
-                      ],
-                      onChanged: (v) => setState(() => _eventId = v),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _code,
-                style: TextStyle(color: t.ink),
-                autocorrect: false,
-                enableSuggestions: false,
-                maxLength: 200,
-                decoration: InputDecoration(
-                  hintText: 'Yoklama kodu',
-                  hintStyle: TextStyle(color: t.mut),
-                  counterText: '',
-                  filled: true,
-                  fillColor: t.sf,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: t.bd)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: t.bd)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: t.pr, width: 1.6)),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Text(_error!, style: TextStyle(fontSize: 13, color: t.danger)),
-              ],
-              const SizedBox(height: 16),
-              BuButton(label: 'Yoklamayı gönder', busy: _busy, onPressed: _options.isEmpty ? null : _submit),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

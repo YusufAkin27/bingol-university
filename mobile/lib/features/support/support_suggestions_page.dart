@@ -85,7 +85,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
           s['votedByMe'] = voted;
           s['voteCount'] = count;
         });
-        supportSnack(context, errorText(e));
+        supportSnack(context, supportError(e));
       }
     }
     if (mounted) setState(() => _voting.remove(id));

@@ -7,6 +7,46 @@ import '../../widgets/common.dart';
 /// Haber türü -> rozet metni; duyuru/etkinlik yumuşak kırmızı, haber koyu.
 bool _softBadge(String? type) => type != 'HABER';
 
+/// Etkinlikte etkinlik tarihi (varsa), aksi halde yayın tarihi.
+String newsDateLabel(Map<String, dynamic> item) {
+  final ev = item['eventDate'] as String?;
+  if (item['type'] == 'ETKINLIK' && ev != null && ev.isNotEmpty) return 'Etkinlik: ${niceDate(ev)}';
+  return niceDate(item['publishedDate'] as String?);
+}
+
+/// 76x76 küçük resim; çözümleme boyutu sınırlı (bellek/kaydırma performansı).
+class _Thumb extends StatelessWidget {
+  const _Thumb(this.url);
+
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final box = Container(
+      width: 76,
+      height: 76,
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
+      child: Icon(LucideIcons.image, color: t.mut),
+    );
+    final u = url;
+    if (u == null || u.isEmpty) return box;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Image.network(
+        u,
+        width: 76,
+        height: 76,
+        cacheWidth: 228,
+        cacheHeight: 228,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => box,
+        loadingBuilder: (_, child, p) => p == null ? child : box,
+      ),
+    );
+  }
+}
+
 /// Liste satırı: küçük resim, rozet, başlık, tarih, favori düğmesi.
 class NewsTile extends StatelessWidget {
   const NewsTile({
@@ -33,7 +73,7 @@ class NewsTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          NewsThumb(item['imageUrl'] as String?, width: 76, height: 76, radius: 14),
+          _Thumb(item['imageUrl'] as String?),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -48,8 +88,7 @@ class NewsTile extends StatelessWidget {
                   style: TextStyle(fontSize: 14, height: 1.35, fontWeight: FontWeight.w700, color: t.ink),
                 ),
                 const SizedBox(height: 4),
-                Text(niceDate(item['publishedDate'] as String?),
-                    style: TextStyle(fontSize: 12, color: t.mut)),
+                Text(newsDateLabel(item), style: TextStyle(fontSize: 12, color: t.mut)),
               ],
             ),
           ),
@@ -119,6 +158,7 @@ class NewsFeaturedCard extends StatelessWidget {
                 if (img != null && img.isNotEmpty)
                   Image.network(img,
                       fit: BoxFit.cover,
+                      cacheWidth: 800,
                       errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       loadingBuilder: (_, child, p) => p == null ? child : const SizedBox.shrink()),
                 Positioned(
@@ -145,8 +185,7 @@ class NewsFeaturedCard extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 17, height: 1.3, fontWeight: FontWeight.w800, color: t.ink)),
                       const SizedBox(height: 6),
-                      Text(niceDate(item['publishedDate'] as String?),
-                          style: TextStyle(fontSize: 12, color: t.mut)),
+                      Text(newsDateLabel(item), style: TextStyle(fontSize: 12, color: t.mut)),
                     ],
                   ),
                 ),

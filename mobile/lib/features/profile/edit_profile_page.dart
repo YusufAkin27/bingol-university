@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart';
+import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -36,6 +38,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   List<String> _faculties = const [];
   bool _busy = false;
   bool _saved = false;
+  bool _uploading = false;
+  late String? _avatarUrl = widget.profile['avatarUrl'] as String?;
+  bool _avatarChanged = false; // avatar anında sunucuda güncellenir; üst sayfa yenilensin
+  final _images = ImageService();
   String? _error;
 
   static String? _nonEmpty(String? s) => (s == null || s.isEmpty) ? null : s;
@@ -227,33 +233,54 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Widget _avatar() {
     final bu = context.bu;
+    final url = fileUrl(_avatarUrl);
+    final initials = Container(
+      width: 96,
+      height: 96,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [bu.h1, bu.h2],
+        ),
+      ),
+      child: Text(
+        initialsOf(_name.text),
+        style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white),
+      ),
+    );
     return Column(
       children: [
         GestureDetector(
-          onTap: _soon,
+          onTap: _pickAvatar,
           child: SizedBox(
             width: 98,
             height: 98,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  width: 96,
-                  height: 96,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [bu.h1, bu.h2],
+                if (url == null)
+                  initials
+                else
+                  ClipOval(
+                    child: Image.network(url,
+                        width: 96, height: 96, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
+                  ),
+                if (_uploading)
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black45),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    initialsOf(_name.text),
-                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white),
-                  ),
-                ),
                 Positioned(
                   right: -2,
                   bottom: -2,
@@ -274,18 +301,116 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         const SizedBox(height: 10),
         GestureDetector(
-          onTap: _soon,
-          child: Text('Fotoğrafı değiştir',
+          onTap: _pickAvatar,
+          child: Text(_uploading ? 'Yükleniyor…' : 'Fotoğrafı değiştir',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: bu.pr)),
         ),
       ],
     );
   }
 
-  void _soon() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Fotoğraf yükleme yakında')));
+  Future<void> _pickAvatar() async {
+    if (_uploading || _busy) return;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: context.bu.sf,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        final bu = ctx.bu;
+        Widget row(IconData icon, String label, String value, {bool danger = false}) => ListTile(
+              leading: Icon(icon, color: danger ? bu.danger : bu.ink),
+              title: Text(label,
+                  style: TextStyle(fontWeight: FontWeight.w700, color: danger ? bu.danger : bu.ink)),
+              onTap: () => Navigator.pop(ctx, value),
+            );
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: bu.bd, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 8),
+              row(LucideIcons.image, 'Galeriden seç', 'gallery'),
+              row(LucideIcons.camera, 'Fotoğraf çek', 'camera'),
+              if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                row(LucideIcons.trash2, 'Fotoğrafı kaldır', 'remove', danger: true),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (choice == null || !mounted) return;
+    if (choice == 'remove') return _removeAvatar();
+    await _uploadAvatar(choice == 'camera' ? ImageSource.camera : ImageSource.gallery);
+  }
+
+  Future<void> _uploadAvatar(ImageSource source) async {
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    try {
+      final prepared = await _images.pickPrepared(source, avatar: true);
+      if (prepared == null) {
+        if (mounted) setState(() => _uploading = false);
+        return; // kullanıcı vazgeçti
+      }
+      final r = await MultipartUploader(widget.session).upload('/users/me/avatar', prepared);
+      if (!mounted) return;
+      setState(() {
+        if (r is Map && r['avatarUrl'] is String) _avatarUrl = r['avatarUrl'] as String;
+        _avatarChanged = true;
+        _uploading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _uploading = false;
+        _error = _uploadError(e);
+      });
+    }
+  }
+
+  Future<void> _removeAvatar() async {
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    try {
+      await widget.session.api.delete('/users/me/avatar');
+      if (!mounted) return;
+      setState(() {
+        _avatarUrl = null;
+        _avatarChanged = true;
+        _uploading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _uploading = false;
+        _error = errorText(e);
+      });
+    }
+  }
+
+  String _uploadError(Object e) {
+    if (e is ImageException) {
+      switch (e.code) {
+        case 'TOO_LARGE':
+          return 'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.';
+        case 'UNSUPPORTED_TYPE':
+          return 'Yalnızca JPG, PNG veya WebP fotoğraflar yüklenebilir.';
+        default:
+          return 'Seçilen dosya okunamadı.';
+      }
+    }
+    if (e is ApiError && e.status == 413) return 'Fotoğraf en fazla 2 MB olabilir.';
+    return errorText(e);
   }
 
   @override
@@ -293,13 +418,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final bu = context.bu;
     final hasFaculty = _faculties.isNotEmpty || _faculty != null;
     return PopScope(
-      canPop: _saved || !_dirty,
+      // Avatar anında sunucuya yazıldığından, değiştiyse üst sayfaya "true" ile dönülür.
+      canPop: _saved || (!_dirty && !_avatarChanged),
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         final nav = Navigator.of(context);
-        if (await _confirmDiscard()) {
+        if (!_dirty || await _confirmDiscard()) {
           _saved = true;
-          nav.pop();
+          nav.pop(_avatarChanged);
         }
       },
       child: Scaffold(

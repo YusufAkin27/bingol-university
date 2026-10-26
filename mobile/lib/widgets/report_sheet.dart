@@ -115,14 +115,16 @@ class _SheetBodyState extends State<_SheetBody> {
             Text('Sebep seçin. Şikâyetiniz yöneticilere iletilir.', style: TextStyle(color: t.mut)),
             const SizedBox(height: 12),
             for (final r in ReportSheet.reasons)
-              RadioListTile<String>(
-                value: r.$1,
-                groupValue: _reason,
-                onChanged: _busy ? null : (v) => setState(() => _reason = v!),
-                title: Text(r.$2, style: TextStyle(fontWeight: FontWeight.w600, color: t.ink)),
-                activeColor: t.pr,
+              ListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
+                enabled: !_busy,
+                onTap: () => setState(() => _reason = r.$1),
+                title: Text(r.$2, style: TextStyle(fontWeight: FontWeight.w600, color: t.ink)),
+                trailing: Icon(
+                  _reason == r.$1 ? LucideIcons.circleCheck : LucideIcons.circle,
+                  color: _reason == r.$1 ? t.pr : t.mut,
+                ),
               ),
             const SizedBox(height: 8),
             TextField(

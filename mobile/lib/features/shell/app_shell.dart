@@ -31,6 +31,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _tab = 0;
   Timer? _poll;
+  StreamSubscription<Map<String, dynamic>>? _msgSub;
   final _discoverType = ValueNotifier<String?>(null);
 
   Session get s => widget.session;
@@ -39,6 +40,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    s.realtime?.start();
+    _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
     _refreshBadges();
     _poll = Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
   }
@@ -47,6 +50,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _poll?.cancel();
+    _msgSub?.cancel();
+    s.realtime?.stop();
     _discoverType.dispose();
     super.dispose();
   }
@@ -56,19 +61,22 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) _refreshBadges();
   }
 
-  /// Push henüz bağlı değil: okunmamış sayıları arada yoklanır.
+  // realtime kendi arka plan/ön plan geçişini yönetir (start sonrası observer).
+
+  /// Başkasından gelen yeni mesajda (kendi ack'i hariç) sohbet rozetini artırır; sohbet sekmesi açıkken artırmaz.
+  void _onRealtimeMessage(Map<String, dynamic> m) {
+    final sender = (m['senderId'] as num?)?.toInt() ?? ((m['sender'] as Map?)?['id'] as num?)?.toInt();
+    if (sender != null && sender == s.userId) return;
+    if (_tab == AppTab.chat) return;
+    s.badges.chat.value++;
+  }
+
+  /// Tek istek: okunmamış bildirim + mesaj sayıları (GET /me/summary).
   Future<void> _refreshBadges() async {
     try {
-      final n = await s.api.get('/notifications?size=1') as Map<String, dynamic>;
-      s.badges.notifications.value = (n['unreadCount'] as num?)?.toInt() ?? 0;
-    } catch (_) {}
-    try {
-      final c = await s.api.get('/conversations?size=50') as Map<String, dynamic>;
-      var total = 0;
-      for (final i in (c['items'] as List? ?? const [])) {
-        total += ((i as Map)['unreadCount'] as num?)?.toInt() ?? 0;
-      }
-      s.badges.chat.value = total;
+      final m = await s.api.get('/me/summary') as Map<String, dynamic>;
+      s.badges.notifications.value = (m['unreadNotifications'] as num?)?.toInt() ?? 0;
+      s.badges.chat.value = (m['unreadMessages'] as num?)?.toInt() ?? 0;
     } catch (_) {}
   }
 

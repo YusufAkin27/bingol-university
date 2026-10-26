@@ -98,7 +98,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _formError = errorText(e);
+        _formError = supportError(e);
       });
     }
   }

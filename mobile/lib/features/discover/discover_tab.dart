@@ -38,6 +38,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
   bool _loading = false;
   bool _loaded = false;
   bool _maintenance = false;
+  String? _maintenanceText;
   Object? _error;
 
   String get _type => _types[_tab];
@@ -95,8 +96,19 @@ class _DiscoverTabState extends State<DiscoverTab> {
     try {
       final r = await widget.session.api.get('/status');
       var m = false;
-      if (r is Map && r['NEWS'] is Map) m = (r['NEWS'] as Map)['maintenance'] == true;
-      if (mounted) setState(() => _maintenance = m);
+      String? msg;
+      if (r is Map && r['NEWS'] is Map) {
+        final news = r['NEWS'] as Map;
+        m = news['maintenance'] == true;
+        final text = news['maintenanceMessage'];
+        if (m && text is String && text.trim().isNotEmpty) msg = text.trim();
+      }
+      if (mounted) {
+        setState(() {
+          _maintenance = m;
+          _maintenanceText = msg;
+        });
+      }
     } catch (_) {}
   }
 
@@ -356,9 +368,10 @@ class _DiscoverTabState extends State<DiscoverTab> {
             ),
           ),
           if (_maintenance && !_isSaved)
-            const Padding(
-              padding: EdgeInsets.only(top: 12),
-              child: StaleBanner(text: 'Kaynak site şu an bakımda. Veriler güncel olmayabilir.'),
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: StaleBanner(
+                  text: _maintenanceText ?? 'Kaynak site şu an bakımda. Veriler güncel olmayabilir.'),
             ),
           Expanded(child: _body(t)),
         ],

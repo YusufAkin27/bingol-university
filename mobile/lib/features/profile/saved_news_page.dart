@@ -59,6 +59,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
       _hasMore = _cursor != null;
     } catch (e) {
       _error = e;
+      _hasMore = false; // otomatik tekrar döngüsünü kes; "Yeniden dene" düğmesi açar
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -97,6 +98,22 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, i) {
             if (i == _items.length) {
+              if (_error != null) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
+                    child: BuButton(
+                      label: 'Yeniden dene',
+                      compact: true,
+                      kind: BuButtonKind.outline,
+                      onPressed: () {
+                        setState(() => _hasMore = true);
+                        _loadMore();
+                      },
+                    ),
+                  ),
+                );
+              }
               if (!_hasMore) return const SizedBox.shrink();
               WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
               return const Padding(

@@ -4,13 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
+import '../../core/platform/image_service.dart';
+import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../widgets/report_sheet.dart';
+import '../clubs/club_detail_page.dart';
+import '../events/event_detail_page.dart';
+import 'message_bubble.dart';
 
-/// Sohbet detayı: mesaj geçmişi (iki yönlü imleç), iyimser gönderim, yanıt/düzenle/sil,
-/// 4 sn'de bir `after` ile yenileme (WebSocket yok).
+/// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
+/// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
 class ChatDetailPage extends StatefulWidget {
   const ChatDetailPage({super.key, required this.session, required this.conversation});
 
@@ -37,10 +43,23 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   final _scroll = ScrollController();
   final _focus = FocusNode();
 
+  late final ChatRealtime _rt = ChatRealtime(widget.session);
+  final _subs = <StreamSubscription<dynamic>>[];
+  final _ackTimers = <String, Timer>{};
+  final _image = ImageService();
+  late final _uploader = MultipartUploader(widget.session);
+  List<String>? _emojis;
+  bool _rtOn = false;
+
+  /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
+  final _peerRead = ValueNotifier<int>(0);
+  final _typingNow = ValueNotifier<bool>(false);
+  Timer? _typingOff;
+
   Timer? _timer;
   int _tick = 0;
   int _seq = 0;
-  int? _myId;
+  int? get _myId => widget.session.userId;
   int? _beforeCursor;
   int _lastRead = 0;
 
@@ -60,13 +79,29 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   bool get _direct => _type == 'DIRECT';
   Map<String, dynamic>? get _peer => _conv['peer'] is Map ? Map<String, dynamic>.from(_conv['peer'] as Map) : null;
   bool get _blocked => _conv['blocked'] == true;
+  bool get _room => _type == 'CLUB' || _type == 'EVENT';
+  int? get _roomTargetId => ((_type == 'CLUB' ? _conv['communityId'] : _conv['eventId']) as num?)?.toInt();
+  bool get _roomPage => _room && _roomTargetId != null;
+
+  void _openRoomPage() {
+    final id = _roomTargetId;
+    if (id == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => _type == 'CLUB'
+            ? ClubDetailPage(session: widget.session, communityId: id)
+            : EventDetailPage(session: widget.session, eventId: id),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scroll.addListener(_onScroll);
-    _input.addListener(() => setState(() {}));
+    _input.addListener(_onInput);
     _boot();
   }
 
@@ -74,6 +109,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _typingOff?.cancel();
+    for (final t in _ackTimers.values) {
+      t.cancel();
+    }
+    for (final s in _subs) {
+      s.cancel();
+    }
+    _rt.dispose();
+    _peerRead.dispose();
+    _typingNow.dispose();
+    _input.removeListener(_onInput);
     _input.dispose();
     _scroll.dispose();
     _focus.dispose();
@@ -84,7 +130,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _startTimer();
-      _poll();
+      _poll(force: true);
     } else {
       _timer?.cancel();
       _timer = null;
@@ -106,7 +152,6 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     try {
       final results = await Future.wait<dynamic>([
         _api.get('/conversations/$_cid/messages?size=30'),
-        _loadMe(),
         _loadDetail(),
       ]);
       final page = results[0] as Map<String, dynamic>;
@@ -122,6 +167,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       _markRead();
       _startTimer();
       _loadPresence();
+      _startRealtime();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -129,13 +175,6 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         _loading = false;
       });
     }
-  }
-
-  Future<void> _loadMe() async {
-    try {
-      final me = await _api.get('/auth/me') as Map<String, dynamic>;
-      _myId = (me['id'] as num?)?.toInt();
-    } catch (_) {}
   }
 
   Future<void> _loadDetail() async {
@@ -202,30 +241,19 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     }
   }
 
-  Future<void> _poll() async {
+  /// Bağlıyken yalnız ~20 sn'de bir son sayfa tazelenir (düzenleme/silme/tepki olayları için);
+  /// bağlı değilken her turda `after` ile yeni mesajlar çekilir.
+  Future<void> _poll({bool force = false}) async {
     if (_polling || _loading || _error != null || !mounted) return;
-    _polling = true;
     _tick++;
+    if (_rtOn && !force && _tick % 5 != 0) return;
+    _polling = true;
     try {
       var added = false;
-      final newest = _newestServerId;
-      if (newest == null) {
+      if (!_rtOn || force) added = await _fetchAfter();
+      if (_tick % 5 == 0 || force) {
         final page = await _api.get('/conversations/$_cid/messages?size=30') as Map<String, dynamic>;
-        added = _mergeCount(_items(page)) > 0;
-      } else {
-        var cursor = newest;
-        for (var i = 0; i < 5; i++) {
-          final page = await _api.get('/conversations/$_cid/messages?after=$cursor&size=30') as Map<String, dynamic>;
-          added = _mergeCount(_items(page)) > 0 || added;
-          final next = (page['nextCursor'] as num?)?.toInt();
-          if (next == null) break;
-          cursor = next;
-        }
-        // Düzenleme/silme değişiklikleri `after` ile gelmez: ~20 sn'de bir son sayfayı tazele.
-        if (_tick % 5 == 0) {
-          final page = await _api.get('/conversations/$_cid/messages?size=30') as Map<String, dynamic>;
-          _mergeCount(_items(page));
-        }
+        added = _mergeCount(_items(page)) > 0 || added;
       }
       if (_tick % 8 == 0) _loadPresence();
       if (mounted) {
@@ -236,6 +264,78 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       // Ağ hatası: bir sonraki turda yeniden dene, oturumu kapatma.
     } finally {
       _polling = false;
+    }
+  }
+
+  /// Son bilinen id'den sonrasını sayfa sayfa çeker (boşluk kapatma). Yeni mesaj geldiyse true.
+  Future<bool> _fetchAfter() async {
+    final newest = _newestServerId;
+    if (newest == null) {
+      final page = await _api.get('/conversations/$_cid/messages?size=30') as Map<String, dynamic>;
+      return _mergeCount(_items(page)) > 0;
+    }
+    var added = false;
+    var cursor = newest;
+    for (var i = 0; i < 5; i++) {
+      final page = await _api.get('/conversations/$_cid/messages?after=$cursor&size=30') as Map<String, dynamic>;
+      added = _mergeCount(_items(page)) > 0 || added;
+      final next = (page['nextCursor'] as num?)?.toInt();
+      if (next == null) break;
+      cursor = next;
+    }
+    return added;
+  }
+
+  // ---------- Gerçek zamanlı ----------
+
+  void _startRealtime() {
+    if (_subs.isNotEmpty) return;
+    _subs.addAll([
+      _rt.messages.listen(_onRtMessage),
+      _rt.readReceipts.listen((r) {
+        if (r.conversationId == _cid && r.userId != _myId && r.lastMessageId > _peerRead.value) {
+          _peerRead.value = r.lastMessageId;
+        }
+      }),
+      _rt.typing.listen((e) {
+        if (e.conversationId != _cid || e.userId == _myId) return;
+        _typingNow.value = true;
+        _typingOff?.cancel();
+        _typingOff = Timer(const Duration(seconds: 4), () => _typingNow.value = false);
+      }),
+      _rt.errors.listen((e) {
+        final cid = e.clientId;
+        if (cid == null) return;
+        _ackTimers.remove(cid)?.cancel();
+        final i = _msgs.indexWhere((m) => m['id'] == null && m['clientId'] == cid);
+        if (i >= 0 && mounted) {
+          setState(() {
+            _msgs[i]['_state'] = 'failed';
+            _msgs[i]['_error'] = null;
+          });
+        }
+      }),
+      _rt.connected.listen((on) {
+        if (!mounted) return;
+        _rtOn = on;
+        if (on) _poll(force: true);
+      }),
+      _rt.resync.listen((_) => _poll(force: true)),
+    ]);
+    _rt.start();
+  }
+
+  void _onRtMessage(Map<String, dynamic> m) {
+    if ((m['conversationId'] as num?)?.toInt() != _cid || !mounted) return;
+    final cid = m['clientId'] as String?;
+    if (cid != null) _ackTimers.remove(cid)?.cancel();
+    final mine = (m['senderId'] as num?)?.toInt() == _myId;
+    setState(() => _merge([m]));
+    if (mine) {
+      _changed = true;
+    } else {
+      _typingNow.value = false;
+      _markRead();
     }
   }
 
@@ -270,6 +370,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (id == null || id <= _lastRead) return;
     _lastRead = id;
     _changed = true;
+    if (_rtOn && _rt.sendRead(_cid, id)) return;
     try {
       await _api.post('/conversations/$_cid/read', {'lastMessageId': id});
     } catch (_) {
@@ -279,7 +380,11 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
 
   // ---------- Gönderim ----------
 
-  String _newClientId() => 'm${DateTime.now().microsecondsSinceEpoch}-${_seq++}';
+  String _newClientId() => ChatRealtime.newClientId();
+
+  void _onInput() {
+    if (_input.text.isNotEmpty && _editing == null && _rtOn) _rt.sendTyping(_cid);
+  }
 
   Future<void> _submit() async {
     final text = _input.text.trim();
@@ -290,8 +395,19 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       await _saveEdit(editing, text);
       return;
     }
+    final local = _newLocal(text);
+    setState(() {
+      _msgs.insert(0, local);
+      _input.clear();
+      _replyTo = null;
+    });
+    _scrollToEnd();
+    await _transmit(local);
+  }
+
+  Map<String, dynamic> _newLocal(String text) {
     final reply = _replyTo;
-    final local = <String, dynamic>{
+    return <String, dynamic>{
       'id': null,
       'clientId': _newClientId(),
       'senderId': _myId,
@@ -304,33 +420,57 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       '_state': 'pending',
       '_seq': _seq++,
     };
-    setState(() {
-      _msgs.insert(0, local);
-      _input.clear();
-      _replyTo = null;
-    });
-    _scrollToEnd();
-    await _transmit(local);
   }
 
+  /// Bağlıysa WS ile (8 sn içinde ack gelmezse aynı clientId ile REST yedeği), değilse doğrudan REST.
+  /// Görselli mesajlar önce yüklenir, `attachmentIds` ile REST'ten gönderilir.
   Future<void> _transmit(Map<String, dynamic> local) async {
+    final cid = local['clientId'] as String;
+    final pending = local['_image'] as PreparedImage?;
     try {
+      if (pending != null && local['_attId'] == null) {
+        final res = await _uploader.upload('/conversations/$_cid/media', pending) as Map;
+        local['_attId'] = (res['id'] as num).toInt();
+      }
+      final attId = local['_attId'] as int?;
+      if (attId == null && local['replyToMessageId'] == null && _rtOn && _rt.sendMessage(_cid, local['text'] as String, cid)) {
+        _ackTimers[cid]?.cancel();
+        _ackTimers[cid] = Timer(const Duration(seconds: 8), () {
+          _ackTimers.remove(cid);
+          if (mounted && local['_state'] == 'pending' && local['id'] == null) _sendRest(local);
+        });
+        return;
+      }
+      await _sendRest(local);
+    } catch (e) {
+      _fail(local, e);
+    }
+  }
+
+  Future<void> _sendRest(Map<String, dynamic> local) async {
+    try {
+      final attId = local['_attId'] as int?;
       final res = await _api.post('/conversations/$_cid/messages', {
         'text': local['text'],
         'clientId': local['clientId'],
         if (local['replyToMessageId'] != null) 'replyToMessageId': local['replyToMessageId'],
+        if (attId != null) 'attachmentIds': [attId],
       });
       if (!mounted) return;
       setState(() => _merge([Map<String, dynamic>.from(res as Map)]));
       _changed = true;
       _markRead();
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        local['_state'] = 'failed';
-        local['_error'] = e is ApiError && !e.isNetwork ? errorText(e) : null;
-      });
+      _fail(local, e);
     }
+  }
+
+  void _fail(Map<String, dynamic> local, Object e) {
+    if (!mounted || local['id'] != null) return;
+    setState(() {
+      local['_state'] = 'failed';
+      local['_error'] = e is ApiError && !e.isNetwork ? errorText(e) : null;
+    });
   }
 
   Future<void> _retry(Map<String, dynamic> m) async {
@@ -339,6 +479,88 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       m['_error'] = null;
     });
     await _transmit(m);
+  }
+
+  // ---------- Görsel ----------
+
+  Future<void> _pickImage() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: context.bu.sf,
+      showDragHandle: true,
+      builder: (c) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          BuMenuRow(icon: LucideIcons.image, label: 'Galeriden seç', showChevron: false, onTap: () => Navigator.pop(c, ImageSource.gallery)),
+          BuMenuRow(icon: LucideIcons.camera, label: 'Fotoğraf çek', showChevron: false, onTap: () => Navigator.pop(c, ImageSource.camera)),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (source == null || !mounted) return;
+    PreparedImage? img;
+    try {
+      img = await _image.pickPrepared(source);
+    } on ImageException catch (e) {
+      _toast(e.code == 'TOO_LARGE'
+          ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
+          : 'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.');
+      return;
+    } catch (_) {
+      _toast('Görsel seçilemedi. İzinleri kontrol edin.');
+      return;
+    }
+    if (img == null || !mounted) return;
+    final local = _newLocal('')
+      ..['_image'] = img
+      ..['_bytes'] = img.bytes;
+    setState(() {
+      _msgs.insert(0, local);
+      _replyTo = null;
+    });
+    _scrollToEnd();
+    await _transmit(local);
+  }
+
+  Map<String, String> get _authHeaders {
+    final tok = _api.tokens?.access;
+    return tok == null ? const {} : {'Authorization': 'Bearer $tok'};
+  }
+
+  void _openImage(Map<String, dynamic> a) {
+    final url = (a['url'] ?? a['thumbUrl']) as String?;
+    if (url == null) return;
+    Navigator.push(context, MaterialPageRoute<void>(builder: (_) => ChatImageViewer(url: url, headers: _authHeaders)));
+  }
+
+  // ---------- Tepkiler ----------
+
+  Future<List<String>> _loadEmojis() async {
+    final cached = _emojis;
+    if (cached != null) return cached;
+    try {
+      final r = await _api.get('/messages/reactions') as Map<String, dynamic>;
+      _emojis = (r['emojis'] as List? ?? []).map((e) => '$e').toList();
+    } catch (_) {
+      return const [];
+    }
+    return _emojis!;
+  }
+
+  Future<void> _react(Map<String, dynamic> m, String emoji) async {
+    final id = (m['id'] as num?)?.toInt();
+    if (id == null) return;
+    try {
+      final same = m['myReaction'] == emoji;
+      final res = (same ? await _api.delete('/messages/$id/reaction') : await _api.put('/messages/$id/reaction', {'emoji': emoji}))
+          as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() {
+        m['reactions'] = res['reactions'];
+        m['myReaction'] = res['myReaction'];
+      });
+    } catch (e) {
+      _toast(errorText(e));
+    }
   }
 
   Future<void> _saveEdit(Map<String, dynamic> target, String text) async {
@@ -455,7 +677,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
           : 'Son görülme: $label';
     }
     final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
-    return n > 0 ? '$n üye' : null;
+    final kind = _type == 'CLUB' ? 'Kulüp odası · ' : _type == 'EVENT' ? 'Etkinlik odası · ' : '';
+    return n > 0 ? '$kind$n üye' : (kind.isEmpty ? null : 'Kulüp/etkinlik odası');
   }
 
   // ---------- Menüler ----------
@@ -470,22 +693,47 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final deleted = m['deleted'] == true || m['removed'] == true;
     final mine = _isMine(m);
     final canDelete = !deleted && (mine || (!_direct && _conv['admin'] == true));
+    final emojis = deleted ? const <String>[] : await _loadEmojis();
+    if (!mounted) return;
     final action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: context.bu.sf,
       showDragHandle: true,
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (emojis.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+                for (final e in emojis)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(999),
+                    onTap: () => Navigator.pop(c, 'react:$e'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: m['myReaction'] == e ? c.bu.pr.withValues(alpha: .15) : c.bu.sf2,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(e, style: const TextStyle(fontSize: 22)),
+                    ),
+                  ),
+              ]),
+            ),
           if (!deleted && !_blocked) BuMenuRow(icon: LucideIcons.reply, label: 'Yanıtla', showChevron: false, onTap: () => Navigator.pop(c, 'reply')),
           if (!deleted) BuMenuRow(icon: LucideIcons.copy, label: 'Kopyala', showChevron: false, onTap: () => Navigator.pop(c, 'copy')),
           if (!deleted && mine) BuMenuRow(icon: LucideIcons.pencil, label: 'Düzenle', showChevron: false, onTap: () => Navigator.pop(c, 'edit')),
           if (canDelete) BuMenuRow(icon: LucideIcons.trash2, label: 'Sil', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'delete')),
-          if (!deleted && !mine) BuMenuRow(icon: LucideIcons.flag, label: 'Raporla', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'report')),
+          if (!deleted && !mine) BuMenuRow(icon: LucideIcons.flag, label: 'Şikâyet et', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'report')),
           const SizedBox(height: 8),
         ]),
       ),
     );
     if (!mounted || action == null) return;
+    if (action.startsWith('react:')) {
+      await _react(m, action.substring(6));
+      return;
+    }
     switch (action) {
       case 'reply':
         setState(() {
@@ -507,14 +755,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       case 'delete':
         await _deleteMessage(m);
       case 'report':
-        final reason = await _pickReason();
-        if (reason == null) return;
-        try {
-          await _api.post('/messages/${(m['id'] as num).toInt()}/report', {'reason': reason});
-          _toast('Raporunuz alındı');
-        } catch (e) {
-          _toast(errorText(e));
-        }
+        await ReportSheet.showForMessage(context, widget.session, messageId: (m['id'] as num).toInt());
     }
   }
 
@@ -539,36 +780,6 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     }
   }
 
-  static const _reasons = <String, String>{
-    'SPAM': 'Spam',
-    'HARASSMENT': 'Taciz / zorbalık',
-    'INAPPROPRIATE': 'Uygunsuz içerik',
-    'IMPERSONATION': 'Kimliğe bürünme',
-    'OTHER': 'Diğer',
-  };
-
-  Future<String?> _pickReason() {
-    return showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      showDragHandle: true,
-      builder: (c) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Raporlama nedeni', style: TextStyle(color: c.bu.ink, fontSize: 16, fontWeight: FontWeight.w800)),
-            ),
-          ),
-          for (final e in _reasons.entries)
-            BuMenuRow(icon: LucideIcons.flag, label: e.value, showChevron: false, onTap: () => Navigator.pop(c, e.key)),
-          const SizedBox(height: 8),
-        ]),
-      ),
-    );
-  }
-
   Future<void> _openChatMenu() async {
     final action = await showModalBottomSheet<String>(
       context: context,
@@ -576,11 +787,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       showDragHandle: true,
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (_roomPage) BuMenuRow(icon: LucideIcons.arrowUpRight, label: _type == 'CLUB' ? 'Kulüp sayfası' : 'Etkinlik sayfası', showChevron: false, onTap: () => Navigator.pop(c, 'room')),
           if (!_direct) BuMenuRow(icon: LucideIcons.users, label: 'Üyeler', showChevron: false, onTap: () => Navigator.pop(c, 'members')),
-          if (!_direct) BuMenuRow(icon: LucideIcons.logOut, label: 'Sohbetten ayrıl', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'leave')),
+          if (!_direct && !_room) BuMenuRow(icon: LucideIcons.logOut, label: 'Sohbetten ayrıl', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'leave')),
           if (_direct && !_blocked) BuMenuRow(icon: LucideIcons.ban, label: 'Engelle', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'block')),
           if (_direct && _blocked) BuMenuRow(icon: LucideIcons.ban, label: 'Engeli kaldır', showChevron: false, onTap: () => Navigator.pop(c, 'unblock')),
-          if (_direct) BuMenuRow(icon: LucideIcons.flag, label: 'Kullanıcıyı raporla', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'report')),
+          if (_direct) BuMenuRow(icon: LucideIcons.flag, label: 'Kullanıcıyı şikâyet et', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'report')),
           const SizedBox(height: 8),
         ]),
       ),
@@ -589,6 +801,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final pid = (_peer?['id'] as num?)?.toInt();
     try {
       switch (action) {
+        case 'room':
+          _openRoomPage();
         case 'members':
           await _showMembers();
         case 'leave':
@@ -612,10 +826,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
           _toast('Engel kaldırıldı');
         case 'report':
           if (pid == null) return;
-          final reason = await _pickReason();
-          if (reason == null) return;
-          await _api.post('/reports', {'targetType': 'USER', 'targetId': pid, 'reason': reason});
-          _toast('Raporunuz alındı');
+          await ReportSheet.show(context, widget.session, targetType: 'USER', targetId: pid, title: 'Kullanıcıyı şikâyet et');
       }
     } catch (e) {
       _toast(errorText(e));
@@ -695,17 +906,26 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         BuAvatar(name: _title, url: _avatarUrl, size: 42),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: t.ink, fontSize: 16, fontWeight: FontWeight.w800)),
-            if (status != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(status,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: online ? t.ok : t.mut, fontSize: 12, fontWeight: FontWeight.w700)),
+          child: InkWell(
+            onTap: _roomPage ? _openRoomPage : null,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: t.ink, fontSize: 16, fontWeight: FontWeight.w800)),
+              ValueListenableBuilder<bool>(
+                valueListenable: _typingNow,
+                builder: (c, typing, _) {
+                  final text = typing ? 'yazıyor…' : status;
+                  if (text == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: (online || typing) ? t.ok : t.mut, fontSize: 12, fontWeight: FontWeight.w700)),
+                  );
+                },
               ),
-          ]),
+            ]),
+          ),
         ),
         const SizedBox(width: 12),
         BuIconButton(icon: LucideIcons.ellipsisVertical, tooltip: 'Menü', filled: true, onTap: _openChatMenu),
@@ -719,6 +939,13 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (_msgs.isEmpty) {
       return const EmptyView(icon: LucideIcons.messageCircle, text: 'Henüz mesaj yok. İlk mesajı sen yaz.');
     }
+    return ValueListenableBuilder<int>(
+      valueListenable: _peerRead,
+      builder: (c, peerRead, _) => _list(t, peerRead),
+    );
+  }
+
+  Widget _list(BuTokens t, int peerRead) {
     return ListView.builder(
       controller: _scroll,
       reverse: true,
@@ -739,7 +966,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         final tight = older != null && older['senderId'] == m['senderId'] && !newDay;
         return Column(children: [
           if (newDay) _dayChip(t, _dayLabel(d)),
-          Padding(padding: EdgeInsets.only(top: tight ? 3 : 8), child: _bubble(t, m)),
+          Padding(padding: EdgeInsets.only(top: tight ? 3 : 8), child: _bubble(m, peerRead)),
         ]);
       },
     );
@@ -754,103 +981,21 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         ),
       );
 
-  Widget _bubble(BuTokens t, Map<String, dynamic> m) {
+  Widget _bubble(Map<String, dynamic> m, int peerRead) {
     final mine = _isMine(m) || m['_state'] != null;
-    final deleted = m['deleted'] == true;
-    final removed = m['removed'] == true;
-    final state = m['_state'] as String?;
-    final fg = mine ? t.onPr : t.ink;
-    final d = _time(m);
-    final reply = m['replyTo'] is Map ? Map<String, dynamic>.from(m['replyTo'] as Map) : null;
-    final text = deleted ? 'Bu mesaj silindi' : (m['text'] as String?) ?? '';
-    final maxW = MediaQuery.of(context).size.width * .72;
-
-    final meta = <String>[
-      if (d != null) _hm(d),
-      if (m['edited'] == true && !deleted) 'düzenlendi',
-      if (state == 'pending') 'gönderiliyor',
-    ].join(' · ');
-
-    final bubble = Container(
-      constraints: BoxConstraints(maxWidth: maxW),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: mine ? t.pr : t.sf,
-        border: mine ? null : Border.all(color: t.bd),
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(20),
-          topRight: const Radius.circular(20),
-          bottomLeft: Radius.circular(mine ? 20 : 6),
-          bottomRight: Radius.circular(mine ? 6 : 20),
-        ),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        if (!mine && !_direct)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 3),
-            child: Text(_nameOf((m['senderId'] as num?)?.toInt()),
-                style: TextStyle(color: t.pr, fontSize: 11, fontWeight: FontWeight.w800)),
-          ),
-        if (reply != null && !deleted)
-          Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: mine ? Colors.white.withValues(alpha: .2) : Colors.black.withValues(alpha: .06),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(_nameOf((reply['senderId'] as num?)?.toInt()), style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w800)),
-              Text(reply['deleted'] == true ? 'Bu mesaj silindi' : (reply['text'] as String?) ?? '',
-                  maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: fg, fontSize: 12, height: 1.35)),
-            ]),
-          ),
-        Text(text,
-            style: TextStyle(
-              color: (deleted || removed) ? fg.withValues(alpha: .7) : fg,
-              fontSize: 14,
-              height: 1.4,
-              fontStyle: (deleted || removed) ? FontStyle.italic : FontStyle.normal,
-            )),
-        if (meta.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(meta, style: TextStyle(color: fg.withValues(alpha: .7), fontSize: 10)),
-            ),
-          ),
-      ]),
-    );
-
-    return Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onLongPress: state == 'pending' ? null : () => _openMessageMenu(m),
-            onTap: state == 'failed' ? () => _openMessageMenu(m) : null,
-            child: bubble,
-          ),
-          if (state == 'failed')
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: GestureDetector(
-                onTap: () => _retry(m),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text('${(m['_error'] as String?) ?? 'Gönderilemedi'} · Yeniden dene',
-                        style: TextStyle(color: t.danger, fontSize: 11, fontWeight: FontWeight.w700)),
-                  ),
-                ]),
-              ),
-            ),
-        ],
-      ),
+    final id = (m['id'] as num?)?.toInt();
+    final reply = m['replyTo'] is Map ? m['replyTo'] as Map : null;
+    return MessageBubble(
+      message: m,
+      mine: mine,
+      senderName: (!mine && !_direct) ? _nameOf((m['senderId'] as num?)?.toInt()) : null,
+      replyName: reply == null ? null : _nameOf((reply['senderId'] as num?)?.toInt()),
+      seen: mine && id != null && id <= peerRead,
+      authHeaders: _authHeaders,
+      onMenu: () => _openMessageMenu(m),
+      onRetry: () => _retry(m),
+      onOpenImage: _openImage,
+      onReact: (e) => _react(m, e),
     );
   }
 
@@ -863,6 +1008,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         child: Text('Bu kullanıcıyla mesajlaşamazsınız.', textAlign: TextAlign.center, style: TextStyle(color: t.mut, fontSize: 13, fontWeight: FontWeight.w600)),
       );
     }
+    return ListenableBuilder(listenable: _input, builder: (c, _) => _composerBody(t));
+  }
+
+  Widget _composerBody(BuTokens t) {
     final len = _input.text.characters.length;
     final canSend = _input.text.trim().isNotEmpty && len <= _maxLen;
     final banner = _editing ?? _replyTo;
@@ -908,6 +1057,13 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
             ),
           ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          if (_editing == null) ...[
+            IconButton(
+              tooltip: 'Görsel gönder',
+              onPressed: _pickImage,
+              icon: Icon(LucideIcons.image, color: t.mut),
+            ),
+          ],
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 46),

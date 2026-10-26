@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'club_detail_page.dart';
+import 'club_join_flow.dart';
 
 /// Kulüpler sekmesi: Keşfet (GET /communities) ve Kulüplerim (GET /me/communities).
 class ClubsTab extends StatefulWidget {
@@ -23,7 +24,7 @@ class _ClubsTabState extends State<ClubsTab> {
   bool _searching = false;
   final _search = TextEditingController();
   final _scroll = ScrollController();
-  final Set<String> _categories = {};
+  List<String> _categories = const [];
 
   List<Map<String, dynamic>> _items = [];
   String? _cursor;
@@ -40,6 +41,7 @@ class _ClubsTabState extends State<ClubsTab> {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
     });
     _reload();
+    _loadCategories();
   }
 
   @override
@@ -59,11 +61,17 @@ class _ClubsTabState extends State<ClubsTab> {
     return '${_tab == 0 ? '/communities' : '/me/communities'}?${q.join('&')}';
   }
 
-  void _collect(List<Map<String, dynamic>> list) {
-    for (final c in list) {
-      final cat = (c['category'] as String?)?.trim();
-      if (cat != null && cat.isNotEmpty) _categories.add(cat);
-    }
+  /// Keşfet kategorileri sunucudan gelir (GET /communities/categories); hata çipleri gizler.
+  Future<void> _loadCategories() async {
+    try {
+      final res = await widget.session.api.get('/communities/categories');
+      if (!mounted || res is! List) return;
+      final cats = <String>[
+        for (final e in res)
+          if (e is Map && (e['category']?.toString().trim() ?? '').isNotEmpty) e['category'].toString().trim(),
+      ];
+      setState(() => _categories = cats);
+    } catch (_) {}
   }
 
   Future<void> _reload({bool silent = false}) async {
@@ -73,7 +81,6 @@ class _ClubsTabState extends State<ClubsTab> {
       final res = await widget.session.api.get(_path(null));
       if (!mounted || gen != _gen) return;
       final list = _parse(res);
-      _collect(list);
       setState(() {
         _items = list;
         _cursor = res is Map ? res['nextCursor']?.toString() : null;
@@ -86,6 +93,11 @@ class _ClubsTabState extends State<ClubsTab> {
     }
   }
 
+  Future<void> _refresh() async {
+    if (_tab == 0) _loadCategories();
+    await _reload(silent: true);
+  }
+
   Future<void> _loadMore() async {
     if (_more || _loading || _cursor == null) return;
     final gen = _gen;
@@ -94,7 +106,6 @@ class _ClubsTabState extends State<ClubsTab> {
       final res = await widget.session.api.get(_path(_cursor));
       if (!mounted || gen != _gen) return;
       final list = _parse(res);
-      _collect(list);
       setState(() {
         _items = [..._items, ...list];
         _cursor = res is Map ? res['nextCursor']?.toString() : null;
@@ -124,11 +135,16 @@ class _ClubsTabState extends State<ClubsTab> {
     if (_joining.contains(id)) return;
     setState(() => _joining.add(id));
     try {
-      final res = await widget.session.api.post('/communities/$id/join');
-      final st = res is Map ? res['status']?.toString() : null;
-      if (!mounted) return;
+      final st = await joinClubFlow(
+        context,
+        widget.session,
+        communityId: id,
+        clubName: (c['name'] ?? '').toString(),
+        needsApproval: c['joinPolicy'] == 'APPROVAL' || c['visibility'] == 'PRIVATE',
+      );
+      if (!mounted || st == null) return;
       setState(() {
-        c['myStatus'] = st ?? (c['joinPolicy'] == 'APPROVAL' ? 'PENDING' : 'ACTIVE');
+        c['myStatus'] = st;
         if (c['myStatus'] == 'ACTIVE') c['memberCount'] = ((c['memberCount'] as num?) ?? 0).toInt() + 1;
       });
     } catch (e) {
@@ -157,9 +173,7 @@ class _ClubsTabState extends State<ClubsTab> {
   void _setCategory(String? c) {
     if (c == _category) return;
     setState(() => _category = c);
-    if (_tab == 0) {
-      _reload();
-    }
+    if (_tab == 0) _reload();
   }
 
   void _toggleSearch() {
@@ -197,7 +211,7 @@ class _ClubsTabState extends State<ClubsTab> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final list = _visible;
-    final cats = _categories.toList()..sort();
+    final cats = _tab == 0 ? _categories : const <String>[];
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -257,7 +271,7 @@ class _ClubsTabState extends State<ClubsTab> {
     }
     if (list.isEmpty) {
       return RefreshIndicator(
-        onRefresh: () => _reload(silent: true),
+        onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
@@ -274,7 +288,7 @@ class _ClubsTabState extends State<ClubsTab> {
       );
     }
     return RefreshIndicator(
-      onRefresh: () => _reload(silent: true),
+      onRefresh: _refresh,
       child: ListView.separated(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),

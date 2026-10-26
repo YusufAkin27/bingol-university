@@ -5,6 +5,7 @@ import 'core/api.dart';
 import 'core/app_gate.dart';
 import 'core/app_hooks.dart';
 import 'core/nav.dart';
+import 'core/push/push_service.dart';
 import 'core/session.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
@@ -17,7 +18,12 @@ void main() {
   final theme = ThemeController();
   theme.load();
   Analytics.instance.attach(session);
-  AppLifecycleHooks.instance.attach(session);
+  final push = PushService(session);
+  final hooks = AppLifecycleHooks.instance;
+  hooks.onSignedIn.add((_) => push.onSignedIn()); // restore sonrası oturum açıksa bir kez tetiklenir
+  hooks.onSignedOut.add((_) => push.onSignedOut());
+  session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
+  hooks.attach(session);
   session.restore();
   runApp(BingolApp(session: session, themeController: theme));
 }

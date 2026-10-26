@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -38,9 +40,18 @@ class _HomeTabState extends State<HomeTab> {
   // Bölümler bağımsız yüklenir; null = henüz gelmedi ya da düştü.
   Map<String, dynamic>? _info;
   Map<String, dynamic>? _today;
+  Map<String, dynamic>? _summary;
   Map<String, dynamic>? _event;
+  List<Map<String, dynamic>> _avatars = const [];
+
+  // İlk boyama için gerekmeyen bölümler görünür olunca yüklenir.
   List<Map<String, dynamic>>? _clubs;
+  bool _clubsRequested = false;
+  bool _clubsLoading = false;
   final Map<String, List<Map<String, dynamic>>> _news = {};
+  final Set<String> _newsLoading = {};
+  final Set<String> _newsFailed = {};
+  bool _newsRequested = false;
   bool _newsStale = false;
 
   bool _loading = true;
@@ -57,6 +68,11 @@ class _HomeTabState extends State<HomeTab> {
     _load();
   }
 
+  void _apply(int gen, VoidCallback f) {
+    if (mounted && gen == _gen) setState(f);
+  }
+
+  /// Çekirdek bölümler (paralel): bilgi, yemek, özet, sıradaki etkinlik.
   Future<void> _load() async {
     final gen = ++_gen;
     final api = _s.api;
@@ -71,75 +87,33 @@ class _HomeTabState extends State<HomeTab> {
       }
     }
 
-    void apply(VoidCallback f) {
-      if (mounted && gen == _gen) setState(f);
-    }
-
     await Future.wait([
       step(() async {
         final r = await api.get('/app/info');
-        apply(() => _info = r is Map<String, dynamic> ? r : null);
+        _apply(gen, () => _info = r is Map<String, dynamic> ? r : null);
       }),
       step(() async {
         final r = await api.get('/menu/today');
-        apply(() => _today = r is Map<String, dynamic> ? r : null);
+        _apply(gen, () => _today = r is Map<String, dynamic> ? r : null);
       }),
       step(() async {
-        final now = DateTime.now();
-        final months = <DateTime>[now];
-        if (now.day >= 22) months.add(DateTime(now.year, now.month + 1, 1));
-        Map<String, dynamic>? best;
-        DateTime? bestAt;
-        Object? err;
-        var got = 0;
-        for (final m in months) {
-          try {
-            final mm = '${m.year}-${m.month.toString().padLeft(2, '0')}';
-            final r = await api.get('/events/calendar?month=$mm');
-            got++;
-            if (r is! List) continue;
-            for (final e in r) {
-              if (e is! Map<String, dynamic>) continue;
-              final st = DateTime.tryParse((e['startsAt'] as String?) ?? '')?.toLocal();
-              final d = st ?? DateTime.tryParse((e['date'] as String?) ?? '');
-              if (d == null) continue;
-              final upcoming = st != null
-                  ? st.isAfter(now.subtract(const Duration(hours: 1)))
-                  : !DateTime(d.year, d.month, d.day).isBefore(DateTime(now.year, now.month, now.day));
-              if (!upcoming) continue;
-              if (bestAt == null || d.isBefore(bestAt)) {
-                best = e;
-                bestAt = d;
-              }
-            }
-          } catch (e) {
-            err ??= e;
-          }
+        final r = await api.get('/me/summary');
+        if (r is! Map<String, dynamic>) return;
+        // Çan ve alt gezinme rozetlerini tek kaynaktan eşitle.
+        _s.badges.notifications.value = (r['unreadNotifications'] as num?)?.toInt() ?? 0;
+        _s.badges.chat.value = (r['unreadMessages'] as num?)?.toInt() ?? 0;
+        _apply(gen, () => _summary = r);
+      }),
+      step(() async {
+        final best = await _nextEvent();
+        _apply(gen, () {
+          _event = best;
+          _avatars = const [];
+        });
+        final id = (best?['id'] as num?)?.toInt();
+        if (best != null && best['source'] == 'USER' && id != null) {
+          unawaited(_loadPreview(id, gen));
         }
-        if (got == 0 && err != null) throw err;
-        if (best != null && best['source'] == 'USER' && best['id'] != null) {
-          try {
-            final d = await api.get('/events/${best['id']}');
-            if (d is Map<String, dynamic>) best = {...best, 'goingCount': d['goingCount'], 'myRsvp': d['myRsvp']};
-          } catch (_) {}
-        }
-        apply(() => _event = best);
-      }),
-      step(() async {
-        final r = await api.get('/me/communities?size=20') as Map<String, dynamic>;
-        final l = List<Map<String, dynamic>>.from(r['items'] as List);
-        apply(() => _clubs = l);
-      }),
-      for (final t in _newsTypes)
-        step(() async {
-          final r = await api.get('/news?type=${t.$1}&page=0&size=3') as Map<String, dynamic>;
-          final l = List<Map<String, dynamic>>.from(r['items'] as List);
-          apply(() => _news[t.$1] = l);
-        }),
-      step(() async {
-        final st = await api.get('/status') as Map<String, dynamic>;
-        final stale = (st['NEWS'] as Map?)?['maintenance'] == true || (st['MENU'] as Map?)?['maintenance'] == true;
-        apply(() => _newsStale = stale);
       }),
     ]);
     if (!mounted || gen != _gen) return;
@@ -149,8 +123,130 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
+  Future<Map<String, dynamic>?> _nextEvent() async {
+    final now = DateTime.now();
+    final months = <DateTime>[now];
+    if (now.day >= 22) months.add(DateTime(now.year, now.month + 1, 1));
+    Map<String, dynamic>? best;
+    DateTime? bestAt;
+    Object? err;
+    var got = 0;
+    for (final m in months) {
+      try {
+        final mm = '${m.year}-${m.month.toString().padLeft(2, '0')}';
+        final r = await _s.api.get('/events/calendar?month=$mm');
+        got++;
+        if (r is! List) continue;
+        for (final e in r) {
+          if (e is! Map<String, dynamic>) continue;
+          final st = DateTime.tryParse((e['startsAt'] as String?) ?? '')?.toLocal();
+          final d = st ?? DateTime.tryParse((e['date'] as String?) ?? '');
+          if (d == null) continue;
+          final upcoming = st != null
+              ? st.isAfter(now.subtract(const Duration(hours: 1)))
+              : !DateTime(d.year, d.month, d.day).isBefore(DateTime(now.year, now.month, now.day));
+          if (!upcoming) continue;
+          if (bestAt == null || d.isBefore(bestAt)) {
+            best = e;
+            bestAt = d;
+          }
+        }
+      } catch (e) {
+        err ??= e;
+      }
+    }
+    if (got == 0 && err != null) throw err;
+    return best;
+  }
+
+  /// Katılımcı avatarları (herkese açık, en çok 8); hata sessizce yutulur.
+  Future<void> _loadPreview(int eventId, int gen) async {
+    try {
+      final r = await _s.api.get('/events/$eventId/attendees/preview');
+      if (r is! Map<String, dynamic>) return;
+      final l = [
+        for (final a in (r['avatars'] as List? ?? const []))
+          if (a is Map<String, dynamic>) a,
+      ];
+      _apply(gen, () {
+        if ((_event?['id'] as num?)?.toInt() != eventId) return;
+        _avatars = l;
+        final gc = r['goingCount'] as num?;
+        if (gc != null && _event != null) _event = {..._event!, 'goingCount': gc.toInt()};
+      });
+    } catch (_) {}
+  }
+
+  // --- tembel bölümler ---
+
+  void _ensureClubs() {
+    if (_clubsRequested) return;
+    _clubsRequested = true;
+    _loadClubs();
+  }
+
+  Future<void> _loadClubs() async {
+    final gen = _gen;
+    if (mounted) setState(() => _clubsLoading = true);
+    try {
+      final r = await _s.api.get('/me/communities?size=10') as Map<String, dynamic>;
+      final l = List<Map<String, dynamic>>.from(r['items'] as List);
+      _apply(gen, () => _clubs = l);
+    } catch (_) {
+      // Bölüm isteğe bağlı; düşerse gizli kalır.
+    } finally {
+      if (mounted) setState(() => _clubsLoading = false);
+    }
+  }
+
+  void _ensureNews() {
+    if (_newsRequested) return;
+    _newsRequested = true;
+    _loadNews(_newsType);
+    unawaited(_loadStatus());
+  }
+
+  Future<void> _loadNews(String type) async {
+    final gen = _gen;
+    if (!mounted) return;
+    setState(() {
+      _newsLoading.add(type);
+      _newsFailed.remove(type);
+    });
+    try {
+      final r = await _s.api.get('/news?type=$type&page=0&size=3') as Map<String, dynamic>;
+      final l = List<Map<String, dynamic>>.from(r['items'] as List);
+      _apply(gen, () => _news[type] = l);
+    } catch (_) {
+      if (mounted) setState(() => _newsFailed.add(type));
+    } finally {
+      if (mounted) setState(() => _newsLoading.remove(type));
+    }
+  }
+
+  Future<void> _loadStatus() async {
+    final gen = _gen;
+    try {
+      final st = await _s.api.get('/status') as Map<String, dynamic>;
+      final stale = (st['NEWS'] as Map?)?['maintenance'] == true || (st['MENU'] as Map?)?['maintenance'] == true;
+      _apply(gen, () => _newsStale = stale);
+    } catch (_) {}
+  }
+
+  void _selectNewsType(String type) {
+    setState(() => _newsType = type);
+    if (_news[type] == null && !_newsLoading.contains(type)) _loadNews(type);
+  }
+
   Future<void> _reload() async {
+    // Görünür olmuş tembel bölümler de tazelenir; yenileme hepsini bekler.
     await _load();
+    if (!mounted) return;
+    _news.removeWhere((k, _) => k != _newsType);
+    await Future.wait([
+      if (_clubsRequested) _loadClubs(),
+      if (_newsRequested) ...[_loadNews(_newsType), _loadStatus()],
+    ]);
   }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -170,25 +266,44 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  Future<void> _rsvp() async {
+  void _toast(String m) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(m)));
+  }
+
+  /// İyimser RSVP: "Katılıyorum" GOING yazar, "Katılıyorsun"a basınca vazgeçilir (DELETE).
+  Future<void> _toggleRsvp() async {
     final ev = _event;
     final id = (ev?['id'] as num?)?.toInt();
     if (ev == null || id == null || _rsvpBusy) return;
-    setState(() => _rsvpBusy = true);
+    final mine = ev['myRsvp'] == 'GOING';
+    final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
+    final cap = (ev['capacity'] as num?)?.toInt();
+    if (!mine && cap != null && going >= cap) {
+      _toast('Kontenjan doldu.');
+      return;
+    }
+    final gen = _gen;
+    setState(() {
+      _rsvpBusy = true;
+      _event = {
+        ...ev,
+        'myRsvp': mine ? null : 'GOING',
+        'goingCount': (going + (mine ? -1 : 1)).clamp(0, 1 << 30),
+      };
+    });
     try {
-      final r = await _s.api.put('/events/$id/rsvp', {'status': 'GOING'});
-      if (!mounted) return;
-      setState(() {
-        _event = {
-          ...ev,
-          if (r is Map) 'myRsvp': r['myRsvp'] ?? 'GOING',
-          if (r is Map && r['goingCount'] != null) 'goingCount': r['goingCount'],
-        };
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
+      if (mine) {
+        await _s.api.delete('/events/$id/rsvp');
+      } else {
+        await _s.api.put('/events/$id/rsvp', {'status': 'GOING'});
       }
+      if (mounted) unawaited(_loadPreview(id, gen));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _event = ev);
+      _toast(errorText(e));
     } finally {
       if (mounted) setState(() => _rsvpBusy = false);
     }
@@ -220,11 +335,8 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   List<Widget> _content(BuildContext context) {
-    final t = context.bu;
     final maintenance = _info?['maintenance'] as Map?;
     final banner = _info?['banner'] as Map?;
-    final clubs = _clubs;
-    final news = _news[_newsType] ?? const <Map<String, dynamic>>[];
     return [
       _header(context),
       if (maintenance?['enabled'] == true)
@@ -257,47 +369,91 @@ class _HomeTabState extends State<HomeTab> {
       Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: _eventCard(context)),
       Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _quickAccess(context)),
       Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _bento(context)),
-      if (clubs != null && clubs.isNotEmpty) ...[
+      // Üyelik yoksa bölüm hiç istenmez; varsa görünür olunca yüklenir.
+      if (_summary == null || ((_summary!['communities'] as num?) ?? 1) > 0)
+        _LazyOnce(onFirstBuild: _ensureClubs, child: _clubsSection(context)),
+      _LazyOnce(onFirstBuild: _ensureNews, child: _newsSection(context)),
+    ];
+  }
+
+  Widget _clubsSection(BuildContext context) {
+    final clubs = _clubs;
+    if (clubs != null && clubs.isEmpty) return const SizedBox.shrink();
+    if (clubs == null && !_clubsLoading) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         BuSectionTitle('Kulüplerimden',
             action: 'Tümü', onAction: () => widget.onOpenTab(3), padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
         SizedBox(
           height: 112,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: clubs.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (_, i) => _clubCard(clubs[i], i),
-          ),
+          child: clubs == null
+              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.pr))
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: clubs.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (_, i) => _clubCard(clubs[i], i),
+                ),
         ),
       ],
-      BuSectionTitle('Gündem',
-          action: 'Tümü',
-          onAction: () => widget.onOpenTab(1, newsType: _newsType),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(children: [
-          for (final nt in _newsTypes) ...[
-            BuChip(label: nt.$2, selected: _newsType == nt.$1, onTap: () => setState(() => _newsType = nt.$1)),
-            const SizedBox(width: 8),
-          ],
+    );
+  }
+
+  Widget _newsSection(BuildContext context) {
+    final t = context.bu;
+    final news = _news[_newsType];
+    final loading = _newsLoading.contains(_newsType);
+    Widget list;
+    if (news == null && (loading || !_newsFailed.contains(_newsType))) {
+      list = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 28),
+        child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    } else if (news == null) {
+      list = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(children: [
+          Text('İçerik yüklenemedi.', style: TextStyle(color: t.mut)),
+          TextButton(onPressed: () => _loadNews(_newsType), child: const Text('Tekrar dene')),
         ]),
-      ),
-      const SizedBox(height: 12),
-      if (news.isEmpty)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Text('Henüz içerik yok.', textAlign: TextAlign.center, style: TextStyle(color: t.mut)),
-        )
-      else
+      );
+    } else if (news.isEmpty) {
+      list = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Center(child: Text('Henüz içerik yok.', style: TextStyle(color: t.mut))),
+      );
+    } else {
+      list = Column(children: [
         for (final n in news)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
             child: _newsRow(context, n),
           ),
-    ];
+      ]);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BuSectionTitle('Gündem',
+            action: 'Tümü',
+            onAction: () => widget.onOpenTab(1, newsType: _newsType),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(children: [
+            for (final nt in _newsTypes) ...[
+              BuChip(label: nt.$2, selected: _newsType == nt.$1, onTap: () => _selectNewsType(nt.$1)),
+              const SizedBox(width: 8),
+            ],
+          ]),
+        ),
+        const SizedBox(height: 12),
+        list,
+      ],
+    );
   }
 
   Widget _header(BuildContext context) {
@@ -365,6 +521,8 @@ class _HomeTabState extends State<HomeTab> {
     final official = e['source'] == 'OFFICIAL';
     final going = (e['goingCount'] as num?)?.toInt() ?? 0;
     final mine = e['myRsvp'] == 'GOING';
+    final cap = (e['capacity'] as num?)?.toInt();
+    final full = cap != null && going >= cap;
     final loc = (e['location'] as String?) ?? '';
     final when = official ? niceDate(e['date'] as String?) : _eventWhen(e);
     return GestureDetector(
@@ -402,17 +560,22 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 14),
             if (!official)
               Row(children: [
-                const Icon(LucideIcons.users, size: 16, color: Colors.white),
-                const SizedBox(width: 6),
+                if (_avatars.isNotEmpty)
+                  _AvatarStack(avatars: _avatars, total: going)
+                else
+                  const Icon(LucideIcons.users, size: 16, color: Colors.white),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text('$going kişi katılıyor',
+                  child: Text(going > 0 ? '$going kişi katılıyor' : 'İlk katılan sen ol',
                       maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(width: 8),
                 if (mine)
-                  _whitePill('Katılıyorsun', null)
+                  _whitePill('Katılıyorsun', id == null ? null : _toggleRsvp, busy: _rsvpBusy, check: true)
+                else if (full)
+                  _whitePill('Dolu', null)
                 else
-                  _whitePill('Katıl', id == null ? null : _rsvp, busy: _rsvpBusy),
+                  _whitePill('Katılıyorum', id == null ? null : _toggleRsvp, busy: _rsvpBusy),
               ]),
           ],
         ),
@@ -430,7 +593,7 @@ class _HomeTabState extends State<HomeTab> {
         ]),
       );
 
-  Widget _whitePill(String label, VoidCallback? onTap, {bool busy = false}) {
+  Widget _whitePill(String label, VoidCallback? onTap, {bool busy = false, bool check = false}) {
     return Material(
       color: Colors.white.withValues(alpha: onTap == null ? .75 : 1),
       shape: const StadiumBorder(),
@@ -442,7 +605,13 @@ class _HomeTabState extends State<HomeTab> {
           child: busy
               ? const SizedBox(
                   width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: BuColors.red700))
-              : Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF8E1B13))),
+              : Row(mainAxisSize: MainAxisSize.min, children: [
+                  if (check) ...const [
+                    Icon(LucideIcons.check, size: 15, color: Color(0xFF8E1B13)),
+                    SizedBox(width: 4),
+                  ],
+                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF8E1B13))),
+                ]),
         ),
       ),
     );
@@ -467,7 +636,7 @@ class _HomeTabState extends State<HomeTab> {
   Widget _bento(BuildContext context) {
     final t = context.bu;
     final items = List<String>.from((_today?['items'] as List?) ?? const []);
-    final clubCount = _clubs?.length;
+    final clubCount = (_summary?['communities'] as num?)?.toInt();
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -622,6 +791,10 @@ class _HomeTabState extends State<HomeTab> {
     final t = context.bu;
     final img = n['imageUrl'] as String?;
     final type = n['type'] as String?;
+    final eventDate = type == 'ETKINLIK' ? n['eventDate'] as String? : null;
+    final dateText = (eventDate != null && eventDate.isNotEmpty)
+        ? fmtDate(eventDate)
+        : fmtDate(n['publishedDate'] as String?);
     return BuCard(
       padding: const EdgeInsets.all(12),
       radius: 18,
@@ -639,7 +812,7 @@ class _HomeTabState extends State<HomeTab> {
                   BuBadge(TypeBadge.label(type), soft: type == 'ETKINLIK'),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(fmtDate(n['publishedDate'] as String?),
+                    child: Text(dateText,
                         maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: t.mut)),
                   ),
                 ]),
@@ -722,6 +895,83 @@ class _QuickItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: t.ink)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Alt ağaç ilk kez kurulduğunda (yani kaydırmayla yaklaşınca) bir kez tetikler.
+class _LazyOnce extends StatefulWidget {
+  const _LazyOnce({required this.onFirstBuild, required this.child});
+
+  final VoidCallback onFirstBuild;
+  final Widget child;
+
+  @override
+  State<_LazyOnce> createState() => _LazyOnceState();
+}
+
+class _LazyOnceState extends State<_LazyOnce> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onFirstBuild();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Katılımcı avatar yığını (en çok 3) + kalan sayı.
+class _AvatarStack extends StatelessWidget {
+  const _AvatarStack({required this.avatars, required this.total});
+
+  final List<Map<String, dynamic>> avatars;
+  final int total;
+
+  static const _d = 26.0;
+  static const _step = 18.0;
+  static const _ring = Color(0xFFE8362B);
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = avatars.take(3).toList();
+    final extra = total - shown.length;
+    final count = shown.length + (extra > 0 ? 1 : 0);
+    return SizedBox(
+      width: _d + _step * (count - 1),
+      height: _d,
+      child: Stack(
+        children: [
+          for (var i = 0; i < shown.length; i++)
+            Positioned(
+              left: i * _step,
+              child: Container(
+                width: _d,
+                height: _d,
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: _ring),
+                child: BuAvatar(
+                    name: shown[i]['displayName'] as String?, url: shown[i]['avatarUrl'] as String?, size: _d - 4),
+              ),
+            ),
+          if (extra > 0)
+            Positioned(
+              left: shown.length * _step,
+              child: Container(
+                width: _d,
+                height: _d,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle, color: const Color(0xFF171E33), border: Border.all(color: _ring, width: 2)),
+                child: Text(extra > 99 ? '99+' : '+$extra',
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white)),
+              ),
+            ),
         ],
       ),
     );

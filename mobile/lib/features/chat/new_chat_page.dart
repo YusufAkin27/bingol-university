@@ -33,9 +33,19 @@ class _NewChatPageState extends State<NewChatPage> {
   String _lastQuery = '';
   bool _busy = false;
   String? _createError;
+  final _scroll = ScrollController();
+  int? _nextCursor;
+  bool _loadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
+    _scroll.dispose();
     _debounce?.cancel();
     _search.dispose();
     _title.dispose();
@@ -49,6 +59,8 @@ class _NewChatPageState extends State<NewChatPage> {
       _seq++;
       setState(() {
         _results = [];
+        _nextCursor = null;
+        _loadingMore = false;
         _searching = false;
         _searchError = null;
         _lastQuery = q;
@@ -58,19 +70,36 @@ class _NewChatPageState extends State<NewChatPage> {
     _debounce = Timer(const Duration(milliseconds: 300), () => _runSearch(q));
   }
 
+  void _onScroll() {
+    if (_nextCursor != null && !_loadingMore && !_searching && _scroll.position.extentAfter < 300) {
+      _loadMore();
+    }
+  }
+
+  List<Map<String, dynamic>> _items(dynamic res) {
+    final items = (res is Map ? res['items'] : null) as List? ?? const [];
+    return items.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  int? _next(dynamic res) {
+    final n = res is Map ? res['nextCursor'] : null;
+    return n is num ? n.toInt() : null;
+  }
+
   Future<void> _runSearch(String q) async {
     final my = ++_seq;
     setState(() {
       _searching = true;
       _searchError = null;
       _lastQuery = q;
+      _loadingMore = false;
     });
     try {
       final res = await widget.session.api.get('/users/search?q=${Uri.encodeQueryComponent(q)}&size=20');
       if (!mounted || my != _seq) return;
-      final items = (res is Map ? res['items'] : null) as List? ?? const [];
       setState(() {
-        _results = items.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        _results = _items(res);
+        _nextCursor = _next(res);
         _searching = false;
       });
     } catch (e) {
@@ -79,6 +108,27 @@ class _NewChatPageState extends State<NewChatPage> {
         _searching = false;
         _searchError = e;
       });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    final cursor = _nextCursor;
+    if (cursor == null) return;
+    final my = _seq;
+    setState(() => _loadingMore = true);
+    try {
+      final res = await widget.session
+          .api
+          .get('/users/search?q=${Uri.encodeQueryComponent(_lastQuery)}&size=20&cursor=$cursor');
+      if (!mounted || my != _seq) return;
+      setState(() {
+        final known = _results.map((u) => u['id']).toSet();
+        _results = [..._results, ..._items(res).where((u) => !known.contains(u['id']))];
+        _nextCursor = _next(res);
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (mounted && my == _seq) setState(() => _loadingMore = false);
     }
   }
 
@@ -290,16 +340,27 @@ class _NewChatPageState extends State<NewChatPage> {
     if (_results.isEmpty) return const EmptyView(icon: LucideIcons.userX, text: 'Eşleşen kişi bulunamadı.');
     return RefreshIndicator(
       onRefresh: () => _runSearch(_lastQuery),
-      child: ListView(
+      child: ListView.builder(
+        controller: _scroll,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 2),
-            child: Text('KİŞİLER',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
-          ),
-          for (final u in _results) _row(t, u),
-        ],
+        itemCount: _results.length + 1 + (_loadingMore ? 1 : 0),
+        itemBuilder: (_, i) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 2),
+              child: Text('KİŞİLER',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+            );
+          }
+          if (i > _results.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
+            );
+          }
+          return _row(t, _results[i - 1]);
+        },
       ),
     );
   }

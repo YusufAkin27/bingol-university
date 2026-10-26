@@ -112,6 +112,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                 final content = d?['content'] as String?;
                 final url = (d?['url'] ?? n['url']) as String?;
                 final canOpen = url != null && (url.startsWith('https://') || url.startsWith('http://'));
+                final eventDate = (d?['eventDate'] ?? n['eventDate']) as String?;
+                final isEvent = type == 'ETKINLIK' && eventDate != null && eventDate.isNotEmpty;
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
                   children: [
@@ -121,6 +123,15 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       Text(niceDate(n['publishedDate'] as String?),
                           style: TextStyle(color: t.mut, fontSize: 13)),
                     ]),
+                    if (isEvent) ...[
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Icon(LucideIcons.calendar, size: 16, color: t.pr),
+                        const SizedBox(width: 6),
+                        Text('Etkinlik tarihi: ${niceDate(eventDate)}',
+                            style: TextStyle(color: t.ink, fontSize: 13, fontWeight: FontWeight.w700)),
+                      ]),
+                    ],
                     const SizedBox(height: 14),
                     Text((n['title'] as String?) ?? '',
                         style: TextStyle(
@@ -135,6 +146,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         borderRadius: BorderRadius.circular(20),
                         child: Image.network(img,
                             width: double.infinity,
+                            cacheWidth: 1000,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                       ),
@@ -151,8 +163,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         ),
                       )
                     else if (content != null && content.trim().isNotEmpty)
-                      SelectableText(content,
-                          style: TextStyle(fontSize: 16, height: 1.6, color: t.ink))
+                      _Article(content: content)
                     else
                       BuCard(
                         child: Text('İçeriğin tamamı için kaynak sayfayı açın.',
@@ -174,6 +185,34 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Düz metni paragraf paragraf gösterir (boş satırlarla ayrılmış bloklar).
+class _Article extends StatelessWidget {
+  const _Article({required this.content});
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final paragraphs = content
+        .split(RegExp(r'[\r\n]+'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
+    final style = TextStyle(fontSize: 16, height: 1.65, color: t.ink);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final p in paragraphs)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: SelectableText(p, style: style),
+          ),
+      ],
     );
   }
 }

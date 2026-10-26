@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart';
+import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 
@@ -149,4 +151,12 @@ class SupportChoices extends StatelessWidget {
 
 void supportSnack(BuildContext context, String text) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+}
+
+/// Hata metni; 429'da sunucu mesajı yoksa bekleme uyarısı verir (Retry-After başlığına ApiError taşımıyor).
+String supportError(Object e) {
+  if (e is ApiError && e.status == 429 && e.message.isEmpty) {
+    return 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.';
+  }
+  return errorText(e);
 }

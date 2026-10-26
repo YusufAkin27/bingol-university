@@ -29,11 +29,21 @@ class _SupportPageState extends State<SupportPage> {
   Object? _error;
   String? _ticketsError;
   final Set<int> _open = {};
+  final _scroll = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(() {
+      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
+    });
     _load();
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -53,7 +63,7 @@ class _SupportPageState extends State<SupportPage> {
         ..addAll(((r['items'] as List?) ?? []).whereType<Map>().map((e) => e.cast<String, dynamic>()));
       _next = (r['nextCursor'] as num?)?.toInt();
     } catch (e) {
-      tErr = errorText(e);
+      tErr = supportError(e);
     }
     if (!mounted) return;
     setState(() {
@@ -72,7 +82,7 @@ class _SupportPageState extends State<SupportPage> {
       _tickets.addAll(((r['items'] as List?) ?? []).whereType<Map>().map((e) => e.cast<String, dynamic>()));
       _next = (r['nextCursor'] as num?)?.toInt();
     } catch (e) {
-      if (mounted) supportSnack(context, errorText(e));
+      if (mounted) supportSnack(context, supportError(e));
     }
     if (mounted) setState(() => _more = false);
   }
@@ -106,7 +116,11 @@ class _SupportPageState extends State<SupportPage> {
     }
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(padding: const EdgeInsets.only(top: 14, bottom: 32), children: [
+      child: ListView(
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 14, bottom: 32),
+          children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: _cta(t)),
         const SupportLabel('SIK SORULAN SORULAR'),
         _faqCard(t),
@@ -250,11 +264,10 @@ class _SupportPageState extends State<SupportPage> {
               ]),
             ),
           ),
-        if (_next != null)
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: BuButton(
-                label: 'Daha fazla', kind: BuButtonKind.outline, compact: true, busy: _more, onPressed: _loadMore),
+        if (_more)
+          const Padding(
+            padding: EdgeInsets.all(12),
+            child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
           ),
       ]),
     );
