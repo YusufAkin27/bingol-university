@@ -22,6 +22,9 @@ public class FakeFcmSender implements FcmSender {
 
     private final List<Sent> sent = new CopyOnWriteArrayList<>();
     private final Set<String> invalidTokens = new HashSet<>();
+    private final List<PushMessage> messages = new CopyOnWriteArrayList<>();
+    private final Map<String, Integer> transientFailures = new java.util.concurrent.ConcurrentHashMap<>();
+    private boolean enabled = true;
 
     @Override
     public List<String> send(Collection<String> tokens, String title, String body, Map<String, String> data) {
@@ -33,6 +36,34 @@ public class FakeFcmSender implements FcmSender {
                              String collapseKey) {
         sent.add(new Sent(List.copyOf(tokens), title, body, Map.copyOf(data), collapseKey));
         return tokens.stream().filter(invalidTokens::contains).toList();
+    }
+
+    @Override
+    public SendResult deliver(Collection<String> tokens, PushMessage m) {
+        messages.add(m);
+        List<String> retry = tokens.stream().filter(t -> transientFailures.merge(t, 0, (a, b) -> a) > 0).toList();
+        retry.forEach(t -> transientFailures.merge(t, -1, Integer::sum));
+        List<String> ok = tokens.stream().filter(t -> !retry.contains(t)).toList();
+        List<String> invalid = ok.isEmpty() ? List.of() : send(ok, m.title(), m.body(), m.data(), m.collapseKey());
+        return new SendResult(invalid, retry);
+    }
+
+    @Override
+    public boolean enabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /** Bu token'a ilk `times` gonderim gecici hatayla (UNAVAILABLE benzetimi) duser. */
+    public void failTransient(String token, int times) {
+        transientFailures.put(token, times);
+    }
+
+    public List<PushMessage> messages() {
+        return new ArrayList<>(messages);
     }
 
     /** Bu token'lar icin "artik gecersiz" doner (UNREGISTERED benzetimi). */
@@ -56,5 +87,8 @@ public class FakeFcmSender implements FcmSender {
     public void reset() {
         sent.clear();
         invalidTokens.clear();
+        messages.clear();
+        transientFailures.clear();
+        enabled = true;
     }
 }

@@ -45,6 +45,20 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
+    void registerNormalizesPlatformAndStoresMeta() {
+        when(devices.findByFcmToken(anyString())).thenReturn(Optional.empty());
+        when(devices.findByUserIdOrderByUpdatedAtDesc(3L)).thenReturn(List.of());
+
+        deviceSvc.register(3L, "tok-new-xxxxxxxxxxxx", "ios", "1.2.0", "tr");
+
+        ArgumentCaptor<Device> cap = ArgumentCaptor.forClass(Device.class);
+        verify(devices).saveAndFlush(cap.capture());
+        assertEquals("IOS", cap.getValue().getPlatform());
+        assertEquals("1.2.0", cap.getValue().getAppVersion());
+        assertEquals("tr", cap.getValue().getLocale());
+    }
+
+    @Test
     void deviceLimitEvictsOldest() {
         when(devices.findByFcmToken(anyString())).thenReturn(Optional.empty());
         List<Device> mine = new ArrayList<>();

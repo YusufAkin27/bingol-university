@@ -33,4 +33,14 @@ public class Device {
     /** Her kayitta yenilenir; kullanici basina cihaz siniri asilinca en eskiler silinir. */
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
+
+    @Column(length = 32)
+    private String appVersion;
+
+    @Column(length = 16)
+    private String locale;
+
+    /** Uygulama her acilista kaydi yeniler; 60 gun gorulmeyen token'lar zamanlanmis isle silinir. */
+    @Column(nullable = false)
+    private Instant lastSeenAt = Instant.now();
 }

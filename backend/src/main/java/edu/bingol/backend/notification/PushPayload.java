@@ -11,6 +11,7 @@ import java.util.Map;
  *   <li>`type`: ana tur (NEWS, ANNOUNCEMENT, EVENT, MESSAGE, COMMUNITY, SYSTEM)</li>
  *   <li>`subtype`: varsa alt tur</li>
  *   <li>`target` + `value`: yonlendirme (NEWS, EVENT, COMMUNITY, POST, CONVERSATION, TICKET, FEEDBACK, URL; value = kimlik/URL)</li>
+ *   <li>`targetType` + `targetId`: target/value ile ayni (yeni adlandirma; mobil bunu tercih eder)</li>
  *   <li>`count`: gruplanmis bildirimde birlesen adet (&gt;1 ise)</li>
  *   <li>diger anahtarlar (newsId, conversationId...) geriye uyumluluk icin aynen korunur</li>
  * </ul>
@@ -25,7 +26,7 @@ public final class PushPayload {
             new String[] {"eventId", "EVENT"}, new String[] {"communityId", "COMMUNITY"},
             new String[] {"newsId", "NEWS"}, new String[] {"ticketId", "TICKET"},
             new String[] {"feedbackId", "FEEDBACK"});
-    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "count");
+    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count");
 
     private PushPayload() {}
 
@@ -53,6 +54,10 @@ public final class PushPayload {
                     break;
                 }
             }
+        }
+        if (out.containsKey("target")) {
+            out.put("targetType", out.get("target"));
+            out.put("targetId", out.getOrDefault("value", ""));
         }
         if (groupCount > 1) {
             out.put("count", String.valueOf(groupCount));

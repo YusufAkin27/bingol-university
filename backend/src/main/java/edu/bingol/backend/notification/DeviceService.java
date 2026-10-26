@@ -3,6 +3,7 @@ package edu.bingol.backend.notification;
 import edu.bingol.backend.notification.dto.NotificationDtos.DeviceView;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +20,24 @@ public class DeviceService {
         this.devices = devices;
     }
 
-    /** Ayni token baska kullaniciya aitse yeni kullaniciya tasinir (cihaz el degistirdi); tekrar kayit yenilemedir. */
     public void register(Long userId, String token, String platform) {
+        register(userId, token, platform, null, null);
+    }
+
+    /**
+     * Upsert: ayni token baska kullaniciya aitse yeni kullaniciya tasinir (hesap/cihaz degisimi); tekrar kayit
+     * son gorulmeyi yeniler.
+     */
+    public void register(Long userId, String token, String platform, String appVersion, String locale) {
         Device d = devices.findByFcmToken(token).orElseGet(Device::new);
+        Instant now = Instant.now();
         d.setFcmToken(token);
         d.setUserId(userId);
-        d.setPlatform(platform);
-        d.setUpdatedAt(Instant.now());
+        d.setPlatform(platform.toUpperCase(Locale.ROOT));
+        d.setAppVersion(appVersion);
+        d.setLocale(locale);
+        d.setUpdatedAt(now);
+        d.setLastSeenAt(now);
         try {
             devices.saveAndFlush(d);
         } catch (DataIntegrityViolationException e) {

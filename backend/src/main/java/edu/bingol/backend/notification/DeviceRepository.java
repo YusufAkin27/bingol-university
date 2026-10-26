@@ -23,6 +23,11 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     @Transactional
     @Modifying
+    @Query("DELETE FROM Device d WHERE d.lastSeenAt < :cutoff")
+    int deleteStale(@Param("cutoff") java.time.Instant cutoff);
+
+    @Transactional
+    @Modifying
     void deleteByFcmTokenIn(Collection<String> tokens);
 
     /**

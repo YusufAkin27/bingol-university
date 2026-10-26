@@ -50,7 +50,7 @@ public class NotificationController {
     public void registerDevice(@Valid @RequestBody DeviceRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("dev-reg:" + uid, 30, Duration.ofHours(1));
-        devices.register(uid, r.fcmToken(), r.platform());
+        devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale());
     }
 
     @GetMapping("/devices")

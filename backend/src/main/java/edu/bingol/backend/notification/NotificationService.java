@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,17 +35,27 @@ public class NotificationService {
     private final NotificationPrefRepository prefs;
     private final NotificationSubtypePrefRepository subtypePrefs;
     private final DeviceRepository devices;
-    private final FcmSender fcm;
+    private final PushDispatcher dispatcher;
     private final I18n i18n;
 
+    @Autowired
     public NotificationService(NotificationRepository notifications, NotificationPrefRepository prefs,
-                               NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices, FcmSender fcm, I18n i18n) {
+                               NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices,
+                               PushDispatcher dispatcher, I18n i18n) {
         this.notifications = notifications;
         this.prefs = prefs;
         this.subtypePrefs = subtypePrefs;
         this.devices = devices;
-        this.fcm = fcm;
+        this.dispatcher = dispatcher;
         this.i18n = i18n;
+    }
+
+    /** Es zamanli gonderimle (retry'siz) kurar; yalnizca birim testler icin. */
+    NotificationService(NotificationRepository notifications, NotificationPrefRepository prefs,
+                        NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices, FcmSender fcm,
+                        I18n i18n) {
+        this(notifications, prefs, subtypePrefs, devices,
+                new PushDispatcher(fcm, devices, Runnable::run, (task, delay) -> { }), i18n);
     }
 
     /** Hazir metinle tek kullaniciya (icerik zaten dilden bagimsizsa: haber basligi, kullanici girdisi vb.). */
@@ -105,9 +116,14 @@ public class NotificationService {
             if (type != NotificationType.SYSTEM && QuietHours.isQuiet(pref, Instant.now())) {
                 return; // sessiz saat: yalnizca uygulama ici kayit
             }
+            if (!dispatcher.enabled()) {
+                return; // FCM kapali: uygulama ici kayit yazildi, push atlanir
+            }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int count = n.getGroupCount();
-            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, pushBody, type, subtype, data, count, key);
+            int badge = (int) notifications.countByUserIdAndReadAtIsNull(userId);
+            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, pushBody, type, subtype, data,
+                    count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }
@@ -150,7 +166,7 @@ public class NotificationService {
         try {
             notifications.insertForAll(type.name(), truncate(title, 200), truncate(body, 500), toJson(data),
                     type.prefColumn());
-            push(devices.tokensForBroadcast(type.prefColumn()), title, body, type, null, data, 1, null);
+            push(devices.tokensForBroadcast(type.prefColumn()), title, body, type, null, data, 1, null, null);
         } catch (RuntimeException e) {
             log.warn("Toplu bildirim gonderilemedi: {}", e.toString());
         }
@@ -165,7 +181,7 @@ public class NotificationService {
                 String b = body == null ? null : body.apply(lang);
                 notifications.insertForLang(type.name(), truncate(t, 200), truncate(b, 500), toJson(data),
                         type.prefColumn(), lang.code());
-                push(devices.tokensForBroadcastLang(type.prefColumn(), lang.code()), t, b, type, null, data, 1, null);
+                push(devices.tokensForBroadcastLang(type.prefColumn(), lang.code()), t, b, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu bildirim ({}) gonderilemedi: {}", lang, e.toString());
             }
@@ -199,7 +215,7 @@ public class NotificationService {
                 }
                 notifications.saveAll(rows);
                 total += rows.size();
-                push(devices.tokensForUsers(allowed, type.prefColumn()), title, body, type, null, data, 1, null);
+                push(devices.tokensForUsers(allowed, type.prefColumn()), title, body, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu gonderim parcasi basarisiz: {}", e.toString());
             }
@@ -230,15 +246,12 @@ public class NotificationService {
     }
 
     private void push(List<String> tokens, String title, String body, NotificationType type, NotificationSubtype subtype,
-                      Map<String, String> data, int count, String collapseKey) {
+                      Map<String, String> data, int count, String collapseKey, Integer badge) {
         if (tokens.isEmpty()) {
             return;
         }
         Map<String, String> payload = PushPayload.build(type, subtype, data, count);
-        List<String> invalid = fcm.send(tokens, title, body == null ? "" : body, payload, collapseKey);
-        if (invalid != null && !invalid.isEmpty()) {
-            devices.deleteByFcmTokenIn(invalid);
-        }
+        dispatcher.dispatch(tokens, PushMessages.of(type, title, body == null ? "" : body, payload, collapseKey, badge));
     }
 
     /** Basit JSON (yalnizca dize degerler); kacis yapilir. */

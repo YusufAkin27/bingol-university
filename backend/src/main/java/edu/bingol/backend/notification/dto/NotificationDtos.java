@@ -18,14 +18,17 @@ public final class NotificationDtos {
     private NotificationDtos() {}
 
     public record DeviceRequest(@NotBlank @Size(min = 16, max = 500) String fcmToken,
-                                @NotBlank @Pattern(regexp = "ANDROID|IOS|WEB") String platform) {}
+                                @NotBlank @Pattern(regexp = "(?i)ANDROID|IOS|WEB") String platform,
+                                @Size(max = 32) String appVersion, @Size(max = 16) String locale) {}
 
     /** Token'in tamami donmez (yalnizca son 6 karakter); silmek icin id kullanilir. */
-    public record DeviceView(Long id, String platform, String tokenSuffix, String registeredAt, String updatedAt) {
+    public record DeviceView(Long id, String platform, String tokenSuffix, String registeredAt, String updatedAt,
+                             String appVersion, String locale, String lastSeenAt) {
         public static DeviceView of(Device d) {
             String t = d.getFcmToken();
             return new DeviceView(d.getId(), d.getPlatform(), t.length() <= 6 ? t : t.substring(t.length() - 6),
-                    d.getCreatedAt().toString(), d.getUpdatedAt().toString());
+                    d.getCreatedAt().toString(), d.getUpdatedAt().toString(), d.getAppVersion(), d.getLocale(),
+                    d.getLastSeenAt().toString());
         }
     }
 
