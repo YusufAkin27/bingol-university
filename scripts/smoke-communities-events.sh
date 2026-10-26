@@ -123,7 +123,7 @@ step "rol: OWNER atanamaz 400" 400 PUT /communities/$C1/members/$ID2/role "$T1" 
 step "rol: moderator ata" 204 PUT /communities/$C1/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
 step "moderator bilgi gunceller" 200 PATCH /communities/$C1 "$T2" '{"description":"Yeni aciklama"}'
 step "uye (T3) bilgi guncelleyemez" 403 PATCH /communities/$C1 "$T3" '{"description":"x"}'
-PNG="$(mktemp --suffix=.png)"; printf '\x89PNG\r\n\x1a\n' > "$PNG"
+PNG="$(mktemp --suffix=.png)"; cp "$(dirname "$0")/fixtures/media/tiny.png" "$PNG"  # gercek (kucuk) PNG: medya hatti sahte dosyayi reddeder
 PNGW=$(cygpath -m "$PNG" 2>/dev/null || echo "$PNG")
 CODE=$(curl -s -o "$TMP" -w '%{http_code}' -X POST -H "Authorization: Bearer $T1" -F "file=@$PNGW;type=image/png" $A/communities/$C1/cover)
 check "kapak yukle" 200 "$CODE"
