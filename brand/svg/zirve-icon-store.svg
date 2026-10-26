@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Bingöl Üniversitesi">
+  <defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2F63B0"/>
+    <stop offset="1" stop-color="#10264A"/>
+  </linearGradient></defs>
+  <rect width="512" height="512" rx="0" fill="url(#bg)"/>
+  
+      <path d="M40 372 L170 214 L250 300 L336 178 L472 372 Z" fill="#fff" fill-opacity=".22"/>
+      <path d="M96 372 L256 148 L416 372 Z" fill="#fff"/>
+      <path d="M256 148 L416 372 L256 372 Z" fill="#DCE6F5"/>
+      <circle cx="360" cy="146" r="28" fill="#D53E35"/>
+      <path d="M112 414 q36 -20 72 0 t72 0 t72 0 t72 0" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="12" stroke-linecap="round"/>
+</svg>
