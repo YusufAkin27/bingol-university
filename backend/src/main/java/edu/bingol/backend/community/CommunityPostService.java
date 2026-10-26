@@ -3,7 +3,7 @@ package edu.bingol.backend.community;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.storage.FileStorage;
-import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.PostView;
 import edu.bingol.backend.moderation.BlockService;
@@ -66,7 +66,7 @@ public class CommunityPostService {
         p.setImageUrl(image);
         posts.save(p);
 
-        PostView view = views(List.of(p), a, communities.effectiveRole(a, c)).get(0);
+        PostView view = views(List.of(p), a, communities.can(a, cid, ClubPermission.MANAGE_POSTS)).get(0);
         Set<Long> hidden = blocks.hiddenFrom(a.id());
         for (Long uid : members.userIdsByStatus(cid, CommunityMember.Status.ACTIVE, PageRequest.of(0, NOTIFY_LIMIT))) {
             if (uid.equals(a.id()) || hidden.contains(uid)) {
@@ -84,7 +84,7 @@ public class CommunityPostService {
     public CursorPage<PostView> feed(Actor a, Long cid, Long cursor, int size) {
         Community c = communities.loadVisible(a, cid);
         communities.requireReadable(a, c);
-        Role role = communities.effectiveRole(a, c);
+        boolean mod = communities.can(a, cid, ClubPermission.MANAGE_POSTS);
         Set<Long> excluded = communities.blockedFor(a);
         int s = CursorPage.clampSize(size);
         List<CommunityPost> rows = posts.feed(cid, Paging.descStart(cursor), excluded, PageRequest.of(0, s + 1));
@@ -94,15 +94,15 @@ public class CommunityPostService {
                 all.addAll(posts.pinned(cid, excluded));
             }
             all.addAll(items);
-            return views(all, a, role);
+            return views(all, a, mod);
         });
     }
 
     @Transactional
     public void delete(Actor a, Long cid, Long postId) {
-        Community c = communities.load(cid);
+        communities.load(cid);
         CommunityPost p = find(cid, postId);
-        boolean mod = isModerator(communities.effectiveRole(a, c));
+        boolean mod = communities.can(a, cid, ClubPermission.MANAGE_POSTS);
         if (!p.getAuthorId().equals(a.id()) && !mod) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu yazıyı silemezsiniz.");
         }
@@ -113,7 +113,8 @@ public class CommunityPostService {
 
     @Transactional
     public void pin(Actor a, Long cid, Long postId, boolean pinned) {
-        communities.requireModerator(a, communities.load(cid));
+        communities.load(cid);
+        communities.require(a, cid, ClubPermission.MANAGE_POSTS);
         CommunityPost p = find(cid, postId);
         if (pinned && !p.isPinned() && posts.countByCommunityIdAndPinnedTrueAndDeletedFalse(cid) >= MAX_PINNED) {
             throw new ApiException(HttpStatus.CONFLICT, "PIN_LIMIT", "En fazla " + MAX_PINNED + " yazı sabitlenebilir.", String.valueOf(MAX_PINNED));
@@ -147,13 +148,8 @@ public class CommunityPostService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Yazı bulunamadı."));
     }
 
-    private static boolean isModerator(Role r) {
-        return r != null && r.atLeastModerator();
-    }
-
-    private List<PostView> views(List<CommunityPost> list, Actor a, Role role) {
+    private List<PostView> views(List<CommunityPost> list, Actor a, boolean mod) {
         Map<Long, User> authors = communities.usersById(list.stream().map(CommunityPost::getAuthorId).toList());
-        boolean mod = isModerator(role);
         return list.stream().map(p -> {
             User u = authors.get(p.getAuthorId());
             return new PostView(p.getId(), p.getCommunityId(), p.getAuthorId(),

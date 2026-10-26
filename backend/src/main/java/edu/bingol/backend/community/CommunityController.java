@@ -2,7 +2,6 @@ package edu.bingol.backend.community;
 
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
-import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
@@ -12,6 +11,8 @@ import edu.bingol.backend.community.dto.CommunityDtos.PostView;
 import edu.bingol.backend.community.dto.CommunityDtos.RoleRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.UpdateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.UploadResult;
+import edu.bingol.backend.community.permissions.ClubDtos.AccessRequest;
+import edu.bingol.backend.community.permissions.ClubRoleService;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import org.springframework.http.HttpStatus;
@@ -36,8 +37,11 @@ public class CommunityController {
     private final CommunityService communities;
     private final CommunityPostService posts;
     private final RateLimiter limiter;
+    private final ClubRoleService roles;
 
-    public CommunityController(CommunityService communities, CommunityPostService posts, RateLimiter limiter) {
+    public CommunityController(CommunityService communities, CommunityPostService posts, RateLimiter limiter,
+                               ClubRoleService roles) {
+        this.roles = roles;
         this.communities = communities;
         this.posts = posts;
         this.limiter = limiter;
@@ -119,7 +123,10 @@ public class CommunityController {
     @PutMapping("/communities/{id}/members/{userId}/role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void role(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody RoleRequest r) {
-        communities.setRole(Actor.current(), id, userId, r.role());
+        Actor a = Actor.current();
+        limiter.check("club-perm:user:" + a.id(), 60, Duration.ofHours(1));
+        // Rol atama = rolun varsayilan yetkileriyle ince yetki akisi (yukseltme korumalari orada).
+        roles.setAccess(a, id, userId, new AccessRequest(r.role(), null, null));
     }
 
     /** ban=true ise kullanici yasaklanir ve yeniden katilamaz. */
