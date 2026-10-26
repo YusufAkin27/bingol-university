@@ -74,7 +74,7 @@ public class ClubAnnouncementService {
         }
         communityRepo.lockById(cid); // say-sonra-ekle yarisi: es zamanli duyurular siraya girer
         if (announcements.countSince(cid, Instant.now().minus(Duration.ofHours(24))) >= DAILY_LIMIT) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "ANNOUNCEMENT_LIMIT",
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "CLUB_ANNOUNCEMENT_LIMIT",
                     "Bir kulüp günde en fazla " + DAILY_LIMIT + " duyuru yapabilir.", String.valueOf(DAILY_LIMIT));
         }
         CommunityPost p = new CommunityPost();

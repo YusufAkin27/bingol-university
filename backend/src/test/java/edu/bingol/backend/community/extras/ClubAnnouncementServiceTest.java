@@ -85,7 +85,7 @@ class ClubAnnouncementServiceTest {
 
         var e = ClubExtrasTestSupport.error(() -> svc.create(mod, 10L, "duyuru"));
 
-        assertEquals("ANNOUNCEMENT_LIMIT", e.code());
+        assertEquals("CLUB_ANNOUNCEMENT_LIMIT", e.code());
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, e.status());
         assertEquals("3", e.args()[0]);
         verify(repo, never()).save(any());
