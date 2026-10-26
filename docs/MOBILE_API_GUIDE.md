@@ -227,6 +227,11 @@ content-type:application/json
 ### 4.6 Diğer mesajlaşma uçları (REST)
 `GET/POST /api/conversations` (birebir `{userId}`: varsa `200` mevcut, yoksa `201`; grup `{title,memberIds}` → `201`; günde en çok 30), `GET/PATCH /api/conversations/{id}`, `POST .../leave`, `POST .../members`, `DELETE .../members/{userId}`, `POST .../read {lastMessageId}` (204), `POST /api/messages/{id}/report {reason,note}`, `GET /api/users/{id}/presence` (`{online,lastSeenAt}`; yalnız ortak konuşması olan, engel ilişkisi olmayan kullanıcılar; aksi `404`), engelleme: `POST/DELETE /api/users/{id}/block`, `GET /api/users/me/blocks`. Ayrıntı: `openapi.json`, tasarım: [MESSAGING_DESIGN.md](MESSAGING_DESIGN.md).
 
+**Kulüp ve etkinlik sohbetleri (sohbet sekmesi).** `ConversationView.type` artık `DIRECT`, `GROUP`, `CLUB` veya `EVENT` olabilir; ayrıca `communityId` (yalnız `CLUB`) ve `eventId` (yalnız `EVENT`) alanları gelir, diğerlerinde `null`. Sohbeti açmak için:
+- `GET /api/communities/{id}/chat`: kulüp sohbetini getir-ya-da-oluştur ve çağıranı ekler; `ConversationView` döner. Yalnız kulübün aktif üyesi (yetkisize/onaysız kulüpte `404 CHAT_ROOM_NOT_FOUND`, kapalı odada `409 CHAT_ROOM_CLOSED`).
+- `GET /api/events/{id}/chat`: etkinlik sohbeti; RSVP'si `GOING`/`INTERESTED` olan ya da etkinliği yönetebilen girer (yetkisize `403 FORBIDDEN`, görünmeyen/iptal edilmiş etkinlikte `404 EVENT_NOT_FOUND`).
+Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/chat.*` ile aynıdır. Bu sohbetlere elle üye eklenmez, `leave` çalışmaz (`400 NOT_A_GROUP`); kulüpten ayrılan ya da RSVP'sini kaldıran kullanıcı sohbetten düşer (mesaj gönderme `404`). Kulüp/etkinlik adı sohbet başlığıdır.
+
 ## 5. Rate limit (429) davranışı
 - Sınırlar Redis'te **sabit pencere** sayacıdır; aşılınca `429` ve `{"code":"RATE_LIMITED","message":"Çok fazla deneme. Lütfen daha sonra tekrar deneyin."}`. (Doğrulama kodu uçlarında özel kodlar: `RESEND_COOLDOWN`, `TOO_MANY_ATTEMPTS`.)
 - **Şu an `Retry-After` / `X-RateLimit-*` başlıkları gönderilmez.** İstemci pencere uzunluğunu aşağıdaki tablodan bilir: 429'da kullanıcıya "biraz sonra tekrar deneyin" gösterin, otomatik tekrar için üstel geri çekilme (en az 5 sn, en çok 5 dk) kullanın, aynı istekleri döngüde tekrarlamayın.
@@ -441,7 +446,7 @@ Tam liste ve şemalar için `docs/openapi.json` (gruplar: `1-public`, `2-authent
 | Kimlik | `/api/auth/*` (bölüm 1) |
 | Profil | `GET/PATCH/DELETE /api/users/me`, `POST /api/users/me/avatar`, `GET /api/users/{id}`, `GET /api/users/search`, `GET /api/departments` |
 | Bildirim | `/api/devices`, `/api/notifications*` |
-| Mesajlaşma | `/api/conversations*`, `/ws` (bölüm 4) |
+| Mesajlaşma | `/api/conversations*`, `GET /api/communities/{id}/chat`, `GET /api/events/{id}/chat`, `/ws` (bölüm 4) |
 | Topluluk / etkinlik | `/api/communities*`, `/api/events*`, `/api/me/communities`, `/api/me/events` (QR yoklama: `GET /api/events/{id}/checkin-code` organizatör, `POST /api/events/{id}/check-in` katılımcı) |
 | Arama / favori | `GET /api/search`, `/api/bookmarks*` |
 | Destek | `/api/feedback`, `/api/suggestions`, `/api/support/tickets*`, `/api/faq` |

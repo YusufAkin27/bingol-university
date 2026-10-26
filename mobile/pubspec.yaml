@@ -1,4 +1,4 @@
-﻿name: bu_kampus
+name: bu_kampus
 description: BÜ Kampüs - Bingöl Üniversitesi mobil uygulaması
 publish_to: 'none'
 version: 1.0.0+1
@@ -10,7 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.0
+  flutter_secure_storage: 11.2.0
   url_launcher: ^6.3.0
+  lucide_icons_flutter: ^4.0.1
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +26,7 @@ flutter:
     - assets/branding/logo_horizontal.png
     - assets/branding/logo_horizontal_dark.png
     - assets/branding/mark.png
+    - assets/branding/mark_white.png
 
 # Başlatıcı simgeleri: `dart run flutter_launcher_icons` (kaynaklar brand/build.js ile üretilir)
 flutter_launcher_icons:

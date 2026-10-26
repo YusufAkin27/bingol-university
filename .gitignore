@@ -16,3 +16,4 @@ web/playwright-report/
 .playwright-mcp/
 brand/node_modules/
 brand/.preview/
+test-results/

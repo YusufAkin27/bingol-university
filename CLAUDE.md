@@ -10,7 +10,7 @@ Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve y
 
 - `backend/` — Spring Boot 4.1.x, Java 17, Maven; PostgreSQL 16 (Flyway), Redis, WebSocket/STOMP, JJWT, jsoup, Firebase Admin (isteğe bağlı), Lombok
 - `web/` — React + TypeScript (Vite): herkese açık tanıtım sitesi + `/admin` yönetim paneli (bkz. `web/README.md`)
-- `mobile/` — Flutter (Android). **Ertelendi**: tek dosyalık ilk sürüm (`mobile/lib/main.dart`); Flutter bu makinede kurulu değil
+- `mobile/` — Flutter (iOS/Android): kayıt/giriş/doğrulama/şifre sıfırlama (3 adım) + Ana Sayfa, Keşfet, Sohbet (kişi/kulüp/etkinlik), Kulüpler, Etkinlikler, Yemek, Bildirimler, Arama, Destek, Profil, Ayarlar; açık/koyu tema. Mimari ve derleme: [docs/MOBILE_UI.md](docs/MOBILE_UI.md); tasarım şablonları `mobile/design/*.dc.html`. iOS Windows'tan `xcross` ile derlenir (Türkçe karakterli yolda `C:u_mobile` junction'ı, `PUB_CACHE=C:\pubcache`, Flutter `C:\srclutter`)
 - `docker-compose.yml` — postgres, redis, backend (ve varsa web)
 
 ### Backend paket haritası (`backend/src/main/java/edu/bingol/backend/`)
@@ -22,7 +22,7 @@ Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve y
 | `user`, `profile` | `User` varlığı (rol, durum, dil, bölüm…), profil, kullanıcı arama, hesap silme (anonimleştirme) |
 | `notification` (+ `fcm`, `campaign`) | Cihaz kaydı, uygulama içi liste, tercihler, FCM; yönetici push kampanyaları (hedef kitle, 3 dil, zamanlama) |
 | `moderation` | Engelleme, raporlama, `ReportTargetHandler` SPI, kullanıcı askıya alma, admin rapor kuyruğu |
-| `messaging` (+ `ws`) | Birebir/grup sohbet, STOMP `/ws`, Redis pub/sub, presence |
+| `messaging` (+ `ws`, `room`) | Birebir/grup sohbet, STOMP `/ws`, Redis pub/sub, presence; kulüp/etkinlik odaları (`chat_room_link`, `RoomConversations`): `GET /api/communities/{id}/chat`, `GET /api/events/{id}/chat` → `ConversationView.type` `CLUB`/`EVENT` + `communityId`/`eventId` (kalıcı tür `GROUP` kalır; tür/kaynak bağlantıdan türetilir) |
 | `community`, `event` | Topluluklar, kullanıcı etkinlikleri, RSVP, QR + elle yoklama, hatırlatmalar |
 | `bookmark`, `search` | Haber favorileri; `SearchProvider` SPI ile PostgreSQL Türkçe tam metin arama |
 | `support` (`feedback`, `ticket`, `faq`) | Geri bildirim + öneri panosu, destek talepleri, SSS |
@@ -96,8 +96,8 @@ curl localhost:8080/actuator/health
 ### Web (`web/`)
 Bkz. `web/README.md` (komutlar, klasör haritası, E2E). Geliştirme: `cd web && npm run dev` (Vite proxy → backend 8080; `changeOrigin` kapalı kalmalı: Spring CORS Host/Origin eşleşmesine bakar). Üretim: `docker compose` içindeki `web` servisi (nginx, `WEB_PORT`, varsayılan 8090) `/api`, `/files`, `/ws` isteklerini backend'e vekiller, `Host` başlığını korur. TypeScript strict, CSS Modules + tasarım token'ları, kendi i18n (tr/en/ar, Arapçada RTL — mantıksal CSS özellikleri), react-query, token'lar `sessionStorage`. Yeni sayfa yalnızca kendi dosyasında; rotalar `routes.tsx`, menü `layouts/adminNav.ts`. `npm run lint && typecheck && test && build` yeşil olmalı.
 
-### Mobil (Flutter) — ertelendi
-Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım durumları, kaynak sitelere doğrudan istek yok.
+### Mobil (Flutter)
+Tek API katmanı (`lib/core/api.dart`, tek uçuşlu refresh), renkler yalnızca `context.bu` (BuTokens) üzerinden, her ekranda yükleniyor/hata/boş/bakım durumları, kaynak sitelere doğrudan istek yok. Ayrıntı: docs/MOBILE_UI.md.
 
 ## 4. Güvenlik kuralları (kesin)
 1. **Sırlar kodda/commit'te olmaz.** `.env`, anahtarlar, FCM JSON'u, `data/` commit'lenmez. Varsayılan `dev-only-…` JWT anahtarı yalnızca yerel içindir.
@@ -131,9 +131,9 @@ Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım d
 - Haberlerde yalnızca ilk sayfa (20 kayıt/tür) çekilir; harici alt sitelerdeki duyurularda içerik yoktur.
 - Rate limit sabit pencere; IP `getRemoteAddr()` — proxy arkasında `X-Forwarded-For` ayarlanmalı (`server.forward-headers-strategy`).
 - `register`, doğrulanmış e-posta için 409 döner (sınırlı enumerasyon; bilinen taviz).
-- Şifre sıfırlama yok. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
+- Şifre sıfırlama: `POST /api/auth/forgot-password` (kod e-postaya, 202 her durumda) + `POST /api/auth/reset-password {email, code, newPassword}`; mevcut refresh token'lar iptal edilmez. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
 - Sözleşme metinleri **taslaktır**, hukuki inceleme gerekir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
-- Mobil uygulama ertelendi; Flutter bu makinede yok.
+- Mobil: gerçek zamanlı mesajlaşma şimdilik yoklama (polling) ile; push (FCM/APNs), görsel yükleme ve QR kamera taraması eklenti gerektirdiği için yok; ücretsiz Apple ID ile imza 7 gün geçerli; xcross uygulama simgesini işlemez.
 
 ## 9. Yönetim paneli API'leri (özet)
 

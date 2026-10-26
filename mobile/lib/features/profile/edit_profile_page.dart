@@ -1,0 +1,520 @@
+import 'package:flutter/material.dart';
+
+import '../../core/session.dart';
+import '../../core/theme.dart';
+import '../../widgets/bu_widgets.dart';
+import '../auth/auth_widgets.dart';
+
+class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({super.key, required this.session, required this.profile});
+
+  final Session session;
+  final Map<String, dynamic> profile;
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  final _form = GlobalKey<FormState>();
+  late final _name = TextEditingController(text: widget.profile['displayName'] as String? ?? '');
+  late final _dept = TextEditingController(text: widget.profile['department'] as String? ?? '');
+  late final _bio = TextEditingController(text: widget.profile['bio'] as String? ?? '');
+  late String? _faculty = _nonEmpty(widget.profile['faculty'] as String?);
+  late int? _classYear = _yearOf((widget.profile['classYear'] as num?)?.toInt());
+  late bool _showEmail = widget.profile['showEmail'] == true;
+  // Dil seçimi Ayarlar'a taşındı; mevcut değer olduğu gibi gönderilir.
+  late final String _language = (widget.profile['language'] as String?) ?? 'tr';
+
+  late final String _n0 = _name.text;
+  late final String _d0 = _dept.text;
+  late final String _b0 = _bio.text;
+  late final String? _f0 = _faculty;
+  late final int? _c0 = _classYear;
+  late final bool _e0 = _showEmail;
+
+  List<String> _faculties = const [];
+  bool _busy = false;
+  bool _saved = false;
+  String? _error;
+
+  static String? _nonEmpty(String? s) => (s == null || s.isEmpty) ? null : s;
+  static int? _yearOf(int? y) => (y == null || y == 0) ? null : y;
+
+  bool get _dirty =>
+      _name.text != _n0 ||
+      _dept.text != _d0 ||
+      _bio.text != _b0 ||
+      _faculty != _f0 ||
+      _classYear != _c0 ||
+      _showEmail != _e0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Başlangıç değerlerini ilk çerçeveden önce sabitle.
+    _n0;
+    _d0;
+    _b0;
+    _f0;
+    _c0;
+    _e0;
+    _loadFaculties();
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _dept.dispose();
+    _bio.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFaculties() async {
+    try {
+      final r = await widget.session.api.get('/faculties') as List;
+      if (mounted) setState(() => _faculties = List<String>.from(r));
+    } catch (_) {
+      // Liste gelmezse fakülte alanı gizlenir; diğer alanlar kaydedilebilir.
+    }
+  }
+
+  Future<void> _save() async {
+    if (_busy || !_form.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.session.api.patch('/users/me', {
+        'displayName': _name.text.trim(),
+        if (_faculties.isNotEmpty) 'faculty': _faculty ?? '',
+        'department': _dept.text.trim(),
+        'classYear': _classYear ?? 0,
+        'bio': _bio.text.trim(),
+        'showEmail': _showEmail,
+        'language': _language,
+      });
+      _saved = true;
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = errorText(e);
+        });
+      }
+    }
+  }
+
+  Future<bool> _confirmDiscard() async {
+    final r = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Değişiklikler kaydedilmedi'),
+        content: const Text('Çıkarsanız yaptığınız değişiklikler kaybolacak.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Düzenlemeye devam et')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Vazgeç ve çık')),
+        ],
+      ),
+    );
+    return r == true;
+  }
+
+  Future<void> _pickFaculty() async {
+    final bu = context.bu;
+    final faculties = {..._faculties, if (_faculty != null) _faculty!}.toList();
+    final r = await showModalBottomSheet<_Pick<String?>>(
+      context: context,
+      backgroundColor: bu.sf,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => _OptionSheet<String?>(
+        title: 'Fakülte',
+        selected: _faculty,
+        options: [
+          const _Opt(null, 'Seçilmedi'),
+          for (final f in faculties) _Opt(f, f),
+        ],
+      ),
+    );
+    if (r != null) setState(() => _faculty = r.value);
+  }
+
+  Future<void> _pickYear() async {
+    final r = await showModalBottomSheet<_Pick<int?>>(
+      context: context,
+      backgroundColor: context.bu.sf,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => _OptionSheet<int?>(
+        title: 'Sınıf',
+        selected: _classYear,
+        options: [
+          const _Opt(null, 'Belirtilmedi'),
+          for (var i = 1; i <= 8; i++) _Opt(i, '$i. sınıf'),
+        ],
+      ),
+    );
+    if (r != null) setState(() => _classYear = r.value);
+  }
+
+  InputDecoration _deco(BuildContext context, {String? hint}) {
+    final bu = context.bu;
+    OutlineInputBorder b(Color c) =>
+        OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: c));
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: bu.mut, fontWeight: FontWeight.w500),
+      counterText: '',
+      filled: true,
+      fillColor: bu.sf,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: b(bu.bd),
+      enabledBorder: b(bu.bd),
+      focusedBorder: b(bu.pr),
+      errorBorder: b(bu.danger),
+      focusedErrorBorder: b(bu.danger),
+    );
+  }
+
+  Widget _label(String t) {
+    final bu = context.bu;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Text(t.toUpperCase(),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: bu.mut, letterSpacing: 0.3)),
+    );
+  }
+
+  Widget _selectBox(String? text, String placeholder, VoidCallback onTap) {
+    final bu = context.bu;
+    return Material(
+      color: bu.sf,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: bu.bd),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  text ?? placeholder,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: text == null ? bu.mut : bu.ink,
+                  ),
+                ),
+              ),
+              Icon(LucideIcons.chevronDown, size: 18, color: bu.mut),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _avatar() {
+    final bu = context.bu;
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _soon,
+          child: SizedBox(
+            width: 98,
+            height: 98,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [bu.h1, bu.h2],
+                    ),
+                  ),
+                  child: Text(
+                    initialsOf(_name.text),
+                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white),
+                  ),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: bu.ink,
+                      border: Border.all(color: bu.bg, width: 3),
+                    ),
+                    child: Icon(LucideIcons.camera, size: 16, color: bu.bg),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: _soon,
+          child: Text('Fotoğrafı değiştir',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: bu.pr)),
+        ),
+      ],
+    );
+  }
+
+  void _soon() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Fotoğraf yükleme yakında')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bu = context.bu;
+    final hasFaculty = _faculties.isNotEmpty || _faculty != null;
+    return PopScope(
+      canPop: _saved || !_dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final nav = Navigator.of(context);
+        if (await _confirmDiscard()) {
+          _saved = true;
+          nav.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: bu.bg,
+        body: Column(
+          children: [
+            BuHeader(title: 'Profili düzenle', onBack: () => Navigator.maybePop(context)),
+            Expanded(
+              child: Form(
+                key: _form,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: [
+                    if (_error != null) Notice(_error!),
+                    Center(child: _avatar()),
+                    const SizedBox(height: 18),
+                    _label('Ad soyad'),
+                    TextFormField(
+                      controller: _name,
+                      maxLength: 80,
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (_) => setState(() {}),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink),
+                      validator: (v) =>
+                          (v == null || v.trim().length < 2) ? 'Ad en az 2 karakter olmalı.' : null,
+                      decoration: _deco(context),
+                    ),
+                    if (hasFaculty) ...[
+                      const SizedBox(height: 12),
+                      _label('Fakülte'),
+                      _selectBox(_faculty, 'Seçilmedi', _pickFaculty),
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _label('Bölüm'),
+                              TextFormField(
+                                controller: _dept,
+                                maxLength: 120,
+                                onChanged: (_) => setState(() {}),
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink),
+                                decoration: _deco(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 10,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _label('Sınıf'),
+                              _selectBox(_classYear == null ? null : '$_classYear. sınıf', 'Belirtilmedi',
+                                  _pickYear),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _label('Hakkımda')),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Text('${_bio.text.characters.length}/300',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: bu.mut)),
+                        ),
+                      ],
+                    ),
+                    TextFormField(
+                      controller: _bio,
+                      maxLength: 300,
+                      maxLines: 4,
+                      minLines: 3,
+                      onChanged: (_) => setState(() {}),
+                      style: TextStyle(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500, color: bu.ink),
+                      decoration: _deco(context, hint: 'Kendinizden kısaca bahsedin'),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 52,
+                      padding: const EdgeInsets.only(left: 16, right: 12),
+                      decoration: BoxDecoration(
+                        color: bu.sf,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: bu.bd),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text('E-postamı diğer kullanıcılara göster',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink)),
+                          ),
+                          Switch(
+                            value: _showEmail,
+                            onChanged: (v) => setState(() => _showEmail = v),
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: bu.pr,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor: bu.sf2,
+                            trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SafeArea(
+              top: false,
+              minimum: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: _busy ? null : _save,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: bu.pr,
+                      foregroundColor: bu.onPr,
+                      disabledBackgroundColor: bu.pr,
+                      disabledForegroundColor: bu.onPr,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    ),
+                    child: _busy
+                        ? SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.4, color: bu.onPr),
+                          )
+                        : const Text('Kaydet'),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Opt<T> {
+  const _Opt(this.value, this.label);
+  final T value;
+  final String label;
+}
+
+/// Seçimi null değeriyle de ayırt edebilmek için sarmalayıcı.
+class _Pick<T> {
+  const _Pick(this.value);
+  final T value;
+}
+
+class _OptionSheet<T> extends StatelessWidget {
+  const _OptionSheet({required this.title, required this.options, required this.selected});
+
+  final String title;
+  final List<_Opt<T>> options;
+  final T selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final bu = context.bu;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: bu.bd, borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: bu.ink)),
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final o in options)
+                    ListTile(
+                      title: Text(o.label,
+                          style: TextStyle(
+                            fontWeight: o.value == selected ? FontWeight.w800 : FontWeight.w600,
+                            color: o.value == selected ? bu.pr : bu.ink,
+                          )),
+                      trailing: o.value == selected ? Icon(LucideIcons.check, color: bu.pr, size: 20) : null,
+                      onTap: () => Navigator.pop(context, _Pick<T>(o.value)),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Yeni Sohbet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{position:relative;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;overflow:hidden}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hd{padding:60px 20px 0;display:flex;align-items:center;gap:12px}
+.hd h1{margin:0;flex-grow:1;font-size:28px;font-weight:800;letter-spacing:-.4px}
+.ib{width:44px;height:44px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0}
+.av{width:46px;height:46px;border-radius:50%;background:var(--soft);color:var(--onsoft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.ck{margin-left:auto;width:24px;height:24px;border-radius:8px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--onpr)}
+.ck.on{background:var(--pr);border-color:var(--pr)}
+.ck .i{width:14px;height:14px;stroke-width:3}
+.pill{height:34px;padding:0 6px 0 12px;border-radius:17px;background:var(--soft);color:var(--onsoft);font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.pill .i{width:16px;height:16px}
+</style>
+</helmet>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+</svg>
+<div class="s" style="--bg:#FAF6F3;--sf:#FFFFFF;--sf2:#F3ECE7;--ink:#171E33;--mut:#5F6577;--bd:#E8DFD8;--pr:#C62A20;--onpr:#FFFFFF;--soft:#FDE7E4;--onsoft:#8E1B13">
+  <div class="hd"><div class="ib"><svg class="i"><use href="#i-back"/></svg></div><h1>Yeni sohbet</h1></div>
+
+  <div style="margin:16px 20px 0;height:48px;box-sizing:border-box;padding:0 16px;border-radius:24px;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;color:var(--mut);font-size:14px"><svg class="i" style="width:20px;height:20px"><use href="#i-search"/></svg><span>Ad veya e-posta ile ara</span></div>
+
+  <div style="margin:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap">
+    <div class="pill">Merve Kaya<svg class="i"><use href="#i-x"/></svg></div>
+    <div class="pill">Emre Aydın<svg class="i"><use href="#i-x"/></svg></div>
+  </div>
+
+  <div style="margin:10px 20px 0;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--sf);border:1px solid var(--bd)">
+    <div class="av" style="background:var(--ink);color:var(--bg);border-radius:16px"><svg class="i"><use href="#i-users"/></svg></div>
+    <div style="flex-grow:1"><div style="font-size:15px;font-weight:800">Grup oluştur</div><div style="margin-top:2px;font-size:12px;color:var(--mut)">2 kişi seçildi</div></div>
+    <div style="font-size:12px;font-weight:700;color:var(--mut)">en çok 50</div>
+  </div>
+
+  <div style="margin:12px 20px 0;font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--mut)">KİŞİLER</div>
+  <div style="margin:2px 20px 0">
+    <div class="row"><div class="av">MK</div><div><div style="font-size:15px;font-weight:700">Merve Kaya</div><div style="font-size:12px;color:var(--mut)">Bilgisayar Müh.</div></div><div class="ck on"><svg class="i"><use href="#i-check"/></svg></div></div>
+    <div class="row"><div class="av" style="background:var(--ink);color:var(--bg)">EA</div><div><div style="font-size:15px;font-weight:700">Emre Aydın</div><div style="font-size:12px;color:var(--mut)">Elektrik-Elektronik Müh.</div></div><div class="ck on"><svg class="i"><use href="#i-check"/></svg></div></div>
+    <div class="row"><div class="av">SD</div><div><div style="font-size:15px;font-weight:700">Selin Demir</div><div style="font-size:12px;color:var(--mut)">İşletme</div></div><div class="ck"></div></div>
+    <div class="row"><div class="av">ZY</div><div><div style="font-size:15px;font-weight:700">Zeynep Yıldız</div><div style="font-size:12px;color:var(--mut)">Hemşirelik</div></div><div class="ck"></div></div>
+  </div>
+
+  <div style="position:absolute;left:20px;right:20px;bottom:32px;height:54px;border-radius:14px;background:var(--pr);color:var(--onpr);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800">Grubu oluştur</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
