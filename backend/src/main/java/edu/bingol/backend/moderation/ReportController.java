@@ -31,6 +31,8 @@ public class ReportController {
     public Map<String, Long> create(@Valid @RequestBody CreateReportRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("report:user:" + uid, 20, Duration.ofDays(1));
+        // Ani yogun gonderim (spam/otomasyon) icin kisa pencere
+        limiter.check("report:burst:" + uid, 5, Duration.ofMinutes(1));
         return Map.of("id", reports.create(uid, r).getId());
     }
 }

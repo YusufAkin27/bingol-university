@@ -1,0 +1,10 @@
+# scripts/moderation-smoke.sh icin: sahte EVENT_COVER handler'i acar, yeni hesap yas kosulunu kaldirir.
+# Kullanim: docker compose -f docker-compose.yml -f scripts/moderation-compose.override.yml up -d --build postgres redis backend
+services:
+  backend:
+    environment:
+      APP_MODERATION_SMOKE_HANDLER: "true"
+      APP_MODERATION_NEW_ACCOUNT_MIN_AGE_HOURS: "0"
+      APP_MODERATION_AUTO_HIDE_THRESHOLD: "3"
+      APP_MODERATION_STRIKE_SUSPEND_THRESHOLD: "2"
+      APP_MODERATION_REJECT_RESTRICT_THRESHOLD: "2"
