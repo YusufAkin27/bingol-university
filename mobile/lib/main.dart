@@ -21,9 +21,28 @@ class BingolApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bingöl Üniversitesi',
+      title: 'BÜ Kampüs',
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       home: const HomePage(),
+    );
+  }
+}
+
+/// Yatay marka logosu (açık/koyu temaya göre). Varlıklar: assets/branding/ (brand/build.js üretir).
+class BrandLogo extends StatelessWidget {
+  const BrandLogo({super.key, this.height = 32});
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Image.asset(
+      dark
+          ? 'assets/branding/logo_horizontal_dark.png'
+          : 'assets/branding/logo_horizontal.png',
+      height: height,
+      semanticLabel: 'BÜ Kampüs',
+      filterQuality: FilterQuality.medium,
     );
   }
 }
@@ -67,7 +86,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final t = _tabs[_tab];
     return Scaffold(
-      appBar: AppBar(title: Text(t.$2)),
+      appBar: AppBar(title: const BrandLogo()),
       body: Column(
         children: [
           if (_maintenance)

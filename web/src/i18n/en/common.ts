@@ -1,5 +1,6 @@
 const common = {
-  'common.appName': 'Bingöl University',
+  'common.appName': 'BÜ Kampüs',
+  'common.logoAlt': 'BÜ Kampüs logo',
   'common.save': 'Save',
   'common.cancel': 'Cancel',
   'common.delete': 'Delete',
@@ -107,7 +108,7 @@ const common = {
   'admin.login.showPassword': 'Show password',
   'admin.login.hidePassword': 'Hide password',
   'admin.login.required': 'This field is required.',
-  'admin.login.brandLine': 'The control room of the Bingöl University app.',
+  'admin.login.brandLine': 'The control room of the BÜ Kampüs app.',
   'admin.forbidden.title': 'You do not have access to this area',
   'admin.forbidden.hint':
     'This panel is only open to administrator accounts. You can sign in with another account.',

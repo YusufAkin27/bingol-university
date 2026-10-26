@@ -1,0 +1,5 @@
+<!-- ios/Runner/Info.plist içindeki mevcut CFBundleDisplayName / CFBundleName değerlerini bununla değiştirin -->
+<key>CFBundleDisplayName</key>
+<string>BÜ Kampüs</string>
+<key>CFBundleName</key>
+<string>bu_kampus</string>

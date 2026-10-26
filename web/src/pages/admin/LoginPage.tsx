@@ -5,7 +5,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { ForbiddenScreen } from '../../auth/ForbiddenScreen';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
-import { Logo } from '../../components/Logo';
+import { Logo } from '../../components/brand/Logo';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { Button, ContourBackdrop, FormField, Icon, Input, PasswordInput } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -53,7 +53,7 @@ export default function LoginPage() {
       <aside className={styles.brand}>
         <ContourBackdrop className={styles.art} />
         <div className={styles.brandInner}>
-          <Logo to={paths.site.home} onDark />
+          <Logo to={paths.site.home} tone="dark" height={44} />
           <p className={styles.line}>{t('admin.login.brandLine')}</p>
         </div>
       </aside>

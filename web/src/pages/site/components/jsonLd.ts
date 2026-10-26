@@ -14,7 +14,7 @@ export function organizationLd(info: AppInfo | undefined, origin: string): Recor
   return clean({
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
-    name: info?.appName ?? 'Bingöl Üniversitesi',
+    name: info?.appName ?? 'BÜ Kampüs',
     url: info?.website ?? origin,
     email: info?.contactEmail,
     telephone: info?.phone,
@@ -32,7 +32,7 @@ export function mobileAppLd(
   return clean({
     '@context': 'https://schema.org',
     '@type': 'MobileApplication',
-    name: info?.appName ?? 'Bingöl Üniversitesi',
+    name: info?.appName ?? 'BÜ Kampüs',
     applicationCategory: 'EducationApplication',
     operatingSystem: [links.android ? 'Android' : null, links.ios ? 'iOS' : null].filter(Boolean).join(', '),
     url: origin,

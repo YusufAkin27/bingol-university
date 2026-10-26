@@ -1,5 +1,5 @@
 import type { Lang } from '../../../api/types';
-import { LogoMark } from '../../../components/Logo';
+import { Logo } from '../../../components/brand/Logo';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { LangContent } from './lib';
 import styles from './phone.module.css';
@@ -41,7 +41,7 @@ export function PhonePreview({
           >
             <div className={styles.notifHead}>
               <span className={styles.appIcon} aria-hidden="true">
-                <LogoMark size={18} />
+                <Logo variant="mark" height={18} decorative />
               </span>
               <span className={styles.appName}>{t('common.appName')}</span>
               <span className={styles.dotSep} aria-hidden="true">

@@ -1,0 +1,66 @@
+{
+  "horizontal-light": [
+    1965,
+    512
+  ],
+  "horizontal-dark": [
+    1965,
+    512
+  ],
+  "horizontal-white": [
+    1965,
+    512
+  ],
+  "horizontal-black": [
+    1965,
+    512
+  ],
+  "horizontal-tagline-light": [
+    1752,
+    512
+  ],
+  "horizontal-tagline-dark": [
+    1752,
+    512
+  ],
+  "horizontal-tagline-white": [
+    1752,
+    512
+  ],
+  "horizontal-tagline-black": [
+    1752,
+    512
+  ],
+  "vertical-light": [
+    958,
+    776
+  ],
+  "vertical-dark": [
+    958,
+    776
+  ],
+  "vertical-white": [
+    958,
+    776
+  ],
+  "vertical-black": [
+    958,
+    776
+  ],
+  "vertical-tagline-light": [
+    798,
+    823
+  ],
+  "vertical-tagline-dark": [
+    798,
+    823
+  ],
+  "vertical-tagline-white": [
+    798,
+    823
+  ],
+  "vertical-tagline-black": [
+    798,
+    823
+  ]
+}

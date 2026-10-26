@@ -14,3 +14,5 @@ web/coverage/
 web/e2e/.results/
 web/playwright-report/
 .playwright-mcp/
+brand/node_modules/
+brand/.preview/

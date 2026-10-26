@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo, useStoreLinks } from '../api/hooks';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { Logo } from '../components/Logo';
+import { Logo } from '../components/brand/Logo';
 import { StoreBadge } from '../components/StoreBadge';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ButtonLink, ContourBackdrop, Icon, IconButton } from '../components/ui';
@@ -59,7 +59,7 @@ export function SiteLayout() {
       )}
       <header className={styles.header}>
         <div className={`container ${styles.bar}`}>
-          <Logo to={paths.site.home} narrowMark />
+          <Logo to={paths.site.home} height={42} />
           <nav
             id="site-nav"
             aria-label={t('site.nav.main')}
@@ -109,7 +109,7 @@ export function SiteLayout() {
         <ContourBackdrop className={styles.footerArt} />
         <div className={`container ${styles.footGrid}`}>
           <div className={styles.footBrand}>
-            <Logo to={paths.site.home} onDark />
+            <Logo to={paths.site.home} tone="dark" height={40} />
             <p>{t('site.footer.tagline')}</p>
           </div>
           <div>

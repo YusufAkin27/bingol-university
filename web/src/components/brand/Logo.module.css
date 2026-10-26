@@ -1,0 +1,33 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  line-height: 0;
+  text-decoration: none;
+  max-width: 100%;
+}
+.img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  /* width/height öznitelikleri oranı korur (CLS yok); logo RTL'de de aynı yöne bakar */
+}
+
+/* tone="auto": açık temada açık zemin görseli, koyu temada koyu zemin görseli */
+.forDark {
+  display: none;
+}
+:global(:root[data-theme='dark']) .forLight {
+  display: none;
+}
+:global(:root[data-theme='dark']) .forDark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme='light'])) .forLight {
+    display: none;
+  }
+  :global(:root:not([data-theme='light'])) .forDark {
+    display: block;
+  }
+}

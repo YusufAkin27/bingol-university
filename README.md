@@ -1,4 +1,8 @@
-﻿# Bingöl Üniversitesi Projesi
+﻿<p align="center"><img src="docs/brand/logo-horizontal.png" alt="BÜ Kampüs" height="72"></p>
+
+# BÜ Kampüs
+
+Bingöl Üniversitesi öğrenci ve personeli için kampüs uygulaması ve web sitesi. Marka kılavuzu: [brand/README.md](brand/README.md).
 
 - `backend/` — Spring Boot 4 (Java 17, Maven, JPA, Security, PostgreSQL, Redis)
 - `mobile/`  — Flutter (Android)

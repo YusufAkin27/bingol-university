@@ -10,7 +10,7 @@ import { setTokens } from './auth/tokens';
 afterEach(() => vi.unstubAllGlobals());
 
 const info = {
-  appName: 'Bingöl Üniversitesi',
+  appName: 'BÜ Kampüs',
   website: null,
   contactEmail: 'info@bingol.edu.tr',
   supportEmail: null,

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Icon, type IconName } from '../../../components/ui';
-import { LogoMark } from '../../../components/Logo';
+import { Logo } from '../../../components/brand/Logo';
 import { useI18n } from '../../../i18n/I18nProvider';
 import styles from './Phone.module.css';
 
@@ -221,7 +221,7 @@ export function Phone({ screen, peek, tilt = 0, className, style }: Props) {
       <div className={styles.frame} aria-hidden="true">
         <span className={styles.notch} />
         <div className={styles.appbar}>
-          <LogoMark size={18} />
+          <Logo variant="mark" height={18} decorative />
           <span className={styles.title}>{line(34, styles.onDark)}</span>
         </div>
         <div className={styles.body}>

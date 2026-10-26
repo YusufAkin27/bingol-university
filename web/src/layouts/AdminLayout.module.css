@@ -31,7 +31,19 @@
   align-items: center;
   min-height: var(--header-h);
   padding-inline: var(--space-4);
+  gap: var(--space-3);
   overflow: hidden;
+}
+.collapsed .brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+.brandSub {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  color: #b7c6e4;
+  min-width: 0;
 }
 .nav {
   flex: 1;

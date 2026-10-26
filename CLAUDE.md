@@ -1,4 +1,4 @@
-# CLAUDE.md — Bingöl Üniversitesi Projesi
+# CLAUDE.md — BÜ Kampüs (Bingöl Üniversitesi) Projesi
 
 Bu dosya, repoda çalışan yapay zekâ ajanları ve geliştiriciler için kılavuzdur. Burada yazanlar koddaki mevcut duruma dayanır; kodla çeliştiğini görürseniz dosyayı güncelleyin.
 

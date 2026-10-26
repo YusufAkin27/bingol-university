@@ -1,4 +1,4 @@
-# Bingöl Üniversitesi Web
+# BÜ Kampüs Web
 
 Tek bir React uygulaması: herkese açık **tanıtım sitesi** (`/`) ve `/admin` altında **yönetim paneli**.
 Bu dizin iskelettir: kabuk, tasarım sistemi, API istemcisi, kimlik, i18n ve rota yer tutucuları hazırdır; sayfalar sırayla doldurulur.
@@ -43,7 +43,7 @@ Docker: derleme `VITE_API_BASE=/api` ile yapılır; `WEB_PORT` (compose) dış p
 | `i18n/` | `lang.ts`, `I18nProvider` (`useI18n`: `t`, `td`, `formatDate`, `formatNumber`, `dir`), `index.ts` (birleştirici), `{tr,en,ar}/<ad-alanı>.ts` |
 | `components/ui/` | UI kiti (Button, Fields, Card/StatCard, Badge/StatusPill, Table, Pagination/LoadMore, Modal/Drawer/ConfirmDialog, Tabs, Toast, Feedback [Spinner/Skeleton/EmptyState/ErrorState], PageHeader, SearchInput, DateRangePicker, Tooltip, Avatar, CopyButton, MarkdownText, DataToolbar, Icon, ContourBackdrop). `import { ... } from '../../components/ui'` |
 | `components/charts/` | LineAreaChart, BarChart, DonutChart, FunnelChart, CohortTable (Recharts sarmalayıcıları; **ayrı içe aktarılır**, `ui`'dan çıkmaz) |
-| `components/` | `PlaceholderPage`, `Logo`, `StoreBadge`, `LanguageSwitcher`, `ThemeToggle`, `ErrorBoundary` |
+| `components/` | `PlaceholderPage`, `brand/Logo` (variant mark|horizontal|vertical, tone auto|light|dark; görseller `src/assets/brand/`, `brand/build.js` üretir), `StoreBadge`, `LanguageSwitcher`, `ThemeToggle`, `ErrorBoundary` |
 | `layouts/` | `SiteLayout`, `AdminLayout`, `adminNav.ts` (**menünün tek kaynağı**), `QuickNav`, `UserMenu` |
 | `pages/site/`, `pages/admin/` | Her sayfa kendi dosyasında; üstünde kullanacağı API uçlarını yazan yorum vardır |
 | `styles/` | `tokens.css` (renk, aralık, gölge, yarıçap, tipografi; açık/koyu/Arapça), `global.css` |
