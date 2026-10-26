@@ -293,7 +293,34 @@ export interface SyncStatus {
 export type ReportStatus = 'OPEN' | 'RESOLVED';
 export type ReportResolution = 'DISMISS' | 'HIDE' | 'WARN' | 'SUSPEND_USER';
 export type ReportReason = 'SPAM' | 'HARASSMENT' | 'INAPPROPRIATE' | 'IMPERSONATION' | 'OTHER';
-export type ReportTargetType = 'USER' | 'MESSAGE' | 'POST' | 'COMMUNITY' | 'EVENT';
+export type ReportTargetType =
+  | 'USER'
+  | 'MESSAGE'
+  | 'POST'
+  | 'COMMUNITY'
+  | 'EVENT'
+  | 'MESSAGE_IMAGE'
+  | 'USER_AVATAR'
+  | 'COMMUNITY_COVER'
+  | 'EVENT_COVER';
+export type ReportReasonCode =
+  | 'SPAM'
+  | 'HARASSMENT'
+  | 'SEXUAL'
+  | 'VIOLENCE'
+  | 'HATE'
+  | 'PRIVACY'
+  | 'COPYRIGHT'
+  | 'IMPERSONATION'
+  | 'OTHER';
+/** Kuyrukta yöneticiye gösterilen içerik önizlemesi (görsel adresi yetkili uçtan servis edilir). */
+export interface MediaPreview {
+  kind: 'IMAGE' | 'TEXT';
+  url: string | null;
+  thumbnailUrl: string | null;
+  mime: string | null;
+  text: string | null;
+}
 export interface ReportView {
   id: number;
   reporterId: number;
@@ -304,10 +331,115 @@ export interface ReportView {
   status: ReportStatus;
   resolution: ReportResolution | null;
   createdAt: string;
+  /** Açık farklı raporlayıcı sayısı x 10 (+100 gizliyse). */
+  priority: number;
+  reasonCode: string | null;
+  preview: MediaPreview | null;
+  hidden: boolean;
+  hiddenBy: 'AUTO' | 'ADMIN' | null;
+  openReporters: number;
 }
 export interface ResolveReportRequest {
   action: ReportResolution;
   message?: string;
+  reasonCode?: ReportReasonCode;
+}
+export type ReportOrder = 'asc' | 'desc' | 'priority';
+export interface BulkResolveRequest extends ResolveReportRequest {
+  ids: number[];
+}
+export interface BulkResultRow {
+  id: number;
+  ok: boolean;
+  error: string | null;
+}
+export interface ReasonTemplate {
+  code: ReportReasonCode;
+  text: string;
+  texts: Record<Lang, string>;
+}
+
+// ---------- İtirazlar, askı önerileri, yasaklı özetler ----------
+export type AppealStatus = 'OPEN' | 'ACCEPTED' | 'REJECTED';
+export interface AppealView {
+  id: number;
+  userId: number;
+  targetType: ReportTargetType;
+  targetId: number;
+  message: string;
+  status: AppealStatus;
+  adminNote: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+export interface SuspendRecommendation {
+  id: number;
+  userId: number;
+  strikeCount: number;
+  status: 'OPEN' | 'ACCEPTED' | 'DISMISSED';
+  createdAt: string;
+}
+export interface BlocklistEntry {
+  sha256: string;
+  note: string | null;
+  createdBy: number | null;
+  createdAt: string;
+}
+/** Blocklist sayfalaması: imleç son sha256'dır (sayı değil). */
+export interface HashCursorPage<T> {
+  items: T[];
+  nextCursor: string | null;
+}
+
+// ---------- Mesaj çözme / şifreleme durumu ----------
+export interface DecryptRequest {
+  conversationId: number;
+  fromMessageId: number;
+  toMessageId?: number;
+  reason: string;
+}
+export interface DecryptedMessage {
+  id: number;
+  senderId: number;
+  createdAt: string;
+  text: string | null;
+  error: string | null;
+}
+export interface DecryptResponse {
+  auditId: number;
+  conversationId: number;
+  count: number;
+  messages: DecryptedMessage[];
+}
+export interface CryptoStatus {
+  activeKeyId: string;
+  keyIds: string[];
+  devKey: boolean;
+  adminDecryptEnabled: boolean;
+  dekCountsByMasterKey: Record<string, number>;
+}
+
+// ---------- Etkinlik başvuruları (yönetici salt okunur) / kulüp denetimi ----------
+export interface AdmissionSummary {
+  eventId: number;
+  mode: string;
+  capacity: number | null;
+  goingCount: number;
+  pending: number;
+  accepted: number;
+  waitlisted: number;
+  rejected: number;
+  cancelled: number;
+}
+export interface ClubAuditRow {
+  id: number;
+  action: string;
+  actorId: number | null;
+  actorName: string | null;
+  targetUserId: number | null;
+  targetName: string | null;
+  detail: string | null;
+  createdAt: string;
 }
 
 // ---------- Destek ----------

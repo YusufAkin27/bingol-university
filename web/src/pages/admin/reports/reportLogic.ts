@@ -1,4 +1,9 @@
-import type { ReportResolution, ReportView, ResolveReportRequest } from '../../../api/types';
+import type {
+  ReportReasonCode,
+  ReportResolution,
+  ReportView,
+  ResolveReportRequest,
+} from '../../../api/types';
 
 export const RESOLUTIONS: ReportResolution[] = ['DISMISS', 'HIDE', 'WARN', 'SUSPEND_USER'];
 export const MAX_MESSAGE = 300;
@@ -14,11 +19,15 @@ export function validateDecision(action: ReportResolution, message: string): Dec
 }
 
 /** Yalnızca mesajı kullanan kararlarda (WARN, SUSPEND_USER) mesaj gönderilir. */
-export function buildResolveRequest(action: ReportResolution, message: string): ResolveReportRequest {
+export function buildResolveRequest(
+  action: ReportResolution,
+  message: string,
+  reasonCode?: ReportReasonCode | '' | null,
+): ResolveReportRequest {
   const m = message.trim();
-  return action === 'WARN' || action === 'SUSPEND_USER'
-    ? { action, ...(m ? { message: m } : {}) }
-    : { action };
+  const base: ResolveReportRequest =
+    action === 'WARN' || action === 'SUSPEND_USER' ? { action, ...(m ? { message: m } : {}) } : { action };
+  return reasonCode ? { ...base, reasonCode } : base;
 }
 
 /** Aynı hedefe yüklü listede kaç rapor var. */

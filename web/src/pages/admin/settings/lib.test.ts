@@ -9,6 +9,25 @@ import {
   validateSetting,
 } from './lib';
 
+describe('etkinlik ayarları', () => {
+  it('onay anahtarı yalnızca true/false kabul eder', () => {
+    expect(validateSetting('events_require_approval', 'true')).toBeNull();
+    expect(validateSetting('events_require_approval', 'false')).toBeNull();
+    expect(validateSetting('events_require_approval', 'evet')).toBe('BOOL');
+  });
+  it('sınırlar 0-1000 arası tam sayıdır', () => {
+    for (const k of ['event_max_open_per_user', 'event_daily_create_limit']) {
+      expect(validateSetting(k, '0')).toBeNull();
+      expect(validateSetting(k, ' 5 ')).toBeNull();
+      expect(validateSetting(k, '1000')).toBeNull();
+      expect(validateSetting(k, '1001')).toBe('INT');
+      expect(validateSetting(k, '-1')).toBe('INT');
+      expect(validateSetting(k, '2.5')).toBe('INT');
+      expect(validateSetting(k, '')).toBe('INT');
+    }
+  });
+});
+
 describe('fakülte listesi ↔ `;` ayrıştırma', () => {
   it('kırpar, boşları ve tekrarları atar', () => {
     expect(parseFaculties(' Mühendislik ; ; Fen ;Mühendislik;')).toEqual(['Mühendislik', 'Fen']);

@@ -39,6 +39,12 @@ const CommunitiesAdminPage = lazy(() => import('./pages/admin/CommunitiesAdminPa
 const EventsAdminPage = lazy(() => import('./pages/admin/EventsAdminPage'));
 const CampaignsPage = lazy(() => import('./pages/admin/CampaignsPage'));
 const CampaignComposePage = lazy(() => import('./pages/admin/CampaignComposePage'));
+const AppealsPage = lazy(() => import('./pages/admin/AppealsPage'));
+const SuspendRecommendationsPage = lazy(() => import('./pages/admin/SuspendRecommendationsPage'));
+const BlocklistPage = lazy(() => import('./pages/admin/BlocklistPage'));
+const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
+const EventApplicationsPage = lazy(() => import('./pages/admin/EventApplicationsPage'));
+const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
 const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
@@ -94,6 +100,12 @@ export function AppRoutes() {
           <Route path="events" element={<EventsAdminPage />} />
           <Route path="campaigns" element={<CampaignsPage />} />
           <Route path="campaigns/new" element={<CampaignComposePage />} />
+          <Route path="moderation/appeals" element={<AppealsPage />} />
+          <Route path="moderation/suspensions" element={<SuspendRecommendationsPage />} />
+          <Route path="moderation/blocklist" element={<BlocklistPage />} />
+          <Route path="crypto" element={<CryptoPage />} />
+          <Route path="events/applications" element={<EventApplicationsPage />} />
+          <Route path="communities/audit" element={<ClubAuditPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="*" element={<AdminNotFoundPage />} />

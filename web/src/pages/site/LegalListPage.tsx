@@ -8,6 +8,7 @@ import { ErrorState, Icon, Skeleton } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
+import { AdminAccessNotice } from './components/AdminAccessNotice';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -75,6 +76,7 @@ export default function LegalListPage() {
               </li>
             </ul>
           )}
+          <AdminAccessNotice />
         </div>
       </section>
     </>

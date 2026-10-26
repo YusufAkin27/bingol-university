@@ -123,7 +123,7 @@ export default function HomePage() {
             {t('site.home.privacyTitle')}
           </h2>
           <ul className={styles.promises}>
-            {([1, 2, 3] as const).map((n) => (
+            {([1, 2, 3, 4] as const).map((n) => (
               <li key={n}>{t(`site.home.privacy${n}` as 'site.home.privacy1')}</li>
             ))}
           </ul>

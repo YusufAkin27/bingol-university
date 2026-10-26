@@ -12,6 +12,7 @@ import { Button, EmptyState, ErrorState, Icon, Skeleton } from '../../components
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
+import { AdminAccessNotice } from './components/AdminAccessNotice';
 import { LegalDocument } from './components/LegalDocument';
 import { listPublicLegalVersions } from './components/legalApi';
 import { PageHero } from './components/PageHero';
@@ -94,6 +95,8 @@ function LegalDocPage({ type }: { type: LegalType }) {
               />
             ))}
           {doc.data && <LegalDocument title={doc.data.title} content={doc.data.content} docLang={doc.data.lang} />}
+
+          {(type === 'PRIVACY' || type === 'KVKK') && <AdminAccessNotice />}
 
           <div className={`${styles.more} ${styles.noPrint}`}>
             <section aria-labelledby="legal-versions">

@@ -12,6 +12,12 @@ const rep = (id: number, targetId: number): ReportView => ({
   status: 'OPEN',
   resolution: null,
   createdAt: '2026-01-01T00:00:00Z',
+  priority: 10,
+  reasonCode: null,
+  preview: null,
+  hidden: false,
+  hiddenBy: null,
+  openReporters: 1,
 });
 
 describe('karar doğrulaması', () => {
@@ -29,6 +35,11 @@ describe('karar doğrulaması', () => {
     expect(buildResolveRequest('HIDE', 'not')).toEqual({ action: 'HIDE' });
     expect(buildResolveRequest('WARN', ' dikkat ')).toEqual({ action: 'WARN', message: 'dikkat' });
     expect(buildResolveRequest('WARN', '')).toEqual({ action: 'WARN' });
+  });
+  it('neden kodu verilmişse her kararda eklenir, boşsa eklenmez', () => {
+    expect(buildResolveRequest('HIDE', '', 'SEXUAL')).toEqual({ action: 'HIDE', reasonCode: 'SEXUAL' });
+    expect(buildResolveRequest('WARN', 'x', 'SPAM')).toEqual({ action: 'WARN', message: 'x', reasonCode: 'SPAM' });
+    expect(buildResolveRequest('DISMISS', '', '')).toEqual({ action: 'DISMISS' });
   });
 });
 

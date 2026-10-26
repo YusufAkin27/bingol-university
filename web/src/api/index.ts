@@ -16,3 +16,6 @@ export * as settingsApi from './settings';
 export * as approvalsApi from './approvals';
 export * as newsApi from './news';
 export * as auditApi from './audit';
+export * as moderationApi from './moderation';
+export * as cryptoApi from './crypto';
+export * as admissionApi from './admission';
