@@ -5,7 +5,7 @@
 Bingöl Üniversitesi öğrenci ve personeli için kampüs uygulaması ve web sitesi. Marka kılavuzu: [brand/README.md](brand/README.md).
 
 - `backend/` — Spring Boot 4 (Java 17, Maven, JPA, Security, PostgreSQL, Redis)
-- `mobile/`  — Flutter (Android)
+- `mobile/`  — Flutter (iOS/Android)
 
 ## Backend
 Docker gerekir: `cp .env.example .env` (degerleri doldurun) → `docker compose up -d --build` → http://localhost:8080/actuator/health
@@ -15,14 +15,12 @@ PostgreSQL + Redis + backend birlikte ayaga kalkar. Ayrintilar: CLAUDE.md. API p
 `web/` klasoru (React + TypeScript). Bkz. web/README.md.
 
 ## Mobile
-Flutter SDK kurulu degilse once kurun. Ardindan:
+Flutter uygulamasi `mobile/` altindadir (kayit/giris, haber, yemek, sohbet, kulup, etkinlik+QR, bildirim, arama, destek, profil). Derleme/calistirma (Windows, xcross ile iPhone dahil) ve mimari: [docs/MOBILE_UI.md](docs/MOBILE_UI.md); API rehberi: [docs/MOBILE_API_GUIDE.md](docs/MOBILE_API_GUIDE.md); push kurulumu: [docs/PUSH_SETUP.md](docs/PUSH_SETUP.md).
 ```
 cd mobile
-flutter create --platforms=android --org edu.bingol --project-name bingol_mobile .
-flutter run
+flutter test
+flutter run --dart-define=API_BASE=http://<adres>:8080
 ```
-(`flutter create .` mevcut lib/main.dart ve pubspec.yaml dosyalarini korur.)
-
 
 ## Hizli baslangic
 ```
@@ -36,4 +34,5 @@ Duman testleri: `scripts/smoke*.sh`, `node scripts/ws-test.js` (bkz. CLAUDE.md).
 
 ## Dokumanlar
 - CLAUDE.md — mimari, kurallar, komutlar
-- docs/MVP.md, docs/API_PLAN.md, docs/ADMIN_API.md, docs/MESSAGING_DESIGN.md, docs/ONERILER.md
+- docs/MVP.md, docs/API_PLAN.md, docs/ADMIN_API.md, docs/MESSAGING_DESIGN.md, docs/ONERILER.md, docs/CHANGELOG.md
+- docs/MOBILE_API_GUIDE.md, docs/MOBILE_UI.md, docs/PUSH_SETUP.md, docs/MOBILE_PUSH.md, docs/DEPLOY.md (uretim), docs/PERFORMANCE.md, docs/changes/ (modul notlari)

@@ -1,0 +1,30 @@
+# Değişiklik günlüğü
+
+## feature/mobil-uygulama (2026-10)
+
+Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
+
+### Backend
+
+- **Auth:** şifre sıfırlama (3 adım: `forgot-password` → `verify-reset-code` → `reset-password`); `POST /api/auth/logout-all`; bekleyen kayıt Redis'te (`reg:<email>`, 1 saat), hesap yalnız `verify-email` ile oluşur (başkasının e-postasıyla önceden kayıt açıp hesabı ele geçirme yolu kapandı); kod deneme kilidi (5 yanlış → 10 dk), `verify-email` e-posta başına sınır; `/login` sabit süre; `pwchg:<uid>` ile eski access token iptali; `SessionService.revokeAll`.
+- **Mail:** DB tabanlı e-posta kuyruğu (`mail_outbox`, V110), `MailQueueWorker`, geri çekilmeli yeniden deneme, ölü kayıt (DEAD), tr/en/ar HTML + düz metin şablonları, `mailQueue` sağlık göstergesi, maskeli log. Kodlar artık asenkron gelir.
+- **Push:** `PushDispatcher` (asenkron, 500'lük parçalar, üstel geri çekilmeyle 3 yeniden deneme), cihaz upsert (`platform` büyük/küçük harf toleranslı, `appVersion`, `locale`, `lastSeenAt`; V120), 60 gün görülmeyen token temizliği, `targetType`/`targetId` yükü, Android kanalları + APNs ayarları, `FCM_CREDENTIALS_JSON` (ham/base64) veya `FCM_CREDENTIALS_FILE`, `fcm` sağlık göstergesi. Kurulum: [PUSH_SETUP.md](PUSH_SETUP.md).
+- **Mesajlaşma:** kulüp (`CLUB`) ve etkinlik (`EVENT`) sohbetleri (`communityId`/`eventId`), yanıt/düzenleme/herkes için silme/tepki, sohbet görselleri (şifreli, yeniden kodlanmış), sessize alma (`mutedForever`) ve arşiv, tutarlı `unread-count`, `message-events` kuyruğu, okundu bilgisinde sessiz sınır, WebSocket token süresi dolunca kapanış (1008 `TOKEN_EXPIRED`), ek rate limitler.
+- **Etkinlik/topluluk:** takvim zenginleştirme (`myRsvp`, sayaçlar, `capacity`, `status`, `communityName`, `X-Truncated`), `attendees/preview`, toplu `canManage`; `communities/categories`, `requests?include=answers`, üyelik düşme olayı (`ClubMemberLeftEvent`), keşfet indeksi (V140), oda bakımı.
+- **Profil/arama:** `GET /api/me/summary`; `GET /api/search` tür + imleç sayfalama; `users/search` `nextCursor`; hesap silmede cihaz/bildirim/favori/başvuru/üyelik temizliği; arama indeksleri (V160).
+- **Haber/menü/durum:** `eventDate` (V170), mutlak URL ve tarih ayrıştırma düzeltmeleri, içerik yeniden deneme (en çok 5, gece zamanlayıcısında), `NULLS LAST` sıralama, `type` toleransı (`NEWS_TYPE_INVALID`), `MENU_MONTH_INVALID`, `/api/status` `maintenanceMessage`.
+- **Ops:** `Retry-After` başlıklı 429, `{code,message}` gövdeli 401 (`ApiAuthenticationEntryPoint`), CORS açık başlıkları (`X-Next-Cursor`, `X-Truncated`, `Retry-After`), `blocks`/`admin/faq` imleç sayfalama, analitik PII reddi, liste indeksleri (V180).
+- **Üretim:** `prod` profili, `ProdSettingsValidator`, güvenlik başlıkları (HSTS vb.), `SchedulerLock` (çoklu örnek kilidi altyapısı), [DEPLOY.md](DEPLOY.md); mesaj şifreleme ve medya hattı ([ENCRYPTION.md](ENCRYPTION.md), [MEDIA_PIPELINE.md](MEDIA_PIPELINE.md)).
+- **i18n:** metinler modül bazlı paketlere bölündü (`i18n/<modül>.properties`).
+
+### Mobil (Flutter)
+
+- Çok ekranlı uygulama: kimlik (kayıt, doğrulama, şifre sıfırlama), Ana Sayfa, Keşfet, Sohbet, Kulüpler, Etkinlikler, Yemek, Bildirimler, Arama, Destek, Profil, Ayarlar; açık/koyu tema ve tasarım belirteçleri.
+- Gerçek zamanlı sohbet (STOMP), görsel yükleme, QR yoklama (üretim + tarama), açılış kapısı (zorunlu güncelleme/bakım), analitik, ETag/304 LRU önbelleği, sayfalama, kulüp katılım soruları, kategori, `me/summary` rozetleri, push servisi (Firebase bilgisi bekliyor).
+- Testler: api, api_cache, app_gate, auth, stomp_frame, theme, widget, format. Belge: [MOBILE_UI.md](MOBILE_UI.md).
+
+### Altyapı ve araçlar
+
+- Performans ölçümü: `scripts/perf/perf-api.js` + [PERFORMANCE.md](PERFORMANCE.md).
+- Duman/uçtan uca betikleri: sohbet özellikleri/görselleri/grupları, kulüp, etkinlik, şifreleme, medya saldırıları, moderasyon vb. (`scripts/`).
+- Belgeler: [DEPLOY.md](DEPLOY.md), [PUSH_SETUP.md](PUSH_SETUP.md), [MOBILE_PUSH.md](MOBILE_PUSH.md), `docs/changes/` notları.

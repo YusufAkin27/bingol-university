@@ -16,14 +16,17 @@ Bu rehber Flutter (ve diğer) istemci geliştiricileri içindir. Makine okunur s
 | Yetkilendirme | `Authorization: Bearer <accessToken>` |
 | Bakım | Kaynak site (haber/menü) ulaşılamazsa API 500 vermez; eski veri sunar, `GET /api/status` bakımda olduğunu söyler (bkz. bölüm 9) |
 
-### 0.1 Bilinen tuhaflık: kimliksiz 401 gövdesi
-Token yok/geçersiz/süresi dolmuşsa Spring Security 401'i filtre katmanında üretir; gövde `{"timestamp","status":401,"error":"Unauthorized","path"}` biçimindedir ve **`code` alanı yoktur**; ayrıca `WWW-Authenticate: Basic` başlığı gelir. İstemci 401'i `code`'a bakmadan **HTTP durumuyla** ele almalıdır. (Uygulama kodundan gelen 401'lerde, örn. `INVALID_CREDENTIALS`, `{code,message}` vardır.) Bu tutarsızlık backend'de ayrıca takip edilmelidir.
+### 0.1 Kimliksiz 401 gövdesi ve 429 başlığı
+Token yok/geçersiz/süresi dolmuşsa `ApiAuthenticationEntryPoint` artık **`{"code":"UNAUTHORIZED","message":"..."}`** gövdesi döner (istek dilinde). Uygulama kodundan gelen 401'ler (`INVALID_CREDENTIALS`, `INVALID_REFRESH_TOKEN`) aynı biçimdedir. Yine de 401 mantığını **HTTP durumuna** bağlamak en güvenlisidir (eski sunucularda gövde boş olabilir).
+
+`429 RATE_LIMITED` yanıtlarında **`Retry-After: <saniye>`** başlığı vardır (bkz. bölüm 5).
 
 ## 1. Kimlik akışı: kayıt, e-posta kodu, giriş, refresh
 
 ```
-register ──► (e-postaya 6 haneli kod) ──► verify-email ──► {accessToken, refreshToken}
-                                                     login ─┘ (zaten kayıtlıysa)
+register ──► (e-postaya 6 haneli kod, asenkron) ──► verify-email ──► {accessToken, refreshToken}
+   (kayıt verisi Redis'te bekler; hesap yalnız verify-email ile oluşur)   login ─┘ (zaten kayıtlıysa)
+forgot-password ─► verify-reset-code {resetToken} ─► reset-password   (bkz. 1.7)
  her 401'de: refresh (tek uçuş) ──► yeni çift ──► isteği 1 kez tekrar dene
 ```
 
@@ -36,6 +39,10 @@ Accept-Language: tr
 {"email":"ayse@bingol.edu.tr","password":"Sifre1234x","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
+
+**Bekleyen kayıt:** kayıt verisi (şifre özeti, ad, dil) e-posta doğrulanana kadar yalnızca Redis'te (`reg:<email>`, 1 saat) tutulur; veritabanında hesap yoktur. Hesap **`verify-email` başarılı olunca** oluşur ve sözleşme onayı o anda yazılır. 1 saat içinde doğrulanmazsa kayıt düşer: yeniden `register` gerekir. Doğrulanmamış adresle tekrar `register` mevcut bekleyen veriyi ezmez; 60 sn içinde `429 RESEND_COOLDOWN`.
+
+**Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
 - Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
@@ -50,7 +57,7 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913"}
 ```json
 {"accessToken":"eyJhbGciOiJIUzI1NiJ9...","refreshToken":"cn219myvLJlkbdbg-_aBxsQygQN2L8_spDoX26JW3XE","expiresInSeconds":900,"tokenType":"Bearer"}
 ```
-- Kod 6 hane, **10 dk** geçerli, **5 yanlış deneme** (sonra `429 TOO_MANY_ATTEMPTS`, yeni kod gerekir). Yanlış/süresi dolmuş: `400 INVALID_CODE` (ikisi ayırt edilmez).
+- Kod 6 hane, **10 dk** geçerli, tek kullanımlık, **5 yanlış deneme** (sonra adres 10 dk kilitlenir: `429 TOO_MANY_ATTEMPTS`; `resend-code` veya yeni `register` kilidi açar). Yanlış/süresi dolmuş/bekleyen kayıt yok: aynı `400 INVALID_CODE` (ayırt edilmez). `verify-email` ek sınırı: e-posta başına 10 dk'da 10.
 - Yeniden gönderme için **60 sn bekleme** vardır (`429 RESEND_COOLDOWN`): arayüzde geri sayım gösterin.
 - Geliştirme ortamında (`MAIL_ENABLED=false`) kod e-posta yerine backend log'una yazılır; `scripts/make-user.sh` bunu otomatikleştirir.
 
@@ -108,8 +115,19 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 
 ### 1.6 Çıkış ve 401'in diğer nedenleri
 - `POST /api/auth/logout {"refreshToken"}` → `204` (refresh token iptal; access token süresi dolana kadar teknik olarak geçerli kalır, istemci siler). Çıkışta WebSocket'i kapatın, yerel mesaj önbelleğini ve bekleyen kuyruğu silin, `DELETE /api/devices/{fcmToken}` ile push kaydını kaldırın.
+- `POST /api/auth/logout-all` (Bearer, gövdesiz) → `204`: **tüm cihazlardaki** refresh token'ları siler ve eski access token'ları da reddettirir (çağıran cihaz dahil; yeniden giriş gerekir). Kullanıcı başına 15 dk'da 5 (`429 RATE_LIMITED`). Ayarlarda "tüm cihazlardan çık" için kullanın; sonrasında yerel durumu `logout` ile aynı şekilde temizleyin.
 - Hesap **askıya alınırsa** veya **silinirse** access token hemen 401 olur ve yenileme de başarısızdır. Yönetici **rolü değiştirirse** eski token 401 olur; `refresh` yeni rolde token verir (normal akış).
 - `GET /api/auth/me` → `{id,email,displayName}`; ayrıntılı profil `GET /api/users/me`.
+
+### 1.7 Şifre sıfırlama (3 adım)
+```http
+POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (hesap olsun olmasın aynı yanıt; kod e-postayla, asenkron)
+POST /api/auth/verify-reset-code {"email":"...","code":"482913"}                              → 200 {"resetToken":"..."}
+POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"Yeni1234x"} → 200 {"message":"..."}
+```
+- Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
+- `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
+- Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
 
 ## 2. Dil (Accept-Language) ve çok dillilik
 - Her istekte `Accept-Language` gönderin (uygulama dili). Sunucu `error.<KOD>` anahtarını bu dilde çevirir; çeviri yoksa Türkçe varsayılan metin döner.
@@ -138,6 +156,12 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 
 `before` ve `after` birlikte verilemez (`400 VALIDATION_ERROR`). Yetkisiz/olmayan konuşma `404 CONVERSATION_NOT_FOUND` (varlığı sızdırmaz).
 
+**Diğer imleç/sayfalama biçimleri:**
+- `GET /api/users/search?q=&size=&cursor=` → `{"items":[PublicProfile],"nextCursor":20|null}`; `q` en az 2 karakter (`QUERY_TOO_SHORT`), `size` 1-20, `cursor` 0-200 (opak kabul edin), dakikada 60 ve günde 500 istek.
+- `GET /api/search?q=`: `type` verilmezse gruplu özet (`groups[]`, `limit` 1-20, `nextCursor` hep `null`). **`type=NEWS` gibi tür verilirse** o tür için sayfalı liste: `limit` 1-50, yanıttaki `nextCursor` bir sonraki istekte `cursor` olarak gönderilir (0-1000, aksi `400 VALIDATION_ERROR`; son sayfada `null`). Yanıt: `{"q","groups":[{"type","items":[]}],"nextCursor"}`.
+- `GET /api/users/me/blocks?cursor=&limit=` (limit 1-50) gövdesi **düz dizidir**; devam varsa **`X-Next-Cursor`** yanıt başlığı gelir ve aynen `cursor` olarak verilir. Başlık yoksa liste bitmiştir.
+- Takvim için bkz. 11.1.
+
 **Sayfa tabanlı** (`page` 0 tabanlı, `size`): `/api/news` (`type`, `q`), `/api/suggestions`, ve yönetici listeleri (`/api/admin/users|news|audit`). Yanıt: `{"items":[...],"page":0,"totalPages":30,"totalItems":60}`. Haber listesi bu biçimdedir; `type` değerleri `HABER|DUYURU|ETKINLIK`.
 
 ## 4. WebSocket / STOMP (mesajlaşma)
@@ -162,27 +186,33 @@ id:sub-0
 destination:/user/queue/messages
 ^@
 ```
-Bağlanır bağlanmaz şu dört kuyruğa abone olun (başka hedefe abonelik reddedilir; `/topic/**` kapalı):
+Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik reddedilir; `/topic/**` kapalı):
 
 | Kuyruk | İçerik |
 |---|---|
 | `/user/queue/messages` | yeni mesaj (`MessageView`); **kendi gönderdiğiniz mesaj da buraya düşer** (ack, `clientId` ile eşleştirin) |
 | `/user/queue/read-receipts` | `{conversationId,userId,lastMessageId}`: `userId` konuşmada `lastMessageId`'ye kadar okudu |
 | `/user/queue/typing` | `{conversationId,userId}`: karşı taraf yazıyor (kalıcı değil, 2 sn'de 1 ile sınırlı) |
+| `/user/queue/message-events` | `{type:"edited"\|"deleted"\|"reaction", conversationId, messageId, userId, message?, emoji?, reactions?, at}`: düzenleme, herkes için silme, tepki değişimi; ilgili mesajı yerelde güncelleyin |
 | `/user/queue/errors` | `{code,message,clientId}`: komut hataları; bağlantı kapanmaz |
 
 `MessageView`:
 ```json
-{"id":2,"conversationId":1,"senderId":1,"clientId":"7b0c1f3e-...","text":"merhaba","removed":false,"createdAt":"2026-10-26T07:23:32.117112Z"}
+{"id":42,"conversationId":7,"senderId":3,"clientId":"7b0c1f3e-...","text":"merhaba","removed":false,"createdAt":"2026-10-26T07:23:32Z",
+ "replyToMessageId":40,"replyTo":{"id":40,"senderId":5,"text":"önceki","deleted":false},
+ "edited":true,"editedAt":"2026-10-26T07:25:00Z","deleted":false,
+ "reactions":[{"emoji":"👍","count":2}],"myReaction":"👍","attachments":[]}
 ```
-`removed=true` ise `text` yer tutucudur (moderasyonla gizlenmiş ya da engellediğiniz kullanıcının mesajı); içeriği göstermeyin, "kaldırıldı" kutusu çizin.
+- `removed=true` (moderasyonla gizlenmiş ya da engellediğiniz kullanıcının mesajı) veya `deleted=true` (herkes için silinmiş) ise `text` yer tutucudur; içeriği, eki ve yanıt önizlemesini göstermeyin, "kaldırıldı" kutusu çizin.
+- `replyTo` alıntılanan mesajın özetidir; `edited=true` ise "düzenlendi" etiketi gösterin. `attachments[]` biçimi için bkz. 4.8.
+- Düzenleme/silme/tepki değişimleri `message-events` kuyruğundan canlı gelir; bağlantı kopukken kaçırılanlar için açık sohbetin son sayfasını yeniden çekin.
 
 ### 4.2 İstemci → sunucu komutları (`SEND`)
 | Hedef | Gövde | Not |
 |---|---|---|
-| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>"}` | metin ≤ 2000 karakter, boş olamaz |
-| `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID` |
-| `/app/chat.typing` | `{"conversationId":1}` | |
+| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 4) isteğe bağlıdır; ek varsa metin boş olabilir |
+| `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID`; boş konuşmada no-op; konuşma başına 10 sn'de 20'den sık istek **sessizce** atılır, bu yüzden yalnızca görünen son mesajı gönderin |
+| `/app/chat.typing` | `{"conversationId":1}` | 2 sn'de 1, fazlası sessizce atılır |
 
 ```text
 >>> SEND
@@ -212,6 +242,7 @@ content-type:application/json
 
 ### 4.5 Token süresi dolunca (WebSocket)
 - Access token 15 dk'dır; bağlantı saatlerce açık kalabilir. Sunucu CONNECT anındaki `exp`'i tutar. `exp + 60 sn` geçtikten sonra gelen **her `SEND`** reddedilir (`TOKEN_EXPIRED`); okuma yönündeki yayınlar sürebilir ama gönderemezsiniz.
+- Sunucu `exp + 60 sn` sonra bağlantıyı kendisi de **kapatır** (close kodu 1008, neden `TOKEN_EXPIRED`): kapanışta refresh edip yeniden bağlanın ve resync yapın.
 - Çözüm (standart): `exp - 60 sn`'de zamanlayıcıyla **proaktif** `session.refresh()` → bağlantıyı kapat → yeni token'la yeniden bağlan → resync (4.4). Mesaj kaybı olmaz.
 - CONNECT sırasında token geçersiz/süresi dolmuşsa ya da hesap askıdaysa sunucu `ERROR` çerçevesi gönderir ve bağlantı kurulmaz; `message` başlığı kodu taşır:
 
@@ -225,16 +256,30 @@ content-type:application/json
 - Refresh de 401 verirse oturum bitmiştir: giriş ekranı.
 
 ### 4.6 Diğer mesajlaşma uçları (REST)
-`GET/POST /api/conversations` (birebir `{userId}`: varsa `200` mevcut, yoksa `201`; grup `{title,memberIds}` → `201`; günde en çok 30), `GET/PATCH /api/conversations/{id}`, `POST .../leave`, `POST .../members`, `DELETE .../members/{userId}`, `POST .../read {lastMessageId}` (204), `POST /api/messages/{id}/report {reason,note}`, `GET /api/users/{id}/presence` (`{online,lastSeenAt}`; yalnız ortak konuşması olan, engel ilişkisi olmayan kullanıcılar; aksi `404`), engelleme: `POST/DELETE /api/users/{id}/block`, `GET /api/users/me/blocks`. Ayrıntı: `openapi.json`, tasarım: [MESSAGING_DESIGN.md](MESSAGING_DESIGN.md).
+`GET/POST /api/conversations` (birebir `{userId}`: varsa `200` mevcut, yoksa `201`; grup `{title,memberIds}` → `201`; günde en çok 30), `GET/PATCH /api/conversations/{id}`, `POST .../leave`, `POST .../members`, `DELETE .../members/{userId}`, `POST .../read {lastMessageId}` (204; hiç mesajı olmayan konuşmada da 204 no-op), `POST /api/messages/{id}/report {reason,note}`, `GET /api/users/{id}/presence` (`{online,lastSeenAt}`; yalnız ortak konuşması olan, engel ilişkisi olmayan kullanıcılar; aksi `404`), engelleme: `POST/DELETE /api/users/{id}/block`, `GET /api/users/me/blocks`. Ayrıntı: `openapi.json`, tasarım: [MESSAGING_DESIGN.md](MESSAGING_DESIGN.md).
 
-**Kulüp ve etkinlik sohbetleri (sohbet sekmesi).** `ConversationView.type` artık `DIRECT`, `GROUP`, `CLUB` veya `EVENT` olabilir; ayrıca `communityId` (yalnız `CLUB`) ve `eventId` (yalnız `EVENT`) alanları gelir, diğerlerinde `null`. Sohbeti açmak için:
+**Kulüp ve etkinlik sohbetleri (sohbet sekmesi).** `ConversationView.type` `DIRECT`, `GROUP`, `CLUB` veya `EVENT` olabilir; ayrıca `communityId` (yalnız `CLUB`) ve `eventId` (yalnız `EVENT`) alanları gelir, diğerlerinde `null`. Sohbeti açmak için:
 - `GET /api/communities/{id}/chat`: kulüp sohbetini getir-ya-da-oluştur ve çağıranı ekler; `ConversationView` döner. Yalnız kulübün aktif üyesi (yetkisize/onaysız kulüpte `404 CHAT_ROOM_NOT_FOUND`, kapalı odada `409 CHAT_ROOM_CLOSED`).
 - `GET /api/events/{id}/chat`: etkinlik sohbeti; RSVP'si `GOING`/`INTERESTED` olan ya da etkinliği yönetebilen girer (yetkisize `403 FORBIDDEN`, görünmeyen/iptal edilmiş etkinlikte `404 EVENT_NOT_FOUND`).
-Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/chat.*` ile aynıdır. Bu sohbetlere elle üye eklenmez, `leave` çalışmaz (`400 NOT_A_GROUP`); kulüpten ayrılan ya da RSVP'sini kaldıran kullanıcı sohbetten düşer (mesaj gönderme `404`). Kulüp/etkinlik adı sohbet başlığıdır.
+Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/chat.*` ile aynıdır. Bu sohbetlere elle üye eklenmez, `leave` çalışmaz (`400 NOT_A_GROUP`); kulüpten ayrılan ya da RSVP'sini kaldıran kullanıcı sohbetten düşer (mesaj gönderme `404`). Kulüp/etkinlik adı sohbet başlığıdır. Durum/katılma için ayrıca `GET /api/communities/{id}/chat-room`, `POST /api/communities/{id}/chat-room/join` (takma ad `/chat/join`) ve `GET /api/events/{id}/chat-room`, `POST /api/events/{id}/chat-room/join` vardır. Etkinlik odası bitişten 7 gün sonra kapanır; kulüpten yasaklanan/ayrılan kullanıcı odadan düşürülür (en geç birkaç dakikada).
+
+### 4.7 Konuşma tercihleri, okunmamış sayacı, mesaj eylemleri
+`ConversationView`: `{id,type,title,peer,memberCount,admin,lastMessage,unreadCount,blocked,createdAt,muted,mutedUntil,mutedForever,archived,communityId,eventId}`.
+- **Sessize al:** `PUT /api/conversations/{id}/mute` gövde `{"durationMinutes":1..525600}` **veya** `{"forever":true}` (ikisi birden `400`); `DELETE` ile kaldırılır; yanıt `ConversationView`. Süresiz sessizde `mutedUntil` ~100 yıl sonradır: "süresiz" göstermek için **`mutedForever`**'a bakın.
+- **Arşiv:** `PUT /api/conversations/{id}/archive {"keepArchived":false}`, `DELETE` ile çıkarılır; liste `GET /api/conversations?archived=true`.
+- **Rozet:** `GET /api/conversations/unread-count` → `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`; satırlardaki `unreadCount` ile aynı tanım (kendi/silinmiş/engelli gönderici mesajları sayılmaz). `total` sessiz olmayanlar, `mutedTotal` sessizdekiler.
+- **Mesaj eylemleri:** gönderim `POST /api/conversations/{id}/messages {"text","clientId","replyToMessageId?","attachmentIds?"}`; düzenleme `PATCH /api/messages/{id} {"text"}` (gönderen, varsayılan 15 dk); herkes için silme `DELETE /api/messages/{id}` (kulüp yöneticisi/moderatörü ve etkinlik organizatörü başkasınınkini de silebilir, diğerleri `403 MESSAGE_DELETE_FORBIDDEN`); tepki `PUT/DELETE /api/messages/{id}/reaction {"emoji"}`, izinli liste `GET /api/messages/reactions`.
+- Ek sınırlar: `GET /api/conversations/{id}` dakikada 120; `PATCH`, üye ekle/çıkar ve `leave` kullanıcı başına ortak dakikada 30.
+
+### 4.8 Sohbet görselleri (medya yükleme)
+1. `POST /api/conversations/{cid}/media` (multipart, alan **`file`**) → `201` `AttachmentView` `{id,kind,width,height,bytes,contentType,removed,url,thumbUrl}`. Sunucu görseli yeniden kodlar (EXIF temizliği, en çok ~1600 px, sıkıştırılmış); yükleme üst sınırı 5 MB, dakikada 10 ve günde 200 yükleme, mesaja eklenmemiş en çok 20 görsel.
+2. Dönen `id` mesaj gönderiminde `attachmentIds`'e konur (mesaj başına en çok 4; REST veya `chat.send`). Hata kodları: `ATTACHMENT_LIMIT`, `ATTACHMENT_INVALID`, `ATTACHMENT_NOT_FOUND`, `MEDIA_BLOCKED` (422), `CHAT_MEDIA_PENDING_LIMIT` (429). Mesaja eklenmemiş kendi yüklemeniz `DELETE .../media/{aid}` ile silinir (mesaja bağlıysa `409 ATTACHMENT_IN_USE`). Sahiplenilmemiş yüklemeler 24 saatte temizlenir.
+3. **Okuma kimliklidir:** `url` ve `thumbUrl` (`/api/conversations/{cid}/media/{aid}` ve `/thumb`) Bearer ister; görseli çizerken `Authorization` başlığı verin. Başlık veremeyen bileşenler için `GET .../media/{aid}/link` → `{url,thumbUrl,expiresAt}` kısa ömürlü (varsayılan 5 dk) imzalı adres verir. Gizlenen (`removed=true`) ekte adresler `null`dır.
+4. Görseli raporlamak için `POST .../media/{aid}/report {reason,note}` (günlük rapor limiti ortak).
 
 ## 5. Rate limit (429) davranışı
 - Sınırlar Redis'te **sabit pencere** sayacıdır; aşılınca `429` ve `{"code":"RATE_LIMITED","message":"Çok fazla deneme. Lütfen daha sonra tekrar deneyin."}`. (Doğrulama kodu uçlarında özel kodlar: `RESEND_COOLDOWN`, `TOO_MANY_ATTEMPTS`.)
-- **Şu an `Retry-After` / `X-RateLimit-*` başlıkları gönderilmez.** İstemci pencere uzunluğunu aşağıdaki tablodan bilir: 429'da kullanıcıya "biraz sonra tekrar deneyin" gösterin, otomatik tekrar için üstel geri çekilme (en az 5 sn, en çok 5 dk) kullanın, aynı istekleri döngüde tekrarlamayın.
+- 429 yanıtında **`Retry-After: <saniye>`** başlığı gelir (sayacın kalan ömrü; `X-RateLimit-*` yoktur). Otomatik tekrar için bu süreyi bekleyin (başlık yoksa üstel geri çekilme, en az 5 sn, en çok 5 dk); kullanıcıya "biraz sonra tekrar deneyin" gösterin, aynı istekleri döngüde tekrarlamayın. Okundu bilgisi gibi bazı uçlar aşırı isteği hata vermeden sessizce atar (204).
 - Okuma (GET) uçlarının çoğunda sınır yoktur; yazma uçlarının hepsinde vardır. Anahtar genelde kullanıcı kimliğidir (kimliksiz uçlarda IP).
 
 | Uç | Sınır |
@@ -243,6 +288,9 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 | `POST /api/auth/verify-email` | IP başına 10 dk'da 20 |
 | `POST /api/auth/login` | IP başına 15 dk'da 30; e-posta başına 15 dk'da 10 |
 | `POST /api/auth/refresh` | IP başına 15 dk'da 60 |
+| `POST /api/auth/forgot-password` | IP başına saatte 10; e-posta başına saatte 5 |
+| `POST /api/auth/verify-reset-code`, `reset-password` | IP başına 10 dk'da 20 |
+| `POST /api/auth/logout-all` | kullanıcı başına 15 dk'da 5 |
 | Mesaj gönderme (WS ve REST ortak) | kullanıcı başına dakikada 30 |
 | Yazıyor bilgisi | konuşma başına 2 sn'de 1 (sessizce atılır) |
 | `POST /api/conversations` | günde 30 |
@@ -252,6 +300,9 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 | Topluluk oluştur / katıl / gönderi | saatte 5 / saatte 20 / dakikada 10 |
 | Etkinlik oluştur / RSVP / QR yoklama | saatte 10 / dakikada 30 / dakikada 20 |
 | Avatar yükleme | saatte 10 |
+| Sohbet görseli yükleme | dakikada 10, günde 200 |
+| `GET /api/me/summary`, `GET /api/events/{id}/attendees/preview` | dakikada 120 |
+| `GET /api/communities/{id}/requests` | saatte 240 |
 | Hesap silme | saatte 5; veri dışa aktarma günde 3 |
 | Destek talebi aç / yanıt | günde 5 / saatte 30 |
 | Geri bildirim / oy | günde 10 / saatte 60 |
@@ -259,9 +310,13 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 | WebSocket el sıkışma | IP başına dakikada 600 |
 
 ## 6. Push bildirimleri (FCM) yük formatı
-Cihaz kaydı: giriş yaptıktan sonra FCM token ile `POST /api/devices {"fcmToken":"...","platform":"ANDROID"}` → `204` (aynı token başka kullanıcıya aitse devredilir). Çıkışta `DELETE /api/devices/{token}`. FCM token yenilendiğinde (`onTokenRefresh`) yeniden kaydedin. Geçersiz token FCM'den `UNREGISTERED` dönünce sunucu tarafından silinir.
+Cihaz kaydı: giriş yaptıktan sonra FCM token ile `POST /api/devices {"fcmToken":"...","platform":"ios","appVersion":"1.4.0","locale":"tr"}` → `204` (saatte 30). `platform`: `ios|android|web` (büyük/küçük harf fark etmez, sunucu büyük harfe çevirir; geçersiz `400`); `appVersion` (≤ 32) ve `locale` (≤ 16) isteğe bağlıdır. Upsert: aynı token başka kullanıcıdaysa devredilir; her çağrı `lastSeenAt`'i yeniler, bu yüzden **her açılışta** ve token yenilenince (`onTokenRefresh`) çağırın. Kullanıcı başına en çok 10 cihaz (fazlası en eskiden silinir); 60 gün görülmeyen token sunucuca temizlenir. `GET /api/devices` yanıtında `appVersion`, `locale`, `lastSeenAt` de vardır. Çıkışta `DELETE /api/devices/{token}` (Bearer geçerliyken). Geçersiz token FCM'den `UNREGISTERED` dönünce sunucu tarafından silinir.
 
-FCM mesajı hem `notification` (başlık/gövde, kullanıcının dilinde) hem **`data`** (yalnızca string anahtar/değer) taşır. Her mesajda `data.type` vardır; yönlendirme için kullanılır:
+Android 13+ için `POST_NOTIFICATIONS` izni isteyin; yerel kanallar: `chat` (MESSAGE), `event` (EVENT), `announcement` (NEWS, ANNOUNCEMENT, COMMUNITY, SYSTEM). iOS için APNs anahtarı Firebase'e yüklenmelidir (bkz. [PUSH_SETUP.md](PUSH_SETUP.md), [MOBILE_PUSH.md](MOBILE_PUSH.md)).
+
+**Yönlendirme sözleşmesi (`data`, tüm değerler string):** `type` (NEWS, ANNOUNCEMENT, EVENT, MESSAGE, COMMUNITY, SYSTEM), varsa `subtype`, **`targetType`** (NEWS, EVENT, COMMUNITY, POST, CONVERSATION, TICKET, FEEDBACK, URL) ve **`targetId`** (hedefin kimliği; `URL` için adres). Eski `target`/`value` anahtarları aynı değerlerle korunur. Türe göre ek kimlikler: `conversationId`, `eventId`, `communityId`, `newsId`, `postId`, `ticketId`; gruplanmış bildirimde `count` (>1). Yönlendirmede önce `targetType`/`targetId`'ye, yoksa ilgili `...Id` alanına, o da yoksa bildirim listesine gidin. Toplam yük 4096 bayt ile sınırlıdır. `badge` yalnızca tek kullanıcıya giden bildirimlerde okunmamış bildirim sayısıdır; toplu gönderimde rozeti açılışta `GET /api/notifications/unread-count` ile güncelleyin.
+
+Aşağıdaki tablolar ek ayrıntıdır. FCM mesajı hem `notification` (başlık/gövde, kullanıcının dilinde) hem **`data`** (yalnızca string anahtar/değer) taşır. Her mesajda `data.type` vardır; yönlendirme için kullanılır:
 
 | `data.type` | Ek `data` anahtarları | Anlam / hedef ekran |
 |---|---|---|
@@ -289,7 +344,7 @@ FCM mesajı hem `notification` (başlık/gövde, kullanıcının dilinde) hem **
 ```
 Uygulama içi bildirim listesi: `GET /api/notifications` → `{"items":[{"id":5,"type":"EVENT","title":"...","body":"...","data":"{\"eventId\":\"2\"}","read":false,"createdAt":"..."}],"nextCursor":4,"unreadCount":4}`. Dikkat: listedeki **`data` bir JSON dizesidir** (nesne değil): `jsonDecode(item.data)` yapın; anahtarlar push `data`'sıyla aynıdır. Okundu: `POST /api/notifications/read {"ids":[5,4]}` veya `{"all":true}` (204). Tercihler: `GET/PUT /api/notifications/preferences` (`news, announcements, events, messages, communities`; `SYSTEM` her zaman gider).
 
-Not: gerçek FCM kimlik bilgisi girilmedikçe sunucu push göndermez (yalnızca log'lar ve uygulama içi liste dolar).
+Not: Firebase servis hesabı (`FCM_CREDENTIALS_JSON`/`FILE`) girilmedikçe sunucu push göndermez; yalnızca uygulama içi liste dolar. Sessiz saatler ve tercihler push'a da uygulanır. Gönderim arka planda yapılır, geçici hatada 3 kez yeniden denenir; süreç yeniden başlarsa kuyruktaki push kaybolabilir, bildirim kutusu kalıcıdır.
 
 ## 7. Dosya yükleme sözleşmesi
 Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik kapağı dahil) ve oturum (Bearer) ister:
@@ -305,7 +360,7 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
 - Yanıt göreli URL döndürür (`/files/avatars/<uuid>.jpg` biçiminde, avatar için profil nesnesinde `avatarUrl`). Görseli `https://<alan-adı>` + yol ile **kimliksiz** `GET` ile indirebilirsiniz (herkese açık, `Cache-Control: max-age=30 gün, immutable`; URL değişmez, önbellekleyin).
 - Gönderi görseli akışı: önce `.../posts/upload` ile yükleyip dönen URL'yi `POST /api/communities/{id}/posts {text, imageUrl}` içinde gönderin.
-- Mesajlarda görsel **yoktur** (yalnız düz metin ≤ 2000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
+- Sohbet görselleri ayrı bir akıştır (kimlikli okuma, `attachmentIds`): bkz. 4.8. Mesaj metni düz metindir (≤ 2000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
 
 ## 8. Sürüm kontrolü ve bakım akışı
 Uygulama açılışında (ve öne her gelişte, en çok birkaç dakikada bir) kimliksiz iki çağrı yapın:
@@ -444,15 +499,25 @@ Tam liste ve şemalar için `docs/openapi.json` (gruplar: `1-public`, `2-authent
 |---|---|
 | Herkese açık | `GET /api/news`, `/api/news/{id}`, `/api/menu`, `/api/menu/today`, `/api/status`, `/api/app/info`, `/api/app/version`, `/api/faq`, `/api/legal*`, `/api/faculties`, `/files/**` |
 | Kimlik | `/api/auth/*` (bölüm 1) |
-| Profil | `GET/PATCH/DELETE /api/users/me`, `POST /api/users/me/avatar`, `GET /api/users/{id}`, `GET /api/users/search`, `GET /api/departments` |
+| Profil | `GET /api/me/summary` (11.1), `GET/PATCH/DELETE /api/users/me`, `POST /api/users/me/avatar`, `GET /api/users/{id}`, `GET /api/users/search`, `GET /api/departments` |
 | Bildirim | `/api/devices`, `/api/notifications*` |
-| Mesajlaşma | `/api/conversations*`, `GET /api/communities/{id}/chat`, `GET /api/events/{id}/chat`, `/ws` (bölüm 4) |
+| Mesajlaşma | `/api/conversations*` (mute/archive/unread-count dahil), `/api/conversations/{cid}/media*`, `/api/messages/*`, `GET /api/communities/{id}/chat`, `GET /api/events/{id}/chat`, `/ws` (bölüm 4) |
 | Topluluk / etkinlik | `/api/communities*`, `/api/events*`, `/api/me/communities`, `/api/me/events` (QR yoklama: `GET /api/events/{id}/checkin-code` organizatör, `POST /api/events/{id}/check-in` katılımcı) |
 | Arama / favori | `GET /api/search`, `/api/bookmarks*` |
 | Destek | `/api/feedback`, `/api/suggestions`, `/api/support/tickets*`, `/api/faq` |
 | Moderasyon | `POST /api/reports`, `POST /api/messages/{id}/report`, engelleme uçları |
 | Analitik | `POST /api/analytics/events` (≤ 50 olay; `app_open`, `screen_view`, `search`; kişisel veri göndermeyin, `@` içeren değer reddedilir) |
 | KVKK | `GET /api/users/me/export`, `DELETE /api/users/me` (bölüm 9) |
+
+### 11.1 Yeni ve değişen uçlar (özet)
+- **`GET /api/me/summary`** (Bearer, dakikada 120) → `{"communities":3,"events":1,"bookmarks":12,"unreadNotifications":4,"unreadMessages":7}`. Ana sayfa/sekme rozetleri için tek istek.
+- **Haber:** `GET /api/news?type=` büyük/küçük harf toleranslıdır; geçersiz tür `400 NEWS_TYPE_INVALID`; `size` 1-50. `NewsSummary`/`NewsDetail`'de yeni **`eventDate`** (`yyyy-MM-dd` veya `null`; yalnız ETKINLIK). Sıralama yayın tarihi azalan, tarihsizler sonda. `GET /api/menu?month=yyyy-MM` geçersiz ay `400 MENU_MONTH_INVALID`. `GET /api/status` her kaynakta **`maintenanceMessage`** (istek dilinde; bakım yoksa `null`) taşır; `message` teknik ayrıntıdır, kullanıcıya `maintenanceMessage` gösterin.
+- **Takvim:** `GET /api/events/calendar?month=YYYY-MM` → `CalendarItem[]`. USER öğelerinde yeni `myRsvp`, `goingCount`, `interestedCount`, `capacity` (`null` = sınırsız), `status`, `communityName`; OFFICIAL öğelerde bunlar `null`. Önceki aydan süren etkinlikler ay içinde görünür (`date` ay içinde kalır, `startsAt` gerçek başlangıç). Sonuç sınırlıdır (USER 300, resmi 200); sınır aşılırsa **`X-Truncated: true`** başlığı gelir (kullanıcıya "tümü gösterilmiyor" notu verin). OFFICIAL öğe tarihi haberin `eventDate` değeri varsa o, yoksa yayın tarihidir.
+- **Katılımcı önizleme:** `GET /api/events/{id}/attendees/preview` (Bearer, dakikada 120) → `{"goingCount":42,"interestedCount":7,"avatars":[{"userId","displayName","avatarUrl"}]}`; en çok 8 avatar, yalnız gizlilik ayarı izin verenler. Tam liste (`/attendees`) organizatöre kısıtlıdır.
+- **Topluluk:** `GET /api/communities/categories` → `[{"category":"Spor","count":3}]` (yalnız ACTIVE+PUBLIC; `category` değeri `GET /api/communities?category=Spor` filtresinde aynen kullanılır, `q` ad/açıklamada arar). Katılım: önce `GET /api/communities/{id}/join-questions` → `[{id,question}]`; sonra `POST /api/communities/{id}/join {"answers":[{"questionId":1,"answer":"..."}]}` → `{"status":"ACTIVE"|"PENDING"}`; soru varsa hepsi yanıtlanmalı, yoksa `400 ANSWERS_REQUIRED`. Açık kulüpte gövde gerekmez. Yönetici için `GET /api/communities/{id}/requests?include=answers` her isteğe `answers[]` ekler (verilmezse alan yoktur); onay/ret sonrası yanıtlar silinir.
+- **Engeller:** `GET /api/users/me/blocks?cursor=&limit=` düz dizi + `X-Next-Cursor` (bölüm 3).
+- Cihaz kaydı ve push `data` değişiklikleri bölüm 6'da, `logout-all` ile şifre sıfırlama bölüm 1'dedir.
+- **Hesap silme** artık cihazları, bildirimleri, favorileri, kulüp başvuru yanıtlarını ve topluluk üyeliklerini de temizler; yerel veriyi silmek istemcinin işidir.
 
 `/api/admin/**` yönetim panelidir (web); mobil istemci kullanmaz.
 
