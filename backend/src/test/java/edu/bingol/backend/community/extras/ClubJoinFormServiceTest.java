@@ -12,6 +12,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.dto.CommunityDtos.MemberView;
 import edu.bingol.backend.community.extras.ClubExtrasDtos.AnswerInput;
 import edu.bingol.backend.community.extras.ClubExtrasDtos.AnswerView;
 import edu.bingol.backend.community.permissions.ClubAuditService;
@@ -240,5 +241,45 @@ class ClubJoinFormServiceTest {
                 List.of(new AnswerInput(2L, "y"), new AnswerInput(1L, "x")));
 
         assertEquals(List.of(1L, 2L), List.copyOf(m.keySet()));
+    }
+
+    // ---- toplu istek listesi ----
+
+    private ClubJoinAnswer answer(long userId, long questionId, String text) {
+        ClubJoinAnswer x = new ClubJoinAnswer();
+        x.setCommunityId(10L);
+        x.setUserId(userId);
+        x.setQuestionId(questionId);
+        x.setAnswer(text);
+        return x;
+    }
+
+    @Test
+    void requestsWithAnswersFetchesAllAnswersInOneQuery() {
+        var page = new edu.bingol.backend.common.CursorPage<>(List.of(
+                new MemberView(9L, "A", null, Role.MEMBER, null), new MemberView(8L, "B", null, Role.MEMBER, null)), null);
+        when(t.communities.requests(mod, 10L, null, 20)).thenReturn(page);
+        when(questions.findByCommunityIdOrderBySortOrderAsc(10L)).thenReturn(List.of(q(1, 0, "Neden?"), q(2, 1, "Bolum?")));
+        when(answers.findByCommunityIdAndUserIdIn(any(), any())).thenReturn(
+                List.of(answer(9L, 2L, "y"), answer(9L, 1L, "x"), answer(8L, 1L, "z")));
+
+        var out = svc.requests(mod, 10L, null, 20, true);
+
+        assertEquals(List.of("x", "y"), out.items().get(0).answers().stream().map(AnswerView::answer).toList());
+        assertEquals(List.of("z"), out.items().get(1).answers().stream().map(AnswerView::answer).toList());
+        verify(answers).findByCommunityIdAndUserIdIn(any(), any());
+        verify(answers, never()).findByCommunityIdAndUserId(any(), any());
+    }
+
+    @Test
+    void requestsWithoutIncludeSkipAnswerQueries() {
+        var page = new edu.bingol.backend.common.CursorPage<>(
+                List.of(new MemberView(9L, "A", null, Role.MEMBER, null)), null);
+        when(t.communities.requests(mod, 10L, null, 20)).thenReturn(page);
+
+        var out = svc.requests(mod, 10L, null, 20, false);
+
+        assertEquals(null, out.items().get(0).answers());
+        verify(answers, never()).findByCommunityIdAndUserIdIn(any(), any());
     }
 }

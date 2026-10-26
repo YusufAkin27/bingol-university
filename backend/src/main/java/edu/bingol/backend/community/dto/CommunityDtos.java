@@ -1,13 +1,16 @@
 package edu.bingol.backend.community.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.bingol.backend.community.Community.JoinPolicy;
 import edu.bingol.backend.community.Community.Status;
 import edu.bingol.backend.community.Community.Visibility;
 import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.extras.ClubExtrasDtos.AnswerView;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 
 /** Topluluk uclarinin istek/yanit kayitlari. */
 public final class CommunityDtos {
@@ -36,6 +39,16 @@ public final class CommunityDtos {
                                 String coverUrl, JoinPolicy joinPolicy, Visibility visibility, Status status,
                                 Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt,
                                 String logoUrl) {
+    }
+
+    /** Kesfette gorunen (ACTIVE + PUBLIC) kulup sayisiyla kategori. */
+    public record CategoryCount(String category, long count) {
+    }
+
+    /** Bekleyen istek satiri; answers yalnizca ?include=answers ile dolar (aksi halde alan hic gonderilmez). */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record JoinRequestView(Long userId, String displayName, String avatarUrl, Role role, Instant joinedAt,
+                                  List<AnswerView> answers) {
     }
 
     public record JoinResult(String status) {

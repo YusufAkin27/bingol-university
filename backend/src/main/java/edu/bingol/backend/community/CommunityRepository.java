@@ -42,6 +42,15 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
                              @Param("category") String category, @Param("pattern") String pattern,
                              @Param("cursor") long cursor, Pageable page);
 
+    /** Kesfetteki (ACTIVE + PUBLIC) kategori sayilari: [category, count], kalabaliktan aza. */
+    @Query("""
+            SELECT c.category, COUNT(c) FROM Community c
+            WHERE c.status = :status AND c.visibility = :visibility AND c.category IS NOT NULL
+            GROUP BY c.category ORDER BY COUNT(c) DESC, c.category
+            """)
+    List<Object[]> categoryCounts(@Param("status") Community.Status status,
+                                  @Param("visibility") Community.Visibility visibility);
+
     @Query("SELECT c FROM Community c WHERE c.status = :status AND c.id < :cursor ORDER BY c.id DESC")
     List<Community> byStatus(@Param("status") Community.Status status, @Param("cursor") long cursor, Pageable page);
 

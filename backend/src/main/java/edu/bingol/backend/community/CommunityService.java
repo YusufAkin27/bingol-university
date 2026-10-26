@@ -7,6 +7,7 @@ import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Community.JoinPolicy;
 import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.dto.CommunityDtos.CategoryCount;
 import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.MemberView;
@@ -125,6 +126,13 @@ public class CommunityService {
                 category == null ? "" : category.trim(), Texts.likePattern(q), Paging.descStart(cursor),
                 PageRequest.of(0, s + 1));
         return Paging.map(rows, s, Community::getId, items -> views(items, a));
+    }
+
+    /** Kategori filtresi icin: kesfette gorunen kulupler sayilir, ozel/bekleyen/gizli kulup sizmaz. */
+    @Transactional(readOnly = true)
+    public List<CategoryCount> categories() {
+        return communities.categoryCounts(Community.Status.ACTIVE, Community.Visibility.PUBLIC).stream()
+                .map(r -> new CategoryCount((String) r[0], (Long) r[1])).toList();
     }
 
     @Transactional(readOnly = true)

@@ -2,9 +2,11 @@ package edu.bingol.backend.community;
 
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.community.dto.CommunityDtos.CategoryCount;
 import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
+import edu.bingol.backend.community.dto.CommunityDtos.JoinRequestView;
 import edu.bingol.backend.community.dto.CommunityDtos.JoinResult;
 import edu.bingol.backend.community.dto.CommunityDtos.MemberView;
 import edu.bingol.backend.community.dto.CommunityDtos.PostView;
@@ -17,6 +19,7 @@ import edu.bingol.backend.community.permissions.ClubDtos.AccessRequest;
 import edu.bingol.backend.community.permissions.ClubRoleService;
 import jakarta.validation.Valid;
 import java.time.Duration;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -112,9 +115,18 @@ public class CommunityController {
     }
 
     @GetMapping("/communities/{id}/requests")
-    public CursorPage<MemberView> requests(@PathVariable Long id, @RequestParam(required = false) Long cursor,
-                                           @RequestParam(defaultValue = "20") int size) {
-        return communities.requests(Actor.current(), id, cursor, size);
+    public CursorPage<JoinRequestView> requests(@PathVariable Long id, @RequestParam(required = false) Long cursor,
+                                                @RequestParam(defaultValue = "20") int size,
+                                                @RequestParam(required = false) String include) {
+        Actor a = Actor.current();
+        limiter.check("community-requests:user:" + a.id(), 240, Duration.ofHours(1));
+        return joinForm.requests(a, id, cursor, size, "answers".equals(include));
+    }
+
+    /** Kesfette gorunen kategoriler ve kulup sayilari. */
+    @GetMapping("/communities/categories")
+    public List<CategoryCount> categories() {
+        return communities.categories();
     }
 
     @PostMapping("/communities/{id}/requests/{userId}/approve")

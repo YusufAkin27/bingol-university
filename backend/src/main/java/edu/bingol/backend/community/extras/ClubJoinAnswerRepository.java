@@ -11,6 +11,9 @@ public interface ClubJoinAnswerRepository extends JpaRepository<ClubJoinAnswer, 
 
     List<ClubJoinAnswer> findByCommunityIdAndUserId(Long communityId, Long userId);
 
+    /** Bekleyen istek listesi icin toplu getirme (N+1 yok). */
+    List<ClubJoinAnswer> findByCommunityIdAndUserIdIn(Long communityId, java.util.Collection<Long> userIds);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM ClubJoinAnswer a WHERE a.communityId = :cid AND a.userId = :uid")

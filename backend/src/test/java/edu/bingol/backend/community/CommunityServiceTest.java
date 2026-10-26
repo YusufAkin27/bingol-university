@@ -15,6 +15,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.extras.ClubExtrasHooks;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.dto.CommunityDtos;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.permissions.ClubAuditService;
 import edu.bingol.backend.community.permissions.ClubMemberGrantRepository;
@@ -242,5 +243,15 @@ class CommunityServiceTest {
         when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.OPEN)));
 
         assertEquals("NOT_PENDING", error(() -> svc.review(10L, true, null)).code());
+    }
+
+    @Test
+    void categoriesCountOnlyDiscoverableClubs() {
+        when(communities.categoryCounts(Community.Status.ACTIVE, Community.Visibility.PUBLIC))
+                .thenReturn(List.<Object[]>of(new Object[] {"Spor", 3L}, new Object[] {"Sanat", 1L}));
+
+        List<CommunityDtos.CategoryCount> out = svc.categories();
+
+        assertEquals(List.of(new CommunityDtos.CategoryCount("Spor", 3L), new CommunityDtos.CategoryCount("Sanat", 1L)), out);
     }
 }

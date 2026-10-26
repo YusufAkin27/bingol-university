@@ -32,7 +32,9 @@ class ClubExtrasHooksTest {
     private final CommunityRepository communities = mock(CommunityRepository.class);
     private final ClubMemberQueryRepository memberQuery = mock(ClubMemberQueryRepository.class);
     private final ClubJoinAnswerRepository answers = mock(ClubJoinAnswerRepository.class);
-    private final ClubExtrasHooks hooks = new ClubExtrasHooks(rooms, communities, memberQuery, answers);
+    private final org.springframework.context.ApplicationEventPublisher events =
+            mock(org.springframework.context.ApplicationEventPublisher.class);
+    private final ClubExtrasHooks hooks = new ClubExtrasHooks(rooms, communities, memberQuery, answers, events);
 
     private static Community club(Community.Status st) {
         Community c = new Community();
@@ -89,6 +91,15 @@ class ClubExtrasHooksTest {
 
         verify(rooms).removeMember(RoomKind.COMMUNITY, 10L, 7L);
         verify(answers).deleteMember(10L, 7L);
+    }
+
+    @Test
+    void memberGonePublishesLeftEventAndListenerFailureIsSwallowed() {
+        hooks.onMemberGone(10L, 7L);
+        verify(events).publishEvent(new edu.bingol.backend.community.ClubMemberLeftEvent(10L, 7L));
+
+        doThrow(new IllegalStateException("listener")).when(events).publishEvent(any(Object.class));
+        assertDoesNotThrow(() -> hooks.onMemberGone(10L, 8L));
     }
 
     @Test

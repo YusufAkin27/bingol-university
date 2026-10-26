@@ -1,11 +1,14 @@
 package edu.bingol.backend.community.extras;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityMemberRepository;
 import edu.bingol.backend.community.CommunityService;
+import edu.bingol.backend.community.dto.CommunityDtos.JoinRequestView;
+import edu.bingol.backend.community.dto.CommunityDtos.MemberView;
 import edu.bingol.backend.community.extras.ClubExtrasDtos.AnswerInput;
 import edu.bingol.backend.community.extras.ClubExtrasDtos.AnswerView;
 import edu.bingol.backend.community.extras.ClubExtrasDtos.QuestionView;
@@ -128,9 +131,38 @@ public class ClubJoinFormService {
         if (m == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND", "Bekleyen istek bulunamadı.");
         }
+        return answerViews(questionsById(cid), answers.findByCommunityIdAndUserId(cid, userId));
+    }
+
+    /**
+     * MANAGE_MEMBERS: bekleyen istekler. withAnswers ise sayfadaki tum basvuranlarin yanitlari tek sorguyla
+     * (sorular da tek sorgu) eklenir; aksi halde answers alani yanitta yer almaz.
+     */
+    @Transactional(readOnly = true)
+    public CursorPage<JoinRequestView> requests(Actor a, Long cid, Long cursor, int size, boolean withAnswers) {
+        CursorPage<MemberView> page = communities.requests(a, cid, cursor, size);
+        Map<Long, List<AnswerView>> byUser = new HashMap<>();
+        if (withAnswers && !page.items().isEmpty()) {
+            Map<Long, ClubJoinQuestion> qs = questionsById(cid);
+            Map<Long, List<ClubJoinAnswer>> raw = new HashMap<>();
+            answers.findByCommunityIdAndUserIdIn(cid, page.items().stream().map(MemberView::userId).toList())
+                    .forEach(x -> raw.computeIfAbsent(x.getUserId(), k -> new ArrayList<>()).add(x));
+            page.items().forEach(m -> byUser.put(m.userId(), answerViews(qs, raw.getOrDefault(m.userId(), List.of()))));
+        }
+        List<JoinRequestView> items = page.items().stream().map(m -> new JoinRequestView(m.userId(), m.displayName(),
+                m.avatarUrl(), m.role(), m.joinedAt(), withAnswers ? byUser.get(m.userId()) : null)).toList();
+        return new CursorPage<>(items, page.nextCursor());
+    }
+
+    private Map<Long, ClubJoinQuestion> questionsById(Long cid) {
         Map<Long, ClubJoinQuestion> byId = new HashMap<>();
         questions.findByCommunityIdOrderBySortOrderAsc(cid).forEach(q -> byId.put(q.getId(), q));
-        return answers.findByCommunityIdAndUserId(cid, userId).stream()
+        return byId;
+    }
+
+    /** Silinmis sorulara ait yanitlar atlanir; sorular formdaki siraya gore dizilir. */
+    private static List<AnswerView> answerViews(Map<Long, ClubJoinQuestion> byId, List<ClubJoinAnswer> given) {
+        return given.stream()
                 .filter(x -> byId.containsKey(x.getQuestionId()))
                 .sorted((x, y) -> Integer.compare(byId.get(x.getQuestionId()).getSortOrder(),
                         byId.get(y.getQuestionId()).getSortOrder()))

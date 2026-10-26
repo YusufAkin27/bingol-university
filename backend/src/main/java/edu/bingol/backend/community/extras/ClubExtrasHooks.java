@@ -1,5 +1,6 @@
 package edu.bingol.backend.community.extras;
 
+import edu.bingol.backend.community.ClubMemberLeftEvent;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityRepository;
 import edu.bingol.backend.messaging.room.RoomConversations;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
@@ -26,9 +28,12 @@ public class ClubExtrasHooks {
     private final CommunityRepository communities;
     private final ClubMemberQueryRepository memberQuery;
     private final ClubJoinAnswerRepository answers;
+    private final ApplicationEventPublisher events;
 
     public ClubExtrasHooks(RoomConversations rooms, CommunityRepository communities,
-                           ClubMemberQueryRepository memberQuery, ClubJoinAnswerRepository answers) {
+                           ClubMemberQueryRepository memberQuery, ClubJoinAnswerRepository answers,
+                           ApplicationEventPublisher events) {
+        this.events = events;
         this.rooms = rooms;
         this.communities = communities;
         this.memberQuery = memberQuery;
@@ -70,6 +75,12 @@ public class ClubExtrasHooks {
             log.warn("Odadan cikarilamadi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
         }
         dropAnswers(communityId, userId);
+        try {
+            events.publishEvent(new ClubMemberLeftEvent(communityId, userId));
+        } catch (RuntimeException e) {
+            // Dis dinleyici (ornegin etkinlik odalari) hatasi uyelik islemini bozmaz.
+            log.warn("Uyelik olayi dinleyicisi hata verdi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
+        }
     }
 
     /** Yalniz basvuru yanitlarini siler (uyelik odayi etkilemiyorsa, ornegin reddedilen bekleyen istek). */

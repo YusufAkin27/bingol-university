@@ -120,7 +120,7 @@ public class ClubExtrasController {
         return chatRoom.get(a, id);
     }
 
-    @PostMapping("/chat-room/join")
+    @PostMapping({"/chat-room/join", "/chat/join"})
     public ChatRoomView joinRoom(@PathVariable Long id) {
         Actor a = Actor.current();
         limiter.check("community-chatroom-join:user:" + a.id(), 30, Duration.ofHours(1));
