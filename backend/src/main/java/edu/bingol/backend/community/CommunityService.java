@@ -61,6 +61,11 @@ public class CommunityService {
 
     @Transactional
     public Community create(Actor a, CreateCommunityRequest r) {
+        if (r.name().trim().length() < 3) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
+        }
+        // Sayim ile ekleme arasindaki yarisi kapatir: ayni kullanicinin istekleri bu satirda siralanir.
+        communities.lockOwner(a.id());
         if (communities.countByOwnerIdAndStatusIn(a.id(), LIVE) >= MAX_OWNED) {
             throw new ApiException(HttpStatus.CONFLICT, "COMMUNITY_LIMIT",
                     "En fazla " + MAX_OWNED + " topluluğun sahibi olabilirsiniz.", String.valueOf(MAX_OWNED));
@@ -109,12 +114,12 @@ public class CommunityService {
         List<Community> rows = communities.discover(Community.Status.ACTIVE, Community.Visibility.PUBLIC,
                 category == null ? "" : category.trim(), Texts.likePattern(q), Paging.descStart(cursor),
                 PageRequest.of(0, s + 1));
-        return Paging.map(rows, s, Community::getId, items -> views(items, a.id()));
+        return Paging.map(rows, s, Community::getId, items -> views(items, a));
     }
 
     @Transactional(readOnly = true)
     public CommunityView get(Actor a, Long id) {
-        return views(List.of(loadVisible(a, id)), a.id()).get(0);
+        return views(List.of(loadVisible(a, id)), a).get(0);
     }
 
     /** Benim topluluklarim: aktif uyeliklerim (bekleyen/reddedilen toplulugu olmayanlar). */
@@ -131,7 +136,7 @@ public class CommunityService {
                     .filter(c -> c != null && (c.getStatus() == Community.Status.ACTIVE
                             || c.getStatus() == Community.Status.PENDING_REVIEW))
                     .toList();
-            return views(ordered, a.id());
+            return views(ordered, a);
         });
     }
 
@@ -140,6 +145,9 @@ public class CommunityService {
         Community c = load(id);
         requireModerator(a, c);
         if (r.name() != null && !r.name().isBlank()) {
+            if (r.name().trim().length() < 3) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
+            }
             c.setName(r.name().trim());
         }
         if (r.description() != null) {
@@ -156,7 +164,7 @@ public class CommunityService {
         }
         c.setUpdatedAt(Instant.now());
         communities.save(c);
-        return views(List.of(c), a.id()).get(0);
+        return views(List.of(c), a).get(0);
     }
 
     @Transactional
@@ -169,7 +177,7 @@ public class CommunityService {
         c.setUpdatedAt(Instant.now());
         communities.save(c);
         storage.delete(old);
-        return views(List.of(c), a.id()).get(0);
+        return views(List.of(c), a).get(0);
     }
 
     // ---- uyelik ----
@@ -191,7 +199,8 @@ public class CommunityService {
                         "Bu topluluktan uzaklaştırıldınız.");
             }
         }
-        boolean open = c.getJoinPolicy() == JoinPolicy.OPEN;
+        // Kimlikler tahmin edilebilir: ozel kulube dogrudan katilim olamaz, her zaman onay gerekir.
+        boolean open = c.getJoinPolicy() == JoinPolicy.OPEN && c.getVisibility() != Community.Visibility.PRIVATE;
         CommunityMember.Status st = open ? CommunityMember.Status.ACTIVE : CommunityMember.Status.PENDING;
         try {
             members.saveAndFlush(new CommunityMember(id, a.id(), Role.MEMBER, st));
@@ -308,7 +317,7 @@ public class CommunityService {
     public CursorPage<CommunityView> byStatus(Community.Status status, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
         List<Community> rows = communities.byStatus(status, Paging.descStart(cursor), PageRequest.of(0, s + 1));
-        return Paging.map(rows, s, Community::getId, items -> views(items, null));
+        return Paging.map(rows, s, Community::getId, items -> views(items, (Actor) null));
     }
 
     @Transactional
@@ -408,7 +417,9 @@ public class CommunityService {
     }
 
     /** Toplu gorunum: uye sayilari ve benim uyeligim tek sorguyla. viewerId null ise uyelik "NONE". */
-    private List<CommunityView> views(List<Community> list, Long viewerId) {
+    private List<CommunityView> views(List<Community> list, Actor viewer) {
+        Long viewerId = viewer == null ? null : viewer.id();
+        boolean viewerAdmin = viewer != null && viewer.admin();
         if (list.isEmpty()) {
             return List.of();
         }
@@ -424,7 +435,10 @@ public class CommunityService {
         List<CommunityView> out = new ArrayList<>();
         for (Community c : list) {
             CommunityMember m = mine.get(c.getId());
-            out.add(new CommunityView(c.getId(), c.getName(), c.getSlug(), c.getDescription(), c.getCategory(),
+            // Ozel kulubun aciklamasi uye olmayana (sahip/yonetici haric) gosterilmez.
+            boolean hideDesc = viewerId != null && c.getVisibility() == Community.Visibility.PRIVATE
+                    && (m == null || !m.isActive()) && !viewerId.equals(c.getOwnerId()) && !viewerAdmin;
+            out.add(new CommunityView(c.getId(), c.getName(), c.getSlug(), hideDesc ? null : c.getDescription(), c.getCategory(),
                     c.getCoverUrl(), c.getJoinPolicy(), c.getVisibility(), c.getStatus(), c.getOwnerId(),
                     counts.getOrDefault(c.getId(), 0L), m == null ? "NONE" : m.getStatus().name(),
                     m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt()));

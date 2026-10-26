@@ -53,7 +53,7 @@ public class CommunityPostService {
     public PostView create(Actor a, Long cid, CreatePostRequest r) {
         Community c = writableCommunity(a, cid);
         String image = Texts.blankToNull(r.imageUrl());
-        if (image != null && !image.startsWith(IMAGE_PREFIX)) {
+        if (image != null && !validImageUrl(image)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_IMAGE_URL", "Görsel yalnızca yüklenen dosyalardan olabilir.");
         }
         if (r.text().isBlank()) {
@@ -140,6 +140,12 @@ public class CommunityPostService {
             throw new ApiException(HttpStatus.FORBIDDEN, "NOT_MEMBER", "Yalnızca topluluk üyeleri paylaşım yapabilir.");
         }
         return c;
+    }
+
+    /** Yalnizca /files/posts/<dosya>: yol gezintisi (..), alt dizin, sorgu/parca ve kodlanmis ayiricilar reddedilir. */
+    static boolean validImageUrl(String url) {
+        return url.startsWith(IMAGE_PREFIX) && url.substring(IMAGE_PREFIX.length()).matches("[A-Za-z0-9][A-Za-z0-9._-]*")
+                && !url.contains("..");
     }
 
     private CommunityPost find(Long cid, Long postId) {

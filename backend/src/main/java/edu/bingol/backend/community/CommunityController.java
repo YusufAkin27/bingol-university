@@ -68,7 +68,9 @@ public class CommunityController {
 
     @PatchMapping("/communities/{id}")
     public CommunityView update(@PathVariable Long id, @Valid @RequestBody UpdateCommunityRequest r) {
-        return communities.update(Actor.current(), id, r);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        return communities.update(a, id, r);
     }
 
     /** multipart alani "file", jpg/png/webp, en fazla 3 MB. */
@@ -89,7 +91,9 @@ public class CommunityController {
     @DeleteMapping("/communities/{id}/membership")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void leave(@PathVariable Long id) {
-        communities.leave(Actor.current(), id);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        communities.leave(a, id);
     }
 
     @GetMapping("/communities/{id}/members")
@@ -107,19 +111,25 @@ public class CommunityController {
     @PostMapping("/communities/{id}/requests/{userId}/approve")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void approve(@PathVariable Long id, @PathVariable Long userId) {
-        communities.decide(Actor.current(), id, userId, true);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        communities.decide(a, id, userId, true);
     }
 
     @PostMapping("/communities/{id}/requests/{userId}/reject")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reject(@PathVariable Long id, @PathVariable Long userId) {
-        communities.decide(Actor.current(), id, userId, false);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        communities.decide(a, id, userId, false);
     }
 
     @PutMapping("/communities/{id}/members/{userId}/role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void role(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody RoleRequest r) {
-        communities.setRole(Actor.current(), id, userId, r.role());
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        communities.setRole(a, id, userId, r.role());
     }
 
     /** ban=true ise kullanici yasaklanir ve yeniden katilamaz. */
@@ -127,7 +137,9 @@ public class CommunityController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable Long id, @PathVariable Long userId,
                        @RequestParam(defaultValue = "false") boolean ban) {
-        communities.remove(Actor.current(), id, userId, ban);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        communities.remove(a, id, userId, ban);
     }
 
     @GetMapping("/communities/{id}/posts")
@@ -155,19 +167,25 @@ public class CommunityController {
     @DeleteMapping("/communities/{id}/posts/{postId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePost(@PathVariable Long id, @PathVariable Long postId) {
-        posts.delete(Actor.current(), id, postId);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        posts.delete(a, id, postId);
     }
 
     @PutMapping("/communities/{id}/posts/{postId}/pin")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void pin(@PathVariable Long id, @PathVariable Long postId) {
-        posts.pin(Actor.current(), id, postId, true);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        posts.pin(a, id, postId, true);
     }
 
     @DeleteMapping("/communities/{id}/posts/{postId}/pin")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unpin(@PathVariable Long id, @PathVariable Long postId) {
-        posts.pin(Actor.current(), id, postId, false);
+        Actor a = Actor.current();
+        limiter.check("community-write:user:" + a.id(), 60, Duration.ofHours(1));
+        posts.pin(a, id, postId, false);
     }
 
     @GetMapping("/me/communities")

@@ -18,6 +18,7 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
     @Query("""
             SELECT m FROM CommunityMember m
             WHERE m.communityId = :cid AND m.status = :status AND m.id > :cursor AND m.userId NOT IN :excluded
+              AND m.userId IN (SELECT u.id FROM User u WHERE u.status <> edu.bingol.backend.user.UserStatus.DELETED)
             ORDER BY m.id
             """)
     List<CommunityMember> page(@Param("cid") Long communityId, @Param("status") CommunityMember.Status status,
@@ -25,7 +26,8 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
                                Pageable page);
 
     /** Bildirim hedefleri: topluluktaki aktif uyelerin id'leri. */
-    @Query("SELECT m.userId FROM CommunityMember m WHERE m.communityId = :cid AND m.status = :status")
+    @Query("SELECT m.userId FROM CommunityMember m WHERE m.communityId = :cid AND m.status = :status"
+            + " AND m.userId IN (SELECT u.id FROM User u WHERE u.status <> edu.bingol.backend.user.UserStatus.DELETED)")
     List<Long> userIdsByStatus(@Param("cid") Long communityId, @Param("status") CommunityMember.Status status,
                                Pageable page);
 
@@ -40,7 +42,9 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
                                @Param("cursor") long cursor, Pageable page);
 
     /** Verilen topluluklardaki aktif uye sayilari: [communityId, count]. */
-    @Query("SELECT m.communityId, COUNT(m) FROM CommunityMember m WHERE m.communityId IN :ids AND m.status = :status GROUP BY m.communityId")
+    @Query("SELECT m.communityId, COUNT(m) FROM CommunityMember m WHERE m.communityId IN :ids AND m.status = :status"
+            + " AND m.userId IN (SELECT u.id FROM User u WHERE u.status <> edu.bingol.backend.user.UserStatus.DELETED)"
+            + " GROUP BY m.communityId")
     List<Object[]> countByCommunity(@Param("ids") Collection<Long> communityIds,
                                     @Param("status") CommunityMember.Status status);
 
