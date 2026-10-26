@@ -2,6 +2,9 @@
 
 Bu dosya `docs/WORK_PLAN.md` içindeki tüm görevler (T1–T20) için geçerlidir. Önce `CLAUDE.md`'yi, sonra bu dosyayı, sonra kendi görev bölümünü (`WORK_PLAN.md` içinde `## T<n>`) oku.
 
+## Ürün adı
+Uygulamanın ve web sitesinin adı **"BÜ Kampüs"** (aynen böyle; Arapçada da çevrilmez). Kullanıcıya görünen metinlerde ÜRÜN adı olarak bunu kullan; kurum olarak "Bingöl Üniversitesi" ifadesi (kaynak siteler, hakkımızda, yasal metinler) aynen kalır. Logo kaynağı: repo kökündeki `logo.png` (kırmızı yuvarlak kare, beyaz "BÜ"); marka dosyaları `brand/` altında (T22).
+
 ## Çalışma ortamı
 - Sen bir **git worktree**'desin (repo kökü). `main`'e dokunma, push YAPMA; işin bitince kendi dalında `git add -A && git commit` (ASCII mesaj, sonuna `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`).
 - Java 8 yerelde; **Maven/Java 17 yalnızca Docker'da**: `cd backend && MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W):/app" -w /app maven:3-eclipse-temurin-17 mvn -B test`.

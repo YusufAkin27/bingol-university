@@ -130,3 +130,9 @@ T5 bulgularının ve T6 önerilerinin düzeltilmesi (önem sırasıyla), regresy
 
 ## T20 — Belgeler, yayın ve temizlik
 `CLAUDE.md`/`README`/`ADMIN_API`/`MOBILE_API_GUIDE`/`ONERILER` güncelleme, OpenAPI yeniden üretimi, migration/indeks adı benzersizlik denetim betiği (`scripts/check-migrations.sh`), kullanılmayan kod/bağımlılık taraması, CI örneğinin güncellenmesi, tam regresyon, sürüm notları (`docs/CHANGELOG.md`).
+
+
+---
+
+## Ek görevler
+- **T22 — Logo ve ürün adı (web + mobil + belgeler):** logo.png referans alınarak şeffaf ikon, yatay/dikey lockup, Android (adaptive, monochrome, bildirim, splash, Play Store), iOS, web (favicon, manifest, og) ve tüm arayüzlerde uygulanır; ürün adı **BÜ Kampüs**. *Backend kısmı (e-posta konusu `mail.verification.subject`, `app_setting.app_name`, Swagger başlığı, bildirim/e-posta metinleri tr/en/ar) Dalga 1 birleşimi sonrası ana dalda yapılır; T20 kalan eski adları tarar.*
