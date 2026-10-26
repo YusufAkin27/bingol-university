@@ -96,3 +96,14 @@ Sözleşme alanları değişmedi; aşağıdakiler belirsiz kalan noktaların kes
 `notificationsTotal`, `notificationsUnread`, `messagesSent` (yalnızca sayı; mesaj içeriği ASLA dönmez), `blocking`, `blockedBy`,
 `devices[{platform,registeredAt}]`, `communities[{id,name,role,status,joinedAt}]`, `eventsCreated[...]`, `eventsAttending[...rsvp]`,
 `feedback[...]`, `tickets[...]`, `reportsAgainst[...]`, `reportsFiled[...]` (her liste en fazla 50 kayıt).
+
+## T12 — Moderasyon genişletmeleri (ayrıntı: [MODERATION.md](MODERATION.md))
+
+- `GET /api/admin/reports?status=OPEN&order=asc|desc|priority&targetType=&cursor=&size=` → `{items:[ReportView], nextCursor}`. `ReportView` yeni alanlar: `priority`, `reasonCode`, `preview{kind:IMAGE|TEXT,url,thumbnailUrl,mime,text}|null`, `hidden`, `hiddenBy` (`AUTO`|`ADMIN`|null), `openReporters`. **`order=priority` modunda `cursor` sayfa numarasıdır (0'dan)**; diğer modlarda rapor id'si. Yeni hedef türleri: `MESSAGE_IMAGE`, `USER_AVATAR`, `COMMUNITY_COVER`, `EVENT_COVER` (handler kayıtlıysa).
+- `POST /api/admin/reports/{id}/resolve {action: DISMISS|HIDE|WARN|SUSPEND_USER, message?, reasonCode?}` → 204 (`reasonCode`: `SPAM|HARASSMENT|SEXUAL|VIOLENCE|HATE|PRIVACY|COPYRIGHT|IMPERSONATION|OTHER`; geçersiz → 400 `REASON_CODE_INVALID`).
+- `POST /api/admin/reports/bulk-resolve {ids:[≤100], action, message?, reasonCode?}` → 200 `[{id, ok, error}]` (satır hataları `error` kodu olarak; dakikada 20 çağrı).
+- `GET /api/admin/reports/reason-templates` → `[{code, text (istek dilinde), texts:{tr,en,ar}}]`.
+- `GET /api/admin/moderation/appeals?status=OPEN|ACCEPTED|REJECTED&cursor=&size=` → `{items:[{id,userId,targetType,targetId,message,status,adminNote,createdAt,decidedAt}], nextCursor}`; `POST …/appeals/{id}/decide {accept:boolean, note?}` → 204 (kabul = içerik geri açılır, ihlal iptal; 409 `ALREADY_RESOLVED`, 409 `TARGET_NOT_REVERSIBLE`).
+- `GET /api/admin/moderation/suspend-recommendations?status=OPEN` → `{items:[{id,userId,strikeCount,status,createdAt}], nextCursor}`; `POST …/{id}/accept` (kullanıcıyı askıya alır) · `POST …/{id}/dismiss` → 204.
+- `GET /api/admin/moderation/blocklist?cursor=&size=` → `{items:[{sha256,note,createdBy,createdAt}], nextCursor}`; `POST …/blocklist {sha256 (64 hex), note?}` → 201 (idempotent); `DELETE …/blocklist/{sha256}` → 204 / 404.
+- Kullanıcı uçları: `POST /api/appeals {targetType,targetId,message}` → 201 `{id}`; `GET /api/appeals/mine`.

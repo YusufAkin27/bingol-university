@@ -51,6 +51,14 @@ public class Report {
 
     private Long resolvedBy;
 
+    /** Kuyruk onceligi: acik farkli raporlayici sayisi * 10 (+100 otomatik/yonetici gizlemesi varsa). */
+    @Column(nullable = false)
+    private int priority;
+
+    /** Karar nedeni sablonu ({@link DecisionReason}); isteğe bagli. */
+    @Column(length = 32)
+    private String reasonCode;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
