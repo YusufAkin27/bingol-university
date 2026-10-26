@@ -52,6 +52,30 @@ public class MailService {
         }
     }
 
+    public void sendPasswordResetCode(String to, String code, int minutes, Lang lang) {
+        if (!props.enabled()) {
+            // Yalnizca gelistirme: e-posta kapaliyken kod log'a yazilir.
+            log.warn("[DEV] {} icin sifre sifirlama kodu: {}", to, code);
+            return;
+        }
+        JavaMailSender mailSender = sender.getIfAvailable();
+        if (mailSender == null) {
+            log.error("app.mail.enabled=true ama spring.mail.host ayarli degil");
+            throw mailUnavailable();
+        }
+        SimpleMailMessage m = new SimpleMailMessage();
+        m.setFrom(props.from());
+        m.setTo(to);
+        m.setSubject(i18n.msg("mail.reset.subject", lang));
+        m.setText(i18n.msg("mail.reset.body", lang, code, String.valueOf(minutes)));
+        try {
+            mailSender.send(m);
+        } catch (Exception e) {
+            log.error("E-posta gonderilemedi: {}", e.toString());
+            throw mailUnavailable();
+        }
+    }
+
     private static ApiException mailUnavailable() {
         return new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_UNAVAILABLE",
                 "Doğrulama e-postası şu anda gönderilemiyor. Lütfen daha sonra tekrar deneyin.");

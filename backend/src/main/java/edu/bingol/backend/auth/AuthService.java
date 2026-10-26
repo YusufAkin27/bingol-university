@@ -82,6 +82,43 @@ public class AuthService {
         // Hesap yoksa/dogrulanmissa da ayni cevap doner (e-posta taramasini engellemek icin).
     }
 
+    /** Hesap var ve dogrulanmissa sifirlama kodu gonderir; her durumda ayni cevap (enumerasyon yok). */
+    public void forgotPassword(String rawEmail) {
+        String email = normalizeEmail(rawEmail);
+        users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive).ifPresent(u -> {
+            try {
+                verification.issueReset(email, Lang.of(u.getLanguage()));
+            } catch (ApiException e) {
+                // Bekleme suresi cevabi hesabin varligini sizdirirdi: sessizce yutulur.
+                if (!"RESEND_COOLDOWN".equals(e.code())) {
+                    throw e;
+                }
+            }
+        });
+    }
+
+    /** Sifirlama kodunu dogrular; dogruysa yeni sifre adimi icin tek kullanimlik anahtar verir. */
+    public String verifyResetCode(String rawEmail, String code) {
+        String email = normalizeEmail(rawEmail);
+        users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
+        if (!verification.verifyReset(email, code.trim())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
+        }
+        return verification.issueResetToken(email);
+    }
+
+    public void resetPassword(String rawEmail, String resetToken, String newPassword) {
+        String email = normalizeEmail(rawEmail);
+        User user = users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
+        if (!verification.consumeResetToken(email, resetToken)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
+        }
+        user.setPasswordHash(encoder.encode(newPassword));
+        users.save(user);
+    }
+
     public TokenResponse verifyEmail(String rawEmail, String code) {
         String email = normalizeEmail(rawEmail);
         User user = users.findByEmail(email)

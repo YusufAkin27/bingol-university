@@ -5,6 +5,8 @@ import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.RefreshRequest;
 import edu.bingol.backend.auth.dto.RegisterRequest;
+import edu.bingol.backend.auth.dto.ResetPasswordRequest;
+import edu.bingol.backend.auth.dto.ResetTokenResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.dto.VerifyRequest;
@@ -58,6 +60,28 @@ public class AuthController {
         limiter.check("resend:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
         auth.resendCode(r.email());
         return new MessageResponse(i18n.current("msg.resend.sent"));
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
+        limiter.check("forgot:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
+        limiter.check("forgot:email:" + AuthService.normalizeEmail(r.email()), 5, Duration.ofHours(1));
+        auth.forgotPassword(r.email());
+        return new MessageResponse(i18n.current("msg.forgot.sent"));
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResetTokenResponse verifyResetCode(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
+        limiter.check("vreset:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
+        return new ResetTokenResponse(auth.verifyResetCode(r.email(), r.code()));
+    }
+
+    @PostMapping("/reset-password")
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest r, HttpServletRequest http) {
+        limiter.check("reset:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
+        auth.resetPassword(r.email(), r.resetToken(), r.newPassword());
+        return new MessageResponse(i18n.current("msg.reset.done"));
     }
 
     @PostMapping("/verify-email")
