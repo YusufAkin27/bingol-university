@@ -42,8 +42,13 @@ export type StatusMap = Record<string, SourceStatus>;
 
 export const NEWS_KINDS: NewsKind[] = ['HABER', 'DUYURU', 'ETKINLIK'];
 
-export const getPublicNews = (p: { type?: NewsKind; page?: number; size?: number }) =>
-  publicApi.get<NewsPage>('/news', { type: p.type, page: p.page ?? 0, size: p.size ?? 12 });
+export const getPublicNews = (p: { type?: NewsKind; q?: string; page?: number; size?: number }) =>
+  publicApi.get<NewsPage>('/news', {
+    type: p.type,
+    q: p.q || undefined,
+    page: p.page ?? 0,
+    size: p.size ?? 12,
+  });
 
 export const getPublicNewsItem = (id: number | string) => publicApi.get<NewsDetail>(`/news/${id}`);
 

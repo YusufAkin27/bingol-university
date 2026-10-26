@@ -132,7 +132,7 @@ Kurallar geçerliliğini korur: tek API katmanı, yükleniyor/hata/boş/bakım d
 - Rate limit sabit pencere; IP `getRemoteAddr()` — proxy arkasında `X-Forwarded-For` ayarlanmalı (`server.forward-headers-strategy`).
 - `register`, doğrulanmış e-posta için 409 döner (sınırlı enumerasyon; bilinen taviz).
 - Şifre sıfırlama yok. Gerçek SMTP/FCM kimlik bilgileri girilmedi (kod loga yazılır, push gitmez).
-- Sözleşme metinleri **taslaktır**, hukuki inceleme gerekir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
+- Sözleşme metinleri (V99, 2. sürüm) yayın öncesi hukuk danışmanı tarafından gözden geçirilmelidir; EN/AR sözleşme çevirileri yok (Türkçe sunulur). Arapça arayüz çevirileri anadil incelemesi ister.
 - Mobil uygulama ertelendi; Flutter bu makinede yok.
 
 ## 9. Yönetim paneli API'leri (özet)

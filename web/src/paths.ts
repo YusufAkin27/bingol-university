@@ -20,7 +20,6 @@ export const paths = {
     security: '/security',
     guidelines: '/community-guidelines',
     help: '/help',
-    status: '/status',
     news: '/news',
     newsItem: (id: number | string) => `/news/${id}`,
     menu: '/menu',

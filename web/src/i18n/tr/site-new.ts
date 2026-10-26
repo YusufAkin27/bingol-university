@@ -42,6 +42,5 @@ const m = {
     'Mesajlar iletim sırasında şifrelenir ve sunucuda şifreli saklanır. Anahtarları sunucu yönetir; bu nedenle mesajlar yalnızca sizin cihazınızda çözülebilen bir korumaya sahip değildir.',
   'legal.adminAccess.body2':
     'Yetkili yöneticiler güvenlik, şikâyet incelemesi veya yasal yükümlülük kapsamında kullanıcıların konuşmalarını görüntüleyebilir; yönetici erişimi kayıt altındadır ve her erişim değiştirilemez bir denetim kaydına yazılır. Sildiğiniz veya düzenlediğiniz mesajlar size görünmez olur ancak önceki sürümleriyle birlikte güvenlik ve yasal yükümlülükler için sınırlı bir süre veya süresiz saklanabilir.',
-  'legal.adminAccess.draft': 'Bu metin taslaktır; yayımlanmadan önce hukuki inceleme gerekir.',
 } as const;
 export default m;
