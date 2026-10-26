@@ -12,7 +12,6 @@ const PAGES: [string, string][] = [
   ['/security', 'Güvenlik'],
   ['/community-guidelines', 'Topluluk kuralları'],
   ['/help', 'Yardım merkezi'],
-  ['/status', 'Güncel durum'],
   ['/news', 'Haberler ve duyurular'],
   ['/menu', 'Yemek listesi'],
   ['/brand', 'Basın ve marka kiti'],

@@ -29,7 +29,6 @@ const SitemapPage = lazy(() => import('./pages/site/SitemapPage'));
 const SecurityPage = lazy(() => import('./pages/site/SecurityPage'));
 const CommunityGuidelinesPage = lazy(() => import('./pages/site/CommunityGuidelinesPage'));
 const HelpPage = lazy(() => import('./pages/site/HelpPage'));
-const StatusPage = lazy(() => import('./pages/site/StatusPage'));
 const NewsListPage = lazy(() => import('./pages/site/NewsListPage'));
 const NewsDetailPage = lazy(() => import('./pages/site/NewsDetailPage'));
 const MenuPage = lazy(() => import('./pages/site/MenuPage'));
@@ -96,7 +95,6 @@ export function AppRoutes() {
           <Route path="security" element={<SecurityPage />} />
           <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
           <Route path="help" element={<HelpPage />} />
-          <Route path="status" element={<StatusPage />} />
           <Route path="news" element={<NewsListPage />} />
           <Route path="news/:id" element={<NewsDetailPage />} />
           <Route path="menu" element={<MenuPage />} />

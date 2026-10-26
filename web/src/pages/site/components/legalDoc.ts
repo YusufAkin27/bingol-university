@@ -6,8 +6,6 @@ export interface LegalSection {
 }
 
 export interface PreparedLegal {
-  /** İçerikte "TASLAK" geçiyor mu. */
-  draft: boolean;
   sections: LegalSection[];
   toc: { id: string; title: string }[];
 }
@@ -27,11 +25,10 @@ function slug(s: string): string {
 /**
  * Yasal metni bölümlere ayırır. Başlıklar `#`/`##`/`###` satırlarıdır; ayrıca tek satırlık, noktalama ile
  * bitmeyen "1. Başlık" satırları (boşlukla ayrılmış, ardından numaralı olmayan metin gelen) başlık sayılır.
- * Baştaki "TASLAK ..." uyarı paragrafı metinden çıkarılır (yerine yerelleştirilmiş uyarı gösterilir).
+ * Eski sürümlerdeki baştaki "TASLAK ..." uyarı paragrafı (varsa) metinden çıkarılır.
  */
 export function prepareLegal(content: string): PreparedLegal {
   const lines = content.replace(/\r\n?/g, '\n').split('\n');
-  const draft = /TASLAK/i.test(content);
 
   // Baştaki TASLAK paragrafını ayıkla
   let start = 0;
@@ -82,5 +79,5 @@ export function prepareLegal(content: string): PreparedLegal {
   push();
 
   const toc = sections.filter((s) => s.id && s.level === 2).map((s) => ({ id: s.id!, title: s.title! }));
-  return { draft, sections, toc };
+  return { sections, toc };
 }

@@ -47,7 +47,6 @@ function setup(lang: 'tr' | 'en', docLang: string) {
 describe('prepareLegal', () => {
   it('numaralı satırları başlığa çevirir, TASLAK paragrafını ayıklar', () => {
     const d = prepareLegal(CONTENT);
-    expect(d.draft).toBe(true);
     expect(d.toc.map((e) => e.title)).toEqual(['1. Topladığımız Veriler', '2. Paylaşım']);
     expect(d.sections[0].body).toContain('- Hesap');
     expect(d.sections.some((s) => s.body.includes('TASLAK'))).toBe(false);
@@ -56,18 +55,19 @@ describe('prepareLegal', () => {
   it('gerçek # başlıklarını kullanır; numaralı liste başlık sayılmaz', () => {
     const d = prepareLegal('# Giriş\nmetin\n\n## Kapsam\nmetin\n\n1. bir\n2. iki');
     expect(d.toc.map((e) => e.id)).toEqual(['giris', 'kapsam']);
-    expect(d.draft).toBe(false);
   });
 });
 
 describe('LegalPage', () => {
-  it('markdown içeriği, içindekiler ve taslak notunu gösterir; HTML enjekte etmez', async () => {
+  it('markdown içeriği, içindekiler gösterir; HTML enjekte etmez', async () => {
     const { container } = setup('tr', 'tr');
-    expect(await screen.findByRole('heading', { level: 2, name: '1. Topladığımız Veriler' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 2, name: '1. Topladığımız Veriler' }),
+    ).toBeInTheDocument();
     const toc = screen.getByRole('navigation', { name: 'İçindekiler' });
     expect(within(toc).getAllByRole('link')).toHaveLength(2);
     expect(within(toc).getByRole('link', { name: '2. Paylaşım' })).toHaveAttribute('href', '#2-paylasim');
-    expect(screen.getByText('Bu metin taslaktır')).toBeInTheDocument();
+    expect(screen.queryByText(/taslak/i)).toBeNull();
     expect(screen.getByText('satılmaz').tagName).toBe('STRONG');
     expect(screen.getByRole('link', { name: 'iletişim' })).toHaveAttribute('href', '/contact');
     expect(container.querySelector('script')).toBeNull();

@@ -31,7 +31,6 @@ export const SITE_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
     links: [
       { to: paths.site.help, label: 'pg.help.title' },
       { to: paths.site.faq, label: 'site.nav.faq' },
-      { to: paths.site.status, label: 'pg.status.title' },
       { to: paths.site.deleteAccount, label: 'pg.delete.title' },
       { to: paths.site.dataRequest, label: 'site.dataRequest.title' },
     ],

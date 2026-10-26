@@ -15,11 +15,11 @@ import { COOKIES_SECTIONS } from './CookiesPage';
 import { DELETE_SECTIONS } from './DeleteAccountPage';
 import { GUIDELINES_SECTIONS } from './CommunityGuidelinesPage';
 import { SECURITY_SECTIONS } from './SecurityPage';
-import { BRAND_LOGOS } from './BrandPage';
+import { BRAND_COLORS, BRAND_LOGOS, hexToRgb } from './BrandPage';
 import { CHANGELOG } from './ChangelogPage';
 import { HELP_CATEGORIES } from './HelpPage';
 import { parseKind } from './NewsListPage';
-import { safeSourceUrl } from './NewsDetailPage';
+import { neighbours, safeSourceUrl } from './NewsDetailPage';
 import { classifyError } from '../../components/ErrorBoundary';
 
 const info = {
@@ -37,30 +37,70 @@ const info = {
 
 const news = {
   items: [
-    { id: 7, type: 'DUYURU', title: 'Kayıt yenileme duyurusu', summary: 'Özet metni', imageUrl: null, publishedDate: '2026-10-01', url: 'http://www.bingol.edu.tr/x' },
+    {
+      id: 7,
+      type: 'DUYURU',
+      title: 'Kayıt yenileme duyurusu',
+      summary: 'Özet metni',
+      imageUrl: null,
+      publishedDate: '2026-10-01',
+      url: 'http://www.bingol.edu.tr/x',
+    },
   ],
   page: 0,
   totalPages: 1,
   totalItems: 1,
 };
 
-let statusBody: unknown = {
-  NEWS: { maintenance: false, lastSuccessAt: '2026-10-25T21:00:00Z', lastAttemptAt: '2026-10-25T21:00:00Z', message: null },
-  MENU: { maintenance: true, lastSuccessAt: null, lastAttemptAt: '2026-10-25T21:00:00Z', message: 'Kaynak değişti' },
+const statusBody = {
+  NEWS: {
+    maintenance: false,
+    lastSuccessAt: '2026-10-25T21:00:00Z',
+    lastAttemptAt: '2026-10-25T21:00:00Z',
+    message: null,
+  },
+  MENU: {
+    maintenance: true,
+    lastSuccessAt: null,
+    lastAttemptAt: '2026-10-25T21:00:00Z',
+    message: 'Kaynak değişti',
+  },
 };
 
 function api(url: string) {
   if (url.includes('/app/info')) return jsonResponse(200, info);
-  if (url.includes('/app/version')) return jsonResponse(200, { updateRequired: false, updateAvailable: false, latestVersion: '1', storeUrl: null });
-  if (url.includes('/status')) return statusBody instanceof Response ? statusBody : jsonResponse(200, statusBody);
+  if (url.includes('/app/version'))
+    return jsonResponse(200, {
+      updateRequired: false,
+      updateAvailable: false,
+      latestVersion: '1',
+      storeUrl: null,
+    });
+  if (url.includes('/status')) return jsonResponse(200, statusBody);
   if (/\/news\/7/.test(url))
-    return jsonResponse(200, { id: 7, type: 'DUYURU', title: 'Kayıt yenileme duyurusu', content: 'Birinci paragraf\nİkinci paragraf', imageUrl: null, publishedDate: '2026-10-01', url: 'http://www.bingol.edu.tr/x' });
+    return jsonResponse(200, {
+      id: 7,
+      type: 'DUYURU',
+      title: 'Kayıt yenileme duyurusu',
+      content: 'Birinci paragraf\nİkinci paragraf',
+      imageUrl: null,
+      publishedDate: '2026-10-01',
+      url: 'http://www.bingol.edu.tr/x',
+    });
   if (/\/news\/\d+/.test(url)) return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
   if (url.includes('/news')) return jsonResponse(200, news);
   if (url.includes('/menu'))
     return jsonResponse(200, [{ date: isoDate(new Date()), items: ['Mercimek çorbası', 'Pilav'] }]);
   if (url.includes('/versions')) return jsonResponse(200, []);
-  if (url.includes('/legal/')) return jsonResponse(200, { type: 'PRIVACY', version: 2, lang: 'tr', title: 'Gizlilik Politikası', content: '# Gizlilik\nMetin', publishedAt: '2026-10-01T00:00:00Z' });
+  if (url.includes('/legal/'))
+    return jsonResponse(200, {
+      type: 'PRIVACY',
+      version: 2,
+      lang: 'tr',
+      title: 'Gizlilik Politikası',
+      content: '# Gizlilik\nMetin',
+      publishedAt: '2026-10-01T00:00:00Z',
+    });
   return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
 }
 
@@ -86,7 +126,11 @@ describe('çeviri tamlığı', () => {
       ...infoKeys('security', SECURITY_SECTIONS),
       ...infoKeys('guidelines', GUIDELINES_SECTIONS),
       ...BRAND_LOGOS.map((l) => l.name as string),
-      ...CHANGELOG.flatMap((e) => [`pg.changelog.${e.id}.title`, `pg.changelog.${e.id}.date`, ...Array.from({ length: e.items }, (_, i) => `pg.changelog.${e.id}.l${i + 1}`)]),
+      ...CHANGELOG.flatMap((e) => [
+        `pg.changelog.${e.id}.title`,
+        `pg.changelog.${e.id}.date`,
+        ...Array.from({ length: e.items }, (_, i) => `pg.changelog.${e.id}.l${i + 1}`),
+      ]),
       ...HELP_CATEGORIES.flatMap((c) => [`pg.help.cat.${c.id}.title`, `pg.help.cat.${c.id}.text`]),
       ...SITE_GROUPS.flatMap((g) => [g.title as string, ...g.links.map((l) => l.label as string)]),
       ...MAIN_NAV.map((n) => n.label as string),
@@ -100,7 +144,8 @@ describe('çeviri tamlığı', () => {
   it('güvenlik metni uçtan uca şifreleme iddia etmez, sunucunun anahtarları yönettiğini söyler', () => {
     for (const lang of ['tr', 'en', 'ar'] as const)
       for (const [k, v] of Object.entries(dictionaries[lang]))
-        if (k.startsWith('pg.security.')) expect(v, k).not.toMatch(/uçtan uca|end[- ]to[- ]end|من طرف إلى طرف/i);
+        if (k.startsWith('pg.security.'))
+          expect(v, k).not.toMatch(/uçtan uca|end[- ]to[- ]end|من طرف إلى طرف/i);
     expect(dictionaries.tr['pg.security.s1.l2']).toMatch(/sunucu yönetir/);
   });
 
@@ -140,7 +185,9 @@ describe('rota eşleşmesi ve sayfalar', () => {
 
   it('Arapça: sayfa başlığı çevrilir ve yön rtl olur', async () => {
     renderAt('/cookies', 'ar');
-    expect(await screen.findByRole('heading', { level: 1, name: 'سياسة ملفات تعريف الارتباط' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'سياسة ملفات تعريف الارتباط' }),
+    ).toBeInTheDocument();
     expect(document.documentElement.dir).toBe('rtl');
   });
 
@@ -153,7 +200,9 @@ describe('rota eşleşmesi ve sayfalar', () => {
   it('hesap silme sayfası adımları ve veri talebi bağlantısını içerir', async () => {
     renderAt('/delete-account');
     await screen.findByRole('heading', { level: 1, name: 'Hesap silme' });
-    expect(screen.getAllByRole('listitem').some((li) => /Hesabımı sil/.test(li.textContent ?? ''))).toBe(true);
+    expect(screen.getAllByRole('listitem').some((li) => /Hesabımı sil/.test(li.textContent ?? ''))).toBe(
+      true,
+    );
     const link = screen.getAllByRole('link').find((a) => a.getAttribute('href') === '/data-request');
     expect(link).toBeTruthy();
   });
@@ -162,36 +211,19 @@ describe('rota eşleşmesi ve sayfalar', () => {
     renderAt('/security');
     await screen.findByRole('heading', { level: 1, name: 'Güvenlik' });
     const main = within(screen.getByRole('main'));
-    expect(await main.findByRole('link', { name: 'info@bingol.edu.tr' })).toHaveAttribute('href', 'mailto:info@bingol.edu.tr');
-  });
-
-  it('güncel durum: bakımdaki kaynak ve yükleniyor/hata/boş durumları', async () => {
-    renderAt('/status');
-    expect(await screen.findByRole('heading', { level: 2, name: 'Yemek listesi' })).toBeInTheDocument();
-    expect(screen.getByText('Bakımda')).toBeInTheDocument();
-    expect(screen.getByText('Kaynak değişti')).toBeInTheDocument();
-    expect(screen.getByText('Bazı kaynaklar bakımda')).toBeInTheDocument();
-  });
-
-  it('güncel durum: sunucu hatasında hata durumu ve tekrar dene', async () => {
-    statusBody = new Response(JSON.stringify({ code: 'X', message: 'x' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-    renderAt('/status');
-    expect(await screen.findByText('Durum bilgisi alınamadı')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Tekrar dene' })).toBeInTheDocument();
-    statusBody = {};
-  });
-
-  it('güncel durum: boş yanıt boş durum gösterir', async () => {
-    statusBody = {};
-    renderAt('/status');
-    expect(await screen.findByText('Durum bilgisi bulunamadı')).toBeInTheDocument();
+    expect(await main.findByRole('link', { name: 'info@bingol.edu.tr' })).toHaveAttribute(
+      'href',
+      'mailto:info@bingol.edu.tr',
+    );
   });
 
   it('haber listesi kaynak atfı ve detay bağlantısı gösterir; detay orijinal bağlantıyı https yapar', async () => {
     renderAt('/news');
     const link = await screen.findByRole('link', { name: 'Kayıt yenileme duyurusu' });
     expect(link).toHaveAttribute('href', '/news/7');
-    expect(screen.getByText(/Bingöl Üniversitesi’ne aittir/)).toBeInTheDocument();
+    expect(screen.queryByText(/aittir/)).toBeNull();
+    expect(screen.getByText('Öne çıkan')).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Haberlerde ara' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Tür filtresi' })).toBeInTheDocument();
   });
 
@@ -278,6 +310,78 @@ describe('erişilebilirlik temel kontrolleri', () => {
     const imgs = screen.getAllByRole('img');
     expect(imgs.length).toBeGreaterThanOrEqual(BRAND_LOGOS.length);
     for (const img of imgs) expect(img.getAttribute('alt')?.trim()).toBeTruthy();
+  });
+});
+
+describe('marka kiti', () => {
+  it('her logo için çalışan indirme bağlantıları (download özniteliği, PNG ve varsa SVG) sunar', async () => {
+    renderAt('/brand');
+    await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
+    const dl = screen.getAllByRole('link').filter((a) => a.hasAttribute('download'));
+    expect(dl.length).toBe(BRAND_LOGOS.length + BRAND_LOGOS.filter((l) => l.svgBytes).length);
+    for (const a of dl) {
+      expect(a.getAttribute('href')).toMatch(/^\/brand\/[a-z-]+\.(png|svg)$/);
+      expect(a.getAttribute('download')).toMatch(/^bu-kampus-/);
+    }
+  });
+  it(
+    'renk kartları hex, RGB ve kopyalama düğmesi içerir; koruma alanı ve yapılmayacaklar bölümleri vardır',
+    { timeout: 20000 },
+    async () => {
+      renderAt('/brand');
+      await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
+      for (const c of BRAND_COLORS) {
+        expect(screen.getByText(c.hex)).toBeInTheDocument();
+        expect(screen.getByLabelText(c.hex + ' kodunu kopyala')).toBeInTheDocument();
+      }
+      expect(screen.getByText('Koruma alanı', { selector: 'h2' })).toBeInTheDocument();
+      expect(screen.getByText('Yapmayın', { selector: 'h2' })).toBeInTheDocument();
+      expect(
+        await within(screen.getByRole('main')).findByRole('link', { name: 'info@bingol.edu.tr' }),
+      ).toHaveAttribute('href', 'mailto:info@bingol.edu.tr');
+    },
+  );
+  it('hexToRgb dönüştürür', () => {
+    expect(hexToRgb('#F73A2E')).toBe('247, 58, 46');
+  });
+});
+
+describe('haber yardımcıları ve arama', () => {
+  it('neighbours önceki/sonraki ve ilgili kayıtları verir', () => {
+    const list = [{ id: 5 }, { id: 4 }, { id: 3 }, { id: 2 }];
+    expect(neighbours(list, 4)).toEqual({
+      newer: { id: 5 },
+      older: { id: 3 },
+      related: [{ id: 5 }, { id: 3 }, { id: 2 }],
+    });
+    expect(neighbours(list, 5).newer).toBeNull();
+    expect(neighbours(list, 99).older).toBeNull();
+  });
+  it('arama kutusu q parametresiyle API çağırır', async () => {
+    const seen: string[] = [];
+    mockFetch((url) => {
+      seen.push(url);
+      return api(url);
+    });
+    renderWithProviders(
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>,
+      { route: '/news?q=kayit', lang: 'tr' },
+    );
+    await screen.findByRole('link', { name: 'Kayıt yenileme duyurusu' });
+    expect(seen.some((u) => /news\?.*q=kayit/.test(u))).toBe(true);
+    expect(screen.queryByText('Öne çıkan')).toBeNull();
+  });
+});
+
+describe('taslak ibaresi', () => {
+  it('herkese açık site sözlüklerinde taslak ibaresi yoktur', () => {
+    for (const lang of ['tr', 'en', 'ar'] as const)
+      for (const [k, v] of Object.entries(dictionaries[lang])) {
+        if (k.startsWith('admin.')) continue;
+        expect(v, lang + ':' + k).not.toMatch(/taslak|draft|مسودة|hukuki inceleme/i);
+      }
   });
 });
 

@@ -38,7 +38,9 @@ describe('Tanıtım sitesi: yeni özellikler', () => {
     mockFetch(() => jsonResponse(200, []));
     renderWithProviders(<FaqPage />);
     expect(await screen.findByRole('button', { name: 'Etkinliğe nasıl başvururum?' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Yöneticiler mesajlarımı okuyabilir mi?' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Yöneticiler mesajlarımı okuyabilir mi?' }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('faq-new').textContent?.toLowerCase()).not.toContain('uçtan uca');
   });
 
@@ -49,12 +51,12 @@ describe('Tanıtım sitesi: yeni özellikler', () => {
     expect(items.every((i) => i.id < 0 && i.question && i.answer)).toBe(true);
   });
 
-  it('yasal sayfada yönetici erişim bildirimi taslak ve hukuki inceleme notuyla görünür', async () => {
+  it('yasal sayfada yönetici erişim bildirimi taslak ibaresi olmadan görünür', async () => {
     mockFetch(() => jsonResponse(200, []));
     renderWithProviders(<LegalListPage />);
     const notice = await screen.findByTestId('admin-access-notice');
     expect(notice).toHaveTextContent('Yönetici erişimi ve silinen mesajların saklanması');
-    expect(notice).toHaveTextContent('taslaktır');
-    expect(notice).toHaveTextContent('hukuki inceleme');
+    expect(notice).not.toHaveTextContent(/taslak/i);
+    expect(notice).not.toHaveTextContent(/hukuki inceleme/i);
   });
 });

@@ -3,7 +3,7 @@ import shared from './site.module.css';
 import styles from './AdminAccessNotice.module.css';
 
 /**
- * Yönetici gerekçeli ve denetimli erişim bildirimi (TASLAK metin: yayımlanmadan önce hukuki inceleme gerekir).
+ * Yönetici gerekçeli ve denetimli erişim bildirimi.
  * Mesajların şifreli iletildiği ve saklandığı; yönetici erişiminin yalnızca yazılı gerekçeyle ve değiştirilemez kayıtla yapıldığı söylenir.
  */
 export function AdminAccessNotice() {
@@ -15,7 +15,6 @@ export function AdminAccessNotice() {
       </h2>
       <p>{t('legal.adminAccess.body1')}</p>
       <p>{t('legal.adminAccess.body2')}</p>
-      <p className={styles.draft}>{t('legal.adminAccess.draft')}</p>
     </aside>
   );
 }

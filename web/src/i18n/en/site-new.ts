@@ -42,6 +42,5 @@ const m = {
     'Messages are encrypted in transit and stored encrypted on the server. The server manages the keys, so messages are not protected in a way that only your device can decrypt.',
   'legal.adminAccess.body2':
     'Authorized administrators may view users\' conversations for security, report review or legal obligations; administrator access is recorded and every access is written to an immutable audit log. Messages you delete or edit become invisible to you but, together with earlier versions, may be retained for security and legal obligations for a limited time or indefinitely.',
-  'legal.adminAccess.draft': 'This text is a draft; legal review is required before it is published.',
 } as const;
 export default m;
