@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageRequest;
 
-/** KVKK "verilerimi indir": kullanicinin kendi gonderdigi mesajlar, sifresi cozulmus olarak (en yeni 5000). */
+/** KVKK "verilerimi indir": kullanicinin kendi gonderdigi GORUNUR mesajlar, sifresi cozulmus olarak (en yeni 5000).
+ * Herkes icin silinmis mesajlar disa aktarimda yer almaz (karar T24; saklama: docs/ENCRYPTION.md). */
 @Configuration
 public class MessageExporters {
 
@@ -52,11 +53,10 @@ public class MessageExporters {
                 e.put("id", m.getId());
                 e.put("conversationId", m.getConversationId());
                 e.put("createdAt", m.getCreatedAt().toString());
-                e.put("removed", m.isHidden() || m.isDeleted());
-                e.put("deleted", m.isDeleted());
+                e.put("removed", m.isHidden());
                 e.put("editedAt", m.getEditedAt() == null ? null : m.getEditedAt().toString());
                 e.put("replyToMessageId", m.getReplyToMessageId());
-                e.put("text", m.isHidden() || m.isDeleted() ? null : m.getBody());
+                e.put("text", m.isHidden() ? null : m.getBody());
                 return e;
             }).toList();
             return Map.of("count", out.size(), "truncated", out.size() >= MAX_EXPORT, "messages", out);
