@@ -25,7 +25,8 @@ public class AuditRecorder {
     /** Denetlenecek mi: GET/HEAD/OPTIONS disindaki tum yonetici istekleri + kisisel veri iceren CSV disa aktarimi. */
     static boolean shouldAudit(String method, String path) {
         boolean write = !method.equals("GET") && !method.equals("HEAD") && !method.equals("OPTIONS");
-        return write || path.endsWith("/export.csv");
+        // T8: yonetici sohbet gorseli onizlemesi (GET) de kisisel icerik gosterir -> denetlenir
+        return write || path.endsWith("/export.csv") || path.startsWith("/api/admin/media/attachments/");
     }
 
     public void record(HttpServletRequest req, Authentication auth, int status) {

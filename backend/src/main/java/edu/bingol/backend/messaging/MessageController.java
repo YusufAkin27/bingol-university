@@ -49,7 +49,7 @@ public class MessageController {
     /** WebSocket yokken yedek gonderim; `clientId` ile idempotent (tekrarda 200 + mevcut mesaj, yenide 201). */
     @PostMapping("/conversations/{id}/messages")
     public ResponseEntity<MessageView> send(@PathVariable Long id, @Valid @RequestBody SendMessageRequest r) {
-        MessageService.SendResult res = messages.send(CurrentUser.id(), id, r.text(), r.clientId());
+        MessageService.SendResult res = messages.send(CurrentUser.id(), id, r.text(), r.clientId(), r.attachmentIds());
         return ResponseEntity.status(res.created() ? HttpStatus.CREATED : HttpStatus.OK).body(res.message());
     }
 

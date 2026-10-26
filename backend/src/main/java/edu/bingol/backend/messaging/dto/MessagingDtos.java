@@ -1,6 +1,7 @@
 package edu.bingol.backend.messaging.dto;
 
 import edu.bingol.backend.messaging.Message;
+import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.moderation.ReportReason;
 import edu.bingol.backend.user.User;
 import jakarta.validation.constraints.NotBlank;
@@ -27,8 +28,16 @@ public final class MessagingDtos {
 
     public record AddMembersRequest(@NotEmpty @Size(max = 49) List<Long> userIds) {}
 
-    /** `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. */
-    public record SendMessageRequest(@NotNull String text, @NotBlank @Size(max = 64) String clientId) {}
+    /**
+     * `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. T8: `attachmentIds`
+     * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
+     */
+    public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId,
+                                     @Size(max = 4) List<Long> attachmentIds) {
+        public SendMessageRequest(String text, String clientId) {
+            this(text, clientId, null);
+        }
+    }
 
     public record ReadRequest(@NotNull Long lastMessageId) {}
 
@@ -44,7 +53,18 @@ public final class MessagingDtos {
 
     /** Gizlenen / engelli kullanicidan gelen mesajlarda `text` sabit bir aciklamadir, `removed` true olur. */
     public record MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
-                              boolean removed, String createdAt) {
+                              boolean removed, String createdAt, List<AttachmentView> attachments) {
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, List.of());
+        }
+
+        /** T8: gorsel ekleri ekler (gizlenen/engelli mesajda ek gosterilmez). */
+        public MessageView withAttachments(List<AttachmentView> list) {
+            return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
+                    removed, createdAt, List.copyOf(list));
+        }
+
         public static MessageView of(Message m) {
             return of(m, false);
         }
@@ -72,7 +92,11 @@ public final class MessagingDtos {
 
     // --- WebSocket ---
 
-    public record ChatSend(Long conversationId, String text, String clientId) {}
+    public record ChatSend(Long conversationId, String text, String clientId, List<Long> attachmentIds) {
+        public ChatSend(Long conversationId, String text, String clientId) {
+            this(conversationId, text, clientId, null);
+        }
+    }
 
     public record ChatRead(Long conversationId, Long lastMessageId) {}
 
