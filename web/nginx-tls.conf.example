@@ -1,0 +1,87 @@
+# ORNEK: TLS (HTTPS) + WSS sonlandirma. Uretimde web/nginx.conf yerine (ya da onun onune) bu bicim kullanilir.
+# Bu dosya derlemeye girmez; alan adi ve sertifika yollarini kendi ortaminize gore degistirin.
+# Sertifika: Let's Encrypt (certbot) veya kurumun sertifikasi. Ayrinti: docs/ENCRYPTION.md
+
+# 80 -> 443 yonlendirme (ACME dogrulamasi icin /.well-known acik kalir)
+server {
+    listen 80;
+    server_name kampus.example.edu.tr;
+
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name kampus.example.edu.tr;
+
+    ssl_certificate     /etc/letsencrypt/live/kampus.example.edu.tr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/kampus.example.edu.tr/privkey.pem;
+
+    # Yalnizca TLS 1.2/1.3; modern sifre takimlari
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # HSTS: bir yil + alt alanlar. preload'u yalnizca tum alt alanlar HTTPS'e hazirsa ekleyin.
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    root /usr/share/nginx/html;
+    index index.html;
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    set $backend http://backend:8080;
+    client_max_body_size 12m;
+
+    include /etc/nginx/snippets/security.conf;
+
+    # Backend'e giden istekte X-Forwarded-Proto=https: Spring (server.forward-headers-strategy=framework)
+    # dogru sema/istemci IP'sini bunlardan alir.
+    location /api/ {
+        proxy_pass $backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 60s;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        include /etc/nginx/snippets/security.conf;
+    }
+
+    location /files/ {
+        proxy_pass $backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        include /etc/nginx/snippets/security.conf;
+    }
+
+    # WSS: istemci wss://alan-adi/ws baglanir; TLS burada sonlanir, backend'e ws:// gider (kapali agda)
+    location /ws {
+        proxy_pass $backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 3600s;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        include /etc/nginx/snippets/security.conf;
+    }
+
+    location / {
+        add_header Cache-Control "no-cache";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        include /etc/nginx/snippets/security.conf;
+        try_files $uri $uri/ /index.html;
+    }
+}
