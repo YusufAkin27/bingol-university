@@ -1,0 +1,18 @@
+# Olcum icin docker compose eklentisi (uretim ayari DEGIL):
+#   - postgres: pg_stat_statements acik (yavas sorgu avi)
+#   - backend: Hibernate istatistikleri (oturum basina "N JDBC statements" log'u, N+1 avi), jcmd/GC log'u icin JAVA_TOOL_OPTIONS
+# Kullanim (repo kokunden):
+#   export COMPOSE_PROJECT_NAME=wt_t6 BACKEND_PORT=8106
+#   docker compose -f docker-compose.yml -f scripts/load/compose.perf.yml up -d postgres redis backend
+services:
+  postgres:
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "pg_stat_statements.track=all",
+              "-c", "track_io_timing=on"]
+  backend:
+    environment:
+      SPRING_JPA_PROPERTIES_HIBERNATE_GENERATE_STATISTICS: "true"
+      LOGGING_LEVEL_ORG_HIBERNATE_ENGINE_INTERNAL_STATISTICALLOGGINGSESSIONEVENTLISTENER: "INFO"
+      # Hikari/Tomcat denemeleri icin (varsayilan bos = Spring varsayilanlari); load.js ile birlikte kullanilir
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${PERF_HIKARI_MAX:-10}
+      SERVER_TOMCAT_THREADS_MAX: ${PERF_TOMCAT_MAX:-200}
+      JAVA_TOOL_OPTIONS: ${PERF_JAVA_OPTS:--Xlog:gc:file=/tmp/gc.log}
