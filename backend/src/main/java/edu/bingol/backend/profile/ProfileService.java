@@ -3,7 +3,9 @@ package edu.bingol.backend.profile;
 import edu.bingol.backend.analytics.ActivityRepository;
 import edu.bingol.backend.appinfo.AppInfoService;
 import edu.bingol.backend.common.ApiException;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.media.ImageKind;
+import edu.bingol.backend.media.MediaService;
+import edu.bingol.backend.media.StoredImage;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
@@ -23,24 +25,22 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProfileService {
 
-    private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
-    private static final long AVATAR_MAX_BYTES = 2L * 1024 * 1024;
     private static final int MIN_QUERY = 2;
 
     private final UserRepository users;
     private final BlockService blocks;
-    private final FileStorage storage;
+    private final MediaService media;
     private final PasswordEncoder encoder;
     private final AppInfoService appInfo;
     private final ActivityRepository activity;
 
-    public ProfileService(UserRepository users, BlockService blocks, FileStorage storage, PasswordEncoder encoder,
+    public ProfileService(UserRepository users, BlockService blocks, MediaService media, PasswordEncoder encoder,
                           AppInfoService appInfo, ActivityRepository activity) {
         this.appInfo = appInfo;
         this.activity = activity;
         this.users = users;
         this.blocks = blocks;
-        this.storage = storage;
+        this.media = media;
         this.encoder = encoder;
     }
 
@@ -85,14 +85,28 @@ public class ProfileService {
         return users.save(u);
     }
 
+    /** Avatar medya hattindan gecer (dogrula, EXIF temizle, 512 px, sikistir); eski dosya serbest birakilir. */
     @Transactional
     public User setAvatar(Long id, MultipartFile file) {
         User u = get(id);
-        String url = storage.save("avatars", file, IMAGE_TYPES, AVATAR_MAX_BYTES);
+        StoredImage img = media.storeImage(file, ImageKind.AVATAR);
         String old = u.getAvatarUrl();
-        u.setAvatarUrl(url);
-        users.save(u);
-        storage.delete(old);
+        u.setAvatarUrl(img.url());
+        users.saveAndFlush(u);
+        if (old != null && !old.equals(img.url())) {
+            media.release(old);
+        }
+        return u;
+    }
+
+    /** Avatari kaldirir (yoksa sessizce basarili); profil bas harf avatarina duser. */
+    @Transactional
+    public User removeAvatar(Long id) {
+        User u = get(id);
+        String old = u.getAvatarUrl();
+        u.setAvatarUrl(null);
+        users.saveAndFlush(u);
+        media.release(old);
         return u;
     }
 
@@ -129,7 +143,7 @@ public class ProfileService {
     }
 
     private void anonymize(User u) {
-        storage.delete(u.getAvatarUrl());
+        String oldAvatar = u.getAvatarUrl();
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");
         u.setDisplayName("Silinmiş kullanıcı");
         u.setPasswordHash(encoder.encode(java.util.UUID.randomUUID().toString()));
@@ -141,7 +155,8 @@ public class ProfileService {
         u.setShowEmail(false);
         u.setStatus(UserStatus.DELETED);
         u.setDeletedAt(Instant.now());
-        users.save(u);
+        users.saveAndFlush(u);
+        media.release(oldAvatar);
         // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
         activity.purgeUser(u.getId());
     }

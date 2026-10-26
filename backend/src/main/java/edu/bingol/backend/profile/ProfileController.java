@@ -45,12 +45,20 @@ public class ProfileController {
         return ProfileView.of(profiles.update(CurrentUser.id(), r));
     }
 
-    /** multipart alani "file", jpg/png/webp, en fazla 2 MB. */
+    /** multipart alani "file"; jpg/png/webp kabul, 512 px JPEG/PNG'ye yeniden kodlanir (app.media.avatar.*). */
     @PostMapping("/users/me/avatar")
     public ProfileView avatar(@RequestParam("file") MultipartFile file) {
         Long uid = CurrentUser.id();
         limiter.check("avatar:user:" + uid, 10, Duration.ofHours(1));
         return ProfileView.of(profiles.setAvatar(uid, file));
+    }
+
+    /** Avatari kaldirir (idempotent); eski dosya baska yerde kullanilmiyorsa silinir. */
+    @DeleteMapping("/users/me/avatar")
+    public ProfileView removeAvatar() {
+        Long uid = CurrentUser.id();
+        limiter.check("avatar:user:" + uid, 10, Duration.ofHours(1));
+        return ProfileView.of(profiles.removeAvatar(uid));
     }
 
     @DeleteMapping("/users/me")

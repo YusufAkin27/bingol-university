@@ -48,7 +48,7 @@ check "arama" 200 "$(code -H "$AUTH2" "$A/users/search?q=ali")"
 check "arama cok kisa" 400 "$(code -H "$AUTH2" "$A/users/search?q=a")"
 check "profil baskasi" 200 "$(code -H "$AUTH2" $A/users/$ID1)"
 check "bolumler" 200 "$(code -H "$AUTH2" $A/departments)"
-PNG="$(mktemp --suffix=.png)"; printf '\x89PNG\r\n\x1a\n' > "$PNG"
+PNG="$(mktemp --suffix=.png)"; cp "$(dirname "$0")/fixtures/media/tiny.png" "$PNG"  # gercek (kucuk) PNG: medya hatti sahte dosyayi reddeder
 PNGW=$(cygpath -m "$PNG" 2>/dev/null || echo "$PNG")
 check "avatar yukle" 200 "$(code -X POST -H "$AUTH1" -F "file=@$PNGW;type=image/png" $A/users/me/avatar)"
 check "avatar yanlis tur" 400 "$(code -X POST -H "$AUTH1" -F "file=@$PNGW;type=text/html" $A/users/me/avatar)"
