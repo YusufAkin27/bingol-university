@@ -9,6 +9,7 @@ import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.community.Paging;
 import edu.bingol.backend.community.Texts;
+import edu.bingol.backend.event.admission.EventAdmissionHooks;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
 import edu.bingol.backend.event.dto.EventDtos.CreateEventRequest;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -67,6 +70,14 @@ public class EventService {
         this.storage = storage;
     }
 
+    /** T9: alim kurallari (setter + @Lazy: dongusel bagimlilik yok; null iken eski davranis). */
+    private EventAdmissionHooks admission;
+
+    @Autowired
+    public void setAdmission(@Lazy EventAdmissionHooks admission) {
+        this.admission = admission;
+    }
+
     // ---- olusturma / guncelleme / silme ----
 
     /**
@@ -90,7 +101,11 @@ public class EventService {
             e.setCommunityId(c.getId());
             e.setStatus(UserEvent.Status.ACTIVE);
         } else {
-            e.setStatus(a.admin() ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
+            if (admission != null) {
+                admission.beforeCreate(a);
+            }
+            boolean review = !a.admin() && (admission == null || admission.requireApproval());
+            e.setStatus(review ? UserEvent.Status.PENDING_REVIEW : UserEvent.Status.ACTIVE);
         }
         e.setTitle(r.title().trim());
         e.setDescription(Texts.blankToNull(r.description()));
@@ -156,6 +171,9 @@ public class EventService {
         if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
             notifyGoing(e, "notif.event.updated");
         }
+        if (admission != null && r.capacity() != null) {
+            admission.afterCapacityChanged(e);
+        }
         return views(List.of(e), a, true).get(0);
     }
 
@@ -173,6 +191,9 @@ public class EventService {
         events.save(e);
         if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
             notifyGoing(e, "notif.event.cancelled");
+        }
+        if (admission != null) {
+            admission.onEventCancelled(e);
         }
     }
 
@@ -258,6 +279,9 @@ public class EventService {
         if (!e.getEndsAt().isAfter(Instant.now())) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Etkinlik sona erdi.");
         }
+        if (admission != null) {
+            admission.guardDirectRsvp(e, status);
+        }
         Optional<EventRsvp> existing = rsvps.findByEventIdAndUserId(id, a.id());
         if (existing.isPresent()) {
             EventRsvp r = existing.get();
@@ -286,7 +310,10 @@ public class EventService {
 
     @Transactional
     public void cancelRsvp(Actor a, Long id) {
-        loadVisible(a, id);
+        UserEvent e = loadVisible(a, id);
+        if (admission != null && admission.withdrawAccepted(a, e)) {
+            return;
+        }
         rsvps.findByEventIdAndUserId(id, a.id()).ifPresent(r -> {
             if (r.getStatus() == EventRsvp.Status.GOING) {
                 events.decrementGoing(id);
