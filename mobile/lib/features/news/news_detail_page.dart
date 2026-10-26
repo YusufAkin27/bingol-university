@@ -156,10 +156,12 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       const Padding(padding: EdgeInsets.all(24), child: LoadingView())
                     else if (snap.hasError)
                       SizedBox(
-                        height: 220,
+                        height: 260,
                         child: ErrorView(
                           error: snap.error!,
-                          onRetry: () => setState(() => _detail = _fetch()),
+                          onRetry: () => setState(() {
+                            _detail = _fetch();
+                          }),
                         ),
                       )
                     else if (content != null && content.trim().isNotEmpty)

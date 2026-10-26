@@ -22,7 +22,9 @@ class _LegalListPageState extends State<LegalListPage> {
       List<Map<String, dynamic>>.from(await widget.session.api.get('/legal') as List);
 
   Future<void> _refresh() async {
-    setState(() => _future = _fetch());
+    setState(() {
+      _future = _fetch();
+    });
     try {
       await _future;
     } catch (_) {}
@@ -42,7 +44,9 @@ class _LegalListPageState extends State<LegalListPage> {
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) return const LoadingView();
                 if (snap.hasError) {
-                  return ErrorView(error: snap.error!, onRetry: () => setState(() => _future = _fetch()));
+                  return ErrorView(error: snap.error!, onRetry: () => setState(() {
+                    _future = _fetch();
+                  }));
                 }
                 final docs = snap.data!;
                 if (docs.isEmpty) {
@@ -125,7 +129,9 @@ class _LegalDocPageState extends State<LegalDocPage> {
                 child: snap.connectionState != ConnectionState.done
                     ? const LoadingView()
                     : snap.hasError
-                        ? ErrorView(error: snap.error!, onRetry: () => setState(() => _future = _fetch()))
+                        ? ErrorView(error: snap.error!, onRetry: () => setState(() {
+                    _future = _fetch();
+                  }))
                         : ListView(
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                             children: [

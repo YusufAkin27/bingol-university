@@ -140,6 +140,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   Future<void> _loadCode() async {
+    if (!mounted) return; // _loadExtras'ın await'lerinden sonra sayfa kapanmış olabilir
     setState(() => _codeBusy = true);
     try {
       final r = await widget.session.api.get('$_path/checkin-code');
@@ -466,26 +467,30 @@ class _EventDetailPageState extends State<EventDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(
-              child: BuButton(
-                label: rsvp == 'GOING' ? 'Katılıyorsun' : 'Katılıyorum',
-                icon: LucideIcons.check,
-                kind: rsvp == 'GOING' ? BuButtonKind.primary : BuButtonKind.soft,
-                busy: _rsvpBusy,
-                onPressed: () => _setRsvp('GOING'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: BuButton(
-                label: rsvp == 'INTERESTED' ? 'İlgileniyorsun' : 'İlgileniyorum',
-                icon: LucideIcons.star,
-                kind: rsvp == 'INTERESTED' ? BuButtonKind.primary : BuButtonKind.outline,
-                onPressed: _rsvpBusy ? null : () => _setRsvp('INTERESTED'),
-              ),
-            ),
-          ]),
+          // Dar ekranda (320 dp) iki ikonlu düğme yan yana sığmaz: alt alta dizilir.
+          LayoutBuilder(builder: (context, box) {
+            final going = BuButton(
+              label: rsvp == 'GOING' ? 'Katılıyorsun' : 'Katılıyorum',
+              icon: LucideIcons.check,
+              kind: rsvp == 'GOING' ? BuButtonKind.primary : BuButtonKind.soft,
+              busy: _rsvpBusy,
+              onPressed: () => _setRsvp('GOING'),
+            );
+            final interested = BuButton(
+              label: rsvp == 'INTERESTED' ? 'İlgileniyorsun' : 'İlgileniyorum',
+              icon: LucideIcons.star,
+              kind: rsvp == 'INTERESTED' ? BuButtonKind.primary : BuButtonKind.outline,
+              onPressed: _rsvpBusy ? null : () => _setRsvp('INTERESTED'),
+            );
+            if (box.maxWidth < 340) {
+              return Column(children: [going, const SizedBox(height: 10), interested]);
+            }
+            return Row(children: [
+              Expanded(child: going),
+              const SizedBox(width: 10),
+              Expanded(child: interested),
+            ]);
+          }),
           if (full && rsvp != 'GOING')
             Padding(
               padding: const EdgeInsets.only(top: 8),

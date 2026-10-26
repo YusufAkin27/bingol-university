@@ -47,7 +47,9 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  void _reload() => setState(() => _future = _fetch());
+  void _reload() => setState(() {
+      _future = _fetch();
+    });
 
   Future<void> _go(Widget page) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => page));

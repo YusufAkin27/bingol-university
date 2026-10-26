@@ -131,11 +131,15 @@ class FloatingNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final bottom = MediaQuery.of(context).padding.bottom;
+    // Dar ekranda (320 dp) seçili hap + 4 ikon sığsın diye kenar boşlukları ve ikon genişliği küçülür.
+    final narrow = MediaQuery.sizeOf(context).width < 360;
+    final side = narrow ? 12.0 : 20.0;
+    final minW = narrow ? 40.0 : 46.0;
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, bottom > 0 ? bottom : 16),
+      padding: EdgeInsets.fromLTRB(side, 0, side, bottom > 0 ? bottom : 16),
       child: Container(
         height: 66,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: EdgeInsets.symmetric(horizontal: narrow ? 6 : 10),
         decoration: BoxDecoration(
           color: t.nav,
           borderRadius: BorderRadius.circular(33),
@@ -148,33 +152,40 @@ class FloatingNav extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             for (var i = 0; i < _items.length; i++)
-              Semantics(
-                button: true,
-                selected: i == index,
-                label: _items[i].$2,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onChanged(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    height: 46,
-                    constraints: const BoxConstraints(minWidth: 46),
-                    padding: EdgeInsets.symmetric(horizontal: i == index ? 16 : 0),
-                    decoration: BoxDecoration(
-                      color: i == index ? t.pr : Colors.transparent,
-                      borderRadius: BorderRadius.circular(23),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _icon(i, t),
-                        if (i == index) ...[
-                          const SizedBox(width: 8),
-                          Text(_items[i].$2,
-                              style: TextStyle(color: t.onPr, fontSize: 13, fontWeight: FontWeight.w800)),
+              Flexible(
+                flex: i == index ? 1 : 0,
+                child: Semantics(
+                  button: true,
+                  selected: i == index,
+                  label: _items[i].$2,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onChanged(i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      height: 46,
+                      constraints: BoxConstraints(minWidth: minW),
+                      padding: EdgeInsets.symmetric(horizontal: i == index ? (narrow ? 12 : 16) : 0),
+                      decoration: BoxDecoration(
+                        color: i == index ? t.pr : Colors.transparent,
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _icon(i, t),
+                          if (i == index) ...[
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(_items[i].$2,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: t.onPr, fontSize: 13, fontWeight: FontWeight.w800)),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

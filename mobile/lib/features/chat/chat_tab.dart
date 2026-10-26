@@ -13,9 +13,12 @@ import 'new_chat_page.dart';
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
 class ChatTab extends StatefulWidget {
-  const ChatTab({super.key, required this.session});
+  const ChatTab({super.key, required this.session, @visibleForTesting this.connectRealtime = true});
 
   final Session session;
+
+  /// Testlerde false: gerçek WebSocket bağlantısı kurulmaz.
+  final bool connectRealtime;
 
   @override
   State<ChatTab> createState() => _ChatTabState();
@@ -43,7 +46,8 @@ class _ChatTabState extends State<ChatTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    _rt = ChatRealtime(widget.session)..start();
+    _rt = ChatRealtime(widget.session);
+    if (widget.connectRealtime) _rt.start();
     _subs
       ..add(_rt.messages.listen(_onMessage))
       ..add(_rt.readReceipts.listen(_onRead))

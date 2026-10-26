@@ -53,10 +53,15 @@ class MyClubsPage extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(sub, style: TextStyle(fontSize: 12, color: t.mut)),
                       ),
+                    // Dar ekranda satırı taşırmamak için rozet adın altında durur.
+                    if (pending)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 6),
+                        child: BuBadge('Onay bekliyor', soft: true),
+                      ),
                   ],
                 ),
               ),
-              if (pending) const BuBadge('Onay bekliyor', soft: true),
               const SizedBox(width: 6),
               Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
             ],

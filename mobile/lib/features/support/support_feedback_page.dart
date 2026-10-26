@@ -145,7 +145,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
       return [const Padding(padding: EdgeInsets.all(24), child: LoadingView())];
     }
     if (_mineError != null && _mine.isEmpty) {
-      return [SizedBox(height: 200, child: ErrorView(error: _mineError!, onRetry: () => _loadMine(reset: true)))];
+      // Sabit yükseklik dar ekranda taşıyordu: en az 200, gerekirse içeriği kadar.
+      return [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 200),
+          child: ErrorView(error: _mineError!, onRetry: () => _loadMine(reset: true)),
+        )
+      ];
     }
     if (_mine.isEmpty) {
       return [

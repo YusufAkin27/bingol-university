@@ -42,10 +42,12 @@ class _MyEventsPageState extends State<MyEventsPage> {
       emptyText: _organizing ? 'Henüz bir etkinlik düzenlemediniz.' : 'Yaklaşan bir etkinliğiniz yok.',
       header: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        child: Row(
+        // Wrap: 320 px genişlikte iki çip yan yana sığmazsa alta iner.
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             BuChip(label: 'Yaklaşan', selected: !_organizing, onTap: () => _set(false)),
-            const SizedBox(width: 8),
             BuChip(label: 'Düzenlediklerim', selected: _organizing, onTap: () => _set(true)),
           ],
         ),
@@ -103,10 +105,15 @@ class _EventCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: t.mut),
                 ),
+                // Dar ekranda satırı taşırmamak için rozet başlığın altında durur.
+                if (badge != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: BuBadge(badge, soft: !past),
+                  ),
               ],
             ),
           ),
-          if (badge != null) BuBadge(badge, soft: !past),
         ],
       ),
     );

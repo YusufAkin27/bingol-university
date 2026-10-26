@@ -18,10 +18,18 @@ import 'message_bubble.dart';
 /// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
 /// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
 class ChatDetailPage extends StatefulWidget {
-  const ChatDetailPage({super.key, required this.session, required this.conversation});
+  const ChatDetailPage({
+    super.key,
+    required this.session,
+    required this.conversation,
+    @visibleForTesting this.connectRealtime = true,
+  });
 
   final Session session;
   final Map<String, dynamic> conversation;
+
+  /// Testlerde false: gerçek WebSocket bağlantısı kurulmaz.
+  final bool connectRealtime;
 
   @override
   State<ChatDetailPage> createState() => _ChatDetailPageState();
@@ -322,7 +330,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       }),
       _rt.resync.listen((_) => _poll(force: true)),
     ]);
-    _rt.start();
+    if (widget.connectRealtime) _rt.start();
   }
 
   void _onRtMessage(Map<String, dynamic> m) {

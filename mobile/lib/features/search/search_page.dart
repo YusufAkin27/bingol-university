@@ -242,6 +242,8 @@ class _SearchPageState extends State<SearchPage> {
     if (q.length < 2) return;
     final seq = ++_seq;
     setState(() {
+      // Sorgu hemen kaydedilir: hata olursa "Yeniden dene" aynı sorguyu tekrarlayabilsin.
+      _query = q;
       _loading = true;
       _error = null;
       _tabs.clear();

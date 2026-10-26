@@ -231,9 +231,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       icon: LucideIcons.globe,
                       label: 'Bildirim ve e-posta dili',
                       onTap: _loaded ? _pickLang : null,
-                      trailing: Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Text(langName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
+                      // Flexible: dar ekranda sağdaki metin kısalır, satır taşmaz.
+                      trailing: Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(langName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
+                        ),
                       ),
                     ),
                   ]),
@@ -254,10 +260,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: () => _toast(_pushStatus == 'Açık'
                           ? 'Anlık bildirimler açık.'
                           : 'Anlık bildirimler: $_pushStatus'),
-                      trailing: Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Text(_pushStatus,
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
+                      trailing: Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(_pushStatus,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
+                        ),
                       ),
                     ),
                   ]),

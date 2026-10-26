@@ -386,7 +386,7 @@ class _HomeTabState extends State<HomeTab> {
         BuSectionTitle('Kulüplerimden',
             action: 'Tümü', onAction: () => widget.onOpenTab(3), padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
         SizedBox(
-          height: 112,
+          height: 120,
           child: clubs == null
               ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.pr))
               : ListView.separated(
