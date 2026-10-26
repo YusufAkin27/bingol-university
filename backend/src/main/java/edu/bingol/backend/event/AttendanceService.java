@@ -4,6 +4,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.event.EventAttendance.Method;
+import edu.bingol.backend.event.admission.EventAdmissionHooks;
 import edu.bingol.backend.event.dto.EventDtos.AttendanceRow;
 import edu.bingol.backend.event.dto.EventDtos.BulkEntry;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
@@ -20,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,14 @@ public class AttendanceService {
         this.attendance = attendance;
         this.codes = codes;
         this.communities = communities;
+    }
+
+    /** T9: APPROVAL modunda elle yoklama yalnizca kabul edilmis katilimciya (null iken eski davranis). */
+    private EventAdmissionHooks admission;
+
+    @Autowired
+    public void setAdmission(@Lazy EventAdmissionHooks admission) {
+        this.admission = admission;
     }
 
     // ---- QR ----
@@ -200,6 +211,9 @@ public class AttendanceService {
         User u = communities.usersById(List.of(userId)).get(userId);
         if (u == null || u.getStatus() != UserStatus.ACTIVE) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        }
+        if (admission != null) {
+            admission.requireEligibleForMark(e, userId);
         }
         EventAttendance rec = attendance.findByEventIdAndUserId(e.getId(), userId).orElseGet(() -> {
             EventAttendance n = new EventAttendance();
