@@ -27,6 +27,9 @@ services:
 
   backend:
     build: ./backend
+    # Gelistirme makinesinde bellek tasarrufu icin .env ile ezilebilir (ornek: BACKEND_MEM_LIMIT=512m,
+    # JAVA_TOOL_OPTIONS=-Xmx300m -XX:+UseSerialGC). Varsayilan davranis degismez.
+    mem_limit: ${BACKEND_MEM_LIMIT:-1g}
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,6 +55,7 @@ services:
       STORAGE_DIR: /data/uploads
       FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
       TZ: Europe/Istanbul
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
     volumes:
       - uploads:/data/uploads
     healthcheck:
