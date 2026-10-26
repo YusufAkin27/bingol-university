@@ -51,13 +51,16 @@ class MessageServiceAttachmentsTest {
     private final ChatEventBus bus = mock(ChatEventBus.class);
     private final MessageCodec codec = mock(MessageCodec.class);
     private final MessageAttachmentService attachments = mock(MessageAttachmentService.class);
+    private final MessageViewAssembler assembler = new MessageViewAssembler(messages,
+            mock(MessageReactionRepository.class), codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
             mock(PresenceService.class), mock(NotificationService.class), mock(ReportService.class),
-            mock(PlatformTransactionManager.class), codec, false);
+            mock(PlatformTransactionManager.class), codec, assembler, false);
 
     @BeforeEach
     void setUp() {
         service.setAttachments(attachments);
+        assembler.setAttachments(attachments);
         Conversation direct = new Conversation();
         direct.setId(CONV);
         direct.setType(Conversation.Type.DIRECT);
@@ -94,7 +97,7 @@ class MessageServiceAttachmentsTest {
         AttachmentView av = new AttachmentView(5L, "IMAGE", 800, 600, 1234, "image/jpeg", false, "/u", "/t");
         when(attachments.viewsFor(List.of(100L))).thenReturn(Map.of(100L, List.of(av)));
 
-        MessageService.SendResult r = service.send(ME, CONV, "", "c1", List.of(5L));
+        MessageService.SendResult r = service.send(ME, CONV, "", "c1", null, List.of(5L));
 
         assertTrue(r.created());
         MessageView v = r.message();
@@ -108,7 +111,7 @@ class MessageServiceAttachmentsTest {
 
     @Test
     void emptyTextWithoutAttachmentsIsStillRejected() {
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "  ", "c1", List.of()));
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "  ", "c1", null, List.of()));
         assertEquals("EMPTY_MESSAGE", e.code());
         verify(messages, never()).saveAndFlush(any());
     }
@@ -118,7 +121,7 @@ class MessageServiceAttachmentsTest {
         when(attachments.precheck(ME, CONV, List.of(9L)))
                 .thenThrow(new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "x"));
 
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "merhaba", "c1", List.of(9L)));
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "merhaba", "c1", null, List.of(9L)));
 
         assertEquals("ATTACHMENT_INVALID", e.code());
         verify(messages, never()).saveAndFlush(any());
@@ -131,7 +134,7 @@ class MessageServiceAttachmentsTest {
         doThrow(new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "x"))
                 .when(attachments).claim(anyLong(), anyLong(), anyLong(), any());
 
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "x", "c1", List.of(5L)));
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "x", "c1", null, List.of(5L)));
 
         assertEquals("ATTACHMENT_INVALID", e.code());
         verify(bus, never()).publish(anyString(), any(), any());

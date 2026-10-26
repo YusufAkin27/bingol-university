@@ -16,6 +16,8 @@ public interface MessageAttachmentRepository extends JpaRepository<MessageAttach
 
     List<MessageAttachment> findByMessageId(Long messageId);
 
+    boolean existsByMessageId(Long messageId);
+
     List<MessageAttachment> findByUploaderId(Long uploaderId);
 
     long countByUploaderIdAndMessageIdIsNull(Long uploaderId);

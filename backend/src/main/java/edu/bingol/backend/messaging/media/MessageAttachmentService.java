@@ -210,6 +210,12 @@ public class MessageAttachmentService {
         }
     }
 
+    /** Mesajin (gizli olmayan) eki var mi; duzenlemede bos metne izin vermek icin. */
+    @Transactional(readOnly = true)
+    public boolean hasAttachments(Long messageId) {
+        return repo.existsByMessageId(messageId);
+    }
+
     /** Mesaj kimligine gore ek gorunumleri (gizlenenler `removed`). */
     @Transactional(readOnly = true)
     public Map<Long, List<AttachmentView>> viewsFor(Collection<Long> messageIds) {
@@ -245,7 +251,7 @@ public class MessageAttachmentService {
             return mine ? Optional.of(a) : Optional.empty(); // gonderilmemis yukleme yalniz sahibine
         }
         Message m = messages.findById(a.getMessageId()).orElse(null);
-        if (m == null || m.isHidden()) {
+        if (m == null || m.isHidden() || m.isDeleted()) {
             return Optional.empty();
         }
         Conversation conv = convs.findById(conversationId).orElse(null);

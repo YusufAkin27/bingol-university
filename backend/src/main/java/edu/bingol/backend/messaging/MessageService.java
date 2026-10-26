@@ -7,7 +7,6 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReadReceipt;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReportMessageRequest;
 import edu.bingol.backend.messaging.dto.MessagingDtos.TypingEvent;
-import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.messaging.media.MessageAttachmentService;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.messaging.ws.PresenceService;
@@ -64,6 +63,7 @@ public class MessageService {
     private final ReportService reports;
     private final TransactionTemplate tx;
     private final MessageCodec codec;
+    private final MessageViewAssembler assembler;
     /** `app.push.message-preview`: true ise push govdesinde mesaj onizlemesi gider (bildirim tablosuna YAZILMAZ). */
     private final boolean pushPreview;
     /** T8: sohbet gorselleri (setter enjeksiyonu: yapici imzasi degismesin). Yoksa gorselsiz calisir. */
@@ -73,8 +73,10 @@ public class MessageService {
                           UserRepository users, BlockService blocks, RateLimiter limiter, ChatEventBus bus,
                           PresenceService presence, NotificationService notifications, ReportService reports,
                           PlatformTransactionManager txManager, MessageCodec codec,
+                          MessageViewAssembler assembler,
                           @Value("${app.push.message-preview:false}") boolean pushPreview) {
         this.codec = codec;
+        this.assembler = assembler;
         this.pushPreview = pushPreview;
         this.convs = convs;
         this.members = members;
@@ -98,17 +100,15 @@ public class MessageService {
         return send(senderId, conversationId, text, clientId, null);
     }
 
-    /** `attachmentIds` (T8): onceden yuklenmis sohbet gorselleri; doluysa metin bos olabilir. */
-    public SendResult send(Long senderId, Long conversationId, String text, String clientId, List<Long> attachmentIds) {
-        if (conversationId == null || clientId == null || clientId.isBlank() || clientId.length() > 64) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "conversationId ve clientId gerekli.");
-        }
+    /** Temizler ve dogrular (gonderme ve duzenleme ortak): bos / cok uzun ise ApiException. */
+    static String validatedBody(String text) {
+        return validatedBody(text, false);
+    }
+
+    /** T8: `allowEmpty` (gorsel eki olan mesaj) ise bos metin kabul edilir; uzunluk siniri her durumda gecerli. */
+    static String validatedBody(String text, boolean allowEmpty) {
         String body = MessageText.clean(text);
-        boolean hasMedia = attachmentIds != null && !attachmentIds.isEmpty();
-        if (hasMedia && attachments == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
-        }
-        if (body.isEmpty() && !hasMedia) {
+        if (body.isEmpty() && !allowEmpty) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMPTY_MESSAGE", "Mesaj boş olamaz.");
         }
         // Sinir kod noktasi sayar (DB VARCHAR(2000) de oyle): emoji 2 UTF-16 birimi olsa da 1 karakterdir.
@@ -116,7 +116,28 @@ public class MessageService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MESSAGE_TOO_LONG",
                     "Mesaj en fazla " + MAX_LENGTH + " karakter olabilir.", String.valueOf(MAX_LENGTH));
         }
-        requireMember(conversationId, senderId);
+        return body;
+    }
+
+    public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId) {
+        return send(senderId, conversationId, text, clientId, replyToMessageId, null);
+    }
+
+    /**
+     * `replyToMessageId`: ayni konusmadaki (silinmemis, gorunur) bir mesaj; aksi halde 404 MESSAGE_NOT_FOUND.
+     * `attachmentIds` (T8): onceden yuklenmis sohbet gorselleri; doluysa metin bos olabilir.
+     */
+    public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
+                           List<Long> attachmentIds) {
+        if (conversationId == null || clientId == null || clientId.isBlank() || clientId.length() > 64) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "conversationId ve clientId gerekli.");
+        }
+        boolean hasMedia = attachmentIds != null && !attachmentIds.isEmpty();
+        if (hasMedia && attachments == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
+        }
+        String body = validatedBody(text, hasMedia);
+        ConversationMember sender = requireMember(conversationId, senderId);
         // Hesabi silinen/askiya alinan gonderenin (suresi dolmamis) eski token'i ile yazmasi engellenir.
         if (users.findById(senderId).filter(User::isActive).isEmpty()) {
             throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alındı.");
@@ -125,10 +146,19 @@ public class MessageService {
         // Tekrar gonderim: limite sayilmaz, ayni mesaj doner.
         Optional<Message> dup = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId);
         if (dup.isPresent()) {
-            return new SendResult(enrich(MessageView.of(codec.open(dup.get()))), false);
+            return new SendResult(viewFor(senderId, codec.open(dup.get()), null), false);
         }
 
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
+        Instant since = conv.getType() == Conversation.Type.GROUP ? sender.getJoinedAt() : null;
+        if (replyToMessageId != null) {
+            // Baska konusmanin / katilma oncesi / silinmis / gizlenmis mesaja yanit verilemez (varligi da sizdirilmaz)
+            Message parent = messages.findById(replyToMessageId).orElseThrow(MessageService::messageNotFound);
+            if (!parent.getConversationId().equals(conversationId) || parent.isDeleted() || parent.isHidden()
+                    || (since != null && parent.getCreatedAt().isBefore(since))) {
+                throw messageNotFound();
+            }
+        }
         List<ConversationMember> active = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId);
         if (conv.getType() == Conversation.Type.DIRECT) {
             Long peerId = active.stream().map(ConversationMember::getUserId).filter(id -> !id.equals(senderId))
@@ -149,6 +179,7 @@ public class MessageService {
         draft.setConversationId(conversationId);
         draft.setSenderId(senderId);
         draft.setClientId(clientId);
+        draft.setReplyToMessageId(replyToMessageId);
         codec.seal(draft, body);
         Message saved;
         try {
@@ -157,9 +188,9 @@ public class MessageService {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
                     .orElseThrow(() -> e);
-            return new SendResult(enrich(MessageView.of(codec.open(existing))), false);
+            return new SendResult(viewFor(senderId, codec.open(existing), since), false);
         }
-        MessageView view = hasMedia ? enrich(MessageView.of(saved)) : MessageView.of(saved);
+        MessageView view = viewFor(senderId, saved, since);
         try {
             deliver(conv, saved, view, active);
         } catch (RuntimeException e) {
@@ -167,13 +198,6 @@ public class MessageService {
             log.warn("Mesaj teslimi basarisiz (mesaj {}): {}", saved.getId(), e.toString());
         }
         return new SendResult(view, true);
-    }
-
-    private MessageView enrich(MessageView v) {
-        if (attachments == null || v.removed()) {
-            return v;
-        }
-        return v.withAttachments(attachments.viewsFor(List.of(v.id())).get(v.id()));
     }
 
     private Message persist(Message draft, List<Long> attachmentIds) {
@@ -186,7 +210,12 @@ public class MessageService {
         m.setBody(plain); // @Transient: kayit sonrasi geri verilen nesnede duz metni koru (teslim/yanit icin)
         convs.touchLastMessage(m.getConversationId(), m.getId(), m.getCreatedAt());
         members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
+        members.unarchiveOnMessage(m.getConversationId()); // yapiskan olmayan arsivler yeni mesajla cikar
         return m;
+    }
+
+    private MessageView viewFor(Long viewerId, Message m, Instant since) {
+        return assembler.assemble(viewerId, List.of(m), Set.of(), since).get(0);
     }
 
     /** Tum uyelere (gonderenin diger cihazlari dahil) WebSocket; cevrimdisi alicilara bildirim. Engel iliskisi olanlara gitmez. */
@@ -195,9 +224,24 @@ public class MessageService {
         Set<Long> related = blocks.hiddenFrom(senderId);
         List<Long> recipients = active.stream().map(ConversationMember::getUserId)
                 .filter(id -> id.equals(senderId) || !related.contains(id)).toList();
-        bus.publish("messages", recipients, view);
+        // Grupta mesajdan sonra katilanlar yanit onizlemesinde katilma oncesi icerigi gormesin
+        Instant parentAt = view.replyTo() == null || conv.getType() != Conversation.Type.GROUP ? null
+                : parentTime(view.replyToMessageId());
+        Set<Long> late = parentAt == null ? Set.of()
+                : active.stream().filter(a -> a.getJoinedAt().isAfter(parentAt))
+                        .map(ConversationMember::getUserId).collect(java.util.stream.Collectors.toSet());
+        List<Long> normal = recipients.stream().filter(id -> !late.contains(id)).toList();
+        bus.publish("messages", normal, view);
+        List<Long> lateRecipients = recipients.stream().filter(late::contains).toList();
+        if (!lateRecipients.isEmpty()) {
+            bus.publish("messages", lateRecipients, view.withoutReplyPreview());
+        }
 
-        List<Long> offline = recipients.stream().filter(id -> !id.equals(senderId) && !presence.isOnline(id)).toList();
+        // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
+        Set<Long> muted = active.stream().filter(ConversationMember::isMuted).map(ConversationMember::getUserId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<Long> offline = recipients.stream()
+                .filter(id -> !id.equals(senderId) && !muted.contains(id) && !presence.isOnline(id)).toList();
         if (offline.isEmpty()) {
             return;
         }
@@ -211,6 +255,10 @@ public class MessageService {
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()));
         offline.forEach(id -> notifications.sendNewMessage(id, title, preview, data));
+    }
+
+    private Instant parentTime(Long parentId) {
+        return messages.findById(parentId).map(Message::getCreatedAt).orElse(Instant.EPOCH);
     }
 
     /**
@@ -231,13 +279,11 @@ public class MessageService {
         List<Message> rows = after != null
                 ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
                 : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));
-        List<Message> pageRows = rows.size() > s ? rows.subList(0, s) : rows;
-        codec.openAll(pageRows); // yalniz donecek sayfa cozulur
-        Map<Long, List<AttachmentView>> att = attachments == null ? Map.of()
-                : attachments.viewsFor(pageRows.stream().map(Message::getId).toList());
-        return CursorPage.of(rows, s, Message::getId,
-                m -> MessageView.of(m, related.contains(m.getSenderId()) && !m.getSenderId().equals(userId))
-                        .withAttachments(att.get(m.getId())));
+        List<Message> page = rows.size() > s ? rows.subList(0, s) : rows;
+        codec.openAll(page); // yalniz donecek sayfa cozulur
+        Map<Long, MessageView> views = new java.util.HashMap<>();
+        assembler.assemble(userId, page, related, group ? me.getJoinedAt() : null).forEach(v -> views.put(v.id(), v));
+        return CursorPage.of(rows, s, Message::getId, m -> views.get(m.getId()));
     }
 
     /** Okundu imleci: yalnizca ileri gider, konusmadaki son mesaji gecemez. Imlec ilerlediyse diger uyelere bildirilir. */

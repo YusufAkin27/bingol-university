@@ -44,6 +44,20 @@ public class ConversationMember {
     @Column(nullable = false)
     private Long lastReadMessageId = 0L;
 
+    /** Doluysa bu zamana kadar sessiz: push/uygulama ici bildirim yok, okunmamis sayaci artar. */
+    private Instant mutedUntil;
+
+    /** Doluysa konusma kullanicinin arsivinde. */
+    private Instant archivedAt;
+
+    /** true: yeni mesaj gelse de arsivde kalir. */
+    @Column(nullable = false)
+    private boolean archiveSticky = false;
+
+    public boolean isMuted() {
+        return mutedUntil != null && mutedUntil.isAfter(Instant.now());
+    }
+
     public static ConversationMember of(Long conversationId, Long userId, Role role) {
         ConversationMember m = new ConversationMember();
         m.conversationId = conversationId;

@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
  *   <li>CONNECT: JWT gecerli ve hesap askida degil; yoksa ERROR cercevesi (baglanti kurulmaz)</li>
  *   <li>SEND: yalnizca /app/** ; token suresi dolduysa (60 sn tolerans) ya da hesap askiya alindiysa reddedilir,
  *       istemci yeni token ile yeniden baglanmalidir</li>
- *   <li>SUBSCRIBE: yalnizca /user/queue/{messages,read-receipts,typing,errors}; /topic/** ve digerleri kapali</li>
+ *   <li>SUBSCRIBE: yalnizca /user/queue/{messages,read-receipts,typing,message-events,errors}; /topic/** ve digerleri kapali</li>
  * </ul>
  */
 @Component
@@ -36,7 +36,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     static final String TOKEN_EXP_ATTR = "tokenExp";
     static final long EXP_GRACE_SECONDS = 60;
     static final Set<String> SUBSCRIBABLE = Set.of("/user/queue/messages", "/user/queue/read-receipts",
-            "/user/queue/typing", "/user/queue/errors");
+            "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events");
 
     private static final Pattern EXP = Pattern.compile("\"exp\"\\s*:\\s*(\\d+)");
 
