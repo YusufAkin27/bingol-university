@@ -5,6 +5,9 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.messaging.dto.MessagingDtos.AddMembersRequest;
+import edu.bingol.backend.messaging.dto.MessagingDtos.ArchiveRequest;
+import edu.bingol.backend.messaging.dto.MessagingDtos.MuteRequest;
+import edu.bingol.backend.messaging.dto.MessagingDtos.UnreadSummary;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationDetail;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.CreateConversationRequest;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,7 +36,10 @@ public class ConversationController {
     private final ConversationService conversations;
     private final RateLimiter limiter;
 
-    public ConversationController(ConversationService conversations, RateLimiter limiter) {
+    private final ConversationPrefsService prefs;
+
+    public ConversationController(ConversationService conversations, RateLimiter limiter, ConversationPrefsService prefs) {
+        this.prefs = prefs;
         this.conversations = conversations;
         this.limiter = limiter;
     }
@@ -54,8 +61,47 @@ public class ConversationController {
 
     @GetMapping
     public CursorPage<ConversationView> list(@RequestParam(required = false) Long cursor,
-                                             @RequestParam(defaultValue = "20") int size) {
-        return conversations.list(CurrentUser.id(), cursor, size);
+                                             @RequestParam(defaultValue = "20") int size,
+                                             @RequestParam(defaultValue = "false") boolean archived) {
+        return conversations.list(CurrentUser.id(), cursor, size, archived);
+    }
+
+    /** Rozet: sessize alinmamis konusmalardaki toplam okunmamis + konusma bazli dokum. */
+    @GetMapping("/unread-count")
+    public UnreadSummary unreadCount() {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:unread:" + uid, 120, Duration.ofMinutes(1));
+        return prefs.unreadSummary(uid);
+    }
+
+    /** Sessize al: `{durationMinutes}` ya da `{forever:true}`. */
+    @PutMapping("/{id}/mute")
+    public ConversationView mute(@PathVariable Long id, @Valid @RequestBody MuteRequest r) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:pref:" + uid, 60, Duration.ofMinutes(1));
+        return prefs.mute(uid, id, r.durationMinutes(), r.forever());
+    }
+
+    @DeleteMapping("/{id}/mute")
+    public ConversationView unmute(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:pref:" + uid, 60, Duration.ofMinutes(1));
+        return prefs.unmute(uid, id);
+    }
+
+    /** Arsivle; `keepArchived=true` ise yeni mesaj gelse de arsivde kalir. */
+    @PutMapping("/{id}/archive")
+    public ConversationView archive(@PathVariable Long id, @RequestBody(required = false) ArchiveRequest r) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:pref:" + uid, 60, Duration.ofMinutes(1));
+        return prefs.archive(uid, id, r != null && Boolean.TRUE.equals(r.keepArchived()));
+    }
+
+    @DeleteMapping("/{id}/archive")
+    public ConversationView unarchive(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:pref:" + uid, 60, Duration.ofMinutes(1));
+        return prefs.unarchive(uid, id);
     }
 
     @GetMapping("/{id}")

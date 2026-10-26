@@ -15,6 +15,7 @@ public final class MessagingDtos {
 
     public static final String REMOVED_TEXT = "Bu mesaj kaldırıldı";
     public static final String UNREADABLE_TEXT = "Bu mesaj görüntülenemiyor";
+    public static final String DELETED_TEXT = "Bu mesaj silindi";
     public static final String BLOCKED_TEXT ="Engellediğiniz kullanıcının mesajı gizlendi";
 
     // --- istekler ---
@@ -28,7 +29,19 @@ public final class MessagingDtos {
     public record AddMembersRequest(@NotEmpty @Size(max = 49) List<Long> userIds) {}
 
     /** `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. */
-    public record SendMessageRequest(@NotNull String text, @NotBlank @Size(max = 64) String clientId) {}
+    public record SendMessageRequest(@NotNull String text, @NotBlank @Size(max = 64) String clientId,
+                                     Long replyToMessageId) {}
+
+    public record EditMessageRequest(@NotNull String text) {}
+
+    /** `emoji` izinli listeden (app.chat.reactions) olmalidir. */
+    public record ReactRequest(@NotBlank @Size(max = 16) String emoji) {}
+
+    /** `durationMinutes` (1..525600) ya da `forever=true`; ikisi birden verilemez. */
+    public record MuteRequest(Integer durationMinutes, Boolean forever) {}
+
+    /** `keepArchived` true ise yeni mesaj gelse de arsivde kalir. */
+    public record ArchiveRequest(Boolean keepArchived) {}
 
     public record ReadRequest(@NotNull Long lastMessageId) {}
 
@@ -42,27 +55,62 @@ public final class MessagingDtos {
         }
     }
 
-    /** Gizlenen / engelli kullanicidan gelen mesajlarda `text` sabit bir aciklamadir, `removed` true olur. */
+    /** Yanitlanan mesajin kisa, cozulmus onizlemesi; `deleted` true ise silinmis/kaldirilmis (metin sabit aciklama). */
+    public record ReplyPreview(Long id, Long senderId, String text, boolean deleted) {}
+
+    public record ReactionCount(String emoji, long count) {}
+
+    /**
+     * Gizlenen / engelli / silinen kullanicidan gelen mesajlarda `text` sabit bir aciklamadir, `removed` true olur.
+     * `deleted`: gonderen/yonetici herkes icin sildi. `edited`: duzenlendi (gecmis surum tutulmaz).
+     */
     public record MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
-                              boolean removed, String createdAt) {
+                              boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                              boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                              String myReaction) {
         public static MessageView of(Message m) {
             return of(m, false);
         }
 
         public static MessageView of(Message m, boolean senderBlocked) {
             // Cozulemeyen (anahtar/etiket hatasi) mesaj tum listeyi bozmasin: sabit metinle gosterilir.
-            boolean unreadable = !m.isHidden() && !senderBlocked && m.getBody() == null;
-            boolean removed = m.isHidden() || senderBlocked || unreadable;
-            String text = m.isHidden() ? REMOVED_TEXT : senderBlocked ? BLOCKED_TEXT
+            boolean gone = m.isHidden() || m.isDeleted();
+            boolean unreadable = !gone && !senderBlocked && m.getBody() == null;
+            boolean removed = gone || senderBlocked || unreadable;
+            String text = m.isHidden() ? REMOVED_TEXT : m.isDeleted() ? DELETED_TEXT : senderBlocked ? BLOCKED_TEXT
                     : unreadable ? UNREADABLE_TEXT : m.getBody();
             return new MessageView(m.getId(), m.getConversationId(), m.getSenderId(), m.getClientId(), text,
-                    removed, m.getCreatedAt().toString());
+                    removed, m.getCreatedAt().toString(), m.isDeleted() ? null : m.getReplyToMessageId(), null,
+                    m.getEditedAt() != null && !m.isDeleted(),
+                    m.getEditedAt() == null || m.isDeleted() ? null : m.getEditedAt().toString(), m.isDeleted(),
+                    List.of(), null);
+        }
+
+        public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
+            return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
+                    reply, edited, editedAt, deleted, counts, mine);
+        }
+
+        public MessageView withoutReplyPreview() {
+            return withExtras(null, reactions, myReaction);
         }
     }
 
+    /** Tepki sonucu / olayi: toplam sayaclar ve (yalniz istek sahibi icin) kendi tepkisi. */
+    public record ReactionSummary(Long messageId, List<ReactionCount> reactions, String myReaction) {}
+
+    /** /user/queue/message-events: type = edited | deleted | reaction (okundu bilgisi /user/queue/read-receipts). */
+    public record MessageEvent(String type, Long conversationId, Long messageId, Long userId, MessageView message,
+                               String emoji, List<ReactionCount> reactions, String at) {}
+
+    public record UnreadItem(Long conversationId, long unread, boolean muted) {}
+
+    /** `total`: sessize alinmamis konusmalardaki toplam okunmamis (rozet sayisi); `mutedTotal`: sessizdekiler. */
+    public record UnreadSummary(long total, long mutedTotal, List<UnreadItem> conversations) {}
+
     public record ConversationView(Long id, String type, String title, UserSummary peer, int memberCount,
                                    boolean admin, MessageView lastMessage, long unreadCount, boolean blocked,
-                                   String createdAt) {}
+                                   String createdAt, boolean muted, String mutedUntil, boolean archived) {}
 
     public record MemberView(Long userId, String displayName, String avatarUrl, String role) {}
 
@@ -72,7 +120,7 @@ public final class MessagingDtos {
 
     // --- WebSocket ---
 
-    public record ChatSend(Long conversationId, String text, String clientId) {}
+    public record ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId) {}
 
     public record ChatRead(Long conversationId, Long lastMessageId) {}
 

@@ -57,8 +57,10 @@ class MessageServiceTest {
     private final NotificationService notifications = mock(NotificationService.class);
     private final ReportService reports = mock(ReportService.class);
     private final MessageCodec codec = mock(MessageCodec.class);
+    private final MessageReactionRepository reactions = mock(MessageReactionRepository.class);
+    private final MessageViewAssembler assembler = new MessageViewAssembler(messages, reactions, codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-            presence, notifications, reports, mock(PlatformTransactionManager.class), codec, false);
+            presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler, false);
 
     private Conversation direct;
 
@@ -217,7 +219,7 @@ class MessageServiceTest {
     @Test
     void previewEnabledSendsTruncatedPreviewOnlyAsPushBody() {
         MessageService withPreview = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-                presence, notifications, reports, mock(PlatformTransactionManager.class), codec, true);
+                presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler, true);
         when(presence.isOnline(PEER)).thenReturn(false);
 
         withPreview.send(ME, CONV, "a".repeat(150), "c9");
@@ -350,4 +352,131 @@ class MessageServiceTest {
         assertTrue(page.items().get(0).removed());
         assertFalse(page.items().get(0).text().contains("gizli"));
     }
+
+    // --- T13: yanit, sessize alma, arsiv ---
+
+    private Message parent(Long id, Long conv, String body) {
+        Message p = new Message();
+        p.setId(id);
+        p.setConversationId(conv);
+        p.setSenderId(PEER);
+        p.setClientId("p" + id);
+        p.setBody(body);
+        p.setCreatedAt(java.time.Instant.now().minusSeconds(30));
+        when(messages.findById(id)).thenReturn(Optional.of(p));
+        when(messages.findAllById(any())).thenAnswer(inv -> {
+            java.util.Collection<Long> ids = inv.getArgument(0);
+            return ids.contains(id) ? List.of(p) : List.of();
+        });
+        return p;
+    }
+
+    @Test
+    void replyStoresParentIdAndReturnsResolvedPreview() {
+        parent(60L, CONV, "x".repeat(150));
+
+        MessageService.SendResult r = service.send(ME, CONV, "cevap", "c1", 60L);
+
+        ArgumentCaptor<Message> draft = ArgumentCaptor.forClass(Message.class);
+        verify(messages).saveAndFlush(draft.capture());
+        assertEquals(60L, draft.getValue().getReplyToMessageId());
+        assertEquals(60L, r.message().replyTo().id());
+        assertEquals(101, r.message().replyTo().text().length()); // 100 karakter + "…"
+        assertFalse(r.message().replyTo().deleted());
+    }
+
+    @Test
+    void replyToOtherConversationIs404() {
+        parent(61L, 999L, "baska konusma");
+
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "cevap", "c1", 61L));
+
+        assertEquals("MESSAGE_NOT_FOUND", e.code());
+        verify(messages, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void replyToDeletedOrMissingMessageIs404() {
+        Message p = parent(62L, CONV, "x");
+        p.setDeletedAt(java.time.Instant.now());
+        assertEquals("MESSAGE_NOT_FOUND",
+                assertThrows(ApiException.class, () -> service.send(ME, CONV, "cevap", "c1", 62L)).code());
+        assertEquals("MESSAGE_NOT_FOUND",
+                assertThrows(ApiException.class, () -> service.send(ME, CONV, "cevap", "c2", 12345L)).code());
+    }
+
+    @Test
+    void historyShowsDeletedParentAsSilindi() {
+        Message p = parent(63L, CONV, "x");
+        p.setDeletedAt(java.time.Instant.now());
+        Message child = new Message();
+        child.setId(64L);
+        child.setConversationId(CONV);
+        child.setSenderId(PEER);
+        child.setClientId("k");
+        child.setBody("yanit");
+        child.setReplyToMessageId(63L);
+        when(messages.before(eq(CONV), any(), isNull(), any())).thenReturn(List.of(child));
+
+        MessageView v = service.history(ME, CONV, null, null, 30).items().get(0);
+
+        assertTrue(v.replyTo().deleted());
+        assertEquals(edu.bingol.backend.messaging.dto.MessagingDtos.DELETED_TEXT, v.replyTo().text());
+    }
+
+    @Test
+    void deletedMessageInHistoryShowsTombstoneWithoutContent() {
+        Message gone = new Message();
+        gone.setId(70L);
+        gone.setConversationId(CONV);
+        gone.setSenderId(PEER);
+        gone.setClientId("g");
+        gone.setDeletedAt(java.time.Instant.now());
+        gone.setReplyToMessageId(5L);
+        when(messages.before(eq(CONV), any(), isNull(), any())).thenReturn(List.of(gone));
+
+        MessageView v = service.history(ME, CONV, null, null, 30).items().get(0);
+
+        assertTrue(v.deleted());
+        assertTrue(v.removed());
+        assertEquals(edu.bingol.backend.messaging.dto.MessagingDtos.DELETED_TEXT, v.text());
+        assertEquals(null, v.replyTo());
+    }
+
+    @Test
+    void mutedRecipientGetsWebSocketButNoPushOrInAppNotification() {
+        ConversationMember mutedPeer = ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER);
+        mutedPeer.setMutedUntil(java.time.Instant.now().plusSeconds(3600));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
+                ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), mutedPeer));
+        when(presence.isOnline(PEER)).thenReturn(false);
+
+        service.send(ME, CONV, "selam", "c1");
+
+        ArgumentCaptor<List<Long>> to = ArgumentCaptor.forClass(List.class);
+        verify(bus).publish(eq("messages"), to.capture(), any(MessageView.class));
+        assertTrue(to.getValue().contains(PEER));
+        verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void expiredMuteStillNotifies() {
+        ConversationMember expired = ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER);
+        expired.setMutedUntil(java.time.Instant.now().minusSeconds(5));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
+                ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), expired));
+        when(presence.isOnline(PEER)).thenReturn(false);
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any());
+    }
+
+    @Test
+    void newMessageUnarchivesNonStickyArchives() {
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(members).unarchiveOnMessage(CONV);
+    }
 }
+

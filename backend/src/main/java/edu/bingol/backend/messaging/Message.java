@@ -52,6 +52,22 @@ public class Message {
     /** Moderasyonla gizlendi (yumusak silme): API icerik yerine sabit metin doner. */
     private Instant hiddenAt;
 
+    /** Yanitlanan mesaj (ayni konusma); silinen mesajda temizlenir. */
+    @Column(name = "reply_to_message_id")
+    private Long replyToMessageId;
+
+    /** Gonderen duzenlediyse zamani; gecmis surum TUTULMAZ (eski sifreli govde ezilir). */
+    private Instant editedAt;
+
+    /** Herkes icin silindi (tombstone): sifreli govde/nonce/surum NULL'dir, icerik geri getirilemez. */
+    private Instant deletedAt;
+
+    private Long deletedBy;
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public boolean isHidden() {
         return hiddenAt != null;
     }

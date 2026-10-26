@@ -34,9 +34,36 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     /** Konusma basina okunmamis sayisi: [conversationId, adet]. Kendi ve gizlenen mesajlar sayilmaz. */
     @Query("SELECT m.conversationId, COUNT(m) FROM Message m, ConversationMember cm "
             + "WHERE cm.conversationId = m.conversationId AND cm.userId = :uid AND m.conversationId IN :cids "
-            + "AND m.id > cm.lastReadMessageId AND m.senderId <> :uid AND m.hiddenAt IS NULL "
+            + "AND m.id > cm.lastReadMessageId AND m.senderId <> :uid AND m.hiddenAt IS NULL AND m.deletedAt IS NULL "
             + "GROUP BY m.conversationId")
     List<Object[]> unreadCounts(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds);
+
+    /** Kullanicinin TUM aktif konusmalarindaki okunmamis sayilari: [conversationId, adet] (yalniz adedi > 0 olanlar). */
+    @Query("SELECT m.conversationId, COUNT(m) FROM Message m, ConversationMember cm "
+            + "WHERE cm.conversationId = m.conversationId AND cm.userId = :uid AND cm.leftAt IS NULL "
+            + "AND m.createdAt >= cm.joinedAt "
+            + "AND m.id > cm.lastReadMessageId AND m.senderId <> :uid AND m.hiddenAt IS NULL AND m.deletedAt IS NULL "
+            + "GROUP BY m.conversationId")
+    List<Object[]> unreadAll(@Param("uid") Long userId);
+
+    /**
+     * Duzenleme: yeni sifreli govdeyi yazar (eski sifreli icerik ezilir; gecmis tutulmaz). Silinmis/gizlenmis
+     * mesajda 0 doner.
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Message m SET m.bodyCiphertext = :ct, m.bodyNonce = :nonce, m.keyVersion = :kv, m.editedAt = :at "
+            + "WHERE m.id = :id AND m.deletedAt IS NULL AND m.hiddenAt IS NULL")
+    int applyEdit(@Param("id") Long id, @Param("ct") byte[] ciphertext, @Param("nonce") byte[] nonce,
+                  @Param("kv") Integer keyVersion, @Param("at") Instant at);
+
+    /** Herkes icin silme (tombstone): sifreli icerik, nonce, anahtar surumu ve yanit bagi temizlenir. */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Message m SET m.bodyCiphertext = NULL, m.bodyNonce = NULL, m.keyVersion = NULL, "
+            + "m.replyToMessageId = NULL, m.editedAt = NULL, m.deletedAt = :at, m.deletedBy = :by "
+            + "WHERE m.id = :id AND m.deletedAt IS NULL")
+    int tombstone(@Param("id") Long id, @Param("at") Instant at, @Param("by") Long deletedBy);
 
     @Transactional
     @Modifying

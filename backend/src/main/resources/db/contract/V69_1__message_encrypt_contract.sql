@@ -7,7 +7,7 @@
 
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM message WHERE body_ciphertext IS NULL) THEN
+    IF EXISTS (SELECT 1 FROM message WHERE body_ciphertext IS NULL AND deleted_at IS NULL) THEN
         RAISE EXCEPTION 'plaintext messages remain; wait for the encryption job to finish (see docs/ENCRYPTION.md)';
     END IF;
 END $$;
@@ -15,6 +15,6 @@ END $$;
 ALTER TABLE message DROP CONSTRAINT message_body_present;
 DROP INDEX idx_message_unencrypted;
 ALTER TABLE message DROP COLUMN body;
-ALTER TABLE message ALTER COLUMN body_ciphertext SET NOT NULL;
-ALTER TABLE message ALTER COLUMN body_nonce SET NOT NULL;
-ALTER TABLE message ALTER COLUMN key_version SET NOT NULL;
+-- T13: silinmis (tombstone) mesajlarda sifreli govde yoktur; NOT NULL yerine kisit kullanilir
+ALTER TABLE message ADD CONSTRAINT message_body_present CHECK (
+    deleted_at IS NOT NULL OR (body_ciphertext IS NOT NULL AND body_nonce IS NOT NULL AND key_version IS NOT NULL));

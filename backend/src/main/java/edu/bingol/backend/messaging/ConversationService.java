@@ -108,8 +108,14 @@ public class ConversationService {
     /** Mesaji olan konusmalar, en yeni mesaj once. Imlec = onceki sayfanin son `lastMessage.id` degeri. */
     @Transactional(readOnly = true)
     public CursorPage<ConversationView> list(Long me, Long cursor, int size) {
+        return list(me, cursor, size, false);
+    }
+
+    /** `archived` true: yalniz arsivdekiler; false: arsivdekiler listelenmez. */
+    @Transactional(readOnly = true)
+    public CursorPage<ConversationView> list(Long me, Long cursor, int size, boolean archived) {
         int s = CursorPage.clampSize(size);
-        List<Conversation> rows = convs.page(me, cursor, PageRequest.of(0, s + 1));
+        List<Conversation> rows = convs.page(me, cursor, archived, PageRequest.of(0, s + 1));
         boolean more = rows.size() > s;
         List<Conversation> page = more ? rows.subList(0, s) : rows;
         return new CursorPage<>(views(me, page), more ? page.get(page.size() - 1).getLastMessageId() : null);
@@ -275,9 +281,12 @@ public class ConversationService {
             MessageView lastView = last == null || (!direct && last.getCreatedAt().isBefore(joined)) ? null
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me));
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
+            ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
+            boolean muted = mine != null && mine.isMuted();
             return new ConversationView(c.getId(), c.getType().name(), c.getTitle(), peer, ms.size(), admin, lastView,
                     unread.getOrDefault(c.getId(), 0L), direct && peerId != null && related.contains(peerId),
-                    c.getCreatedAt().toString());
+                    c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
+                    mine != null && mine.getArchivedAt() != null);
         }).toList();
     }
 
