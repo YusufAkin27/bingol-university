@@ -4,6 +4,11 @@ import edu.bingol.backend.analytics.ActivityRepository;
 import edu.bingol.backend.appinfo.AppInfoService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.auth.jwt.JwtAuthFilter;
+import edu.bingol.backend.event.EventRsvp;
+import edu.bingol.backend.event.EventRsvpRepository;
+import edu.bingol.backend.event.UserEventRepository;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
@@ -33,9 +38,16 @@ public class ProfileService {
     private final PasswordEncoder encoder;
     private final AppInfoService appInfo;
     private final ActivityRepository activity;
+    private final EventRsvpRepository rsvps;
+    private final UserEventRepository events;
+    private final StringRedisTemplate redis;
 
     public ProfileService(UserRepository users, BlockService blocks, FileStorage storage, PasswordEncoder encoder,
-                          AppInfoService appInfo, ActivityRepository activity) {
+                          AppInfoService appInfo, ActivityRepository activity,
+                          EventRsvpRepository rsvps, UserEventRepository events, StringRedisTemplate redis) {
+        this.rsvps = rsvps;
+        this.events = events;
+        this.redis = redis;
         this.appInfo = appInfo;
         this.activity = activity;
         this.users = users;
@@ -144,6 +156,15 @@ public class ProfileService {
         users.save(u);
         // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
         activity.purgeUser(u.getId());
+        // Silinen kullanicinin RSVP'leri kapasiteden yer tutmasin
+        for (EventRsvp r : rsvps.findByUserId(u.getId())) {
+            if (r.getStatus() == EventRsvp.Status.GOING) {
+                events.decrementGoing(r.getEventId());
+            }
+            rsvps.delete(r);
+        }
+        // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
+        redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + u.getId(), "1");
     }
 
     public List<String> faculties() {
