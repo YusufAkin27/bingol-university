@@ -18,7 +18,7 @@ Bilincli olarak sayfalanmayanlar: `GET /api/faq` (yonetici kürate eder, dil bas
 
 ## 2. Indeksler (V180)
 - `ix_ops_user_block_blocker_created`: engel listesi siralamasi.
-- `ix_ops_ticket_queue (status, id) WHERE email_verified`: yonetici destek kuyrugu (id imecli).
+- Destek kuyrugu icin ek indeks gerekmedi: mevcut `idx_ticket_admin (status, updated_at)` karsiliyor.
 N+1: incelenen liste servislerinde (BlockController kullanicilari `findAllById` ile toplu cekiyor, destek/geri bildirim sayfalari tek sorgu) N+1 bulunmadi.
 
 ## 3. Hata govdeleri
