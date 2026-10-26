@@ -127,7 +127,7 @@ const m = {
   'pg.security.s1.l2':
     'Messages are stored encrypted on the server. The server manages the keys, so messages are not protected in a way that only your device can decrypt; authorised processes can decrypt them.',
   'pg.security.s1.l3':
-    'Administrator access is justified and audited: looking at a conversation requires a written reason, and every access is written to a tamper-evident audit log.',
+    'Administrator access is recorded: authorized administrators may view conversations for security and legal obligations, and every access is written to an immutable audit log. Deleted messages may be retained for security and legal obligations.',
   'pg.security.s1.l4':
     'Passwords are stored irreversibly (as hashes); session refresh tokens are also kept only as hashes.',
   'pg.security.s1.l5': 'Sign-up is only possible with bingol.edu.tr email addresses and email verification.',
@@ -318,7 +318,7 @@ const m = {
   'pg.changelog.empty': 'No release notes yet',
   'pg.changelog.e1.date': '2026-10',
   'pg.changelog.e1.title': 'October 2026',
-  'pg.changelog.e1.l1': 'Messages are stored encrypted on the server; administrator access is justified and tied to the audit log.',
+  'pg.changelog.e1.l1': 'Messages are stored encrypted on the server; administrator access is tied to an audit log and deleted messages may be retained for security purposes.',
   'pg.changelog.e1.l2': 'Event applications and acceptance: accept, reject and waiting list.',
   'pg.changelog.e1.l3': 'Club permissions, ownership transfer and invite codes.',
   'pg.changelog.e1.l4': 'Image sharing in chats; reporting inappropriate images and an appeals process.',

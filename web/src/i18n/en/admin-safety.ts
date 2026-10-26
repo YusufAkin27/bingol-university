@@ -5,7 +5,7 @@ const m = {
   'admin.nav.blocklist': 'Blocked images',
   'admin.nav.eventApplications': 'Event applications',
   'admin.nav.clubAudit': 'Club audit',
-  'admin.nav.crypto': 'Message access and encryption',
+  'admin.nav.crypto': 'Chats and encryption',
 
   // Report queue
   'admin.reports.targetType.MESSAGE_IMAGE': 'Message image',
@@ -24,7 +24,6 @@ const m = {
   'admin.reports.hidden.ADMIN': 'Hidden by admin',
   'admin.reports.hidden.YES': 'Hidden',
   'admin.reports.preview.image': 'Reported image',
-  'admin.reports.preview.decrypt': 'Open message with a justification',
   'admin.reports.reasonCode.label': 'Decision reason',
   'admin.reports.reasonCode.hint': 'Used in the notification sent to the content owner.',
   'admin.reports.reasonCode.none': 'Not specified',
@@ -111,13 +110,8 @@ const m = {
   'admin.blocklist.toast.removed': 'Digest removed from the list.',
 
   // Message access and encryption status
-  'admin.crypto.title': 'Message access and encryption',
-  'admin.crypto.subtitle': 'Encryption key status and justified message access.',
-  'admin.crypto.warn.title': 'Warning: audited access',
-  'admin.crypto.warn.body':
-    'Messages are encrypted in transit and stored encrypted. Use this screen only when there is a concrete reason, such as a complaint, a security incident or a legal obligation.',
-  'admin.crypto.warn.audit':
-    'Every access is written to an immutable audit record with who did it, which conversation and message range, the stated reason and the time. If the record cannot be written, no message is shown.',
+  'admin.crypto.title': 'Chats and encryption',
+  'admin.crypto.subtitle': 'Encryption key status and the per-user chat viewer.',
   'admin.crypto.status.title': 'Encryption status',
   'admin.crypto.status.active': 'Active master key',
   'admin.crypto.status.keys': 'Configured keys',
@@ -129,26 +123,13 @@ const m = {
   'admin.crypto.status.deks': 'Wrapped data keys per master key',
   'admin.crypto.status.rewrapNeeded': 'Rewrap needed',
   'admin.crypto.status.rewrapHint': 'Key rotation and rewrapping are done on the server with a script; this screen only shows the status.',
-  'admin.crypto.disabled': 'Admin message access is turned off by a server setting. The form is disabled.',
-  'admin.crypto.form.title': 'Justified message access',
-  'admin.crypto.form.conversation': 'Conversation ID',
-  'admin.crypto.form.from': 'First message ID',
-  'admin.crypto.form.to': 'Last message ID (optional)',
-  'admin.crypto.form.toHint': 'If empty, a single message is opened. At most {max} messages per request.',
-  'admin.crypto.form.reason': 'Justification',
-  'admin.crypto.form.reasonHint': 'At least {min} characters. The justification is written to the audit record.',
-  'admin.crypto.form.ack': 'I understand that this access will be written to an immutable audit record.',
-  'admin.crypto.form.submit': 'Open messages',
-  'admin.crypto.err.reasonShort': 'The justification must be at least {min} characters.',
-  'admin.crypto.err.reasonLong': 'The justification can be at most {max} characters.',
-  'admin.crypto.err.conversation': 'Enter a valid conversation ID.',
-  'admin.crypto.err.range': 'The message IDs are invalid; the last ID cannot be smaller than the first.',
-  'admin.crypto.result.title': 'Opened messages ({n})',
-  'admin.crypto.result.audit': 'Audit record number: {id}',
-  'admin.crypto.result.empty': 'No messages found in this range',
-  'admin.crypto.result.sender': 'Sender: #{id}',
-  'admin.crypto.result.failed': 'Could not be opened ({reason})',
-  'admin.crypto.result.clear': 'Clear from screen',
+  'admin.crypto.open.title': 'Open a user\'s messages',
+  'admin.crypto.open.hint': 'Search for a user to view all of their conversations and messages. Every page request is written to the immutable audit log.',
+  'admin.crypto.open.search': 'Search users',
+  'admin.crypto.open.placeholder': 'Name or email (at least 2 characters)',
+  'admin.crypto.open.none': 'No matching users',
+  'admin.crypto.open.go': 'Open messages',
+  'admin.crypto.disabled': 'Administrator message viewing is disabled by a server setting.',
 
   // Event applications and club audit
   'admin.admission.title': 'Event applications',
@@ -228,6 +209,6 @@ const m = {
   'admin.err.MESSAGE_READER_UNAVAILABLE': 'Message reading is not enabled on this server yet.',
   'admin.err.CRYPTO_KEY_UNKNOWN': 'Unknown master key ID.',
 
-  'admin.users.x.decryptLink': 'Open the justified message access page',
+  'admin.users.x.decryptLink': 'Open this user\'s messages',
 } as const;
 export default m;

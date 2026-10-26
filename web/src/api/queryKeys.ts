@@ -67,6 +67,10 @@ export const qk = {
     blocklist: () => ['moderation', 'blocklist'] as const,
   },
   crypto: { status: () => ['crypto', 'status'] as const },
+  adminChat: {
+    conversations: (userId: number) => ['adminChat', 'conversations', userId] as const,
+    messages: (userId: number, conversationId: number) => ['adminChat', 'messages', userId, conversationId] as const,
+  },
   admission: {
     summary: (eventId: number) => ['admission', 'summary', eventId] as const,
     clubAudit: (communityId: number) => ['club', 'audit', communityId] as const,

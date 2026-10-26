@@ -34,8 +34,9 @@ Sunucu ana anahtarı tutar; gerektiğinde (gerekçeli, kayıtlı) mesajları ç�
 | `app.crypto.require-keys` | `CRYPTO_REQUIRE_KEYS` | `false` (`prod` profili zaten zorlar) |
 | `app.crypto.admin-decrypt-enabled` | `CRYPTO_ADMIN_DECRYPT_ENABLED` | `true` |
 | `app.crypto.dek-cache-ttl-seconds` | — | 300 |
-| `app.crypto.admin-decrypt-per-hour` | — | 30 (yönetici başına) |
-| `app.crypto.admin-decrypt-max-messages` | — | 200 (istek başına) |
+| `app.crypto.admin-decrypt-per-hour` | — | 30 (T24 sonrası kullanılmaz; sohbet görüntüleyici dakikada 120 sayfa) |
+| `app.crypto.admin-decrypt-max-messages` | — | 200 (T24 sonrası kullanılmaz; sayfa üst sınırı 50) |
+| `app.chat.deleted-retention-days` | `CHAT_DELETED_RETENTION_DAYS` | 0 (süresiz; N gün sonra silinen mesajlar kalıcı silinir) |
 
 Anahtar üretimi: `openssl rand -base64 32` → `CRYPTO_MASTER_KEYS=k202610:<base64>`. Yardımcı: `scripts/crypto-rotate.sh newkey`.
 
@@ -55,20 +56,28 @@ Anahtar üretimi: `openssl rand -base64 32` → `CRYPTO_MASTER_KEYS=k202610:<bas
 - Push bildirim önizlemesi (açıksa metin FCM/APNs üzerinden geçer; bkz. §8.6).
 - Anahtar ve veritabanı aynı yedekte/ortamda tutulursa sızıntıya karşı koruma kalmaz.
 
-## 4. Yönetici çözme
+## 4. Yönetici sohbet görüntüleyici (T24; eski tek tek çözme ucu kaldırıldı)
 
-`POST /api/admin/messages/decrypt` — yalnızca JWT'li ADMIN (Basic auth ile çalışmaz: yönetici kimliği kayda yazılmalıdır).
+Eski `POST /api/admin/messages/decrypt` ve gerekçe girişi/uyarı kutusu **kaldırıldı**. Yeni akış kullanıcı bazlıdır; yalnızca JWT'li ADMIN (Basic auth çalışmaz: yönetici kimliği kayda yazılmalıdır).
 
-```json
-{ "conversationId": 12, "fromMessageId": 100, "toMessageId": 120, "reason": "Rapor #45 incelemesi" }
-```
-- Gerekçe zorunlu, kırpılmış ≥ 10 karakter (≤ 500). `toMessageId` yoksa tek mesaj. İstek başına en fazla `admin-decrypt-max-messages`.
-- `app.crypto.admin-decrypt-enabled=false` ise `403 ADMIN_DECRYPT_DISABLED`.
-- Hız sınırı: yönetici başına saatte 30 (`RATE_LIMITED`).
-- Her başarılı çağrı, düz metin dönmeden **önce** `message_access_audit` tablosuna yazılır: yönetici, konuşma, mesaj sayısı, aralık, gerekçe, IP, zaman. Kayıt yazılamazsa düz metin **verilmez**. `MessageReader` bean'i yoksa `501 MESSAGE_READER_UNAVAILABLE` (kayıt yazılmaz); Aşama 2'de `MessageStoreReader` bağlıdır.
-- Tek bir mesajın çözülememesi (`AUTH_FAILED` vb.) istek hatası değildir; o öğe `text:null, error:"AUTH_FAILED"` döner ve yine kaydedilir.
-- `message_access_audit` **yalnızca-ekleme**: PostgreSQL tetikleyicileri `UPDATE`, `DELETE`, `TRUNCATE`'i reddeder; konuşma/mesaj silinse kayıt kalır (FK yok). Not: tablo sahibi/süper kullanıcı tetikleyiciyi kaldırabilir; uygulama veritabanı kullanıcısına `ALTER/DROP TRIGGER` yetkisi verilmemeli ve denetim satırları düzenli olarak dış arşive aktarılmalıdır.
+- `GET /api/admin/users/{id}/conversations?cursor&size` — kullanıcının TÜM konuşmaları (birebir + grup; ayrılmış olanlar dahil), son mesaj önizlemesi çözülmüş, toplam mesaj sayısı (silinenler dahil), imleç = son sayfadaki `lastMessage` kimliği (`nextCursor`). `size` en çok 30.
+- `GET /api/admin/users/{id}/conversations/{cid}/messages?before&size` — yeniden eskiye sayfalama: en yeni `size` (varsayılan/üst sınır 50) mesaj, **eskiden yeniye sıralı** dizi; `nextBefore` = yüklenen en eski mesajın kimliği (daha eski sayfa yoksa `null`). Sayfa isteği başına sunucu toplu çözer; tek tek çözme yoktur.
+- **Silinmiş ve moderasyonla gizlenmiş mesajlar da çözülmüş döner** (`deleted`, `deletedAt`, `deletedBy`/`deletedByName`, `hidden`). Düzenlenmiş mesajda önceki sürümler `revisions[]` (eskiden yeniye, çözülmüş). Yanıt önizlemesi yalnızca aynı konuşmadan; tepkiler `[{emoji,userId}]`; ekler `attachments[]` (T8 `message_attachment`; `previewUrl` = `/api/admin/media/attachments/{id}/preview`).
+- **Erişim kapsamı (IDOR):** konuşma hedef kullanıcının üyeliği değilse `404 CONVERSATION_NOT_FOUND`; kullanıcı yoksa `404 USER_NOT_FOUND`. Grupta yalnızca üyelik süresi (katılma..ayrılma) içindeki mesajlar. ADMIN dışı `403`, Basic auth `401`.
+- `app.crypto.admin-decrypt-enabled=false` ise `403 ADMIN_DECRYPT_DISABLED`. Hız sınırı: yönetici başına dakikada 120 sayfa isteği (`RATE_LIMITED`).
+- **Denetim OTOMATİKTİR:** her sayfa isteği düz metin dönmeden **önce** `message_access_audit`'e yazılır (admin, hedef kullanıcı `target_user_id`, konuşma, mesaj sayısı [çözülen sürümler dahil], `from/to` mesaj kimliği, IP, zaman, `kind` = `VIEW_MESSAGES` | `LIST_PREVIEW`). Liste sayfasında önizlemesi çözülen her konuşma için ayrı satır yazılır. Gerekçe girişi yoktur; sistem sabit gerekçe `yonetici sohbet goruntuleme` yazar (DB kısıtı ≥ 10 karakter ister). Kayıt yazılamazsa **hiç içerik dönmez** (`503 CRYPTO_UNAVAILABLE`).
+- Tek bir mesajın çözülememesi (`AUTH_FAILED` vb.) istek hatası değildir; o öğe `text:null, error:"AUTH_FAILED"` döner.
+- `message_access_audit` **yalnızca-ekleme**: PostgreSQL tetikleyicileri `UPDATE`, `DELETE`, `TRUNCATE`'i reddeder (V68; V96 yalnızca `target_user_id`/`kind` sütunlarını ekler). Not: tablo sahibi/süper kullanıcı tetikleyiciyi kaldırabilir; uygulama DB kullanıcısına `ALTER/DROP TRIGGER` verilmemeli, satırlar düzenli olarak dış arşive aktarılmalıdır.
 - Ayrıca `GET /api/admin/crypto/status` (anahtar kimlikleri, hangi ana anahtarla kaç DEK sarılı; sır yok) ve `POST /api/admin/crypto/rewrap`.
+- Dürüstlük notu: yönetici tüm konuşmaları bu uçtan görebildiğinden sistem **uçtan uca şifreleme değildir**; ürün metinleri de bunu söylemez ve yönetici erişiminin kayıt altında olduğunu belirtir.
+
+### 4.1 Silinen mesajların saklanması (T24)
+
+- Herkes için silme (T13) artık gövdeyi **silmez**: `deleted_at`/`deleted_by` işaretlenir; `body_ciphertext/body_nonce/key_version`, `reply_to_message_id`, `edited_at` kalır. Kullanıcı API'si silinmiş mesaj için yalnızca "Bu mesaj silindi" döner (içerik, yanıt önizlemesi, tepki, ek meta verisi yok); `MessageAttachmentService.accessible` silinmiş mesajın ekine erişimi kapatır. **Ek baytları silinmez** (`purgeForMessage` artık silme akışından çağrılmaz); yönetici önizleme ucundan görülür.
+- Düzenleme geçmişi: V96 `message_revision` (mesajın önceki şifreli sürümleri; AAD aynı: gönderen+clientId). Her düzenlemede eski sürüm `archiveRevision` ile kopyalanır, sonra yeni gövde yazılır.
+- Hesap silme (anonimleştirme) mesajları silmez. İstisna: hesabın yüklediği sohbet görselleri (T8, KVKK) hesap silinince kaldırılır.
+- Saklama: `app.chat.deleted-retention-days` (`CHAT_DELETED_RETENTION_DAYS`, varsayılan **0 = süresiz**). N > 0 ise gecelik iş (03:40 İstanbul, `DeletedMessageRetention`) N günden eski silinmiş mesajları kalıcı siler (tepki, düzenleme geçmişi ve ek satırları CASCADE; ek dosyaları saatlik "satırsız dosya" temizleyicisince ≥ 24 saat içinde süpürülür).
+- KVKK: "verilerimi indir" yalnızca **görünür** mesajları içerir; silinmiş mesajlar dışa aktarımda yer almaz (karar).
 
 ## 5. Anahtar yönetimi
 
@@ -99,7 +108,7 @@ Anahtar üretimi: `openssl rand -base64 32` → `CRYPTO_MASTER_KEYS=k202610:<bas
 
 Aşağıdaki hususlar gizlilik politikasına, aydınlatma metnine ve mağaza beyanlarına yansıtılmalı (**hukuki inceleme gerekir**):
 - Mesajlar iletimde (TLS/WSS) ve saklamada (sunucu tarafı AES-256-GCM) şifrelidir; **uçtan uca şifreleme değildir.**
-- Yetkili yöneticiler, yalnızca **şikâyet/güvenlik/yasal yükümlülük** gibi belgelenmiş gerekçeyle, her erişim değiştirilemez biçimde kaydedilerek mesajları görüntüleyebilir; erişim kayıtları [saklama süresi] boyunca tutulur.
+- Yetkili yöneticiler güvenlik/şikâyet/yasal yükümlülükler için konuşmaları görüntüleyebilir; her sayfa isteği değiştirilemez biçimde otomatik kaydedilir (gerekçe girişi yoktur); erişim kayıtları [saklama süresi] boyunca tutulur. Silinen/düzenlenen mesajların şifreli kopyaları saklanabilir (`app.chat.deleted-retention-days`).
 - Hesap silme (anonimleştirme) sonrası mesajların akıbeti (Aşama 2'de karar: gönderen anonimleşir, içerik saklama süresine uyar).
 - Veri minimizasyonu: bildirim önizlemesi ayarı (§8.6), yedek saklama süresi, anahtar kaybı riski.
 - "Verilerimi indir" (`DataExporter`): kullanıcının kendi mesajlarını içermeli (Aşama 2: deşifre edilerek).
@@ -216,6 +225,6 @@ Güncel olan bu bölümdür; §8 ile çeliştiğinde bu bölüm geçerlidir.
 10. **Betikler:** `crypto-no-plaintext.sh` (kanarya cümle: pg_dump, hex, bildirim tablosu, Redis kanalı, günlük; API/KVKK/yönetici gidiş-dönüş), `crypto-smoke.sh`, `crypto-contract.sh`; `notification-collapse.sh` düzeltildi (istek alanları `text` + `clientId`).
 
 ### 10.x T13 notu — düzenleme ve silme
-- **Düzenleme:** `MessageCodec.seal` yeniden çağrılır (yeni nonce, güncel DEK sürümü); eski şifreli içerik `UPDATE` ile ezilir, geçmiş tutulmaz. AAD (`"m1"‖senderId‖clientId`) değişmez.
-- **Silme (tombstone):** `body_ciphertext/body_nonce/key_version` NULL, `deleted_at` dolu. V92, `message_body_present` kısıtını `deleted_at IS NOT NULL` ile genişletir; `db/contract/V69_1` `NOT NULL` yerine aynı kısıtı yeniden kurar. `MessageStoreReader` ve geçiş işi NULL gövdeli satırı atlar; yönetici çözme silinmiş mesajda içerik döndüremez. Raporlanmış mesaj silinirse içerik kopyası tutulmaz (bkz. docs/MESSAGING_DESIGN.md T13).
+- **Düzenleme:** `MessageCodec.seal` yeniden çağrılır (yeni nonce, güncel DEK sürümü); eski şifreli sürüm T24'ten itibaren `message_revision`'a arşivlenir (önceden ezilirdi). AAD (`"m1"‖senderId‖clientId`) değişmez.
+- **(T24 ile DEĞİŞTİ — bkz. §4.1)** ~~Silme (tombstone): gövde NULL~~ artık gövde saklanır; aşağıdaki cümleler tarihsel kayıttır. Silme (tombstone): `body_ciphertext/body_nonce/key_version` NULL, `deleted_at` dolu. V92, `message_body_present` kısıtını `deleted_at IS NOT NULL` ile genişletir; `db/contract/V69_1` `NOT NULL` yerine aynı kısıtı yeniden kurar. `MessageStoreReader` ve geçiş işi NULL gövdeli satırı atlar; yönetici çözme silinmiş mesajda içerik döndüremez. Raporlanmış mesaj silinirse içerik kopyası tutulmaz (bkz. docs/MESSAGING_DESIGN.md T13).
 - **Yeni olay tipleri** (`edited`, `deleted`, `reaction`) `ChatEventBus` -> `BusCipher` yolundan geçer; düzenleme olayı düz metni yalnız şifreli çerçevede taşır.
