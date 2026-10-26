@@ -1,6 +1,7 @@
 package edu.bingol.backend.messaging.dto;
 
 import edu.bingol.backend.messaging.Message;
+import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.moderation.ReportReason;
 import edu.bingol.backend.user.User;
 import jakarta.validation.constraints.NotBlank;
@@ -28,9 +29,16 @@ public final class MessagingDtos {
 
     public record AddMembersRequest(@NotEmpty @Size(max = 49) List<Long> userIds) {}
 
-    /** `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. */
-    public record SendMessageRequest(@NotNull String text, @NotBlank @Size(max = 64) String clientId,
-                                     Long replyToMessageId) {}
+    /**
+     * `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. T8: `attachmentIds`
+     * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
+     */
+    public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId, Long replyToMessageId,
+                                     @Size(max = 4) List<Long> attachmentIds) {
+        public SendMessageRequest(String text, String clientId, Long replyToMessageId) {
+            this(text, clientId, replyToMessageId, null);
+        }
+    }
 
     public record EditMessageRequest(@NotNull String text) {}
 
@@ -67,7 +75,22 @@ public final class MessagingDtos {
     public record MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                               boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
                               boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
-                              String myReaction) {
+                              String myReaction, List<AttachmentView> attachments) {
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, List.of());
+        }
+
+        /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
+        public MessageView withAttachments(List<AttachmentView> list) {
+            return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
+                    removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
+                    List.copyOf(list));
+        }
+
         public static MessageView of(Message m) {
             return of(m, false);
         }
@@ -88,7 +111,7 @@ public final class MessagingDtos {
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine);
+                    reply, edited, editedAt, deleted, counts, mine, attachments);
         }
 
         public MessageView withoutReplyPreview() {
@@ -120,7 +143,12 @@ public final class MessagingDtos {
 
     // --- WebSocket ---
 
-    public record ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId) {}
+    public record ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
+                           List<Long> attachmentIds) {
+        public ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId) {
+            this(conversationId, text, clientId, replyToMessageId, null);
+        }
+    }
 
     public record ChatRead(Long conversationId, Long lastMessageId) {}
 

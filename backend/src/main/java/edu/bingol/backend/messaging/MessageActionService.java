@@ -77,6 +77,14 @@ public class MessageActionService {
         this.allowedReactions = set;
     }
 
+    /** T8: gorsel ekleri (setter enjeksiyonu; yoksa eksiz). */
+    private edu.bingol.backend.messaging.media.MessageAttachmentService attachments;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAttachments(edu.bingol.backend.messaging.media.MessageAttachmentService attachments) {
+        this.attachments = attachments;
+    }
+
     public Set<String> allowedReactions() {
         return allowedReactions;
     }
@@ -85,8 +93,9 @@ public class MessageActionService {
 
     /** Yalnizca gonderen, `app.chat.edit-window-minutes` icinde. Yeni sifreli govde yazilir; eski sifreli surum `message_revision`'a arsivlenir. */
     public MessageView edit(Long userId, Long messageId, String text) {
-        String body = MessageService.validatedBody(text);
         Access a = access(userId, messageId);
+        // Gorselli mesajda metin bosaltilabilir (yalniz gorsel kalir); gorselsiz mesajda bos metin reddedilir
+        String body = MessageService.validatedBody(text, attachments != null && attachments.hasAttachments(messageId));
         Message m = a.message;
         if (!m.getSenderId().equals(userId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "MESSAGE_NOT_OWNER", "Yalnızca kendi mesajınızı düzenleyebilirsiniz.");
@@ -149,6 +158,9 @@ public class MessageActionService {
             return; // es zamanli baska silme kazandi
         }
         reactions.removeAll(m.getId());
+        if (attachments != null) {
+            attachments.purgeForMessage(m.getId()); // gorsel baytlari da silinir (erisim zaten kapanir)
+        }
         publish(m.getConversationId(), userId, new MessageEvent("deleted", m.getConversationId(), m.getId(), userId,
                 null, null, null, now.toString()));
     }

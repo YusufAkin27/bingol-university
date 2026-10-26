@@ -7,6 +7,7 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReadReceipt;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReportMessageRequest;
 import edu.bingol.backend.messaging.dto.MessagingDtos.TypingEvent;
+import edu.bingol.backend.messaging.media.MessageAttachmentService;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.messaging.ws.PresenceService;
 import edu.bingol.backend.moderation.BlockService;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -64,6 +66,8 @@ public class MessageService {
     private final MessageViewAssembler assembler;
     /** `app.push.message-preview`: true ise push govdesinde mesaj onizlemesi gider (bildirim tablosuna YAZILMAZ). */
     private final boolean pushPreview;
+    /** T8: sohbet gorselleri (setter enjeksiyonu: yapici imzasi degismesin). Yoksa gorselsiz calisir. */
+    private MessageAttachmentService attachments;
 
     public MessageService(ConversationRepository convs, ConversationMemberRepository members, MessageRepository messages,
                           UserRepository users, BlockService blocks, RateLimiter limiter, ChatEventBus bus,
@@ -87,14 +91,24 @@ public class MessageService {
         this.tx = new TransactionTemplate(txManager);
     }
 
+    @Autowired(required = false)
+    void setAttachments(MessageAttachmentService attachments) {
+        this.attachments = attachments;
+    }
+
     public SendResult send(Long senderId, Long conversationId, String text, String clientId) {
         return send(senderId, conversationId, text, clientId, null);
     }
 
     /** Temizler ve dogrular (gonderme ve duzenleme ortak): bos / cok uzun ise ApiException. */
     static String validatedBody(String text) {
+        return validatedBody(text, false);
+    }
+
+    /** T8: `allowEmpty` (gorsel eki olan mesaj) ise bos metin kabul edilir; uzunluk siniri her durumda gecerli. */
+    static String validatedBody(String text, boolean allowEmpty) {
         String body = MessageText.clean(text);
-        if (body.isEmpty()) {
+        if (body.isEmpty() && !allowEmpty) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMPTY_MESSAGE", "Mesaj boş olamaz.");
         }
         // Sinir kod noktasi sayar (DB VARCHAR(2000) de oyle): emoji 2 UTF-16 birimi olsa da 1 karakterdir.
@@ -105,12 +119,24 @@ public class MessageService {
         return body;
     }
 
-    /** `replyToMessageId`: ayni konusmadaki (silinmemis, gorunur) bir mesaj; aksi halde 404 MESSAGE_NOT_FOUND. */
     public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId) {
+        return send(senderId, conversationId, text, clientId, replyToMessageId, null);
+    }
+
+    /**
+     * `replyToMessageId`: ayni konusmadaki (silinmemis, gorunur) bir mesaj; aksi halde 404 MESSAGE_NOT_FOUND.
+     * `attachmentIds` (T8): onceden yuklenmis sohbet gorselleri; doluysa metin bos olabilir.
+     */
+    public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
+                           List<Long> attachmentIds) {
         if (conversationId == null || clientId == null || clientId.isBlank() || clientId.length() > 64) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "conversationId ve clientId gerekli.");
         }
-        String body = validatedBody(text);
+        boolean hasMedia = attachmentIds != null && !attachmentIds.isEmpty();
+        if (hasMedia && attachments == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
+        }
+        String body = validatedBody(text, hasMedia);
         ConversationMember sender = requireMember(conversationId, senderId);
         // Hesabi silinen/askiya alinan gonderenin (suresi dolmamis) eski token'i ile yazmasi engellenir.
         if (users.findById(senderId).filter(User::isActive).isEmpty()) {
@@ -144,6 +170,8 @@ public class MessageService {
                 throw new ApiException(HttpStatus.FORBIDDEN, "USER_UNAVAILABLE", "Bu kullanıcıya mesaj gönderilemez.");
             }
         }
+        // Ek dogrulamasi mesaj hakkini harcamadan once (baskasinin/kullanilmis/uygunsuz ek -> 400)
+        List<Long> ids = hasMedia ? attachments.precheck(senderId, conversationId, attachmentIds) : List.of();
         limiter.check("msg:user:" + senderId, RATE_PER_MINUTE, Duration.ofMinutes(1));
 
         // Sifreleme transaction DISINDA: DB'ye yalnizca sifreli govde yazilir (docs/ENCRYPTION.md).
@@ -155,7 +183,7 @@ public class MessageService {
         codec.seal(draft, body);
         Message saved;
         try {
-            saved = tx.execute(s -> persist(draft));
+            saved = tx.execute(s -> persist(draft, ids));
         } catch (DataIntegrityViolationException e) {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
@@ -172,9 +200,13 @@ public class MessageService {
         return new SendResult(view, true);
     }
 
-    private Message persist(Message draft) {
+    private Message persist(Message draft, List<Long> attachmentIds) {
         String plain = draft.getBody();
         Message m = messages.saveAndFlush(draft);
+        if (!attachmentIds.isEmpty()) {
+            // Ayni transaction: baska mesaja/kullaniciya ait ya da kullanilmis ek varsa istisna -> mesaj da geri alinir
+            attachments.claim(m.getId(), m.getSenderId(), m.getConversationId(), attachmentIds);
+        }
         m.setBody(plain); // @Transient: kayit sonrasi geri verilen nesnede duz metni koru (teslim/yanit icin)
         convs.touchLastMessage(m.getConversationId(), m.getId(), m.getCreatedAt());
         members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
@@ -218,6 +250,7 @@ public class MessageService {
                 ? conv.getTitle() + " - " + senderName : senderName;
         // Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj").
         String preview = !pushPreview ? null
+                : m.getBody().isEmpty() ? "📷" // yalniz gorsel
                 : m.getBody().length() > PUSH_PREVIEW ? m.getBody().substring(0, PUSH_PREVIEW) + "…" : m.getBody();
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()));
