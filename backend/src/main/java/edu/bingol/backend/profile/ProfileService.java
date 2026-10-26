@@ -5,8 +5,12 @@ import edu.bingol.backend.appinfo.AppInfoService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.storage.FileStorage;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.profile.naming.DisplayNamePolicy;
+import edu.bingol.backend.profile.privacy.AvatarCleanups;
+import edu.bingol.backend.profile.privacy.PublicProfileMapper;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
+import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -33,9 +37,14 @@ public class ProfileService {
     private final PasswordEncoder encoder;
     private final AppInfoService appInfo;
     private final ActivityRepository activity;
+    private final PublicProfileMapper mapper;
+    private final AvatarCleanups avatarCleanups;
 
     public ProfileService(UserRepository users, BlockService blocks, FileStorage storage, PasswordEncoder encoder,
-                          AppInfoService appInfo, ActivityRepository activity) {
+                          AppInfoService appInfo, ActivityRepository activity, PublicProfileMapper mapper,
+                          AvatarCleanups avatarCleanups) {
+        this.mapper = mapper;
+        this.avatarCleanups = avatarCleanups;
         this.appInfo = appInfo;
         this.activity = activity;
         this.users = users;
@@ -55,14 +64,14 @@ public class ProfileService {
         if (!u.isActive() || (!viewerId.equals(targetId) && blocks.isBlocked(viewerId, targetId))) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
-        return PublicProfile.of(u);
+        return mapper.map(viewerId, u);
     }
 
     @Transactional
     public User update(Long id, UpdateProfileRequest r) {
         User u = get(id);
         if (r.displayName() != null) {
-            u.setDisplayName(r.displayName().trim());
+            u.setDisplayName(DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN));
         }
         if (r.faculty() != null) {
             u.setFaculty(validFaculty(blankToNull(r.faculty()), appInfo.faculties()));
@@ -105,8 +114,7 @@ public class ProfileService {
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         excluded.add(viewerId);
         excluded.add(-1L); // NOT IN () bos kalmasin
-        return users.searchByName(escapeLike(query), excluded, Math.min(Math.max(size, 1), 20)).stream()
-                .map(PublicProfile::of).toList();
+        return mapper.mapAll(viewerId, users.searchByName(escapeLike(query), excluded, Math.min(Math.max(size, 1), 20)));
     }
 
     /**
@@ -129,7 +137,9 @@ public class ProfileService {
     }
 
     private void anonymize(User u) {
-        storage.delete(u.getAvatarUrl());
+        String avatar = u.getAvatarUrl();
+        storage.delete(avatar);
+        avatarCleanups.run(u.getId(), avatar); // T11: gorsel referanslari + gizlilik satiri (KVKK)
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");
         u.setDisplayName("Silinmiş kullanıcı");
         u.setPasswordHash(encoder.encode(java.util.UUID.randomUUID().toString()));
