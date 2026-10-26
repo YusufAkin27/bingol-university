@@ -25,6 +25,7 @@ import org.springframework.security.web.header.writers.DelegatingRequestMatcherH
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -57,13 +58,17 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, StringRedisTemplate redis,
                                     @Qualifier("corsConfigurationSource") CorsConfigurationSource cors,
                                     AuditAccessDeniedHandler denied,
+                                    edu.bingol.backend.common.ApiAuthenticationEntryPoint apiEntryPoint,
                                     edu.bingol.backend.common.RateLimiter limiter,
                                     edu.bingol.backend.common.ClientIp clientIp) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
             // CORS yalnizca /api/** ve /files/** icin (CorsConfig); preflight (OPTIONS) kimlik dogrulamasindan once yanitlanir
             .cors(c -> c.configurationSource(cors))
             // Yetkisiz yonetici istekleri (403) denetim kaydina da yazilir
-            .exceptionHandling(e -> e.accessDeniedHandler(denied))
+            // Kimliksiz 401 govdesi {code,message} olsun (mobil icin); yonetici Basic auth zorlugu (WWW-Authenticate) korunur.
+            .exceptionHandling(e -> e.accessDeniedHandler(denied).defaultAuthenticationEntryPointFor(apiEntryPoint,
+                    new AndRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/**"),
+                            new NegatedRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/admin/**")))))
             // Guvenlik basliklari. HSTS yalnizca HTTPS isteklerde yazilir (proxy arkasinda forward-headers ile).
             // CSP yalnizca API/dosya yanitlari icin kisitli; Swagger arayuzu (dev) betik yukleyebilsin diye haric.
             .headers(h -> h

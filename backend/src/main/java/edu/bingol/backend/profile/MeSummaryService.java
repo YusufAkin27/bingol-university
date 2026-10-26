@@ -1,8 +1,7 @@
 package edu.bingol.backend.profile;
 
-import edu.bingol.backend.messaging.MessageRepository;
+import edu.bingol.backend.messaging.ConversationPrefsService;
 import edu.bingol.backend.profile.dto.ProfileDtos.MeSummary;
-import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +22,11 @@ public class MeSummaryService {
             """;
 
     private final JdbcTemplate jdbc;
-    private final MessageRepository messages;
+    private final ConversationPrefsService conversationPrefs;
 
-    public MeSummaryService(JdbcTemplate jdbc, MessageRepository messages) {
+    public MeSummaryService(JdbcTemplate jdbc, ConversationPrefsService conversationPrefs) {
         this.jdbc = jdbc;
-        this.messages = messages;
+        this.conversationPrefs = conversationPrefs;
     }
 
     @Transactional(readOnly = true)
@@ -38,8 +37,8 @@ public class MeSummaryService {
         return new MeSummary(c[0], c[1], c[2], c[3], unreadMessages(userId));
     }
 
+    /** Rozet sayisi: sessize alinmamis konusmalarin toplami (sohbet sekmesiyle ayni tanim). */
     private long unreadMessages(Long userId) {
-        List<Object[]> rows = messages.unreadAll(userId);
-        return rows.stream().mapToLong(r -> ((Number) r[1]).longValue()).sum();
+        return conversationPrefs.unreadSummary(userId).total();
     }
 }

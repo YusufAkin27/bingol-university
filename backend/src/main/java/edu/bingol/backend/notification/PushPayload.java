@@ -92,7 +92,11 @@ public final class PushPayload {
                 if (v == null || v.length() < 16) {
                     break;
                 }
-                out.put("value", v.substring(0, v.length() / 2));
+                String shorter = v.substring(0, v.length() / 2);
+                out.put("value", shorter);
+                if (out.containsKey("targetId")) {
+                    out.put("targetId", shorter); // targetId, value'nun kopyasi: birlikte kirpilir
+                }
             } else {
                 out.remove(biggest);
             }
