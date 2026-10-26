@@ -118,7 +118,7 @@ check "kapali talebe yanit 409" 409 "$(code -X POST -H "$H" -H "$ATR" $A/support
 has "kapali hata EN" "closed" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' -H "$ATR" $A/support/tickets/$TID/messages -d '{"text":"x"}')"
 
 echo "== uygulama bilgisi"
-has "info" '"appName":"Bingöl Üniversitesi"' "$(curl -s $A/app/info)"
+has "info" '"appName":"BÜ Kampüs"' "$(curl -s $A/app/info)"
 has "diller" '"languages":["tr","en","ar"]' "$(curl -s $A/app/info)"
 has "surum: guncel" '"updateRequired":false,"updateAvailable":false' "$(curl -s "$A/app/version?platform=ANDROID&version=1.0.0")"
 check "ayar guncelle (min surum)" 204 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/min_version_android -d '{"value":"1.2.0"}')"
