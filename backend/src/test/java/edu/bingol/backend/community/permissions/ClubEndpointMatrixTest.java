@@ -3,10 +3,14 @@ package edu.bingol.backend.community.permissions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.community.extras.ClubExtrasHooks;
+import edu.bingol.backend.media.MediaService;
+import edu.bingol.backend.media.StoredImage;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityMember.Role;
@@ -28,9 +32,10 @@ import org.springframework.web.multipart.MultipartFile;
 class ClubEndpointMatrixTest {
 
     private final ClubTestSupport t = new ClubTestSupport();
+    private final MediaService media = mock(MediaService.class);
     private final CommunityService svc = new CommunityService(t.communities, t.members, mock(UserRepository.class),
-            mock(BlockService.class), mock(NotificationService.class), mock(FileStorage.class), t.permissions,
-            mock(ClubAuditService.class));
+            mock(BlockService.class), mock(NotificationService.class), media, t.permissions,
+            mock(ClubAuditService.class), mock(ClubExtrasHooks.class));
 
     /** actorId -> konum adi. Her konum icin yeni kullanici id'si. */
     private final Map<String, Actor> actors = new LinkedHashMap<>();
@@ -87,6 +92,7 @@ class ClubEndpointMatrixTest {
     void editInfoAndCover() {
         positions();
         MultipartFile file = mock(MultipartFile.class);
+        when(media.storeImage(any(), any())).thenReturn(new StoredImage("/files/covers/x.jpg", "/files/covers/x-t.jpg", 1, 1, 1, "image/jpeg"));
         String[] who = {"moderator", "admin", "owner", "systemAdmin", "infoEditor"};
         expect("update", a -> () -> svc.update(a, 10L, new UpdateCommunityRequest(null, "yeni", null, null, null)), who);
         expect("cover", a -> () -> svc.setCover(a, 10L, file), who);

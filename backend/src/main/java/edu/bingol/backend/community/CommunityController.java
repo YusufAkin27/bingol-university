@@ -11,6 +11,8 @@ import edu.bingol.backend.community.dto.CommunityDtos.PostView;
 import edu.bingol.backend.community.dto.CommunityDtos.RoleRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.UpdateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.UploadResult;
+import edu.bingol.backend.community.extras.ClubExtrasDtos.JoinRequest;
+import edu.bingol.backend.community.extras.ClubJoinFormService;
 import edu.bingol.backend.community.permissions.ClubDtos.AccessRequest;
 import edu.bingol.backend.community.permissions.ClubRoleService;
 import jakarta.validation.Valid;
@@ -38,10 +40,12 @@ public class CommunityController {
     private final CommunityPostService posts;
     private final RateLimiter limiter;
     private final ClubRoleService roles;
+    private final ClubJoinFormService joinForm;
 
     public CommunityController(CommunityService communities, CommunityPostService posts, RateLimiter limiter,
-                               ClubRoleService roles) {
+                               ClubRoleService roles, ClubJoinFormService joinForm) {
         this.roles = roles;
+        this.joinForm = joinForm;
         this.communities = communities;
         this.posts = posts;
         this.limiter = limiter;
@@ -86,10 +90,11 @@ public class CommunityController {
     }
 
     @PostMapping("/communities/{id}/join")
-    public JoinResult join(@PathVariable Long id) {
+    public JoinResult join(@PathVariable Long id, @Valid @RequestBody(required = false) JoinRequest body) {
         Actor a = Actor.current();
         limiter.check("community-join:user:" + a.id(), 20, Duration.ofHours(1));
-        return new JoinResult(communities.join(a, id));
+        // Govde opsiyonel: sorulu (onayli/ozel) kulupte basvuru yanitlari (T15) katilimla birlikte kaydedilir.
+        return new JoinResult(joinForm.join(a, id, body == null ? null : body.answers()));
     }
 
     @DeleteMapping("/communities/{id}/membership")

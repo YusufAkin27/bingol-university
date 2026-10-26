@@ -8,6 +8,7 @@ import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.CommunityMemberRepository;
 import edu.bingol.backend.community.CommunityRepository;
+import edu.bingol.backend.community.extras.ClubExtrasHooks;
 import edu.bingol.backend.community.permissions.ClubDtos.InviteCreated;
 import edu.bingol.backend.community.permissions.ClubDtos.InviteRequest;
 import edu.bingol.backend.community.permissions.ClubDtos.InviteView;
@@ -37,10 +38,12 @@ public class ClubInviteService {
     private final ClubPermissions permissions;
     private final ClubMemberGrantRepository grants;
     private final ClubAuditService audit;
+    private final ClubExtrasHooks hooks;
 
     public ClubInviteService(ClubInviteRepository invites, CommunityRepository communities,
                              CommunityMemberRepository members, ClubPermissions permissions,
-                             ClubMemberGrantRepository grants, ClubAuditService audit) {
+                             ClubMemberGrantRepository grants, ClubAuditService audit, ClubExtrasHooks hooks) {
+        this.hooks = hooks;
         this.invites = invites;
         this.communities = communities;
         this.members = members;
@@ -128,6 +131,7 @@ public class ClubInviteService {
             members.save(new CommunityMember(c.getId(), a.id(), Role.MEMBER, CommunityMember.Status.ACTIVE));
         }
         grants.deleteMember(c.getId(), a.id());
+        hooks.onMemberActivated(c.getId(), a.id());
         audit.record(c.getId(), a.id(), a.id(), ClubAuditService.INVITE_USED, "invite=" + i.getId());
         return new JoinByCodeResult(c.getId(), CommunityMember.Status.ACTIVE.name());
     }

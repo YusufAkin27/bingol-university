@@ -34,7 +34,8 @@ public final class CommunityDtos {
     /** myStatus: NONE | ACTIVE | PENDING | BANNED; myRole: uye degilse null. */
     public record CommunityView(Long id, String name, String slug, String description, String category,
                                 String coverUrl, JoinPolicy joinPolicy, Visibility visibility, Status status,
-                                Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt) {
+                                Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt,
+                                String logoUrl) {
     }
 
     public record JoinResult(String status) {

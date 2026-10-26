@@ -12,7 +12,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.community.extras.ClubExtrasHooks;
+import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.permissions.ClubAuditService;
@@ -33,8 +34,8 @@ class CommunityServiceTest {
     private final CommunityMemberRepository members = mock(CommunityMemberRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final CommunityService svc = new CommunityService(communities, members, mock(UserRepository.class),
-            mock(BlockService.class), notifications, mock(FileStorage.class),
-            new ClubPermissions(members, mock(ClubMemberGrantRepository.class)), mock(ClubAuditService.class));
+            mock(BlockService.class), notifications, mock(MediaService.class),
+            new ClubPermissions(members, mock(ClubMemberGrantRepository.class)), mock(ClubAuditService.class), mock(ClubExtrasHooks.class));
 
     private final Actor user = new Actor(1L, false);
 
