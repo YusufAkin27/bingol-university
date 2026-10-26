@@ -64,3 +64,9 @@ Bu makinede Flutter kurulu değildir ve profile derleyicisi/cihaz yoktur; bu ned
 - [ ] **Bağlantı havuzu / thread:** Hikari havuz boyutu eşzamanlılığa yeterli; yavaş dış çağrı (SMTP/FCM) istek iş parçacığını bloklamıyor.
 - [ ] **Redis çağrıları:** istek başına gereksiz Redis gidiş-dönüşü yok (rate limit, aktivite izleme dahil).
 - [ ] **Mobil:** gereksiz yeniden çizim, ana iş parçacığında JSON ayrıştırma (büyük yanıtta `compute`), ekran başına tekrarlayan istek.
+
+## Olcum sonucu (2026-10-26, yerel docker yigini, V190)
+
+`node scripts/perf/perf-api.js` (N=50, C=5, esik p95<400 ms): 15 ucun tamami esik icinde, hata ve 429 yok.
+En yavas p95: takvim 81 ms, etkinlikler 78 ms, topluluklar 79 ms, haber p0 79 ms. Haber/menu ETag ile 304 donusu 9-24 ms.
+Not: yerel makine olcumudur; uretim agi ve veri hacmi icin yeniden olculmelidir.
