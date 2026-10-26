@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /** Tum hatalari `{"code","message"}` govdesine cevirir; mesaj istek dilindedir (Accept-Language: tr|en|ar). */
 @RestControllerAdvice
@@ -39,7 +41,8 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class,
-            MethodArgumentTypeMismatchException.class})
+            MethodArgumentTypeMismatchException.class, MultipartException.class,
+            MissingServletRequestPartException.class})
     ResponseEntity<Map<String, String>> malformed(Exception e) {
         return body(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST",
                 i18n.error("MALFORMED_REQUEST", "İstek biçimi geçersiz.", locale(), new Object[0]));

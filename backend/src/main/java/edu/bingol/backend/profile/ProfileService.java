@@ -6,6 +6,11 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.media.StoredImage;
+import edu.bingol.backend.auth.jwt.JwtAuthFilter;
+import edu.bingol.backend.event.EventRsvp;
+import edu.bingol.backend.event.EventRsvpRepository;
+import edu.bingol.backend.event.UserEventRepository;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.profile.naming.DisplayNamePolicy;
 import edu.bingol.backend.profile.privacy.AvatarCleanups;
@@ -39,12 +44,19 @@ public class ProfileService {
     private final ActivityRepository activity;
     private final PublicProfileMapper mapper;
     private final AvatarCleanups avatarCleanups;
+    private final EventRsvpRepository rsvps;
+    private final UserEventRepository events;
+    private final StringRedisTemplate redis;
 
     public ProfileService(UserRepository users, BlockService blocks, MediaService media, PasswordEncoder encoder,
                           AppInfoService appInfo, ActivityRepository activity, PublicProfileMapper mapper,
-                          AvatarCleanups avatarCleanups) {
+                          AvatarCleanups avatarCleanups, EventRsvpRepository rsvps, UserEventRepository events,
+                          StringRedisTemplate redis) {
         this.mapper = mapper;
         this.avatarCleanups = avatarCleanups;
+        this.rsvps = rsvps;
+        this.events = events;
+        this.redis = redis;
         this.appInfo = appInfo;
         this.activity = activity;
         this.users = users;
@@ -168,6 +180,15 @@ public class ProfileService {
         media.release(oldAvatar);
         // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
         activity.purgeUser(u.getId());
+        // Silinen kullanicinin RSVP'leri kapasiteden yer tutmasin
+        for (EventRsvp r : rsvps.findByUserId(u.getId())) {
+            if (r.getStatus() == EventRsvp.Status.GOING) {
+                events.decrementGoing(r.getEventId());
+            }
+            rsvps.delete(r);
+        }
+        // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
+        redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + u.getId(), "1");
     }
 
     public List<String> faculties() {

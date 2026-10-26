@@ -50,7 +50,9 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, StringRedisTemplate redis,
                                     @Qualifier("corsConfigurationSource") CorsConfigurationSource cors,
-                                    AuditAccessDeniedHandler denied) throws Exception {
+                                    AuditAccessDeniedHandler denied,
+                                    edu.bingol.backend.common.RateLimiter limiter,
+                                    edu.bingol.backend.common.ClientIp clientIp) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
             // CORS yalnizca /api/** ve /files/** icin (CorsConfig); preflight (OPTIONS) kimlik dogrulamasindan once yanitlanir
             .cors(c -> c.configurationSource(cors))
@@ -72,6 +74,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*) korunur.
             .httpBasic(Customizer.withDefaults())
+            .addFilterBefore(new BasicAuthThrottleFilter(limiter, clientIp),
+                    org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class)
             .addFilterBefore(new JwtAuthFilter(jwt, redis), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

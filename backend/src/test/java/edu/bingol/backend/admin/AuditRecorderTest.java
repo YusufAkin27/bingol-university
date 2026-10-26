@@ -22,7 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class AuditRecorderTest {
 
     private final AuditRepository repo = mock(AuditRepository.class);
-    private final AuditRecorder recorder = new AuditRecorder(repo);
+    private final AuditRecorder recorder = new AuditRecorder(repo, new edu.bingol.backend.common.ClientIp("127.0.0.0/8"));
 
     @Test
     void onlyWritesAndCsvExportAreAudited() {
