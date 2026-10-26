@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.common.storage.FileStorage;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
@@ -110,7 +111,7 @@ class EventServiceTest {
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
         doThrow(new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "yetki yok"))
-                .when(communities).requireModerator(eq(user), eq(c));
+                .when(communities).require(eq(user), eq(10L), eq(ClubPermission.MANAGE_EVENTS));
 
         ApiException e = error(() -> svc.create(user, req(start, end, null, 10L)));
 
@@ -262,8 +263,8 @@ class EventServiceTest {
     void communityModeratorCanManage() {
         UserEvent e = activeEvent(null, 0);
         e.setCommunityId(10L);
-        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(Role.MODERATOR));
-        when(communities.roleOf(10L, 2L)).thenReturn(Optional.of(Role.MEMBER));
+        when(communities.can(user, 10L, ClubPermission.MANAGE_EVENTS)).thenReturn(true);
+        when(communities.can(new Actor(2L, false), 10L, ClubPermission.MANAGE_EVENTS)).thenReturn(false);
 
         org.junit.jupiter.api.Assertions.assertTrue(svc.canManage(user, e));
         org.junit.jupiter.api.Assertions.assertFalse(svc.canManage(new Actor(2L, false), e));

@@ -9,6 +9,9 @@ import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.MemberView;
 import edu.bingol.backend.community.dto.CommunityDtos.UpdateCommunityRequest;
+import edu.bingol.backend.community.permissions.ClubAuditService;
+import edu.bingol.backend.community.permissions.ClubPermission;
+import edu.bingol.backend.community.permissions.ClubPermissions;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
@@ -31,7 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-/** Topluluk yasam dongusu, uyelik ve roller. Yetki: OWNER > MODERATOR > MEMBER; sistem ADMIN'i hepsini asar. */
+/** Topluluk yasam dongusu ve uyelik. Yetki kararlari ClubPermissions'ta; sistem ADMIN'i hepsini asar. */
 @Service
 public class CommunityService {
 
@@ -46,15 +49,20 @@ public class CommunityService {
     private final BlockService blocks;
     private final NotificationService notifications;
     private final FileStorage storage;
+    private final ClubPermissions permissions;
+    private final ClubAuditService audit;
 
     public CommunityService(CommunityRepository communities, CommunityMemberRepository members, UserRepository users,
-                            BlockService blocks, NotificationService notifications, FileStorage storage) {
+                            BlockService blocks, NotificationService notifications, FileStorage storage,
+                            ClubPermissions permissions, ClubAuditService audit) {
         this.communities = communities;
         this.members = members;
         this.users = users;
         this.blocks = blocks;
         this.notifications = notifications;
         this.storage = storage;
+        this.permissions = permissions;
+        this.audit = audit;
     }
 
     // ---- olusturma / okuma ----
@@ -143,7 +151,7 @@ public class CommunityService {
     @Transactional
     public CommunityView update(Actor a, Long id, UpdateCommunityRequest r) {
         Community c = load(id);
-        requireModerator(a, c);
+        permissions.require(a, id, ClubPermission.EDIT_INFO);
         if (r.name() != null && !r.name().isBlank()) {
             if (r.name().trim().length() < 3) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
@@ -170,7 +178,7 @@ public class CommunityService {
     @Transactional
     public CommunityView setCover(Actor a, Long id, MultipartFile file) {
         Community c = load(id);
-        requireModerator(a, c);
+        permissions.require(a, id, ClubPermission.EDIT_INFO);
         String url = storage.save("covers", file, IMAGE_TYPES, COVER_MAX_BYTES);
         String old = c.getCoverUrl();
         c.setCoverUrl(url);
@@ -209,7 +217,7 @@ public class CommunityService {
         }
         if (!open) {
             String who = displayName(a.id());
-            for (Long mod : members.moderatorIds(id, CommunityMember.Status.ACTIVE, Role.MEMBER)) {
+            for (Long mod : permissions.holders(id, ClubPermission.MANAGE_MEMBERS)) {
                 notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id), who, c.getName());
             }
         }
@@ -228,6 +236,7 @@ public class CommunityService {
             throw new ApiException(HttpStatus.FORBIDDEN, "BANNED", "Bu topluluktan uzaklaştırıldınız.");
         }
         members.delete(m);
+        permissions.clearGrants(id, a.id());
     }
 
     /** Uye listesi: PRIVATE toplulukta yalnizca uyeler gorur; engel iliskisi olanlar listelenmez. */
@@ -240,14 +249,15 @@ public class CommunityService {
 
     @Transactional(readOnly = true)
     public CursorPage<MemberView> requests(Actor a, Long id, Long cursor, int size) {
-        requireModerator(a, load(id));
+        load(id);
+        permissions.require(a, id, ClubPermission.MANAGE_MEMBERS);
         return memberPage(id, CommunityMember.Status.PENDING, Set.of(-1L), cursor, size);
     }
 
     @Transactional
     public void decide(Actor a, Long id, Long userId, boolean approve) {
         Community c = load(id);
-        requireModerator(a, c);
+        permissions.require(a, id, ClubPermission.MANAGE_MEMBERS);
         CommunityMember m = members.findByCommunityIdAndUserId(id, userId)
                 .filter(x -> x.getStatus() == CommunityMember.Status.PENDING)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND", "Bekleyen istek bulunamadı."));
@@ -258,49 +268,30 @@ public class CommunityService {
         } else {
             members.delete(m);
         }
+        audit.record(id, a.id(), userId, approve ? ClubAuditService.MEMBER_APPROVED : ClubAuditService.MEMBER_REJECTED, null);
         notifications.sendTemplated(userId, NotificationType.COMMUNITY,
                 approve ? "notif.community.joinApproved" : "notif.community.joinRejected", data(id), c.getName());
     }
 
-    /** Yalnizca OWNER (veya ADMIN): aktif bir uyeyi MODERATOR/MEMBER yapar. */
-    @Transactional
-    public void setRole(Actor a, Long id, Long userId, Role role) {
-        Community c = load(id);
-        if (!a.admin() && roleOf(id, a.id()).orElse(null) != Role.OWNER) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için topluluk sahibi olmalısınız.");
-        }
-        if (role == Role.OWNER) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_ROLE", "Yalnızca MODERATOR veya MEMBER atanabilir.");
-        }
-        CommunityMember m = members.findByCommunityIdAndUserId(id, userId)
-                .filter(CommunityMember::isActive)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_MEMBER", "Kullanıcı bu topluluğun üyesi değil."));
-        if (m.getRole() == Role.OWNER) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Sahibin rolü değiştirilemez.");
-        }
-        m.setRole(role);
-        members.save(m);
-        if (role == Role.MODERATOR) {
-            notifications.sendTemplated(userId, NotificationType.COMMUNITY, "notif.community.moderator", data(id), c.getName());
-        }
-    }
-
-    /** MODERATOR+: uyeyi cikarir; ban=true ise BANNED olarak tutar (yeniden katilamaz). Moderatoru yalnizca sahip cikarir. */
+    /**
+     * MANAGE_MEMBERS: uyeyi cikarir; ban=true ise BANNED olarak tutar (yeniden katilamaz). Hedef, islemi yapandan
+     * kesin dusuk sirada olmali (moderator moderatoru, yonetici yoneticiyi cikaramaz; sahip hic cikarilamaz).
+     */
     @Transactional
     public void remove(Actor a, Long id, Long userId, boolean ban) {
-        Community c = load(id);
-        requireModerator(a, c);
+        load(id);
+        ClubPermissions.Standing me = permissions.require(a, id, ClubPermission.MANAGE_MEMBERS);
         if (userId.equals(a.id())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "USE_LEAVE", "Kendinizi çıkaramazsınız; ayrılmayı kullanın.");
         }
         CommunityMember m = members.findByCommunityIdAndUserId(id, userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_MEMBER", "Kullanıcı bu topluluğun üyesi değil."));
         if (m.getRole() == Role.OWNER) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Topluluk sahibi çıkarılamaz.");
+            throw new ApiException(HttpStatus.FORBIDDEN, "OWNER_PROTECTED", "Topluluk sahibi çıkarılamaz.");
         }
-        Role actorRole = effectiveRole(a, c);
-        if (m.getRole() == Role.MODERATOR && actorRole != Role.OWNER) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Moderatörü yalnızca topluluk sahibi çıkarabilir.");
+        if (permissions.standingOfMember(m).rank() >= me.rank()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ESCALATION_DENIED",
+                    "Eşit veya üst düzey bir üyeye müdahale edemezsiniz.");
         }
         if (ban) {
             m.setStatus(CommunityMember.Status.BANNED);
@@ -309,6 +300,8 @@ public class CommunityService {
         } else {
             members.delete(m);
         }
+        permissions.clearGrants(id, userId);
+        audit.record(id, a.id(), userId, ban ? ClubAuditService.MEMBER_BANNED : ClubAuditService.MEMBER_REMOVED, null);
     }
 
     // ---- yonetici (ADMIN) ----
@@ -363,12 +356,14 @@ public class CommunityService {
         return a.admin() ? Role.OWNER : roleOf(c.getId(), a.id()).orElse(null);
     }
 
-    /** MODERATOR veya OWNER (ya da ADMIN) degilse 403. */
-    public void requireModerator(Actor a, Community c) {
-        Role r = effectiveRole(a, c);
-        if (r == null || !r.atLeastModerator()) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için moderatör yetkisi gerekir.");
-        }
+    /** Kulup yetkisi sorgusu (gonderi/etkinlik gibi diger servisler icin); sistem ADMIN'i her yetkiye sahip. */
+    public boolean can(Actor a, Long communityId, ClubPermission p) {
+        return permissions.has(a, communityId, p);
+    }
+
+    /** Yetki yoksa 403. */
+    public void require(Actor a, Long communityId, ClubPermission p) {
+        permissions.require(a, communityId, p);
     }
 
     /** Topluluk icerigini (uye listesi, akis) okuyabilir mi: PUBLIC ise herkes, PRIVATE ise yalnizca uye/ADMIN. */

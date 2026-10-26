@@ -7,6 +7,7 @@ import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityService;
+import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.Paging;
 import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
@@ -97,7 +98,7 @@ public class EventService {
             if (c.getStatus() != Community.Status.ACTIVE) {
                 throw new ApiException(HttpStatus.CONFLICT, "COMMUNITY_NOT_ACTIVE", "Topluluk henüz yayında değil.");
             }
-            communities.requireModerator(a, c);
+            communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
             e.setCommunityId(c.getId());
             e.setStatus(UserEvent.Status.ACTIVE);
         } else {
@@ -385,7 +386,7 @@ public class EventService {
             return true;
         }
         return e.getCommunityId() != null
-                && communities.roleOf(e.getCommunityId(), a.id()).map(CommunityMember.Role::atLeastModerator).orElse(false);
+                && communities.can(a, e.getCommunityId(), ClubPermission.MANAGE_EVENTS);
     }
 
     public UserEvent requireManager(Actor a, UserEvent e) {

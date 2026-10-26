@@ -20,9 +20,9 @@ import lombok.Setter;
 public class CommunityMember {
 
     public enum Role {
-        MEMBER, MODERATOR, OWNER;
+        MEMBER, MODERATOR, ADMIN, OWNER;
 
-        /** MODERATOR veya OWNER mu. */
+        /** MEMBER disindaki herhangi bir rol mu (ayrintili yetkiler icin community.permissions.ClubPermissions'a bakin). */
         public boolean atLeastModerator() {
             return this != MEMBER;
         }

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.common.storage.FileStorage;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
@@ -82,7 +83,7 @@ class CommunityPostServiceTest {
     void memberPostsAndOtherMembersAreNotifiedExceptAuthorAndBlocked() {
         Community c = active();
         when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(Role.MEMBER));
-        when(communities.effectiveRole(any(), eq(c))).thenReturn(Role.MEMBER);
+        when(communities.can(any(), eq(10L), eq(ClubPermission.MANAGE_POSTS))).thenReturn(false);
         when(communities.usersById(any())).thenReturn(Map.of());
         when(posts.save(any())).thenAnswer(i -> {
             CommunityPost p = i.getArgument(0);
@@ -103,7 +104,7 @@ class CommunityPostServiceTest {
     void strangerCannotDeleteOthersPost() {
         Community c = active();
         when(posts.findByIdAndCommunityIdAndDeletedFalse(5L, 10L)).thenReturn(Optional.of(post(5L, 2L)));
-        when(communities.effectiveRole(any(), eq(c))).thenReturn(Role.MEMBER);
+        when(communities.can(any(), eq(10L), eq(ClubPermission.MANAGE_POSTS))).thenReturn(false);
 
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(ApiException.class, () -> svc.delete(user, 10L, 5L)).status());
     }
@@ -113,13 +114,13 @@ class CommunityPostServiceTest {
         Community c = active();
         CommunityPost own = post(5L, 1L);
         when(posts.findByIdAndCommunityIdAndDeletedFalse(5L, 10L)).thenReturn(Optional.of(own));
-        when(communities.effectiveRole(any(), eq(c))).thenReturn(Role.MEMBER);
+        when(communities.can(any(), eq(10L), eq(ClubPermission.MANAGE_POSTS))).thenReturn(false);
         svc.delete(user, 10L, 5L);
         assertTrue(own.isDeleted());
 
         CommunityPost other = post(6L, 2L);
         when(posts.findByIdAndCommunityIdAndDeletedFalse(6L, 10L)).thenReturn(Optional.of(other));
-        when(communities.effectiveRole(any(), eq(c))).thenReturn(Role.MODERATOR);
+        when(communities.can(any(), eq(10L), eq(ClubPermission.MANAGE_POSTS))).thenReturn(true);
         svc.delete(user, 10L, 6L);
         assertTrue(other.isDeleted());
     }

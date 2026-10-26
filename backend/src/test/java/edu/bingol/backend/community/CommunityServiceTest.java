@@ -15,6 +15,9 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.storage.FileStorage;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
+import edu.bingol.backend.community.permissions.ClubAuditService;
+import edu.bingol.backend.community.permissions.ClubMemberGrantRepository;
+import edu.bingol.backend.community.permissions.ClubPermissions;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
@@ -30,7 +33,8 @@ class CommunityServiceTest {
     private final CommunityMemberRepository members = mock(CommunityMemberRepository.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final CommunityService svc = new CommunityService(communities, members, mock(UserRepository.class),
-            mock(BlockService.class), notifications, mock(FileStorage.class));
+            mock(BlockService.class), notifications, mock(FileStorage.class),
+            new ClubPermissions(members, mock(ClubMemberGrantRepository.class)), mock(ClubAuditService.class));
 
     private final Actor user = new Actor(1L, false);
 
@@ -111,6 +115,7 @@ class CommunityServiceTest {
         when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.APPROVAL)));
         when(members.findByCommunityIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
         when(members.moderatorIds(eq(10L), any(), any())).thenReturn(List.of(99L));
+        stubMember(99L, Role.OWNER, CommunityMember.Status.ACTIVE);
 
         assertEquals("PENDING", svc.join(user, 10L));
         verify(notifications).sendTemplated(eq(99L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
@@ -169,35 +174,7 @@ class CommunityServiceTest {
         verify(members, never()).delete(any());
     }
 
-    // ---- roller ----
-
-    @Test
-    void onlyOwnerCanAssignRoles() {
-        when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.OPEN)));
-        stubMember(1L, Role.MODERATOR, CommunityMember.Status.ACTIVE);
-
-        assertEquals(HttpStatus.FORBIDDEN, error(() -> svc.setRole(user, 10L, 5L, Role.MODERATOR)).status());
-    }
-
-    @Test
-    void ownerAssignsModerator() {
-        when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.OPEN)));
-        stubMember(1L, Role.OWNER, CommunityMember.Status.ACTIVE);
-        CommunityMember target = member(5L, Role.MEMBER, CommunityMember.Status.ACTIVE);
-        when(members.findByCommunityIdAndUserId(10L, 5L)).thenReturn(Optional.of(target));
-
-        svc.setRole(user, 10L, 5L, Role.MODERATOR);
-
-        assertEquals(Role.MODERATOR, target.getRole());
-    }
-
-    @Test
-    void ownerRoleCannotBeAssigned() {
-        when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.OPEN)));
-        stubMember(1L, Role.OWNER, CommunityMember.Status.ACTIVE);
-
-        assertEquals("INVALID_ROLE", error(() -> svc.setRole(user, 10L, 5L, Role.OWNER)).code());
-    }
+    // ---- uye cikarma / ban (rol atama testleri ClubRoleServiceTest'te) ----
 
     @Test
     void moderatorBansMemberButNotModerator() {
@@ -243,17 +220,6 @@ class CommunityServiceTest {
 
         assertEquals(CommunityMember.Status.ACTIVE, pending.getStatus());
         verify(notifications).sendTemplated(eq(5L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
-    }
-
-    @Test
-    void adminActsAsOwnerWithoutMembership() {
-        when(communities.findById(10L)).thenReturn(Optional.of(community(Community.JoinPolicy.OPEN)));
-        CommunityMember target = member(5L, Role.MEMBER, CommunityMember.Status.ACTIVE);
-        when(members.findByCommunityIdAndUserId(10L, 5L)).thenReturn(Optional.of(target));
-
-        svc.setRole(new Actor(500L, true), 10L, 5L, Role.MODERATOR);
-
-        assertEquals(Role.MODERATOR, target.getRole());
     }
 
     // ---- admin onayi ----
