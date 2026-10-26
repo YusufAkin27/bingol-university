@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -55,8 +56,9 @@ class MessageServiceTest {
     private final PresenceService presence = mock(PresenceService.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final ReportService reports = mock(ReportService.class);
+    private final MessageCodec codec = mock(MessageCodec.class);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-            presence, notifications, reports, mock(PlatformTransactionManager.class));
+            presence, notifications, reports, mock(PlatformTransactionManager.class), codec, false);
 
     private Conversation direct;
 
@@ -85,6 +87,13 @@ class MessageServiceTest {
             m.setId(100L);
             return m;
         });
+        // Sifreleme MessageCodecTest'te sinanir; burada duz metin bellekte tasinir.
+        org.mockito.Mockito.doAnswer(inv -> {
+            ((Message) inv.getArgument(0)).setBody(inv.getArgument(1));
+            return null;
+        }).when(codec).seal(any(Message.class), anyString());
+        when(codec.open(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(codec.openAll(any())).thenAnswer(inv -> inv.getArgument(0));
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of());
     }
 
@@ -188,7 +197,46 @@ class MessageServiceTest {
         ArgumentCaptor<List<Long>> to = ArgumentCaptor.forClass(List.class);
         verify(bus).publish(eq("messages"), to.capture(), any(MessageView.class));
         assertEquals(List.of(ME, PEER), to.getValue());
-        verify(notifications).send(eq(PEER), eq(NotificationType.MESSAGE), eq("Ali"), anyString(), any());
+        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any()); // onizleme kapali: metin yok
+    }
+
+    @Test
+    void sendSealsBodyBeforePersistAndNeverPassesPlaintextToNotificationWhenPreviewOff() {
+        when(presence.isOnline(PEER)).thenReturn(false);
+
+        service.send(ME, CONV, "cok gizli metin", "c1");
+
+        ArgumentCaptor<Message> draft = ArgumentCaptor.forClass(Message.class);
+        verify(codec).seal(draft.capture(), eq("cok gizli metin"));
+        assertEquals(CONV, draft.getValue().getConversationId());
+        assertEquals(ME, draft.getValue().getSenderId());
+        assertEquals("c1", draft.getValue().getClientId());
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any());
+    }
+
+    @Test
+    void previewEnabledSendsTruncatedPreviewOnlyAsPushBody() {
+        MessageService withPreview = new MessageService(convs, members, messages, users, blocks, limiter, bus,
+                presence, notifications, reports, mock(PlatformTransactionManager.class), codec, true);
+        when(presence.isOnline(PEER)).thenReturn(false);
+
+        withPreview.send(ME, CONV, "a".repeat(150), "c9");
+
+        ArgumentCaptor<String> prev = ArgumentCaptor.forClass(String.class);
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any());
+        assertEquals(101, prev.getValue().length()); // 100 karakter + "..."
+    }
+
+    @Test
+    void sealFailureSurfacesAsUnavailableAndNothingIsPersisted() {
+        org.mockito.Mockito.doThrow(new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "CRYPTO_UNAVAILABLE", "x"))
+                .when(codec).seal(any(Message.class), anyString());
+
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "selam", "c1"));
+
+        assertEquals("CRYPTO_UNAVAILABLE", e.code());
+        verify(messages, never()).saveAndFlush(any());
+        verifyNoInteractions(bus);
     }
 
     @Test

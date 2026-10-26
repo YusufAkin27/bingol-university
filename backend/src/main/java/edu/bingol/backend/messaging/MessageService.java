@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -59,11 +60,17 @@ public class MessageService {
     private final NotificationService notifications;
     private final ReportService reports;
     private final TransactionTemplate tx;
+    private final MessageCodec codec;
+    /** `app.push.message-preview`: true ise push govdesinde mesaj onizlemesi gider (bildirim tablosuna YAZILMAZ). */
+    private final boolean pushPreview;
 
     public MessageService(ConversationRepository convs, ConversationMemberRepository members, MessageRepository messages,
                           UserRepository users, BlockService blocks, RateLimiter limiter, ChatEventBus bus,
                           PresenceService presence, NotificationService notifications, ReportService reports,
-                          PlatformTransactionManager txManager) {
+                          PlatformTransactionManager txManager, MessageCodec codec,
+                          @Value("${app.push.message-preview:false}") boolean pushPreview) {
+        this.codec = codec;
+        this.pushPreview = pushPreview;
         this.convs = convs;
         this.members = members;
         this.messages = messages;
@@ -99,7 +106,7 @@ public class MessageService {
         // Tekrar gonderim: limite sayilmaz, ayni mesaj doner.
         Optional<Message> dup = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId);
         if (dup.isPresent()) {
-            return new SendResult(MessageView.of(dup.get()), false);
+            return new SendResult(MessageView.of(codec.open(dup.get())), false);
         }
 
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
@@ -116,14 +123,20 @@ public class MessageService {
         }
         limiter.check("msg:user:" + senderId, RATE_PER_MINUTE, Duration.ofMinutes(1));
 
+        // Sifreleme transaction DISINDA: DB'ye yalnizca sifreli govde yazilir (docs/ENCRYPTION.md).
+        Message draft = new Message();
+        draft.setConversationId(conversationId);
+        draft.setSenderId(senderId);
+        draft.setClientId(clientId);
+        codec.seal(draft, body);
         Message saved;
         try {
-            saved = tx.execute(s -> persist(conversationId, senderId, clientId, body));
+            saved = tx.execute(s -> persist(draft));
         } catch (DataIntegrityViolationException e) {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
                     .orElseThrow(() -> e);
-            return new SendResult(MessageView.of(existing), false);
+            return new SendResult(MessageView.of(codec.open(existing)), false);
         }
         MessageView view = MessageView.of(saved);
         try {
@@ -135,15 +148,12 @@ public class MessageService {
         return new SendResult(view, true);
     }
 
-    private Message persist(Long conversationId, Long senderId, String clientId, String body) {
-        Message m = new Message();
-        m.setConversationId(conversationId);
-        m.setSenderId(senderId);
-        m.setClientId(clientId);
-        m.setBody(body);
-        m = messages.saveAndFlush(m);
-        convs.touchLastMessage(conversationId, m.getId(), m.getCreatedAt());
-        members.advanceRead(conversationId, senderId, m.getId()); // kendi mesaji okunmus sayilir
+    private Message persist(Message draft) {
+        String plain = draft.getBody();
+        Message m = messages.saveAndFlush(draft);
+        m.setBody(plain); // @Transient: kayit sonrasi geri verilen nesnede duz metni koru (teslim/yanit icin)
+        convs.touchLastMessage(m.getConversationId(), m.getId(), m.getCreatedAt());
+        members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
         return m;
     }
 
@@ -162,10 +172,12 @@ public class MessageService {
         String senderName = users.findById(senderId).map(User::getDisplayName).orElse("Yeni mesaj");
         String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null
                 ? conv.getTitle() + " - " + senderName : senderName;
-        String preview = m.getBody().length() > PUSH_PREVIEW ? m.getBody().substring(0, PUSH_PREVIEW) + "…" : m.getBody();
+        // Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj").
+        String preview = !pushPreview ? null
+                : m.getBody().length() > PUSH_PREVIEW ? m.getBody().substring(0, PUSH_PREVIEW) + "…" : m.getBody();
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()));
-        offline.forEach(id -> notifications.send(id, NotificationType.MESSAGE, title, preview, data));
+        offline.forEach(id -> notifications.sendNewMessage(id, title, preview, data));
     }
 
     /**
@@ -186,6 +198,7 @@ public class MessageService {
         List<Message> rows = after != null
                 ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
                 : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));
+        codec.openAll(rows.size() > s ? rows.subList(0, s) : rows); // yalniz donecek sayfa cozulur
         return CursorPage.of(rows, s, Message::getId,
                 m -> MessageView.of(m, related.contains(m.getSenderId()) && !m.getSenderId().equals(userId)));
     }

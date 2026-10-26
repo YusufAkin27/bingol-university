@@ -61,6 +61,23 @@ public class NotificationService {
      */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, Map<String, String> data) {
+        send(userId, type, subtype, collapseKey, title, body, body, data);
+    }
+
+    /**
+     * Yeni sohbet mesaji: saklanan (uygulama ici) govde HER ZAMAN alicinin dilinde sabit "Yeni mesaj" metnidir;
+     * mesaj metni bildirim tablosuna yazilmaz (sifreli saklama bozulmasin). `pushPreview` doluysa yalniz FCM govdesine gider.
+     */
+    public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data) {
+        String stored = i18n.msg("notif.message.new", i18n.langOf(userId));
+        String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
+        send(userId, NotificationType.MESSAGE, null, key, title, stored,
+                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data);
+    }
+
+    /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
+    public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
+                     String title, String body, String pushBody, Map<String, String> data) {
         try {
             NotificationPref pref = prefs.findById(userId).orElse(null);
             if (!enabled(pref, type) || !subtypeEnabled(userId, type, subtype)) {
@@ -90,7 +107,7 @@ public class NotificationService {
             }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int count = n.getGroupCount();
-            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, body, type, subtype, data, count, key);
+            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, pushBody, type, subtype, data, count, key);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }

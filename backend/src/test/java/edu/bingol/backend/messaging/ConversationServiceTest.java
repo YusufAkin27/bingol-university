@@ -31,7 +31,8 @@ class ConversationServiceTest {
     private final MessageRepository messages = mock(MessageRepository.class);
     private final UserRepository users = mock(UserRepository.class);
     private final BlockService blocks = mock(BlockService.class);
-    private final ConversationService service = new ConversationService(convs, members, messages, users, blocks);
+    private final MessageCodec codec = mock(MessageCodec.class);
+    private final ConversationService service = new ConversationService(convs, members, messages, users, blocks, codec);
 
     private static User user(long id) {
         User u = new User();

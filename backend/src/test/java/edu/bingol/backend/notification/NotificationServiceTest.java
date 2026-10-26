@@ -64,6 +64,28 @@ class NotificationServiceTest {
     }
 
     @Test
+    void newMessageNotificationNeverStoresPreviewText() {
+        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
+        org.mockito.ArgumentCaptor<Notification> saved = org.mockito.ArgumentCaptor.forClass(Notification.class);
+
+        svc.sendNewMessage(1L, "Ali", "cok gizli onizleme", Map.of("conversationId", "5", "messageId", "9"));
+
+        verify(notifications).save(saved.capture());
+        assertEquals("Yeni mesaj", saved.getValue().getBody()); // tabloda metin yok
+        assertEquals("cok gizli onizleme", fcm.last().body()); // yalniz push govdesinde
+        assertEquals("Ali", fcm.last().title());
+    }
+
+    @Test
+    void newMessageWithoutPreviewUsesGenericTextEverywhere() {
+        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
+
+        svc.sendNewMessage(1L, "Ali", null, Map.of("conversationId", "5"));
+
+        assertEquals("Yeni mesaj", fcm.last().body());
+    }
+
+    @Test
     void subtypeDisabledSkipsEverything() {
         NotificationSubtypePref off = new NotificationSubtypePref();
         off.setEnabled(false);

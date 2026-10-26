@@ -41,9 +41,11 @@ public class ConversationService {
     private final MessageRepository messages;
     private final UserRepository users;
     private final BlockService blocks;
+    private final MessageCodec codec;
 
     public ConversationService(ConversationRepository convs, ConversationMemberRepository members,
-                               MessageRepository messages, UserRepository users, BlockService blocks) {
+                               MessageRepository messages, UserRepository users, BlockService blocks, MessageCodec codec) {
+        this.codec = codec;
         this.convs = convs;
         this.members = members;
         this.messages = messages;
@@ -254,6 +256,7 @@ public class ConversationService {
         Map<Long, Message> lastMessages = messages.findAllById(
                 page.stream().map(Conversation::getLastMessageId).filter(java.util.Objects::nonNull).toList()).stream()
                 .collect(Collectors.toMap(Message::getId, Function.identity()));
+        codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
         Map<Long, Long> unread = new HashMap<>();
         for (Object[] row : messages.unreadCounts(me, ids)) {
             unread.put((Long) row[0], (Long) row[1]);

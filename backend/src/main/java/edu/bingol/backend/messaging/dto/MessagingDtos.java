@@ -14,7 +14,8 @@ public final class MessagingDtos {
     private MessagingDtos() {}
 
     public static final String REMOVED_TEXT = "Bu mesaj kaldırıldı";
-    public static final String BLOCKED_TEXT = "Engellediğiniz kullanıcının mesajı gizlendi";
+    public static final String UNREADABLE_TEXT = "Bu mesaj görüntülenemiyor";
+    public static final String BLOCKED_TEXT ="Engellediğiniz kullanıcının mesajı gizlendi";
 
     // --- istekler ---
 
@@ -49,8 +50,11 @@ public final class MessagingDtos {
         }
 
         public static MessageView of(Message m, boolean senderBlocked) {
-            boolean removed = m.isHidden() || senderBlocked;
-            String text = m.isHidden() ? REMOVED_TEXT : senderBlocked ? BLOCKED_TEXT : m.getBody();
+            // Cozulemeyen (anahtar/etiket hatasi) mesaj tum listeyi bozmasin: sabit metinle gosterilir.
+            boolean unreadable = !m.isHidden() && !senderBlocked && m.getBody() == null;
+            boolean removed = m.isHidden() || senderBlocked || unreadable;
+            String text = m.isHidden() ? REMOVED_TEXT : senderBlocked ? BLOCKED_TEXT
+                    : unreadable ? UNREADABLE_TEXT : m.getBody();
             return new MessageView(m.getId(), m.getConversationId(), m.getSenderId(), m.getClientId(), text,
                     removed, m.getCreatedAt().toString());
         }

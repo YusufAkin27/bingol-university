@@ -15,6 +15,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     Optional<Message> findByConversationIdAndSenderIdAndClientId(Long conversationId, Long senderId, String clientId);
 
+    /** KVKK dis aktarim: kullanicinin kendi gonderdigi mesajlar (yeni -> eski). */
+    @Query("SELECT m FROM Message m WHERE m.senderId = :uid ORDER BY m.id DESC")
+    List<Message> sentBy(@Param("uid") Long userId, Pageable pageable);
+
     /** Geriye dogru gecmis (yeni -> eski). `since`: uyenin katilma zamani, oncesi gorunmez. */
     @Query("SELECT m FROM Message m WHERE m.conversationId = :cid AND m.createdAt >= :since "
             + "AND (:before IS NULL OR m.id < :before) ORDER BY m.id DESC")
