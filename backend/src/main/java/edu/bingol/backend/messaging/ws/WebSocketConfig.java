@@ -40,8 +40,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final RateLimiter limiter;
     private final String[] allowedOrigins;
 
+    private final edu.bingol.backend.common.ClientIp clientIp;
+
     public WebSocketConfig(StompAuthInterceptor stompAuth, RateLimiter limiter,
+                           edu.bingol.backend.common.ClientIp clientIp,
                            @Value("${app.messaging.allowed-origins:}") String[] allowedOrigins) {
+        this.clientIp = clientIp;
         this.stompAuth = stompAuth;
         this.limiter = limiter;
         this.allowedOrigins = allowedOrigins;
@@ -101,7 +105,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler handler,
                                        Map<String, Object> attributes) {
             InetSocketAddress addr = request.getRemoteAddress();
-            String ip = addr == null ? "unknown" : addr.getAddress().getHostAddress();
+            String remote = addr == null || addr.getAddress() == null ? null : addr.getAddress().getHostAddress();
+            String ip = clientIp.resolve(remote, request.getHeaders().getFirst("X-Forwarded-For"));
             try {
                 limiter.check("ws:ip:" + ip, 600, Duration.ofMinutes(1));
             } catch (ApiException e) {

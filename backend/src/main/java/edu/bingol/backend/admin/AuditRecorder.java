@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin;
 
+import edu.bingol.backend.common.ClientIp;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,10 @@ public class AuditRecorder {
 
     private final AuditRepository repo;
 
-    public AuditRecorder(AuditRepository repo) {
+    private final ClientIp clientIp;
+
+    public AuditRecorder(AuditRepository repo, ClientIp clientIp) {
+        this.clientIp = clientIp;
         this.repo = repo;
     }
 
@@ -29,7 +33,7 @@ public class AuditRecorder {
             Long adminId = auth != null && auth.getPrincipal() instanceof Long l ? l : null;
             // Basic auth yoneticisinde kullanici kaydi yoktur: kullanici adi e-posta alanina yazilir
             String fallback = adminId == null && auth != null ? auth.getName() : null;
-            repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, req.getRemoteAddr());
+            repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, clientIp.of(req));
         } catch (RuntimeException e) {
             log.warn("Denetim kaydi yazilamadi: {}", e.toString());
         }

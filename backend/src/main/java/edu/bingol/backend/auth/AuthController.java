@@ -8,6 +8,7 @@ import edu.bingol.backend.auth.dto.RegisterRequest;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.dto.VerifyRequest;
+import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.i18n.Lang;
@@ -33,7 +34,10 @@ public class AuthController {
     private final RateLimiter limiter;
     private final I18n i18n;
 
-    public AuthController(AuthService auth, RateLimiter limiter, I18n i18n) {
+    private final ClientIp clientIp;
+
+    public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp) {
+        this.clientIp = clientIp;
         this.i18n = i18n;
         this.auth = auth;
         this.limiter = limiter;
@@ -42,7 +46,7 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
-        limiter.check("register:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
+        limiter.check("register:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
         auth.register(r.email(), r.password(), r.displayName(), lang);
         return new MessageResponse(i18n.current("msg.register.sent"));
@@ -51,28 +55,28 @@ public class AuthController {
     @PostMapping("/resend-code")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
-        limiter.check("resend:ip:" + http.getRemoteAddr(), 10, Duration.ofHours(1));
+        limiter.check("resend:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
         auth.resendCode(r.email());
         return new MessageResponse(i18n.current("msg.resend.sent"));
     }
 
     @PostMapping("/verify-email")
     public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
-        limiter.check("verify:ip:" + http.getRemoteAddr(), 20, Duration.ofMinutes(10));
+        limiter.check("verify:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
         return auth.verifyEmail(r.email(), r.code());
     }
 
     @PostMapping("/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
         String email = AuthService.normalizeEmail(r.email());
-        limiter.check("login:ip:" + http.getRemoteAddr(), 30, Duration.ofMinutes(15));
+        limiter.check("login:ip:" + clientIp.of(http), 30, Duration.ofMinutes(15));
         limiter.check("login:email:" + email, 10, Duration.ofMinutes(15));
         return auth.login(email, r.password());
     }
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest r, HttpServletRequest http) {
-        limiter.check("refresh:ip:" + http.getRemoteAddr(), 60, Duration.ofMinutes(15));
+        limiter.check("refresh:ip:" + clientIp.of(http), 60, Duration.ofMinutes(15));
         return auth.refresh(r.refreshToken());
     }
 
