@@ -74,6 +74,43 @@ class SearchServiceTest {
     }
 
     @Test
+    void typePagingReturnsNextCursorAndDefaultOffsetSlicing() {
+        // Mock'un 2-arg search'u 30 sonuc verir; varsayilan 3-arg uygulama offset/limit ile kirpar
+        SearchProvider news = provider(SearchType.NEWS, hits(SearchType.NEWS, 30));
+        when(news.search("ab", 11, 10)).thenCallRealMethod();
+        SearchService s = new SearchService(List.of(news));
+
+        SearchResult r = s.searchPage("ab", SearchType.NEWS, 10, 10L);
+
+        assertEquals(10, r.groups().get(0).items().size());
+        assertEquals("t10", r.groups().get(0).items().get(0).title());
+        assertEquals(20L, r.nextCursor());
+    }
+
+    @Test
+    void lastTypePageHasNoCursor() {
+        SearchProvider news = provider(SearchType.NEWS, List.of());
+        when(news.search("ab", 11, 0)).thenReturn(hits(SearchType.NEWS, 4));
+
+        SearchResult r = new SearchService(List.of(news)).searchPage("ab", SearchType.NEWS, 10, null);
+
+        assertEquals(4, r.groups().get(0).items().size());
+        assertEquals(null, r.nextCursor());
+    }
+
+    @Test
+    void pageLimitCappedAndBadCursorRejected() {
+        SearchProvider news = provider(SearchType.NEWS, List.of());
+        new SearchService(List.of(news)).searchPage("ab", SearchType.NEWS, 500, null);
+        verify(news).search("ab", SearchService.MAX_PAGE_LIMIT + 1, 0);
+
+        SearchService s = new SearchService(List.of(news));
+        assertThrows(ApiException.class, () -> s.searchPage("ab", SearchType.NEWS, 5, -1L));
+        assertThrows(ApiException.class,
+                () -> s.searchPage("ab", SearchType.NEWS, 5, (long) SearchService.MAX_OFFSET + 1));
+    }
+
+    @Test
     void likePatternEscapesWildcards() {
         assertEquals("%100\\%\\_a\\\\b%", SearchQuery.likePattern("100%_a\\b"));
         assertEquals("%ders%", SearchQuery.likePattern("ders"));

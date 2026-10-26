@@ -37,6 +37,7 @@ class AnonymizeTest {
         StringRedisTemplate redis = mock(StringRedisTemplate.class);
         ValueOperations<String, String> ops = mock(ValueOperations.class);
         when(redis.opsForValue()).thenReturn(ops);
+        AccountDataPurger purger = mock(AccountDataPurger.class);
         User u = new User();
         u.setId(5L);
         when(users.findById(5L)).thenReturn(Optional.of(u));
@@ -50,9 +51,10 @@ class AnonymizeTest {
 
         ProfileService s = new ProfileService(users, mock(BlockService.class), mock(MediaService.class), enc,
                 mock(AppInfoService.class), mock(ActivityRepository.class), mock(PublicProfileMapper.class),
-                mock(AvatarCleanups.class), rsvps, events, redis);
+                mock(AvatarCleanups.class), rsvps, events, redis, purger);
         s.anonymizeAccount(5L);
 
+        verify(purger).purge(5L);
         verify(ops).set("suspended:5", "1");
         verify(events).decrementGoing(9L);
         verify(events, never()).decrementGoing(10L);

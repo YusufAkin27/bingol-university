@@ -29,7 +29,12 @@ public class NewsSearchProvider implements SearchProvider {
 
     @Override
     public List<SearchHit> search(String q, int limit) {
-        return repo.searchHits(contentType.name(), q, SearchQuery.likePattern(q), limit).stream()
+        return search(q, limit, 0);
+    }
+
+    @Override
+    public List<SearchHit> search(String q, int limit, int offset) {
+        return repo.searchHits(contentType.name(), q, SearchQuery.likePattern(q), limit, offset).stream()
                 .map(r -> new SearchHit(type, r.getId(), r.getTitle(), snippet(r.getSummary()),
                         r.getImageUrl(), r.getPublishedDate()))
                 .toList();

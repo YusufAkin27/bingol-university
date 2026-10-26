@@ -44,5 +44,10 @@ public final class ProfileDtos {
 
     public record DeleteAccountRequest(@NotBlank String password) {}
 
-    public record UserSearchResult(List<PublicProfile> items) {}
+    /** nextCursor null ise baska sayfa yok; devam icin `?cursor=<nextCursor>`. */
+    public record UserSearchResult(List<PublicProfile> items, Long nextCursor) {}
+
+    /** Ana sayfa rozetleri ve profil istatistikleri icin tek istekte sayimlar. */
+    public record MeSummary(long communities, long events, long bookmarks, long unreadNotifications,
+                            long unreadMessages) {}
 }

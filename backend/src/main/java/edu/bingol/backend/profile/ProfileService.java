@@ -17,6 +17,7 @@ import edu.bingol.backend.profile.privacy.AvatarCleanups;
 import edu.bingol.backend.profile.privacy.PublicProfileMapper;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
+import edu.bingol.backend.profile.dto.ProfileDtos.UserSearchResult;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
@@ -35,6 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfileService {
 
     private static final int MIN_QUERY = 2;
+    private static final int MAX_SEARCH_SIZE = 20;
+    static final int MAX_SEARCH_OFFSET = 200;
 
     private final UserRepository users;
     private final BlockService blocks;
@@ -47,11 +50,13 @@ public class ProfileService {
     private final EventRsvpRepository rsvps;
     private final UserEventRepository events;
     private final StringRedisTemplate redis;
+    private final AccountDataPurger purger;
 
     public ProfileService(UserRepository users, BlockService blocks, MediaService media, PasswordEncoder encoder,
                           AppInfoService appInfo, ActivityRepository activity, PublicProfileMapper mapper,
                           AvatarCleanups avatarCleanups, EventRsvpRepository rsvps, UserEventRepository events,
-                          StringRedisTemplate redis) {
+                          StringRedisTemplate redis, AccountDataPurger purger) {
+        this.purger = purger;
         this.mapper = mapper;
         this.avatarCleanups = avatarCleanups;
         this.rsvps = rsvps;
@@ -76,7 +81,14 @@ public class ProfileService {
         if (!u.isActive() || (!viewerId.equals(targetId) && blocks.isBlocked(viewerId, targetId))) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
-        return mapper.map(viewerId, u);
+        PublicProfile view = mapper.map(viewerId, u);
+        // Kendi e-postam showEmail ayarindan bagimsiz gorunur
+        return viewerId.equals(targetId) ? withEmail(view, u.getEmail()) : view;
+    }
+
+    private static PublicProfile withEmail(PublicProfile p, String email) {
+        return new PublicProfile(p.id(), p.displayName(), p.faculty(), p.department(), p.classYear(), p.bio(),
+                p.avatarUrl(), email);
     }
 
     @Transactional
@@ -132,15 +144,32 @@ public class ProfileService {
     }
 
     /** En az 2 harfli arama; kendisi, engel iliskisi olanlar, askidaki ve silinmis hesaplar donmez. */
-    public List<PublicProfile> search(Long viewerId, String q, int size) {
+    public UserSearchResult search(Long viewerId, String q, int size, Long cursor) {
         String query = q == null ? "" : q.trim();
-        if (query.length() < MIN_QUERY) {
+        if (query.codePointCount(0, query.length()) < MIN_QUERY) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "QUERY_TOO_SHORT", "En az 2 karakter girin.");
         }
+        int offset = searchOffset(cursor);
+        int limit = Math.min(Math.max(size, 1), MAX_SEARCH_SIZE);
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         excluded.add(viewerId);
         excluded.add(-1L); // NOT IN () bos kalmasin
-        return mapper.mapAll(viewerId, users.searchByName(escapeLike(query), excluded, Math.min(Math.max(size, 1), 20)));
+        // limit+1: devam olup olmadigini ek sorgu olmadan anlamak icin
+        List<User> rows = users.searchByName(escapeLike(query), excluded, limit + 1, offset);
+        boolean more = rows.size() > limit && offset + limit <= MAX_SEARCH_OFFSET;
+        List<User> page = rows.size() > limit ? rows.subList(0, limit) : rows;
+        return new UserSearchResult(mapper.mapAll(viewerId, page), more ? (long) offset + limit : null);
+    }
+
+    /** Imlec = atlanacak kayit sayisi; ust sinir toplu taramayi (kullanici dizinini dokmeyi) zorlastirir. */
+    private static int searchOffset(Long cursor) {
+        if (cursor == null) {
+            return 0;
+        }
+        if (cursor < 0 || cursor > MAX_SEARCH_OFFSET) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz sayfa imleci.");
+        }
+        return cursor.intValue();
     }
 
     /**
@@ -180,6 +209,8 @@ public class ProfileService {
         media.release(oldAvatar);
         // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
         activity.purgeUser(u.getId());
+        // KVKK: cihaz/FCM, bildirim kutusu ve tercihleri, kayitli haberler, kulup yanitlari, uyelikler
+        purger.purge(u.getId());
         // Silinen kullanicinin RSVP'leri kapasiteden yer tutmasin
         for (EventRsvp r : rsvps.findByUserId(u.getId())) {
             if (r.getStatus() == EventRsvp.Status.GOING) {

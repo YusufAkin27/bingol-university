@@ -53,11 +53,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = """
             SELECT * FROM app_user
             WHERE status = 'ACTIVE' AND email_verified = TRUE
-              AND lower(display_name) LIKE lower(concat('%', :q, '%')) ESCAPE '\\'
+              AND display_name ILIKE concat('%', :q, '%') ESCAPE '\\'
               AND id NOT IN (:excluded)
             ORDER BY display_name, id
-            LIMIT :lim
+            LIMIT :lim OFFSET :off
             """, nativeQuery = true)
     List<User> searchByName(@Param("q") String escapedQuery, @Param("excluded") Collection<Long> excluded,
-                            @Param("lim") int limit);
+                            @Param("lim") int limit, @Param("off") int offset);
 }

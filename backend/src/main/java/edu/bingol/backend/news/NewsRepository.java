@@ -44,7 +44,7 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
     @Query(value = "SELECT n.id AS id, n.title AS title, n.summary AS summary, n.image_url AS imageUrl, "
             + "CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.type = :type AND n.hidden = FALSE AND "
             + MATCH + " ORDER BY ts_rank(" + VEC + ", websearch_to_tsquery('turkish', :q)) DESC, "
-            + "n.published_date DESC, n.id DESC LIMIT :lim", nativeQuery = true)
+            + "n.published_date DESC, n.id DESC LIMIT :lim OFFSET :off", nativeQuery = true)
     List<HitRow> searchHits(@Param("type") String type, @Param("q") String q, @Param("like") String like,
-                            @Param("lim") int limit);
+                            @Param("lim") int limit, @Param("off") int offset);
 }

@@ -21,12 +21,17 @@ public class SearchController {
         this.limiter = limiter;
     }
 
-    /** GET /api/search?q=&type=NEWS|ANNOUNCEMENT|EVENT_OFFICIAL|COMMUNITY|EVENT&limit=5 (giris gerekli) */
+    /**
+     * GET /api/search?q=&type=NEWS|ANNOUNCEMENT|EVENT_OFFICIAL|COMMUNITY|EVENT&limit=5&cursor= (giris gerekli).
+     * type yoksa tur basina gruplu ozet (limit en fazla 20); type varsa sayfali liste (limit en fazla 50,
+     * devam icin nextCursor'u cursor olarak gonderin).
+     */
     @GetMapping("/search")
     public SearchResult search(@RequestParam String q,
                                @RequestParam(required = false) SearchType type,
-                               @RequestParam(required = false) Integer limit) {
+                               @RequestParam(required = false) Integer limit,
+                               @RequestParam(required = false) Long cursor) {
         limiter.check("search:user:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
-        return search.search(q, type, limit);
+        return type == null ? search.search(q, null, limit) : search.searchPage(q, type, limit, cursor);
     }
 }

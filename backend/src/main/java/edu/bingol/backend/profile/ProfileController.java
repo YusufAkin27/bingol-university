@@ -27,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api")
 public class ProfileController {
 
+    static final int DAILY_SEARCH_QUOTA = 500;
+
     private final ProfileService profiles;
     private final RateLimiter limiter;
 
@@ -70,10 +72,13 @@ public class ProfileController {
     }
 
     @GetMapping("/users/search")
-    public UserSearchResult search(@RequestParam String q, @RequestParam(defaultValue = "20") int size) {
+    public UserSearchResult search(@RequestParam String q, @RequestParam(defaultValue = "20") int size,
+                                   @RequestParam(required = false) Long cursor) {
         Long uid = CurrentUser.id();
         limiter.check("user-search:user:" + uid, 60, Duration.ofMinutes(1));
-        return new UserSearchResult(profiles.search(uid, q, size));
+        // Gunluk kota: kullanici dizinini toplu taramayi pahalilastirir
+        limiter.check("user-search-day:user:" + uid, DAILY_SEARCH_QUOTA, Duration.ofDays(1));
+        return profiles.search(uid, q, size, cursor);
     }
 
     @GetMapping("/users/{id}")
