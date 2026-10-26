@@ -21,7 +21,7 @@ public class SupportMessage {
     @Column(nullable = false)
     private Long ticketId;
 
-    @Column(nullable = false)
+    /** Herkese acik talepte kullanici mesajlari icin null. */
     private Long authorId;
 
     @Column(nullable = false)

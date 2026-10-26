@@ -25,7 +25,7 @@ public class SupportTicket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    /** Herkese acik (hesapsiz) taleplerde null. */
     private Long userId;
 
     @Enumerated(EnumType.STRING)
@@ -46,4 +46,29 @@ public class SupportTicket {
     private Instant updatedAt = Instant.now();
 
     private Instant closedAt;
+
+    // --- T27: herkese acik talep ---
+    @Column(nullable = false)
+    private boolean publicTicket;
+
+    /** Dogrulanmamis herkese acik talepler yonetim listesinde gorunmez. */
+    @Column(nullable = false)
+    private boolean emailVerified = true;
+
+    @Column(length = 254)
+    private String contactEmail;
+
+    @Column(length = 80)
+    private String contactName;
+
+    @Column(nullable = false, length = 2)
+    private String lang = "tr";
+
+    @Column(length = 64)
+    private String codeHash;
+
+    private Instant codeExpiresAt;
+
+    @Column(nullable = false)
+    private int codeAttempts;
 }
