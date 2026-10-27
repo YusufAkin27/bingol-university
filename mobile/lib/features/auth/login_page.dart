@@ -91,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
+      minimal: true,
       title: context.l10n.loginWelcome,
       subtitle: context.l10n.loginSubtitle,
       children: [
@@ -159,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: BuType.bodyStrong),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _busy ? null : _submit,
                   child: BusyLabel(busy: _busy, label: context.l10n.loginSubmit),
@@ -168,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,

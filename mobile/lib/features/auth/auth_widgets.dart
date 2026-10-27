@@ -30,6 +30,7 @@ class AuthScaffold extends StatelessWidget {
     this.subtitle,
     required this.children,
     this.showBack = false,
+    this.minimal = false,
   });
 
   final String title;
@@ -37,11 +38,57 @@ class AuthScaffold extends StatelessWidget {
   final List<Widget> children;
   final bool showBack;
 
+  /// Gradyan başlık yerine düz zemin: küçük logo, sola hizalı başlık, geniş boşluk (giriş sayfası).
+  final bool minimal;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final top = MediaQuery.of(context).padding.top;
     final side = showBack ? 24.0 : 28.0;
+
+    if (minimal) {
+      return Scaffold(
+        backgroundColor: t.bg,
+        body: LayoutBuilder(
+          builder: (context, c) => SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(28, top + 48, 28, 32),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: c.maxHeight - top - 80),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: kBrandRed, borderRadius: BorderRadius.circular(16)),
+                          child: const BuMark(height: 32),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Text(title, style: BuType.display.copyWith(color: t.ink, height: 1.15)),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 8),
+                        Text(subtitle!, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+                      ],
+                      const SizedBox(height: 36),
+                      ...children,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: t.bg,
