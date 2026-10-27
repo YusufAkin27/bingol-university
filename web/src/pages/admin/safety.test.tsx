@@ -21,21 +21,18 @@ const STATUS = {
   dekCountsByMasterKey: { k1: 3, k2: 10 },
 };
 
-describe('Mesaj çözme sayfası', () => {
+describe('Şifreleme durumu sayfası', () => {
   function setup(statusOverride: Partial<typeof STATUS> = {}) {
     const calls: { url: string; init: RequestInit }[] = [];
     mockFetch((url, init) => {
       calls.push({ url, init });
       if (url.includes('/admin/crypto/status')) return jsonResponse(200, { ...STATUS, ...statusOverride });
-      if (url.includes('/admin/messages/decrypt')) {
+      if (url.includes('/admin/users')) {
         return jsonResponse(200, {
-          auditId: 77,
-          conversationId: 12,
-          count: 2,
-          messages: [
-            { id: 100, senderId: 5, createdAt: '2026-01-01T10:00:00Z', text: 'merhaba dünya', error: null },
-            { id: 101, senderId: 6, createdAt: '2026-01-01T10:01:00Z', text: null, error: 'AUTH_FAILED' },
-          ],
+          items: [{ id: 5, email: 'a@bingol.edu.tr', displayName: 'Ayşe Demir' }],
+          page: 0,
+          totalPages: 1,
+          totalItems: 1,
         });
       }
       return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
@@ -43,60 +40,32 @@ describe('Mesaj çözme sayfası', () => {
     return calls;
   }
 
-  it('büyük uyarıyı ve anahtar durumunu gösterir; "uçtan uca" ifadesi geçmez', async () => {
+  it('anahtar durumunu gösterir; eski uyarı kutusu ve çözme formu yoktur', async () => {
     setup();
     renderWithProviders(<CryptoPage />, { route: '/admin/crypto' });
-    const warn = screen.getByTestId('decrypt-warning');
-    expect(within(warn).getByText(/değiştirilemez denetim kaydına yazılır/)).toBeInTheDocument();
-    expect(warn.textContent?.toLowerCase()).not.toContain('uçtan uca');
     expect((await screen.findAllByText('k2', { selector: 'code' })).length).toBe(2);
     expect(await screen.findByText('Yeniden sarma gerekli')).toBeInTheDocument();
+    expect(screen.queryByTestId('decrypt-warning')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Mesajları çöz' })).toBeNull();
+    expect(screen.queryByRole('textbox', { name: /Gerekçe/ })).toBeNull();
   });
 
-  it('kısa gerekçede istek göndermez; onay kutusu işaretlenmeden düğme kapalıdır', async () => {
-    const calls = setup();
+  it('kullanıcı arayıp sohbet görüntüleyiciye bağlantı verir', async () => {
+    setup();
     renderWithProviders(<CryptoPage />);
     await screen.findByText('Yeniden sarma gerekli');
-    const submit = screen.getByRole('button', { name: 'Mesajları çöz' });
-    expect(submit).toBeDisabled();
-
-    await userEvent.type(screen.getByRole('textbox', { name: /Konuşma kimliği/ }), '12');
-    await userEvent.type(screen.getByRole('textbox', { name: /İlk mesaj kimliği/ }), '100');
-    await userEvent.type(screen.getByRole('textbox', { name: /Gerekçe/ }), 'kısa');
-    await userEvent.click(screen.getByRole('checkbox'));
-    expect(submit).toBeEnabled();
-    await userEvent.click(submit);
-    expect(await screen.findByText('Gerekçe en az 10 karakter olmalıdır.')).toBeInTheDocument();
-    expect(calls.some((c) => c.url.includes('/messages/decrypt'))).toBe(false);
+    await userEvent.type(screen.getByRole('textbox', { name: /Kullanıcı ara/ }), 'ayşe');
+    const link = await screen.findByRole('link', { name: 'Mesajları aç' });
+    expect(link.getAttribute('href')).toMatch(/\/users\/5\/messages$/);
   });
 
-  it('gerekçeyle çözer, denetim numarasını ve mesajları gösterir, ekrandan temizler', async () => {
-    const calls = setup();
-    renderWithProviders(<CryptoPage />, { route: '/admin/crypto?conversationId=12&from=100' });
-    await screen.findByText('Yeniden sarma gerekli');
-    await userEvent.type(screen.getByRole('textbox', { name: /Gerekçe/ }), 'Şikâyet #55 incelemesi');
-    await userEvent.click(screen.getByRole('checkbox'));
-    await userEvent.click(screen.getByRole('button', { name: 'Mesajları çöz' }));
-
-    expect(await screen.findByText('merhaba dünya')).toBeInTheDocument();
-    expect(screen.getByText('Denetim kaydı numarası: 77')).toBeInTheDocument();
-    expect(screen.getByText('Çözülemedi (AUTH_FAILED)')).toBeInTheDocument();
-    const post = calls.find((c) => c.init.method === 'POST');
-    expect(JSON.parse(String(post?.init.body))).toEqual({
-      conversationId: 12,
-      fromMessageId: 100,
-      reason: 'Şikâyet #55 incelemesi',
-    });
-
-    await userEvent.click(screen.getByRole('button', { name: 'Ekrandan temizle' }));
-    await waitFor(() => expect(screen.queryByText('merhaba dünya')).toBeNull());
-  });
-
-  it('sunucuda kapalıysa formu devre dışı bırakır', async () => {
+  it('sunucuda kapalıysa uyarır ve bağlantı vermez', async () => {
     setup({ adminDecryptEnabled: false });
     renderWithProviders(<CryptoPage />);
     expect(await screen.findByText(/sunucu ayarıyla kapatılmış/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Mesajları çöz' })).toBeDisabled();
+    await userEvent.type(screen.getByRole('textbox', { name: /Kullanıcı ara/ }), 'ayşe');
+    await screen.findByText('Ayşe Demir');
+    expect(screen.queryByRole('link', { name: 'Mesajları aç' })).toBeNull();
   });
 });
 

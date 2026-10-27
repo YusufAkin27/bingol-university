@@ -186,25 +186,6 @@ class MessageEncryptionTest {
     }
 
     @Test
-    void storeReaderFeedsAdminDecryptAndWritesAuditRow() {
-        long id1 = insertSealed(draft(9, 5, "a"), "birinci");
-        long id2 = insertSealed(draft(9, 6, "b"), "ikinci");
-        jdbc.update("INSERT INTO message (conversation_id, sender_id, client_id, body) VALUES (9, 5, 'plain', 'duz')");
-        MessageStoreReader reader = new MessageStoreReader(jdbc);
-        AdminDecryptService svc = new AdminDecryptService(
-                new edu.bingol.backend.crypto.CryptoProperties("", "", "", false, true, 300, 1024, 30, 200), Optional.of(reader), cipher,
-                new MessageAccessAuditRepository(jdbc));
-
-        var res = svc.decrypt(1, new AdminDecryptService.Request(9L, id1, id2 + 10, "sikayet 42 incelemesi"), "1.2.3.4");
-
-        assertEquals(2, res.count()); // duz satir (sifresiz) okuyucudan gelmez
-        assertEquals("birinci", res.messages().get(0).text());
-        assertEquals("ikinci", res.messages().get(1).text());
-        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM message_access_audit WHERE conversation_id = 9", Integer.class));
-        assertArrayEquals(MessageCodec.context(5L, "a"), reader.read(9, id1, id1, 5).get(0).contextBytes());
-    }
-
-    @Test
     void exporterReturnsDecryptedOwnMessages() {
         insertSealed(draft(3, 5, "e1"), "disa aktarilan");
         insertSealed(draft(3, 6, "e2"), "baskasinin");

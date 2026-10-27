@@ -16,7 +16,6 @@ export const HELP_CATEGORIES: { id: string; icon: IconName; to: string }[] = [
   { id: 'safety', icon: 'shield', to: paths.site.security },
   { id: 'rules', icon: 'flag', to: paths.site.guidelines },
   { id: 'data', icon: 'file', to: paths.site.deleteAccount },
-  { id: 'status', icon: 'alert', to: paths.site.status },
 ];
 
 export default function HelpPage() {

@@ -175,4 +175,6 @@ export const api = {
 export const publicApi = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) =>
     apiFetch<T>(path, { query, signal, auth: false }),
+  post: <T = void>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: 'POST', body: body ?? undefined, auth: false }),
 };

@@ -1,6 +1,5 @@
 const m = {
   'admin.tickets.title': 'Support tickets',
-  'admin.tickets.subtitle': 'Answer questions from users.',
   'admin.tickets.detail.title': 'Ticket details',
   'admin.tickets.status.OPEN': 'Awaiting reply',
   'admin.tickets.status.ANSWERED': 'Answered',
@@ -47,7 +46,6 @@ const m = {
   'admin.tickets.tpl.remove': 'Delete template',
   'admin.tickets.tpl.full': 'At most 20 templates are kept.',
   'admin.feedback.title': 'Feedback and suggestions',
-  'admin.feedback.subtitle': 'Review incoming feedback, respond and publish.',
   'admin.feedback.status.NEW': 'New',
   'admin.feedback.status.IN_REVIEW': 'In review',
   'admin.feedback.status.PLANNED': 'Planned',

@@ -85,13 +85,6 @@
   margin-block-start: 2px;
   color: var(--info);
 }
-.draft {
-  background: var(--warning-soft);
-  border-inline-start: 4px solid var(--warning);
-}
-.draft svg {
-  color: var(--warning);
-}
 .printTitle {
   display: none;
 }

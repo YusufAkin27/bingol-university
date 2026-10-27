@@ -668,8 +668,8 @@ public class MessageAttachmentService {
     }
 
     /**
-     * Mesaj silindiginde (T13 silme/duzenleme) cagirilir: mesajin tum eklerini ve baytlarini kaldirir.
-     * Idempotenttir; exception sizdirmaz.
+     * Mesajin tum eklerini ve baytlarini kaldirir. DIKKAT: T13 "herkes icin silme" artik bunu CAGIRMAZ (T24: silinen
+     * mesajin eki yonetici onizlemesi icin saklanir); yalnizca saklama suresi vb. kalici silme akislari kullanir.
      */
     @Transactional
     public void purgeForMessage(Long messageId) {

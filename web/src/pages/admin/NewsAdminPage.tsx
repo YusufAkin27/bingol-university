@@ -144,7 +144,7 @@ export default function NewsAdminPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.news.title')} description={t('admin.news.subtitle')} />
+      <PageHeader title={t('admin.news.title')} />
       <Card title={t('admin.news.sync.title')} className={styles.syncCard}>
         {status.isError ? (
           <p className={styles.muted}>{t('admin.news.sync.unavailable')}</p>

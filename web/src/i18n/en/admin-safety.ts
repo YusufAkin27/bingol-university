@@ -5,7 +5,7 @@ const m = {
   'admin.nav.blocklist': 'Blocked images',
   'admin.nav.eventApplications': 'Event applications',
   'admin.nav.clubAudit': 'Club audit',
-  'admin.nav.crypto': 'Message access and encryption',
+  'admin.nav.crypto': 'Chats and encryption',
 
   // Report queue
   'admin.reports.targetType.MESSAGE_IMAGE': 'Message image',
@@ -24,9 +24,7 @@ const m = {
   'admin.reports.hidden.ADMIN': 'Hidden by admin',
   'admin.reports.hidden.YES': 'Hidden',
   'admin.reports.preview.image': 'Reported image',
-  'admin.reports.preview.decrypt': 'Open message with a justification',
   'admin.reports.reasonCode.label': 'Decision reason',
-  'admin.reports.reasonCode.hint': 'Used in the notification sent to the content owner.',
   'admin.reports.reasonCode.none': 'Not specified',
   'admin.reports.reasonCode.SPAM': 'Spam',
   'admin.reports.reasonCode.HARASSMENT': 'Harassment',
@@ -52,7 +50,6 @@ const m = {
 
   // Appeals
   'admin.appeals.title': 'Appeals',
-  'admin.appeals.subtitle': 'Appeals from owners of hidden content. If accepted, the content becomes visible again and the strike is cancelled.',
   'admin.appeals.tabs': 'Appeal status',
   'admin.appeals.status.OPEN': 'Open',
   'admin.appeals.status.ACCEPTED': 'Accepted',
@@ -76,7 +73,6 @@ const m = {
 
   // Suspension suggestions
   'admin.suspend.title': 'Suspension suggestions',
-  'admin.suspend.subtitle': 'Repeated violations in a short time are listed by the system as suggestions. The decision is yours.',
   'admin.suspend.tabs': 'Suggestion status',
   'admin.suspend.status.OPEN': 'Open',
   'admin.suspend.status.ACCEPTED': 'Accepted',
@@ -94,10 +90,8 @@ const m = {
 
   // Blocked image hashes
   'admin.blocklist.title': 'Blocked images',
-  'admin.blocklist.subtitle': 'Images whose SHA-256 digest is listed here are rejected on upload. The image itself is not stored.',
   'admin.blocklist.add': 'Add digest',
   'admin.blocklist.sha': 'SHA-256 digest',
-  'admin.blocklist.shaHint': '64 hexadecimal characters (case does not matter).',
   'admin.blocklist.shaInvalid': 'The digest must be 64 hexadecimal characters.',
   'admin.blocklist.note': 'Note (optional)',
   'admin.blocklist.addBtn': 'Add to list',
@@ -111,13 +105,7 @@ const m = {
   'admin.blocklist.toast.removed': 'Digest removed from the list.',
 
   // Message access and encryption status
-  'admin.crypto.title': 'Message access and encryption',
-  'admin.crypto.subtitle': 'Encryption key status and justified message access.',
-  'admin.crypto.warn.title': 'Warning: audited access',
-  'admin.crypto.warn.body':
-    'Messages are encrypted in transit and stored encrypted. Use this screen only when there is a concrete reason, such as a complaint, a security incident or a legal obligation.',
-  'admin.crypto.warn.audit':
-    'Every access is written to an immutable audit record with who did it, which conversation and message range, the stated reason and the time. If the record cannot be written, no message is shown.',
+  'admin.crypto.title': 'Chats and encryption',
   'admin.crypto.status.title': 'Encryption status',
   'admin.crypto.status.active': 'Active master key',
   'admin.crypto.status.keys': 'Configured keys',
@@ -128,31 +116,16 @@ const m = {
   'admin.crypto.status.devKey': 'A real master key must be configured in production. The development key is for local use only.',
   'admin.crypto.status.deks': 'Wrapped data keys per master key',
   'admin.crypto.status.rewrapNeeded': 'Rewrap needed',
-  'admin.crypto.status.rewrapHint': 'Key rotation and rewrapping are done on the server with a script; this screen only shows the status.',
-  'admin.crypto.disabled': 'Admin message access is turned off by a server setting. The form is disabled.',
-  'admin.crypto.form.title': 'Justified message access',
-  'admin.crypto.form.conversation': 'Conversation ID',
-  'admin.crypto.form.from': 'First message ID',
-  'admin.crypto.form.to': 'Last message ID (optional)',
-  'admin.crypto.form.toHint': 'If empty, a single message is opened. At most {max} messages per request.',
-  'admin.crypto.form.reason': 'Justification',
-  'admin.crypto.form.reasonHint': 'At least {min} characters. The justification is written to the audit record.',
-  'admin.crypto.form.ack': 'I understand that this access will be written to an immutable audit record.',
-  'admin.crypto.form.submit': 'Open messages',
-  'admin.crypto.err.reasonShort': 'The justification must be at least {min} characters.',
-  'admin.crypto.err.reasonLong': 'The justification can be at most {max} characters.',
-  'admin.crypto.err.conversation': 'Enter a valid conversation ID.',
-  'admin.crypto.err.range': 'The message IDs are invalid; the last ID cannot be smaller than the first.',
-  'admin.crypto.result.title': 'Opened messages ({n})',
-  'admin.crypto.result.audit': 'Audit record number: {id}',
-  'admin.crypto.result.empty': 'No messages found in this range',
-  'admin.crypto.result.sender': 'Sender: #{id}',
-  'admin.crypto.result.failed': 'Could not be opened ({reason})',
-  'admin.crypto.result.clear': 'Clear from screen',
+  'admin.crypto.open.title': 'Open a user\'s messages',
+  'admin.crypto.open.hint': 'Search for a user to view all of their conversations and messages. Every page request is written to the immutable audit log.',
+  'admin.crypto.open.search': 'Search users',
+  'admin.crypto.open.placeholder': 'Name or email (at least 2 characters)',
+  'admin.crypto.open.none': 'No matching users',
+  'admin.crypto.open.go': 'Open messages',
+  'admin.crypto.disabled': 'Administrator message viewing is disabled by a server setting.',
 
   // Event applications and club audit
   'admin.admission.title': 'Event applications',
-  'admin.admission.subtitle': 'Application summary of an event (read only). Accept and reject decisions are made by the event organizer.',
   'admin.admission.eventId': 'Event ID',
   'admin.admission.invalidId': 'Enter a valid number.',
   'admin.admission.show': 'Show',
@@ -172,7 +145,6 @@ const m = {
   'admin.admission.rejected': 'Rejected',
   'admin.admission.cancelled': 'Cancelled / withdrawn',
   'admin.clubAudit.title': 'Club permissions and audit log',
-  'admin.clubAudit.subtitle': 'Lists a club’s permission changes, member decisions, ownership transfers and invitations.',
   'admin.clubAudit.communityId': 'Community ID',
   'admin.clubAudit.openCommunities': 'Community approval queue',
   'admin.clubAudit.empty.title': 'Enter a community ID',
@@ -199,9 +171,7 @@ const m = {
   // Dashboard counters
   'admin.dashboard.section.moderation': 'Moderation',
   'admin.dashboard.kpi.openAppeals': 'Open appeals',
-  'admin.dashboard.kpi.openAppealsHint': 'The first 50 records are counted',
   'admin.dashboard.kpi.openSuspend': 'Open suspension suggestions',
-  'admin.dashboard.kpi.openSuspendHint': 'Repeated violations',
 
   // Settings: events group
   'admin.settings.group.events': 'Events',
@@ -209,11 +179,9 @@ const m = {
   'admin.settings.key.events_require_approval': 'Admin approval for independent events',
   'admin.settings.key.event_max_open_per_user': 'Maximum open events per user',
   'admin.settings.key.event_daily_create_limit': 'Daily event creation limit per user',
-  'admin.settings.events.explain': 'Approval and limit rules for independent events created by users. Changes take effect immediately.',
   'admin.settings.events.approvalTitle': 'Approval',
   'admin.settings.events.approvalOn': 'New events wait for admin approval',
   'admin.settings.events.approvalOff': 'New events are published directly',
-  'admin.settings.events.approvalHint': 'When off, events appear without waiting for approval; community events follow their own rules.',
   'admin.settings.events.limitsTitle': 'Limits',
   'admin.settings.events.zeroUnlimited': '0 = unlimited. Admins are not subject to the limits.',
 
@@ -228,6 +196,6 @@ const m = {
   'admin.err.MESSAGE_READER_UNAVAILABLE': 'Message reading is not enabled on this server yet.',
   'admin.err.CRYPTO_KEY_UNKNOWN': 'Unknown master key ID.',
 
-  'admin.users.x.decryptLink': 'Open the justified message access page',
+  'admin.users.x.decryptLink': 'Open this user\'s messages',
 } as const;
 export default m;

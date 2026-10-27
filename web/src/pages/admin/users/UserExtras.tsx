@@ -65,9 +65,8 @@ export function UserExtras({ u }: { u: AdminUserDetail }) {
             <dd>{formatNumber(x.blockedBy)}</dd>
           </div>
         </dl>
-        <p className={styles.hint}>{t('admin.users.x.privacyNote')}</p>
         <p className={styles.hint}>
-          <Link to={paths.admin.crypto}>{t('admin.users.x.decryptLink')}</Link>
+          <Link to={paths.admin.userMessages(u.id)}>{t('admin.users.x.decryptLink')}</Link>
         </p>
       </Card>
 

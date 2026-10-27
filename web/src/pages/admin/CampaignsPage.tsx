@@ -92,7 +92,7 @@ export default function CampaignsPage() {
     <div>
       <PageHeader
         title={t('admin.campaigns.title')}
-        description={t('admin.campaigns.subtitle')}
+       
         actions={
           <ButtonLink to={paths.admin.campaignNew} leftIcon={<Icon name="plus" size={18} />}>
             {t('admin.campaigns.new')}

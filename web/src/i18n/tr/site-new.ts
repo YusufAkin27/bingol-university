@@ -14,8 +14,8 @@ const m = {
     'Profilinizde nelerin kimlere görüneceğini siz seçersiniz. E-posta adresiniz ve diğer bilgileriniz için görünürlüğü istediğiniz zaman değiştirebilirsiniz.',
   'site.feat.secure.title': 'Şifreli iletim ve saklama',
   'site.feat.secure.text':
-    'Mesajlarınız iletim sırasında şifrelenir ve sunucuda şifreli olarak saklanır. Yönetici erişimi yalnızca yazılı gerekçeyle yapılır ve her erişim denetim kaydına yazılır.',
-  'site.home.privacy4': 'Mesajlar şifreli iletilir ve şifreli saklanır; yönetici erişimi gerekçeli ve denetimlidir.',
+    'Mesajlarınız iletim sırasında şifrelenir ve sunucuda şifreli olarak saklanır. Anahtarları sunucu yönetir; yetkili yöneticiler gerektiğinde mesajları görüntüleyebilir ve her erişim değiştirilemez denetim kaydına yazılır.',
+  'site.home.privacy4': 'Mesajlar şifreli iletilir ve şifreli saklanır; yönetici erişimi denetim kaydına yazılır. Silinen mesajlar güvenlik ve yasal yükümlülükler için saklanabilir.',
 
   'site.faq.new.title': 'Yeni özellikler hakkında',
   'site.faq.new.apply.q': 'Etkinliğe nasıl başvururum?',
@@ -35,13 +35,12 @@ const m = {
     'Mesajlar iletim sırasında şifrelenir ve sunucuda şifreli olarak saklanır. Anahtarlar mesaj içeriğinden ayrı yönetilir.',
   'site.faq.new.adminAccess.q': 'Yöneticiler mesajlarımı okuyabilir mi?',
   'site.faq.new.adminAccess.a':
-    'Mesajlar yöneticilere varsayılan olarak gösterilmez. Şikâyet, güvenlik olayı veya yasal yükümlülük gibi somut bir durumda erişim yalnızca yazılı gerekçeyle yapılabilir ve her erişim değiştirilemez bir denetim kaydına yazılır.',
+    'Evet, yetkili yöneticiler güvenlik, şikâyet incelemesi ve yasal yükümlülükler için mesajları görüntüleyebilir. Bu erişimin her sayfası değiştirilemez bir denetim kaydına yazılır. Anahtarları sunucu yönettiğinden mesajlar yalnızca iki tarafın çözebileceği bir korumaya sahip değildir. Sildiğiniz mesajlar size görünmez olur ancak güvenlik ve yasal yükümlülükler için saklanabilir.',
 
-  'legal.adminAccess.title': 'Yönetici gerekçeli ve denetimli erişimi',
+  'legal.adminAccess.title': 'Yönetici erişimi ve silinen mesajların saklanması',
   'legal.adminAccess.body1':
-    'Mesajlar iletim sırasında şifrelenir ve şifreli saklanır. Yöneticiler mesaj içeriğine varsayılan olarak erişemez.',
+    'Mesajlar iletim sırasında şifrelenir ve sunucuda şifreli saklanır. Anahtarları sunucu yönetir; bu nedenle mesajlar yalnızca sizin cihazınızda çözülebilen bir korumaya sahip değildir.',
   'legal.adminAccess.body2':
-    'Şikâyet, güvenlik olayı veya yasal yükümlülük gibi somut bir durumda yetkili bir yönetici, yalnızca ilgili konuşma ve mesaj aralığı için, yazılı bir gerekçe vererek erişim talep edebilir. Her erişim, kim tarafından, ne zaman ve hangi gerekçeyle yapıldığıyla birlikte değiştirilemez bir denetim kaydına yazılır.',
-  'legal.adminAccess.draft': 'Bu metin taslaktır; yayımlanmadan önce hukuki inceleme gerekir.',
+    'Yetkili yöneticiler güvenlik, şikâyet incelemesi veya yasal yükümlülük kapsamında kullanıcıların konuşmalarını görüntüleyebilir; yönetici erişimi kayıt altındadır ve her erişim değiştirilemez bir denetim kaydına yazılır. Sildiğiniz veya düzenlediğiniz mesajlar size görünmez olur ancak önceki sürümleriyle birlikte güvenlik ve yasal yükümlülükler için sınırlı bir süre veya süresiz saklanabilir.',
 } as const;
 export default m;

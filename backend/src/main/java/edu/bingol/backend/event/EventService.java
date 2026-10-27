@@ -12,6 +12,7 @@ import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.Paging;
 import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
+import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.event.extras.CoOrganizerLookup;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
@@ -142,6 +143,14 @@ public class EventService {
         } else {
             safe.run();
         }
+    }
+
+    /** T25: etkinlik sohbet odasi senkronu (setter + @Lazy; null iken eski davranis). */
+    private EventChatHooks chat;
+
+    @Autowired
+    public void setChat(@Lazy EventChatHooks chat) {
+        this.chat = chat;
     }
 
     // ---- olusturma / guncelleme / silme ----
@@ -298,6 +307,9 @@ public class EventService {
             admission.onEventCancelled(e);
         }
         closeRoom(e);
+        if (chat != null) {
+            chat.onCancelled(e.getId());
+        }
     }
 
     /** Kapak: medya hatti (dogrula, yeniden kodla, EXIF temizle, en cok 1600 px); eski dosya referans yoksa silinir. */
@@ -507,8 +519,10 @@ public class EventService {
                 } else {
                     events.decrementGoing(id);
                 }
+                EventRsvp.Status old = r.getStatus();
                 r.setStatus(status);
                 rsvps.save(r);
+                chatSync(id, a.id(), old, status);
             }
         } else {
             if (status == EventRsvp.Status.GOING) {
@@ -520,6 +534,7 @@ public class EventService {
                 // Ayni kullanicinin es zamanli ikinci istegi; islem geri alinir, sayac da geri doner.
                 throw new ApiException(HttpStatus.CONFLICT, "RSVP_CONFLICT", "İsteğiniz zaten işleniyor, tekrar deneyin.");
             }
+            chatSync(id, a.id(), null, status);
         }
         return new RsvpResult(status, events.goingCount(id), e.getCapacity());
     }
@@ -536,8 +551,21 @@ public class EventService {
                 events.decrementGoing(id);
             }
             rsvps.delete(r);
+            chatSync(id, a.id(), r.getStatus(), null);
         });
         leaveRoom(a, e);
+    }
+
+    /** GOING girisi/cikisi sohbet odasina yansir (hook yoksa no-op). */
+    private void chatSync(Long eventId, Long userId, EventRsvp.Status from, EventRsvp.Status to) {
+        if (chat == null) {
+            return;
+        }
+        if (to == EventRsvp.Status.GOING) {
+            chat.onGoing(eventId, userId);
+        } else if (from == EventRsvp.Status.GOING && to != EventRsvp.Status.INTERESTED) { // ilgileniyorum da odada kalir
+            chat.onLeft(eventId, userId);
+        }
     }
 
     private void reserveSeat(Long eventId) {

@@ -12,7 +12,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 | Raporlar | `GET /api/admin/reports?status=OPEN&cursor=&size=`, `POST /api/admin/reports/{id}/resolve {action: DISMISS\|HIDE\|WARN\|SUSPEND_USER, message}` |
 | Kullanıcı askı | `POST /api/admin/users/{id}/suspend {reason}`, `/unsuspend` |
 | Geri bildirim | `GET /api/admin/feedback?status=&category=&cursor=&size=`, `PATCH /api/admin/feedback/{id} {status, adminResponse, publicVisible}` |
-| Destek | `GET /api/admin/support/tickets?status=&cursor=`, `GET .../{id}`, `POST .../{id}/reply {text}`, `POST .../{id}/close` |
+| Destek | `GET /api/admin/support/tickets?status=&publicOnly=&cursor=` (herkese açık talepler `publicTicket:true`, `userId` null; doğrulanmamışlar listelenmez), `GET .../{id}`, `POST .../{id}/reply {text}` (cevap + `emailStatus`: NOT_APPLICABLE/SENT/FAILED), `POST .../{id}/close` |
 | SSS | `GET/POST /api/admin/faq`, `PUT/DELETE /api/admin/faq/{id}` (`lang` tr\|en\|ar) |
 | Sözleşmeler | herkese açık `GET /api/legal`, `/api/legal/{type}`; yönetici `POST /api/admin/legal/{type} {tr:{title,content}, en?, ar?, requireReaccept}` |
 | Ayarlar | `GET /api/admin/settings`, `PUT /api/admin/settings/{key} {value}` (mağaza linkleri, iletişim, banner, bakım modu, sürüm kontrolü) |
@@ -107,3 +107,16 @@ Sözleşme alanları değişmedi; aşağıdakiler belirsiz kalan noktaların kes
 - `GET /api/admin/moderation/suspend-recommendations?status=OPEN` → `{items:[{id,userId,strikeCount,status,createdAt}], nextCursor}`; `POST …/{id}/accept` (kullanıcıyı askıya alır) · `POST …/{id}/dismiss` → 204.
 - `GET /api/admin/moderation/blocklist?cursor=&size=` → `{items:[{sha256,note,createdBy,createdAt}], nextCursor}`; `POST …/blocklist {sha256 (64 hex), note?}` → 201 (idempotent); `DELETE …/blocklist/{sha256}` → 204 / 404.
 - Kullanıcı uçları: `POST /api/appeals {targetType,targetId,message}` → 201 `{id}`; `GET /api/appeals/mine`.
+
+## T24 — Kullanıcı bazlı sohbet görüntüleyici
+
+Yalnızca JWT'li ADMIN (Basic auth 401). Her sayfa isteği otomatik değiştirilemez denetim kaydı yazar (`message_access_audit`; gerekçe girişi yok, sistem gerekçesi `yonetici sohbet goruntuleme`); kayıt yazılamazsa içerik dönmez (`503 CRYPTO_UNAVAILABLE`). Hız sınırı: yönetici başına dakikada 120 sayfa. Ayrıntı ve güvenlik kararları: [ENCRYPTION.md](ENCRYPTION.md) §4.
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/admin/users/{id}/conversations?cursor&size` | `{user, items[], nextCursor}`; öğe: `id, type (DIRECT/GROUP), title, peer{id,displayName,avatarUrl}, memberCount, totalMessages, lastActivityAt, left, lastMessage{id,senderId,mine,text,error,deleted,hidden,createdAt}`. Son mesaj yeniden eskiye; `cursor` = önceki sayfanın `nextCursor`; `size` ≤ 30. |
+| `GET /api/admin/users/{id}/conversations/{cid}/messages?before&size` | `{user, conversation{id,type,title,peer,left}, items[], nextBefore}`; `items` **eskiden yeniye**; `before` = daha önce yüklenen en eski mesaj kimliği; `size` ≤ 50. Öğe: `id, senderId, senderName, mine, createdAt, text, error, edited, editedAt, revisions[{text,error,revisedAt}], deleted, deletedAt, deletedBy, deletedByName, hidden, replyTo{id,senderId,text,error,deleted}, reactions[{emoji,userId}], attachments[{id,kind,contentType,width,height,bytes,hidden,previewUrl,thumbUrl}]`. |
+| `GET /api/admin/media/attachments/{id}/preview?thumb` | (T8) ek önizlemesi; silinmiş mesajın eki dahil. |
+| ~~`POST /api/admin/messages/decrypt`~~ | **Kaldırıldı** (404/405). |
+
+Hatalar: `404 USER_NOT_FOUND`, `404 CONVERSATION_NOT_FOUND` (konuşma kullanıcının üyeliği değilse), `403 ADMIN_DECRYPT_DISABLED`, `429 RATE_LIMITED`, `503 CRYPTO_UNAVAILABLE`.

@@ -125,7 +125,7 @@ export default function AuditPage() {
   const data = list.data;
   return (
     <div>
-      <PageHeader title={t('admin.audit.title')} description={t('admin.audit.desc')} />
+      <PageHeader title={t('admin.audit.title')} />
       <div className={styles.bar} role="group" aria-label={t('admin.audit.filters.label')}>
         <div className={styles.search}>
           <SearchInput

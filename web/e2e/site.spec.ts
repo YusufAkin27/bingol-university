@@ -64,7 +64,6 @@ test.describe('tanitim sitesi', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Gizlilik');
     await expect(page.getByText(/Sürüm \d+/).first()).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'İçindekiler' })).toBeVisible();
-    await expect(page.getByText('Bu metin taslaktır')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Yazdır' })).toBeVisible();
 
     await page.goto('/legal/yok-boyle-bir-sey');
@@ -82,7 +81,7 @@ test.describe('tanitim sitesi', () => {
       await expect(h1).toBeVisible();
       const expected = { tr: 'Kampüs hayatı', en: 'Campus life', ar: 'حياة الحرم' }[lang];
       await expect(h1).toContainText(expected);
-      await expect(page).toHaveTitle(/Bingöl|بينغول/);
+      await expect(page).toHaveTitle(/BÜ Kampüs/);
       // Rota degisiminde odak sayfa basligina tasinir
       await page.locator('header nav a[href="/features"]').click();
       await expect(page).toHaveURL(/\/features$/);
@@ -116,9 +115,10 @@ test.describe('tanitim sitesi', () => {
     await expect(page).toHaveURL(/#main$/);
   });
 
-  test('robots.txt ve sitemap.xml sunulur; /admin engelli', async ({ request }) => {
+  test('robots.txt ve sitemap.xml sunulur; yonetim yolu ifsa edilmez', async ({ request }) => {
     const robots = await (await request.get('/robots.txt')).text();
-    expect(robots).toContain('Disallow: /admin');
+    expect(robots).not.toContain('admin'); // yonetim yolu gizli, robots.txt ile ifsa edilmez
+    expect(robots).toContain('Disallow: /api/');
     const sm = await request.get('/sitemap.xml');
     expect(sm.ok()).toBeTruthy();
     expect(await sm.text()).toContain('<urlset');

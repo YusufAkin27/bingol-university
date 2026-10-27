@@ -14,10 +14,10 @@ DIR=$(dirname "$0")
 S=$(date +%s)
 U1=colla$S@bingol.edu.tr
 U2=collb$S@bingol.edu.tr
-for u in $U1 $U2; do BASE=$BASE "$DIR/make-user.sh" "$u" "Kolaps $u" >/dev/null; done
+for u in $U1 $U2; do BASE=$BASE "$DIR/make-user.sh" "$u" "Kolaps Deneme" >/dev/null; done
 tok() { curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4; }
 T1=$(tok $U1); T2=$(tok $U2)
-ID2=$(curl -s -H "Authorization: Bearer $T2" $A/profile | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+ID2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 
 CONV=$(curl -s -X POST -H "Authorization: Bearer $T1" -H "$H" $A/conversations -d "{\"userId\":$ID2}" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 [ -n "$CONV" ] && ok "konusma $CONV" || { bad "konusma acilamadi"; exit 1; }

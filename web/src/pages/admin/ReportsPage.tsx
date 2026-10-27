@@ -113,9 +113,6 @@ function TargetPreview({ report }: { report: ReportView }) {
           <Link to={paths.admin.user(report.targetId)}>{t('admin.reports.preview.openUser')}</Link>
         )}
         {listLink && <Link to={listLink}>{t('admin.reports.preview.openList')}</Link>}
-        {(report.targetType === 'MESSAGE' || report.targetType === 'MESSAGE_IMAGE') && (
-          <Link to={`${paths.admin.crypto}?from=${report.targetId}`}>{t('admin.reports.preview.decrypt')}</Link>
-        )}
       </div>
     </div>
   );
@@ -235,7 +232,7 @@ export default function ReportsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.reports.title')} description={t('admin.reports.subtitle')} />
+      <PageHeader title={t('admin.reports.title')} />
       <Tabs
         label={t('admin.reports.tabs')}
         value={status}

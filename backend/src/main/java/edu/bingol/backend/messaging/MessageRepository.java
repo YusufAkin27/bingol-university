@@ -15,8 +15,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     Optional<Message> findByConversationIdAndSenderIdAndClientId(Long conversationId, Long senderId, String clientId);
 
-    /** KVKK dis aktarim: kullanicinin kendi gonderdigi mesajlar (yeni -> eski). */
-    @Query("SELECT m FROM Message m WHERE m.senderId = :uid ORDER BY m.id DESC")
+    /** KVKK dis aktarim: kullanicinin kendi gonderdigi GORUNUR mesajlar (yeni -> eski); herkes icin silinenler haric. */
+    @Query("SELECT m FROM Message m WHERE m.senderId = :uid AND m.deletedAt IS NULL ORDER BY m.id DESC")
     List<Message> sentBy(@Param("uid") Long userId, Pageable pageable);
 
     /** Geriye dogru gecmis (yeni -> eski). `since`: uyenin katilma zamani, oncesi gorunmez. */
@@ -87,8 +87,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                @Param("from") Long from, @Param("to") Long to, Pageable pageable);
 
     /**
-     * Duzenleme: yeni sifreli govdeyi yazar (eski sifreli icerik ezilir; gecmis tutulmaz). Silinmis/gizlenmis
-     * mesajda 0 doner.
+     * Duzenleme: yeni sifreli govdeyi yazar. Eski sifreli surum once {@link #archiveRevision} ile
+     * `message_revision`'a kopyalanir (gecmis saklanir). Silinmis/gizlenmis mesajda 0 doner.
      */
     @Transactional
     @Modifying
@@ -97,13 +97,30 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     int applyEdit(@Param("id") Long id, @Param("ct") byte[] ciphertext, @Param("nonce") byte[] nonce,
                   @Param("kv") Integer keyVersion, @Param("at") Instant at);
 
-    /** Herkes icin silme (tombstone): sifreli icerik, nonce, anahtar surumu ve yanit bagi temizlenir. */
+    /** Mesajin gecerli sifreli govdesini duzenleme gecmisine kopyalar (yonetici goruntuleyici icin; T24). */
     @Transactional
     @Modifying
-    @Query("UPDATE Message m SET m.bodyCiphertext = NULL, m.bodyNonce = NULL, m.keyVersion = NULL, "
-            + "m.replyToMessageId = NULL, m.editedAt = NULL, m.deletedAt = :at, m.deletedBy = :by "
-            + "WHERE m.id = :id AND m.deletedAt IS NULL")
+    @Query(value = "INSERT INTO message_revision (message_id, body_ciphertext, body_nonce, key_version, revised_at) "
+            + "SELECT id, body_ciphertext, body_nonce, key_version, COALESCE(edited_at, created_at) FROM message "
+            + "WHERE id = :id AND body_ciphertext IS NOT NULL AND body_nonce IS NOT NULL AND key_version IS NOT NULL "
+            + "AND deleted_at IS NULL AND hidden_at IS NULL", nativeQuery = true)
+    int archiveRevision(@Param("id") Long id);
+
+    /**
+     * Herkes icin silme (tombstone): yalnizca deleted_at/deleted_by isaretlenir. Sifreli govde, duzenleme ve yanit
+     * bagi SAKLANIR (yonetici goruntuleyici; saklama suresi: app.chat.deleted-retention-days). Kullanici API'si
+     * silinmis mesaj icin icerik donmez.
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Message m SET m.deletedAt = :at, m.deletedBy = :by WHERE m.id = :id AND m.deletedAt IS NULL")
     int tombstone(@Param("id") Long id, @Param("at") Instant at, @Param("by") Long deletedBy);
+
+    /** Saklama suresi dolan silinmis mesajlari (tepki/duzenleme gecmisi CASCADE) kalici siler; silinen satir sayisi doner. */
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Message m WHERE m.deletedAt IS NOT NULL AND m.deletedAt < :cutoff")
+    int purgeDeletedBefore(@Param("cutoff") Instant cutoff);
 
     @Transactional
     @Modifying

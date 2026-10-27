@@ -29,13 +29,11 @@ export function ModerationCounters() {
         title={t('admin.dashboard.kpi.openAppeals')}
         value={label(appeals)}
         loading={appeals.isLoading}
-        hint={t('admin.dashboard.kpi.openAppealsHint')}
       />
       <StatCard
         title={t('admin.dashboard.kpi.openSuspend')}
         value={label(recs)}
         loading={recs.isLoading}
-        hint={t('admin.dashboard.kpi.openSuspendHint')}
       />
     </>
   );

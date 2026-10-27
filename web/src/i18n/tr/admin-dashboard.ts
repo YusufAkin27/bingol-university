@@ -1,6 +1,5 @@
 const m = {
   'admin.dashboard.title': 'Genel bakış',
-  'admin.dashboard.subtitle': 'Uygulamanın bugünkü durumu.',
   'admin.dashboard.section.users': 'Kullanıcılar',
   'admin.dashboard.section.signups': 'Yeni kayıtlar',
   'admin.dashboard.section.activity': 'Aktiflik',
@@ -17,7 +16,6 @@ const m = {
   'admin.dashboard.kpi.wau': 'Haftalık aktif',
   'admin.dashboard.kpi.mau': 'Aylık aktif',
   'admin.dashboard.kpi.stickiness': 'Yapışkanlık',
-  'admin.dashboard.kpi.stickinessHint': 'Günlük aktif / aylık aktif',
   'admin.dashboard.kpi.messages': 'Mesaj (toplam)',
   'admin.dashboard.kpi.messages24': 'Son 24 saatte {n} mesaj',
   'admin.dashboard.kpi.communities': 'Aktif topluluk',
@@ -26,7 +24,6 @@ const m = {
   'admin.dashboard.kpi.eventsPending': '{n} onay bekliyor',
   'admin.dashboard.kpi.bookmarks': 'Favori haber',
   'admin.dashboard.kpi.push': 'Gönderilen kampanya',
-  'admin.dashboard.kpi.pushHint': 'Son 30 gün',
   'admin.dashboard.kpi.openReports': 'Açık rapor',
   'admin.dashboard.kpi.openTickets': 'Açık destek talebi',
   'admin.dashboard.kpi.newFeedback': 'Yeni geri bildirim',

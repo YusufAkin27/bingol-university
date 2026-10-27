@@ -1,6 +1,5 @@
 const m = {
   'admin.dashboard.title': 'Overview',
-  'admin.dashboard.subtitle': "Today's state of the app.",
   'admin.dashboard.section.users': 'Users',
   'admin.dashboard.section.signups': 'New sign-ups',
   'admin.dashboard.section.activity': 'Activity',
@@ -17,7 +16,6 @@ const m = {
   'admin.dashboard.kpi.wau': 'Weekly active',
   'admin.dashboard.kpi.mau': 'Monthly active',
   'admin.dashboard.kpi.stickiness': 'Stickiness',
-  'admin.dashboard.kpi.stickinessHint': 'Daily active / monthly active',
   'admin.dashboard.kpi.messages': 'Messages (total)',
   'admin.dashboard.kpi.messages24': '{n} in the last 24 hours',
   'admin.dashboard.kpi.communities': 'Active communities',
@@ -26,7 +24,6 @@ const m = {
   'admin.dashboard.kpi.eventsPending': '{n} awaiting approval',
   'admin.dashboard.kpi.bookmarks': 'Bookmarked news',
   'admin.dashboard.kpi.push': 'Campaigns sent',
-  'admin.dashboard.kpi.pushHint': 'Last 30 days',
   'admin.dashboard.kpi.openReports': 'Open reports',
   'admin.dashboard.kpi.openTickets': 'Open support tickets',
   'admin.dashboard.kpi.newFeedback': 'New feedback',

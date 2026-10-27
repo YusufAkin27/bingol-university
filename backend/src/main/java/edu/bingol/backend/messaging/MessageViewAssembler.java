@@ -92,8 +92,10 @@ public class MessageViewAssembler {
                 preview = preview(parents.get(m.getReplyToMessageId()), m.getConversationId(), viewerId, blockedSenders, since,
                         m.getReplyToMessageId());
             }
+            // silinen mesajin ek meta verisi de kapali (T24)
             out.add(v.withExtras(blocked ? null : preview, blocked || m.isDeleted() ? List.of()
-                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId())).withAttachments(blocked ? null : att.get(m.getId()))
+                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId()))
+                    .withAttachments(blocked || m.isDeleted() ? null : att.get(m.getId()))
                     .withStatus(status.get(m.getId())));
         }
         return out;

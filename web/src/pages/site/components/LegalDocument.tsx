@@ -37,15 +37,6 @@ export function LegalDocument({ title, content, docLang }: Props) {
             <p>{t('legal.fallbackLang')}</p>
           </div>
         )}
-        {doc.draft && (
-          <div className={`${styles.note} ${styles.draft}`} role="note" lang={lang}>
-            <Icon name="alert" size={20} />
-            <div>
-              <strong>{t('legal.draft')}</strong>
-              <p>{t('legal.draftHint')}</p>
-            </div>
-          </div>
-        )}
         {doc.sections.map((s, i) => (
           <section key={s.id ?? `intro-${i}`} aria-labelledby={s.id ?? undefined}>
             {s.title &&

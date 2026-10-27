@@ -19,7 +19,8 @@ const KEYS: Record<ErrorKind, { title: string; text: string }> = {
 export function classifyError(error: unknown): ErrorKind {
   const msg = error instanceof Error ? `${error.name} ${error.message}` : String(error);
   if (/MAINTENANCE|Service Unavailable/i.test(msg)) return 'maintenance';
-  if (/ChunkLoadError|dynamically imported module|Failed to fetch|NetworkError|Load failed/i.test(msg)) return 'network';
+  if (/ChunkLoadError|dynamically imported module|Failed to fetch|NetworkError|Load failed/i.test(msg))
+    return 'network';
   return 'error';
 }
 
@@ -39,7 +40,8 @@ export class ErrorBoundary extends Component<Props, { error: unknown; failed: bo
   }
 
   componentDidUpdate(prev: Props) {
-    if (this.state.failed && prev.resetKey !== this.props.resetKey) this.setState({ failed: false, error: null });
+    if (this.state.failed && prev.resetKey !== this.props.resetKey)
+      this.setState({ failed: false, error: null });
   }
 
   render() {
@@ -52,7 +54,6 @@ export class ErrorBoundary extends Component<Props, { error: unknown; failed: bo
         kind={kind}
         title={tr(KEYS[kind].title)}
         text={tr(KEYS[kind].text)}
-        statusLabel={kind === 'error' ? undefined : tr('pg.err.statusLink')}
         retryLabel={tr('common.retry')}
         homeLabel={tr('pg.err.home')}
         onRetry={() => {

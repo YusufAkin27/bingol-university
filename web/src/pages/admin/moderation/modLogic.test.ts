@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   BULK_MAX,
-  buildDecryptRequest,
   cleanReasonCode,
   countLabel,
   isSafeImageUrl,
@@ -13,44 +12,7 @@ import {
   summarizeBulk,
   toggleSelected,
   usesMessage,
-  validateDecrypt,
-  type DecryptForm,
 } from './modLogic';
-
-const form = (over: Partial<DecryptForm> = {}): DecryptForm => ({
-  conversationId: '12',
-  fromMessageId: '100',
-  toMessageId: '',
-  reason: 'Şikâyet incelemesi için gerekli',
-  ...over,
-});
-
-describe('mesaj çözme formu', () => {
-  it('geçerli formu kabul eder', () => {
-    expect(validateDecrypt(form())).toBeNull();
-    expect(validateDecrypt(form({ toMessageId: '150' }))).toBeNull();
-  });
-  it('gerekçe kırpılmış 10 karakterden kısaysa reddeder', () => {
-    expect(validateDecrypt(form({ reason: '   kısa    ' }))).toBe('reasonShort');
-    expect(validateDecrypt(form({ reason: '1234567890' }))).toBeNull();
-    expect(validateDecrypt(form({ reason: 'x'.repeat(501) }))).toBe('reasonLong');
-  });
-  it('geçersiz konuşma ve aralıkları yakalar', () => {
-    expect(validateDecrypt(form({ conversationId: '' }))).toBe('conversation');
-    expect(validateDecrypt(form({ conversationId: '0' }))).toBe('conversation');
-    expect(validateDecrypt(form({ fromMessageId: 'abc' }))).toBe('range');
-    expect(validateDecrypt(form({ toMessageId: '50' }))).toBe('range');
-    expect(validateDecrypt(form({ toMessageId: '-1' }))).toBe('range');
-  });
-  it('istek gövdesini sayılara çevirir; boş son kimlik gönderilmez', () => {
-    expect(buildDecryptRequest(form({ reason: '  yeterince uzun gerekçe  ' }))).toEqual({
-      conversationId: 12,
-      fromMessageId: 100,
-      reason: 'yeterince uzun gerekçe',
-    });
-    expect(buildDecryptRequest(form({ toMessageId: '120' })).toMessageId).toBe(120);
-  });
-});
 
 describe('toplu karar yardımcıları', () => {
   it('seçimi açıp kapatır ve 100 sınırını aşmaz', () => {

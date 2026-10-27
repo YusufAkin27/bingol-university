@@ -1,6 +1,5 @@
 const m = {
   'admin.reports.title': 'Reports',
-  'admin.reports.subtitle': 'Review content reported by users and make a decision.',
   'admin.reports.resolution.DISMISS': 'Dismiss',
   'admin.reports.resolution.HIDE': 'Hide content',
   'admin.reports.resolution.WARN': 'Warn',
@@ -63,9 +62,7 @@ const m = {
   'admin.reports.shortcut.pick': 'Pick decision',
   'admin.reports.shortcut.apply': 'Apply',
   'admin.communities.title': 'Communities',
-  'admin.communities.subtitle': 'Review communities awaiting approval.',
   'admin.events.title': 'Events',
-  'admin.events.subtitle': 'Approve events created by users.',
   'admin.review.approve': 'Approve',
   'admin.review.reject': 'Reject',
 } as const;

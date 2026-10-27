@@ -104,7 +104,7 @@ public class MessageActionService {
 
     // --- duzenleme ---
 
-    /** Yalnizca gonderen, `app.chat.edit-window-minutes` icinde. Yeni sifreli govde yazilir; eskisi ezilir, gecmis tutulmaz. */
+    /** Yalnizca gonderen, `app.chat.edit-window-minutes` icinde. Yeni sifreli govde yazilir; eski sifreli surum `message_revision`'a arsivlenir. */
     public MessageView edit(Long userId, Long messageId, String text) {
         Access a = access(userId, messageId);
         // Gorselli mesajda metin bosaltilabilir (yalniz gorsel kalir); gorselsiz mesajda bos metin reddedilir
@@ -130,6 +130,7 @@ public class MessageActionService {
             return assembler.assemble(userId, List.of(m), Set.of(), a.since).get(0); // degisiklik yok: kayit yazilmaz
         }
         codec.seal(m, body); // yeni nonce + gerekirse guncel DEK surumu; AAD (gonderen+clientId) ayni kalir
+        messages.archiveRevision(m.getId()); // onceki sifreli surum duzenleme gecmisine (yonetici goruntuleyici)
         if (messages.applyEdit(m.getId(), m.getBodyCiphertext(), m.getBodyNonce(), m.getKeyVersion(), now) == 0) {
             throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_NOT_EDITABLE", "Bu mesaj düzenlenemez.");
         }
@@ -149,9 +150,9 @@ public class MessageActionService {
 
     /**
      * Herkes icin silme: gonderen (`app.chat.delete-window-minutes` doluysa o sure icinde) ya da grup yoneticisi (suresiz).
-     * Sifreli govde, nonce, anahtar surumu ve yanit bagi NULL'lanir; tepkiler silinir. Raporlanmis mesajda da
-     * yonetici-cozulebilir KOPYA TUTULMAZ: rapor kaydi (kim/neden/ne zaman) kalir, icerik geri getirilemez.
-     * Tekrar silme sessizce basarilidir (idempotent).
+     * Kullanici icin mesaj "silindi" gorunur (icerik/ek erisimi kapanir; tepkiler silinir) AMA sifreli govde, nonce ve
+     * anahtar surumu VERITABANINDA KALIR (deleted_at/deleted_by); yalnizca yonetici goruntuleyici cozer.
+     * Saklama: `app.chat.deleted-retention-days` (0 = suresiz). Tekrar silme sessizce basarilidir (idempotent).
      */
     public void delete(Long userId, Long messageId) {
         Access a = access(userId, messageId);
@@ -175,11 +176,9 @@ public class MessageActionService {
         if (messages.tombstone(m.getId(), now, userId) == 0) {
             return; // es zamanli baska silme kazandi
         }
-        clearLegacyPlaintext(m.getId());
         reactions.removeAll(m.getId());
-        if (attachments != null) {
-            attachments.purgeForMessage(m.getId()); // gorsel baytlari da silinir (erisim zaten kapanir)
-        }
+        // Ekler SILINMEZ: kullanici erisimi kapanir (MessageAttachmentService.accessible mesaj silinmisse bos doner,
+        // goruntu meta verisi de donmez); bayt yonetici onizlemesi icin saklanir (T24).
         publish(m.getConversationId(), userId, new MessageEvent("deleted", m.getConversationId(), m.getId(), userId,
                 null, null, null, now.toString()));
     }

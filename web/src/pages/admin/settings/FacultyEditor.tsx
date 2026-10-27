@@ -1,7 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { Badge, Button, Icon, IconButton, Input } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { Callout } from '../campaigns/shared';
 import {
   FACULTY_MAX,
   FACULTIES_TOTAL_MAX,
@@ -52,7 +51,6 @@ export function FacultyEditor() {
           <Badge tone="warning">{t('admin.settings.unsaved')}</Badge>
         </span>
       )}
-      <Callout tone="info">{t('admin.settings.faculties.explain')}</Callout>
       <div className={styles.facAdd}>
         <label htmlFor="faculty-add" className={styles.facLabel}>
           {t('admin.settings.faculties.add')}

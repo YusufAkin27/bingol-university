@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.dashboard.title')} description={t('admin.dashboard.subtitle')} />
+      <PageHeader title={t('admin.dashboard.title')} />
 
       <div className={styles.top}>
         <AttentionPanel overview={overview} />
@@ -106,7 +106,6 @@ export default function DashboardPage() {
               title={t('admin.dashboard.kpi.stickiness')}
               value={o ? `${pct(o.stickiness)}%` : ''}
               loading={loading}
-              hint={t('admin.dashboard.kpi.stickinessHint')}
             />
           </Section>
 
@@ -142,7 +141,6 @@ export default function DashboardPage() {
               title={t('admin.dashboard.kpi.push')}
               value={n(o?.pushCampaignsSent30d)}
               loading={loading}
-              hint={t('admin.dashboard.kpi.pushHint')}
             />
           </Section>
 

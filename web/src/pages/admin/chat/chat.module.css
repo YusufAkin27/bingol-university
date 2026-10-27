@@ -1,0 +1,194 @@
+/* Yönetici sohbet görüntüleyici. Yalnızca tasarım token'ları ve mantıksal özellikler (Arapçada RTL ayna). */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 52rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: grid;
+  min-block-size: 0;
+}
+.panelHead {
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.convList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-block-size: 70vh;
+  overflow-y: auto;
+}
+.convBtn {
+  inline-size: 100%;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  text-align: start;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--border);
+  color: inherit;
+  cursor: pointer;
+}
+.convBtn:hover,
+.convBtn[aria-current='true'] {
+  background: var(--surface-2);
+}
+.convBody {
+  min-inline-size: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.convTop {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.convTitle {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.scroller {
+  max-block-size: 70vh;
+  min-block-size: 20rem;
+  overflow-y: auto;
+  padding: var(--space-4);
+  background: var(--surface-2);
+}
+.messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.row {
+  display: flex;
+}
+/* flex-end/flex-start yazı yönüne göre döner: RTL'de kendi mesajı sola geçer (ayna) */
+.rowSelf {
+  justify-content: flex-end;
+}
+.rowPeer {
+  justify-content: flex-start;
+}
+.bubble {
+  max-inline-size: min(34rem, 85%);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: grid;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+.bubbleSelf {
+  background: var(--primary-soft);
+}
+.bubblePeer {
+  background: var(--surface);
+}
+.bubbleDeleted {
+  border-style: dashed;
+  border-color: var(--danger);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.reply {
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.revisions ol {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-5);
+}
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.attachment {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.thumbBtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.imgThumb {
+  max-inline-size: 12rem;
+  max-block-size: 12rem;
+  border-radius: var(--radius-sm);
+}
+.imgFull {
+  max-inline-size: 100%;
+  max-block-size: 28rem;
+  border-radius: var(--radius-sm);
+}
+.dayDivider {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-block: var(--space-2);
+}
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding-block-end: var(--space-3);
+}
+.searchRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}

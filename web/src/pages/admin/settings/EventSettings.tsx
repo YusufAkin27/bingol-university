@@ -2,7 +2,6 @@
 // Anahtarlar: events_require_approval (true|false), event_max_open_per_user, event_daily_create_limit (0 = sınırsız).
 import { Badge, Button, Card, Switch } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { Callout } from '../campaigns/shared';
 import { isDirty, SettingRow, useSettings, valueOf } from './SettingRow';
 import styles from './settings.module.css';
 
@@ -24,7 +23,6 @@ function ApprovalSwitch() {
         onChange={(v) => c.setEdit(k, v ? 'true' : 'false')}
         label={t(on ? 'admin.settings.events.approvalOn' : 'admin.settings.events.approvalOff')}
       />
-      <p className={styles.hintLine}>{t('admin.settings.events.approvalHint')}</p>
       {c.errors[k] && (
         <p className={styles.errText} role="alert">
           {c.errors[k]}
@@ -54,7 +52,6 @@ export function EventSettings() {
   const { t } = useI18n();
   return (
     <>
-      <Callout tone="info">{t('admin.settings.events.explain')}</Callout>
       <Card title={t('admin.settings.events.approvalTitle')}>
         <ApprovalSwitch />
       </Card>

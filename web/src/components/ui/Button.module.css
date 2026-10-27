@@ -126,3 +126,14 @@
   width: 34px;
   height: 34px;
 }
+
+/* Dokunmatik/mobil: küçük hedefler en az 40px */
+@media (max-width: 960px), (pointer: coarse) {
+  .sm {
+    min-height: 40px;
+  }
+  .icon-sm {
+    width: 40px;
+    height: 40px;
+  }
+}

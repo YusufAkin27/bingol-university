@@ -68,11 +68,10 @@ describe('ayarlar sayfası', () => {
     expect(screen.getByTestId('save-website')).toBeDisabled();
   });
 
-  it('mağaza sekmesi zorunlu güncelleme açıklamasını ve sürüm doğrulamasını gösterir', async () => {
+  it('mağaza sekmesi sürüm doğrulamasını gösterir', async () => {
     setup();
     const user = userEvent.setup();
     await user.click(await screen.findByRole('tab', { name: /Mağaza ve sürümler/ }));
-    expect(screen.getByText(/“en düşük sürüm”ün altında olan uygulamalar/)).toBeInTheDocument();
     const min = screen.getAllByLabelText('En düşük sürüm (zorunlu)')[0];
     await user.clear(min);
     await user.type(min, '1.x');

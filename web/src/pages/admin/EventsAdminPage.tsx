@@ -119,7 +119,7 @@ export default function EventsAdminPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.events.title')} description={t('admin.events.subtitle')} />
+      <PageHeader title={t('admin.events.title')} />
       <div className={styles.tabsWrap}>
         <Tabs
           tabs={tabs}
