@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/identifier.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
@@ -11,10 +12,24 @@ import '../../core/typography.dart';
 
 /// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi.
 class VerifyCodePage extends StatefulWidget {
-  const VerifyCodePage({super.key, required this.session, required this.email});
+  const VerifyCodePage({
+    super.key,
+    required this.session,
+    required this.email,
+    this.displayEmail,
+    this.unverified = false,
+  });
 
   final Session session;
+
+  /// Numara ya da e-posta (sunucuya olduğu gibi gider).
   final String email;
+
+  /// Gösterilecek tam e-posta (yoksa [email]'den türetilir).
+  final String? displayEmail;
+
+  /// Girişte doğrulanmamış hesap ya da yarım kalan kayıt: bilgi kutusu + "Başka hesapla giriş yap".
+  final bool unverified;
 
   @override
   State<VerifyCodePage> createState() => _VerifyCodePageState();
@@ -98,8 +113,9 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     return AuthScaffold(
       showBack: true,
       title: 'E-postanızı doğrulayın',
-      subtitle: '${widget.email} adresine 6 haneli bir kod gönderdik. Kod 10 dakika geçerlidir.',
+      subtitle: 'Kod ${widget.displayEmail ?? fullEmail(widget.email)} adresine gönderildi. 10 dakika geçerlidir.',
       children: [
+        if (widget.unverified) const Notice('E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.', error: false),
         if (_error != null) Notice(_error!),
         if (_info != null) Notice(_info!, error: false),
         OtpCodeBoxes(
@@ -123,6 +139,13 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                 ]))
               : TextButton(onPressed: _busy ? null : _resend, child: const Text('Kodu yeniden gönder')),
         ),
+        if (widget.unverified)
+          Center(
+            child: TextButton(
+              onPressed: _busy ? null : () => Navigator.of(context).popUntil((r) => r.isFirst),
+              child: const Text('Başka hesapla giriş yap'),
+            ),
+          ),
       ],
     );
   }

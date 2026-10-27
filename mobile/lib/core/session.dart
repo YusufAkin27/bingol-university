@@ -4,7 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'analytics.dart';
 import 'api.dart';
 import 'badges.dart';
+import 'identifier.dart';
 import 'nav.dart';
+import 'pending_verification.dart';
 import 'realtime/chat_realtime.dart';
 
 enum SessionState { loading, signedOut, signedIn }
@@ -39,6 +41,16 @@ class Session extends ChangeNotifier {
   /// Başka cihazda giriş yapıldı bilgisi: giriş ekranında bir kez gösterilir, kapatılınca silinir.
   final replacedNotice = ValueNotifier<bool>(false);
   bool _forcing = false;
+
+  /// Doğrulaması bekleyen kayıt (şifresiz, 72 sa). Testler bellek içi depo atar.
+  PendingVerificationStore pending = PendingVerificationStore();
+
+  // Kayıt/girişte girilen şifre yalnızca bellekte, doğrulama sonrası otomatik giriş için tutulur.
+  String? _memId, _memPassword;
+  void rememberCredentials(String identifier, String password) {
+    _memId = fullEmail(identifier);
+    _memPassword = password;
+  }
 
   SessionState state = SessionState.loading;
   int? userId;
@@ -90,11 +102,12 @@ class Session extends ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    final res = await api.post('/auth/login', {'email': email.trim(), 'password': password, 'client': kClientMobile}, false);
+    final res = await api.post('/auth/login', {'email': normalizeIdentifier(email), 'password': password, 'client': kClientMobile}, false);
     await _accept(res);
   }
 
-  Future<void> register({
+  /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen).
+  Future<String> register({
     required String email,
     required String password,
     required String displayName,
@@ -102,10 +115,10 @@ class Session extends ChangeNotifier {
     String? department,
     String? grade,
   }) async {
-    await api.post(
+    final res = await api.post(
       '/auth/register',
       {
-        'email': email.trim(),
+        'email': normalizeIdentifier(email),
         'password': password,
         'displayName': displayName.trim(),
         'acceptTerms': true,
@@ -116,24 +129,35 @@ class Session extends ChangeNotifier {
       },
       false,
     );
+    final server = res is Map ? res['email'] : null;
+    return server is String && server.isNotEmpty ? server : fullEmail(email);
   }
 
   Future<void> resendCode(String email) =>
-      api.post('/auth/resend-code', {'email': email.trim()}, false);
+      api.post('/auth/resend-code', {'email': normalizeIdentifier(email)}, false);
 
   Future<void> verifyEmail(String email, String code) async {
-    final res = await api.post('/auth/verify-email', {'email': email.trim(), 'code': code.trim(), 'client': kClientMobile}, false);
-    await _accept(res);
+    final res = await api.post('/auth/verify-email', {'email': normalizeIdentifier(email), 'code': code.trim(), 'client': kClientMobile}, false);
+    await pending.clear();
+    final pw = _memPassword;
+    final id = _memId;
+    _memPassword = null;
+    _memId = null;
+    if (res is Map && res['accessToken'] != null) {
+      await _accept(res);
+    } else if (pw != null && id == fullEmail(email)) {
+      await login(id!, pw); // sunucu token döndürmediyse bir kez giriş dene
+    }
   }
 
   Future<void> forgotPassword(String email) =>
-      api.post('/auth/forgot-password', {'email': email.trim()}, false);
+      api.post('/auth/forgot-password', {'email': normalizeIdentifier(email)}, false);
 
   /// Kodu doğrular; doğruysa yeni şifre adımı için tek kullanımlık anahtar döner.
   Future<String> verifyResetCode(String email, String code) async {
     final res = await api.post(
       '/auth/verify-reset-code',
-      {'email': email.trim(), 'code': code.trim()},
+      {'email': normalizeIdentifier(email), 'code': code.trim()},
       false,
     ) as Map<String, dynamic>;
     return res['resetToken'] as String;
@@ -141,7 +165,7 @@ class Session extends ChangeNotifier {
 
   Future<void> resetPassword(String email, String resetToken, String newPassword) => api.post(
         '/auth/reset-password',
-        {'email': email.trim(), 'resetToken': resetToken, 'newPassword': newPassword, 'client': kClientMobile},
+        {'email': normalizeIdentifier(email), 'resetToken': resetToken, 'newPassword': newPassword, 'client': kClientMobile},
         false,
       );
 

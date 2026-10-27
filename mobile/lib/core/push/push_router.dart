@@ -5,6 +5,7 @@ import '../../features/clubs/club_detail_page.dart';
 import '../../features/events/event_detail_page.dart';
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
+import '../../features/posts/post_routes.dart';
 import '../api.dart';
 import '../nav.dart';
 import '../session.dart';
@@ -32,8 +33,13 @@ class PushRouter {
     var eventId = _id(data['eventId']);
     var communityId = _id(data['communityId']);
     var newsId = _id(data['newsId']);
-    final target = '${data['target'] ?? ''}'.toUpperCase();
-    final value = _id(data['value']);
+    final target = '${data['targetType'] ?? data['target'] ?? ''}'.toUpperCase();
+    final value = _id(data['targetId'] ?? data['value']);
+    final postId = _id(data['postId']) ?? (target == 'POST' ? value : null);
+    if (postId != null && conversationId == null) {
+      await openPostDetail(nav.context, s, postId, focusCommentId: _id(data['commentId']));
+      return;
+    }
     if (value != null) {
       if (target == 'NEWS') newsId ??= value;
       if (target == 'EVENT') eventId ??= value;

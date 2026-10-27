@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "247885082799",
+    "project_id": "bu-kamp",
+    "storage_bucket": "bu-kamp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247885082799:android:82af46f3815e62d90ca45a",
+        "android_client_info": {
+          "package_name": "edu.bingol.bu_kampus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6rxdD1SaRunonlWcQCpDsSV9b45tYprs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

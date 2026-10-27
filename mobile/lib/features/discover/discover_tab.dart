@@ -6,9 +6,12 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart';
+import '../posts/post_feed_view.dart';
+import '../posts/post_routes.dart';
 import '../search/search_page.dart';
 
-/// Keşfet sekmesi: haber / duyuru / etkinlik akışı ve kaydedilenler.
+/// Keşfet sekmesi: iki parçalı segment. Gönderiler (kampüs akışı: Yeni | Popüler) ve Haberler
+/// (haber / duyuru / etkinlik akışı ve kaydedilenler).
 class DiscoverTab extends StatefulWidget {
   const DiscoverTab({super.key, required this.session, required this.typeRequest});
 
@@ -23,12 +26,19 @@ class DiscoverTab extends StatefulWidget {
 
 class _DiscoverTabState extends State<DiscoverTab> {
   static const _types = ['HABER', 'DUYURU', 'ETKINLIK', 'SAVED'];
-  static const _labels = ['Haberler', 'Duyurular', 'Etkinlikler', 'Kaydedilenler'];
+  static const _labels = ['Haber', 'Duyuru', 'Etkinlik', 'Kaydedilenler'];
   static const _pageSize = 20;
 
   final _scroll = ScrollController();
   final List<Map<String, dynamic>> _items = [];
   final Set<int> _savedIds = {};
+
+  final _feedController = PostFeedController();
+
+  /// 0 Gönderiler (varsayılan), 1 Haberler.
+  int _segment = 0;
+  String _scope = 'latest';
+  bool _newsStarted = false; // haberler ilk açılışta yüklenir (gönderiler segmenti gereksiz istek atmasın)
 
   int _tab = 0;
   int _gen = 0; // eski yanıtların yeni sekmeyi ezmesini önler
@@ -50,6 +60,12 @@ class _DiscoverTabState extends State<DiscoverTab> {
     _scroll.addListener(_onScroll);
     widget.typeRequest.addListener(_onTypeRequest);
     _consumeRequest(initial: true);
+    if (_segment == 1) _startNews();
+  }
+
+  void _startNews() {
+    if (_newsStarted) return;
+    _newsStarted = true;
     _loadStatus();
     _loadSavedIds();
     _reload();
@@ -81,6 +97,19 @@ class _DiscoverTabState extends State<DiscoverTab> {
     if (i < 0 || i == 3) return;
     if (initial) {
       _tab = i;
+      _segment = 1;
+    } else if (!_newsStarted || _segment != 1) {
+      // Ana sayfadaki "Tümü": Haberler segmentine geç ve istenen türü seç.
+      setState(() {
+        _segment = 1;
+        _tab = i;
+      });
+      if (_newsStarted) {
+        if (_scroll.hasClients) _scroll.jumpTo(0);
+        _reload();
+      } else {
+        _startNews();
+      }
     } else if (i != _tab) {
       _selectTab(i);
     } else if (_scroll.hasClients) {
@@ -334,9 +363,26 @@ class _DiscoverTabState extends State<DiscoverTab> {
     return const SizedBox(height: 4);
   }
 
+  void _selectSegment(int i) {
+    if (i == _segment) return;
+    setState(() => _segment = i);
+    if (i == 1) _startNews();
+  }
+
+  Future<void> _compose() async {
+    final p = await openComposePost(context, widget.session);
+    if (p == null || !mounted) return;
+    setState(() {
+      _segment = 0;
+      _scope = 'latest';
+    });
+    _feedController.insertPost(p);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final posts = _segment == 0;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -352,28 +398,69 @@ class _DiscoverTabState extends State<DiscoverTab> {
                   MaterialPageRoute(builder: (_) => SearchPage(session: widget.session)),
                 ),
               ),
+              BuIconButton(
+                icon: LucideIcons.plus,
+                tooltip: 'Gönderi oluştur',
+                filled: true,
+                onTap: _compose,
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _labels.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) => Center(
-                child: BuChip(label: _labels[i], selected: i == _tab, onTap: () => _selectTab(i)),
-              ),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: BuSegmented(
+              items: const ['Gönderiler', 'Haberler'],
+              index: _segment,
+              onChanged: _selectSegment,
             ),
           ),
-          if (_maintenance && !_isSaved)
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 38,
+            child: posts
+                ? ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      Center(
+                          child: BuChip(
+                              label: 'Yeni',
+                              selected: _scope == 'latest',
+                              onTap: () => setState(() => _scope = 'latest'))),
+                      const SizedBox(width: 8),
+                      Center(
+                          child: BuChip(
+                              label: 'Popüler',
+                              selected: _scope == 'popular',
+                              onTap: () => setState(() => _scope = 'popular'))),
+                    ],
+                  )
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: _labels.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) => Center(
+                      child: BuChip(label: _labels[i], selected: i == _tab, onTap: () => _selectTab(i)),
+                    ),
+                  ),
+          ),
+          if (!posts && _maintenance && !_isSaved)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: StaleBanner(
                   text: _maintenanceText ?? 'Kaynak site şu an bakımda. Veriler güncel olmayabilir.'),
             ),
-          Expanded(child: _body(t)),
+          Expanded(
+            child: IndexedStack(
+              index: _segment,
+              children: [
+                PostFeedView(session: widget.session, scope: _scope, controller: _feedController),
+                _newsStarted ? _body(t) : const SizedBox.shrink(),
+              ],
+            ),
+          ),
         ],
       ),
     );

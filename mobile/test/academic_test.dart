@@ -243,7 +243,7 @@ void main() {
       expect(find.text('Bölümünüzü seçin.'), findsOneWidget);
       expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
       expect(find.text('Devam etmek için kabul etmelisiniz.'), findsOneWidget);
       expect(find.text('Fakülteyi seçin.'), findsNothing);

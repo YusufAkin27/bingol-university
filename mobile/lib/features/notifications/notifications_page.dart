@@ -10,6 +10,7 @@ import '../chat/chat_detail_page.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../posts/post_routes.dart';
 import '../support/support_page.dart';
 import '../support/support_ticket_page.dart';
 import '../../core/typography.dart';
@@ -150,6 +151,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final ticketId = _id(d['ticketId'] ?? (target == 'TICKET' ? value : null));
     final feedbackId = _id(d['feedbackId'] ?? (target == 'FEEDBACK' ? value : null));
 
+    final postId = _id(d['postId'] ?? (target == 'POST' ? value : null));
+    if (postId != null) {
+      await openPostDetail(context, _s, postId, focusCommentId: _id(d['commentId']));
+      return;
+    }
+
     Widget? page;
     if (convId != null) {
       try {
@@ -187,6 +194,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return LucideIcons.messageCircle;
       case 'COMMUNITY':
         return LucideIcons.users;
+      case 'POST_LIKE':
+        return LucideIcons.heart;
+      case 'POST_COMMENT':
+        return LucideIcons.messageSquare;
+      case 'COMMENT_REPLY':
+        return LucideIcons.reply;
       default:
         return LucideIcons.bell;
     }

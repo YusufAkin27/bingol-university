@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/identifier.dart';
 import '../../core/session.dart';
 import 'auth_widgets.dart';
 import 'reset_code_page.dart';
@@ -39,7 +40,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ResetCodePage(session: widget.session, email: _email.text.trim()),
+          builder: (_) => ResetCodePage(session: widget.session, email: normalizeIdentifier(_email.text)),
         ),
       );
     } catch (e) {
@@ -61,7 +62,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              EmailField(controller: _email, onSubmitted: _sendCode),
+              IdentifierField(controller: _email, onSubmitted: _sendCode),
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: _busy ? null : _sendCode,

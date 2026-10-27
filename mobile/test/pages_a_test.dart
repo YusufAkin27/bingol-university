@@ -85,7 +85,7 @@ void main() {
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.tap(find.text('Giriş yap'));
       await tester.pump();
-      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
       expect(b.count('/auth/login'), 0);
       noErr(tester);
@@ -304,7 +304,7 @@ void main() {
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: makeSession(b, signedIn: false))));
       await tester.tap(find.byType(FilledButton));
       await tester.pump();
-      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
       await tester.tap(find.byType(FilledButton));
       await settle(tester, const Duration(milliseconds: 600));
@@ -447,18 +447,20 @@ void main() {
     List<Map<String, dynamic>> many(int n, {String type = 'HABER'}) =>
         [for (var i = 1; i <= n; i++) newsItem(i, type: type)];
 
+    // Keşfet varsayılan olarak Gönderiler segmentindedir; 'HABER' isteği Haberler segmentini açar
+    // (ana sayfadaki "Haberler Tümü" yolu). Segment geçişi test/posts_feed_test.dart'ta.
     ValueNotifier<String?> req() {
-      final v = ValueNotifier<String?>(null);
+      final v = ValueNotifier<String?>('HABER');
       addTearDown(v.dispose);
       return v;
     }
 
-    matrix('dolu', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier(null)),
+    matrix('dolu', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
         setup: (b) => b.on('/news*', newsPage(many(5))));
-    matrix('bos', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier(null)));
-    matrix('hata', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier(null)),
+    matrix('bos', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')));
+    matrix('hata', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
         setup: (b) => b.fail('/news*'));
-    matrix('bakim', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier(null)),
+    matrix('bakim', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
         setup: (b) {
           b.on('/news*', newsPage(many(2)));
           b.on('/status', {'NEWS': {'maintenance': true, 'maintenanceMessage': 'Kaynak site bakımda ' * 6}});

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/identifier.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../core/typography.dart';
@@ -181,8 +182,10 @@ class _PasswordFieldState extends State<PasswordField> {
   }
 }
 
-class EmailField extends StatelessWidget {
-  const EmailField({super.key, required this.controller, this.onSubmitted, this.enabled = true});
+/// Okul numarası ya da e-posta alanı. Yalnız rakam yazılırken sona soluk `@bingol.edu.tr` soneki görünür;
+/// sunucuya olduğu gibi (numara ya da tam e-posta) gönderilir.
+class IdentifierField extends StatelessWidget {
+  const IdentifierField({super.key, required this.controller, this.onSubmitted, this.enabled = true});
 
   final TextEditingController controller;
   final VoidCallback? onSubmitted;
@@ -190,18 +193,31 @@ class EmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      autocorrect: false,
-      enableSuggestions: false,
-      autofillHints: const [AutofillHints.email],
-      validator: validateEmail,
-      style: BuType.body.copyWith(color: context.bu.ink),
-      onFieldSubmitted: (_) => onSubmitted?.call(),
-      decoration: authFieldDecoration(context, hint: 'ad.soyad@bingol.edu.tr', icon: LucideIcons.mail),
+    final t = context.bu;
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final deco = authFieldDecoration(context, hint: 'Okul numarası veya e-posta', icon: LucideIcons.mail);
+        return TextFormField(
+          controller: controller,
+          enabled: enabled,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [AutofillHints.username, AutofillHints.email],
+          validator: validateIdentifier,
+          style: BuType.body.copyWith(color: t.ink),
+          onFieldSubmitted: (_) => onSubmitted?.call(),
+          decoration: deco.copyWith(
+            helperText: '226051015 ya da ad.soyad@bingol.edu.tr',
+            helperMaxLines: 2,
+            helperStyle: BuType.caption.copyWith(color: t.mut),
+            suffixText: isStudentNumberInput(value.text) ? '@bingol.edu.tr' : null,
+            suffixStyle: BuType.body.copyWith(color: t.mut.withValues(alpha: 0.7)),
+          ),
+        );
+      },
     );
   }
 }

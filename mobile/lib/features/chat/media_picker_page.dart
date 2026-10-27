@@ -22,12 +22,15 @@ const kMaxVideoMs = 60 * 1000;
 /// Tam ekran galeri seçici: en yeni önce, sayfalı kare ızgara, ilk karo kamera, çoklu seçim.
 /// "Önizle" ya da "Gönder" ile [MediaSendPlan] döner; kapatılırsa null.
 class MediaPickerPage extends StatefulWidget {
-  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60});
+  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks});
 
   final MediaLibrary library;
   final EnsureAccess? ensureAccess;
   final MediaCameraLauncher? openCamera;
   final int pageSize;
+
+  /// En çok seçilebilecek öğe (varsayılan [kMaxPicks]; gönderi oluşturucu kalan hakkı verir).
+  final int maxItems;
 
   @override
   State<MediaPickerPage> createState() => _MediaPickerPageState();
@@ -150,8 +153,8 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
       _toast('Video en fazla 60 saniye olabilir');
       return false;
     }
-    if (_picked.length >= kMaxPicks) {
-      _toast('En fazla 10 öğe seçebilirsin');
+    if (_picked.length >= widget.maxItems) {
+      _toast('En fazla ${widget.maxItems} öğe seçebilirsin');
       return false;
     }
     setState(() => _picked.add(p));

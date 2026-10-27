@@ -9,6 +9,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
+import '../posts/profile_posts_section.dart';
 import 'edit_profile_page.dart';
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
@@ -359,6 +360,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ]),
           ),
         ],
+        if (!_blocked) ProfilePostsSection(session: widget.session, userId: widget.userId, name: _name),
       ],
     );
   }

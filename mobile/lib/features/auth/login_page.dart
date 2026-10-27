@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/bu_widgets.dart';
+
 import '../../core/api.dart';
+import '../../core/identifier.dart';
+import '../../core/pending_verification.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
@@ -24,6 +28,25 @@ class _LoginPageState extends State<LoginPage> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
+  PendingVerification? _pending;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPending();
+  }
+
+  Future<void> _loadPending() async {
+    final p = await widget.session.pending.load();
+    if (mounted) setState(() => _pending = p);
+  }
+
+  Future<void> _openVerify(String identifier) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return VerifyCodePage(session: widget.session, email: identifier, unverified: true);
+    }));
+    if (mounted) _loadPending();
+  }
 
   @override
   void dispose() {
@@ -40,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       await widget.session.login(_email.text, _password.text);
+      await widget.session.pending.clear();
     } on ApiError catch (e) {
       if (!mounted) return;
       if (e.code == 'EMAIL_NOT_VERIFIED') {
@@ -48,9 +72,11 @@ class _LoginPageState extends State<LoginPage> {
           await widget.session.resendCode(_email.text);
         } catch (_) {}
         if (!mounted) return;
-        await Navigator.push(context, MaterialPageRoute(builder: (_) {
-          return VerifyCodePage(session: widget.session, email: _email.text.trim());
-        }));
+        final id = normalizeIdentifier(_email.text);
+        widget.session.rememberCredentials(id, _password.text);
+        await widget.session.pending.save(id);
+        if (!mounted) return;
+        await _openVerify(id);
       } else {
         setState(() => _error = errorText(e));
       }
@@ -95,6 +121,11 @@ class _LoginPageState extends State<LoginPage> {
                 )
               : const SizedBox.shrink(),
         ),
+        if (_pending != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _PendingBanner(pending: _pending!, onTap: () => _openVerify(_pending!.identifier)),
+          ),
         Form(
           key: _form,
           child: AutofillGroup(
@@ -102,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_error != null) Notice(_error!),
-                EmailField(controller: _email),
+                IdentifierField(controller: _email),
                 const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,
@@ -119,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                               MaterialPageRoute(
                                 builder: (_) => ForgotPasswordPage(
                                   session: widget.session,
-                                  initialEmail: _email.text.trim(),
+                                  initialEmail: normalizeIdentifier(_email.text),
                                 ),
                               ),
                             ),
@@ -154,6 +185,54 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Doğrulaması yarım kalan kayıt için "Doğrulamayı tamamla" bandı.
+class _PendingBanner extends StatelessWidget {
+  const _PendingBanner({required this.pending, required this.onTap});
+
+  final PendingVerification pending;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: 'Doğrulamayı tamamla',
+      child: Material(
+        color: t.soft,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          key: const ValueKey('pending-verify-banner'),
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Icon(LucideIcons.mailCheck, color: t.onSoft, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Doğrulamayı tamamla', style: BuType.bodyStrong.copyWith(color: t.onSoft)),
+                      Text(pending.email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.caption.copyWith(color: t.onSoft)),
+                    ],
+                  ),
+                ),
+                Icon(LucideIcons.chevronRight, color: t.onSoft, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

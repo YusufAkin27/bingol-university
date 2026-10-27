@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
+import '../../core/identifier.dart';
 import '../../widgets/academic_picker.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -74,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _error = null;
     });
     try {
-      await widget.session.register(
+      final full = await widget.session.register(
         email: _email.text,
         password: _password.text,
         displayName: _name.text,
@@ -82,9 +83,12 @@ class _RegisterPageState extends State<RegisterPage> {
         department: _department,
         grade: _grade,
       );
+      final id = normalizeIdentifier(_email.text);
+      widget.session.rememberCredentials(id, _password.text);
+      await widget.session.pending.save(id);
       if (!mounted) return;
       await Navigator.push(context, MaterialPageRoute(builder: (_) {
-        return VerifyCodePage(session: widget.session, email: _email.text.trim());
+        return VerifyCodePage(session: widget.session, email: id, displayEmail: full);
       }));
     } on ApiError catch (e) {
       if (mounted) setState(() => _error = errorText(e));
@@ -137,7 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       .copyWith(counterText: ''),
                 ),
                 const SizedBox(height: 14),
-                EmailField(controller: _email),
+                IdentifierField(controller: _email),
                 const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,

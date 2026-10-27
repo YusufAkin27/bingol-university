@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/identifier.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
@@ -106,7 +107,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
     return AuthScaffold(
       showBack: true,
       title: 'Kodu girin',
-      subtitle: '${widget.email} adresine kod gönderildi.',
+      subtitle: '${fullEmail(widget.email)} adresine kod gönderildi.',
       children: [
         if (_error != null) Notice(_error!),
         if (_info != null) Notice(_info!, error: false),

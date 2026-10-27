@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../posts/user_posts_page.dart';
 import 'edit_profile_page.dart';
 import 'my_clubs_page.dart';
 import 'my_events_page.dart';
@@ -133,6 +134,11 @@ class _ProfileTabState extends State<ProfileTab> {
                       const SizedBox(height: 12),
                       BuGroup(children: [
                         BuMenuRow(icon: LucideIcons.squarePen, label: 'Profili düzenle', onTap: () => _edit(p)),
+                        BuMenuRow(
+                          icon: LucideIcons.newspaper,
+                          label: 'Gönderilerim',
+                          onTap: () => _go(UserPostsPage(session: widget.session)),
+                        ),
                         BuMenuRow(
                           icon: LucideIcons.bookmark,
                           label: 'Kaydedilenler',
