@@ -1,0 +1,62 @@
+# BÜ Kampüs - Caddy (otomatik HTTPS / Let's Encrypt). docker-compose.prod.yml bu dosyayı bağlar.
+# Karar: Caddy önde; /api, /files, /ws doğrudan backend'e (video yüklemeleri nginx'in 12 MB sınırına takılmasın),
+# diğer her şey web (nginx) statik/SPA. Env: DOMAIN, ACME_EMAIL, MAX_BODY.
+{
+	email {$ACME_EMAIL}
+	# Sunucu başlığını ve yönetim API'sini dışa vermeyiz (admin API yalnızca konteyner içinden)
+	admin 127.0.0.1:2019
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+
+	# Yönetim/iç uçlar dışarı verilmez (sağlık denetimi konteyner içinden yapılır)
+	@internal path /actuator /actuator/* /swagger-ui* /v3/api-docs*
+	handle @internal {
+		respond "Not Found" 404
+	}
+
+	# API, dosyalar, WebSocket: backend. X-Forwarded-* Caddy tarafından üretilir (istemcinin gönderdiği ezilir).
+	@backend path /api/* /files/* /ws /ws/*
+	handle @backend {
+		request_body {
+			max_size {$MAX_BODY}
+		}
+		reverse_proxy backend:8080 {
+			header_up X-Forwarded-For {client_ip}
+			header_up X-Real-IP {client_ip}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			# WebSocket ve video akışı için tamponlama yok
+			flush_interval -1
+			transport http {
+				read_timeout 180s
+				write_timeout 180s
+				dial_timeout 5s
+			}
+			health_uri /actuator/health
+			health_interval 15s
+			health_timeout 3s
+		}
+	}
+
+	# Tanıtım sitesi + /admin SPA
+	handle {
+		reverse_proxy web:80
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

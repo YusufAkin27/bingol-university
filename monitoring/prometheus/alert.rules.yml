@@ -1,0 +1,97 @@
+groups:
+  - name: bu-backend
+    rules:
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "Backend yanit vermiyor"
+          description: "Prometheus 2 dakikadir backend yonetim portunu kazıyamıyor."
+
+      - alert: High5xxRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 1) > 0.02
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "5xx orani %2'yi asti"
+          description: "Son 5 dakikada isteklerin %{{ $value | humanizePercentage }} kadari 5xx."
+
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri!~"/actuator.*|/ws.*"}[5m]))) > 1
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "p95 gecikme 1 sn'yi asti"
+          description: "p95 = {{ $value | humanizeDuration }} (10 dakikadir)."
+
+      - alert: DbPoolExhausted
+        expr: |
+          (hikaricp_connections_active / hikaricp_connections_max > 0.9) or (hikaricp_connections_pending > 0)
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "DB baglanti havuzu doyuyor"
+          description: "Aktif/maks > %90 ya da bekleyen baglanti var."
+
+      - alert: PushQueueStuck
+        expr: increase(bu_push_dropped_total[15m]) > 0 or (increase(bu_push_failures_total[15m]) > 20 and increase(bu_push_delivered_total[15m]) == 0)
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Push gonderimi takildi/dusuruluyor"
+          description: "Kuyruk dolu nedeniyle dusen ya da hic iletilemeyen push var (FCM kimligi/ag?)."
+
+      - alert: MailQueueStuck
+        expr: sum(bu_mail_outbox{status=~"pending|failed"}) > 100 or sum(bu_mail_outbox{status="dead"}) > 0
+        for: 30m
+        labels: {severity: warning}
+        annotations:
+          summary: "Mail kuyrugu birikti / olu kayit var"
+          description: "Bekleyen+basarisiz > 100 ya da DEAD kayit mevcut (SMTP ayarlarini kontrol edin)."
+
+      - alert: HighJvmHeap
+        expr: sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"}) > 0.9
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "JVM heap %90 uzerinde"
+
+  - name: bu-host
+    rules:
+      - alert: DiskLow
+        expr: |
+          (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs"}) < 0.15
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Disk bosluk %15'in altinda"
+          description: "{{ $labels.mountpoint }}: %{{ $value | humanizePercentage }} bos."
+
+      # Yedekleme metrigi BE2 tarafindan node_exporter textfile collector ile yazilir:
+      # backup_last_success_timestamp_seconds (docs/OBSERVABILITY.md). Metrik hic yoksa da uyarir.
+      - alert: BackupTooOld
+        expr: (time() - backup_last_success_timestamp_seconds) > 129600 or absent(backup_last_success_timestamp_seconds)
+        for: 30m
+        labels: {severity: critical}
+        annotations:
+          summary: "Son basarili yedek 36 saatten eski ya da metrik yok"
+
+      - alert: CertExpiry
+        expr: (probe_ssl_earliest_cert_expiry - time()) < 14 * 86400
+        for: 1h
+        labels: {severity: warning}
+        annotations:
+          summary: "TLS sertifikasi 14 gunden az kaldi"
+          description: "{{ $labels.instance }} sertifikasi {{ $value | humanizeDuration }} sonra bitiyor."
+
+      - alert: ProbeFailed
+        expr: probe_success == 0
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "Dis HTTPS yoklamasi basarisiz: {{ $labels.instance }}"

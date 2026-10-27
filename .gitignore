@@ -18,3 +18,19 @@ web/playwright-report/
 brand/node_modules/
 brand/.preview/
 test-results/
+
+# Android imza anahtarlari (SIR)
+mobile/android/key.properties
+*.jks
+*.keystore
+
+# Uretim sirlari ve yedek anahtarlari (SIR)
+.env.prod
+.env.staging
+deploy/rclone/rclone.conf
+backups/
+*.age.key
+deploy/backup-keys/verify.key
+
+# CI araclari
+.ci-tools/

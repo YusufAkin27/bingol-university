@@ -1,0 +1,6 @@
+# Yoklanacak herkese acik HTTPS adresleri (sertifika bitisi + erisilebilirlik). Kendi alan adinizi yazin.
+# Not: prometheus.yml icinde ${...} genisletilmez; bu dosya elle duzenlenir.
+- targets:
+    - https://staging.example.invalid/api/status
+  labels:
+    env: staging

@@ -40,13 +40,15 @@ Accept-Language: tr
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
 
-**Bekleyen kayıt:** kayıt verisi (şifre özeti, ad, dil) e-posta doğrulanana kadar yalnızca Redis'te (`reg:<email>`, 1 saat) tutulur; veritabanında hesap yoktur. Hesap **`verify-email` başarılı olunca** oluşur ve sözleşme onayı o anda yazılır. 1 saat içinde doğrulanmazsa kayıt düşer: yeniden `register` gerekir. Doğrulanmamış adresle tekrar `register` mevcut bekleyen veriyi ezmez; 60 sn içinde `429 RESEND_COOLDOWN`.
+**Okul numarasıyla kimlik:** tüm kimlik uçlarında (`register`, `verify-email`, `resend-code`, `login`, `forgot-password`, `verify-reset-code`, `reset-password`) `email` alanı **tam e-posta ya da yalnızca okul numarası** olabilir. Numara = e-posta kullanıcı adı: `226051015` ve `226051015@bingol.edu.tr` aynı hesaptır. Numara yalnız rakam, 6-12 hane (boşluk/tire/nokta temizlenir); aksi `400 VALIDATION_ERROR`. Sunucu her yerde tam e-postaya çevirir (`GET /auth/me` → `email` tam e-posta). Kayıt formunda önce tüm bilgiler (ad, e-posta/numara, şifre, fakülte/bölüm/sınıf, sözleşme) toplanır, doğrulama kodu **`register` çağrısının sonunda** gönderilir.
+
+**Bekleyen kayıt:** kayıt verisi (şifre özeti, ad, dil) e-posta doğrulanana kadar yalnızca Redis'te (`reg:<email>`) tutulur; veritabanında hesap yoktur. Süre `app.auth.pending-registration-ttl` (varsayılan **72 saat**), yenilenmez; dolunca kayıt silinir, yeniden `register` gerekir. Hesap **`verify-email` başarılı olunca** oluşur ve sözleşme onayı o anda yazılır. **Doğrulanmamış giriş denemesi:** bekleyen kaydın şifresiyle `login` → `403 EMAIL_NOT_VERIFIED` (istemci "doğrulanmamış" sayfasını açıp kod girişi + `resend-code` sunar; girilen e-posta/numara ve şifre sayfada tutulabilir); şifre yanlışsa genel `401 INVALID_CREDENTIALS` (kaydın varlığı sızmaz). Doğrulanana kadar oturum açılamaz. Doğrulanmamış adresle tekrar `register` mevcut bekleyen veriyi ezmez; 60 sn içinde `429 RESEND_COOLDOWN`.
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
 - Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
-- IP başına saatte 10 kayıt (`429 RATE_LIMITED`).
+- IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
 
 ### 1.2 Kod gönderme/doğrulama
@@ -149,6 +151,19 @@ GET /api/catalog/departments?q=muh&limit=30   → 200 (en çok 30; Türkçe harf
 - Kayıt (`POST /api/auth/register`) ve profil (`PATCH /api/users/me`) gövdesinde `faculty` / `department` (ad olarak, id değil) ve `grade` (`PREP`, `1`..`6`, `MASTER`, `PHD`) gönderilir. Alanlar isteğe bağlıdır; verilenler katalogla doğrulanır: bölüm, gönderilen (ya da profilde kayıtlı) fakülteye ait olmalıdır; aksi `400 ACADEMIC_INVALID`. Profilde boş metin alanı temizler.
 - `GET /api/users/me` yanıtı `faculty`, `department`, `grade` alanlarını döndürür (eski kullanıcılarda serbest metin ya da `null` olabilir).
 - Arama kutusunda her tuşta istek atmayın (debounce); tüm kataloğu bir kez çekip yerelde süzmek de mümkündür (≈ 740 program).
+
+### 1.9 Cihaz kimliği başlıkları ve `ACCESS_BLOCKED`
+Yönetici bir cihazı, IP'yi ya da hesabı engelleyebilir. Engelin cihaz ayağının çalışması için istemci **her HTTP isteğine** (anonim dahil: kayıt, giriş, doğrulama, yenileme) şu başlıkları ekler:
+
+| Başlık | Değer | Not |
+|---|---|---|
+| `X-Device-Id` | kararlı cihaz kimliği, 8-128 karakter `[A-Za-z0-9._:-]` | Android: `ANDROID_ID`; iOS: `identifierForVendor`. Ham değer sunucuda HMAC-SHA256 ile özetlenir, saklanmaz. Geçersiz/eksik başlık yok sayılır (cihaz engeli uygulanamaz) |
+| `X-Device-Platform` | `ANDROID` \| `IOS` \| `WEB` | isteğe bağlı |
+| `X-App-Version` | ör. `1.4.2` | isteğe bağlı, en çok 32 karakter |
+
+WebSocket: el sıkışma isteğine aynı başlıklar eklenebilir; STOMP `CONNECT` çerçevesine `device-id`, `device-platform`, `app-version` başlıkları konur (engelli cihaz `ERROR` çerçevesi `ACCESS_BLOCKED` alır).
+
+**`403 ACCESS_BLOCKED`** (`{"code":"ACCESS_BLOCKED","message":"…"}`): bu cihaza/ağa/hesaba erişim kapatılmıştır; sebep verilmez. Her uçta gelebilir (anonim uçlar dahil). İstemci: yenilemeyi **denemez**, oturumu yerelde siler (token + önbellek), tam ekran "erişim kapatıldı" ekranı gösterir (yazı `message`ten), WebSocket'i yeniden bağlamaz. Açık WebSocket'teyken sunucu `/user/queue/message-events` ile `{type:"access-blocked"}` gönderir ve bağlantıyı `ACCESS_BLOCKED` kapanış gerekçesiyle kapatır (`session-replaced` ile karıştırmayın; ondaki gibi yeniden giriş önerilmez). Başlıkları eklemeyen eski istemcilerde yalnızca IP ve hesap engeli çalışır.
 
 ## 2. Dil (Accept-Language) ve çok dillilik
 - Her istekte `Accept-Language` gönderin (uygulama dili). Sunucu `error.<KOD>` anahtarını bu dilde çevirir; çeviri yoksa Türkçe varsayılan metin döner.
@@ -302,7 +317,7 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 4. **Video mesaj:** aynı uç `file=video/mp4` (+ isteğe bağlı `poster`= JPEG/PNG önizleme karesi) ile video yükler. Sınırlar: `ftyp` imzalı MP4, ≤ 40 MB (`413 VIDEO_TOO_LARGE`), ≤ 60 sn (`400 VIDEO_TOO_LONG`), bozuk/MP4 değil (`400 VIDEO_INVALID`); kullanıcı başına günde 30 video + ortak yükleme limitleri. Sunucu videoyu **yeniden kodlamaz** (istemci sıkıştırır); poster görsel hattından geçer (EXIF temizliği, ≤ 720 px) ve `thumbUrl` olur (poster yoksa `null`). `AttachmentView`: `kind` (`IMAGE`|`VIDEO`), `durationMs` (video), `sizeBytes`, `width`/`height` (poster ya da MP4 başlığı; bilinmiyorsa videoda `null`). Mesaj başına en çok 10 ek; video + görsel karışık serbest, video sayısı ayrıca sınırlı değil ama bir mesajdaki **videoların bayt toplamı ≤ 120 MB** (`413 MESSAGE_MEDIA_TOO_LARGE`; her video yine ≤ 40 MB / ≤ 60 sn); 10'dan fazla ek `400 ATTACHMENT_LIMIT`. Yükleme dakikada 20, mesaja eklenmemiş en çok 30 ek. Videoda `viewOnce` yok (`400 VIEW_ONCE_INVALID`). Oynatma: `GET .../media/{aid}` Bearer ile **HTTP Range** destekler (`Accept-Ranges: bytes`, `206 Partial Content`, `Content-Range`, `416` geçersiz aralıkta; `Content-Type: video/mp4`); oynatıcıya `Authorization` başlığı verin. `GET .../media/{aid}/thumb` posteri verir (yoksa `404`). `GET .../link` videoda `url=null` döner (yalnız poster için imzalı `thumbUrl`). Rapor, silme (mesaj silinince dosya da silinir) ve KVKK dışa aktarım (yalnız meta) görselle aynıdır.
 5. Görseli/videoyu raporlamak için `POST .../media/{aid}/report {reason,note}` (günlük rapor limiti ortak).
 
-**Tek gösterimlik görsel (view-once).** Yükleme aynı; gönderimde `POST /api/conversations/{id}/messages` ve `chat.send` gövdesine `"viewOnce": true` eklenir (yalnız `attachmentIds` doluyken, **tam 1 ek**; aksi `400 VIEW_ONCE_INVALID`; metin boş olabilir, doluysa normal kalır). `attachments[i]` alanlarına `viewOnce` ve `viewed` eklenir. Alıcıda `viewed` = ben açtım mı; göndericide (birebirde) karşı taraf, (grupta) en az bir alıcı açtı mı. Tek gösterimlikte `thumbUrl` **hiç** gelmez; `url` yalnız alıcıya ve henüz açmamışsa doludur (gönderende `null`). Açmak: `GET .../media/{aid}` (`Cache-Control: no-store, private`, `Content-Disposition: inline`) ilk başarılı istekte baytları verir ve açılış kaydedilir; sonrası `410 MEDIA_VIEW_ONCE_EXPIRED`; gönderici `403 MEDIA_VIEW_ONCE_OWN`; `/thumb` ve `/link` tek gösterimlikte `404`. Açılınca gönderene `/user/queue/message-events` ile `{type:"viewed",conversationId,messageId,attachmentId,userId,at}` düşer. Birebirde alıcı açınca, grupta tüm alıcılar açınca ya da 24 saat sonra dosya içeriği sunucudan silinir (`viewed` bilgisi kalır).
+**Tek gösterimlik görsel (view-once).** Yükleme aynı; gönderimde `POST /api/conversations/{id}/messages` ve `chat.send` gövdesine `"viewOnce": true` eklenir (yalnız `attachmentIds` doluyken, **tam 1 ek**; aksi `400 VIEW_ONCE_INVALID`; metin boş olabilir, doluysa normal kalır). `attachments[i]` alanlarına `viewOnce` ve `viewed` eklenir. Alıcıda `viewed` = ben açtım mı; göndericide (birebirde) karşı taraf, (grupta) en az bir alıcı açtı mı. Tek gösterimlikte `thumbUrl` **hiç** gelmez; `url` yalnız alıcıya ve henüz açmamışsa doludur (gönderende `null`). Açmak: `GET .../media/{aid}` (`Cache-Control: no-store, private`, `Content-Disposition: inline`) ilk başarılı istekte baytları verir ve açılış kaydedilir; sonrası `410 MEDIA_VIEW_ONCE_EXPIRED`; gönderici `403 MEDIA_VIEW_ONCE_OWN`; `/thumb` ve `/link` tek gösterimlikte `404`. Açılınca gönderene `/user/queue/message-events` ile `{type:"viewed",conversationId,messageId,attachmentId,userId,at}` düşer. Alıcı erişimi ilk açılıştan sonra (ya da 24 saat sonra) kapanır; ancak dosya içeriği artık açılışta SİLİNMEZ: yönetici denetimi için şifreli özel depoda `app.chat.media.view-once-retention-days` (varsayılan 365) boyunca tutulur, sonra silinir (`viewed` bilgisi kalır). İstemci davranışı değişmedi (ikinci açış `410`, gönderen `403`, `/thumb` ve `/link` `404`).
 
 ### 4.9 Grup adı ve fotoğrafı
 Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve birebir hariç, `400 NOT_A_GROUP`) ve yalnız grup yöneticisi (`403 NOT_GROUP_ADMIN`): ad `PATCH /api/conversations/{id} {"title"}`; fotoğraf `PUT /api/conversations/{id}/avatar` (multipart **`file`**, avatar hattı: tür/boyut doğrulama, yeniden kodlama, EXIF temizliği; yanıt `200` `ConversationView`), kaldırma `DELETE /api/conversations/{id}/avatar` (`204`). `ConversationView.avatarUrl` herkese açık `/files/avatars/...` yoludur (yoksa `null`). Değişince tüm üyelere `/user/queue/message-events` ile `{type:"conversation-updated",conversationId,userId,title,avatarUrl,at}` gider. Fotoğraf yönetimi dakikada 10 ile sınırlıdır.
@@ -438,10 +453,15 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 
 | Kod | HTTP | Turkce (tr) | English (en) | Arabic (ar) |
 |---|---|---|---|---|
+| `ACCESS_BLOCKED` | 403 | Bu cihaza veya ağa erişim kapatıldı. | Access from this device or network has been blocked. | تم إغلاق الوصول من هذا الجهاز أو الشبكة. |
 | `ACCOUNT_SUSPENDED` | 403 | Hesabınız askıya alınmıştır. | Your account has been suspended. | تم تعليق حسابك. |
 | `ALREADY_MEMBER` | 409 | Zaten üyesiniz veya isteğiniz bekliyor. | You are already a member or your request is pending. | أنت عضو بالفعل أو أن طلبك قيد الانتظار. |
 | `ALREADY_REPORTED` | 409 | Bu içeriği zaten raporladınız. | You have already reported this content. | لقد أبلغت عن هذا المحتوى مسبقًا. |
 | `ALREADY_RESOLVED` | 409 | Rapor zaten sonuçlandırılmış. | This report has already been resolved. | تمت معالجة هذا البلاغ مسبقًا. |
+| `BAN_BULK_TOO_LARGE` | 400 | Toplu yüklemede en çok {0} satır olabilir. | A bulk upload can contain at most {0} lines. | يمكن أن يحتوي الرفع الجماعي على {0} سطر كحد أقصى. |
+| `BAN_INVALID_VALUE` | 400 | Engel değeri geçersiz. | The ban value is invalid. | قيمة الحظر غير صالحة. |
+| `BAN_NOT_FOUND` | 404 | Engel kaydı bulunamadı. | Ban record not found. | سجل الحظر غير موجود. |
+| `BAN_SELF_LOCKOUT` | 400 | Bu engel sizi veya yönetim ağını kilitleyebilir; işlem reddedildi. | This ban could lock you or the admin network out; the operation was rejected. | قد يؤدي هذا الحظر إلى إغلاق الوصول عليك أو على شبكة الإدارة؛ تم رفض العملية. |
 | `BANNED` | 403 | Bu topluluktan uzaklaştırıldınız. | You have been removed from this community. | تمت إزالتك من هذا المجتمع. |
 | `BLOCKED` (artık mesajlaşma uçlarında dönmez) | 403 | Bu kullanıcıyla mesajlaşamazsınız. | You cannot message this user. | لا يمكنك مراسلة هذا المستخدم. |
 | `BOOKMARK_LIMIT` | 409 | En fazla {0} kayıt tutulabilir. Önce bazılarını kaldırın. | You can save at most {0} items. Remove some first. | يمكنك حفظ {0} عنصرًا كحد أقصى. أزل بعضها أولًا. |
@@ -631,3 +651,99 @@ Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kiş
 - Rate limit: kullanıcı başına saatte 6, IP başına saatte 30 istek; aşımda `429` + `Retry-After`.
 - Sunucu hash'leri ve sonuçları saklamaz/loglamaz. İstemci de rehberi yalnızca eşleştirme sırasında bellekte tutmalıdır;
   rehber izni kullanıcıdan açıkça istenmelidir.
+
+
+## Gönderiler (Keşfet akışı)
+Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.
+
+| Uç | Açıklama |
+|---|---|
+| `POST /api/posts` `{text?, mediaIds?}` | 201 `PostView`. Metin veya medya zorunlu (`400 POST_EMPTY`), metin ≤ 2000 (`400 POST_TOO_LONG`), medya geçersiz (`400 POST_MEDIA_INVALID`), küfür (`422 CONTENT_PROFANITY`). Saatte 20 gönderi. |
+| `GET /api/posts/{id}` | `PostView`; silinmiş/gizli/engelli/yazarı pasif → `404 POST_NOT_FOUND`. |
+| `PATCH /api/posts/{id}` `{text}` | Yalnız yazar (`403 POST_FORBIDDEN`); `editedAt` dolar, medya değişmez. |
+| `DELETE /api/posts/{id}` | 204; yazar veya ADMIN (yumuşak silme). |
+| `GET /api/feed?scope=latest\|popular&cursor=&size=` | `{items:[PostView], nextCursor:string\|null}`; size 1-20 (varsayılan 10). `latest` yeniden eskiye, `popular` son 7 gün puanına göre. |
+| `GET /api/users/{id}/posts`, `GET /api/posts/mine` | Aynı sayfa biçimi (`cursor`, `size`); engel ilişkisinde boş liste. |
+
+- **İmleç opaktır**: `nextCursor` değerini aynen `cursor` olarak geri verin; `scope` değiştirilince imleç atılır. Bozuk imleç `400 POST_CURSOR_INVALID`. `popular`'da puan saatlik güncellendiği için nadiren aynı gönderi sayfalar arasında tekrar edebilir (istemci `id` ile tekilleştirsin).
+- `PostView`: `{id, author{id,displayName,avatarUrl,department}, text, media[], likeCount, commentCount, likedByMe, mine, canEdit, canDelete, createdAt, editedAt}`. `avatarUrl`/`department` yazarın gizlilik ayarına göre `null` olabilir. `canEdit` yalnız yazar, `canDelete` yazar veya ADMIN içindir.
+- Okuma uçları dakikada 120, düzenleme/silme dakikada 30 istek; aşımda `429` + `Retry-After`.
+- Hata kodları: `POST_NOT_FOUND` 404, `POST_EMPTY` 400, `POST_TOO_LONG` 400, `POST_FORBIDDEN` 403, `POST_MEDIA_INVALID` 400, `POST_CURSOR_INVALID` 400 (tr/en/ar `i18n/post*.properties`).
+
+### Beğeni
+| Uç | Açıklama |
+|---|---|
+| `PUT /api/posts/{id}/like` | 200 `{liked:true, likeCount}`; idempotent. Görünmeyen gönderi `404 POST_NOT_FOUND`. |
+| `DELETE /api/posts/{id}/like` | 200 `{liked:false, likeCount}`; idempotent. |
+| `GET /api/posts/{id}/likes?cursor=&size=` | `{items:[{id,displayName,avatarUrl,likedAt}], nextCursor:string\|null, total}`; size <= 30; engelliler gizli. |
+
+- Dakikada 120 istek (`429` + `Retry-After`). Mobil iyimser güncelleme yapabilir; yanıttaki `likeCount` gerçeğin kaynağıdır.
+- Bildirim türleri: `POST_LIKE`, `POST_COMMENT`, `COMMENT_REPLY` (push `data`: `targetType:"POST"`, `targetId:<postId>`, `commentId` varsa yorum). Aynı gönderinin beğenileri 10 dk içinde tek bildirimde birleşir ("A ve 3 kişi gönderini beğendi"); tercih anahtarı mevcut `communities` bayrağı, ayrıca `subtypes.POST_LIKE|POST_COMMENT|COMMENT_REPLY`.
+
+### Yorum ve yanıt (iç içe)
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{id}/comments?sort=new\|top&cursor=&size=` | `{items:[CommentView], nextCursor:string\|null, total}`; yalnız KÖK yorumlar, size 1-20. `new` yeniden eskiye; `top` = yanıt sayısı sonra yenilik. Her köke `previewReplies` (en eski 2 yanıt) ve `replyCount` gelir. `total` = gönderideki silinmemiş tüm yorum+yanıt (`commentCount`). |
+| `GET /api/comments/{id}/replies?cursor=&size=` | `{items:[CommentView], nextCursor}`; eskiden yeniye, size 1-20; `previewReplies` bu uçta `null`. |
+| `POST /api/posts/{id}/comments` `{text, parentId?}` | 201 `CommentView`. Metin ≤ 1000. `parentId` verilirse yanıt. |
+| `PATCH /api/comments/{id}` `{text}` | Yalnız yazar; `editedAt` dolar. |
+| `DELETE /api/comments/{id}` | 204; yazar, gönderi sahibi veya ADMIN. |
+
+- `CommentView`: `{id, postId, parentId, rootId, depth(0..3), author{id,displayName,avatarUrl}, replyToUser{id,displayName}|null, text, deleted, replyCount, mine, canEdit, canDelete, createdAt, editedAt, previewReplies}`.
+- **Derinlik**: en çok 3. Derinliği 3 olan bir yoruma yanıt verilirse yeni yorum onun kardeşi olarak eklenir (`parentId` = ebeveynin ebeveyni, `depth` 3) ve `replyToUser` yanıtlanan kişidir; arayüz "@ad" göstermek için `replyToUser` kullanmalı. Her yanıtta `replyToUser` doludur (ebeveyn yazarı).
+- **Silinen yorum**: yanıtı varsa listede kalır: `deleted:true`, `text:null`, `author:null` (başlık "Bu yorum silindi"), yanıtları görünür kalır; yanıtı yoksa listeden kalkar. `commentCount` ve `replyCount` buna göre düşer. Silinmiş yoruma yanıt yazılamaz (`400 COMMENT_PARENT_INVALID`).
+- **İmleç opaktır** (`nextCursor` aynen `cursor`); `sort` değişince imleç atılır; bozuk imleç `400 POST_CURSOR_INVALID`.
+- Engel ilişkisindeki kullanıcıların yorumları iki yönlü gizlenir (`total`e yansımaz). Küfür filtresi `422 CONTENT_PROFANITY` (`field:"text"`).
+- Hız: yazma/düzenleme/silme 10 dakikada 30, okuma dakikada 120 (`429` + `Retry-After`).
+- Hata kodları: `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 400, `COMMENT_FORBIDDEN` 403, `COMMENT_PARENT_INVALID` 400, görünmeyen gönderi `POST_NOT_FOUND` 404 (tr/en/ar).
+- Bildirim: kök yorum → gönderi sahibine `POST_COMMENT`; yanıt → ebeveyn yorum sahibine (ve farklıysa yanıtlanan kişiye) `COMMENT_REPLY`.
+
+## İçerik denetimi: `CONTENT_PROFANITY` (422)
+
+Herkese açık metin alanlarında (kulüp adı/açıklaması/kategorisi/katılım soruları, kulüp gönderisi ve duyurusu, etkinlik başlığı/açıklaması/mekânı/başvuru soruları ve duyurusu, profil adı/biyografi/bölüm, grup sohbeti başlığı, kayıtta görünen ad) uygunsuz ifade reddedilir:
+
+```json
+HTTP 422
+{ "code": "CONTENT_PROFANITY", "message": "Bu alanda uygunsuz ifade kullanılamaz. Lütfen metni düzenleyin.", "field": "name" }
+```
+
+- `message` istek dilindedir (tr/en/ar); `field` istek gövdesindeki alan adıdır (`name`, `description`, `category`, `text`, `title`, `message`, `location`, `questions`, `displayName`, `bio`, `department`, `subject`). Hatalı kelime **asla** yanıtta yer almaz; arayüz yalnızca ilgili alanı işaretleyip mesajı göstermelidir.
+- Güncellemelerde (PATCH/PUT) yalnızca **değişen** alanlar denetlenir.
+- **Sohbet mesajları (birebir/grup/kulüp/etkinlik odası: gövde ve görsel açıklaması) filtrelenmez.** Sorunlu mesaj için mevcut mesaj şikâyeti kullanılır (sebep `INAPPROPRIATE` / `HARASSMENT`).
+
+## Akademik: ders programı, sınavlar, akademik takvim, bölüm duyuruları
+
+Tam sözleşme (JSON örnekleri, hata kodları, saat biçimleri): [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Özet:
+
+- **Ders programı (kişisel):** `GET /api/timetable`, `POST|PATCH|DELETE /api/timetable/courses[/{id}]` (bir ders + çok oturum; çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir), `POST /api/timetable/import` (en çok 60 oturum), `GET /api/timetable/today|week|reminders`, `GET /api/timetable/export.ics` (VTIMEZONE Europe/Istanbul, haftalık RRULE), dönemler `/api/timetable/semesters` (+ `from-official`).
+- **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`, resmi program `GET /api/exams/official` (profildeki fakülte/bölüm/sınıfa göre).
+- **Akademik takvim:** `GET /api/academic/calendar?month=YYYY-MM|from&to`, `GET /api/academic/calendar/next`.
+- **Bölüm duyuruları:** `GET /api/announcements?scope=mine|all&cursor&size` (opak string imleç, sabitlenmişler önce), `GET /api/announcements/{id}` (okundu işaretler), `POST /api/announcements/{id}/read`, `POST /api/announcements/read-all`, `GET /api/announcements/unread-count`. Push: tür `ANNOUNCEMENT`, `targetType=ANNOUNCEMENT`, `targetId=<duyuru id>`.
+- Ders/sınav hatırlatmaları **mobil yerel bildirimle** yapılır; sunucu yalnız `reminders` listesini verir. Saat dilimi Europe/Istanbul, `dayOfWeek` ISO 1..7.
+
+## Gönderi sosyal özellikleri (kaydet, @etiket, #etiket, takip, hikâyeler)
+
+Tam sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Gönderi sosyal". Özet:
+
+- **Kaydet:** `PUT/DELETE /api/posts/{id}/save` (idempotent, `{saved}`), `GET /api/posts/saved?cursor&size` (PostView sayfası). `PostView.savedByMe` yalnız kendi görünümünüzde dolu; kaydeden sayısı yoktur.
+- **@Etiket:** metne istemci `@[Ad Soyad](uid:123)` yazar (seçici ile; `GET /api/users/mention-suggest?q=&postId=&size=8`). Sunucu en çok 10 kişiyi doğrular (11+ → 400 `MENTION_TOO_MANY`; engelli/pasif kullanıcı sessizce düşer). `PostView.mentions` ve `CommentView.mentions` = `[{id, displayName}]`; `text` biçimi aynen korunur, istemci `@[..](uid:..)` kalıbını "@Ad" olarak çizer. Etiketlenene `POST_MENTION` bildirimi (`targetType: POST`, `data.commentId` yorum için).
+- **#Etiket:** metindeki `#etiket` (2–40 harf/rakam/_) sunucuda çıkarılır; `PostView.hashtags` (Türkçe küçük harfli). `GET /api/hashtags/trending?size=10` (48 saat, saatlik önbellek), `GET /api/hashtags/suggest?q=`, `GET /api/hashtags/{tag}/posts?cursor&size` (`{tag}` aksanlı/aksansız olabilir).
+- **Takip:** `POST/DELETE /api/users/{id}/follow` (`{following, followerCount}`), `GET /api/users/{id}/followers|following?cursor&size`, `GET /api/users/me/follow-suggestions?size=`. Profil (`GET /api/users/{id}`) `followerCount`, `followingCount`, `followedByMe` taşır. `USER_FOLLOW` bildirimi (`targetType: USER`, `targetId` = takipçi); alt tür tercihi `USER_FOLLOW` (ve `POST_MENTION`) mevcut bildirim tercihleri ucundan (`subtypes`) kapatılabilir.
+- **Akış:** `GET /api/feed?scope=latest|popular|following|department`. `department` ve profilde bölüm yoksa `items:[]` + `hint:"NO_DEPARTMENT"`. Bilinmeyen kapsam → 400 `FEED_SCOPE_INVALID`.
+- **Hikâyeler (24 saat):** medya `POST /api/posts/media` ile yüklenir, `POST /api/stories {mediaId?, text?, caption?, background?}` ile bağlanır (video ≤30 sn → `STORY_VIDEO_TOO_LONG`). `GET /api/stories/tray` (kendim ilk, görülmemiş önce), `GET /api/users/{id}/stories`, `POST /api/stories/{id}/view` (204, idempotent), `GET /api/stories/{id}/viewers` (yalnız sahip), `DELETE /api/stories/{id}`. Süre dolunca 404/boş. Medya aynı `GET /api/posts/media/{id}` ucundan akar. Yanıt/tepki yoktur.
+- Hata kodları (tr/en/ar): `MENTION_TOO_MANY`, `FOLLOW_SELF`, `FEED_SCOPE_INVALID`, `HASHTAG_INVALID`, `STORY_NOT_FOUND`, `STORY_FORBIDDEN`, `STORY_EMPTY`, `STORY_TOO_LONG`, `STORY_VIDEO_TOO_LONG`, `STORY_BACKGROUND_INVALID`.
+
+
+## Anket ve oylama
+
+Tam sözleşme (alanlar, hata kodları, hız sınırları): `docs/API_CONTRACTS_V2.md` → "Anket ve oylama". Mobil için özet:
+
+- **Liste:** `GET /api/polls?scope=open|mine|closed|community:{id}&cursor=&size=` → `{ items: [PollView], nextCursor }` (sayısal imleç). Ana sayfada `open`, kulüp sayfasında `community:{id}`, profilde `mine`.
+- **Ayrıntı:** `GET /api/polls/{id}`. `canVote` / `voteBlockedReason` (`NOT_ELIGIBLE|CLOSED|NOT_OPEN|ALREADY_VOTED`) ile düğmeyi/etiketi çizin; `resultsVisible=false` iken `results` null gelir (sonucu gizleyin, "Sonuçlar oylamadan sonra / kapanınca görünür" yazın). `state`: `SCHEDULED|OPEN|CLOSED|CANCELLED|DRAFT`.
+- **Oy ver:** `POST /api/polls/{id}/vote` gövde `{ "optionIds": [..] }` (SINGLE 1 öğe, MULTI en çok `maxChoices`, RANKED sıralı: ilk = en çok tercih) veya `{ "rating": 1..5 }` (RATING). İdempotent; yanıt güncel PollView. `409 POLL_CLOSED|POLL_NOT_OPEN|POLL_ALREADY_VOTED`, `403 POLL_NOT_ELIGIBLE`, `400 POLL_INVALID_VOTE`.
+- **Oyu geri çek:** `DELETE /api/polls/{id}/vote` (`allowChangeVote=false` ise 409 `POLL_ALREADY_VOTED`).
+- **Bugünün menüsünü puanla:** `GET /api/polls/menu/today` → PollView (`scope=MENU`, `type=RATING`, `menuItems`, `average`); yemek listesi yoksa **204**.
+- **Oluşturma/yönetme (kulüp yöneticisi):** `POST /api/polls` (`scope=COMMUNITY`, `communityId`; varsayılan gizli oy), `PATCH /api/polls/{id}`, `POST /api/polls/{id}/close`, `DELETE /api/polls/{id}`; `canManage=true` olan ankette düğmeleri gösterin. Genel (`GLOBAL`) ve `MENU` anketlerini yalnız yönetici oluşturur.
+- **Gizli oy:** hiçbir yanıt kimin ne oy verdiğini döndürmez; yalnız `myVote` (kendi oyunuz).
+- **Bildirim/yönlendirme:** push `data` içinde `target=POLL`, `targetType=POLL`, `targetId=<anket id>` (+ kulüp anketinde `communityId`); dokununca `GET /api/polls/{id}` açın.
+- **Hata kodları:** `POLL_NOT_FOUND` 404, `POLL_FORBIDDEN` 403, `POLL_NOT_ELIGIBLE` 403, `POLL_CLOSED` 409, `POLL_NOT_OPEN` 409, `POLL_ALREADY_VOTED` 409, `POLL_LOCKED` 409, `POLL_MENU_EXISTS` 409, `POLL_MENU_NOT_FOUND` 404, `POLL_INVALID_VOTE` 400, `POLL_INVALID` 400, `POLL_SCOPE_INVALID` 400 (mesajlar istek dilinde: tr/en/ar).

@@ -75,3 +75,9 @@ senkron ve uyelik islemiyle ayni islemde yayinlanir. Dinleyici hatasi uyelik isl
 ## Hata kodlari
 
 Yeni hata kodu eklenmedi.
+
+## Uygunsuz ifade filtresi (V300)
+
+- `CommunityService.create/update` (ad, açıklama, kategori), `CommunityPostService.create` (gönderi metni), `ClubAnnouncementService.create` (duyuru), `ClubJoinFormService.setQuestions` (yeni/değişen katılım soruları) `ContentGuard` ile denetlenir; ihlalde `422 CONTENT_PROFANITY` + `field` (ayrıntı: docs/MOBILE_API_GUIDE.md). PATCH yalnızca değişen alanı denetler; yönetici de muaf değildir.
+- Kulüp sohbet odası mesajları (`messaging`) filtrelenmez.
+- Hata kodu: `CONTENT_PROFANITY` (`i18n/ops*.properties`, tr/en/ar).

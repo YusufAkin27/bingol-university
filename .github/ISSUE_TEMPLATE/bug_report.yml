@@ -1,0 +1,33 @@
+name: Hata bildirimi
+description: Uygulamada ya da yonetim panelinde bir hata
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Alan
+      options: [Mobil (Android), Mobil (iOS), Web / yonetim paneli, Backend API, Diger]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Adimlar
+      description: Hatayi nasil yeniden uretiriz?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Beklenen / gerceklesen
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Surum / cihaz
+      placeholder: 1.0.0, Pixel 7, Android 15
+  - type: markdown
+    attributes:
+      value: |
+        Lutfen sifre, token ya da kisisel veri paylasmayin. Guvenlik acigi icin issue ACMAYIN: SECURITY.md.

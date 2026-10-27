@@ -1,0 +1,39 @@
+# Alertmanager (--config.expand-envvars ile calisir: ${DEGISKEN} .env'den okunur).
+# Varsayilan alici: e-posta. Slack/Telegram icin asagidaki yorumlu ornekleri acin (webhook/token .env'de, depoda DEGIL).
+global:
+  smtp_smarthost: '${ALERT_SMTP_HOST}:${ALERT_SMTP_PORT}'
+  smtp_from: '${ALERT_EMAIL_FROM}'
+  smtp_auth_username: '${ALERT_SMTP_USER}'
+  smtp_auth_password: '${ALERT_SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+route:
+  receiver: ops-email
+  group_by: [alertname, env]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="critical"]
+      receiver: ops-email
+      repeat_interval: 1h
+
+receivers:
+  - name: ops-email
+    email_configs:
+      - to: '${ALERT_EMAIL_TO}'
+        send_resolved: true
+    # slack_configs:
+    #   - api_url: '${SLACK_WEBHOOK_URL}'
+    #     channel: '#bu-alerts'
+    #     send_resolved: true
+    # telegram_configs:
+    #   - bot_token: '${TELEGRAM_BOT_TOKEN}'
+    #     chat_id: ${TELEGRAM_CHAT_ID}
+    #     send_resolved: true
+
+inhibit_rules:
+  # Backend cokmusken ikincil uyarilari bastir
+  - source_matchers: [alertname="BackendDown"]
+    target_matchers: [severity="warning"]
+    equal: [env]

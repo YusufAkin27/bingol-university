@@ -82,3 +82,43 @@ Dosyalar `<storage.dir>/_private/<kova>/<uuid>.jpg|png` (+ `-t`); `FileControlle
 * **Sunum:** `GET .../media/{aid}` `Range` basligini isler (tek aralik; `206` + `Content-Range`, `416`, `Accept-Ranges: bytes`). Dosya belleğe okunmaz: duz dosyada dogrudan konumlanir, sifreliyse parca parca cozulur (basa kadar atlanir, aralik bitince durulur). Yetki gorselle ayni (`accessible`); imzali `/files/p/` adresi videoda verilmez.
 * **Yasam dongusu:** `PrivateMediaStore.delete` videoyla birlikte posterini siler; moderasyon gizlemesi `copyVideo` ile yeni anahtarlara tasir; yetim temizleyici `.mp4` anahtarlarini `existsByStorageKey` ile tarar.
 * Ayarlar: `app.chat.media.video-max-bytes`, `video-max-seconds`, `video-daily-limit`; `spring.servlet.multipart.max-file-size` 45 MB.
+
+## Gonderi medyasi (V310) — `post/media/**`
+* **Yukleme:** `POST /api/posts/media` (multipart `file`; video icin istege bagli `poster`) -> 201 `{id, kind, url, thumbUrl, width, height, durationMs, bytes}`. Gorsel: yeni `ImageKind.FEED` (herkese acik klasoru yok; ham 8 MB, uzun kenar 1600 px, onizleme 480 px, yeniden kodlama + EXIF temizligi). Video: `video/mp4` + `ftyp`, <=60 sn (`VIDEO_TOO_LONG`), <=40 MB (`VIDEO_TOO_LARGE` 413), `Mp4Info` ile ayristirma (`VIDEO_INVALID`); poster `FEED` hattindan 720 px ile gecer. Yasakli ozet: ham + islenmis gorsel/poster/video (422 `MEDIA_BLOCKED`).
+* **Depo:** `_private/post/<uuid>.jpg|png|mp4` (+ `-t` onizleme/poster), `/files/**` disinda. Gorseller `BlobCipher` varsa diskte AES-GCM sifreli. **Videolar duz yazilir**: video sifrelemesi konusma DEK'ine (`conversation_key.conversation_id` -> `conversation` FK) baglidir, gonderide konusma yoktur; icerik zaten herkese acik gonderidir. Bu nedenle `PrivateMediaStore.storeVideoPlain` eklendi (poster yine sifreli); okuma `streamVideo` ile ayni, bellek dostu.
+* **Kota:** saatte 30 yukleme (`app.post.media.uploads-per-hour`, `RateLimitedException` 429); baglanmamis medya en cok 30/kullanici (`pending-max`, 429 `POST_MEDIA_PENDING_LIMIT`).
+* **Sunum:** `GET /api/posts/media/{id}[?thumb=true]` (JWT): `Cache-Control: private, max-age=86400`, `ETag` (depo anahtari; `If-None-Match` -> 304), video icin `Range` (206/416, `Accept-Ranges`). Yetki tek yerde (`PostMediaService.accessible`): baglanmamis -> yalniz sahibi; baglanmissa gonderi silinmemis + gizlenmemis + medya gizli degil + yazarla engel yok; aksi 404 `POST_MEDIA_NOT_FOUND`. Yonetici: `GET /api/admin/posts/media/{id}` (silinmis/gizli de; GET olsa da denetim kaydi).
+* **Baglama:** `PostMediaBinder.attach(postId, ownerId, mediaIds)` (<=10 medya, <=10 video, sahip, baglanmamis, tekrar yok; atomik `UPDATE ... WHERE post_id IS NULL`; ihlal 400 `POST_MEDIA_INVALID`). Sira = istemci sirasi (`position`).
+* **Gizleme / silme / KVKK:** `hide(postId)` / `unhide(postId)` yalniz `hidden_at` bayragi (anahtar degismez). Gonderi silinince (`PostDeletedEvent`) medya `app.post.media.deleted-retention-days` (30) gun sonra gece 04:40 isi ile diskten ve DB'den kalkar (0 = olayda hemen). Baglanmamis yuklemeler 24 saat sonra saatlik isle silinir (satiri olmayan eski dosyalar da). `purgeUser(userId)`: hesap silmede tum medya.
+* Ayarlar: `app.post.media.{video-max-bytes, video-max-seconds, uploads-per-hour, pending-max, max-per-post, max-videos-per-post, unattached-hours, deleted-retention-days, cleanup-cron, deleted-cleanup-cron}`.
+
+## Gönderi videosu: sunucuda ffmpeg ile yeniden kodlama + dosya-başına şifreleme + CDN (V360) — `media/transcode/**`, `media/PostVideoCipher`
+
+> Bu bölüm yukarıdaki "Gönderi medyası (V310)" notunu **günceller**: gönderi videoları artık düz yazılmaz (ana anahtar varsa). Sohbet videosu davranışı değişmedi (hâlâ istemci sıkıştırır, sunucu yeniden kodlamaz, konuşma DEK'iyle şifreli).
+
+### Akış
+1. `POST /api/posts/media` (sözleşme **aynı**): doğrulama (`video/mp4`, `ftyp`, süre, boyut) eskisi gibi; baytlar `PrivateMediaStore.storeVideoSealed` ile **dosya-başına rastgele DEK** (AES-256-GCM, parçalı) ile yazılır, DEK ana anahtarla (`CRYPTO_MASTER_KEYS`, etkin `CRYPTO_ACTIVE_KEY_ID`) sarılıp `post_media.wrapped_dek`'e yazılır, `encrypted=true`.
+2. ffmpeg+ffprobe çalışıyorsa satır `transcode_status=PENDING` olur; **yanıt hemen döner**, orijinal (şifreli) video oynatılabilir kalır.
+3. `TranscodeWorker` (her `app.media.transcode.poll-ms`=5 sn; çok örnekte `SchedulerLock` ile tek örnek): `PENDING` → atomik `UPDATE` ile `PROCESSING` (aynı iş iki kez alınmaz, `SKIP LOCKED` karşılığı) → en çok `workers` (2) paralel. Bir iş: şifreyi çöz → geçici dosya (`/tmp`) → `ffprobe` (video akışı var mı, süre <= `max-duration-seconds`) → `ffmpeg` → çıktı `ffprobe` → yeni DEK ile yeniden şifrele (**yeni anahtar adı** → ETag/önbellek tazelenir) → poster yoksa ilk anlamlı kareden üret → tek atomik `UPDATE` (`DONE`) → eski dosya + eski poster silinir → geçici dizin silinir.
+4. **Hata** (zaman aşımı, ffmpeg hatası, geçersiz video): `transcode_attempts++`; `max-attempts` (3) dolana kadar `PENDING`, sonra `FAILED`. **Orijinal video her zaman sunulur** (kullanıcı etkilenmez); yeni dosyalar silinir. Çöken işleyicinin bıraktığı `PROCESSING` işleri `stale-minutes` (30) sonra kuyruğa döner.
+5. ffmpeg yok/kapalı (`MEDIA_TRANSCODE_ENABLED=false` ya da imajda yoksa): satır `transcode_status=NULL` kalır, kuyruğa alınmaz → **mevcut davranış** (orijinal saklanır).
+
+`transcode_status`: `NULL` (dönüştürme yok) · `PENDING` · `PROCESSING` · `DONE` · `FAILED`. İstemci sözleşmesi **değişmedi** (yanıtlarda alan yok); ileride `status` alanı eklenirse geriye uyumlu eklenir. `message_attachment.transcode_status` kolonu sohbet için hazırdır (V360), sohbet videosu dönüştürmesi bu sürümde **etkin değildir**.
+
+### ffmpeg komutu (kabuk yok, argüman listesi)
+`ffmpeg -hide_banner -nostdin -loglevel error -y -protocol_whitelist file -i IN -t <max sn> -map 0:v:0 -map 0:a:0? -sn -dn -map_metadata -1 -vf scale=-2:'min(720,ih)' -c:v libx264 -profile:v main -pix_fmt yuv420p -preset veryfast -b:v 1500k -maxrate 1800k -bufsize 3000k -threads 1 -c:a aac -b:a 96k -ac 2 -movflags +faststart -f mp4 OUT`. Yükseltme yok (`min`), genişlik çift, meta veri (GPS vb.) atılır, yalnız `file` protokolü. Yollar uygulamanın ürettiği geçici dosyalardır. Zaman aşımı `timeout-seconds` (300): süreç ve alt süreçleri öldürülür. Poster: `thumbnail=60,scale=...` ile tek JPEG → mevcut `ImageKind.FEED` hattı (yeniden kodlama, EXIF temizliği).
+
+### Şifreli biçim (`BUP1`)
+`"BUP1" | parçaBoyu(4) | { AES-GCM(parça 64 KB) + etiket(16) }*`. Parçalar sabit boyutlu → **Range okuması doğrudan konumlanır** (yalnız ilgili parçalar çözülür, 206/416 sözleşmesi aynı). AAD: dosya yolu + başlık + "son parça" bayrağı (sıra/kesme/başka dosyaya taşıma yakalanır). Sarma AAD'si de yolu içerir. Eski kayıtlar (`encrypted=false`) düz okunur (geriye uyum). Ana anahtar yoksa (yalnız geliştirme) düz yazım sürer.
+
+### Eski düz videoların sifrelenmesi
+`MEDIA_ENCRYPT_EXISTING=true` (prod compose varsayılanı): işleyici her turda `legacy-batch` (5) düz videoyu şifreler (yeniden kodlamadan; yeni anahtar adı, poster taşınır, eski dosya silinir). İlerleme: `bash scripts/ops/encrypt-existing-post-videos.sh --status`; tek komutla: `--run`. Yeniden sarma (anahtar sızıntısı): `--reseal-key k1` (`MEDIA_RESEAL_KEY_ID`). Önce yedek alın.
+
+### CDN
+`MEDIA_CDN_BASE_URL` boş = kapalı. `MEDIA_CDN_REDIRECT=true` iken yetkili isteğe `302` + imzalı `.../files/cdn/post/{id}?t=0|1&exp&sig`; origin ucu (`PostMediaCdnController`) imzayı doğrular, gizli/silinmiş/bağlanmamış medyada 404, `Cache-Control: public, max-age<=imza ömrü`. Kurulum ve uyarılar: [DEPLOY.md](DEPLOY.md) bölüm 10.
+
+### Ayarlar
+`app.media.transcode.{enabled, ffmpeg-path, ffprobe-path, workers, threads-per-job, timeout-seconds, max-height, video-kbps, audio-kbps, max-duration-seconds, max-attempts, poll-ms, stale-minutes, temp-dir, poster-enabled, encrypt-existing, legacy-batch, reseal-key-id}` (ortam: `MEDIA_TRANSCODE_*`, `MEDIA_ENCRYPT_EXISTING`, `MEDIA_RESEAL_KEY_ID`), `app.media.cdn.{base-url, redirect, ttl-seconds}` (`MEDIA_CDN_*`).
+
+### Testler
+`PostVideoCipherTest` (sınır boyutları, Range, kurcalama/kesme/yanlış bağlam, sarma, rotasyon), `VideoTranscoderTest` (komut oluşturma, ffprobe ayrıştırma, ffmpeg yok, zaman aşımı + gerçek süreç öldürme), `TranscodeServiceTest` (durum geçişleri, orijinalin korunması, poster, yetim dosya yok, worker eşzamanlılık/yarış, eski video şifreleme, yeniden sarma), `PostMediaSealedVideoTest` (yükleme/Range/geriye uyum, CDN imza + origin ucu + yönlendirme), `PostMediaTranscodeRepositoryTest` (H2 JPQL), `TranscodeMigrationTest` (V360 dosyası). Gerçek ffmpeg ile uçtan uca: `scripts/media-transcode-e2e.sh` (Docker, kısa örnek videoyu dönüştürür ve codec/boyutu doğrular).

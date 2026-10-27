@@ -1,0 +1,25 @@
+title = "BU Kampus gitleaks"
+
+[extend]
+useDefault = true
+
+# Bilinen zararsiz yerler: ornek ortam dosyasi, test sabitleri, dokumanlar, kilit dosyalari
+[allowlist]
+description = "Ornek/test degerleri"
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''(^|/)key\.properties\.example$''',
+  '''backend/src/test/''',
+  '''web/(src/.*\.test\.|e2e/|node_modules/)''',
+  '''mobile/test/''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)pubspec\.lock$''',
+  '''^docs/''',
+  '''^scripts/(fixtures|load|k6)/''',
+]
+regexes = [
+  '''dev-only-[A-Za-z0-9._-]+''',
+  '''test-secret-test-secret[A-Za-z0-9-]*''',
+  '''test-admin-pw''',
+  '''<[A-Z_]+>''',
+]

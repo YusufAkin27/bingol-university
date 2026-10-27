@@ -1,0 +1,20 @@
+name: Ozellik istegi
+description: Yeni ozellik ya da iyilestirme onerisi
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / ihtiyac
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Onerilen cozum
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatifler

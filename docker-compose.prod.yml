@@ -1,0 +1,273 @@
+# BÜ Kampüs - ÜRETİM yığını (tek sunucu). Kurulum: docs/DEPLOY.md, sırlar: docs/KEY_MANAGEMENT.md
+#
+#   cp .env.prod.example .env.prod        # veya: bash scripts/ops/gen-secrets.sh
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Mimari karari: Caddy ÖNDE (TLS + güvenlik başlıkları). /api, /files, /ws doğrudan backend'e gider
+# (nginx'in 12 MB gövde sınırı video yüklemelerini keserdi); geri kalan her şey `web` (nginx) statik/SPA.
+# Dışa yalnızca Caddy'nin 80/443 portu açıktır; postgres/redis/backup ağ içindedir (internal ağ, internete çıkışı yok).
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    <<: *hardening
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"          # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN gerekli (.env.prod)}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL gerekli (.env.prod)}
+      MAX_BODY: ${CADDY_MAX_BODY:-55MB}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # sertifikalar: KAYBETMEYİN (Let's Encrypt limitleri)
+      - caddy_config:/config
+    networks: [edge]
+    depends_on:
+      backend:
+        condition: service_healthy
+      web:
+        condition: service_started
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:2019/config/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+    restart: unless-stopped
+    <<: *hardening
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    networks: [edge]
+    mem_limit: 128m
+    cpus: 0.5
+    logging: *logging
+
+  backend:
+    build: ./backend
+    image: ${BACKEND_IMAGE:-bu-backend:local}
+    restart: unless-stopped
+    <<: *hardening
+    read_only: true
+    tmpfs:
+      - /tmp:size=2g,mode=1777        # ffmpeg geçici dosyaları (app.media.transcode.temp-dir)
+    stop_grace_period: 40s
+    mem_limit: ${BACKEND_MEM_LIMIT:-2g}
+    cpus: ${BACKEND_CPUS:-2}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [edge, internal]          # edge: FCM/SMTP için çıkış; internal: db/redis
+    expose:
+      - "8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      APP_ENV: ${APP_ENV:-production}
+      DB_URL: jdbc:postgresql://postgres:5432/bingol
+      DB_USER: bingol
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD gerekli}
+      REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET gerekli}
+      SPRING_SECURITY_USER_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD gerekli}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS gerekli (https://alan-adi)}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?PUBLIC_WEB_URL gerekli}
+      # Mesaj/gönderi-videosu şifreleme ana anahtarları: prod'da ZORUNLU (ProdSettingsValidator + KeyProvider reddeder)
+      CRYPTO_MASTER_KEYS: ${CRYPTO_MASTER_KEYS:?CRYPTO_MASTER_KEYS gerekli (docs/KEY_MANAGEMENT.md)}
+      CRYPTO_ACTIVE_KEY_ID: ${CRYPTO_ACTIVE_KEY_ID:?CRYPTO_ACTIVE_KEY_ID gerekli}
+      CRYPTO_REQUIRE_KEYS: "true"
+      CRYPTO_ADMIN_DECRYPT_ENABLED: ${CRYPTO_ADMIN_DECRYPT_ENABLED:-true}
+      DEVICE_HMAC_KEY: ${DEVICE_HMAC_KEY:-}
+      BAN_ALLOWLIST: ${BAN_ALLOWLIST:-}
+      # Yalnızca Caddy (docker ağı, 172.16/12) X-Forwarded-For'a güvenilir; Caddy gelen sahte başlığı ezer
+      APP_SECURITY_TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12,10.0.0.0/8,192.168.0.0/16,127.0.0.0/8}
+      MAIL_ENABLED: ${MAIL_ENABLED:-true}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@bingol.edu.tr}
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      STORAGE_DIR: /data/uploads
+      APP_OPS_BACKUP_STATUS_FILE: /backup-status/backup.prom
+      # Gönderi videosu 40 MB: prod varsayılanı (5 MB) yeterli olmaz
+      MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-45MB}
+      MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-50MB}
+      # Medya dönüştürme (ffmpeg) ve CDN (docs/MEDIA_PIPELINE.md, docs/DEPLOY.md bölüm 10)
+      MEDIA_TRANSCODE_ENABLED: ${MEDIA_TRANSCODE_ENABLED:-true}
+      MEDIA_TRANSCODE_WORKERS: ${MEDIA_TRANSCODE_WORKERS:-2}
+      MEDIA_CDN_BASE_URL: ${MEDIA_CDN_BASE_URL:-}
+      MEDIA_CDN_REDIRECT: ${MEDIA_CDN_REDIRECT:-false}
+      # Eski DUZ gonderi videolarini arka planda sifreler (bitince false yapilabilir; docs/MEDIA_PIPELINE.md)
+      MEDIA_ENCRYPT_EXISTING: ${MEDIA_ENCRYPT_EXISTING:-true}
+      # Doluysa: DEK'i bu ana anahtar kimligiyle (ornek k1) sarili gonderi videolari aktif anahtarla yeniden yazilir
+      MEDIA_RESEAL_KEY_ID: ${MEDIA_RESEAL_KEY_ID:-}
+      INITIAL_FILL: ${INITIAL_FILL:-true}
+      SWAGGER_UI_ENABLED: "false"
+      TZ: Europe/Istanbul
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
+    volumes:
+      - uploads:/data/uploads
+      # Yedek durumu (docs/OBSERVABILITY.md): backup servisinin yazdigi backup.prom, GET /api/admin/ops/backup-status icin RO
+      - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/backup-status:ro
+    logging: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:                       # initdb/gosu için gerekli asgari yetkiler
+      - CHOWN
+      - SETUID
+      - SETGID
+      - FOWNER
+      - DAC_OVERRIDE
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/postgresql
+    shm_size: 256m
+    mem_limit: ${POSTGRES_MEM_LIMIT:-2g}
+    cpus: ${POSTGRES_CPUS:-2}
+    networks: [internal]
+    environment:
+      POSTGRES_DB: bingol
+      POSTGRES_USER: bingol
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD gerekli}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    logging: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bingol -d bingol"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    <<: *hardening
+    read_only: true
+    tmpfs:
+      - /tmp
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "noeviction"]
+    mem_limit: ${REDIS_MEM_LIMIT:-320m}
+    cpus: 0.5
+    networks: [internal]
+    volumes:
+      - redisdata:/data
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # Zamanlanmış yedek (günlük 03:00) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
+  backup:
+    build: ./scripts/backup
+    restart: unless-stopped
+    <<: *hardening
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    mem_limit: 1g
+    cpus: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal, edge]          # edge: rclone/webhook çıkışı
+    environment:
+      PGHOST: postgres
+      PGUSER: bingol
+      PGDATABASE: bingol
+      PGPASSWORD: ${DB_PASSWORD}
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?BACKUP_AGE_RECIPIENT gerekli (age GENEL anahtari; ozel anahtar sunucuda olmaz)}
+      BACKUP_REMOTE: ${BACKUP_REMOTE:-}
+      BACKUP_WEBHOOK_URL: ${BACKUP_WEBHOOK_URL:-}
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-14}
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-8}
+      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-12}
+      BACKUP_CRON: ${BACKUP_CRON:-0 3 * * *}
+      BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-30 4 * * 0}
+      BACKUP_VERIFY_AGE_RECIPIENT: ${BACKUP_VERIFY_AGE_RECIPIENT:-}
+      BACKUP_AGE_IDENTITY_FILE: ${BACKUP_AGE_IDENTITY_FILE:-/run/backup/verify.key}
+      RCLONE_CONFIG_PASS: ${RCLONE_CONFIG_PASS:-}
+      TZ: Europe/Istanbul
+    volumes:
+      - uploads:/data/uploads:ro
+      - backups:/var/backups
+      # node-exporter textfile dizini (monitoring/docker-compose.monitoring.yml ile ayni yol); backup.prom buraya yazilir
+      - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/var/backups/metrics
+      - ./deploy/rclone:/config/rclone:ro
+      - ./deploy/backup-keys:/run/backup:ro   # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md)
+    logging: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/backups/metrics/backup.prom && wget -q -O /dev/null http://127.0.0.1:9199/backup.prom"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  edge: {}
+  internal:
+    internal: true        # internete çıkış yok; postgres/redis dışarıdan erişilemez
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
+  backups:
+  caddy_data:
+  caddy_config:

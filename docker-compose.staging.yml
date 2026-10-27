@@ -1,0 +1,44 @@
+# BÜ Kampüs - STAGING: docker-compose.prod.yml üzerine bindirme (aynı yapı, ayrı alan adı/sırlar/volume'lar).
+#
+#   docker compose -p bu-staging -f docker-compose.prod.yml -f docker-compose.staging.yml \
+#       --env-file .env.staging up -d --build
+#
+# -p bu-staging: volume/ağ adları üretimden ayrılır (aynı sunucuda çalışsa bile veri karışmaz;
+# yine de 80/443 çakışır: staging ayrı sunucuda ya da üretimin Caddy'si staging alan adını da karşılar).
+# Üretim verisini staging'e KOPYALAMAYIN (KVKK). Test verisi: scripts/seed-demo.sh
+
+services:
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,staging
+      APP_ENV: staging
+      # Gerçek kullanıcılara e-posta/push gitmesin: MailHog
+      MAIL_ENABLED: ${MAIL_ENABLED:-true}
+      MAIL_HOST: ${MAIL_HOST:-mailhog}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
+    depends_on:
+      mailhog:
+        condition: service_started
+
+  # Sahte SMTP: gönderilen tüm e-postalar arayüzde görünür (yalnızca sunucunun 127.0.0.1:8025 portu;
+  # erişim: ssh -L 8025:127.0.0.1:8025 sunucu). Ağ: edge (backend ile aynı).
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks: [edge]
+    ports:
+      - "127.0.0.1:8025:8025"
+    mem_limit: 128m
+
+  # Staging'de haftalık doğrulama sıkça, yedek alıcı farklı anahtar olabilir
+  backup:
+    environment:
+      BACKUP_REMOTE: ${BACKUP_REMOTE:-}
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-3}
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-1}
+      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-0}

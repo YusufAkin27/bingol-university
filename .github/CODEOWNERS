@@ -1,0 +1,14 @@
+# Varsayilan sahip: gerekli inceleme istenir (dal korumasinda "Require review from Code Owners")
+*                       @YusufAkin27
+
+/backend/               @YusufAkin27
+/web/                   @YusufAkin27
+/mobile/                @YusufAkin27
+
+# Altyapi ve guvenlik degisiklikleri her zaman inceleme ister
+/.github/               @YusufAkin27
+/monitoring/            @YusufAkin27
+/docker-compose*.yml    @YusufAkin27
+/backend/src/main/java/edu/bingol/backend/config/SecurityConfig.java   @YusufAkin27
+/backend/src/main/resources/db/migration/                              @YusufAkin27
+/SECURITY.md            @YusufAkin27

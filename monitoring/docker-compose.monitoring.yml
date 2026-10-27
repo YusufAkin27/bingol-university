@@ -1,0 +1,103 @@
+# Izleme yigini. Mevcut compose ile BIRLESTIRILIR (BE2'nin docker-compose.prod.yml dosyasina dokunmaz):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml up -d
+# Yerel deneme: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d
+# Tum servisler ayni compose agindadir; portlar yalniz 127.0.0.1'e baglanir (SSH tuneli ya da ters vekil ile erisin).
+# Gerekli .env: GRAFANA_ADMIN_PASSWORD, ALERT_* (bkz. docs/OBSERVABILITY.md).
+services:
+  # Backend: aktuator AYRI yonetim portunda (8081) ve yalniz compose agi icinde; 8080'de /actuator/** yoktur.
+  # Saglik denetimi de 8081'e tasinir (prod profili MANAGEMENT_PORT verilince health'i orada sunar).
+  backend:
+    environment:
+      MANAGEMENT_PORT: "8081"
+      ACTUATOR_EXPOSURE: health,info,prometheus
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.0}
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/8081 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PROM_RETENTION:-15d}
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - ./monitoring/prometheus/blackbox-targets.yml:/etc/prometheus/blackbox-targets.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - backend
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --config.expand-envvars
+      - --storage.path=/alertmanager
+    environment:
+      ALERT_SMTP_HOST: ${ALERT_SMTP_HOST:-localhost}
+      ALERT_SMTP_PORT: ${ALERT_SMTP_PORT:-587}
+      ALERT_SMTP_USER: ${ALERT_SMTP_USER:-}
+      ALERT_SMTP_PASSWORD: ${ALERT_SMTP_PASSWORD:-}
+      ALERT_EMAIL_FROM: ${ALERT_EMAIL_FROM:-alerts@localhost}
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-root@localhost}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-0}
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertdata:/alertmanager
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD gerekli (.env)}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+
+  # Ana makine metrikleri (disk, CPU). Yedek metrigi: BACKUP_METRICS_DIR icindeki *.prom dosyalari
+  # (backup_last_success_timestamp_seconds) textfile collector ile okunur.
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.textfile.directory=/textfile
+    volumes:
+      - /:/host:ro,rslave
+      - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/textfile:ro
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    restart: unless-stopped
+    command: ['--config.file=/etc/blackbox/blackbox.yml']
+    volumes:
+      - ./monitoring/prometheus/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+
+volumes:
+  promdata:
+  alertdata:
+  grafanadata:

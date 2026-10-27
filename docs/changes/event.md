@@ -59,3 +59,7 @@ Etkinliği görebilen her giriş yapmış kullanıcı. Rate limit: 120/dk/kullan
 - Kulüp silinince bitmemiş kulüp etkinlikleri iptal edilir (`EventClubDeletedListener`); bkz. community.md bölüm 6.
 
 - V220: `idx_event_featured_going` (kısmi indeks, `status='ACTIVE'`; PostgreSQL). Duman: `scripts/smoke-events-featured.sh`.
+
+## Uygunsuz ifade filtresi (V300)
+
+- `EventService.create/update` (başlık, açıklama, mekân), `AnnouncementService.send` (başlık, mesaj), `EventAdmissionService.setConfig` (yeni/değişen başvuru soruları) `ContentGuard` ile denetlenir: `422 CONTENT_PROFANITY` + `field`. PATCH yalnızca değişen alanı denetler. Etkinlik sohbet odası mesajları filtrelenmez.
