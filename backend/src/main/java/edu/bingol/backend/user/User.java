@@ -50,6 +50,10 @@ public class User {
 
     private Short classYear;
 
+    /** Sinif: PREP, 1..6, MASTER, PHD (katalog `grades`); eski kullanicilarda null. */
+    @Column(length = 8)
+    private String grade;
+
     @Column(length = 300)
     private String bio;
 

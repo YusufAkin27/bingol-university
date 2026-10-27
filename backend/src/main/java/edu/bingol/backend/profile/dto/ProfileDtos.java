@@ -16,11 +16,11 @@ public final class ProfileDtos {
     /** Kendi profilim: her alan gorunur. */
     public record ProfileView(Long id, String email, String displayName, String faculty, String department,
                               Short classYear, String bio, String avatarUrl, boolean showEmail, Role role,
-                              String language, String createdAt) {
+                              String language, String createdAt, String grade) {
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
-                    u.getCreatedAt().toString());
+                    u.getCreatedAt().toString(), u.getGrade());
         }
     }
 
@@ -38,6 +38,7 @@ public final class ProfileDtos {
                                        @Size(max = 120) String faculty,
                                        @Size(max = 120) String department,
                                        @Min(0) @Max(8) Short classYear,
+                                       @Size(max = 8) String grade,
                                        @Size(max = 300) String bio,
                                        Boolean showEmail,
                                        @Pattern(regexp = "tr|en|ar") String language) {}

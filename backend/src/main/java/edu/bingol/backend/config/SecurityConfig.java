@@ -92,7 +92,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/legal/consents", "/api/legal/consents/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
-                        "/api/app/info", "/api/app/version", "/api/faculties").permitAll()
+                        "/api/app/info", "/api/app/version", "/api/faculties", "/api/catalog/academic", "/api/catalog/departments").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 // T14: katilim sertifikasi dogrulama herkese acik (kod tahmin edilemez, IP hiz siniri var)
                 .requestMatchers(HttpMethod.GET, "/api/certificates/verify/*").permitAll()

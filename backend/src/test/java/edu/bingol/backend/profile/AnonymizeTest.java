@@ -51,7 +51,7 @@ class AnonymizeTest {
 
         ProfileService s = new ProfileService(users, mock(BlockService.class), mock(MediaService.class), enc,
                 mock(AppInfoService.class), mock(ActivityRepository.class), mock(PublicProfileMapper.class),
-                mock(AvatarCleanups.class), rsvps, events, redis, purger);
+                mock(AvatarCleanups.class), rsvps, events, redis, purger, null);
         s.anonymizeAccount(5L);
 
         verify(purger).purge(5L);

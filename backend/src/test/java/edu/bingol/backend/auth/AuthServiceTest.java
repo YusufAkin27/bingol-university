@@ -19,6 +19,7 @@ import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
+import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
@@ -45,7 +46,7 @@ class AuthServiceTest {
     private final JwtService jwt = mock(JwtService.class);
     private final RefreshTokenService refresh = mock(RefreshTokenService.class);
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh,
-            verification, new AdminProperties(List.of()), accounts, pending, sessions);
+            verification, new AdminProperties(List.of()), accounts, pending, sessions, new CatalogService());
 
     @ParameterizedTest
     @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
@@ -261,5 +262,44 @@ class AuthServiceTest {
         org.junit.jupiter.api.Assertions.assertNotEquals("eski", u.getPasswordHash());
         verify(users).save(u);
         verify(sessions).revokeAll(7L);
+    }
+
+    @Test
+    void registerCarriesAcademicFieldsIntoPendingRegistration() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, "Mühendislik Fakültesi", "Bilgisayar Mühendisliği", "2");
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(pending).save(eq(EMAIL), cap.capture());
+        assertEquals("Mühendislik Fakültesi", cap.getValue().faculty());
+        assertEquals("Bilgisayar Mühendisliği", cap.getValue().department());
+        assertEquals("2", cap.getValue().grade());
+    }
+
+    @Test
+    void registerTreatsBlankAcademicFieldsAsMissing() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, " ", "", null);
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(pending).save(eq(EMAIL), cap.capture());
+        org.junit.jupiter.api.Assertions.assertNull(cap.getValue().faculty());
+        org.junit.jupiter.api.Assertions.assertNull(cap.getValue().grade());
+    }
+
+    @Test
+    void registerRejectsInvalidAcademicFieldsWith400() {
+        for (String[] bad : new String[][]{
+                {"Hukuk Fakültesi", "Bilgisayar Mühendisliği", null}, {"Uydurma", null, null},
+                {null, "Hukuk", null}, {null, null, "12"}}) {
+            ApiException e = assertThrows(ApiException.class,
+                    () -> auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, bad[0], bad[1], bad[2]));
+            assertEquals("ACADEMIC_INVALID", e.code());
+            assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        }
+        verifyNoInteractions(verification);
+        verify(pending, never()).save(anyString(), any());
     }
 }

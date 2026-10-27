@@ -1,6 +1,7 @@
 package edu.bingol.backend.auth.token;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class PendingRegistrationStore {
 
-    public record Pending(String passwordHash, String displayName, String language) {}
+    public record Pending(String passwordHash, String displayName, String language, String faculty,
+                          String department, String grade) {
+        public Pending(String passwordHash, String displayName, String language) {
+            this(passwordHash, displayName, language, null, null, null);
+        }
+    }
 
     private static final Duration TTL = Duration.ofHours(1);
 
@@ -23,8 +29,17 @@ public class PendingRegistrationStore {
     }
 
     public void save(String email, Pending p) {
-        redis.opsForHash().putAll(key(email),
-                Map.of("ph", p.passwordHash(), "dn", p.displayName(), "lg", p.language()));
+        Map<String, String> m = new HashMap<>(Map.of("ph", p.passwordHash(), "dn", p.displayName(), "lg", p.language()));
+        if (p.faculty() != null) {
+            m.put("fa", p.faculty());
+        }
+        if (p.department() != null) {
+            m.put("de", p.department());
+        }
+        if (p.grade() != null) {
+            m.put("gr", p.grade());
+        }
+        redis.opsForHash().putAll(key(email), m);
         redis.expire(key(email), TTL);
     }
 
@@ -34,7 +49,8 @@ public class PendingRegistrationStore {
         if (m.isEmpty()) {
             return null;
         }
-        return new Pending((String) m.get("ph"), (String) m.get("dn"), (String) m.get("lg"));
+        return new Pending((String) m.get("ph"), (String) m.get("dn"), (String) m.get("lg"),
+                (String) m.get("fa"), (String) m.get("de"), (String) m.get("gr"));
     }
 
     public void delete(String email) {

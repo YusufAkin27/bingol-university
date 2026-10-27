@@ -45,7 +45,8 @@ public class OpenApiConfig {
     private static final List<String[]> PUBLIC = List.of(
             new String[]{"GET", "/api/faq"}, new String[]{"GET", "/api/legal"}, new String[]{"GET", "/api/legal/*"},
             new String[]{"GET", "/api/legal/*/versions"}, new String[]{"GET", "/api/app/info"},
-            new String[]{"GET", "/api/app/version"}, new String[]{"GET", "/api/faculties"},
+            new String[]{"GET", "/api/app/version"}, new String[]{"GET", "/api/faculties"}, new String[]{"GET", "/api/catalog/academic"},
+            new String[]{"GET", "/api/catalog/departments"},
             new String[]{"*", "/api/auth/**"},
             new String[]{"GET", "/api/news"}, new String[]{"GET", "/api/news/**"},
             new String[]{"GET", "/api/menu"}, new String[]{"GET", "/api/menu/**"}, new String[]{"GET", "/api/status"},

@@ -48,3 +48,7 @@ sunucuda uretilen icerik-ozeti dosya adi ve saatte 10 yukleme limiti uygular.
 `V160__profile_search_perf.sql`: `prf160_news_title_trgm` (haber basligi ILIKE icin pg_trgm GIN),
 `prf160_notification_unread` (okunmamis bildirim sayimi icin kismi indeks). Yeni extension gerekmez.
 Kullanici adi aramasi mevcut `idx_perf_user_name_trgm` indeksini kullanir (sorgu `ILIKE`'a cevrildi).
+
+## Akademik katalog ve sinif (V200)
+`catalog` paketi: `GET /api/catalog/academic` (tum katalog, ETag + 1 gun onbellek) ve `GET /api/catalog/departments?q=&limit=` (bolum arama, en cok 30). Kaynak: `resources/catalog/academic.json`.
+`app_user.grade` (V200, VARCHAR 8: PREP, 1..6, MASTER, PHD). `ProfileView` ve `PATCH /api/users/me` `grade` icerir; `faculty`/`department`/`grade` yazilirken katalogla dogrulanir (400 `ACADEMIC_INVALID`), bos metin temizler. Mevcut serbest metin degerlere dokunulmaz. `POST /api/auth/register` ayni alanlari opsiyonel alir (bekleyen kayit `reg:<email>` icinde tasinir, hesap olusurken yazilir).

@@ -29,7 +29,7 @@ class UserSearchTest {
     private final BlockService blocks = mock(BlockService.class);
     private final PublicProfileMapper mapper = mock(PublicProfileMapper.class);
     private final ProfileService service = new ProfileService(users, blocks, null, null, null, null, mapper, null,
-            null, null, null, mock(AccountDataPurger.class));
+            null, null, null, mock(AccountDataPurger.class), null);
 
     private static List<User> rows(int n) {
         List<User> l = new ArrayList<>();

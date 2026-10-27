@@ -50,7 +50,7 @@ public class AuthController {
     public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         limiter.check("register:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
-        auth.register(r.email(), r.password(), r.displayName(), lang);
+        auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade());
         return new MessageResponse(i18n.current("msg.register.sent"));
     }
 

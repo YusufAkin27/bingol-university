@@ -1,0 +1,3175 @@
+{
+ "version": 1,
+ "faculties": [
+  {
+   "id": "muhendislik",
+   "name": "Mühendislik Fakültesi",
+   "departments": [
+    {
+     "id": "bilgisayar-muhendisligi",
+     "name": "Bilgisayar Mühendisliği"
+    },
+    {
+     "id": "elektrik-elektronik-muhendisligi",
+     "name": "Elektrik-Elektronik Mühendisliği"
+    },
+    {
+     "id": "elektrik-muhendisligi",
+     "name": "Elektrik Mühendisliği"
+    },
+    {
+     "id": "elektronik-ve-haberlesme-muhendisligi",
+     "name": "Elektronik ve Haberleşme Mühendisliği"
+    },
+    {
+     "id": "makine-muhendisligi",
+     "name": "Makine Mühendisliği"
+    },
+    {
+     "id": "insaat-muhendisligi",
+     "name": "İnşaat Mühendisliği"
+    },
+    {
+     "id": "endustri-muhendisligi",
+     "name": "Endüstri Mühendisliği"
+    },
+    {
+     "id": "yazilim-muhendisligi",
+     "name": "Yazılım Mühendisliği"
+    },
+    {
+     "id": "kimya-muhendisligi",
+     "name": "Kimya Mühendisliği"
+    },
+    {
+     "id": "gida-muhendisligi",
+     "name": "Gıda Mühendisliği"
+    },
+    {
+     "id": "cevre-muhendisligi",
+     "name": "Çevre Mühendisliği"
+    },
+    {
+     "id": "jeoloji-muhendisligi",
+     "name": "Jeoloji Mühendisliği"
+    },
+    {
+     "id": "harita-muhendisligi",
+     "name": "Harita Mühendisliği"
+    },
+    {
+     "id": "maden-muhendisligi",
+     "name": "Maden Mühendisliği"
+    },
+    {
+     "id": "metalurji-ve-malzeme-muhendisligi",
+     "name": "Metalurji ve Malzeme Mühendisliği"
+    },
+    {
+     "id": "malzeme-bilimi-ve-muhendisligi",
+     "name": "Malzeme Bilimi ve Mühendisliği"
+    },
+    {
+     "id": "biyomedikal-muhendisligi",
+     "name": "Biyomedikal Mühendisliği"
+    },
+    {
+     "id": "mekatronik-muhendisligi",
+     "name": "Mekatronik Mühendisliği"
+    },
+    {
+     "id": "yapay-zeka-muhendisligi",
+     "name": "Yapay Zeka Mühendisliği"
+    },
+    {
+     "id": "yapay-zeka-ve-veri-muhendisligi",
+     "name": "Yapay Zeka ve Veri Mühendisliği"
+    },
+    {
+     "id": "veri-muhendisligi",
+     "name": "Veri Mühendisliği"
+    },
+    {
+     "id": "enerji-sistemleri-muhendisligi",
+     "name": "Enerji Sistemleri Mühendisliği"
+    },
+    {
+     "id": "havacilik-ve-uzay-muhendisligi",
+     "name": "Havacılık ve Uzay Mühendisliği"
+    },
+    {
+     "id": "ucak-muhendisligi",
+     "name": "Uçak Mühendisliği"
+    },
+    {
+     "id": "uzay-muhendisligi",
+     "name": "Uzay Mühendisliği"
+    },
+    {
+     "id": "gemi-insaati-ve-gemi-makineleri-muhendisligi",
+     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği"
+    },
+    {
+     "id": "gemi-ve-deniz-teknolojisi-muhendisligi",
+     "name": "Gemi ve Deniz Teknolojisi Mühendisliği"
+    },
+    {
+     "id": "tekstil-muhendisligi",
+     "name": "Tekstil Mühendisliği"
+    },
+    {
+     "id": "petrol-ve-dogal-gaz-muhendisligi",
+     "name": "Petrol ve Doğal Gaz Mühendisliği"
+    },
+    {
+     "id": "jeofizik-muhendisligi",
+     "name": "Jeofizik Mühendisliği"
+    },
+    {
+     "id": "otomotiv-muhendisligi",
+     "name": "Otomotiv Mühendisliği"
+    },
+    {
+     "id": "optik-muhendisligi",
+     "name": "Optik Mühendisliği"
+    },
+    {
+     "id": "nukleer-enerji-muhendisligi",
+     "name": "Nükleer Enerji Mühendisliği"
+    },
+    {
+     "id": "biyomuhendislik",
+     "name": "Biyomühendislik"
+    },
+    {
+     "id": "genetik-ve-biyomuhendislik",
+     "name": "Genetik ve Biyomühendislik"
+    },
+    {
+     "id": "molekuler-biyoloji-ve-genetik-muhendisligi",
+     "name": "Moleküler Biyoloji ve Genetik Mühendisliği"
+    },
+    {
+     "id": "orman-muhendisligi",
+     "name": "Orman Mühendisliği"
+    },
+    {
+     "id": "orman-endustri-muhendisligi",
+     "name": "Orman Endüstri Mühendisliği"
+    },
+    {
+     "id": "ziraat-muhendisligi",
+     "name": "Ziraat Mühendisliği"
+    },
+    {
+     "id": "tarim-makineleri-muhendisligi",
+     "name": "Tarım Makineleri Mühendisliği"
+    },
+    {
+     "id": "peyzaj-muhendisligi",
+     "name": "Peyzaj Mühendisliği"
+    },
+    {
+     "id": "polimer-muhendisligi",
+     "name": "Polimer Mühendisliği"
+    },
+    {
+     "id": "seramik-muhendisligi",
+     "name": "Seramik Mühendisliği"
+    },
+    {
+     "id": "kontrol-ve-otomasyon-muhendisligi",
+     "name": "Kontrol ve Otomasyon Mühendisliği"
+    },
+    {
+     "id": "telekomunikasyon-muhendisligi",
+     "name": "Telekomünikasyon Mühendisliği"
+    },
+    {
+     "id": "bilisim-sistemleri-muhendisligi",
+     "name": "Bilişim Sistemleri Mühendisliği"
+    },
+    {
+     "id": "siber-guvenlik-muhendisligi",
+     "name": "Siber Güvenlik Mühendisliği"
+    },
+    {
+     "id": "robotik-ve-yapay-zeka-muhendisligi",
+     "name": "Robotik ve Yapay Zeka Mühendisliği"
+    },
+    {
+     "id": "yonetim-bilisim-sistemleri",
+     "name": "Yönetim Bilişim Sistemleri"
+    },
+    {
+     "id": "su-kaynaklari-muhendisligi",
+     "name": "Su Kaynakları Mühendisliği"
+    },
+    {
+     "id": "jeodezi-ve-fotogrametri-muhendisligi",
+     "name": "Jeodezi ve Fotogrametri Mühendisliği"
+    },
+    {
+     "id": "cevre-ve-doga-muhendisligi",
+     "name": "Çevre ve Doğa Mühendisliği"
+    },
+    {
+     "id": "muhendislik-fizigi",
+     "name": "Mühendislik Fiziği"
+    },
+    {
+     "id": "fizik-muhendisligi",
+     "name": "Fizik Mühendisliği"
+    },
+    {
+     "id": "kimya-ve-surec-muhendisligi",
+     "name": "Kimya ve Süreç Mühendisliği"
+    },
+    {
+     "id": "savunma-teknolojileri-muhendisligi",
+     "name": "Savunma Teknolojileri Mühendisliği"
+    },
+    {
+     "id": "rayli-sistemler-muhendisligi",
+     "name": "Raylı Sistemler Mühendisliği"
+    },
+    {
+     "id": "mimari-muhendislik",
+     "name": "Mimari Mühendislik"
+    },
+    {
+     "id": "deniz-ulastirma-muhendisligi",
+     "name": "Deniz Ulaştırma Mühendisliği"
+    },
+    {
+     "id": "biyosistem-muhendisligi",
+     "name": "Biyosistem Mühendisliği"
+    },
+    {
+     "id": "gida-teknolojisi-muhendisligi",
+     "name": "Gıda Teknolojisi Mühendisliği"
+    }
+   ]
+  },
+  {
+   "id": "fen-edebiyat",
+   "name": "Fen-Edebiyat Fakültesi",
+   "departments": [
+    {
+     "id": "matematik",
+     "name": "Matematik"
+    },
+    {
+     "id": "fizik",
+     "name": "Fizik"
+    },
+    {
+     "id": "kimya",
+     "name": "Kimya"
+    },
+    {
+     "id": "biyoloji",
+     "name": "Biyoloji"
+    },
+    {
+     "id": "molekuler-biyoloji-ve-genetik",
+     "name": "Moleküler Biyoloji ve Genetik"
+    },
+    {
+     "id": "istatistik",
+     "name": "İstatistik"
+    },
+    {
+     "id": "matematik-ve-bilgisayar-bilimleri",
+     "name": "Matematik ve Bilgisayar Bilimleri"
+    },
+    {
+     "id": "biyokimya",
+     "name": "Biyokimya"
+    },
+    {
+     "id": "astronomi-ve-uzay-bilimleri",
+     "name": "Astronomi ve Uzay Bilimleri"
+    },
+    {
+     "id": "aktuerya-bilimleri",
+     "name": "Aktüerya Bilimleri"
+    },
+    {
+     "id": "turk-dili-ve-edebiyati",
+     "name": "Türk Dili ve Edebiyatı"
+    },
+    {
+     "id": "turkce-ve-sosyal-bilimler",
+     "name": "Türkçe ve Sosyal Bilimler"
+    },
+    {
+     "id": "tarih",
+     "name": "Tarih"
+    },
+    {
+     "id": "cografya",
+     "name": "Coğrafya"
+    },
+    {
+     "id": "felsefe",
+     "name": "Felsefe"
+    },
+    {
+     "id": "sosyoloji",
+     "name": "Sosyoloji"
+    },
+    {
+     "id": "psikoloji",
+     "name": "Psikoloji"
+    },
+    {
+     "id": "arkeoloji",
+     "name": "Arkeoloji"
+    },
+    {
+     "id": "sanat-tarihi",
+     "name": "Sanat Tarihi"
+    },
+    {
+     "id": "antropoloji",
+     "name": "Antropoloji"
+    },
+    {
+     "id": "bilgi-ve-belge-yonetimi",
+     "name": "Bilgi ve Belge Yönetimi"
+    },
+    {
+     "id": "eskicag-dilleri-ve-kulturleri",
+     "name": "Eskiçağ Dilleri ve Kültürleri"
+    },
+    {
+     "id": "egitim-bilimleri",
+     "name": "Eğitim Bilimleri"
+    },
+    {
+     "id": "ingiliz-dili-ve-edebiyati",
+     "name": "İngiliz Dili ve Edebiyatı"
+    },
+    {
+     "id": "alman-dili-ve-edebiyati",
+     "name": "Alman Dili ve Edebiyatı"
+    },
+    {
+     "id": "fransiz-dili-ve-edebiyati",
+     "name": "Fransız Dili ve Edebiyatı"
+    },
+    {
+     "id": "rus-dili-ve-edebiyati",
+     "name": "Rus Dili ve Edebiyatı"
+    },
+    {
+     "id": "arap-dili-ve-edebiyati",
+     "name": "Arap Dili ve Edebiyatı"
+    },
+    {
+     "id": "japon-dili-ve-edebiyati",
+     "name": "Japon Dili ve Edebiyatı"
+    },
+    {
+     "id": "cin-dili-ve-edebiyati",
+     "name": "Çin Dili ve Edebiyatı"
+    },
+    {
+     "id": "ispanyol-dili-ve-edebiyati",
+     "name": "İspanyol Dili ve Edebiyatı"
+    },
+    {
+     "id": "italyan-dili-ve-edebiyati",
+     "name": "İtalyan Dili ve Edebiyatı"
+    },
+    {
+     "id": "kore-dili-ve-edebiyati",
+     "name": "Kore Dili ve Edebiyatı"
+    },
+    {
+     "id": "fars-dili-ve-edebiyati",
+     "name": "Fars Dili ve Edebiyatı"
+    },
+    {
+     "id": "mutercim-tercumanlik",
+     "name": "Mütercim-Tercümanlık"
+    },
+    {
+     "id": "ingilizce-mutercim-ve-tercumanlik",
+     "name": "İngilizce Mütercim ve Tercümanlık"
+    },
+    {
+     "id": "almanca-mutercim-ve-tercumanlik",
+     "name": "Almanca Mütercim ve Tercümanlık"
+    },
+    {
+     "id": "fransizca-mutercim-ve-tercumanlik",
+     "name": "Fransızca Mütercim ve Tercümanlık"
+    },
+    {
+     "id": "rusca-mutercim-ve-tercumanlik",
+     "name": "Rusça Mütercim ve Tercümanlık"
+    },
+    {
+     "id": "arapca-mutercim-ve-tercumanlik",
+     "name": "Arapça Mütercim ve Tercümanlık"
+    },
+    {
+     "id": "dilbilimi",
+     "name": "Dilbilimi"
+    },
+    {
+     "id": "karsilastirmali-edebiyat",
+     "name": "Karşılaştırmalı Edebiyat"
+    },
+    {
+     "id": "halk-bilimi",
+     "name": "Halk Bilimi"
+    },
+    {
+     "id": "cagdas-turk-lehceleri-ve-edebiyatlari",
+     "name": "Çağdaş Türk Lehçeleri ve Edebiyatları"
+    },
+    {
+     "id": "dogu-dilleri-ve-edebiyatlari",
+     "name": "Doğu Dilleri ve Edebiyatları"
+    },
+    {
+     "id": "kurt-dili-ve-edebiyati",
+     "name": "Kürt Dili ve Edebiyatı"
+    },
+    {
+     "id": "sosyal-hizmet",
+     "name": "Sosyal Hizmet"
+    },
+    {
+     "id": "tarih-ve-kultur-calismalari",
+     "name": "Tarih ve Kültür Çalışmaları"
+    },
+    {
+     "id": "biyoteknoloji",
+     "name": "Biyoteknoloji"
+    },
+    {
+     "id": "jeoloji",
+     "name": "Jeoloji"
+    },
+    {
+     "id": "cevre-bilimleri",
+     "name": "Çevre Bilimleri"
+    },
+    {
+     "id": "molekuler-biyoloji",
+     "name": "Moleküler Biyoloji"
+    },
+    {
+     "id": "bitki-koruma",
+     "name": "Bitki Koruma"
+    },
+    {
+     "id": "yonetim-bilisim-sistemleri",
+     "name": "Yönetim Bilişim Sistemleri"
+    },
+    {
+     "id": "bilgisayar-bilimleri",
+     "name": "Bilgisayar Bilimleri"
+    },
+    {
+     "id": "veri-bilimi-ve-analitigi",
+     "name": "Veri Bilimi ve Analitiği"
+    }
+   ]
+  },
+  {
+   "id": "iibf",
+   "name": "İktisadi ve İdari Bilimler Fakültesi",
+   "departments": [
+    {
+     "id": "isletme",
+     "name": "İşletme"
+    },
+    {
+     "id": "iktisat",
+     "name": "İktisat"
+    },
+    {
+     "id": "maliye",
+     "name": "Maliye"
+    },
+    {
+     "id": "calisma-ekonomisi-ve-endustri-iliskileri",
+     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri"
+    },
+    {
+     "id": "siyaset-bilimi-ve-kamu-yonetimi",
+     "name": "Siyaset Bilimi ve Kamu Yönetimi"
+    },
+    {
+     "id": "uluslararasi-iliskiler",
+     "name": "Uluslararası İlişkiler"
+    },
+    {
+     "id": "ekonometri",
+     "name": "Ekonometri"
+    },
+    {
+     "id": "bankacilik-ve-finans",
+     "name": "Bankacılık ve Finans"
+    },
+    {
+     "id": "uluslararasi-ticaret-ve-finansman",
+     "name": "Uluslararası Ticaret ve Finansman"
+    },
+    {
+     "id": "uluslararasi-ticaret-ve-lojistik",
+     "name": "Uluslararası Ticaret ve Lojistik"
+    },
+    {
+     "id": "uluslararasi-girisimcilik",
+     "name": "Uluslararası Girişimcilik"
+    },
+    {
+     "id": "yonetim-bilisim-sistemleri",
+     "name": "Yönetim Bilişim Sistemleri"
+    },
+    {
+     "id": "kamu-yonetimi",
+     "name": "Kamu Yönetimi"
+    },
+    {
+     "id": "siyaset-bilimi",
+     "name": "Siyaset Bilimi"
+    },
+    {
+     "id": "saglik-yonetimi",
+     "name": "Sağlık Yönetimi"
+    },
+    {
+     "id": "sigortacilik-ve-aktuerya-bilimleri",
+     "name": "Sigortacılık ve Aktüerya Bilimleri"
+    },
+    {
+     "id": "muhasebe-ve-finans-yonetimi",
+     "name": "Muhasebe ve Finans Yönetimi"
+    },
+    {
+     "id": "sosyal-hizmet",
+     "name": "Sosyal Hizmet"
+    },
+    {
+     "id": "calisma-ekonomisi",
+     "name": "Çalışma Ekonomisi"
+    },
+    {
+     "id": "lojistik-yonetimi",
+     "name": "Lojistik Yönetimi"
+    },
+    {
+     "id": "turizm-isletmeciligi",
+     "name": "Turizm İşletmeciliği"
+    },
+    {
+     "id": "uluslararasi-isletme",
+     "name": "Uluslararası İşletme"
+    },
+    {
+     "id": "gumruk-isletme",
+     "name": "Gümrük İşletme"
+    },
+    {
+     "id": "havacilik-yonetimi",
+     "name": "Havacılık Yönetimi"
+    },
+    {
+     "id": "ekonomi-ve-finans",
+     "name": "Ekonomi ve Finans"
+    },
+    {
+     "id": "finans-ve-bankacilik",
+     "name": "Finans ve Bankacılık"
+    },
+    {
+     "id": "girisimcilik",
+     "name": "Girişimcilik"
+    },
+    {
+     "id": "pazarlama",
+     "name": "Pazarlama"
+    },
+    {
+     "id": "gayrimenkul-gelistirme-ve-yonetimi",
+     "name": "Gayrimenkul Geliştirme ve Yönetimi"
+    },
+    {
+     "id": "siyaset-bilimi-ve-uluslararasi-iliskiler",
+     "name": "Siyaset Bilimi ve Uluslararası İlişkiler"
+    },
+    {
+     "id": "uluslararasi-ticaret",
+     "name": "Uluslararası Ticaret"
+    },
+    {
+     "id": "spor-yonetimi",
+     "name": "Spor Yönetimi"
+    }
+   ]
+  },
+  {
+   "id": "hukuk",
+   "name": "Hukuk Fakültesi",
+   "departments": [
+    {
+     "id": "hukuk",
+     "name": "Hukuk"
+    }
+   ]
+  },
+  {
+   "id": "tip",
+   "name": "Tıp Fakültesi",
+   "departments": [
+    {
+     "id": "tip",
+     "name": "Tıp"
+    }
+   ]
+  },
+  {
+   "id": "dis-hekimligi",
+   "name": "Diş Hekimliği Fakültesi",
+   "departments": [
+    {
+     "id": "dis-hekimligi",
+     "name": "Diş Hekimliği"
+    }
+   ]
+  },
+  {
+   "id": "eczacilik",
+   "name": "Eczacılık Fakültesi",
+   "departments": [
+    {
+     "id": "eczacilik",
+     "name": "Eczacılık"
+    }
+   ]
+  },
+  {
+   "id": "veteriner",
+   "name": "Veteriner Fakültesi",
+   "departments": [
+    {
+     "id": "veterinerlik",
+     "name": "Veterinerlik"
+    }
+   ]
+  },
+  {
+   "id": "saglik-bilimleri",
+   "name": "Sağlık Bilimleri Fakültesi",
+   "departments": [
+    {
+     "id": "hemsirelik",
+     "name": "Hemşirelik"
+    },
+    {
+     "id": "ebelik",
+     "name": "Ebelik"
+    },
+    {
+     "id": "fizyoterapi-ve-rehabilitasyon",
+     "name": "Fizyoterapi ve Rehabilitasyon"
+    },
+    {
+     "id": "beslenme-ve-diyetetik",
+     "name": "Beslenme ve Diyetetik"
+    },
+    {
+     "id": "saglik-yonetimi",
+     "name": "Sağlık Yönetimi"
+    },
+    {
+     "id": "odyoloji",
+     "name": "Odyoloji"
+    },
+    {
+     "id": "ergoterapi",
+     "name": "Ergoterapi"
+    },
+    {
+     "id": "sosyal-hizmet",
+     "name": "Sosyal Hizmet"
+    },
+    {
+     "id": "cocuk-gelisimi",
+     "name": "Çocuk Gelişimi"
+    },
+    {
+     "id": "acil-yardim-ve-afet-yonetimi",
+     "name": "Acil Yardım ve Afet Yönetimi"
+    },
+    {
+     "id": "dil-ve-konusma-terapisi",
+     "name": "Dil ve Konuşma Terapisi"
+    },
+    {
+     "id": "ortez-ve-protez",
+     "name": "Ortez ve Protez"
+    },
+    {
+     "id": "gerontoloji",
+     "name": "Gerontoloji"
+    },
+    {
+     "id": "perfuzyon",
+     "name": "Perfüzyon"
+    },
+    {
+     "id": "podoloji",
+     "name": "Podoloji"
+    },
+    {
+     "id": "radyoterapi",
+     "name": "Radyoterapi"
+    },
+    {
+     "id": "saglik-bilimleri",
+     "name": "Sağlık Bilimleri"
+    },
+    {
+     "id": "is-sagligi-ve-guvenligi",
+     "name": "İş Sağlığı ve Güvenliği"
+    },
+    {
+     "id": "saglik-kurumlari-isletmeciligi",
+     "name": "Sağlık Kurumları İşletmeciliği"
+    },
+    {
+     "id": "psikososyal-rehabilitasyon",
+     "name": "Psikososyal Rehabilitasyon"
+    },
+    {
+     "id": "odyoloji-ve-konusma-bozukluklari",
+     "name": "Odyoloji ve Konuşma Bozuklukları"
+    },
+    {
+     "id": "tibbi-goruntuleme-teknikleri",
+     "name": "Tıbbi Görüntüleme Teknikleri"
+    },
+    {
+     "id": "saglik-bakim-hizmetleri",
+     "name": "Sağlık Bakım Hizmetleri"
+    },
+    {
+     "id": "acil-durum-ve-afet-yonetimi",
+     "name": "Acil Durum ve Afet Yönetimi"
+    },
+    {
+     "id": "evde-bakim-hizmetleri",
+     "name": "Evde Bakım Hizmetleri"
+    },
+    {
+     "id": "agiz-ve-dis-sagligi",
+     "name": "Ağız ve Diş Sağlığı"
+    },
+    {
+     "id": "fizik-tedavi-ve-rehabilitasyon",
+     "name": "Fizik Tedavi ve Rehabilitasyon"
+    }
+   ]
+  },
+  {
+   "id": "egitim",
+   "name": "Eğitim Fakültesi",
+   "departments": [
+    {
+     "id": "sinif-ogretmenligi",
+     "name": "Sınıf Öğretmenliği"
+    },
+    {
+     "id": "okul-oncesi-ogretmenligi",
+     "name": "Okul Öncesi Öğretmenliği"
+    },
+    {
+     "id": "turkce-ogretmenligi",
+     "name": "Türkçe Öğretmenliği"
+    },
+    {
+     "id": "matematik-ogretmenligi",
+     "name": "Matematik Öğretmenliği"
+    },
+    {
+     "id": "ilkogretim-matematik-ogretmenligi",
+     "name": "İlköğretim Matematik Öğretmenliği"
+    },
+    {
+     "id": "fen-bilgisi-ogretmenligi",
+     "name": "Fen Bilgisi Öğretmenliği"
+    },
+    {
+     "id": "ingilizce-ogretmenligi",
+     "name": "İngilizce Öğretmenliği"
+    },
+    {
+     "id": "sosyal-bilgiler-ogretmenligi",
+     "name": "Sosyal Bilgiler Öğretmenliği"
+    },
+    {
+     "id": "muzik-ogretmenligi",
+     "name": "Müzik Öğretmenliği"
+    },
+    {
+     "id": "resim-is-ogretmenligi",
+     "name": "Resim-İş Öğretmenliği"
+    },
+    {
+     "id": "gorsel-sanatlar-ogretmenligi",
+     "name": "Görsel Sanatlar Öğretmenliği"
+    },
+    {
+     "id": "din-kulturu-ve-ahlak-bilgisi-ogretmenligi",
+     "name": "Din Kültürü ve Ahlak Bilgisi Öğretmenliği"
+    },
+    {
+     "id": "rehberlik-ve-psikolojik-danismanlik",
+     "name": "Rehberlik ve Psikolojik Danışmanlık"
+    },
+    {
+     "id": "ozel-egitim-ogretmenligi",
+     "name": "Özel Eğitim Öğretmenliği"
+    },
+    {
+     "id": "zihin-engelliler-ogretmenligi",
+     "name": "Zihin Engelliler Öğretmenliği"
+    },
+    {
+     "id": "isitme-engelliler-ogretmenligi",
+     "name": "İşitme Engelliler Öğretmenliği"
+    },
+    {
+     "id": "gorme-engelliler-ogretmenligi",
+     "name": "Görme Engelliler Öğretmenliği"
+    },
+    {
+     "id": "ustun-yetenekliler-ogretmenligi",
+     "name": "Üstün Yetenekliler Öğretmenliği"
+    },
+    {
+     "id": "bilgisayar-ve-ogretim-teknolojileri-ogretmenligi",
+     "name": "Bilgisayar ve Öğretim Teknolojileri Öğretmenliği"
+    },
+    {
+     "id": "fizik-ogretmenligi",
+     "name": "Fizik Öğretmenliği"
+    },
+    {
+     "id": "kimya-ogretmenligi",
+     "name": "Kimya Öğretmenliği"
+    },
+    {
+     "id": "biyoloji-ogretmenligi",
+     "name": "Biyoloji Öğretmenliği"
+    },
+    {
+     "id": "tarih-ogretmenligi",
+     "name": "Tarih Öğretmenliği"
+    },
+    {
+     "id": "cografya-ogretmenligi",
+     "name": "Coğrafya Öğretmenliği"
+    },
+    {
+     "id": "turk-dili-ve-edebiyati-ogretmenligi",
+     "name": "Türk Dili ve Edebiyatı Öğretmenliği"
+    },
+    {
+     "id": "almanca-ogretmenligi",
+     "name": "Almanca Öğretmenliği"
+    },
+    {
+     "id": "fransizca-ogretmenligi",
+     "name": "Fransızca Öğretmenliği"
+    },
+    {
+     "id": "arapca-ogretmenligi",
+     "name": "Arapça Öğretmenliği"
+    },
+    {
+     "id": "rusca-ogretmenligi",
+     "name": "Rusça Öğretmenliği"
+    },
+    {
+     "id": "japonca-ogretmenligi",
+     "name": "Japonca Öğretmenliği"
+    },
+    {
+     "id": "beden-egitimi-ve-spor-ogretmenligi",
+     "name": "Beden Eğitimi ve Spor Öğretmenliği"
+    },
+    {
+     "id": "matematik-ve-fen-bilimleri-egitimi",
+     "name": "Matematik ve Fen Bilimleri Eğitimi"
+    },
+    {
+     "id": "teknoloji-ve-tasarim-ogretmenligi",
+     "name": "Teknoloji ve Tasarım Öğretmenliği"
+    },
+    {
+     "id": "egitim-bilimleri",
+     "name": "Eğitim Bilimleri"
+    },
+    {
+     "id": "egitimde-egitim-programlari-ve-ogretim",
+     "name": "Eğitimde Eğitim Programları ve Öğretim"
+    },
+    {
+     "id": "egitim-yonetimi",
+     "name": "Eğitim Yönetimi"
+    },
+    {
+     "id": "okul-oncesi-egitimi",
+     "name": "Okul Öncesi Eğitimi"
+    },
+    {
+     "id": "ortaogretim-fen-bilimleri-ogretmenligi",
+     "name": "Ortaöğretim Fen Bilimleri Öğretmenliği"
+    },
+    {
+     "id": "lise-matematik-ogretmenligi",
+     "name": "Lise Matematik Öğretmenliği"
+    },
+    {
+     "id": "ortaogretim-matematik-ogretmenligi",
+     "name": "Ortaöğretim Matematik Öğretmenliği"
+    },
+    {
+     "id": "felsefe-grubu-ogretmenligi",
+     "name": "Felsefe Grubu Öğretmenliği"
+    },
+    {
+     "id": "ozel-yetenek-ogretmenligi",
+     "name": "Özel Yetenek Öğretmenliği"
+    },
+    {
+     "id": "cocuk-gelisimi-ogretmenligi",
+     "name": "Çocuk Gelişimi Öğretmenliği"
+    },
+    {
+     "id": "mesleki-egitim-ogretmenligi",
+     "name": "Mesleki Eğitim Öğretmenliği"
+    },
+    {
+     "id": "kimya-teknolojisi-ogretmenligi",
+     "name": "Kimya Teknolojisi Öğretmenliği"
+    },
+    {
+     "id": "elektrik-ogretmenligi",
+     "name": "Elektrik Öğretmenliği"
+    },
+    {
+     "id": "bilgisayar-ogretmenligi",
+     "name": "Bilgisayar Öğretmenliği"
+    },
+    {
+     "id": "guzel-sanatlar-egitimi",
+     "name": "Güzel Sanatlar Eğitimi"
+    },
+    {
+     "id": "egitim-teknolojileri",
+     "name": "Eğitim Teknolojileri"
+    }
+   ]
+  },
+  {
+   "id": "ilahiyat",
+   "name": "İlahiyat Fakültesi",
+   "departments": [
+    {
+     "id": "ilahiyat",
+     "name": "İlahiyat"
+    },
+    {
+     "id": "ilahiyat-uzaktan-egitim",
+     "name": "İlahiyat (Uzaktan Eğitim)"
+    },
+    {
+     "id": "ilahiyat-arapca",
+     "name": "İlahiyat (Arapça)"
+    },
+    {
+     "id": "din-bilimleri",
+     "name": "Din Bilimleri"
+    },
+    {
+     "id": "islami-ilimler",
+     "name": "İslami İlimler"
+    },
+    {
+     "id": "temel-islam-bilimleri",
+     "name": "Temel İslam Bilimleri"
+    },
+    {
+     "id": "felsefe-ve-din-bilimleri",
+     "name": "Felsefe ve Din Bilimleri"
+    },
+    {
+     "id": "islam-tarihi-ve-sanatlari",
+     "name": "İslam Tarihi ve Sanatları"
+    },
+    {
+     "id": "din-egitimi",
+     "name": "Din Eğitimi"
+    },
+    {
+     "id": "din-sosyolojisi",
+     "name": "Din Sosyolojisi"
+    },
+    {
+     "id": "din-psikolojisi",
+     "name": "Din Psikolojisi"
+    },
+    {
+     "id": "kelam",
+     "name": "Kelam"
+    },
+    {
+     "id": "tefsir",
+     "name": "Tefsir"
+    },
+    {
+     "id": "hadis",
+     "name": "Hadis"
+    },
+    {
+     "id": "fikih",
+     "name": "Fıkıh"
+    },
+    {
+     "id": "tasavvuf",
+     "name": "Tasavvuf"
+    },
+    {
+     "id": "islam-hukuku",
+     "name": "İslam Hukuku"
+    },
+    {
+     "id": "dinler-tarihi",
+     "name": "Dinler Tarihi"
+    },
+    {
+     "id": "islam-felsefesi",
+     "name": "İslam Felsefesi"
+    },
+    {
+     "id": "arap-dili-ve-belagati",
+     "name": "Arap Dili ve Belagatı"
+    }
+   ]
+  },
+  {
+   "id": "mimarlik",
+   "name": "Mimarlık Fakültesi",
+   "departments": [
+    {
+     "id": "mimarlik",
+     "name": "Mimarlık"
+    },
+    {
+     "id": "sehir-ve-bolge-planlama",
+     "name": "Şehir ve Bölge Planlama"
+    },
+    {
+     "id": "ic-mimarlik",
+     "name": "İç Mimarlık"
+    },
+    {
+     "id": "ic-mimarlik-ve-cevre-tasarimi",
+     "name": "İç Mimarlık ve Çevre Tasarımı"
+    },
+    {
+     "id": "peyzaj-mimarligi",
+     "name": "Peyzaj Mimarlığı"
+    },
+    {
+     "id": "endustriyel-tasarim",
+     "name": "Endüstriyel Tasarım"
+    },
+    {
+     "id": "endustri-urunleri-tasarimi",
+     "name": "Endüstri Ürünleri Tasarımı"
+    },
+    {
+     "id": "mimari-restorasyon",
+     "name": "Mimari Restorasyon"
+    },
+    {
+     "id": "kentsel-tasarim-ve-peyzaj-mimarligi",
+     "name": "Kentsel Tasarım ve Peyzaj Mimarlığı"
+    },
+    {
+     "id": "mimari-tasarim",
+     "name": "Mimari Tasarım"
+    },
+    {
+     "id": "cevre-tasarimi",
+     "name": "Çevre Tasarımı"
+    }
+   ]
+  },
+  {
+   "id": "guzel-sanatlar",
+   "name": "Güzel Sanatlar ve Tasarım Fakültesi",
+   "departments": [
+    {
+     "id": "grafik-tasarim",
+     "name": "Grafik Tasarım"
+    },
+    {
+     "id": "resim",
+     "name": "Resim"
+    },
+    {
+     "id": "heykel",
+     "name": "Heykel"
+    },
+    {
+     "id": "seramik-ve-cam-tasarimi",
+     "name": "Seramik ve Cam Tasarımı"
+    },
+    {
+     "id": "seramik",
+     "name": "Seramik"
+    },
+    {
+     "id": "moda-tasarimi",
+     "name": "Moda Tasarımı"
+    },
+    {
+     "id": "tekstil-ve-moda-tasarimi",
+     "name": "Tekstil ve Moda Tasarımı"
+    },
+    {
+     "id": "tekstil-tasarimi",
+     "name": "Tekstil Tasarımı"
+    },
+    {
+     "id": "geleneksel-turk-el-sanatlari",
+     "name": "Geleneksel Türk El Sanatları"
+    },
+    {
+     "id": "fotograf",
+     "name": "Fotoğraf"
+    },
+    {
+     "id": "animasyon",
+     "name": "Animasyon"
+    },
+    {
+     "id": "ic-mimarlik",
+     "name": "İç Mimarlık"
+    },
+    {
+     "id": "endustriyel-tasarim",
+     "name": "Endüstriyel Tasarım"
+    },
+    {
+     "id": "sinema-ve-televizyon",
+     "name": "Sinema ve Televizyon"
+    },
+    {
+     "id": "sahne-sanatlari",
+     "name": "Sahne Sanatları"
+    },
+    {
+     "id": "tiyatro",
+     "name": "Tiyatro"
+    },
+    {
+     "id": "muzik",
+     "name": "Müzik"
+    },
+    {
+     "id": "cam-tasarimi",
+     "name": "Cam Tasarımı"
+    },
+    {
+     "id": "cini",
+     "name": "Çini"
+    },
+    {
+     "id": "ahsap-tasarimi",
+     "name": "Ahşap Tasarımı"
+    },
+    {
+     "id": "baski-sanatlari",
+     "name": "Baskı Sanatları"
+    },
+    {
+     "id": "sanat-ve-tasarim",
+     "name": "Sanat ve Tasarım"
+    },
+    {
+     "id": "sanat-yonetimi",
+     "name": "Sanat Yönetimi"
+    },
+    {
+     "id": "oyun-tasarimi",
+     "name": "Oyun Tasarımı"
+    },
+    {
+     "id": "dijital-oyun-tasarimi",
+     "name": "Dijital Oyun Tasarımı"
+    },
+    {
+     "id": "gorsel-iletisim-tasarimi",
+     "name": "Görsel İletişim Tasarımı"
+    },
+    {
+     "id": "gosteri-sanatlari",
+     "name": "Gösteri Sanatları"
+    },
+    {
+     "id": "taki-ve-mucevher-tasarimi",
+     "name": "Takı ve Mücevher Tasarımı"
+    },
+    {
+     "id": "geleneksel-turk-sanatlari",
+     "name": "Geleneksel Türk Sanatları"
+    },
+    {
+     "id": "konservasyon-ve-restorasyon",
+     "name": "Konservasyon ve Restorasyon"
+    },
+    {
+     "id": "sanat-tarihi-ve-elestiri",
+     "name": "Sanat Tarihi ve Eleştiri"
+    },
+    {
+     "id": "sahne-tasarimi",
+     "name": "Sahne Tasarımı"
+    },
+    {
+     "id": "kuyumculuk-ve-mucevher-tasarimi",
+     "name": "Kuyumculuk ve Mücevher Tasarımı"
+    },
+    {
+     "id": "tasarim",
+     "name": "Tasarım"
+    },
+    {
+     "id": "medya-ve-gorsel-sanatlar",
+     "name": "Medya ve Görsel Sanatlar"
+    }
+   ]
+  },
+  {
+   "id": "ziraat",
+   "name": "Ziraat Fakültesi",
+   "departments": [
+    {
+     "id": "bahce-bitkileri",
+     "name": "Bahçe Bitkileri"
+    },
+    {
+     "id": "tarla-bitkileri",
+     "name": "Tarla Bitkileri"
+    },
+    {
+     "id": "zootekni",
+     "name": "Zootekni"
+    },
+    {
+     "id": "toprak-bilimi-ve-bitki-besleme",
+     "name": "Toprak Bilimi ve Bitki Besleme"
+    },
+    {
+     "id": "bitki-koruma",
+     "name": "Bitki Koruma"
+    },
+    {
+     "id": "tarim-ekonomisi",
+     "name": "Tarım Ekonomisi"
+    },
+    {
+     "id": "tarimsal-yapilar-ve-sulama",
+     "name": "Tarımsal Yapılar ve Sulama"
+    },
+    {
+     "id": "tarim-makineleri-ve-teknolojileri-muhendisligi",
+     "name": "Tarım Makineleri ve Teknolojileri Mühendisliği"
+    },
+    {
+     "id": "gida-muhendisligi",
+     "name": "Gıda Mühendisliği"
+    },
+    {
+     "id": "peyzaj-mimarligi",
+     "name": "Peyzaj Mimarlığı"
+    },
+    {
+     "id": "sut-teknolojisi",
+     "name": "Süt Teknolojisi"
+    },
+    {
+     "id": "tarimsal-biyoteknoloji",
+     "name": "Tarımsal Biyoteknoloji"
+    },
+    {
+     "id": "tarim-ticareti-ve-isletmeciligi",
+     "name": "Tarım Ticareti ve İşletmeciliği"
+    },
+    {
+     "id": "tarimsal-genetik-muhendisligi",
+     "name": "Tarımsal Genetik Mühendisliği"
+    },
+    {
+     "id": "organik-tarim",
+     "name": "Organik Tarım"
+    },
+    {
+     "id": "su-urunleri-muhendisligi",
+     "name": "Su Ürünleri Mühendisliği"
+    },
+    {
+     "id": "ziraat-muhendisligi",
+     "name": "Ziraat Mühendisliği"
+    },
+    {
+     "id": "tohum-bilimi-ve-teknolojisi",
+     "name": "Tohum Bilimi ve Teknolojisi"
+    },
+    {
+     "id": "tarim-bilimleri-ve-teknolojileri",
+     "name": "Tarım Bilimleri ve Teknolojileri"
+    },
+    {
+     "id": "biyosistem-muhendisligi",
+     "name": "Biyosistem Mühendisliği"
+    },
+    {
+     "id": "hayvansal-uretim",
+     "name": "Hayvansal Üretim"
+    },
+    {
+     "id": "bitkisel-uretim",
+     "name": "Bitkisel Üretim"
+    },
+    {
+     "id": "tarimsal-yapilar-ve-sulama-muhendisligi",
+     "name": "Tarımsal Yapılar ve Sulama Mühendisliği"
+    },
+    {
+     "id": "tarim-makineleri",
+     "name": "Tarım Makineleri"
+    },
+    {
+     "id": "bitki-sagligi",
+     "name": "Bitki Sağlığı"
+    }
+   ]
+  },
+  {
+   "id": "orman",
+   "name": "Orman Fakültesi",
+   "departments": [
+    {
+     "id": "orman-muhendisligi",
+     "name": "Orman Mühendisliği"
+    },
+    {
+     "id": "orman-endustri-muhendisligi",
+     "name": "Orman Endüstri Mühendisliği"
+    },
+    {
+     "id": "agac-isleri-endustri-muhendisligi",
+     "name": "Ağaç İşleri Endüstri Mühendisliği"
+    },
+    {
+     "id": "peyzaj-mimarligi",
+     "name": "Peyzaj Mimarlığı"
+    },
+    {
+     "id": "yaban-hayati-ekolojisi-ve-yonetimi",
+     "name": "Yaban Hayatı Ekolojisi ve Yönetimi"
+    },
+    {
+     "id": "orman-urunleri-muhendisligi",
+     "name": "Orman Ürünleri Mühendisliği"
+    },
+    {
+     "id": "toprak-muhafaza-ve-havza-yonetimi",
+     "name": "Toprak Muhafaza ve Havza Yönetimi"
+    },
+    {
+     "id": "ormancilik-ve-doga-koruma",
+     "name": "Ormancılık ve Doğa Koruma"
+    },
+    {
+     "id": "ormancilik",
+     "name": "Ormancılık"
+    }
+   ]
+  },
+  {
+   "id": "su-urunleri",
+   "name": "Su Ürünleri Fakültesi",
+   "departments": [
+    {
+     "id": "su-urunleri-muhendisligi",
+     "name": "Su Ürünleri Mühendisliği"
+    },
+    {
+     "id": "su-urunleri-avlama-ve-isleme-teknolojisi",
+     "name": "Su Ürünleri Avlama ve İşleme Teknolojisi"
+    },
+    {
+     "id": "su-urunleri-yetistiriciligi",
+     "name": "Su Ürünleri Yetiştiriciliği"
+    },
+    {
+     "id": "deniz-bilimleri",
+     "name": "Deniz Bilimleri"
+    },
+    {
+     "id": "su-urunleri-temel-bilimleri",
+     "name": "Su Ürünleri Temel Bilimleri"
+    },
+    {
+     "id": "balikcilik-teknolojisi-muhendisligi",
+     "name": "Balıkçılık Teknolojisi Mühendisliği"
+    },
+    {
+     "id": "su-urunleri-yetistiricilik-muhendisligi",
+     "name": "Su Ürünleri Yetiştiricilik Mühendisliği"
+    }
+   ]
+  },
+  {
+   "id": "iletisim",
+   "name": "İletişim Fakültesi",
+   "departments": [
+    {
+     "id": "gazetecilik",
+     "name": "Gazetecilik"
+    },
+    {
+     "id": "halkla-iliskiler-ve-reklamcilik",
+     "name": "Halkla İlişkiler ve Reklamcılık"
+    },
+    {
+     "id": "halkla-iliskiler-ve-tanitim",
+     "name": "Halkla İlişkiler ve Tanıtım"
+    },
+    {
+     "id": "radyo-televizyon-ve-sinema",
+     "name": "Radyo, Televizyon ve Sinema"
+    },
+    {
+     "id": "yeni-medya-ve-iletisim",
+     "name": "Yeni Medya ve İletişim"
+    },
+    {
+     "id": "yeni-medya-ve-gazetecilik",
+     "name": "Yeni Medya ve Gazetecilik"
+    },
+    {
+     "id": "reklamcilik",
+     "name": "Reklamcılık"
+    },
+    {
+     "id": "gorsel-iletisim-tasarimi",
+     "name": "Görsel İletişim Tasarımı"
+    },
+    {
+     "id": "iletisim-ve-tasarim",
+     "name": "İletişim ve Tasarım"
+    },
+    {
+     "id": "bilisim-ve-iletisim",
+     "name": "Bilişim ve İletişim"
+    },
+    {
+     "id": "medya-ve-iletisim",
+     "name": "Medya ve İletişim"
+    },
+    {
+     "id": "sinema-ve-televizyon",
+     "name": "Sinema ve Televizyon"
+    },
+    {
+     "id": "medya-ve-gorsel-sanatlar",
+     "name": "Medya ve Görsel Sanatlar"
+    },
+    {
+     "id": "gazetecilik-ve-medya",
+     "name": "Gazetecilik ve Medya"
+    },
+    {
+     "id": "dijital-medya-ve-oyun-tasarimi",
+     "name": "Dijital Medya ve Oyun Tasarımı"
+    },
+    {
+     "id": "dijital-oyun-tasarimi",
+     "name": "Dijital Oyun Tasarımı"
+    },
+    {
+     "id": "iletisim-bilimleri",
+     "name": "İletişim Bilimleri"
+    },
+    {
+     "id": "kurumsal-iletisim",
+     "name": "Kurumsal İletişim"
+    },
+    {
+     "id": "cocuk-gelisimi",
+     "name": "Çocuk Gelişimi"
+    },
+    {
+     "id": "sosyal-medya-yonetimi",
+     "name": "Sosyal Medya Yönetimi"
+    }
+   ]
+  },
+  {
+   "id": "spor-bilimleri",
+   "name": "Spor Bilimleri Fakültesi",
+   "departments": [
+    {
+     "id": "antrenorluk-egitimi",
+     "name": "Antrenörlük Eğitimi"
+    },
+    {
+     "id": "spor-yoneticiligi",
+     "name": "Spor Yöneticiliği"
+    },
+    {
+     "id": "rekreasyon",
+     "name": "Rekreasyon"
+    },
+    {
+     "id": "beden-egitimi-ve-spor-ogretmenligi",
+     "name": "Beden Eğitimi ve Spor Öğretmenliği"
+    },
+    {
+     "id": "spor-bilimleri",
+     "name": "Spor Bilimleri"
+    },
+    {
+     "id": "engellilerde-spor-bilimleri",
+     "name": "Engellilerde Spor Bilimleri"
+    },
+    {
+     "id": "spor-saglik-bilimleri",
+     "name": "Spor Sağlık Bilimleri"
+    },
+    {
+     "id": "spor-teknolojisi",
+     "name": "Spor Teknolojisi"
+    },
+    {
+     "id": "spor-fizyoterapisi",
+     "name": "Spor Fizyoterapisi"
+    },
+    {
+     "id": "egzersiz-ve-spor-bilimleri",
+     "name": "Egzersiz ve Spor Bilimleri"
+    },
+    {
+     "id": "spor-medyasi",
+     "name": "Spor Medyası"
+    },
+    {
+     "id": "spor-ekonomisi",
+     "name": "Spor Ekonomisi"
+    },
+    {
+     "id": "spor-psikolojisi",
+     "name": "Spor Psikolojisi"
+    },
+    {
+     "id": "spor-hukuku",
+     "name": "Spor Hukuku"
+    }
+   ]
+  },
+  {
+   "id": "turizm",
+   "name": "Turizm Fakültesi",
+   "departments": [
+    {
+     "id": "turizm-isletmeciligi",
+     "name": "Turizm İşletmeciliği"
+    },
+    {
+     "id": "gastronomi-ve-mutfak-sanatlari",
+     "name": "Gastronomi ve Mutfak Sanatları"
+    },
+    {
+     "id": "turizm-rehberligi",
+     "name": "Turizm Rehberliği"
+    },
+    {
+     "id": "turist-rehberligi",
+     "name": "Turist Rehberliği"
+    },
+    {
+     "id": "seyahat-isletmeciligi",
+     "name": "Seyahat İşletmeciliği"
+    },
+    {
+     "id": "otelcilik",
+     "name": "Otelcilik"
+    },
+    {
+     "id": "rekreasyon-yonetimi",
+     "name": "Rekreasyon Yönetimi"
+    },
+    {
+     "id": "turizm-ve-otel-isletmeciligi",
+     "name": "Turizm ve Otel İşletmeciliği"
+    },
+    {
+     "id": "konaklama-isletmeciligi",
+     "name": "Konaklama İşletmeciliği"
+    },
+    {
+     "id": "yiyecek-ve-icecek-isletmeciligi",
+     "name": "Yiyecek ve İçecek İşletmeciliği"
+    },
+    {
+     "id": "havayolu-isletmeciligi",
+     "name": "Havayolu İşletmeciliği"
+    },
+    {
+     "id": "turizm-animasyonu",
+     "name": "Turizm Animasyonu"
+    },
+    {
+     "id": "turizm-ve-seyahat-yonetimi",
+     "name": "Turizm ve Seyahat Yönetimi"
+    },
+    {
+     "id": "kulturel-miras-ve-turizm",
+     "name": "Kültürel Miras ve Turizm"
+    },
+    {
+     "id": "eglence-ve-etkinlik-yonetimi",
+     "name": "Eğlence ve Etkinlik Yönetimi"
+    }
+   ]
+  },
+  {
+   "id": "havacilik",
+   "name": "Havacılık ve Uzay Bilimleri Fakültesi",
+   "departments": [
+    {
+     "id": "pilotaj",
+     "name": "Pilotaj"
+    },
+    {
+     "id": "havacilik-yonetimi",
+     "name": "Havacılık Yönetimi"
+    },
+    {
+     "id": "hava-trafik-kontrolu",
+     "name": "Hava Trafik Kontrolü"
+    },
+    {
+     "id": "ucak-govde-motor-bakimi",
+     "name": "Uçak Gövde-Motor Bakımı"
+    },
+    {
+     "id": "ucak-elektrik-ve-elektronigi",
+     "name": "Uçak Elektrik ve Elektroniği"
+    },
+    {
+     "id": "havacilik-elektrik-ve-elektronigi",
+     "name": "Havacılık Elektrik ve Elektroniği"
+    },
+    {
+     "id": "ucak-bakim-ve-onarim",
+     "name": "Uçak Bakım ve Onarım"
+    },
+    {
+     "id": "havacilik-ve-uzay-muhendisligi",
+     "name": "Havacılık ve Uzay Mühendisliği"
+    },
+    {
+     "id": "ucak-muhendisligi",
+     "name": "Uçak Mühendisliği"
+    },
+    {
+     "id": "uzay-bilimleri-ve-teknolojileri",
+     "name": "Uzay Bilimleri ve Teknolojileri"
+    },
+    {
+     "id": "sivil-havacilik-yonetimi",
+     "name": "Sivil Havacılık Yönetimi"
+    },
+    {
+     "id": "havaalani-isletmeciligi",
+     "name": "Havaalanı İşletmeciliği"
+    },
+    {
+     "id": "havacilik-guvenligi",
+     "name": "Havacılık Güvenliği"
+    },
+    {
+     "id": "insansiz-hava-araci-teknolojileri",
+     "name": "İnsansız Hava Aracı Teknolojileri"
+    },
+    {
+     "id": "ucus-harekat-yonetimi",
+     "name": "Uçuş Harekat Yönetimi"
+    },
+    {
+     "id": "ucak-teknolojisi",
+     "name": "Uçak Teknolojisi"
+    },
+    {
+     "id": "havacilik-isletmeciligi",
+     "name": "Havacılık İşletmeciliği"
+    },
+    {
+     "id": "kabin-hizmetleri",
+     "name": "Kabin Hizmetleri"
+    },
+    {
+     "id": "havacilik-bilisim-sistemleri",
+     "name": "Havacılık Bilişim Sistemleri"
+    }
+   ]
+  },
+  {
+   "id": "denizcilik",
+   "name": "Denizcilik Fakültesi",
+   "departments": [
+    {
+     "id": "gemi-insaati-ve-gemi-makineleri-muhendisligi",
+     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği"
+    },
+    {
+     "id": "deniz-ulastirma-isletme-muhendisligi",
+     "name": "Deniz Ulaştırma İşletme Mühendisliği"
+    },
+    {
+     "id": "gemi-makineleri-isletme-muhendisligi",
+     "name": "Gemi Makineleri İşletme Mühendisliği"
+    },
+    {
+     "id": "denizcilik-isletmeleri-yonetimi",
+     "name": "Denizcilik İşletmeleri Yönetimi"
+    },
+    {
+     "id": "deniz-ulastirma-ve-isletme-muhendisligi",
+     "name": "Deniz Ulaştırma ve İşletme Mühendisliği"
+    },
+    {
+     "id": "gemi-makineleri-muhendisligi",
+     "name": "Gemi Makineleri Mühendisliği"
+    },
+    {
+     "id": "deniz-ticareti-ve-yonetimi",
+     "name": "Deniz Ticareti ve Yönetimi"
+    },
+    {
+     "id": "guverte-muhendisligi",
+     "name": "Güverte Mühendisliği"
+    },
+    {
+     "id": "gemi-makineleri-ve-enerji-sistemleri",
+     "name": "Gemi Makineleri ve Enerji Sistemleri"
+    },
+    {
+     "id": "denizcilik-ve-liman-isletmeciligi",
+     "name": "Denizcilik ve Liman İşletmeciliği"
+    },
+    {
+     "id": "deniz-teknolojisi-muhendisligi",
+     "name": "Deniz Teknolojisi Mühendisliği"
+    },
+    {
+     "id": "gemi-sistemleri-muhendisligi",
+     "name": "Gemi Sistemleri Mühendisliği"
+    },
+    {
+     "id": "gemi-yapimi-ve-donatimi",
+     "name": "Gemi Yapımı ve Donatımı"
+    },
+    {
+     "id": "gemi-ve-deniz-teknolojisi-muhendisligi",
+     "name": "Gemi ve Deniz Teknolojisi Mühendisliği"
+    },
+    {
+     "id": "lojistik-ve-tasimacilik-yonetimi",
+     "name": "Lojistik ve Taşımacılık Yönetimi"
+    },
+    {
+     "id": "liman-isletmeciligi",
+     "name": "Liman İşletmeciliği"
+    },
+    {
+     "id": "denizcilik",
+     "name": "Denizcilik"
+    },
+    {
+     "id": "gemi-sanayi-ve-tersane-yonetimi",
+     "name": "Gemi Sanayi ve Tersane Yönetimi"
+    }
+   ]
+  },
+  {
+   "id": "teknoloji",
+   "name": "Teknoloji Fakültesi",
+   "departments": [
+    {
+     "id": "bilgisayar-muhendisligi",
+     "name": "Bilgisayar Mühendisliği"
+    },
+    {
+     "id": "yazilim-muhendisligi",
+     "name": "Yazılım Mühendisliği"
+    },
+    {
+     "id": "elektrik-elektronik-muhendisligi",
+     "name": "Elektrik-Elektronik Mühendisliği"
+    },
+    {
+     "id": "makine-muhendisligi",
+     "name": "Makine Mühendisliği"
+    },
+    {
+     "id": "insaat-muhendisligi",
+     "name": "İnşaat Mühendisliği"
+    },
+    {
+     "id": "mekatronik-muhendisligi",
+     "name": "Mekatronik Mühendisliği"
+    },
+    {
+     "id": "otomotiv-muhendisligi",
+     "name": "Otomotiv Mühendisliği"
+    },
+    {
+     "id": "endustri-muhendisligi",
+     "name": "Endüstri Mühendisliği"
+    },
+    {
+     "id": "metalurji-ve-malzeme-muhendisligi",
+     "name": "Metalurji ve Malzeme Mühendisliği"
+    },
+    {
+     "id": "enerji-sistemleri-muhendisligi",
+     "name": "Enerji Sistemleri Mühendisliği"
+    },
+    {
+     "id": "biyomedikal-muhendisligi",
+     "name": "Biyomedikal Mühendisliği"
+    },
+    {
+     "id": "gida-muhendisligi",
+     "name": "Gıda Mühendisliği"
+    },
+    {
+     "id": "tekstil-muhendisligi",
+     "name": "Tekstil Mühendisliği"
+    },
+    {
+     "id": "kimya-muhendisligi",
+     "name": "Kimya Mühendisliği"
+    },
+    {
+     "id": "mekatronik",
+     "name": "Mekatronik"
+    },
+    {
+     "id": "otomotiv-teknolojisi",
+     "name": "Otomotiv Teknolojisi"
+    },
+    {
+     "id": "elektronik-ve-otomasyon",
+     "name": "Elektronik ve Otomasyon"
+    },
+    {
+     "id": "bilisim-sistemleri-ve-teknolojileri",
+     "name": "Bilişim Sistemleri ve Teknolojileri"
+    },
+    {
+     "id": "ahsap-teknolojisi",
+     "name": "Ahşap Teknolojisi"
+    },
+    {
+     "id": "seramik-teknolojisi",
+     "name": "Seramik Teknolojisi"
+    },
+    {
+     "id": "makine-ve-imalat-teknolojisi",
+     "name": "Makine ve İmalat Teknolojisi"
+    },
+    {
+     "id": "elektrik-ve-enerji-teknolojisi",
+     "name": "Elektrik ve Enerji Teknolojisi"
+    },
+    {
+     "id": "elektronik-teknolojisi",
+     "name": "Elektronik Teknolojisi"
+    },
+    {
+     "id": "metalurji-ve-malzeme-teknolojisi",
+     "name": "Metalurji ve Malzeme Teknolojisi"
+    },
+    {
+     "id": "bilisim-teknolojileri-muhendisligi",
+     "name": "Bilişim Teknolojileri Mühendisliği"
+    },
+    {
+     "id": "biyomuhendislik",
+     "name": "Biyomühendislik"
+    },
+    {
+     "id": "enerji-muhendisligi",
+     "name": "Enerji Mühendisliği"
+    },
+    {
+     "id": "cevre-muhendisligi",
+     "name": "Çevre Mühendisliği"
+    },
+    {
+     "id": "imalat-muhendisligi",
+     "name": "İmalat Mühendisliği"
+    },
+    {
+     "id": "yapay-zeka-muhendisligi",
+     "name": "Yapay Zeka Mühendisliği"
+    },
+    {
+     "id": "matbaa-teknolojileri",
+     "name": "Matbaa Teknolojileri"
+    },
+    {
+     "id": "tekstil-teknolojisi",
+     "name": "Tekstil Teknolojisi"
+    },
+    {
+     "id": "elektronik-ve-haberlesme-muhendisligi",
+     "name": "Elektronik ve Haberleşme Mühendisliği"
+    },
+    {
+     "id": "elektrik-muhendisligi",
+     "name": "Elektrik Mühendisliği"
+    },
+    {
+     "id": "yenilenebilir-enerji-sistemleri",
+     "name": "Yenilenebilir Enerji Sistemleri"
+    },
+    {
+     "id": "optik-muhendisligi",
+     "name": "Optik Mühendisliği"
+    },
+    {
+     "id": "nukleer-enerji-muhendisligi",
+     "name": "Nükleer Enerji Mühendisliği"
+    }
+   ]
+  },
+  {
+   "id": "uygulamali-bilimler",
+   "name": "Uygulamalı Bilimler Fakültesi",
+   "departments": [
+    {
+     "id": "bankacilik-ve-sigortacilik",
+     "name": "Bankacılık ve Sigortacılık"
+    },
+    {
+     "id": "muhasebe-ve-finans-yonetimi",
+     "name": "Muhasebe ve Finans Yönetimi"
+    },
+    {
+     "id": "yonetim-bilisim-sistemleri",
+     "name": "Yönetim Bilişim Sistemleri"
+    },
+    {
+     "id": "uluslararasi-ticaret-ve-lojistik",
+     "name": "Uluslararası Ticaret ve Lojistik"
+    },
+    {
+     "id": "uluslararasi-ticaret-ve-finans",
+     "name": "Uluslararası Ticaret ve Finans"
+    },
+    {
+     "id": "turizm-isletmeciligi",
+     "name": "Turizm İşletmeciliği"
+    },
+    {
+     "id": "gastronomi-ve-mutfak-sanatlari",
+     "name": "Gastronomi ve Mutfak Sanatları"
+    },
+    {
+     "id": "finans-ve-bankacilik",
+     "name": "Finans ve Bankacılık"
+    },
+    {
+     "id": "isletme",
+     "name": "İşletme"
+    },
+    {
+     "id": "bilisim-sistemleri-ve-teknolojileri",
+     "name": "Bilişim Sistemleri ve Teknolojileri"
+    },
+    {
+     "id": "halkla-iliskiler-ve-reklamcilik",
+     "name": "Halkla İlişkiler ve Reklamcılık"
+    },
+    {
+     "id": "girisimcilik",
+     "name": "Girişimcilik"
+    },
+    {
+     "id": "gayrimenkul-gelistirme-ve-yonetimi",
+     "name": "Gayrimenkul Geliştirme ve Yönetimi"
+    },
+    {
+     "id": "lojistik-yonetimi",
+     "name": "Lojistik Yönetimi"
+    },
+    {
+     "id": "pazarlama",
+     "name": "Pazarlama"
+    },
+    {
+     "id": "saglik-yonetimi",
+     "name": "Sağlık Yönetimi"
+    },
+    {
+     "id": "spor-yoneticiligi",
+     "name": "Spor Yöneticiliği"
+    },
+    {
+     "id": "havacilik-yonetimi",
+     "name": "Havacılık Yönetimi"
+    },
+    {
+     "id": "yazilim-gelistirme",
+     "name": "Yazılım Geliştirme"
+    },
+    {
+     "id": "siber-guvenlik",
+     "name": "Siber Güvenlik"
+    },
+    {
+     "id": "tarim-isletmeciligi",
+     "name": "Tarım İşletmeciliği"
+    },
+    {
+     "id": "kamu-yonetimi",
+     "name": "Kamu Yönetimi"
+    },
+    {
+     "id": "sosyal-hizmet",
+     "name": "Sosyal Hizmet"
+    },
+    {
+     "id": "calisma-ekonomisi",
+     "name": "Çalışma Ekonomisi"
+    },
+    {
+     "id": "uluslararasi-ticaret",
+     "name": "Uluslararası Ticaret"
+    },
+    {
+     "id": "dijital-pazarlama",
+     "name": "Dijital Pazarlama"
+    },
+    {
+     "id": "elektronik-ticaret",
+     "name": "Elektronik Ticaret"
+    },
+    {
+     "id": "tedarik-zinciri-yonetimi",
+     "name": "Tedarik Zinciri Yönetimi"
+    },
+    {
+     "id": "is-sagligi-ve-guvenligi",
+     "name": "İş Sağlığı ve Güvenliği"
+    },
+    {
+     "id": "medya-ve-iletisim",
+     "name": "Medya ve İletişim"
+    },
+    {
+     "id": "veri-bilimi-ve-analitigi",
+     "name": "Veri Bilimi ve Analitiği"
+    },
+    {
+     "id": "yerel-yonetimler",
+     "name": "Yerel Yönetimler"
+    },
+    {
+     "id": "finans-teknolojileri",
+     "name": "Finans Teknolojileri"
+    },
+    {
+     "id": "maliye",
+     "name": "Maliye"
+    },
+    {
+     "id": "muhasebe-ve-denetim",
+     "name": "Muhasebe ve Denetim"
+    }
+   ]
+  },
+  {
+   "id": "devlet-konservatuvari",
+   "name": "Devlet Konservatuvarı",
+   "departments": [
+    {
+     "id": "muzik",
+     "name": "Müzik"
+    },
+    {
+     "id": "muzik-bilimleri",
+     "name": "Müzik Bilimleri"
+    },
+    {
+     "id": "turk-halk-muzigi",
+     "name": "Türk Halk Müziği"
+    },
+    {
+     "id": "turk-sanat-muzigi",
+     "name": "Türk Sanat Müziği"
+    },
+    {
+     "id": "klasik-bati-muzigi",
+     "name": "Klasik Batı Müziği"
+    },
+    {
+     "id": "piyano",
+     "name": "Piyano"
+    },
+    {
+     "id": "keman",
+     "name": "Keman"
+    },
+    {
+     "id": "viyolonsel",
+     "name": "Viyolonsel"
+    },
+    {
+     "id": "gitar",
+     "name": "Gitar"
+    },
+    {
+     "id": "san",
+     "name": "Şan"
+    },
+    {
+     "id": "bale",
+     "name": "Bale"
+    },
+    {
+     "id": "tiyatro",
+     "name": "Tiyatro"
+    },
+    {
+     "id": "sahne-sanatlari",
+     "name": "Sahne Sanatları"
+    },
+    {
+     "id": "muzikal-tiyatro",
+     "name": "Müzikal Tiyatro"
+    },
+    {
+     "id": "oyunculuk",
+     "name": "Oyunculuk"
+    },
+    {
+     "id": "dans",
+     "name": "Dans"
+    },
+    {
+     "id": "kompozisyon-ve-orkestra-sefligi",
+     "name": "Kompozisyon ve Orkestra Şefliği"
+    },
+    {
+     "id": "muzik-teknolojisi",
+     "name": "Müzik Teknolojisi"
+    },
+    {
+     "id": "geleneksel-turk-muzigi",
+     "name": "Geleneksel Türk Müziği"
+    },
+    {
+     "id": "opera",
+     "name": "Opera"
+    },
+    {
+     "id": "calgi",
+     "name": "Çalgı"
+    },
+    {
+     "id": "baglama",
+     "name": "Bağlama"
+    },
+    {
+     "id": "ud",
+     "name": "Ud"
+    },
+    {
+     "id": "kemence",
+     "name": "Kemençe"
+    },
+    {
+     "id": "kanun",
+     "name": "Kanun"
+    },
+    {
+     "id": "ney",
+     "name": "Ney"
+    },
+    {
+     "id": "armoni",
+     "name": "Armoni"
+    },
+    {
+     "id": "muzikoloji",
+     "name": "Müzikoloji"
+    },
+    {
+     "id": "caz-ve-populer-muzik",
+     "name": "Caz ve Popüler Müzik"
+    },
+    {
+     "id": "elektronik-muzik",
+     "name": "Elektronik Müzik"
+    }
+   ]
+  },
+  {
+   "id": "hemsirelik-yuksekokulu",
+   "name": "Hemşirelik Yüksekokulu",
+   "departments": [
+    {
+     "id": "hemsirelik",
+     "name": "Hemşirelik"
+    },
+    {
+     "id": "ebelik",
+     "name": "Ebelik"
+    },
+    {
+     "id": "saglik-bakim-hizmetleri",
+     "name": "Sağlık Bakım Hizmetleri"
+    },
+    {
+     "id": "acil-yardim-ve-afet-yonetimi",
+     "name": "Acil Yardım ve Afet Yönetimi"
+    },
+    {
+     "id": "saglik-yonetimi",
+     "name": "Sağlık Yönetimi"
+    },
+    {
+     "id": "sosyal-hizmet",
+     "name": "Sosyal Hizmet"
+    }
+   ]
+  },
+  {
+   "id": "meslek-yuksekokulu",
+   "name": "Meslek Yüksekokulu",
+   "departments": [
+    {
+     "id": "bilgisayar-programciligi",
+     "name": "Bilgisayar Programcılığı"
+    },
+    {
+     "id": "muhasebe-ve-vergi-uygulamalari",
+     "name": "Muhasebe ve Vergi Uygulamaları"
+    },
+    {
+     "id": "elektrik",
+     "name": "Elektrik"
+    },
+    {
+     "id": "elektronik-teknolojisi",
+     "name": "Elektronik Teknolojisi"
+    },
+    {
+     "id": "elektronik-haberlesme-teknolojisi",
+     "name": "Elektronik Haberleşme Teknolojisi"
+    },
+    {
+     "id": "laborant-ve-veteriner-saglik",
+     "name": "Laborant ve Veteriner Sağlık"
+    },
+    {
+     "id": "tibbi-hizmetler-ve-teknikler",
+     "name": "Tıbbi Hizmetler ve Teknikler"
+    },
+    {
+     "id": "adalet",
+     "name": "Adalet"
+    },
+    {
+     "id": "buro-yonetimi-ve-yonetici-asistanligi",
+     "name": "Büro Yönetimi ve Yönetici Asistanlığı"
+    },
+    {
+     "id": "buro-yonetimi",
+     "name": "Büro Yönetimi"
+    },
+    {
+     "id": "is-sagligi-ve-guvenligi",
+     "name": "İş Sağlığı ve Güvenliği"
+    },
+    {
+     "id": "ilk-ve-acil-yardim",
+     "name": "İlk ve Acil Yardım"
+    },
+    {
+     "id": "agiz-ve-dis-sagligi",
+     "name": "Ağız ve Diş Sağlığı"
+    },
+    {
+     "id": "cocuk-gelisimi",
+     "name": "Çocuk Gelişimi"
+    },
+    {
+     "id": "ascilik",
+     "name": "Aşçılık"
+    },
+    {
+     "id": "turizm-ve-otel-isletmeciligi",
+     "name": "Turizm ve Otel İşletmeciliği"
+    },
+    {
+     "id": "web-tasarimi-ve-kodlama",
+     "name": "Web Tasarımı ve Kodlama"
+    },
+    {
+     "id": "mekatronik",
+     "name": "Mekatronik"
+    },
+    {
+     "id": "insaat-teknolojisi",
+     "name": "İnşaat Teknolojisi"
+    },
+    {
+     "id": "harita-ve-kadastro",
+     "name": "Harita ve Kadastro"
+    },
+    {
+     "id": "tarim",
+     "name": "Tarım"
+    },
+    {
+     "id": "bitkisel-uretim",
+     "name": "Bitkisel Üretim"
+    },
+    {
+     "id": "hayvansal-uretim",
+     "name": "Hayvansal Üretim"
+    },
+    {
+     "id": "gida-teknolojisi",
+     "name": "Gıda Teknolojisi"
+    },
+    {
+     "id": "radyoterapi",
+     "name": "Radyoterapi"
+    },
+    {
+     "id": "tibbi-goruntuleme-teknikleri",
+     "name": "Tıbbi Görüntüleme Teknikleri"
+    },
+    {
+     "id": "anestezi",
+     "name": "Anestezi"
+    },
+    {
+     "id": "optisyenlik",
+     "name": "Optisyenlik"
+    },
+    {
+     "id": "fizyoterapi",
+     "name": "Fizyoterapi"
+    },
+    {
+     "id": "yasli-bakimi",
+     "name": "Yaşlı Bakımı"
+    },
+    {
+     "id": "sosyal-hizmetler",
+     "name": "Sosyal Hizmetler"
+    },
+    {
+     "id": "halkla-iliskiler-ve-tanitim",
+     "name": "Halkla İlişkiler ve Tanıtım"
+    },
+    {
+     "id": "dis-ticaret",
+     "name": "Dış Ticaret"
+    },
+    {
+     "id": "lojistik",
+     "name": "Lojistik"
+    },
+    {
+     "id": "bankacilik-ve-sigortacilik",
+     "name": "Bankacılık ve Sigortacılık"
+    },
+    {
+     "id": "emlak-yonetimi",
+     "name": "Emlak Yönetimi"
+    },
+    {
+     "id": "spor-yonetimi",
+     "name": "Spor Yönetimi"
+    },
+    {
+     "id": "makine",
+     "name": "Makine"
+    },
+    {
+     "id": "makine-resim-ve-konstruksiyonu",
+     "name": "Makine Resim ve Konstrüksiyonu"
+    },
+    {
+     "id": "otomotiv-teknolojisi",
+     "name": "Otomotiv Teknolojisi"
+    },
+    {
+     "id": "bilgisayar-teknolojisi",
+     "name": "Bilgisayar Teknolojisi"
+    },
+    {
+     "id": "bilgi-guvenligi-teknolojisi",
+     "name": "Bilgi Güvenliği Teknolojisi"
+    },
+    {
+     "id": "bilgisayar-destekli-tasarim-ve-animasyon",
+     "name": "Bilgisayar Destekli Tasarım ve Animasyon"
+    },
+    {
+     "id": "mobil-teknolojileri",
+     "name": "Mobil Teknolojileri"
+    },
+    {
+     "id": "grafik-tasarimi",
+     "name": "Grafik Tasarımı"
+    },
+    {
+     "id": "fotograf-ve-kameramanlik",
+     "name": "Fotoğraf ve Kameramanlık"
+    },
+    {
+     "id": "radyo-ve-televizyon-programciligi",
+     "name": "Radyo ve Televizyon Programcılığı"
+    },
+    {
+     "id": "medya-ve-iletisim",
+     "name": "Medya ve İletişim"
+    },
+    {
+     "id": "gazetecilik",
+     "name": "Gazetecilik"
+    },
+    {
+     "id": "isletme-yonetimi",
+     "name": "İşletme Yönetimi"
+    },
+    {
+     "id": "pazarlama",
+     "name": "Pazarlama"
+    },
+    {
+     "id": "perakende-satis-ve-magaza-yonetimi",
+     "name": "Perakende Satış ve Mağaza Yönetimi"
+    },
+    {
+     "id": "e-ticaret-ve-pazarlama",
+     "name": "E-Ticaret ve Pazarlama"
+    },
+    {
+     "id": "yerel-yonetimler",
+     "name": "Yerel Yönetimler"
+    },
+    {
+     "id": "kamu-yonetimi",
+     "name": "Kamu Yönetimi"
+    },
+    {
+     "id": "saglik-kurumlari-isletmeciligi",
+     "name": "Sağlık Kurumları İşletmeciliği"
+    },
+    {
+     "id": "tibbi-dokumantasyon-ve-sekreterlik",
+     "name": "Tıbbi Dokümantasyon ve Sekreterlik"
+    },
+    {
+     "id": "tibbi-laboratuvar-teknikleri",
+     "name": "Tıbbi Laboratuvar Teknikleri"
+    },
+    {
+     "id": "patoloji-laboratuvar-teknikleri",
+     "name": "Patoloji Laboratuvar Teknikleri"
+    },
+    {
+     "id": "ameliyathane-hizmetleri",
+     "name": "Ameliyathane Hizmetleri"
+    },
+    {
+     "id": "diyaliz",
+     "name": "Diyaliz"
+    },
+    {
+     "id": "elektronorofizyoloji",
+     "name": "Elektronörofizyoloji"
+    },
+    {
+     "id": "cocuk-bakimi-ve-genclik-hizmetleri",
+     "name": "Çocuk Bakımı ve Gençlik Hizmetleri"
+    },
+    {
+     "id": "engelli-bakimi-ve-rehabilitasyon",
+     "name": "Engelli Bakımı ve Rehabilitasyon"
+    },
+    {
+     "id": "evde-hasta-bakimi",
+     "name": "Evde Hasta Bakımı"
+    },
+    {
+     "id": "ortopedik-protez-ve-ortez",
+     "name": "Ortopedik Protez ve Ortez"
+    },
+    {
+     "id": "odyometri",
+     "name": "Odyometri"
+    },
+    {
+     "id": "podoloji",
+     "name": "Podoloji"
+    },
+    {
+     "id": "tibbi-goruntuleme",
+     "name": "Tıbbi Görüntüleme"
+    },
+    {
+     "id": "eczane-hizmetleri",
+     "name": "Eczane Hizmetleri"
+    },
+    {
+     "id": "tibbi-aromatik-bitkiler",
+     "name": "Tıbbi Aromatik Bitkiler"
+    },
+    {
+     "id": "veteriner-saglik",
+     "name": "Veteriner Sağlık"
+    },
+    {
+     "id": "bahce-tarimi",
+     "name": "Bahçe Tarımı"
+    },
+    {
+     "id": "tarim-makineleri",
+     "name": "Tarım Makineleri"
+    },
+    {
+     "id": "organik-tarim",
+     "name": "Organik Tarım"
+    },
+    {
+     "id": "bitki-koruma",
+     "name": "Bitki Koruma"
+    },
+    {
+     "id": "peyzaj-ve-sus-bitkileri-yetistiriciligi",
+     "name": "Peyzaj ve Süs Bitkileri Yetiştiriciliği"
+    },
+    {
+     "id": "su-urunleri-yetistiriciligi",
+     "name": "Su Ürünleri Yetiştiriciliği"
+    },
+    {
+     "id": "toprak-muhafaza-ve-havza-yonetimi",
+     "name": "Toprak Muhafaza ve Havza Yönetimi"
+    },
+    {
+     "id": "ormancilik-ve-orman-urunleri",
+     "name": "Ormancılık ve Orman Ürünleri"
+    },
+    {
+     "id": "aricilik",
+     "name": "Arıcılık"
+    },
+    {
+     "id": "sulama-teknolojisi",
+     "name": "Sulama Teknolojisi"
+    },
+    {
+     "id": "tarimsal-isletmecilik",
+     "name": "Tarımsal İşletmecilik"
+    },
+    {
+     "id": "seracilik",
+     "name": "Seracılık"
+    },
+    {
+     "id": "gida-kalite-kontrolu-ve-analizi",
+     "name": "Gıda Kalite Kontrolü ve Analizi"
+    },
+    {
+     "id": "sut-ve-urunleri-teknolojisi",
+     "name": "Süt ve Ürünleri Teknolojisi"
+    },
+    {
+     "id": "beslenme-ve-diyetetik",
+     "name": "Beslenme ve Diyetetik"
+    },
+    {
+     "id": "pastacilik-ve-ekmekcilik",
+     "name": "Pastacılık ve Ekmekçilik"
+    },
+    {
+     "id": "yiyecek-icecek-hizmetleri",
+     "name": "Yiyecek İçecek Hizmetleri"
+    },
+    {
+     "id": "seyahat-turizm-ve-eglence-hizmetleri",
+     "name": "Seyahat Turizm ve Eğlence Hizmetleri"
+    },
+    {
+     "id": "otel-lokanta-ve-ikram-hizmetleri",
+     "name": "Otel Lokanta ve İkram Hizmetleri"
+    },
+    {
+     "id": "rekreasyon",
+     "name": "Rekreasyon"
+    },
+    {
+     "id": "turist-rehberligi",
+     "name": "Turist Rehberliği"
+    },
+    {
+     "id": "havacilik-yonetimi",
+     "name": "Havacılık Yönetimi"
+    },
+    {
+     "id": "sivil-havacilik-kabin-hizmetleri",
+     "name": "Sivil Havacılık Kabin Hizmetleri"
+    },
+    {
+     "id": "hava-trafik-kontrol",
+     "name": "Hava Trafik Kontrol"
+    },
+    {
+     "id": "ucak-teknolojisi",
+     "name": "Uçak Teknolojisi"
+    },
+    {
+     "id": "ucak-bakim",
+     "name": "Uçak Bakım"
+    },
+    {
+     "id": "havacilik-elektrik-ve-elektronigi",
+     "name": "Havacılık Elektrik ve Elektroniği"
+    },
+    {
+     "id": "insansiz-hava-araci-teknolojisi-ve-operatorlugu",
+     "name": "İnsansız Hava Aracı Teknolojisi ve Operatörlüğü"
+    },
+    {
+     "id": "denizcilik-isletmeleri",
+     "name": "Denizcilik İşletmeleri"
+    },
+    {
+     "id": "gemi-insaati",
+     "name": "Gemi İnşaatı"
+    },
+    {
+     "id": "liman-isletmeciligi",
+     "name": "Liman İşletmeciliği"
+    },
+    {
+     "id": "lojistik-ve-tasimacilik",
+     "name": "Lojistik ve Taşımacılık"
+    },
+    {
+     "id": "rayli-sistemler-isletmeciligi",
+     "name": "Raylı Sistemler İşletmeciliği"
+    },
+    {
+     "id": "rayli-sistemler-teknolojisi",
+     "name": "Raylı Sistemler Teknolojisi"
+    },
+    {
+     "id": "rayli-sistemler-elektrik-ve-elektronigi",
+     "name": "Raylı Sistemler Elektrik ve Elektroniği"
+    },
+    {
+     "id": "demiryolu-yapim-isletme",
+     "name": "Demiryolu Yapım İşletme"
+    },
+    {
+     "id": "karayolu-yapimi",
+     "name": "Karayolu Yapımı"
+    },
+    {
+     "id": "yapi-denetimi",
+     "name": "Yapı Denetimi"
+    },
+    {
+     "id": "yapi-tesisat-teknolojisi",
+     "name": "Yapı Tesisat Teknolojisi"
+    },
+    {
+     "id": "iklimlendirme-ve-sogutma-teknolojisi",
+     "name": "İklimlendirme ve Soğutma Teknolojisi"
+    },
+    {
+     "id": "isitma-ve-sogutma",
+     "name": "Isıtma ve Soğutma"
+    },
+    {
+     "id": "dogalgaz-ve-tesisat-teknolojisi",
+     "name": "Doğalgaz ve Tesisat Teknolojisi"
+    },
+    {
+     "id": "boya-teknolojisi",
+     "name": "Boya Teknolojisi"
+    },
+    {
+     "id": "mimari-restorasyon",
+     "name": "Mimari Restorasyon"
+    },
+    {
+     "id": "mimari-dekoratif-sanatlar",
+     "name": "Mimari Dekoratif Sanatlar"
+    },
+    {
+     "id": "geleneksel-el-sanatlari",
+     "name": "Geleneksel El Sanatları"
+    },
+    {
+     "id": "ic-mekan-tasarimi",
+     "name": "İç Mekan Tasarımı"
+    },
+    {
+     "id": "dekoratif-sanatlar",
+     "name": "Dekoratif Sanatlar"
+    },
+    {
+     "id": "seramik-cam-ve-cini",
+     "name": "Seramik, Cam ve Çini"
+    },
+    {
+     "id": "taki-tasarimi",
+     "name": "Takı Tasarımı"
+    },
+    {
+     "id": "kuyumculuk-ve-taki-tasarimi",
+     "name": "Kuyumculuk ve Takı Tasarımı"
+    },
+    {
+     "id": "moda-tasarimi",
+     "name": "Moda Tasarımı"
+    },
+    {
+     "id": "giyim-uretim-teknolojisi",
+     "name": "Giyim Üretim Teknolojisi"
+    },
+    {
+     "id": "tekstil-teknolojisi",
+     "name": "Tekstil Teknolojisi"
+    },
+    {
+     "id": "tekstil-kalite-kontrol",
+     "name": "Tekstil Kalite Kontrol"
+    },
+    {
+     "id": "deri-teknolojisi",
+     "name": "Deri Teknolojisi"
+    },
+    {
+     "id": "ayakkabi-tasarim-ve-uretimi",
+     "name": "Ayakkabı Tasarım ve Üretimi"
+    },
+    {
+     "id": "matbaa",
+     "name": "Matbaa"
+    },
+    {
+     "id": "basim-ve-yayim-teknolojileri",
+     "name": "Basım ve Yayım Teknolojileri"
+    },
+    {
+     "id": "kutuphane-ve-dijital-arsiv",
+     "name": "Kütüphane ve Dijital Arşiv"
+    },
+    {
+     "id": "arsiv-hizmetleri",
+     "name": "Arşiv Hizmetleri"
+    },
+    {
+     "id": "mobilya-ve-dekorasyon",
+     "name": "Mobilya ve Dekorasyon"
+    },
+    {
+     "id": "agac-isleri-endustri-muhendisligi",
+     "name": "Ağaç İşleri Endüstri Mühendisliği"
+    },
+    {
+     "id": "ahsap-teknolojisi",
+     "name": "Ahşap Teknolojisi"
+    },
+    {
+     "id": "kaynak-teknolojisi",
+     "name": "Kaynak Teknolojisi"
+    },
+    {
+     "id": "metalurji",
+     "name": "Metalurji"
+    },
+    {
+     "id": "makine-teknolojisi",
+     "name": "Makine Teknolojisi"
+    },
+    {
+     "id": "makine-bakim-onarim",
+     "name": "Makine Bakım Onarım"
+    },
+    {
+     "id": "endustriyel-otomasyon",
+     "name": "Endüstriyel Otomasyon"
+    },
+    {
+     "id": "bilgisayarli-tasarim-ve-imalat",
+     "name": "Bilgisayarlı Tasarım ve İmalat"
+    },
+    {
+     "id": "mekatronik-sistemler",
+     "name": "Mekatronik Sistemler"
+    },
+    {
+     "id": "endustriyel-kalipcilik",
+     "name": "Endüstriyel Kalıpçılık"
+    },
+    {
+     "id": "otomotiv-elektrik-ve-elektronigi",
+     "name": "Otomotiv Elektrik ve Elektroniği"
+    },
+    {
+     "id": "hibrit-ve-elektrikli-tasitlar-teknolojisi",
+     "name": "Hibrit ve Elektrikli Taşıtlar Teknolojisi"
+    },
+    {
+     "id": "agir-vasita-teknolojisi",
+     "name": "Ağır Vasıta Teknolojisi"
+    },
+    {
+     "id": "is-makineleri-operatorlugu",
+     "name": "İş Makineleri Operatörlüğü"
+    },
+    {
+     "id": "biyomedikal-cihaz-teknolojisi",
+     "name": "Biyomedikal Cihaz Teknolojisi"
+    },
+    {
+     "id": "elektrik-enerjisi-uretim-iletim-ve-dagitimi",
+     "name": "Elektrik Enerjisi Üretim, İletim ve Dağıtımı"
+    },
+    {
+     "id": "enerji-yonetimi",
+     "name": "Enerji Yönetimi"
+    },
+    {
+     "id": "yenilenebilir-enerji-teknikerligi",
+     "name": "Yenilenebilir Enerji Teknikerliği"
+    },
+    {
+     "id": "bina-enerji-yonetimi",
+     "name": "Bina Enerji Yönetimi"
+    },
+    {
+     "id": "nukleer-teknoloji-ve-radyasyon-guvenligi",
+     "name": "Nükleer Teknoloji ve Radyasyon Güvenliği"
+    },
+    {
+     "id": "maden-teknolojisi",
+     "name": "Maden Teknolojisi"
+    },
+    {
+     "id": "madencilik",
+     "name": "Madencilik"
+    },
+    {
+     "id": "petrol-ve-dogal-gaz-teknolojisi",
+     "name": "Petrol ve Doğal Gaz Teknolojisi"
+    },
+    {
+     "id": "jeoloji-teknikerligi",
+     "name": "Jeoloji Teknikerliği"
+    },
+    {
+     "id": "jeotermal-enerji-teknolojisi",
+     "name": "Jeotermal Enerji Teknolojisi"
+    },
+    {
+     "id": "cevre-koruma-ve-kontrol",
+     "name": "Çevre Koruma ve Kontrol"
+    },
+    {
+     "id": "cevre-sagligi",
+     "name": "Çevre Sağlığı"
+    },
+    {
+     "id": "atik-yonetimi",
+     "name": "Atık Yönetimi"
+    },
+    {
+     "id": "meteoroloji",
+     "name": "Meteoroloji"
+    },
+    {
+     "id": "su-teknolojisi",
+     "name": "Su Teknolojisi"
+    },
+    {
+     "id": "kimya-teknolojisi",
+     "name": "Kimya Teknolojisi"
+    },
+    {
+     "id": "kimya-teknikerligi",
+     "name": "Kimya Teknikerliği"
+    },
+    {
+     "id": "plastik-teknolojisi",
+     "name": "Plastik Teknolojisi"
+    },
+    {
+     "id": "polimer-teknolojisi",
+     "name": "Polimer Teknolojisi"
+    },
+    {
+     "id": "tibbi-urunler-ve-kozmetik",
+     "name": "Tıbbi Ürünler ve Kozmetik"
+    },
+    {
+     "id": "kozmetik-teknolojisi",
+     "name": "Kozmetik Teknolojisi"
+    },
+    {
+     "id": "eczacilik-hizmetleri",
+     "name": "Eczacılık Hizmetleri"
+    },
+    {
+     "id": "guzellik-bakim-ve-sac-bakim-hizmetleri",
+     "name": "Güzellik Bakım ve Saç Bakım Hizmetleri"
+    },
+    {
+     "id": "cilt-bakimi-ve-guzellik-hizmetleri",
+     "name": "Cilt Bakımı ve Güzellik Hizmetleri"
+    },
+    {
+     "id": "sac-bakimi-ve-guzellik-hizmetleri",
+     "name": "Saç Bakımı ve Güzellik Hizmetleri"
+    },
+    {
+     "id": "acil-durum-ve-afet-yonetimi",
+     "name": "Acil Durum ve Afet Yönetimi"
+    },
+    {
+     "id": "itfaiyecilik-ve-yangin-guvenligi",
+     "name": "İtfaiyecilik ve Yangın Güvenliği"
+    },
+    {
+     "id": "sivil-savunma-ve-itfaiyecilik",
+     "name": "Sivil Savunma ve İtfaiyecilik"
+    },
+    {
+     "id": "sivil-hava-tasimaciligi-isletmeciligi",
+     "name": "Sivil Hava Taşımacılığı İşletmeciliği"
+    },
+    {
+     "id": "kriminalistik",
+     "name": "Kriminalistik"
+    },
+    {
+     "id": "guvenlik-ve-koruma",
+     "name": "Güvenlik ve Koruma"
+    },
+    {
+     "id": "gumruk-isletme",
+     "name": "Gümrük İşletme"
+    },
+    {
+     "id": "maliye",
+     "name": "Maliye"
+    },
+    {
+     "id": "sosyal-guvenlik",
+     "name": "Sosyal Güvenlik"
+    },
+    {
+     "id": "calisma-ekonomisi-ve-endustri-iliskileri",
+     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri"
+    },
+    {
+     "id": "insan-kaynaklari-yonetimi",
+     "name": "İnsan Kaynakları Yönetimi"
+    },
+    {
+     "id": "halkla-iliskiler",
+     "name": "Halkla İlişkiler"
+    },
+    {
+     "id": "reklamcilik",
+     "name": "Reklamcılık"
+    },
+    {
+     "id": "sosyal-medya-yonetimi",
+     "name": "Sosyal Medya Yönetimi"
+    },
+    {
+     "id": "siber-guvenlik",
+     "name": "Siber Güvenlik"
+    },
+    {
+     "id": "yapay-zeka-teknolojileri",
+     "name": "Yapay Zeka Teknolojileri"
+    },
+    {
+     "id": "veri-analitigi",
+     "name": "Veri Analitiği"
+    },
+    {
+     "id": "bilisim-guvenligi-teknolojisi",
+     "name": "Bilişim Güvenliği Teknolojisi"
+    },
+    {
+     "id": "oyun-gelistirme-ve-programlama",
+     "name": "Oyun Geliştirme ve Programlama"
+    },
+    {
+     "id": "bilgisayar-destekli-tasarim",
+     "name": "Bilgisayar Destekli Tasarım"
+    },
+    {
+     "id": "elektronik-ticaret",
+     "name": "Elektronik Ticaret"
+    },
+    {
+     "id": "girisimcilik",
+     "name": "Girişimcilik"
+    },
+    {
+     "id": "muhasebe",
+     "name": "Muhasebe"
+    },
+    {
+     "id": "tapu-ve-kadastro",
+     "name": "Tapu ve Kadastro"
+    },
+    {
+     "id": "harita-teknikerligi",
+     "name": "Harita Teknikerliği"
+    },
+    {
+     "id": "cografi-bilgi-sistemleri",
+     "name": "Coğrafi Bilgi Sistemleri"
+    },
+    {
+     "id": "yapi-ressamligi",
+     "name": "Yapı Ressamlığı"
+    },
+    {
+     "id": "peyzaj-mimarligi-teknikerligi",
+     "name": "Peyzaj Mimarlığı Teknikerliği"
+    },
+    {
+     "id": "park-ve-bahce-bitkileri",
+     "name": "Park ve Bahçe Bitkileri"
+    },
+    {
+     "id": "antrenorluk",
+     "name": "Antrenörlük"
+    },
+    {
+     "id": "sporda-beden-egitimi",
+     "name": "Sporda Beden Eğitimi"
+    },
+    {
+     "id": "okul-oncesi-egitimi",
+     "name": "Okul Öncesi Eğitimi"
+    },
+    {
+     "id": "ozel-gereksinimli-bireyler",
+     "name": "Özel Gereksinimli Bireyler"
+    },
+    {
+     "id": "yasli-hizmetleri",
+     "name": "Yaşlı Hizmetleri"
+    },
+    {
+     "id": "saglik-bakim-teknikerligi",
+     "name": "Sağlık Bakım Teknikerliği"
+    },
+    {
+     "id": "hemsirelik-hizmetleri",
+     "name": "Hemşirelik Hizmetleri"
+    },
+    {
+     "id": "tibbi-terapi",
+     "name": "Tıbbi Terapi"
+    },
+    {
+     "id": "fizyoterapi-teknikerligi",
+     "name": "Fizyoterapi Teknikerliği"
+    },
+    {
+     "id": "isitme-engelliler-isaret-dili",
+     "name": "İşitme Engelliler İşaret Dili"
+    }
+   ]
+  }
+ ],
+ "grades": [
+  {
+   "id": "PREP",
+   "name": "Hazırlık"
+  },
+  {
+   "id": "1",
+   "name": "1. sınıf"
+  },
+  {
+   "id": "2",
+   "name": "2. sınıf"
+  },
+  {
+   "id": "3",
+   "name": "3. sınıf"
+  },
+  {
+   "id": "4",
+   "name": "4. sınıf"
+  },
+  {
+   "id": "5",
+   "name": "5. sınıf"
+  },
+  {
+   "id": "6",
+   "name": "6. sınıf"
+  },
+  {
+   "id": "MASTER",
+   "name": "Yüksek lisans"
+  },
+  {
+   "id": "PHD",
+   "name": "Doktora"
+  }
+ ]
+}

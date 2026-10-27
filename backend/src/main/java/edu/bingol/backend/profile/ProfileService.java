@@ -2,6 +2,7 @@ package edu.bingol.backend.profile;
 
 import edu.bingol.backend.analytics.ActivityRepository;
 import edu.bingol.backend.appinfo.AppInfoService;
+import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
@@ -51,11 +52,13 @@ public class ProfileService {
     private final UserEventRepository events;
     private final StringRedisTemplate redis;
     private final AccountDataPurger purger;
+    private final CatalogService catalog;
 
     public ProfileService(UserRepository users, BlockService blocks, MediaService media, PasswordEncoder encoder,
                           AppInfoService appInfo, ActivityRepository activity, PublicProfileMapper mapper,
                           AvatarCleanups avatarCleanups, EventRsvpRepository rsvps, UserEventRepository events,
-                          StringRedisTemplate redis, AccountDataPurger purger) {
+                          StringRedisTemplate redis, AccountDataPurger purger, CatalogService catalog) {
+        this.catalog = catalog;
         this.purger = purger;
         this.mapper = mapper;
         this.avatarCleanups = avatarCleanups;
@@ -96,6 +99,17 @@ public class ProfileService {
         User u = get(id);
         if (r.displayName() != null) {
             u.setDisplayName(DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN));
+        }
+        // Akademik alanlar yazilirken katalogla dogrulanir; eski serbest metin degerlere dokunulmaz
+        String newFaculty = r.faculty() != null ? blankToNull(r.faculty()) : null;
+        String newDepartment = r.department() != null ? blankToNull(r.department()) : null;
+        String newGrade = r.grade() != null ? blankToNull(r.grade()) : null;
+        catalog.requireValid(newFaculty, null, newGrade);
+        if (newDepartment != null) {
+            catalog.requireValid(newFaculty != null ? newFaculty : u.getFaculty(), newDepartment, null);
+        }
+        if (r.grade() != null) {
+            u.setGrade(newGrade);
         }
         if (r.faculty() != null) {
             u.setFaculty(validFaculty(blankToNull(r.faculty()), appInfo.faculties()));
@@ -200,6 +214,7 @@ public class ProfileService {
         u.setDepartment(null);
         u.setFaculty(null);
         u.setClassYear(null);
+        u.setGrade(null);
         u.setBio(null);
         u.setAvatarUrl(null);
         u.setShowEmail(false);

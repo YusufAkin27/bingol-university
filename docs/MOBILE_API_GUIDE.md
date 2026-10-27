@@ -47,6 +47,7 @@ Accept-Language: tr
 - Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`).
+- **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
 
 ### 1.2 Kod gönderme/doğrulama
 ```http
@@ -128,6 +129,23 @@ POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword"
 - Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
 - `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
 - Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
+
+### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
+Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
+```http
+GET /api/catalog/academic        → 200 + ETag + Cache-Control: public, max-age=86400
+{"version":1,
+ "faculties":[{"id":"muhendislik","name":"Mühendislik Fakültesi",
+               "departments":[{"id":"bilgisayar-muhendisligi","name":"Bilgisayar Mühendisliği"}, ...]}, ...],
+ "grades":[{"id":"PREP","name":"Hazırlık"},{"id":"1","name":"1. sınıf"}, ... {"id":"6","name":"6. sınıf"},
+           {"id":"MASTER","name":"Yüksek lisans"},{"id":"PHD","name":"Doktora"}]}
+
+GET /api/catalog/departments?q=muh&limit=30   → 200 (en çok 30; Türkçe harf/aksan/büyük-küçük duyarsız)
+[{"faculty":"Mühendislik Fakültesi","department":"Mühendislik Fiziği"}, ...]
+```
+- Kayıt (`POST /api/auth/register`) ve profil (`PATCH /api/users/me`) gövdesinde `faculty` / `department` (ad olarak, id değil) ve `grade` (`PREP`, `1`..`6`, `MASTER`, `PHD`) gönderilir. Alanlar isteğe bağlıdır; verilenler katalogla doğrulanır: bölüm, gönderilen (ya da profilde kayıtlı) fakülteye ait olmalıdır; aksi `400 ACADEMIC_INVALID`. Profilde boş metin alanı temizler.
+- `GET /api/users/me` yanıtı `faculty`, `department`, `grade` alanlarını döndürür (eski kullanıcılarda serbest metin ya da `null` olabilir).
+- Arama kutusunda her tuşta istek atmayın (debounce); tüm kataloğu bir kez çekip yerelde süzmek de mümkündür (≈ 740 program).
 
 ## 2. Dil (Accept-Language) ve çok dillilik
 - Her istekte `Accept-Language` gönderin (uygulama dili). Sunucu `error.<KOD>` anahtarını bu dilde çevirir; çeviri yoksa Türkçe varsayılan metin döner.
@@ -436,6 +454,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `INVALID_CREDENTIALS` | 401 | E-posta veya şifre hatalı. | Incorrect email or password. | البريد الإلكتروني أو كلمة المرور غير صحيحة. |
 | `INVALID_DATES` | 400 | Bitiş zamanı başlangıçtan sonra olmalı. | The end time must be after the start time. | يجب أن يكون وقت الانتهاء بعد وقت البدء. |
 | `INVALID_EVENT` | 400 | Geçersiz olay verisi. | Invalid event data. | بيانات الحدث غير صالحة. |
+| `ACADEMIC_INVALID` | 400 | Fakülte, bölüm veya sınıf bilgisi geçersiz. Listeden seçin. | Invalid faculty, department or grade. Please choose from the list. | الكلية أو القسم أو الصف غير صالح. يرجى الاختيار من القائمة. |
 | `INVALID_FACULTY` | 400 | Geçersiz fakülte. Listedeki fakültelerden birini seçin. | Invalid faculty. Please choose one from the list. | الكلية غير صالحة. يرجى اختيار كلية من القائمة. |
 | `INVALID_FILE` | 400 | Geçersiz dosya türü. | Invalid file type. | نوع الملف غير صالح. |
 | `INVALID_IMAGE_URL` | 400 | Görsel yalnızca yüklenen dosyalardan olabilir. | The image must be one of the uploaded files. | يجب أن تكون الصورة من الملفات المرفوعة فقط. |

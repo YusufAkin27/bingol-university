@@ -45,6 +45,22 @@ class AccountCreatorTest {
     }
 
     @Test
+    void writesAcademicFieldsFromPendingRegistration() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        when(users.saveAndFlush(any(User.class))).thenAnswer(i -> {
+            User u = i.getArgument(0);
+            u.setId(6L);
+            return u;
+        });
+
+        User u = creator.create(EMAIL, new Pending("h", "Ali", "tr", "Hukuk Fakültesi", "Hukuk", "PREP"));
+
+        assertEquals("Hukuk Fakültesi", u.getFaculty());
+        assertEquals("Hukuk", u.getDepartment());
+        assertEquals("PREP", u.getGrade());
+    }
+
+    @Test
     void consentFailurePropagatesSoTransactionRollsBack() throws Exception {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
         when(users.saveAndFlush(any(User.class))).thenAnswer(i -> {

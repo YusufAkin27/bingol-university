@@ -33,6 +33,9 @@ public class AccountCreator {
         user.setPasswordHash(p.passwordHash());
         user.setDisplayName(p.displayName());
         user.setLanguage(p.language());
+        user.setFaculty(p.faculty());
+        user.setDepartment(p.department());
+        user.setGrade(p.grade());
         user.setEmailVerified(true);
         if (user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
             user.setRole(Role.ADMIN);

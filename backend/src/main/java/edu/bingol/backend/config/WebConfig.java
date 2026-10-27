@@ -12,7 +12,7 @@ public class WebConfig {
     @Bean
     FilterRegistrationBean<ShallowEtagHeaderFilter> etagFilter() {
         var reg = new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
-        reg.addUrlPatterns("/api/news", "/api/news/*", "/api/menu", "/api/menu/*", "/api/status");
+        reg.addUrlPatterns("/api/news", "/api/news/*", "/api/menu", "/api/menu/*", "/api/status", "/api/catalog/academic");
         return reg;
     }
 }

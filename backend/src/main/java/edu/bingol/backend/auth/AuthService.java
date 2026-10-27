@@ -8,6 +8,7 @@ import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
+import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
@@ -42,12 +43,15 @@ public class AuthService {
     private final AccountCreator accounts;
     private final PendingRegistrationStore pending;
     private final SessionService sessions;
+    private final CatalogService catalog;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
     private final String dummyHash;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
                        RefreshTokenService refresh, VerificationService verification, AdminProperties admin,
-                       AccountCreator accounts, PendingRegistrationStore pending, SessionService sessions) {
+                       AccountCreator accounts, PendingRegistrationStore pending, SessionService sessions,
+                       CatalogService catalog) {
+        this.catalog = catalog;
         this.admin = admin;
         this.accounts = accounts;
         this.users = users;
@@ -69,11 +73,21 @@ public class AuthService {
      * e-postasiyla onceden kayit acip sifreyi belirleyen biri, sahibi dogruladiginda hesabi ele gecirmez.
      */
     public void register(String rawEmail, String password, String displayName, Lang lang) {
+        register(rawEmail, password, displayName, lang, null, null, null);
+    }
+
+    /** faculty/department/grade opsiyoneldir; verilenler katalogla dogrulanir (bos metin = verilmedi). */
+    public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
+                         String department, String grade) {
         String email = normalizeEmail(rawEmail);
         if (!UNIVERSITY_EMAIL.matcher(email).matches()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
                     "Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.");
         }
+        String fa = blankToNull(faculty);
+        String de = blankToNull(department);
+        String gr = blankToNull(grade);
+        catalog.requireValid(fa, de, gr);
         User user = users.findByEmail(email).orElse(null);
         if (user != null && user.isEmailVerified()) {
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
@@ -88,7 +102,7 @@ public class AuthService {
         }
         // Kod once gider (bekleme suresi doluysa burada 429); bekleme sirasinda bekleyen kayit ezilmez.
         verification.issue(email, lang);
-        pending.save(email, new Pending(encoder.encode(password), displayName.trim(), lang.code()));
+        pending.save(email, new Pending(encoder.encode(password), displayName.trim(), lang.code(), fa, de, gr));
     }
 
     public void resendCode(String rawEmail) {
@@ -209,6 +223,10 @@ public class AuthService {
         User u = users.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
         return new UserView(u.getId(), u.getEmail(), u.getDisplayName());
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 
     private static ApiException invalidCode() {
