@@ -17,7 +17,7 @@ public class FcmHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         Health.Builder b = Health.up()
-                .withDetail("enabled", dispatcher.enabled())
+                .withDetail("enabled", dispatcher.fcmEnabled())
                 .withDetail("delivered", dispatcher.deliveredCount())
                 .withDetail("failures", dispatcher.failureCount())
                 .withDetail("retries", dispatcher.retryCount());

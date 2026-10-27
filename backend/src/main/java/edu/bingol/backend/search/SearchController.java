@@ -22,7 +22,7 @@ public class SearchController {
     }
 
     /**
-     * GET /api/search?q=&type=NEWS|ANNOUNCEMENT|EVENT_OFFICIAL|COMMUNITY|EVENT&limit=5&cursor= (giris gerekli).
+     * GET /api/search?q=&type=NEWS|ANNOUNCEMENT|EVENT_OFFICIAL|COMMUNITY|EVENT|POSTS&limit=5&cursor= (giris gerekli).
      * type yoksa tur basina gruplu ozet (limit en fazla 20); type varsa sayfali liste (limit en fazla 50,
      * devam icin nextCursor'u cursor olarak gonderin).
      */

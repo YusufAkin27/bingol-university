@@ -56,7 +56,8 @@ public class LegalController {
 
     @GetMapping("/legal/{type}")
     public LegalContent get(@PathVariable String type) {
-        return LegalContent.of(legal.current(type(type), lang()));
+        LegalContent c = LegalContent.of(legal.current(type(type), lang()));
+        return new LegalContent(c.type(), c.version(), c.title(), legal.render(c.content()), c.lang(), c.publishedAt());
     }
 
     @GetMapping("/legal/{type}/versions")

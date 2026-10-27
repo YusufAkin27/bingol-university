@@ -158,7 +158,9 @@ public class ImageProcessor {
                 throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "IMAGE_TOO_COMPLEX",
                         "Görsel yeterince sıkıştırılamadı. Daha basit veya küçük bir görsel deneyin.");
             }
-            BufferedImage thumb = scaleTo(main, props.thumbDimension());
+            // Gonderi gorseli onizlemesi en az 480 px (akis kartlari icin)
+            int thumbDim = kind == ImageKind.FEED ? Math.max(props.thumbDimension(), 480) : props.thumbDimension();
+            BufferedImage thumb = scaleTo(main, thumbDim);
             return new ProcessedImage(out, encode(thumb, alpha, 0.8f), main.getWidth(), main.getHeight(),
                     alpha ? "image/png" : "image/jpeg", alpha ? "png" : "jpg");
         } catch (ApiException e) {

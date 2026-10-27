@@ -1,5 +1,7 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.extras.ClubExtrasHooks;
@@ -55,6 +57,10 @@ public class CommunityService {
     private final ClubAuditService audit;
     private final ClubExtrasHooks hooks;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public CommunityService(CommunityRepository communities, CommunityMemberRepository members, UserRepository users,
                             BlockService blocks, NotificationService notifications, MediaService media,
                             ClubPermissions permissions, ClubAuditService audit, ClubExtrasHooks hooks) {
@@ -76,6 +82,9 @@ public class CommunityService {
         if (r.name().trim().length() < 3) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
         }
+        ContentGuard.clean(guard, Entity.CLUB, "name", a.id(), r.name());
+        ContentGuard.clean(guard, Entity.CLUB, "description", a.id(), r.description());
+        ContentGuard.clean(guard, Entity.CLUB, "category", a.id(), r.category());
         // Sayim ile ekleme arasindaki yarisi kapatir: ayni kullanicinin istekleri bu satirda siralanir.
         communities.lockOwner(a.id());
         if (communities.countByOwnerIdAndStatusIn(a.id(), LIVE) >= MAX_OWNED) {
@@ -204,6 +213,9 @@ public class CommunityService {
     public CommunityView update(Actor a, Long id, UpdateCommunityRequest r) {
         Community c = load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
+        ContentGuard.changed(guard, Entity.CLUB, "name", a.id(), c.getName(), r.name());
+        ContentGuard.changed(guard, Entity.CLUB, "description", a.id(), c.getDescription(), r.description());
+        ContentGuard.changed(guard, Entity.CLUB, "category", a.id(), c.getCategory(), r.category());
         boolean renamed = false;
         if (r.name() != null && !r.name().isBlank()) {
             if (r.name().trim().length() < 3) {

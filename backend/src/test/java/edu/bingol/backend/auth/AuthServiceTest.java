@@ -185,6 +185,75 @@ class AuthServiceTest {
     }
 
     @Test
+    void studentNumberRegistersAsUniversityEmail() {
+        when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.empty());
+
+        auth.register("226 051 015", "Sifre1234", "Ali", Lang.TR);
+
+        verify(verification).issue("226051015@bingol.edu.tr", Lang.TR);
+        verify(pending).save(eq("226051015@bingol.edu.tr"), any(Pending.class));
+    }
+
+    @Test
+    void studentNumberVerifiesAndLogsIn() {
+        String mail = "226051015@bingol.edu.tr";
+        Pending p = new Pending("hash-1", "Ali", "tr");
+        when(pending.find(mail)).thenReturn(p);
+        when(verification.verify(mail, "123456")).thenReturn(true);
+        when(accounts.create(mail, p)).thenReturn(verifiedUser());
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
+
+        auth.verifyEmail("226051015", "123456");
+
+        verify(accounts).create(mail, p);
+        verify(pending).delete(mail);
+    }
+
+    @Test
+    void loginWithStudentNumberFindsAccount() {
+        User u = loginUser();
+        u.setEmail("226051015@bingol.edu.tr");
+        when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.of(u));
+
+        auth.login("226051015", "Sifre1234");
+
+        verify(users).findByEmail("226051015@bingol.edu.tr");
+    }
+
+    @Test
+    void loginWithPendingRegistrationAndCorrectPasswordIsEmailNotVerified() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        String hash = new BCryptPasswordEncoder(4).encode("Sifre1234");
+        when(pending.find(EMAIL)).thenReturn(new Pending(hash, "Ali", "tr"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Sifre1234"));
+
+        assertEquals("EMAIL_NOT_VERIFIED", e.code());
+        assertEquals(HttpStatus.FORBIDDEN, e.status());
+    }
+
+    @Test
+    void loginWithPendingRegistrationAndWrongPasswordIsGeneric() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        String hash = new BCryptPasswordEncoder(4).encode("Sifre1234");
+        when(pending.find(EMAIL)).thenReturn(new Pending(hash, "Ali", "tr"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Yanlis1234"));
+
+        assertEquals("INVALID_CREDENTIALS", e.code());
+    }
+
+    @Test
+    void resendCodeForPendingRegistrationCountsResend() {
+        when(pending.find(EMAIL)).thenReturn(new Pending("h", "Ali", "tr"));
+
+        auth.resendCode("Ali@Bingol.edu.tr");
+
+        verify(verification).issue(EMAIL, Lang.TR);
+        verify(pending).markResend(EMAIL);
+    }
+
+    @Test
     void logoutAllRevokesEverySession() {
         auth.logoutAll(7L);
 

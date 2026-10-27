@@ -1,5 +1,7 @@
 package edu.bingol.backend.community.extras;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.Actor;
@@ -43,6 +45,10 @@ public class ClubJoinFormService {
     private final ClubPermissions permissions;
     private final ClubAuditService audit;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public ClubJoinFormService(CommunityService communities, ClubJoinQuestionRepository questions,
                                ClubJoinAnswerRepository answers, CommunityMemberRepository members,
                                ClubPermissions permissions, ClubAuditService audit) {
@@ -80,6 +86,11 @@ public class ClubJoinFormService {
                     "En fazla " + MAX_QUESTIONS + " katılım sorusu eklenebilir.", String.valueOf(MAX_QUESTIONS));
         }
         List<ClubJoinQuestion> current = questions.findByCommunityIdOrderBySortOrderAsc(cid);
+        for (String t : texts) { // yalnizca yeni/degisen sorular denetlenir
+            if (current.stream().noneMatch(q -> t.equals(q.getQuestion()))) {
+                ContentGuard.clean(guard, Entity.QUESTION, "questions", a.id(), t);
+            }
+        }
         for (int i = 0; i < texts.size(); i++) {
             ClubJoinQuestion q = i < current.size() ? current.get(i) : new ClubJoinQuestion();
             q.setCommunityId(cid);

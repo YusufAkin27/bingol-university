@@ -15,6 +15,9 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     List<Device> findByUserId(Long userId);
 
+    /** Kalici push kuyrugu: token listesinden cihaz kayitlari. */
+    List<Device> findByFcmTokenIn(Collection<String> tokens);
+
     List<Device> findByUserIdOrderByUpdatedAtDesc(Long userId);
 
     @Transactional

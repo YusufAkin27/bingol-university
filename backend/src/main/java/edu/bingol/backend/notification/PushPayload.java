@@ -22,7 +22,7 @@ public final class PushPayload {
     public static final int MAX_BYTES = 4096;
     /** Oncelik sirasiyla: (veri anahtari, target). */
     private static final List<String[]> TARGETS = List.of(
-            new String[] {"postId", "POST"}, new String[] {"conversationId", "CONVERSATION"},
+            new String[] {"postId", "POST"}, new String[] {"pollId", "POLL"}, new String[] {"conversationId", "CONVERSATION"},
             new String[] {"eventId", "EVENT"}, new String[] {"communityId", "COMMUNITY"},
             new String[] {"newsId", "NEWS"}, new String[] {"ticketId", "TICKET"},
             new String[] {"feedbackId", "FEEDBACK"});

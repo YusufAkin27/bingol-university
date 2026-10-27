@@ -1,0 +1,62 @@
+# Uygunsuz ifade filtresi - yanlis pozitif onleyen izin listesi (tr + en). Satir basina bir kelime, '#' yorum.
+# Bir sozcuk burada (veya ek olarak en fazla 4 harf eki ile) ise filtre ona dokunmaz.
+# Yoneticiler panelden ek izin kaydi ekleyebilir; yerlesik bu liste silinemez.
+
+# --- Yer adlari ---
+amasya
+malatya
+sinop
+kıbrıs
+bingöl
+kasım
+# --- Meşru Türkçe sözcükler ---
+sikke
+sikkeler
+sıkıntı
+sıkış
+sıkıştır
+sıkı
+sıkıcı
+kitap
+mal
+malzeme
+mehmet
+hasan
+# --- Ozel adlar ---
+ibnisina
+ibnihaldun
+# --- Ingilizce ---
+scunthorpe
+shitake
+shiitake
+assist
+assistant
+assassin
+assess
+assume
+assure
+class
+classic
+glass
+grass
+mass
+pass
+bass
+cockpit
+cocktail
+cockatoo
+cockroach
+dickens
+dickinson
+pussycat
+retardant
+essex
+sussex
+middlesex
+therapist
+analysis
+analyst
+# --- Buyuk harfle yazilinca "I" belirsizligi (SIKIŞIK -> sikisik) ---
+sıkışık
+sıkışmış
+sıkıştırma

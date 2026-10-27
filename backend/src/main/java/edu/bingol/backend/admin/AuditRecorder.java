@@ -29,7 +29,9 @@ public class AuditRecorder {
         // Erisim engeli listesi/istatistigi ve kullanici cihaz/IP gecmisi (kisisel veri) goruntulemesi de denetlenir
         boolean accessBan = path.startsWith("/api/admin/access-bans")
                 || (path.startsWith("/api/admin/users/") && path.endsWith("/devices"));
-        return write || accessBan || path.endsWith("/export.csv") || path.startsWith("/api/admin/media/attachments/");
+        return write || accessBan || path.endsWith("/export.csv") || path.startsWith("/api/admin/media/attachments/")
+                // Kesfet gonderisi medya onizlemesi (yonetici) de kisisel icerik gosterir
+                || path.startsWith("/api/admin/posts/media/");
     }
 
     public void record(HttpServletRequest req, Authentication auth, int status) {

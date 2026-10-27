@@ -32,4 +32,16 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
     @Modifying
     @Query("DELETE FROM MailOutbox m WHERE m.createdAt < :before")
     int deleteFinishedBefore(@Param("before") Instant before);
+
+    long countByStatusAndSentAtAfter(MailStatus status, Instant after);
+
+    /** Bekleyen (PENDING/FAILED) en eski kayit zamani; yoksa null. */
+    @Query("SELECT MIN(m.createdAt) FROM MailOutbox m WHERE m.status IN (edu.bingol.backend.mail.MailStatus.PENDING, edu.bingol.backend.mail.MailStatus.FAILED)")
+    Instant oldestPendingCreatedAt();
+
+    /** Yonetici: olu (DEAD) kayitlari yeniden kuyruga alir. */
+    @Transactional
+    @Modifying
+    @Query("UPDATE MailOutbox m SET m.status = edu.bingol.backend.mail.MailStatus.PENDING, m.attempts = 0, m.nextAttemptAt = :now WHERE m.status = edu.bingol.backend.mail.MailStatus.DEAD")
+    int requeueDead(@Param("now") Instant now);
 }

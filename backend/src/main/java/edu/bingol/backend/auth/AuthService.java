@@ -1,5 +1,8 @@
 package edu.bingol.backend.auth;
 
+import edu.bingol.backend.accessban.AccessGuard;
+import edu.bingol.backend.accessban.ClientContext;
+import edu.bingol.backend.accessban.DeviceLogService;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.jwt.JwtService;
@@ -9,6 +12,8 @@ import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.catalog.CatalogService;
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
@@ -16,10 +21,10 @@ import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
-import java.util.Locale;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,6 +51,13 @@ public class AuthService {
     private final CatalogService catalog;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
     private final String dummyHash;
+    /** Erisim engeli (IP/cihaz/kullanici) ve cihaz gunlugu; testlerde/eski cagrilarda null olabilir. */
+    private AccessGuard guard;
+    private DeviceLogService deviceLog;
+
+    /** Herkese acik gorunen ad denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard contentGuard;
 
     public AuthService(UserRepository users, PasswordEncoder encoder, JwtService jwt,
                        RefreshTokenService refresh, VerificationService verification, AdminProperties admin,
@@ -64,8 +76,27 @@ public class AuthService {
         this.dummyHash = encoder.encode("dummy-password-for-timing");
     }
 
+    @Autowired(required = false)
+    void setAccessControls(AccessGuard guard, DeviceLogService deviceLog) {
+        this.guard = guard;
+        this.deviceLog = deviceLog;
+    }
+
+    private void requireNotBlocked(ClientContext ctx, Long userId, String path) {
+        if (guard != null && ctx != null) {
+            guard.require(ctx, userId, path);
+        }
+    }
+
+    private void logDevice(Long userId, ClientContext ctx, String event) {
+        if (deviceLog != null && ctx != null) {
+            deviceLog.record(userId, ctx, event);
+        }
+    }
+
+    /** E-posta ya da okul numarasi -> tam e-posta (bkz. LoginIdentifier); gecersizse 400 VALIDATION_ERROR. */
     public static String normalizeEmail(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
+        return LoginIdentifier.normalize(email);
     }
 
     /**
@@ -98,10 +129,12 @@ public class AuthService {
             // Bekleyen kayit varken sifre/ad ezilmez (baskasinin e-postasiyla kaydi ele gecirme penceresi);
             // yalnizca yeni kod gider (bekleme suresi doluysa burada 429).
             verification.issue(email, Lang.of(waiting.language()));
+            pending.markResend(email);
             return;
         }
         // Kod once gider (bekleme suresi doluysa burada 429); bekleme sirasinda bekleyen kayit ezilmez.
         verification.issue(email, lang);
+        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, displayName);
         pending.save(email, new Pending(encoder.encode(password), displayName.trim(), lang.code(), fa, de, gr));
     }
 
@@ -113,6 +146,7 @@ public class AuthService {
         }
         try {
             verification.issue(email, Lang.of(p.language()));
+            pending.markResend(email);
         } catch (ApiException e) {
             // Bekleme suresi cevabi hesabin varligini sizdirirdi: ayni genel cevap doner.
             log.debug("resend-code atlandi: {}", e.code());
@@ -167,6 +201,10 @@ public class AuthService {
 
     /** Yeni hesap acilisi mevcut oturumu kapatmaz; `client` yalnizca token'lari etiketler. */
     public TokenResponse verifyEmail(String rawEmail, String code, String client) {
+        return verifyEmail(rawEmail, code, client, null);
+    }
+
+    public TokenResponse verifyEmail(String rawEmail, String code, String client, ClientContext ctx) {
         String email = normalizeEmail(rawEmail);
         Pending p = pending.find(email);
         User existing = users.findByEmail(email).orElse(null);
@@ -186,6 +224,7 @@ public class AuthService {
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
         pending.delete(email);
+        logDevice(user.getId(), ctx, "REGISTER");
         return tokens(user, client);
     }
 
@@ -198,19 +237,35 @@ public class AuthService {
      * dokunulmaz); web girisi hicbir oturumu kapatmaz. Iptal, yeni token'lar uretilmeden ONCE yapilir.
      */
     public TokenResponse login(String rawEmail, String password, String client) {
-        User user = users.findByEmail(normalizeEmail(rawEmail)).orElse(null);
-        boolean passwordOk = encoder.matches(password, user == null ? dummyHash : user.getPasswordHash());
-        if (user == null || !passwordOk) {
+        return login(rawEmail, password, client, null);
+    }
+
+    public TokenResponse login(String rawEmail, String password, String client, ClientContext ctx) {
+        String email = normalizeEmail(rawEmail);
+        User user = users.findByEmail(email).orElse(null);
+        // Hesap yoksa bekleyen (dogrulanmamis) kaydin ozetiyle karsilastirilir; ikisi de yoksa sahte ozet (sure esit).
+        Pending waiting = user == null ? pending.find(email) : null;
+        String hash = user != null ? user.getPasswordHash() : (waiting != null ? waiting.passwordHash() : dummyHash);
+        boolean passwordOk = encoder.matches(password, hash);
+        if (!passwordOk || (user == null && waiting == null)) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
+        }
+        if (user == null) {
+            // Bekleyen kayit + dogru sifre: varlik yalnizca sifreyi bilene soylenir (enumerasyon yok).
+            throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
+                    "Giriş için önce e-posta adresinizi doğrulayın.");
         }
         if (!user.isEmailVerified()) {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Giriş için önce e-posta adresinizi doğrulayın.");
         }
         requireActive(user);
+        // Sifre dogru olduktan sonra kontrol: yanlis sifreyle engel durumu sizdirilmaz
+        requireNotBlocked(ctx, user.getId(), "/api/auth/login");
         if (promoteIfAdmin(user)) {
             users.save(user);
         }
+        logDevice(user.getId(), ctx, "LOGIN");
         String c = RefreshTokenService.normalizeClient(client);
         if (RefreshTokenService.MOBILE.equals(c)) {
             sessions.revokeClient(user.getId(), c, true);
@@ -219,6 +274,10 @@ public class AuthService {
     }
 
     public TokenResponse refresh(String refreshToken) {
+        return refresh(refreshToken, null);
+    }
+
+    public TokenResponse refresh(String refreshToken, ClientContext ctx) {
         RefreshTokenService.Session s = refresh.consumeSession(refreshToken);
         if (s == null && refresh.wasRevoked(refreshToken)) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REPLACED",
@@ -229,6 +288,8 @@ public class AuthService {
         if (user == null) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "Oturum süresi doldu, tekrar giriş yapın.");
         }
+        requireNotBlocked(ctx, user.getId(), "/api/auth/refresh");
+        logDevice(user.getId(), ctx, "REFRESH");
         return tokens(user, s.client());
     }
 

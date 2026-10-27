@@ -29,6 +29,8 @@ class AuditRecorderTest {
         assertTrue(AuditRecorder.shouldAudit("POST", "/api/admin/legal/terms"));
         assertTrue(AuditRecorder.shouldAudit("PATCH", "/api/admin/users/3/role"));
         assertTrue(AuditRecorder.shouldAudit("DELETE", "/api/admin/users/3"));
+        assertTrue(AuditRecorder.shouldAudit("POST", "/api/admin/pending-registrations/226051015@bingol.edu.tr/verify"));
+        assertTrue(AuditRecorder.shouldAudit("POST", "/api/admin/users/3/verify-email"));
         assertTrue(AuditRecorder.shouldAudit("PUT", "/api/admin/settings/website"));
         assertTrue(AuditRecorder.shouldAudit("GET", "/api/admin/users/export.csv"));
         assertFalse(AuditRecorder.shouldAudit("GET", "/api/admin/users"));

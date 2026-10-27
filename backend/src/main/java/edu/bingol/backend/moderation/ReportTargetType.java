@@ -7,5 +7,9 @@ package edu.bingol.backend.moderation;
  */
 public enum ReportTargetType {
     USER, MESSAGE, POST, COMMUNITY, EVENT,
-    MESSAGE_IMAGE, USER_AVATAR, COMMUNITY_COVER, EVENT_COVER
+    MESSAGE_IMAGE, USER_AVATAR, COMMUNITY_COVER, EVENT_COVER,
+    /** Kesfet akisi gonderisi ve yorumu (post paketi, bkz. docs/POSTS_DESIGN.md). */
+    FEED_POST, FEED_COMMENT,
+    /** Hikaye (post.story, 24 saat). */
+    STORY
 }

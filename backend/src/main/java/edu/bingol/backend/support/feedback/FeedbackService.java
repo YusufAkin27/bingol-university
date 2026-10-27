@@ -1,5 +1,7 @@
 package edu.bingol.backend.support.feedback;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.notification.NotificationService;
@@ -33,6 +35,10 @@ public class FeedbackService {
     private final FeedbackRepository repo;
     private final UserRepository users;
     private final NotificationService notifications;
+
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
 
     public FeedbackService(FeedbackRepository repo, UserRepository users, NotificationService notifications) {
         this.repo = repo;
@@ -127,6 +133,10 @@ public class FeedbackService {
             if (r.publicVisible() && f.getCategory() != Feedback.Category.SUGGESTION) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "NOT_A_SUGGESTION",
                         "Yalnızca öneriler herkese açık panoya alınabilir.");
+            }
+            if (r.publicVisible() && !f.isPublicVisible()) { // herkese acik panoya alinirken denetlenir
+                ContentGuard.clean(guard, Entity.SUGGESTION, "subject", f.getUserId(), f.getSubject());
+                ContentGuard.clean(guard, Entity.SUGGESTION, "message", f.getUserId(), f.getMessage());
             }
             f.setPublicVisible(r.publicVisible());
         }

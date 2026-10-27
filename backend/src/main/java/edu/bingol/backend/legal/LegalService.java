@@ -9,7 +9,11 @@ import edu.bingol.backend.legal.LegalDtos.PublishRequest;
 import edu.bingol.backend.legal.LegalDtos.Translation;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import edu.bingol.backend.appinfo.AppSetting;
+import edu.bingol.backend.appinfo.AppSettingRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +27,49 @@ public class LegalService {
 
     private final DocumentRepository docs;
     private final AcceptanceRepository acceptances;
+    private final AppSettingRepository settings;
 
-    public LegalService(DocumentRepository docs, AcceptanceRepository acceptances) {
+    /** Yer tutucu anahtari -> app_setting anahtari; listede olmayanlar "legal." onekiyle aranir. */
+    static final Map<String, String> SETTING_KEYS = Map.of(
+            "support.email", "support_email",
+            "contact.email", "contact_email");
+    private static final long CACHE_MS = 60_000;
+    private volatile Map<String, String> cache = Map.of();
+    private volatile long cacheAt;
+
+    public LegalService(DocumentRepository docs, AcceptanceRepository acceptances, AppSettingRepository settings) {
         this.docs = docs;
         this.acceptances = acceptances;
+        this.settings = settings;
+    }
+
+    /** Sunum aninda {{...}} yer tutucularini yonetici ayarlariyla doldurur (veritabanindaki metin degismez). */
+    public String render(String text) {
+        if (text == null || !text.contains("{{")) {
+            return text;
+        }
+        return LegalTemplate.render(text, placeholderValues());
+    }
+
+    /** Ayarlar 60 sn onbellekte tutulur; ayar degisikligi en gec bu sure sonra yansir. */
+    private Map<String, String> placeholderValues() {
+        long now = System.currentTimeMillis();
+        if (now - cacheAt > CACHE_MS) {
+            Map<String, String> byKey = new HashMap<>();
+            for (AppSetting s : settings.findAll()) {
+                byKey.put(s.getKey(), s.getValue());
+            }
+            Map<String, String> out = new HashMap<>();
+            for (Map.Entry<String, String> e : byKey.entrySet()) {
+                if (e.getKey().startsWith("legal.")) {
+                    out.put(e.getKey().substring("legal.".length()), e.getValue());
+                }
+            }
+            SETTING_KEYS.forEach((ph, key) -> out.put(ph, byKey.get(key)));
+            cache = out;
+            cacheAt = now;
+        }
+        return cache;
     }
 
     /** Her tur icin guncel belge, istenen dilde (yoksa tr). */
@@ -51,7 +94,9 @@ public class LegalService {
     @Transactional
     public void recordSignupConsent(Long userId) {
         for (LegalDocument d : baseDocs()) {
-            record(userId, d.getType(), d.getVersion());
+            if (d.getType().isSignupRequired()) {
+                record(userId, d.getType(), d.getVersion());
+            }
         }
     }
 
@@ -59,7 +104,7 @@ public class LegalService {
     public List<PendingConsent> pending(Long userId, Lang lang) {
         List<PendingConsent> out = new ArrayList<>();
         for (LegalDocument base : baseDocs()) {
-            if (base.isRequireReaccept()
+            if (base.getType().isSignupRequired() && base.isRequireReaccept()
                     && !acceptances.existsByUserIdAndDocTypeAndVersion(userId, base.getType(), base.getVersion())) {
                 LegalDocument shown = findCurrent(base.getType(), lang).orElse(base);
                 out.add(new PendingConsent(base.getType(), base.getVersion(), shown.getTitle()));

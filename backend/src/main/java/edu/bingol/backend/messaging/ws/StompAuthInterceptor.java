@@ -1,5 +1,8 @@
 package edu.bingol.backend.messaging.ws;
 
+import edu.bingol.backend.accessban.AccessGuard;
+import edu.bingol.backend.accessban.ClientContext;
+import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.jwt.JwtAuthFilter;
 import edu.bingol.backend.auth.jwt.JwtService;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -36,6 +40,8 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     static final String TOKEN_EXP_ATTR = "tokenExp";
     static final String USER_ID_ATTR = "wsUserId";
     static final String CLIENT_ATTR = "wsClient";
+    /** El sikisma aninda yazilan {@link ClientContext} (IP + X-Device-Id ozeti). */
+    public static final String CONTEXT_ATTR = "wsClientContext";
     static final long EXP_GRACE_SECONDS = 60;
     static final Set<String> SUBSCRIBABLE = Set.of("/user/queue/messages", "/user/queue/read-receipts",
             "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events");
@@ -45,9 +51,19 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     private final JwtService jwt;
     private final StringRedisTemplate redis;
 
+    private AccessGuard accessGuard;
+    private ClientContexts contexts;
+
     public StompAuthInterceptor(JwtService jwt, StringRedisTemplate redis) {
         this.jwt = jwt;
         this.redis = redis;
+    }
+
+    /** Erisim engeli (opsiyonel baglanti: testlerde kurulmaz). */
+    @Autowired(required = false)
+    void setAccessControls(AccessGuard guard, ClientContexts contexts) {
+        this.accessGuard = guard;
+        this.contexts = contexts;
     }
 
     @Override
@@ -95,6 +111,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         if (Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SUSPENDED_KEY_PREFIX + id.userId()))) {
             throw new Rejected("SUSPENDED");
         }
+        checkAccess(acc, id.userId());
         var ops = redis.opsForValue();
         String revokedAt = ops == null ? null : ops.get(JwtAuthFilter.PASSWORD_CHANGED_KEY_PREFIX + id.userId());
         if (JwtAuthFilter.tokenRevoked(id.issuedAtMillis(), revokedAt)) {
@@ -116,6 +133,23 @@ public class StompAuthInterceptor implements ChannelInterceptor {
             acc.getSessionAttributes().put(TOKEN_EXP_ATTR, exp);
             acc.getSessionAttributes().put(USER_ID_ATTR, id.userId());
             acc.getSessionAttributes().put(CLIENT_ATTR, id.client());
+        }
+    }
+
+    /** CONNECT'te cihaz (`device-id` basligi ya da el sikisma basligi), IP ve kullanici engeli. */
+    private void checkAccess(StompHeaderAccessor acc, Long userId) {
+        if (accessGuard == null || contexts == null) {
+            return;
+        }
+        ClientContext ctx = acc.getSessionAttributes() == null ? null
+                : (ClientContext) acc.getSessionAttributes().get(CONTEXT_ATTR);
+        String raw = acc.getFirstNativeHeader("device-id");
+        if (raw != null) {
+            ctx = contexts.build(ctx == null ? null : ctx.ip(), raw, acc.getFirstNativeHeader("device-platform"),
+                    acc.getFirstNativeHeader("app-version"));
+        }
+        if (ctx != null && accessGuard.blocked(ctx, userId, "/ws") != null) {
+            throw new Rejected("ACCESS_BLOCKED");
         }
     }
 

@@ -1,5 +1,7 @@
 package edu.bingol.backend.event.admission;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.Actor;
@@ -75,6 +77,10 @@ public class EventAdmissionService implements EventAdmissionHooks {
     private final CommunityService communities;
     private final AdmissionSettings settings;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public EventAdmissionService(EventService events, EventAdmissionRepository configs, EventApplicationRepository apps,
                                  AdmissionEventRepository eventRows, UserEventRepository eventRepo,
                                  EventRsvpRepository rsvps, NotificationService notifications, BlockService blocks,
@@ -121,6 +127,13 @@ public class EventAdmissionService implements EventAdmissionHooks {
         List<String> questions = cleanQuestions(r.questions());
         eventRows.lock(eventId);
         EventAdmission c = configs.findById(eventId).orElseGet(() -> new EventAdmission(eventId));
+        if (r.mode() == Mode.APPROVAL) { // yalnizca yeni/degisen sorular denetlenir
+            for (String q : questions) {
+                if (!c.questions().contains(q)) {
+                    ContentGuard.clean(guard, Entity.QUESTION, "questions", a.id(), q);
+                }
+            }
+        }
         Mode old = c.getMode();
         c.setMode(r.mode());
         c.setQuestions(r.mode() == Mode.APPROVAL ? questions : List.of());

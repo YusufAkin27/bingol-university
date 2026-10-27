@@ -37,8 +37,13 @@ public class AdminReportContextService {
 
     public record ChatInfo(long id, String type, String title, int memberCount, List<AdminChatViewerService.MemberView> members) {}
 
+    /** Kesfet gonderisi/yorumu icin medya onizleme baglantisi (yonetici ucu). */
+    public record ContentMedia(long id, String kind, String url, String thumbUrl) {}
+
+    /** postId/media yalniz FEED_POST (media) ve FEED_COMMENT (postId) icin dolar; status VISIBLE|HIDDEN|DELETED (FEED_*). */
     public record Content(String kind, Long id, String title, String text, Long communityId, Long ownerId,
-                          String imageUrl, boolean deleted, String status, String createdAt) {}
+                          String imageUrl, boolean deleted, String status, String createdAt, Long postId,
+                          List<ContentMedia> media) {}
 
     public record UserStats(long reportsAgainstUser, long activeStrikes, long totalStrikes) {}
 
@@ -151,6 +156,10 @@ public class AdminReportContextService {
                 return owner("SELECT owner_id FROM community WHERE id = ?", id);
             case "EVENT":
                 return owner("SELECT created_by FROM user_event WHERE id = ?", id);
+            case "FEED_POST":
+                return owner("SELECT author_id FROM post WHERE id = ?", id);
+            case "FEED_COMMENT":
+                return owner("SELECT author_id FROM post_comment WHERE id = ?", id);
             default:
                 return new Target(null, null, null, null);
         }
@@ -179,7 +188,7 @@ public class AdminReportContextService {
                 return new Context(type, t.ownerId != null && userExists(r.getTargetId()), null, null, null, List.of(),
                         null, stats(t.ownerId));
             }
-            case "POST", "COMMUNITY", "EVENT":
+            case "POST", "COMMUNITY", "EVENT", "FEED_POST", "FEED_COMMENT":
                 return new Context(type, t.ownerId != null, null, null, null, List.of(), content(type, r.getTargetId()),
                         stats(t.ownerId));
             default:
@@ -248,18 +257,47 @@ public class AdminReportContextService {
                 return first(jdbc.query("SELECT id, community_id, author_id, content, image_url, deleted, created_at "
                                 + "FROM community_post WHERE id = ?", (rs, i) -> new Content("POST", rs.getLong("id"), null,
                         rs.getString("content"), rs.getLong("community_id"), rs.getLong("author_id"),
-                        rs.getString("image_url"), rs.getBoolean("deleted"), null, ts(rs.getTimestamp("created_at"))), id));
+                        rs.getString("image_url"), rs.getBoolean("deleted"), null, ts(rs.getTimestamp("created_at")), null, null), id));
             case "COMMUNITY":
                 return first(jdbc.query("SELECT id, name, description, owner_id, status, cover_url, created_at "
                                 + "FROM community WHERE id = ?", (rs, i) -> new Content("COMMUNITY", rs.getLong("id"),
                         rs.getString("name"), rs.getString("description"), rs.getLong("id"), rs.getLong("owner_id"),
-                        rs.getString("cover_url"), false, rs.getString("status"), ts(rs.getTimestamp("created_at"))), id));
+                        rs.getString("cover_url"), false, rs.getString("status"), ts(rs.getTimestamp("created_at")), null, null), id));
+            case "FEED_POST":
+                return feedPost(id);
+            case "FEED_COMMENT":
+                return feedComment(id);
             default:
                 return first(jdbc.query("SELECT id, title, description, community_id, created_by, created_at "
                                 + "FROM user_event WHERE id = ?", (rs, i) -> new Content("EVENT", rs.getLong("id"),
                         rs.getString("title"), rs.getString("description"), (Long) rs.getObject("community_id"),
-                        rs.getLong("created_by"), null, false, null, ts(rs.getTimestamp("created_at"))), id));
+                        rs.getLong("created_by"), null, false, null, ts(rs.getTimestamp("created_at")), null, null), id));
         }
+    }
+
+    private Content feedPost(long id) {
+        List<ContentMedia> media = jdbc.query("SELECT id, kind FROM post_media WHERE post_id = ? ORDER BY position, id",
+                (rs, i) -> new ContentMedia(rs.getLong(1), rs.getString(2), "/api/admin/posts/media/" + rs.getLong(1),
+                        "/api/admin/posts/media/" + rs.getLong(1) + "?thumb=true"), id);
+        String thumb = media.isEmpty() ? null : media.get(0).thumbUrl();
+        return first(jdbc.query("SELECT id, author_id, body, created_at, deleted_at, hidden_at FROM post WHERE id = ?",
+                (rs, i) -> new Content("FEED_POST", rs.getLong("id"), null, rs.getString("body"), null,
+                        rs.getLong("author_id"), thumb, rs.getTimestamp("deleted_at") != null,
+                        feedStatus(rs.getTimestamp("deleted_at"), rs.getTimestamp("hidden_at")),
+                        ts(rs.getTimestamp("created_at")), rs.getLong("id"), media), id));
+    }
+
+    private Content feedComment(long id) {
+        return first(jdbc.query("SELECT id, post_id, author_id, body, created_at, deleted_at, hidden_at "
+                        + "FROM post_comment WHERE id = ?",
+                (rs, i) -> new Content("FEED_COMMENT", rs.getLong("id"), null, rs.getString("body"), null,
+                        rs.getLong("author_id"), null, rs.getTimestamp("deleted_at") != null,
+                        feedStatus(rs.getTimestamp("deleted_at"), rs.getTimestamp("hidden_at")),
+                        ts(rs.getTimestamp("created_at")), rs.getLong("post_id"), List.of()), id));
+    }
+
+    private static String feedStatus(java.sql.Timestamp deletedAt, java.sql.Timestamp hiddenAt) {
+        return deletedAt != null ? "DELETED" : hiddenAt != null ? "HIDDEN" : "VISIBLE";
     }
 
     private static <T> T first(List<T> l) {

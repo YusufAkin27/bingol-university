@@ -232,7 +232,7 @@ public class NotificationService {
             case ANNOUNCEMENT -> p.isAnnouncements();
             case EVENT -> p.isEvents();
             case MESSAGE -> p.isMessages();
-            case COMMUNITY -> p.isCommunities();
+            case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW -> p.isCommunities();
             case SYSTEM -> true;
         };
     }

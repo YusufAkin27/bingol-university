@@ -60,7 +60,8 @@ public class SecurityConfig {
                                     AuditAccessDeniedHandler denied,
                                     edu.bingol.backend.common.ApiAuthenticationEntryPoint apiEntryPoint,
                                     edu.bingol.backend.common.RateLimiter limiter,
-                                    edu.bingol.backend.common.ClientIp clientIp) throws Exception {
+                                    edu.bingol.backend.common.ClientIp clientIp,
+                                    org.springframework.core.env.Environment env) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
             // CORS yalnizca /api/** ve /files/** icin (CorsConfig); preflight (OPTIONS) kimlik dogrulamasindan once yanitlanir
             .cors(c -> c.configurationSource(cors))
@@ -88,6 +89,10 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").hasRole("ADMIN")
                 // Actuator: yalnizca saglik denetimi herkese acik (orkestrator/proxy); digerleri ADMIN (prod'da zaten kapali)
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                // Prometheus kazimasi: YALNIZ ayri yonetim portunda (MANAGEMENT_PORT, compose agi ici) herkese acik;
+                // ana portta (8080) bu kural eslesmez ve /actuator/** ADMIN kalir.
+                .requestMatchers(request -> managementPort(env) > 0 && request.getLocalPort() == managementPort(env)
+                        && "/actuator/prometheus".equals(request.getRequestURI())).permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/legal/consents", "/api/legal/consents/**").authenticated()
@@ -109,5 +114,15 @@ public class SecurityConfig {
                     org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class)
             .addFilterBefore(new JwtAuthFilter(jwt, redis), UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    /** management.server.port (bos/yoksa 0 = ayri port yok). */
+    static int managementPort(org.springframework.core.env.Environment env) {
+        String v = env.getProperty("management.server.port");
+        try {
+            return v == null || v.isBlank() ? 0 : Integer.parseInt(v.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

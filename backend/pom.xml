@@ -28,12 +28,23 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<sentry.version>8.62.0</sentry.version>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- Gozlemlenebilirlik: Prometheus metrikleri + istege bagli Sentry (SENTRY_DSN bos ise kapali) -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry-logback</artifactId>
+			<version>${sentry.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

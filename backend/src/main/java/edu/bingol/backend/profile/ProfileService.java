@@ -3,6 +3,8 @@ package edu.bingol.backend.profile;
 import edu.bingol.backend.analytics.ActivityRepository;
 import edu.bingol.backend.appinfo.AppInfoService;
 import edu.bingol.backend.catalog.CatalogService;
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
@@ -54,6 +56,10 @@ public class ProfileService {
     private final AccountDataPurger purger;
     private final CatalogService catalog;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public ProfileService(UserRepository users, BlockService blocks, MediaService media, PasswordEncoder encoder,
                           AppInfoService appInfo, ActivityRepository activity, PublicProfileMapper mapper,
                           AvatarCleanups avatarCleanups, EventRsvpRepository rsvps, UserEventRepository events,
@@ -90,7 +96,8 @@ public class ProfileService {
         }
         PublicProfile view = mapper.map(viewerId, u);
         // Kendi e-postam showEmail ayarindan bagimsiz gorunur
-        return viewerId.equals(targetId) ? withEmail(view, u.getEmail()) : view;
+        view = viewerId.equals(targetId) ? withEmail(view, u.getEmail()) : view;
+        return withFollow(view, viewerId, targetId);
     }
 
     private static PublicProfile withEmail(PublicProfile p, String email) {
@@ -98,11 +105,33 @@ public class ProfileService {
                 p.avatarUrl(), email);
     }
 
+    /** Takip sayaclari (post.follow; modul yoksa alanlar null kalir). */
+    private edu.bingol.backend.post.follow.FollowService followService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFollowService(edu.bingol.backend.post.follow.FollowService followService) {
+        this.followService = followService;
+    }
+
+    private PublicProfile withFollow(PublicProfile p, Long viewerId, Long targetId) {
+        if (followService == null) {
+            return p;
+        }
+        try {
+            edu.bingol.backend.post.follow.FollowService.Stats s = followService.stats(viewerId, targetId);
+            return p.withFollow(s.followerCount(), s.followingCount(), s.followedByMe());
+        } catch (RuntimeException e) {
+            return p; // sayaclar profil yanitini asla bozmaz
+        }
+    }
+
     @Transactional
     public User update(Long id, UpdateProfileRequest r) {
         User u = get(id);
         if (r.displayName() != null) {
-            u.setDisplayName(DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN));
+            String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
+            ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
+            u.setDisplayName(newName);
         }
         // Akademik alanlar yazilirken katalogla dogrulanir; eski serbest metin degerlere dokunulmaz
         String newFaculty = r.faculty() != null ? blankToNull(r.faculty()) : null;
@@ -119,12 +148,14 @@ public class ProfileService {
             u.setFaculty(validFaculty(blankToNull(r.faculty()), appInfo.faculties()));
         }
         if (r.department() != null) {
+            ContentGuard.changed(guard, Entity.PROFILE, "department", id, u.getDepartment(), blankToNull(r.department()));
             u.setDepartment(blankToNull(r.department()));
         }
         if (r.classYear() != null) {
             u.setClassYear(r.classYear());
         }
         if (r.bio() != null) {
+            ContentGuard.changed(guard, Entity.PROFILE, "bio", id, u.getBio(), blankToNull(r.bio()));
             u.setBio(blankToNull(r.bio()));
         }
         if (r.showEmail() != null) {

@@ -1,5 +1,7 @@
 package edu.bingol.backend.event.extras;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
@@ -35,6 +37,10 @@ public class AnnouncementService {
     private final BlockService blocks;
     private final NotificationService notifications;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public AnnouncementService(EventService events, EventRsvpRepository rsvps, EventAnnouncementRepository log,
                                CommunityService communities, BlockService blocks, NotificationService notifications) {
         this.events = events;
@@ -59,6 +65,8 @@ public class AnnouncementService {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "ANNOUNCEMENT_LIMIT",
                     "Bir etkinlik için günde en fazla " + DAILY_LIMIT + " duyuru gönderilebilir.", String.valueOf(DAILY_LIMIT));
         }
+        ContentGuard.clean(guard, Entity.ANNOUNCEMENT, "title", a.id(), title);
+        ContentGuard.clean(guard, Entity.ANNOUNCEMENT, "message", a.id(), message);
         List<Long> ids = rsvps.userIds(eventId, EventRsvp.Status.GOING, PageRequest.of(0, MAX_RECIPIENTS));
         Map<Long, User> users = communities.usersById(ids);
         int sent = 0;

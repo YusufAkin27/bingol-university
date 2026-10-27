@@ -1,5 +1,7 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.storage.FileStorage;
@@ -38,6 +40,10 @@ public class CommunityPostService {
     private final NotificationService notifications;
     private final FileStorage storage;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public CommunityPostService(CommunityService communities, CommunityPostRepository posts,
                                 CommunityMemberRepository members, BlockService blocks,
                                 NotificationService notifications, FileStorage storage) {
@@ -59,6 +65,7 @@ public class CommunityPostService {
         if (r.text().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Yazı boş olamaz.");
         }
+        ContentGuard.clean(guard, Entity.POST, "text", a.id(), r.text());
         CommunityPost p = new CommunityPost();
         p.setCommunityId(cid);
         p.setAuthorId(a.id());

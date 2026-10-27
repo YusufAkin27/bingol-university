@@ -1,3 +1,3 @@
 package edu.bingol.backend.search;
 
-public enum SearchType { NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT }
+public enum SearchType { NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, POSTS }

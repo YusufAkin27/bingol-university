@@ -24,7 +24,7 @@ final class PushMessages {
         return switch (type) {
             case MESSAGE -> CHANNEL_CHAT;
             case EVENT -> CHANNEL_EVENT;
-            case NEWS, ANNOUNCEMENT, COMMUNITY, SYSTEM -> CHANNEL_ANNOUNCEMENT;
+            case NEWS, ANNOUNCEMENT, COMMUNITY, SYSTEM, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW -> CHANNEL_ANNOUNCEMENT;
         };
     }
 
@@ -41,6 +41,10 @@ final class PushMessages {
         String event = payload.get("eventId");
         if (event != null) {
             return "event-" + event;
+        }
+        String post = payload.get("postId");
+        if (post != null) {
+            return "post-" + post;
         }
         return type.name().toLowerCase();
     }

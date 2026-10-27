@@ -51,6 +51,12 @@ public class VerificationService {
         issue(RESET, email, lang);
     }
 
+    /** Yonetici dogrulamasindan sonra e-posta dogrulama kodunu, sayaclarini, kilidini ve beklemeyi temizler. */
+    public void clearVerify(String email) {
+        redis.delete(List.of(VERIFY + ":" + email, VERIFY + ":att:" + email, VERIFY + ":lock:" + email,
+                VERIFY + ":cd:" + email));
+    }
+
     /** Kod dogruysa true (ve kod tuketilir); yanlis/suresi gecmisse false; kilitliyse veya limit asilirsa 429. */
     public boolean verify(String email, String code) {
         return verify(VERIFY, email, code);

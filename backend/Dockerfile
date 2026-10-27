@@ -9,6 +9,12 @@ RUN mvn -q -B -DskipTests package
 # --- calistirma (yalnizca JRE, root olmayan kullanici) ---
 FROM eclipse-temurin:17-jre
 WORKDIR /app
+# ffmpeg/ffprobe: gonderi videosu yeniden kodlama (app.media.transcode.*, docs/MEDIA_PIPELINE.md). Minimal kurulum;
+# imaj ~+150-250 MB. ffmpeg olmasa da uygulama calisir (donusturme otomatik kapanir).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && ffmpeg -version | head -1
 RUN useradd --system --uid 1001 --no-create-home app \
     && mkdir -p /data/uploads && chown -R app /data/uploads /app
 COPY --from=build --chown=app /build/target/*.jar app.jar

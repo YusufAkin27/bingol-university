@@ -26,7 +26,19 @@ public final class ProfileDtos {
 
     /** Baskasinin profili: e-posta yalnizca sahibi izin verdiyse. */
     public record PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
-                                String bio, String avatarUrl, String email) {
+                                String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
+                                Boolean followedByMe) {
+        /** Takip alanlari olmadan (yalniz profil ucu doldurur; digerlerinde null). */
+        public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
+                             String bio, String avatarUrl, String email) {
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, null, null, null);
+        }
+
+        public PublicProfile withFollow(long followers, long following, boolean followedByMe) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
+                    following, followedByMe);
+        }
+
         public static PublicProfile of(User u) {
             return new PublicProfile(u.getId(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail() ? u.getEmail() : null);

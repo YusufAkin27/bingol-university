@@ -78,6 +78,12 @@ public class ProdSettingsValidator {
             errors.add("MAIL_ENABLED=true iken MAIL_HOST zorunlu");
         }
 
+        // Cihaz kimligi HMAC anahtari istege bagli (bos = JWT sirrindan turetilir); verilirse yeterince uzun olmali.
+        String hmac = env.getProperty("app.security.device-hmac-key", "");
+        if (!hmac.isBlank() && hmac.length() < 32) {
+            errors.add("DEVICE_HMAC_KEY verilirse en az 32 karakter olmali");
+        }
+
         if (!notBlank(env, "app.fcm.credentials-file")) {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }

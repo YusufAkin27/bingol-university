@@ -1,0 +1,41 @@
+# Uygunsuz ifade filtresi - Arapca kok listesi (elle yazilmis bolum). Arapca girisler yalnizca tam kok eslesmesi yapar;
+# harekeler, tatweel, alef/ya/ta marbuta varyantlari ve On ekler (ال و ف ب ل ك) ile cogul/iyelik ekleri otomatik soyulur.
+# Iki sozcuklu girisler tamlamadir. Asagidaki "GENERATED" blogu scripts/fetch-profanity-lists.js ile uretilir (LDNOOBW, CC-BY-4.0).
+كس
+زب
+شرموط
+منيوك
+منيك
+كسمك
+كس امك
+كس اختك
+ابن الكلب
+ابن الشرموطة
+ابن القحبة
+ديوث
+خرا
+عرصة
+ينيك
+نيكني
+
+# >>> GENERATED BEGIN (scripts/fetch-profanity-lists.js) - elle degistirmeyin
+# Kaynak: LDNOOBW - List of Dirty, Naughty, Obscene, and Otherwise Bad Words (CC-BY-4.0)
+# https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words (dosya: ar)
+# Indirme: 2026-10-27 - temizlenmis, 16 giris. Tekli sozcukler tam eslesme (=).
+بزاز
+تمص
+خول
+سحاق
+سحاقية
+سكس
+شرموطة
+طيز
+عاهرة
+عرص
+قحبة
+لواط
+لوطي
+متناك
+متناكة
+نيك
+# <<< GENERATED END

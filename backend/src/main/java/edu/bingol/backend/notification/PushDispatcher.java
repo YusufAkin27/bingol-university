@@ -3,6 +3,7 @@ package edu.bingol.backend.notification;
 import edu.bingol.backend.notification.fcm.FcmSender;
 import edu.bingol.backend.notification.fcm.PushMessage;
 import edu.bingol.backend.notification.fcm.SendResult;
+import edu.bingol.backend.notification.outbox.PushOutboxService;
 import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,8 @@ public class PushDispatcher {
     private final Scheduler scheduler;
     private final ThreadPoolExecutor ownPool;
     private final ScheduledThreadPoolExecutor ownTimer;
+    /** Kalici kuyruk (null ise eski bellek yolu). */
+    private final PushOutboxService outbox;
 
     private final AtomicLong delivered = new AtomicLong();
     private final AtomicLong failures = new AtomicLong();
@@ -50,10 +54,19 @@ public class PushDispatcher {
     private final AtomicLong dropped = new AtomicLong();
     private volatile Instant lastFailureAt;
 
-    @Autowired
     public PushDispatcher(FcmSender fcm, DeviceRepository devices) {
+        this(fcm, devices, (PushOutboxService) null);
+    }
+
+    @Autowired
+    public PushDispatcher(FcmSender fcm, DeviceRepository devices, ObjectProvider<PushOutboxService> outbox) {
+        this(fcm, devices, outbox.getIfAvailable());
+    }
+
+    PushDispatcher(FcmSender fcm, DeviceRepository devices, PushOutboxService outbox) {
         this.fcm = fcm;
         this.devices = devices;
+        this.outbox = outbox;
         // core=max: sinirli kuyrukta max thread hic devreye girmez, bu yuzden esit tutulur.
         this.ownPool = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(2000),
                 r -> daemon(r, "push-send"));
@@ -69,6 +82,7 @@ public class PushDispatcher {
         this.devices = devices;
         this.executor = executor;
         this.scheduler = scheduler;
+        this.outbox = null;
         this.ownPool = null;
         this.ownTimer = null;
     }
@@ -79,13 +93,38 @@ public class PushDispatcher {
         return t;
     }
 
+    /** Gonderim kabul ediliyor mu: FCM etkin ya da kalici kuyruk "FCM yokken beklet" modunda. */
     public boolean enabled() {
+        return fcm.enabled() || (outbox != null && outbox.holdWhenDisabled());
+    }
+
+    /** FCM kimligi gercekten var mi (saglik gostergesi icin). */
+    public boolean fcmEnabled() {
         return fcm.enabled();
     }
 
     /** Kuyruga atar ve hemen doner; hata cagirana sizmaz. */
     public void dispatch(Collection<String> tokens, PushMessage message) {
-        if (tokens == null || tokens.isEmpty() || !fcm.enabled()) {
+        if (tokens == null || tokens.isEmpty()) {
+            return;
+        }
+        if (outbox != null) {
+            if (!outbox.accepting()) {
+                outbox.skipped(tokens.size()); // FCM yok, tutma kapali: birikmesin
+                return;
+            }
+            try {
+                outbox.enqueueTokens(tokens, message, null);
+                return;
+            } catch (RuntimeException e) {
+                recordFailure("kalici kuyruga yazilamadi: " + e.getClass().getSimpleName());
+                if (!fcm.enabled()) {
+                    return;
+                }
+                // kuyruk yazilamadiysa eski bellek yoluna dus
+            }
+        }
+        if (!fcm.enabled()) {
             return;
         }
         List<String> all = List.copyOf(tokens);

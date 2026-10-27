@@ -1,5 +1,7 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.media.ImageKind;
@@ -67,6 +69,10 @@ public class EventService {
     private final CommunityService communities;
     private final NotificationService notifications;
     private final MediaService media;
+
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
 
     public EventService(UserEventRepository events, EventRsvpRepository rsvps, OfficialEventRepository official,
                         CommunityService communities, NotificationService notifications, MediaService media) {
@@ -166,6 +172,9 @@ public class EventService {
         if (!r.startsAt().isAfter(now)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "PAST_EVENT", "Geçmişe etkinlik açılamaz.");
         }
+        ContentGuard.clean(guard, Entity.EVENT, "title", a.id(), r.title());
+        ContentGuard.clean(guard, Entity.EVENT, "description", a.id(), r.description());
+        ContentGuard.clean(guard, Entity.EVENT, "location", a.id(), r.location());
         UserEvent e = new UserEvent();
         if (r.communityId() != null) {
             Community c = communities.load(r.communityId());
@@ -204,6 +213,9 @@ public class EventService {
         if (e.getEndsAt().isBefore(now)) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
         }
+        ContentGuard.changed(guard, Entity.EVENT, "title", a.id(), e.getTitle(), r.title());
+        ContentGuard.changed(guard, Entity.EVENT, "description", a.id(), e.getDescription(), r.description());
+        ContentGuard.changed(guard, Entity.EVENT, "location", a.id(), e.getLocation(), r.location());
         Instant start = r.startsAt() != null ? r.startsAt() : e.getStartsAt();
         Instant end = r.endsAt() != null ? r.endsAt() : e.getEndsAt();
         validateDates(start, end);

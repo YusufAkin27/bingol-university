@@ -124,10 +124,25 @@ public class PrivateMediaStore {
      */
     public String[] storeVideo(String bucket, long conversationId, byte[] video, byte[] poster, int posterMaxDim,
                                Consumer<ProcessedImage> posterInspector) {
+        return storeVideo0(bucket, Long.valueOf(conversationId), video, poster, posterMaxDim, posterInspector,
+                ImageKind.CHAT);
+    }
+
+    /**
+     * Konusmasiz video (genel gonderi): konusma DEK'i olmadigindan video baytlari duz yazilir (ozel dizinde,
+     * /files/** disinda; poster ise {@link BlobCipher} ile sifreli). Okuma {@link #streamVideo} ile aynidir.
+     */
+    public String[] storeVideoPlain(String bucket, byte[] video, byte[] poster, int posterMaxDim,
+                                    Consumer<ProcessedImage> posterInspector, ImageKind posterKind) {
+        return storeVideo0(bucket, null, video, poster, posterMaxDim, posterInspector, posterKind);
+    }
+
+    private String[] storeVideo0(String bucket, Long conversationId, byte[] video, byte[] poster, int posterMaxDim,
+                                 Consumer<ProcessedImage> posterInspector, ImageKind posterKind) {
         checkBucket(bucket);
         ProcessedImage img = null;
         if (poster != null) {
-            img = processor.process(poster, ImageKind.CHAT, posterMaxDim);
+            img = processor.process(poster, posterKind, posterMaxDim);
             if (posterInspector != null) {
                 posterInspector.accept(img);
             }
@@ -149,13 +164,13 @@ public class PrivateMediaStore {
                 img == null ? "0" : String.valueOf(img.height())};
     }
 
-    private void writeVideo(String bucket, String key, long conversationId, byte[] data) {
+    private void writeVideo(String bucket, String key, Long conversationId, byte[] data) {
         Path p = path(bucket, key);
         try {
             Files.createDirectories(p.getParent());
             Path tmp = p.resolveSibling(".tmp-" + UUID.randomUUID());
             try (OutputStream o = Files.newOutputStream(tmp)) {
-                if (streamCipher != null) {
+                if (streamCipher != null && conversationId != null) {
                     streamCipher.encrypt(conversationId, ctx(bucket, key), new ByteArrayInputStream(data), o);
                 } else {
                     o.write(data);
@@ -208,6 +223,147 @@ public class PrivateMediaStore {
                     left -= n;
                 }
             }
+        }
+    }
+
+    // ------------------------------------------------------------------ gonderi videosu: dosya-basina-DEK ile sifreli
+
+    private PostVideoCipher postCipher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPostCipher(PostVideoCipher postCipher) {
+        this.postCipher = postCipher;
+    }
+
+    /** Dosya-basina-anahtarli sifreleme kullanilabilir mi (ana anahtar yapilandirildi mi). */
+    public boolean sealedAvailable() {
+        return postCipher != null;
+    }
+
+    private static String sealCtx(String bucket, String key) {
+        return bucket + "/" + key;
+    }
+
+    /**
+     * Videoyu `in` akisindan okuyup yeni rastgele anahtarla (`<uuid>.mp4`) SIFRELI yazar; bellekte tutmaz.
+     * @param plainLength duz bayt sayisi (yalniz tutarlilik icin; sinir degil)
+     * @return {anahtar, sariliDek}
+     */
+    public String[] writeSealedVideo(String bucket, InputStream in) {
+        checkBucket(bucket);
+        if (postCipher == null) {
+            throw new IllegalStateException("sifreleme yapilandirilmadi");
+        }
+        String key = UUID.randomUUID() + ".mp4";
+        String ctx = sealCtx(bucket, key);
+        PostVideoCipher.Dek dek = postCipher.newDek(ctx);
+        Path p = path(bucket, key);
+        try {
+            Files.createDirectories(p.getParent());
+            Path tmp = p.resolveSibling(".tmp-" + UUID.randomUUID());
+            try (OutputStream o = new java.io.BufferedOutputStream(Files.newOutputStream(tmp), 1 << 16)) {
+                postCipher.encrypt(dek.key(), ctx, in, o);
+            } catch (IOException | RuntimeException e) {
+                Files.deleteIfExists(tmp);
+                throw e;
+            }
+            Files.move(tmp, p, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error("Sifreli video yazilamadi: {}", e.toString());
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE",
+                    "Dosya şu anda kaydedilemiyor.");
+        }
+        return new String[] {key, dek.wrapped()};
+    }
+
+    /**
+     * {@link #storeVideoPlain} ile ayni sozlesme, ama video dosya-basina DEK ile SIFRELI yazilir.
+     * @return {videoAnahtari, posterAnahtari|null, posterGenislik, posterYukseklik, sariliDek}
+     */
+    public String[] storeVideoSealed(String bucket, byte[] video, byte[] poster, int posterMaxDim,
+                                     Consumer<ProcessedImage> posterInspector, ImageKind posterKind) {
+        checkBucket(bucket);
+        ProcessedImage img = null;
+        if (poster != null) {
+            img = processor.process(poster, posterKind, posterMaxDim);
+            if (posterInspector != null) {
+                posterInspector.accept(img);
+            }
+        }
+        String[] w = writeSealedVideo(bucket, new ByteArrayInputStream(video));
+        String posterKey = null;
+        if (img != null) {
+            posterKey = w[0].substring(0, w[0].length() - 4) + "-t." + img.ext();
+            try {
+                write(bucket, posterKey, img.data());
+            } catch (RuntimeException e) {
+                delete(bucket, w[0]);
+                throw e;
+            }
+        }
+        return new String[] {w[0], posterKey, img == null ? "0" : String.valueOf(img.width()),
+                img == null ? "0" : String.valueOf(img.height()), w[1]};
+    }
+
+    /** {@link #writeSealedVideo} ile yazilan videonun [start, end] (dahil) araligini cozerek yazar. */
+    public void streamSealedVideo(String bucket, String key, String wrappedDek, long start, long end,
+                                  OutputStream out) throws IOException {
+        Path p = path(bucket, key);
+        if (p == null || !Files.isRegularFile(p)) {
+            throw new FileNotFoundException(key);
+        }
+        if (postCipher == null) {
+            throw new IOException("sifreli video ama sifre cozucu yok");
+        }
+        postCipher.decryptRange(p, postCipher.unwrap(wrappedDek, sealCtx(bucket, key)), sealCtx(bucket, key),
+                start, end, out);
+    }
+
+    /**
+     * Videonun DUZ halini `target` dosyasina yazar (ffmpeg girdisi). `wrappedDek` null ise eski (duz) kayittir.
+     */
+    public void readVideoToFile(String bucket, String key, String wrappedDek, Path target) throws IOException {
+        try (OutputStream o = new java.io.BufferedOutputStream(Files.newOutputStream(target), 1 << 16)) {
+            if (wrappedDek != null) {
+                streamSealedVideo(bucket, key, wrappedDek, 0, Long.MAX_VALUE - 1, o);
+            } else {
+                streamVideo(bucket, key, 0L, 0, Long.MAX_VALUE - 1, o);
+            }
+        }
+    }
+
+    /**
+     * Poster/kucuk resim baytlarini isleyip (yeniden kodlama, EXIF temizligi) ozel kovaya yazar.
+     * @return {anahtar, genislik, yukseklik}
+     */
+    public String[] storePoster(String bucket, String videoKey, byte[] raw, int maxDim, ImageKind kind) {
+        checkBucket(bucket);
+        ProcessedImage img = processor.process(raw, kind, maxDim);
+        // Poster adi videonun kimligini tasir: delete(videoKey) ikisini birlikte siler
+        String key = videoKey.substring(0, videoKey.length() - 4) + "-t." + img.ext();
+        write(bucket, key, img.data());
+        return new String[] {key, String.valueOf(img.width()), String.valueOf(img.height())};
+    }
+
+    /** Var olan posteri yeni videonun kimligiyle adlandirarak kopyalar; kaynak yoksa null. */
+    public String copyPosterFor(String bucket, String oldThumbKey, String newVideoKey) {
+        byte[] data = read(bucket, oldThumbKey);
+        if (data == null) {
+            return null;
+        }
+        String ext = oldThumbKey.substring(oldThumbKey.lastIndexOf('.'));
+        String key = newVideoKey.substring(0, newVideoKey.length() - 4) + "-t" + ext;
+        write(bucket, key, data);
+        return key;
+    }
+
+    /** Dosya boyutu (diskte), yoksa -1. Sifreli boyut bilgisi icin. */
+    public long diskSize(String bucket, String key) {
+        Path p = path(bucket, key);
+        try {
+            return p != null && Files.isRegularFile(p) ? Files.size(p) : -1;
+        } catch (IOException e) {
+            return -1;
         }
     }
 

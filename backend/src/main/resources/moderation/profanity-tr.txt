@@ -1,0 +1,253 @@
+# Uygunsuz ifade filtresi - Turkce kok listesi (elle yazilmis bolum).
+# Yalnizca moderasyon amaclidir; herkese acik metinlerde (topluluk/etkinlik/profil) kullanilir, sohbet mesajlarinda KULLANILMAZ.
+# Soz dizimi (satir basina bir giris, '#' yorum):
+#   kelime     -> kok: kelime + en fazla 7 harflik ek ("siktir" -> "siktirgit"); en az 4 harf, daha kisa ise tam eslesme
+#   =kelime    -> yalnizca tam eslesme (kisa/belirsiz kokler icin)
+#   *kelime    -> metin icinde herhangi bir yerde gecmesi (en az 5 harf, ayirt edici uzun kokler icin)
+#   !kelime    -> sert: yalnizca yazildigi gibi (cift harf sikistirmasi yok)
+#   iki sozcuk -> tamlama
+# Yazim dogru Turkce olabilir (ç ğ ı ö ş ü); yukleyici sadelestirir. 'ı' ve 'i' ayri tutulur ("sıkıntı" engellenmez).
+# Yerleske liste yoneticiden silinemez; yanlis pozitifler icin ALLOW listesi (profanity-allow-tr.txt veya panel) kullanilir.
+# Asagidaki "GENERATED" blogu scripts/fetch-profanity-lists.js ile uretilir (LDNOOBW, CC-BY-4.0); elle degistirmeyin.
+
+# --- Cinsel kokenli kufurler ---
+=sik
+=sikim
+=siki
+=sikin
+=sikinde
+=sikime
+=sikimi
+=sikik
+=sikikler
+=sikiyim
+*siktir
+=sikmek
+sikti
+*sikeyim
+*sikerim
+*sikecem
+sikecek
+sikis
+=sikko
+sktir
+=sktr
+=skim
+=skik
+=skerim
+=skeyim
+=skm
+=amk
+=amq
+=amck
+=aq
+=amcuk
+amcık
+amcığ
+amcuk
+aminako
+aminakod
+=aminakoyim
+=aminakoyum
+=aminakodum
+=aminakoyayim
+!yarrak
+!yarrağ
+!yarram
+!yarraq
+=yarak
+=yarakli
+*dalyarak
+*dalyarrak
+dalyarak
+tasak
+taşak
+=dasak
+gotun
+gotveren
+gotlek
+gotos
+götlek
+götveren
+götün
+orospu
+*orospu
+orspu
+oruspu
+orosbu
+*orosbu
+pezevenk
+*pezevenk
+gavat
+kahpe
+kaltak
+fahişe
+fuhuş
+sürtük
+!şıllık
+kerhane
+puşt
+ibne
+yavşak
+haspa
+kancık
+=taşak
+=taşaklar
+otuz birci
+saksocu
+sıçmak
+porno
+pornografi
+
+# --- Hakaret ve asagilama ---
+dangalak
+dallama
+gerzek
+andaval
+salak
+aptal
+*gerizekali
+=gerizekalı
+şerefsiz
+namussuz
+haysiyetsiz
+ahlaksız
+kodumun
+kodugumun
+=pickurusu
+=piçkurusu
+=piçler
+=picler
+piçlik
+=bok
+=boku
+=boktan
+=bokum
+=bokunu
+=boklu
+=boklar
+=bokluk
+=bokluk
+
+# --- Kisaltma ve yazim bozma ---
+=orspucocugu
+=orospucocugu
+
+# >>> GENERATED BEGIN (scripts/fetch-profanity-lists.js) - elle degistirmeyin
+# Kaynak: LDNOOBW - List of Dirty, Naughty, Obscene, and Otherwise Bad Words (CC-BY-4.0)
+# https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words (dosya: tr)
+# Indirme: 2026-10-27 - temizlenmis, 113 giris. Tekli sozcukler tam eslesme (=).
+=amcığa
+=amcığı
+=amcığın
+=amcık
+=amcıklar
+=amcıklara
+=amcıklarda
+=amcıklardan
+=amcıkları
+=amcıkların
+=amcıkta
+=amcıktan
+=götler
+=götlerde
+=götlerden
+=götlere
+=götleri
+=götlerin
+=götün
+=götveren
+=götverende
+=götverenden
+=götverene
+=götvereni
+=götverenin
+=götverenler
+=götverenlerde
+=götverenlerden
+=götverenlere
+=götverenleri
+=götverenlerin
+=kaltağa
+=kaltağı
+=kaltağın
+=kaltak
+=kaltaklar
+=kaltaklara
+=kaltaklarda
+=kaltaklardan
+=kaltakları
+=kaltakların
+=kaltakta
+=kaltaktan
+=orospu
+=orospuda
+=orospudan
+=orospular
+=orospulara
+=orospularda
+=orospulardan
+=orospuları
+=orospuların
+=orospunun
+=orospuya
+=orospuyu
+otuz birci
+otuz bircide
+otuz birciden
+otuz birciler
+otuz bircilerde
+otuz bircilerden
+otuz bircilere
+otuz bircileri
+otuz bircilerin
+otuz bircinin
+otuz birciye
+otuz birciyi
+=saksocu
+=saksocuda
+=saksocudan
+=saksocular
+=saksoculara
+=saksocularda
+=saksoculardan
+=saksocuları
+=saksocuların
+=saksocunun
+=saksocuya
+=saksocuyu
+=sıçmak
+=sik
+=sikler
+=siklerde
+=siklerden
+=siklere
+=sikleri
+=siklerin
+=sikmek
+=siktir
+=taşağa
+=taşağı
+=taşağın
+=taşak
+=taşaklar
+=taşaklara
+=taşaklarda
+=taşaklardan
+=taşakları
+=taşakların
+=taşakta
+=taşaktan
+=yarağa
+=yarağı
+=yarağın
+=yarak
+=yaraklar
+=yaraklara
+=yaraklarda
+=yaraklardan
+=yarakları
+=yarakların
+=yarakta
+=yaraktan
+# <<< GENERATED END

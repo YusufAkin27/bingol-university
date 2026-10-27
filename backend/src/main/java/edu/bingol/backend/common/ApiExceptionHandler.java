@@ -29,6 +29,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Map<String, String>> api(ApiException e) {
+        if (e instanceof FieldApiException f) { // alana bagli hata: {code,message,field}
+            return ResponseEntity.status(f.status()).body(Map.of("code", f.code(), "field", f.field(),
+                    "message", i18n.error(f.code(), f.getMessage(), locale(), f.args())));
+        }
         return body(e.status(), e.code(), i18n.error(e.code(), e.getMessage(), locale(), e.args()));
     }
 

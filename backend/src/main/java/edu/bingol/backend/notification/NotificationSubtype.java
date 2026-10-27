@@ -9,7 +9,10 @@ public enum NotificationSubtype {
     EVENT_REMINDER(NotificationType.EVENT), EVENT_UPDATE(NotificationType.EVENT),
     EVENT_ADMISSION(NotificationType.EVENT),
     COMMUNITY_POST(NotificationType.COMMUNITY), COMMUNITY_ROLE(NotificationType.COMMUNITY),
-    COMMUNITY_JOIN(NotificationType.COMMUNITY);
+    COMMUNITY_JOIN(NotificationType.COMMUNITY),
+    POST_LIKE(NotificationType.POST_LIKE), POST_COMMENT(NotificationType.POST_COMMENT),
+    COMMENT_REPLY(NotificationType.COMMENT_REPLY),
+    POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW);
 
     private final NotificationType parent;
 

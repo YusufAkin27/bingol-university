@@ -72,6 +72,9 @@ public record MediaProperties(long maxPixels, int concurrency, int graceSeconds,
             case COVER -> cover;
             case POST -> post;
             case CHAT -> chat;
+            // Gonderi gorseli: topluluk gonderisi sinirlarindan turetilir (ham 8 MB, saklanan en az 600 KB)
+            case FEED -> new Limits(Math.max(post.maxUploadBytes(), 8L << 20), post.maxDimension(),
+                    Math.max(post.maxStoredBytes(), 600L << 10), post.jpegQuality());
         };
     }
 }

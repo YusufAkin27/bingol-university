@@ -12,7 +12,9 @@ public enum ImageKind {
     /** Topluluk gonderisi gorseli. */
     POST("posts"),
     /** Sohbet gorseli: herkese acik klasoru YOKTUR; yalnizca {@link PrivateMediaStore}. */
-    CHAT(null);
+    CHAT(null),
+    /** Genel gonderi (Kesfet akisi) gorseli: ozel depo (herkese acik klasor yok), uzun kenar 1600 px, onizleme 480 px. */
+    FEED(null);
 
     private final String publicFolder;
 

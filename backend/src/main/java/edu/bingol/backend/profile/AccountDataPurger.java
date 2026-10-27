@@ -1,6 +1,8 @@
 package edu.bingol.backend.profile;
 
+import edu.bingol.backend.post.admin.PostAccountPurger;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,12 @@ public class AccountDataPurger {
     /** Silinecek tablolar (hepsinde user_id sutunu var). Topluluk sahipligi ve yasak kayitlari korunur. */
     static final List<String> DELETES = List.of(
             "DELETE FROM device WHERE user_id = ?",
+            // Kalici push kuyrugu: bekleyen push kayitlari
+            "DELETE FROM push_outbox WHERE user_id = ?",
+            // Anketler: secmen kaydi silinir (katilim sayaci poll.voter_count korunur); oylar asagida anonimlestirilir
+            "DELETE FROM poll_ballot WHERE user_id = ?",
+            // KVKK: cihaz/IP gecmisi (erisim engeli modulu) hesap silinince kendi kayitlari silinir
+            "DELETE FROM user_device_log WHERE user_id = ?",
             "DELETE FROM notification WHERE user_id = ?",
             "DELETE FROM notification_pref WHERE user_id = ?",
             "DELETE FROM notification_subtype_pref WHERE user_id = ?",
@@ -35,6 +43,9 @@ public class AccountDataPurger {
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
     static final List<String> SCRUBS = List.of(
+            // Anket oylari anonimlestirilir: kullanici bagi kalkar, secenek sayaclari ve toplam oy korunur
+            "UPDATE poll_vote SET user_id = NULL WHERE user_id = ?",
+            "UPDATE poll SET created_by = NULL WHERE created_by = ?",
             "UPDATE feedback SET subject = 'Silinmiş kullanıcı', message = '[silindi]', is_public = FALSE WHERE user_id = ?",
             "UPDATE support_ticket SET subject = '[silindi]' WHERE user_id = ?",
             "UPDATE support_message SET text = '[silindi]' WHERE author_id = ? AND from_staff = FALSE",
@@ -48,11 +59,33 @@ public class AccountDataPurger {
 
     private final JdbcTemplate jdbc;
 
+    /** Kesfet gonderi/yorum/begeni/medya temizligi (post paketi); testlerde yoksa atlanir. */
+    private PostAccountPurger postPurger;
+
+    /** Akademik (ders programi/sinav/duyuru okundu) temizligi; testlerde yoksa atlanir. */
+    private edu.bingol.backend.academic.AcademicAccountPurger academicPurger;
+
     public AccountDataPurger(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 
+    @Autowired(required = false)
+    void setPostPurger(PostAccountPurger postPurger) {
+        this.postPurger = postPurger;
+    }
+
+    @Autowired(required = false)
+    void setAcademicPurger(edu.bingol.backend.academic.AcademicAccountPurger academicPurger) {
+        this.academicPurger = academicPurger;
+    }
+
     public void purge(Long userId) {
+        if (academicPurger != null) {
+            academicPurger.purge(userId);
+        }
+        if (postPurger != null) {
+            postPurger.purge(userId);
+        }
         DELETES.forEach(sql -> jdbc.update(sql, userId));
         SCRUBS.forEach(sql -> jdbc.update(sql, userId));
         jdbc.update(LEAVE_ROOMS, userId);

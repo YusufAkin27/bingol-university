@@ -1,5 +1,7 @@
 package edu.bingol.backend.community.extras;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.Actor;
@@ -47,6 +49,10 @@ public class ClubAnnouncementService {
     private final BlockService blocks;
     private final NotificationService notifications;
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public ClubAnnouncementService(CommunityService communities, CommunityRepository communityRepo,
                                    ClubAnnouncementRepository announcements, ClubMemberQueryRepository memberQuery,
                                    ClubPermissions permissions, ClubAuditService audit, BlockService blocks,
@@ -72,6 +78,7 @@ public class ClubAnnouncementService {
         if (text.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Duyuru metni boş olamaz.");
         }
+        ContentGuard.clean(guard, Entity.ANNOUNCEMENT, "text", a.id(), text);
         communityRepo.lockById(cid); // say-sonra-ekle yarisi: es zamanli duyurular siraya girer
         if (announcements.countSince(cid, Instant.now().minus(Duration.ofHours(24))) >= DAILY_LIMIT) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "CLUB_ANNOUNCEMENT_LIMIT",

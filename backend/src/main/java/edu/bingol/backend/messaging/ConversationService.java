@@ -1,5 +1,7 @@
 package edu.bingol.backend.messaging;
 
+import edu.bingol.backend.moderation.profanity.ContentGuard;
+import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationDetail;
@@ -81,6 +83,10 @@ public class ConversationService {
         this.receipts = receipts;
     }
 
+    /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ContentGuard guard;
+
     public ConversationService(ConversationRepository convs, ConversationMemberRepository members,
                                MessageRepository messages, UserRepository users, BlockService blocks, MessageCodec codec) {
         this.codec = codec;
@@ -118,6 +124,7 @@ public class ConversationService {
         if (t.isEmpty() || t.length() > 100) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Grup başlığı 1-100 karakter olmalı.");
         }
+        ContentGuard.clean(guard, Entity.GROUP_TITLE, "title", me, t);
         Set<Long> ids = new LinkedHashSet<>(memberIds == null ? List.of() : memberIds);
         ids.remove(me);
         if (ids.isEmpty()) {
@@ -191,6 +198,7 @@ public class ConversationService {
         if (t.isEmpty() || t.length() > 100) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Grup başlığı 1-100 karakter olmalı.");
         }
+        ContentGuard.changed(guard, Entity.GROUP_TITLE, "title", me, c.getTitle(), t);
         c.setTitle(t);
         convs.save(c);
         notifyUpdated(c, me);

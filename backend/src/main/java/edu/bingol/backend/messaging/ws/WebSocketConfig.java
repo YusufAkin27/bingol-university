@@ -42,11 +42,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String[] allowedOrigins;
 
     private final edu.bingol.backend.common.ClientIp clientIp;
+    private final edu.bingol.backend.accessban.ClientContexts contexts;
 
     public WebSocketConfig(StompAuthInterceptor stompAuth, TokenExpiryGuard expiryGuard, RateLimiter limiter,
                            edu.bingol.backend.common.ClientIp clientIp,
+                           edu.bingol.backend.accessban.ClientContexts contexts,
                            @Value("${app.messaging.allowed-origins:}") String[] allowedOrigins) {
         this.clientIp = clientIp;
+        this.contexts = contexts;
         this.stompAuth = stompAuth;
         this.expiryGuard = expiryGuard;
         this.limiter = limiter;
@@ -113,6 +116,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             InetSocketAddress addr = request.getRemoteAddress();
             String remote = addr == null || addr.getAddress() == null ? null : addr.getAddress().getHostAddress();
             String ip = clientIp.resolve(remote, request.getHeaders().getFirst("X-Forwarded-For"));
+            // CONNECT'te cihaz/IP engeli icin istemci baglami oturuma yazilir (ham cihaz kimligi degil, ozeti)
+            attributes.put(StompAuthInterceptor.CONTEXT_ATTR, contexts.build(ip,
+                    request.getHeaders().getFirst(edu.bingol.backend.accessban.ClientContexts.DEVICE_HEADER),
+                    request.getHeaders().getFirst(edu.bingol.backend.accessban.ClientContexts.PLATFORM_HEADER),
+                    request.getHeaders().getFirst(edu.bingol.backend.accessban.ClientContexts.VERSION_HEADER)));
             try {
                 limiter.check("ws:ip:" + ip, 600, Duration.ofMinutes(1));
             } catch (ApiException e) {

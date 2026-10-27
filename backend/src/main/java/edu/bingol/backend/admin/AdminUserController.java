@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,10 +39,13 @@ public class AdminUserController {
 
     private final AdminUserService service;
     private final ProfileService profiles;
+    private final AdminAccountVerificationService accountOps;
 
-    public AdminUserController(AdminUserService service, ProfileService profiles) {
+    public AdminUserController(AdminUserService service, ProfileService profiles,
+                               AdminAccountVerificationService accountOps) {
         this.service = service;
         this.profiles = profiles;
+        this.accountOps = accountOps;
     }
 
     /** Giris yapmis yonetici (JWT gerekir; Basic auth'ta kullanici kaydi yoktur => 401). */
@@ -107,6 +111,27 @@ public class AdminUserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, Authentication auth) {
         service.delete(actorId(auth), id);
+    }
+
+    /** E-postasi dogrulanmamis satiri elle dogrular (idempotent). */
+    @PostMapping("/users/{id}/verify-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void verifyEmail(@PathVariable Long id, Authentication auth) {
+        accountOps.verifyUser(id, actorId(auth));
+    }
+
+    /** Kullaniciya sifre sifirlama kodu e-postasi gonderir. */
+    @PostMapping("/users/{id}/send-reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendReset(@PathVariable Long id) {
+        accountOps.sendReset(id);
+    }
+
+    /** Kullanicinin tum oturumlarini kapatir. */
+    @PostMapping("/users/{id}/revoke-sessions")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revokeSessions(@PathVariable Long id) {
+        accountOps.revokeSessions(id);
     }
 
     /** Basic auth yoneticisinin principal'i Long degildir; kimlik null kalir. */

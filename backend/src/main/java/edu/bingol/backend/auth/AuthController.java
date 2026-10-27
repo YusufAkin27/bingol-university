@@ -1,5 +1,6 @@
 package edu.bingol.backend.auth;
 
+import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.dto.EmailRequest;
 import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.MessageResponse;
@@ -37,8 +38,11 @@ public class AuthController {
     private final I18n i18n;
 
     private final ClientIp clientIp;
+    private final ClientContexts contexts;
 
-    public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp) {
+    public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp,
+                          ClientContexts contexts) {
+        this.contexts = contexts;
         this.clientIp = clientIp;
         this.i18n = i18n;
         this.auth = auth;
@@ -58,6 +62,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         limiter.check("resend:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
+        limiter.check("resend:email:" + AuthService.normalizeEmail(r.email()), 5, Duration.ofHours(1));
         auth.resendCode(r.email());
         return new MessageResponse(i18n.current("msg.resend.sent"));
     }
@@ -88,7 +93,7 @@ public class AuthController {
     public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
         limiter.check("verify:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
         limiter.check("verify:email:" + AuthService.normalizeEmail(r.email()), 10, Duration.ofMinutes(10));
-        return auth.verifyEmail(r.email(), r.code(), r.client());
+        return auth.verifyEmail(r.email(), r.code(), r.client(), contexts.of(http));
     }
 
     @PostMapping("/login")
@@ -96,13 +101,13 @@ public class AuthController {
         String email = AuthService.normalizeEmail(r.email());
         limiter.check("login:ip:" + clientIp.of(http), 30, Duration.ofMinutes(15));
         limiter.check("login:email:" + email, 10, Duration.ofMinutes(15));
-        return auth.login(email, r.password(), r.client());
+        return auth.login(email, r.password(), r.client(), contexts.of(http));
     }
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest r, HttpServletRequest http) {
         limiter.check("refresh:ip:" + clientIp.of(http), 60, Duration.ofMinutes(15));
-        return auth.refresh(r.refreshToken());
+        return auth.refresh(r.refreshToken(), contexts.of(http));
     }
 
     @PostMapping("/logout")

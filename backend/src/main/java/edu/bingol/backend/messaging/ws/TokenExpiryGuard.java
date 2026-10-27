@@ -1,5 +1,6 @@
 package edu.bingol.backend.messaging.ws;
 
+import edu.bingol.backend.accessban.AccessBlockedEvent;
 import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ public class TokenExpiryGuard {
 
     /** /user/queue/message-events: type = "session-replaced" (oturum baska cihaz girisiyle/iptalle sonlandi). */
     public record SessionReplacedEvent(String type, String at) {}
+
+    static final CloseStatus BLOCKED = new CloseStatus(CloseStatus.POLICY_VIOLATION.getCode(), "ACCESS_BLOCKED");
 
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final SimpMessagingTemplate template;
@@ -94,7 +97,20 @@ public class TokenExpiryGuard {
         closeUser(e.userId(), e.client());
     }
 
+    /**
+     * Erisim engeli: kullanicinin tum WS baglantilarina `access-blocked` olayi (message-events) gider, sonra
+     * ACCESS_BLOCKED koduyla kapanir (SESSION_REPLACED yerine; istemci cikis yapip engel ekranini gosterir).
+     */
+    @EventListener
+    public void onAccessBlocked(AccessBlockedEvent e) {
+        closeUser(e.userId(), null, true);
+    }
+
     int closeUser(Long userId, String client) {
+        return closeUser(userId, client, false);
+    }
+
+    int closeUser(Long userId, String client, boolean blocked) {
         List<WebSocketSession> targets = new ArrayList<>();
         for (WebSocketSession s : sessions.values()) {
             Map<String, Object> a = s.getAttributes();
@@ -107,18 +123,19 @@ public class TokenExpiryGuard {
             }
         }
         for (WebSocketSession s : targets) {
-            notifyReplaced(userId, s);
+            notifyReplaced(userId, s, blocked ? "access-blocked" : "session-replaced");
         }
+        CloseStatus status = blocked ? BLOCKED : REVOKED;
         if (closeDelayMs > 0 && !targets.isEmpty()) {
-            closer.schedule(() -> targets.forEach(this::closeQuietly), closeDelayMs, TimeUnit.MILLISECONDS);
+            closer.schedule(() -> targets.forEach(s -> closeQuietly(s, status)), closeDelayMs, TimeUnit.MILLISECONDS);
         } else {
-            targets.forEach(this::closeQuietly);
+            targets.forEach(s -> closeQuietly(s, status));
         }
         return targets.size();
     }
 
     /** Yalnizca hedef WS oturumuna gonderilir (simpSessionId); hata baglanti kapatmayi engellemez. */
-    private void notifyReplaced(Long userId, WebSocketSession s) {
+    private void notifyReplaced(Long userId, WebSocketSession s, String type) {
         if (template == null) {
             return;
         }
@@ -127,15 +144,15 @@ public class TokenExpiryGuard {
             h.setSessionId(s.getId());
             h.setLeaveMutable(true);
             template.convertAndSendToUser(String.valueOf(userId), "/queue/message-events",
-                    new SessionReplacedEvent("session-replaced", Instant.now().toString()), h.getMessageHeaders());
+                    new SessionReplacedEvent(type, Instant.now().toString()), h.getMessageHeaders());
         } catch (RuntimeException ex) {
             log.debug("session-replaced olayi gonderilemedi: {}", ex.toString());
         }
     }
 
-    private void closeQuietly(WebSocketSession s) {
+    private void closeQuietly(WebSocketSession s, CloseStatus status) {
         try {
-            s.close(REVOKED);
+            s.close(status);
         } catch (Exception ex) {
             log.debug("Iptal edilen WS oturumu kapatilamadi: {}", ex.toString());
         }

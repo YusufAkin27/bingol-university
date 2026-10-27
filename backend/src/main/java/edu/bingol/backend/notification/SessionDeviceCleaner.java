@@ -1,5 +1,6 @@
 package edu.bingol.backend.notification;
 
+import edu.bingol.backend.accessban.AccessBlockedEvent;
 import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,16 @@ public class SessionDeviceCleaner {
         } catch (RuntimeException ex) {
             // Giris akisini bozmaz; kayitlar 60 gunluk temizlikte de duser.
             log.warn("Cihaz kayitlari silinemedi (user {}): {}", e.userId(), ex.toString());
+        }
+    }
+
+    /** Erisim engeli: kullanicinin FCM kayitlari silinir (engelli hesaba bildirim gitmesin). */
+    @EventListener
+    public void onAccessBlocked(AccessBlockedEvent e) {
+        try {
+            devices.deleteAllByUser(e.userId());
+        } catch (RuntimeException ex) {
+            log.warn("Engellenen kullanicinin cihaz kayitlari silinemedi (user {}): {}", e.userId(), ex.toString());
         }
     }
 }
