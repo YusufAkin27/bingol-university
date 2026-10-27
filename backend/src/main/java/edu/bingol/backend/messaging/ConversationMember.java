@@ -53,6 +53,10 @@ public class ConversationMember {
     @Column(nullable = false)
     private Long clearedUpToMessageId = 0L;
 
+    /** Golge engel: uyenin kendi bastirilmis son mesaji (kendi listesinde gorur). */
+    @Column(nullable = false)
+    private Long lastOwnSuppressedMessageId = 0L;
+
     /** Doluysa konusma uyenin listesinden kaldirilmis; yeni mesajla temizlenir. */
     private Instant hiddenAt;
 

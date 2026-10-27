@@ -343,14 +343,14 @@ public class CommunityService {
     public CursorPage<MemberView> members(Actor a, Long id, Long cursor, int size) {
         Community c = loadVisible(a, id);
         requireReadable(a, c);
-        return memberPage(id, CommunityMember.Status.ACTIVE, blockedFor(a), cursor, size);
+        return memberPage(id, CommunityMember.Status.ACTIVE, blockedFor(a), blockedFor(a), cursor, size);
     }
 
     @Transactional(readOnly = true)
     public CursorPage<MemberView> requests(Actor a, Long id, Long cursor, int size) {
         load(id);
         permissions.require(a, id, ClubPermission.MANAGE_MEMBERS);
-        return memberPage(id, CommunityMember.Status.PENDING, Set.of(-1L), cursor, size);
+        return memberPage(id, CommunityMember.Status.PENDING, Set.of(-1L), blockedFor(a), cursor, size);
     }
 
     @Transactional
@@ -503,8 +503,9 @@ public class CommunityService {
 
     // ---- ic yardimcilar ----
 
+    /** `hideAvatar`: goruntuleyenle engel iliskisi olanlarin avatari gosterilmez (golge engel). */
     private CursorPage<MemberView> memberPage(Long cid, CommunityMember.Status status, Set<Long> excluded,
-                                              Long cursor, int size) {
+                                              Set<Long> hideAvatar, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
         List<CommunityMember> rows = members.page(cid, status, Paging.ascStart(cursor), excluded, PageRequest.of(0, s + 1));
         return Paging.map(rows, s, CommunityMember::getId, items -> {
@@ -512,7 +513,7 @@ public class CommunityService {
             return items.stream().map(m -> {
                 User x = u.get(m.getUserId());
                 return new MemberView(m.getUserId(), x == null ? "Kullanıcı" : x.getDisplayName(),
-                        x == null ? null : x.getAvatarUrl(), m.getRole(), m.getJoinedAt());
+                        x == null || hideAvatar.contains(m.getUserId()) ? null : x.getAvatarUrl(), m.getRole(), m.getJoinedAt());
             }).toList();
         });
     }

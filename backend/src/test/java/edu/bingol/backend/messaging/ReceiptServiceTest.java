@@ -296,4 +296,29 @@ class ReceiptServiceTest {
         assertEquals("READ", v.withStatus("READ").withAttachments(List.of()).status());
         assertEquals(Map.of(), svc.statuses(B, List.of(msg(1, A)), null, null));
     }
+
+    @Test
+    void suppressedMessageNeverLeavesSentEvenIfPeerReadEverything() {
+        group(member(A, 0, 0), member(B, 99, 99));
+        conv.setType(Conversation.Type.DIRECT);
+        Message m = msg(7, A);
+        m.setSuppressed(true);
+        assertEquals("SENT", status(m, A));
+    }
+
+    @Test
+    void directReceiptEventStopsBeforeSuppressedMessage() {
+        group(member(A, 0, 0), member(B, 0, 0));
+        conv.setType(Conversation.Type.DIRECT);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CID, B)).thenReturn(Optional.of(active.get(1)));
+        when(messages.maxIdFromOthers(CID, 9L, B)).thenReturn(9L);
+        when(members.advanceDelivered(CID, B, 9L)).thenReturn(1);
+        when(messages.minSuppressedId(CID, A, 0L, 9L)).thenReturn(6L); // 6 ve sonrasi bastirilmis
+
+        svc.markDelivered(B, CID, 9L);
+
+        ArgumentCaptor<Object> payload = ArgumentCaptor.forClass(Object.class);
+        verify(bus).publish(eq("message-events"), eq(List.of(A)), payload.capture());
+        assertEquals(5L, ((ReceiptEvent) payload.getValue()).upToMessageId());
+    }
 }

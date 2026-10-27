@@ -103,7 +103,7 @@ class VideoMessageTest {
         }
         MediaUrlSigner signer = new MediaUrlSigner(props, "test-secret-test-secret-test-secret-1234");
         service = new MessageAttachmentService(repo, convs, members, messages, users, blocks, limiter, store, signer,
-                props, blocklist, 10, 200, 4, 20, 300);
+                props, blocklist, 20, 200, 10, 30, 300);
 
         when(repo.save(any(MessageAttachment.class))).thenAnswer(inv -> {
             MessageAttachment a = inv.getArgument(0);
@@ -341,14 +341,45 @@ class VideoMessageTest {
     // ------------------------------------------------------------ mesaj kurallari
 
     @Test
-    void twoVideosAndViewOnceVideoAreRejectedByPrecheck() throws Exception {
+    void manyVideosMixedWithImagesAllowedUntilTotalBytesExceeded() throws Exception {
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(service.upload(ME, CONV, video(Mp4Fixtures.mp4(2, 64, 64, 2000)), null).id());
+        }
+        ids.add(service.upload(ME, CONV, new MockMultipartFile("file", "i.png", "image/png",
+                MessageAttachmentServiceTest.png(100, 100)), null).id());
+        assertEquals(ids, service.precheck(ME, CONV, ids)); // 5 video + 1 foto karisik, tek sinir bayt toplami
+
+        ReflectionTestUtils.setField(service, "videoMaxTotalBytes", 5000L);
+        ApiException e = assertThrows(ApiException.class, () -> service.precheck(ME, CONV, ids));
+        assertEquals("MESSAGE_MEDIA_TOO_LARGE", e.code());
+        assertEquals(413, e.status().value());
+    }
+
+    @Test
+    void tenAttachmentsAcceptedElevenRejected() throws Exception {
+        MessageAttachmentService svc = new MessageAttachmentService(repo, convs, members, messages, users, blocks, limiter,
+                store, new MediaUrlSigner(new MediaProperties(0, 4, 0, 0, 0, null, null, null, null, true, null, null, null, null),
+                "test-secret-test-secret-test-secret-1234"),
+                new MediaProperties(0, 4, 0, 0, 0, null, null, null, null, true, null, null, null, null), blocklist,
+                20, 200, 10, 30, 300);
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            ids.add(svc.upload(ME, CONV, new MockMultipartFile("file", "i.png", "image/png",
+                    MessageAttachmentServiceTest.png(60 + i, 60)), null).id());
+        }
+        assertEquals(10, svc.precheck(ME, CONV, ids.subList(0, 10)).size());
+        assertEquals("ATTACHMENT_LIMIT", assertThrows(ApiException.class, () -> svc.precheck(ME, CONV, ids)).code());
+    }
+
+    @Test
+    void viewOnceVideoIsRejectedByPrecheck() throws Exception {
         AttachmentView a = service.upload(ME, CONV, video(Mp4Fixtures.mp4(2, 64, 64, 100)), null);
         AttachmentView b = service.upload(ME, CONV, video(Mp4Fixtures.mp4(2, 64, 64, 100)), null);
+        assertNotNull(b);
         AttachmentView img = service.upload(ME, CONV, new MockMultipartFile("file", "i.png", "image/png",
                 MessageAttachmentServiceTest.png(100, 100)), null);
 
-        assertEquals("VIDEO_LIMIT", assertThrows(ApiException.class,
-                () -> service.precheck(ME, CONV, List.of(a.id(), b.id()))).code());
         assertEquals("VIEW_ONCE_INVALID", assertThrows(ApiException.class,
                 () -> service.precheck(ME, CONV, List.of(a.id()), true)).code());
         // video + gorsel karisik gonderilebilir

@@ -109,6 +109,10 @@ public class ReceiptService {
         }
         Map<Long, String> out = new HashMap<>();
         for (Message m : mine) {
+            if (m.isSuppressed()) { // golge engel: asla DELIVERED/READ olmaz
+                out.put(m.getId(), SENT);
+                continue;
+            }
             boolean isDirect = direct != null && direct.containsKey(m.getConversationId())
                     ? direct.get(m.getConversationId())
                     : by.getOrDefault(m.getConversationId(), List.of()).size() <= 2;
@@ -174,7 +178,13 @@ public class ReceiptService {
             if (peers.isEmpty()) {
                 return; // engel iliskisi: makbuz gitmez
             }
-            bus.publish("message-events", peers, new ReceiptEvent("receipt", conv.getId(), kind, to, actor, at,
+            // Golge engel: bastirilmis mesaj varsa imlec onun oncesinde kesilir (istemci o mesaji ilerletmesin)
+            Long minSup = messages.minSuppressedId(conv.getId(), peers.get(0), from, to);
+            long upTo = minSup != null && minSup > 0 ? minSup - 1 : to;
+            if (upTo <= from) {
+                return;
+            }
+            bus.publish("message-events", peers, new ReceiptEvent("receipt", conv.getId(), kind, upTo, actor, at,
                     "read".equals(kind) ? READ : DELIVERED));
             return;
         }

@@ -64,8 +64,10 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913"}
 
 ### 1.3 Giriş
 ```http
-POST /api/auth/login   {"email":"ayse@bingol.edu.tr","password":"Sifre1234x"}   → 200 (TokenResponse)
+POST /api/auth/login   {"email":"ayse@bingol.edu.tr","password":"Sifre1234x","client":"mobile"}   → 200 (TokenResponse)
 ```
+- **`client`** (opsiyonel, `mobile` | `web`, varsayılan `web`; geçersiz değer `400`): mobil uygulama **her zaman `"client":"mobile"`** göndermelidir (`verify-email` gövdesinde de aynı alan vardır: açılan hesabın token'ları mobil etiketlenir). **Tek cihaz kuralı**: `mobile` girişi, kullanıcının önceki **tüm mobil oturumlarını** sonlandırır (refresh token'lar silinir, eski access token'lar reddedilir, WebSocket kapatılır, FCM `device` kayıtları silinir) ve ardından yeni token'lar verilir; yeni token ile hemen istek atılabilir. `web`/`client` yok girişleri hiçbir oturumu sonlandırmaz (web paneli ile mobil aynı anda açık kalabilir). Aynı cihazdan yeniden giriş de eski oturumu kapatır. Eski cihaza (varsa) "yeni cihazdan giriş" güvenlik e-postası gider.
+- Yeni giriş sonrası push için `POST /api/devices` ile FCM token'ı **yeniden kaydedin** (girişte eski kayıtlar silinir).
 Hatalar: `401 INVALID_CREDENTIALS` (kullanıcı yok ve yanlış şifre **aynı yanıt**; ayırt etmeyin), `403 EMAIL_NOT_VERIFIED` (doğrulama ekranına yönlendirin), `403 ACCOUNT_SUSPENDED`. Sınır: IP başına 15 dk'da 30, e-posta başına 15 dk'da 10 deneme.
 
 ### 1.4 Token'lar
@@ -118,6 +120,7 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 - `POST /api/auth/logout {"refreshToken"}` → `204` (refresh token iptal; access token süresi dolana kadar teknik olarak geçerli kalır, istemci siler). Çıkışta WebSocket'i kapatın, yerel mesaj önbelleğini ve bekleyen kuyruğu silin, `DELETE /api/devices/{fcmToken}` ile push kaydını kaldırın.
 - `POST /api/auth/logout-all` (Bearer, gövdesiz) → `204`: **tüm cihazlardaki** refresh token'ları siler ve eski access token'ları da reddettirir (çağıran cihaz dahil; yeniden giriş gerekir). Kullanıcı başına 15 dk'da 5 (`429 RATE_LIMITED`). Ayarlarda "tüm cihazlardan çık" için kullanın; sonrasında yerel durumu `logout` ile aynı şekilde temizleyin.
 - Hesap **askıya alınırsa** veya **silinirse** access token hemen 401 olur ve yenileme de başarısızdır. Yönetici **rolü değiştirirse** eski token 401 olur; `refresh` yeni rolde token verir (normal akış).
+- **`SESSION_REPLACED` (401)**: başka bir cihazdan mobil giriş yapıldığında (veya `logout-all`/şifre sıfırlamayla oturumlar kapatıldığında) eski oturumun **her isteği** — access token'ın süresi dolmamış olsa bile — `401 {"code":"SESSION_REPLACED","message":"Hesabınıza başka bir cihazdan giriş yapıldı."}` (tr/en/ar, `Accept-Language`) alır. `POST /api/auth/refresh` de iptal edilmiş refresh token için aynı kodu döner (süresi dolmuş/bilinmeyen token: `INVALID_REFRESH_TOKEN`). İstemci: refresh **denemeden** yerel oturumu temizle, WebSocket'i kapat, giriş ekranını "başka cihazdan giriş yapıldı" mesajıyla aç. (İptal kaydı `rtx:<hash>` mezar taşıdır, 30 gün.)
 - `GET /api/auth/me` → `{id,email,displayName}`; ayrıntılı profil `GET /api/users/me`.
 
 ### 1.7 Şifre sıfırlama (3 adım)
@@ -228,7 +231,7 @@ Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik redde
 ### 4.2 İstemci → sunucu komutları (`SEND`)
 | Hedef | Gövde | Not |
 |---|---|---|
-| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 4) isteğe bağlıdır; ek varsa metin boş olabilir |
+| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 10) isteğe bağlıdır; ek varsa metin boş olabilir |
 | `/app/chat.delivered` | `{"conversationId":1,"lastMessageId":42}` | iletildi ack'i (bkz. 4.10); imleç yalnız ilerler, kendi mesajların yok sayılır; dakikada 120'den fazlası sessizce atılır |
 | `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID`; boş konuşmada no-op; konuşma başına 10 sn'de 20'den sık istek **sessizce** atılır, bu yüzden yalnızca görünen son mesajı gönderin |
 | `/app/chat.typing` | `{"conversationId":1}` | 2 sn'de 1, fazlası sessizce atılır |
@@ -241,15 +244,15 @@ content-type:application/json
 {"conversationId":1,"text":"merhaba","clientId":"7b0c1f3e-4a52-4d2a-9d6e-0f1c2b3a4d5e"}^@
 <<< MESSAGE            (destination:/user/queue/messages; ack olarak kendi mesajınız, sunucu id'siyle)
 {"id":43,"conversationId":1,"senderId":7,"clientId":"7b0c1f3e-...","text":"merhaba","removed":false,"createdAt":"..."}
-<<< MESSAGE            (destination:/user/queue/errors; ör. engelli kullanıcıya)
-{"code":"BLOCKED","message":"Bu kullanıcıyla mesajlaşamazsınız.","clientId":"7b0c1f3e-..."}
+<<< MESSAGE            (destination:/user/queue/errors; ör. mesaj çok uzun)
+{"code":"MESSAGE_TOO_LONG","message":"Mesaj en fazla 2000 karakter olabilir.","clientId":"7b0c1f3e-..."}
 ```
 **WS hata `message` metni çevrilmez** (Türkçe varsayılandır): kullanıcıya göstereceğiniz metni **`code`'dan kendi çevirilerinizle** üretin (bölüm 10'daki tr/en/ar tablodan alabilirsiniz). Sık kodlar: `EMPTY_MESSAGE`, `MESSAGE_TOO_LONG`, `CONVERSATION_NOT_FOUND`, `BLOCKED`, `RATE_LIMITED` (kullanıcı başına dakikada 30 mesaj), `BAD_REQUEST` (bozuk yük).
 
 ### 4.3 `clientId` ile idempotency ve çevrimdışı kuyruk
 - Her gönderilen mesaj için **istemci bir UUIDv4 `clientId`** üretir (≤ 64 karakter). Sunucu `(konuşma, gönderen, clientId)` tekrarını yeni mesaj saymaz: aynı `clientId` ile yeniden gönderim **çift mesaj üretmez** (REST'te `200` + mevcut mesaj, yenide `201`).
 - Önerilen akış: mesajı yerelde `PENDING` + `clientId` ile yaz (iyimser göster) → bağlıysa `chat.send`; `/user/queue/messages`'te aynı `clientId` gelince `SENT` + sunucu `id`; **10 sn içinde ack gelmezse** REST yedeği `POST /api/conversations/{id}/messages {"text","clientId"}` ile aynı `clientId`'yi yeniden gönderin (idempotent).
-- `errors` kuyruğunda `clientId` taşıyan kalıcı hatalar (`BLOCKED`, `MESSAGE_TOO_LONG`, `CONVERSATION_NOT_FOUND`) → mesaj `FAILED`; `RATE_LIMITED` → geri çekilmeyle tekrar dene.
+- `errors` kuyruğunda `clientId` taşıyan kalıcı hatalar (`MESSAGE_TOO_LONG`, `CONVERSATION_NOT_FOUND`; engel iliskisi artık hata DEĞİLDİR, bkz. gölge engel) → mesaj `FAILED`; `RATE_LIMITED` → geri çekilmeyle tekrar dene.
 - Mesaj id'leri konuşma içinde artandır; ekranda `id`'ye göre sıralayıp tekilleştirin (WS ile REST çakışabilir).
 
 ### 4.4 Bağlantı yaşam döngüsü, yeniden bağlanma ve boşluk kapatma
@@ -269,10 +272,12 @@ content-type:application/json
 |---|---|---|
 | `UNAUTHORIZED` | token yok/bozuk | refresh dene; olmazsa giriş ekranı |
 | `TOKEN_EXPIRED` | CONNECT'te veya SEND'de token süresi dolmuş | refresh + yeniden bağlan |
+| `SESSION_REPLACED` | oturum başka cihaz girişiyle/iptalle kapandı | refresh deneme; oturumu temizle, giriş ekranı |
 | `SUSPENDED` | hesap askıda | oturumu kapat, askı mesajı göster |
 | `FORBIDDEN_DESTINATION` | izin verilmeyen hedefe SEND/SUBSCRIBE | istemci hatası; düzeltin |
 
 - Refresh de 401 verirse oturum bitmiştir: giriş ekranı.
+- **Oturum sonlandırma olayı**: başka cihazda mobil giriş (veya `logout-all`/şifre sıfırlama) olduğunda sunucu, etkilenen WS bağlantısına **kapanmadan önce** `/user/queue/message-events` kuyruğuna `{"type":"session-replaced","at":"2026-01-01T10:00:00Z"}` gönderir, ~0,4 sn sonra bağlantıyı kapatır (close 1008, neden `SESSION_REPLACED`). İstemci olayı gördüğünde (ya da bu close nedeniyle) yeniden bağlanmayı **denemeden** oturumu temizleyip giriş ekranına dönmelidir. CONNECT'te iptal edilmiş token'a `ERROR message=SESSION_REPLACED` döner. Web bağlantıları mobil girişten etkilenmez.
 
 ### 4.6 Diğer mesajlaşma uçları (REST)
 `GET/POST /api/conversations` (birebir `{userId}`: varsa `200` mevcut, yoksa `201`; grup `{title,memberIds}` → `201`; günde en çok 30), `GET/PATCH /api/conversations/{id}`, `POST .../leave`, `POST .../members`, `DELETE .../members/{userId}`, `POST .../read {lastMessageId}` (204; hiç mesajı olmayan konuşmada da 204 no-op), `POST /api/messages/{id}/report {reason,note}`, `GET /api/users/{id}/presence` (`{online,lastSeenAt}`; yalnız ortak konuşması olan, engel ilişkisi olmayan kullanıcılar; aksi `404`), engelleme: `POST/DELETE /api/users/{id}/block`, `GET /api/users/me/blocks`. Ayrıntı: `openapi.json`, tasarım: [MESSAGING_DESIGN.md](MESSAGING_DESIGN.md).
@@ -292,9 +297,9 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 
 ### 4.8 Sohbet görselleri (medya yükleme)
 1. `POST /api/conversations/{cid}/media` (multipart, alan **`file`**) → `201` `AttachmentView` `{id,kind,width,height,bytes,contentType,removed,url,thumbUrl}`. Sunucu görseli yeniden kodlar (EXIF temizliği, en çok ~1600 px, sıkıştırılmış); yükleme üst sınırı 5 MB, dakikada 10 ve günde 200 yükleme, mesaja eklenmemiş en çok 20 görsel.
-2. Dönen `id` mesaj gönderiminde `attachmentIds`'e konur (mesaj başına en çok 4; REST veya `chat.send`). Hata kodları: `ATTACHMENT_LIMIT`, `ATTACHMENT_INVALID`, `ATTACHMENT_NOT_FOUND`, `MEDIA_BLOCKED` (422), `CHAT_MEDIA_PENDING_LIMIT` (429). Mesaja eklenmemiş kendi yüklemeniz `DELETE .../media/{aid}` ile silinir (mesaja bağlıysa `409 ATTACHMENT_IN_USE`). Sahiplenilmemiş yüklemeler 24 saatte temizlenir.
+2. Dönen `id` mesaj gönderiminde `attachmentIds`'e konur (mesaj başına en çok **10** ek, foto/video karışık; REST veya `chat.send`; ayar `app.chat.media.max-attachments-per-message`). Hata kodları: `ATTACHMENT_LIMIT`, `ATTACHMENT_INVALID`, `ATTACHMENT_NOT_FOUND`, `MEDIA_BLOCKED` (422), `CHAT_MEDIA_PENDING_LIMIT` (429). Mesaja eklenmemiş kendi yüklemeniz `DELETE .../media/{aid}` ile silinir (mesaja bağlıysa `409 ATTACHMENT_IN_USE`). Sahiplenilmemiş yüklemeler 24 saatte temizlenir.
 3. **Okuma kimliklidir:** `url` ve `thumbUrl` (`/api/conversations/{cid}/media/{aid}` ve `/thumb`) Bearer ister; görseli çizerken `Authorization` başlığı verin. Başlık veremeyen bileşenler için `GET .../media/{aid}/link` → `{url,thumbUrl,expiresAt}` kısa ömürlü (varsayılan 5 dk) imzalı adres verir. Gizlenen (`removed=true`) ekte adresler `null`dır.
-4. **Video mesaj:** aynı uç `file=video/mp4` (+ isteğe bağlı `poster`= JPEG/PNG önizleme karesi) ile video yükler. Sınırlar: `ftyp` imzalı MP4, ≤ 40 MB (`413 VIDEO_TOO_LARGE`), ≤ 60 sn (`400 VIDEO_TOO_LONG`), bozuk/MP4 değil (`400 VIDEO_INVALID`); kullanıcı başına günde 30 video + ortak yükleme limitleri. Sunucu videoyu **yeniden kodlamaz** (istemci sıkıştırır); poster görsel hattından geçer (EXIF temizliği, ≤ 720 px) ve `thumbUrl` olur (poster yoksa `null`). `AttachmentView`: `kind` (`IMAGE`|`VIDEO`), `durationMs` (video), `sizeBytes`, `width`/`height` (poster ya da MP4 başlığı; bilinmiyorsa videoda `null`). Mesaj başına en çok 4 ek, video + görsel karışık olabilir ama **en çok 1 video** (`400 VIDEO_LIMIT`); videoda `viewOnce` yok (`400 VIEW_ONCE_INVALID`). Oynatma: `GET .../media/{aid}` Bearer ile **HTTP Range** destekler (`Accept-Ranges: bytes`, `206 Partial Content`, `Content-Range`, `416` geçersiz aralıkta; `Content-Type: video/mp4`); oynatıcıya `Authorization` başlığı verin. `GET .../media/{aid}/thumb` posteri verir (yoksa `404`). `GET .../link` videoda `url=null` döner (yalnız poster için imzalı `thumbUrl`). Rapor, silme (mesaj silinince dosya da silinir) ve KVKK dışa aktarım (yalnız meta) görselle aynıdır.
+4. **Video mesaj:** aynı uç `file=video/mp4` (+ isteğe bağlı `poster`= JPEG/PNG önizleme karesi) ile video yükler. Sınırlar: `ftyp` imzalı MP4, ≤ 40 MB (`413 VIDEO_TOO_LARGE`), ≤ 60 sn (`400 VIDEO_TOO_LONG`), bozuk/MP4 değil (`400 VIDEO_INVALID`); kullanıcı başına günde 30 video + ortak yükleme limitleri. Sunucu videoyu **yeniden kodlamaz** (istemci sıkıştırır); poster görsel hattından geçer (EXIF temizliği, ≤ 720 px) ve `thumbUrl` olur (poster yoksa `null`). `AttachmentView`: `kind` (`IMAGE`|`VIDEO`), `durationMs` (video), `sizeBytes`, `width`/`height` (poster ya da MP4 başlığı; bilinmiyorsa videoda `null`). Mesaj başına en çok 10 ek; video + görsel karışık serbest, video sayısı ayrıca sınırlı değil ama bir mesajdaki **videoların bayt toplamı ≤ 120 MB** (`413 MESSAGE_MEDIA_TOO_LARGE`; her video yine ≤ 40 MB / ≤ 60 sn); 10'dan fazla ek `400 ATTACHMENT_LIMIT`. Yükleme dakikada 20, mesaja eklenmemiş en çok 30 ek. Videoda `viewOnce` yok (`400 VIEW_ONCE_INVALID`). Oynatma: `GET .../media/{aid}` Bearer ile **HTTP Range** destekler (`Accept-Ranges: bytes`, `206 Partial Content`, `Content-Range`, `416` geçersiz aralıkta; `Content-Type: video/mp4`); oynatıcıya `Authorization` başlığı verin. `GET .../media/{aid}/thumb` posteri verir (yoksa `404`). `GET .../link` videoda `url=null` döner (yalnız poster için imzalı `thumbUrl`). Rapor, silme (mesaj silinince dosya da silinir) ve KVKK dışa aktarım (yalnız meta) görselle aynıdır.
 5. Görseli/videoyu raporlamak için `POST .../media/{aid}/report {reason,note}` (günlük rapor limiti ortak).
 
 **Tek gösterimlik görsel (view-once).** Yükleme aynı; gönderimde `POST /api/conversations/{id}/messages` ve `chat.send` gövdesine `"viewOnce": true` eklenir (yalnız `attachmentIds` doluyken, **tam 1 ek**; aksi `400 VIEW_ONCE_INVALID`; metin boş olabilir, doluysa normal kalır). `attachments[i]` alanlarına `viewOnce` ve `viewed` eklenir. Alıcıda `viewed` = ben açtım mı; göndericide (birebirde) karşı taraf, (grupta) en az bir alıcı açtı mı. Tek gösterimlikte `thumbUrl` **hiç** gelmez; `url` yalnız alıcıya ve henüz açmamışsa doludur (gönderende `null`). Açmak: `GET .../media/{aid}` (`Cache-Control: no-store, private`, `Content-Disposition: inline`) ilk başarılı istekte baytları verir ve açılış kaydedilir; sonrası `410 MEDIA_VIEW_ONCE_EXPIRED`; gönderici `403 MEDIA_VIEW_ONCE_OWN`; `/thumb` ve `/link` tek gösterimlikte `404`. Açılınca gönderene `/user/queue/message-events` ile `{type:"viewed",conversationId,messageId,attachmentId,userId,at}` düşer. Birebirde alıcı açınca, grupta tüm alıcılar açınca ya da 24 saat sonra dosya içeriği sunucudan silinir (`viewed` bilgisi kalır).
@@ -308,6 +313,11 @@ Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve bireb
 - **Ack:** mesaj istemciye ulaşınca (WebSocket ya da push ile gelen, uygulama açılınca çekilen mesajlar dahil) `STOMP /app/chat.delivered {conversationId,lastMessageId}` ya da `POST /api/conversations/{id}/delivered {lastMessageId}` (`204`; dakikada 120, aşılırsa REST `429`, WS sessiz). İmleç yalnız ilerler; yalnız üye (`404 CONVERSATION_NOT_FOUND`); kendi mesajların ve konuşmanın son mesajını aşan değer sessizce sınırlanır/yok sayılır. Sunucu, alıcının WebSocket'i açık olsa bile kendiliğinden "iletildi" saymaz; ack istemciden gelir. `read` (okundu) iletildiyi de ilerletir.
 - **`MessageView.status`** yalnız **kendi mesajlarında** dolu (başkasınınkinde `null`; silinen/gizlenen mesajda `null`): `SENT` (sunucu aldı, kimse iletilmedi) → `DELIVERED` → `READ`. Birebirde karşı taraf, grupta **tüm** diğer aktif üyeler (ayrılan, engel ilişkisi olan, askıdaki ve mesajdan sonra katılan üyeler hesaba girmez) eşiği geçince ilerler. `ConversationView.lastMessage.status` de aynıdır.
 - **Gerçek zamanlı:** mesaj sahibine `/user/queue/message-events`: `{type:"receipt",conversationId,kind:"delivered"|"read",upToMessageId,userId,at,status}`. Birebirde `upToMessageId` karşı tarafın yeni imlecidir; kendi mesajlarından `id <= upToMessageId` olanları `status`e (`DELIVERED`/`READ`) yükseltin. Grupta toplulaştırma sunucudadır: olay yalnız durum ilerlediğinde ve sahibine düşer; `upToMessageId` o sahibin durumu `status`e ulaşan en yüksek mesajıdır. Engel ilişkisi olan tarafa makbuz gitmez. Olaylar kalıcı değildir; yeniden bağlanınca `GET .../messages?after=` ile gelen `status` değerleri esastır.
+
+### 4.11 Gölge engel (engelleme)
+- **Mesaj:** iki kullanıcıdan biri diğerini engellediyse (iki yön) birebir sohbette gönderim **hata vermez**: `201`, mesaj gönderenin görünümünde normal görünür ve `status` hep `SENT` (tek tik) kalır; karşı tarafa **hiçbir şey ulaşmaz** (geçmiş, son mesaj önizlemesi/liste sırası, okunmamış sayacı, WS, push, bildirim, makbuz, medya, view-once, yanıt/tepki hedefi). Bastırma mesaja kalıcı yazılır; engel sonradan kalksa da o mesajlar karşı tarafta gizli kalır. `BLOCKED` hatası artık gönderim/düzenleme/silme/tepki/medya yükleme/sohbet açma uçlarında dönmez. `ConversationView.blocked` geriye uyum için yanıtta kalır ama banner/composer kilidi için **kullanılmamalıdır**. Gruplarda mevcut davranış sürer (engelleyen, engellediğinin mesajlarını `removed` yer tutucuyla görür; diğer üyeler normal görür).
+- **Profil/avatar:** engel ilişkisi olan iki kullanıcı birbirinin fotoğrafını ve bilgisini görmez. `GET /api/users/{id}` engelliyken **404 değil**, boş profil döner: `{id, displayName, faculty/department/classYear/bio/avatarUrl/email: null}`. `avatarUrl` sohbet listesi (`peer`), grup üyeleri, kulüp üyeleri/başvuruları/gönderi yazarları, etkinlik katılımcı/başvuru listeleri, ko-organizatörler ve engellenenler listesinde `null` olur.
+- Yükleme kotaları engelde de sayılır.
 
 ## 5. Rate limit (429) davranışı
 - Sınırlar Redis'te **sabit pencere** sayacıdır; aşılınca `429` ve `{"code":"RATE_LIMITED","message":"Çok fazla deneme. Lütfen daha sonra tekrar deneyin."}`. (Doğrulama kodu uçlarında özel kodlar: `RESEND_COOLDOWN`, `TOO_MANY_ATTEMPTS`.)
@@ -433,7 +443,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `ALREADY_REPORTED` | 409 | Bu içeriği zaten raporladınız. | You have already reported this content. | لقد أبلغت عن هذا المحتوى مسبقًا. |
 | `ALREADY_RESOLVED` | 409 | Rapor zaten sonuçlandırılmış. | This report has already been resolved. | تمت معالجة هذا البلاغ مسبقًا. |
 | `BANNED` | 403 | Bu topluluktan uzaklaştırıldınız. | You have been removed from this community. | تمت إزالتك من هذا المجتمع. |
-| `BLOCKED` | 403 | Bu kullanıcıyla mesajlaşamazsınız. | You cannot message this user. | لا يمكنك مراسلة هذا المستخدم. |
+| `BLOCKED` (artık mesajlaşma uçlarında dönmez) | 403 | Bu kullanıcıyla mesajlaşamazsınız. | You cannot message this user. | لا يمكنك مراسلة هذا المستخدم. |
 | `BOOKMARK_LIMIT` | 409 | En fazla {0} kayıt tutulabilir. Önce bazılarını kaldırın. | You can save at most {0} items. Remove some first. | يمكنك حفظ {0} عنصرًا كحد أقصى. أزل بعضها أولًا. |
 | `CAMPAIGN_NOT_CANCELLABLE` | 409 | Yalnızca bekleyen kampanyalar iptal edilebilir. | Only pending campaigns can be cancelled. | يمكن إلغاء الحملات المعلّقة فقط. |
 | `CAMPAIGN_NOT_FOUND` | 404 | Kampanya bulunamadı. | Campaign not found. | الحملة غير موجودة. |

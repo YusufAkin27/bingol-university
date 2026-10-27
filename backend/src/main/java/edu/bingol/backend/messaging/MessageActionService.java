@@ -243,6 +243,9 @@ public class MessageActionService {
         if (since != null && m.getCreatedAt().isBefore(since)) {
             throw messageNotFound();
         }
+        if (m.isSuppressed() && !m.getSenderId().equals(userId)) { // golge engel: alici icin yok
+            throw messageNotFound();
+        }
         if (users.findById(userId).filter(User::isActive).isEmpty()) {
             throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alındı.");
         }
@@ -256,9 +259,7 @@ public class MessageActionService {
         boolean blocked = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
                 .map(ConversationMember::getUserId).filter(id -> !id.equals(userId))
                 .anyMatch(peer -> blocks.isBlocked(userId, peer));
-        if (blocked) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Bu kullanıcıyla mesajlaşamazsınız.");
-        }
+        // Golge engel: engel iliskisinde duzenleme/silme/tepki hata vermez (olaylar karsi tarafa zaten gitmez)
     }
 
     /** Gecis donemindeki eski duz metin sutunu varsa temizler (tombstone/duzenleme sonrasi duz metin kalmasin). */

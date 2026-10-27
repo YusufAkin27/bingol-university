@@ -81,8 +81,12 @@ public class ProfileService {
     /** Baskasinin profili: silinmis/askidaki hesaplar ve engel iliskisi olanlar bulunamaz. */
     public PublicProfile publicProfile(Long viewerId, Long targetId) {
         User u = get(targetId);
-        if (!u.isActive() || (!viewerId.equals(targetId) && blocks.isBlocked(viewerId, targetId))) {
+        if (!u.isActive()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        }
+        if (!viewerId.equals(targetId) && blocks.isBlocked(viewerId, targetId)) {
+            // Golge engel: 404 degil; sohbet gecmisinde ad gerekebilir. Tek tutarli "bos profil" (foto/bilgi/e-posta yok)
+            return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null);
         }
         PublicProfile view = mapper.map(viewerId, u);
         // Kendi e-postam showEmail ayarindan bagimsiz gorunur

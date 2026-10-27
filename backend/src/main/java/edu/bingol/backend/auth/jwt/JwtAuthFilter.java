@@ -28,6 +28,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Deger: sifre degisimi / "tum cihazlardan cik" aninin epoch milisaniyesi (eski surumlerde saniye olabilir). */
     public static final String PASSWORD_CHANGED_KEY_PREFIX = "pwchg:";
 
+    /** Deger: mobil oturumlarin iptal aninin epoch ms'i (tek cihaz kurali); yalniz cl=mobile token'lara uygulanir. */
+    public static final String MOBILE_REVOKED_KEY_PREFIX = "pwchgm:";
+
+    /** Token imzali ve suresi icinde ama oturumu iptal edilmis: giris noktasi 401 SESSION_REPLACED yazar. */
+    public static final String SESSION_REPLACED_ATTR = "auth.sessionReplaced";
+
     private final JwtService jwt;
     private final StringRedisTemplate redis;
 
@@ -42,27 +48,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String h = req.getHeader("Authorization");
         if (h != null && h.startsWith("Bearer ")) {
             JwtService.Identity id = jwt.parse(h.substring(7).trim());
-            if (id != null && allowed(id)) {
-                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                        id.userId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + id.role().name()))));
+            if (id != null) {
+                Verdict v = check(id);
+                if (v == Verdict.OK) {
+                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                            id.userId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + id.role().name()))));
+                } else if (v == Verdict.REPLACED) {
+                    req.setAttribute(SESSION_REPLACED_ATTR, Boolean.TRUE);
+                }
             }
         }
         chain.doFilter(req, res);
     }
 
-    /** Tek Redis turunda hem askiya hem rol degisimi kontrolu. */
-    private boolean allowed(JwtService.Identity id) {
+    private enum Verdict { OK, DENIED, REPLACED }
+
+    /** Tek Redis turunda askiya, rol degisimi ve oturum iptali (genel + mobil) kontrolu. */
+    private Verdict check(JwtService.Identity id) {
         List<String> v = redis.opsForValue()
                 .multiGet(List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId(),
-                        PASSWORD_CHANGED_KEY_PREFIX + id.userId()));
+                        PASSWORD_CHANGED_KEY_PREFIX + id.userId(), MOBILE_REVOKED_KEY_PREFIX + id.userId()));
         if (v == null) {
-            return true;
+            return Verdict.OK;
         }
         if (v.get(0) != null) {
-            return false;
+            return Verdict.DENIED;
         }
-        long iat = id.issuedAt().getEpochSecond();
-        return !tokenPredatesRoleChange(iat, at(v, 1)) && !tokenRevoked(id.issuedAtMillis(), at(v, 2));
+        if (tokenRevoked(id.issuedAtMillis(), at(v, 2))
+                || ("mobile".equals(id.client()) && tokenRevoked(id.issuedAtMillis(), at(v, 3)))) {
+            return Verdict.REPLACED;
+        }
+        return tokenPredatesRoleChange(id.issuedAt().getEpochSecond(), at(v, 1)) ? Verdict.DENIED : Verdict.OK;
     }
 
     private static String at(List<String> values, int index) {

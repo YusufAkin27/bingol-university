@@ -113,15 +113,64 @@ class MessageServiceTest {
     }
 
     @Test
-    void blockedPairCannotSendInDirectConversation() {
+    void blockedPairSendsWithoutErrorButMessageIsSuppressedAndNeverReachesPeer() {
         when(blocks.isBlocked(ME, PEER)).thenReturn(true);
 
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "selam", "c1"));
+        MessageService.SendResult r = service.send(ME, CONV, "selam", "c1");
 
-        assertEquals("BLOCKED", e.code());
-        assertEquals(HttpStatus.FORBIDDEN, e.status());
-        verify(messages, never()).saveAndFlush(any());
-        verifyNoInteractions(bus);
+        assertTrue(r.created()); // 201: hata yok
+        ArgumentCaptor<Message> saved = ArgumentCaptor.forClass(Message.class);
+        verify(messages).saveAndFlush(saved.capture());
+        assertTrue(saved.getValue().isSuppressed()); // kalici bayrak
+        // yalniz gondericiye (kendi cihazlari) yayin; karsi tarafa WS yok
+        verify(bus).publish(org.mockito.ArgumentMatchers.eq("messages"), org.mockito.ArgumentMatchers.eq(List.of(ME)), any());
+        verify(bus, never()).publish(org.mockito.ArgumentMatchers.eq("messages"),
+                org.mockito.ArgumentMatchers.eq(List.of(PEER)), any());
+        verifyNoInteractions(notifications); // push / uygulama ici bildirim yok
+        // karsi tarafin listesi etkilenmez: gorunur son mesaj ilerlemez, golge bayragi acilir
+        verify(convs).markShadowed(CONV);
+        verify(convs, never()).touchLastVisible(anyLong(), anyLong());
+        verify(members).advanceOwnSuppressed(CONV, ME, 100L);
+        verify(members, never()).unhideOnMessage(anyLong());
+        verify(members, never()).unarchiveOnMessage(anyLong());
+    }
+
+    @Test
+    void normalMessageTouchesVisibleLastAndReachesPeer() {
+        MessageService.SendResult r = service.send(ME, CONV, "selam", "c1");
+
+        assertFalse(r.message().removed());
+        verify(convs).touchLastVisible(CONV, 100L);
+        verify(convs, never()).markShadowed(anyLong());
+        verify(bus).publish(org.mockito.ArgumentMatchers.eq("messages"),
+                org.mockito.ArgumentMatchers.argThat((java.util.Collection<Long> c) -> c.contains(PEER)), any());
+    }
+
+    @Test
+    void suppressedMessageIsFilteredFromPeerHistoryQueriesAndStaysSentForSender() {
+        direct.setShadowed(true);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, PEER))
+                .thenReturn(Optional.of(ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER)));
+        when(messages.beforeCleared(anyLong(), any(), anyLong(), anyLong(), any(), any())).thenReturn(List.of());
+
+        service.history(PEER, CONV, null, null, 30);
+
+        // gorunurluk suzgeci goruntuleyen kimligiyle sorgulanir (gonderen kendi bastirilmislarini gorur)
+        verify(messages).beforeCleared(org.mockito.ArgumentMatchers.eq(CONV), any(), org.mockito.ArgumentMatchers.eq(0L),
+                org.mockito.ArgumentMatchers.eq(PEER), any(), any());
+    }
+
+    @Test
+    void replyToSuppressedMessageOfOtherUserIsNotFound() {
+        Message parent = new Message();
+        parent.setId(5L);
+        parent.setConversationId(CONV);
+        parent.setSenderId(PEER);
+        parent.setSuppressed(true);
+        when(messages.findById(5L)).thenReturn(Optional.of(parent));
+
+        assertEquals("MESSAGE_NOT_FOUND", assertThrows(ApiException.class,
+                () -> service.send(ME, CONV, "selam", "c9", 5L)).code());
     }
 
     @Test

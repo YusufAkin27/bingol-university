@@ -53,12 +53,13 @@ public class ClubMemberSearchService {
         int s = CursorPage.clampSize(size);
         List<CommunityMember> rows = query.filtered(cid, st, rl == null, rl == null ? CommunityMember.Role.MEMBER : rl,
                 pattern, Paging.ascStart(cursor), excluded, PageRequest.of(0, s + 1));
+        Set<Long> hideAvatar = communities.blockedFor(a);
         return Paging.map(rows, s, CommunityMember::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(CommunityMember::getUserId).toList());
             return items.stream().map(m -> {
                 User u = users.get(m.getUserId());
                 return new MemberView(m.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null ? null : u.getAvatarUrl(), m.getRole(), m.getJoinedAt());
+                        u == null || hideAvatar.contains(m.getUserId()) ? null : u.getAvatarUrl(), m.getRole(), m.getJoinedAt());
             }).toList();
         });
     }

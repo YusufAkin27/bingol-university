@@ -56,15 +56,6 @@ class ConversationServiceTest {
     }
 
     @Test
-    void cannotStartDirectConversationWithBlockedUser() {
-        when(users.findAllById(any())).thenReturn(List.of(user(2L)));
-        when(blocks.isBlocked(1L, 2L)).thenReturn(true);
-
-        assertEquals("BLOCKED", assertThrows(ApiException.class, () -> service.openDirect(1L, 2L)).code());
-        verify(convs, never()).insertDirect(anyString(), anyLong(), any());
-    }
-
-    @Test
     void unverifiedOrMissingTargetIsNotFound() {
         User unverified = user(2L);
         unverified.setEmailVerified(false);

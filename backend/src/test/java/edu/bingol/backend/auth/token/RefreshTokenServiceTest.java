@@ -38,13 +38,13 @@ class RefreshTokenServiceTest {
 
         String hash = Hashing.sha256(token);
         verify(values).set(org.mockito.ArgumentMatchers.eq("rt:" + hash),
-                org.mockito.ArgumentMatchers.eq("7"), any(Duration.class));
+                org.mockito.ArgumentMatchers.eq("7:web"), any(Duration.class));
         verify(sets).add("rtu:7", hash);
     }
 
     @Test
     void consumeReturnsOwnerAndRemovesFromIndex() {
-        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7");
+        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:web");
 
         assertEquals(7L, service.consume("tok"));
         verify(sets).remove("rtu:7", Hashing.sha256("tok"));
@@ -63,6 +63,51 @@ class RefreshTokenServiceTest {
 
         verify(redis).delete(List.of("rt:h1"));
         verify(redis).delete("rtu:7");
+        // iptal edilen token mezar tasi birakir
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtx:h1"), org.mockito.ArgumentMatchers.eq("7"),
+                any(Duration.class));
+    }
+
+    @Test
+    void issueTagsClientAndConsumeReturnsIt() {
+        service.issue(7L, "MOBILE");
+        verify(values).set(org.mockito.ArgumentMatchers.startsWith("rt:"),
+                org.mockito.ArgumentMatchers.eq("7:mobile"), any(Duration.class));
+
+        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:mobile");
+        RefreshTokenService.Session s = service.consumeSession("tok");
+        assertEquals(7L, s.userId());
+        assertEquals("mobile", s.client());
+    }
+
+    @Test
+    void legacyTokenValueWithoutClientIsWeb() {
+        when(values.getAndDelete("rt:" + Hashing.sha256("old"))).thenReturn("7");
+        assertEquals("web", service.consumeSession("old").client());
+    }
+
+    @Test
+    void revokeClientDeletesOnlyThatClientAndLeavesTombstone() {
+        when(sets.members("rtu:7")).thenReturn(Set.of("m1", "w1", "gone"));
+        when(values.get("rt:m1")).thenReturn("7:mobile");
+        when(values.get("rt:w1")).thenReturn("7:web");
+        when(values.get("rt:gone")).thenReturn(null);
+
+        assertEquals(1, service.revokeClient(7L, "mobile"));
+
+        verify(redis).delete("rt:m1");
+        verify(redis, org.mockito.Mockito.never()).delete("rt:w1");
+        verify(sets).remove("rtu:7", "m1");
+        verify(sets).remove("rtu:7", "gone");
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtx:m1"), org.mockito.ArgumentMatchers.eq("7"),
+                any(Duration.class));
+    }
+
+    @Test
+    void wasRevokedChecksTombstone() {
+        when(redis.hasKey("rtx:" + Hashing.sha256("t"))).thenReturn(true);
+        org.junit.jupiter.api.Assertions.assertTrue(service.wasRevoked("t"));
+        org.junit.jupiter.api.Assertions.assertFalse(service.wasRevoked("other"));
     }
 
     @Test

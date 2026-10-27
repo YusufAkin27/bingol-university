@@ -58,7 +58,8 @@ check "avatar dosyasi servis" 200 "$(code "$BASE$URL")"
 echo "== engelleme"
 check "engelle" 204 "$(code -X POST -H "$AUTH2" $A/users/$ID1/block)"
 check "kendini engelleme" 400 "$(code -X POST -H "$AUTH2" $A/users/$ID2/block)"
-check "engelli profil 404" 404 "$(code -H "$AUTH2" $A/users/$ID1)"
+# gizlilik: engel varken profil bos doner (yalniz ad), 404 degil
+check "engelli profil bos (200)" 200 "$(code -H "$AUTH2" $A/users/$ID1)"
 check "engel kaldir" 204 "$(code -X DELETE -H "$AUTH2" $A/users/$ID1/block)"
 
 echo "== rapor ve yonetim"

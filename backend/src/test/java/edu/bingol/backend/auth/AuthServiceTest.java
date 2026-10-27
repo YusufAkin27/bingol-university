@@ -191,6 +191,87 @@ class AuthServiceTest {
         verify(sessions).revokeAll(7L);
     }
 
+    private User loginUser() {
+        User u = verifiedUser();
+        u.setPasswordHash(new BCryptPasswordEncoder(4).encode("Sifre1234"));
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
+        return u;
+    }
+
+    @Test
+    void mobileLoginRevokesPreviousMobileSessionsBeforeIssuingTokens() {
+        loginUser();
+
+        auth.login(EMAIL, "Sifre1234", "mobile");
+
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(sessions, refresh);
+        order.verify(sessions).revokeClient(7L, "mobile", true);
+        order.verify(refresh).issue(7L, "mobile");
+        verify(sessions, never()).revokeAll(any());
+    }
+
+    @Test
+    void webLoginAndMissingClientRevokeNothing() {
+        loginUser();
+
+        auth.login(EMAIL, "Sifre1234", "web");
+        auth.login(EMAIL, "Sifre1234");
+
+        verify(sessions, never()).revokeClient(any(), anyString(), org.mockito.ArgumentMatchers.anyBoolean());
+        verify(sessions, never()).revokeAll(any());
+        verify(refresh, org.mockito.Mockito.times(2)).issue(7L, "web");
+    }
+
+    @Test
+    void wrongPasswordRevokesNothing() {
+        loginUser();
+
+        assertThrows(ApiException.class, () -> auth.login(EMAIL, "yanlis", "mobile"));
+
+        verifyNoInteractions(sessions);
+    }
+
+    @Test
+    void refreshWithRevokedTokenIsSessionReplaced() {
+        when(refresh.wasRevoked("tok")).thenReturn(true);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("SESSION_REPLACED", e.code());
+        assertEquals(HttpStatus.UNAUTHORIZED, e.status());
+    }
+
+    @Test
+    void refreshWithUnknownTokenKeepsGenericCode() {
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("bilinmeyen"));
+
+        assertEquals("INVALID_REFRESH_TOKEN", e.code());
+    }
+
+    @Test
+    void refreshKeepsClientOfTheConsumedToken() {
+        User u = loginUser();
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        when(refresh.consumeSession("tok")).thenReturn(new RefreshTokenService.Session(7L, "mobile"));
+
+        auth.refresh("tok");
+
+        verify(refresh).issue(7L, "mobile");
+        verify(jwt).createAccessToken(u, "mobile");
+        verifyNoInteractions(sessions);
+    }
+
+    @Test
+    void passwordResetStillRevokesAllClients() {
+        loginUser();
+        when(verification.consumeResetToken(EMAIL, "rt")).thenReturn(true);
+
+        auth.resetPassword(EMAIL, "rt", "YeniSifre123");
+
+        verify(sessions).revokeAll(7L);
+    }
+
     private static User verifiedUser() {
         User u = new User();
         u.setId(7L);

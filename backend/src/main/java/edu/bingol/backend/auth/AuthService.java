@@ -162,6 +162,11 @@ public class AuthService {
     }
 
     public TokenResponse verifyEmail(String rawEmail, String code) {
+        return verifyEmail(rawEmail, code, null);
+    }
+
+    /** Yeni hesap acilisi mevcut oturumu kapatmaz; `client` yalnizca token'lari etiketler. */
+    public TokenResponse verifyEmail(String rawEmail, String code, String client) {
         String email = normalizeEmail(rawEmail);
         Pending p = pending.find(email);
         User existing = users.findByEmail(email).orElse(null);
@@ -181,10 +186,18 @@ public class AuthService {
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
         pending.delete(email);
-        return tokens(user);
+        return tokens(user, client);
     }
 
     public TokenResponse login(String rawEmail, String password) {
+        return login(rawEmail, password, null);
+    }
+
+    /**
+     * `client` = mobile ise tek cihaz kurali: kullanicinin onceki MOBIL oturumlari kapanir (web oturumlarina
+     * dokunulmaz); web girisi hicbir oturumu kapatmaz. Iptal, yeni token'lar uretilmeden ONCE yapilir.
+     */
+    public TokenResponse login(String rawEmail, String password, String client) {
         User user = users.findByEmail(normalizeEmail(rawEmail)).orElse(null);
         boolean passwordOk = encoder.matches(password, user == null ? dummyHash : user.getPasswordHash());
         if (user == null || !passwordOk) {
@@ -198,16 +211,25 @@ public class AuthService {
         if (promoteIfAdmin(user)) {
             users.save(user);
         }
-        return tokens(user);
+        String c = RefreshTokenService.normalizeClient(client);
+        if (RefreshTokenService.MOBILE.equals(c)) {
+            sessions.revokeClient(user.getId(), c, true);
+        }
+        return tokens(user, c);
     }
 
     public TokenResponse refresh(String refreshToken) {
-        Long userId = refresh.consume(refreshToken);
-        User user = userId == null ? null : users.findById(userId).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
+        RefreshTokenService.Session s = refresh.consumeSession(refreshToken);
+        if (s == null && refresh.wasRevoked(refreshToken)) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REPLACED",
+                    "Hesabınıza başka bir cihazdan giriş yapıldı.");
+        }
+        User user = s == null ? null
+                : users.findById(s.userId()).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
         if (user == null) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "Oturum süresi doldu, tekrar giriş yapın.");
         }
-        return tokens(user);
+        return tokens(user, s.client());
     }
 
     public void logout(String refreshToken) {
@@ -252,8 +274,9 @@ public class AuthService {
         return false;
     }
 
-    private TokenResponse tokens(User user) {
-        return new TokenResponse(jwt.createAccessToken(user), refresh.issue(user.getId()),
+    private TokenResponse tokens(User user, String client) {
+        String c = RefreshTokenService.normalizeClient(client);
+        return new TokenResponse(jwt.createAccessToken(user, c), refresh.issue(user.getId(), c),
                 jwt.accessTtl().toSeconds(), "Bearer");
     }
 }

@@ -103,7 +103,8 @@ has "bozuk video VIDEO_INVALID" VIDEO_INVALID "$(curl -s -X POST -H "$AUTH_A" -F
 
 R2=$(curl -s -X POST -H "$AUTH_A" -F "file=@$V2;type=video/mp4" $A/conversations/$CONV/media)
 AID2=$(echo "$R2" | jget id)
-check "iki video 400" 400 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV/messages -d "{\"clientId\":\"v-$RUN-2\",\"attachmentIds\":[$AID,$AID2]}")"
+# mesajda birden cok video artik serbest (en cok 10 ek); ikinci video tek basina 201 doner
+check "ikinci video mesaji 201" 201 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV/messages -d "{\"clientId\":\"v-$RUN-2\",\"attachmentIds\":[$AID2]}")"
 check "view-once + video 400" 400 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV/messages -d "{\"clientId\":\"v-$RUN-3\",\"attachmentIds\":[$AID],\"viewOnce\":true}")"
 VM=$(curl -s -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV/messages -d "{\"clientId\":\"v-$RUN-4\",\"attachmentIds\":[$AID]}")
 has "video mesaji ek kind VIDEO" '"kind":"VIDEO"' "$VM"

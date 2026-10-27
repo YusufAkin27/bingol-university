@@ -101,9 +101,7 @@ public class ConversationService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "CANNOT_MESSAGE_SELF", "Kendinizle konuşma başlatamazsınız.");
         }
         requireMessageable(List.of(otherId));
-        if (blocks.isBlocked(me, otherId)) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Bu kullanıcıyla mesajlaşamazsınız.");
-        }
+        // Golge engel: engel iliskisinde de konusma acilir (mesajlar gonderimde bastirilir)
         String key = Conversation.directKey(me, otherId);
         boolean created = convs.insertDirect(key, me, Instant.now()) == 1;
         Conversation c = convs.findByDirectKey(key).orElseThrow();
@@ -156,7 +154,12 @@ public class ConversationService {
         List<Conversation> rows = convs.page(me, cursor, archived, PageRequest.of(0, s + 1));
         boolean more = rows.size() > s;
         List<Conversation> page = more ? rows.subList(0, s) : rows;
-        return new CursorPage<>(views(me, page), more ? page.get(page.size() - 1).getLastMessageId() : null);
+        Long next = null;
+        if (more) {
+            Conversation lastRow = page.get(page.size() - 1);
+            next = lastKey(lastRow, members.findByConversationIdAndUserId(lastRow.getId(), me).stream().toList(), me);
+        }
+        return new CursorPage<>(views(me, page), next);
     }
 
     @Transactional(readOnly = true)
@@ -166,9 +169,10 @@ public class ConversationService {
         List<ConversationMember> active = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(id);
         Map<Long, User> byId = users.findAllById(active.stream().map(ConversationMember::getUserId).toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
+        Set<Long> hidden = blocks.hiddenFrom(me); // engel iliskisi olanin avatari gorunmez
         List<MemberView> list = active.stream().filter(m -> byId.containsKey(m.getUserId()))
                 .map(m -> new MemberView(m.getUserId(), byId.get(m.getUserId()).getDisplayName(),
-                        byId.get(m.getUserId()).getAvatarUrl(), m.getRole().name())).toList();
+                        hidden.contains(m.getUserId()) ? null : byId.get(m.getUserId()).getAvatarUrl(), m.getRole().name())).toList();
         return new ConversationDetail(views(me, List.of(c)).get(0), list);
     }
 
@@ -411,8 +415,13 @@ public class ConversationService {
         List<Long> peerIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT)
                 .map(c -> peerOf(membersBy.getOrDefault(c.getId(), List.of()), me)).filter(java.util.Objects::nonNull).toList();
         Map<Long, User> peers = users.findAllById(peerIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
+        // Golge engel: goruntuleyene gorunur son mesaj (bastirilmis mesajlar alicida yok sayilir)
+        Map<Long, Long> keyBy = new HashMap<>();
+        for (Conversation c : page) {
+            keyBy.put(c.getId(), lastKey(c, membersBy.getOrDefault(c.getId(), List.of()), me));
+        }
         Map<Long, Message> lastMessages = messages.findAllById(
-                page.stream().map(Conversation::getLastMessageId).filter(java.util.Objects::nonNull).toList()).stream()
+                keyBy.values().stream().filter(java.util.Objects::nonNull).toList()).stream()
                 .collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
         Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(me, lastMessages.keySet());
@@ -432,8 +441,10 @@ public class ConversationService {
             List<ConversationMember> ms = membersBy.getOrDefault(c.getId(), List.of());
             boolean direct = c.getType() == Conversation.Type.DIRECT;
             Long peerId = direct ? peerOf(ms, me) : null;
-            UserSummary peer = peerId == null || !peers.containsKey(peerId) ? null : UserSummary.of(peers.get(peerId));
-            Message last = c.getLastMessageId() == null ? null : lastMessages.get(c.getLastMessageId());
+            UserSummary peer = peerId == null || !peers.containsKey(peerId) ? null
+                    : related.contains(peerId) ? new UserSummary(peerId, peers.get(peerId).getDisplayName(), null) // engel: avatar yok
+                    : UserSummary.of(peers.get(peerId));
+            Message last = keyBy.get(c.getId()) == null ? null : lastMessages.get(keyBy.get(c.getId()));
             // Gruba sonradan katilan, katilmadan onceki son mesaji onizlemede de gormez (gecmisle tutarli).
             Instant joined = ms.stream().filter(m -> m.getUserId().equals(me)).map(ConversationMember::getJoinedAt)
                     .findFirst().orElse(Instant.EPOCH);
@@ -456,6 +467,21 @@ public class ConversationService {
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
                     club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl());
         }).toList();
+    }
+
+    /**
+     * Goruntuleyenin listede gorecegi son mesaj kimligi. Golge engel yoksa `lastMessageId`; varsa gorunur son mesaj ile
+     * goruntuleyenin kendi bastirilmis son mesajindan buyugu. Yoksa null.
+     */
+    static Long lastKey(Conversation c, List<ConversationMember> ms, Long me) {
+        if (!c.isShadowed()) {
+            return c.getLastMessageId();
+        }
+        long vis = c.getLastVisibleMessageId() == null ? 0L : c.getLastVisibleMessageId();
+        long own = ms.stream().filter(m -> m.getUserId().equals(me)).mapToLong(ConversationMember::getLastOwnSuppressedMessageId)
+                .findFirst().orElse(0L);
+        long k = Math.max(vis, own);
+        return k > 0 ? k : null;
     }
 
     private static Long peerOf(List<ConversationMember> ms, Long me) {

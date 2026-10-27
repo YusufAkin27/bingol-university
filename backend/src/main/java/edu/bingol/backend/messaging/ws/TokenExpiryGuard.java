@@ -2,11 +2,22 @@ package edu.bingol.backend.messaging.ws;
 
 import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -26,7 +37,33 @@ public class TokenExpiryGuard {
 
     private static final Logger log = LoggerFactory.getLogger(TokenExpiryGuard.class);
 
+    /** /user/queue/message-events: type = "session-replaced" (oturum baska cihaz girisiyle/iptalle sonlandi). */
+    public record SessionReplacedEvent(String type, String at) {}
+
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final SimpMessagingTemplate template;
+    private final long closeDelayMs;
+    private final ScheduledExecutorService closer;
+
+    /**
+     * `closeDelayMs`: olay gonderildikten sonra baglantinin kapatilmasina taninan sure (olay broker kanalindan
+     * asenkron akar; hemen kapatmak istemcinin olayi almasini yarisa sokardi). 0 = hemen kapat (testler).
+     */
+    @Autowired
+    public TokenExpiryGuard(@Lazy SimpMessagingTemplate template,
+                            @Value("${app.session.close-delay-ms:400}") long closeDelayMs) {
+        this.template = template;
+        this.closeDelayMs = closeDelayMs;
+        this.closer = closeDelayMs > 0 ? Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "ws-session-closer");
+            t.setDaemon(true);
+            return t;
+        }) : null;
+    }
+
+    public TokenExpiryGuard() {
+        this(null, 0);
+    }
 
     /** WebSocketConfig'te tasima katmanina eklenir; oturumlari kayda alir/siler. */
     public WebSocketHandler decorate(WebSocketHandler handler) {
@@ -45,28 +82,63 @@ public class TokenExpiryGuard {
         };
     }
 
-    static final CloseStatus REVOKED = new CloseStatus(CloseStatus.POLICY_VIOLATION.getCode(), "SESSION_REVOKED");
+    static final CloseStatus REVOKED = new CloseStatus(CloseStatus.POLICY_VIOLATION.getCode(), "SESSION_REPLACED");
 
-    /** Tum oturumlar iptal edilince (logout-all, sifre sifirlama) kullanicinin acik WS baglantilarini kapatir. */
+    /**
+     * Oturumlar iptal edilince (baska cihaz girisi, logout-all, sifre sifirlama) kullanicinin etkilenen acik WS
+     * baglantilarina once `session-replaced` olayi gider, sonra baglanti kapatilir. Etkilenen oturumlar olay
+     * aninda sabitlenir: sonradan baglanan yeni cihaz oturumu kapatilmaz.
+     */
     @EventListener
     public void onSessionsRevoked(SessionsRevokedEvent e) {
-        closeUser(e.userId());
+        closeUser(e.userId(), e.client());
     }
 
-    int closeUser(Long userId) {
-        int closed = 0;
+    int closeUser(Long userId, String client) {
+        List<WebSocketSession> targets = new ArrayList<>();
         for (WebSocketSession s : sessions.values()) {
-            if (userId != null && userId.equals(s.getAttributes().get(StompAuthInterceptor.USER_ID_ATTR))) {
+            Map<String, Object> a = s.getAttributes();
+            boolean mine = userId != null && userId.equals(a.get(StompAuthInterceptor.USER_ID_ATTR));
+            // client null = hepsi; aksi halde yalniz o istemci turu (niteliksiz eski oturum = web)
+            Object c = a.get(StompAuthInterceptor.CLIENT_ATTR);
+            if (mine && (client == null || client.equals(c == null ? "web" : c))) {
                 sessions.remove(s.getId());
-                try {
-                    s.close(REVOKED);
-                    closed++;
-                } catch (Exception ex) {
-                    log.debug("Iptal edilen WS oturumu kapatilamadi: {}", ex.toString());
-                }
+                targets.add(s);
             }
         }
-        return closed;
+        for (WebSocketSession s : targets) {
+            notifyReplaced(userId, s);
+        }
+        if (closeDelayMs > 0 && !targets.isEmpty()) {
+            closer.schedule(() -> targets.forEach(this::closeQuietly), closeDelayMs, TimeUnit.MILLISECONDS);
+        } else {
+            targets.forEach(this::closeQuietly);
+        }
+        return targets.size();
+    }
+
+    /** Yalnizca hedef WS oturumuna gonderilir (simpSessionId); hata baglanti kapatmayi engellemez. */
+    private void notifyReplaced(Long userId, WebSocketSession s) {
+        if (template == null) {
+            return;
+        }
+        try {
+            SimpMessageHeaderAccessor h = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+            h.setSessionId(s.getId());
+            h.setLeaveMutable(true);
+            template.convertAndSendToUser(String.valueOf(userId), "/queue/message-events",
+                    new SessionReplacedEvent("session-replaced", Instant.now().toString()), h.getMessageHeaders());
+        } catch (RuntimeException ex) {
+            log.debug("session-replaced olayi gonderilemedi: {}", ex.toString());
+        }
+    }
+
+    private void closeQuietly(WebSocketSession s) {
+        try {
+            s.close(REVOKED);
+        } catch (Exception ex) {
+            log.debug("Iptal edilen WS oturumu kapatilamadi: {}", ex.toString());
+        }
     }
 
     @Scheduled(fixedDelay = 30_000)

@@ -1,5 +1,6 @@
 package edu.bingol.backend.common;
 
+import edu.bingol.backend.auth.jwt.JwtAuthFilter;
 import edu.bingol.backend.i18n.I18n;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,12 +28,17 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException ex)
             throws IOException {
-        String message = i18n.error("UNAUTHORIZED", "Giriş gerekli.", LocaleContextHolder.getLocale(), new Object[0]);
+        // Imzali ama iptal edilmis token (baska cihaz girisi, tum oturumlari kapatma): istemci ayirt edebilsin.
+        boolean replaced = request.getAttribute(JwtAuthFilter.SESSION_REPLACED_ATTR) != null;
+        String code = replaced ? "SESSION_REPLACED" : "UNAUTHORIZED";
+        String message = replaced
+                ? i18n.error(code, "Hesabınıza başka bir cihazdan giriş yapıldı.", LocaleContextHolder.getLocale(), new Object[0])
+                : i18n.error(code, "Giriş gerekli.", LocaleContextHolder.getLocale(), new Object[0]);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setHeader("WWW-Authenticate", "Basic realm=\"admin\"");
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"" + escape(message) + "\"}");
+        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + escape(message) + "\"}");
     }
 
     private static String escape(String s) {

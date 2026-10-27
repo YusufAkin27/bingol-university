@@ -190,18 +190,19 @@ public class MessageService {
             // Baska konusmanin / katilma oncesi / silinmis / gizlenmis mesaja yanit verilemez (varligi da sizdirilmaz)
             Message parent = messages.findById(replyToMessageId).orElseThrow(MessageService::messageNotFound);
             if (!parent.getConversationId().equals(conversationId) || parent.isDeleted() || parent.isHidden()
+                    || (parent.isSuppressed() && !parent.getSenderId().equals(senderId))
                     || parent.getId() <= sender.getClearedUpToMessageId()
                     || (since != null && parent.getCreatedAt().isBefore(since))) {
                 throw messageNotFound();
             }
         }
         List<ConversationMember> active = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId);
+        boolean suppressed = false;
         if (conv.getType() == Conversation.Type.DIRECT) {
             Long peerId = active.stream().map(ConversationMember::getUserId).filter(id -> !id.equals(senderId))
                     .findFirst().orElseThrow(MessageService::notFound);
-            if (blocks.isBlocked(senderId, peerId)) {
-                throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Bu kullanıcıyla mesajlaşamazsınız.");
-            }
+            // Golge engel: hata YOK; mesaj kaydedilir ama karsi tarafa hicbir yerde ulasmaz (kalici bayrak)
+            suppressed = blocks.isBlocked(senderId, peerId);
             if (users.findById(peerId).filter(User::isActive).isEmpty()) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "USER_UNAVAILABLE", "Bu kullanıcıya mesaj gönderilemez.");
             }
@@ -217,6 +218,7 @@ public class MessageService {
         draft.setSenderId(senderId);
         draft.setClientId(clientId);
         draft.setReplyToMessageId(replyToMessageId);
+        draft.setSuppressed(suppressed);
         codec.seal(draft, body);
         Message saved;
         try {
@@ -250,6 +252,15 @@ public class MessageService {
         }
         m.setBody(plain); // @Transient: kayit sonrasi geri verilen nesnede duz metni koru (teslim/yanit icin)
         convs.touchLastMessage(m.getConversationId(), m.getId(), m.getCreatedAt());
+        if (m.isSuppressed()) {
+            convs.markShadowed(m.getConversationId());
+            members.advanceOwnSuppressed(m.getConversationId(), m.getSenderId(), m.getId());
+            members.unhideMember(m.getConversationId(), m.getSenderId()); // karsi tarafin listesi etkilenmez
+            members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId());
+            m.setBody(plain);
+            return m;
+        }
+        convs.touchLastVisible(m.getConversationId(), m.getId());
         members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
         members.unarchiveOnMessage(m.getConversationId()); // yapiskan olmayan arsivler yeni mesajla cikar
         members.unhideOnMessage(m.getConversationId()); // "sohbeti sil" yapanlarda konusma yeniden belirir
@@ -263,6 +274,11 @@ public class MessageService {
     /** Tum uyelere (gonderenin diger cihazlari dahil) WebSocket; cevrimdisi alicilara bildirim. Engel iliskisi olanlara gitmez. */
     private void deliver(Conversation conv, Message m, MessageView view, List<ConversationMember> active) {
         Long senderId = m.getSenderId();
+        if (m.isSuppressed()) {
+            // Golge engel: yalniz gondericinin cihazlarina; karsi tarafa WS / push / bildirim yok
+            bus.publish("messages", List.of(senderId), view);
+            return;
+        }
         Set<Long> related = blocks.hiddenFrom(senderId);
         List<Long> recipients = active.stream().map(ConversationMember::getUserId)
                 .filter(id -> id.equals(senderId) || !related.contains(id)).toList();
@@ -357,9 +373,9 @@ public class MessageService {
         Set<Long> related = group ? blocks.hiddenFrom(userId) : Set.of();
         int s = CursorPage.clampSize(size);
         long cleared = me.getClearedUpToMessageId(); // "sohbeti sil": bu id ve oncesi gorunmez
-        List<Message> rows = cleared > 0
-                ? (after != null ? messages.afterCleared(conversationId, since, cleared, after, PageRequest.of(0, s + 1))
-                        : messages.beforeCleared(conversationId, since, cleared, before, PageRequest.of(0, s + 1)))
+        List<Message> rows = cleared > 0 || conv.isShadowed()
+                ? (after != null ? messages.afterCleared(conversationId, since, cleared, userId, after, PageRequest.of(0, s + 1))
+                        : messages.beforeCleared(conversationId, since, cleared, userId, before, PageRequest.of(0, s + 1)))
                 : after != null
                 ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
                 : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));

@@ -21,11 +21,13 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     /** Gecerli bir token'dan okunan kimlik. */
-    public record Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis) {}
+    public record Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis, String client) {}
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     /** iat saniye hassasiyetinde oldugu icin oturum iptali karsilastirmasinda kullanilan ms hassasiyetli ek talep. */
     static final String IAT_MS_CLAIM = "iatms";
+    /** Istemci turu talebi: mobile | web (talepsiz eski token'lar web sayilir). */
+    static final String CLIENT_CLAIM = "cl";
     private static final String DEV_SECRET_PREFIX = "dev-only-secret";
 
     private final SecretKey key;
@@ -49,11 +51,16 @@ public class JwtService {
     }
 
     public String createAccessToken(User user) {
+        return createAccessToken(user, "web");
+    }
+
+    public String createAccessToken(User user, String client) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
+                .claim(CLIENT_CLAIM, "mobile".equalsIgnoreCase(client) ? "mobile" : "web")
                 .claim(IAT_MS_CLAIM, now.getTime())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTtl.toMillis()))
@@ -70,7 +77,8 @@ public class JwtService {
             Long ms = c.get(IAT_MS_CLAIM, Long.class);
             long iatMs = ms != null ? ms : (iat == null ? 0L : iat.getTime());
             return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role),
-                    iat == null ? Instant.EPOCH : iat.toInstant(), iatMs);
+                    iat == null ? Instant.EPOCH : iat.toInstant(), iatMs,
+                    "mobile".equals(c.get(CLIENT_CLAIM, String.class)) ? "mobile" : "web");
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }

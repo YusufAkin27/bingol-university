@@ -209,10 +209,14 @@ class MessageActionServiceTest {
     }
 
     @Test
-    void editInBlockedDirectIs403() {
+    void editInBlockedDirectDoesNotFailWithBlocked() {
         when(blocks.isBlocked(ME, PEER)).thenReturn(true);
 
-        assertEquals("BLOCKED", fail(() -> service.edit(ME, MSG, "yeni")).code());
+        try {
+            service.edit(ME, MSG, "yeni"); // golge engel: BLOCKED hatasi yok
+        } catch (ApiException e) {
+            org.junit.jupiter.api.Assertions.assertNotEquals("BLOCKED", e.code());
+        }
     }
 
     @Test
@@ -403,10 +407,11 @@ class MessageActionServiceTest {
     }
 
     @Test
-    void reactInBlockedDirectIs403() {
-        when(blocks.isBlocked(ME, PEER)).thenReturn(true);
+    void reactToSuppressedMessageOfOtherUserIsNotFound() {
+        msg.setSenderId(PEER);
+        msg.setSuppressed(true);
 
-        assertEquals("BLOCKED", fail(() -> service.react(ME, MSG, THUMBS)).code());
+        assertEquals("MESSAGE_NOT_FOUND", fail(() -> service.react(ME, MSG, THUMBS)).code());
     }
 
     @Test

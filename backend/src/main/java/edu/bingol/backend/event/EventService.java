@@ -553,12 +553,13 @@ public class EventService {
         int s = CursorPage.clampSize(size);
         List<EventRsvp> rows = rsvps.page(id, status == null ? EventRsvp.Status.GOING : status,
                 Paging.ascStart(cursor), PageRequest.of(0, s + 1));
+        Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         return Paging.map(rows, s, EventRsvp::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(EventRsvp::getUserId).toList());
             return items.stream().map(r -> {
                 User u = users.get(r.getUserId());
                 return new AttendeeView(r.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null ? null : u.getAvatarUrl(), r.getStatus(), r.getCreatedAt());
+                        u == null || hideAvatar.contains(r.getUserId()) ? null : u.getAvatarUrl(), r.getStatus(), r.getCreatedAt());
             }).toList();
         });
     }

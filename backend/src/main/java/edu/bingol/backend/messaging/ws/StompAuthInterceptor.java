@@ -35,6 +35,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
 
     static final String TOKEN_EXP_ATTR = "tokenExp";
     static final String USER_ID_ATTR = "wsUserId";
+    static final String CLIENT_ATTR = "wsClient";
     static final long EXP_GRACE_SECONDS = 60;
     static final Set<String> SUBSCRIBABLE = Set.of("/user/queue/messages", "/user/queue/read-receipts",
             "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events");
@@ -97,7 +98,11 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         var ops = redis.opsForValue();
         String revokedAt = ops == null ? null : ops.get(JwtAuthFilter.PASSWORD_CHANGED_KEY_PREFIX + id.userId());
         if (JwtAuthFilter.tokenRevoked(id.issuedAtMillis(), revokedAt)) {
-            throw new Rejected("UNAUTHORIZED");
+            throw new Rejected("SESSION_REPLACED");
+        }
+        if ("mobile".equals(id.client()) && ops != null && JwtAuthFilter.tokenRevoked(id.issuedAtMillis(),
+                ops.get(JwtAuthFilter.MOBILE_REVOKED_KEY_PREFIX + id.userId()))) {
+            throw new Rejected("SESSION_REPLACED");
         }
         // jwt.parse imzayi dogruladi; bitis zamanini yuk kisminden okuruz (JwtService'e dokunmadan).
         long exp = expOf(h.substring(7).trim());
@@ -110,6 +115,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         if (acc.getSessionAttributes() != null) {
             acc.getSessionAttributes().put(TOKEN_EXP_ATTR, exp);
             acc.getSessionAttributes().put(USER_ID_ATTR, id.userId());
+            acc.getSessionAttributes().put(CLIENT_ATTR, id.client());
         }
     }
 

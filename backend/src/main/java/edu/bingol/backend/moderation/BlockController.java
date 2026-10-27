@@ -57,7 +57,7 @@ public class BlockController {
         List<BlockedUser> items = list.stream().filter(b -> byId.containsKey(b.getBlockedId()))
                 .map(b -> {
                     User u = byId.get(b.getBlockedId());
-                    return new BlockedUser(u.getId(), u.getDisplayName(), u.getAvatarUrl());
+                    return new BlockedUser(u.getId(), u.getDisplayName(), null); // engel iliskisinde avatar gorunmez
                 }).toList();
         return SlicePaging.respond(slice, items);
     }

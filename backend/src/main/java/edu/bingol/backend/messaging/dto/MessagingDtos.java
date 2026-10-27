@@ -34,7 +34,7 @@ public final class MessagingDtos {
      * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
      */
     public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId, Long replyToMessageId,
-                                     @Size(max = 4) List<Long> attachmentIds, Boolean viewOnce) {
+                                     @Size(max = 50) List<Long> attachmentIds, Boolean viewOnce) {
         public SendMessageRequest(String text, String clientId, Long replyToMessageId, List<Long> attachmentIds) {
             this(text, clientId, replyToMessageId, attachmentIds, null);
         }

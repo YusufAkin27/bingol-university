@@ -45,6 +45,13 @@ public class Conversation {
 
     private Long lastMessageId;
 
+    /** Bastirilmamis son mesaj (golge engel); bastirma yoksa lastMessageId ile ayni. */
+    private Long lastVisibleMessageId;
+
+    /** En az bir bastirilmis mesaj var: gecmis/liste gorunurluk suzgeci kullanir. */
+    @jakarta.persistence.Column(nullable = false)
+    private boolean shadowed = false;
+
     private Instant lastMessageAt;
 
     public static String directKey(Long a, Long b) {

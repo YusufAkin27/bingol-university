@@ -86,10 +86,10 @@ public class MessageAttachmentService {
                                     UserRepository users, BlockService blocks, RateLimiter limiter,
                                     PrivateMediaStore store, MediaUrlSigner signer, MediaProperties mediaProps,
                                     ContentBlocklist blocklist,
-                                    @Value("${app.chat.media.uploads-per-minute:10}") int perMinute,
+                                    @Value("${app.chat.media.uploads-per-minute:20}") int perMinute,
                                     @Value("${app.chat.media.uploads-per-day:200}") int perDay,
-                                    @Value("${app.chat.media.max-per-message:4}") int maxPerMessage,
-                                    @Value("${app.chat.media.pending-max:20}") int pendingMax,
+                                    @Value("${app.chat.media.max-attachments-per-message:${app.chat.media.max-per-message:10}}") int maxPerMessage,
+                                    @Value("${app.chat.media.pending-max:30}") int pendingMax,
                                     @Value("${app.chat.media.link-ttl-seconds:300}") int linkTtlSeconds) {
         this.repo = repo;
         this.convs = convs;
@@ -124,6 +124,9 @@ public class MessageAttachmentService {
     private long videoMaxBytes = 40L << 20;
     @Value("${app.chat.media.video-max-seconds:60}")
     private int videoMaxSeconds = 60;
+    /** Bir mesajdaki tum videolarin bayt toplami ustu (varsayilan 120 MB). */
+    @Value("${app.chat.media.video-max-total-bytes-per-message:125829120}")
+    private long videoMaxTotalBytes = 120L << 20;
     @Value("${app.chat.media.video-daily-limit:30}")
     private int videoDailyLimit = 30;
     /** Poster (onizleme karesi) uzun kenar siniri. */
@@ -299,9 +302,7 @@ public class MessageAttachmentService {
             Long peer = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId).stream()
                     .map(ConversationMember::getUserId).filter(id -> !id.equals(userId)).findFirst()
                     .orElseThrow(MessageAttachmentService::convNotFound);
-            if (blocks.isBlocked(userId, peer)) {
-                throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Bu kullanıcıyla mesajlaşamazsınız.");
-            }
+            // Golge engel: engel iliskisinde de yukleme serbest (mesaj gonderimde bastirilir; kota yine sayilir)
             if (users.findById(peer).filter(User::isActive).isEmpty()) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "USER_UNAVAILABLE", "Bu kullanıcıya mesaj gönderilemez.");
             }
@@ -315,7 +316,7 @@ public class MessageAttachmentService {
         return precheck(senderId, conversationId, ids, false);
     }
 
-    /** `viewOnce` icin video reddedilir (VIEW_ONCE_INVALID); mesajda en fazla 1 video (VIDEO_LIMIT). */
+    /** `viewOnce` icin video reddedilir (VIEW_ONCE_INVALID); mesajdaki video bayt toplami sinirli (MESSAGE_MEDIA_TOO_LARGE). */
     public List<Long> precheck(Long senderId, Long conversationId, List<Long> ids, boolean viewOnce) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
@@ -340,8 +341,11 @@ public class MessageAttachmentService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VIEW_ONCE_INVALID",
                     "Tek gösterimlik mesajda tam olarak bir görsel olmalıdır.");
         }
-        if (videos > 1) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VIDEO_LIMIT", "Bir mesaja en fazla bir video eklenebilir.");
+        long videoBytes = rows.stream().filter(MessageAttachment::isVideo).mapToLong(MessageAttachment::getBytes).sum();
+        if (videoBytes > videoMaxTotalBytes) {
+            long mb = Math.max(1, videoMaxTotalBytes / 1024 / 1024);
+            throw new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "MESSAGE_MEDIA_TOO_LARGE",
+                    "Bir mesajdaki videolar toplamda en fazla " + mb + " MB olabilir.", String.valueOf(mb));
         }
         return List.copyOf(ids);
     }
@@ -434,7 +438,7 @@ public class MessageAttachmentService {
             return mine ? Optional.of(a) : Optional.empty(); // gonderilmemis yukleme yalniz sahibine
         }
         Message m = messages.findById(a.getMessageId()).orElse(null);
-        if (m == null || m.isHidden() || m.isDeleted()) {
+        if (m == null || m.isHidden() || m.isDeleted() || (m.isSuppressed() && !mine)) {
             return Optional.empty();
         }
         Conversation conv = convs.findById(conversationId).orElse(null);

@@ -88,7 +88,7 @@ public class AuthController {
     public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
         limiter.check("verify:ip:" + clientIp.of(http), 20, Duration.ofMinutes(10));
         limiter.check("verify:email:" + AuthService.normalizeEmail(r.email()), 10, Duration.ofMinutes(10));
-        return auth.verifyEmail(r.email(), r.code());
+        return auth.verifyEmail(r.email(), r.code(), r.client());
     }
 
     @PostMapping("/login")
@@ -96,7 +96,7 @@ public class AuthController {
         String email = AuthService.normalizeEmail(r.email());
         limiter.check("login:ip:" + clientIp.of(http), 30, Duration.ofMinutes(15));
         limiter.check("login:email:" + email, 10, Duration.ofMinutes(15));
-        return auth.login(email, r.password());
+        return auth.login(email, r.password(), r.client());
     }
 
     @PostMapping("/refresh")

@@ -2,14 +2,20 @@ package edu.bingol.backend.messaging.ws;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
@@ -65,5 +71,48 @@ class TokenExpiryGuardTest {
 
         verify(mine).close(TokenExpiryGuard.REVOKED);
         verify(other, never()).close(any(CloseStatus.class));
+    }
+
+    private WebSocketSession connectClient(String id, long uid, String client) throws Exception {
+        WebSocketSession s = connect(id, 99_999L);
+        s.getAttributes().put(StompAuthInterceptor.USER_ID_ATTR, uid);
+        s.getAttributes().put(StompAuthInterceptor.CLIENT_ATTR, client);
+        return s;
+    }
+
+    @Test
+    void mobileRevokeSendsEventBeforeCloseAndSkipsWebSessions() throws Exception {
+        SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+        TokenExpiryGuard g = new TokenExpiryGuard(template, 0);
+        WebSocketSession mobile = mock(WebSocketSession.class);
+        WebSocketSession web = mock(WebSocketSession.class);
+        for (var e : Map.of("m", mobile, "w", web).entrySet()) {
+            Map<String, Object> attrs = new HashMap<>();
+            attrs.put(StompAuthInterceptor.USER_ID_ATTR, 7L);
+            attrs.put(StompAuthInterceptor.CLIENT_ATTR, e.getKey().equals("m") ? "mobile" : "web");
+            when(e.getValue().getId()).thenReturn(e.getKey());
+            when(e.getValue().getAttributes()).thenReturn(attrs);
+            g.decorate(mock(WebSocketHandler.class)).afterConnectionEstablished(e.getValue());
+        }
+
+        g.onSessionsRevoked(new SessionsRevokedEvent(7L, "mobile", true, true));
+
+        InOrder order = inOrder(template, mobile);
+        order.verify(template).convertAndSendToUser(eq("7"), eq("/queue/message-events"),
+                any(TokenExpiryGuard.SessionReplacedEvent.class), anyMap());
+        order.verify(mobile).close(TokenExpiryGuard.REVOKED);
+        verify(web, never()).close(any(CloseStatus.class));
+        assertEquals("SESSION_REPLACED", TokenExpiryGuard.REVOKED.getReason());
+    }
+
+    @Test
+    void revokeAllClosesBothClients() throws Exception {
+        WebSocketSession mobile = connectClient("m", 7L, "mobile");
+        WebSocketSession web = connectClient("w", 7L, "web");
+
+        guard.onSessionsRevoked(new SessionsRevokedEvent(7L));
+
+        verify(mobile).close(TokenExpiryGuard.REVOKED);
+        verify(web).close(TokenExpiryGuard.REVOKED);
     }
 }

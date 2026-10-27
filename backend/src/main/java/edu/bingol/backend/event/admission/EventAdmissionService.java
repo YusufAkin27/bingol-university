@@ -33,6 +33,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -239,12 +240,14 @@ public class EventAdmissionService implements EventAdmissionHooks {
         List<EventApplication> rows = status == null
                 ? apps.page(eventId, Paging.ascStart(cursor), page)
                 : apps.pageByStatus(eventId, status, Paging.ascStart(cursor), page);
+        Set<Long> hideAvatar = blocks.hiddenFrom(a.id()); // engel iliskisi olanin avatari gorunmez
         return Paging.map(rows, s, EventApplication::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(EventApplication::getUserId).toList());
             return items.stream().map(x -> {
                 User u = users.get(x.getUserId());
                 return new ApplicantView(x.getId(), x.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null ? null : u.getAvatarUrl(), u == null ? null : u.getDepartment(), x.getStatus(),
+                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getAvatarUrl(),
+                        u == null ? null : u.getDepartment(), x.getStatus(),
                         x.getNote(), x.answers(), x.getQueuedAt(), x.getCreatedAt(), x.getUpdatedAt());
             }).toList();
         });

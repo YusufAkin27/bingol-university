@@ -8,6 +8,7 @@ import edu.bingol.backend.event.EventService;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.extras.ExtrasDtos.CoOrganizerView;
 import edu.bingol.backend.moderation.BlockService;
+import java.util.Set;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -101,10 +102,11 @@ public class CoOrganizerService {
         events.requireManager(a, events.load(eventId));
         List<CoOrganizer> rows = repo.findByEventIdOrderById(eventId);
         Map<Long, User> users = communities.usersById(rows.stream().map(CoOrganizer::getUserId).toList());
+        Set<Long> hideAvatar = blocks.hiddenFrom(a.id());
         return rows.stream().map(c -> {
             User u = users.get(c.getUserId());
             return new CoOrganizerView(c.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                    u == null ? null : u.getAvatarUrl(), c.getCreatedAt());
+                    u == null || hideAvatar.contains(c.getUserId()) ? null : u.getAvatarUrl(), c.getCreatedAt());
         }).toList();
     }
 

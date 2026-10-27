@@ -46,6 +46,10 @@ public class Message {
     @Column(name = "key_version")
     private Integer keyVersion;
 
+    /** Golge engel: engel iliskisi varken atildi; gonderen disinda kimseye gosterilmez/iletilmez (kalici). */
+    @Column(nullable = false)
+    private boolean suppressed = false;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 

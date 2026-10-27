@@ -53,6 +53,20 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
             + "WHERE m.conversationId = :cid AND m.hiddenAt IS NOT NULL AND m.leftAt IS NULL")
     int unhideOnMessage(@Param("cid") Long conversationId);
 
+    /** Golge engel: yalniz gonderenin kendi bastirilmis son mesaj imleci (ileri). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE ConversationMember m SET m.lastOwnSuppressedMessageId = :mid "
+            + "WHERE m.conversationId = :cid AND m.userId = :uid AND m.lastOwnSuppressedMessageId < :mid")
+    int advanceOwnSuppressed(@Param("cid") Long conversationId, @Param("uid") Long userId, @Param("mid") Long messageId);
+
+    /** Tek uyenin "sohbeti sil" gizlemesini kaldirir (bastirilmis mesaj atan gonderen). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE ConversationMember m SET m.hiddenAt = NULL "
+            + "WHERE m.conversationId = :cid AND m.userId = :uid AND m.hiddenAt IS NOT NULL")
+    int unhideMember(@Param("cid") Long conversationId, @Param("uid") Long userId);
+
     /** Iki kullanicinin ortak (ikisi de ayrilmamis) bir konusmasi var mi. */
     @Query("SELECT COUNT(a) > 0 FROM ConversationMember a, ConversationMember b WHERE a.conversationId = b.conversationId "
             + "AND a.userId = :a AND b.userId = :b AND a.leftAt IS NULL AND b.leftAt IS NULL")

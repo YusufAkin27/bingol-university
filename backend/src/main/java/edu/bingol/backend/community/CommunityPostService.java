@@ -155,11 +155,13 @@ public class CommunityPostService {
     }
 
     private List<PostView> views(List<CommunityPost> list, Actor a, boolean mod) {
+        Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         Map<Long, User> authors = communities.usersById(list.stream().map(CommunityPost::getAuthorId).toList());
         return list.stream().map(p -> {
             User u = authors.get(p.getAuthorId());
             return new PostView(p.getId(), p.getCommunityId(), p.getAuthorId(),
-                    u == null ? "Kullanıcı" : u.getDisplayName(), u == null ? null : u.getAvatarUrl(),
+                    u == null ? "Kullanıcı" : u.getDisplayName(),
+                    u == null || hideAvatar.contains(p.getAuthorId()) ? null : u.getAvatarUrl(),
                     p.getContent(), p.getImageUrl(), p.isPinned(), p.getCreatedAt(),
                     mod || p.getAuthorId().equals(a.id()));
         }).toList();

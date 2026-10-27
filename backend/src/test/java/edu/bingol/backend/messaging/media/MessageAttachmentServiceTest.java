@@ -255,11 +255,21 @@ class MessageAttachmentServiceTest {
     }
 
     @Test
-    void blockedPeerCannotReceiveUploadInDirectConversation() throws Exception {
+    void uploadInBlockedDirectConversationIsAllowedAndSuppressedAttachmentIsInvisibleToPeer() throws Exception {
         when(blocks.isBlocked(ME, PEER)).thenReturn(true);
-        ApiException e = assertThrows(ApiException.class, this::uploadOk);
-        assertEquals("BLOCKED", e.code());
-        assertEquals(0, filesOnDisk());
+        AttachmentView v = uploadOk(); // golge engel: hata yok
+        assertEquals(2, filesOnDisk()); // ana + kucuk resim
+        MessageAttachment a = db.get(v.id());
+        Message m = new Message();
+        m.setId(901L);
+        m.setConversationId(CONV);
+        m.setSenderId(ME);
+        m.setSuppressed(true);
+        m.setCreatedAt(Instant.now());
+        messageDb.put(m.getId(), m);
+        a.setMessageId(m.getId());
+        assertTrue(service.accessible(ME, CONV, a.getId()).isPresent()); // gonderen gorur
+        assertTrue(service.accessible(PEER, CONV, a.getId()).isEmpty()); // alici icin 404
     }
 
     @Test

@@ -40,11 +40,28 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
             + "WHERE c.id = :id AND (c.lastMessageId IS NULL OR c.lastMessageId < :mid)")
     int touchLastMessage(@Param("id") Long id, @Param("mid") Long messageId, @Param("at") Instant at);
 
+    /** Bastirilmamis mesaj: gorunur son mesaj imleci ileri. */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Conversation c SET c.lastVisibleMessageId = :mid "
+            + "WHERE c.id = :id AND (c.lastVisibleMessageId IS NULL OR c.lastVisibleMessageId < :mid)")
+    int touchLastVisible(@Param("id") Long id, @Param("mid") Long messageId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Conversation c SET c.shadowed = true WHERE c.id = :id AND c.shadowed = false")
+    int markShadowed(@Param("id") Long id);
+
     /** Kullanicinin (ayrilmadigi) mesajli konusmalari, en yeni mesaj once. Imlec = son mesaj id'si (benzersiz). */
     @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
             + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "
+            + "AND (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), m.lastOwnSuppressedMessageId) "
+            + "ELSE c.lastMessageId END) > 0 "
             + "AND ((:archived = true AND m.archivedAt IS NOT NULL) OR (:archived = false AND m.archivedAt IS NULL)) "
-            + "AND (:cursor IS NULL OR c.lastMessageId < :cursor) ORDER BY c.lastMessageId DESC")
+            + "AND (:cursor IS NULL OR (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), "
+            + "m.lastOwnSuppressedMessageId) ELSE c.lastMessageId END) < :cursor) "
+            + "ORDER BY (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), "
+            + "m.lastOwnSuppressedMessageId) ELSE c.lastMessageId END) DESC")
     List<Conversation> page(@Param("uid") Long userId, @Param("cursor") Long cursor,
                             @Param("archived") boolean archived, Pageable pageable);
 }

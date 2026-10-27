@@ -33,15 +33,24 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     /** {@link #before} + "sohbeti sil" alt siniri (`cleared`: bu id ve oncesi gorunmez). */
     @Query("SELECT m FROM Message m WHERE m.conversationId = :cid AND m.createdAt >= :since AND m.id > :cleared "
+            + "AND (m.suppressed = false OR m.senderId = :viewer) "
             + "AND (:before IS NULL OR m.id < :before) ORDER BY m.id DESC")
     List<Message> beforeCleared(@Param("cid") Long conversationId, @Param("since") Instant since,
-                                @Param("cleared") Long cleared, @Param("before") Long before, Pageable pageable);
+                                @Param("cleared") Long cleared, @Param("viewer") Long viewerId,
+                                @Param("before") Long before, Pageable pageable);
 
     /** {@link #after} + "sohbeti sil" alt siniri. */
     @Query("SELECT m FROM Message m WHERE m.conversationId = :cid AND m.createdAt >= :since AND m.id > :after "
-            + "AND m.id > :cleared ORDER BY m.id ASC")
+            + "AND m.id > :cleared AND (m.suppressed = false OR m.senderId = :viewer) ORDER BY m.id ASC")
     List<Message> afterCleared(@Param("cid") Long conversationId, @Param("since") Instant since,
-                               @Param("cleared") Long cleared, @Param("after") Long after, Pageable pageable);
+                               @Param("cleared") Long cleared, @Param("viewer") Long viewerId,
+                               @Param("after") Long after, Pageable pageable);
+
+    /** Golge engel: (from, to] araliginda `owner`in en kucuk bastirilmis mesaj kimligi (yoksa null). */
+    @Query("SELECT MIN(m.id) FROM Message m WHERE m.conversationId = :cid AND m.senderId = :owner AND m.suppressed = true "
+            + "AND m.id > :from AND m.id <= :to")
+    Long minSuppressedId(@Param("cid") Long conversationId, @Param("owner") Long owner, @Param("from") Long from,
+                         @Param("to") Long to);
 
     /**
      * Konusma basina okunmamis sayisi: [conversationId, adet]. TEK tanim (liste satiri ve rozet ayni sorguyu kullanir):
@@ -51,7 +60,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m.conversationId, COUNT(m) FROM Message m, ConversationMember cm "
             + "WHERE cm.conversationId = m.conversationId AND cm.userId = :uid AND cm.leftAt IS NULL "
             + "AND m.conversationId IN :cids AND m.createdAt >= cm.joinedAt "
-            + "AND m.id > cm.lastReadMessageId AND m.id > cm.clearedUpToMessageId AND m.senderId <> :uid AND m.senderId NOT IN :excluded "
+            + "AND m.id > cm.lastReadMessageId AND m.id > cm.clearedUpToMessageId AND m.suppressed = false AND m.senderId <> :uid AND m.senderId NOT IN :excluded "
             + "AND m.hiddenAt IS NULL AND m.deletedAt IS NULL GROUP BY m.conversationId")
     List<Object[]> unreadCounts(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds,
                                 @Param("excluded") Collection<Long> excludedSenders);
