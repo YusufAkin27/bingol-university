@@ -61,6 +61,8 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
       STORAGE_DIR: /data/uploads
       FCM_CREDENTIALS_FILE: ${FCM_CREDENTIALS_FILE:-}
+      # Firebase servis hesabi anahtari (ham JSON ya da base64, tek satir); bkz. docs/PUSH_SETUP.md
+      FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
       TZ: Europe/Istanbul
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
       # Uretimde "prod" (zorunlu ayarlar acilista dogrulanir); bos = profilsiz yerel davranis
