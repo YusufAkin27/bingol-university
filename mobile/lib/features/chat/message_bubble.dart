@@ -52,7 +52,7 @@ class MessageBubble extends StatelessWidget {
     final d = DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
     final reply = m['replyTo'] is Map ? Map<String, dynamic>.from(m['replyTo'] as Map) : null;
     final text = deleted ? 'Bu mesaj silindi' : (m['text'] as String?) ?? '';
-    final maxW = MediaQuery.sizeOf(context).width * .72;
+    final maxW = MediaQuery.sizeOf(context).width * .78;
     final atts = (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
     final localBytes = m['_bytes'] as Uint8List?;
     final hasMedia = atts.isNotEmpty || localBytes != null;
@@ -119,7 +119,7 @@ class MessageBubble extends StatelessWidget {
             child: Text(text,
                 style: TextStyle(
                   color: (deleted || removed) ? fg.withValues(alpha: .7) : fg,
-                  fontSize: 14,
+                  fontSize: 15,
                   height: 1.4,
                   fontStyle: (deleted || removed) ? FontStyle.italic : FontStyle.normal,
                 )),
@@ -230,7 +230,8 @@ class _LocalImage extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: Stack(alignment: Alignment.center, children: [
-        Image.memory(bytes, width: maxW - 12, height: 200, fit: BoxFit.cover, cacheWidth: 480, gaplessPlayback: true),
+        Image.memory(bytes,
+            width: (maxW - 12).clamp(140.0, 300.0), height: 220, fit: BoxFit.cover, cacheWidth: 720, gaplessPlayback: true),
         if (uploading)
           Container(
             width: 44,
@@ -259,9 +260,10 @@ class _AttachmentImage extends StatelessWidget {
     final t = context.bu;
     final w = (attachment['width'] as num?)?.toDouble() ?? 0;
     final h = (attachment['height'] as num?)?.toDouble() ?? 0;
-    final ratio = (w > 0 && h > 0) ? (w / h).clamp(.6, 1.8) : 1.2;
-    final width = maxW.clamp(120.0, 260.0);
-    final height = width / ratio;
+    // Görsel oranını koru (dikey/yatay), çok uzun görselleri sınırla.
+    final ratio = (w > 0 && h > 0) ? (w / h).clamp(.55, 2.0) : 1.2;
+    final width = maxW.clamp(140.0, 300.0);
+    final height = (width / ratio).clamp(110.0, 380.0);
     final thumb = (attachment['thumbUrl'] ?? attachment['url']) as String?;
     final hidden = attachment['removed'] == true || thumb == null;
 
@@ -282,7 +284,8 @@ class _AttachmentImage extends StatelessWidget {
         chatMediaUrl(thumb),
         headers: headers,
         fit: BoxFit.cover,
-        cacheWidth: 520,
+        cacheWidth: 720,
+        filterQuality: FilterQuality.medium,
         gaplessPlayback: true,
         loadingBuilder: (c, child, p) => p == null
             ? child

@@ -15,6 +15,7 @@ import '../menu/menu_page.dart';
 import '../news/news_detail_page.dart';
 import '../notifications/notifications_page.dart';
 import '../search/search_page.dart';
+import '../shell/app_shell.dart' show AppTab;
 import '../support/support_page.dart';
 
 /// Ana sayfa: selamlama, arama, sıradaki etkinlik, hızlı erişim, bento kutular, kulüpler, gündem.
@@ -463,18 +464,32 @@ class _HomeTabState extends State<HomeTab> {
       padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
       child: Row(
         children: [
-          BuAvatar(name: name, size: 44, dark: false),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_greeting, style: TextStyle(fontSize: 13, color: t.mut)),
-                Text(name.isEmpty ? 'BÜ Kampüs' : name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink)),
-              ],
+            child: Semantics(
+              button: true,
+              label: 'Profilim',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => widget.onOpenTab(AppTab.profile),
+                child: Row(
+                  children: [
+                    BuAvatar(name: name, size: 44, dark: false),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_greeting, style: TextStyle(fontSize: 13, color: t.mut)),
+                          Text(name.isEmpty ? 'BÜ Kampüs' : name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 8),
