@@ -10,6 +10,11 @@ public record MediaPreview(String kind, String url, String thumbnailUrl, String 
         return new MediaPreview("IMAGE", url, thumbnailUrl, mime, null);
     }
 
+    /** Video: `url` akis (Range destekli), `thumbnailUrl` poster (yoksa null). */
+    public static MediaPreview video(String url, String posterUrl, String mime) {
+        return new MediaPreview("VIDEO", url, posterUrl, mime, null);
+    }
+
     public static MediaPreview text(String text) {
         return new MediaPreview("TEXT", null, null, null, text);
     }

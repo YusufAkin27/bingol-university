@@ -54,6 +54,25 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                              @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
                              Pageable page);
 
+    /**
+     * Ana sayfa "one cikan": bitmemis ACTIVE etkinlikler icinde en cok GOING, esitlikte en yakin baslangic.
+     * Gorunurluk kurali upcoming ile ayni; sayac denormalize (goingCount) oldugundan RSVP tablosu taranmaz.
+     */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.status = :active AND e.endsAt >= :now
+              AND (e.communityId IS NULL OR e.communityId IN (
+                    SELECT c.id FROM Community c WHERE c.status = :cActive AND (c.visibility = :pub
+                      OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
+            ORDER BY e.goingCount DESC, e.startsAt, e.id
+            """)
+    List<UserEvent> featured(@Param("active") UserEvent.Status active, @Param("now") Instant now,
+                             @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                             @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                             @Param("uid") Long userId,
+                             @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                             Pageable page);
+
     /** Katilacaklarim: RSVP'li (GOING/INTERESTED), bitmemis, ACTIVE etkinlikler; takvim sirasi. */
     @Query("""
             SELECT e FROM UserEvent e

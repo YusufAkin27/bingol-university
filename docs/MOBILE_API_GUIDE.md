@@ -209,7 +209,7 @@ Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik redde
 | Kuyruk | İçerik |
 |---|---|
 | `/user/queue/messages` | yeni mesaj (`MessageView`); **kendi gönderdiğiniz mesaj da buraya düşer** (ack, `clientId` ile eşleştirin) |
-| `/user/queue/read-receipts` | `{conversationId,userId,lastMessageId}`: `userId` konuşmada `lastMessageId`'ye kadar okudu |
+| `/user/queue/read-receipts` | `{conversationId,userId,lastMessageId}`: `userId` konuşmada `lastMessageId`'ye kadar okudu (eski akış, geriye uyum için sürer; yeni istemci `receipt` olayını kullanır, bkz. 4.10) |
 | `/user/queue/typing` | `{conversationId,userId}`: karşı taraf yazıyor (kalıcı değil, 2 sn'de 1 ile sınırlı) |
 | `/user/queue/message-events` | `{type:"edited"\|"deleted"\|"reaction", conversationId, messageId, userId, message?, emoji?, reactions?, at}`: düzenleme, herkes için silme, tepki değişimi; ilgili mesajı yerelde güncelleyin |
 | `/user/queue/errors` | `{code,message,clientId}`: komut hataları; bağlantı kapanmaz |
@@ -229,6 +229,7 @@ Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik redde
 | Hedef | Gövde | Not |
 |---|---|---|
 | `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 4) isteğe bağlıdır; ek varsa metin boş olabilir |
+| `/app/chat.delivered` | `{"conversationId":1,"lastMessageId":42}` | iletildi ack'i (bkz. 4.10); imleç yalnız ilerler, kendi mesajların yok sayılır; dakikada 120'den fazlası sessizce atılır |
 | `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID`; boş konuşmada no-op; konuşma başına 10 sn'de 20'den sık istek **sessizce** atılır, bu yüzden yalnızca görünen son mesajı gönderin |
 | `/app/chat.typing` | `{"conversationId":1}` | 2 sn'de 1, fazlası sessizce atılır |
 
@@ -286,14 +287,27 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 - **Sessize al:** `PUT /api/conversations/{id}/mute` gövde `{"durationMinutes":1..525600}` **veya** `{"forever":true}` (ikisi birden `400`); `DELETE` ile kaldırılır; yanıt `ConversationView`. Süresiz sessizde `mutedUntil` ~100 yıl sonradır: "süresiz" göstermek için **`mutedForever`**'a bakın.
 - **Arşiv:** `PUT /api/conversations/{id}/archive {"keepArchived":false}`, `DELETE` ile çıkarılır; liste `GET /api/conversations?archived=true`.
 - **Rozet:** `GET /api/conversations/unread-count` → `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`; satırlardaki `unreadCount` ile aynı tanım (kendi/silinmiş/engelli gönderici mesajları sayılmaz). `total` sessiz olmayanlar, `mutedTotal` sessizdekiler.
-- **Mesaj eylemleri:** gönderim `POST /api/conversations/{id}/messages {"text","clientId","replyToMessageId?","attachmentIds?"}`; düzenleme `PATCH /api/messages/{id} {"text"}` (gönderen, varsayılan 15 dk); herkes için silme `DELETE /api/messages/{id}` (kulüp yöneticisi/moderatörü ve etkinlik organizatörü başkasınınkini de silebilir, diğerleri `403 MESSAGE_DELETE_FORBIDDEN`); tepki `PUT/DELETE /api/messages/{id}/reaction {"emoji"}`, izinli liste `GET /api/messages/reactions`.
+- **Mesaj eylemleri:** gönderim `POST /api/conversations/{id}/messages {"text","clientId","replyToMessageId?","attachmentIds?"}`; düzenleme `PATCH /api/messages/{id} {"text"}` (yalnız gönderen; **süre sınırı yok**); herkes için silme `DELETE /api/messages/{id}` (kulüp yöneticisi/moderatörü ve etkinlik organizatörü başkasınınkini de silebilir, diğerleri `403 MESSAGE_DELETE_FORBIDDEN`); tepki `PUT/DELETE /api/messages/{id}/reaction {"emoji"}`, izinli liste `GET /api/messages/reactions`.
 - Ek sınırlar: `GET /api/conversations/{id}` dakikada 120; `PATCH`, üye ekle/çıkar ve `leave` kullanıcı başına ortak dakikada 30.
 
 ### 4.8 Sohbet görselleri (medya yükleme)
 1. `POST /api/conversations/{cid}/media` (multipart, alan **`file`**) → `201` `AttachmentView` `{id,kind,width,height,bytes,contentType,removed,url,thumbUrl}`. Sunucu görseli yeniden kodlar (EXIF temizliği, en çok ~1600 px, sıkıştırılmış); yükleme üst sınırı 5 MB, dakikada 10 ve günde 200 yükleme, mesaja eklenmemiş en çok 20 görsel.
 2. Dönen `id` mesaj gönderiminde `attachmentIds`'e konur (mesaj başına en çok 4; REST veya `chat.send`). Hata kodları: `ATTACHMENT_LIMIT`, `ATTACHMENT_INVALID`, `ATTACHMENT_NOT_FOUND`, `MEDIA_BLOCKED` (422), `CHAT_MEDIA_PENDING_LIMIT` (429). Mesaja eklenmemiş kendi yüklemeniz `DELETE .../media/{aid}` ile silinir (mesaja bağlıysa `409 ATTACHMENT_IN_USE`). Sahiplenilmemiş yüklemeler 24 saatte temizlenir.
 3. **Okuma kimliklidir:** `url` ve `thumbUrl` (`/api/conversations/{cid}/media/{aid}` ve `/thumb`) Bearer ister; görseli çizerken `Authorization` başlığı verin. Başlık veremeyen bileşenler için `GET .../media/{aid}/link` → `{url,thumbUrl,expiresAt}` kısa ömürlü (varsayılan 5 dk) imzalı adres verir. Gizlenen (`removed=true`) ekte adresler `null`dır.
-4. Görseli raporlamak için `POST .../media/{aid}/report {reason,note}` (günlük rapor limiti ortak).
+4. **Video mesaj:** aynı uç `file=video/mp4` (+ isteğe bağlı `poster`= JPEG/PNG önizleme karesi) ile video yükler. Sınırlar: `ftyp` imzalı MP4, ≤ 40 MB (`413 VIDEO_TOO_LARGE`), ≤ 60 sn (`400 VIDEO_TOO_LONG`), bozuk/MP4 değil (`400 VIDEO_INVALID`); kullanıcı başına günde 30 video + ortak yükleme limitleri. Sunucu videoyu **yeniden kodlamaz** (istemci sıkıştırır); poster görsel hattından geçer (EXIF temizliği, ≤ 720 px) ve `thumbUrl` olur (poster yoksa `null`). `AttachmentView`: `kind` (`IMAGE`|`VIDEO`), `durationMs` (video), `sizeBytes`, `width`/`height` (poster ya da MP4 başlığı; bilinmiyorsa videoda `null`). Mesaj başına en çok 4 ek, video + görsel karışık olabilir ama **en çok 1 video** (`400 VIDEO_LIMIT`); videoda `viewOnce` yok (`400 VIEW_ONCE_INVALID`). Oynatma: `GET .../media/{aid}` Bearer ile **HTTP Range** destekler (`Accept-Ranges: bytes`, `206 Partial Content`, `Content-Range`, `416` geçersiz aralıkta; `Content-Type: video/mp4`); oynatıcıya `Authorization` başlığı verin. `GET .../media/{aid}/thumb` posteri verir (yoksa `404`). `GET .../link` videoda `url=null` döner (yalnız poster için imzalı `thumbUrl`). Rapor, silme (mesaj silinince dosya da silinir) ve KVKK dışa aktarım (yalnız meta) görselle aynıdır.
+5. Görseli/videoyu raporlamak için `POST .../media/{aid}/report {reason,note}` (günlük rapor limiti ortak).
+
+**Tek gösterimlik görsel (view-once).** Yükleme aynı; gönderimde `POST /api/conversations/{id}/messages` ve `chat.send` gövdesine `"viewOnce": true` eklenir (yalnız `attachmentIds` doluyken, **tam 1 ek**; aksi `400 VIEW_ONCE_INVALID`; metin boş olabilir, doluysa normal kalır). `attachments[i]` alanlarına `viewOnce` ve `viewed` eklenir. Alıcıda `viewed` = ben açtım mı; göndericide (birebirde) karşı taraf, (grupta) en az bir alıcı açtı mı. Tek gösterimlikte `thumbUrl` **hiç** gelmez; `url` yalnız alıcıya ve henüz açmamışsa doludur (gönderende `null`). Açmak: `GET .../media/{aid}` (`Cache-Control: no-store, private`, `Content-Disposition: inline`) ilk başarılı istekte baytları verir ve açılış kaydedilir; sonrası `410 MEDIA_VIEW_ONCE_EXPIRED`; gönderici `403 MEDIA_VIEW_ONCE_OWN`; `/thumb` ve `/link` tek gösterimlikte `404`. Açılınca gönderene `/user/queue/message-events` ile `{type:"viewed",conversationId,messageId,attachmentId,userId,at}` düşer. Birebirde alıcı açınca, grupta tüm alıcılar açınca ya da 24 saat sonra dosya içeriği sunucudan silinir (`viewed` bilgisi kalır).
+
+### 4.9 Grup adı ve fotoğrafı
+Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve birebir hariç, `400 NOT_A_GROUP`) ve yalnız grup yöneticisi (`403 NOT_GROUP_ADMIN`): ad `PATCH /api/conversations/{id} {"title"}`; fotoğraf `PUT /api/conversations/{id}/avatar` (multipart **`file`**, avatar hattı: tür/boyut doğrulama, yeniden kodlama, EXIF temizliği; yanıt `200` `ConversationView`), kaldırma `DELETE /api/conversations/{id}/avatar` (`204`). `ConversationView.avatarUrl` herkese açık `/files/avatars/...` yoludur (yoksa `null`). Değişince tüm üyelere `/user/queue/message-events` ile `{type:"conversation-updated",conversationId,userId,title,avatarUrl,at}` gider. Fotoğraf yönetimi dakikada 10 ile sınırlıdır.
+
+**Sohbeti sil.** `DELETE /api/conversations/{id}` (`204`, idempotent, yönetim limiti ortak 30/dk; üye değilse `404`). Birebir: yalnız çağıran için silinir; konuşma listeden kalkar, eski mesajlar (liste/medya/okunmamış sayacı/son mesaj önizlemesi) bir daha görünmez, karşı tarafta hiçbir şey değişmez. Yeni mesaj gelince (karşı taraf ya da kendisi) konuşma yalnız yeni mesajlarla listede yeniden belirir. Kullanıcı grubu: gruptan ayrılma (`leave` kuralları, son yönetici devri) + listeden gizleme. Kulüp/etkinlik odası: `400 CONVERSATION_NOT_DELETABLE`. Silince sessize alma/arşiv sıfırlanır.
+
+### 4.10 İletildi / okundu makbuzları (tik mantığı)
+- **Ack:** mesaj istemciye ulaşınca (WebSocket ya da push ile gelen, uygulama açılınca çekilen mesajlar dahil) `STOMP /app/chat.delivered {conversationId,lastMessageId}` ya da `POST /api/conversations/{id}/delivered {lastMessageId}` (`204`; dakikada 120, aşılırsa REST `429`, WS sessiz). İmleç yalnız ilerler; yalnız üye (`404 CONVERSATION_NOT_FOUND`); kendi mesajların ve konuşmanın son mesajını aşan değer sessizce sınırlanır/yok sayılır. Sunucu, alıcının WebSocket'i açık olsa bile kendiliğinden "iletildi" saymaz; ack istemciden gelir. `read` (okundu) iletildiyi de ilerletir.
+- **`MessageView.status`** yalnız **kendi mesajlarında** dolu (başkasınınkinde `null`; silinen/gizlenen mesajda `null`): `SENT` (sunucu aldı, kimse iletilmedi) → `DELIVERED` → `READ`. Birebirde karşı taraf, grupta **tüm** diğer aktif üyeler (ayrılan, engel ilişkisi olan, askıdaki ve mesajdan sonra katılan üyeler hesaba girmez) eşiği geçince ilerler. `ConversationView.lastMessage.status` de aynıdır.
+- **Gerçek zamanlı:** mesaj sahibine `/user/queue/message-events`: `{type:"receipt",conversationId,kind:"delivered"|"read",upToMessageId,userId,at,status}`. Birebirde `upToMessageId` karşı tarafın yeni imlecidir; kendi mesajlarından `id <= upToMessageId` olanları `status`e (`DELIVERED`/`READ`) yükseltin. Grupta toplulaştırma sunucudadır: olay yalnız durum ilerlediğinde ve sahibine düşer; `upToMessageId` o sahibin durumu `status`e ulaşan en yüksek mesajıdır. Engel ilişkisi olan tarafa makbuz gitmez. Olaylar kalıcı değildir; yeniden bağlanınca `GET .../messages?after=` ile gelen `status` değerleri esastır.
 
 ## 5. Rate limit (429) davranışı
 - Sınırlar Redis'te **sabit pencere** sayacıdır; aşılınca `429` ve `{"code":"RATE_LIMITED","message":"Çok fazla deneme. Lütfen daha sonra tekrar deneyin."}`. (Doğrulama kodu uçlarında özel kodlar: `RESEND_COOLDOWN`, `TOO_MANY_ATTEMPTS`.)
@@ -318,7 +332,8 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 | Topluluk oluştur / katıl / gönderi | saatte 5 / saatte 20 / dakikada 10 |
 | Etkinlik oluştur / RSVP / QR yoklama | saatte 10 / dakikada 30 / dakikada 20 |
 | Avatar yükleme | saatte 10 |
-| Sohbet görseli yükleme | dakikada 10, günde 200 |
+| Sohbet görseli yükleme | dakikada 10, günde 200 (video: ek olarak günde 30) |
+| İletildi ack (`delivered`) | dakikada 120 |
 | `GET /api/me/summary`, `GET /api/events/{id}/attendees/preview` | dakikada 120 |
 | `GET /api/communities/{id}/requests` | saatte 240 |
 | Hesap silme | saatte 5; veri dışa aktarma günde 3 |
@@ -372,7 +387,7 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 | `POST /api/users/me/avatar` | `file` | jpg, png, webp | **2 MB** | saatte 10 |
 | `POST /api/communities/{id}/cover` | `file` | jpg, png, webp | **3 MB** | saatte 10 |
 | `POST /api/communities/{id}/posts/upload` | `file` | jpg, png, webp | **3 MB** | saatte 20 |
-| `POST /api/events/{id}/cover` | `file` | jpg, png, webp | **3 MB** | saatte 10 |
+| `PUT /api/events/{id}/cover` (eski ad `POST` de çalışır) | `file` | jpg, png, webp | **3 MB** | saatte 10 |
 
 - Doğrulama **`Content-Type`** üzerinden yapılır: parçanın `Content-Type`'ı mutlaka `image/jpeg|image/png|image/webp` olmalı (Dio `MultipartFile.fromFile(path, contentType: MediaType('image','jpeg'))`). Dosya adını sunucu üretir (UUID); istemcinin adı kullanılmaz.
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
@@ -548,3 +563,40 @@ BASE=http://localhost:8107 ADMIN_PASSWORD=... COMPOSE_PROJECT_NAME=wt_t7 node sc
 node scripts/openapi-errors.js --inject docs/MOBILE_API_GUIDE.md                # hata tablosunu yeniler
 ```
 `openapi-check.js`: belge ile canlı belgenin aynılığını, kimlikli/kimliksiz erişim kurallarını (Swagger/`/v3/api-docs` yalnızca ADMIN; arayüz üretimde kapalı), kimlik akışını ve parametresiz tüm GET uçlarının gerçek yanıtlarını şemaya karşı (tür, zorunlu alan, belgesiz alan, null) doğrular; `FORCE_SEED=1` ile örnek kayıt oluşturup POST gövdelerini de doğrular. Swagger arayüzü yalnızca `dev` profilinde (`SPRING_PROFILES_ACTIVE=dev` veya `SWAGGER_UI_ENABLED=true`) açılır ve yine ADMIN ister.
+
+### Etkinlik kapağı ve öne çıkan etkinlik
+
+- `PUT /api/events/{id}/cover` (multipart `file`; yalnız etkinliği oluşturan/ortak organizatör/kulüp yetkilisi/yönetici): görsel medya hattından geçer (tür/boyut doğrulama, yeniden kodlama, EXIF temizliği, en çok 1600 px). 200 -> `EventView` (`coverUrl`: `/files/covers/<özet>.jpg`, herkese açık; küçük resim `-t` ekli). Akış: önce `POST /api/events`, sonra kapak. İptal/reddedilmiş etkinlikte 409 `EVENT_NOT_EDITABLE`; yetkisizde 403, görünmeyende 404.
+- `DELETE /api/events/{id}/cover` -> 204 (idempotent). Etkinlik silinince (iptal) kapak dosyası da temizlenir.
+- `coverUrl` liste, detay, `/me/events` ve `featured` görünümlerinde; takvimde USER öğelerinde `imageUrl` alanı olarak gelir.
+- `GET /api/events/featured` (Bearer, ETag, `Cache-Control: private, max-age=30`): yaklaşan ya da sürmekte olan, ACTIVE kullanıcı etkinlikleri içinde `goingCount` en yüksek olan; eşitlikte başlangıcı yakın olan. Yaklaşan yoksa **204**. Resmi (siteden gelen) etkinlikler dahil değil. Yanıt `EventView`:
+
+```json
+{ "id": 12, "title": "Kariyer Günleri", "description": "...", "startsAt": "2026-11-10T09:00:00Z",
+  "endsAt": "2026-11-10T17:00:00Z", "location": "Kongre Merkezi", "coverUrl": "/files/covers/ab12.jpg",
+  "capacity": 300, "goingCount": 142, "interestedCount": null, "communityId": 3, "communityName": "Kariyer Kulübü",
+  "createdBy": 5, "organizerName": "Ayşe K.", "status": "ACTIVE", "myRsvp": "GOING", "canManage": false,
+  "createdAt": "2026-10-01T10:00:00Z" }
+```
+
+Katılımcı önizlemesi için `GET /api/events/{id}/attendees/preview` çağrılır. Hız sınırı: dakikada 60.
+
+## Rehber eşleştirme
+
+Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kişileri bulur. Ham e-posta sunucuya gönderilmez.
+
+`POST /api/users/contacts/match` (kimlik doğrulamalı)
+
+```json
+{"hashes":["<sha256 hex, küçük harf>", "..."]}
+```
+
+- Her hash: e-posta adresinin kırpılıp küçük harfe çevrilmiş halinin SHA-256'sı (UTF-8), 64 karakterli hex.
+- En çok 500 hash; fazlası `400 CONTACTS_TOO_MANY`. Yinelenen veya biçimi bozuk değerler sessizce yok sayılır.
+- Yanıt: `{"matches":[{"hash":"…","userId":12,"displayName":"…","avatarUrl":"/files/avatars/…"|null,"faculty":null,"department":null}]}`
+  (eşleşmeyen hash yanıtta yer almaz).
+- Yalnızca aktif, doğrulanmış, bingol.edu.tr (alt alanlar dahil) hesaplar; kendi hesabın ve engel ilişkisi (iki yönlü) olanlar gelmez.
+  Avatar, fakülte ve bölüm karşı tarafın gizlilik ayarına göre `null` olabilir.
+- Rate limit: kullanıcı başına saatte 6, IP başına saatte 30 istek; aşımda `429` + `Retry-After`.
+- Sunucu hash'leri ve sonuçları saklamaz/loglamaz. İstemci de rehberi yalnızca eşleştirme sırasında bellekte tutmalıdır;
+  rehber izni kullanıcıdan açıkça istenmelidir.

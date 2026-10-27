@@ -45,6 +45,17 @@ public class ConversationMember {
     @Column(nullable = false)
     private Long lastReadMessageId = 0L;
 
+    /** Iletildi imleci (okundu >= iletildi: okuma iletilmis sayilir); istemci ack'iyle ilerler. */
+    @Column(nullable = false)
+    private Long lastDeliveredMessageId = 0L;
+
+    /** "Sohbeti sil": bu kimlige kadar (dahil) mesajlar bu uyeye bir daha gosterilmez. */
+    @Column(nullable = false)
+    private Long clearedUpToMessageId = 0L;
+
+    /** Doluysa konusma uyenin listesinden kaldirilmis; yeni mesajla temizlenir. */
+    private Instant hiddenAt;
+
     /** Doluysa bu zamana kadar sessiz: push/uygulama ici bildirim yok, okunmamis sayaci artar. */
     private Instant mutedUntil;
 

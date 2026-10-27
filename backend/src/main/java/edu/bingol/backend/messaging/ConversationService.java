@@ -60,6 +60,27 @@ public class ConversationService {
         this.roomLinks = roomLinks;
     }
 
+    /** Grup fotografi (herkese acik avatar hatti) ve uyelere olay bildirimi (setter enjeksiyonu; yoksa ozellik kapali). */
+    private edu.bingol.backend.media.MediaService media;
+    private edu.bingol.backend.messaging.ws.ChatEventBus bus;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMedia(edu.bingol.backend.media.MediaService media) {
+        this.media = media;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBus(edu.bingol.backend.messaging.ws.ChatEventBus bus) {
+        this.bus = bus;
+    }
+
+    private ReceiptService receipts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReceipts(ReceiptService receipts) {
+        this.receipts = receipts;
+    }
+
     public ConversationService(ConversationRepository convs, ConversationMemberRepository members,
                                MessageRepository messages, UserRepository users, BlockService blocks, MessageCodec codec) {
         this.codec = codec;
@@ -161,14 +182,49 @@ public class ConversationService {
 
     @Transactional
     public ConversationView rename(Long me, Long id, String title) {
-        Conversation c = requireGroupAdmin(id, me);
+        Conversation c = requireUserGroupAdmin(id, me);
         String t = title == null ? "" : title.trim();
         if (t.isEmpty() || t.length() > 100) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Grup başlığı 1-100 karakter olmalı.");
         }
         c.setTitle(t);
         convs.save(c);
+        notifyUpdated(c, me);
         return views(me, List.of(c)).get(0);
+    }
+
+    /** Grup fotografi (yalniz kullanici gruplari, yalniz yonetici). Avatar hattindan gecer: tur/boyut, yeniden kodlama, EXIF. */
+    @Transactional
+    public ConversationView setAvatar(Long me, Long id, org.springframework.web.multipart.MultipartFile file) {
+        Conversation c = requireUserGroupAdmin(id, me);
+        if (media == null) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE", "Depolama kullanılamıyor.");
+        }
+        String url = media.storeImage(file, edu.bingol.backend.media.ImageKind.AVATAR).url();
+        String old = c.getAvatarUrl();
+        c.setAvatarUrl(url);
+        convs.saveAndFlush(c);
+        if (old != null && !old.equals(url)) {
+            media.release(old);
+        }
+        notifyUpdated(c, me);
+        return views(me, List.of(c)).get(0);
+    }
+
+    /** Grup fotografini kaldirir (idempotent). */
+    @Transactional
+    public void removeAvatar(Long me, Long id) {
+        Conversation c = requireUserGroupAdmin(id, me);
+        String old = c.getAvatarUrl();
+        if (old == null) {
+            return;
+        }
+        c.setAvatarUrl(null);
+        convs.saveAndFlush(c);
+        if (media != null) {
+            media.release(old);
+        }
+        notifyUpdated(c, me);
     }
 
     @Transactional
@@ -200,7 +256,9 @@ public class ConversationService {
                 m.setJoinedAt(Instant.now());
                 m.setRole(ConversationMember.Role.MEMBER);
             }
+            m.setHiddenAt(null); // sohbeti silmis olsa da yeniden eklenince listede gorunur
             m.setLastReadMessageId(c.getLastMessageId() == null ? 0L : c.getLastMessageId());
+            m.setLastDeliveredMessageId(m.getLastReadMessageId());
             members.save(m);
         }
         return views(me, List.of(c)).get(0);
@@ -240,6 +298,37 @@ public class ConversationService {
         }
     }
 
+    /**
+     * "Sohbeti sil" (yalniz cagiran icin; idempotent). Birebir: imlec son mesaja alinir ve konusma listeden gizlenir;
+     * karsi taraf ve mesajlar degismez, yeni mesajla konusma yalniz yeni mesajlarla yeniden belirir. Kullanici grubu:
+     * {@link #leave} ile ayni etki + gizleme. Kulup/etkinlik odasi: 400 CONVERSATION_NOT_DELETABLE. Uye degilse 404.
+     * Sessize alma / arsiv durumu sifirlanir.
+     */
+    @Transactional
+    public void delete(Long me, Long id) {
+        Conversation c = convs.findById(id).orElseThrow(ConversationService::notFound);
+        ConversationMember self = members.findByConversationIdAndUserId(id, me).orElseThrow(ConversationService::notFound);
+        if (roomLinks != null && !roomLinks.findByConversationIdIn(List.of(id)).isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "CONVERSATION_NOT_DELETABLE",
+                    "Kulüp ve etkinlik sohbetleri silinemez.");
+        }
+        if (c.getType() == Conversation.Type.GROUP && self.getLeftAt() == null) {
+            leave(me, id);
+            self = members.findByConversationIdAndUserId(id, me).orElseThrow(ConversationService::notFound);
+        } else if (c.getType() == Conversation.Type.DIRECT && self.getLeftAt() != null) {
+            throw notFound();
+        }
+        long last = c.getLastMessageId() == null ? 0L : c.getLastMessageId();
+        self.setClearedUpToMessageId(Math.max(self.getClearedUpToMessageId(), last));
+        if (self.getHiddenAt() == null) {
+            self.setHiddenAt(Instant.now());
+        }
+        self.setMutedUntil(null);
+        self.setArchivedAt(null);
+        self.setArchiveSticky(false);
+        members.save(self);
+    }
+
     // --- yardimcilar ---
 
     /** Her biri var, aktif ve e-postasi dogrulanmis olmali; yoksa 404 (hangisinin gecersiz oldugu soylenmez). */
@@ -260,6 +349,43 @@ public class ConversationService {
     private ConversationMember requireMember(Long conversationId, Long userId) {
         return members.findByConversationIdAndUserIdAndLeftAtIsNull(conversationId, userId)
                 .orElseThrow(ConversationService::notFound);
+    }
+
+    /** Kullanici grubu yoneticisi; kulup/etkinlik odalari (kaynaga bagli) ve birebir konusmalar 400 NOT_A_GROUP. */
+    private Conversation requireUserGroupAdmin(Long id, Long me) {
+        Conversation c = requireGroupAdmin(id, me);
+        if (roomLinks != null && !roomLinks.findByConversationIdIn(List.of(id)).isEmpty()) {
+            throw notGroup();
+        }
+        return c;
+    }
+
+    /** Ad/foto degisikligini commit SONRASI tum aktif uyelere bildirir (`/user/queue/message-events`). */
+    private void notifyUpdated(Conversation c, Long actor) {
+        if (bus == null) {
+            return;
+        }
+        Runnable send = () -> {
+            try {
+                List<Long> ids = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(c.getId()).stream()
+                        .map(ConversationMember::getUserId).toList();
+                bus.publish("message-events", ids, new edu.bingol.backend.messaging.dto.MessagingDtos.ConversationUpdatedEvent(
+                        "conversation-updated", c.getId(), actor, c.getTitle(), c.getAvatarUrl(), Instant.now().toString()));
+            } catch (RuntimeException e) {
+                // teslim hatasi islemi bozmaz
+            }
+        };
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            send.run();
+                        }
+                    });
+        } else {
+            send.run();
+        }
     }
 
     private Conversation requireGroupAdmin(Long id, Long me) {
@@ -289,8 +415,11 @@ public class ConversationService {
                 page.stream().map(Conversation::getLastMessageId).filter(java.util.Objects::nonNull).toList()).stream()
                 .collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
-        Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(lastMessages.keySet());
+        Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(me, lastMessages.keySet());
         Set<Long> related = blocks.hiddenFrom(me);
+        // Son mesajim ise makbuz durumu: uyeler zaten yuklu, ek sorgu yalniz askidaki kullanici denetimi
+        Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), membersBy,
+                page.stream().collect(Collectors.toMap(Conversation::getId, c -> c.getType() == Conversation.Type.DIRECT)));
         Map<Long, Long> unread = new HashMap<>();
         for (Object[] row : messages.unreadCounts(me, ids, MessageRepository.excludedSenders(related))) {
             unread.put((Long) row[0], ((Number) row[1]).longValue());
@@ -308,9 +437,12 @@ public class ConversationService {
             // Gruba sonradan katilan, katilmadan onceki son mesaji onizlemede de gormez (gecmisle tutarli).
             Instant joined = ms.stream().filter(m -> m.getUserId().equals(me)).map(ConversationMember::getJoinedAt)
                     .findFirst().orElse(Instant.EPOCH);
-            MessageView lastView = last == null || (!direct && last.getCreatedAt().isBefore(joined)) ? null
+            ConversationMember mineM = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
+            long clearedUpTo = mineM == null ? 0L : mineM.getClearedUpToMessageId();
+            MessageView lastView = last == null || last.getId() <= clearedUpTo
+                    || (!direct && last.getCreatedAt().isBefore(joined)) ? null
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me))
-                    .withAttachments(lastAtt.get(last.getId()));
+                    .withAttachments(lastAtt.get(last.getId())).withStatus(lastStatus.get(last.getId()));
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();
@@ -322,7 +454,7 @@ public class ConversationService {
                     unread.getOrDefault(c.getId(), 0L), direct && peerId != null && related.contains(peerId),
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
-                    club ? room.getRefId() : null, event ? room.getRefId() : null);
+                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl());
         }).toList();
     }
 

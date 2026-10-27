@@ -95,7 +95,7 @@ class MessageServiceAttachmentsTest {
     void imageOnlyMessageIsAcceptedAndAttachmentsAreClaimedAndDelivered() {
         when(attachments.precheck(ME, CONV, List.of(5L))).thenReturn(List.of(5L));
         AttachmentView av = new AttachmentView(5L, "IMAGE", 800, 600, 1234, "image/jpeg", false, "/u", "/t");
-        when(attachments.viewsFor(List.of(100L))).thenReturn(Map.of(100L, List.of(av)));
+        when(attachments.viewsFor(any(), eq(List.of(100L)))).thenReturn(Map.of(100L, List.of(av)));
 
         MessageService.SendResult r = service.send(ME, CONV, "", "c1", null, List.of(5L));
 

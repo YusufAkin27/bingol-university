@@ -3,6 +3,7 @@ package edu.bingol.backend.messaging;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.messaging.dto.MessagingDtos;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReadReceipt;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReportMessageRequest;
@@ -106,6 +107,14 @@ public class MessageService {
         this.fanout = fanout;
     }
 
+    /** Iletildi/okundu makbuzlari (setter enjeksiyonu: yapici imzasi degismesin). Yoksa yalniz eski okundu olayi gider. */
+    private ReceiptService receipts;
+
+    @Autowired(required = false)
+    void setReceipts(ReceiptService receipts) {
+        this.receipts = receipts;
+    }
+
     @Autowired(required = false)
     void setAttachments(MessageAttachmentService attachments) {
         this.attachments = attachments;
@@ -144,10 +153,21 @@ public class MessageService {
      */
     public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
                            List<Long> attachmentIds) {
+        return send(senderId, conversationId, text, clientId, replyToMessageId, attachmentIds, null);
+    }
+
+    /** `viewOnce` true: yalniz ek doluyken ve en fazla 1 ek ile; aksi 400 VIEW_ONCE_INVALID. */
+    public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
+                           List<Long> attachmentIds, Boolean viewOnceFlag) {
         if (conversationId == null || clientId == null || clientId.isBlank() || clientId.length() > 64) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "conversationId ve clientId gerekli.");
         }
         boolean hasMedia = attachmentIds != null && !attachmentIds.isEmpty();
+        boolean viewOnce = Boolean.TRUE.equals(viewOnceFlag);
+        if (viewOnce && (!hasMedia || attachmentIds.size() != 1)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VIEW_ONCE_INVALID",
+                    "Tek gösterimlik mesajda tam olarak bir görsel olmalıdır.");
+        }
         if (hasMedia && attachments == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
         }
@@ -170,6 +190,7 @@ public class MessageService {
             // Baska konusmanin / katilma oncesi / silinmis / gizlenmis mesaja yanit verilemez (varligi da sizdirilmaz)
             Message parent = messages.findById(replyToMessageId).orElseThrow(MessageService::messageNotFound);
             if (!parent.getConversationId().equals(conversationId) || parent.isDeleted() || parent.isHidden()
+                    || parent.getId() <= sender.getClearedUpToMessageId()
                     || (since != null && parent.getCreatedAt().isBefore(since))) {
                 throw messageNotFound();
             }
@@ -186,7 +207,8 @@ public class MessageService {
             }
         }
         // Ek dogrulamasi mesaj hakkini harcamadan once (baskasinin/kullanilmis/uygunsuz ek -> 400)
-        List<Long> ids = hasMedia ? attachments.precheck(senderId, conversationId, attachmentIds) : List.of();
+        List<Long> ids = hasMedia ? (viewOnce ? attachments.precheck(senderId, conversationId, attachmentIds, true)
+                : attachments.precheck(senderId, conversationId, attachmentIds)) : List.of();
         limiter.check("msg:user:" + senderId, RATE_PER_MINUTE, Duration.ofMinutes(1));
 
         // Sifreleme transaction DISINDA: DB'ye yalnizca sifreli govde yazilir (docs/ENCRYPTION.md).
@@ -198,7 +220,7 @@ public class MessageService {
         codec.seal(draft, body);
         Message saved;
         try {
-            saved = tx.execute(s -> persist(draft, ids));
+            saved = tx.execute(s -> persist(draft, ids, viewOnce));
         } catch (DataIntegrityViolationException e) {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
@@ -215,17 +237,22 @@ public class MessageService {
         return new SendResult(view, true);
     }
 
-    private Message persist(Message draft, List<Long> attachmentIds) {
+    private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce) {
         String plain = draft.getBody();
         Message m = messages.saveAndFlush(draft);
         if (!attachmentIds.isEmpty()) {
             // Ayni transaction: baska mesaja/kullaniciya ait ya da kullanilmis ek varsa istisna -> mesaj da geri alinir
-            attachments.claim(m.getId(), m.getSenderId(), m.getConversationId(), attachmentIds);
+            if (viewOnce) {
+                attachments.claim(m.getId(), m.getSenderId(), m.getConversationId(), attachmentIds, true);
+            } else {
+                attachments.claim(m.getId(), m.getSenderId(), m.getConversationId(), attachmentIds);
+            }
         }
         m.setBody(plain); // @Transient: kayit sonrasi geri verilen nesnede duz metni koru (teslim/yanit icin)
         convs.touchLastMessage(m.getConversationId(), m.getId(), m.getCreatedAt());
         members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
         members.unarchiveOnMessage(m.getConversationId()); // yapiskan olmayan arsivler yeni mesajla cikar
+        members.unhideOnMessage(m.getConversationId()); // "sohbeti sil" yapanlarda konusma yeniden belirir
         return m;
     }
 
@@ -246,10 +273,19 @@ public class MessageService {
                 : active.stream().filter(a -> a.getJoinedAt().isAfter(parentAt))
                         .map(ConversationMember::getUserId).collect(java.util.stream.Collectors.toSet());
         List<Long> normal = recipients.stream().filter(id -> !late.contains(id)).toList();
-        bus.publish("messages", normal, view);
+        // Tek gosterimlikte gonderenin gorunumunde url yoktur; alicilara acilabilir (url'li) gorunum gider
+        boolean viewOnce = view.attachments().stream().anyMatch(a -> a.viewOnce());
+        MessageView others = viewOnce ? view.withAttachments(view.attachments().stream()
+                .map(a -> a.forRecipient(m.getConversationId())).toList()) : view;
+        if (viewOnce) {
+            bus.publish("messages", List.of(senderId), view);
+            bus.publish("messages", normal.stream().filter(id -> !id.equals(senderId)).toList(), others);
+        } else {
+            bus.publish("messages", normal, view);
+        }
         List<Long> lateRecipients = recipients.stream().filter(late::contains).toList();
         if (!lateRecipients.isEmpty()) {
-            bus.publish("messages", lateRecipients, view.withoutReplyPreview());
+            bus.publish("messages", lateRecipients, others.withoutReplyPreview());
         }
 
         // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
@@ -320,19 +356,27 @@ public class MessageService {
         Instant since = group ? me.getJoinedAt() : Instant.EPOCH;
         Set<Long> related = group ? blocks.hiddenFrom(userId) : Set.of();
         int s = CursorPage.clampSize(size);
-        List<Message> rows = after != null
+        long cleared = me.getClearedUpToMessageId(); // "sohbeti sil": bu id ve oncesi gorunmez
+        List<Message> rows = cleared > 0
+                ? (after != null ? messages.afterCleared(conversationId, since, cleared, after, PageRequest.of(0, s + 1))
+                        : messages.beforeCleared(conversationId, since, cleared, before, PageRequest.of(0, s + 1)))
+                : after != null
                 ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
                 : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));
         List<Message> page = rows.size() > s ? rows.subList(0, s) : rows;
         codec.openAll(page); // yalniz donecek sayfa cozulur
         Map<Long, MessageView> views = new java.util.HashMap<>();
-        assembler.assemble(userId, page, related, group ? me.getJoinedAt() : null).forEach(v -> views.put(v.id(), v));
+        assembler.assemble(userId, page, related, group ? me.getJoinedAt() : null).forEach(v -> views.put(v.id(),
+                cleared > 0 && v.replyTo() != null && v.replyToMessageId() != null && v.replyToMessageId() <= cleared
+                        ? v.withExtras(new MessagingDtos.ReplyPreview(v.replyToMessageId(), null, null, false),
+                                v.reactions(), v.myReaction())
+                        : v));
         return CursorPage.of(rows, s, Message::getId, m -> views.get(m.getId()));
     }
 
     /** Okundu imleci: yalnizca ileri gider, konusmadaki son mesaji gecemez. Imlec ilerlediyse diger uyelere bildirilir. */
     public void markRead(Long userId, Long conversationId, Long lastMessageId) {
-        requireMember(conversationId, userId);
+        ConversationMember me = requireMember(conversationId, userId);
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
         if (conv.getLastMessageId() == null) {
             return; // bos konusma: okunacak bir sey yok (no-op)
@@ -346,9 +390,15 @@ public class MessageService {
         } catch (ApiException e) {
             return;
         }
+        long oldRead = me.getLastReadMessageId();
+        long oldDelivered = me.getLastDeliveredMessageId();
         if (members.advanceRead(conversationId, userId, lastMessageId) > 0) {
             bus.publish("read-receipts", othersOf(conversationId, userId, true),
                     new ReadReceipt(conversationId, userId, lastMessageId));
+            // Yeni akis: mesaj sahibine /user/queue/message-events {type:"receipt", kind:"read"} (okuma iletildiyi de ilerletir)
+            if (receipts != null) {
+                receipts.onRead(userId, conversationId, oldRead, oldDelivered, lastMessageId);
+            }
         }
     }
 

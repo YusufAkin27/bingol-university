@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.CursorPage;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.community.permissions.ClubPermission;
@@ -43,7 +43,7 @@ class EventCalendarTest {
     private final OfficialEventRepository official = mock(OfficialEventRepository.class);
     private final CommunityService communities = mock(CommunityService.class);
     private final EventService svc = new EventService(events, rsvps, official, communities,
-            mock(NotificationService.class), mock(FileStorage.class));
+            mock(NotificationService.class), mock(MediaService.class));
 
     private final Actor me = new Actor(1L, false);
     private final YearMonth november = YearMonth.of(2026, 11);

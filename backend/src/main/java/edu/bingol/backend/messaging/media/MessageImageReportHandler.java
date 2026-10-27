@@ -60,8 +60,11 @@ public class MessageImageReportHandler implements ReportTargetHandler {
 
     @Override
     public Optional<MediaPreview> preview(Long targetId) {
-        return repo.findById(targetId).map(a -> MediaPreview.image(ADMIN_PREVIEW + a.getId() + "/preview",
-                ADMIN_PREVIEW + a.getId() + "/preview?thumb=true", a.getContentType()));
+        return repo.findById(targetId).map(a -> "VIDEO".equals(a.getKind())
+                ? MediaPreview.video(ADMIN_PREVIEW + a.getId() + "/preview",
+                        a.getThumbKey() == null ? null : ADMIN_PREVIEW + a.getId() + "/preview?thumb=true", a.getContentType())
+                : MediaPreview.image(ADMIN_PREVIEW + a.getId() + "/preview",
+                        ADMIN_PREVIEW + a.getId() + "/preview?thumb=true", a.getContentType()));
     }
 
     @Override

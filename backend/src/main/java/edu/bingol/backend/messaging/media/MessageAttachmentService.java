@@ -32,8 +32,15 @@ import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import edu.bingol.backend.messaging.dto.MessagingDtos.ViewedEvent;
+import edu.bingol.backend.messaging.ws.ChatEventBus;
+import edu.bingol.backend.media.Mp4Info;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpRange;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -106,9 +113,43 @@ public class MessageAttachmentService {
         return maxPerMessage;
     }
 
+    // Tek gosterimlik destegi (setter enjeksiyonu: yapici imzasi degismesin)
+    private MessageAttachmentViewRepository viewsRepo;
+    private ChatEventBus bus;
+    @Value("${app.chat.media.view-once-ttl-hours:24}")
+    private int viewOnceTtlHours = 24;
+
+    // Video mesaj sinirlari (varsayilanlar application.properties ile ayni)
+    @Value("${app.chat.media.video-max-bytes:41943040}")
+    private long videoMaxBytes = 40L << 20;
+    @Value("${app.chat.media.video-max-seconds:60}")
+    private int videoMaxSeconds = 60;
+    @Value("${app.chat.media.video-daily-limit:30}")
+    private int videoDailyLimit = 30;
+    /** Poster (onizleme karesi) uzun kenar siniri. */
+    static final int POSTER_MAX_DIM = 720;
+
+    @Autowired(required = false)
+    void setViewsRepo(MessageAttachmentViewRepository viewsRepo) {
+        this.viewsRepo = viewsRepo;
+    }
+
+    @Autowired(required = false)
+    void setBus(ChatEventBus bus) {
+        this.bus = bus;
+    }
+
     // ------------------------------------------------------------------ yukleme
 
     public AttachmentView upload(Long userId, Long conversationId, MultipartFile file) {
+        return upload(userId, conversationId, file, null);
+    }
+
+    /** `file` video/mp4 ise video (istege bagli `poster` ile), degilse gorsel hattidir. */
+    public AttachmentView upload(Long userId, Long conversationId, MultipartFile file, MultipartFile poster) {
+        if (isVideoUpload(file)) {
+            return uploadVideo(userId, conversationId, file, poster);
+        }
         limiter.check("chatmedia:min:" + userId, perMinute, Duration.ofMinutes(1));
         limiter.check("chatmedia:day:" + userId, perDay, Duration.ofDays(1));
         requireCanSend(userId, conversationId);
@@ -135,6 +176,100 @@ public class MessageAttachmentService {
             store.delete(BUCKET, pm.key());
             throw e;
         }
+    }
+
+    private static boolean isVideoUpload(MultipartFile file) {
+        if (file == null) {
+            return false;
+        }
+        String type = file.getContentType() == null ? "" : file.getContentType().toLowerCase(java.util.Locale.ROOT);
+        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(java.util.Locale.ROOT);
+        return type.startsWith("video/") || name.endsWith(".mp4") || name.endsWith(".mov");
+    }
+
+    private AttachmentView uploadVideo(Long userId, Long conversationId, MultipartFile file, MultipartFile poster) {
+        limiter.check("chatmedia:min:" + userId, perMinute, Duration.ofMinutes(1));
+        limiter.check("chatmedia:day:" + userId, perDay, Duration.ofDays(1));
+        limiter.check("chatvideo:day:" + userId, videoDailyLimit, Duration.ofDays(1));
+        requireCanSend(userId, conversationId);
+        if (repo.countByUploaderIdAndMessageIdIsNull(userId) >= pendingMax) {
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "CHAT_MEDIA_PENDING_LIMIT",
+                    "Gönderilmemiş çok fazla görsel var. Önce mevcut görselleri gönderin.", String.valueOf(pendingMax));
+        }
+        byte[] raw = readVideo(file);
+        Mp4Info.Info info;
+        try {
+            info = Mp4Info.parse(raw);
+        } catch (Mp4Info.Invalid | RuntimeException e) {
+            throw videoInvalid();
+        }
+        if (info.durationMs() <= 0) {
+            throw videoInvalid();
+        }
+        if (info.durationMs() > videoMaxSeconds * 1000L) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LONG",
+                    "Video en fazla " + videoMaxSeconds + " saniye olabilir.", String.valueOf(videoMaxSeconds));
+        }
+        byte[] posterRaw = poster == null || poster.isEmpty() ? null
+                : MediaUploads.read(poster, mediaProps.limits(ImageKind.CHAT).maxUploadBytes());
+        rejectIfBlocked(raw);
+        if (posterRaw != null) {
+            rejectIfBlocked(posterRaw);
+        }
+        String[] st = store.storeVideo(BUCKET, conversationId, raw, posterRaw, POSTER_MAX_DIM,
+                img -> rejectIfBlocked(img.data()));
+        try {
+            MessageAttachment a = new MessageAttachment();
+            a.setConversationId(conversationId);
+            a.setUploaderId(userId);
+            a.setKind("VIDEO");
+            a.setStorageKey(st[0]);
+            a.setThumbKey(st[1]);
+            // Poster varsa onun boyutu (dogru yonelimli kare); yoksa tkhd'den; ikisi de yoksa 0 (gorunumde null)
+            a.setWidth(st[1] != null ? Integer.parseInt(st[2]) : info.width());
+            a.setHeight(st[1] != null ? Integer.parseInt(st[3]) : info.height());
+            a.setBytes(raw.length);
+            a.setContentType("video/mp4");
+            a.setDurationMs((int) Math.min(info.durationMs(), Integer.MAX_VALUE));
+            return AttachmentView.of(repo.save(a));
+        } catch (RuntimeException e) {
+            store.delete(BUCKET, st[0]);
+            throw e;
+        }
+    }
+
+    /** Content-Type video/mp4, boyut siniri, ftyp imzasi; belleğe yalniz sinirli (video-max-bytes) okunur. */
+    private byte[] readVideo(MultipartFile file) {
+        String type = file.getContentType() == null ? ""
+                : file.getContentType().toLowerCase(java.util.Locale.ROOT).split(";")[0].trim();
+        if (file.isEmpty() || !"video/mp4".equals(type)) {
+            throw videoInvalid();
+        }
+        if (file.getSize() > videoMaxBytes) {
+            throw videoTooLarge();
+        }
+        try (java.io.InputStream in = file.getInputStream()) {
+            byte[] data = in.readNBytes((int) videoMaxBytes + 1);
+            if (data.length > videoMaxBytes) {
+                throw videoTooLarge();
+            }
+            if (!Mp4Info.hasFtyp(data)) {
+                throw videoInvalid();
+            }
+            return data;
+        } catch (java.io.IOException e) {
+            throw videoInvalid();
+        }
+    }
+
+    private ApiException videoTooLarge() {
+        long mb = Math.max(1, videoMaxBytes / 1024 / 1024);
+        return new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "VIDEO_TOO_LARGE",
+                "Video en fazla " + mb + " MB olabilir.", String.valueOf(mb));
+    }
+
+    private static ApiException videoInvalid() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", "Geçersiz video dosyası.");
     }
 
     private void rejectIfBlocked(byte[] data) {
@@ -177,6 +312,11 @@ public class MessageAttachmentService {
 
     /** Gonderimden once hizli dogrulama (sayi, tekrar, sahiplik). Gecersiz her durumda ayni 400. */
     public List<Long> precheck(Long senderId, Long conversationId, List<Long> ids) {
+        return precheck(senderId, conversationId, ids, false);
+    }
+
+    /** `viewOnce` icin video reddedilir (VIEW_ONCE_INVALID); mesajda en fazla 1 video (VIDEO_LIMIT). */
+    public List<Long> precheck(Long senderId, Long conversationId, List<Long> ids, boolean viewOnce) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -195,6 +335,14 @@ public class MessageAttachmentService {
             // Tekrar gonderim (ayni clientId) mesaj zaten baglandiysa servis bunu once yakalar; burada gercek hata
             throw invalid();
         }
+        long videos = rows.stream().filter(MessageAttachment::isVideo).count();
+        if (viewOnce && videos > 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VIEW_ONCE_INVALID",
+                    "Tek gösterimlik mesajda tam olarak bir görsel olmalıdır.");
+        }
+        if (videos > 1) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VIDEO_LIMIT", "Bir mesaja en fazla bir video eklenebilir.");
+        }
         return List.copyOf(ids);
     }
 
@@ -207,6 +355,15 @@ public class MessageAttachmentService {
         int n = repo.claim(messageId, ids, senderId, conversationId);
         if (n != ids.size()) {
             throw invalid();
+        }
+    }
+
+    /** Tek gosterimlik mesaj: `claim` + ekleri `viewOnce` isaretler (ayni transaction). */
+    @Transactional
+    public void claim(Long messageId, Long senderId, Long conversationId, List<Long> ids, boolean viewOnce) {
+        claim(messageId, senderId, conversationId, ids);
+        if (viewOnce && ids != null && !ids.isEmpty()) {
+            repo.markViewOnce(ids);
         }
     }
 
@@ -226,6 +383,32 @@ public class MessageAttachmentService {
         repo.findByMessageIdIn(messageIds).stream()
                 .sorted(java.util.Comparator.comparing(MessageAttachment::getId))
                 .forEach(a -> out.computeIfAbsent(a.getMessageId(), k -> new ArrayList<>()).add(AttachmentView.of(a)));
+        return out;
+    }
+
+    /**
+     * Goruntuleyene gore ek gorunumleri: tek gosterimlikte alici icin `viewed` = ben actim mi, gonderen icin
+     * en az bir alici acti mi; url/thumbUrl sizdirilmaz ({@link AttachmentView#of(MessageAttachment, Long, boolean)}).
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, List<AttachmentView>> viewsFor(Long viewerId, Collection<Long> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) {
+            return Map.of();
+        }
+        List<MessageAttachment> rows = repo.findByMessageIdIn(messageIds);
+        List<Long> once = rows.stream().filter(MessageAttachment::isViewOnce).map(MessageAttachment::getId).toList();
+        Set<Long> mine = Set.of();
+        Set<Long> any = Set.of();
+        if (!once.isEmpty() && viewsRepo != null) {
+            mine = new HashSet<>(viewsRepo.viewedBy(viewerId, once));
+            any = new HashSet<>(viewsRepo.viewedByAnyone(once));
+        }
+        Map<Long, List<AttachmentView>> out = new HashMap<>();
+        for (MessageAttachment a : rows.stream().sorted(java.util.Comparator.comparing(MessageAttachment::getId)).toList()) {
+            boolean viewed = a.isViewOnce()
+                    && (a.getUploaderId().equals(viewerId) ? any.contains(a.getId()) : mine.contains(a.getId()));
+            out.computeIfAbsent(a.getMessageId(), k -> new ArrayList<>()).add(AttachmentView.of(a, viewerId, viewed));
+        }
         return out;
     }
 
@@ -255,7 +438,7 @@ public class MessageAttachmentService {
             return Optional.empty();
         }
         Conversation conv = convs.findById(conversationId).orElse(null);
-        if (conv == null) {
+        if (conv == null || m.getId() <= me.getClearedUpToMessageId()) { // "sohbeti sil" oncesi mesajin eki
             return Optional.empty();
         }
         // Gruba sonradan katilan, katilmadan onceki mesajlarin eklerini gormez (gecmisle tutarli)
@@ -278,12 +461,167 @@ public class MessageAttachmentService {
     /** Dogrudan akis (Bearer): no-store + private. */
     public ResponseEntity<Resource> stream(Long userId, Long conversationId, Long attachmentId, boolean thumb) {
         MessageAttachment a = require(userId, conversationId, attachmentId);
+        if (a.isViewOnce()) {
+            if (thumb) {
+                throw notFound(); // onizleme sizdirilmaz
+            }
+            return openViewOnce(userId, a);
+        }
+        if (a.isVideo() && !thumb) {
+            throw notFound(); // video yalniz Range destekli uctan (serve) akar
+        }
+        if (thumb && a.getThumbKey() == null) {
+            throw notFound(); // posteri olmayan video
+        }
         return privateNoStore(store.serve(BUCKET, thumb ? a.getThumbKey() : a.getStorageKey()));
+    }
+
+    /**
+     * Denetleyici girisi: video govdesi icin HTTP Range (206/416) ile dogrudan `resp`a yazar ve null doner;
+     * diger her sey (gorsel, poster) {@link #stream} ile ayni ResponseEntity'dir. Yetki ayni ({@link #accessible}).
+     */
+    public ResponseEntity<Resource> serve(Long userId, Long conversationId, Long attachmentId, boolean thumb,
+                                          String rangeHeader, HttpServletResponse resp) {
+        MessageAttachment a = require(userId, conversationId, attachmentId);
+        if (a.isVideo() && !thumb) {
+            writeVideo(a, rangeHeader, resp);
+            return null;
+        }
+        return stream(userId, conversationId, attachmentId, thumb);
+    }
+
+    private void writeVideo(MessageAttachment a, String rangeHeader, HttpServletResponse resp) {
+        long len = a.getBytes();
+        long start = 0;
+        long end = len - 1;
+        int status = HttpStatus.OK.value();
+        if (rangeHeader != null && !rangeHeader.isBlank()) {
+            try {
+                List<HttpRange> ranges = HttpRange.parseRanges(rangeHeader);
+                if (!ranges.isEmpty()) {
+                    start = ranges.get(0).getRangeStart(len);
+                    end = ranges.get(0).getRangeEnd(len);
+                    status = HttpStatus.PARTIAL_CONTENT.value();
+                }
+            } catch (IllegalArgumentException e) {
+                start = len; // gecersiz aralik: asagida 416
+            }
+        }
+        resp.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
+        if (len <= 0 || start >= len || start > end) {
+            resp.setStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+            resp.setHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + len);
+            return;
+        }
+        resp.setStatus(status);
+        resp.setContentType("video/mp4");
+        resp.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().cachePrivate().getHeaderValue());
+        resp.setHeader("X-Content-Type-Options", "nosniff");
+        resp.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline");
+        resp.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(end - start + 1));
+        if (status == HttpStatus.PARTIAL_CONTENT.value()) {
+            resp.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + len);
+        }
+        try {
+            store.streamVideo(BUCKET, a.getStorageKey(), a.getConversationId(), start, end, resp.getOutputStream());
+        } catch (java.io.IOException e) {
+            log.debug("Video akisi kesildi (ek {}): {}", a.getId(), e.toString()); // istemci kapatmis olabilir
+        } catch (RuntimeException e) {
+            log.warn("Video okunamadi (ek {}): {}", a.getId(), e.toString());
+        }
+    }
+
+    /**
+     * Tek gosterimlik acis: gonderen 403; ikinci ve sonraki acis 410. Baytlar once okunur (okunamazsa kayit
+     * tuketilmez); (attachment_id, user_id) birincil anahtari eszamanli ikinci istegi eler. Birebirde (ya da tum
+     * alicilar acinca) baytlar silinir; yalniz goruntuleme kaydi kalir.
+     */
+    private ResponseEntity<Resource> openViewOnce(Long userId, MessageAttachment a) {
+        if (a.getUploaderId().equals(userId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "MEDIA_VIEW_ONCE_OWN", "Tek gösterimlik görselinizi açamazsınız.");
+        }
+        if (a.getPurgedAt() != null || viewsRepo.existsByAttachmentIdAndUserId(a.getId(), userId)) {
+            throw expired();
+        }
+        ResponseEntity<Resource> res = store.serve(BUCKET, a.getStorageKey());
+        if (res.getStatusCode().isError()) {
+            throw expired(); // bayt yok (silinmis)
+        }
+        try {
+            viewsRepo.saveAndFlush(new MessageAttachmentView(a.getId(), userId));
+        } catch (DataIntegrityViolationException e) {
+            throw expired(); // eszamanli ikinci istek
+        }
+        afterViewed(a, userId);
+        HttpHeaders h = new HttpHeaders();
+        h.putAll(res.getHeaders());
+        h.set(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().cachePrivate().getHeaderValue());
+        h.set(HttpHeaders.CONTENT_DISPOSITION, "inline");
+        return ResponseEntity.status(res.getStatusCode()).headers(h).body(res.getBody());
+    }
+
+    /** Gondericiye "viewed" olayi; tum alicilar actiysa baytlar silinir. Hata acisi bozmaz. */
+    private void afterViewed(MessageAttachment a, Long viewerId) {
+        try {
+            long recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(a.getConversationId())
+                    .stream().filter(m -> !m.getUserId().equals(a.getUploaderId())).count();
+            if (viewsRepo.countByAttachmentId(a.getId()) >= recipients) {
+                purge(a);
+            }
+            if (bus != null) {
+                bus.publish("message-events", List.of(a.getUploaderId()), new ViewedEvent("viewed",
+                        a.getConversationId(), a.getMessageId(), a.getId(), viewerId, Instant.now().toString(), null));
+            }
+        } catch (RuntimeException e) {
+            log.warn("Tek gosterimlik acis sonrasi islem basarisiz (ek {}): {}", a.getId(), e.toString());
+        }
+    }
+
+    /** Baytlari diskten siler, satiri (ve goruntuleme kayitlarini) tutar. Idempotent. */
+    void purge(MessageAttachment a) {
+        if (a.getPurgedAt() != null) {
+            return;
+        }
+        a.setPurgedAt(Instant.now());
+        repo.save(a);
+        store.delete(BUCKET, a.getStorageKey());
+    }
+
+    /** Suresi dolan (varsayilan 24 sa) tek gosterimlik eklerin baytlarini siler; silinen sayisi doner. */
+    public int purgeExpiredViewOnce() {
+        int n = 0;
+        try {
+            Instant before = Instant.now().minus(Duration.ofHours(Math.max(1, viewOnceTtlHours)));
+            for (MessageAttachment a : repo.expiredViewOnce(before, PageRequest.of(0, 500))) {
+                try {
+                    purge(a);
+                    n++;
+                } catch (RuntimeException e) {
+                    log.warn("Tek gosterimlik ek silinemedi {}: {}", a.getId(), e.toString());
+                }
+            }
+        } catch (RuntimeException e) {
+            log.warn("Tek gosterimlik temizlik yarim kaldi: {}", e.toString());
+        }
+        return n;
     }
 
     /** Yonetici onizlemesi icin: yetki denetimi cagiranda (ADMIN), gizli ekler dahil. */
     public ResponseEntity<Resource> streamForAdmin(Long attachmentId, boolean thumb) {
+        return streamForAdmin(attachmentId, thumb, null, null);
+    }
+
+    /** Video govdesi `resp`a Range destekli yazilir (null doner); poster/gorsel ResponseEntity. */
+    public ResponseEntity<Resource> streamForAdmin(Long attachmentId, boolean thumb, String rangeHeader,
+                                                   HttpServletResponse resp) {
         MessageAttachment a = repo.findById(attachmentId).orElseThrow(MessageAttachmentService::notFound);
+        if (a.isVideo() && !thumb && resp != null) {
+            writeVideo(a, rangeHeader, resp);
+            return null;
+        }
+        if (thumb ? a.getThumbKey() == null : a.isVideo()) {
+            throw notFound();
+        }
         return privateNoStore(store.serve(BUCKET, thumb ? a.getThumbKey() : a.getStorageKey()));
     }
 
@@ -300,10 +638,15 @@ public class MessageAttachmentService {
     /** <img> icin kisa omurlu imzali adresler. Gizleme/silme ANAHTARI degistirdiginden eski adresler olur. */
     public AttachmentView.Link link(Long userId, Long conversationId, Long attachmentId) {
         MessageAttachment a = require(userId, conversationId, attachmentId);
+        if (a.isViewOnce()) {
+            throw notFound(); // paylasilabilir adres uretilmez
+        }
         Duration ttl = Duration.ofSeconds(Math.max(30, linkTtlSeconds));
         Instant exp = Instant.now().plus(ttl.compareTo(Duration.ofHours(1)) > 0 ? Duration.ofHours(1) : ttl);
-        return new AttachmentView.Link(signer.sign(BUCKET, a.getStorageKey(), ttl),
-                signer.sign(BUCKET, a.getThumbKey(), ttl), exp.getEpochSecond());
+        String thumbUrl = a.getThumbKey() == null ? null : signer.sign(BUCKET, a.getThumbKey(), ttl);
+        // Video govdesi imzali adresle verilmez (Range + konusma anahtari gerekir): url null, yalniz poster adresi
+        return new AttachmentView.Link(a.isVideo() ? null : signer.sign(BUCKET, a.getStorageKey(), ttl), thumbUrl,
+                exp.getEpochSecond());
     }
 
     // ------------------------------------------------------------------ silme / gizleme
@@ -349,7 +692,8 @@ public class MessageAttachmentService {
                 return;
             }
             String oldKey = a.getStorageKey();
-            String[] nk = store.copy(BUCKET, oldKey, a.getThumbKey());
+            String[] nk = a.isVideo() ? store.copyVideo(BUCKET, oldKey, a.getThumbKey(), a.getConversationId())
+                    : store.copy(BUCKET, oldKey, a.getThumbKey());
             a.setHiddenAt(Instant.now());
             a.setHiddenBy("MODERATION");
             if (nk != null) {
@@ -419,6 +763,10 @@ public class MessageAttachmentService {
 
     private static ApiException invalid() {
         return new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
+    }
+
+    private static ApiException expired() {
+        return new ApiException(HttpStatus.GONE, "MEDIA_VIEW_ONCE_EXPIRED", "Bu görsel yalnızca bir kez görüntülenebilir.");
     }
 
     private static ApiException notFound() {

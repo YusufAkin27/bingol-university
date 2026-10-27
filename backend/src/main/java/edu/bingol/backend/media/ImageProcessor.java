@@ -50,13 +50,18 @@ public class ImageProcessor {
 
     /** Baytlari dogrular ve isler. Gecersizse {@link ApiException} (400/413/503) firlatir. */
     public ProcessedImage process(byte[] data, ImageKind kind) {
+        return process(data, kind, 0);
+    }
+
+    /** `dimCap` > 0 ise uzun kenar bu degerle (ve tur sinirinin kucugu ile) sinirlanir (ornek: video posteri 720 px). */
+    public ProcessedImage process(byte[] data, ImageKind kind, int dimCap) {
         String format = detect(data);
         if (format == null) {
             throw MediaUploads.invalid();
         }
         acquire();
         try {
-            return doProcess(data, format, kind);
+            return doProcess(data, format, kind, dimCap);
         } finally {
             slots.release();
         }
@@ -94,7 +99,7 @@ public class ImageProcessor {
         return null;
     }
 
-    private ProcessedImage doProcess(byte[] data, String format, ImageKind kind) {
+    private ProcessedImage doProcess(byte[] data, String format, ImageKind kind, int dimCap) {
         ImageReader reader = null;
         try (ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(data))) {
             reader = findReader(format, in);
@@ -112,8 +117,9 @@ public class ImageProcessor {
             }
             // Cok buyuk goruntuyu cozerken bellek harcamamak icin kaynak ornekleme (hedefin en az 2 kati kalir)
             MediaProperties.Limits lim = props.limits(kind);
+            int maxDim = dimCap > 0 ? Math.min(dimCap, lim.maxDimension()) : lim.maxDimension();
             ImageReadParam param = reader.getDefaultReadParam();
-            int sub = Math.max(1, Math.max(w, h) / (lim.maxDimension() * 2));
+            int sub = Math.max(1, Math.max(w, h) / (maxDim * 2));
             if (sub > 1) {
                 param.setSourceSubsampling(sub, sub, 0, 0);
             }
@@ -122,7 +128,7 @@ public class ImageProcessor {
                 throw corrupt();
             }
             int orientation = "jpeg".equals(format) ? ExifOrientation.read(data) : 1;
-            BufferedImage base = orient(scaleTo(toArgb(src), lim.maxDimension()), orientation);
+            BufferedImage base = orient(scaleTo(toArgb(src), maxDim), orientation);
             boolean alpha = hasTransparency(base);
             // Sikistirma dongusu: kaliteyi kademeli dusur; sigmazsa boyutu %15 kucult ve yeniden dene
             BufferedImage main = base;

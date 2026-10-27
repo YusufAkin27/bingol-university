@@ -34,9 +34,13 @@ public final class MessagingDtos {
      * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
      */
     public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId, Long replyToMessageId,
-                                     @Size(max = 4) List<Long> attachmentIds) {
+                                     @Size(max = 4) List<Long> attachmentIds, Boolean viewOnce) {
+        public SendMessageRequest(String text, String clientId, Long replyToMessageId, List<Long> attachmentIds) {
+            this(text, clientId, replyToMessageId, attachmentIds, null);
+        }
+
         public SendMessageRequest(String text, String clientId, Long replyToMessageId) {
-            this(text, clientId, replyToMessageId, null);
+            this(text, clientId, replyToMessageId, null, null);
         }
     }
 
@@ -52,6 +56,9 @@ public final class MessagingDtos {
     public record ArchiveRequest(Boolean keepArchived) {}
 
     public record ReadRequest(@NotNull Long lastMessageId) {}
+
+    /** Iletildi ack'i: `lastMessageId`'ye kadar olan mesajlar bu cihaza ulasti. */
+    public record DeliveredRequest(@NotNull Long lastMessageId) {}
 
     public record ReportMessageRequest(@NotNull ReportReason reason, @Size(max = 500) String note) {}
 
@@ -75,20 +82,35 @@ public final class MessagingDtos {
     public record MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                               boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
                               boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
-                              String myReaction, List<AttachmentView> attachments) {
+                              String myReaction, List<AttachmentView> attachments,
+                              String status) {
         public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                            boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
                            boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
                            String myReaction) {
             this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
-                    editedAt, deleted, reactions, myReaction, List.of());
+                    editedAt, deleted, reactions, myReaction, List.of(), null);
+        }
+
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, null);
+        }
+
+        /** Makbuz durumu (SENT | DELIVERED | READ); yalniz istek sahibinin kendi mesajlarinda dolu. */
+        public MessageView withStatus(String s) {
+            return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s);
         }
 
         /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
         public MessageView withAttachments(List<AttachmentView> list) {
             return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    List.copyOf(list));
+                    List.copyOf(list), status);
         }
 
         public static MessageView of(Message m) {
@@ -111,7 +133,7 @@ public final class MessagingDtos {
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine, attachments);
+                    reply, edited, editedAt, deleted, counts, mine, attachments, status);
         }
 
         public MessageView withoutReplyPreview() {
@@ -119,12 +141,31 @@ public final class MessagingDtos {
         }
     }
 
+    /**
+     * /user/queue/message-events, type = "receipt": `kind` delivered | read; `userId` ack/okuyan kullanici,
+     * `upToMessageId` alicinin bu kimlige kadar olan KENDI mesajlari `status`e (DELIVERED | READ) ilerledi.
+     * Grupta toplulastirma sunucuda yapilir: yalniz tum diger aktif uyeler esigi gectiginde dusulur.
+     */
+    public record ReceiptEvent(String type, Long conversationId, String kind, Long upToMessageId, Long userId,
+                               String at, String status) {}
+
     /** Tepki sonucu / olayi: toplam sayaclar ve (yalniz istek sahibi icin) kendi tepkisi. */
     public record ReactionSummary(Long messageId, List<ReactionCount> reactions, String myReaction) {}
 
     /** /user/queue/message-events: type = edited | deleted | reaction (okundu bilgisi /user/queue/read-receipts). */
     public record MessageEvent(String type, Long conversationId, Long messageId, Long userId, MessageView message,
                                String emoji, List<ReactionCount> reactions, String at) {}
+
+    /**
+     * /user/queue/message-events, type = "viewed": alici tek gosterimlik eki acti (gondericiye gider).
+     * `message` opsiyoneldir (su an null).
+     */
+    public record ViewedEvent(String type, Long conversationId, Long messageId, Long attachmentId, Long userId,
+                              String at, MessageView message) {}
+
+    /** /user/queue/message-events, type = "conversation-updated": grup adi/fotografi degisti (tum uyelere). */
+    public record ConversationUpdatedEvent(String type, Long conversationId, Long userId, String title,
+                                           String avatarUrl, String at) {}
 
     public record UnreadItem(Long conversationId, long unread, boolean muted) {}
 
@@ -134,7 +175,7 @@ public final class MessagingDtos {
     public record ConversationView(Long id, String type, String title, UserSummary peer, int memberCount,
                                    boolean admin, MessageView lastMessage, long unreadCount, boolean blocked,
                                    String createdAt, boolean muted, String mutedUntil, boolean archived,
-                                   boolean mutedForever, Long communityId, Long eventId) {}
+                                   boolean mutedForever, Long communityId, Long eventId, String avatarUrl) {}
 
     public record MemberView(Long userId, String displayName, String avatarUrl, String role) {}
 
@@ -145,13 +186,20 @@ public final class MessagingDtos {
     // --- WebSocket ---
 
     public record ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
-                           List<Long> attachmentIds) {
+                           List<Long> attachmentIds, Boolean viewOnce) {
+        public ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
+                        List<Long> attachmentIds) {
+            this(conversationId, text, clientId, replyToMessageId, attachmentIds, null);
+        }
+
         public ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId) {
-            this(conversationId, text, clientId, replyToMessageId, null);
+            this(conversationId, text, clientId, replyToMessageId, null, null);
         }
     }
 
     public record ChatRead(Long conversationId, Long lastMessageId) {}
+
+    public record ChatDelivered(Long conversationId, Long lastMessageId) {}
 
     public record ChatTyping(Long conversationId) {}
 

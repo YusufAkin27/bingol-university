@@ -41,7 +41,7 @@ ID2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | idof)
 AUTH1="Authorization: Bearer $T1"; AUTH2="Authorization: Bearer $T2"
 
 echo "== profil"
-check "guncelle" 200 "$(code -X PATCH -H "$H" -H "$AUTH1" $A/users/me -d '{"department":"Bilgisayar Muhendisligi","classYear":3,"bio":"Merhaba"}')"
+check "guncelle" 200 "$(code -X PATCH -H "$H" -H "$AUTH1" $A/users/me -d '{"faculty":"M\u00fchendislik Fak\u00fcltesi","department":"Bilgisayar M\u00fchendisli\u011fi","grade":"3","bio":"Merhaba"}')"
 check "gecersiz classYear" 400 "$(code -X PATCH -H "$H" -H "$AUTH1" $A/users/me -d '{"classYear":99}')"
 check "bozuk json 400" 400 "$(code -X POST -H "$H" -H "$AUTH1" $A/devices -d '{bozuk')"
 check "arama" 200 "$(code -H "$AUTH2" "$A/users/search?q=ali")"

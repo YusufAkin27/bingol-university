@@ -3,6 +3,7 @@ package edu.bingol.backend.messaging;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.messaging.dto.MessagingDtos.DeliveredRequest;
 import edu.bingol.backend.messaging.dto.MessagingDtos.EditMessageRequest;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReactRequest;
@@ -40,9 +41,11 @@ public class MessageController {
     private final MessageActionService actions;
     private final PresenceService presence;
     private final RateLimiter limiter;
+    private final ReceiptService receipts;
 
     public MessageController(MessageService messages, MessageActionService actions, PresenceService presence,
-                             RateLimiter limiter) {
+                             RateLimiter limiter, ReceiptService receipts) {
+        this.receipts = receipts;
         this.actions = actions;
         this.messages = messages;
         this.presence = presence;
@@ -64,7 +67,7 @@ public class MessageController {
     @PostMapping("/conversations/{id}/messages")
     public ResponseEntity<MessageView> send(@PathVariable Long id, @Valid @RequestBody SendMessageRequest r) {
         MessageService.SendResult res = messages.send(CurrentUser.id(), id, r.text(), r.clientId(), r.replyToMessageId(),
-                r.attachmentIds());
+                r.attachmentIds(), r.viewOnce());
         return ResponseEntity.status(res.created() ? HttpStatus.CREATED : HttpStatus.OK).body(res.message());
     }
 
@@ -72,6 +75,15 @@ public class MessageController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void read(@PathVariable Long id, @Valid @RequestBody ReadRequest r) {
         messages.markRead(CurrentUser.id(), id, r.lastMessageId());
+    }
+
+    /** Iletildi ack'i: imlec yalniz ileri gider; kendi mesajlari yok sayilir. Dakikada 120. */
+    @PostMapping("/conversations/{id}/delivered")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delivered(@PathVariable Long id, @Valid @RequestBody DeliveredRequest r) {
+        Long uid = CurrentUser.id();
+        limiter.check("delivered:" + uid, ReceiptService.DELIVERED_PER_MINUTE, Duration.ofMinutes(1));
+        receipts.markDelivered(uid, id, r.lastMessageId());
     }
 
     /** Duzenle (yalniz gonderen, sure sinirli). */

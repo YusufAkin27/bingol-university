@@ -52,3 +52,11 @@ Kullanici adi aramasi mevcut `idx_perf_user_name_trgm` indeksini kullanir (sorgu
 ## Akademik katalog ve sinif (V200)
 `catalog` paketi: `GET /api/catalog/academic` (tum katalog, ETag + 1 gun onbellek) ve `GET /api/catalog/departments?q=&limit=` (bolum arama, en cok 30). Kaynak: `resources/catalog/academic.json`.
 `app_user.grade` (V200, VARCHAR 8: PREP, 1..6, MASTER, PHD). `ProfileView` ve `PATCH /api/users/me` `grade` icerir; `faculty`/`department`/`grade` yazilirken katalogla dogrulanir (400 `ACADEMIC_INVALID`), bos metin temizler. Mevcut serbest metin degerlere dokunulmaz. `POST /api/auth/register` ayni alanlari opsiyonel alir (bekleyen kayit `reg:<email>` icinde tasinir, hesap olusurken yazilir).
+
+## Rehber eslestirme (V240)
+`POST /api/users/contacts/match` `{"hashes":[sha256 hex...]}` (en cok 500, asim 400 `CONTACTS_TOO_MANY`; yinelenen/bozuk hash yok sayilir).
+Hash = rehberdeki e-postanin kirpilmis, kucuk harfe cevrilmis halinin SHA-256 hex'i. Yanit `{matches:[{hash,userId,displayName,avatarUrl,faculty,department}]}`.
+Yalnizca aktif, dogrulanmis, bingol.edu.tr (alt alan dahil) hesaplar; kendisi ve iki yonlu engel iliskisi olanlar cikarilir; avatar/fakulte/bolum
+alan bazli gizlilige (`PublicProfileMapper`) uyar. Rate limit: kullanici basina 6/saat, IP basina 30/saat. Hash ve sonuclar saklanmaz/loglanmaz.
+`app_user.email_sha256` (VARCHAR 64) + indeks `usr240_email_sha256`: `User` entity'sinin `@PrePersist/@PreUpdate` kancasi doldurur,
+silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu sutunu icermez. Not: profilde "dizinde gorunme" ayari yoktur; uygulanmadi.

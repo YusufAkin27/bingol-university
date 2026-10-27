@@ -35,7 +35,8 @@ public class MessageAttachment {
     @Column(nullable = false, length = 80)
     private String storageKey;
 
-    @Column(nullable = false, length = 80)
+    /** Video icin poster anahtari; poster yoksa null. */
+    @Column(length = 80)
     private String thumbKey;
 
     @Column(nullable = false)
@@ -50,6 +51,9 @@ public class MessageAttachment {
     @Column(nullable = false, length = 40)
     private String contentType;
 
+    /** Yalniz video: sure (ms). */
+    private Integer durationMs;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -57,6 +61,17 @@ public class MessageAttachment {
 
     @Column(length = 16)
     private String hiddenBy;
+
+    /** Tek gosterimlik: alicilar yalnizca bir kez acabilir; onizleme/link yok. */
+    @Column(nullable = false)
+    private boolean viewOnce = false;
+
+    /** Tek gosterimlik baytlar diskten silindi (goruntuleme kaydi kalir). */
+    private Instant purgedAt;
+
+    public boolean isVideo() {
+        return "VIDEO".equals(kind);
+    }
 
     public boolean isHidden() {
         return hiddenAt != null;

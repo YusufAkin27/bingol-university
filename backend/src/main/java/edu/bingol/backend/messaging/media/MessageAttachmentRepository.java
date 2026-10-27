@@ -36,6 +36,17 @@ public interface MessageAttachmentRepository extends JpaRepository<MessageAttach
     int claim(@Param("mid") Long messageId, @Param("ids") Collection<Long> ids, @Param("uid") Long uploaderId,
               @Param("cid") Long conversationId);
 
+    /** Tek gosterimlik isaretle (claim ile ayni transaction). */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE MessageAttachment a SET a.viewOnce = true WHERE a.id IN :ids")
+    int markViewOnce(@Param("ids") Collection<Long> ids);
+
+    /** Suresi dolmus (olusturma `before`dan eski), baytlari hala duran tek gosterimlik ekler. */
+    @Query("SELECT a FROM MessageAttachment a WHERE a.viewOnce = true AND a.purgedAt IS NULL AND a.messageId IS NOT NULL "
+            + "AND a.createdAt < :before ORDER BY a.id")
+    List<MessageAttachment> expiredViewOnce(@Param("before") Instant before,
+                                            org.springframework.data.domain.Pageable page);
+
     /** Yalnizca hala baglanmamissa siler (temizleyici ile mesaja baglama yarisi); silinen satir sayisi doner. */
     @org.springframework.transaction.annotation.Transactional
     @Modifying

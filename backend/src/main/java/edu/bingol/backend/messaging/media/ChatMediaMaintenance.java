@@ -41,6 +41,15 @@ public class ChatMediaMaintenance {
             }
         }
 
+        /** Suresi (24 sa) dolan tek gosterimlik eklerin baytlari silinir; goruntuleme kayitlari kalir. */
+        @Scheduled(cron = "${app.chat.media.view-once-cron:0 30 * * * *}", zone = "Europe/Istanbul")
+        public void purgeViewOnce() {
+            int n = service.purgeExpiredViewOnce();
+            if (n > 0) {
+                log.info("Tek gosterimlik gorsel temizligi: {} ek icerigi silindi", n);
+            }
+        }
+
         int run() {
             return service.cleanup(Duration.ofHours(unclaimedHours));
         }
@@ -80,6 +89,7 @@ public class ChatMediaMaintenance {
                 e.put("height", a.getHeight());
                 e.put("bytes", a.getBytes());
                 e.put("removed", a.isHidden());
+                e.put("viewOnce", a.isViewOnce()); // tek gosterimlik: yalniz meta, icerik hicbir durumda yok
                 return e;
             }).toList();
             return Map.of("count", rows.size(), "totalBytes", rows.stream().mapToLong(MessageAttachment::getBytes).sum(),

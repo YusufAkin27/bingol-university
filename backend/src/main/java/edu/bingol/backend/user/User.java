@@ -77,6 +77,18 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    /** Rehber eslestirme icin e-postanin SHA-256'si; kayitta/guncellemede otomatik, silinmis hesapta null. */
+    @Column(length = 64)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String emailSha256;
+
+    @jakarta.persistence.PrePersist
+    @jakarta.persistence.PreUpdate
+    void syncEmailHash() {
+        boolean gone = status == UserStatus.DELETED || deletedAt != null || email == null;
+        emailSha256 = gone ? null : edu.bingol.backend.common.Hashing.sha256(email.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
     public boolean isActive() {
         return status == UserStatus.ACTIVE;
     }

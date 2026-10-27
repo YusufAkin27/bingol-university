@@ -33,6 +33,10 @@ public class Conversation {
     @Column(length = 100)
     private String title;
 
+    /** Yalnizca kullanici gruplari: grup fotografi (/files/avatars/...). */
+    @Column(length = 300)
+    private String avatarUrl;
+
     @Column(nullable = false)
     private Long createdBy;
 

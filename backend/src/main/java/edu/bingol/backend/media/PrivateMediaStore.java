@@ -3,7 +3,15 @@ package edu.bingol.backend.media;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.config.MediaProperties;
 import edu.bingol.backend.config.StorageProperties;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.function.Consumer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -40,7 +48,7 @@ public class PrivateMediaStore {
 
     private static final Logger log = LoggerFactory.getLogger(PrivateMediaStore.class);
     static final Pattern BUCKET = Pattern.compile("[a-z]{1,20}");
-    static final Pattern KEY = Pattern.compile("[A-Za-z0-9\\-]+\\.(?:jpg|png)");
+    static final Pattern KEY = Pattern.compile("[A-Za-z0-9\\-]+\\.(?:jpg|png|mp4)");
 
     private final Path root;
     private final ImageProcessor processor;
@@ -55,6 +63,176 @@ public class PrivateMediaStore {
         this.processor = processor;
         this.props = props;
         this.cipher = cipher.getIfAvailable(NoopBlobCipher::new);
+    }
+
+    /** Video baytlari icin akisli (parcali) sifreleme; yoksa video diske duz yazilir. */
+    private edu.bingol.backend.crypto.BlobCipher streamCipher;
+    private static final byte[] STREAM_MAGIC = {'B', 'U', 'B', '1'};
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setStreamCipher(edu.bingol.backend.crypto.BlobCipher streamCipher) {
+        this.streamCipher = streamCipher;
+    }
+
+    /** {@link #streamVideo} istenen araligin sonuna gelince akisi keser (hata degil). */
+    private static final class RangeDone extends IOException {
+        RangeDone() {
+            super("aralik tamam");
+        }
+    }
+
+    /** Cozulmus akisin [start, end] (dahil) araligini `out`a aktarir; oncesini atar, sonrasinda durur. */
+    private static final class RangeOut extends OutputStream {
+        private final OutputStream out;
+        private final long start;
+        private final long end;
+        private long pos;
+
+        RangeOut(OutputStream out, long start, long end) {
+            this.out = out;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            write(new byte[] {(byte) b}, 0, 1);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            long from = Math.max(pos, start);
+            long to = Math.min(pos + len - 1, end);
+            if (to >= from) {
+                out.write(b, off + (int) (from - pos), (int) (to - from + 1));
+            }
+            pos += len;
+            if (pos > end) {
+                throw new RangeDone();
+            }
+        }
+    }
+
+    private static byte[] ctx(String bucket, String key) {
+        return (bucket + "/" + key).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Video baytlarini ozel kovaya yazar (`<uuid>.mp4`); parcali AES-GCM varsa sifreli. Poster varsa ayri
+     * (`<uuid>-t.jpg|png`, uzun kenari en fazla `posterMaxDim` px, yeniden kodlanir; EXIF atilir).
+     * @return {videoAnahtari, posterAnahtari|null, posterGenislik, posterYukseklik}
+     */
+    public String[] storeVideo(String bucket, long conversationId, byte[] video, byte[] poster, int posterMaxDim,
+                               Consumer<ProcessedImage> posterInspector) {
+        checkBucket(bucket);
+        ProcessedImage img = null;
+        if (poster != null) {
+            img = processor.process(poster, ImageKind.CHAT, posterMaxDim);
+            if (posterInspector != null) {
+                posterInspector.accept(img);
+            }
+        }
+        String id = UUID.randomUUID().toString();
+        String key = id + ".mp4";
+        writeVideo(bucket, key, conversationId, video);
+        String posterKey = null;
+        if (img != null) {
+            posterKey = id + "-t." + img.ext();
+            try {
+                write(bucket, posterKey, img.data());
+            } catch (RuntimeException e) {
+                delete(bucket, key);
+                throw e;
+            }
+        }
+        return new String[] {key, posterKey, img == null ? "0" : String.valueOf(img.width()),
+                img == null ? "0" : String.valueOf(img.height())};
+    }
+
+    private void writeVideo(String bucket, String key, long conversationId, byte[] data) {
+        Path p = path(bucket, key);
+        try {
+            Files.createDirectories(p.getParent());
+            Path tmp = p.resolveSibling(".tmp-" + UUID.randomUUID());
+            try (OutputStream o = Files.newOutputStream(tmp)) {
+                if (streamCipher != null) {
+                    streamCipher.encrypt(conversationId, ctx(bucket, key), new ByteArrayInputStream(data), o);
+                } else {
+                    o.write(data);
+                }
+            } catch (IOException | RuntimeException e) {
+                Files.deleteIfExists(tmp);
+                throw e;
+            }
+            Files.move(tmp, p, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error("Ozel video yazilamadi: {}", e.toString());
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE",
+                    "Dosya şu anda kaydedilemiyor.");
+        }
+    }
+
+    /**
+     * Videonun [start, end] (dahil) bayt araligini cozerek `out`a yazar. Tum dosya bellege alinmaz: sifreliyse
+     * parca parca cozulur (basa kadar atlanir, aralik bitince durulur), duzse dogrudan konumlanilir.
+     */
+    public void streamVideo(String bucket, String key, long conversationId, long start, long end, OutputStream out)
+            throws IOException {
+        Path p = path(bucket, key);
+        if (p == null || !Files.isRegularFile(p)) {
+            throw new FileNotFoundException(key);
+        }
+        try (BufferedInputStream in = new BufferedInputStream(Files.newInputStream(p), 1 << 16)) {
+            in.mark(8);
+            byte[] head = in.readNBytes(4);
+            in.reset();
+            if (Arrays.equals(head, STREAM_MAGIC)) {
+                if (streamCipher == null) {
+                    throw new IOException("sifreli video ama sifre cozucu yok");
+                }
+                try {
+                    streamCipher.decrypt(conversationId, ctx(bucket, key), in, new RangeOut(out, start, end));
+                } catch (RangeDone done) {
+                    // istenen aralik tamamlandi
+                }
+            } else {
+                in.skipNBytes(start);
+                long left = end - start + 1;
+                byte[] buf = new byte[1 << 16];
+                while (left > 0) {
+                    int n = in.read(buf, 0, (int) Math.min(buf.length, left));
+                    if (n < 0) {
+                        break;
+                    }
+                    out.write(buf, 0, n);
+                    left -= n;
+                }
+            }
+        }
+    }
+
+    /** Moderasyon gizlemesi: videoyu (+ posteri) yeni rastgele anahtarlara kopyalar; eskileri silmez. Basarisizsa null. */
+    public String[] copyVideo(String bucket, String key, String posterKey, long conversationId) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            streamVideo(bucket, key, conversationId, 0, Long.MAX_VALUE - 1, bos);
+        } catch (IOException | RuntimeException e) {
+            log.warn("Video kopyalanamadi {}/{}: {}", bucket, key, e.toString());
+            return null;
+        }
+        byte[] poster = posterKey == null ? null : read(bucket, posterKey);
+        if (posterKey != null && poster == null) {
+            return null;
+        }
+        String id = UUID.randomUUID().toString();
+        String nk = id + ".mp4";
+        writeVideo(bucket, nk, conversationId, bos.toByteArray());
+        String np = null;
+        if (poster != null) {
+            np = id + "-t" + posterKey.substring(posterKey.lastIndexOf('.'));
+            write(bucket, np, poster);
+        }
+        return new String[] {nk, np};
     }
 
     /** Dogrular, isler ve ozel kovaya yazar. Hata kodlari {@link MediaService#storeImage} ile aynidir. */
@@ -146,6 +324,12 @@ public class PrivateMediaStore {
     /** Ana dosyayi ve kucuk resmini siler (yoksa sessiz). */
     public void delete(String bucket, String key) {
         deleteOne(bucket, key);
+        if (key != null && key.endsWith(".mp4")) { // video: poster `<id>-t.jpg|png`
+            String base = key.substring(0, key.length() - 4);
+            deleteOne(bucket, base + "-t.jpg");
+            deleteOne(bucket, base + "-t.png");
+            return;
+        }
         if (key != null && !key.contains("-t.") && key.lastIndexOf('.') > 0) {
             int dot = key.lastIndexOf('.');
             deleteOne(bucket, key.substring(0, dot) + "-t" + key.substring(dot));

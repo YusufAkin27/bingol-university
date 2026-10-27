@@ -44,3 +44,9 @@ Etkinliği görebilen her giriş yapmış kullanıcı. Rate limit: 120/dk/kullan
 
 - Liste görünümlerinde `canManage` ve `interestedCount` artık toplu hesaplanır (davranış aynı).
 - `cursor` ile verilen kayıt silinmişse liste artık başa dönmek yerine boş sayfa döner (`items: []`, `nextCursor: null`).
+
+## Kapak fotoğrafı ve öne çıkan etkinlik
+
+- `PUT /api/events/{id}/cover` ana sözleşme (eski `POST` takma adı duruyor); `DELETE /api/events/{id}/cover` -> 204. Kapak artık `MediaService` (`ImageKind.COVER`: doğrulama, yeniden kodlama, EXIF, en çok 1600 px, küçük resim) hattından geçer; eski dosya referans yoksa `release` ile silinir. Etkinlik iptalinde `coverUrl` temizlenir ve dosya bırakılır. İptal/reddedilmiş etkinlikte 409 `EVENT_NOT_EDITABLE` (çeviriler zaten mevcut). Yeni hata kodu yok.
+- `GET /api/events/featured`: ACTIVE, `endsAt >= şimdi`, görünürlük kuralı `GET /events` ile aynı; `ORDER BY goingCount DESC, startsAt, id LIMIT 1`; yoksa 204. `goingCount` denormalize sayaç olduğundan engellenen kullanıcılar sayıyı etkilemez (toplulaştırılmış). ETag filtresine eklendi, `Cache-Control: private, max-age=30`, dakikada 60.
+- V220: `idx_event_featured_going` (kısmi indeks, `status='ACTIVE'`; PostgreSQL). Duman: `scripts/smoke-events-featured.sh`.

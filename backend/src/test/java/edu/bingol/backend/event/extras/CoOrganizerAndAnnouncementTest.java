@@ -130,7 +130,7 @@ class CoOrganizerAndAnnouncementTest {
     void eventServiceTreatsCoOrganizerAsManager() {
         EventService real = new EventService(mock(edu.bingol.backend.event.UserEventRepository.class), rsvps,
                 mock(edu.bingol.backend.event.OfficialEventRepository.class), communities, notifications,
-                mock(edu.bingol.backend.common.storage.FileStorage.class));
+                mock(edu.bingol.backend.media.MediaService.class));
         UserEvent e = event();
         assertEquals(false, real.canManage(OTHER, e));
         CoOrganizerLookup lookup = mock(CoOrganizerLookup.class);

@@ -2,7 +2,8 @@ package edu.bingol.backend.event;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.media.ImageKind;
+import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember;
@@ -58,24 +59,22 @@ public class EventService {
     static final int NOTIFY_LIMIT = 500;
     static final int CALENDAR_USER_LIMIT = 300;
     static final int CALENDAR_OFFICIAL_LIMIT = 200;
-    private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
-    private static final long COVER_MAX_BYTES = 3L * 1024 * 1024;
 
     private final UserEventRepository events;
     private final EventRsvpRepository rsvps;
     private final OfficialEventRepository official;
     private final CommunityService communities;
     private final NotificationService notifications;
-    private final FileStorage storage;
+    private final MediaService media;
 
     public EventService(UserEventRepository events, EventRsvpRepository rsvps, OfficialEventRepository official,
-                        CommunityService communities, NotificationService notifications, FileStorage storage) {
+                        CommunityService communities, NotificationService notifications, MediaService media) {
         this.events = events;
         this.rsvps = rsvps;
         this.official = official;
         this.communities = communities;
         this.notifications = notifications;
-        this.storage = storage;
+        this.media = media;
     }
 
     /** T9: alim kurallari (setter + @Lazy: dongusel bagimlilik yok; null iken eski davranis). */
@@ -255,7 +254,10 @@ public class EventService {
         boolean wasActive = e.getStatus() == UserEvent.Status.ACTIVE;
         e.setStatus(UserEvent.Status.CANCELLED);
         e.setUpdatedAt(Instant.now());
-        events.save(e);
+        String oldCover = e.getCoverUrl();
+        e.setCoverUrl(null);
+        events.saveAndFlush(e);
+        media.release(oldCover);
         if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
             notifyGoing(e, "notif.event.cancelled");
         }
@@ -265,17 +267,53 @@ public class EventService {
         closeRoom(e);
     }
 
+    /** Kapak: medya hatti (dogrula, yeniden kodla, EXIF temizle, en cok 1600 px); eski dosya referans yoksa silinir. */
     @Transactional
     public EventView setCover(Actor a, Long id, MultipartFile file) {
         UserEvent e = load(id);
         requireManager(a, e);
-        String url = storage.save("covers", file, IMAGE_TYPES, COVER_MAX_BYTES);
+        requireCoverEditable(e);
+        String url = media.storeImage(file, ImageKind.COVER).url();
         String old = e.getCoverUrl();
         e.setCoverUrl(url);
         e.setUpdatedAt(Instant.now());
-        events.save(e);
-        storage.delete(old);
+        events.saveAndFlush(e);
+        if (old != null && !old.equals(url)) {
+            media.release(old);
+        }
         return views(List.of(e), a, true).get(0);
+    }
+
+    /** Kapagi kaldirir (idempotent). */
+    @Transactional
+    public void removeCover(Actor a, Long id) {
+        UserEvent e = load(id);
+        requireManager(a, e);
+        String old = e.getCoverUrl();
+        if (old != null) {
+            e.setCoverUrl(null);
+            e.setUpdatedAt(Instant.now());
+            events.saveAndFlush(e);
+            media.release(old);
+        }
+    }
+
+    private static void requireCoverEditable(UserEvent e) {
+        if (e.getStatus() != UserEvent.Status.ACTIVE && e.getStatus() != UserEvent.Status.PENDING_REVIEW) {
+            throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_EDITABLE", "Bu etkinlik düzenlenemez.");
+        }
+    }
+
+    /**
+     * Ana sayfa ogesi: yaklasan (ya da suren) ACTIVE kullanici etkinlikleri icinde en cok GOING'e sahip olan;
+     * esitlikte baslangici yakin olan. Yoksa bos. Resmi (siteden gelen) etkinlikler dahil degildir.
+     */
+    @Transactional(readOnly = true)
+    public Optional<EventView> featured(Actor a) {
+        List<UserEvent> rows = events.featured(UserEvent.Status.ACTIVE, Instant.now(),
+                Community.Status.ACTIVE, Community.Visibility.PUBLIC, a.id(), CommunityMember.Status.ACTIVE,
+                PageRequest.of(0, 1));
+        return rows.isEmpty() ? Optional.empty() : Optional.of(views(rows, a, false).get(0));
     }
 
     // ---- okuma ----

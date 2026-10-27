@@ -120,6 +120,23 @@ public class ConversationController {
         return conversations.rename(uid, id, r.title());
     }
 
+    /** Grup fotografi (multipart `file`); yalniz kullanici grubunun yoneticisi. Gorsel avatar hattindan gecer. */
+    @PutMapping(value = "/{id}/avatar", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ConversationView setAvatar(@PathVariable Long id,
+                                      @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:avatar:" + uid, 10, Duration.ofMinutes(1));
+        return conversations.setAvatar(uid, id, file);
+    }
+
+    @DeleteMapping("/{id}/avatar")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeAvatar(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:avatar:" + uid, 10, Duration.ofMinutes(1));
+        conversations.removeAvatar(uid, id);
+    }
+
     @PostMapping("/{id}/members")
     public ConversationView addMembers(@PathVariable Long id, @Valid @RequestBody AddMembersRequest r) {
         Long uid = CurrentUser.id();
@@ -141,6 +158,15 @@ public class ConversationController {
         Long uid = CurrentUser.id();
         limitManage(uid);
         conversations.leave(uid, id);
+    }
+
+    /** "Sohbeti sil": yalniz cagiran icin listeden kaldirir (birebir: eski mesajlar gizlenir; grup: ayrilir). */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        conversations.delete(uid, id);
     }
 
     /** Grup yonetimi (ad, uye ekle/cikar, ayril) icin kullanici basina ortak dakikalik sinir. */

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.permissions.ClubPermission;
-import edu.bingol.backend.common.storage.FileStorage;
+import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember.Role;
@@ -38,7 +38,7 @@ class EventServiceTest {
     private final CommunityService communities = mock(CommunityService.class);
     private final NotificationService notifications = mock(NotificationService.class);
     private final EventService svc = new EventService(events, rsvps, mock(OfficialEventRepository.class), communities,
-            notifications, mock(FileStorage.class));
+            notifications, mock(MediaService.class));
 
     private final Actor user = new Actor(1L, false);
     private final Instant start = Instant.now().plus(Duration.ofDays(2));

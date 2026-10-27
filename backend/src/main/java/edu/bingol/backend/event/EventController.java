@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -88,6 +89,19 @@ public class EventController {
         return ResponseEntity.ok().header("X-Truncated", String.valueOf(r.truncated())).body(r.items());
     }
 
+    /**
+     * Ana sayfa one cikani: yaklasan etkinlikler arasinda en cok katilimcisi olan (esitlikte en yakin tarihli);
+     * yaklasan yoksa 204. Kullaniciya ozel (myRsvp) oldugundan yalnizca ozel onbellek, 30 sn.
+     */
+    @GetMapping("/events/featured")
+    public ResponseEntity<EventView> featured() {
+        Actor a = Actor.current();
+        limiter.check("event-featured:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return events.featured(a)
+                .map(v -> ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofSeconds(30)).cachePrivate()).body(v))
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     @GetMapping("/events/{id}")
     public EventView get(@PathVariable Long id) {
         return events.get(Actor.current(), id);
@@ -104,12 +118,25 @@ public class EventController {
         events.delete(Actor.current(), id);
     }
 
-    /** multipart alani "file", jpg/png/webp, en fazla 3 MB. */
-    @PostMapping("/events/{id}/cover")
+    /** multipart alani "file", jpg/png/webp, en fazla 3 MB; 1600 px sinirina kucultulur. PUT ana sozlesme, POST eski ad. */
+    @PutMapping("/events/{id}/cover")
     public EventView cover(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         Actor a = Actor.current();
         limiter.check("event-cover:user:" + a.id(), 10, Duration.ofHours(1));
         return events.setCover(a, id, file);
+    }
+
+    @PostMapping("/events/{id}/cover")
+    public EventView coverLegacy(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        return cover(id, file);
+    }
+
+    @DeleteMapping("/events/{id}/cover")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeCover(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-cover:user:" + a.id(), 10, Duration.ofHours(1));
+        events.removeCover(a, id);
     }
 
     @PutMapping("/events/{id}/rsvp")

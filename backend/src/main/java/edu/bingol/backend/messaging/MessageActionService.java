@@ -54,7 +54,7 @@ public class MessageActionService {
                                 ConversationRepository convs, ConversationMemberRepository members, UserRepository users,
                                 BlockService blocks, ChatEventBus bus, MessageCodec codec,
                                 MessageViewAssembler assembler, JdbcTemplate jdbc,
-                                @Value("${app.chat.edit-window-minutes:15}") long editWindowMinutes,
+                                @Value("${app.chat.edit-window-minutes:0}") long editWindowMinutes,
                                 @Value("${app.chat.delete-window-minutes:0}") long deleteWindowMinutes,
                                 @Value("${app.chat.reactions:}") String reactionList) {
         this.messages = messages;
@@ -117,7 +117,8 @@ public class MessageActionService {
             throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_NOT_EDITABLE", "Bu mesaj düzenlenemez.");
         }
         Instant now = Instant.now();
-        if (now.isAfter(m.getCreatedAt().plus(editWindow))) {
+        // 0 = sinirsiz: sure denetimi uygulanmaz
+        if (!editWindow.isZero() && now.isAfter(m.getCreatedAt().plus(editWindow))) {
             throw new ApiException(HttpStatus.FORBIDDEN, "MESSAGE_EDIT_EXPIRED",
                     "Mesaj yalnızca gönderildikten sonraki " + editWindow.toMinutes() + " dakika içinde düzenlenebilir.",
                     String.valueOf(editWindow.toMinutes()));
@@ -135,8 +136,11 @@ public class MessageActionService {
         clearLegacyPlaintext(m.getId());
         m.setEditedAt(now);
         MessageView view = assembler.assemble(userId, List.of(m), Set.of(), a.since).get(0);
+        // Olaya gonderenin gorunumu gider: tek gosterimlik ekler (url'siz) alicilari yaniltmasin diye olaydan cikarilir
+        MessageView evView = view.withExtras(null, List.of(), null)
+                .withAttachments(view.attachments().stream().filter(x -> !x.viewOnce()).toList());
         publish(m.getConversationId(), userId,
-                new MessageEvent("edited", m.getConversationId(), m.getId(), userId, view.withExtras(null, List.of(), null),
+                new MessageEvent("edited", m.getConversationId(), m.getId(), userId, evView,
                         null, null, now.toString()));
         return view;
     }

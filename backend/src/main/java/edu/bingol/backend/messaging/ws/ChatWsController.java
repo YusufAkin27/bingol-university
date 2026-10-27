@@ -2,6 +2,8 @@ package edu.bingol.backend.messaging.ws;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.messaging.MessageService;
+import edu.bingol.backend.messaging.ReceiptService;
+import edu.bingol.backend.messaging.dto.MessagingDtos.ChatDelivered;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ChatRead;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ChatSend;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ChatTyping;
@@ -28,9 +30,14 @@ public class ChatWsController {
 
     private final MessageService messages;
     private final SimpMessagingTemplate template;
+    private final ReceiptService receipts;
+    private final edu.bingol.backend.common.RateLimiter limiter;
 
-    public ChatWsController(MessageService messages, SimpMessagingTemplate template) {
+    public ChatWsController(MessageService messages, SimpMessagingTemplate template, ReceiptService receipts,
+                            edu.bingol.backend.common.RateLimiter limiter) {
+        this.limiter = limiter;
         this.messages = messages;
+        this.receipts = receipts;
         this.template = template;
     }
 
@@ -39,7 +46,8 @@ public class ChatWsController {
     public void send(@Payload ChatSend p, Principal principal) {
         Long uid = userId(principal);
         try {
-            messages.send(uid, p.conversationId(), p.text(), p.clientId(), p.replyToMessageId(), p.attachmentIds());
+            messages.send(uid, p.conversationId(), p.text(), p.clientId(), p.replyToMessageId(), p.attachmentIds(),
+                    p.viewOnce());
         } catch (ApiException e) {
             template.convertAndSendToUser(principal.getName(), "/queue/errors",
                     new ErrorFrame(e.code(), e.getMessage(), p.clientId()));
@@ -49,6 +57,18 @@ public class ChatWsController {
     @MessageMapping("/chat.read")
     public void read(@Payload ChatRead p, Principal principal) {
         messages.markRead(userId(principal), p.conversationId(), p.lastMessageId());
+    }
+
+    /** Iletildi ack'i (push ile gelenler dahil istemci atar). Asiri sik istekler sessizce atilir. */
+    @MessageMapping("/chat.delivered")
+    public void delivered(@Payload ChatDelivered p, Principal principal) {
+        Long uid = userId(principal);
+        try {
+            limiter.check("delivered:" + uid, ReceiptService.DELIVERED_PER_MINUTE, java.time.Duration.ofMinutes(1));
+        } catch (ApiException e) {
+            return;
+        }
+        receipts.markDelivered(uid, p.conversationId(), p.lastMessageId());
     }
 
     @MessageMapping("/chat.typing")

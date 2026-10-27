@@ -42,7 +42,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
 
     /** Kullanicinin (ayrilmadigi) mesajli konusmalari, en yeni mesaj once. Imlec = son mesaj id'si (benzersiz). */
     @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
-            + "AND m.leftAt IS NULL AND c.lastMessageId IS NOT NULL "
+            + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "
             + "AND ((:archived = true AND m.archivedAt IS NOT NULL) OR (:archived = false AND m.archivedAt IS NULL)) "
             + "AND (:cursor IS NULL OR c.lastMessageId < :cursor) ORDER BY c.lastMessageId DESC")
     List<Conversation> page(@Param("uid") Long userId, @Param("cursor") Long cursor,

@@ -222,6 +222,8 @@ public class RoomConversations {
             m.setRole(ConversationMember.Role.MEMBER);
         }
         m.setLastReadMessageId(lastMsg);
+        m.setHiddenAt(null);
+        m.setLastDeliveredMessageId(lastMsg);
         members.save(m);
         return true;
     }

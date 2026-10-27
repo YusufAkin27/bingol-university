@@ -32,11 +32,13 @@ public class MessageExporters {
                 return e;
             }).toList();
             List<Map<String, Object>> prefs = members.findByUserIdAndLeftAtIsNull(uid).stream()
-                    .filter(m -> m.getMutedUntil() != null || m.getArchivedAt() != null).map(m -> {
+                    .filter(m -> m.getMutedUntil() != null || m.getArchivedAt() != null || m.getHiddenAt() != null).map(m -> {
                         Map<String, Object> e = new LinkedHashMap<>();
                         e.put("conversationId", m.getConversationId());
                         e.put("mutedUntil", m.getMutedUntil() == null ? null : m.getMutedUntil().toString());
                         e.put("archivedAt", m.getArchivedAt() == null ? null : m.getArchivedAt().toString());
+                        e.put("deletedFromListAt", m.getHiddenAt() == null ? null : m.getHiddenAt().toString());
+                        e.put("clearedUpToMessageId", m.getClearedUpToMessageId());
                         return e;
                     }).toList();
             return Map.of("count", out.size(), "reactions", out, "conversationSettings", prefs);

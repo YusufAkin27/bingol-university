@@ -34,6 +34,14 @@ public class MessageViewAssembler {
     /** T8: gorsel ekleri (setter enjeksiyonu: yapici imzasi degismesin; yoksa eksiz). */
     private MessageAttachmentService attachments;
 
+    /** Makbuz durumu (setter enjeksiyonu; yoksa durum null). */
+    private ReceiptService receipts;
+
+    @Autowired(required = false)
+    void setReceipts(ReceiptService receipts) {
+        this.receipts = receipts;
+    }
+
     @Autowired(required = false)
     void setAttachments(MessageAttachmentService attachments) {
         this.attachments = attachments;
@@ -73,7 +81,8 @@ public class MessageViewAssembler {
                 : messages.findAllById(parentIds).stream().collect(Collectors.toMap(Message::getId, Function.identity()));
         codec.openAll(new ArrayList<>(parents.values()));
 
-        Map<Long, List<AttachmentView>> att = attachments == null ? Map.of() : attachments.viewsFor(ids);
+        Map<Long, List<AttachmentView>> att = attachments == null ? Map.of() : attachments.viewsFor(viewerId, ids);
+        Map<Long, String> status = receipts == null ? Map.of() : receipts.statuses(viewerId, opened, null, null);
         List<MessageView> out = new ArrayList<>(opened.size());
         for (Message m : opened) {
             boolean blocked = blockedSenders.contains(m.getSenderId()) && !m.getSenderId().equals(viewerId);
@@ -84,7 +93,8 @@ public class MessageViewAssembler {
                         m.getReplyToMessageId());
             }
             out.add(v.withExtras(blocked ? null : preview, blocked || m.isDeleted() ? List.of()
-                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId())).withAttachments(blocked ? null : att.get(m.getId())));
+                    : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId())).withAttachments(blocked ? null : att.get(m.getId()))
+                    .withStatus(status.get(m.getId())));
         }
         return out;
     }
