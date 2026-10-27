@@ -6,7 +6,7 @@ Bu metin, BÜ Kampüs uygulaması ve web sitesinin ("**Hizmet**") nasıl kullan�
 
 1. Hizmeti işleten: {{controller.name}}{{?controller.address}}, {{controller.address}}{{/controller.address}} ("**İşletici**", "**biz**").
 2. Hizmeti kullanan kişi ("**Kullanıcı**", "**siz**"), bu koşulları kabul etmiş sayılır.
-3. Hizmet; haber, duyuru ve etkinlik takibi, yemek listesi, profil, mesajlaşma, topluluklar ve etkinlikler (QR ile yoklama dahil), bildirimler, arama, favoriler ile destek ve geri bildirim özelliklerinden oluşur.
+3. Hizmet; haber, duyuru ve etkinlik takibi, yemek listesi, profil, mesajlaşma, topluluklar ve etkinlikler (QR ile yoklama dahil), gönderiler, yorumlar ve 24 saatlik hikâyeler, kullanıcı takibi, anketler, kişisel ders programı ve sınav takibi, bildirimler, arama, favoriler ile destek ve geri bildirim özelliklerinden oluşur.
 4. Bu koşullar; [Gizlilik Politikası](/legal/privacy), [KVKK Aydınlatma Metni](/legal/kvkk), [Topluluk Kuralları](/legal/community-rules), [Açık Rıza Metni](/legal/explicit-consent), [Çerez ve Yerel Depolama Politikası](/legal/cookies), [İçerik Bildirimi ve Kaldırma](/legal/content-removal) ve [Saklama ve İmha](/legal/retention) metinleriyle birlikte okunur. Topluluk Kuralları bu koşulların ayrılmaz parçasıdır.
 
 > **Özetle:** Hizmeti kullanmak için bu koşulları, Gizlilik Politikasını, KVKK Aydınlatma Metnini ve Topluluk Kurallarını kabul edersiniz. Diğer metinler bilgilendirme veya isteğe bağlı izinler içindir.
@@ -26,9 +26,10 @@ Bu metin, BÜ Kampüs uygulaması ve web sitesinin ("**Hizmet**") nasıl kullan�
 
 1. **İçeriğin sahibi sizsiniz.** Mesaj, fotoğraf, video, topluluk gönderisi, etkinlik, profil bilgisi, geri bildirim gibi paylaştığınız içeriklerin ("**Kullanıcı İçeriği**") hakları size aittir. İçeriklerin hukuka uygunluğundan siz sorumlusunuz.
 2. **Bize verdiğiniz sınırlı lisans.** Hizmeti sunabilmemiz için, Kullanıcı İçeriğinizi yalnızca şu amaçlarla barındırma, saklama, şifreleme, yeniden boyutlandırma/yeniden kodlama, iletme, görüntüleme ve (içeriği gönderdiğiniz kişi ve topluluklara) sunma konusunda; münhasır olmayan, devredilemez, ücretsiz, dünya çapında ve Hizmet süresiyle sınırlı bir lisans vermiş olursunuz. İçeriğinizi reklam amacıyla kullanmayız, üçüncü kişilere satmayız.
-3. **Medyanın işlenmesi.** Yüklenen fotoğraflar türü ve boyutu doğrulandıktan sonra yeniden kodlanır; konum gibi gömülü üst veriler (EXIF) temizlenir. Sohbet fotoğrafları en çok 1600 piksel kenar uzunluğuna indirilir; mesaj başına en çok 10 ek (fotoğraf/video karışık) gönderilebilir. Videolar cihazınızda sıkıştırılır; sunucu videoyu yeniden kodlamaz; en çok 60 saniye ve 40 MB'a kadar kabul edilir, günlük gönderim sınırı vardır. Bu sınırlar değişebilir.
+3. **Medyanın işlenmesi.** Yüklenen fotoğraflar türü ve boyutu doğrulandıktan sonra yeniden kodlanır; konum gibi gömülü üst veriler (EXIF) temizlenir. Sohbet fotoğrafları en çok 1600 piksel kenar uzunluğuna indirilir; mesaj başına en çok 10 ek (fotoğraf/video karışık) gönderilebilir. Sohbet videoları cihazınızda sıkıştırılır, sunucu bunları yeniden kodlamaz; gönderi (Keşfet) videoları ise yüklendikten sonra sunucuda yeniden kodlanır (H.264, en çok 720p) ve şifreli saklanır. Videolar en çok 60 saniye ve 40 MB'a kadar kabul edilir (hikâye videosu en çok 30 saniye), günlük/saatlik yükleme sınırları vardır. Bu sınırlar değişebilir.
 4. **Yasaklı içerik kontrolü.** Yüklenen görsellerin dijital özeti (SHA-256), yetkili yöneticilerin yönettiği "yasaklı içerik" özet listesiyle karşılaştırılır. Eşleşme halinde yükleme reddedilir. Bu kontrol yalnızca özet karşılaştırmasıdır; görsellerin içeriği otomatik olarak analiz edilmez.
-5. **Lisansın sona ermesi.** İçeriğinizi sildiğinizde veya hesabınızı kapattığınızda lisans, 6. bölüm ve Gizlilik Politikası'nda açıklanan istisnalar (örneğin başkalarının sohbet geçmişi, yasal saklama ve güvenlik kayıtları) saklı kalmak üzere sona erer.
+5. **Gönderi, yorum ve hikâyeler.** Gönderi, yorum ve hikâyelerinizin içeriğinden, etiketlediğiniz (#) ve andığınız (@) kişilere ilişkin paylaşımlardan ve üçüncü kişilere ait hak ve verilerin ihlal edilmemesinden siz sorumlusunuz. Bu içerikler uygulamaya giriş yapmış diğer kullanıcılara gösterilir; hikâyeler 24 saat görünür ve ardından silinir. İçerikler yayımlanmadan önce insan denetiminden geçmez; bu nedenle işletici yer sağlayıcı olarak hukuka aykırı içeriği bildirim üzerine kaldırır. Herhangi bir gönderi, yorum veya hikâye **Bildir** ile şikâyet edilebilir; yetkili yöneticiler inceler, içeriği gizleyebilir/kaldırabilir, uyarı veya hesap kısıtlaması uygulayabilir. Karara itiraz edebilirsiniz (bkz. 5. bölüm ve [İçerik Bildirimi ve Kaldırma](/legal/content-removal)).
+6. **Lisansın sona ermesi.** İçeriğinizi sildiğinizde veya hesabınızı kapattığınızda lisans, 6. bölüm ve Gizlilik Politikası'nda açıklanan istisnalar (örneğin başkalarının sohbet geçmişi, yasal saklama ve güvenlik kayıtları) saklı kalmak üzere sona erer.
 
 > **Özetle:** İçerik sizindir; biz yalnızca Hizmeti sunmak için sınırlı olarak saklar ve işleriz. Reklam için kullanmayız ve satmayız.
 
@@ -45,6 +46,7 @@ Aşağıdakileri yapmak yasaktır (ayrıntılı örnekler [Topluluk Kuralları](
 7. Ders ve sınav dürüstlüğünü ihlal etmek (ör. sınav sorusu satışı, kopya organizasyonu).
 8. Etkinlik yoklama (QR) sistemini kötüye kullanmak: başkası adına yoklama vermek, kodu paylaşmak/çoğaltmak.
 9. Fikri mülkiyet haklarını ihlal etmek (bkz. 8. bölüm).
+10. Topluluk, etkinlik, profil, grup başlığı ve gönderi/yorum/hikâye gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanmak. Bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
 
 ## 5. Moderasyon, askıya alma ve engelleme
 

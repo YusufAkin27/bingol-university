@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// docs/legal/<tur>_<dil>.md dosyalarindan backend/src/main/resources/db/migration/V290__legal_texts_v3.sql uretir.
+// docs/legal/<tur>_<dil>.md dosyalarindan guncel sozlesme migration'ini uretir: V370__legal_texts_v4.sql
+// (V290 ilk nesildir, DONDURULMUSTUR; bu betik artik yalniz V370'i yazar. Sonraki metin degisikliginde yeni V37x eklemek icin TARGET'i artirin.)
 // Kullanim: node scripts/build-legal-migration.js [--check]   (--check: dosyayi yazmadan ayni mi diye bakar)
 // Tek dogruluk kaynagi Markdown dosyalaridir; SQL'i elle DUZENLEMEYIN.
 'use strict';
@@ -8,7 +9,9 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'docs', 'legal');
-const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V290__legal_texts_v3.sql');
+const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V370__legal_texts_v4.sql');
+// V370'te metni degisen turler (COOKIES degismedi; gereksiz yeni surum/yeniden onay uretmesin)
+const CHANGED = new Set(['TERMS', 'PRIVACY', 'KVKK', 'COMMUNITY_RULES', 'EXPLICIT_CONSENT', 'CONTENT_REMOVAL', 'RETENTION']);
 
 // [dosya oneki, LegalType, kayitta zorunlu onay / yeniden onay]
 const TYPES = [
@@ -41,29 +44,16 @@ function lit(tag, text) {
   return `${t}${text}${t}`;
 }
 
-const names = TYPES.map((t) => `'${t[1]}'`).join(', ');
-let sql = `-- V290: Sozlesme metinleri 3. nesil (docs/legal/*.md'den scripts/build-legal-migration.js ile URETILDI; elle duzenlemeyin).
--- * legal_type_check 8 tureYE genisletilir (EXPLICIT_CONSENT, COOKIES, CONTENT_REMOVAL, RETENTION).
--- * Surum numarasi her tur icin COALESCE(MAX(version),0)+1 ile hesaplanir (yerel/test surumlerine dayanikli);
---   onceki aktif surumler (tum diller) pasife alinir, yeni tr+en ayni numarayla aktif eklenir.
--- * Yer tutucular ({{controller.name}} vb.) sunum aninda LegalService tarafindan app_setting'ten doldurulur.
--- * Kayitta zorunlu onay: TERMS, PRIVACY, KVKK, COMMUNITY_RULES (require_reaccept=true). Digerleri bilgilendirmedir.
-
-ALTER TABLE legal_document DROP CONSTRAINT IF EXISTS legal_type_check;
-ALTER TABLE legal_document ADD CONSTRAINT legal_type_check CHECK (type IN (${names}));
-
--- Yonetici ayarlari: yer tutucu kaynaklari (legal.* anahtarlari; support_email V5'te vardir)
-INSERT INTO app_setting (setting_key, setting_value) VALUES
- ('legal.controller.name', 'Bingöl Üniversitesi'),
- ('legal.controller.address', ''),
- ('legal.controller.email', ''),
- ('legal.controller.kep', ''),
- ('legal.controller.verbis', ''),
- ('legal.hosting.location', '')
-ON CONFLICT (setting_key) DO NOTHING;
+let sql = `-- V370: Sozlesme metinleri 4. nesil (docs/legal/*.md'den scripts/build-legal-migration.js ile URETILDI; elle duzenlemeyin).
+-- * Gonderi/yorum/hikaye, takip, kaydetme, etiket, anket, ders programi, cihaz kimligi/erisim engeli, kufur filtresi,
+--   push kuyrugu, gonderi videosu yeniden kodlama/sifreleme ve konum toplanmadigi bilgisi metinlere islendi.
+-- * Surum numarasi her tur icin COALESCE(MAX(version),0)+1; onceki aktif surumler pasife alinir, yeni tr+en ayni numarayla aktif eklenir.
+-- * require_reaccept: TERMS, PRIVACY, KVKK, COMMUNITY_RULES icin TRUE (mevcut kullanicilar yeni surumu yeniden onaylar); digerleri bilgilendirmedir.
+-- * COOKIES degismedigi icin yeni surum uretilmez.
 `;
 
 for (const [prefix, type, reaccept] of TYPES) {
+  if (!CHANGED.has(type)) continue;
   const tr = load(prefix, 'tr');
   const en = load(prefix, 'en');
   const flag = reaccept ? 'TRUE' : 'FALSE';
@@ -81,15 +71,14 @@ END
 $do_${prefix}$;
 `;
 }
-sql = sql.replace('8 tureYE', '8 ture');
 
 if (process.argv.includes('--check')) {
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
   if (cur !== sql) {
-    console.error('V290 eski: node scripts/build-legal-migration.js calistirin');
+    console.error('V370 eski: node scripts/build-legal-migration.js calistirin');
     process.exit(1);
   }
-  console.log('V290 guncel');
+  console.log('V370 guncel');
 } else {
   fs.writeFileSync(OUT, sql, { encoding: 'utf8' }); // BOM'suz
   console.log(`yazildi: ${OUT} (${sql.length} karakter)`);

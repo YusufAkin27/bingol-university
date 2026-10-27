@@ -71,13 +71,15 @@ TMPD=$(mktemp -d)
 printf 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' | base64 -d > "$TMPD/a.png"
 printf '\x00\x00\x00\x14ftypisom\x00\x00\x02\x00isom\x00\x00\x00\x24moov\x00\x00\x00\x1cmvhd\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\xe8\x00\x00\x13\x88' > "$TMPD/v.mp4"
 printf 'bu bir gorsel degil' > "$TMPD/bad.png"
-check "medya girissiz 401" 401 "$(code -X POST -F "file=@$TMPD/a.png;type=image/png" $A/posts/media)"
-check "gecersiz gorsel 400" 400 "$(code -X POST -H "$AA" -F "file=@$TMPD/bad.png;type=image/png" $A/posts/media)"
-MI=$(curl -s -X POST -H "$AA" -F "file=@$TMPD/a.png;type=image/png" $A/posts/media)
+# Windows'ta curl -F icin yol Windows bicimi olmali (cygpath yoksa oldugu gibi kalir)
+TMPW=$(cygpath -m "$TMPD" 2>/dev/null || echo "$TMPD")
+check "medya girissiz 401" 401 "$(code -X POST -F "file=@$TMPW/a.png;type=image/png" $A/posts/media)"
+check "gecersiz gorsel 400" 400 "$(code -X POST -H "$AA" -F "file=@$TMPW/bad.png;type=image/png" $A/posts/media)"
+MI=$(curl -s -X POST -H "$AA" -F "file=@$TMPW/a.png;type=image/png" $A/posts/media)
 MID=$(echo "$MI" | jid)
 [ -n "$MID" ] || { echo "  FAIL gorsel yuklenmedi: $MI"; FAIL=1; }
 echo "$MI" | grep -q '"kind":"IMAGE"' && echo "  ok   kind=IMAGE" || { echo "  FAIL kind: $MI"; FAIL=1; }
-MV=$(curl -s -X POST -H "$AA" -F "file=@$TMPD/v.mp4;type=video/mp4" $A/posts/media)
+MV=$(curl -s -X POST -H "$AA" -F "file=@$TMPW/v.mp4;type=video/mp4" $A/posts/media)
 MVID=$(echo "$MV" | jid)
 [ -n "$MVID" ] || { echo "  FAIL video yuklenmedi: $MV"; FAIL=1; }
 echo "$MV" | grep -q '"durationMs":5000' && echo "  ok   durationMs=5000" || { echo "  FAIL sure: $MV"; FAIL=1; }
@@ -106,6 +108,8 @@ check "gonderiyi sil" 204 "$(code -X DELETE -H "$AA" $A/posts/$PID3)"
 check "silinen gonderinin medyasi 404" 404 "$(code -H "$AB" $A/posts/media/$MID)"
 rm -rf "$TMPD"
 
+# "duzenle / sil" bolumu $PID'i sildi: begeni ve yorum bolumleri icin yeni gonderi
+PID=$(curl -s -X POST -H "$AA" -H "$H" $A/posts -d '{"text":"Begeni ve yorum gonderisi"}' | jid)
 echo "== BOLUM begeni"
 check "begeni girissiz 401" 401 "$(code -X PUT $A/posts/$PID/like)"
 check "olmayan gonderi begeni 404" 404 "$(code -X PUT -H "$AB" $A/posts/999999999/like)"

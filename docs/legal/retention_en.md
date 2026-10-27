@@ -19,6 +19,13 @@ Data is kept for the time needed for its purpose and as permitted by law, then *
 | Notification inbox | Read 90 days, unread 365 days | Deleted |
 | Push token | If unseen for 60 days | Deleted |
 | Device identifier digest and IP records | 90 days | Deleted |
+| Inappropriate-language filter log (field, user, time; no text) | 90 days | Deleted |
+| Push notification queue | Pending retried for at most 24 hours; sent 7 days, failed 30 days | Deleted |
+| Story | Visible 24 hours; 24 hours after expiry | Permanently deleted |
+| Media files of a deleted post | 30 days | Removed from disk and database |
+| Uploaded media not attached to a post | 24 hours | Deleted |
+| Follows, saved posts, personal timetable and exam data | While the account is open | Deleted with the account |
+| Poll vote record | While the account is open | On deletion the link to the user is removed (anonymous counter remains); participation record deleted |
 | Access-ban record | While the ban lasts and as needed for audit | Deleted / deactivated |
 | Analytics events | 180 days | Deleted |
 | E-mail queue (sent/failed) | 30 days | Deleted |
@@ -33,11 +40,11 @@ Data is kept for the time needed for its purpose and as permitted by law, then *
 | Moderation violation and ban traces | Kept anonymously after deletion | While needed for security/evidence |
 | Administrator action and message-access logs | Tamper-resistant; audit / legal period | May be archived then destroyed |
 | Contact matching digests | **Not stored** | — |
-| Location | **Not stored on the server** (not sent in the current version) | — |
+| Location | **Not collected or stored** (the app does not ask for location permission) | — |
 
 ## 3. When you delete your account
 
-Deletion is **anonymisation**. Deleted: push tokens, inbox and preferences, bookmarks, votes and event feedback, block list, club application answers, community memberships, uploaded chat photos. Anonymised: name, e-mail, profile. Kept (anonymous/limited): messages and community posts (others' context), agreement acceptances, moderation traces, administrator records, anonymous event counters. Device/IP and analytics records are removed within their own periods. See the [Privacy Policy](/legal/privacy).
+Deletion is **anonymisation**. Deleted: push tokens and pending push entries, inbox and preferences, saved posts, follows, stories, timetable and exam data, poll participation record, likes and comments, Discover posts (media after 30 days), bookmarks, votes and event feedback, block list, club application answers, community memberships, uploaded chat photos. Anonymised: name, e-mail, profile. Kept (anonymous/limited): messages and community posts (others' context), agreement acceptances, moderation traces, administrator records, anonymous event counters. Device/IP and analytics records are removed within their own periods. See the [Privacy Policy](/legal/privacy).
 
 ## 4. Legal retention duties
 
@@ -51,4 +58,4 @@ Database records are deleted securely; files are removed from storage; anonymisa
 
 Request deletion or anonymisation through the routes in the [KVKK Notice](/legal/kvkk) section 11; applications are answered within 30 days.
 
-> **In short:** Most technical records are deleted automatically within days or months; messages and legal-proof records may remain longer in limited, anonymous form. Contact digests and location are not stored on the server.
+> **In short:** Most technical records are deleted automatically within days or months; messages and legal-proof records may remain longer in limited, anonymous form. Contact digests are not stored and location is never collected.

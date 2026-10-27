@@ -20,6 +20,13 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 | Bildirim kutusu | Okunmuş 90 gün, okunmamış 365 gün | Silinir |
 | Cihaz bildirim anahtarı | 60 gün görülmezse | Silinir |
 | Cihaz kimliği (özet) ve IP kayıtları | 90 gün | Silinir |
+| Uygunsuz ifade filtresi kaydı (alan, kullanıcı, zaman; metin yok) | 90 gün | Silinir |
+| Push bildirim kuyruğu | Bekleyen en çok 24 saat denenir; gönderilen 7 gün, başarısız 30 gün | Silinir |
+| Hikâye | 24 saat görünür; bitişinden 24 saat sonra | Kalıcı silinir |
+| Silinen gönderinin medya dosyaları | 30 gün | Diskten ve veritabanından silinir |
+| Gönderiye bağlanmamış yüklenen medya | 24 saat | Silinir |
+| Takip ilişkileri, kaydedilen gönderiler, kişisel ders programı ve sınav kayıtları | Hesap açık olduğu sürece | Hesap silinince silinir |
+| Anket oy kaydı | Hesap açık olduğu sürece | Hesap silinince kullanıcı bağlantısı kopar (kimliksiz sayaç kalır); katılım kaydı silinir |
 | Erişim engeli kaydı | Engel sürdükçe ve denetim için gerekli süre | Silinir / pasifleşir |
 | Analitik olaylar | 180 gün | Silinir |
 | E-posta kuyruğu (gönderilmiş/başarısız) | 30 gün | Silinir |
@@ -34,11 +41,11 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 | Moderasyon ihlal ve yasak izleri | Hesap silinse de kimliksiz | Güvenlik/ispat süresince |
 | Yönetici işlem kaydı ve mesaj erişim kaydı | Değiştirilemez; denetim / yasal süre | Dış arşive aktarılabilir, sonra yok edilir |
 | Rehber eşleştirme özetleri | **Saklanmaz** | — |
-| Konum | **Sunucuda saklanmaz** (mevcut sürümde gönderilmez) | — |
+| Konum | **Toplanmaz ve saklanmaz** (uygulama konum izni istemez) | — |
 
 ## 3. Hesap silinince
 
-Hesap silme **anonimleştirmedir**. Silinenler: bildirim cihaz anahtarları, bildirim kutusu ve tercihleri, favoriler, oy ve etkinlik geri bildirimleri, engel listesi, kulüp başvuru yanıtları, topluluk üyelikleri, yüklenen sohbet fotoğrafları. Anonimleştirilenler: ad, e-posta, profil. Korunanlar (kimliksiz/sınırlı): mesajlar ve topluluk gönderileri (başkalarının bağlamı), sözleşme onayları, moderasyon izleri, yönetici kayıtları, anonim etkinlik sayaçları. Cihaz/IP ve analitik kayıtları kendi sürelerinde silinir. Ayrıntı: [Gizlilik Politikası](/legal/privacy).
+Hesap silme **anonimleştirmedir**. Silinenler: bildirim cihaz anahtarları ve bekleyen push kayıtları, bildirim kutusu ve tercihleri, kaydedilen gönderiler, takip ilişkileri, hikâyeler, ders programı ve sınav kayıtları, anket katılım kaydı, beğeni ve yorumlar, Keşfet gönderileri (medya 30 gün sonra), favoriler, oy ve etkinlik geri bildirimleri, engel listesi, kulüp başvuru yanıtları, topluluk üyelikleri, yüklenen sohbet fotoğrafları. Anonimleştirilenler: ad, e-posta, profil. Korunanlar (kimliksiz/sınırlı): mesajlar ve topluluk gönderileri (başkalarının bağlamı), sözleşme onayları, moderasyon izleri, yönetici kayıtları, anonim etkinlik sayaçları. Cihaz/IP ve analitik kayıtları kendi sürelerinde silinir. Ayrıntı: [Gizlilik Politikası](/legal/privacy).
 
 ## 4. Yasal saklama yükümlülükleri
 
@@ -52,4 +59,4 @@ Veritabanı kayıtları güvenli silme ile kaldırılır; dosyalar depolamadan s
 
 Verilerinizin silinmesini veya anonim hale getirilmesini [KVKK Aydınlatma Metni](/legal/kvkk) bölüm 11'deki yollarla (Destek, yazılı, KEP) isteyebilirsiniz; başvurular en geç 30 gün içinde yanıtlanır.
 
-> **Özetle:** Çoğu teknik kayıt günler veya aylar içinde otomatik silinir; mesajlar ve hukuki ispat kayıtları ise sınırlı biçimde, kimliksiz olarak daha uzun kalabilir. Rehber özetleri ve konum sunucuda saklanmaz.
+> **Özetle:** Çoğu teknik kayıt günler veya aylar içinde otomatik silinir; mesajlar ve hukuki ispat kayıtları ise sınırlı biçimde, kimliksiz olarak daha uzun kalabilir. Rehber özetleri saklanmaz; konum hiç toplanmaz.

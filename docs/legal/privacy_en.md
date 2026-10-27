@@ -10,7 +10,7 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 
 1. We do **not sell** your data or share it for advertising.
 2. We process only what is needed to provide the service, keep it secure and meet legal obligations.
-3. Optional permissions (location, contacts) rely on your **explicit consent** and can be withdrawn at any time ([Explicit Consent](/legal/explicit-consent)).
+3. Optional permissions (contacts, push notifications) rely on your **explicit consent** and can be withdrawn at any time ([Explicit Consent](/legal/explicit-consent)). The app does **not ask for, collect or store your device location**.
 4. Messages are stored encrypted but the system is **not end-to-end encrypted**; authorised administrators may view them for stated reasons, with every access logged.
 5. Deleting your account anonymises your data; some records remain in limited form for legal reasons and to protect others.
 
@@ -25,8 +25,15 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 | **Messages:** text, photos, videos, edit history, reactions, read state, chat settings | Messaging | Contract | While the account is open; encrypted copies of deleted messages and edit history kept for security (default indefinite, configurable) |
 | **View-once photo:** encrypted file, open record | Messaging; security review | Contract; legitimate interest | Recipient access once / max 24 h; encrypted copy for admin review **365 days** (configurable) |
 | **Community and event data:** memberships, posts, RSVP, attendance, application answers | Community and event features | Contract | While the account is open; some records stay anonymous |
+| **Posts (Discover):** text, photos, videos, hashtags (#), mentions (@), likes, comments | Posting and interaction | Contract | While the account is open; after a post is deleted its media files are removed from disk after 30 days; uploads not attached to a post are deleted after 24 hours |
+| **Stories:** photo/video, text, viewers | 24-hour temporary sharing | Contract | Visible for 24 hours; permanently deleted 24 hours after expiry (configurable) |
+| **Follows and saved posts** | Building your feed, saving items for later | Contract | While the account is open; deleted with the account |
+| **Polls:** participation record and your vote | Voting | Contract | While the account is open; on account deletion the participation record is deleted and the vote is detached from you. In a secret poll, which option you chose is not shown to other users or administrators. <DOĞRULANACAK: whether finished polls' votes have a separate automatic deletion period> |
+| **Timetable, course and exam data:** courses, sessions, semester and exams you enter yourself; announcement read marks | Personal timetable and exam tracking | Contract | While the account is open; deleted with the account |
 | **Notification inbox and preferences** | Notifications | Contract | Read 90 days, unread 365 days |
 | **Device push token (FCM):** token, platform, app version, language, last seen | Push notifications | Contract; explicit consent (notification permission) | Removed after 60 days unseen; on logout/deletion |
+| **Push notification queue:** target user/device, title and short text, delivery status | Delivering push notifications from a durable queue with retries | Contract | Pending entries are retried for at most 24 hours; sent entries are deleted after 7 days, failed ones after 30 days; deleted on logout/account deletion |
+| **Inappropriate-language filter log:** which field, which user's content was rejected/flagged, and when (the rejected text is not stored) | Preventing abuse in public areas | Legitimate interest | 90 days |
 | **Device and IP records:** non-reversible HMAC digest of device identifier, platform, app version, IP, last seen and event type | Security, abuse prevention, ban evasion | Legitimate interest; legal obligation | Default **90 days**; ban records while a ban lasts |
 | **Usage events (analytics):** screen, event name, limited values, time | Improving the service; reports are aggregated | Legitimate interest | **180 days** |
 | **Support, feedback, appeals, reports** | Handling requests, moderation | Contract; legitimate interest; legal obligation | Texts scrubbed on account deletion; public (logged-out) tickets 365 days |
@@ -35,7 +42,7 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 | **Agreement acceptances:** document, version, time | Proof of acceptance | Legal obligation; legitimate interest | Kept after account deletion |
 | **E-mail queue:** recipient, subject, status | Verification, reset and security e-mails | Contract | Sent/failed entries deleted after 30 days |
 | **Contact matching:** SHA-256 digests of e-mails in your address book | Finding people you know | **Explicit consent** | **Not stored or logged**; in memory only while the request is processed |
-| **Approximate location permission** | Preparation for nearby events/announcements | **Explicit consent** | In the current version location is **not sent to or stored on** our servers |
+| **Device location** | — | — | The app does **not ask for location permission**; device location (GPS/network) is **not collected, sent or stored** (see 5) |
 
 > **In short:** Device/IP records 90 days, analytics 180 days, notifications 90/365 days, e-mail queue 30 days.
 
@@ -47,7 +54,7 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 4. "Delete for everyone" hides the message from users; the encrypted copy and previous versions may be retained for security (default indefinite).
 5. View-once photos: recipient sees once; the encrypted file is kept 365 days (configurable) for administrator review, then deleted. No absolute guarantee against screenshots.
 6. Push previews: by default message text is not shown in push notifications; the in-app inbox never stores message content.
-7. Photos are validated and re-encoded, EXIF removed; videos are compressed on your device. Image digests are matched against a prohibited-content digest list; images are not analysed automatically.
+7. Photos are validated and re-encoded, EXIF removed; chat videos are compressed on your device and are not re-encoded by the server (they are stored encrypted with a per-conversation key). Post (Discover) videos are re-encoded on the server after upload (H.264, at most 720p, AAC audio, metadata such as GPS removed) and stored on disk encrypted with a random per-file key that is itself wrapped by the master key; until re-encoding finishes the encrypted original stays playable and is then deleted. Image digests are matched against a prohibited-content digest list; images are not analysed automatically.
 8. Blocking: messages from someone you blocked are not delivered to you and the blocked person is not notified; they remain stored and visible to authorised administrators during report reviews.
 
 ## 4. Who we share data with
@@ -66,7 +73,7 @@ We do not share data with ad networks, data brokers or social-media trackers.
 
 1. **Notifications:** optional; notification types and **quiet hours** are configurable. Without permission, the in-app inbox still works.
 2. **Contact matching:** only SHA-256 digests of e-mails (up to 500 per request) are sent; they are **not stored or logged**; names and phone numbers are never sent.
-3. **Location:** the app may ask for approximate location, but the current version does not send or store it. If this changes we will update this text and ask for consent again.
+3. **Location:** the app does **not ask for location permission** and does not collect, send or store your location. The IP address recorded for security (see 6) is not device location, and the application code does not infer location or region from IP addresses. <DOĞRULANACAK: whether the hosting/reverse-proxy (CDN) provider derives a rough country/region from IP and passes it to us> If location is ever processed we will update this text and ask for consent again.
 
 ## 6. Device/IP records and access bans
 
@@ -80,10 +87,10 @@ Device-identifier digest, platform, app version, IP and time are recorded on reg
 
 | What happens | Data |
 |---|---|
-| **Deleted** | Push tokens, notification inbox and preferences, bookmarks, feedback votes and event feedback, block list, club application answers, community memberships, chat photos you uploaded |
-| **Anonymised** | Name, e-mail, profile, bio, photo; support, feedback, appeal, report and event application texts are scrubbed |
+| **Deleted** | Push tokens and pending push entries, notification inbox and preferences, saved posts, follows, stories, timetable and exam data, poll participation record, likes and comments (comments on others' posts show as deleted), Discover posts (media files removed after 30 days), bookmarks, feedback votes and event feedback, block list, club application answers, community memberships, chat photos you uploaded |
+| **Anonymised** | Name, e-mail, profile, bio, photo; poll vote records (link to you removed); support, feedback, appeal, report and event application texts are scrubbed |
 | **Kept (limited)** | Messages and community posts (others' context; author appears anonymous), agreement acceptances, moderation records, anonymous attendance/RSVP counters, administrator action and access logs |
-| **Cleaned by time** | Device/IP records (90 days), analytics (180 days), e-mail queue (30 days) |
+| **Cleaned by time** | Device/IP records (90 days), language-filter log (90 days), analytics (180 days), e-mail queue (30 days) |
 
 ## 8. Security
 
@@ -97,6 +104,14 @@ No tracking or advertising cookies. See the [Cookie Policy](/legal/cookies).
 
 The service is not designed for persons under 18; if such a registration is found we may require a legal representative's consent or close the account.
 
-## 11. Your rights, changes, contact
+## 11. Posts, stories, comments and content moderation
+
+1. Posts, comments, stories, hashtags (#) and mentions (@) are shown to other signed-in users; visibility is mutually closed with users you block or who block you. <DOĞRULANACAK: narrower visibility options such as followers/club for posts/stories>
+2. Mentioning a user with `@` may send them a notification.
+3. Stories are visible for 24 hours; the story owner can see who viewed it; they are permanently deleted 24 hours after expiry.
+4. **Language filter.** Insults, abuse, hate speech or sexually explicit expressions in public areas (communities, events, profiles, group titles, posts, comments, stories) may be rejected automatically. **Chat messages (one-to-one and group) are not pre-screened.** The filter acts at submission time; which field and which user's content was rejected is kept for 90 days, the rejected text is not stored. The decision is automatic without human review; you may contest it through Support.
+5. **Reports and removal.** Posts, comments, stories and messages can be reported with **Report**; authorised administrators review and may hide or remove content. See [Content Notice and Removal](/legal/content-removal) and the [Community Rules](/legal/community-rules).
+
+## 12. Your rights, changes, contact
 
 Your KVKK Article 11 rights and the application route (30-day response) are in the [KVKK Notice](/legal/kvkk). We may update this policy; for material changes we ask for re-acceptance. Contact: {{support.email|in-app Support section}}{{?controller.email}} · {{controller.email}}{{/controller.email}}{{?controller.kep}} · KEP: {{controller.kep}}{{/controller.kep}}

@@ -24,6 +24,10 @@ Do not write what you would not say face to face; you are responsible for everyt
 | **Technical abuse** | Bots, scraping, harvesting the user directory, exploiting vulnerabilities, evading bans (new accounts, VPN) | Reporting bugs to Support |
 | **Copyright infringement** | Sharing others' works without permission | Short quotes with attribution |
 
+**Language filter in public areas.** Insults, abuse, hate speech or sexually explicit expressions may not be used in public areas such as communities, events, profiles, group titles, posts, comments and stories; such content may be rejected automatically. Private chats and group messages are not pre-screened; however, harassment, threats or inappropriate content can be reported by users and, after review through the in-app report/feedback channel, content removal, a warning or an account restriction may be applied.
+
+**Posts, comments and stories.** You are responsible for the posts, comments and stories you share (including mentions/tags). They are not reviewed by humans before publication; content that breaks the rules above may be hidden or removed after a report. Do not share others' photos, personal data or private conversations without consent.
+
 ## 3. Extra rules for event and club managers
 
 Keep event details accurate and announce changes in time; use participant information only for the event and do not share attendance records; use attendance QR codes only at the event place and time; when handing over management, inform the new manager and apply these rules in member chat rooms.
@@ -34,7 +38,7 @@ Messages are stored encrypted but not end-to-end; authorised administrators may 
 
 ## 5. How to report
 
-1. Use **Report** on a user, message, post, community or event, pick a reason and optionally add a note.
+1. Use **Report** on a user, message, post, comment, story, community or event, pick a reason and optionally add a note.
 2. For urgent or severe cases write to Support and contact law enforcement if needed.
 3. For unlawful content or copyright, follow [Content Notice and Removal](/legal/content-removal).
 4. Baseless or bad-faith reports may restrict your reporting. Daily reports are limited.

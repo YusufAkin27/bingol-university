@@ -53,7 +53,7 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     List<PostMedia> findByStoryIdIn(Collection<Long> storyIds);
 
     /** Hikayeye atomik baglama: yalniz sahibinin, baglanmamis, gizli olmayan medya. */
-    @Modifying(flushAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE PostMedia m SET m.storyId = :story WHERE m.id = :id AND m.ownerId = :owner "
             + "AND m.postId IS NULL AND m.storyId IS NULL AND m.hiddenAt IS NULL")
     int bindStory(@Param("id") Long id, @Param("owner") Long ownerId, @Param("story") Long storyId);
@@ -61,7 +61,8 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     boolean existsByStorageKey(String storageKey);
 
     /** Atomik baglama: yalniz sahibinin, baglanmamis, gizli olmayan medya. Donen 1 degilse gecersiz/yarisilmis. */
-    @Modifying(flushAutomatically = true)
+    // clearAutomatically: ayni islemde onceden yuklenen (postId=null) nesne bayat kalmasin; yoksa gorunum siralamasi NPE verir
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE PostMedia m SET m.postId = :post, m.position = :pos WHERE m.id = :id AND m.ownerId = :owner "
             + "AND m.postId IS NULL AND m.storyId IS NULL AND m.hiddenAt IS NULL")
     int bind(@Param("id") Long id, @Param("owner") Long ownerId, @Param("post") Long postId,

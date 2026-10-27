@@ -18,16 +18,13 @@ Veri sorumlusu: {{controller.name}}. Bu metin, 6698 sayılı Kanun'un 3. ve 5/1.
 
 **Onay:** Rehberimdeki e-posta adreslerinin SHA-256 özetlerinin, yukarıda belirtilen amaçla işlenmesine açık rıza veriyorum. (Ayrı onay kutusu / sistem izni ile verilir.)
 
-## Madde 2. Yaklaşık konum
+## Madde 2. Konum (şu anda işlenmiyor)
 
 | | |
 |---|---|
-| **Ne yapılır?** | Uygulama, yakındaki etkinlik ve duyuruları gösterme özelliği için cihazınızdan **yaklaşık konum** izni isteyebilir. |
-| **Mevcut durum** | Bu sürümde konum bilginiz **sunucuya gönderilmez ve saklanmaz**; izin yalnızca cihaz üzerinde kullanıma hazırlıktır. |
-| **Gelecekte** | Konumun sunucuda işlenmesi gerekirse bu metin güncellenir, hangi amaçla ne kadar süre saklanacağı belirtilir ve **yeniden açık rızanız** alınır. |
-| **Geri alma** | Cihaz ayarlarından konum iznini kapatın veya uygulamada İzinler > Konum. |
-
-**Onay:** Yaklaşık konumumun, yukarıda belirtilen amaçla kullanılmasına açık rıza veriyorum.
+| **Mevcut durum** | Uygulama cihazınızdan **konum izni istemez**; konum bilginiz toplanmaz, sunucuya gönderilmez ve saklanmaz. Bu madde için sizden rıza **alınmaz**. |
+| **IP adresi** | Güvenlik için kaydedilen IP adresi cihaz konumu değildir ve konum belirlemek için kullanılmaz (ayrıntı: [Gizlilik Politikası](/legal/privacy) bölüm 5 ve 6). |
+| **Gelecekte** | Konumun işlenmesi gerekirse bu metin güncellenir, amaç ve saklama süresi belirtilir ve **yeniden açık rızanız** alınır. |
 
 ## Madde 3. Anlık bildirimler ve yurt dışına aktarım
 
@@ -52,6 +49,6 @@ Fakülte, bölüm, sınıf, biyografi, profil fotoğrafı ve e-posta alanların�
 1. Her izin, verildiği yoldan (cihaz ayarları veya uygulamadaki İzinler ve Ayarlar ekranı) **kolayca ve ücretsiz** geri alınabilir.
 2. Rızanın geri alınması, geri alma anına kadar yapılan işlemlerin hukuka uygunluğunu etkilemez.
 3. Tüm kişisel verilerinizin silinmesini isterseniz hesabınızı kapatabilir veya [KVKK Aydınlatma Metni](/legal/kvkk) başvuru yollarını kullanabilirsiniz.
-4. Rıza vermemeniz veya geri almanız halinde, yalnızca ilgili isteğe bağlı özellik (rehber eşleştirme, konum, anlık bildirim) kullanılamaz.
+4. Rıza vermemeniz veya geri almanız halinde, yalnızca ilgili isteğe bağlı özellik (rehber eşleştirme, anlık bildirim) kullanılamaz.
 
-> **Özetle:** Rehber eşleştirme, konum ve anlık bildirim izinleri isteğe bağlıdır, ayrı ayrı verilir ve her an geri alınır. Rehberden yalnızca e-posta özetleri gönderilir ve saklanmaz; konum şu an sunucuya gitmez; anlık bildirimler Google Firebase/Apple (yurt dışı) üzerinden iletilir.
+> **Özetle:** Rehber eşleştirme ve anlık bildirim izinleri isteğe bağlıdır, ayrı ayrı verilir ve her an geri alınır. Rehberden yalnızca e-posta özetleri gönderilir ve saklanmaz; uygulama konum izni istemez ve konum toplamaz; anlık bildirimler Google Firebase/Apple (yurt dışı) üzerinden iletilir.

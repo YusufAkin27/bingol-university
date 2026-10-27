@@ -11,7 +11,7 @@ Bu metin, BÜ Kampüs'te yer alan kullanıcı içeriklerine ilişkin hukuka ayk�
 
 ## 2. Hızlı yol: uygulama içi bildirim
 
-Kullanıcı, mesaj, gönderi, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın. Bildirimler yetkili yöneticilerce incelenir; ilgili sohbet bağlamı da görülebilir. Bu yol hızlıdır ve Topluluk Kuralları ihlalleri için uygundur.
+Kullanıcı, mesaj, gönderi, yorum, hikâye, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın. Gönderi, yorum ve hikâyeler yayımlanmadan önce insan denetiminden geçmez; bildirim üzerine yetkili yöneticiler içeriği inceler, gizler veya kaldırır; içeriği paylaşan kullanıcıya uygulama içi bildirim yapılabilir ve itiraz hakkı saklıdır. Bildirimler yetkili yöneticilerce incelenir; ilgili sohbet bağlamı da görülebilir. Bu yol hızlıdır ve Topluluk Kuralları ihlalleri için uygundur.
 
 ## 3. Resmi bildirim usulü
 

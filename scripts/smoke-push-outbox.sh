@@ -63,7 +63,14 @@ HOLD=$(echo "$S1" | grep -o '"holdWhenDisabled":[a-z]*' | cut -d: -f2)
 ENABLED=$(echo "$S1" | grep -o '"enabled":[a-z]*' | head -1 | cut -d: -f2)
 if [ "$ENABLED" = "true" ]; then
   echo "  FCM acik: kayitlar gonderilip SENT olmali"
-  [ "$(num "$S1" sentLast24h)" -gt "${S0S:-0}" ] && echo "  ok   sentLast24h artti" || { echo "  FAIL gonderim izi yok: $S1"; FAIL=1; }
+  # Sahte cihaz tokeni gercek FCM'de reddedilir: SENT yerine failed/dead de "deneme yapildi" kanitidir
+  if [ "$(num "$S1" sentLast24h)" -gt "${S0S:-0}" ]; then
+    echo "  ok   sentLast24h artti"
+  elif [ "$(num "$S1" failed)" -gt 0 ] || [ "$(num "$S1" dead)" -gt 0 ]; then
+    echo "  ok   gonderim denendi (sahte token FCM'de reddedildi: failed/dead > 0)"
+  else
+    echo "  FAIL gonderim izi yok: $S1"; FAIL=1
+  fi
 elif [ "$HOLD" = "true" ]; then
   [ "$P1" -gt "${P0:-0}" ] && echo "  ok   FCM yok + hold: kayit PENDING'de bekliyor ($P0 -> $P1)" || { echo "  FAIL hold modunda kayit birikmedi: $S1"; FAIL=1; }
 else

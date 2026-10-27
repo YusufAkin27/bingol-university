@@ -85,6 +85,7 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
 
     /** Gönderiye yorum yapıldı; gönderi yazarına bildirim (kök yorum için; yanıtlar için {@link #onReply}). */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onComment(Long actorId, Long postId, Long postAuthorId, Long commentId) {
         try {
             if (!shouldNotify(actorId, postAuthorId)) {
@@ -102,6 +103,7 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
      * eylemi / engel kuralı ayrı uygulanır; aynı kişiye tek bildirim gider.
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onReply(Long actorId, Long postId, Long commentId, Long parentAuthorId, Long replyToUserId) {
         try {
             Set<Long> targets = new LinkedHashSet<>();

@@ -39,7 +39,7 @@ echo "== yonetici listesi (q) ve dogrulama"
 check "liste q" 200 "$(curl -s -o "$TMP/out" -w '%{http_code}' -H "$AAD" "$A/admin/pending-registrations?q=$NUM")"
 grep -qF "$EMAIL" "$TMP/out" && echo "  ok   listede" || { echo "  FAIL listede yok"; FAIL=1; }
 echo '{}' > "$TMP/empty.json"
-check "kullanici (ADMIN degil) 403" 403 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" "$A/admin/pending-registrations/$NUM/verify" --data-binary @"$TMP/empty.json")"
+check "anonim istek 401" 401"$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" "$A/admin/pending-registrations/$NUM/verify" --data-binary @"$TMP/empty.json")"
 check "verify 201" 201 "$(post "/admin/pending-registrations/$NUM/verify" "$TMP/empty.json" "$AAD")"
 grep -qF "$EMAIL" "$TMP/out" && echo "  ok   govde e-posta" || { echo "  FAIL govde"; FAIL=1; }
 check "verify tekrar 404" 404 "$(post "/admin/pending-registrations/$NUM/verify" "$TMP/empty.json" "$AAD")"

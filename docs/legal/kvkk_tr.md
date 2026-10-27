@@ -20,9 +20,10 @@
 | Kimlik | Ad-soyad |
 | İletişim | Kurumsal e-posta adresi (bingol.edu.tr), destek taleplerinde iletişim e-postası |
 | Eğitim/mesleki bilgi | Fakülte, bölüm, sınıf, öğrenci/personel rolü |
-| Görsel | Profil fotoğrafı; sohbet/gönderi fotoğrafları ve videoları |
-| Kullanıcı içeriği | Mesajlar, topluluk gönderileri, etkinlik başvuru yanıtları, geri bildirim, destek ve itiraz metinleri, biyografi |
-| Müşteri işlem / kullanım | Topluluk üyelikleri, etkinlik katılımı ve yoklama, favoriler, bildirim ve gizlilik tercihleri, engelleme listesi |
+| Görsel | Profil fotoğrafı; sohbet/gönderi/hikâye fotoğrafları ve videoları (gönderi videoları sunucuda yeniden kodlanır ve şifreli saklanır) |
+| Kullanıcı içeriği | Mesajlar, topluluk ve Keşfet gönderileri, yorumlar, 24 saatlik hikâyeler, etiketler (#) ve anmalar (@), anket oyları, etkinlik başvuru yanıtları, geri bildirim, destek ve itiraz metinleri, biyografi |
+| Müşteri işlem / kullanım | Topluluk üyelikleri, etkinlik katılımı ve yoklama, favoriler, takip ilişkileri, kaydedilen gönderiler, bildirim ve gizlilik tercihleri, engelleme listesi |
+| Kişisel plan | Kullanıcının kendi girdiği ders programı, ders, dönem ve sınav kayıtları |
 | İşlem güvenliği | Oturum bilgisi, şifre özeti, cihaz tanımlayıcısının geri döndürülemez özeti, IP adresi, platform ve uygulama sürümü, erişim engeli kayıtları, hata ve giriş denemeleri |
 | Hukuki işlem / uyum | Sözleşme onay kayıtları, şikâyet/rapor ve moderasyon kayıtları, yönetici erişim kayıtları |
 | Pazarlama | İşlenmez (reklam/pazarlama amacıyla işleme yapılmaz) |
@@ -38,6 +39,8 @@
 6. Hizmetin iyileştirilmesi, hata ve performans takibi (toplulaştırılmış analiz).
 7. Hukuki yükümlülüklerin yerine getirilmesi, yetkili makam taleplerinin karşılanması, hakların kullanılması ve savunulması.
 8. Sözleşme ve rıza kayıtlarının tutulması.
+9. Gönderi, yorum, hikâye, takip, kaydetme, etiketleme, anket ve kişisel ders programı hizmetlerinin sunulması.
+10. Herkese açık alanlarda uygunsuz ifadenin otomatik filtrelenmesi ve şikâyetlerin yürütülmesi.
 
 ## 4. Hukuki sebepler
 
@@ -48,7 +51,7 @@
 | m.5/2-(ç) Hukuki yükümlülüğün yerine getirilmesi | Sözleşme onay kayıtları, yasal talepler, ilgili mevzuat gereği saklama |
 | m.5/2-(e) Bir hakkın tesisi, kullanılması veya korunması | Moderasyon izleri, itiraz ve uyuşmazlık için delil niteliğindeki kayıtlar |
 | m.5/2-(f) Meşru menfaat (temel hak ve özgürlüklere zarar vermemek şartıyla) | Güvenlik, cihaz/IP kaydı, hız sınırlama, yönetici erişim denetimi, analitik |
-| m.5/1 Açık rıza | Rehber eşleştirme, konum izni, anlık bildirim izni, isteğe bağlı profil alanlarının yayımı gibi **isteğe bağlı** işlemler |
+| m.5/1 Açık rıza | Rehber eşleştirme, anlık bildirim izni, isteğe bağlı profil alanlarının yayımı gibi **isteğe bağlı** işlemler |
 
 (m.5/2-(ç) ve m.5/2-(e) bendleri ilgili işlemlerde birlikte dayanak olabilir.)
 
@@ -70,7 +73,7 @@ Verileriniz; uygulama ve web sitesi üzerinden elektronik ortamda, kayıt/profil
 
 ## 7. Saklama süresi
 
-Kişisel veriler, işleme amacı için gerekli süre ve ilgili mevzuatta öngörülen süre boyunca saklanır, süre bitiminde silinir, yok edilir veya anonim hale getirilir. Başlıca süreler: bekleyen kayıt 1 saat; doğrulama kodu 10 dakika; yenileme anahtarı en çok 30 gün; okunmuş bildirim 90 gün, okunmamış 365 gün; cihaz bildirim anahtarı 60 gün görülmezse; cihaz/IP güvenlik kayıtları 90 gün; analitik olaylar 180 gün; e-posta kuyruğu 30 gün; tek gönderimlik fotoğrafın şifreli kopyası 365 gün; herkese açık destek talebi 365 gün. Hesap açık olduğu sürece profil ve içerikleriniz saklanır; silinen mesajların şifreli kopyası ve sözleşme onay kayıtları güvenlik/ispat amacıyla ayrıca tutulabilir. Ayrıntılı tablo: [Saklama ve İmha](/legal/retention).
+Kişisel veriler, işleme amacı için gerekli süre ve ilgili mevzuatta öngörülen süre boyunca saklanır, süre bitiminde silinir, yok edilir veya anonim hale getirilir. Başlıca süreler: bekleyen kayıt 1 saat; doğrulama kodu 10 dakika; yenileme anahtarı en çok 30 gün; okunmuş bildirim 90 gün, okunmamış 365 gün; cihaz bildirim anahtarı 60 gün görülmezse; cihaz/IP güvenlik kayıtları 90 gün; uygunsuz ifade filtresi kaydı 90 gün; hikâyeler görünürlük bitiminden 24 saat sonra; push kuyruğu kaydı gönderildikten 7 gün (başarısızsa 30 gün); analitik olaylar 180 gün; e-posta kuyruğu 30 gün; tek gönderimlik fotoğrafın şifreli kopyası 365 gün; herkese açık destek talebi 365 gün. Hesap açık olduğu sürece profil ve içerikleriniz saklanır; silinen mesajların şifreli kopyası ve sözleşme onay kayıtları güvenlik/ispat amacıyla ayrıca tutulabilir. Ayrıntılı tablo: [Saklama ve İmha](/legal/retention).
 
 ## 8. Mesajlara yönetici erişimi (şeffaflık notu)
 
@@ -78,7 +81,7 @@ Mesajlar sunucuda şifreli saklanır ancak sistem uçtan uca şifreli değildir.
 
 ## 9. Otomatik karar verme
 
-Hizmet, hakkınızda yalnızca otomatik işleme ile hukuki sonuç doğuran bir karar vermez. Aynı hesapla ilgili birden çok ihlal kaydı birikmesi halinde sistem yalnızca bir yöneticiye **öneri** üretir; askıya alma kararını bir yönetici verir. Hız sınırlama ve yasaklı içerik özeti kontrolü gibi otomatik güvenlik önlemleri vardır.
+Hizmet, hakkınızda yalnızca otomatik işleme ile hukuki sonuç doğuran bir karar vermez. Aynı hesapla ilgili birden çok ihlal kaydı birikmesi halinde sistem yalnızca bir yöneticiye **öneri** üretir; askıya alma kararını bir yönetici verir. Hız sınırlama, yasaklı içerik özeti kontrolü ve herkese açık alanlardaki uygunsuz ifade filtresi gibi otomatik önlemler vardır; filtre bir içeriği otomatik reddedebilir (sohbet mesajları bu denetime tabi değildir), itirazınızı Destek bölümünden iletebilirsiniz. Hesabınıza yönelik kalıcı sonuç doğuran kararlar yönetici tarafından verilir.
 
 ## 10. Haklarınız (m.11)
 

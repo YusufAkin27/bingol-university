@@ -19,16 +19,13 @@ Controller: {{controller.name}}. This is consent "relating to a specific subject
 
 **Consent:** I give explicit consent to processing SHA-256 digests of e-mails in my address book for the purpose stated above.
 
-## Item 2. Approximate location
+## Item 2. Location (not processed at present)
 
 | | |
 |---|---|
-| What happens | The app may request **approximate location** for a nearby events/announcements feature. |
-| Current status | In this version your location is **not sent to or stored on** the server. |
-| In future | If server-side processing becomes necessary, this text will be updated and **new explicit consent** requested. |
-| Withdrawal | Device settings or Permissions > Location. |
-
-**Consent:** I give explicit consent to the use of my approximate location for the purpose stated above.
+| Current status | The app does **not ask for location permission**; your location is not collected, sent or stored. **No consent is requested** for this item. |
+| IP address | The IP address recorded for security is not device location and is not used to determine location (see [Privacy Policy](/legal/privacy)). |
+| In future | If location processing becomes necessary, this text will be updated and **new explicit consent** requested. |
 
 ## Item 3. Push notifications and transfer abroad
 
@@ -55,4 +52,4 @@ You decide **field by field** (Profile > Privacy) whether faculty, department, y
 3. To delete all your data, close your account or use the routes in the KVKK Notice.
 4. If you refuse or withdraw, only the related optional feature is unavailable.
 
-> **In short:** Contacts, location and push are optional, separate and revocable at any time. Only e-mail digests leave your contacts and are not stored; location is not sent today; push goes through Google Firebase/Apple (abroad).
+> **In short:** Contacts and push are optional, separate and revocable at any time. Only e-mail digests leave your contacts and are not stored; the app does not ask for or collect location; push goes through Google Firebase/Apple (abroad).

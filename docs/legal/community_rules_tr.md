@@ -22,6 +22,10 @@ Başkasına yüz yüze söylemeyeceğiniz bir şeyi yazmayın; paylaştığını
 | **Teknik kötüye kullanım** | Bot, toplu tarama, rehber/kullanıcı dizinini toplamak, güvenlik açığı sömürmek, yasak/engel dolanmak (yeni hesap, VPN) | Hataları Destek'e bildirmek |
 | **Telif ihlali** | Başkasının eserini izinsiz paylaşmak | Kaynak göstererek kısa alıntı |
 
+**Herkese açık alanlarda ifade filtresi.** Topluluk, etkinlik, profil, grup başlığı, gönderi, yorum ve hikâye gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanılamaz; bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
+
+**Gönderi, yorum ve hikâyeler.** Paylaştığınız gönderi, yorum ve hikâyelerden (ve içlerindeki etiket/anmalardan) siz sorumlusunuz. İçerikler yayımlanmadan önce insan denetiminden geçmez; yukarıdaki kurallara aykırı olanlar şikâyet üzerine gizlenebilir veya kaldırılabilir. Başkasının fotoğrafını, kişisel verisini veya özel yazışmasını izinsiz paylaşmayın.
+
 ## 3. Etkinlik ve kulüp yöneticileri için ek kurallar
 
 1. Etkinlik bilgileri (yer, tarih, ücret, kontenjan) doğru olmalı; değişiklik ve iptaller zamanında duyurulmalı.
@@ -37,7 +41,7 @@ Başkasına yüz yüze söylemeyeceğiniz bir şeyi yazmayın; paylaştığını
 
 ## 5. Nasıl bildirilir?
 
-1. Kullanıcı, mesaj, gönderi, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın, nedeni seçin ve isterseniz kısa bir not ekleyin.
+1. Kullanıcı, mesaj, gönderi, yorum, hikâye, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın, nedeni seçin ve isterseniz kısa bir not ekleyin.
 2. Acil/ağır durumlarda (tehdit, istismar) ayrıca Destek bölümünden bize yazın ve gerekirse kolluk kuvvetlerine başvurun.
 3. Hukuka aykırı içerik veya telif bildirimleri için [İçerik Bildirimi ve Kaldırma](/legal/content-removal) usulünü izleyin.
 4. Asılsız veya art niyetli raporlar rapor yapma yetkinizi kısıtlayabilir. Günlük rapor sayısı sınırlıdır.

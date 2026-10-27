@@ -17,11 +17,11 @@ Under Article 10 of the Personal Data Protection Law No. 6698 ("**KVKK**") and t
 
 ## 2. Categories of personal data
 
-Identity (name); contact (university e-mail, contact e-mail in support requests); education/professional (faculty, department, year, role); visual (profile photo, chat/post photos and videos); user content (messages, posts, application answers, feedback, support and appeal texts, bio); usage (memberships, attendance, bookmarks, notification and privacy preferences, block list); transaction security (session data, password hash, non-reversible device-identifier digest, IP address, platform, app version, ban records); legal/compliance (agreement acceptances, reports and moderation records, administrator access records). Marketing: not processed. Special categories: not requested; any shared by you inside content is only hosted as you shared it.
+Identity (name); contact (university e-mail, contact e-mail in support requests); education/professional (faculty, department, year, role); visual (profile photo, chat/post/story photos and videos; post videos are re-encoded and stored encrypted on the server); user content (messages, community and Discover posts, comments, 24-hour stories, hashtags and mentions, poll votes, application answers, feedback, support and appeal texts, bio); personal plan (timetable, courses, semester and exams entered by you); usage (memberships, attendance, bookmarks, follows, saved posts, notification and privacy preferences, block list); transaction security (session data, password hash, non-reversible device-identifier digest, IP address, platform, app version, ban records); legal/compliance (agreement acceptances, reports and moderation records, administrator access records). Marketing: not processed. Special categories: not requested; any shared by you inside content is only hosted as you shared it.
 
 ## 3. Purposes
 
-Membership and verification; providing news, announcements, events, menu, communities, events, attendance, messaging, search and bookmarks; notifications; support and appeals; security, abuse prevention and moderation; improving the service (aggregate analytics); legal obligations and defence of rights; keeping agreement and consent records.
+Membership and verification; providing news, announcements, events, menu, communities, events, attendance, messaging, search and bookmarks; notifications; support and appeals; security, abuse prevention and moderation; improving the service (aggregate analytics); legal obligations and defence of rights; keeping agreement and consent records; providing posts, comments, stories, follows, saving, tagging, polls and personal timetable features; automatic filtering of inappropriate language in public areas and handling reports.
 
 ## 4. Legal bases
 
@@ -32,7 +32,7 @@ Membership and verification; providing news, announcements, events, menu, commun
 | Art. 5/2-(ç) Legal obligation | Acceptance records, legal requests |
 | Art. 5/2-(e) Establishment, exercise or protection of a right | Moderation trail, evidence for disputes |
 | Art. 5/2-(f) Legitimate interest | Security, device/IP records, rate limiting, administrator access audit, analytics |
-| Art. 5/1 Explicit consent | Optional: contact matching, location, push notifications, optional profile visibility |
+| Art. 5/1 Explicit consent | Optional: contact matching, push notifications, optional profile visibility |
 
 ## 5. Transfers
 
@@ -52,7 +52,7 @@ Electronically through the app and website: registration/profile forms, messagin
 
 ## 7. Retention
 
-Data is kept for the time required by the purpose and applicable law, then deleted, destroyed or anonymised. Main periods: pending registration 1 hour; verification code 10 minutes; refresh token at most 30 days; read notifications 90 days, unread 365; push token after 60 days unseen; device/IP records 90 days; analytics 180 days; e-mail queue 30 days; view-once photo encrypted copy 365 days; public support request 365 days. See [Retention](/legal/retention).
+Data is kept for the time required by the purpose and applicable law, then deleted, destroyed or anonymised. Main periods: pending registration 1 hour; verification code 10 minutes; refresh token at most 30 days; read notifications 90 days, unread 365; push token after 60 days unseen; device/IP records 90 days; language-filter log 90 days; stories 24 hours after expiry; push queue entries 7 days after sending (30 if failed); analytics 180 days; e-mail queue 30 days; view-once photo encrypted copy 365 days; public support request 365 days. See [Retention](/legal/retention).
 
 ## 8. Administrator access to messages (transparency)
 
@@ -60,7 +60,7 @@ Messages are stored encrypted but the system is not end-to-end encrypted. Author
 
 ## 9. Automated decisions
 
-No decision with legal effect is made solely by automated means. Accumulating violations only generates a **recommendation** to an administrator, who decides on suspension. Rate limits and prohibited-content digest checks are automated security measures.
+No decision with legal effect is made solely by automated means. Accumulating violations only generates a **recommendation** to an administrator, who decides on suspension. Rate limits, prohibited-content digest checks and the inappropriate-language filter in public areas are automated measures; the filter may reject content automatically (chat messages are not subject to it) and you may contest through Support. Decisions with lasting effect on your account are made by an administrator.
 
 ## 10. Your rights (Art. 11)
 

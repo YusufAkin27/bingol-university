@@ -10,7 +10,7 @@ Content you consider unlawful (insult, threat, obscenity, incitement); violation
 
 ## 2. Fast route: in-app report
 
-Use **Report** on a user, message, post, community or event. Authorised administrators review it and may see the related chat context. Suitable for Community Rules violations.
+Use **Report** on a user, message, post, comment, story, community or event. Posts, comments and stories are not reviewed by humans before publication; upon a report, authorised administrators review, hide or remove the content, the user who shared it may be notified in the app, and the right to appeal is reserved. Authorised administrators review it and may see the related chat context. Suitable for Community Rules violations.
 
 ## 3. Formal notice
 
