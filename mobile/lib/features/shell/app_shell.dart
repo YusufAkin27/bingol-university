@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/session.dart';
-import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
-import '../../widgets/bu_widgets.dart';
 import '../chat/chat_tab.dart';
 import '../clubs/clubs_tab.dart';
 import '../discover/discover_tab.dart';
 import '../home/home_tab.dart';
 import '../profile/profile_tab.dart';
+import 'floating_nav.dart';
+
+export 'floating_nav.dart' show FloatingNav;
 
 /// Sekme sırası: 0 Ana Sayfa, 1 Keşfet, 2 Sohbet, 3 Kulüpler, 4 Profil.
 abstract final class AppTab {
@@ -106,108 +107,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           if (i == AppTab.chat) _refreshBadges();
         },
         chatBadge: s.badges.chat,
-      ),
-    );
-  }
-}
-
-/// Yüzen hap gezinme: seçili sekme kırmızı hap + etiket, diğerleri yalnızca ikon.
-class FloatingNav extends StatelessWidget {
-  const FloatingNav({super.key, required this.index, required this.onChanged, required this.chatBadge});
-
-  final int index;
-  final ValueChanged<int> onChanged;
-  final ValueNotifier<int> chatBadge;
-
-  static const _items = [
-    (LucideIcons.house, 'Ana Sayfa'),
-    (LucideIcons.compass, 'Keşfet'),
-    (LucideIcons.messageCircle, 'Sohbet'),
-    (LucideIcons.users, 'Kulüpler'),
-    (LucideIcons.user, 'Profil'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final bottom = MediaQuery.of(context).padding.bottom;
-    // Dar ekranda (320 dp) seçili hap + 4 ikon sığsın diye kenar boşlukları ve ikon genişliği küçülür.
-    final narrow = MediaQuery.sizeOf(context).width < 360;
-    final side = narrow ? 12.0 : 20.0;
-    final minW = narrow ? 40.0 : 46.0;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(side, 0, side, bottom > 0 ? bottom : 16),
-      child: Container(
-        height: 66,
-        padding: EdgeInsets.symmetric(horizontal: narrow ? 6 : 10),
-        decoration: BoxDecoration(
-          color: t.nav,
-          borderRadius: BorderRadius.circular(33),
-          border: Border.all(color: t.bg == BuTokens.dark.bg ? t.bd : Colors.transparent),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 30, offset: const Offset(0, 14)),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            for (var i = 0; i < _items.length; i++)
-              Flexible(
-                flex: i == index ? 1 : 0,
-                child: Semantics(
-                  button: true,
-                  selected: i == index,
-                  label: _items[i].$2,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onChanged(i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      height: 46,
-                      constraints: BoxConstraints(minWidth: minW),
-                      padding: EdgeInsets.symmetric(horizontal: i == index ? (narrow ? 12 : 16) : 0),
-                      decoration: BoxDecoration(
-                        color: i == index ? t.pr : Colors.transparent,
-                        borderRadius: BorderRadius.circular(23),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _icon(i, t),
-                          if (i == index) ...[
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(_items[i].$2,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: t.onPr, fontSize: 13, fontWeight: FontWeight.w800)),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _icon(int i, BuTokens t) {
-    final color = i == index ? t.onPr : t.onNav.withValues(alpha: .75);
-    final icon = Icon(_items[i].$1, size: 24, color: color);
-    if (i != AppTab.chat) return icon;
-    return ValueListenableBuilder<int>(
-      valueListenable: chatBadge,
-      builder: (_, n, __) => Badge(
-        isLabelVisible: n > 0 && i != index,
-        label: Text(n > 99 ? '99+' : '$n'),
-        backgroundColor: t.pr,
-        textColor: t.onPr,
-        child: icon,
       ),
     );
   }

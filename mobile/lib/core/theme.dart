@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'typography.dart';
+
 /// Marka renkleri: web/src/styles/tokens.css ile aynı değerler (Kampüs Kırmızısı + lacivert mürekkep).
 class BuColors {
   BuColors._();
@@ -113,10 +115,28 @@ extension BuThemeX on BuildContext {
 class BuTheme {
   BuTheme._();
 
-  static const fontFamily = null; // sistem yazı tipi (iOS: SF Pro). Gerekirse paketlenmiş font eklenir.
+  static const fontFamily = BuType.family; // paketlenmis Inter (pubspec fonts); Arapca icin sistem yedegi
 
   static ThemeData light() => _build(BuTokens.light, Brightness.light);
   static ThemeData dark() => _build(BuTokens.dark, Brightness.dark);
+
+  static TextTheme _textTheme(BuTokens t) => const TextTheme(
+        displayLarge: BuType.display,
+        displayMedium: BuType.display,
+        displaySmall: BuType.display,
+        headlineLarge: BuType.title,
+        headlineMedium: BuType.title,
+        headlineSmall: BuType.title,
+        titleLarge: BuType.title,
+        titleMedium: BuType.heading,
+        titleSmall: BuType.bodyStrong,
+        bodyLarge: BuType.body,
+        bodyMedium: BuType.body,
+        bodySmall: BuType.caption,
+        labelLarge: BuType.bodyStrong,
+        labelMedium: BuType.label,
+        labelSmall: BuType.micro,
+      ).apply(bodyColor: t.ink, displayColor: t.ink);
 
   static ThemeData _build(BuTokens t, Brightness b) {
     final cs = ColorScheme(
@@ -144,6 +164,8 @@ class BuTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily,
+      textTheme: _textTheme(t),
       brightness: b,
       colorScheme: cs,
       extensions: [t],
@@ -154,6 +176,7 @@ class BuTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        titleTextStyle: BuType.title.copyWith(color: t.ink),
       ),
       cardTheme: CardThemeData(
         color: t.sf,
@@ -172,7 +195,10 @@ class BuTheme {
         focusedBorder: border(t.pr, 2),
         errorBorder: border(t.danger),
         focusedErrorBorder: border(t.danger, 2),
-        hintStyle: TextStyle(color: t.mut),
+        hintStyle: BuType.body.copyWith(color: t.mut),
+        labelStyle: BuType.body.copyWith(color: t.mut),
+        helperStyle: BuType.caption.copyWith(color: t.mut),
+        errorStyle: BuType.caption.copyWith(color: t.danger),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -180,7 +206,7 @@ class BuTheme {
           foregroundColor: t.onPr,
           minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(borderRadius: radius),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -189,13 +215,13 @@ class BuTheme {
           minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(borderRadius: radius),
           side: BorderSide(color: t.bd),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: t.pr,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -212,11 +238,13 @@ class BuTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: t.ink,
-        contentTextStyle: TextStyle(color: t.bg),
+        contentTextStyle: BuType.body.copyWith(color: t.bg),
         shape: RoundedRectangleBorder(borderRadius: radius),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: t.sf,
+        titleTextStyle: BuType.title.copyWith(color: t.ink),
+        contentTextStyle: BuType.body.copyWith(color: t.ink),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),

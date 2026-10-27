@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/session.dart';
+import '../core/typography.dart';
 
 /// 2026-10-26 -> 26.10.2026
 String fmtDate(String? iso) {
@@ -122,7 +123,7 @@ class StaleBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(text,
-                style: TextStyle(color: cs.onPrimaryContainer, fontSize: 13, height: 1.3)),
+                style: BuType.caption.copyWith(color: cs.onPrimaryContainer, height: 1.3)),
           ),
         ],
       ),
@@ -155,11 +156,7 @@ class TypeBadge extends StatelessWidget {
       ),
       child: Text(
         label(type),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: isEvent ? cs.onPrimaryContainer : cs.onSecondary,
-        ),
+        style: BuType.micro.copyWith(color: isEvent ? cs.onPrimaryContainer : cs.onSecondary),
       ),
     );
   }

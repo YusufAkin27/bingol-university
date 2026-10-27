@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../core/typography.dart';
 
 /// QR tarar; ilk okunan değeri `Navigator.pop(context, code)` ile döndürür.
 /// Kamera izni reddedilir/yoksa elle kod girişi sunulur.
@@ -54,7 +55,7 @@ class _QrScanPageState extends State<QrScanPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (note != null) ...[
-            Text(note, style: TextStyle(color: t.mut, fontSize: 14)),
+            Text(note, style: BuType.body.copyWith(color: t.mut)),
             const SizedBox(height: 12),
           ],
           TextField(

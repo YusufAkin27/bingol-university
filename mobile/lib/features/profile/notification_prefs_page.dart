@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 /// Tasarımdaki aç/kapat anahtarı (46x28, beyaz topuz).
 class PrefSwitch extends StatelessWidget {
@@ -55,7 +56,7 @@ class PrefSwitchRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink))),
+          Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: t.ink))),
           PrefSwitch(value: value, onChanged: onChanged),
         ],
       ),
@@ -126,7 +127,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
         child: Row(children: [
           Icon(LucideIcons.refreshCw, size: 18, color: t.pr),
           const SizedBox(width: 10),
-          Expanded(child: Text('${errorText(_error!)} Yeniden denemek için dokunun.', style: TextStyle(fontSize: 13, color: t.mut))),
+          Expanded(child: Text('${errorText(_error!)} Yeniden denemek için dokunun.', style: BuType.caption.copyWith(color: t.mut))),
         ]),
       );
     }

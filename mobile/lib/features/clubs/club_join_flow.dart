@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../core/typography.dart';
 
 /// Kulübe katılım akışı: onaylı kulüplerde önce katılım soruları sorulur.
 /// Dönüş: sunucunun verdiği durum ('ACTIVE' | 'PENDING'); kullanıcı vazgeçtiyse null.
@@ -93,14 +94,14 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Katılma isteği',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink)),
+                style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 4),
             Text('${widget.clubName} yöneticileri cevaplarını görecek.',
-                style: TextStyle(fontSize: 13, color: t.mut)),
+                style: BuType.caption.copyWith(color: t.mut)),
             const SizedBox(height: 16),
             for (var i = 0; i < widget.questions.length; i++) ...[
               Text((widget.questions[i]['question'] ?? '').toString(),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+                  style: BuType.bodyStrong.copyWith(color: t.ink)),
               const SizedBox(height: 6),
               TextField(
                 controller: _ctrls[i],
@@ -108,7 +109,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
                 minLines: 1,
                 maxLines: 4,
                 textInputAction: TextInputAction.next,
-                style: TextStyle(fontSize: 14, color: t.ink),
+                style: BuType.body.copyWith(color: t.ink),
                 decoration: InputDecoration(
                   hintText: 'Cevabın',
                   errorText: _showErrors && _ctrls[i].text.trim().isEmpty ? 'Bu soru zorunlu' : null,

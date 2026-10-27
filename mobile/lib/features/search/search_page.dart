@@ -13,6 +13,7 @@ import '../chat/chat_detail_page.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../../core/typography.dart';
 
 /// Genel arama: haber/duyuru, kulüp, etkinlik ve kişi.
 class SearchPage extends StatefulWidget {
@@ -465,11 +466,11 @@ class _SearchPageState extends State<SearchPage> {
             },
             onSubmitted: _submit,
             textInputAction: TextInputAction.search,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink),
+            style: BuType.bodyStrong.copyWith(color: t.ink),
             cursorColor: t.pr,
             decoration: InputDecoration(
               hintText: 'Haber, kulüp, etkinlik, kişi ara',
-              hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.mut),
+              hintStyle: BuType.body.copyWith(color: t.mut),
               isCollapsed: true,
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -507,7 +508,7 @@ class _SearchPageState extends State<SearchPage> {
           border: Border.all(color: on ? t.ink : t.bd),
         ),
         child: Text(label,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: on ? t.bg : t.mut)),
+            style: BuType.label.copyWith(color: on ? t.bg : t.mut)),
       ),
     );
   }
@@ -525,11 +526,11 @@ class _SearchPageState extends State<SearchPage> {
         Row(children: [
           Expanded(
             child: Text('SON ARAMALAR',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
           ),
           GestureDetector(
             onTap: _clearRecent,
-            child: Text('Temizle', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
+            child: Text('Temizle', style: BuType.label.copyWith(color: t.pr)),
           ),
         ]),
         const SizedBox(height: 4),
@@ -545,7 +546,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: Text(q,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(color: t.ink)),
                 ),
               ]),
             ),
@@ -579,7 +580,7 @@ class _SearchPageState extends State<SearchPage> {
             return Padding(
               padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
               child: Text(count,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                  style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
             );
           }
           if (i == visible.length + 1) return paged ? _footer(t, d!) : const SizedBox.shrink();
@@ -606,7 +607,7 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text('Çok fazla istek gönderildi, birkaç saniye bekleyin.',
-                  textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: t.mut)),
+                  textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
             ),
           BuButton(
             label: 'Yeniden dene',
@@ -654,20 +655,20 @@ class _SearchPageState extends State<SearchPage> {
                 BuBadge(_badgeOf(h.type), soft: _tabOf(h.type) != _Tab.news),
                 if (date.isNotEmpty) ...[
                   const SizedBox(width: 8),
-                  Text(date, style: TextStyle(fontSize: 11, color: t.mut)),
+                  Text(date, style: BuType.micro.copyWith(color: t.mut)),
                 ],
               ]),
               const SizedBox(height: 6),
               Text(h.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, height: 1.3, color: t.ink)),
+                  style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
               if (snip.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Text(snip,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, height: 1.4, color: t.mut)),
+                    style: BuType.caption.copyWith(height: 1.4, color: t.mut)),
               ],
             ]),
           ),
@@ -765,14 +766,14 @@ class _PersonSheetState extends State<_PersonSheet> {
           const SizedBox(height: 12),
           Text(name,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink)),
+              style: BuType.title.copyWith(color: t.ink)),
           if (dept.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(dept, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: t.mut)),
+            Text(dept, textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
           ],
           if (bio.isNotEmpty) ...[
             const SizedBox(height: 14),
-            Text(bio, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, height: 1.45, color: t.ink)),
+            Text(bio, textAlign: TextAlign.center, style: BuType.body.copyWith(height: 1.45, color: t.ink)),
           ],
           const SizedBox(height: 20),
           BuButton(label: 'Mesaj gönder', icon: LucideIcons.messageCircle, busy: _busy, onPressed: _message),

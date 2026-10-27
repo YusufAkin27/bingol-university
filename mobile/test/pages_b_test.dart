@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
@@ -9,6 +11,7 @@ import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -211,8 +214,25 @@ void _matrix(String name, FakeBackend Function() backend, PageBuilder page, {Fin
   }
 }
 
+const _emojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+/// Testte Inter yoktur: aynı metrikli Roboto'yu "Inter" adıyla yükler (BuType Inter ister).
+Future<void> _loadTestFontsWithInter() async {
+  await loadTestFonts();
+  final root = Platform.environment['FLUTTER_ROOT'] ?? 'C:/src/flutter';
+  final loader = FontLoader('Inter');
+  var any = false;
+  for (final f in ['regular', 'medium', 'bold']) {
+    final file = File('$root/bin/cache/artifacts/material_fonts/roboto-$f.ttf');
+    if (!file.existsSync()) continue;
+    any = true;
+    loader.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+  }
+  if (any) await loader.load();
+}
+
 void main() {
-  setUpAll(loadTestFonts);
+  setUpAll(_loadTestFontsWithInter);
 
   // ============================================================== ChatTab
   group('ChatTab', () {
@@ -381,6 +401,217 @@ void main() {
       _noErrors(tester);
       await unmount(tester);
     });
+
+    // ---------------------------------------------------- mesaj eylem menüsü
+    const card = ValueKey('msgActions.card');
+    const bar = ValueKey('msgActions.reactions');
+    FakeBackend withEmojis() => full()..on('/messages/reactions', {'emojis': _emojis});
+
+    Future<void> openMenu(WidgetTester tester, Finder target, {bool tap = false}) async {
+      if (tap) {
+        await tester.tap(target);
+      } else {
+        await tester.longPress(target);
+      }
+      await settle(tester, const Duration(milliseconds: 500));
+    }
+
+    testWidgets('uzun basis menuyu acar (tepki cubugu + eylem karti)', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Selam'));
+      expect(find.byKey(card), findsOneWidget);
+      expect(find.byKey(bar), findsOneWidget);
+      for (final e in _emojis) {
+        expect(find.byKey(ValueKey('react-$e')), findsOneWidget);
+      }
+      expect(find.text('Yanıtla'), findsOneWidget);
+      expect(find.text('Kopyala'), findsOneWidget);
+      expect(find.text('Düzenle'), findsOneWidget);
+      expect(find.text('Herkesten sil'), findsOneWidget);
+      expect(find.text('Şikâyet et'), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('metin baloncuguna tek dokunus da menuyu acar', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Selam'), tap: true);
+      expect(find.byKey(card), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('tepki secimi PUT gonderir ve cubukta vurgulanir; ayni tepki kaldirir', (tester) async {
+      final be = withEmojis();
+      await _pump(tester, build(makeSession(be)));
+      await openMenu(tester, find.text('Selam'));
+      expect(find.byKey(const ValueKey('react-😂-on')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('react-😂')));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(be.bodies['PUT /messages/2/reaction'], {'emoji': '😂'});
+      expect(find.byKey(card), findsNothing);
+      expect(find.text('😂 1'), findsOneWidget); // iyimser sayaç baloncukta
+      await openMenu(tester, find.text('Selam'));
+      expect(find.byKey(const ValueKey('react-😂-on')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('react-😂-on')));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(be.requests, contains('DELETE /messages/2/reaction'));
+      expect(find.text('😂 1'), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Kopyala panoya yazar ve Kopyalandi geri bildirimi verir', (tester) async {
+      final clip = <String?>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') clip.add((call.arguments as Map)['text'] as String?);
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Selam'));
+      await tester.tap(find.text('Kopyala'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(clip, ['Selam']);
+      expect(find.text('Kopyalandı'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Yanitla yanit cubugunu acar', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Merhaba'));
+      await tester.tap(find.text('Yanıtla'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byKey(card), findsNothing);
+      // Yanıt çubuğu: gönderen adı + alıntı metni (listedeki baloncuk dahil iki 'Merhaba').
+      expect(find.text('Ali Veli'), findsWidgets);
+      expect(find.text('Merhaba'), findsNWidgets(2));
+      expect(find.byTooltip('Vazgeç'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Duzenle yalniz kendi mesajinda; duzenleme moduna gecer', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Merhaba')); // başkasının mesajı
+      expect(find.text('Düzenle'), findsNothing);
+      expect(find.text('Herkesten sil'), findsNothing);
+      expect(find.text('Mesajı sil'), findsNothing); // birebir sohbette yönetici silmesi yok
+      expect(find.text('Şikâyet et'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(card), findsNothing);
+
+      await openMenu(tester, find.text('Selam')); // kendi mesajım
+      await tester.tap(find.text('Düzenle'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.text('Mesaj düzenleniyor'), findsOneWidget);
+      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Selam');
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Herkesten sil onay sonrasi DELETE gonderir', (tester) async {
+      final be = withEmojis();
+      await _pump(tester, build(makeSession(be)));
+      await openMenu(tester, find.text('Selam'));
+      await tester.tap(find.text('Herkesten sil'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.text('Mesaj silinsin mi?'), findsOneWidget);
+      await tester.tap(find.text('Sil'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(be.requests, contains('DELETE /messages/2'));
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('silinmis mesajda menu acilmaz', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await tester.longPress(find.text('Bu mesaj silindi'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(card), findsNothing);
+      expect(find.byKey(bar), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('menu geri tusu ve bos dokunusla kapanir', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await openMenu(tester, find.text('Selam'));
+      expect(find.byKey(card), findsOneWidget);
+      await tester.binding.handlePopRoute(); // geri tuşu
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(card), findsNothing);
+      expect(find.text('Selam'), findsOneWidget);
+
+      await openMenu(tester, find.text('Selam'));
+      expect(find.byKey(card), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4)); // boş yere dokunuş
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(card), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    // ------------------------------------------------ sürükleyerek yanıtlama
+    testWidgets('saga surukleme yanit cubugunu acar', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await tester.drag(find.text('Merhaba'), const Offset(100, 0));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byTooltip('Vazgeç'), findsOneWidget);
+      expect(find.text('Merhaba'), findsNWidgets(2));
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('sola surukleme ve esik alti birakma yanit acmaz', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())));
+      await tester.drag(find.text('Merhaba'), const Offset(-100, 0));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byTooltip('Vazgeç'), findsNothing);
+      await tester.drag(find.text('Merhaba'), const Offset(30, 0));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byTooltip('Vazgeç'), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('silinmis mesaj surukleyerek yanitlanmaz; 320 dp tasma yok', (tester) async {
+      await _pump(tester, build(makeSession(withEmojis())), size: kPhoneSmall);
+      await tester.drag(find.text('Bu mesaj silindi'), const Offset(100, 0));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byTooltip('Vazgeç'), findsNothing);
+      await tester.drag(find.text('Selam'), const Offset(100, 0));
+      await tester.pump(const Duration(milliseconds: 50));
+      _noErrors(tester);
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byTooltip('Vazgeç'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    for (final b in Brightness.values) {
+      testWidgets('menu 320x640 tasmadan acilir (${b.name})', (tester) async {
+        await _pump(tester, build(makeSession(withEmojis())), b: b, size: kPhoneSmall);
+        for (final target in [find.text('Selam'), find.textContaining('Tamamdır'), find.text('Merhaba')]) {
+          await openMenu(tester, target);
+          _noErrors(tester);
+          for (final k in [card, bar]) {
+            final r = tester.getRect(find.byKey(k));
+            expect(r.left, greaterThanOrEqualTo(0), reason: '$k');
+            expect(r.top, greaterThanOrEqualTo(0), reason: '$k');
+            expect(r.right, lessThanOrEqualTo(320), reason: '$k');
+            expect(r.bottom, lessThanOrEqualTo(640), reason: '$k');
+          }
+          await tester.tapAt(const Offset(4, 4));
+          await settle(tester, const Duration(milliseconds: 400));
+          expect(find.byKey(card), findsNothing);
+        }
+        _noErrors(tester);
+        await unmount(tester);
+      });
+    }
   });
 
   // ============================================================ NewChatPage

@@ -9,6 +9,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'chat_detail_page.dart';
 import 'new_chat_page.dart';
+import '../../core/typography.dart';
 
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
@@ -309,7 +310,7 @@ class _ChatTabState extends State<ChatTab> {
                   child: Text(_title(c),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.ink)),
+                      style: BuType.heading.copyWith(color: t.ink)),
                 ),
               ),
               if (muted)
@@ -420,7 +421,7 @@ class _ChatTabState extends State<ChatTab> {
             Icon(LucideIcons.archive, size: 18, color: t.mut),
             const SizedBox(width: 12),
             Expanded(
-              child: Text('Arşiv', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.mut)),
+              child: Text('Arşiv', style: BuType.bodyStrong.copyWith(color: t.mut)),
             ),
             Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
           ],
@@ -486,7 +487,7 @@ class _ChatTabState extends State<ChatTab> {
               children: [
                 Icon(LucideIcons.archive, color: t.onPr),
                 Text(_archived ? 'Çıkar' : 'Arşivle',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: t.onPr)),
+                    style: BuType.micro.copyWith(color: t.onPr)),
               ],
             ),
           ),
@@ -572,7 +573,7 @@ class _ConversationRow extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(18)),
         child: Text(initialsOf(title),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.onPr)),
+            style: BuType.heading.copyWith(color: t.onPr)),
       );
     } else {
       avatar = BuAvatar(name: title, url: avatarUrl, size: 52, square: !isDirect, dark: !isDirect);
@@ -607,7 +608,7 @@ class _ConversationRow extends StatelessWidget {
                           child: Text(title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+                              style: BuType.bodyStrong.copyWith(color: t.ink)),
                         ),
                         if (tag != null) ...[const SizedBox(width: 6), BuBadge(tag, soft: true)],
                         if (muted) ...[
@@ -620,11 +621,7 @@ class _ConversationRow extends StatelessWidget {
                     Text(preview,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: unread > 0 && !muted ? t.ink : t.mut,
-                          fontWeight: unread > 0 && !muted ? FontWeight.w600 : FontWeight.w400,
-                        )),
+                        style: BuType.label.copyWith(color: unread > 0 && !muted ? t.ink : t.mut)),
                   ],
                 ),
               ),
@@ -632,7 +629,7 @@ class _ConversationRow extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(_stamp(when), style: TextStyle(fontSize: 11, color: t.mut)),
+                  Text(_stamp(when), style: BuType.micro.copyWith(color: t.mut)),
                   if (unread > 0)
                     Container(
                       margin: const EdgeInsets.only(top: 6),
@@ -642,7 +639,7 @@ class _ConversationRow extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(color: muted ? t.mut : t.pr, borderRadius: BorderRadius.circular(10)),
                       child: Text(unread > 99 ? '99+' : '$unread',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: muted ? t.bg : t.onPr)),
+                          style: BuType.micro.copyWith(color: muted ? t.bg : t.onPr)),
                     ),
                 ],
               ),

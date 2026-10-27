@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 /// Engellenen kullanıcılar ve engeli kaldırma.
 class BlockedUsersPage extends StatefulWidget {
@@ -144,7 +145,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
                   child: Text((u['displayName'] as String?) ?? 'Kullanıcı',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(color: t.ink)),
                 ),
                 BuButton(
                   label: 'Engeli kaldır',

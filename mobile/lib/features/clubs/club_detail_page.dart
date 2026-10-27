@@ -10,6 +10,7 @@ import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
 import 'club_join_flow.dart';
+import '../../core/typography.dart';
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler.
 class ClubDetailPage extends StatefulWidget {
@@ -477,7 +478,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                     boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .15), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
                   child: Text(initialsOf(c['name']?.toString()),
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: t.pr)),
+                      style: BuType.title.copyWith(color: t.pr)),
                 ),
                 const Spacer(),
                 _membershipButton(),
@@ -490,12 +491,12 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text((c['name'] ?? '').toString(),
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -.3, color: t.ink)),
+                    style: BuType.display.copyWith(letterSpacing: -.3, color: t.ink)),
                 const SizedBox(height: 4),
-                Text(_meta(), style: TextStyle(fontSize: 13, color: t.mut)),
+                Text(_meta(), style: BuType.caption.copyWith(color: t.mut)),
                 if (desc.isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  Text(desc, style: TextStyle(fontSize: 14, height: 1.5, color: t.ink)),
+                  Text(desc, style: BuType.body.copyWith(height: 1.5, color: t.ink)),
                 ],
                 if (_isMember) ...[
                   const SizedBox(height: 14),
@@ -546,7 +547,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                   decoration: BoxDecoration(
                       border: Border(bottom: BorderSide(color: i == _tab ? t.pr : Colors.transparent, width: 2))),
                   child: Text(names[i],
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: i == _tab ? t.pr : t.mut)),
+                      style: BuType.bodyStrong.copyWith(color: i == _tab ? t.pr : t.mut)),
                 ),
               ),
             ),
@@ -632,7 +633,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                       maxLines: 5,
                       maxLength: 2000,
                       buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-                      style: TextStyle(fontSize: 14, color: t.ink),
+                      style: BuType.body.copyWith(color: t.ink),
                       decoration: InputDecoration(
                         hintText: 'Kulübe bir şeyler yaz',
                         hintStyle: TextStyle(color: t.mut),
@@ -664,7 +665,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Bekleyen istekler (${_requests.items.length}${_requests.next != null ? '+' : ''})',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                  style: BuType.bodyStrong.copyWith(color: t.ink)),
               const SizedBox(height: 8),
               for (final r in _requests.items)
                 Padding(
@@ -680,7 +681,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                           child: Text((r['displayName'] ?? 'Kullanıcı').toString(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink))),
+                              style: BuType.bodyStrong.copyWith(color: t.ink))),
                       BuIconButton(icon: LucideIcons.x, size: 36, onTap: () => _review(r, false), tooltip: 'Reddet'),
                       const SizedBox(width: 6),
                       BuIconButton(icon: LucideIcons.check, size: 36, filled: true, onTap: () => _review(r, true), tooltip: 'Onayla'),
@@ -722,8 +723,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text((a['question'] ?? '').toString(),
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut)),
-                    Text((a['answer'] ?? '').toString(), style: TextStyle(fontSize: 13, color: t.ink)),
+                        style: BuType.label.copyWith(color: t.mut)),
+                    Text((a['answer'] ?? '').toString(), style: BuType.caption.copyWith(color: t.ink)),
                   ],
                 ),
               ),
@@ -775,8 +776,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                     Text((p['authorName'] ?? '').toString(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
-                    Text(relativeTime(p['createdAt']?.toString()), style: TextStyle(fontSize: 12, color: t.mut)),
+                        style: BuType.bodyStrong.copyWith(color: t.ink)),
+                    Text(relativeTime(p['createdAt']?.toString()), style: BuType.caption.copyWith(color: t.mut)),
                   ],
                 ),
               ),
@@ -786,7 +787,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           ),
           if ((p['text'] ?? '').toString().isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text(p['text'].toString(), style: TextStyle(fontSize: 14, height: 1.5, color: t.ink)),
+            Text(p['text'].toString(), style: BuType.body.copyWith(height: 1.5, color: t.ink)),
           ],
           if (img != null) ...[
             const SizedBox(height: 10),
@@ -831,7 +832,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 Text((e['title'] ?? '').toString(),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                    style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 2),
                 Text(
                     [
@@ -840,7 +841,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: t.mut)),
+                    style: BuType.caption.copyWith(color: t.mut)),
               ],
             ),
           ),
@@ -862,7 +863,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             child: Text((m['displayName'] ?? 'Kullanıcı').toString(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+                style: BuType.bodyStrong.copyWith(color: t.ink)),
           ),
           if (role == 'OWNER') const BuBadge('Yönetici', soft: true),
           if (role == 'MODERATOR') const BuBadge('Moderatör', soft: true),

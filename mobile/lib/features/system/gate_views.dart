@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
+import '../../core/typography.dart';
 
 Future<void> openStore(String? url) async {
   final uri = url == null ? null : Uri.tryParse(url);
@@ -35,12 +36,12 @@ class UpdateRequiredScreen extends StatelessWidget {
                   Icon(Icons.system_update, size: 64, color: t.pr),
                   const SizedBox(height: 20),
                   Text('Güncelleme gerekli',
-                      style: TextStyle(color: t.ink, fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: BuType.title.copyWith(color: t.ink)),
                   const SizedBox(height: 10),
                   Text(
                     'Uygulamayı kullanmaya devam etmek için yeni sürüme güncellemeniz gerekiyor.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: t.mut, fontSize: 15, height: 1.4),
+                    style: BuType.body.copyWith(color: t.mut, height: 1.4),
                   ),
                   const SizedBox(height: 24),
                   if (canOpen)
@@ -82,8 +83,7 @@ class TopStrip extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(text,
-                style: TextStyle(
-                    color: fg, fontSize: 12.5, fontWeight: FontWeight.w600, decoration: TextDecoration.none)),
+                style: BuType.label.copyWith(color: fg, decoration: TextDecoration.none)),
           ),
         ],
       ),
@@ -116,7 +116,7 @@ class UpdateNotice extends StatelessWidget {
             Expanded(
               child: Text(
                 latest == null ? 'Yeni sürüm mevcut.' : 'Yeni sürüm mevcut ($latest).',
-                style: TextStyle(color: t.ink, fontSize: 14),
+                style: BuType.body.copyWith(color: t.ink),
               ),
             ),
             if (canOpen) TextButton(onPressed: () => openStore(storeUrl), child: const Text('Güncelle')),

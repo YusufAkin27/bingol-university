@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
+import '../../widgets/academic_picker.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../auth/auth_widgets.dart';
+import '../../core/typography.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key, required this.session, required this.profile});
@@ -20,22 +23,24 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _form = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.profile['displayName'] as String? ?? '');
-  late final _dept = TextEditingController(text: widget.profile['department'] as String? ?? '');
   late final _bio = TextEditingController(text: widget.profile['bio'] as String? ?? '');
-  late String? _faculty = _nonEmpty(widget.profile['faculty'] as String?);
-  late int? _classYear = _yearOf((widget.profile['classYear'] as num?)?.toInt());
+  late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
+  // Katalog dışı (serbest metin) eski değerler olduğu gibi gösterilir.
+  late String? _faculty = _f0;
+  late String? _department = _d0;
+  late String? _grade = _g0;
   late bool _showEmail = widget.profile['showEmail'] == true;
   // Dil seçimi Ayarlar'a taşındı; mevcut değer olduğu gibi gönderilir.
   late final String _language = (widget.profile['language'] as String?) ?? 'tr';
 
   late final String _n0 = _name.text;
-  late final String _d0 = _dept.text;
   late final String _b0 = _bio.text;
-  late final String? _f0 = _faculty;
-  late final int? _c0 = _classYear;
+  late final String? _f0 = _nonEmpty(widget.profile['faculty'] as String?);
+  late final String? _d0 = _nonEmpty(widget.profile['department'] as String?);
+  late final String? _g0 = _gradeOf(widget.profile);
   late final bool _e0 = _showEmail;
 
-  List<String> _faculties = const [];
+  String? _departmentError;
   bool _busy = false;
   bool _saved = false;
   bool _uploading = false;
@@ -45,14 +50,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _error;
 
   static String? _nonEmpty(String? s) => (s == null || s.isEmpty) ? null : s;
-  static int? _yearOf(int? y) => (y == null || y == 0) ? null : y;
+  /// Sınıf kimliği: yeni `grade` alanı; yoksa eski sayısal `classYear` (1..6) kimliğe çevrilir.
+  static String? _gradeOf(Map<String, dynamic> p) {
+    final g = p['grade'];
+    if (g is String && g.isNotEmpty) return g;
+    if (g is num && g > 0) return g.toInt().toString();
+    final y = (p['classYear'] as num?)?.toInt();
+    return (y != null && y >= 1 && y <= 6) ? '$y' : null;
+  }
+
+  bool get _academicChanged => _faculty != _f0 || _department != _d0;
 
   bool get _dirty =>
       _name.text != _n0 ||
-      _dept.text != _d0 ||
       _bio.text != _b0 ||
-      _faculty != _f0 ||
-      _classYear != _c0 ||
+      _academicChanged ||
+      _grade != _g0 ||
       _showEmail != _e0;
 
   @override
@@ -60,43 +73,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
     // Başlangıç değerlerini ilk çerçeveden önce sabitle.
     _n0;
-    _d0;
     _b0;
-    _f0;
-    _c0;
     _e0;
-    _loadFaculties();
+    _catalog.load();
   }
 
   @override
   void dispose() {
     _name.dispose();
-    _dept.dispose();
     _bio.dispose();
     super.dispose();
   }
 
-  Future<void> _loadFaculties() async {
-    try {
-      final r = await widget.session.api.get('/faculties') as List;
-      if (mounted) setState(() => _faculties = List<String>.from(r));
-    } catch (_) {
-      // Liste gelmezse fakülte alanı gizlenir; diğer alanlar kaydedilebilir.
-    }
-  }
-
   Future<void> _save() async {
     if (_busy || !_form.currentState!.validate()) return;
+    if (_academicChanged && ((_faculty ?? '').isEmpty || (_department ?? '').isEmpty)) {
+      setState(() => _departmentError = 'Bölümü seçin.');
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
+      _departmentError = null;
     });
     try {
       await widget.session.api.patch('/users/me', {
         'displayName': _name.text.trim(),
-        if (_faculties.isNotEmpty) 'faculty': _faculty ?? '',
-        'department': _dept.text.trim(),
-        'classYear': _classYear ?? 0,
+        // Akademik alanlar yalnızca değiştiyse gönderilir (serbest metin eski değerler korunur).
+        if (_academicChanged) ...{'faculty': _faculty ?? '', 'department': _department ?? ''},
+        if (_grade != _g0) 'grade': _grade ?? '',
         'bio': _bio.text.trim(),
         'showEmail': _showEmail,
         'language': _language,
@@ -128,44 +133,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return r == true;
   }
 
-  Future<void> _pickFaculty() async {
-    final bu = context.bu;
-    final faculties = {..._faculties, if (_faculty != null) _faculty!}.toList();
-    final r = await showModalBottomSheet<_Pick<String?>>(
-      context: context,
-      backgroundColor: bu.sf,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => _OptionSheet<String?>(
-        title: 'Fakülte',
-        selected: _faculty,
-        options: [
-          const _Opt(null, 'Seçilmedi'),
-          for (final f in faculties) _Opt(f, f),
-        ],
-      ),
-    );
-    if (r != null) setState(() => _faculty = r.value);
-  }
-
-  Future<void> _pickYear() async {
-    final r = await showModalBottomSheet<_Pick<int?>>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => _OptionSheet<int?>(
-        title: 'Sınıf',
-        selected: _classYear,
-        options: [
-          const _Opt(null, 'Belirtilmedi'),
-          for (var i = 1; i <= 8; i++) _Opt(i, '$i. sınıf'),
-        ],
-      ),
-    );
-    if (r != null) setState(() => _classYear = r.value);
-  }
-
   InputDecoration _deco(BuildContext context, {String? hint}) {
     final bu = context.bu;
     OutlineInputBorder b(Color c) =>
@@ -190,44 +157,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
       child: Text(t.toUpperCase(),
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: bu.mut, letterSpacing: 0.3)),
-    );
-  }
-
-  Widget _selectBox(String? text, String placeholder, VoidCallback onTap) {
-    final bu = context.bu;
-    return Material(
-      color: bu.sf,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: bu.bd),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  text ?? placeholder,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: text == null ? bu.mut : bu.ink,
-                  ),
-                ),
-              ),
-              Icon(LucideIcons.chevronDown, size: 18, color: bu.mut),
-            ],
-          ),
-        ),
-      ),
+          style: BuType.label.copyWith(color: bu.mut, letterSpacing: 0.3)),
     );
   }
 
@@ -248,7 +178,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
       child: Text(
         initialsOf(_name.text),
-        style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white),
+        style: BuType.display.copyWith(color: Colors.white),
       ),
     );
     return Column(
@@ -303,7 +233,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         GestureDetector(
           onTap: _pickAvatar,
           child: Text(_uploading ? 'Yükleniyor…' : 'Fotoğrafı değiştir',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: bu.pr)),
+              style: BuType.bodyStrong.copyWith(color: bu.pr)),
         ),
       ],
     );
@@ -416,7 +346,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final bu = context.bu;
-    final hasFaculty = _faculties.isNotEmpty || _faculty != null;
     return PopScope(
       // Avatar anında sunucuya yazıldığından, değiştiyse üst sayfaya "true" ile dönülür.
       canPop: _saved || (!_dirty && !_avatarChanged),
@@ -449,49 +378,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       maxLength: 80,
                       textCapitalization: TextCapitalization.words,
                       onChanged: (_) => setState(() {}),
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink),
+                      style: BuType.bodyStrong.copyWith(color: bu.ink),
                       validator: (v) =>
                           (v == null || v.trim().length < 2) ? 'Ad en az 2 karakter olmalı.' : null,
                       decoration: _deco(context),
                     ),
-                    if (hasFaculty) ...[
-                      const SizedBox(height: 12),
-                      _label('Fakülte'),
-                      _selectBox(_faculty, 'Seçilmedi', _pickFaculty),
-                    ],
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 16,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _label('Bölüm'),
-                              TextFormField(
-                                controller: _dept,
-                                maxLength: 120,
-                                onChanged: (_) => setState(() {}),
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink),
-                                decoration: _deco(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 10,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _label('Sınıf'),
-                              _selectBox(_classYear == null ? null : '$_classYear. sınıf', 'Belirtilmedi',
-                                  _pickYear),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 14),
+                    AcademicFields(
+                      catalog: _catalog,
+                      faculty: _faculty,
+                      department: _department,
+                      grade: _grade,
+                      enabled: !_busy,
+                      departmentError: _departmentError,
+                      onChanged: (f, d, g) => setState(() {
+                        _faculty = f;
+                        _department = d;
+                        _grade = g;
+                        _departmentError = null;
+                      }),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -500,7 +405,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 5),
                           child: Text('${_bio.text.characters.length}/300',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: bu.mut)),
+                              style: BuType.label.copyWith(color: bu.mut)),
                         ),
                       ],
                     ),
@@ -510,7 +415,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       maxLines: 4,
                       minLines: 3,
                       onChanged: (_) => setState(() {}),
-                      style: TextStyle(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500, color: bu.ink),
+                      style: BuType.body.copyWith(height: 1.4, color: bu.ink),
                       decoration: _deco(context, hint: 'Kendinizden kısaca bahsedin'),
                     ),
                     const SizedBox(height: 12),
@@ -526,7 +431,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         children: [
                           Expanded(
                             child: Text('E-postamı diğer kullanıcılara göster',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: bu.ink)),
+                                style: BuType.bodyStrong.copyWith(color: bu.ink)),
                           ),
                           Switch(
                             value: _showEmail,
@@ -560,7 +465,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       disabledBackgroundColor: bu.pr,
                       disabledForegroundColor: bu.onPr,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      textStyle: BuType.heading,
                     ),
                     child: _busy
                         ? SizedBox(
@@ -571,71 +476,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         : const Text('Kaydet'),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Opt<T> {
-  const _Opt(this.value, this.label);
-  final T value;
-  final String label;
-}
-
-/// Seçimi null değeriyle de ayırt edebilmek için sarmalayıcı.
-class _Pick<T> {
-  const _Pick(this.value);
-  final T value;
-}
-
-class _OptionSheet<T> extends StatelessWidget {
-  const _OptionSheet({required this.title, required this.options, required this.selected});
-
-  final String title;
-  final List<_Opt<T>> options;
-  final T selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final bu = context.bu;
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: bu.bd, borderRadius: BorderRadius.circular(2)),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: bu.ink)),
-              ),
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  for (final o in options)
-                    ListTile(
-                      title: Text(o.label,
-                          style: TextStyle(
-                            fontWeight: o.value == selected ? FontWeight.w800 : FontWeight.w600,
-                            color: o.value == selected ? bu.pr : bu.ink,
-                          )),
-                      trailing: o.value == selected ? Icon(LucideIcons.check, color: bu.pr, size: 20) : null,
-                      onTap: () => Navigator.pop(context, _Pick<T>(o.value)),
-                    ),
-                ],
               ),
             ),
           ],

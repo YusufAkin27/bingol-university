@@ -454,6 +454,12 @@ void main() {
       await tester.pumpWidget(
           buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
+      // Ana ayar listesinde görünmez; Gizlilik ve veriler sayfasının en altındadır.
+      expect(find.text('Hesabımı sil'), findsNothing);
+      await tester.scrollUntilVisible(find.text('Gizlilik ve veriler'), 200, scrollable: find.byType(Scrollable).first);
+      await tester.ensureVisible(find.text('Gizlilik ve veriler'));
+      await tester.tap(find.text('Gizlilik ve veriler'));
+      await settle(tester, const Duration(milliseconds: 500));
       await tester.scrollUntilVisible(find.text('Hesabımı sil'), 200, scrollable: find.byType(Scrollable).first);
       await tester.ensureVisible(find.text('Hesabımı sil'));
       await tester.pump();

@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 const _months = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -165,7 +166,7 @@ class _MenuPageState extends State<MenuPage> {
           Expanded(
             child: Text('${_months[_month.month - 1]} ${_month.year}',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+                style: BuType.bodyStrong.copyWith(color: t.ink)),
           ),
           BuIconButton(icon: LucideIcons.chevronRight, size: 36, tooltip: 'Sonraki ay', onTap: () => _changeMonth(1)),
         ],
@@ -202,10 +203,10 @@ class _MenuPageState extends State<MenuPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(_daysShort[d.weekday - 1],
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: on ? t.onPr : t.mut)),
+                        style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
                     const SizedBox(height: 3),
                     Text('${d.day}',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: on ? t.onPr : t.ink)),
+                        style: BuType.heading.copyWith(color: on ? t.onPr : t.ink)),
                   ],
                 ),
               ),
@@ -239,15 +240,15 @@ class _MenuPageState extends State<MenuPage> {
                   Row(children: [
                     const Icon(LucideIcons.utensils, size: 18, color: Colors.white),
                     const SizedBox(width: 8),
-                    Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .4)),
+                    Text(label, style: BuType.label.copyWith(letterSpacing: .4)),
                   ]),
                   const SizedBox(height: 12),
                   if (items == null || items.isEmpty)
-                    const Text('Bu gün için yemek listesi yok.',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5))
+                    Text('Bu gün için yemek listesi yok.',
+                        style: BuType.heading.copyWith(height: 1.5))
                   else
                     for (final m in items)
-                      Text(m, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, height: 1.5)),
+                      Text(m, style: BuType.title.copyWith(height: 1.5)),
                 ],
               ),
             ),
@@ -281,10 +282,10 @@ class _MenuPageState extends State<MenuPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('$day ${_months[d.month - 1]}, ${_daysLong[d.weekday - 1]}',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.mut)),
+                style: BuType.label.copyWith(color: t.mut)),
             const SizedBox(height: 6),
             if (items.isEmpty)
-              Text('Yemek listesi yok.', style: TextStyle(fontSize: 14, color: t.mut))
+              Text('Yemek listesi yok.', style: BuType.body.copyWith(color: t.mut))
             else
               for (final m in items)
                 Padding(
@@ -299,7 +300,7 @@ class _MenuPageState extends State<MenuPage> {
                         decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(m, style: TextStyle(fontSize: 14, height: 1.4, color: t.ink))),
+                      Expanded(child: Text(m, style: BuType.body.copyWith(height: 1.4, color: t.ink))),
                     ],
                   ),
                 ),

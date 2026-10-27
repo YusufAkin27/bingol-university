@@ -7,6 +7,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../events/event_detail_page.dart';
 import 'profile_paged_list.dart';
+import '../../core/typography.dart';
 
 /// Etkinliklerim: yaklaşan (GET /me/events?mode=attending) ve düzenlediklerim (mode=organizing).
 /// Sunucu "attending" modunda yalnızca bitmemiş etkinlikleri döndürür; geçmiş olanlar
@@ -97,13 +98,13 @@ class _EventCard extends StatelessWidget {
                 Text((event['title'] as String?) ?? '',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+                    style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 3),
                 Text(
                   [niceDate(event['startsAt'] as String?), if (loc.isNotEmpty) loc].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: t.mut),
+                  style: BuType.caption.copyWith(color: t.mut),
                 ),
                 // Dar ekranda satırı taşırmamak için rozet başlığın altında durur.
                 if (badge != null)

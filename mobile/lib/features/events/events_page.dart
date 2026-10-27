@@ -7,6 +7,7 @@ import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../platform/qr_scan_page.dart';
 import 'event_detail_page.dart';
+import '../../core/typography.dart';
 
 const _monthNames = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -393,7 +394,7 @@ class _EventsPageState extends State<EventsPage> {
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : Icon(LucideIcons.scanLine, size: 16, color: t.ink),
                       const SizedBox(width: 6),
-                      Text('Yoklama', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.ink)),
+                      Text('Yoklama', style: BuType.label.copyWith(color: t.ink)),
                     ]),
                   ),
                 ),
@@ -411,7 +412,7 @@ class _EventsPageState extends State<EventsPage> {
                 children: [
                   Expanded(
                     child: Text('${_monthNames[_month.month - 1]} ${_month.year}',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.mut)),
+                        style: BuType.bodyStrong.copyWith(color: t.mut)),
                   ),
                   IconButton(
                     tooltip: 'Önceki ay',
@@ -464,10 +465,10 @@ class _EventsPageState extends State<EventsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(_dayShort[d.weekday - 1],
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: on ? t.onPr : t.mut)),
+                style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
             const SizedBox(height: 4),
             Text('${d.day}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: on ? t.onPr : t.ink)),
+                style: BuType.title.copyWith(color: on ? t.onPr : t.ink)),
             const SizedBox(height: 3),
             Container(
               width: 5,
@@ -539,7 +540,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: Row(children: [
                       Icon(LucideIcons.info, size: 14, color: context.bu.mut),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(r, style: TextStyle(fontSize: 12, color: context.bu.mut))),
+                      Expanded(child: Text(r, style: BuType.caption.copyWith(color: context.bu.mut))),
                     ]),
                   );
                 }
@@ -547,7 +548,7 @@ class _EventsPageState extends State<EventsPage> {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(2, 10, 0, 8),
                     child: Text(longDate(r),
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: context.bu.mut)),
+                        style: BuType.label.copyWith(color: context.bu.mut)),
                   );
                 }
                 return Padding(
@@ -579,7 +580,7 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(text,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: t.mut)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
             ),
           ]),
         );
@@ -598,9 +599,9 @@ class _EventsPageState extends State<EventsPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(day == null ? '' : _monthShort[day.month - 1],
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: t.onSoft)),
+                    style: BuType.micro.copyWith(color: t.onSoft)),
                 Text(day == null ? '' : '${day.day}',
-                    style: TextStyle(fontSize: 22, height: 1.1, fontWeight: FontWeight.w800, color: t.onSoft)),
+                    style: BuType.title.copyWith(height: 1.1, color: t.onSoft)),
               ],
             ),
           ),
@@ -621,14 +622,14 @@ class _EventsPageState extends State<EventsPage> {
                               Icon(LucideIcons.circleCheck, size: 12, color: t.ok),
                               const SizedBox(width: 5),
                               Text(my == 'GOING' ? 'Katılıyorsun' : 'İlgileniyorsun',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: t.ok)),
+                                  style: BuType.micro.copyWith(color: t.ok)),
                             ]),
                           ),
                   ),
                 Text('${ev['title'] ?? ''}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.ink)),
+                    style: BuType.heading.copyWith(color: t.ink)),
                 if (org != null && org.isNotEmpty) meta(LucideIcons.users, org),
                 if (time.isNotEmpty) meta(LucideIcons.clock, time),
                 if (place != null && place.isNotEmpty) meta(LucideIcons.mapPin, place),

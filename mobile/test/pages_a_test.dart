@@ -159,14 +159,17 @@ void main() {
     });
 
     testWidgets('sunucu hatasi (500) mesaj olarak gosterilir', (tester) async {
-      useScreen(tester, const Size(390, 1200));
+      useScreen(tester, const Size(390, 1800));
       final b = newB()..fail('/auth/register', status: 500);
+      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 300));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse@bingol.edu.tr');
       await tester.enterText(fields.at(2), 'Sifre1234');
       await tester.enterText(fields.at(3), 'Sifre1234');
+      await fillAcademic(tester);
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();
       await tester.tap(find.text('Kayıt ol').last);

@@ -17,6 +17,7 @@ import '../notifications/notifications_page.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
 import '../support/support_page.dart';
+import '../../core/typography.dart';
 
 /// Ana sayfa: selamlama, arama, sıradaki etkinlik, hızlı erişim, bento kutular, kulüpler, gündem.
 class HomeTab extends StatefulWidget {
@@ -479,11 +480,11 @@ class _HomeTabState extends State<HomeTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_greeting, style: TextStyle(fontSize: 13, color: t.mut)),
+                          Text(_greeting, style: BuType.caption.copyWith(color: t.mut)),
                           Text(name.isEmpty ? 'BÜ Kampüs' : name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink)),
+                              style: BuType.title.copyWith(color: t.ink)),
                         ],
                       ),
                     ),
@@ -524,8 +525,8 @@ class _HomeTabState extends State<HomeTab> {
           children: [
             _heroPill(LucideIcons.calendar, 'Sıradaki etkinlik'),
             const SizedBox(height: 12),
-            const Text('Yaklaşan etkinlik yok',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, height: 1.2)),
+            Text('Yaklaşan etkinlik yok',
+                style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 14),
             _whitePill('Etkinliklere göz at', () => _push(EventsPage(session: _s))),
           ],
@@ -562,14 +563,14 @@ class _HomeTabState extends State<HomeTab> {
             Text((e['title'] as String?) ?? '',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
+                style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 6),
             Wrap(spacing: 14, runSpacing: 2, children: [
-              if (when.isNotEmpty) Text(when, style: const TextStyle(fontSize: 12)),
+              if (when.isNotEmpty) Text(when, style: BuType.caption),
               if (loc.isNotEmpty)
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
-                  child: Text(loc, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                  child: Text(loc, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption),
                 ),
             ]),
             const SizedBox(height: 14),
@@ -582,7 +583,7 @@ class _HomeTabState extends State<HomeTab> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(going > 0 ? '$going kişi katılıyor' : 'İlk katılan sen ol',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label),
                 ),
                 const SizedBox(width: 8),
                 if (mine)
@@ -604,7 +605,7 @@ class _HomeTabState extends State<HomeTab> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, size: 13, color: Colors.white),
           const SizedBox(width: 6),
-          Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+          Text(text, style: BuType.micro.copyWith(color: Colors.white)),
         ]),
       );
 
@@ -625,7 +626,7 @@ class _HomeTabState extends State<HomeTab> {
                     Icon(LucideIcons.check, size: 15, color: Color(0xFF8E1B13)),
                     SizedBox(width: 4),
                   ],
-                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF8E1B13))),
+                  Text(label, style: BuType.label.copyWith(color: const Color(0xFF8E1B13))),
                 ]),
         ),
       ),
@@ -677,7 +678,7 @@ class _HomeTabState extends State<HomeTab> {
                           child: Text('Bugünün yemeği',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.onSoft)),
+                              style: BuType.label.copyWith(color: t.onSoft)),
                         ),
                       ]),
                       const SizedBox(height: 12),
@@ -685,7 +686,7 @@ class _HomeTabState extends State<HomeTab> {
                         items.isEmpty ? 'Bugün için liste yok' : items.take(4).join('\n'),
                         maxLines: 5,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, height: 1.5, color: t.onSoft),
+                        style: BuType.bodyStrong.copyWith(height: 1.5, color: t.onSoft),
                       ),
                     ],
                   ),
@@ -762,9 +763,9 @@ class _HomeTabState extends State<HomeTab> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: fg, height: 1.2)),
+                  Text(value, style: BuType.title.copyWith(color: fg, height: 1.2)),
                   Text(label,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: sub)),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: sub)),
                 ],
               ),
             ),
@@ -792,10 +793,10 @@ class _HomeTabState extends State<HomeTab> {
             Text((c['name'] as String?) ?? '',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                style: BuType.bodyStrong.copyWith(color: t.ink)),
             const SizedBox(height: 2),
             Text(members == null ? '' : '$members üye',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: t.mut)),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
           ],
         ),
       ),
@@ -828,14 +829,14 @@ class _HomeTabState extends State<HomeTab> {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(dateText,
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: t.mut)),
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
                   ),
                 ]),
                 const SizedBox(height: 6),
                 Text((n['title'] as String?) ?? '',
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 14, height: 1.3, fontWeight: FontWeight.w700, color: t.ink)),
+                    style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
               ],
             ),
           ),
@@ -898,7 +899,7 @@ class _QuickItem extends StatelessWidget {
                                 border: Border.all(color: t.bg, width: 2),
                               ),
                               child: Text(n > 99 ? '99+' : '$n',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: t.onPr)),
+                                  style: BuType.micro.copyWith(color: t.onPr)),
                             ),
                           ),
                   ),
@@ -909,7 +910,7 @@ class _QuickItem extends StatelessWidget {
           Text(label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: t.ink)),
+              style: BuType.label.copyWith(color: t.ink)),
         ],
       ),
     );
@@ -984,7 +985,7 @@ class _AvatarStack extends StatelessWidget {
                     shape: BoxShape.circle, color: const Color(0xFF171E33), border: Border.all(color: _ring, width: 2)),
                 child: Text(extra > 99 ? '99+' : '+$extra',
                     maxLines: 1,
-                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white)),
+                    style: BuType.micro.copyWith(color: Colors.white)),
               ),
             ),
         ],

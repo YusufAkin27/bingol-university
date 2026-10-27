@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api.dart';
 import '../core/theme.dart';
+import '../core/typography.dart';
 
 export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
@@ -46,9 +47,9 @@ class BuHeader extends StatelessWidget {
                 Text(title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -.4, color: t.ink)),
+                    style: BuType.display.copyWith(letterSpacing: -.4, color: t.ink)),
                 if (subtitle != null)
-                  Text(subtitle!, style: TextStyle(fontSize: 13, color: t.mut)),
+                  Text(subtitle!, style: BuType.caption.copyWith(color: t.mut)),
               ],
             ),
           ),
@@ -169,7 +170,7 @@ class BuChip extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           child: Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: selected ? t.bg : t.mut)),
+              style: BuType.label.copyWith(color: selected ? t.bg : t.mut)),
         ),
       ),
     );
@@ -193,7 +194,7 @@ class BuBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+      child: Text(text, style: BuType.micro.copyWith(color: fg)),
     );
   }
 }
@@ -218,8 +219,7 @@ class BuAvatar extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(color: dark ? t.ink : t.soft, borderRadius: radius),
       child: Text(initialsOf(name),
-          style: TextStyle(
-              fontSize: size * .33, fontWeight: FontWeight.w800, color: dark ? t.bg : t.onSoft)),
+          style: BuType.title.copyWith(fontSize: size * .33, color: dark ? t.bg : t.onSoft)),
     );
     final full = fileUrl(url);
     if (full == null) return fallback;
@@ -266,7 +266,7 @@ class BuButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[Icon(icon, size: compact ? 15 : 20, color: fg), const SizedBox(width: 6)],
-              Text(label, style: TextStyle(fontSize: compact ? 13 : 16, fontWeight: FontWeight.w800, color: fg)),
+              Text(label, style: (compact ? BuType.label : BuType.heading).copyWith(color: fg)),
             ],
           );
     final btn = Material(
@@ -322,8 +322,7 @@ class BuSegmented extends StatelessWidget {
                         : null,
                   ),
                   child: Text(items[i],
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: i == index ? t.ink : t.mut)),
+                      style: BuType.bodyStrong.copyWith(color: i == index ? t.ink : t.mut)),
                 ),
               ),
             ),
@@ -378,7 +377,7 @@ class BuSearchField extends StatelessWidget {
               onChanged: onChanged,
               onSubmitted: onSubmitted,
               textInputAction: TextInputAction.search,
-              style: TextStyle(fontSize: 15, color: t.ink),
+              style: BuType.body.copyWith(color: t.ink),
               decoration: InputDecoration(
                 hintText: hint,
                 isCollapsed: true,
@@ -412,11 +411,11 @@ class BuSectionTitle extends StatelessWidget {
       padding: padding ?? const EdgeInsets.fromLTRB(20, 22, 20, 10),
       child: Row(
         children: [
-          Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink))),
+          Expanded(child: Text(title, style: BuType.heading.copyWith(color: t.ink))),
           if (action != null)
             GestureDetector(
               onTap: onAction,
-              child: Text(action!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
+              child: Text(action!, style: BuType.label.copyWith(color: t.pr)),
             ),
         ],
       ),
@@ -493,7 +492,7 @@ class BuMenuRow extends StatelessWidget {
           children: [
             Icon(icon, size: 22, color: danger ? t.danger : t.pr),
             const SizedBox(width: 14),
-            Expanded(child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c))),
+            Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: c))),
             if (trailing != null) trailing!,
             if (showChevron && !danger) Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
           ],

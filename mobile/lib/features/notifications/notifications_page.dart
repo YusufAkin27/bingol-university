@@ -12,6 +12,7 @@ import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
 import '../support/support_page.dart';
 import '../support/support_ticket_page.dart';
+import '../../core/typography.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
 class NotificationsPage extends StatefulWidget {
@@ -217,7 +218,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 Icon(LucideIcons.checkCheck, size: 16, color: t.onSoft),
                 const SizedBox(width: 6),
                 Text('Tümünü okundu yap',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.onSoft)),
+                    style: BuType.label.copyWith(color: t.onSoft)),
               ]),
             ),
           )
@@ -246,7 +247,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           children.add(Padding(
             padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
             child: Text(g,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
           ));
         }
         children.add(Padding(padding: const EdgeInsets.only(bottom: 8), child: _tile(t, n)));
@@ -306,19 +307,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 padding: EdgeInsets.only(right: un ? 14 : 0),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text((n['title'] as String?) ?? '',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, height: 1.3, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
                   if (body.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 3),
                       child: Text(body,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13, height: 1.4, color: un ? t.onSoft : t.mut)),
+                          style: BuType.caption.copyWith(height: 1.4, color: un ? t.onSoft : t.mut)),
                     ),
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(relativeTime(n['createdAt'] as String?),
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: t.mut)),
+                        style: BuType.micro.copyWith(color: t.mut)),
                   ),
                 ]),
               ),

@@ -4,6 +4,7 @@ import '../../core/api.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../core/typography.dart';
 
 const supportTicketCategories = {
   'ACCOUNT': 'Hesap',
@@ -68,7 +69,7 @@ class SupportFeedbackPill extends StatelessWidget {
 Widget _pill(String label, Color bg, Color fg) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: fg)),
+      child: Text(label, style: BuType.micro.copyWith(color: fg)),
     );
 
 /// Küçük büyük harfli bölüm etiketi (tasarımdaki .lb). Form sayfalarında [form] ile yatay boşluk 4 px olur.
@@ -82,7 +83,7 @@ class SupportLabel extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.fromLTRB(form ? 4 : 24, 20, form ? 4 : 24, 8),
         child: Text(text,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: context.bu.mut)),
+            style: BuType.label.copyWith(letterSpacing: .5, color: context.bu.mut)),
       );
 }
 
@@ -114,7 +115,7 @@ class SupportField extends StatelessWidget {
       minLines: minLines,
       maxLines: maxLines,
       textCapitalization: TextCapitalization.sentences,
-      style: TextStyle(fontSize: 15, color: t.ink),
+      style: BuType.body.copyWith(color: t.ink),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: t.mut),

@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
 import 'reset_code_page.dart';
+import '../../core/typography.dart';
 
 /// Şifremi unuttum, 1. adım: e-posta gir, kod gönder. Sonra kod doğrulama ekranına geçer.
 class ForgotPasswordPage extends StatefulWidget {
@@ -77,7 +78,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         const SizedBox(height: 24),
         Center(
           child: Text.rich(TextSpan(
-            style: TextStyle(color: context.bu.mut, fontSize: 14),
+            style: BuType.body.copyWith(color: context.bu.mut),
             children: [
               const TextSpan(text: 'Hatırladınız mı? '),
               WidgetSpan(
@@ -86,8 +87,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 child: GestureDetector(
                   onTap: () => Navigator.maybePop(context),
                   child: Text('Giriş yap',
-                      style: TextStyle(
-                          color: context.bu.pr, fontSize: 14, fontWeight: FontWeight.w700)),
+                      style: BuType.bodyStrong.copyWith(color: context.bu.pr)),
                 ),
               ),
             ],

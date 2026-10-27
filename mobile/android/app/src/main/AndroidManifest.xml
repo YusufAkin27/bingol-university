@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Sohbet görselini galeriye kaydetme: yalnız Android 9 ve altında gerekir. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <application
         android:label="bu_kampus"
         android:name="${applicationName}"

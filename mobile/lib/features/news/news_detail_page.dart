@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 class NewsDetailPage extends StatefulWidget {
   const NewsDetailPage({
@@ -121,7 +122,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       BuBadge(TypeBadge.label(type), soft: type != 'HABER'),
                       const SizedBox(width: 10),
                       Text(niceDate(n['publishedDate'] as String?),
-                          style: TextStyle(color: t.mut, fontSize: 13)),
+                          style: BuType.caption.copyWith(color: t.mut)),
                     ]),
                     if (isEvent) ...[
                       const SizedBox(height: 10),
@@ -129,17 +130,12 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         Icon(LucideIcons.calendar, size: 16, color: t.pr),
                         const SizedBox(width: 6),
                         Text('Etkinlik tarihi: ${niceDate(eventDate)}',
-                            style: TextStyle(color: t.ink, fontSize: 13, fontWeight: FontWeight.w700)),
+                            style: BuType.label.copyWith(color: t.ink)),
                       ]),
                     ],
                     const SizedBox(height: 14),
                     Text((n['title'] as String?) ?? '',
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            height: 1.25,
-                            letterSpacing: -.3,
-                            color: t.ink)),
+                        style: BuType.display.copyWith(height: 1.25, letterSpacing: -.3, color: t.ink)),
                     if (img != null && img.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       ClipRRect(
@@ -169,7 +165,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     else
                       BuCard(
                         child: Text('İçeriğin tamamı için kaynak sayfayı açın.',
-                            style: TextStyle(color: t.mut, fontSize: 14)),
+                            style: BuType.body.copyWith(color: t.mut)),
                       ),
                     if (canOpen) ...[
                       const SizedBox(height: 24),
@@ -205,7 +201,7 @@ class _Article extends StatelessWidget {
         .map((p) => p.trim())
         .where((p) => p.isNotEmpty)
         .toList();
-    final style = TextStyle(fontSize: 16, height: 1.65, color: t.ink);
+    final style = BuType.heading.copyWith(height: 1.65, color: t.ink);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

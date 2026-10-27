@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 /// Sözleşme listesi (kullanım koşulları, gizlilik, KVKK, topluluk kuralları).
 class LegalListPage extends StatefulWidget {
@@ -74,10 +75,10 @@ class _LegalListPageState extends State<LegalListPage> {
                                 Expanded(
                                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                     Text((d['title'] as String?) ?? (d['type'] as String? ?? ''),
-                                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+                                        style: BuType.bodyStrong.copyWith(color: t.ink)),
                                     const SizedBox(height: 2),
                                     Text('Sürüm ${d['version']} · ${niceDate(d['publishedAt'] as String?)}',
-                                        style: TextStyle(fontSize: 12, color: t.mut)),
+                                        style: BuType.caption.copyWith(color: t.mut)),
                                   ]),
                                 ),
                                 Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
@@ -136,13 +137,13 @@ class _LegalDocPageState extends State<LegalDocPage> {
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                             children: [
                               Text('Sürüm ${d!['version']} · ${niceDate(d['publishedAt'] as String?)}',
-                                  style: TextStyle(fontSize: 13, color: t.mut)),
+                                  style: BuType.caption.copyWith(color: t.mut)),
                               const SizedBox(height: 14),
                               BuCard(
                                 padding: const EdgeInsets.all(18),
                                 // Düz metin olarak çizilir: HTML/Markdown yorumlanmaz.
                                 child: SelectableText((d['content'] as String?) ?? '',
-                                    style: TextStyle(fontSize: 15, height: 1.6, color: t.ink)),
+                                    style: BuType.body.copyWith(height: 1.6, color: t.ink)),
                               ),
                             ],
                           ),

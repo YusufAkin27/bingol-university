@@ -6,6 +6,7 @@ import '../../core/session.dart';
 import '../../widgets/bu_widgets.dart';
 import '../clubs/club_detail_page.dart';
 import 'profile_paged_list.dart';
+import '../../core/typography.dart';
 
 /// Üyesi olunan topluluklar (GET /me/communities).
 class MyClubsPage extends StatelessWidget {
@@ -47,11 +48,11 @@ class MyClubsPage extends StatelessWidget {
                     Text((c['name'] as String?) ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+                        style: BuType.bodyStrong.copyWith(color: t.ink)),
                     if (sub.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
-                        child: Text(sub, style: TextStyle(fontSize: 12, color: t.mut)),
+                        child: Text(sub, style: BuType.caption.copyWith(color: t.mut)),
                       ),
                     // Dar ekranda satırı taşırmamak için rozet adın altında durur.
                     if (pending)

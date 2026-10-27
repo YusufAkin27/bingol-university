@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/session.dart';
 import '../core/theme.dart';
 import 'bu_widgets.dart';
+import '../core/typography.dart';
 
 /// İçerik/kullanıcı raporlama alt sayfası. Sayfalar yalnızca [ReportSheet.show] çağırır.
 /// Hedef türleri backend `ReportTargetHandler` ile aynı: USER, POST, COMMUNITY, EVENT (mesajlar için
@@ -110,7 +111,7 @@ class _SheetBodyState extends State<_SheetBody> {
                   width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2))),
             ),
             const SizedBox(height: 16),
-            Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink)),
+            Text(widget.title, style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 4),
             Text('Sebep seçin. Şikâyetiniz yöneticilere iletilir.', style: TextStyle(color: t.mut)),
             const SizedBox(height: 12),
@@ -137,7 +138,7 @@ class _SheetBodyState extends State<_SheetBody> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: Text(_error!, style: TextStyle(color: t.danger, fontSize: 13)),
+                child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
               ),
             BuButton(label: 'Gönder', busy: _busy, onPressed: _submit),
           ],

@@ -12,6 +12,7 @@ import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../platform/qr_scan_page.dart';
 import 'qr_painter.dart';
+import '../../core/typography.dart';
 
 const _monthsShort = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
 
@@ -373,10 +374,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(_monthsShort[starts.month - 1],
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF8E1B13))),
+                        style: BuType.micro.copyWith(color: const Color(0xFF8E1B13))),
                     Text('${starts.day}',
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.w800, height: 1.1, color: Color(0xFF8E1B13))),
+                        style: BuType.display.copyWith(height: 1.1, color: const Color(0xFF8E1B13))),
                   ]),
                 ),
               ),
@@ -392,7 +392,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const _Pill('İlgileniyorsun'),
           if (rsvp != null) const SizedBox(height: 8),
           Text('${ev['title'] ?? ''}',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -.4, height: 1.2, color: t.ink)),
+              style: BuType.display.copyWith(letterSpacing: -.4, height: 1.2, color: t.ink)),
           if (organizer != null && organizer.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -403,7 +403,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         context,
                         MaterialPageRoute(
                             builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
-                child: Text.rich(TextSpan(style: TextStyle(fontSize: 13, color: t.mut), children: [
+                child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
                   const TextSpan(text: 'Düzenleyen: '),
                   TextSpan(
                       text: organizer,
@@ -447,7 +447,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(width: 12),
           ],
           Expanded(
-            child: Text.rich(TextSpan(style: TextStyle(fontSize: 13, color: t.mut), children: [
+            child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
               TextSpan(text: '$going', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
               const TextSpan(text: ' katılıyor'),
               if (interested != null) ...[
@@ -462,7 +462,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (desc != null && desc.trim().isNotEmpty)
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          child: Text(desc, style: TextStyle(fontSize: 14, height: 1.55, color: t.ink)),
+          child: Text(desc, style: BuType.body.copyWith(height: 1.55, color: t.ink)),
         ),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
@@ -482,7 +482,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               kind: rsvp == 'INTERESTED' ? BuButtonKind.primary : BuButtonKind.outline,
               onPressed: _rsvpBusy ? null : () => _setRsvp('INTERESTED'),
             );
-            if (box.maxWidth < 340) {
+            if (box.maxWidth < 380) {
               return Column(children: [going, const SizedBox(height: 10), interested]);
             }
             return Row(children: [
@@ -495,7 +495,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text('Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.',
-                  style: TextStyle(fontSize: 12, color: t.danger)),
+                  style: BuType.caption.copyWith(color: t.danger)),
             ),
           if (rsvp == 'GOING') ...[const SizedBox(height: 10), _attendanceBlock()],
           if (rsvp != null) ...[
@@ -547,7 +547,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             child: Container(
               height: size,
               alignment: Alignment.center,
-              child: Text('+$more', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.mut)),
+              child: Text('+$more', style: BuType.label.copyWith(color: t.mut)),
             ),
           ),
       ]),
@@ -566,12 +566,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.circleCheck, size: 18, color: t.ok),
           const SizedBox(width: 8),
-          Text('Yoklaman alındı', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ok)),
+          Text('Yoklaman alındı', style: BuType.bodyStrong.copyWith(color: t.ok)),
         ]),
       );
     }
     if (att['checkInOpen'] != true) {
-      return Text('Yoklama etkinlik saatinde açılır.', style: TextStyle(fontSize: 12, color: t.mut));
+      return Text('Yoklama etkinlik saatinde açılır.', style: BuType.caption.copyWith(color: t.mut));
     }
     if (!_enterCode) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -587,7 +587,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return BuCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('Organizatörün gösterdiği kodu gir',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.ink)),
+            style: BuType.label.copyWith(color: t.ink)),
         const SizedBox(height: 10),
         TextField(
           controller: _codeCtl,
@@ -597,7 +597,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           enableSuggestions: false,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _checkIn(),
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink),
+          style: BuType.bodyStrong.copyWith(color: t.ink),
           decoration: InputDecoration(
             hintText: 'Yoklama kodu',
             hintStyle: TextStyle(color: t.mut),
@@ -620,7 +620,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final present = _attendance.where((r) => r['present'] == true).length;
     final total = _attendance.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Yoklama kodu', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
+      Text('Yoklama kodu', style: BuType.heading.copyWith(color: t.ink)),
       const SizedBox(height: 10),
       BuCard(
         padding: const EdgeInsets.all(18),
@@ -633,17 +633,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
               size: 220,
               fallback: SelectableText(code,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.pr)),
+                  style: BuType.bodyStrong.copyWith(color: t.pr)),
             ),
             const SizedBox(height: 8),
             Text('Katılımcılar bu QR kodunu uygulamadan taratır.',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: t.mut)),
+                textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
             const SizedBox(height: 6),
             Text(
               exp == null
                   ? 'Kod kısa süre geçerlidir.'
                   : 'Son kullanma: ${_hms(exp)} · kod otomatik yenilenir',
-              style: TextStyle(fontSize: 12, color: t.mut),
+              style: BuType.caption.copyWith(color: t.mut),
             ),
           ],
           const SizedBox(height: 12),
@@ -665,14 +665,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
           Expanded(
             child: Text(
               total == 0 ? 'Henüz yoklama kaydı yok' : 'Yoklama: $present / $total kişi geldi',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink),
+              style: BuType.bodyStrong.copyWith(color: t.ink),
             ),
           ),
         ]),
       ),
       if (_attendees.isNotEmpty) ...[
         const SizedBox(height: 18),
-        Text('Katılımcılar', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
+        Text('Katılımcılar', style: BuType.heading.copyWith(color: t.ink)),
         const SizedBox(height: 10),
         for (final a in _attendees)
           Padding(
@@ -684,9 +684,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 child: Text('${a['displayName'] ?? ''}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+                    style: BuType.bodyStrong.copyWith(color: t.ink)),
               ),
-              if (a['status'] == 'INTERESTED') Text('İlgileniyor', style: TextStyle(fontSize: 12, color: t.mut)),
+              if (a['status'] == 'INTERESTED') Text('İlgileniyor', style: BuType.caption.copyWith(color: t.mut)),
             ]),
           ),
         if (_attNext != null)
@@ -722,7 +722,7 @@ class _Pill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         decoration: BoxDecoration(color: ok ? t.okSoft : t.soft, borderRadius: BorderRadius.circular(999)),
         child: Text(text,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: ok ? t.ok : t.onSoft)),
+            style: BuType.micro.copyWith(color: ok ? t.ok : t.onSoft)),
       ),
     );
   }
@@ -752,8 +752,8 @@ class _InfoRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
-            if (sub != null) Text(sub!, style: TextStyle(fontSize: 12, color: t.mut)),
+            Text(title, style: BuType.bodyStrong.copyWith(color: t.ink)),
+            if (sub != null) Text(sub!, style: BuType.caption.copyWith(color: t.mut)),
           ]),
         ),
       ]),

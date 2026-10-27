@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import 'auth_widgets.dart';
 import 'otp_code_boxes.dart';
 import 'new_password_page.dart';
+import '../../core/typography.dart';
 
 /// Şifremi unuttum, 2. adım: kodu doğrula. Doğruysa yeni şifre ekranına geçilir.
 class ResetCodePage extends StatefulWidget {
@@ -123,7 +124,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
         const SizedBox(height: 12),
         Center(
           child: _cooldown > 0
-              ? Text.rich(TextSpan(style: TextStyle(color: t.mut, fontSize: 14), children: [
+              ? Text.rich(TextSpan(style: BuType.body.copyWith(color: t.mut), children: [
                   const TextSpan(text: 'Yeni kod için '),
                   TextSpan(text: '$_cooldown sn', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
                   const TextSpan(text: ' bekleyin'),

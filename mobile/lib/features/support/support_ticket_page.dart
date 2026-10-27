@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'support_common.dart';
+import '../../core/typography.dart';
 
 /// Talep detayı: mesajlar, yanıt yazma, kapatma. Değişiklik olduysa `true` ile döner.
 class SupportTicketPage extends StatefulWidget {
@@ -134,14 +135,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             Row(children: [
               Expanded(
                 child: Text('${tk['subject'] ?? ''}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.ink)),
+                    style: BuType.heading.copyWith(color: t.ink)),
               ),
               const SizedBox(width: 8),
               SupportStatusPill(tk['status'] as String?),
             ]),
             const SizedBox(height: 6),
             Text('${supportTicketCategories[tk['category']] ?? 'Diğer'} · ${niceDate(tk['createdAt'] as String?)}',
-                style: TextStyle(fontSize: 12, color: t.mut)),
+                style: BuType.caption.copyWith(color: t.mut)),
           ]),
         ),
         const SizedBox(height: 14),
@@ -149,7 +150,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         if (closed)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Center(child: Text('Bu talep kapatıldı.', style: TextStyle(fontSize: 13, color: t.mut))),
+            child: Center(child: Text('Bu talep kapatıldı.', style: BuType.caption.copyWith(color: t.mut))),
           )
         else ...[
           const SizedBox(height: 8),
@@ -181,11 +182,11 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (staff) Text('Destek ekibi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: t.pr)),
-          Text('${m['text'] ?? ''}', style: TextStyle(fontSize: 14, height: 1.4, color: staff ? t.ink : t.onPr)),
+          if (staff) Text('Destek ekibi', style: BuType.micro.copyWith(color: t.pr)),
+          Text('${m['text'] ?? ''}', style: BuType.body.copyWith(height: 1.4, color: staff ? t.ink : t.onPr)),
           const SizedBox(height: 4),
           Text(relativeTime(m['createdAt'] as String?),
-              style: TextStyle(fontSize: 10, color: staff ? t.mut : t.onPr.withValues(alpha: .8))),
+              style: BuType.micro.copyWith(color: staff ? t.mut : t.onPr.withValues(alpha: .8))),
         ]),
       ),
     );
@@ -203,7 +204,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             maxLines: 4,
             maxLength: 2000,
             textCapitalization: TextCapitalization.sentences,
-            style: TextStyle(fontSize: 15, color: t.ink),
+            style: BuType.body.copyWith(color: t.ink),
             decoration: InputDecoration(
               hintText: 'Yanıt yazın',
               hintStyle: TextStyle(color: t.mut),

@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import 'support_common.dart';
+import '../../core/typography.dart';
 
 /// Yeni destek talebi formu. Başarıda `true` ile döner.
 class NewTicketPage extends StatefulWidget {
@@ -73,7 +74,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: TextStyle(color: t.danger, fontSize: 13)),
+                child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
               ),
             const SizedBox(height: 16),
             BuButton(label: 'Gönder', icon: LucideIcons.send, busy: _busy, onPressed: _submit),

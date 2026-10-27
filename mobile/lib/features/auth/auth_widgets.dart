@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../core/typography.dart';
 
 final _emailRe = RegExp(r'^[a-z0-9._%+\-]+@([a-z0-9\-]+\.)*bingol\.edu\.tr$');
 
@@ -81,20 +82,13 @@ class AuthScaffold extends StatelessWidget {
                       SizedBox(height: showBack ? 22 : 28),
                       Text(
                         title,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: showBack ? 28 : 30,
-                            height: 1.15,
-                            fontWeight: FontWeight.w800),
+                        style: BuType.display.copyWith(color: Colors.white, height: 1.15),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 8),
                         Text(
                           subtitle!,
-                          style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.95),
-                              fontSize: showBack ? 14 : 15,
-                              height: 1.45),
+                          style: (showBack ? BuType.label : BuType.body).copyWith(color: Colors.white.withValues(alpha: 0.95), height: 1.45),
                         ),
                       ],
                     ],
@@ -126,7 +120,7 @@ InputDecoration authFieldDecoration(
   final t = context.bu;
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: t.mut, fontSize: 15),
+    hintStyle: BuType.body.copyWith(color: t.mut),
     prefixIcon: Icon(icon, size: 20, color: t.mut),
     suffixIcon: suffix,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
@@ -171,7 +165,7 @@ class _PasswordFieldState extends State<PasswordField> {
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
       validator: widget.validator,
-      style: TextStyle(color: t.ink, fontSize: 15),
+      style: BuType.body.copyWith(color: t.ink),
       onFieldSubmitted: (_) => widget.onSubmitted?.call(),
       decoration: authFieldDecoration(
         context,
@@ -205,7 +199,7 @@ class EmailField extends StatelessWidget {
       enableSuggestions: false,
       autofillHints: const [AutofillHints.email],
       validator: validateEmail,
-      style: TextStyle(color: context.bu.ink, fontSize: 15),
+      style: BuType.body.copyWith(color: context.bu.ink),
       onFieldSubmitted: (_) => onSubmitted?.call(),
       decoration: authFieldDecoration(context, hint: 'ad.soyad@bingol.edu.tr', icon: LucideIcons.mail),
     );
@@ -234,7 +228,7 @@ class Notice extends StatelessWidget {
         children: [
           Icon(error ? LucideIcons.circleAlert : LucideIcons.info, color: fg, size: 20),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: TextStyle(color: fg, height: 1.35, fontSize: 14))),
+          Expanded(child: Text(text, style: BuType.body.copyWith(color: fg, height: 1.35))),
         ],
       ),
     );

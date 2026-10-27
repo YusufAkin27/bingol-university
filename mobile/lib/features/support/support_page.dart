@@ -9,6 +9,7 @@ import 'support_feedback_page.dart';
 import 'support_new_ticket_page.dart';
 import 'support_suggestions_page.dart';
 import 'support_ticket_page.dart';
+import '../../core/typography.dart';
 
 /// Destek: SSS akordeonu, talep oluşturma, taleplerim, geri bildirim ve öneri panosu.
 class SupportPage extends StatefulWidget {
@@ -156,7 +157,7 @@ class _SupportPageState extends State<SupportPage> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(LucideIcons.plus, size: 20, color: t.onPr),
               const SizedBox(width: 8),
-              Text('Destek talebi oluştur', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.onPr)),
+              Text('Destek talebi oluştur', style: BuType.bodyStrong.copyWith(color: t.onPr)),
             ]),
           ),
         ),
@@ -174,7 +175,7 @@ class _SupportPageState extends State<SupportPage> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           decoration: rows.isEmpty ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
           child: Text(cat.toUpperCase(),
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.pr)),
+              style: BuType.micro.copyWith(letterSpacing: .5, color: t.pr)),
         ));
       }
       for (final it in items) {
@@ -190,7 +191,7 @@ class _SupportPageState extends State<SupportPage> {
                 child: Row(children: [
                   Expanded(
                     child: Text('${it['question'] ?? ''}',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+                        style: BuType.bodyStrong.copyWith(color: t.ink)),
                   ),
                   const SizedBox(width: 10),
                   Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 18, color: t.mut),
@@ -200,7 +201,7 @@ class _SupportPageState extends State<SupportPage> {
             if (open)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                child: Text('${it['answer'] ?? ''}', style: TextStyle(fontSize: 13, height: 1.5, color: t.mut)),
+                child: Text('${it['answer'] ?? ''}', style: BuType.caption.copyWith(height: 1.5, color: t.mut)),
               ),
           ]),
         ));
@@ -224,7 +225,7 @@ class _SupportPageState extends State<SupportPage> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Row(children: [
-            Expanded(child: Text(_ticketsError!, style: TextStyle(fontSize: 13, color: t.danger))),
+            Expanded(child: Text(_ticketsError!, style: BuType.caption.copyWith(color: t.danger))),
             BuButton(label: 'Yeniden dene', compact: true, kind: BuButtonKind.soft, onPressed: _load),
           ]),
         ),
@@ -254,9 +255,9 @@ class _SupportPageState extends State<SupportPage> {
                     Text('${_tickets[i]['subject'] ?? ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                        style: BuType.bodyStrong.copyWith(color: t.ink)),
                     const SizedBox(height: 2),
-                    Text(niceDate(_tickets[i]['createdAt'] as String?), style: TextStyle(fontSize: 12, color: t.mut)),
+                    Text(niceDate(_tickets[i]['createdAt'] as String?), style: BuType.caption.copyWith(color: t.mut)),
                   ]),
                 ),
                 const SizedBox(width: 8),
@@ -295,7 +296,7 @@ class _SupportPageState extends State<SupportPage> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon, size: 18, color: t.pr),
               const SizedBox(width: 8),
-              Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.ink)),
+              Text(label, style: BuType.label.copyWith(color: t.ink)),
             ]),
           ),
         ),

@@ -4,6 +4,7 @@ import '../../core/api.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
+import '../../core/typography.dart';
 
 /// Şifremi unuttum, 3. adım: kod doğrulandıktan sonra yeni şifreyi belirle.
 class NewPasswordPage extends StatefulWidget {
@@ -84,8 +85,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             Icon(Icons.check_circle_outline, size: 18, color: context.bu.ok),
             const SizedBox(width: 10),
             Text('Kod doğrulandı',
-                style: TextStyle(
-                    color: context.bu.ok, fontSize: 13, fontWeight: FontWeight.w700)),
+                style: BuType.label.copyWith(color: context.bu.ok)),
           ]),
         ),
         if (_error != null) Notice(_error!),

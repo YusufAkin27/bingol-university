@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'support_common.dart';
+import '../../core/typography.dart';
 
 /// Geri bildirim formu + gönderdiklerim listesi (imleçli).
 class FeedbackPage extends StatefulWidget {
@@ -127,7 +128,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               if (_formError != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(_formError!, style: TextStyle(color: t.danger, fontSize: 13)),
+                  child: Text(_formError!, style: BuType.caption.copyWith(color: t.danger)),
                 ),
               const SizedBox(height: 16),
               BuButton(label: 'Gönder', icon: LucideIcons.send, busy: _busy, onPressed: _submit),
@@ -170,23 +171,23 @@ class _FeedbackPageState extends State<FeedbackPage> {
               Row(children: [
                 Expanded(
                   child: Text('${f['subject'] ?? ''}',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(color: t.ink)),
                 ),
                 const SizedBox(width: 8),
                 SupportFeedbackPill(f['status'] as String?),
               ]),
               const SizedBox(height: 2),
               Text('${supportFeedbackCategories[f['category']] ?? 'Diğer'} · ${niceDate(f['createdAt'] as String?)}',
-                  style: TextStyle(fontSize: 12, color: t.mut)),
+                  style: BuType.caption.copyWith(color: t.mut)),
               const SizedBox(height: 6),
-              Text('${f['message'] ?? ''}', style: TextStyle(fontSize: 13, height: 1.4, color: t.ink)),
+              Text('${f['message'] ?? ''}', style: BuType.caption.copyWith(height: 1.4, color: t.ink)),
               if ((f['adminResponse'] as String?)?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-                  child: Text('${f['adminResponse']}', style: TextStyle(fontSize: 13, height: 1.4, color: t.onSoft)),
+                  child: Text('${f['adminResponse']}', style: BuType.caption.copyWith(height: 1.4, color: t.onSoft)),
                 ),
               ],
             ]),

@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'chat_detail_page.dart';
+import '../../core/typography.dart';
 
 /// Yeni sohbet: kişi ara, bir kişi seç (birebir) ya da birden çok kişi seç (grup).
 class NewChatPage extends StatefulWidget {
@@ -226,7 +227,7 @@ class _NewChatPageState extends State<NewChatPage> {
           if (_createError != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: Text(_createError!, style: TextStyle(fontSize: 13, color: t.danger)),
+              child: Text(_createError!, style: BuType.caption.copyWith(color: t.danger)),
             ),
           if (n > 0)
             Padding(
@@ -261,7 +262,7 @@ class _NewChatPageState extends State<NewChatPage> {
                   child: Text('${u['displayName'] ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.onSoft)),
+                      style: BuType.label.copyWith(color: t.onSoft)),
                 ),
                 const SizedBox(width: 6),
                 Icon(LucideIcons.x, size: 16, color: t.onSoft),
@@ -294,14 +295,14 @@ class _NewChatPageState extends State<NewChatPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Grup oluştur', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+                Text('Grup oluştur', style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 2),
-                Text('$n kişi seçildi', style: TextStyle(fontSize: 12, color: t.mut)),
+                Text('$n kişi seçildi', style: BuType.caption.copyWith(color: t.mut)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _title,
                   maxLength: 100,
-                  style: TextStyle(fontSize: 14, color: t.ink),
+                  style: BuType.body.copyWith(color: t.ink),
                   onChanged: (_) {
                     if (_createError != null) setState(() => _createError = null);
                   },
@@ -323,7 +324,7 @@ class _NewChatPageState extends State<NewChatPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Text('en çok 50', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut)),
+          Text('en çok 50', style: BuType.label.copyWith(color: t.mut)),
         ],
       ),
     );
@@ -350,7 +351,7 @@ class _NewChatPageState extends State<NewChatPage> {
             return Padding(
               padding: const EdgeInsets.only(top: 8, bottom: 2),
               child: Text('KİŞİLER',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                  style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
             );
           }
           if (i > _results.length) {
@@ -383,12 +384,12 @@ class _NewChatPageState extends State<NewChatPage> {
                   Text('${u['displayName'] ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(color: t.ink)),
                   if (sub.isNotEmpty)
                     Text(sub,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: t.mut)),
+                        style: BuType.caption.copyWith(color: t.mut)),
                 ],
               ),
             ),

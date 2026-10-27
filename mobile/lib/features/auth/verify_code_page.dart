@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import 'auth_widgets.dart';
 import 'otp_code_boxes.dart';
+import '../../core/typography.dart';
 
 /// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi.
 class VerifyCodePage extends StatefulWidget {
@@ -115,7 +116,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
         const SizedBox(height: 12),
         Center(
           child: _cooldown > 0
-              ? Text.rich(TextSpan(style: TextStyle(color: t.mut, fontSize: 14), children: [
+              ? Text.rich(TextSpan(style: BuType.body.copyWith(color: t.mut), children: [
                   const TextSpan(text: 'Yeni kod için '),
                   TextSpan(text: '$_cooldown sn', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
                   const TextSpan(text: ' bekleyin'),

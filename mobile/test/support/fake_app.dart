@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -266,4 +267,74 @@ Future<void> loadTestFonts() async {
     loader.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
   }
   if (any) await loader.load();
+
+  // Uygulamanin tek yazi tipi Inter: testte de gercek dosyalar yuklenir (yoksa Ahem'e dusmesin diye Roboto yedegi).
+  final inter = FontLoader('Inter');
+  var haveInter = false;
+  for (final f in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
+    final file = File('assets/fonts/Inter-$f.ttf');
+    if (!file.existsSync()) continue;
+    haveInter = true;
+    inter.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+  }
+  if (haveInter) await inter.load();
+}
+
+/// Akademik katalog için küçük sahte veri (`GET /catalog/academic`).
+const kFakeAcademic = <String, dynamic>{
+  'version': 1,
+  'faculties': [
+    {
+      'id': 'muhendislik',
+      'name': 'Mühendislik Fakültesi',
+      'departments': [
+        {'id': 'bilgisayar-muhendisligi', 'name': 'Bilgisayar Mühendisliği'},
+        {'id': 'elektrik-muhendisligi', 'name': 'Elektrik-Elektronik Mühendisliği'},
+      ],
+    },
+    {
+      'id': 'fen-edebiyat',
+      'name': 'Fen-Edebiyat Fakültesi',
+      'departments': [
+        {'id': 'biyoloji', 'name': 'Biyoloji'},
+        {'id': 'turk-dili', 'name': 'Türk Dili ve Edebiyatı'},
+      ],
+    },
+  ],
+  'grades': [
+    {'id': 'PREP', 'name': 'Hazırlık'},
+    {'id': '1', 'name': '1. sınıf'},
+    {'id': '2', 'name': '2. sınıf'},
+    {'id': '3', 'name': '3. sınıf'},
+    {'id': '4', 'name': '4. sınıf'},
+    {'id': 'MASTER', 'name': 'Yüksek lisans'},
+    {'id': 'PHD', 'name': 'Doktora'},
+  ],
+};
+
+/// Sahte backend'e katalog yanıtını ekler.
+void fakeCatalog(FakeBackend b) => b.on('/catalog/academic', kFakeAcademic);
+
+/// Seçici ekranında arama yapıp (isteğe bağlı) ilk eşleşen satırı seçer.
+Future<void> pickFromSearch(WidgetTester tester, String query, String rowText) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.enterText(find.descendant(of: find.byType(BuSearchField), matching: find.byType(TextField)), query);
+  await tester.pump();
+  await tester.tap(find.text(rowText).last);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(const Duration(milliseconds: 400));
+}
+/// Kayıt formunda fakülte, bölüm ve sınıfı arayüzden seçer.
+Future<void> fillAcademic(WidgetTester tester) async {
+  await tester.ensureVisible(find.text('Fakülte seçin'));
+  await tester.tap(find.text('Fakülte seçin'));
+  await pickFromSearch(tester, 'muh', 'Mühendislik Fakültesi');
+  await tester.ensureVisible(find.text('Bölüm seçin'));
+  await tester.tap(find.text('Bölüm seçin'));
+  await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
+  await tester.ensureVisible(find.text('3. sınıf'));
+  await tester.tap(find.text('3. sınıf'));
+  await tester.pump();
 }

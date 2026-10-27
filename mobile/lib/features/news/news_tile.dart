@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../core/typography.dart';
 
 /// Haber türü -> rozet metni; duyuru/etkinlik yumuşak kırmızı, haber koyu.
 bool _softBadge(String? type) => type != 'HABER';
@@ -85,10 +86,10 @@ class NewsTile extends StatelessWidget {
                   (item['title'] as String?) ?? '',
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14, height: 1.35, fontWeight: FontWeight.w700, color: t.ink),
+                  style: BuType.bodyStrong.copyWith(height: 1.35, color: t.ink),
                 ),
                 const SizedBox(height: 4),
-                Text(newsDateLabel(item), style: TextStyle(fontSize: 12, color: t.mut)),
+                Text(newsDateLabel(item), style: BuType.caption.copyWith(color: t.mut)),
               ],
             ),
           ),
@@ -182,10 +183,9 @@ class NewsFeaturedCard extends StatelessWidget {
                       Text((item['title'] as String?) ?? '',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 17, height: 1.3, fontWeight: FontWeight.w800, color: t.ink)),
+                          style: BuType.heading.copyWith(height: 1.3, color: t.ink)),
                       const SizedBox(height: 6),
-                      Text(newsDateLabel(item), style: TextStyle(fontSize: 12, color: t.mut)),
+                      Text(newsDateLabel(item), style: BuType.caption.copyWith(color: t.mut)),
                     ],
                   ),
                 ),

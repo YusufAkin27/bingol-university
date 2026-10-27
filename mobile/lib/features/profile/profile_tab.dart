@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_catalog.dart' show gradeLabel;
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
@@ -10,6 +11,7 @@ import 'my_clubs_page.dart';
 import 'my_events_page.dart';
 import 'saved_news_page.dart';
 import 'settings_page.dart';
+import '../../core/typography.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key, required this.session, required this.themeController});
@@ -180,10 +182,15 @@ class _HeaderCard extends StatelessWidget {
     final name = profile['displayName'] as String?;
     final url = fileUrl(profile['avatarUrl'] as String?);
     final year = (profile['classYear'] as num?)?.toInt();
+    final g = profile['grade'];
+    final grade = (g is String && g.isNotEmpty)
+        ? gradeLabel(g)
+        : (year != null && year > 0 ? '$year. sınıf' : '');
+    final dept = (profile['department'] as String?) ?? '';
+    // Özet: "Bölüm · sınıf"; bölüm yoksa fakülte gösterilir.
     final tag = [
-      profile['faculty'],
-      profile['department'],
-      if (year != null && year > 0) '$year. sınıf',
+      dept.isNotEmpty ? dept : profile['faculty'],
+      grade,
     ].whereType<String>().where((s) => s.isNotEmpty).join(' · ');
     final bio = (profile['bio'] as String?) ?? '';
     final initials = Container(
@@ -192,7 +199,7 @@ class _HeaderCard extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(shape: BoxShape.circle, gradient: t.hero),
       child: Text(initialsOf(name),
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white)),
+          style: BuType.display.copyWith(color: Colors.white)),
     );
     return BuCard(
       padding: const EdgeInsets.all(18),
@@ -217,12 +224,12 @@ class _HeaderCard extends StatelessWidget {
                     Text(name ?? '',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: t.ink)),
+                        style: BuType.title.copyWith(color: t.ink)),
                     const SizedBox(height: 2),
                     Text((profile['email'] as String?) ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: t.mut)),
+                        style: BuType.caption.copyWith(color: t.mut)),
                     if (tag.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       BuBadge(tag, soft: true),
@@ -234,7 +241,7 @@ class _HeaderCard extends StatelessWidget {
           ),
           if (bio.isNotEmpty) ...[
             const SizedBox(height: 14),
-            Text(bio, style: TextStyle(fontSize: 14, height: 1.45, color: t.mut)),
+            Text(bio, style: BuType.body.copyWith(height: 1.45, color: t.mut)),
           ],
         ],
       ),
@@ -256,9 +263,9 @@ class _Stat extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Column(
           children: [
-            Text(value ?? '–', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: t.ink)),
+            Text(value ?? '–', style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 12, color: t.mut)),
+            Text(label, style: BuType.caption.copyWith(color: t.mut)),
           ],
         ),
       ),

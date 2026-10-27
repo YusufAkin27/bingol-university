@@ -6,6 +6,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'club_detail_page.dart';
 import 'club_join_flow.dart';
+import '../../core/typography.dart';
 
 /// Kulüpler sekmesi: Keşfet (GET /communities) ve Kulüplerim (GET /me/communities).
 class ClubsTab extends StatefulWidget {
@@ -446,9 +447,9 @@ class _ClubCard extends StatelessWidget {
         Text(name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: size, fontWeight: FontWeight.w800, color: t.ink)),
+            style: BuType.title.copyWith(fontSize: size, color: t.ink)),
         const SizedBox(height: 3),
-        Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: t.mut)),
+        Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
       ],
     );
   }

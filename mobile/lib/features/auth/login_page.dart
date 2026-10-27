@@ -7,6 +7,7 @@ import 'auth_widgets.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 import 'verify_code_page.dart';
+import '../../core/typography.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
@@ -95,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                     child: const Text('Şifremi unuttum',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        style: BuType.bodyStrong),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -112,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Hesabınız yok mu?',
-                style: TextStyle(color: context.bu.mut, fontSize: 14)),
+                style: BuType.body.copyWith(color: context.bu.mut)),
             TextButton(
               onPressed: _busy
                   ? null

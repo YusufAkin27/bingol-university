@@ -6,6 +6,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'support_common.dart';
 import 'support_feedback_page.dart';
+import '../../core/typography.dart';
 
 /// Öneri panosu: yönetici onaylı öneriler, oy verme. Sayfa tabanlı (sort=top|new).
 class SuggestionsPage extends StatefulWidget {
@@ -175,20 +176,20 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
               Row(children: [
                 Expanded(
                   child: Text('${s['subject'] ?? ''}',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: t.ink)),
+                      style: BuType.bodyStrong.copyWith(color: t.ink)),
                 ),
                 const SizedBox(width: 8),
                 SupportFeedbackPill(s['status'] as String?),
               ]),
               const SizedBox(height: 6),
-              Text('${s['message'] ?? ''}', style: TextStyle(fontSize: 13, height: 1.4, color: t.mut)),
+              Text('${s['message'] ?? ''}', style: BuType.caption.copyWith(height: 1.4, color: t.mut)),
               if (resp != null && resp.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-                  child: Text(resp, style: TextStyle(fontSize: 13, height: 1.4, color: t.onSoft)),
+                  child: Text(resp, style: BuType.caption.copyWith(height: 1.4, color: t.onSoft)),
                 ),
               ],
             ]),
@@ -204,7 +205,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
               child: Column(children: [
                 Icon(LucideIcons.chevronUp, size: 20, color: voted ? t.onPr : t.ink),
                 Text('${s['voteCount'] ?? 0}',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: voted ? t.onPr : t.ink)),
+                    style: BuType.bodyStrong.copyWith(color: voted ? t.onPr : t.ink)),
               ]),
             ),
           ),

@@ -82,6 +82,9 @@ class Session extends ChangeNotifier {
     required String email,
     required String password,
     required String displayName,
+    String? faculty,
+    String? department,
+    String? grade,
   }) async {
     await api.post(
       '/auth/register',
@@ -91,6 +94,9 @@ class Session extends ChangeNotifier {
         'displayName': displayName.trim(),
         'acceptTerms': true,
         'language': api.lang,
+        if (faculty != null) 'faculty': faculty,
+        if (department != null) 'department': department,
+        if (grade != null) 'grade': grade,
       },
       false,
     );

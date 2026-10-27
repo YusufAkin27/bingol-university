@@ -7,6 +7,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart';
+import '../../core/typography.dart';
 
 /// Favoriye eklenen haberler (imleçli sayfalama).
 class SavedNewsPage extends StatefulWidget {
@@ -147,7 +148,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
             actions: [
               if (_items.isNotEmpty)
                 Text('${_items.length}${_hasMore ? '+' : ''} haber',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.mut)),
+                    style: BuType.label.copyWith(color: t.mut)),
             ],
           ),
           Expanded(child: body),

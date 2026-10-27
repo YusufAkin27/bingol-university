@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme.dart';
+import '../../core/typography.dart';
 
 /// Altı kutulu kod girişi: içte tek (görünmez) TextField, üstte 6 kutu çizimi.
 /// Tek alan olduğu için yapıştırma ve oneTimeCode otomatik doldurma çalışır.
@@ -72,8 +73,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                               ),
                               child: ch.isNotEmpty
                                   ? Text(ch,
-                                      style: TextStyle(
-                                          color: t.ink, fontSize: 26, fontWeight: FontWeight.w800))
+                                      style: BuType.display.copyWith(color: t.ink))
                                   : (active
                                       ? Container(width: 2, height: 28, color: t.pr)
                                       : null),

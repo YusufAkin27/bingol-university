@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
+import '../../widgets/academic_picker.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import 'auth_widgets.dart';
 import 'verify_code_page.dart';
+import '../../core/typography.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, required this.session});
@@ -26,6 +29,19 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _termsError = false;
   bool _busy = false;
   String? _error;
+  late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
+  String? _faculty, _department, _grade;
+  bool _tried = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _catalog.load();
+  }
+
+  String? get _facultyErr => _tried && (_faculty ?? '').isEmpty ? 'Fakülteyi seçin.' : null;
+  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? 'Bölümü seçin.' : null;
+  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? 'Sınıfı seçin.' : null;
 
   @override
   void dispose() {
@@ -38,8 +54,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _submit() async {
     final valid = _form.currentState!.validate();
-    setState(() => _termsError = !_terms);
-    if (_busy || !valid || !_terms) return;
+    final academic = (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
+    setState(() {
+      _termsError = !_terms;
+      _tried = true;
+      if (!academic && _catalog.state == CatalogState.error) {
+        _error = 'Fakülte ve bölüm listesi yüklenemedi. Aşağıdan yeniden deneyin.';
+      }
+    });
+    if (_busy || !valid || !academic || !_terms) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -49,6 +72,9 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _email.text,
         password: _password.text,
         displayName: _name.text,
+        faculty: _faculty,
+        department: _department,
+        grade: _grade,
       );
       if (!mounted) return;
       await Navigator.push(context, MaterialPageRoute(builder: (_) {
@@ -86,12 +112,28 @@ class _RegisterPageState extends State<RegisterPage> {
                   maxLength: 80,
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Adınızı ve soyadınızı girin.' : null,
-                  style: TextStyle(color: t.ink, fontSize: 15),
+                  style: BuType.body.copyWith(color: t.ink),
                   decoration: authFieldDecoration(context, hint: 'Ad soyad', icon: LucideIcons.user)
                       .copyWith(counterText: ''),
                 ),
                 const SizedBox(height: 14),
                 EmailField(controller: _email),
+                const SizedBox(height: 14),
+                AcademicFields(
+                  catalog: _catalog,
+                  faculty: _faculty,
+                  department: _department,
+                  grade: _grade,
+                  enabled: !_busy,
+                  facultyError: _facultyErr,
+                  departmentError: _departmentErr,
+                  gradeError: _gradeErr,
+                  onChanged: (f, d, g) => setState(() {
+                    _faculty = f;
+                    _department = d;
+                    _grade = g;
+                  }),
+                ),
                 const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,
@@ -120,15 +162,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   activeColor: t.pr,
                   title: Text(
                     'Kullanım koşullarını, gizlilik politikasını, KVKK aydınlatma metnini ve topluluk kurallarını okudum, kabul ediyorum.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.45,
-                      color: _termsError ? t.danger : t.mut,
-                    ),
+                    style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
                   ),
                   subtitle: _termsError
                       ? Text('Devam etmek için kabul etmelisiniz.',
-                          style: TextStyle(color: t.danger, fontSize: 13))
+                          style: BuType.caption.copyWith(color: t.danger))
                       : null,
                 ),
                 const SizedBox(height: 12),
@@ -145,7 +183,7 @@ class _RegisterPageState extends State<RegisterPage> {
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('Zaten hesabınız var mı?', style: TextStyle(color: t.mut, fontSize: 14)),
+            Text('Zaten hesabınız var mı?', style: BuType.body.copyWith(color: t.mut)),
             TextButton(
               onPressed: _busy ? null : () => Navigator.maybePop(context),
               child: const Text('Giriş yap'),

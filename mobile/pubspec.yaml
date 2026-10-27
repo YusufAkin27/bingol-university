@@ -20,6 +20,7 @@ dependencies:
   firebase_messaging: ^17.0.1
   image: ^4.12.0
   http_parser: ^4.1.2
+  gal: ^2.3.3
 
 dev_dependencies:
   flutter_test:
@@ -34,6 +35,21 @@ flutter:
     - assets/branding/logo_horizontal_dark.png
     - assets/branding/mark.png
     - assets/branding/mark_white.png
+
+  # Tek yazi tipi: Inter (SIL OFL, assets/fonts/OFL.txt). Arapca icin sistem yedegi kullanilir.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-ExtraBold.ttf
+          weight: 800
 
 # Başlatıcı simgeleri: `dart run flutter_launcher_icons` (kaynaklar brand/build.js ile üretilir)
 flutter_launcher_icons:
