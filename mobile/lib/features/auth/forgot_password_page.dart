@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/session.dart';
-import '../../core/theme.dart';
 import 'auth_widgets.dart';
 import 'reset_code_page.dart';
-import '../../core/typography.dart';
 
 /// Şifremi unuttum, 1. adım: e-posta gir, kod gönder. Sonra kod doğrulama ekranına geçer.
 class ForgotPasswordPage extends StatefulWidget {
@@ -55,8 +53,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       showBack: true,
-      title: 'Şifremi unuttum',
-      subtitle: 'Okul e-postanızı girin, size sıfırlama kodu gönderelim.',
+      title: 'Şifreni sıfırla',
       children: [
         if (_error != null) Notice(_error!),
         Form(
@@ -65,33 +62,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               EmailField(controller: _email, onSubmitted: _sendCode),
-              const SizedBox(height: 16),
-              const Notice('Adres kayıtlıysa 6 haneli bir kod göndeririz. Kod 10 dakika geçerlidir.',
-                  error: false),
+              const SizedBox(height: 20),
               FilledButton(
                 onPressed: _busy ? null : _sendCode,
                 child: BusyLabel(busy: _busy, label: 'Kod gönder'),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 24),
-        Center(
-          child: Text.rich(TextSpan(
-            style: BuType.body.copyWith(color: context.bu.mut),
-            children: [
-              const TextSpan(text: 'Hatırladınız mı? '),
-              WidgetSpan(
-                alignment: PlaceholderAlignment.baseline,
-                baseline: TextBaseline.alphabetic,
-                child: GestureDetector(
-                  onTap: () => Navigator.maybePop(context),
-                  child: Text('Giriş yap',
-                      style: BuType.bodyStrong.copyWith(color: context.bu.pr)),
-                ),
-              ),
-            ],
-          )),
         ),
       ],
     );

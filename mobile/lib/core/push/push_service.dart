@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../features/auth/permissions_page.dart';
 import '../nav.dart';
 import '../session.dart';
 import 'push_router.dart';
@@ -53,6 +54,12 @@ class PushService {
     if (!await _ensureInit()) return;
     try {
       final fm = FirebaseMessaging.instance;
+      // İlk giriş izin sayfası henüz gösterilmediyse sistem istemini o sayfa yönetir (çift istem olmaz);
+      // izin verilince sayfa onSignedIn'i yeniden çağırır.
+      final cur = await fm.getNotificationSettings();
+      if (cur.authorizationStatus == AuthorizationStatus.notDetermined && !await PermissionOnboarding.isDone()) {
+        return;
+      }
       final perm = await fm.requestPermission();
       if (perm.authorizationStatus == AuthorizationStatus.denied) return;
       // Ön planda sistem şeridi yerine uygulama içi şerit gösteriyoruz.

@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart' show VideoPlayerController;
 
 import '../../core/api.dart';
+import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/image_service.dart';
+import '../../core/platform/video_service.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -15,8 +20,50 @@ import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import 'chat_info_page.dart';
+import 'chat_media.dart';
+import 'chat_media_viewer.dart';
+import 'chat_video_player.dart';
+import 'forward_sheet.dart';
+import 'view_once_viewer.dart';
 import 'message_actions.dart';
 import 'message_bubble.dart';
+
+/// "Video hazırlanıyor… %N" penceresi (iptal edilebilir). Kapatmayı çağıran yapar.
+class _VideoPrepareDialog extends StatelessWidget {
+  const _VideoPrepareDialog({required this.progress, required this.cancel});
+
+  final ValueListenable<double> progress;
+  final VideoCancel cancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        key: const ValueKey('videoPrepare'),
+        content: ValueListenableBuilder<double>(
+          valueListenable: progress,
+          builder: (c, v, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Video hazırlanıyor… %${(v * 100).round()}',
+                    style: BuType.bodyStrong.copyWith(color: t.ink)),
+                const SizedBox(height: 14),
+                LinearProgressIndicator(
+                    value: v > 0 ? v : null,
+                    color: t.pr,
+                    backgroundColor: t.sf2),
+              ]),
+        ),
+        actions: [
+          TextButton(onPressed: cancel.cancel, child: const Text('İptal')),
+        ],
+      ),
+    );
+  }
+}
 
 /// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
 /// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
@@ -26,6 +73,12 @@ class ChatDetailPage extends StatefulWidget {
     required this.session,
     required this.conversation,
     @visibleForTesting this.connectRealtime = true,
+    @visibleForTesting this.realtime,
+    @visibleForTesting this.pickImage,
+    @visibleForTesting this.uploadClient,
+    @visibleForTesting this.videoService,
+    @visibleForTesting this.ensureAccess,
+    @visibleForTesting this.videoControllerFactory,
   });
 
   final Session session;
@@ -34,15 +87,36 @@ class ChatDetailPage extends StatefulWidget {
   /// Testlerde false: gerçek WebSocket bağlantısı kurulmaz.
   final bool connectRealtime;
 
+  /// Testlerde enjekte edilen gerçek zamanlı katman (yoksa kendisi oluşturur).
+  final ChatRealtime? realtime;
+
+  /// Testlerde görsel seçici yerine kullanılır.
+  final Future<PreparedImage?> Function(ImageSource source)? pickImage;
+
+  /// Testlerde görsel yükleme istemcisi.
+  final http.Client? uploadClient;
+
+  /// Testlerde video seçici/sıkıştırıcı (yoksa platform uygulaması).
+  final VideoService? videoService;
+
+  /// Testlerde izin istemi yerine kullanılır (yoksa [ensurePermission]).
+  final Future<bool> Function(BuildContext context, AppPermission permission,
+      {String? rationale})? ensureAccess;
+
+  /// Testlerde sahte oynatıcı denetleyicisi.
+  final VideoControllerFactory? videoControllerFactory;
+
   @override
   State<ChatDetailPage> createState() => _ChatDetailPageState();
 }
 
-class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObserver {
+class _ChatDetailPageState extends State<ChatDetailPage>
+    with WidgetsBindingObserver {
   static const _maxLen = 2000;
   static const _pollInterval = Duration(seconds: 4);
 
-  late Map<String, dynamic> _conv = Map<String, dynamic>.from(widget.conversation);
+  late Map<String, dynamic> _conv =
+      Map<String, dynamic>.from(widget.conversation);
 
   /// En yeni başta (ListView reverse). Yerel bekleyen/başarısız mesajlar `id == null`.
   final List<Map<String, dynamic>> _msgs = [];
@@ -54,13 +128,35 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   final _scroll = ScrollController();
   final _focus = FocusNode();
 
-  late final ChatRealtime _rt = ChatRealtime(widget.session);
+  late final ChatRealtime _rt = widget.realtime ?? ChatRealtime(widget.session);
   final _subs = <StreamSubscription<dynamic>>[];
   final _ackTimers = <String, Timer>{};
   final _image = ImageService();
-  late final _uploader = MultipartUploader(widget.session);
+  late final _uploader = MultipartUploader(widget.session, client: widget.uploadClient);
+  late final _videoUploader = VideoUploader(widget.session, client: widget.uploadClient);
+  late final VideoService _video = widget.videoService ?? VideoService();
+
+  /// "İletildi" ack'i: gönderilen en yüksek karşı taraf mesaj id'si ve 1 sn'lik debounce zamanlayıcısı.
+  int _lastDelivered = 0;
+  Timer? _deliveredTimer;
   List<String>? _emojis;
   bool _rtOn = false;
+
+  /// Sonraki görsel tek gösterimlik mi (düğme composer'da).
+  bool _viewOnce = false;
+
+  /// Aşağı kaydır düğmesi: liste en altta değilken görünür; arka planda gelen okunmamış sayısı.
+  final _showDown = ValueNotifier<bool>(false);
+  final _newBelow = ValueNotifier<int>(0);
+
+  /// Sohbet içi arama: eşleşen mesaj id'leri (yeniden eskiye), geçerli sıra.
+  bool _searching = false;
+  String _query = '';
+  List<int> _matches = [];
+  int _matchPos = -1;
+  bool _searchOlderBusy = false;
+  final _searchCtl = TextEditingController();
+  final _searchFocus = FocusNode();
 
   /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
   final _peerRead = ValueNotifier<int>(0);
@@ -93,10 +189,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   int get _cid => (_conv['id'] as num).toInt();
   String get _type => (_conv['type'] as String?) ?? 'GROUP';
   bool get _direct => _type == 'DIRECT';
-  Map<String, dynamic>? get _peer => _conv['peer'] is Map ? Map<String, dynamic>.from(_conv['peer'] as Map) : null;
+  Map<String, dynamic>? get _peer => _conv['peer'] is Map
+      ? Map<String, dynamic>.from(_conv['peer'] as Map)
+      : null;
   bool get _blocked => _conv['blocked'] == true;
   bool get _room => _type == 'CLUB' || _type == 'EVENT';
-  int? get _roomTargetId => ((_type == 'CLUB' ? _conv['communityId'] : _conv['eventId']) as num?)?.toInt();
+  int? get _roomTargetId =>
+      ((_type == 'CLUB' ? _conv['communityId'] : _conv['eventId']) as num?)
+          ?.toInt();
   bool get _roomPage => _room && _roomTargetId != null;
 
   void _openRoomPage() {
@@ -113,10 +213,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   }
 
   /// Başlığa dokununca: sohbet bilgisi + medya ızgarası.
-  void _openInfo() {
-    Navigator.push(
+  Future<void> _openInfo() async {
+    final res = await Navigator.push<String>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<String>(
         builder: (_) => ChatInfoPage(
           session: widget.session,
           conversation: _conv,
@@ -126,6 +226,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         ),
       ),
     );
+    if (!mounted) return;
+    if (res == 'search') {
+      _startSearch();
+    } else if (res == 'left') {
+      Navigator.pop(context, true); // liste yenilensin
+    }
   }
 
   @override
@@ -141,9 +247,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _deliveredTimer?.cancel();
     _typingOff?.cancel();
     _hiOff?.cancel();
     _hi.dispose();
+    _showDown.dispose();
+    _newBelow.dispose();
+    _searchCtl.dispose();
+    _searchFocus.dispose();
     for (final t in _ackTimers.values) {
       t.cancel();
     }
@@ -199,6 +310,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         _loading = false;
       });
       _markRead();
+      _scheduleDelivered();
       _startTimer();
       _loadPresence();
       _startRealtime();
@@ -216,7 +328,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       final d = await _api.get('/conversations/$_cid') as Map<String, dynamic>;
       final c = d['conversation'];
       if (c is Map) _conv = {..._conv, ...Map<String, dynamic>.from(c)};
-      final ms = (d['members'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final ms = (d['members'] as List? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
       _members = ms;
       for (final m in ms) {
         final id = (m['userId'] as num?)?.toInt();
@@ -242,7 +356,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   }
 
   List<Map<String, dynamic>> _items(Map<String, dynamic> page) =>
-      (page['items'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      (page['items'] as List? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
 
   int? get _newestServerId {
     for (final m in _msgs) {
@@ -254,7 +370,11 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
 
   void _onScroll() {
     if (!_scroll.hasClients) return;
-    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadOlder();
+    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300)
+      _loadOlder();
+    final away = _scroll.position.pixels > 200;
+    if (_showDown.value != away) _showDown.value = away;
+    if (!away && _newBelow.value != 0) _newBelow.value = 0;
   }
 
   Future<void> _loadOlder() async {
@@ -262,7 +382,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (before == null || _loadingMore || _loading) return;
     setState(() => _loadingMore = true);
     try {
-      final page = await _api.get('/conversations/$_cid/messages?size=30&before=$before') as Map<String, dynamic>;
+      final page =
+          await _api.get('/conversations/$_cid/messages?size=30&before=$before')
+              as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
         _merge(_items(page));
@@ -286,13 +408,15 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       var added = false;
       if (!_rtOn || force) added = await _fetchAfter();
       if (_tick % 5 == 0 || force) {
-        final page = await _api.get('/conversations/$_cid/messages?size=30') as Map<String, dynamic>;
+        final page = await _api.get('/conversations/$_cid/messages?size=30')
+            as Map<String, dynamic>;
         added = _mergeCount(_items(page)) > 0 || added;
       }
       if (_tick % 8 == 0) _loadPresence();
       if (mounted) {
         setState(() {});
         if (added) _markRead();
+        _scheduleDelivered();
       }
     } catch (_) {
       // Ağ hatası: bir sonraki turda yeniden dene, oturumu kapatma.
@@ -305,13 +429,16 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   Future<bool> _fetchAfter() async {
     final newest = _newestServerId;
     if (newest == null) {
-      final page = await _api.get('/conversations/$_cid/messages?size=30') as Map<String, dynamic>;
+      final page = await _api.get('/conversations/$_cid/messages?size=30')
+          as Map<String, dynamic>;
       return _mergeCount(_items(page)) > 0;
     }
     var added = false;
     var cursor = newest;
     for (var i = 0; i < 5; i++) {
-      final page = await _api.get('/conversations/$_cid/messages?after=$cursor&size=30') as Map<String, dynamic>;
+      final page =
+          await _api.get('/conversations/$_cid/messages?after=$cursor&size=30')
+              as Map<String, dynamic>;
       added = _mergeCount(_items(page)) > 0 || added;
       final next = (page['nextCursor'] as num?)?.toInt();
       if (next == null) break;
@@ -327,21 +454,38 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     _subs.addAll([
       _rt.messages.listen(_onRtMessage),
       _rt.readReceipts.listen((r) {
-        if (r.conversationId == _cid && r.userId != _myId && r.lastMessageId > _peerRead.value) {
-          _peerRead.value = r.lastMessageId;
+        if (r.conversationId == _cid && r.userId != _myId) {
+          _advanceStatus(r.lastMessageId, 'READ');
+          if (r.lastMessageId > _peerRead.value) {
+            _peerRead.value = r.lastMessageId;
+          }
         }
+      }),
+      _rt.receipts.listen((e) {
+        if (e.conversationId == _cid) {
+          _advanceStatus(e.upToMessageId, e.effectiveStatus);
+        }
+      }),
+      _rt.viewed.listen((e) {
+        if (e.conversationId != _cid) return;
+        final i =
+            _msgs.indexWhere((m) => (m['id'] as num?)?.toInt() == e.messageId);
+        if (i < 0 || !mounted) return;
+        setState(() => _markViewed(_msgs[i], e.attachmentId));
       }),
       _rt.typing.listen((e) {
         if (e.conversationId != _cid || e.userId == _myId) return;
         _typingNow.value = true;
         _typingOff?.cancel();
-        _typingOff = Timer(const Duration(seconds: 4), () => _typingNow.value = false);
+        _typingOff =
+            Timer(const Duration(seconds: 4), () => _typingNow.value = false);
       }),
       _rt.errors.listen((e) {
         final cid = e.clientId;
         if (cid == null) return;
         _ackTimers.remove(cid)?.cancel();
-        final i = _msgs.indexWhere((m) => m['id'] == null && m['clientId'] == cid);
+        final i =
+            _msgs.indexWhere((m) => m['id'] == null && m['clientId'] == cid);
         if (i >= 0 && mounted) {
           setState(() {
             _msgs[i]['_state'] = 'failed';
@@ -370,6 +514,58 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     } else {
       _typingNow.value = false;
       _markRead();
+      _scheduleDelivered();
+    }
+  }
+
+  // ---------- Makbuz (tik) durumu ----------
+
+  static const _statusRank = {'SENT': 1, 'DELIVERED': 2, 'READ': 3};
+
+  int _rankOf(Object? status) => _statusRank[status] ?? 1;
+
+  /// Kendi mesajlarımın durumunu `upTo` id'sine kadar [status]'a ilerletir (asla geri gitmez).
+  void _advanceStatus(int upTo, String status) {
+    final r = _statusRank[status];
+    if (r == null) return;
+    var changed = false;
+    for (final m in _msgs) {
+      final id = (m['id'] as num?)?.toInt();
+      if (id == null || id > upTo || !_isMine(m)) continue;
+      if (_rankOf(m['status']) < r) {
+        m['status'] = status;
+        changed = true;
+      }
+    }
+    if (changed && mounted) setState(() {});
+  }
+
+  int? get _newestPeerId {
+    for (final m in _msgs) {
+      final id = (m['id'] as num?)?.toInt();
+      if (id != null && !_isMine(m)) return id;
+    }
+    return null;
+  }
+
+  /// Karşı tarafın en yeni mesajı ekrana ulaştığında "iletildi" bilgisini (1 sn debounce) gönderir;
+  /// yalnız en yüksek id ilerlediğinde.
+  void _scheduleDelivered() {
+    final id = _newestPeerId;
+    if (id == null || id <= _lastDelivered) return;
+    if (_deliveredTimer?.isActive == true) return;
+    _deliveredTimer = Timer(const Duration(seconds: 1), _sendDelivered);
+  }
+
+  Future<void> _sendDelivered() async {
+    final id = _newestPeerId;
+    if (id == null || id <= _lastDelivered || !mounted) return;
+    _lastDelivered = id;
+    if (_rtOn && _rt.sendDelivered(_cid, id)) return;
+    try {
+      await _api.post('/conversations/$_cid/delivered', {'lastMessageId': id});
+    } catch (_) {
+      if (_lastDelivered == id) _lastDelivered = 0; // sonraki turda yeniden denenir
     }
   }
 
@@ -380,24 +576,47 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     return _msgs.length - before;
   }
 
+  /// Ekin "açıldı" bilgisini yerelde işler (gönderen baloncuğu "Açıldı" olur).
+  void _markViewed(Map<String, dynamic> m, int attachmentId) {
+    final atts = m['attachments'];
+    if (atts is! List) return;
+    for (final a in atts) {
+      if (a is Map && (a['id'] as num?)?.toInt() == attachmentId) {
+        a['viewed'] = true;
+        if (!_isMine(m)) a['url'] = null;
+      }
+    }
+  }
+
   void _merge(List<Map<String, dynamic>> incoming) {
+    final newest = _newestServerId ?? 0;
     for (final m in incoming) {
       final id = (m['id'] as num?)?.toInt();
       final cid = m['clientId'] as String?;
-      var idx = _msgs.indexWhere((e) => id != null && (e['id'] as num?)?.toInt() == id);
+      var idx = _msgs
+          .indexWhere((e) => id != null && (e['id'] as num?)?.toInt() == id);
       if (idx < 0 && cid != null) {
         idx = _msgs.indexWhere((e) => e['id'] == null && e['clientId'] == cid);
       }
       if (idx >= 0) {
+        // Gecikmiş bir yanıt, gerçek zamanlı olayla ilerlemiş durumu geri almasın.
+        final old = _msgs[idx];
+        if (old['status'] != null && _rankOf(old['status']) > _rankOf(m['status'])) {
+          m['status'] = old['status'];
+        }
         _msgs[idx] = m;
       } else {
         _msgs.add(m);
+        // Aşağıda değilken gelen yeni (başkasının) mesajlar düğmedeki rozeti artırır.
+        if (id != null && id > newest && !_isMine(m) && _showDown.value)
+          _newBelow.value++;
       }
     }
     _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
   }
 
-  int _key(Map<String, dynamic> m) => (m['id'] as num?)?.toInt() ?? (1 << 50) + ((m['_seq'] as int?) ?? 0);
+  int _key(Map<String, dynamic> m) =>
+      (m['id'] as num?)?.toInt() ?? (1 << 50) + ((m['_seq'] as int?) ?? 0);
 
   Future<void> _markRead() async {
     final id = _newestServerId;
@@ -417,7 +636,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   String _newClientId() => ChatRealtime.newClientId();
 
   void _onInput() {
-    if (_input.text.isNotEmpty && _editing == null && _rtOn) _rt.sendTyping(_cid);
+    if (_input.text.isNotEmpty && _editing == null && _rtOn)
+      _rt.sendTyping(_cid);
   }
 
   Future<void> _submit() async {
@@ -450,7 +670,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       'replyToMessageId': reply?['id'],
       'replyTo': reply == null
           ? null
-          : {'id': reply['id'], 'senderId': reply['senderId'], 'text': reply['text'], 'deleted': false},
+          : {
+              'id': reply['id'],
+              'senderId': reply['senderId'],
+              'text': reply['text'],
+              'deleted': false
+            },
       '_state': 'pending',
       '_seq': _seq++,
     };
@@ -461,17 +686,33 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   Future<void> _transmit(Map<String, dynamic> local) async {
     final cid = local['clientId'] as String;
     final pending = local['_image'] as PreparedImage?;
+    final pendingVideo = local['_video'] as PreparedVideo?;
     try {
       if (pending != null && local['_attId'] == null) {
-        final res = await _uploader.upload('/conversations/$_cid/media', pending) as Map;
+        final res = await _uploader.upload(
+            '/conversations/$_cid/media', pending) as Map;
+        local['_attId'] = (res['id'] as num).toInt();
+      }
+      if (pendingVideo != null && local['_attId'] == null) {
+        final prog = local['_progress'];
+        if (prog is ValueNotifier<double>) prog.value = 0;
+        final res = await _videoUploader.upload(
+            '/conversations/$_cid/media', pendingVideo,
+            onProgress: (p) {
+          if (prog is ValueNotifier<double>) prog.value = p;
+        }) as Map;
         local['_attId'] = (res['id'] as num).toInt();
       }
       final attId = local['_attId'] as int?;
-      if (attId == null && local['replyToMessageId'] == null && _rtOn && _rt.sendMessage(_cid, local['text'] as String, cid)) {
+      if (attId == null &&
+          local['replyToMessageId'] == null &&
+          _rtOn &&
+          _rt.sendMessage(_cid, local['text'] as String, cid)) {
         _ackTimers[cid]?.cancel();
         _ackTimers[cid] = Timer(const Duration(seconds: 8), () {
           _ackTimers.remove(cid);
-          if (mounted && local['_state'] == 'pending' && local['id'] == null) _sendRest(local);
+          if (mounted && local['_state'] == 'pending' && local['id'] == null)
+            _sendRest(local);
         });
         return;
       }
@@ -487,8 +728,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       final res = await _api.post('/conversations/$_cid/messages', {
         'text': local['text'],
         'clientId': local['clientId'],
-        if (local['replyToMessageId'] != null) 'replyToMessageId': local['replyToMessageId'],
+        if (local['replyToMessageId'] != null)
+          'replyToMessageId': local['replyToMessageId'],
         if (attId != null) 'attachmentIds': [attId],
+        if (attId != null && local['_viewOnce'] == true) 'viewOnce': true,
       });
       if (!mounted) return;
       setState(() => _merge([Map<String, dynamic>.from(res as Map)]));
@@ -518,22 +761,46 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   // ---------- Görsel ----------
 
   Future<void> _pickImage() async {
-    final source = await showModalBottomSheet<ImageSource>(
+    final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: context.bu.sf,
       showDragHandle: true,
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          BuMenuRow(icon: LucideIcons.image, label: 'Galeriden seç', showChevron: false, onTap: () => Navigator.pop(c, ImageSource.gallery)),
-          BuMenuRow(icon: LucideIcons.camera, label: 'Fotoğraf çek', showChevron: false, onTap: () => Navigator.pop(c, ImageSource.camera)),
+          BuMenuRow(
+              icon: LucideIcons.image,
+              label: 'Galeriden seç',
+              showChevron: false,
+              onTap: () => Navigator.pop(c, 'photo-gallery')),
+          BuMenuRow(
+              icon: LucideIcons.camera,
+              label: 'Fotoğraf çek',
+              showChevron: false,
+              onTap: () => Navigator.pop(c, 'photo-camera')),
+          BuMenuRow(
+              icon: LucideIcons.video,
+              label: 'Galeriden video seç',
+              showChevron: false,
+              onTap: () => Navigator.pop(c, 'video-gallery')),
+          BuMenuRow(
+              icon: LucideIcons.circleDot,
+              label: 'Video çek',
+              showChevron: false,
+              onTap: () => Navigator.pop(c, 'video-camera')),
           const SizedBox(height: 8),
         ]),
       ),
     );
-    if (source == null || !mounted) return;
+    if (choice == null || !mounted) return;
+    if (choice.startsWith('video')) {
+      await _pickVideo(camera: choice == 'video-camera');
+      return;
+    }
+    final source =
+        choice == 'photo-camera' ? ImageSource.camera : ImageSource.gallery;
     PreparedImage? img;
     try {
-      img = await _image.pickPrepared(source);
+      img = await (widget.pickImage?.call(source) ?? _image.pickPrepared(source));
     } on ImageException catch (e) {
       _toast(e.code == 'TOO_LARGE'
           ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
@@ -544,9 +811,96 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       return;
     }
     if (img == null || !mounted) return;
+    final once = _viewOnce;
+    // Tek gösterimlikte yerel önizleme de tutulmaz (baloncukta yalnız kart görünür).
+    final local = _newLocal('')..['_image'] = img;
+    if (once) {
+      local['_viewOnce'] = true;
+    } else {
+      local['_bytes'] = img.bytes;
+    }
+    setState(() {
+      _msgs.insert(0, local);
+      _replyTo = null;
+      _viewOnce = false;
+    });
+    _scrollToEnd();
+    await _transmit(local);
+  }
+
+  // ---------- Video ----------
+
+  Future<bool> _access(AppPermission p, {String? rationale}) =>
+      (widget.ensureAccess ?? ensurePermission)(context, p,
+          rationale: rationale);
+
+  static String _videoErrorText(String code) => switch (code) {
+        'TOO_LONG' => 'Video en fazla 60 saniye olabilir',
+        'TOO_LARGE' => 'Video çok büyük, daha kısa bir video seçin',
+        'UNSUPPORTED' => 'Bu cihazda video gönderilemiyor.',
+        _ => 'Video hazırlanamadı.',
+      };
+
+  /// Galeriden seç ya da kamerayla çek (en çok 60 sn) -> doğrula + sıkıştır (ilerleme/iptal) -> yükle -> gönder.
+  Future<void> _pickVideo({required bool camera}) async {
+    if (_viewOnce) {
+      _toast('Video tek gösterimlik gönderilemez');
+      return;
+    }
+    if (camera) {
+      final ok = await _access(AppPermission.camera,
+              rationale: 'Video çekebilmeniz için kameraya erişmemiz gerekir.') &&
+          mounted &&
+          await _access(AppPermission.microphone,
+              rationale:
+                  'Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.');
+      if (!ok || !mounted) return;
+    }
+    PickedVideo? picked;
+    try {
+      picked = await _video
+          .pick(camera ? ImageSource.camera : ImageSource.gallery);
+    } catch (_) {
+      _toast('Video seçilemedi. İzinleri kontrol edin.');
+      return;
+    }
+    if (picked == null || !mounted) return;
+
+    final progress = ValueNotifier<double>(0);
+    final cancel = VideoCancel();
+    // Hazırlık penceresi (iptal edilebilir); iş bitince aşağıda kapatılır.
+    unawaited(showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _VideoPrepareDialog(progress: progress, cancel: cancel),
+    ));
+    PreparedVideo? prepared;
+    String? error;
+    try {
+      prepared = await _video.prepare(picked,
+          onProgress: (p) => progress.value = p, cancel: cancel);
+    } on VideoException catch (e) {
+      if (e.code != 'CANCELLED') error = _videoErrorText(e.code);
+    } catch (_) {
+      error = _videoErrorText('FAILED');
+    }
+    if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    progress.dispose();
+    if (!mounted) return;
+    if (error != null) {
+      _toast(error);
+      return;
+    }
+    if (prepared == null) return;
+
     final local = _newLocal('')
-      ..['_image'] = img
-      ..['_bytes'] = img.bytes;
+      ..['_video'] = prepared
+      ..['_isVideo'] = true
+      ..['_durationMs'] = prepared.durationMs
+      ..['_vw'] = prepared.width
+      ..['_vh'] = prepared.height
+      ..['_progress'] = ValueNotifier<double>(0);
+    if (prepared.poster != null) local['_bytes'] = prepared.poster;
     setState(() {
       _msgs.insert(0, local);
       _replyTo = null;
@@ -555,15 +909,71 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     await _transmit(local);
   }
 
+  Future<void> _saveVideo(String url) async {
+    String msg;
+    try {
+      await saveChatVideoToGallery(url, _authHeaders);
+      msg = 'Galeriye kaydedildi';
+    } catch (e) {
+      msg = chatVideoSaveErrorText(e);
+    }
+    _toast(msg);
+  }
+
+  void _openVideo(Map<String, dynamic> a) {
+    final url = a['url'] as String?;
+    if (url == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChatVideoPlayerPage(
+          url: url,
+          headers: _authHeaders,
+          durationMs: (a['durationMs'] as num?)?.toInt(),
+          onSave: () => _saveVideo(url),
+          controllerFactory: widget.videoControllerFactory ??
+              (uri, h) => VideoPlayerController.networkUrl(uri, httpHeaders: h),
+        ),
+      ),
+    );
+  }
+
   Map<String, String> get _authHeaders {
     final tok = _api.tokens?.access;
     return tok == null ? const {} : {'Authorization': 'Bearer $tok'};
   }
 
+  /// Tek gösterimlik fotoğrafı açar: bayt yetkili GET ile alınır; istek tüketilince baloncuk "Açıldı" olur.
+  void _openViewOnce(Map<String, dynamic> m, Map<String, dynamic> att) {
+    final aid = (att['id'] as num?)?.toInt();
+    if (aid == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ViewOnceViewer(
+          api: _api,
+          conversationId: _cid,
+          attachmentId: aid,
+          onConsumed: () {
+            if (!mounted) return;
+            setState(() => _markViewed(m, aid));
+          },
+        ),
+      ),
+    );
+  }
+
   void _openImage(Map<String, dynamic> a) {
+    if (isVideoAttachment(a)) {
+      _openVideo(a);
+      return;
+    }
     final url = (a['url'] ?? a['thumbUrl']) as String?;
     if (url == null) return;
-    Navigator.push(context, MaterialPageRoute<void>(builder: (_) => ChatImageViewer(url: url, headers: _authHeaders)));
+    Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+            builder: (_) => ChatImageViewer(url: url, headers: _authHeaders)));
   }
 
   // ---------- Tepkiler ----------
@@ -581,8 +991,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   }
 
   /// Tepki sayaçlarını yerelde günceller (iyimser): eskisini düşer, yenisini ekler.
-  List<Map<String, dynamic>> _applyReaction(Object? current, String? old, String? next) {
-    final list = (current as List? ?? const []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+  List<Map<String, dynamic>> _applyReaction(
+      Object? current, String? old, String? next) {
+    final list = (current as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
     void bump(String emoji, int delta) {
       final i = list.indexWhere((r) => r['emoji'] == emoji);
       if (i < 0) {
@@ -613,7 +1027,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       m['myReaction'] = same ? null : emoji;
     });
     try {
-      final res = (same ? await _api.delete('/messages/$id/reaction') : await _api.put('/messages/$id/reaction', {'emoji': emoji}))
+      final res = (same
+              ? await _api.delete('/messages/$id/reaction')
+              : await _api.put('/messages/$id/reaction', {'emoji': emoji}))
           as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
@@ -637,13 +1053,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       final idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
       if (idx < 0 || !_scroll.hasClients) return;
       final target = (idx * 76.0).clamp(0.0, _scroll.position.maxScrollExtent);
-      await _scroll.animateTo(target, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      await _scroll.animateTo(target,
+          duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
       ctx = _rowKeys[id]?.currentContext;
     }
     if (ctx != null && ctx.mounted) {
-      await Scrollable.ensureVisible(ctx, alignment: .5, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      await Scrollable.ensureVisible(ctx,
+          alignment: .5,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut);
     }
     if (!mounted) return;
     _hi.value = id;
@@ -654,7 +1074,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   Future<void> _saveEdit(Map<String, dynamic> target, String text) async {
     final id = (target['id'] as num).toInt();
     try {
-      final res = await _api.patch('/messages/$id', {'text': text}) as Map<String, dynamic>;
+      final res = await _api.patch('/messages/$id', {'text': text})
+          as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
         _merge([res]);
@@ -667,7 +1088,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   }
 
   Future<void> _deleteMessage(Map<String, dynamic> m) async {
-    final ok = await _confirm('Mesaj silinsin mi?', 'Bu mesaj herkes için silinir.', 'Sil');
+    final ok = await _confirm(
+        'Mesaj silinsin mi?', 'Bu mesaj herkes için silinir.', 'Sil');
     if (ok != true) return;
     try {
       await _api.delete('/messages/${(m['id'] as num).toInt()}');
@@ -686,7 +1108,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
-        _scroll.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+        _scroll.animateTo(0,
+            duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
       }
     });
   }
@@ -707,7 +1130,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         title: Text(title),
         content: Text(body),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+          TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('Vazgeç')),
           TextButton(
             onPressed: () => Navigator.pop(c, true),
             child: Text(action, style: TextStyle(color: c.bu.danger)),
@@ -721,16 +1146,26 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (id != null && id == _myId) return 'Sen';
     if (id != null && _names[id] != null) return _names[id]!;
     final p = _peer;
-    if (_direct && p != null && (p['id'] as num?)?.toInt() == id) return (p['displayName'] as String?) ?? 'Kullanıcı';
+    if (_direct && p != null && (p['id'] as num?)?.toInt() == id)
+      return (p['displayName'] as String?) ?? 'Kullanıcı';
     return 'Kullanıcı';
   }
 
   String get _title {
-    if (_direct) return (_peer?['displayName'] as String?) ?? (_conv['title'] as String?) ?? 'Sohbet';
+    if (_direct)
+      return (_peer?['displayName'] as String?) ??
+          (_conv['title'] as String?) ??
+          'Sohbet';
     return (_conv['title'] as String?) ?? 'Grup';
   }
 
-  String? get _avatarUrl => _direct ? (_peer?['avatarUrl'] as String?) : null;
+  String? get _avatarUrl => _direct
+      ? (_peer?['avatarUrl'] as String?)
+      : (_conv['avatarUrl'] as String?);
+
+  /// Yetkili uçtan (`/api/...`) gelen avatar için Bearer başlığı.
+  Map<String, String>? _avatarHeaders(String? url) =>
+      (url != null && url.startsWith('/api/')) ? _authHeaders : null;
 
   bool _isMine(Map<String, dynamic> m) {
     final s = (m['senderId'] as num?)?.toInt();
@@ -740,7 +1175,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   static String _two(int n) => n.toString().padLeft(2, '0');
   static String _hm(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
 
-  DateTime? _time(Map<String, dynamic> m) => DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
+  DateTime? _time(Map<String, dynamic> m) =>
+      DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
 
   String _dayLabel(DateTime d) {
     final now = DateTime.now();
@@ -749,19 +1185,38 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final diff = today.difference(day).inDays;
     if (diff == 0) return 'Bugün';
     if (diff == 1) return 'Dün';
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const months = [
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık'
+    ];
     final base = '${d.day} ${months[d.month - 1]}';
     return d.year == now.year ? base : '$base ${d.year}';
   }
 
-  bool _sameDay(DateTime? a, DateTime? b) => a != null && b != null && a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _sameDay(DateTime? a, DateTime? b) =>
+      a != null &&
+      b != null &&
+      a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day;
 
   String? _statusText() {
     if (_direct) {
       final p = _presence;
       if (p == null) return null;
       if (p['online'] == true) return 'Çevrimiçi';
-      final seen = DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
+      final seen =
+          DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
       if (seen == null) return null;
       final label = _dayLabel(seen);
       return label == 'Bugün' || label == 'Dün'
@@ -769,8 +1224,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
           : 'Son görülme: $label';
     }
     final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
-    final kind = _type == 'CLUB' ? 'Kulüp odası · ' : _type == 'EVENT' ? 'Etkinlik odası · ' : '';
-    return n > 0 ? '$kind$n üye' : (kind.isEmpty ? null : 'Kulüp/etkinlik odası');
+    final kind = _type == 'CLUB'
+        ? 'Kulüp odası · '
+        : _type == 'EVENT'
+            ? 'Etkinlik odası · '
+            : '';
+    return n > 0
+        ? '$kind$n üye'
+        : (kind.isEmpty ? null : 'Kulüp/etkinlik odası');
   }
 
   // ---------- Menüler ----------
@@ -782,18 +1243,33 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final deleted = m['deleted'] == true || m['removed'] == true;
     final mine = _isMine(m) || m['_state'] != null;
     final hasText = ((m['text'] as String?) ?? '').trim().isNotEmpty;
-    final canDelete = !failed && !deleted && (mine || (!_direct && _conv['admin'] == true));
+    final hasAtt = ((m['attachments'] as List?)?.isNotEmpty ?? false) ||
+        m['_viewOnce'] == true ||
+        m['_isVideo'] == true ||
+        m['_bytes'] != null;
+    final canDelete =
+        !failed && !deleted && (mine || (!_direct && _conv['admin'] == true));
 
     final actions = <MessageAction>[
       if (failed) ...const [
         MessageAction('retry', 'Yeniden gönder', LucideIcons.rotateCw),
         MessageAction('drop', 'Vazgeç', LucideIcons.x, danger: true),
       ] else ...[
-        if (!deleted && !_blocked) const MessageAction('reply', 'Yanıtla', LucideIcons.reply),
-        if (!deleted && hasText) const MessageAction('copy', 'Kopyala', LucideIcons.copy),
-        if (!deleted && mine && hasText) const MessageAction('edit', 'Düzenle', LucideIcons.pencil),
-        if (canDelete) MessageAction('delete', mine ? 'Herkesten sil' : 'Mesajı sil', LucideIcons.trash2, danger: true),
-        if (!deleted && !mine) const MessageAction('report', 'Şikâyet et', LucideIcons.flag, danger: true),
+        if (!deleted && !_blocked)
+          const MessageAction('reply', 'Yanıtla', LucideIcons.reply),
+        if (!deleted && hasText)
+          const MessageAction('copy', 'Kopyala', LucideIcons.copy),
+        if (!deleted && hasText && !hasAtt)
+          const MessageAction('forward', 'İlet', LucideIcons.forward),
+        if (!deleted && mine && hasText)
+          const MessageAction('edit', 'Düzenle', LucideIcons.pencil),
+        if (canDelete)
+          MessageAction('delete', mine ? 'Herkesten sil' : 'Mesajı sil',
+              LucideIcons.trash2,
+              danger: true),
+        if (!deleted && !mine)
+          const MessageAction('report', 'Şikâyet et', LucideIcons.flag,
+              danger: true),
       ],
     ];
     final emojis = (deleted || failed) ? const <String>[] : await _loadEmojis();
@@ -821,25 +1297,136 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         });
         _focus.requestFocus();
       case 'copy':
-        await Clipboard.setData(ClipboardData(text: (m['text'] as String?) ?? ''));
+        await Clipboard.setData(
+            ClipboardData(text: (m['text'] as String?) ?? ''));
         _toast('Kopyalandı');
+      case 'forward':
+        await _forward(m);
       case 'edit':
         setState(() {
           _editing = m;
           _replyTo = null;
           _input.text = (m['text'] as String?) ?? '';
-          _input.selection = TextSelection.collapsed(offset: _input.text.length);
+          _input.selection =
+              TextSelection.collapsed(offset: _input.text.length);
         });
         _focus.requestFocus();
       case 'delete':
         await _deleteMessage(m);
       case 'report':
-        await ReportSheet.showForMessage(context, widget.session, messageId: (m['id'] as num).toInt());
+        await ReportSheet.showForMessage(context, widget.session,
+            messageId: (m['id'] as num).toInt());
       case 'retry':
         await _retry(m);
       case 'drop':
         setState(() => _msgs.remove(m));
     }
+  }
+
+  /// Metin mesajını seçilen sohbetlere (en çok 5) aynen gönderir.
+  Future<void> _forward(Map<String, dynamic> m) async {
+    final text = (m['text'] as String?) ?? '';
+    if (text.trim().isEmpty) return;
+    final ids = await showForwardSheet(context, _api);
+    if (!mounted || ids == null || ids.isEmpty) return;
+    var failed = 0;
+    for (final id in ids) {
+      try {
+        final res = await _api.post('/conversations/$id/messages',
+            {'text': text, 'clientId': _newClientId()});
+        if (id == _cid && res is Map && mounted) {
+          setState(() => _merge([Map<String, dynamic>.from(res)]));
+          _changed = true;
+        }
+      } catch (_) {
+        failed++;
+      }
+    }
+    _changed = true;
+    _toast(failed == 0
+        ? 'İletildi'
+        : (failed == ids.length
+            ? 'İletilemedi'
+            : '$failed sohbete iletilemedi'));
+  }
+
+  // ---------- Sohbet içi arama ----------
+
+  void _startSearch() {
+    setState(() => _searching = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
+
+  void _stopSearch() {
+    _searchCtl.clear();
+    setState(() {
+      _searching = false;
+      _query = '';
+      _matches = [];
+      _matchPos = -1;
+    });
+  }
+
+  List<int> _findMatches(String needle) {
+    if (needle.isEmpty) return [];
+    return [
+      for (final m in _msgs)
+        if (m['id'] != null &&
+            m['deleted'] != true &&
+            m['removed'] != true &&
+            ((m['text'] as String?) ?? '').toLowerCase().contains(needle))
+          (m['id'] as num).toInt(),
+    ];
+  }
+
+  void _onSearchChanged(String q) {
+    final needle = q.trim().toLowerCase();
+    final ids = _findMatches(needle);
+    setState(() {
+      _query = needle;
+      _matches = ids;
+      _matchPos = ids.isEmpty ? -1 : 0;
+    });
+    if (ids.isNotEmpty) _jumpTo(ids.first);
+  }
+
+  /// delta +1: daha eski eşleşme (yukarı ok), -1: daha yeni (aşağı ok).
+  Future<void> _stepMatch(int delta) async {
+    if (_matches.isEmpty) return;
+    var pos = _matchPos + delta;
+    if (pos >= _matches.length) {
+      if (_beforeCursor != null) {
+        await _searchOlder();
+        return;
+      }
+      pos = 0;
+    } else if (pos < 0) {
+      pos = _matches.length - 1;
+    }
+    setState(() => _matchPos = pos);
+    _jumpTo(_matches[pos]);
+  }
+
+  /// Bir sayfa daha eski mesaj çeker ve eşleşmeleri yeniler; mevcut eşleşmeden sonraki eskiye geçer.
+  Future<void> _searchOlder() async {
+    if (_searchOlderBusy) return;
+    setState(() => _searchOlderBusy = true);
+    final before = _matches.length;
+    await _loadOlder();
+    if (!mounted) return;
+    final ids = _findMatches(_query);
+    setState(() {
+      _searchOlderBusy = false;
+      _matches = ids;
+      _matchPos = ids.isEmpty
+          ? -1
+          : (ids.length > before
+              ? before
+              : (_matchPos < 0 ? 0 : _matchPos.clamp(0, ids.length - 1)));
+    });
+    if (_matchPos >= 0) _jumpTo(_matches[_matchPos]);
   }
 
   Future<void> _openChatMenu() async {
@@ -849,12 +1436,50 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       showDragHandle: true,
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (_roomPage) BuMenuRow(icon: LucideIcons.arrowUpRight, label: _type == 'CLUB' ? 'Kulüp sayfası' : 'Etkinlik sayfası', showChevron: false, onTap: () => Navigator.pop(c, 'room')),
-          if (!_direct) BuMenuRow(icon: LucideIcons.users, label: 'Üyeler', showChevron: false, onTap: () => Navigator.pop(c, 'members')),
-          if (!_direct && !_room) BuMenuRow(icon: LucideIcons.logOut, label: 'Sohbetten ayrıl', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'leave')),
-          if (_direct && !_blocked) BuMenuRow(icon: LucideIcons.ban, label: 'Engelle', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'block')),
-          if (_direct && _blocked) BuMenuRow(icon: LucideIcons.ban, label: 'Engeli kaldır', showChevron: false, onTap: () => Navigator.pop(c, 'unblock')),
-          if (_direct) BuMenuRow(icon: LucideIcons.flag, label: 'Kullanıcıyı şikâyet et', danger: true, showChevron: false, onTap: () => Navigator.pop(c, 'report')),
+          BuMenuRow(
+              icon: LucideIcons.search,
+              label: 'Sohbette ara',
+              showChevron: false,
+              onTap: () => Navigator.pop(c, 'search')),
+          if (_roomPage)
+            BuMenuRow(
+                icon: LucideIcons.arrowUpRight,
+                label: _type == 'CLUB' ? 'Kulüp sayfası' : 'Etkinlik sayfası',
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'room')),
+          if (!_direct)
+            BuMenuRow(
+                icon: LucideIcons.users,
+                label: 'Üyeler',
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'members')),
+          if (!_direct && !_room)
+            BuMenuRow(
+                icon: LucideIcons.logOut,
+                label: 'Sohbetten ayrıl',
+                danger: true,
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'leave')),
+          if (_direct && !_blocked)
+            BuMenuRow(
+                icon: LucideIcons.ban,
+                label: 'Engelle',
+                danger: true,
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'block')),
+          if (_direct && _blocked)
+            BuMenuRow(
+                icon: LucideIcons.ban,
+                label: 'Engeli kaldır',
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'unblock')),
+          if (_direct)
+            BuMenuRow(
+                icon: LucideIcons.flag,
+                label: 'Kullanıcıyı şikâyet et',
+                danger: true,
+                showChevron: false,
+                onTap: () => Navigator.pop(c, 'report')),
           const SizedBox(height: 8),
         ]),
       ),
@@ -863,18 +1488,22 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final pid = (_peer?['id'] as num?)?.toInt();
     try {
       switch (action) {
+        case 'search':
+          _startSearch();
         case 'room':
           _openRoomPage();
         case 'members':
           await _showMembers();
         case 'leave':
-          final ok = await _confirm('Sohbetten ayrılınsın mı?', 'Bu sohbetten ayrılırsınız.', 'Ayrıl');
+          final ok = await _confirm('Sohbetten ayrılınsın mı?',
+              'Bu sohbetten ayrılırsınız.', 'Ayrıl');
           if (ok != true) return;
           await _api.post('/conversations/$_cid/leave');
           if (mounted) Navigator.pop(context, true);
         case 'block':
           if (pid == null) return;
-          final ok = await _confirm('Kullanıcı engellensin mi?', 'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle');
+          final ok = await _confirm('Kullanıcı engellensin mi?',
+              'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle');
           if (ok != true) return;
           await _api.post('/users/$pid/block');
           _changed = true;
@@ -888,7 +1517,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
           _toast('Engel kaldırıldı');
         case 'report':
           if (pid == null) return;
-          await ReportSheet.show(context, widget.session, targetType: 'USER', targetId: pid, title: 'Kullanıcıyı şikâyet et');
+          await ReportSheet.show(context, widget.session,
+              targetType: 'USER',
+              targetId: pid,
+              title: 'Kullanıcıyı şikâyet et');
       }
     } catch (e) {
       _toast(errorText(e));
@@ -907,27 +1539,40 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
         final t = c.bu;
         return SafeArea(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(c).size.height * .7),
-            child: ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), children: [
-              Text('Üyeler (${_members.length})', style: BuType.heading.copyWith(color: t.ink)),
-              const SizedBox(height: 10),
-              if (_members.isEmpty) Text('Üye listesi alınamadı.', style: BuType.body.copyWith(color: t.mut)),
-              for (final m in _members)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(children: [
-                    BuAvatar(name: m['displayName'] as String?, url: m['avatarUrl'] as String?, size: 40),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text((m['displayName'] as String?) ?? 'Kullanıcı',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.bodyStrong.copyWith(color: t.ink)),
+            constraints:
+                BoxConstraints(maxHeight: MediaQuery.of(c).size.height * .7),
+            child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                children: [
+                  Text('Üyeler (${_members.length})',
+                      style: BuType.heading.copyWith(color: t.ink)),
+                  const SizedBox(height: 10),
+                  if (_members.isEmpty)
+                    Text('Üye listesi alınamadı.',
+                        style: BuType.body.copyWith(color: t.mut)),
+                  for (final m in _members)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(children: [
+                        BuAvatar(
+                            name: m['displayName'] as String?,
+                            url: m['avatarUrl'] as String?,
+                            size: 40),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                              (m['displayName'] as String?) ?? 'Kullanıcı',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: BuType.bodyStrong.copyWith(color: t.ink)),
+                        ),
+                        if ((m['role'] as String?) == 'ADMIN' ||
+                            (m['role'] as String?) == 'OWNER')
+                          const BuBadge('Yönetici'),
+                      ]),
                     ),
-                    if ((m['role'] as String?) == 'ADMIN' || (m['role'] as String?) == 'OWNER') const BuBadge('Yönetici'),
-                  ]),
-                ),
-            ]),
+                ]),
           ),
         );
       },
@@ -942,13 +1587,18 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) Navigator.pop(context, _changed);
+        if (didPop) return;
+        if (_searching) {
+          _stopSearch();
+          return;
+        }
+        Navigator.pop(context, _changed);
       },
       child: Scaffold(
         backgroundColor: t.bg,
         resizeToAvoidBottomInset: true,
         body: Column(children: [
-          _topBar(t),
+          _searching ? _searchBar(t) : _topBar(t),
           Expanded(child: _body(t)),
           _composer(t),
         ]),
@@ -960,18 +1610,34 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final status = _statusText();
     final online = _direct && _presence?['online'] == true;
     return Container(
-      padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 8, 16, 12),
-      decoration: BoxDecoration(color: t.sf, border: Border(bottom: BorderSide(color: t.bd))),
+      padding: EdgeInsets.fromLTRB(
+          16, MediaQuery.of(context).padding.top + 8, 16, 12),
+      decoration: BoxDecoration(
+          color: t.sf, border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(children: [
-        BuIconButton(icon: LucideIcons.arrowLeft, tooltip: 'Geri', filled: true, onTap: () => Navigator.pop(context, _changed)),
+        BuIconButton(
+            icon: LucideIcons.arrowLeft,
+            tooltip: 'Geri',
+            filled: true,
+            onTap: () => Navigator.pop(context, _changed)),
         const SizedBox(width: 12),
-        GestureDetector(onTap: _openInfo, child: BuAvatar(name: _title, url: _avatarUrl, size: 42)),
+        GestureDetector(
+            onTap: _openInfo,
+            child: BuAvatar(
+                name: _title,
+                url: _avatarUrl,
+                size: 42,
+                headers: _avatarHeaders(_avatarUrl))),
         const SizedBox(width: 12),
         Expanded(
           child: InkWell(
             onTap: _openInfo,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(_title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(color: t.ink)),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.heading.copyWith(color: t.ink)),
               ValueListenableBuilder<bool>(
                 valueListenable: _typingNow,
                 builder: (c, typing, _) {
@@ -982,7 +1648,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
                     child: Text(text,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(color: (online || typing) ? t.ok : t.mut, fontWeight: FontWeight.w600)),
+                        style: BuType.caption.copyWith(
+                            color: (online || typing) ? t.ok : t.mut,
+                            fontWeight: FontWeight.w600)),
                   );
                 },
               ),
@@ -990,7 +1658,93 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
           ),
         ),
         const SizedBox(width: 12),
-        BuIconButton(icon: LucideIcons.ellipsisVertical, tooltip: 'Menü', filled: true, onTap: _openChatMenu),
+        BuIconButton(
+            icon: LucideIcons.ellipsisVertical,
+            tooltip: 'Menü',
+            filled: true,
+            onTap: _openChatMenu),
+      ]),
+    );
+  }
+
+  Widget _searchBar(BuTokens t) {
+    final count = _query.isEmpty
+        ? 'Aramak için yazın'
+        : (_matches.isEmpty
+            ? 'Eşleşme yok'
+            : '${_matchPos + 1} / ${_matches.length}');
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+          16, MediaQuery.of(context).padding.top + 8, 16, 8),
+      decoration: BoxDecoration(
+          color: t.sf, border: Border(bottom: BorderSide(color: t.bd))),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          BuIconButton(
+              icon: LucideIcons.x,
+              tooltip: 'Aramayı kapat',
+              onTap: _stopSearch),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                  color: t.sf2, borderRadius: BorderRadius.circular(22)),
+              alignment: Alignment.center,
+              child: TextField(
+                key: const ValueKey('chatSearchField'),
+                controller: _searchCtl,
+                focusNode: _searchFocus,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                style: BuType.body.copyWith(color: t.ink),
+                cursorColor: t.pr,
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  filled: false,
+                  hintText: 'Sohbette ara',
+                  hintStyle: BuType.body.copyWith(color: t.mut),
+                ),
+              ),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 4),
+        Row(children: [
+          Expanded(
+              child: Text(count,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.label.copyWith(color: t.mut))),
+          IconButton(
+            tooltip: 'Önceki eşleşme',
+            visualDensity: VisualDensity.compact,
+            icon: Icon(LucideIcons.chevronUp,
+                color: _matches.isEmpty ? t.bd : t.ink),
+            onPressed: _matches.isEmpty ? null : () => _stepMatch(1),
+          ),
+          IconButton(
+            tooltip: 'Sonraki eşleşme',
+            visualDensity: VisualDensity.compact,
+            icon: Icon(LucideIcons.chevronDown,
+                color: _matches.isEmpty ? t.bd : t.ink),
+            onPressed: _matches.isEmpty ? null : () => _stepMatch(-1),
+          ),
+        ]),
+        if (_beforeCursor != null)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: _searchOlderBusy ? null : _searchOlder,
+              child: Text(
+                  _searchOlderBusy ? 'Aranıyor…' : 'Daha eski mesajlarda ara',
+                  style: BuType.label.copyWith(color: t.pr)),
+            ),
+          ),
       ]),
     );
   }
@@ -999,52 +1753,132 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (_loading) return const LoadingView();
     if (_error != null) return ErrorView(error: _error!, onRetry: _boot);
     if (_msgs.isEmpty) {
-      return const EmptyView(icon: LucideIcons.messageCircle, text: 'Henüz mesaj yok. İlk mesajı sen yaz.');
+      return const EmptyView(
+          icon: LucideIcons.messageCircle,
+          text: 'Henüz mesaj yok. İlk mesajı sen yaz.');
     }
-    return ValueListenableBuilder<int>(
-      valueListenable: _peerRead,
-      builder: (c, peerRead, _) => _list(t, peerRead),
+    return Stack(children: [
+      Positioned.fill(
+        child: ValueListenableBuilder<int>(
+          valueListenable: _peerRead,
+          builder: (c, peerRead, _) => _list(t, peerRead),
+        ),
+      ),
+      PositionedDirectional(end: 16, bottom: 12, child: _downButton(t)),
+    ]);
+  }
+
+  Widget _downButton(BuTokens t) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _showDown,
+      builder: (c, show, _) {
+        if (!show) return const SizedBox.shrink();
+        return ValueListenableBuilder<int>(
+          valueListenable: _newBelow,
+          builder: (c, n, _) => Semantics(
+            button: true,
+            label: n > 0 ? 'En alta in, $n yeni mesaj' : 'En alta in',
+            child: GestureDetector(
+              key: const ValueKey('scrollDown'),
+              onTap: () {
+                _newBelow.value = 0;
+                _scroll.animateTo(0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut);
+              },
+              child: Stack(clipBehavior: Clip.none, children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: t.sf,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: t.bd),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: .12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2))
+                    ],
+                  ),
+                  child: Icon(LucideIcons.chevronDown, size: 22, color: t.ink),
+                ),
+                if (n > 0)
+                  PositionedDirectional(
+                    top: -6,
+                    end: -4,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 20),
+                      height: 20,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                          color: t.pr, borderRadius: BorderRadius.circular(10)),
+                      child: Text(n > 99 ? '99+' : '$n',
+                          style: BuType.micro.copyWith(color: t.onPr)),
+                    ),
+                  ),
+              ]),
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _list(BuTokens t, int peerRead) {
-    return ListView.builder(
-      controller: _scroll,
-      reverse: true,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      itemCount: _msgs.length + 1,
-      itemBuilder: (c, i) {
-        if (i == _msgs.length) {
-          return _loadingMore
-              ? const Padding(padding: EdgeInsets.all(12), child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
-              : const SizedBox(height: 4);
-        }
-        final m = _msgs[i];
-        final newDay = _startsDay(i);
-        // Kronolojik olarak bu mesajdan önce (listede bir altta) gelen mesajla aynı göndericiyse aralık küçük.
-        final tight = !_firstOfRun(i);
-        final id = (m['id'] as num?)?.toInt();
-        final row = Padding(padding: EdgeInsets.only(top: tight ? 2 : 8), child: _rowFor(t, m, i, peerRead));
-        return Column(children: [
-          if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
-          id == null
-              ? row
-              : ValueListenableBuilder<int?>(
-                  valueListenable: _hi,
-                  child: row,
-                  builder: (c, hi, child) => AnimatedContainer(
-                    key: _rowKeys.putIfAbsent(id, GlobalKey.new),
-                    duration: const Duration(milliseconds: 300),
-                    decoration: BoxDecoration(
-                      color: hi == id ? t.pr.withValues(alpha: .12) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(14),
+    return GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: ListView.builder(
+          controller: _scroll,
+          reverse: true,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          itemCount: _msgs.length + 1,
+          itemBuilder: (c, i) {
+            if (i == _msgs.length) {
+              return _loadingMore
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Center(
+                          child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2))))
+                  : const SizedBox(height: 4);
+            }
+            final m = _msgs[i];
+            final newDay = _startsDay(i);
+            // Kronolojik olarak bu mesajdan önce (listede bir altta) gelen mesajla aynı göndericiyse aralık küçük.
+            final tight = !_firstOfRun(i);
+            final id = (m['id'] as num?)?.toInt();
+            final row = Padding(
+                padding: EdgeInsets.only(top: tight ? 2 : 8),
+                child: _rowFor(t, m, i, peerRead));
+            return Column(children: [
+              if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
+              id == null
+                  ? row
+                  : ValueListenableBuilder<int?>(
+                      valueListenable: _hi,
+                      child: row,
+                      builder: (c, hi, child) => AnimatedContainer(
+                        key: _rowKeys.putIfAbsent(id, GlobalKey.new),
+                        duration: const Duration(milliseconds: 300),
+                        decoration: BoxDecoration(
+                          color: hi == id
+                              ? t.pr.withValues(alpha: .12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: child,
+                      ),
                     ),
-                    child: child,
-                  ),
-                ),
-        ]);
-      },
-    );
+            ]);
+          },
+        ));
   }
 
   // Liste ters sıralıdır: i+1 daha eski, i-1 daha yeni mesajdır.
@@ -1061,28 +1895,38 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
 
   bool _lastOfRun(int i) {
     if (i == 0) return true;
-    return _msgs[i - 1]['senderId'] != _msgs[i]['senderId'] || _startsDay(i - 1);
+    return _msgs[i - 1]['senderId'] != _msgs[i]['senderId'] ||
+        _startsDay(i - 1);
   }
 
   Widget _dayChip(BuTokens t, String label) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(999)),
-          child: Text(label, style: BuType.micro.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+          decoration: BoxDecoration(
+              color: t.sf2, borderRadius: BorderRadius.circular(999)),
+          child: Text(label,
+              style: BuType.micro
+                  .copyWith(color: t.mut, fontWeight: FontWeight.w600)),
         ),
       );
 
   /// Satır: grup sohbetinde gelen mesajlarda solda avatar sütunu (yalnız serinin ilk mesajında avatar görünür).
   Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i, int peerRead) {
-    final bubble = _bubble(m, peerRead, first: _firstOfRun(i), last: _lastOfRun(i));
+    final bubble =
+        _bubble(m, peerRead, first: _firstOfRun(i), last: _lastOfRun(i));
     final mine = _isMine(m) || m['_state'] != null;
     if (_direct || mine) return bubble;
     final sid = (m['senderId'] as num?)?.toInt();
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SizedBox(
         width: 28,
-        child: _firstOfRun(i) ? BuAvatar(name: _nameOf(sid), url: sid == null ? null : _avatars[sid], size: 28) : null,
+        child: _firstOfRun(i)
+            ? BuAvatar(
+                name: _nameOf(sid),
+                url: sid == null ? null : _avatars[sid],
+                size: 28)
+            : null,
       ),
       const SizedBox(width: 8),
       Expanded(child: bubble),
@@ -1092,10 +1936,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
   /// Menü önizlemesi için: mesajı listedeki konumuna göre kurar.
   Widget _bubbleFor(Map<String, dynamic> m, {bool preview = false}) {
     final i = _msgs.indexOf(m);
-    return _bubble(m, _peerRead.value, first: i < 0 || _firstOfRun(i), last: i < 0 || _lastOfRun(i), preview: preview);
+    return _bubble(m, _peerRead.value,
+        first: i < 0 || _firstOfRun(i),
+        last: i < 0 || _lastOfRun(i),
+        preview: preview);
   }
 
-  Widget _bubble(Map<String, dynamic> m, int peerRead, {bool first = true, bool last = true, bool preview = false}) {
+  Widget _bubble(Map<String, dynamic> m, int peerRead,
+      {bool first = true, bool last = true, bool preview = false}) {
     final mine = _isMine(m) || m['_state'] != null;
     final id = (m['id'] as num?)?.toInt();
     final reply = m['replyTo'] is Map ? m['replyTo'] as Map : null;
@@ -1103,14 +1951,22 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     return MessageBubble(
       message: m,
       mine: mine,
-      senderName: (!mine && !_direct && first) ? _nameOf((m['senderId'] as num?)?.toInt()) : null,
-      replyName: reply == null ? null : _nameOf((reply['senderId'] as num?)?.toInt()),
+      senderName: (!mine && !_direct && first)
+          ? _nameOf((m['senderId'] as num?)?.toInt())
+          : null,
+      replyName:
+          reply == null ? null : _nameOf((reply['senderId'] as num?)?.toInt()),
       replyMine: reply != null && (reply['senderId'] as num?)?.toInt() == _myId,
       seen: mine && id != null && id <= peerRead,
       authHeaders: _authHeaders,
       tail: last,
       preview: preview,
-      onSwipeReply: (preview || id == null || m['_state'] != null || m['deleted'] == true || m['removed'] == true || _blocked)
+      onSwipeReply: (preview ||
+              id == null ||
+              m['_state'] != null ||
+              m['deleted'] == true ||
+              m['removed'] == true ||
+              _blocked)
           ? null
           : () {
               setState(() {
@@ -1124,6 +1980,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
       onReplyTap: replyId == null ? null : () => _jumpTo(replyId),
       onRetry: () => _retry(m),
       onOpenImage: _openImage,
+      onOpenViewOnce: (a) => _openViewOnce(m, a),
+      highlight: (_searching && _query.isNotEmpty) ? _query : null,
       onReact: (e) => _react(m, e),
     );
   }
@@ -1132,12 +1990,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     if (_blocked) {
       return Container(
         width: double.infinity,
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
-        decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-        child: Text('Bu kullanıcıyla mesajlaşamazsınız.', textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.mut)),
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+        decoration: BoxDecoration(
+            color: t.sf, border: Border(top: BorderSide(color: t.bd))),
+        child: Text('Bu kullanıcıyla mesajlaşamazsınız.',
+            textAlign: TextAlign.center,
+            style: BuType.label.copyWith(color: t.mut)),
       );
     }
-    return ListenableBuilder(listenable: _input, builder: (c, _) => _composerBody(t));
+    return ListenableBuilder(
+        listenable: _input, builder: (c, _) => _composerBody(t));
   }
 
   Widget _composerBody(BuTokens t) {
@@ -1145,24 +2008,36 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
     final canSend = _input.text.trim().isNotEmpty && len <= _maxLen;
     final banner = _editing ?? _replyTo;
     return Container(
-      decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-      padding: EdgeInsets.fromLTRB(16, 10, 16, 10 + MediaQuery.of(context).padding.bottom),
+      decoration: BoxDecoration(
+          color: t.sf, border: Border(top: BorderSide(color: t.bd))),
+      padding: EdgeInsets.fromLTRB(
+          16, 10, 16, 10 + MediaQuery.of(context).padding.bottom),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         if (banner != null)
           Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(
+                color: t.sf2, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
-              Icon(_editing != null ? LucideIcons.pencil : LucideIcons.reply, size: 16, color: t.pr),
+              Icon(_editing != null ? LucideIcons.pencil : LucideIcons.reply,
+                  size: 16, color: t.pr),
               const SizedBox(width: 8),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_editing != null ? 'Mesaj düzenleniyor' : _nameOf((banner['senderId'] as num?)?.toInt()),
-                      style: BuType.micro.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                  Text((banner['text'] as String?) ?? '',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          _editing != null
+                              ? 'Mesaj düzenleniyor'
+                              : _nameOf((banner['senderId'] as num?)?.toInt()),
+                          style: BuType.micro.copyWith(
+                              color: t.ink, fontWeight: FontWeight.w700)),
+                      Text((banner['text'] as String?) ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.caption.copyWith(color: t.mut)),
+                    ]),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
@@ -1182,7 +2057,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
             child: Align(
               alignment: Alignment.centerRight,
               child: Text('$len/$_maxLen',
-                  style: BuType.micro.copyWith(color: len > _maxLen ? t.danger : t.mut, fontWeight: FontWeight.w700)),
+                  style: BuType.micro.copyWith(
+                      color: len > _maxLen ? t.danger : t.mut,
+                      fontWeight: FontWeight.w700)),
             ),
           ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -1192,12 +2069,33 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
               onPressed: _pickImage,
               icon: Icon(LucideIcons.image, color: t.mut),
             ),
+            Semantics(
+              button: true,
+              toggled: _viewOnce,
+              label: 'Tek gösterimlik',
+              child: GestureDetector(
+                key: const ValueKey('viewOnceToggle'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  setState(() => _viewOnce = !_viewOnce);
+                  if (_viewOnce)
+                    _toast('Alıcı fotoğrafı yalnızca bir kez görebilir');
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                  child: OnceBadge(
+                      color: _viewOnce ? t.pr : t.mut, size: 26, dashed: false),
+                ),
+              ),
+            ),
           ],
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 46),
               padding: const EdgeInsets.symmetric(horizontal: 18),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(23)),
+              decoration: BoxDecoration(
+                  color: t.sf2, borderRadius: BorderRadius.circular(23)),
               alignment: Alignment.center,
               child: TextField(
                 controller: _input,
@@ -1230,8 +2128,13 @@ class _ChatDetailPageState extends State<ChatDetailPage> with WidgetsBindingObse
               child: Container(
                 width: 46,
                 height: 46,
-                decoration: BoxDecoration(color: canSend ? t.pr : t.pr.withValues(alpha: .4), shape: BoxShape.circle),
-                child: Icon(_editing != null ? LucideIcons.check : LucideIcons.send, size: 22, color: t.onPr),
+                decoration: BoxDecoration(
+                    color: canSend ? t.pr : t.pr.withValues(alpha: .4),
+                    shape: BoxShape.circle),
+                child: Icon(
+                    _editing != null ? LucideIcons.check : LucideIcons.send,
+                    size: 22,
+                    color: t.onPr),
               ),
             ),
           ),

@@ -201,10 +201,13 @@ class BuBadge extends StatelessWidget {
 
 /// Baş harfli ya da görselli avatar. [square] true: yuvarlatılmış kare (kulüp/grup).
 class BuAvatar extends StatelessWidget {
-  const BuAvatar({super.key, this.name, this.url, this.size = 48, this.square = false, this.dark = false});
+  const BuAvatar({super.key, this.name, this.url, this.size = 48, this.square = false, this.dark = false, this.headers});
 
   final String? name;
   final String? url;
+
+  /// Yetkili uçlardan (`/api/...`) gelen görseller için istek başlıkları (genelde Bearer).
+  final Map<String, String>? headers;
   final double size;
   final bool square;
   final bool dark; // koyu (ink) zemin
@@ -225,7 +228,7 @@ class BuAvatar extends StatelessWidget {
     if (full == null) return fallback;
     return ClipRRect(
       borderRadius: radius,
-      child: Image.network(full, width: size, height: size, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
+      child: Image.network(full, headers: headers, width: size, height: size, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
     );
   }
 }

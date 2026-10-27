@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
@@ -86,8 +87,46 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     setState(() => _tab = i);
   }
 
+  DateTime? _lastBack;
+
+  /// Kök ekranda geri: sekmedeyse Ana Sayfa'ya; Ana Sayfa'da 2 sn içinde ikinci basışta çıkış.
+  void _onBack(bool didPop, Object? result) {
+    if (didPop) return;
+    final nav = Navigator.of(context);
+    if (nav.canPop()) {
+      nav.pop(); // Savunma: üstte açık rota varsa önce o kapanır.
+      return;
+    }
+    if (_tab != AppTab.home) {
+      setState(() => _tab = AppTab.home);
+      return;
+    }
+    final now = DateTime.now();
+    final last = _lastBack;
+    if (last != null && now.difference(last) < const Duration(seconds: 2)) {
+      SystemNavigator.pop();
+      return;
+    }
+    _lastBack = now;
+    final m = ScaffoldMessenger.of(context);
+    m.hideCurrentSnackBar();
+    m.showSnackBar(const SnackBar(
+      content: Text('Çıkmak için tekrar geri basın'),
+      duration: Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _onBack,
+      child: _scaffold(),
+    );
+  }
+
+  Widget _scaffold() {
     return Scaffold(
       extendBody: true,
       body: IndexedStack(

@@ -1,4 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:bu_kampus/core/platform/image_service.dart';
+import 'package:bu_kampus/features/chat/chat_info_media.dart';
+import 'package:bu_kampus/features/chat/chat_info_members.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
+import 'package:bu_kampus/features/chat/chat_info_tabs.dart';
+import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,18 +31,34 @@ const _members = [
   {'userId': 2, 'displayName': 'Mehmet Kaya'},
 ];
 
+Map<String, dynamic> _group({required bool admin}) =>
+    {'id': 5, 'type': 'GROUP', 'title': 'Proje Grubu', 'memberCount': 8, 'admin': admin};
+
+List<Map<String, dynamic>> _manyMembers(int n) => [
+      for (var i = 1; i <= n; i++)
+        {'userId': i, 'displayName': i == 1 ? 'Ayşe Yılmaz' : 'Üye $i', 'role': i == 2 ? 'ADMIN' : 'MEMBER'},
+    ];
+
 void main() {
   setUpAll(loadTestFonts);
 
   Future<void> pump(WidgetTester tester, FakeBackend be,
-      {Brightness b = Brightness.light, Size size = kPhoneMedium, List<String>? saved, Map<String, dynamic> conv = _conv}) async {
+      {Brightness b = Brightness.light,
+      Size size = kPhoneMedium,
+      List<String>? saved,
+      Map<String, dynamic> conv = _conv,
+      List<Map<String, dynamic>>? members,
+      Future<PreparedImage?> Function()? pickAvatar,
+      Future<dynamic> Function(String, PreparedImage)? uploadAvatar}) async {
     useScreen(tester, size);
     await tester.pumpWidget(buildApp(
       ChatInfoPage(
         session: makeSession(be),
         conversation: conv,
-        members: _members.map((e) => Map<String, dynamic>.from(e)).toList(),
+        members: members ?? _members.map((e) => Map<String, dynamic>.from(e)).toList(),
         subtitle: 'Çevrimiçi',
+        pickAvatar: pickAvatar,
+        uploadAvatar: uploadAvatar,
         saveImage: (url, h) async => saved?.add(url),
       ),
       brightness: b,
@@ -56,7 +79,7 @@ void main() {
     final grid = tester.widget<SliverGrid>(find.byType(SliverGrid));
     final d = grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
     expect(d.crossAxisCount, 3);
-    expect(find.text('Medya'), findsOneWidget);
+    expect(find.text('Medya · 12'), findsOneWidget);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
     await unmount(tester);
   });
@@ -98,7 +121,10 @@ void main() {
     await pump(tester, be);
     await settle(tester);
     expect(be.count('before='), 0);
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -3000));
+    await tester.tap(find.text('Tümü'));
+    await settle(tester);
+    expect(be.count('before='), 0);
+    await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
     await settle(tester);
     expect(be.count('before=61'), 1);
     await unmount(tester);
@@ -163,7 +189,8 @@ void main() {
           'type': 'GROUP',
           'title': 'Çok uzun bir grup sohbeti adı burada çok uzun bir grup sohbeti adı',
           'memberCount': 2,
-        });
+          'admin': true,
+        }, members: _manyMembers(8));
         await settle(tester);
         expect(tester.takeException(), isNull);
         await unmount(tester);
@@ -179,5 +206,220 @@ void main() {
     await unmount(tester);
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('birebir: Üyeler segmenti yok, Ara hızlı eylemi ve ayar satırları var', (tester) async {
+    final be = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
+    await pump(tester, be);
+    await settle(tester);
+    expect(find.text('Üyeler'), findsNothing);
+    expect(find.text('Medya'), findsNWidgets(2));
+    expect(find.text('Ayarlar'), findsNWidgets(2));
+    expect(find.text('Ara'), findsOneWidget);
+    expect(find.text('Sessize al'), findsNothing);
+    expect(find.text('Bildirimleri sessize al'), findsOneWidget);
+    expect(find.text('Açık'), findsOneWidget);
+    expect(find.text('Engelle'), findsOneWidget);
+    expect(find.text('Şikâyet et'), findsOneWidget);
+    expect(find.text('Sohbetten çık'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('sessize al: süre alt sayfası PUT gönderir, durum metni güncellenir', (tester) async {
+    final be = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
+    await pump(tester, be);
+    await settle(tester);
+    await tester.tap(find.byType(Switch));
+    await settle(tester);
+    expect(find.text('8 saat'), findsOneWidget);
+    expect(find.text('1 hafta'), findsOneWidget);
+    expect(find.text('Her zaman'), findsOneWidget);
+    await tester.tap(find.text('8 saat'));
+    await settle(tester);
+    expect(be.bodies['PUT /conversations/5/mute'], {'durationMinutes': 480});
+    expect(find.text('Sessiz · 8 saat sonra açılır'), findsOneWidget);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    await tester.tap(find.byType(Switch));
+    await settle(tester);
+    expect(be.count('DELETE /conversations/5/mute'), 1);
+    expect(find.text('Açık'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('tek gösterimlik ekler ızgarada görünmez', (tester) async {
+    final once = _msg(9);
+    (once['attachments'] as List).first['viewOnce'] = true;
+    final be = FakeBackend()
+      ..on('/conversations/5/messages?size=40', {
+        'items': [once, _msg(2), _msg(1)],
+        'nextCursor': null,
+      });
+    await pump(tester, be);
+    await settle(tester);
+    expect(find.byType(Image), findsNWidgets(2));
+    await unmount(tester);
+  });
+
+  testWidgets('grup: üyelerle başlar, tüm üyeler listelenir, Sohbetten çık onaylı', (tester) async {
+    final be = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
+    await pump(tester, be, conv: _group(admin: false), members: _manyMembers(8));
+    await settle(tester);
+    expect(find.text('Üyeler · 8'), findsOneWidget);
+    expect(find.text('Tümünü gör'), findsNothing);
+    expect(find.text('Sen'), findsOneWidget);
+    expect(find.text('Yönetici'), findsOneWidget);
+    expect(find.text('Üye 8'), findsOneWidget);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -3000));
+    await settle(tester);
+    await tester.tap(find.text('Sohbetten çık'));
+    await settle(tester);
+    expect(find.text('Sohbetten ayrılınsın mı?'), findsOneWidget);
+    await tester.tap(find.text('Vazgeç'));
+    await settle(tester);
+    expect(be.count('/leave'), 0);
+    await tester.tap(find.text('Sohbetten çık'));
+    await settle(tester);
+    await tester.tap(find.text('Ayrıl'));
+    await settle(tester);
+    expect(be.count('POST /conversations/5/leave'), 1);
+    await unmount(tester);
+  });
+
+  group('tek sayfa bölümleri', () {
+    late FakeBackend be;
+    setUp(() {
+      be = FakeBackend()
+        ..on('/conversations/5/messages?size=40', {
+          'items': [for (var i = 20; i > 0; i--) _msg(i)],
+          'nextCursor': null,
+        });
+    });
+
+    Finder segment(String s) => find.descendant(of: find.byType(InfoSegmentBar), matching: find.text(s));
+    InfoSection active(WidgetTester tester) => tester.widget<InfoSegmentBar>(find.byType(InfoSegmentBar)).active;
+    Finder scrollView() => find.byType(CustomScrollView);
+
+    testWidgets('varsayılan: Üyeler seçili ve üyeler görünür', (tester) async {
+      await pump(tester, be, conv: _group(admin: false), members: _manyMembers(8));
+      await settle(tester);
+      expect(active(tester), InfoSection.members);
+      expect(find.text('Üyeler · 8'), findsOneWidget);
+      expect(find.text('Üye 3'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('Medya segmenti medya bölümünü kaydırır, Ayarlar en alta iner', (tester) async {
+      await pump(tester, be, conv: _group(admin: false), members: _manyMembers(30), size: kPhoneSmall);
+      await settle(tester);
+      await tester.tap(segment('Medya'));
+      await settle(tester, const Duration(seconds: 2));
+      expect(active(tester), InfoSection.media);
+      final top = tester.getTopLeft(find.text('Medya · 20')).dy;
+      expect(top, lessThan(250));
+      await tester.tap(segment('Ayarlar'));
+      await settle(tester, const Duration(seconds: 2));
+      expect(active(tester), InfoSection.settings);
+      expect(find.text('Bildirimleri sessize al'), findsOneWidget);
+      expect(find.text('Sohbetten çık'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('scroll spy: elle kaydırınca segment güncellenir, çubuk sabit kalır', (tester) async {
+      await pump(tester, be, conv: _group(admin: false), members: _manyMembers(8));
+      await settle(tester);
+      await tester.drag(scrollView(), const Offset(0, -950));
+      await settle(tester);
+      final barTop = tester.getTopLeft(find.byType(InfoSegmentBar)).dy;
+      expect(barTop, lessThan(100));
+      expect(active(tester), isNot(InfoSection.members));
+      await tester.drag(scrollView(), const Offset(0, -3000));
+      await settle(tester);
+      expect(active(tester), InfoSection.settings);
+      expect(tester.getTopLeft(find.byType(InfoSegmentBar)).dy, barTop);
+      await tester.drag(scrollView(), const Offset(0, 5000));
+      await settle(tester);
+      expect(active(tester), InfoSection.members);
+      await unmount(tester);
+    });
+
+    testWidgets('30 üye: hepsi listelenir, arama filtreler', (tester) async {
+      await pump(tester, be, conv: _group(admin: false), members: _manyMembers(30));
+      await settle(tester);
+      expect(find.text('Üyeler · 30'), findsOneWidget);
+      expect(find.byType(BuSearchField), findsOneWidget);
+      await tester.drag(scrollView(), const Offset(0, -2200));
+      await settle(tester);
+      expect(find.text('Üye 29'), findsOneWidget);
+      await tester.drag(scrollView(), const Offset(0, 6000));
+      await settle(tester);
+      await tester.enterText(find.byType(TextField), 'Üye 17');
+      await settle(tester);
+      Finder row(String n) => find.descendant(of: find.byType(ChatMemberRow), matching: find.text(n));
+      expect(row('Üye 17'), findsOneWidget);
+      expect(row('Üye 18'), findsNothing);
+      await tester.enterText(find.byType(TextField), 'zzz');
+      await settle(tester);
+      expect(find.text('Sonuç yok.'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('az üyede arama alanı yok', (tester) async {
+      await pump(tester, be, conv: _group(admin: false), members: _manyMembers(5));
+      await settle(tester);
+      expect(find.byType(BuSearchField), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('medya önizlemesi en çok 9, Tüm medyayı gör tam sayfayı açar', (tester) async {
+      await pump(tester, be);
+      await settle(tester);
+      expect(find.byType(Image), findsNWidgets(9));
+      expect(find.text('Tüm medyayı gör'), findsOneWidget);
+      await tester.tap(find.text('Tüm medyayı gör'));
+      await settle(tester);
+      expect(find.byType(ChatMediaGridPage), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+
+  testWidgets('yönetici adı ve fotoğrafı değiştirebilir, üye göremez', (tester) async {
+    final be = FakeBackend()
+      ..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null})
+      ..on('/conversations/5', {'id': 5, 'type': 'GROUP', 'title': 'Yeni Ad', 'admin': true});
+    final uploads = <String>[];
+    await pump(
+      tester,
+      be,
+      conv: _group(admin: true),
+      members: _manyMembers(3),
+      pickAvatar: () async => PreparedImage(Uint8List.fromList([0xFF, 0xD8, 0xFF, 1]), 'image/jpeg'),
+      uploadAvatar: (p, i) async {
+        uploads.add(p);
+        return {'id': 5, 'avatarUrl': '/files/g.jpg'};
+      },
+    );
+    await settle(tester);
+    await tester.tap(find.byTooltip('Adı düzenle'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField), 'Yeni Ad');
+    await tester.pump();
+    await tester.tap(find.text('Kaydet'));
+    await settle(tester);
+    expect(be.bodies['PATCH /conversations/5'], {'title': 'Yeni Ad'});
+    expect(find.text('Yeni Ad'), findsOneWidget);
+    await tester.tap(find.byTooltip('Fotoğrafı değiştir'));
+    await settle(tester);
+    expect(find.text('Fotoğrafı kaldır'), findsNothing);
+    await tester.tap(find.text('Galeriden seç'));
+    await settle(tester);
+    expect(uploads, ['/conversations/5/avatar']);
+    await unmount(tester);
+
+    final be2 = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
+    await pump(tester, be2, conv: _group(admin: false), members: _manyMembers(3));
+    await settle(tester);
+    expect(find.byTooltip('Adı düzenle'), findsNothing);
+    expect(find.byTooltip('Fotoğrafı değiştir'), findsNothing);
+    await unmount(tester);
   });
 }

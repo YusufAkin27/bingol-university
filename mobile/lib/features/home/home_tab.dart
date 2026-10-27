@@ -9,6 +9,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../clubs/club_detail_page.dart';
+import '../events/event_cover.dart';
 import '../events/event_detail_page.dart';
 import '../events/events_page.dart';
 import '../menu/menu_page.dart';
@@ -44,6 +45,8 @@ class _HomeTabState extends State<HomeTab> {
   Map<String, dynamic>? _today;
   Map<String, dynamic>? _summary;
   Map<String, dynamic>? _event;
+  bool _eventFailed = false; // öne çıkan etkinlik yüklenemedi: bölüm içi "Tekrar dene"
+  bool _eventRetrying = false;
   List<Map<String, dynamic>> _avatars = const [];
 
   // İlk boyama için gerekmeyen bölümler görünür olunca yüklenir.
@@ -107,14 +110,11 @@ class _HomeTabState extends State<HomeTab> {
         _apply(gen, () => _summary = r);
       }),
       step(() async {
-        final best = await _nextEvent();
-        _apply(gen, () {
-          _event = best;
-          _avatars = const [];
-        });
-        final id = (best?['id'] as num?)?.toInt();
-        if (best != null && best['source'] == 'USER' && id != null) {
-          unawaited(_loadPreview(id, gen));
+        try {
+          await _loadFeatured(gen);
+        } catch (_) {
+          _apply(gen, () => _eventFailed = true);
+          rethrow;
         }
       }),
     ]);
@@ -125,40 +125,36 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
-  Future<Map<String, dynamic>?> _nextEvent() async {
-    final now = DateTime.now();
-    final months = <DateTime>[now];
-    if (now.day >= 22) months.add(DateTime(now.year, now.month + 1, 1));
-    Map<String, dynamic>? best;
-    DateTime? bestAt;
-    Object? err;
-    var got = 0;
-    for (final m in months) {
-      try {
-        final mm = '${m.year}-${m.month.toString().padLeft(2, '0')}';
-        final r = await _s.api.get('/events/calendar?month=$mm');
-        got++;
-        if (r is! List) continue;
-        for (final e in r) {
-          if (e is! Map<String, dynamic>) continue;
-          final st = DateTime.tryParse((e['startsAt'] as String?) ?? '')?.toLocal();
-          final d = st ?? DateTime.tryParse((e['date'] as String?) ?? '');
-          if (d == null) continue;
-          final upcoming = st != null
-              ? st.isAfter(now.subtract(const Duration(hours: 1)))
-              : !DateTime(d.year, d.month, d.day).isBefore(DateTime(now.year, now.month, now.day));
-          if (!upcoming) continue;
-          if (bestAt == null || d.isBefore(bestAt)) {
-            best = e;
-            bestAt = d;
-          }
-        }
-      } catch (e) {
-        err ??= e;
-      }
+  /// `GET /events/featured`: yaklaşan etkinlikler içinde en çok katılımcılı olan. 204/boş gövde -> null (boş durum).
+  Future<void> _loadFeatured(int gen) async {
+    final r = await _s.api.get('/events/featured');
+    final best = r is Map ? Map<String, dynamic>.from(r) : null;
+    final prev = best?['attendeesPreview'];
+    final pl = prev is Map ? prev['avatars'] : prev;
+    final avatars = [
+      for (final a in (pl is List ? pl : const []))
+        if (a is Map) Map<String, dynamic>.from(a),
+    ];
+    _apply(gen, () {
+      _event = best;
+      _eventFailed = false;
+      _avatars = avatars;
+    });
+    final id = (best?['id'] as num?)?.toInt();
+    if (best != null && avatars.isEmpty && id != null) unawaited(_loadPreview(id, gen));
+  }
+
+  Future<void> _retryFeatured() async {
+    if (_eventRetrying) return;
+    setState(() => _eventRetrying = true);
+    final gen = _gen;
+    try {
+      await _loadFeatured(gen);
+    } catch (_) {
+      if (mounted) _toast('Etkinlik yüklenemedi.');
+    } finally {
+      if (mounted) setState(() => _eventRetrying = false);
     }
-    if (got == 0 && err != null) throw err;
-    return best;
   }
 
   /// Katılımcı avatarları (herkese açık, en çok 8); hata sessizce yutulur.
@@ -518,6 +514,20 @@ class _HomeTabState extends State<HomeTab> {
 
   Widget _eventCard(BuildContext context) {
     final e = _event;
+    if (e == null && _eventFailed) {
+      return BuHeroCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _heroPill(LucideIcons.calendar, 'Öne çıkan etkinlik'),
+            const SizedBox(height: 12),
+            Text('Etkinlik yüklenemedi', style: BuType.title.copyWith(height: 1.2)),
+            const SizedBox(height: 14),
+            _whitePill('Tekrar dene', _retryFeatured, busy: _eventRetrying),
+          ],
+        ),
+      );
+    }
     if (e == null) {
       return BuHeroCard(
         child: Column(
@@ -541,6 +551,7 @@ class _HomeTabState extends State<HomeTab> {
     final full = cap != null && going >= cap;
     final loc = (e['location'] as String?) ?? '';
     final when = official ? niceDate(e['date'] as String?) : _eventWhen(e);
+    final cover = official ? null : fileUrl(e['coverUrl'] as String?);
     return GestureDetector(
       onTap: id == null
           ? null
@@ -554,11 +565,15 @@ class _HomeTabState extends State<HomeTab> {
                     'url': e['url'],
                   }))
               : _push(EventDetailPage(session: _s, eventId: id)),
-      child: BuHeroCard(
+      child: _heroShell(
+        cover,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _heroPill(LucideIcons.calendar, official ? 'Resmi etkinlik' : 'Sıradaki etkinlik'),
+            Wrap(spacing: 8, runSpacing: 6, children: [
+              _heroPill(LucideIcons.calendar, official ? 'Resmi etkinlik' : 'Öne çıkan etkinlik'),
+              if (!official) _heroPill(LucideIcons.trendingUp, 'En çok katılım'),
+            ]),
             const SizedBox(height: 10),
             Text((e['title'] as String?) ?? '',
                 maxLines: 2,
@@ -595,6 +610,34 @@ class _HomeTabState extends State<HomeTab> {
               ]),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Kapak varsa fotoğraf + koyu geçiş üstüne, yoksa kırmızı hero kart.
+  Widget _heroShell(String? cover, {required Widget child}) {
+    if (cover == null) return BuHeroCard(child: child);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(26),
+      child: Stack(
+        children: [
+          Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 900)),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black.withValues(alpha: .25), Colors.black.withValues(alpha: .75)],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+            child: DefaultTextStyle.merge(style: const TextStyle(color: Colors.white), child: child),
+          ),
+        ],
       ),
     );
   }

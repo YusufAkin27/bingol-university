@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
+import 'package:bu_kampus/widgets/bu_widgets.dart' show LucideIcons;
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
@@ -282,6 +283,199 @@ void main() {
       _noErrors(tester);
       await unmount(tester);
     });
+
+    for (final size in [kPhoneSmall, kPhoneMedium, kPhoneLarge]) {
+      testWidgets('4 segment tam gorunur, yatay kaydirma yok ${size.width.toInt()}', (tester) async {
+        await _pump(tester, build(makeSession(full())), size: size);
+        final seg = tester.getRect(find.byKey(const ValueKey('chat-segment')));
+        var prevRight = -1.0;
+        for (final l in ['Tümü', 'Kişiler', 'Kulüpler', 'Etkinlikler']) {
+          final f = find.descendant(of: find.byKey(const ValueKey('chat-segment')), matching: find.text(l));
+          expect(f, findsOneWidget);
+          final r = tester.getRect(f);
+          expect(r.left >= seg.left && r.right <= seg.right, isTrue, reason: l);
+          expect(r.left >= prevRight, isTrue, reason: l);
+          prevRight = r.right;
+        }
+        expect(
+            find.descendant(
+                of: find.byKey(const ValueKey('chat-segment')),
+                matching: find.byWidgetPredicate((w) => w is Scrollable, description: 'kaydirici')),
+            findsNothing);
+        expect(
+            find.byWidgetPredicate(
+                (w) => w is Scrollable && w.axis == Axis.horizontal && w.restorationId != 'editable',
+                description: 'yatay'),
+            findsNothing);
+        _noErrors(tester);
+        await unmount(tester);
+      });
+    }
+
+    testWidgets('arama + segment kaydirinca ekranda sabit kalir', (tester) async {
+      final many = {
+        'items': [for (var i = 1; i <= 30; i++) _conv(i + 20, 'DIRECT', 'Kisi $i')],
+        'nextCursor': null,
+      };
+      final be = FakeBackend()..on('/conversations', many);
+      await _pump(tester, build(makeSession(be)), size: kPhoneMedium);
+      final seg = find.byKey(const ValueKey('chat-segment'));
+      final before = tester.getTopLeft(seg);
+      final search = tester.getTopLeft(find.byType(TextField));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(tester.getTopLeft(seg).dy, lessThan(before.dy + 1));
+      expect(tester.getTopLeft(seg).dy, greaterThanOrEqualTo(0));
+      expect(tester.getTopLeft(find.byType(TextField)).dy, lessThan(search.dy));
+      expect(tester.getTopLeft(find.byType(TextField)).dy, greaterThanOrEqualTo(0));
+      expect(find.text('Sohbet'), findsNothing); // başlık kaydı
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('avatarlar daire; tikler duruma gore', (tester) async {
+      Map<String, dynamic> withStatus(int id, String type, String? st) {
+        final c = _conv(id, type, 'Satir $id');
+        if (st != null) (c['lastMessage'] as Map<String, dynamic>)['status'] = st;
+        return c;
+      }
+
+      final be = FakeBackend()
+        ..on('/conversations', {
+          'items': [
+            withStatus(1, 'DIRECT', 'SENT'),
+            withStatus(2, 'GROUP', 'DELIVERED'),
+            withStatus(4, 'EVENT', 'READ'),
+            withStatus(5, 'CLUB', null),
+          ],
+          'nextCursor': null,
+        });
+      await _pump(tester, build(makeSession(be)), size: kPhoneMedium);
+      expect(find.byIcon(LucideIcons.check), findsOneWidget);
+      expect(find.byIcon(LucideIcons.checkCheck), findsNWidgets(2));
+      final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
+      expect(read.color, isNot(equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color)));
+      // Tüm 52 dp avatarlar tam daire.
+      final avatars = tester.widgetList<Container>(find.byType(Container)).where((w) {
+        final c = w.constraints;
+        return c != null && c.maxWidth == 52 && c.maxHeight == 52;
+      });
+      expect(avatars, isNotEmpty);
+      for (final a in avatars) {
+        final d = a.decoration as BoxDecoration;
+        final circle = d.shape == BoxShape.circle || d.borderRadius == BorderRadius.circular(52);
+        expect(circle, isTrue);
+      }
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    Future<void> longPress(WidgetTester tester, String text) async {
+      await tester.longPress(find.text(text));
+      await settle(tester, const Duration(milliseconds: 300));
+    }
+
+    testWidgets('uzun basis menusu: birebirde Sil var, kulup/etkinlikte yok', (tester) async {
+      await _pump(tester, build(makeSession(full())));
+      await longPress(tester, 'Ali Veli');
+      expect(find.byKey(const ValueKey('act-delete')), findsOneWidget);
+      expect(find.byKey(const ValueKey('act-mute')), findsOneWidget);
+      expect(find.byKey(const ValueKey('act-archive')), findsOneWidget);
+      await tester.tapAt(const Offset(5, 5));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.byKey(const ValueKey('act-delete')), findsNothing);
+      await longPress(tester, 'Robotik Kulübü');
+      expect(find.byKey(const ValueKey('act-archive')), findsOneWidget);
+      expect(find.byKey(const ValueKey('act-delete')), findsNothing);
+      await tester.tapAt(const Offset(5, 5));
+      await settle(tester, const Duration(milliseconds: 300));
+      await longPress(tester, 'Kariyer Günleri');
+      expect(find.byKey(const ValueKey('act-delete')), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Sil -> onay -> DELETE gonderilir, satir kalkar', (tester) async {
+      final be = full();
+      await _pump(tester, build(makeSession(be)));
+      await longPress(tester, 'Ali Veli');
+      await tester.tap(find.byKey(const ValueKey('act-delete')));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Bu sohbet yalnızca senin için silinecek. Karşı taraf etkilenmez.'), findsOneWidget);
+      expect(be.count('DELETE /conversations/1'), 0);
+      await tester.tap(find.text('Sil'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(be.requests, contains('DELETE /conversations/1'));
+      expect(find.text('Ali Veli'), findsNothing);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('grupta onay metni; Vazgec istek atmaz', (tester) async {
+      final be = full();
+      await _pump(tester, build(makeSession(be)));
+      await longPress(tester, _longTitle);
+      await tester.tap(find.byKey(const ValueKey('act-delete')));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Gruptan çıkıp bu sohbeti sileceksin.'), findsOneWidget);
+      await tester.tap(find.text('Vazgeç'));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(be.requests.where((r) => r.startsWith('DELETE')), isEmpty);
+      expect(find.text('Ali Veli'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('DELETE hata verince satir geri gelir', (tester) async {
+      final be = full()..fail('/conversations/1', status: 500, message: 'Silinemedi');
+      await _pump(tester, build(makeSession(be)));
+      await longPress(tester, 'Ali Veli');
+      await tester.tap(find.byKey(const ValueKey('act-delete')));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.text('Sil'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(be.requests, contains('DELETE /conversations/1'));
+      expect(find.text('Ali Veli'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('sessize al: sure secimi PUT; sessizde Sesi ac DELETE', (tester) async {
+      final be = full();
+      await _pump(tester, build(makeSession(be)));
+      await longPress(tester, 'Ali Veli');
+      await tester.tap(find.byKey(const ValueKey('act-mute')));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.text('8 saat'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(be.requests, contains('PUT /conversations/1/mute'));
+      expect(be.bodies['PUT /conversations/1/mute'], {'durationMinutes': 480});
+      expect(find.byIcon(LucideIcons.bellOff), findsWidgets);
+      // Sohbet 3 zaten sessiz: Sesi aç.
+      await longPress(tester, 'Robotik Kulübü');
+      expect(find.byKey(const ValueKey('act-mute')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('act-unmute')));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(be.requests, contains('DELETE /conversations/3/mute'));
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    for (final b in Brightness.values) {
+      for (final size in kPhoneSizes) {
+        testWidgets('menu tasma yok ${b.name} ${size.width.toInt()}', (tester) async {
+          await _pump(tester, build(makeSession(full())), b: b, size: size);
+          await longPress(tester, 'Ali Veli');
+          expect(find.byKey(const ValueKey('act-delete')), findsOneWidget);
+          _noErrors(tester);
+          await tester.tapAt(const Offset(5, 5));
+          await settle(tester, const Duration(milliseconds: 300));
+          await longPress(tester, _longTitle);
+          _noErrors(tester);
+          await unmount(tester);
+        });
+      }
+    }
 
     testWidgets('suzgec cipi ve arama', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);

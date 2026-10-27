@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'chat_detail_page.dart';
+import 'contacts_match_page.dart';
 import '../../core/typography.dart';
 
 /// Yeni sohbet: kişi ara, bir kişi seç (birebir) ya da birden çok kişi seç (grup).
@@ -72,14 +73,20 @@ class _NewChatPageState extends State<NewChatPage> {
   }
 
   void _onScroll() {
-    if (_nextCursor != null && !_loadingMore && !_searching && _scroll.position.extentAfter < 300) {
+    if (_nextCursor != null &&
+        !_loadingMore &&
+        !_searching &&
+        _scroll.position.extentAfter < 300) {
       _loadMore();
     }
   }
 
   List<Map<String, dynamic>> _items(dynamic res) {
     final items = (res is Map ? res['items'] : null) as List? ?? const [];
-    return items.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    return items
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
   }
 
   int? _next(dynamic res) {
@@ -96,7 +103,8 @@ class _NewChatPageState extends State<NewChatPage> {
       _loadingMore = false;
     });
     try {
-      final res = await widget.session.api.get('/users/search?q=${Uri.encodeQueryComponent(q)}&size=20');
+      final res = await widget.session.api
+          .get('/users/search?q=${Uri.encodeQueryComponent(q)}&size=20');
       if (!mounted || my != _seq) return;
       setState(() {
         _results = _items(res);
@@ -118,13 +126,15 @@ class _NewChatPageState extends State<NewChatPage> {
     final my = _seq;
     setState(() => _loadingMore = true);
     try {
-      final res = await widget.session
-          .api
-          .get('/users/search?q=${Uri.encodeQueryComponent(_lastQuery)}&size=20&cursor=$cursor');
+      final res = await widget.session.api.get(
+          '/users/search?q=${Uri.encodeQueryComponent(_lastQuery)}&size=20&cursor=$cursor');
       if (!mounted || my != _seq) return;
       setState(() {
         final known = _results.map((u) => u['id']).toSet();
-        _results = [..._results, ..._items(res).where((u) => !known.contains(u['id']))];
+        _results = [
+          ..._results,
+          ..._items(res).where((u) => !known.contains(u['id']))
+        ];
         _nextCursor = _next(res);
         _loadingMore = false;
       });
@@ -141,8 +151,8 @@ class _NewChatPageState extends State<NewChatPage> {
       return;
     }
     if (_selected.length >= _maxMembers) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Gruba en çok 50 kişi eklenebilir.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gruba en çok 50 kişi eklenebilir.')));
       return;
     }
     setState(() {
@@ -162,7 +172,10 @@ class _NewChatPageState extends State<NewChatPage> {
         setState(() => _createError = 'Grup adı girin.');
         return;
       }
-      body = {'title': title, 'memberIds': _selected.map((u) => u['id']).toList()};
+      body = {
+        'title': title,
+        'memberIds': _selected.map((u) => u['id']).toList()
+      };
     } else {
       body = {'userId': _selected.first['id']};
     }
@@ -176,7 +189,9 @@ class _NewChatPageState extends State<NewChatPage> {
       final conv = Map<String, dynamic>.from(res as Map);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)),
+        MaterialPageRoute(
+            builder: (_) =>
+                ChatDetailPage(session: widget.session, conversation: conv)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -206,6 +221,7 @@ class _NewChatPageState extends State<NewChatPage> {
               autofocus: true,
             ),
           ),
+          ContactsEntryRow(session: widget.session),
           if (n > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -227,11 +243,13 @@ class _NewChatPageState extends State<NewChatPage> {
           if (_createError != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: Text(_createError!, style: BuType.caption.copyWith(color: t.danger)),
+              child: Text(_createError!,
+                  style: BuType.caption.copyWith(color: t.danger)),
             ),
           if (n > 0)
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 10, 20, 12 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(
+                  20, 10, 20, 12 + MediaQuery.of(context).padding.bottom),
               child: BuButton(
                 label: _isGroup ? 'Grubu oluştur' : 'Sohbet başlat',
                 busy: _busy,
@@ -287,7 +305,8 @@ class _NewChatPageState extends State<NewChatPage> {
           Container(
             width: 46,
             height: 46,
-            decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+                color: t.ink, borderRadius: BorderRadius.circular(16)),
             child: Icon(LucideIcons.users, size: 22, color: t.bg),
           ),
           const SizedBox(width: 12),
@@ -295,16 +314,19 @@ class _NewChatPageState extends State<NewChatPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Grup oluştur', style: BuType.bodyStrong.copyWith(color: t.ink)),
+                Text('Grup oluştur',
+                    style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 2),
-                Text('$n kişi seçildi', style: BuType.caption.copyWith(color: t.mut)),
+                Text('$n kişi seçildi',
+                    style: BuType.caption.copyWith(color: t.mut)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _title,
                   maxLength: 100,
                   style: BuType.body.copyWith(color: t.ink),
                   onChanged: (_) {
-                    if (_createError != null) setState(() => _createError = null);
+                    if (_createError != null)
+                      setState(() => _createError = null);
                   },
                   decoration: InputDecoration(
                     hintText: 'Grup adı',
@@ -312,12 +334,17 @@ class _NewChatPageState extends State<NewChatPage> {
                     isDense: true,
                     filled: true,
                     fillColor: t.sf2,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    enabledBorder:
-                        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    focusedBorder:
-                        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: t.pr)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: t.pr)),
                   ),
                 ),
               ],
@@ -332,13 +359,18 @@ class _NewChatPageState extends State<NewChatPage> {
 
   Widget _list(BuTokens t) {
     if (_search.text.trim().length < 2) {
-      return const EmptyView(icon: LucideIcons.search, text: 'Kişi aramak için en az 2 karakter yazın.');
+      return const EmptyView(
+          icon: LucideIcons.search,
+          text: 'Kişi aramak için en az 2 karakter yazın.');
     }
     if (_searching && _results.isEmpty) return const LoadingView();
     if (_searchError != null) {
-      return ErrorView(error: _searchError!, onRetry: () => _runSearch(_lastQuery));
+      return ErrorView(
+          error: _searchError!, onRetry: () => _runSearch(_lastQuery));
     }
-    if (_results.isEmpty) return const EmptyView(icon: LucideIcons.userX, text: 'Eşleşen kişi bulunamadı.');
+    if (_results.isEmpty)
+      return const EmptyView(
+          icon: LucideIcons.userX, text: 'Eşleşen kişi bulunamadı.');
     return RefreshIndicator(
       onRefresh: () => _runSearch(_lastQuery),
       child: ListView.builder(
@@ -351,13 +383,18 @@ class _NewChatPageState extends State<NewChatPage> {
             return Padding(
               padding: const EdgeInsets.only(top: 8, bottom: 2),
               child: Text('KİŞİLER',
-                  style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
+                  style:
+                      BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
             );
           }
           if (i > _results.length) {
             return const Padding(
               padding: EdgeInsets.all(16),
-              child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
+              child: Center(
+                  child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2.4))),
             );
           }
           return _row(t, _results[i - 1]);
@@ -375,7 +412,10 @@ class _NewChatPageState extends State<NewChatPage> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            BuAvatar(name: u['displayName']?.toString(), url: u['avatarUrl']?.toString(), size: 46),
+            BuAvatar(
+                name: u['displayName']?.toString(),
+                url: u['avatarUrl']?.toString(),
+                size: 46),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -402,7 +442,8 @@ class _NewChatPageState extends State<NewChatPage> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: on ? t.pr : t.bd, width: 2),
               ),
-              child: on ? Icon(LucideIcons.check, size: 14, color: t.onPr) : null,
+              child:
+                  on ? Icon(LucideIcons.check, size: 14, color: t.onPr) : null,
             ),
           ],
         ),

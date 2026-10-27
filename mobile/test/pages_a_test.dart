@@ -168,7 +168,6 @@ void main() {
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse@bingol.edu.tr');
       await tester.enterText(fields.at(2), 'Sifre1234');
-      await tester.enterText(fields.at(3), 'Sifre1234');
       await fillAcademic(tester);
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();
@@ -176,6 +175,47 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('/auth/register'), 1);
       expect(find.textContaining('Bir sorun oluştu'), findsOneWidget);
+      noErr(tester);
+    });
+  });
+
+  group('sifremi unuttum: minimal metin', () {
+    const old = [
+      'spam',
+      'güvenlik için',
+      '10 dakika',
+      'Adres kayıtlıysa',
+      'Hatırladınız mı',
+      'Kod doğrulandı',
+      'şifre sıfırlamayı',
+      'Yeni kod için',
+    ];
+    void noOld() {
+      for (final o in old) {
+        expect(find.textContaining(o, findRichText: true), findsNothing, reason: o);
+      }
+    }
+
+    testWidgets('tum adimlar kisa; akis e-posta -> kod -> yeni sifre calisir', (tester) async {
+      final b = newB()..on('/auth/verify-reset-code', {'resetToken': 'tok'});
+      final s = makeSession(b, signedIn: false);
+      await tester.pumpWidget(buildApp(ForgotPasswordPage(session: s)));
+      expect(find.text('Şifreni sıfırla'), findsOneWidget);
+      noOld();
+      await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
+      await tester.tap(find.text('Kod gönder'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(ResetCodePage), findsOneWidget);
+      expect(find.text('ayse@bingol.edu.tr adresine kod gönderildi.'), findsOneWidget);
+      expect(find.textContaining('Yeniden gönder (60 sn)'), findsOneWidget);
+      noOld();
+      await tester.enterText(find.byType(EditableText).first, '123456');
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(NewPasswordPage), findsOneWidget);
+      expect(find.text('Yeni şifre'), findsOneWidget);
+      expect(find.byType(TextFormField), findsOneWidget);
+      noOld();
+      await unmount(tester);
       noErr(tester);
     });
   });
@@ -231,7 +271,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('newPassword: eslesmeyen sifre reddedilir; basarida kok ekrana doner', (tester) async {
+    testWidgets('newPassword: kisa sifre reddedilir; basarida kok ekrana doner', (tester) async {
       final b = newB();
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(Builder(
@@ -246,16 +286,16 @@ void main() {
       await tester.tap(find.text('git'));
       await settle(tester, const Duration(milliseconds: 500));
       final f = find.byType(TextFormField);
-      await tester.enterText(f.at(0), 'Sifre1234');
-      await tester.enterText(f.at(1), 'Baska12345');
+      expect(f, findsOneWidget);
+      await tester.enterText(f.at(0), 'kisa');
       await tester.tap(find.text('Şifreyi güncelle'));
       await tester.pump();
-      expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
-      await tester.enterText(f.at(1), 'Sifre1234');
+      expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
+      await tester.enterText(f.at(0), 'Sifre1234');
       await tester.tap(find.text('Şifreyi güncelle'));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('git'), findsOneWidget);
-      expect(find.textContaining('Şifreniz güncellendi'), findsOneWidget);
+      expect(find.text('Şifre güncellendi.'), findsOneWidget);
       noErr(tester);
     });
 
@@ -533,7 +573,7 @@ void main() {
       'capacity': 50,
     };
     void full(FakeBackend b) {
-      b.on('/events/calendar*', [event]);
+      b.on('/events/featured', event);
       b.on('/me/summary', {'unreadNotifications': 3, 'unreadMessages': 120, 'communities': 2, 'upcomingEvents': 1});
       b.on('/menu/today', {
         'date': '2026-10-26',
@@ -562,7 +602,7 @@ void main() {
       b.fail('/app/info');
       b.fail('/menu/today');
       b.fail('/me/summary');
-      b.fail('/events/calendar*');
+      b.fail('/events/featured');
     }, settleFor: const Duration(seconds: 2));
 
     testWidgets('yukleniyor -> dolu', (tester) async {
@@ -583,14 +623,14 @@ void main() {
         ..fail('/app/info')
         ..fail('/menu/today')
         ..fail('/me/summary')
-        ..fail('/events/calendar*');
+        ..fail('/events/featured');
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Yeniden dene'), findsOneWidget);
       b.reset('/app/info');
       b.reset('/menu/today');
       b.reset('/me/summary');
-      b.reset('/events/calendar*');
+      b.reset('/events/featured');
       await tester.tap(find.text('Yeniden dene'));
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Yeniden dene'), findsNothing);

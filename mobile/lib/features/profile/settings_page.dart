@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../chat/contacts_match_page.dart';
 import '../support/support_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
@@ -245,6 +246,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         label: 'E-postamı diğerlerine göster',
                         value: _showEmail,
                         onChanged: _loaded ? _toggleEmail : null),
+                    BuMenuRow(
+                        icon: LucideIcons.contact,
+                        label: 'Rehberden kişi bul',
+                        onTap: () => _push(ContactsMatchPage(session: widget.session))),
                     BuMenuRow(
                         icon: LucideIcons.shield,
                         label: 'Gizlilik ve veriler',

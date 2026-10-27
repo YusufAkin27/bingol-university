@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../core/permissions/ensure_permission.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../core/typography.dart';
@@ -21,6 +22,26 @@ class _QrScanPageState extends State<QrScanPage> {
   final _manual = TextEditingController();
   bool _done = false;
   bool _torch = false;
+
+  /// Kamera izni: null = denetleniyor, true = tarayıcı açılır, false = elle girişe düşülür.
+  bool? _cam;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureCamera());
+  }
+
+  /// Gerekçe + sistem istemi `ensurePermission` ile; tarayıcının kendi istemi çift çıkmaz (izin önceden alınır).
+  Future<void> _ensureCamera() async {
+    if (!mounted) return;
+    final ok = await ensurePermission(
+      context,
+      AppPermission.camera,
+      rationale: 'QR kodu okutabilmek için kameraya erişmemiz gerekir.',
+    );
+    if (mounted) setState(() => _cam = ok);
+  }
 
   @override
   void dispose() {
@@ -89,6 +110,29 @@ class _QrScanPageState extends State<QrScanPage> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
+                    if (_cam == null)
+                      Container(color: t.sf2, alignment: Alignment.center, child: const CircularProgressIndicator())
+                    else if (_cam == false)
+                      Container(
+                        color: t.sf2,
+                        alignment: Alignment.center,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _manualEntry(context,
+                                  note: 'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı '
+                                      'yeniden deneyebilirsiniz.'),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                child: BuButton(
+                                    label: 'Kamera izni ver', kind: BuButtonKind.outline, onPressed: _ensureCamera),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
                     MobileScanner(
                       controller: _controller,
                       onDetect: _onDetect,

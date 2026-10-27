@@ -353,6 +353,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (didPop) return;
         final nav = Navigator.of(context);
         if (!_dirty || await _confirmDiscard()) {
+          if (!mounted) return;
           _saved = true;
           nav.pop(_avatarChanged);
         }

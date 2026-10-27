@@ -28,26 +28,12 @@ class AcademicFields extends StatelessWidget {
   /// Sınıf kimliği (PREP, 1..6, MASTER, PHD).
   final String? grade;
   final void Function(String? faculty, String? department, String? grade) onChanged;
+
+  /// Eski imza uyumu için korunur; fakülte artık seçilmediğinden gösterilmez.
   final String? facultyError;
   final String? departmentError;
   final String? gradeError;
   final bool enabled;
-
-  Future<void> _pickFaculty(BuildContext context) async {
-    if (!_openable(context)) return;
-    final r = await Navigator.push<AcademicFaculty>(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => _FacultyPicker(catalog: catalog, selected: faculty),
-      ),
-    );
-    if (r == null) return;
-    if (r.name == faculty) return;
-    // Seçilen fakülteyle uyuşmayan bölüm temizlenir.
-    final d = catalog.departmentByName(department, faculty: r);
-    onChanged(r.name, d?.name, grade);
-  }
 
   Future<void> _pickDepartment(BuildContext context) async {
     if (!_openable(context)) return;
@@ -57,7 +43,7 @@ class AcademicFields extends StatelessWidget {
         fullscreenDialog: true,
         builder: (_) => _DepartmentPicker(
           catalog: catalog,
-          faculty: catalog.facultyByName(faculty),
+          selectedFaculty: faculty,
           selected: department,
         ),
       ),
@@ -88,15 +74,6 @@ class AcademicFields extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _FieldLabel('Fakülte'),
-            _SelectBox(
-              text: faculty,
-              placeholder: loading ? 'Yükleniyor…' : 'Fakülte seçin',
-              error: facultyError != null,
-              onTap: enabled ? () => _pickFaculty(context) : null,
-            ),
-            if (facultyError != null) _FieldError(facultyError!),
-            const SizedBox(height: 14),
             const _FieldLabel('Bölüm'),
             _SelectBox(
               text: department,
@@ -105,12 +82,14 @@ class AcademicFields extends StatelessWidget {
               onTap: enabled ? () => _pickDepartment(context) : null,
             ),
             if (departmentError != null) _FieldError(departmentError!),
+            // Fakülte seçilemez: bölümden otomatik gelir (dokunulamaz bilgi satırı).
+            if ((faculty ?? '').isNotEmpty) _FacultyInfo(faculty!),
             if (failed) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: Text('Fakülte ve bölüm listesi yüklenemedi.',
+                    child: Text('Bölüm listesi yüklenemedi.',
                         style: BuType.caption.copyWith(color: t.danger)),
                   ),
                   TextButton(onPressed: catalog.retry, child: const Text('Yeniden dene')),
@@ -219,7 +198,6 @@ class _SearchScaffold extends StatelessWidget {
     required this.onChanged,
     required this.itemCount,
     required this.itemBuilder,
-    this.header,
   });
 
   final String title;
@@ -227,7 +205,6 @@ class _SearchScaffold extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
-  final Widget? header;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +218,6 @@ class _SearchScaffold extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
             child: BuSearchField(hint: 'Ara', controller: controller, onChanged: onChanged),
           ),
-          if (header != null) header!,
           Expanded(
             child: itemCount == 0
                 ? Center(child: Text('Sonuç bulunamadı.', style: BuType.body.copyWith(color: t.mut)))
@@ -297,52 +273,32 @@ class _PickRow extends StatelessWidget {
   }
 }
 
-class _FacultyPicker extends StatefulWidget {
-  const _FacultyPicker({required this.catalog, required this.selected});
+class _FacultyInfo extends StatelessWidget {
+  const _FacultyInfo(this.name);
 
-  final AcademicCatalog catalog;
-  final String? selected;
-
-  @override
-  State<_FacultyPicker> createState() => _FacultyPickerState();
-}
-
-class _FacultyPickerState extends State<_FacultyPicker> {
-  final _q = TextEditingController();
-
-  @override
-  void dispose() {
-    _q.dispose();
-    super.dispose();
-  }
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    final items = widget.catalog.searchFaculties(_q.text);
-    final sel = widget.selected == null ? null : foldTr(widget.selected!);
-    return _SearchScaffold(
-      title: 'Fakülte',
-      controller: _q,
-      onChanged: (_) => setState(() {}),
-      itemCount: items.length,
-      itemBuilder: (_, i) {
-        final f = items[i];
-        return _PickRow(
-          title: f.name,
-          subtitle: '${f.departments.length} bölüm',
-          selected: sel == foldTr(f.name),
-          onTap: () => Navigator.pop(context, f),
-        );
-      },
+    final t = context.bu;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+      child: Row(
+        children: [
+          Icon(LucideIcons.building2, size: 14, color: t.mut),
+          const SizedBox(width: 6),
+          Expanded(child: Text(name, style: BuType.caption.copyWith(color: t.mut))),
+        ],
+      ),
     );
   }
 }
 
 class _DepartmentPicker extends StatefulWidget {
-  const _DepartmentPicker({required this.catalog, required this.faculty, required this.selected});
+  const _DepartmentPicker({required this.catalog, required this.selectedFaculty, required this.selected});
 
   final AcademicCatalog catalog;
-  final AcademicFaculty? faculty;
+  final String? selectedFaculty;
   final String? selected;
 
   @override
@@ -351,7 +307,6 @@ class _DepartmentPicker extends StatefulWidget {
 
 class _DepartmentPickerState extends State<_DepartmentPicker> {
   final _q = TextEditingController();
-  late bool _all = widget.faculty == null;
 
   @override
   void dispose() {
@@ -361,42 +316,21 @@ class _DepartmentPickerState extends State<_DepartmentPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final scoped = widget.faculty != null && !_all;
-    final items = widget.catalog.searchDepartments(_q.text, faculty: scoped ? widget.faculty : null);
+    // Tüm bölümler (her fakültedeki ayrı satır); yazdıkça aksan duyarsız süzülür.
+    final items = widget.catalog.searchDepartments(_q.text);
     final sel = widget.selected == null ? null : foldTr(widget.selected!);
+    final selF = widget.selectedFaculty == null ? null : foldTr(widget.selectedFaculty!);
     return _SearchScaffold(
       title: 'Bölüm',
       controller: _q,
       onChanged: (_) => setState(() {}),
       itemCount: items.length,
-      header: widget.faculty == null
-          ? null
-          : Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text('Tüm bölümlerde ara', style: BuType.label.copyWith(color: t.mut)),
-                  ),
-                  Switch(
-                    value: _all,
-                    onChanged: (v) => setState(() => _all = v),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: t.pr,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: t.sf2,
-                    trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
-                  ),
-                ],
-              ),
-            ),
       itemBuilder: (_, i) {
         final d = items[i];
         return _PickRow(
           title: d.name,
-          subtitle: scoped ? null : d.faculty.name,
-          selected: sel == foldTr(d.name),
+          subtitle: d.faculty.name,
+          selected: sel == foldTr(d.name) && (selF == null || selF == foldTr(d.faculty.name)),
           onTap: () => Navigator.pop(context, d),
         );
       },

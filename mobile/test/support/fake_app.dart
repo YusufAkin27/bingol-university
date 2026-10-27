@@ -48,6 +48,12 @@ class FakeBackend {
     _routes[path] = _Reply(status, json, headers ?? const {});
   }
 
+  /// Yol için ikili yanıt. [once] true ise yalnız İLK istek 200 + bayt alır, sonrakiler 410
+  /// `MEDIA_VIEW_ONCE_EXPIRED` döner (tek gösterimlik görsel).
+  void onBytes(String path, List<int> bytes, {bool once = false}) {
+    _routes[path] = _Reply(200, null, const {'content-type': 'image/png'}, raw: bytes, once: once);
+  }
+
   /// Yol için hata yanıtı: `{code,message}`.
   void fail(String path, {int status = 500, String code = 'SERVER_ERROR', String message = ''}) {
     _routes[path] = _Reply(status, {'code': code, 'message': message}, const {});
@@ -65,15 +71,23 @@ class FakeBackend {
     final path = req.url.path.startsWith('/api') ? req.url.path.substring(4) : req.url.path;
     final full = req.url.hasQuery ? '$path?${req.url.query}' : path;
     requests.add('${req.method} $full');
-    if (req.body.isNotEmpty) {
-      try {
-        bodies['${req.method} $path'] = jsonDecode(req.body);
-      } catch (_) {}
-    }
+    try {
+      // Multipart (ikili) gövdeler çözülemeyebilir: yalnız JSON gövdeler kaydedilir.
+      if (req.body.isNotEmpty) bodies['${req.method} $path'] = jsonDecode(req.body);
+    } catch (_) {}
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (offline) throw http.ClientException('offline');
     final r = _lookup(req.method, path, full);
     if (r.status == -1) throw http.ClientException('network down');
+    if (r.raw != null) {
+      if (r.once && r.served) {
+        return http.Response.bytes(
+            utf8.encode(jsonEncode({'code': 'MEDIA_VIEW_ONCE_EXPIRED', 'message': 'Süresi doldu.'})), 410,
+            headers: {'content-type': 'application/json; charset=utf-8'});
+      }
+      r.served = true;
+      return http.Response.bytes(r.raw!, 200, headers: {'content-type': 'image/png'});
+    }
     return http.Response.bytes(utf8.encode(jsonEncode(r.json)), r.status,
         headers: {'content-type': 'application/json; charset=utf-8', ...r.headers});
   });
@@ -89,6 +103,8 @@ class FakeBackend {
   }
 
   static _Reply _defaults(String path) {
+    // Öne çıkan etkinlik yoksa sunucu 204 döner.
+    if (path == '/events/featured') return _Reply(204, null, const {});
     Object? ok(Object? j) => j;
     final j = switch (path) {
       '/me/summary' => ok({
@@ -136,7 +152,10 @@ class FakeBackend {
 }
 
 class _Reply {
-  _Reply(this.status, this.json, this.headers);
+  _Reply(this.status, this.json, this.headers, {this.raw, this.once = false});
+  final List<int>? raw;
+  final bool once;
+  bool served = false;
   final int status;
   final Object? json;
   final Map<String, String> headers;
@@ -326,11 +345,8 @@ Future<void> pickFromSearch(WidgetTester tester, String query, String rowText) a
   await tester.pump(const Duration(milliseconds: 400));
   await tester.pump(const Duration(milliseconds: 400));
 }
-/// Kayıt formunda fakülte, bölüm ve sınıfı arayüzden seçer.
+/// Kayıt formunda bölümü (fakülte otomatik gelir) ve sınıfı arayüzden seçer.
 Future<void> fillAcademic(WidgetTester tester) async {
-  await tester.ensureVisible(find.text('Fakülte seçin'));
-  await tester.tap(find.text('Fakülte seçin'));
-  await pickFromSearch(tester, 'muh', 'Mühendislik Fakültesi');
   await tester.ensureVisible(find.text('Bölüm seçin'));
   await tester.tap(find.text('Bölüm seçin'));
   await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
@@ -8,13 +9,19 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'chat_detail_page.dart';
+import 'chat_media.dart';
+import 'conversation_actions.dart';
+import 'message_bubble.dart' show OnceBadge;
 import 'new_chat_page.dart';
 import '../../core/typography.dart';
 
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
 class ChatTab extends StatefulWidget {
-  const ChatTab({super.key, required this.session, @visibleForTesting this.connectRealtime = true});
+  const ChatTab(
+      {super.key,
+      required this.session,
+      @visibleForTesting this.connectRealtime = true});
 
   final Session session;
 
@@ -42,6 +49,7 @@ class _ChatTabState extends State<ChatTab> {
   bool _loadingMore = false;
   Object? _error;
   int _seq = 0;
+  final _removing = <int>{};
 
   @override
   void initState() {
@@ -70,12 +78,16 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   void _onScroll() {
-    if (_cursor != null && !_loadingMore && !_loading && _scroll.position.extentAfter < 300) {
+    if (_cursor != null &&
+        !_loadingMore &&
+        !_loading &&
+        _scroll.position.extentAfter < 300) {
       _loadMore();
     }
   }
 
-  String get _path => '/conversations?size=30${_archived ? '&archived=true' : ''}';
+  String get _path =>
+      '/conversations?size=30${_archived ? '&archived=true' : ''}';
 
   Future<void> _load({bool silent = false}) async {
     final my = ++_seq;
@@ -145,8 +157,11 @@ class _ChatTabState extends State<ChatTab> {
   Future<void> _refreshBadge() async {
     try {
       final res = await widget.session.api.get('/conversations/unread-count');
-      final total = res is Map ? res['total'] : null; // UnreadSummary: total (sessiz olmayanlar)
-      if (total is num && mounted) widget.session.badges.chat.value = total.toInt();
+      final total = res is Map
+          ? res['total']
+          : null; // UnreadSummary: total (sessiz olmayanlar)
+      if (total is num && mounted)
+        widget.session.badges.chat.value = total.toInt();
     } catch (_) {
       // Rozet yedek olarak eldeki listeden hesaplanır.
       if (!_archived && mounted) _syncBadgeLocal();
@@ -184,7 +199,8 @@ class _ChatTabState extends State<ChatTab> {
     final mine = (m['senderId'] as num?)?.toInt() == widget.session.userId;
     final row = Map<String, dynamic>.from(_items[i]);
     row['lastMessage'] = m;
-    if (!mine) row['unreadCount'] = ((row['unreadCount'] as num?)?.toInt() ?? 0) + 1;
+    if (!mine)
+      row['unreadCount'] = ((row['unreadCount'] as num?)?.toInt() ?? 0) + 1;
     setState(() {
       _items
         ..removeAt(i)
@@ -195,7 +211,8 @@ class _ChatTabState extends State<ChatTab> {
 
   void _onRead(ReadReceipt r) {
     if (!mounted || r.userId != widget.session.userId) return;
-    final i = _items.indexWhere((c) => (c['id'] as num?)?.toInt() == r.conversationId);
+    final i = _items
+        .indexWhere((c) => (c['id'] as num?)?.toInt() == r.conversationId);
     if (i < 0) return;
     setState(() => _items[i] = {..._items[i], 'unreadCount': 0});
     _scheduleBadge();
@@ -204,14 +221,19 @@ class _ChatTabState extends State<ChatTab> {
   // ---- gezinme ----
 
   Future<void> _openNew() async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => NewChatPage(session: widget.session)));
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => NewChatPage(session: widget.session)));
     if (mounted) _load(silent: true);
   }
 
   Future<void> _openChat(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ChatDetailPage(session: widget.session, conversation: c)),
+      MaterialPageRoute(
+          builder: (_) =>
+              ChatDetailPage(session: widget.session, conversation: c)),
     );
     if (mounted) _load(silent: true);
   }
@@ -240,101 +262,150 @@ class _ChatTabState extends State<ChatTab> {
     setState(() => _items[i] = {..._items[i], ...updated});
   }
 
-  Future<void> _mute(Map<String, dynamic> c, {int? minutes, bool forever = false}) async {
+  /// Satırı iyimser günceller; hata olursa eski haline döndürür.
+  Map<String, dynamic>? _patchRow(int id, Map<String, dynamic> patch) {
+    final i = _items.indexWhere((c) => c['id'] == id);
+    if (i < 0 || !mounted) return null;
+    final old = _items[i];
+    setState(() => _items[i] = {...old, ...patch});
+    return old;
+  }
+
+  void _restoreRow(int id, Map<String, dynamic>? old) {
+    if (old == null || !mounted) return;
+    final i = _items.indexWhere((c) => c['id'] == id);
+    if (i >= 0) setState(() => _items[i] = old);
+  }
+
+  Future<void> _mute(Map<String, dynamic> c,
+      {int? minutes, bool forever = false}) async {
+    final id = (c['id'] as num).toInt();
+    final old = _patchRow(id, {'muted': true, 'mutedForever': forever});
     try {
       final res = await widget.session.api.put(
-        '/conversations/${c['id']}/mute',
+        '/conversations/$id/mute',
         forever ? {'forever': true} : {'durationMinutes': minutes},
       );
-      if (res is Map) _replaceRow(Map<String, dynamic>.from(res));
+      if (res is Map && res.isNotEmpty) {
+        _replaceRow({...Map<String, dynamic>.from(res), 'muted': true});
+      }
       _scheduleBadge();
     } catch (e) {
+      _restoreRow(id, old);
       _toast(errorText(e));
     }
   }
 
   Future<void> _unmute(Map<String, dynamic> c) async {
+    final id = (c['id'] as num).toInt();
+    final old = _patchRow(
+        id, {'muted': false, 'mutedForever': false, 'mutedUntil': null});
     try {
-      final res = await widget.session.api.delete('/conversations/${c['id']}/mute');
-      if (res is Map) {
-        _replaceRow(Map<String, dynamic>.from(res));
-      } else {
-        _replaceRow({'id': c['id'], 'muted': false, 'mutedForever': false});
-      }
+      await widget.session.api.delete('/conversations/$id/mute');
       _scheduleBadge();
     } catch (e) {
+      _restoreRow(id, old);
       _toast(errorText(e));
     }
   }
 
   Future<void> _toggleArchive(Map<String, dynamic> c) async {
     final archive = !_archived;
+    final i = _items.indexWhere((x) => x['id'] == c['id']);
+    if (i < 0) return;
+    final row = _items[i];
+    setState(() => _items.removeAt(i)); // iyimser: satır hemen kalkar
     try {
       if (archive) {
-        await widget.session.api.put('/conversations/${c['id']}/archive', {'keepArchived': false});
+        await widget.session.api
+            .put('/conversations/${c['id']}/archive', {'keepArchived': false});
       } else {
         await widget.session.api.delete('/conversations/${c['id']}/archive');
       }
-      if (!mounted) return;
-      setState(() => _items.removeWhere((x) => x['id'] == c['id']));
+      _scheduleBadge();
       _toast(archive ? 'Sohbet arşivlendi' : 'Sohbet arşivden çıkarıldı');
     } catch (e) {
+      if (mounted) {
+        setState(() => _items.insert(i.clamp(0, _items.length), row));
+      }
       _toast(errorText(e));
     }
   }
 
-  Future<void> _showActions(Map<String, dynamic> c) async {
-    final muted = c['muted'] == true;
-    final t = context.bu;
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: t.sf,
-      showDragHandle: true,
-      builder: (ctx) {
-        Widget tile(IconData icon, String label, VoidCallback run) => ListTile(
-              leading: Icon(icon, color: t.ink),
-              title: Text(label, style: TextStyle(color: t.ink, fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                run();
-              },
-            );
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(_title(c),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.heading.copyWith(color: t.ink)),
-                ),
-              ),
-              if (muted)
-                tile(LucideIcons.bell, 'Sessizden çıkar', () => _unmute(c))
-              else ...[
-                tile(LucideIcons.bellOff, '8 saat sessize al', () => _mute(c, minutes: 480)),
-                tile(LucideIcons.bellOff, '1 hafta sessize al', () => _mute(c, minutes: 10080)),
-                tile(LucideIcons.bellOff, 'Süresiz sessize al', () => _mute(c, forever: true)),
-              ],
-              tile(LucideIcons.archive, _archived ? 'Arşivden çıkar' : 'Arşivle', () => _toggleArchive(c)),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
+  Future<void> _delete(Map<String, dynamic> c) async {
+    final id = (c['id'] as num).toInt();
+    final group = _type(c) == 'GROUP';
+    if (!await confirmDeleteConversation(context, group: group)) return;
+    if (!mounted) return;
+    setState(() => _removing.add(id)); // satır animasyonla daralır
+    try {
+      await widget.session.api.delete('/conversations/$id');
+      if (!mounted) return;
+      await Future<void>.delayed(const Duration(milliseconds: 240));
+      if (!mounted) return;
+      setState(() {
+        _items.removeWhere((x) => x['id'] == id);
+        _removing.remove(id);
+      });
+      _syncBadgeLocal();
+      _scheduleBadge();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _removing.remove(id)); // geri koy
+      _toast(errorText(e));
+    }
   }
 
-  static String _type(Map<String, dynamic> c) => (c['type'] as String?)?.toUpperCase() ?? 'DIRECT';
+  Future<void> _showActions(Map<String, dynamic> c, BuildContext rowCtx) async {
+    final box = rowCtx.findRenderObject();
+    if (box is! RenderBox || !box.attached) return;
+    final anchor = box.localToGlobal(Offset.zero) & box.size;
+    final t = context.bu;
+    final muted = c['muted'] == true || c['mutedForever'] == true;
+    final type = _type(c);
+    final choice = await showConversationMenu(
+      context,
+      anchor: anchor,
+      preview: ColoredBox(
+        color: t.bg,
+        child: _ConversationRow(
+            title: _title(c),
+            conversation: c,
+            onTap: () {},
+            onLongPress: () {}),
+      ),
+      muted: muted,
+      archived: _archived,
+      canDelete: type != 'CLUB' && type != 'EVENT',
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case 'mute':
+        final pick = await pickMuteDuration(context);
+        if (pick == null || !mounted) return;
+        if (pick == 'forever') {
+          await _mute(c, forever: true);
+        } else {
+          await _mute(c, minutes: int.parse(pick));
+        }
+      case 'unmute':
+        await _unmute(c);
+      case 'archive' || 'unarchive':
+        await _toggleArchive(c);
+      case 'delete':
+        await _delete(c);
+    }
+  }
+
+  static String _type(Map<String, dynamic> c) =>
+      (c['type'] as String?)?.toUpperCase() ?? 'DIRECT';
 
   static String _title(Map<String, dynamic> c) {
     final type = _type(c);
     final peer = c['peer'];
-    if (type == 'DIRECT' && peer is Map && (peer['displayName'] as String?)?.isNotEmpty == true) {
+    if (type == 'DIRECT' &&
+        peer is Map &&
+        (peer['displayName'] as String?)?.isNotEmpty == true) {
       return peer['displayName'] as String;
     }
     final t = c['title'] as String?;
@@ -361,53 +432,59 @@ class _ChatTabState extends State<ChatTab> {
     final t = context.bu;
     return Scaffold(
       backgroundColor: t.bg,
-      body: Column(
-        children: [
-          if (_archived)
-            BuHeader(title: 'Arşiv', onBack: () => _setArchiveView(false))
-          else
-            BuHeader(
-              title: 'Sohbet',
-              actions: [BuIconButton(icon: LucideIcons.plus, filled: true, tooltip: 'Yeni sohbet', onTap: _openNew)],
+      body: RefreshIndicator(
+        color: t.pr,
+        onRefresh: () => _load(silent: true),
+        child: CustomScrollView(
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Başlık kaydıkça gizlenir; arama + segment aşağıda sabit kalır.
+            SliverToBoxAdapter(
+              child: _archived
+                  ? BuHeader(
+                      title: 'Arşiv', onBack: () => _setArchiveView(false))
+                  : BuHeader(
+                      title: 'Sohbet',
+                      actions: [
+                        BuIconButton(
+                            icon: LucideIcons.plus,
+                            filled: true,
+                            tooltip: 'Yeni sohbet',
+                            onTap: _openNew)
+                      ],
+                    ),
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: BuSearchField(hint: 'Kişi veya grup ara', onChanged: (v) => setState(() => _query = v)),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 14),
-            child: SizedBox(
-              height: 36,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                itemCount: _filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => BuChip(
-                  label: _filters[i],
-                  selected: i == _filter,
-                  onTap: () => setState(() => _filter = i),
-                ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _PinnedFilterDelegate(
+                filters: _filters,
+                selected: _filter,
+                onQuery: (v) => setState(() => _query = v),
+                onSelect: (i) => setState(() => _filter = i),
               ),
             ),
-          ),
-          Expanded(child: _body(t)),
-        ],
+            ..._bodySlivers(t),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _body(BuTokens t) {
-    if (_loading) return const _SkeletonList();
+  List<Widget> _bodySlivers(BuTokens t) {
+    if (_loading) {
+      return [const SliverToBoxAdapter(child: _SkeletonList())];
+    }
     if (_error != null && _items.isEmpty) {
-      return ErrorView(error: _error!, onRetry: _load);
+      return [
+        SliverFillRemaining(
+            hasScrollBody: false,
+            child: ErrorView(error: _error!, onRetry: _load)),
+      ];
     }
     final list = _visible;
-    return RefreshIndicator(
-      color: t.pr,
-      onRefresh: () => _load(silent: true),
-      child: list.isEmpty ? _empty(t) : _list(list),
-    );
+    if (list.isEmpty) return [_empty(t)];
+    return [_list(list)];
   }
 
   Widget _archiveEntry(BuTokens t) {
@@ -421,7 +498,8 @@ class _ChatTabState extends State<ChatTab> {
             Icon(LucideIcons.archive, size: 18, color: t.mut),
             const SizedBox(width: 12),
             Expanded(
-              child: Text('Arşiv', style: BuType.bodyStrong.copyWith(color: t.mut)),
+              child: Text('Arşiv',
+                  style: BuType.bodyStrong.copyWith(color: t.mut)),
             ),
             Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
           ],
@@ -437,29 +515,34 @@ class _ChatTabState extends State<ChatTab> {
         : (_items.isNotEmpty && searching)
             ? 'Eşleşen sohbet bulunamadı'
             : 'Henüz sohbetiniz yok';
-    return ListView(
-      controller: _scroll,
-      physics: const AlwaysScrollableScrollPhysics(),
+    return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
-      children: [
-        if (!_archived) _archiveEntry(t),
-        const SizedBox(height: 32),
-        EmptyView(icon: LucideIcons.messageCircle, text: text),
-        if (_items.isEmpty && !_archived)
-          Center(
-            child: BuButton(label: 'Yeni sohbet', icon: LucideIcons.plus, compact: true, onPressed: _openNew),
-          ),
-      ],
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            if (!_archived) _archiveEntry(t),
+            const SizedBox(height: 32),
+            EmptyView(icon: LucideIcons.messageCircle, text: text),
+            if (_items.isEmpty && !_archived)
+              Center(
+                child: BuButton(
+                    label: 'Yeni sohbet',
+                    icon: LucideIcons.plus,
+                    compact: true,
+                    onPressed: _openNew),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _list(List<Map<String, dynamic>> list) {
     final t = context.bu;
     final head = _archived ? 0 : 1;
-    return ListView.builder(
-      controller: _scroll,
-      physics: const AlwaysScrollableScrollPhysics(),
+    return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
+      sliver: SliverList.builder(
       itemCount: head + list.length + (_loadingMore ? 1 : 0),
       itemBuilder: (_, i) {
         if (i < head) return _archiveEntry(t);
@@ -467,11 +550,15 @@ class _ChatTabState extends State<ChatTab> {
         if (k >= list.length) {
           return const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
+            child: Center(
+                child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2.4))),
           );
         }
         final c = list[k];
-        return Dismissible(
+        final row = Dismissible(
           key: ValueKey('conv-${c['id']}'),
           direction: DismissDirection.endToStart,
           confirmDismiss: (_) async {
@@ -491,14 +578,115 @@ class _ChatTabState extends State<ChatTab> {
               ],
             ),
           ),
-          child: _ConversationRow(
-            title: _title(c),
-            conversation: c,
-            onTap: () => _openChat(c),
-            onLongPress: () => _showActions(c),
+          child: Builder(
+            builder: (rowCtx) => _ConversationRow(
+              title: _title(c),
+              conversation: c,
+              onTap: () => _openChat(c),
+              onLongPress: () {
+                HapticFeedback.selectionClick();
+                _showActions(c, rowCtx);
+              },
+            ),
+          ),
+        );
+        final removing = _removing.contains((c['id'] as num?)?.toInt());
+        return ClipRect(
+          key: ValueKey('wrap-${c['id']}'),
+          child: IgnorePointer(
+            ignoring: removing,
+            child: AnimatedAlign(
+              alignment: Alignment.topCenter,
+              heightFactor: removing ? 0 : 1,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              child: row,
+            ),
           ),
         );
       },
+      ),
+    );
+  }
+}
+
+/// Sabit (pinned) arama alanı + 4 parçalı eşit genişlikli segment.
+class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
+  _PinnedFilterDelegate({
+    required this.filters,
+    required this.selected,
+    required this.onQuery,
+    required this.onSelect,
+  });
+
+  final List<String> filters;
+  final int selected;
+  final ValueChanged<String> onQuery;
+  final ValueChanged<int> onSelect;
+
+  static const double _height = 126;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  bool shouldRebuild(covariant _PinnedFilterDelegate old) =>
+      old.selected != selected || old.filters != filters;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final t = context.bu;
+    return Container(
+      height: _height,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      decoration: BoxDecoration(
+        color: t.bg,
+        border: Border(bottom: BorderSide(color: t.bd)),
+      ),
+      child: Column(
+        children: [
+          BuSearchField(hint: 'Kişi veya grup ara', onChanged: onQuery),
+          const SizedBox(height: 10),
+          Container(
+            key: const ValueKey('chat-segment'),
+            height: 40,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+                color: t.sf2, borderRadius: BorderRadius.circular(20)),
+            child: Row(
+              children: [
+                for (var i = 0; i < filters.length; i++)
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onSelect(i),
+                      child: Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: i == selected ? t.ink : Colors.transparent,
+                          borderRadius: BorderRadius.circular(17),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(filters[i],
+                              maxLines: 1,
+                              softWrap: false,
+                              style: BuType.label.copyWith(
+                                  color: i == selected ? t.bg : t.mut)),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -513,28 +701,41 @@ class _SkeletonList extends StatelessWidget {
     Widget bar(double w, double h) => Container(
           width: w,
           height: h,
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(6)),
+          decoration: BoxDecoration(
+              color: t.sf2, borderRadius: BorderRadius.circular(6)),
         );
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      itemCount: 7,
-      itemBuilder: (_, __) => Padding(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Column(
+        children: List.generate(7, (_) => _skeletonRow(t, bar)),
+      ),
+    );
+  }
+
+  Widget _skeletonRow(BuTokens t, Widget Function(double, double) bar) {
+    return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Container(width: 52, height: 52, decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle)),
+            Container(
+                width: 52,
+                height: 52,
+                decoration:
+                    BoxDecoration(color: t.sf2, shape: BoxShape.circle)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [bar(140, 14), const SizedBox(height: 8), bar(220, 12)],
+                children: [
+                  bar(140, 14),
+                  const SizedBox(height: 8),
+                  bar(220, 12)
+                ],
               ),
             ),
             bar(28, 10),
           ],
         ),
-      ),
     );
   }
 }
@@ -561,9 +762,11 @@ class _ConversationRow extends StatelessWidget {
     final unread = (conversation['unreadCount'] as num?)?.toInt() ?? 0;
     final muted = conversation['muted'] == true;
 
-    final tag = switch (type) { 'CLUB' => 'Kulüp', 'EVENT' => 'Etkinlik', _ => null };
+    final tag =
+        switch (type) { 'CLUB' => 'Kulüp', 'EVENT' => 'Etkinlik', _ => null };
     final isDirect = type == 'DIRECT';
-    final avatarUrl = isDirect && peer is Map ? peer['avatarUrl'] as String? : null;
+    final avatarUrl =
+        isDirect && peer is Map ? peer['avatarUrl'] as String? : null;
 
     Widget avatar;
     if (type == 'EVENT') {
@@ -571,28 +774,43 @@ class _ConversationRow extends StatelessWidget {
         width: 52,
         height: 52,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(18)),
+        decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
         child: Text(initialsOf(title),
             style: BuType.heading.copyWith(color: t.onPr)),
       );
     } else {
-      avatar = BuAvatar(name: title, url: avatarUrl, size: 52, square: !isDirect, dark: !isDirect);
+      avatar = BuAvatar(
+          name: title, url: avatarUrl, size: 52, dark: !isDirect);
     }
 
     String preview = '';
+    var once = false;
     String? when;
+    String? status;
     if (last is Map) {
+      final s = last['status'];
+      if (s is String) status = s.toUpperCase();
       final removed = last['removed'] == true || last['deleted'] == true;
       preview = removed ? 'Mesaj silindi' : _preview(last);
+      once = !removed && preview == _onceText;
       when = last['createdAt'] as String?;
     }
+
+    final tick = switch (status) {
+      'SENT' => (LucideIcons.check, t.mut),
+      'DELIVERED' => (LucideIcons.checkCheck, t.mut),
+      'READ' => (LucideIcons.checkCheck, t.pr),
+      _ => null,
+    };
 
     return Material(
       color: t.bg,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: t.bd, width: 0.5))),
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
@@ -610,7 +828,10 @@ class _ConversationRow extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: BuType.bodyStrong.copyWith(color: t.ink)),
                         ),
-                        if (tag != null) ...[const SizedBox(width: 6), BuBadge(tag, soft: true)],
+                        if (tag != null) ...[
+                          const SizedBox(width: 6),
+                          BuBadge(tag, soft: true)
+                        ],
                         if (muted) ...[
                           const SizedBox(width: 6),
                           Icon(LucideIcons.bellOff, size: 13, color: t.mut),
@@ -618,10 +839,22 @@ class _ConversationRow extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(preview,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.label.copyWith(color: unread > 0 && !muted ? t.ink : t.mut)),
+                    Row(children: [
+                      if (tick != null) ...[
+                        Icon(tick.$1, size: 15, color: tick.$2),
+                        const SizedBox(width: 4),
+                      ],
+                      if (once) ...[
+                        OnceBadge(color: unread > 0 && !muted ? t.ink : t.mut, size: 16),
+                        const SizedBox(width: 6),
+                      ],
+                      Expanded(
+                        child: Text(preview,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BuType.caption.copyWith(color: unread > 0 && !muted ? t.ink : t.mut)),
+                      ),
+                    ]),
                   ],
                 ),
               ),
@@ -629,7 +862,8 @@ class _ConversationRow extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(_stamp(when), style: BuType.micro.copyWith(color: t.mut)),
+                  Text(_stamp(when),
+                      style: BuType.micro.copyWith(color: t.mut)),
                   if (unread > 0)
                     Container(
                       margin: const EdgeInsets.only(top: 6),
@@ -637,9 +871,12 @@ class _ConversationRow extends StatelessWidget {
                       height: 20,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: muted ? t.mut : t.pr, borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(
+                          color: muted ? t.mut : t.pr,
+                          borderRadius: BorderRadius.circular(10)),
                       child: Text(unread > 99 ? '99+' : '$unread',
-                          style: BuType.micro.copyWith(color: muted ? t.bg : t.onPr)),
+                          style: BuType.micro
+                              .copyWith(color: muted ? t.bg : t.onPr)),
                     ),
                 ],
               ),
@@ -650,11 +887,13 @@ class _ConversationRow extends StatelessWidget {
     );
   }
 
+  static const _onceText = 'Fotoğraf (tek gösterimlik)';
+
   static String _preview(Map last) {
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) return text.replaceAll(RegExp(r'\s+'), ' ');
     final att = last['attachments'];
-    if (att is List && att.isNotEmpty) return 'Görsel';
+    if (att is List && att.isNotEmpty) return viewOnceAttachment(last) != null ? _onceText : 'Görsel';
     return '';
   }
 

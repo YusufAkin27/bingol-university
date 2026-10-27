@@ -6,7 +6,9 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../platform/qr_scan_page.dart';
+import 'event_cover.dart';
 import 'event_detail_page.dart';
+import 'event_form_page.dart';
 import '../../core/typography.dart';
 
 const _monthNames = [
@@ -334,6 +336,17 @@ class _EventsPageState extends State<EventsPage> {
     if (mounted) _load(silent: true);
   }
 
+  Future<void> _create() async {
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session)),
+    );
+    if (ok == true && mounted) {
+      _cache.clear();
+      _load();
+    }
+  }
+
   /// QR'ı tara (ya da elle kod gir); koddaki etkinlik kimliğiyle yoklama gönder.
   /// Kod biçimi: "bingol-checkin:{etkinlikId}.{pencere}.{imza}" (elle girişte önek olmayabilir).
   Future<void> _scanCheckin() async {
@@ -380,6 +393,7 @@ class _EventsPageState extends State<EventsPage> {
             title: 'Etkinlikler',
             onBack: () => Navigator.pop(context),
             actions: [
+              BuIconButton(icon: LucideIcons.plus, tooltip: 'Yeni etkinlik', onTap: _create),
               Material(
                 color: t.sf,
                 shape: StadiumBorder(side: BorderSide(color: t.bd)),
@@ -585,10 +599,20 @@ class _EventsPageState extends State<EventsPage> {
           ]),
         );
 
+    final cover = official ? null : fileUrl((ev['coverUrl'] ?? ev['imageUrl']) as String?);
     return BuCard(
       radius: 22,
       onTap: () => _open(ev),
-      child: Row(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (cover != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: AspectRatio(aspectRatio: 16 / 7, child: EventCoverImage(url: cover, cacheWidth: 700)),
+            ),
+          ),
+        Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -642,7 +666,8 @@ class _EventsPageState extends State<EventsPage> {
             ),
           ),
         ],
-      ),
+        ),
+      ]),
     );
   }
 

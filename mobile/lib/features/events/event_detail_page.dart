@@ -11,6 +11,8 @@ import '../chat/chat_detail_page.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../platform/qr_scan_page.dart';
+import 'event_cover.dart';
+import 'event_form_page.dart';
 import 'qr_painter.dart';
 import '../../core/typography.dart';
 
@@ -88,6 +90,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   bool get _manage => _ev?['canManage'] == true;
+
+  Future<void> _edit() async {
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, event: _ev)),
+    );
+    if (ok == true && mounted) _load(refresh: true);
+  }
   String? get _rsvp => _ev?['myRsvp'] as String?;
 
   /// İkincil veriler: hata verirse sayfa bozulmaz.
@@ -324,10 +334,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
         decoration: BoxDecoration(
           gradient: cover == null ? t.hero : null,
           borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-          image: cover == null ? null : DecorationImage(image: NetworkImage(cover), fit: BoxFit.cover),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
+            if (cover != null) Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 1000)),
             if (cover == null) ...[
               Positioned(
                   right: -40, top: -50, child: _circle(200, .15)),
@@ -508,7 +519,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
               onPressed: _openChat,
             ),
           ],
-          if (_manage) ...[const SizedBox(height: 18), _manageBlock()],
+          if (_manage) ...[
+            const SizedBox(height: 18),
+            BuButton(
+              label: 'Etkinliği düzenle',
+              icon: LucideIcons.pencil,
+              kind: BuButtonKind.outline,
+              onPressed: _edit,
+            ),
+            const SizedBox(height: 18),
+            _manageBlock(),
+          ],
           const SizedBox(height: 32),
         ]),
       ),

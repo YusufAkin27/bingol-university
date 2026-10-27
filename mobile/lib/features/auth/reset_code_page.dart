@@ -93,7 +93,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
     try {
       await widget.session.forgotPassword(widget.email);
       if (!mounted) return;
-      setState(() => _info = 'Yeni kod gönderildi.');
+      setState(() => _info = 'Kod gönderildi.');
       _startCooldown();
     } catch (e) {
       if (mounted) setState(() => _error = errorText(e));
@@ -106,7 +106,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
     return AuthScaffold(
       showBack: true,
       title: 'Kodu girin',
-      subtitle: '${widget.email} adresine gelen 6 haneli kodu girin.',
+      subtitle: '${widget.email} adresine kod gönderildi.',
       children: [
         if (_error != null) Notice(_error!),
         if (_info != null) Notice(_info!, error: false),
@@ -121,14 +121,10 @@ class _ResetCodePageState extends State<ResetCodePage> {
           onPressed: _busy ? null : _verify,
           child: BusyLabel(busy: _busy, label: 'Doğrula'),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Center(
           child: _cooldown > 0
-              ? Text.rich(TextSpan(style: BuType.body.copyWith(color: t.mut), children: [
-                  const TextSpan(text: 'Yeni kod için '),
-                  TextSpan(text: '$_cooldown sn', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
-                  const TextSpan(text: ' bekleyin'),
-                ]))
+              ? Text('Yeniden gönder ($_cooldown sn)', style: BuType.body.copyWith(color: t.mut))
               : TextButton(onPressed: _busy ? null : _resend, child: const Text('Kodu yeniden gönder')),
         ),
       ],

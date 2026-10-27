@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -7,6 +8,8 @@ import '../../core/api.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import 'bubble_text_meta.dart';
+import 'chat_media.dart';
 
 String _two(int n) => n.toString().padLeft(2, '0');
 
@@ -32,6 +35,8 @@ class MessageBubble extends StatelessWidget {
     this.onMenuRect,
     this.preview = false,
     this.onSwipeReply,
+    this.onOpenViewOnce,
+    this.highlight,
   });
 
   final Map<String, dynamic> message;
@@ -67,6 +72,12 @@ class MessageBubble extends StatelessWidget {
   /// Verilirse baloncuk yatay sürüklenerek yanıtlanabilir (null: kapalı).
   final VoidCallback? onSwipeReply;
 
+  /// Alıcı açılmamış tek gösterimlik fotoğrafa dokununca (ek haritasıyla) çağrılır.
+  final void Function(Map<String, dynamic> attachment)? onOpenViewOnce;
+
+  /// Sohbet içi aramada vurgulanacak metin (null/boş: vurgu yok).
+  final String? highlight;
+
   void _openMenu(BuildContext bc) {
     final cb = onMenuRect;
     final ro = bc.findRenderObject();
@@ -84,39 +95,61 @@ class MessageBubble extends StatelessWidget {
     final deleted = m['deleted'] == true;
     final removed = m['removed'] == true;
     final state = m['_state'] as String?;
-    final fg = mine ? t.onPr : t.ink;
-    final metaColor = mine ? t.onPr.withValues(alpha: .75) : t.mut;
+    // Giden baloncuk açık kırmızımsı zemin (t.soft) üstünde t.ink: okundu tiki marka kırmızısı (t.pr)
+    // olarak görünür kalır, iletildi/iletilmedi tikleri gri (t.mut) kalır.
+    final fg = t.ink;
+    final metaColor = t.mut;
     final d = DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
-    final reply = m['replyTo'] is Map ? Map<String, dynamic>.from(m['replyTo'] as Map) : null;
+    final reply = m['replyTo'] is Map
+        ? Map<String, dynamic>.from(m['replyTo'] as Map)
+        : null;
     final text = deleted ? 'Bu mesaj silindi' : (m['text'] as String?) ?? '';
     final maxW = MediaQuery.sizeOf(context).width * .78;
-    final atts = (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
-    final localBytes = m['_bytes'] as Uint8List?;
-    final hasMedia = atts.isNotEmpty || localBytes != null;
-    final reactions = (m['reactions'] as List? ?? const []).whereType<Map>().toList();
+    final allAtts =
+        (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
+    final localVideo = !deleted && !removed && m['_isVideo'] == true;
+    // Tek gösterimlik ek (sunucudan ya da yerel bekleyen): önizleme ASLA çizilmez, yalnız kart.
+    final onceAtt = allAtts.where(isViewOnceAttachment).firstOrNull;
+    final localOnce = !deleted &&
+        !removed &&
+        m['_viewOnce'] == true &&
+        state != null &&
+        onceAtt == null;
+    final hasOnce = onceAtt != null || localOnce;
+    final atts = allAtts.where((a) => !isViewOnceAttachment(a)).toList();
+    final localBytes = hasOnce ? null : m['_bytes'] as Uint8List?;
+    final hasMedia = atts.isNotEmpty || localBytes != null || localVideo;
+    final reactions =
+        (m['reactions'] as List? ?? const []).whereType<Map>().toList();
     final myReaction = m['myReaction'] as String?;
-    final showText = text.isNotEmpty && !(hasMedia && (m['text'] as String? ?? '').isEmpty);
+    final showText = text.isNotEmpty &&
+        !((hasMedia || hasOnce) && (m['text'] as String? ?? '').isEmpty);
 
     final metaText = [
       if (m['edited'] == true && !deleted) 'düzenlendi',
       if (d != null) '${_two(d.hour)}:${_two(d.minute)}',
     ].join(' · ');
-    final statusIcon = !mine
+    // Tik durumu: pending (saat) | SENT (tek tik) | DELIVERED (çift tik, gri) | READ (çift tik, kırmızı).
+    final String? tick = !mine
         ? null
         : state == 'pending'
-            ? LucideIcons.clock
+            ? 'pending'
             : state == 'failed'
                 ? null
-                : seen
-                    ? LucideIcons.checkCheck
-                    : (m['id'] != null ? LucideIcons.check : null);
-    final hasMeta = metaText.isNotEmpty || statusIcon != null;
+                : m['id'] == null
+                    ? null
+                    : (seen || m['status'] == 'READ')
+                        ? 'READ'
+                        : (m['status'] == 'DELIVERED' ? 'DELIVERED' : 'SENT');
+    final hasMeta = metaText.isNotEmpty || tick != null;
 
-    Widget metaRow(Color color) => Row(mainAxisSize: MainAxisSize.min, children: [
-          if (metaText.isNotEmpty) Text(metaText, style: BuType.micro.copyWith(color: color)),
-          if (statusIcon != null) ...[
+    Widget metaRow(Color color, {Color? readColor}) =>
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          if (metaText.isNotEmpty)
+            Text(metaText, style: BuType.micro.copyWith(color: color)),
+          if (tick != null) ...[
             const SizedBox(width: 3),
-            Semantics(label: seen ? 'Okundu' : 'Gönderildi', child: Icon(statusIcon, size: 14, color: color)),
+            _Tick(status: tick, color: color, readColor: readColor ?? t.pr),
           ],
         ]);
 
@@ -125,55 +158,29 @@ class MessageBubble extends StatelessWidget {
       fontStyle: (deleted || removed) ? FontStyle.italic : FontStyle.normal,
     );
 
-    // Saat, metnin son satırına sığıyorsa aynı satırda, sığmıyorsa alt satırın sağında durur (boşluk ayrılır).
+    // Saat+tik, metnin son satırında yer varsa aynı satırda, yoksa altında durur (bkz. BubbleTextMeta).
+    final textSpan = _span(text, textStyle, highlight);
     Widget textWithMeta() {
-      if (!hasMeta) return Text(text, style: textStyle);
-      final scaler = MediaQuery.textScalerOf(context);
-      final mp = TextPainter(
-        text: TextSpan(text: metaText, style: BuType.micro),
-        textDirection: TextDirection.ltr,
-        textScaler: scaler,
-      )..layout();
-      final metaW = mp.width + (statusIcon != null ? 17 : 0) + 8;
-      final metaH = math.max(mp.height, 14.0);
-      mp.dispose();
-      return LayoutBuilder(builder: (c, cons) {
-        final maxWidth = cons.maxWidth.isFinite ? cons.maxWidth : 400.0;
-        final tp = TextPainter(
-          text: TextSpan(text: text, style: textStyle),
-          textDirection: TextDirection.ltr,
-          textScaler: scaler,
-        )..layout(maxWidth: maxWidth);
-        final lines = tp.computeLineMetrics();
-        final lastW = lines.isEmpty ? 0.0 : lines.last.width;
-        final longest = lines.fold<double>(0, (a, l) => math.max(a, l.width));
-        final textH = tp.height;
-        tp.dispose();
-        final inline = lastW + metaW <= maxWidth;
-        final width = math.min(maxWidth, math.max(longest, inline ? lastW + metaW : metaW));
-        return SizedBox(
-          width: width,
-          height: inline ? textH : textH + metaH,
-          child: Stack(children: [
-            Positioned(left: 0, top: 0, right: 0, child: Text(text, style: textStyle)),
-            Positioned(right: 0, bottom: 0, child: metaRow(metaColor)),
-          ]),
-        );
-      });
+      final tw = Text.rich(textSpan, textWidthBasis: TextWidthBasis.longestLine);
+      if (!hasMeta) return tw;
+      return BubbleTextMeta(text: tw, meta: metaRow(metaColor));
     }
 
-    // Yalnız görsel: saat görselin sağ altında yarı saydam koyu hap.
+    // Yalnız medya: saat+tik görselin sağ altında yarı saydam koyu hap (okundu tiki açık kırmızı).
     Widget mediaWithPill(Widget media) {
       if (showText || !hasMeta) return media;
       return Stack(children: [
         media,
-        Positioned(
-          right: 6,
+        PositionedDirectional(
+          end: 6,
           bottom: 6,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-            decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), borderRadius: BorderRadius.circular(999)),
-            child: metaRow(Colors.white),
+            decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .5),
+                borderRadius: BorderRadius.circular(999)),
+            child: metaRow(Colors.white.withValues(alpha: .85),
+                readColor: BuTokens.dark.pr),
           ),
         ),
       ]);
@@ -181,10 +188,25 @@ class MessageBubble extends StatelessWidget {
 
     final w = (maxW - 12).clamp(140.0, 300.0);
     Widget? mediaBlock;
-    if (localBytes != null) {
-      mediaBlock = _LocalImage(bytes: localBytes, uploading: state == 'pending', maxW: maxW);
+    if (localVideo || localBytes != null) {
+      final vw = (m['_vw'] as num?)?.toDouble() ?? 0;
+      final vh = (m['_vh'] as num?)?.toDouble() ?? 0;
+      mediaBlock = _LocalMedia(
+          bytes: localBytes,
+          uploading: state == 'pending',
+          maxW: maxW,
+          video: localVideo,
+          durationMs: (m['_durationMs'] as num?)?.toInt(),
+          ratio: (vw > 0 && vh > 0) ? (vw / vh).clamp(.55, 2.0) : null,
+          progress: m['_progress'] is ValueListenable<double>
+              ? m['_progress'] as ValueListenable<double>
+              : null);
     } else if (atts.length == 1) {
-      mediaBlock = _AttachmentImage(attachment: atts.first, headers: authHeaders, maxW: maxW - 12, onTap: () => onOpenImage(atts.first));
+      mediaBlock = _AttachmentImage(
+          attachment: atts.first,
+          headers: authHeaders,
+          maxW: maxW - 12,
+          onTap: () => onOpenImage(atts.first));
     } else if (atts.length > 1) {
       final cell = (w - 4) / 2;
       final shown = atts.take(4).toList();
@@ -204,13 +226,31 @@ class MessageBubble extends StatelessWidget {
       );
     }
 
+    Widget? onceBlock;
+    if (hasOnce) {
+      final viewed = onceAtt?['viewed'] == true;
+      final hasUrl = onceAtt?['url'] != null;
+      final expired = viewed || (!mine && onceAtt != null && !hasUrl);
+      final openable = !mine && onceAtt != null && !expired && hasUrl;
+      onceBlock = ViewOnceCard(
+        mine: mine,
+        opened: expired,
+        sending: localOnce && state == 'pending',
+        onTap: openable && onOpenViewOnce != null && !preview
+            ? () => onOpenViewOnce!(onceAtt)
+            : null,
+        meta: showText || !hasMeta ? null : metaRow(metaColor),
+      );
+    }
+
     const r = Radius.circular(18);
     const small = Radius.circular(5);
     final body = Container(
       constraints: BoxConstraints(maxWidth: maxW),
-      padding: EdgeInsets.symmetric(horizontal: hasMedia ? 6 : 14, vertical: hasMedia ? 6 : 9),
+      padding: EdgeInsets.symmetric(
+          horizontal: hasMedia ? 6 : 14, vertical: hasMedia ? 6 : 9),
       decoration: BoxDecoration(
-        color: mine ? t.pr : t.sf,
+        color: mine ? t.soft : t.sf,
         borderRadius: BorderRadius.only(
           topLeft: r,
           topRight: r,
@@ -218,24 +258,35 @@ class MessageBubble extends StatelessWidget {
           bottomRight: (mine && tail) ? small : r,
         ),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        if (senderName != null)
-          Padding(
-            padding: EdgeInsets.fromLTRB(hasMedia ? 8 : 0, hasMedia ? 4 : 0, 0, 3),
-            child: Text(senderName!, style: BuType.label.copyWith(color: t.pr)),
-          ),
-        if (reply != null && !deleted) _quote(t, reply, fg),
-        if (mediaBlock != null)
-          Padding(
-            padding: EdgeInsets.only(bottom: showText ? 4 : 0),
-            child: mediaWithPill(mediaBlock),
-          ),
-        if (showText)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: hasMedia ? 8 : 0, vertical: hasMedia ? 2 : 0),
-            child: textWithMeta(),
-          ),
-      ]),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (senderName != null)
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    hasMedia ? 8 : 0, hasMedia ? 4 : 0, 0, 3),
+                child: Text(senderName!,
+                    style: BuType.label.copyWith(color: t.pr)),
+              ),
+            if (reply != null && !deleted) _quote(context, t, reply, fg),
+            if (onceBlock != null)
+              Padding(
+                padding: EdgeInsets.only(bottom: showText ? 6 : 0),
+                child: onceBlock,
+              ),
+            if (mediaBlock != null)
+              Padding(
+                padding: EdgeInsets.only(bottom: showText ? 4 : 0),
+                child: mediaWithPill(mediaBlock),
+              ),
+            if (showText)
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: hasMedia ? 8 : 0, vertical: hasMedia ? 2 : 0),
+                child: textWithMeta(),
+              ),
+          ]),
     );
 
     if (preview) return body;
@@ -251,7 +302,8 @@ class MessageBubble extends StatelessWidget {
     final column = Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           gestureBubble,
@@ -281,8 +333,10 @@ class MessageBubble extends StatelessWidget {
                   Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
                   const SizedBox(width: 4),
                   Flexible(
-                    child: Text('${(m['_error'] as String?) ?? 'Gönderilemedi'} · Yeniden dene',
-                        style: BuType.micro.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
+                    child: Text(
+                        '${(m['_error'] as String?) ?? 'Gönderilemedi'} · Yeniden dene',
+                        style: BuType.micro.copyWith(
+                            color: t.danger, fontWeight: FontWeight.w700)),
                   ),
                 ]),
               ),
@@ -290,47 +344,101 @@ class MessageBubble extends StatelessWidget {
         ],
       ),
     );
-    return onSwipeReply == null ? column : _SwipeReply(onReply: onSwipeReply!, child: column);
+    return onSwipeReply == null
+        ? column
+        : _SwipeReply(onReply: onSwipeReply!, child: column);
   }
 
   /// Yanıt alıntısı: solda renkli ince çizgi (kendi mesajım / başkasınınki).
-  Widget _quote(BuTokens t, Map<String, dynamic> reply, Color fg) {
-    final bar = mine
-        ? t.onPr.withValues(alpha: replyMine ? .95 : .5)
-        : (replyMine ? t.pr : t.ok);
-    final raw = reply['deleted'] == true ? 'Bu mesaj silindi' : (reply['text'] as String?) ?? '';
-    final quoted = raw.isEmpty ? 'Fotoğraf' : raw;
+  Widget _quote(BuildContext context, BuTokens t, Map<String, dynamic> reply, Color fg) {
+    final bar = replyMine ? t.pr : t.ok;
+    final raw = reply['deleted'] == true
+        ? 'Bu mesaj silindi'
+        : (reply['text'] as String?) ?? '';
+    final quoted = raw.isEmpty
+        ? (reply['kind'] == 'VIDEO' ? 'Video' : 'Fotoğraf')
+        : raw;
     final box = Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        color: mine ? Colors.white.withValues(alpha: .18) : Colors.black.withValues(alpha: .05),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withValues(alpha: .07)
+            : Colors.black.withValues(alpha: .05),
         borderRadius: BorderRadius.circular(10),
       ),
       clipBehavior: Clip.antiAlias,
       child: IntrinsicHeight(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-          Container(width: 3, color: bar),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(replyName ?? 'Kullanıcı', maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.micro.copyWith(color: fg, fontWeight: FontWeight.w700)),
-                Text(quoted, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: fg.withValues(alpha: .9))),
-              ]),
-            ),
-          ),
-        ]),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 3, color: bar),
+              Flexible(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(replyName ?? 'Kullanıcı',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BuType.micro.copyWith(
+                                color: fg, fontWeight: FontWeight.w700)),
+                        Text(quoted,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: BuType.caption
+                                .copyWith(color: fg.withValues(alpha: .9))),
+                      ]),
+                ),
+              ),
+            ]),
       ),
     );
-    return onReplyTap == null ? box : GestureDetector(onTap: onReplyTap, child: box);
+    return onReplyTap == null
+        ? box
+        : GestureDetector(onTap: onReplyTap, child: box);
+  }
+
+  /// Metin aralığı: [highlight] eşleşmeleri (büyük/küçük harf duyarsız) sarı zeminle vurgulanır.
+  static TextSpan _span(String text, TextStyle style, String? highlight) {
+    final q = highlight?.trim().toLowerCase() ?? '';
+    if (q.isEmpty || text.isEmpty) return TextSpan(text: text, style: style);
+    final lower = text.toLowerCase();
+    // toLowerCase uzunluğu değiştirirse (ör. İ) güvenli yola dön.
+    if (lower.length != text.length) return TextSpan(text: text, style: style);
+    final hl = style.copyWith(
+        backgroundColor: const Color(0xFFFFD54F), color: Colors.black87);
+    final spans = <TextSpan>[];
+    var i = 0;
+    while (i < text.length) {
+      final j = lower.indexOf(q, i);
+      if (j < 0) {
+        spans.add(TextSpan(text: text.substring(i)));
+        break;
+      }
+      if (j > i) spans.add(TextSpan(text: text.substring(i, j)));
+      spans.add(TextSpan(text: text.substring(j, j + q.length), style: hl));
+      i = j + q.length;
+    }
+    return TextSpan(style: style, children: spans);
   }
 
   static List<Map<String, dynamic>> _attachments(Map<String, dynamic> m) =>
-      (m['attachments'] as List? ?? const []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      (m['attachments'] as List? ?? const [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
 }
 
 class _ReactionChip extends StatelessWidget {
-  const _ReactionChip({required this.emoji, required this.count, required this.mine, required this.onTap});
+  const _ReactionChip(
+      {required this.emoji,
+      required this.count,
+      required this.mine,
+      required this.onTap});
 
   final String emoji;
   final int count;
@@ -345,45 +453,179 @@ class _ReactionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: mine ? Color.alphaBlend(t.pr.withValues(alpha: .14), t.sf) : t.sf,
+          color:
+              mine ? Color.alphaBlend(t.pr.withValues(alpha: .14), t.sf) : t.sf,
           border: Border.all(color: mine ? t.pr : t.bd),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text('$emoji $count', style: BuType.caption.copyWith(color: t.ink, fontWeight: mine ? FontWeight.w700 : FontWeight.w500)),
+        child: Text('$emoji $count',
+            style: BuType.caption.copyWith(
+                color: t.ink,
+                fontWeight: mine ? FontWeight.w700 : FontWeight.w500)),
       ),
     );
   }
 }
 
-/// Gönderilmekte olan görselin yerel önizlemesi (üzerinde yükleme göstergesi).
-class _LocalImage extends StatelessWidget {
-  const _LocalImage({required this.bytes, required this.uploading, required this.maxW});
+/// Saat+durum ikonu. Durum değişince hafif çapraz geçişle yenilenir.
+/// pending: saat; SENT: tek tik; DELIVERED: çift tik; READ: çift tik ([readColor], marka kırmızısı).
+class _Tick extends StatelessWidget {
+  const _Tick(
+      {required this.status, required this.color, required this.readColor});
 
-  final Uint8List bytes;
-  final bool uploading;
-  final double maxW;
+  final String status;
+  final Color color;
+  final Color readColor;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Stack(alignment: Alignment.center, children: [
-        Image.memory(bytes,
-            width: (maxW - 12).clamp(140.0, 300.0), height: 220, fit: BoxFit.cover, cacheWidth: 720, gaplessPlayback: true),
-        if (uploading)
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-            padding: const EdgeInsets.all(10),
-            child: const CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+    final icon = switch (status) {
+      'pending' => LucideIcons.clock,
+      'SENT' => LucideIcons.check,
+      _ => LucideIcons.checkCheck,
+    };
+    final label = switch (status) {
+      'pending' => 'Gönderiliyor',
+      'SENT' => 'Gönderildi',
+      'DELIVERED' => 'İletildi',
+      _ => 'Okundu',
+    };
+    return Semantics(
+      label: label,
+      child: ExcludeSemantics(
+        child: SizedBox(
+          width: 16,
+          height: 14,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: Icon(icon,
+                key: ValueKey<String>(status),
+                size: 14,
+                color: status == 'READ' ? readColor : color),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Oynat simgesi: yarı saydam koyu daire içinde.
+class PlayBadge extends StatelessWidget {
+  const PlayBadge({super.key, this.size = 46});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
+      child: Icon(LucideIcons.play,
+          size: size * .5, color: Colors.white),
+    );
+  }
+}
+
+/// Video süresi hapı (örn. "0:42"), küçük video simgesiyle.
+class DurationPill extends StatelessWidget {
+  const DurationPill({super.key, required this.ms});
+
+  final int ms;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: .5),
+          borderRadius: BorderRadius.circular(999)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        const Icon(LucideIcons.video, size: 12, color: Colors.white),
+        const SizedBox(width: 4),
+        Text(formatMediaDuration(ms),
+            style: BuType.micro.copyWith(color: Colors.white)),
       ]),
     );
   }
 }
 
-String chatMediaUrl(String path) => path.startsWith('http') ? path : '$apiOrigin$path';
+/// Gönderilmekte olan görsel/videonun yerel önizlemesi (üzerinde yükleme göstergesi; video için
+/// poster + dairesel ilerleme + süre hapı).
+class _LocalMedia extends StatelessWidget {
+  const _LocalMedia({
+    required this.bytes,
+    required this.uploading,
+    required this.maxW,
+    this.video = false,
+    this.durationMs,
+    this.ratio,
+    this.progress,
+  });
+
+  final Uint8List? bytes;
+  final bool uploading;
+  final double maxW;
+  final bool video;
+  final int? durationMs;
+  final double? ratio;
+  final ValueListenable<double>? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = (maxW - 12).clamp(140.0, 300.0);
+    final height =
+        video && ratio != null ? (width / ratio!).clamp(110.0, 380.0) : 220.0;
+    Widget spinner() {
+      final p = progress;
+      Widget ring(double? v) => SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+                value: v, strokeWidth: 2.5, color: Colors.white),
+          );
+      return Container(
+        key: const ValueKey('uploadProgress'),
+        width: 46,
+        height: 46,
+        decoration: const BoxDecoration(
+            color: Colors.black54, shape: BoxShape.circle),
+        alignment: Alignment.center,
+        child: p == null
+            ? ring(null)
+            : ValueListenableBuilder<double>(
+                valueListenable: p,
+                builder: (c, v, _) => ring(v > 0 && v < 1 ? v : null)),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
+          if (bytes != null)
+            Image.memory(bytes!,
+                fit: BoxFit.cover, cacheWidth: 720, gaplessPlayback: true)
+          else
+            const ColoredBox(color: Colors.black87),
+          Center(
+              child: uploading
+                  ? spinner()
+                  : (video ? const PlayBadge() : const SizedBox.shrink())),
+          if (video && durationMs != null)
+            PositionedDirectional(
+                start: 6, bottom: 6, child: DurationPill(ms: durationMs!)),
+        ]),
+      ),
+    );
+  }
+}
+
+String chatMediaUrl(String path) =>
+    path.startsWith('http') ? path : '$apiOrigin$path';
 
 class _AttachmentImage extends StatelessWidget {
   const _AttachmentImage({
@@ -415,8 +657,13 @@ class _AttachmentImage extends StatelessWidget {
     final ratio = (w > 0 && h > 0) ? (w / h).clamp(.55, 2.0) : 1.2;
     final width = side ?? maxW.clamp(140.0, 300.0);
     final height = side ?? (width / ratio).clamp(110.0, 380.0);
-    final thumb = (attachment['thumbUrl'] ?? attachment['url']) as String?;
-    final hidden = attachment['removed'] == true || thumb == null;
+    final video = isVideoAttachment(attachment);
+    // Videoda `url` akış adresidir (görsel değil): önizleme yalnız `thumbUrl` (poster) olabilir.
+    final thumb = (video
+        ? attachment['thumbUrl']
+        : (attachment['thumbUrl'] ?? attachment['url'])) as String?;
+    final hidden = attachment['removed'] == true || (thumb == null && !video);
+    final durationMs = (attachment['durationMs'] as num?)?.toInt();
 
     Widget box(Widget child) => ClipRRect(
           borderRadius: BorderRadius.circular(side != null ? 10 : 14),
@@ -432,7 +679,10 @@ class _AttachmentImage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: box(Stack(fit: StackFit.expand, children: [
-        Image.network(
+        if (thumb == null)
+          const ColoredBox(color: Colors.black87)
+        else
+          Image.network(
           chatMediaUrl(thumb),
           headers: headers,
           fit: BoxFit.cover,
@@ -441,16 +691,30 @@ class _AttachmentImage extends StatelessWidget {
           gaplessPlayback: true,
           loadingBuilder: (c, child, p) => p == null
               ? child
-              : ColoredBox(color: t.sf2, child: const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)))),
+              : ColoredBox(
+                  color: t.sf2,
+                  child: const Center(
+                      child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2)))),
           errorBuilder: (c, e, s) => ColoredBox(
             color: t.sf2,
             child: Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
           ),
         ),
+        if (video && more == 0) ...[
+          Center(child: PlayBadge(size: side != null ? 34 : 46)),
+          if (durationMs != null)
+            PositionedDirectional(
+                start: 6, bottom: 6, child: DurationPill(ms: durationMs)),
+        ],
         if (more > 0)
           ColoredBox(
             color: Colors.black.withValues(alpha: .5),
-            child: Center(child: Text('+$more', style: BuType.title.copyWith(color: Colors.white))),
+            child: Center(
+                child: Text('+$more',
+                    style: BuType.title.copyWith(color: Colors.white))),
           ),
       ])),
     );
@@ -486,11 +750,14 @@ class ChatImageViewer extends StatelessWidget {
             chatMediaUrl(url),
             headers: headers,
             fit: BoxFit.contain,
-            loadingBuilder: (c, child, p) =>
-                p == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
+            loadingBuilder: (c, child, p) => p == null
+                ? child
+                : const Center(
+                    child: CircularProgressIndicator(color: Colors.white)),
             errorBuilder: (c, e, s) => Padding(
               padding: const EdgeInsets.all(32),
-              child: Text('Görsel yüklenemedi.', style: BuType.body.copyWith(color: Colors.white70)),
+              child: Text('Görsel yüklenemedi.',
+                  style: BuType.body.copyWith(color: Colors.white70)),
             ),
           ),
         ),
@@ -510,11 +777,13 @@ class _SwipeReply extends StatefulWidget {
   State<_SwipeReply> createState() => _SwipeReplyState();
 }
 
-class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderStateMixin {
+class _SwipeReplyState extends State<_SwipeReply>
+    with SingleTickerProviderStateMixin {
   static const _max = 64.0;
   static const _threshold = 48.0;
 
-  late final AnimationController _back = AnimationController(vsync: this, duration: const Duration(milliseconds: 220));
+  late final AnimationController _back = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 220));
   double _p = 0; // 0.._max, sürükleme yönündeki ilerleme
   bool _armed = false;
   double _from = 0;
@@ -523,7 +792,11 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
   void initState() {
     super.initState();
     _back.addListener(() {
-      if (mounted) setState(() => _p = (_from * (1 - Curves.easeOutCubic.transform(_back.value))).clamp(0.0, _max).toDouble());
+      if (mounted)
+        setState(() => _p =
+            (_from * (1 - Curves.easeOutCubic.transform(_back.value)))
+                .clamp(0.0, _max)
+                .toDouble());
     });
   }
 
@@ -533,7 +806,8 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
     super.dispose();
   }
 
-  double _sign(BuildContext c) => Directionality.of(c) == TextDirection.rtl ? -1 : 1;
+  double _sign(BuildContext c) =>
+      Directionality.of(c) == TextDirection.rtl ? -1 : 1;
 
   void _update(DragUpdateDetails d) {
     _back.stop();
@@ -579,7 +853,8 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
                   child: Container(
                     width: 28,
                     height: 28,
-                    decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                    decoration:
+                        BoxDecoration(color: t.sf2, shape: BoxShape.circle),
                     child: Icon(LucideIcons.reply, size: 15, color: t.mut),
                   ),
                 ),
@@ -590,4 +865,132 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
       ]),
     );
   }
+}
+
+/// Tek gösterimlik fotoğraf kartı: gerçek önizleme yoktur, yalnız durum gösterilir.
+/// Açılmamış (alıcı): "1" halkası marka renginde; açılmış: soluk, kesikli halka.
+class ViewOnceCard extends StatelessWidget {
+  const ViewOnceCard(
+      {super.key,
+      required this.mine,
+      required this.opened,
+      this.sending = false,
+      this.onTap,
+      this.meta});
+
+  final bool mine;
+  final bool opened;
+  final bool sending;
+  final VoidCallback? onTap;
+
+  /// Saat/durum satırı (yalnız metin yokken kartın içinde sağ altta).
+  final Widget? meta;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    // Giden baloncuk artık açık zeminli (t.soft): her iki yönde yazı t.ink, vurgu marka kırmızısı.
+    final base = t.ink;
+    final Color accent = opened ? base.withValues(alpha: .55) : t.pr;
+    final String label = opened
+        ? 'Açıldı'
+        : mine
+            ? (sending ? 'Fotoğraf · Gönderiliyor' : 'Fotoğraf · Gönderildi')
+            : 'Fotoğraf · Açmak için dokun';
+    final labelColor = opened ? base.withValues(alpha: .6) : t.pr;
+    final card = Semantics(
+      button: onTap != null,
+      label: 'Tek gösterimlik fotoğraf. $label',
+      excludeSemantics: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 150, maxWidth: 220),
+        child: IntrinsicWidth(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  OnceBadge(color: accent, dashed: opened),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(label,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.label.copyWith(
+                            color: labelColor,
+                            fontStyle:
+                                opened ? FontStyle.italic : FontStyle.normal)),
+                  ),
+                ]),
+                if (meta != null)
+                  Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Padding(
+                          padding: const EdgeInsets.only(top: 2), child: meta)),
+              ]),
+        ),
+      ),
+    );
+    return onTap == null
+        ? card
+        : GestureDetector(
+            key: const ValueKey('viewOnceCard'),
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: card);
+  }
+}
+
+/// İçinde "1" yazan yuvarlak (tek gösterimlik simgesi); [dashed] iken kesikli çizgi.
+class OnceBadge extends StatelessWidget {
+  const OnceBadge(
+      {super.key, required this.color, this.dashed = false, this.size = 28});
+
+  final Color color;
+  final bool dashed;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _RingPainter(color, dashed),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Center(
+            child: Text('1',
+                style: BuType.label.copyWith(
+                    color: color, fontWeight: FontWeight.w800, height: 1))),
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter(this.color, this.dashed);
+
+  final Color color;
+  final bool dashed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    final r = (Offset.zero & size).deflate(1.5);
+    if (!dashed) {
+      canvas.drawOval(r, paint);
+      return;
+    }
+    const n = 12;
+    for (var i = 0; i < n; i++) {
+      canvas.drawArc(r, i * 2 * math.pi / n, math.pi / n, false, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.color != color || old.dashed != dashed;
 }

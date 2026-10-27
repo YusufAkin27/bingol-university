@@ -77,6 +77,36 @@ class ApiClient {
   /// Başlıklara da ihtiyaç duyan GET'ler için (sayfalama imleci vb.).
   Future<ApiResponse> getResponse(String path) => _sendFull('GET', path);
 
+  /// Yetkili ikili GET (ör. tek gösterimlik görsel). Önbelleğe ALINMAZ ve ağ hatasında YENİDEN DENENMEZ:
+  /// ilk başarılı istek içeriği tüketebilir. Yalnız 401'de bir kez yenileyip tekrar dener (içerik henüz sunulmadı).
+  /// 2xx dışında `{code,message}` gövdesinden [ApiError] fırlatır.
+  Future<List<int>> getBytes(String path, {bool retried = false}) async {
+    final req = http.Request('GET', Uri.parse('$apiBase$path'));
+    req.headers['Accept-Language'] = lang;
+    req.headers['Accept'] = 'image/*, application/json';
+    final t = tokens;
+    if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
+    http.Response res;
+    try {
+      res = await http.Response.fromStream(await _http.send(req).timeout(_timeout));
+    } catch (_) {
+      _hintNetwork(path);
+      throw ApiError(0, 'NETWORK', '');
+    }
+    if (res.statusCode == 401 && t != null && !retried) {
+      try {
+        await refresh();
+      } on ApiError catch (e) {
+        if (!e.isNetwork) onSessionExpired?.call();
+        rethrow;
+      }
+      return getBytes(path, retried: true);
+    }
+    if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
+    _decode(res); // hata gövdesinden ApiError fırlatır
+    throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '');
+  }
+
   Future<dynamic> put(String path, [Object? body]) => _send('PUT', path, body: body);
 
   Future<dynamic> patch(String path, Object body) => _send('PATCH', path, body: body);

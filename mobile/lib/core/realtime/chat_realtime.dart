@@ -29,6 +29,31 @@ class TypingEvent {
   final int userId;
 }
 
+/// `/user/queue/message-events` `viewed`: tek gösterimlik fotoğraf alıcıda açıldı (gönderenin baloncuğu "Açıldı" olur).
+class ViewedEvent {
+  ViewedEvent(this.conversationId, this.messageId, this.attachmentId, this.userId);
+  final int conversationId;
+  final int messageId;
+  final int attachmentId;
+  final int userId;
+}
+
+/// `/user/queue/message-events` `receipt`: kendi mesajlarınız `upToMessageId`'ye kadar iletildi/okundu.
+class ReceiptEvent {
+  ReceiptEvent(this.conversationId, this.kind, this.upToMessageId, this.status);
+  final int conversationId;
+
+  /// `delivered` | `read`
+  final String kind;
+  final int upToMessageId;
+
+  /// Sunucunun bildirdiği durum (`SENT`|`DELIVERED`|`READ`); yoksa null ([kind]'dan türetilir).
+  final String? status;
+
+  /// Bu olayın taşıdığı durum.
+  String get effectiveStatus => status ?? (kind == 'read' ? 'READ' : 'DELIVERED');
+}
+
 class Presence {
   Presence(this.online, this.lastSeenAt);
   final bool online;
@@ -66,6 +91,8 @@ class ChatRealtime with WidgetsBindingObserver {
   final _reads = StreamController<ReadReceipt>.broadcast();
   final _typing = StreamController<TypingEvent>.broadcast();
   final _errors = StreamController<ChatError>.broadcast();
+  final _viewed = StreamController<ViewedEvent>.broadcast();
+  final _receipts = StreamController<ReceiptEvent>.broadcast();
   final _connected = StreamController<bool>.broadcast();
   final _resync = StreamController<void>.broadcast();
   final _fatal = StreamController<StompFatal>.broadcast();
@@ -79,6 +106,8 @@ class ChatRealtime with WidgetsBindingObserver {
   Stream<ReadReceipt> get readReceipts => _reads.stream;
   Stream<TypingEvent> get typing => _typing.stream;
   Stream<ChatError> get errors => _errors.stream;
+  Stream<ViewedEvent> get viewed => _viewed.stream;
+  Stream<ReceiptEvent> get receipts => _receipts.stream;
   Stream<bool> get connected => _connected.stream;
   bool get isConnected => _client.isConnected;
 
@@ -100,11 +129,30 @@ class ChatRealtime with WidgetsBindingObserver {
       ..add(_client.subscribe('/user/queue/typing', (f) => _json(f, (m) {
             _typing.add(TypingEvent(_i(m['conversationId']), _i(m['userId'])));
           })))
+      ..add(_client.subscribe('/user/queue/message-events', (f) => _json(f, _onMessageEvent)))
       ..add(_client.subscribe('/user/queue/errors', (f) => _json(f, (m) {
             _errors.add(ChatError('${m['code'] ?? 'UNKNOWN'}', '${m['message'] ?? ''}', m['clientId'] as String?));
           })));
     _client.connect();
   }
+
+  void _onMessageEvent(Map<String, dynamic> m) {
+    if (m['type'] == 'receipt') {
+      final kind = '${m['kind'] ?? ''}';
+      if (kind != 'delivered' && kind != 'read') return;
+      _receipts.add(ReceiptEvent(_i(m['conversationId']), kind, _i(m['upToMessageId']), m['status'] as String?));
+      return;
+    }
+    if (m['type'] != 'viewed') return;
+    _viewed.add(ViewedEvent(_i(m['conversationId']), _i(m['messageId']), _i(m['attachmentId']), _i(m['userId'])));
+  }
+
+  /// Yalnız testler: bir kuyruk iletisini bağlantısız taklit eder.
+  @visibleForTesting
+  void debugEmitMessageEvent(Map<String, dynamic> m) => _onMessageEvent(m);
+
+  @visibleForTesting
+  void debugEmitMessage(Map<String, dynamic> m) => _messages.add(m);
 
   void stop() {
     if (!_started) return;
@@ -120,7 +168,7 @@ class ChatRealtime with WidgetsBindingObserver {
   void dispose() {
     stop();
     _client.dispose();
-    for (final c in [_messages, _reads, _typing, _errors, _connected, _resync, _fatal]) {
+    for (final c in [_messages, _reads, _typing, _errors, _viewed, _receipts, _connected, _resync, _fatal]) {
       c.close();
     }
   }
@@ -154,6 +202,10 @@ class ChatRealtime with WidgetsBindingObserver {
   /// Okundu imleci (yalnız ilerler).
   bool sendRead(int conversationId, int lastMessageId) =>
       _client.send('/app/chat.read', jsonEncode({'conversationId': conversationId, 'lastMessageId': lastMessageId}));
+
+  /// İletildi imleci: karşı tarafın en son mesaj id'si ekrana ulaştığında (yalnız ilerler).
+  bool sendDelivered(int conversationId, int lastMessageId) => _client.send(
+      '/app/chat.delivered', jsonEncode({'conversationId': conversationId, 'lastMessageId': lastMessageId}));
 
   /// "Yazıyor": sunucu 2 sn'de 1 ile sınırlar; burada da aynı sınır uygulanır.
   bool sendTyping(int conversationId) {

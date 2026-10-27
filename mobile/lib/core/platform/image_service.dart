@@ -9,6 +9,8 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 
 import '../api.dart';
+import '../nav.dart';
+import '../permissions/ensure_permission.dart';
 import '../session.dart';
 
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
@@ -42,8 +44,17 @@ class ImageService {
   static const defaultLimit = 3 * 1024 * 1024;
 
   /// Galeriden/kameradan seçer (1600 px, kalite 85). İptalde null.
-  Future<XFile?> pick(ImageSource source) =>
-      _picker.pickImage(source: source, maxWidth: maxWidth, imageQuality: quality, requestFullMetadata: false);
+  /// Kamera kaynağında önce izin garanti edilir (manifestte CAMERA bildirili olduğundan Android
+  /// kamera niyeti izinsiz çökerdi); galeri seçici kendi sistem seçicisini kullanır, çift istem olmaz.
+  Future<XFile?> pick(ImageSource source) async {
+    if (source == ImageSource.camera) {
+      final ctx = rootNavigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        if (!await ensurePermission(ctx, AppPermission.camera)) return null;
+      }
+    }
+    return _picker.pickImage(source: source, maxWidth: maxWidth, imageQuality: quality, requestFullMetadata: false);
+  }
 
   /// Seç + doğrula + gerekirse yeniden sıkıştır. İptalde null; geçersizse [ImageException].
   Future<PreparedImage?> pickPrepared(ImageSource source, {bool avatar = false}) async {
@@ -100,11 +111,13 @@ class MultipartUploader {
   static const _timeout = Duration(seconds: 60);
 
   /// Örn. `upload('/users/me/avatar', img)`; yol `/api` önekisizdir. Sonuç JSON (çoğu uçta `avatarUrl`/`url`).
-  Future<dynamic> upload(String path, PreparedImage image) => _send(path, image, false);
+  /// [method] varsayılan POST; kapak gibi uçlar PUT ister.
+  Future<dynamic> upload(String path, PreparedImage image, {String method = 'POST'}) =>
+      _send(path, image, false, method);
 
-  Future<dynamic> _send(String path, PreparedImage image, bool retried) async {
+  Future<dynamic> _send(String path, PreparedImage image, bool retried, String method) async {
     final api = session.api;
-    final req = http.MultipartRequest('POST', Uri.parse('$apiBase$path'));
+    final req = http.MultipartRequest(method, Uri.parse('$apiBase$path'));
     req.headers['Accept-Language'] = api.lang;
     req.headers['Accept'] = 'application/json';
     final t = api.tokens;
@@ -130,7 +143,7 @@ class MultipartUploader {
         if (!e.isNetwork) api.onSessionExpired?.call();
         rethrow;
       }
-      return _send(path, image, true);
+      return _send(path, image, true, method);
     }
 
     final text = utf8.decode(res.bodyBytes);

@@ -102,9 +102,9 @@ void main() {
       final cat = AcademicCatalog(makeSession(b, signedIn: false));
       await tester.pumpWidget(buildApp(_Host(cat)));
       await tester.pump();
-      expect(find.text('Yükleniyor…'), findsNWidgets(2));
+      expect(find.text('Yükleniyor…'), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Fakülte seçin'), findsOneWidget);
+      expect(find.text('Fakülte seçin'), findsNothing);
       expect(find.text('Bölüm seçin'), findsOneWidget);
       expect(find.text('Hazırlık'), findsOneWidget);
       await unmount(tester);
@@ -116,76 +116,94 @@ void main() {
       final cat = AcademicCatalog(makeSession(b, signedIn: false));
       await tester.pumpWidget(buildApp(_Host(cat)));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Fakülte ve bölüm listesi yüklenemedi.'), findsOneWidget);
+      expect(find.text('Bölüm listesi yüklenemedi.'), findsOneWidget);
       fakeCatalog(b);
       await tester.tap(find.text('Yeniden dene'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Fakülte ve bölüm listesi yüklenemedi.'), findsNothing);
+      expect(find.text('Bölüm listesi yüklenemedi.'), findsNothing);
       expect(cat.ready, isTrue);
       await unmount(tester);
     });
 
-    testWidgets('fakülte araması aksan duyarsız; seçim yazılır', (tester) async {
+    testWidgets('bölüm araması aksan duyarsız; satırda fakülte adı; fakülte seçici yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       fakeCatalog(b);
       final cat = AcademicCatalog(makeSession(b, signedIn: false));
       await tester.pumpWidget(buildApp(_Host(cat)));
       await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Fakülte seçin'));
+      expect(find.text('Fakülte seçin'), findsNothing);
+      expect(find.text('Mühendislik Fakültesi'), findsNothing);
+      await tester.tap(find.text('Bölüm seçin'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Fen-Edebiyat Fakültesi'), findsOneWidget);
-      await tester.enterText(_search, 'MUH');
+      // Boş aramada tüm bölümler, altında fakülte adı.
+      expect(find.text('Biyoloji'), findsOneWidget);
+      expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+      expect(find.text('Fen-Edebiyat Fakültesi'), findsNWidgets(2));
+      await tester.enterText(_search, 'MÜHENDİS');
       await tester.pump();
-      expect(find.text('Fen-Edebiyat Fakültesi'), findsNothing);
-      expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
-      await tester.tap(find.text('Mühendislik Fakültesi'));
+      expect(find.text('Biyoloji'), findsNothing);
+      expect(find.text('Mühendislik Fakültesi'), findsNWidgets(2));
+      await tester.tap(find.text('Bilgisayar Mühendisliği'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.textContaining('f=Mühendislik Fakültesi'), findsOneWidget);
+      expect(find.textContaining('f=Mühendislik Fakültesi d=Bilgisayar Mühendisliği'), findsOneWidget);
       await unmount(tester);
     });
 
-    testWidgets('bölüm seçilince fakülte otomatik dolar (tüm bölümlerde ara)', (tester) async {
+    testWidgets('bölüm seçilince fakülte bilgi satırı otomatik dolar ve dokunulamaz', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       fakeCatalog(b);
       final cat = AcademicCatalog(makeSession(b, signedIn: false));
-      await tester.pumpWidget(buildApp(_Host(cat, faculty: 'Mühendislik Fakültesi')));
+      await tester.pumpWidget(buildApp(_Host(cat)));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.text('Bölüm seçin'));
+      await pickFromSearch(tester, 'biyo', 'Biyoloji');
+      expect(find.textContaining('f=Fen-Edebiyat Fakültesi d=Biyoloji'), findsOneWidget);
+      // Bilgi satırı: düz metin + ikon; üstünde dokunma hedefi yok.
+      final info = find.text('Fen-Edebiyat Fakültesi');
+      expect(info, findsOneWidget);
+      expect(find.ancestor(of: info, matching: find.byType(InkWell)), findsNothing);
+      expect(find.ancestor(of: info, matching: find.byType(GestureDetector)), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('aynı isimli bölüm iki fakültede ayrı satır; seçim fakülteyi belirler', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = FakeBackend()
+        ..on('/catalog/academic', {
+          'version': 1,
+          'faculties': [
+            {
+              'id': 'a',
+              'name': 'Mühendislik Fakültesi',
+              'departments': [
+                {'id': 'a-ing', 'name': 'İngilizce'}
+              ],
+            },
+            {
+              'id': 'b',
+              'name': 'Eğitim Fakültesi',
+              'departments': [
+                {'id': 'b-ing', 'name': 'İngilizce'}
+              ],
+            },
+          ],
+        });
+      final cat = AcademicCatalog(makeSession(b, signedIn: false));
+      await tester.pumpWidget(buildApp(_Host(cat)));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.text('Bölüm seçin'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      // Fakülteyle sınırlı: Biyoloji yok.
-      await tester.enterText(_search, 'biyo');
-      await tester.pump();
-      expect(find.text('Biyoloji'), findsNothing);
-      await tester.tap(find.byType(Switch));
-      await tester.pump();
-      expect(find.text('Biyoloji'), findsOneWidget);
-      await tester.tap(find.text('Biyoloji'));
+      expect(find.text('İngilizce'), findsNWidgets(2));
+      expect(find.text('Eğitim Fakültesi'), findsOneWidget);
+      await tester.tap(find.text('Eğitim Fakültesi'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.textContaining('f=Fen-Edebiyat Fakültesi d=Biyoloji'), findsOneWidget);
-      await unmount(tester);
-    });
-
-    testWidgets('fakülte değişince uyumsuz bölüm temizlenir, uyumlu kalır', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = FakeBackend();
-      fakeCatalog(b);
-      final cat = AcademicCatalog(makeSession(b, signedIn: false));
-      await tester.pumpWidget(buildApp(_Host(cat,
-          faculty: 'Mühendislik Fakültesi', department: 'Bilgisayar Mühendisliği', grade: '2')));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Mühendislik Fakültesi').first);
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.tap(find.text('Fen-Edebiyat Fakültesi'));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.textContaining('f=Fen-Edebiyat Fakültesi d=null g=2'), findsOneWidget);
+      expect(find.textContaining('f=Eğitim Fakültesi d=İngilizce'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -222,10 +240,36 @@ void main() {
       await tester.ensureVisible(find.text('Kayıt ol').last);
       await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
-      expect(find.text('Fakülteyi seçin.'), findsOneWidget);
-      expect(find.text('Bölümü seçin.'), findsOneWidget);
-      expect(find.text('Sınıfı seçin.'), findsOneWidget);
+      expect(find.text('Bölümünüzü seçin.'), findsOneWidget);
+      expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
+      expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
+      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
+      expect(find.text('Devam etmek için kabul etmelisiniz.'), findsOneWidget);
+      expect(find.text('Fakülteyi seçin.'), findsNothing);
       expect(b.count('/auth/register'), 0);
+      await unmount(tester);
+    });
+
+    testWidgets('fakülte seçici ve şifre tekrar alanı yok; sınıf varsayılan seçili değil', (tester) async {
+      useScreen(tester, const Size(390, 1800));
+      final b = FakeBackend();
+      fakeCatalog(b);
+      await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Fakülte seçin'), findsNothing);
+      expect(find.text('Şifre (tekrar)'), findsNothing);
+      // ad, e-posta, şifre: üç metin alanı.
+      expect(find.byType(TextFormField), findsNWidgets(3));
+      await tester.tap(find.text('Bölüm seçin'));
+      await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
+      expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
+      // Otomatik sınıf önerilmez: gönderim sınıf hatası verir.
+      await tester.ensureVisible(find.text('Kayıt ol').last);
+      await tester.tap(find.text('Kayıt ol').last);
+      await tester.pump();
+      expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
+      expect(find.text('Bölümünüzü seçin.'), findsNothing);
       await unmount(tester);
     });
 
@@ -239,7 +283,6 @@ void main() {
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse@bingol.edu.tr');
       await tester.enterText(fields.at(2), 'Sifre1234');
-      await tester.enterText(fields.at(3), 'Sifre1234');
       await fillAcademic(tester);
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();
@@ -330,17 +373,13 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('fakülte değişince bölüm temizlenir; bölümsüz kayıt engellenir', (tester) async {
+    testWidgets('bölüm seçilince fakülte otomatik değişir; fakülte seçici yok', (tester) async {
       final b = await open(tester);
-      await tester.tap(find.text('Eski Serbest Fakülte'));
-      await pickFromSearch(tester, 'fen', 'Fen-Edebiyat Fakültesi');
-      expect(find.text('Eski Serbest Bölüm'), findsNothing);
-      await tester.tap(find.text('Kaydet').last);
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Bölümü seçin.'), findsOneWidget);
-      expect(b.requests.where((r) => r.startsWith('PATCH')), isEmpty);
-      await tester.tap(find.text('Bölüm seçin'));
+      expect(find.text('Fakülte seçin'), findsNothing);
+      await tester.tap(find.text('Eski Serbest Bölüm'));
       await pickFromSearch(tester, 'biyo', 'Biyoloji');
+      expect(find.text('Eski Serbest Fakülte'), findsNothing);
+      expect(find.text('Fen-Edebiyat Fakültesi'), findsOneWidget);
       await tester.tap(find.text('Kaydet').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['PATCH /users/me'] as Map;

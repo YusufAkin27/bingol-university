@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
@@ -7,6 +8,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import 'auth_widgets.dart';
+import '../profile/legal_pages.dart';
 import 'verify_code_page.dart';
 import '../../core/typography.dart';
 
@@ -24,7 +26,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  final _password2 = TextEditingController();
   bool _terms = false;
   bool _termsError = false;
   bool _busy = false;
@@ -32,6 +33,11 @@ class _RegisterPageState extends State<RegisterPage> {
   late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
   String? _faculty, _department, _grade;
   bool _tried = false;
+  late final _termsLink = TapGestureRecognizer()..onTap = () => _openLegal('TERMS');
+  late final _privacyLink = TapGestureRecognizer()..onTap = () => _openLegal('PRIVACY');
+
+  void _openLegal(String type) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: type)));
 
   @override
   void initState() {
@@ -39,16 +45,16 @@ class _RegisterPageState extends State<RegisterPage> {
     _catalog.load();
   }
 
-  String? get _facultyErr => _tried && (_faculty ?? '').isEmpty ? 'Fakülteyi seçin.' : null;
-  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? 'Bölümü seçin.' : null;
-  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? 'Sınıfı seçin.' : null;
+  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? 'Bölümünüzü seçin.' : null;
+  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? 'Sınıfınızı seçin.' : null;
 
   @override
   void dispose() {
     _name.dispose();
     _email.dispose();
     _password.dispose();
-    _password2.dispose();
+    _termsLink.dispose();
+    _privacyLink.dispose();
     super.dispose();
   }
 
@@ -59,7 +65,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _termsError = !_terms;
       _tried = true;
       if (!academic && _catalog.state == CatalogState.error) {
-        _error = 'Fakülte ve bölüm listesi yüklenemedi. Aşağıdan yeniden deneyin.';
+        _error = 'Bölüm listesi yüklenemedi. Yeniden deneyin.';
       }
     });
     if (_busy || !valid || !academic || !_terms) return;
@@ -95,7 +101,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return AuthScaffold(
       showBack: true,
       title: 'Hesap oluştur',
-      subtitle: 'Yalnızca bingol.edu.tr e-postasıyla kayıt olunur.',
       children: [
         Form(
           key: _form,
@@ -104,6 +109,21 @@ class _RegisterPageState extends State<RegisterPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_error != null) Notice(_error!),
+                AcademicFields(
+                  catalog: _catalog,
+                  faculty: _faculty,
+                  department: _department,
+                  grade: _grade,
+                  enabled: !_busy,
+                  departmentError: _departmentErr,
+                  gradeError: _gradeErr,
+                  onChanged: (f, d, g) => setState(() {
+                    _faculty = f;
+                    _department = d;
+                    _grade = g;
+                  }),
+                ),
+                const SizedBox(height: 14),
                 TextFormField(
                   controller: _name,
                   textInputAction: TextInputAction.next,
@@ -119,34 +139,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 14),
                 EmailField(controller: _email),
                 const SizedBox(height: 14),
-                AcademicFields(
-                  catalog: _catalog,
-                  faculty: _faculty,
-                  department: _department,
-                  grade: _grade,
-                  enabled: !_busy,
-                  facultyError: _facultyErr,
-                  departmentError: _departmentErr,
-                  gradeError: _gradeErr,
-                  onChanged: (f, d, g) => setState(() {
-                    _faculty = f;
-                    _department = d;
-                    _grade = g;
-                  }),
-                ),
-                const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,
                   label: 'Şifre (en az 8 karakter)',
                   validator: validateNewPassword,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.newPassword],
-                ),
-                const SizedBox(height: 14),
-                PasswordField(
-                  controller: _password2,
-                  label: 'Şifre (tekrar)',
-                  validator: (v) => v != _password.text ? 'Şifreler eşleşmiyor.' : null,
                   autofillHints: const [AutofillHints.newPassword],
                   onSubmitted: _submit,
                 ),
@@ -160,9 +156,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                   activeColor: t.pr,
-                  title: Text(
-                    'Kullanım koşullarını, gizlilik politikasını, KVKK aydınlatma metnini ve topluluk kurallarını okudum, kabul ediyorum.',
-                    style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
+                  title: Text.rich(
+                    TextSpan(
+                      style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
+                      children: [
+                        TextSpan(
+                          text: 'Kullanım koşulları',
+                          recognizer: _termsLink,
+                          style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
+                        ),
+                        const TextSpan(text: ' ve '),
+                        TextSpan(
+                          text: 'gizlilik politikasını',
+                          recognizer: _privacyLink,
+                          style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
+                        ),
+                        const TextSpan(text: ' kabul ediyorum'),
+                      ],
+                    ),
                   ),
                   subtitle: _termsError
                       ? Text('Devam etmek için kabul etmelisiniz.',
