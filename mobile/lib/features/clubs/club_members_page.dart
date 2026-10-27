@@ -188,7 +188,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
           if (canAct)
             PopupMenuButton<String>(
               tooltip: 'Üye işlemleri',
-              icon: Icon(LucideIcons.ellipsis, size: 20, color: t.mut),
+              icon: Icon(LucideIcons.ellipsis, size: 18, color: t.mut),
               onSelected: (v) {
                 switch (v) {
                   case 'mod':

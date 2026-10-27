@@ -171,7 +171,7 @@ class ChatInfoThumb extends StatelessWidget {
             if (video) ...[
               const Center(
                   child: Icon(Icons.play_circle_fill_rounded,
-                      size: 30, color: Colors.white70)),
+                      size: 27, color: Colors.white70)),
               if (durationMs != null)
                 Positioned(
                   left: 4,

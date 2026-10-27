@@ -408,7 +408,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           child: InkWell(
                             customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
-                            child: Icon(LucideIcons.star, size: 22, color: t.ink),
+                            child: Icon(LucideIcons.star, size: 20, color: t.ink),
                           ),
                         ),
                       ),
@@ -450,6 +450,23 @@ class _EventDetailPageState extends State<EventDetailPage> {
         child: Stack(
           children: [
             if (cover != null) Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 1000)),
+            // Açık renkli kapakta geri/menü düğmeleri kaybolmasın: üstte hafif koyu geçiş.
+            if (cover != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: pad.top + 72,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.black.withValues(alpha: .4), Colors.black.withValues(alpha: 0)],
+                    ),
+                  ),
+                ),
+              ),
             if (cover == null) ...[
               Positioned(
                   right: -40, top: -50, child: _circle(200, .15)),
@@ -463,8 +480,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 child: Container(
                   width: 42,
                   height: 42,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.arrowLeft, size: 22, color: Colors.white),
+                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.arrowLeft, size: 20, color: Colors.white),
                 ),
               ),
             ),
@@ -488,8 +505,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     child: Container(
                       width: 42,
                       height: 42,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.ellipsis, size: 22, color: Colors.white),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.ellipsis, size: 20, color: Colors.white),
                     ),
                   ),
                 ),
@@ -507,8 +524,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     child: Container(
                       width: 42,
                       height: 42,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.flag, size: 20, color: Colors.white),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.flag, size: 18, color: Colors.white),
                     ),
                   ),
                 ),
@@ -519,7 +536,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 bottom: 18,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 10, offset: const Offset(0, 2)),
+                  ]),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(_monthsShort[starts.month - 1],
                         style: BuType.micro.copyWith(color: const Color(0xFF8E1B13))),
@@ -541,7 +560,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ]),
           if (rsvp != null || eventIsCancelled(ev) || eventIsClosed(ev)) const SizedBox(height: 8),
           Text('${ev['title'] ?? ''}',
-              style: BuType.display.copyWith(letterSpacing: -.4, height: 1.2, color: t.ink)),
+              // Detayda başlık kesilmez (sayfa kayar); tam metin her zaman okunur.
+              style: BuType.title.copyWith(height: 1.25, color: t.ink)),
           if (organizer != null && organizer.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -699,7 +719,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         alignment: Alignment.center,
         decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(23)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.circleCheck, size: 18, color: t.ok),
+          Icon(LucideIcons.circleCheck, size: 16, color: t.ok),
           const SizedBox(width: 8),
           Text('Yoklaman alındı', style: BuType.bodyStrong.copyWith(color: t.ok)),
         ]),
@@ -795,7 +815,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       const SizedBox(height: 10),
       BuCard(
         child: Row(children: [
-          Icon(LucideIcons.clipboardCheck, size: 20, color: t.onSoft),
+          Icon(LucideIcons.clipboardCheck, size: 18, color: t.onSoft),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -885,7 +905,7 @@ class _InfoRow extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-          child: Icon(icon, size: 20, color: t.onSoft),
+          child: Icon(icon, size: 18, color: t.onSoft),
         ),
         const SizedBox(width: 12),
         Expanded(

@@ -36,7 +36,9 @@ class MessageBubble extends StatelessWidget {
     this.preview = false,
     this.onSwipeReply,
     this.onOpenViewOnce,
+    this.onOpenGallery,
     this.highlight,
+    this.onSenderTap,
   });
 
   final Map<String, dynamic> message;
@@ -44,6 +46,9 @@ class MessageBubble extends StatelessWidget {
 
   /// Grup sohbetinde gelen mesajın üstünde görünen ad (yoksa null).
   final String? senderName;
+
+  /// Gönderen adına dokunma (profil açar); null ise ad etkileşimsiz.
+  final VoidCallback? onSenderTap;
   final String? replyName;
 
   /// Giden mesaj karşı tarafça okundu mu.
@@ -53,6 +58,9 @@ class MessageBubble extends StatelessWidget {
   final VoidCallback onRetry;
   final void Function(Map<String, dynamic> attachment) onOpenImage;
   final void Function(String emoji) onReact;
+
+  /// Çok öğeli mesajda dokunulan hücreden başlayan galeri (tüm medya, başlangıç indeksi).
+  final void Function(List<Map<String, dynamic>> attachments, int index)? onOpenGallery;
 
   /// Kuyruk köşesi (ardışık aynı gönderenin mesajlarında yalnız sonuncuda true).
   final bool tail;
@@ -118,7 +126,11 @@ class MessageBubble extends StatelessWidget {
     final hasOnce = onceAtt != null || localOnce;
     final atts = allAtts.where((a) => !isViewOnceAttachment(a)).toList();
     final localBytes = hasOnce ? null : m['_bytes'] as Uint8List?;
-    final hasMedia = atts.isNotEmpty || localBytes != null || localVideo;
+    final localItems = (hasOnce || deleted || removed)
+        ? const <Map<String, dynamic>>[]
+        : ((m['_localItems'] as List?)?.cast<Map<String, dynamic>>() ?? const <Map<String, dynamic>>[]);
+    final localGrid = localItems.length > 1;
+    final hasMedia = atts.isNotEmpty || localBytes != null || localVideo || localGrid;
     final reactions =
         (m['reactions'] as List? ?? const []).whereType<Map>().toList();
     final myReaction = m['myReaction'] as String?;
@@ -188,7 +200,9 @@ class MessageBubble extends StatelessWidget {
 
     final w = (maxW - 12).clamp(140.0, 300.0);
     Widget? mediaBlock;
-    if (localVideo || localBytes != null) {
+    if (localGrid) {
+      mediaBlock = _LocalGrid(items: localItems, width: w, uploading: state == 'pending');
+    } else if (localVideo || localBytes != null) {
       final vw = (m['_vw'] as num?)?.toDouble() ?? 0;
       final vh = (m['_vh'] as num?)?.toDouble() ?? 0;
       mediaBlock = _LocalMedia(
@@ -208,8 +222,11 @@ class MessageBubble extends StatelessWidget {
           maxW: maxW - 12,
           onTap: () => onOpenImage(atts.first));
     } else if (atts.length > 1) {
-      final cell = (w - 4) / 2;
-      final shown = atts.take(4).toList();
+      final three = atts.length > 4;
+      final cell = three ? (w - 8) / 3 : (w - 4) / 2;
+      final cap = three ? 6 : 4;
+      final shown = atts.take(cap).toList();
+      void open(int i) => onOpenGallery != null ? onOpenGallery!(atts, i) : onOpenImage(atts[i]);
       mediaBlock = SizedBox(
         width: w,
         child: Wrap(spacing: 4, runSpacing: 4, children: [
@@ -219,8 +236,8 @@ class MessageBubble extends StatelessWidget {
               headers: authHeaders,
               maxW: maxW - 12,
               side: cell,
-              more: (i == 3 && atts.length > 4) ? atts.length - 4 : 0,
-              onTap: () => onOpenImage(shown[i]),
+              more: (i == cap - 1 && atts.length > cap) ? atts.length - cap + 1 : 0,
+              onTap: () => open(i),
             ),
         ]),
       );
@@ -266,8 +283,12 @@ class MessageBubble extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.fromLTRB(
                     hasMedia ? 8 : 0, hasMedia ? 4 : 0, 0, 3),
-                child: Text(senderName!,
-                    style: BuType.label.copyWith(color: t.pr)),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: preview ? null : onSenderTap,
+                  child: Text(senderName!,
+                      style: BuType.label.copyWith(color: t.pr)),
+                ),
               ),
             if (reply != null && !deleted) _quote(context, t, reply, fg),
             if (onceBlock != null)
@@ -330,7 +351,7 @@ class MessageBubble extends StatelessWidget {
               child: GestureDetector(
                 onTap: onRetry,
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
+                  Icon(LucideIcons.circleAlert, size: 12.5, color: t.danger),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
@@ -500,7 +521,7 @@ class _Tick extends StatelessWidget {
             duration: const Duration(milliseconds: 220),
             child: Icon(icon,
                 key: ValueKey<String>(status),
-                size: 14,
+                size: 12.5,
                 color: status == 'READ' ? readColor : color),
           ),
         ),
@@ -523,7 +544,7 @@ class PlayBadge extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
       child: Icon(LucideIcons.play,
-          size: size * .5, color: Colors.white),
+          size: size * .45, color: Colors.white),
     );
   }
 }
@@ -542,7 +563,7 @@ class DurationPill extends StatelessWidget {
           color: Colors.black.withValues(alpha: .5),
           borderRadius: BorderRadius.circular(999)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(LucideIcons.video, size: 12, color: Colors.white),
+        const Icon(LucideIcons.video, size: 11, color: Colors.white),
         const SizedBox(width: 4),
         Text(formatMediaDuration(ms),
             style: BuType.micro.copyWith(color: Colors.white)),
@@ -618,6 +639,66 @@ class _LocalMedia extends StatelessWidget {
           if (video && durationMs != null)
             PositionedDirectional(
                 start: 6, bottom: 6, child: DurationPill(ms: durationMs!)),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Gönderilmekte olan çok öğeli mesajın yerel ızgarası (2: yan yana, 3-4: 2 sütun, 5-10: 3 sütun, en çok 6 hücre).
+class _LocalGrid extends StatelessWidget {
+  const _LocalGrid({required this.items, required this.width, required this.uploading});
+
+  final List<Map<String, dynamic>> items;
+  final double width;
+  final bool uploading;
+
+  @override
+  Widget build(BuildContext context) {
+    final three = items.length > 4;
+    final cell = three ? (width - 8) / 3 : (width - 4) / 2;
+    final cap = three ? 6 : 4;
+    final shown = items.take(cap).toList();
+    final extra = items.length > cap ? items.length - cap + 1 : 0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: width,
+        child: Stack(alignment: Alignment.center, children: [
+          Wrap(spacing: 4, runSpacing: 4, children: [
+            for (var i = 0; i < shown.length; i++)
+              SizedBox(
+                width: cell,
+                height: cell,
+                child: Stack(fit: StackFit.expand, children: [
+                  if (shown[i]['bytes'] is Uint8List)
+                    Image.memory(shown[i]['bytes'] as Uint8List,
+                        fit: BoxFit.cover, cacheWidth: 360, gaplessPlayback: true)
+                  else
+                    const ColoredBox(color: Colors.black87),
+                  if (shown[i]['video'] == true && !(i == cap - 1 && extra > 0))
+                    const Center(child: PlayBadge(size: 30)),
+                  if (i == cap - 1 && extra > 0)
+                    ColoredBox(
+                      color: Colors.black.withValues(alpha: .5),
+                      child: Center(
+                          child: Text('+$extra', style: BuType.title.copyWith(color: Colors.white))),
+                    ),
+                ]),
+              ),
+          ]),
+          if (uploading)
+            Container(
+              key: const ValueKey('uploadProgress'),
+              width: 46,
+              height: 46,
+              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
+            ),
         ]),
       ),
     );
@@ -855,7 +936,7 @@ class _SwipeReplyState extends State<_SwipeReply>
                     height: 28,
                     decoration:
                         BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.reply, size: 15, color: t.mut),
+                    child: Icon(LucideIcons.reply, size: 13.5, color: t.mut),
                   ),
                 ),
               ),

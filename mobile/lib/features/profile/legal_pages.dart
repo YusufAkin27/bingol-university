@@ -70,7 +70,7 @@ class _LegalListPageState extends State<LegalListPage> {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Row(children: [
-                                Icon(LucideIcons.fileText, size: 22, color: t.pr),
+                                Icon(LucideIcons.fileText, size: 20, color: t.pr),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -81,7 +81,7 @@ class _LegalListPageState extends State<LegalListPage> {
                                         style: BuType.caption.copyWith(color: t.mut)),
                                   ]),
                                 ),
-                                Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+                                Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
                               ]),
                             ),
                           ),

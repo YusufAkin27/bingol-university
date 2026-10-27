@@ -596,7 +596,7 @@ class _HomeTabState extends State<HomeTab> {
                 if (_avatars.isNotEmpty)
                   _AvatarStack(avatars: _avatars, total: going)
                 else
-                  const Icon(LucideIcons.users, size: 16, color: Colors.white),
+                  const Icon(LucideIcons.users, size: 14.5, color: Colors.white),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(going > 0 ? '$going kişi katılıyor' : 'İlk katılan sen ol',
@@ -632,7 +632,7 @@ class _HomeTabState extends State<HomeTab> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: .25), Colors.black.withValues(alpha: .75)],
+                  colors: [Colors.black.withValues(alpha: .65), Colors.black.withValues(alpha: .85)],
                 ),
               ),
             ),
@@ -650,7 +650,7 @@ class _HomeTabState extends State<HomeTab> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(color: Colors.white.withValues(alpha: .2), borderRadius: BorderRadius.circular(999)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 13, color: Colors.white),
+          Icon(icon, size: 11.5, color: Colors.white),
           const SizedBox(width: 6),
           Text(text, style: BuType.micro.copyWith(color: Colors.white)),
         ]),
@@ -670,7 +670,7 @@ class _HomeTabState extends State<HomeTab> {
                   width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: BuColors.red700))
               : Row(mainAxisSize: MainAxisSize.min, children: [
                   if (check) ...const [
-                    Icon(LucideIcons.check, size: 15, color: Color(0xFF8E1B13)),
+                    Icon(LucideIcons.check, size: 13.5, color: Color(0xFF8E1B13)),
                     SizedBox(width: 4),
                   ],
                   Text(label, style: BuType.label.copyWith(color: const Color(0xFF8E1B13))),
@@ -719,7 +719,7 @@ class _HomeTabState extends State<HomeTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Icon(LucideIcons.utensils, size: 20, color: t.onSoft),
+                        Icon(LucideIcons.utensils, size: 18, color: t.onSoft),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text('Bugünün yemeği',
@@ -816,7 +816,7 @@ class _HomeTabState extends State<HomeTab> {
                 ],
               ),
             ),
-            Icon(LucideIcons.arrowRight, size: 22, color: arrow),
+            Icon(LucideIcons.arrowRight, size: 20, color: arrow),
           ]),
         ),
       ),
@@ -925,7 +925,7 @@ class _QuickItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: t.bd),
                   ),
-                  child: Icon(icon, size: 24, color: t.pr),
+                  child: Icon(icon, size: 21.5, color: t.pr),
                 ),
                 if (badge != null)
                   ValueListenableBuilder<int>(

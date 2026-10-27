@@ -155,7 +155,7 @@ class _SupportPageState extends State<SupportPage> {
           child: SizedBox(
             height: 52,
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(LucideIcons.plus, size: 20, color: t.onPr),
+              Icon(LucideIcons.plus, size: 18, color: t.onPr),
               const SizedBox(width: 8),
               Text('Destek talebi oluştur', style: BuType.bodyStrong.copyWith(color: t.onPr)),
             ]),
@@ -194,7 +194,7 @@ class _SupportPageState extends State<SupportPage> {
                         style: BuType.bodyStrong.copyWith(color: t.ink)),
                   ),
                   const SizedBox(width: 10),
-                  Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 18, color: t.mut),
+                  Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: t.mut),
                 ]),
               ),
             ),
@@ -294,7 +294,7 @@ class _SupportPageState extends State<SupportPage> {
           child: SizedBox(
             height: 50,
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 18, color: t.pr),
+              Icon(icon, size: 16, color: t.pr),
               const SizedBox(width: 8),
               Text(label, style: BuType.label.copyWith(color: t.ink)),
             ]),

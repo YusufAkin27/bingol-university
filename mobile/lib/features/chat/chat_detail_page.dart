@@ -18,6 +18,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
+import '../profile/user_profile_page.dart';
 import '../events/event_detail_page.dart';
 import 'chat_info_page.dart';
 import 'chat_media.dart';
@@ -26,6 +27,11 @@ import 'chat_video_player.dart';
 import 'forward_sheet.dart';
 import 'view_once_viewer.dart';
 import 'message_actions.dart';
+import 'media_camera_page.dart';
+import 'media_library.dart';
+import 'media_pick.dart';
+import 'media_picker_page.dart';
+import 'media_preview_page.dart';
 import 'message_bubble.dart';
 
 /// "Video hazırlanıyor… %N" penceresi (iptal edilebilir). Kapatmayı çağıran yapar.
@@ -74,7 +80,8 @@ class ChatDetailPage extends StatefulWidget {
     required this.conversation,
     @visibleForTesting this.connectRealtime = true,
     @visibleForTesting this.realtime,
-    @visibleForTesting this.pickImage,
+    @visibleForTesting this.mediaLibrary,
+    @visibleForTesting this.openCamera,
     @visibleForTesting this.uploadClient,
     @visibleForTesting this.videoService,
     @visibleForTesting this.ensureAccess,
@@ -90,8 +97,11 @@ class ChatDetailPage extends StatefulWidget {
   /// Testlerde enjekte edilen gerçek zamanlı katman (yoksa kendisi oluşturur).
   final ChatRealtime? realtime;
 
-  /// Testlerde görsel seçici yerine kullanılır.
-  final Future<PreparedImage?> Function(ImageSource source)? pickImage;
+  /// Testlerde galeri sağlayıcısı (yoksa `photo_manager`).
+  final MediaLibrary? mediaLibrary;
+
+  /// Testlerde kamera ekranı yerine kullanılır.
+  final MediaCameraLauncher? openCamera;
 
   /// Testlerde görsel yükleme istemcisi.
   final http.Client? uploadClient;
@@ -141,9 +151,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Timer? _deliveredTimer;
   List<String>? _emojis;
   bool _rtOn = false;
-
-  /// Sonraki görsel tek gösterimlik mi (düğme composer'da).
-  bool _viewOnce = false;
 
   /// Aşağı kaydır düğmesi: liste en altta değilken görünür; arka planda gelen okunmamış sayısı.
   final _showDown = ValueNotifier<bool>(false);
@@ -210,6 +217,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             : EventDetailPage(session: widget.session, eventId: id),
       ),
     );
+  }
+
+  /// Gönderen avatarı/adı ya da birebirde karşı kişinin avatarı: kullanıcı profili.
+  void _openProfileOf(int? uid) {
+    if (uid == null || uid == _myId) return;
+    openUserProfile(context, widget.session,
+        userId: uid,
+        name: _nameOf(uid),
+        avatarUrl: (_direct && (_peer?['id'] as num?)?.toInt() == uid)
+            ? (_peer?['avatarUrl'] as String?)
+            : _avatars[uid],
+        fromConversationId: _cid);
   }
 
   /// Başlığa dokununca: sohbet bilgisi + medya ızgarası.
@@ -685,26 +704,27 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Görselli mesajlar önce yüklenir, `attachmentIds` ile REST'ten gönderilir.
   Future<void> _transmit(Map<String, dynamic> local) async {
     final cid = local['clientId'] as String;
-    final pending = local['_image'] as PreparedImage?;
-    final pendingVideo = local['_video'] as PreparedVideo?;
+    final uploads = _uploadsOf(local);
     try {
-      if (pending != null && local['_attId'] == null) {
-        final res = await _uploader.upload(
-            '/conversations/$_cid/media', pending) as Map;
-        local['_attId'] = (res['id'] as num).toInt();
+      for (final u in uploads) {
+        if (u['attId'] != null) continue;
+        final image = u['image'] as PreparedImage?;
+        final video = u['video'] as PreparedVideo?;
+        if (image != null) {
+          final res =
+              await _uploader.upload('/conversations/$_cid/media', image) as Map;
+          u['attId'] = (res['id'] as num).toInt();
+        } else if (video != null) {
+          final prog = u['progress'];
+          if (prog is ValueNotifier<double>) prog.value = 0;
+          final res = await _videoUploader.upload(
+              '/conversations/$_cid/media', video, onProgress: (p) {
+            if (prog is ValueNotifier<double>) prog.value = p;
+          }) as Map;
+          u['attId'] = (res['id'] as num).toInt();
+        }
       }
-      if (pendingVideo != null && local['_attId'] == null) {
-        final prog = local['_progress'];
-        if (prog is ValueNotifier<double>) prog.value = 0;
-        final res = await _videoUploader.upload(
-            '/conversations/$_cid/media', pendingVideo,
-            onProgress: (p) {
-          if (prog is ValueNotifier<double>) prog.value = p;
-        }) as Map;
-        local['_attId'] = (res['id'] as num).toInt();
-      }
-      final attId = local['_attId'] as int?;
-      if (attId == null &&
+      if (uploads.isEmpty &&
           local['replyToMessageId'] == null &&
           _rtOn &&
           _rt.sendMessage(_cid, local['text'] as String, cid)) {
@@ -722,16 +742,23 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  List<Map<String, dynamic>> _uploadsOf(Map<String, dynamic> local) =>
+      (local['_uploads'] as List?)?.cast<Map<String, dynamic>>() ??
+      const <Map<String, dynamic>>[];
+
   Future<void> _sendRest(Map<String, dynamic> local) async {
     try {
-      final attId = local['_attId'] as int?;
+      final ids = [
+        for (final u in _uploadsOf(local))
+          if (u['attId'] != null) u['attId'] as int
+      ];
       final res = await _api.post('/conversations/$_cid/messages', {
         'text': local['text'],
         'clientId': local['clientId'],
         if (local['replyToMessageId'] != null)
           'replyToMessageId': local['replyToMessageId'],
-        if (attId != null) 'attachmentIds': [attId],
-        if (attId != null && local['_viewOnce'] == true) 'viewOnce': true,
+        if (ids.isNotEmpty) 'attachmentIds': ids,
+        if (ids.isNotEmpty && local['_viewOnce'] == true) 'viewOnce': true,
       });
       if (!mounted) return;
       setState(() => _merge([Map<String, dynamic>.from(res as Map)]));
@@ -744,6 +771,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   void _fail(Map<String, dynamic> local, Object e) {
     if (!mounted || local['id'] != null) return;
+    // Engel bilgisi sızdırılmaz: olası engel hata kodları yok sayılır (mesaj gönderilmiş görünür).
+    if (e is ApiError && (e.code == 'BLOCKED' || e.code == 'USER_BLOCKED')) {
+      setState(() => local['_state'] = null);
+      return;
+    }
     setState(() {
       local['_state'] = 'failed';
       local['_error'] = e is ApiError && !e.isNetwork ? errorText(e) : null;
@@ -758,81 +790,35 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     await _transmit(m);
   }
 
-  // ---------- Görsel ----------
+  // ---------- Medya (galeri / kamera / önizleme) ----------
 
-  Future<void> _pickImage() async {
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      showDragHandle: true,
-      builder: (c) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          BuMenuRow(
-              icon: LucideIcons.image,
-              label: 'Galeriden seç',
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'photo-gallery')),
-          BuMenuRow(
-              icon: LucideIcons.camera,
-              label: 'Fotoğraf çek',
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'photo-camera')),
-          BuMenuRow(
-              icon: LucideIcons.video,
-              label: 'Galeriden video seç',
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'video-gallery')),
-          BuMenuRow(
-              icon: LucideIcons.circleDot,
-              label: 'Video çek',
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'video-camera')),
-          const SizedBox(height: 8),
-        ]),
+  /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir.
+  Future<void> _openGallery() async {
+    final plan = await Navigator.push<MediaSendPlan>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MediaPickerPage(
+          library: widget.mediaLibrary ?? PhotoManagerLibrary(),
+          ensureAccess: widget.ensureAccess,
+          openCamera: widget.openCamera,
+        ),
       ),
     );
-    if (choice == null || !mounted) return;
-    if (choice.startsWith('video')) {
-      await _pickVideo(camera: choice == 'video-camera');
-      return;
-    }
-    final source =
-        choice == 'photo-camera' ? ImageSource.camera : ImageSource.gallery;
-    PreparedImage? img;
-    try {
-      img = await (widget.pickImage?.call(source) ?? _image.pickPrepared(source));
-    } on ImageException catch (e) {
-      _toast(e.code == 'TOO_LARGE'
-          ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
-          : 'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.');
-      return;
-    } catch (_) {
-      _toast('Görsel seçilemedi. İzinleri kontrol edin.');
-      return;
-    }
-    if (img == null || !mounted) return;
-    final once = _viewOnce;
-    // Tek gösterimlikte yerel önizleme de tutulmaz (baloncukta yalnız kart görünür).
-    final local = _newLocal('')..['_image'] = img;
-    if (once) {
-      local['_viewOnce'] = true;
-    } else {
-      local['_bytes'] = img.bytes;
-    }
-    setState(() {
-      _msgs.insert(0, local);
-      _replyTo = null;
-      _viewOnce = false;
-    });
-    _scrollToEnd();
-    await _transmit(local);
+    if (plan == null || !mounted) return;
+    await _sendPlan(plan);
   }
 
-  // ---------- Video ----------
-
-  Future<bool> _access(AppPermission p, {String? rationale}) =>
-      (widget.ensureAccess ?? ensurePermission)(context, p,
-          rationale: rationale);
+  /// Yazı alanındaki kamera kısayolu: kamera -> önizleme -> gönder.
+  Future<void> _openCameraShortcut() async {
+    final pick = await (widget.openCamera ?? openMediaCamera)(context);
+    if (pick == null || !mounted) return;
+    final plan = await Navigator.push<MediaSendPlan>(
+      context,
+      MaterialPageRoute(builder: (_) => MediaPreviewPage(picks: [pick])),
+    );
+    if (plan == null || !mounted) return;
+    await _sendPlan(plan);
+  }
 
   static String _videoErrorText(String code) => switch (code) {
         'TOO_LONG' => 'Video en fazla 60 saniye olabilir',
@@ -841,31 +827,103 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _ => 'Video hazırlanamadı.',
       };
 
-  /// Galeriden seç ya da kamerayla çek (en çok 60 sn) -> doğrula + sıkıştır (ilerleme/iptal) -> yükle -> gönder.
-  Future<void> _pickVideo({required bool camera}) async {
-    if (_viewOnce) {
-      _toast('Video tek gösterimlik gönderilemez');
-      return;
+  /// Planı mesajlara böler (bkz. [planMessages]), öğeleri hazırlar, yerel baloncukları sırayla ekler ve yükler.
+  Future<void> _sendPlan(MediaSendPlan plan) async {
+    final locals = <Map<String, dynamic>>[];
+    var splitNotified = false;
+    for (final mp in planMessages(plan)) {
+      final prepared = <Map<String, dynamic>>[];
+      for (final p in mp.picks) {
+        final u = await _prepareUpload(p);
+        if (!mounted) return;
+        if (u != null) prepared.add(u);
+      }
+      if (prepared.isEmpty) continue;
+      // Mesaj başına video bayt toplamı sınırı: gerekirse birden çok mesaja bölünür.
+      final parts = splitByVideoBytes<Map<String, dynamic>>(
+          prepared, (u) => (u['video'] as PreparedVideo?)?.sizeBytes ?? 0);
+      if (parts.length > 1 && !splitNotified) {
+        splitNotified = true;
+        _toast('Videolar büyük olduğu için birden fazla mesaj olarak gönderilecek');
+      }
+      for (var pi = 0; pi < parts.length; pi++) {
+        final uploads = parts[pi];
+        final local = _newLocal(pi == 0 ? mp.caption : '')..['_uploads'] = uploads;
+        if (locals.isNotEmpty) {
+          local['replyToMessageId'] = null; // yanıt yalnız ilk mesajda
+          local['replyTo'] = null;
+        }
+        if (mp.once) {
+          // Tek gösterimlikte yerel önizleme de tutulmaz (baloncukta yalnız kart görünür).
+          local['_viewOnce'] = true;
+        } else {
+          // Yerel önizleme: tüm öğeler (ızgara) + ilk öğenin eski alanları.
+          local['_localItems'] = [
+            for (final u in uploads)
+              {
+                'bytes': (u['image'] as PreparedImage?)?.bytes ??
+                    (u['video'] as PreparedVideo?)?.poster,
+                'video': u['video'] != null,
+                'durationMs': (u['video'] as PreparedVideo?)?.durationMs,
+              }
+          ];
+          final first = uploads.first;
+          final img = first['image'] as PreparedImage?;
+          final vid = first['video'] as PreparedVideo?;
+          if (img != null) local['_bytes'] = img.bytes;
+          if (vid != null) {
+            if (vid.poster != null) local['_bytes'] = vid.poster;
+            if (uploads.length == 1) {
+              local
+                ..['_isVideo'] = true
+                ..['_durationMs'] = vid.durationMs
+                ..['_vw'] = vid.width
+                ..['_vh'] = vid.height
+                ..['_progress'] = first['progress'];
+            }
+          }
+        }
+        locals.add(local);
+      }
     }
-    if (camera) {
-      final ok = await _access(AppPermission.camera,
-              rationale: 'Video çekebilmeniz için kameraya erişmemiz gerekir.') &&
-          mounted &&
-          await _access(AppPermission.microphone,
-              rationale:
-                  'Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.');
-      if (!ok || !mounted) return;
+    if (locals.isEmpty || !mounted) return;
+    setState(() {
+      for (final l in locals) {
+        _msgs.insert(0, l);
+      }
+      _replyTo = null;
+    });
+    _scrollToEnd();
+    for (final l in locals) {
+      await _transmit(l);
     }
-    PickedVideo? picked;
-    try {
-      picked = await _video
-          .pick(camera ? ImageSource.camera : ImageSource.gallery);
-    } catch (_) {
-      _toast('Video seçilemedi. İzinleri kontrol edin.');
-      return;
-    }
-    if (picked == null || !mounted) return;
+  }
 
+  /// Tek öğeyi yüklemeye hazırlar (fotoğraf doğrulama/sıkıştırma, video sıkıştırma). Hata olursa toast + null.
+  Future<Map<String, dynamic>?> _prepareUpload(MediaPick p) async {
+    if (!p.isVideo) {
+      try {
+        final bytes = await p.imageBytes?.call();
+        if (bytes == null) throw ImageException('EMPTY');
+        return {'image': await _image.prepare(bytes)};
+      } on ImageException catch (e) {
+        _toast(e.code == 'TOO_LARGE'
+            ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
+            : 'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.');
+      } catch (_) {
+        _toast('Görsel okunamadı.');
+      }
+      return null;
+    }
+    String? path;
+    try {
+      path = await p.videoPath?.call();
+    } catch (_) {}
+    if (path == null) {
+      _toast('Video okunamadı.');
+      return null;
+    }
+    if (!mounted) return null;
     final progress = ValueNotifier<double>(0);
     final cancel = VideoCancel();
     // Hazırlık penceresi (iptal edilebilir); iş bitince aşağıda kapatılır.
@@ -877,8 +935,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     PreparedVideo? prepared;
     String? error;
     try {
-      prepared = await _video.prepare(picked,
-          onProgress: (p) => progress.value = p, cancel: cancel);
+      prepared = await _video.prepare(PickedVideo(path),
+          onProgress: (v) => progress.value = v, cancel: cancel);
     } on VideoException catch (e) {
       if (e.code != 'CANCELLED') error = _videoErrorText(e.code);
     } catch (_) {
@@ -886,27 +944,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     if (mounted) Navigator.of(context, rootNavigator: true).pop();
     progress.dispose();
-    if (!mounted) return;
+    if (!mounted) return null;
     if (error != null) {
       _toast(error);
-      return;
+      return null;
     }
-    if (prepared == null) return;
-
-    final local = _newLocal('')
-      ..['_video'] = prepared
-      ..['_isVideo'] = true
-      ..['_durationMs'] = prepared.durationMs
-      ..['_vw'] = prepared.width
-      ..['_vh'] = prepared.height
-      ..['_progress'] = ValueNotifier<double>(0);
-    if (prepared.poster != null) local['_bytes'] = prepared.poster;
-    setState(() {
-      _msgs.insert(0, local);
-      _replyTo = null;
-    });
-    _scrollToEnd();
-    await _transmit(local);
+    if (prepared == null) return null;
+    return {'video': prepared, 'progress': ValueNotifier<double>(0)};
   }
 
   Future<void> _saveVideo(String url) async {
@@ -961,6 +1005,27 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         ),
       ),
     );
+  }
+
+  /// Çok öğeli mesajın tüm medyası; dokunulan öğeden başlayan galeri.
+  void _openMessageGallery(List<Map<String, dynamic>> atts, int index) {
+    final items = <ChatMediaItem>[];
+    var start = 0;
+    for (var i = 0; i < atts.length; i++) {
+      final it = ChatMediaItem.tryFromAttachment(atts[i]);
+      if (it == null) continue;
+      if (i == index) start = items.length;
+      items.add(it);
+    }
+    if (items.isEmpty) return;
+    Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+            builder: (_) => ChatMediaViewer(
+                items: items,
+                headers: _authHeaders,
+                initialIndex: start,
+                videoControllerFactory: widget.videoControllerFactory)));
   }
 
   void _openImage(Map<String, dynamic> a) {
@@ -1245,6 +1310,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final hasText = ((m['text'] as String?) ?? '').trim().isNotEmpty;
     final hasAtt = ((m['attachments'] as List?)?.isNotEmpty ?? false) ||
         m['_viewOnce'] == true ||
+        m['_uploads'] != null ||
         m['_isVideo'] == true ||
         m['_bytes'] != null;
     final canDelete =
@@ -1255,7 +1321,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         MessageAction('retry', 'Yeniden gönder', LucideIcons.rotateCw),
         MessageAction('drop', 'Vazgeç', LucideIcons.x, danger: true),
       ] else ...[
-        if (!deleted && !_blocked)
+        if (!deleted)
           const MessageAction('reply', 'Yanıtla', LucideIcons.reply),
         if (!deleted && hasText)
           const MessageAction('copy', 'Kopyala', LucideIcons.copy),
@@ -1622,11 +1688,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             onTap: () => Navigator.pop(context, _changed)),
         const SizedBox(width: 12),
         GestureDetector(
-            onTap: _openInfo,
+            onTap: _direct
+                ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
+                : _openInfo,
             child: BuAvatar(
                 name: _title,
                 url: _avatarUrl,
                 size: 42,
+                group: !_direct,
                 headers: _avatarHeaders(_avatarUrl))),
         const SizedBox(width: 12),
         Expanded(
@@ -1801,7 +1870,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                           offset: const Offset(0, 2))
                     ],
                   ),
-                  child: Icon(LucideIcons.chevronDown, size: 22, color: t.ink),
+                  child: Icon(LucideIcons.chevronDown, size: 20, color: t.ink),
                 ),
                 if (n > 0)
                   PositionedDirectional(
@@ -1922,10 +1991,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       SizedBox(
         width: 28,
         child: _firstOfRun(i)
-            ? BuAvatar(
-                name: _nameOf(sid),
-                url: sid == null ? null : _avatars[sid],
-                size: 28)
+            ? GestureDetector(
+                key: ValueKey('sender-avatar-${m['id']}'),
+                onTap: () => _openProfileOf(sid),
+                child: BuAvatar(
+                    name: _nameOf(sid),
+                    url: sid == null ? null : _avatars[sid],
+                    size: 28,
+                    headers: _avatarHeaders(sid == null ? null : _avatars[sid])))
             : null,
       ),
       const SizedBox(width: 8),
@@ -1954,6 +2027,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       senderName: (!mine && !_direct && first)
           ? _nameOf((m['senderId'] as num?)?.toInt())
           : null,
+      onSenderTap: (!mine && !_direct)
+          ? () => _openProfileOf((m['senderId'] as num?)?.toInt())
+          : null,
       replyName:
           reply == null ? null : _nameOf((reply['senderId'] as num?)?.toInt()),
       replyMine: reply != null && (reply['senderId'] as num?)?.toInt() == _myId,
@@ -1965,8 +2041,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               id == null ||
               m['_state'] != null ||
               m['deleted'] == true ||
-              m['removed'] == true ||
-              _blocked)
+              m['removed'] == true)
           ? null
           : () {
               setState(() {
@@ -1980,6 +2055,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       onReplyTap: replyId == null ? null : () => _jumpTo(replyId),
       onRetry: () => _retry(m),
       onOpenImage: _openImage,
+      onOpenGallery: _openMessageGallery,
       onOpenViewOnce: (a) => _openViewOnce(m, a),
       highlight: (_searching && _query.isNotEmpty) ? _query : null,
       onReact: (e) => _react(m, e),
@@ -1987,18 +2063,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   Widget _composer(BuTokens t) {
-    if (_blocked) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(
-            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
-        decoration: BoxDecoration(
-            color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-        child: Text('Bu kullanıcıyla mesajlaşamazsınız.',
-            textAlign: TextAlign.center,
-            style: BuType.label.copyWith(color: t.mut)),
-      );
-    }
     return ListenableBuilder(
         listenable: _input, builder: (c, _) => _composerBody(t));
   }
@@ -2021,7 +2085,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 color: t.sf2, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
               Icon(_editing != null ? LucideIcons.pencil : LucideIcons.reply,
-                  size: 16, color: t.pr),
+                  size: 14.5, color: t.pr),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -2042,7 +2106,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: 'Vazgeç',
-                icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+                icon: Icon(LucideIcons.x, size: 16, color: t.mut),
                 onPressed: () => setState(() {
                   if (_editing != null) _input.clear();
                   _editing = null;
@@ -2064,66 +2128,75 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           if (_editing == null) ...[
-            IconButton(
-              tooltip: 'Görsel gönder',
-              onPressed: _pickImage,
-              icon: Icon(LucideIcons.image, color: t.mut),
-            ),
             Semantics(
               button: true,
-              toggled: _viewOnce,
-              label: 'Tek gösterimlik',
+              label: 'Ekle',
               child: GestureDetector(
-                key: const ValueKey('viewOnceToggle'),
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  setState(() => _viewOnce = !_viewOnce);
-                  if (_viewOnce)
-                    _toast('Alıcı fotoğrafı yalnızca bir kez görebilir');
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                  child: OnceBadge(
-                      color: _viewOnce ? t.pr : t.mut, size: 26, dashed: false),
+                key: const ValueKey('attachButton'),
+                onTap: _openGallery,
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                  child: Icon(LucideIcons.plus, size: 21.5, color: t.ink),
                 ),
               ),
             ),
+            const SizedBox(width: 8),
           ],
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 46),
-              padding: const EdgeInsets.symmetric(horizontal: 18),
+              padding: EdgeInsetsDirectional.only(
+                  start: 18, end: _editing == null ? 4 : 18),
               decoration: BoxDecoration(
                   color: t.sf2, borderRadius: BorderRadius.circular(23)),
-              alignment: Alignment.center,
-              child: TextField(
-                controller: _input,
-                focusNode: _focus,
-                minLines: 1,
-                maxLines: 5,
-                textCapitalization: TextCapitalization.sentences,
-                keyboardType: TextInputType.multiline,
-                style: BuType.body.copyWith(color: t.ink),
-                cursorColor: t.pr,
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  hintText: 'Mesaj yaz',
-                  hintStyle: BuType.body.copyWith(color: t.mut),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Expanded(
+                  child: TextField(
+                    key: const ValueKey('composerField'),
+                    controller: _input,
+                    focusNode: _focus,
+                    minLines: 1,
+                    maxLines: 5,
+                    textCapitalization: TextCapitalization.sentences,
+                    keyboardType: TextInputType.multiline,
+                    style: BuType.body.copyWith(color: t.ink),
+                    cursorColor: t.pr,
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      hintText: 'Mesaj yaz',
+                      hintStyle: BuType.body.copyWith(color: t.mut),
+                    ),
+                  ),
                 ),
-              ),
+                if (_editing == null)
+                  SizedBox(
+                    width: 38,
+                    height: 46,
+                    child: IconButton(
+                      key: const ValueKey('cameraShortcut'),
+                      tooltip: 'Kamera',
+                      padding: EdgeInsets.zero,
+                      onPressed: _openCameraShortcut,
+                      icon: Icon(LucideIcons.camera, size: 18, color: t.mut),
+                    ),
+                  ),
+              ]),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Semantics(
             button: true,
+            enabled: canSend,
             label: _editing != null ? 'Kaydet' : 'Gönder',
             child: GestureDetector(
+              key: const ValueKey('sendButton'),
               onTap: canSend ? _submit : null,
               child: Container(
                 width: 46,
@@ -2133,7 +2206,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     shape: BoxShape.circle),
                 child: Icon(
                     _editing != null ? LucideIcons.check : LucideIcons.send,
-                    size: 22,
+                    size: 20,
                     color: t.onPr),
               ),
             ),

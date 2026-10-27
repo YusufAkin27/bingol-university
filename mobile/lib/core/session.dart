@@ -1,17 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'analytics.dart';
 import 'api.dart';
 import 'badges.dart';
+import 'nav.dart';
 import 'realtime/chat_realtime.dart';
 
 enum SessionState { loading, signedOut, signedIn }
+
+/// Oturumun neden zorla kapandığı.
+enum SignOutReason { expired, replaced }
+
+/// Tek cihaz kuralı: sunucunun mobil istemci işareti (her girişte gönderilir).
+const kClientMobile = 'mobile';
 
 /// Oturum durumu + kimlik uçları. Token'lar Keychain/Keystore'da tutulur.
 class Session extends ChangeNotifier {
   Session(this.api) {
     api.onTokensChanged = _persist;
     api.onSessionExpired = () => signOut(remote: false);
+    api.onSessionReplaced = () => forceSignOut(reason: SignOutReason.replaced);
     realtime = ChatRealtime(this);
   }
 
@@ -26,6 +35,10 @@ class Session extends ChangeNotifier {
   /// Çıkışta (token hâlâ geçerliyken) çalışır: örn. FCM cihaz kaydını silme. Hatalar yutulur.
   final List<Future<void> Function()> beforeSignOut = [];
   final _storage = const FlutterSecureStorage();
+
+  /// Başka cihazda giriş yapıldı bilgisi: giriş ekranında bir kez gösterilir, kapatılınca silinir.
+  final replacedNotice = ValueNotifier<bool>(false);
+  bool _forcing = false;
 
   SessionState state = SessionState.loading;
   int? userId;
@@ -58,6 +71,9 @@ class Session extends ChangeNotifier {
       // Ağ yokken oturumu silmeyiz; yalnızca sunucudan gelen 401 oturumu bitirir.
       if (e.isNetwork) {
         _set(SessionState.signedIn);
+      } else if (e.code == 'SESSION_REPLACED') {
+        // forceSignOut zaten başlatıldı (bilgi bandıyla giriş ekranına düşer).
+        return;
       } else {
         await signOut(remote: false);
       }
@@ -74,7 +90,7 @@ class Session extends ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    final res = await api.post('/auth/login', {'email': email.trim(), 'password': password}, false);
+    final res = await api.post('/auth/login', {'email': email.trim(), 'password': password, 'client': kClientMobile}, false);
     await _accept(res);
   }
 
@@ -106,7 +122,7 @@ class Session extends ChangeNotifier {
       api.post('/auth/resend-code', {'email': email.trim()}, false);
 
   Future<void> verifyEmail(String email, String code) async {
-    final res = await api.post('/auth/verify-email', {'email': email.trim(), 'code': code.trim()}, false);
+    final res = await api.post('/auth/verify-email', {'email': email.trim(), 'code': code.trim(), 'client': kClientMobile}, false);
     await _accept(res);
   }
 
@@ -125,7 +141,7 @@ class Session extends ChangeNotifier {
 
   Future<void> resetPassword(String email, String resetToken, String newPassword) => api.post(
         '/auth/reset-password',
-        {'email': email.trim(), 'resetToken': resetToken, 'newPassword': newPassword},
+        {'email': email.trim(), 'resetToken': resetToken, 'newPassword': newPassword, 'client': kClientMobile},
         false,
       );
 
@@ -140,7 +156,38 @@ class Session extends ChangeNotifier {
     await signOut(remote: false);
   }
 
+  /// Bilgi bandını kapatır.
+  void dismissReplacedNotice() => replacedNotice.value = false;
+
+  /// Sunucu oturumu zaten bitirdi (örn. başka cihazda giriş): sunucuya hiçbir istek atmadan yerel oturumu
+  /// kapatır, rotaları temizleyip giriş ekranına döner. Eşzamanlı çağrılarda tek sefer çalışır;
+  /// oturum yoksa (çıkış yapılmış) yok sayılır.
+  Future<void> forceSignOut({SignOutReason reason = SignOutReason.expired}) async {
+    if (_forcing || state == SessionState.signedOut) return;
+    if (state == SessionState.loading && api.tokens == null) return;
+    _forcing = true;
+    try {
+      // Eşzamanlı kısım: sonraki istekler token taşımasın, gerçek zamanlı yeniden bağlanmasın.
+      api.tokens = null;
+      try {
+        realtime?.stop();
+      } catch (_) {}
+      Analytics.instance.discard();
+      if (reason == SignOutReason.replaced) replacedNotice.value = true;
+      await api.setTokens(null);
+      badges.reset();
+      userId = null;
+      displayName = null;
+      email = null;
+      _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
+      rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+    } finally {
+      _forcing = false;
+    }
+  }
+
   Future<void> signOut({bool remote = true}) async {
+    if (_forcing) return;
     final refresh = api.tokens?.refresh;
     // Önce yerel kancalar (push token silme); token geçerliyken, kısa zaman aşımıyla.
     if (remote) {
@@ -169,6 +216,7 @@ class Session extends ChangeNotifier {
   }
 
   Future<void> _accept(dynamic res) async {
+    replacedNotice.value = false;
     await api.setTokens(Tokens.fromJson(res as Map<String, dynamic>));
     await _loadMe();
   }

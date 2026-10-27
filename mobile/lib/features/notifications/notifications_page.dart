@@ -215,7 +215,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(18)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.checkCheck, size: 16, color: t.onSoft),
+                Icon(LucideIcons.checkCheck, size: 14.5, color: t.onSoft),
                 const SizedBox(width: 6),
                 Text('Tümünü okundu yap',
                     style: BuType.label.copyWith(color: t.onSoft)),
@@ -299,7 +299,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(color: un ? t.pr : t.sf2, borderRadius: BorderRadius.circular(14)),
-              child: Icon(_icon(n['type'] as String?), size: 20, color: un ? t.onPr : t.ink),
+              child: Icon(_icon(n['type'] as String?), size: 18, color: un ? t.onPr : t.ink),
             ),
             const SizedBox(width: 12),
             Expanded(

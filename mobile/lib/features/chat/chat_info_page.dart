@@ -8,6 +8,7 @@ import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
+import '../profile/user_profile_page.dart';
 import 'chat_info_media.dart';
 import 'chat_info_members.dart';
 import 'chat_info_tabs.dart';
@@ -574,6 +575,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                       return ChatMemberRow(
                         member: m,
                         selfId: widget.session.userId,
+                        onTap: () => _openProfile(m),
                         onRemove: _admin &&
                                 (m['userId'] as num?)?.toInt() !=
                                     widget.session.userId &&
@@ -631,6 +633,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         name: _title,
         url: au,
         size: 96,
+        group: _conv['type'] != 'DIRECT',
         headers: (tok != null && au != null && au.startsWith('/api/'))
             ? {'Authorization': 'Bearer $tok'}
             : null);
@@ -654,7 +657,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                     child: Padding(
                         padding: const EdgeInsets.all(8),
                         child:
-                            Icon(LucideIcons.camera, size: 16, color: t.onPr)),
+                            Icon(LucideIcons.camera, size: 14.5, color: t.onPr)),
                   ),
                 ),
               ),
@@ -673,7 +676,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               tooltip: 'Adı düzenle',
               visualDensity: VisualDensity.compact,
               onPressed: _rename,
-              icon: Icon(LucideIcons.pencil, size: 16, color: t.mut),
+              icon: Icon(LucideIcons.pencil, size: 14.5, color: t.mut),
             ),
         ]),
         if (sub != null)
@@ -832,10 +835,26 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     return 'Sessiz';
   }
 
+  void _openProfile(Map<String, dynamic> m) {
+    final id = (m['userId'] as num?)?.toInt() ?? (m['id'] as num?)?.toInt();
+    if (id == null || id == widget.session.userId) return;
+    openUserProfile(context, widget.session,
+        userId: id,
+        name: m['displayName'] as String?,
+        avatarUrl: m['avatarUrl'] as String?,
+        fromConversationId: _cid);
+  }
+
   Widget _settingsSection(BuTokens t) {
     final archived = _conv['archived'] == true;
     final roomPage = _type == 'CLUB' ? 'Kulüp sayfasını aç' : 'Etkinlik sayfasını aç';
     final main = <Widget>[
+      if (_direct && _peerId != null)
+        _SettingsRow(
+          icon: LucideIcons.user,
+          label: 'Profili görüntüle',
+          onTap: () => _openProfile(_peer!),
+        ),
       _SettingsRow(
         icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
         label: 'Bildirimleri sessize al',
@@ -941,7 +960,7 @@ class _SettingsRow extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(children: [
-            Icon(icon, size: 19, color: danger ? color : t.mut),
+            Icon(icon, size: 17, color: danger ? color : t.mut),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -991,7 +1010,7 @@ class _QuickAction extends StatelessWidget {
                 color: t.sf,
                 border: Border.all(color: t.bd),
               ),
-              child: Icon(icon, size: 21, color: t.ink),
+              child: Icon(icon, size: 19, color: t.ink),
             ),
             const SizedBox(height: 6),
             Text(label,

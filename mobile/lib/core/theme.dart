@@ -170,7 +170,12 @@ class BuTheme {
       colorScheme: cs,
       extensions: [t],
       scaffoldBackgroundColor: t.bg,
+      // Simgeler varsayılan 24 yerine 21.6 (%10 küçük); dokunma alanı Material varsayılanında kalır.
+      iconTheme: IconThemeData(size: 21.6, color: t.ink),
+      iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(iconSize: 21.6)),
       appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(size: 21.6, color: t.ink),
+        actionsIconTheme: IconThemeData(size: 21.6, color: t.ink),
         backgroundColor: t.bg,
         foregroundColor: t.ink,
         surfaceTintColor: Colors.transparent,

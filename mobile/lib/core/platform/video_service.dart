@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_compress/video_compress.dart' as vc;
+import 'package:video_player/video_player.dart';
 
 import '../api.dart';
 import '../session.dart';
@@ -96,7 +97,31 @@ abstract class VideoCompressor {
 /// `video_compress` ile: Android'de Transcoder (720p üst sınırlı), iOS'ta AVAssetExportSession.
 /// Android/iOS dışında hiçbir şey yapmaz (null döner): çağıran sıkıştırmasız yola düşer.
 class PlatformVideoCompressor implements VideoCompressor {
-  bool get _supported => Platform.isAndroid || Platform.isIOS;
+  // video_compress yalniz Android'de derlenir (iOS'ta CocoaPods gerekir, xcross desteklemez).
+  bool get _supported => Platform.isAndroid;
+
+  /// iOS: sikistirma/poster yok; sure ve boyut video_player (SwiftPM destekli) ile okunur.
+  Future<VideoInfo?> _infoViaPlayer(String path) async {
+    VideoPlayerController? c;
+    try {
+      c = VideoPlayerController.file(File(path));
+      await c.initialize();
+      final size = c.value.size;
+      return VideoInfo(
+        path: path,
+        sizeBytes: await File(path).length(),
+        durationMs: c.value.duration.inMilliseconds,
+        width: size.width > 0 ? size.width.round() : null,
+        height: size.height > 0 ? size.height.round() : null,
+      );
+    } catch (_) {
+      return null;
+    } finally {
+      try {
+        await c?.dispose();
+      } catch (_) {}
+    }
+  }
 
   VideoInfo? _fromMedia(vc.MediaInfo i, String fallbackPath) {
     final p = i.path ?? fallbackPath;
@@ -119,6 +144,7 @@ class PlatformVideoCompressor implements VideoCompressor {
 
   @override
   Future<VideoInfo?> info(String path) async {
+    if (Platform.isIOS) return _infoViaPlayer(path);
     if (!_supported) return null;
     try {
       return _fromMedia(await vc.VideoCompress.getMediaInfo(path), path);

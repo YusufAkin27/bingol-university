@@ -17,11 +17,18 @@ bool isAdminRole(Map<String, dynamic> m) =>
 /// Üye satırı: avatar, ad, "Sen" / "Yönetici" etiketi, isteğe bağlı çıkarma düğmesi.
 class ChatMemberRow extends StatelessWidget {
   const ChatMemberRow(
-      {super.key, required this.member, required this.selfId, this.onRemove});
+      {super.key,
+      required this.member,
+      required this.selfId,
+      this.onRemove,
+      this.onTap});
 
   final Map<String, dynamic> member;
   final int? selfId;
   final VoidCallback? onRemove;
+
+  /// Satıra dokunma (profil); kendi satırında çağıran null verir.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,9 @@ class ChatMemberRow extends StatelessWidget {
     final name = (member['displayName'] as String?) ?? 'Kullanıcı';
     final sub =
         (member['department'] ?? member['faculty'] ?? '').toString().trim();
-    return Padding(
+    return InkWell(
+      onTap: me ? null : onTap,
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       child: Row(children: [
         BuAvatar(name: name, url: member['avatarUrl'] as String?, size: 40),
@@ -64,10 +73,10 @@ class ChatMemberRow extends StatelessWidget {
             tooltip: 'Gruptan çıkar',
             visualDensity: VisualDensity.compact,
             onPressed: onRemove,
-            icon: Icon(LucideIcons.userMinus, size: 18, color: t.mut),
+            icon: Icon(LucideIcons.userMinus, size: 16, color: t.mut),
           ),
       ]),
-    );
+    ));
   }
 }
 

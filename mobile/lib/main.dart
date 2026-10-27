@@ -36,7 +36,7 @@ class _ErrorView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 40, color: Colors.black54),
+              const Icon(Icons.error_outline, size: 36, color: Colors.black54),
               const SizedBox(height: 12),
               const Text(
                 'Bir şeyler ters gitti',

@@ -6,6 +6,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
 import 'contacts_match_page.dart';
 import '../../core/typography.dart';
@@ -283,7 +284,7 @@ class _NewChatPageState extends State<NewChatPage> {
                       style: BuType.label.copyWith(color: t.onSoft)),
                 ),
                 const SizedBox(width: 6),
-                Icon(LucideIcons.x, size: 16, color: t.onSoft),
+                Icon(LucideIcons.x, size: 14.5, color: t.onSoft),
               ],
             ),
           ),
@@ -307,7 +308,7 @@ class _NewChatPageState extends State<NewChatPage> {
             height: 46,
             decoration: BoxDecoration(
                 color: t.ink, borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.users, size: 22, color: t.bg),
+            child: Icon(LucideIcons.users, size: 20, color: t.bg),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -403,6 +404,15 @@ class _NewChatPageState extends State<NewChatPage> {
     );
   }
 
+  void _profile(Map<String, dynamic> u) {
+    final id = (u['id'] as num?)?.toInt();
+    if (id == null) return;
+    openUserProfile(context, widget.session,
+        userId: id,
+        name: u['displayName']?.toString(),
+        avatarUrl: u['avatarUrl']?.toString());
+  }
+
   Widget _row(BuTokens t, Map<String, dynamic> u) {
     final on = _isSelected(u['id']);
     final sub = (u['department'] ?? u['faculty'] ?? '').toString();
@@ -412,10 +422,14 @@ class _NewChatPageState extends State<NewChatPage> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            BuAvatar(
-                name: u['displayName']?.toString(),
-                url: u['avatarUrl']?.toString(),
-                size: 46),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _profile(u),
+              child: BuAvatar(
+                  name: u['displayName']?.toString(),
+                  url: u['avatarUrl']?.toString(),
+                  size: 46),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -443,7 +457,7 @@ class _NewChatPageState extends State<NewChatPage> {
                 border: Border.all(color: on ? t.pr : t.bd, width: 2),
               ),
               child:
-                  on ? Icon(LucideIcons.check, size: 14, color: t.onPr) : null,
+                  on ? Icon(LucideIcons.check, size: 12.5, color: t.onPr) : null,
             ),
           ],
         ),

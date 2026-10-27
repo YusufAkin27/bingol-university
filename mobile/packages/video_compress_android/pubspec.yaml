@@ -1,0 +1,20 @@
+name: video_compress
+description: Android-only kopya (video_compress 3.1.4). iOS/macOS destegi cikarildi; bkz. README.md.
+version: 3.1.4
+publish_to: 'none'
+homepage: https://github.com/jonataslaw/VideoCompress
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.video_compress
+        pluginClass: VideoCompressPlugin

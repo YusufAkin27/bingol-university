@@ -498,13 +498,13 @@ class _ChatTabState extends State<ChatTab> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            Icon(LucideIcons.archive, size: 18, color: t.mut),
+            Icon(LucideIcons.archive, size: 16, color: t.mut),
             const SizedBox(width: 12),
             Expanded(
               child: Text('Arşiv',
                   style: BuType.bodyStrong.copyWith(color: t.mut)),
             ),
-            Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+            Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
           ],
         ),
       ),
@@ -771,20 +771,8 @@ class _ConversationRow extends StatelessWidget {
     final avatarUrl =
         isDirect && peer is Map ? peer['avatarUrl'] as String? : null;
 
-    Widget avatar;
-    if (type == 'EVENT') {
-      avatar = Container(
-        width: 52,
-        height: 52,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-        child: Text(initialsOf(title),
-            style: BuType.heading.copyWith(color: t.onPr)),
-      );
-    } else {
-      avatar = BuAvatar(
-          name: title, url: avatarUrl, size: 52, dark: !isDirect);
-    }
+    final Widget avatar =
+        BuAvatar(name: title, url: avatarUrl, size: 52, group: !isDirect);
 
     String preview = '';
     var once = false;
@@ -837,14 +825,14 @@ class _ConversationRow extends StatelessWidget {
                         ],
                         if (muted) ...[
                           const SizedBox(width: 6),
-                          Icon(LucideIcons.bellOff, size: 13, color: t.mut),
+                          Icon(LucideIcons.bellOff, size: 11.5, color: t.mut),
                         ],
                       ],
                     ),
                     const SizedBox(height: 3),
                     Row(children: [
                       if (tick != null) ...[
-                        Icon(tick.$1, size: 15, color: tick.$2),
+                        Icon(tick.$1, size: 13.5, color: tick.$2),
                         const SizedBox(width: 4),
                       ],
                       if (once) ...[

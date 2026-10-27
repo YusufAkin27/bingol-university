@@ -61,6 +61,9 @@ class ApiClient {
   Future<void> Function(Tokens?)? onTokensChanged;
   void Function()? onSessionExpired;
 
+  /// Başka cihazda giriş yapıldı (401 SESSION_REPLACED): yeniden denemeden oturum kapatılır.
+  void Function()? onSessionReplaced;
+
   Future<Tokens>? _inflight;
 
   static const _timeout = Duration(seconds: 20);
@@ -93,11 +96,12 @@ class ApiClient {
       _hintNetwork(path);
       throw ApiError(0, 'NETWORK', '');
     }
+    if (_checkReplaced(res)) _decode(res); // ApiError(SESSION_REPLACED) fırlatır
     if (res.statusCode == 401 && t != null && !retried) {
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork) onSessionExpired?.call();
+        if (!e.isNetwork && e.code != 'SESSION_REPLACED') onSessionExpired?.call();
         rethrow;
       }
       return getBytes(path, retried: true);
@@ -154,12 +158,13 @@ class ApiClient {
       return _sendFull(method, path, body: body, auth: auth, retried: retried, retriedTransient: true);
     }
 
+    if (_checkReplaced(res)) _decode(res); // ApiError(SESSION_REPLACED) fırlatır
     if (res.statusCode == 401 && auth && t != null && !retried) {
       // Kimliksiz 401 gövdesinde code yoktur: yalnızca HTTP durumuna bakılır.
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork) onSessionExpired?.call();
+        if (!e.isNetwork && e.code != 'SESSION_REPLACED') onSessionExpired?.call();
         rethrow;
       }
       return _sendFull(method, path, body: body, auth: auth, retried: true, retriedTransient: retriedTransient);
@@ -184,6 +189,20 @@ class ApiClient {
       }
     }
     return ApiResponse(decoded, res.headers);
+  }
+
+  /// 401 + SESSION_REPLACED: oturum varsa (token tutuluyorsa) bildirir; refresh yanıtı da buraya düşer.
+  /// true dönerse çağıran ApiError fırlatır (refresh denenmez).
+  bool _checkReplaced(http.Response res) {
+    if (res.statusCode != 401 || tokens == null) return false;
+    try {
+      final j = jsonDecode(utf8.decode(res.bodyBytes));
+      if (j is Map && j['code'] == 'SESSION_REPLACED') {
+        onSessionReplaced?.call();
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   /// Bağlantı kapısına haber verir; /status yoklaması döngü yaratmasın diye hariç, 5 sn'de en çok bir kez.

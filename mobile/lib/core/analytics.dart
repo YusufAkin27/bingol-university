@@ -18,6 +18,9 @@ class Analytics {
   final List<Map<String, dynamic>> _queue = [];
   bool _sending = false;
 
+  /// Oturum sonlanınca bekleyen olayları gönderilmeden atar.
+  void discard() => _queue.clear();
+
   void attach(Session session) {
     _session = session;
     _timer ??= Timer.periodic(flushEvery, (_) => flush());

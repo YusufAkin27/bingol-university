@@ -222,7 +222,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       color: bu.ink,
                       border: Border.all(color: bu.bg, width: 3),
                     ),
-                    child: Icon(LucideIcons.camera, size: 16, color: bu.bg),
+                    child: Icon(LucideIcons.camera, size: 14.5, color: bu.bg),
                   ),
                 ),
               ],

@@ -190,7 +190,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
                       : null,
                   size: 40,
                   square: !direct,
-                  dark: !direct),
+                  group: !direct),
               const SizedBox(width: 12),
               Expanded(
                   child: Text(title,
@@ -207,7 +207,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
                   border: Border.all(color: on ? t.pr : t.bd, width: 1.5),
                 ),
                 child: on
-                    ? Icon(LucideIcons.check, size: 14, color: t.onPr)
+                    ? Icon(LucideIcons.check, size: 12.5, color: t.onPr)
                     : null,
               ),
             ]),

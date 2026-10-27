@@ -236,7 +236,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
           ),
           PopupMenuButton<String>(
             tooltip: manager ? 'Yönet' : 'Seçenekler',
-            icon: Icon(LucideIcons.ellipsis, size: 20, color: t.mut),
+            icon: Icon(LucideIcons.ellipsis, size: 18, color: t.mut),
             onSelected: (v) {
               switch (v) {
                 case 'open':

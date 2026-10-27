@@ -22,10 +22,14 @@ dependencies:
   http_parser: ^4.1.2
   gal: ^2.3.3
   video_player: ^2.14.1
-  video_compress: ^3.1.4
+  # Yalniz Android (iOS'ta CocoaPods gerekir, xcross desteklemez): packages/video_compress_android/README.md
+  video_compress:
+    path: packages/video_compress_android
   permission_handler: ^13.0.2
   flutter_contacts: ^2.6.0
   crypto: ^3.0.8
+  photo_manager: ^3.9.0
+  camera: ^0.12.0
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +44,8 @@ flutter:
     - assets/branding/logo_horizontal_dark.png
     - assets/branding/mark.png
     - assets/branding/mark_white.png
+    - assets/branding/default_avatar.png
+    - assets/branding/default_group.png
 
   # Tek yazi tipi: Inter (SIL OFL, assets/fonts/OFL.txt). Arapca icin sistem yedegi kullanilir.
   fonts:

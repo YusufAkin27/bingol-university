@@ -385,7 +385,7 @@ class _EventFormPageState extends State<EventFormPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         onTap: onTap,
         child: Row(children: [
-          Icon(LucideIcons.calendar, size: 18, color: t.mut),
+          Icon(LucideIcons.calendar, size: 16, color: t.mut),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: BuType.body.copyWith(color: t.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
@@ -420,9 +420,9 @@ class _EventFormPageState extends State<EventFormPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(LucideIcons.camera, size: 22, color: t.onSoft),
+                            Icon(LucideIcons.camera, size: 20, color: t.onSoft),
                             const SizedBox(width: 10),
-                            Icon(LucideIcons.image, size: 22, color: t.onSoft),
+                            Icon(LucideIcons.image, size: 20, color: t.onSoft),
                           ]),
                           const SizedBox(height: 8),
                           Text('Kapak fotoğrafı ekle', style: BuType.label.copyWith(color: t.onSoft)),
@@ -463,7 +463,7 @@ class _EventFormPageState extends State<EventFormPage> {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onTap,
-            child: SizedBox(width: 36, height: 36, child: Icon(icon, size: 18, color: Colors.white)),
+            child: SizedBox(width: 36, height: 36, child: Icon(icon, size: 16, color: Colors.white)),
           ),
         ),
       );

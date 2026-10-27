@@ -40,6 +40,9 @@ class FakeBackend {
   /// Gönderilen gövdeler (POST/PUT/PATCH): "POST /auth/login" -> son gövde.
   final Map<String, Object?> bodies = {};
 
+  /// Aynı anahtarın tüm JSON gövdeleri (sırayla): "POST /conversations/1/messages" -> [..].
+  final Map<String, List<Object?>> bodyLog = {};
+
   /// Tüm istekler ağ hatası verir (true iken).
   bool offline = false;
 
@@ -73,7 +76,11 @@ class FakeBackend {
     requests.add('${req.method} $full');
     try {
       // Multipart (ikili) gövdeler çözülemeyebilir: yalnız JSON gövdeler kaydedilir.
-      if (req.body.isNotEmpty) bodies['${req.method} $path'] = jsonDecode(req.body);
+      if (req.body.isNotEmpty) {
+        final decoded = jsonDecode(req.body);
+        bodies['${req.method} $path'] = decoded;
+        (bodyLog['${req.method} $path'] ??= []).add(decoded);
+      }
     } catch (_) {}
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (offline) throw http.ClientException('offline');
@@ -354,3 +361,9 @@ Future<void> fillAcademic(WidgetTester tester) async {
   await tester.tap(find.text('3. sınıf'));
   await tester.pump();
 }
+/// Varsayılan avatar/grup görselleri hariç, içerik görselleri (ağ/bellek) için bulucu.
+Finder contentImages() => find.byWidgetPredicate((w) {
+      if (w is! Image) return false;
+      final i = w.image;
+      return !(i is AssetImage && i.assetName.contains('default_'));
+    });

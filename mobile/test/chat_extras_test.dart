@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
-import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/core/realtime/chat_realtime.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
@@ -15,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'support/fake_media.dart';
 
 String _iso(DateTime d) => d.toUtc().toIso8601String();
 
@@ -85,12 +85,13 @@ FakeBackend _backend(List<Map<String, dynamic>> msgs, {int? next}) => FakeBacken
   ..on('/messages/reactions', {'emojis': _emojis});
 
 ChatDetailPage _detail(Session s,
-        {ChatRealtime? rt, Map<String, dynamic>? conv, Future<PreparedImage?> Function(ImageSource)? pick, FakeBackend? upload}) =>
+        {ChatRealtime? rt, Map<String, dynamic>? conv, FakeMediaLibrary? library, FakeBackend? upload}) =>
     ChatDetailPage(
       session: s,
       connectRealtime: false,
       realtime: rt,
-      pickImage: pick,
+      mediaLibrary: library ?? FakeMediaLibrary.photos(3),
+      ensureAccess: (c, p, {rationale}) async => true,
       uploadClient: upload?.client,
       conversation: conv ??
           {
@@ -213,19 +214,19 @@ void main() {
       final be = _backend([_onceIn(7)])..onBytes('/conversations/1/media/50', _png, once: true);
       await _pump(tester, _detail(makeSession(be)));
       expect(find.text('Fotoğraf · Açmak için dokun'), findsOneWidget);
-      expect(find.byType(Image), findsNothing);
+      expect(contentImages(), findsNothing);
       await tester.tap(find.byKey(const ValueKey('viewOnceCard')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(be.count('GET /conversations/1/media/50'), 1);
       expect(find.text('Tek gösterimlik'), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget);
+      expect(contentImages(), findsOneWidget);
       expect(find.byTooltip('İndir'), findsNothing);
       expect(find.byType(InteractiveViewer), findsNothing);
       await tester.tap(find.byTooltip('Kapat'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Açıldı'), findsOneWidget);
       expect(find.byKey(const ValueKey('viewOnceCard')), findsNothing);
-      expect(find.byType(Image), findsNothing);
+      expect(contentImages(), findsNothing);
       await unmount(tester);
       _ok(tester);
     });
@@ -240,11 +241,11 @@ void main() {
       }
 
       await open();
-      expect(find.byType(Image), findsOneWidget);
+      expect(contentImages(), findsOneWidget);
       await unmount(tester);
       await open();
       expect(find.text('Bu fotoğraf artık görüntülenemez.'), findsOneWidget);
-      expect(find.byType(Image), findsNothing);
+      expect(contentImages(), findsNothing);
       expect(consumed, 2); // 200 ve 410 ikisi de "tüketildi" sayılır
       await unmount(tester);
     });
@@ -285,39 +286,45 @@ void main() {
 
     testWidgets('gonderim govdesinde viewOnce:true; yerel baloncuk onizleme gostermez', (tester) async {
       final be = _backend([_msg(1, 11, 'Merhaba')])
-        ..delay = const Duration(milliseconds: 150)
         ..on('/conversations/1/media', {'id': 77})
         ..on('/conversations/1/messages', _onceOut(9));
       final s = makeSession(be);
       await _pump(
         tester,
-        _detail(s, upload: be, pick: (src) async => PreparedImage(_png, 'image/png')),
+        _detail(s, upload: be),
       );
-      await tester.tap(find.byKey(const ValueKey('viewOnceToggle')));
+      be.delay = const Duration(milliseconds: 1500);
+      expect(find.byKey(const ValueKey('viewOnceToggle')), findsNothing); // eski anahtar kalktı
+      await tester.tap(find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump();
-      expect(find.text('Alıcı fotoğrafı yalnızca bir kez görebilir'), findsOneWidget);
-      await tester.tap(find.byTooltip('Görsel gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Galeriden seç'));
+      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('onceButton_0')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byType(Image), findsNothing); // yerel önizleme yok
+      expect(find.text('Tek gönderimlik: alıcı yalnızca bir kez görebilir'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('previewSend')));
+      await settle(tester, const Duration(milliseconds: 1100)); // sayfalar kapanır, yükleme başlar
+      expect(contentImages(), findsNothing); // yerel önizleme yok
       expect(find.textContaining('Fotoğraf · Gönder'), findsOneWidget);
-      await settle(tester, const Duration(seconds: 2));
+      await settle(tester, const Duration(seconds: 10));
       final body = be.bodies['POST /conversations/1/messages'] as Map? ?? fail('istekler: ${be.requests}');
       expect(body['viewOnce'], true);
       expect(body['attachmentIds'], [77]);
       await unmount(tester);
     });
 
-    testWidgets('anahtar kapaliyken viewOnce gonderilmez', (tester) async {
+    testWidgets('onizlemede isaretlenmeyen gorsel viewOnce gonderilmez', (tester) async {
       final be = _backend([_msg(1, 11, 'Merhaba')])
         ..on('/conversations/1/media', {'id': 78})
         ..on('/conversations/1/messages', _msg(9, 1, ''));
-      await _pump(tester, _detail(makeSession(be), upload: be, pick: (src) async => PreparedImage(_png, 'image/png')));
-      await tester.tap(find.byTooltip('Görsel gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Galeriden seç'));
+      await _pump(tester, _detail(makeSession(be), upload: be));
+      await tester.tap(find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('pickerSend')));
       await settle(tester, const Duration(seconds: 2));
       final body = be.bodies['POST /conversations/1/messages'] as Map;
       expect(body.containsKey('viewOnce'), isFalse);

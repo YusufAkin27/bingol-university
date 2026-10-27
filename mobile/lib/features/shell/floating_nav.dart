@@ -176,7 +176,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
       child: TweenAnimationBuilder<Color?>(
         tween: ColorTween(end: color),
         duration: const Duration(milliseconds: 220),
-        builder: (_, v, __) => Icon(widget.icon, size: 24, color: v ?? color),
+        builder: (_, v, __) => Icon(widget.icon, size: 21.5, color: v ?? color),
       ),
     );
     final badge = widget.badge;

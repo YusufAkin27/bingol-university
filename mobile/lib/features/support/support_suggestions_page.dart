@@ -203,7 +203,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(color: voted ? t.pr : t.sf2, borderRadius: BorderRadius.circular(16)),
               child: Column(children: [
-                Icon(LucideIcons.chevronUp, size: 20, color: voted ? t.onPr : t.ink),
+                Icon(LucideIcons.chevronUp, size: 18, color: voted ? t.onPr : t.ink),
                 Text('${s['voteCount'] ?? 0}',
                     style: BuType.bodyStrong.copyWith(color: voted ? t.onPr : t.ink)),
               ]),

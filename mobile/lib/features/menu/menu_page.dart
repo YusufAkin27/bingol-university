@@ -238,7 +238,7 @@ class _MenuPageState extends State<MenuPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
-                    const Icon(LucideIcons.utensils, size: 18, color: Colors.white),
+                    const Icon(LucideIcons.utensils, size: 16, color: Colors.white),
                     const SizedBox(width: 8),
                     Text(label, style: BuType.label.copyWith(letterSpacing: .4)),
                   ]),

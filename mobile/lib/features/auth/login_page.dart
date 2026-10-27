@@ -67,6 +67,34 @@ class _LoginPageState extends State<LoginPage> {
       title: 'Hoş geldiniz',
       subtitle: 'Bingöl Üniversitesi hesabınızla giriş yapın.',
       children: [
+        ValueListenableBuilder<bool>(
+          valueListenable: widget.session.replacedNotice,
+          builder: (context, show, _) => show
+              ? Padding(
+                  key: const ValueKey('replaced-notice'),
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Stack(
+                    children: [
+                      Notice(
+                        'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.',
+                        error: false,
+                      ),
+                      PositionedDirectional(
+                        top: 0,
+                        end: 0,
+                        child: IconButton(
+                          key: const ValueKey('replaced-notice-close'),
+                          tooltip: 'Kapat',
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: widget.session.dismissReplacedNotice,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
         Form(
           key: _form,
           child: AutofillGroup(

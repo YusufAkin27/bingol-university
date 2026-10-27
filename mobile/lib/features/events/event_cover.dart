@@ -13,13 +13,21 @@ class EventCoverImage extends StatelessWidget {
   final int cacheWidth;
   final BoxFit fit;
 
+  /// Yalnız testte: ağ yerine bellekten görsel verir (görsel denetim için).
+  @visibleForTesting
+  static ImageProvider Function(String url)? debugProvider;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     Widget holder() => ColoredBox(
           color: t.soft,
-          child: Center(child: Icon(LucideIcons.image, size: 28, color: t.onSoft.withValues(alpha: .6))),
+          child: Center(child: Icon(LucideIcons.image, size: 25, color: t.onSoft.withValues(alpha: .6))),
         );
+    final dbg = debugProvider;
+    if (dbg != null) {
+      return Image(image: dbg(url), fit: fit, width: double.infinity, height: double.infinity);
+    }
     return Image.network(
       url,
       fit: fit,

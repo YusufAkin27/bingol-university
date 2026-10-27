@@ -95,6 +95,16 @@ class PushService {
     await _openSub?.cancel();
     _refreshSub = _fgSub = _openSub = null;
     if (t == null) return;
+    // Oturum zorla kapandıysa (başka cihaz) token yok: sunucu kaydı zaten silmiştir.
+    if (session.api.tokens == null) {
+      if (_enabled) {
+        try {
+          // ignore: deprecated_member_use
+          await FirebaseMessaging.instance.deleteToken();
+        } catch (_) {}
+      }
+      return;
+    }
     try {
       // Çıkışta belirteç oturum kapanmadan silinmeli; token yoksa sessizce geçer.
       await session.api.delete('/devices/${Uri.encodeComponent(t)}');

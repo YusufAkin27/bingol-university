@@ -28,7 +28,7 @@ void showJoinedToast(BuildContext context, VoidCallback openMine) {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(
       content: const Row(children: [
-        Icon(LucideIcons.check, size: 16),
+        Icon(LucideIcons.check, size: 14.5),
         SizedBox(width: 8),
         Flexible(child: Text('Etkinliklerime eklendi')),
       ]),
@@ -84,7 +84,7 @@ class EventJoinedChip extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
           alignment: Alignment.center,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(LucideIcons.calendarCheck, size: large ? 20 : 15, color: t.ok),
+            Icon(LucideIcons.calendarCheck, size: large ? 18 : 13.5, color: t.ok),
             const SizedBox(width: 6),
             Flexible(
               child: Text(label,
@@ -162,7 +162,7 @@ class EventAvatarStack extends StatelessWidget {
     const size = 26.0;
     return Row(mainAxisSize: MainAxisSize.min, children: [
       if (shown.isEmpty)
-        Icon(LucideIcons.users, size: 15, color: t.mut)
+        Icon(LucideIcons.users, size: 13.5, color: t.mut)
       else
         SizedBox(
           height: size,

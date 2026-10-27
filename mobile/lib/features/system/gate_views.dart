@@ -33,7 +33,7 @@ class UpdateRequiredScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.system_update, size: 64, color: t.pr),
+                  Icon(Icons.system_update, size: 57.5, color: t.pr),
                   const SizedBox(height: 20),
                   Text('Güncelleme gerekli',
                       style: BuType.title.copyWith(color: t.ink)),
@@ -79,7 +79,7 @@ class TopStrip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: fg),
+          Icon(icon, size: 14.5, color: fg),
           const SizedBox(width: 8),
           Expanded(
             child: Text(text,
@@ -111,7 +111,7 @@ class UpdateNotice extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
         child: Row(
           children: [
-            Icon(Icons.system_update, color: t.pr, size: 20),
+            Icon(Icons.system_update, color: t.pr, size: 18),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -122,7 +122,7 @@ class UpdateNotice extends StatelessWidget {
             if (canOpen) TextButton(onPressed: () => openStore(storeUrl), child: const Text('Güncelle')),
             IconButton(
               tooltip: 'Kapat',
-              icon: Icon(Icons.close, size: 18, color: t.mut),
+              icon: Icon(Icons.close, size: 16, color: t.mut),
               onPressed: onClose,
             ),
           ],

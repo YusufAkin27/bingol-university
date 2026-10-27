@@ -139,7 +139,7 @@ void main() {
       });
     await pump(tester, be, saved: saved);
     await settle(tester);
-    await tester.tap(find.byType(Image).first);
+    await tester.tap(contentImages().first);
     await settle(tester);
     expect(find.textContaining(' / 8'), findsOneWidget);
     await tester.tap(find.byTooltip('İndir'));
@@ -168,7 +168,7 @@ void main() {
       size: kPhoneMedium,
     ));
     await settle(tester);
-    await tester.tap(find.byType(Image).first);
+    await tester.tap(contentImages().first);
     await settle(tester);
     await tester.tap(find.byTooltip('İndir'));
     await settle(tester);
@@ -256,7 +256,7 @@ void main() {
       });
     await pump(tester, be);
     await settle(tester);
-    expect(find.byType(Image), findsNWidgets(2));
+    expect(contentImages(), findsNWidgets(2));
     await unmount(tester);
   });
 
@@ -373,7 +373,7 @@ void main() {
     testWidgets('medya önizlemesi en çok 9, Tüm medyayı gör tam sayfayı açar', (tester) async {
       await pump(tester, be);
       await settle(tester);
-      expect(find.byType(Image), findsNWidgets(9));
+      expect(contentImages(), findsNWidgets(9));
       expect(find.text('Tüm medyayı gör'), findsOneWidget);
       await tester.tap(find.text('Tüm medyayı gör'));
       await settle(tester);

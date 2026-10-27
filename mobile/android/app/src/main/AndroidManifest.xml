@@ -8,6 +8,10 @@
     <!-- Gerektikce istenenler: QR/foto cekme ve ses/video kaydi. -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Sohbet galeri secici: Android 13+ medya izinleri, 12 ve alti icin okuma izni. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"

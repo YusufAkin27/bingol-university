@@ -238,7 +238,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                     color: Colors.black.withValues(alpha: .5),
                     shape: BoxShape.circle),
                 child: const Icon(LucideIcons.play,
-                    size: 32, color: Colors.white),
+                    size: 29, color: Colors.white),
               ),
           ]);
         },

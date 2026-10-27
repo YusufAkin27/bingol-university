@@ -1,3 +1,4 @@
+import 'package:bu_kampus/widgets/bu_widgets.dart' show BuAvatar;
 import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
@@ -356,15 +357,12 @@ void main() {
       final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
       expect(read.color, isNot(equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color)));
       // Tüm 52 dp avatarlar tam daire.
-      final avatars = tester.widgetList<Container>(find.byType(Container)).where((w) {
-        final c = w.constraints;
-        return c != null && c.maxWidth == 52 && c.maxHeight == 52;
-      });
+      final avatars = tester.widgetList<BuAvatar>(find.byType(BuAvatar)).where((w) => w.size == 52 && !w.square);
       expect(avatars, isNotEmpty);
       for (final a in avatars) {
-        final d = a.decoration as BoxDecoration;
-        final circle = d.shape == BoxShape.circle || d.borderRadius == BorderRadius.circular(52);
-        expect(circle, isTrue);
+        final clip = tester.widget<ClipRRect>(
+            find.descendant(of: find.byWidget(a), matching: find.byType(ClipRRect)).first);
+        expect(clip.borderRadius, BorderRadius.circular(52));
       }
       _noErrors(tester);
       await unmount(tester);
@@ -591,7 +589,8 @@ void main() {
         }),
         size: kPhoneSmall,
       );
-      expect(find.text('Bu kullanıcıyla mesajlaşamazsınız.'), findsOneWidget);
+      expect(find.text('Bu kullanıcıyla mesajlaşamazsınız.'), findsNothing);
+      expect(find.byType(TextField), findsWidgets); // composer kilitli değil
       _noErrors(tester);
       await unmount(tester);
     });

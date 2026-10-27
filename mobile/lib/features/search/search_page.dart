@@ -9,10 +9,10 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import '../chat/chat_detail_page.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../profile/user_profile_page.dart';
 import '../../core/typography.dart';
 
 /// Genel arama: haber/duyuru, kulüp, etkinlik ve kişi.
@@ -393,12 +393,7 @@ class _SearchPageState extends State<SearchPage> {
         page = EventDetailPage(session: s, eventId: h.id);
         break;
       default:
-        showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => _PersonSheet(session: s, userId: h.id, fallbackName: h.title),
-        );
+        openUserProfile(context, s, userId: h.id, name: h.title, avatarUrl: h.imageUrl);
         return;
     }
     Navigator.push(context, MaterialPageRoute<void>(builder: (_) => page));
@@ -454,7 +449,7 @@ class _SearchPageState extends State<SearchPage> {
         border: Border.all(color: t.pr, width: 2),
       ),
       child: Row(children: [
-        Icon(LucideIcons.search, size: 20, color: t.pr),
+        Icon(LucideIcons.search, size: 18, color: t.pr),
         const SizedBox(width: 10),
         Expanded(
           child: TextField(
@@ -488,7 +483,7 @@ class _SearchPageState extends State<SearchPage> {
             },
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: 8),
-              child: Icon(LucideIcons.x, size: 20, color: t.mut),
+              child: Icon(LucideIcons.x, size: 18, color: t.mut),
             ),
           ),
       ]),
@@ -540,7 +535,7 @@ class _SearchPageState extends State<SearchPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(children: [
-                Icon(LucideIcons.history, size: 18, color: t.mut),
+                Icon(LucideIcons.history, size: 16, color: t.mut),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(q,
@@ -646,7 +641,7 @@ class _SearchPageState extends State<SearchPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-              child: Icon(_iconOf(h.type), size: 22, color: t.pr),
+              child: Icon(_iconOf(h.type), size: 20, color: t.pr),
             ),
           const SizedBox(width: 12),
           Expanded(
@@ -674,111 +669,6 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ]),
       ),
-    );
-  }
-}
-
-/// Kişi için kısa profil alt sayfası.
-class _PersonSheet extends StatefulWidget {
-  const _PersonSheet({required this.session, required this.userId, required this.fallbackName});
-
-  final Session session;
-  final int userId;
-  final String fallbackName;
-
-  @override
-  State<_PersonSheet> createState() => _PersonSheetState();
-}
-
-class _PersonSheetState extends State<_PersonSheet> {
-  Map<String, dynamic>? _p;
-  Object? _error;
-  bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _error = null);
-    try {
-      final r = await widget.session.api.get('/users/${widget.userId}');
-      if (mounted) setState(() => _p = Map<String, dynamic>.from(r as Map));
-    } catch (e) {
-      if (mounted) setState(() => _error = e);
-    }
-  }
-
-  Future<void> _message() async {
-    setState(() => _busy = true);
-    try {
-      final r = await widget.session.api.post('/conversations', {'userId': widget.userId});
-      if (!mounted) return;
-      final nav = Navigator.of(context);
-      final conv = Map<String, dynamic>.from(r as Map);
-      nav.pop();
-      nav.push(MaterialPageRoute<void>(
-          builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final p = _p;
-    final name = (p?['displayName'] as String?) ?? widget.fallbackName;
-    final dept = [p?['faculty'], p?['department'], if (p?['classYear'] != null) '${p!['classYear']}. sınıf']
-        .where((e) => e != null && '$e'.isNotEmpty)
-        .join(' · ');
-    final bio = (p?['bio'] as String?)?.trim() ?? '';
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + MediaQuery.of(context).padding.bottom),
-      decoration: BoxDecoration(
-        color: t.bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2)),
-        ),
-        const SizedBox(height: 20),
-        if (_error != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(children: [
-              Text(errorText(_error!), textAlign: TextAlign.center, style: TextStyle(color: t.mut)),
-              const SizedBox(height: 12),
-              BuButton(label: 'Yeniden dene', onPressed: _load),
-            ]),
-          )
-        else if (p == null)
-          const Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())
-        else ...[
-          BuAvatar(name: name, url: p['avatarUrl'] as String?, size: 80),
-          const SizedBox(height: 12),
-          Text(name,
-              textAlign: TextAlign.center,
-              style: BuType.title.copyWith(color: t.ink)),
-          if (dept.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(dept, textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
-          ],
-          if (bio.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text(bio, textAlign: TextAlign.center, style: BuType.body.copyWith(height: 1.45, color: t.ink)),
-          ],
-          const SizedBox(height: 20),
-          BuButton(label: 'Mesaj gönder', icon: LucideIcons.messageCircle, busy: _busy, onPressed: _message),
-        ],
-      ]),
     );
   }
 }

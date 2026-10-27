@@ -59,8 +59,17 @@ void main() {
     expect(n, 1);
   });
 
-  testWidgets('BuAvatar görselsiz baş harfleri gösterir', (tester) async {
+  testWidgets('BuAvatar görselsiz varsayılan görseli gösterir', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe Yılmaz')));
-    expect(find.text('AY'), findsOneWidget);
+    expect(find.text('AY'), findsNothing);
+    expect(find.byType(Image), findsOneWidget);
+    final img = tester.widget<Image>(find.byType(Image));
+    expect((img.image as AssetImage).assetName, 'assets/branding/default_avatar.png');
+  });
+
+  testWidgets('BuAvatar group: varsayılan grup görseli', (tester) async {
+    await tester.pumpWidget(host(const BuAvatar(name: 'Grup', group: true)));
+    final img = tester.widget<Image>(find.byType(Image));
+    expect((img.image as AssetImage).assetName, 'assets/branding/default_group.png');
   });
 }

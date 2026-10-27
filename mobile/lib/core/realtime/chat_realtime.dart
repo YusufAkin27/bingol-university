@@ -80,6 +80,7 @@ class ChatRealtime with WidgetsBindingObserver {
     _client.fatal.listen((f) {
       _fatal.add(f);
       if (f == StompFatal.sessionExpired) session.api.onSessionExpired?.call();
+      if (f == StompFatal.sessionReplaced) session.forceSignOut(reason: SignOutReason.replaced);
     });
   }
 
@@ -137,6 +138,11 @@ class ChatRealtime with WidgetsBindingObserver {
   }
 
   void _onMessageEvent(Map<String, dynamic> m) {
+    // Başka cihazda giriş: oturumu kapat (stop() yeniden bağlanmayı da durdurur).
+    if (m['type'] == 'session-replaced') {
+      session.forceSignOut(reason: SignOutReason.replaced);
+      return;
+    }
     if (m['type'] == 'receipt') {
       final kind = '${m['kind'] ?? ''}';
       if (kind != 'delivered' && kind != 'read') return;

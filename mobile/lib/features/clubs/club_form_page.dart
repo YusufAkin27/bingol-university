@@ -406,7 +406,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
   Widget _coverEmpty(BuTokens t) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(LucideIcons.image, size: 28, color: t.mut),
+          Icon(LucideIcons.image, size: 25, color: t.mut),
           const SizedBox(height: 6),
           Text('Kapak ekle (isteğe bağlı)', style: BuType.caption.copyWith(color: t.mut)),
         ],

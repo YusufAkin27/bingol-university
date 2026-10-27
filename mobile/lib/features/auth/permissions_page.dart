@@ -160,7 +160,7 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
                     height: 64,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.shieldCheck, size: 30, color: t.onSoft),
+                    child: Icon(LucideIcons.shieldCheck, size: 27, color: t.onSoft),
                   ),
                   const SizedBox(height: 18),
                   Text('Birkaç izin', style: BuType.display.copyWith(color: t.ink)),
@@ -272,7 +272,7 @@ class _PermRow extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-            child: Icon(info.icon, size: 22, color: t.onSoft),
+            child: Icon(info.icon, size: 20, color: t.onSoft),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -318,7 +318,7 @@ class _Mark extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: color),
+            Icon(icon, size: 12.5, color: color),
             const SizedBox(width: 6),
             Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: color))),
           ],

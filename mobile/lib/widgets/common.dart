@@ -60,7 +60,7 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 48, color: cs.onSurfaceVariant),
+            Icon(Icons.cloud_off_outlined, size: 43, color: cs.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(errorText(error),
                 textAlign: TextAlign.center, style: TextStyle(color: cs.onSurfaceVariant)),
@@ -93,7 +93,7 @@ class EmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: cs.onSurfaceVariant),
+            Icon(icon, size: 43, color: cs.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(text, textAlign: TextAlign.center, style: TextStyle(color: cs.onSurfaceVariant)),
           ],
@@ -119,7 +119,7 @@ class StaleBanner extends StatelessWidget {
       color: cs.primaryContainer,
       child: Row(
         children: [
-          Icon(icon, size: 18, color: cs.onPrimaryContainer),
+          Icon(icon, size: 16, color: cs.onPrimaryContainer),
           const SizedBox(width: 10),
           Expanded(
             child: Text(text,

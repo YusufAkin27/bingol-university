@@ -12,7 +12,7 @@ export 'stomp_frame.dart';
 enum StompState { disconnected, connecting, connected }
 
 /// Kalıcı bağlantı hatası (yeniden bağlanma durur): askı veya oturum bitti.
-enum StompFatal { suspended, sessionExpired, forbidden }
+enum StompFatal { suspended, sessionExpired, forbidden, sessionReplaced }
 
 class StompSubscription {
   StompSubscription._(this.id, this.destination, this._onFrame, this._client);
@@ -143,7 +143,17 @@ class StompClient {
       _wsSub = ch.stream.listen(
         (d) => _onData(gen, d),
         onError: (_) => _onClosed(gen),
-        onDone: () => _onClosed(gen),
+        onDone: () {
+          // Sunucu kapanış nedeni "SESSION_REPLACED": başka cihazda giriş yapıldı, yeniden bağlanma yok.
+          if (gen == _gen && ch.closeReason == 'SESSION_REPLACED') {
+            _wanted = false;
+            _teardown();
+            _setState(StompState.disconnected);
+            _fatalCtl.add(StompFatal.sessionReplaced);
+            return;
+          }
+          _onClosed(gen);
+        },
         cancelOnError: true,
       );
       _write(StompFrame('CONNECT', headers: {
@@ -241,6 +251,9 @@ class StompClient {
     _teardown();
     _setState(StompState.disconnected);
     switch (code) {
+      case 'SESSION_REPLACED':
+        _wanted = false;
+        _fatalCtl.add(StompFatal.sessionReplaced);
       case 'SUSPENDED':
         _wanted = false;
         _fatalCtl.add(StompFatal.suspended);

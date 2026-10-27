@@ -127,7 +127,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     if (isEvent) ...[
                       const SizedBox(height: 10),
                       Row(children: [
-                        Icon(LucideIcons.calendar, size: 16, color: t.pr),
+                        Icon(LucideIcons.calendar, size: 14.5, color: t.pr),
                         const SizedBox(width: 6),
                         Text('Etkinlik tarihi: ${niceDate(eventDate)}',
                             style: BuType.label.copyWith(color: t.ink)),

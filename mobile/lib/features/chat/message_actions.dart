@@ -337,7 +337,7 @@ class _ActionRow extends StatelessWidget {
                     .copyWith(color: color, decoration: TextDecoration.none)),
           ),
           const SizedBox(width: 10),
-          Icon(action.icon, size: 18, color: action.danger ? t.danger : t.mut),
+          Icon(action.icon, size: 16, color: action.danger ? t.danger : t.mut),
         ]),
       ),
     );

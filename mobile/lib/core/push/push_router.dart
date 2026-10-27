@@ -21,6 +21,10 @@ class PushRouter {
   /// Kampanya hedefi (`target`/`value`) veya doğrudan anahtarlar (conversationId...) kabul edilir.
   static Future<void> open(Map<String, dynamic> data) async {
     final s = session;
+    if (s != null && '${data['type']}'.toLowerCase() == 'session_replaced') {
+      await s.forceSignOut(reason: SignOutReason.replaced);
+      return;
+    }
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
 

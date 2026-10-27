@@ -73,7 +73,7 @@ class AuthScaffold extends StatelessWidget {
                                 color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(LucideIcons.arrowLeft, color: Colors.white, size: 22),
+                              child: const Icon(LucideIcons.arrowLeft, color: Colors.white, size: 20),
                             ),
                           ),
                         )
@@ -121,7 +121,7 @@ InputDecoration authFieldDecoration(
   return InputDecoration(
     hintText: hint,
     hintStyle: BuType.body.copyWith(color: t.mut),
-    prefixIcon: Icon(icon, size: 20, color: t.mut),
+    prefixIcon: Icon(icon, size: 18, color: t.mut),
     suffixIcon: suffix,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
     constraints: const BoxConstraints(minHeight: 54),
@@ -173,7 +173,7 @@ class _PasswordFieldState extends State<PasswordField> {
         icon: LucideIcons.lock,
         suffix: IconButton(
           tooltip: _hidden ? 'Şifreyi göster' : 'Şifreyi gizle',
-          icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 20, color: t.mut),
+          icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 18, color: t.mut),
           onPressed: () => setState(() => _hidden = !_hidden),
         ),
       ),
@@ -226,7 +226,7 @@ class Notice extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(error ? LucideIcons.circleAlert : LucideIcons.info, color: fg, size: 20),
+          Icon(error ? LucideIcons.circleAlert : LucideIcons.info, color: fg, size: 18),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: BuType.body.copyWith(color: fg, height: 1.35))),
         ],

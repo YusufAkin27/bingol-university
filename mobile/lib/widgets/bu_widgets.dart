@@ -94,7 +94,7 @@ class BuIconButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(icon, size: size * .5, color: filled ? t.onPr : t.ink),
+              Icon(icon, size: size * .45, color: filled ? t.onPr : t.ink),
               if (badge)
                 Positioned(
                   top: size * .2,
@@ -201,7 +201,16 @@ class BuBadge extends StatelessWidget {
 
 /// Baş harfli ya da görselli avatar. [square] true: yuvarlatılmış kare (kulüp/grup).
 class BuAvatar extends StatelessWidget {
-  const BuAvatar({super.key, this.name, this.url, this.size = 48, this.square = false, this.dark = false, this.headers});
+  const BuAvatar({
+    super.key,
+    this.name,
+    this.url,
+    this.size = 48,
+    this.square = false,
+    this.dark = false,
+    this.headers,
+    this.group = false,
+  });
 
   final String? name;
   final String? url;
@@ -210,25 +219,31 @@ class BuAvatar extends StatelessWidget {
   final Map<String, String>? headers;
   final double size;
   final bool square;
-  final bool dark; // koyu (ink) zemin
+  final bool dark; // eski parametre; varsayılan görsel temadan bağımsızdır
+
+  /// Grup/kulüp/etkinlik avatarı: fotoğraf yoksa varsayılan grup görseli.
+  final bool group;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final radius = BorderRadius.circular(square ? size * .34 : size);
-    final fallback = Container(
+    final fallback = Image.asset(
+      group ? 'assets/branding/default_group.png' : 'assets/branding/default_avatar.png',
       width: size,
       height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: dark ? t.ink : t.soft, borderRadius: radius),
-      child: Text(initialsOf(name),
-          style: BuType.title.copyWith(fontSize: size * .33, color: dark ? t.bg : t.onSoft)),
+      fit: BoxFit.cover,
     );
     final full = fileUrl(url);
-    if (full == null) return fallback;
     return ClipRRect(
       borderRadius: radius,
-      child: Image.network(full, headers: headers, width: size, height: size, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback),
+      child: full == null
+          ? fallback
+          : Image.network(full,
+              headers: headers,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => fallback),
     );
   }
 }
@@ -268,7 +283,7 @@ class BuButton extends StatelessWidget {
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[Icon(icon, size: compact ? 15 : 20, color: fg), const SizedBox(width: 6)],
+              if (icon != null) ...[Icon(icon, size: compact ? 13.5 : 18, color: fg), const SizedBox(width: 6)],
               Text(label, style: (compact ? BuType.label : BuType.heading).copyWith(color: fg)),
             ],
           );
@@ -369,7 +384,7 @@ class BuSearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.search, size: 20, color: t.mut),
+          Icon(LucideIcons.search, size: 18, color: t.mut),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -493,11 +508,11 @@ class BuMenuRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: danger ? t.danger : t.pr),
+            Icon(icon, size: 20, color: danger ? t.danger : t.pr),
             const SizedBox(width: 14),
             Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: c))),
             if (trailing != null) trailing!,
-            if (showChevron && !danger) Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+            if (showChevron && !danger) Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
           ],
         ),
       ),

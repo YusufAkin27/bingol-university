@@ -125,7 +125,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
       return BuCard(
         onTap: _load,
         child: Row(children: [
-          Icon(LucideIcons.refreshCw, size: 18, color: t.pr),
+          Icon(LucideIcons.refreshCw, size: 16, color: t.pr),
           const SizedBox(width: 10),
           Expanded(child: Text('${errorText(_error!)} Yeniden denemek için dokunun.', style: BuType.caption.copyWith(color: t.mut))),
         ]),

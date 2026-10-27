@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/permissions/ensure_permission.dart';
-import 'package:bu_kampus/core/platform/image_service.dart' show ImageSource;
 import 'package:bu_kampus/core/platform/video_service.dart';
 import 'package:bu_kampus/core/realtime/chat_realtime.dart';
 import 'package:bu_kampus/core/session.dart';
@@ -13,6 +11,7 @@ import 'package:bu_kampus/features/chat/bubble_text_meta.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_media.dart';
 import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
+import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -26,6 +25,7 @@ import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 import 'support/fake_app.dart';
+import 'support/fake_media.dart';
 
 const _mb = 1024 * 1024;
 
@@ -187,6 +187,7 @@ ChatDetailPage _detail(
   VideoService? video,
   http.Client? upload,
   Future<bool> Function(BuildContext, AppPermission, {String? rationale})? access,
+  MediaCameraLauncher? camera,
 }) =>
     ChatDetailPage(
       session: s,
@@ -195,6 +196,8 @@ ChatDetailPage _detail(
       videoService: video,
       uploadClient: upload,
       ensureAccess: access ?? (c, p, {rationale}) async => true,
+      mediaLibrary: FakeMediaLibrary.photos(2, videos: [FakeMediaLibrary.video('v1', ms: 20000)]),
+      openCamera: camera,
       conversation: const {
         'id': 1,
         'type': 'DIRECT',
@@ -569,40 +572,45 @@ void main() {
   });
 
   group('Video: sohbet akisi', () {
-    Future<void> openVideoSheet(WidgetTester tester, String label) async {
-      await tester.tap(find.byTooltip('Görsel gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text(label));
+    /// Ek düğmesi -> galeri -> videoyu seç -> "Gönder".
+    Future<void> openVideoSheet(WidgetTester tester, [String? _]) async {
+      await tester.tap(find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('pickerSend')));
       await tester.pump();
     }
 
-    testWidgets('menude 4 secenek; galeriden video: hazirla, yukle (poster+video), attachmentIds ile gonder', (tester) async {
+    testWidgets('ek dugmesi dogrudan galeriyi acar; galeriden video: hazirla, yukle (poster+video), attachmentIds ile gonder', (tester) async {
       final comp = FakeCompressor()
         ..infoResult = _origBig()
         ..compressResult = _compressed();
       final captured = <String>[];
       final client = MockClient((req) async {
-        await Future<void>.delayed(const Duration(milliseconds: 300));
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
         captured.add('${req.method} ${req.url.path} ${latin1.decode(req.bodyBytes)}');
         return http.Response('{"id":88}', 200, headers: {'content-type': 'application/json'});
       });
       final be = _backend([_msg(1, 11, 'Merhaba')])
         ..on('/conversations/1/messages', _msg(9, 1, '', extra: {'status': 'SENT', 'attachments': [_videoAtt(id: 88, durationMs: 20000)]}));
       await _pump(tester, _detail(makeSession(be), video: _svc(comp), upload: client));
-      await tester.tap(find.byTooltip('Görsel gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 400));
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
-        expect(find.text(l), findsOneWidget);
+        expect(find.text(l), findsNothing); // eski 4'lü menü yok, doğrudan galeri
       }
+      expect(find.text('Galeri'), findsOneWidget);
       be.delay = const Duration(milliseconds: 500);
-      await tester.tap(find.text('Galeriden video seç'));
+      await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.byKey(const ValueKey('pickerSend')));
+      await settle(tester, const Duration(milliseconds: 800)); // seçici kapanır, yükleme başlar
       // Yerel baloncuk: poster + dairesel ilerleme + süre hapı (yükleme sürerken).
       expect(find.byKey(const ValueKey('uploadProgress')), findsOneWidget);
       expect(find.text('0:20'), findsOneWidget);
       expect(find.byIcon(LucideIcons.clock), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 600));
       _echoClientId(be, _msg(9, 1, '', extra: {'status': 'SENT', 'attachments': [_videoAtt(id: 88, durationMs: 20000)]}));
       await settle(tester, const Duration(seconds: 2));
       final req = captured.single;
@@ -667,46 +675,33 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('video cek: once kamera sonra mikrofon izni; red durumunda secici acilmaz', (tester) async {
-      final asked = <AppPermission>[];
-      var picked = 0;
-      final comp = FakeCompressor()..infoResult = _origBig();
-      final svc = VideoService(compressor: comp, pick: (s) async {
-        picked++;
-        expect(s, ImageSource.camera);
-        return null;
-      });
-      final be = _backend([_msg(1, 11, 'Merhaba')]);
+    testWidgets('kamera kisayolu: video cek -> onizleme (tek gonderimlik dugmesi yok) -> yukle', (tester) async {
+      final comp = FakeCompressor()
+        ..infoResult = _origBig()
+        ..compressResult = _compressed();
+      final client = MockClient((req) async =>
+          http.Response('{"id":90}', 200, headers: {'content-type': 'application/json'}));
+      var opened = 0;
+      final be = _backend([_msg(1, 11, 'Merhaba')])
+        ..on('/conversations/1/messages', _msg(9, 1, '', extra: {'status': 'SENT', 'attachments': [_videoAtt(id: 90, durationMs: 20000)]}));
       await _pump(
         tester,
-        _detail(makeSession(be), video: svc, access: (c, p, {rationale}) async {
-          asked.add(p);
-          return p == AppPermission.camera;
+        _detail(makeSession(be), video: _svc(comp), upload: client, camera: (c) async {
+          opened++;
+          return fakeVideoPick('cam1');
         }),
       );
-      await openVideoSheet(tester, 'Video çek');
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(asked, [AppPermission.camera, AppPermission.microphone]);
-      expect(picked, 0);
-      asked.clear();
-      await tester.tap(find.byTooltip('Görsel gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Video çek'));
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(picked, 0);
-      await unmount(tester);
-    });
-
-    testWidgets('tek gosterimlik acikken video gonderilmez', (tester) async {
-      final comp = FakeCompressor()..infoResult = _origBig();
-      final be = _backend([_msg(1, 11, 'Merhaba')]);
-      await _pump(tester, _detail(makeSession(be), video: _svc(comp)));
-      await tester.tap(find.byKey(const ValueKey('viewOnceToggle')));
-      await tester.pump();
-      await openVideoSheet(tester, 'Galeriden video seç');
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Video tek gösterimlik gönderilemez'), findsOneWidget);
-      expect(comp.compressCalls, 0);
+      await tester.tap(find.byKey(const ValueKey('cameraShortcut')));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(opened, 1);
+      expect(find.byKey(const ValueKey('onceButton_0')), findsNothing); // videoda tek gönderimlik yok
+      expect(find.text('1/1'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('previewSend')));
+      await settle(tester, const Duration(seconds: 2));
+      final body = be.bodies['POST /conversations/1/messages'] as Map;
+      expect(body['attachmentIds'], [90]);
+      expect(body.containsKey('viewOnce'), isFalse);
+      _ok(tester);
       await unmount(tester);
     });
 

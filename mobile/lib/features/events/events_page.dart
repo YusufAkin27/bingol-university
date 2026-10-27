@@ -546,7 +546,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       _checkinBusy
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Icon(LucideIcons.scanLine, size: 16, color: t.ink),
+                          : Icon(LucideIcons.scanLine, size: 14.5, color: t.ink),
                       const SizedBox(width: 6),
                       Text('Yoklama', style: BuType.label.copyWith(color: t.ink)),
                     ]),
@@ -632,13 +632,13 @@ class _EventsPageState extends State<EventsPage> {
               IconButton(
                 tooltip: 'Önceki ay',
                 visualDensity: VisualDensity.compact,
-                icon: Icon(LucideIcons.chevronLeft, size: 20, color: t.ink),
+                icon: Icon(LucideIcons.chevronLeft, size: 18, color: t.ink),
                 onPressed: _month.isBefore(DateTime(_today.year - 1, _today.month)) ? null : () => _goMonth(-1),
               ),
               IconButton(
                 tooltip: 'Sonraki ay',
                 visualDensity: VisualDensity.compact,
-                icon: Icon(LucideIcons.chevronRight, size: 20, color: t.ink),
+                icon: Icon(LucideIcons.chevronRight, size: 18, color: t.ink),
                 onPressed: () => _goMonth(1),
               ),
             ],
@@ -714,7 +714,7 @@ class _EventsPageState extends State<EventsPage> {
   Widget _noteRow(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Row(children: [
-          Icon(LucideIcons.info, size: 14, color: context.bu.mut),
+          Icon(LucideIcons.info, size: 12.5, color: context.bu.mut),
           const SizedBox(width: 6),
           Expanded(child: Text(text, style: BuType.caption.copyWith(color: context.bu.mut))),
         ]),
@@ -799,22 +799,33 @@ class _EventsPageState extends State<EventsPage> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: on ? t.pr : (today ? t.pr.withValues(alpha: .6) : t.bd), width: today && !on ? 1.5 : 1),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_dayShort[d.weekday - 1], style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
-            const SizedBox(height: 4),
-            Text('${d.day}', style: BuType.title.copyWith(color: on ? t.onPr : (today ? t.pr : t.ink))),
-            const SizedBox(height: 3),
-            Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: dot ? (on ? t.onPr : t.pr) : Colors.transparent,
-              ),
+        // Büyük yazı ölçeğinde gün sayısı satıra bölünmesin/taşmasın: içerik hücreye sığacak kadar küçülür.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_dayShort[d.weekday - 1],
+                    maxLines: 1, softWrap: false, style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
+                const SizedBox(height: 4),
+                Text('${d.day}',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: BuType.title.copyWith(color: on ? t.onPr : (today ? t.pr : t.ink))),
+                const SizedBox(height: 3),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: dot ? (on ? t.onPr : t.pr) : Colors.transparent,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -839,7 +850,7 @@ class _EventsPageState extends State<EventsPage> {
           ]),
         ),
         const SizedBox(width: 6),
-        Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+        Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
       ]),
     );
   }
@@ -867,7 +878,7 @@ class _EventsPageState extends State<EventsPage> {
     Widget meta(IconData icon, String text) => Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Row(children: [
-            Icon(icon, size: 14, color: t.mut),
+            Icon(icon, size: 12.5, color: t.mut),
             const SizedBox(width: 6),
             Expanded(
               child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
@@ -923,7 +934,7 @@ class _EventsPageState extends State<EventsPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(999)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(LucideIcons.users, size: 11, color: t.onSoft),
+                        Icon(LucideIcons.users, size: 10, color: t.onSoft),
                         const SizedBox(width: 5),
                         Flexible(
                           child: Text(org,
@@ -989,7 +1000,7 @@ class _EventsPageState extends State<EventsPage> {
       Expanded(child: Text('katılıyor', style: BuType.caption.copyWith(color: t.mut))),
       PopupMenuButton<String>(
         tooltip: 'Seçenekler',
-        icon: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
+        icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
         onSelected: (_) => _leave(ev),
         itemBuilder: (_) => const [PopupMenuItem(value: 'leave', child: Text('Katılımdan ayrıl'))],
       ),
@@ -1000,21 +1011,22 @@ class _EventsPageState extends State<EventsPage> {
   Widget _createdBar(Map<String, dynamic> ev, int going, bool cancelled, bool closed) {
     final t = context.bu;
     return Row(children: [
-      Icon(LucideIcons.users, size: 15, color: t.mut),
+      Icon(LucideIcons.users, size: 13.5, color: t.mut),
       const SizedBox(width: 6),
-      Flexible(child: Text('$going katılımcı', maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: t.ink))),
-      const SizedBox(width: 8),
-      Flexible(
-        child: GestureDetector(
-          onTap: () => _open(ev),
-          child: Text('Katılımcılar', maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: t.pr)),
-        ),
+      // Büyük yazı ölçeğinde kesilmesin: sığmazsa alt satıra kayar.
+      Expanded(
+        child: Wrap(spacing: 10, runSpacing: 2, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          Text('$going katılımcı', style: BuType.label.copyWith(color: t.ink)),
+          GestureDetector(
+            onTap: () => _open(ev),
+            child: Text('Katılımcılar', style: BuType.label.copyWith(color: t.pr)),
+          ),
+        ]),
       ),
-      const Spacer(),
       if (!cancelled)
         PopupMenuButton<String>(
           tooltip: 'Seçenekler',
-          icon: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
+          icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
           onSelected: (a) => _manage(ev, a),
           itemBuilder: (_) => [
             const PopupMenuItem(value: 'edit', child: Text('Düzenle')),

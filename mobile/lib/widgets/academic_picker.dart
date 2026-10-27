@@ -180,7 +180,7 @@ class _SelectBox extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(LucideIcons.chevronDown, size: 18, color: t.mut),
+                Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
               ],
             ),
           ),
@@ -265,7 +265,7 @@ class _PickRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (selected) Icon(LucideIcons.check, size: 20, color: t.pr),
+            if (selected) Icon(LucideIcons.check, size: 18, color: t.pr),
           ],
         ),
       ),
@@ -285,7 +285,7 @@ class _FacultyInfo extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
       child: Row(
         children: [
-          Icon(LucideIcons.building2, size: 14, color: t.mut),
+          Icon(LucideIcons.building2, size: 12.5, color: t.mut),
           const SizedBox(width: 6),
           Expanded(child: Text(name, style: BuType.caption.copyWith(color: t.mut))),
         ],

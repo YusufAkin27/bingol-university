@@ -539,7 +539,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         width: 42,
         height: 42,
         decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
-        child: const Icon(LucideIcons.ellipsis, size: 22, color: Colors.white),
+        child: const Icon(LucideIcons.ellipsis, size: 20, color: Colors.white),
       ),
     );
   }
@@ -552,7 +552,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onTap,
-            child: SizedBox(width: 42, height: 42, child: Icon(icon, size: 22, color: Colors.white)),
+            child: SizedBox(width: 42, height: 42, child: Icon(icon, size: 20, color: Colors.white)),
           ),
         ),
       );
@@ -769,7 +769,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           onTap: _openRequests,
           child: Row(
             children: [
-              Icon(LucideIcons.userCheck, size: 20, color: t.pr),
+              Icon(LucideIcons.userCheck, size: 18, color: t.pr),
               const SizedBox(width: 12),
               Expanded(
                 child: Text('Bekleyen başvurular',
@@ -777,7 +777,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               ),
               BuBadge('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
               const SizedBox(width: 6),
-              Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+              Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
             ],
           ),
         ),
@@ -787,7 +787,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final pinned = p['pinned'] == true;
     return PopupMenuButton<String>(
       tooltip: 'Gönderi işlemleri',
-      icon: Icon(LucideIcons.ellipsis, size: 18, color: t.mut),
+      icon: Icon(LucideIcons.ellipsis, size: 16, color: t.mut),
       padding: EdgeInsets.zero,
       onSelected: (v) {
         switch (v) {
@@ -850,7 +850,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                       height: 130,
                       color: t.sf2,
                       alignment: Alignment.center,
-                      child: Icon(LucideIcons.image, size: 30, color: t.mut))),
+                      child: Icon(LucideIcons.image, size: 27, color: t.mut))),
             ),
           ],
         ],
@@ -871,7 +871,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.calendar, color: t.onSoft, size: 22),
+            child: Icon(LucideIcons.calendar, color: t.onSoft, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -894,7 +894,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               ],
             ),
           ),
-          Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+          Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
         ],
       ),
     );

@@ -102,7 +102,7 @@ class NewsTile extends StatelessWidget {
                 child: Tooltip(
                   message: saved ? 'Favorilerden çıkar' : 'Favorilere ekle',
                   child: Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-                      size: 22,
+                      size: 20,
                       color: saved ? t.pr : t.mut),
                 ),
               ),
@@ -196,7 +196,7 @@ class NewsFeaturedCard extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 12),
                       child: Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-                          size: 24, color: saved ? t.pr : t.mut),
+                          size: 21.5, color: saved ? t.pr : t.mut),
                     ),
                   ),
               ],

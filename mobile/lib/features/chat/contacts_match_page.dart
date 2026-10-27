@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
 
 /// "Rehberden kişi bul" giriş satırı (yeni sohbet ekranı ve ayarlar).
@@ -33,14 +34,14 @@ class ContactsEntryRow extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.contact, size: 18, color: t.onSoft),
+                child: Icon(LucideIcons.contact, size: 16, color: t.onSoft),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text('Rehberden kişi bul',
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
               ),
-              Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
+              Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
               const SizedBox(width: 14),
             ],
           ),
@@ -251,17 +252,26 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          BuAvatar(name: m.displayName, url: m.avatarUrl, size: 46),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(m.displayName,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                if (m.sub.isNotEmpty)
-                  Text(m.sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => openUserProfile(context, widget.session,
+                  userId: m.userId, name: m.displayName, avatarUrl: m.avatarUrl),
+              child: Row(children: [
+                BuAvatar(name: m.displayName, url: m.avatarUrl, size: 46),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(m.displayName,
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                      if (m.sub.isNotEmpty)
+                        Text(m.sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
+                    ],
+                  ),
+                ),
+              ]),
             ),
           ),
           const SizedBox(width: 8),
@@ -290,7 +300,7 @@ class _PrivacyNote extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.lock, size: 14, color: color),
+          Icon(LucideIcons.lock, size: 12.5, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Text('Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.',
@@ -324,7 +334,7 @@ class _StateCard extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(icon, size: 32, color: t.onSoft),
+              child: Icon(icon, size: 29, color: t.onSoft),
             ),
             const SizedBox(height: 16),
             Text(title, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),

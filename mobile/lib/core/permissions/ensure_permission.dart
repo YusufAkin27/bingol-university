@@ -108,7 +108,7 @@ Future<bool?> _showSheet(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                  child: Icon(info.icon, size: 26, color: t.onSoft),
+                  child: Icon(info.icon, size: 23.5, color: t.onSoft),
                 ),
               ),
               const SizedBox(height: 14),
