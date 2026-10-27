@@ -17,6 +17,13 @@ import trAdminCampaigns from './tr/admin-campaigns';
 import trAdminSettings from './tr/admin-settings';
 import trAdminSafety from './tr/admin-safety';
 import trAdminChat from './tr/admin-chat';
+import trAdminPosts from './tr/admin-posts';
+import trAdminPolls from './tr/admin-polls';
+import trAdminAccessBans from './tr/admin-accessbans';
+import trAdminProfanity from './tr/admin-profanity';
+import trAdminOps from './tr/admin-ops';
+import trAdminPending from './tr/admin-pending';
+import trAdminAcademic from './tr/admin-academic';
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -34,6 +41,13 @@ import enAdminCampaigns from './en/admin-campaigns';
 import enAdminSettings from './en/admin-settings';
 import enAdminSafety from './en/admin-safety';
 import enAdminChat from './en/admin-chat';
+import enAdminPosts from './en/admin-posts';
+import enAdminPolls from './en/admin-polls';
+import enAdminAccessBans from './en/admin-accessbans';
+import enAdminProfanity from './en/admin-profanity';
+import enAdminOps from './en/admin-ops';
+import enAdminPending from './en/admin-pending';
+import enAdminAcademic from './en/admin-academic';
 import enSiteNew from './en/site-new';
 import enLegal from './en/legal';
 import enPages from './en/pages';
@@ -51,6 +65,13 @@ import arAdminCampaigns from './ar/admin-campaigns';
 import arAdminSettings from './ar/admin-settings';
 import arAdminSafety from './ar/admin-safety';
 import arAdminChat from './ar/admin-chat';
+import arAdminPosts from './ar/admin-posts';
+import arAdminPolls from './ar/admin-polls';
+import arAdminAccessBans from './ar/admin-accessbans';
+import arAdminProfanity from './ar/admin-profanity';
+import arAdminOps from './ar/admin-ops';
+import arAdminPending from './ar/admin-pending';
+import arAdminAcademic from './ar/admin-academic';
 import arSiteNew from './ar/site-new';
 import arLegal from './ar/legal';
 import arPages from './ar/pages';
@@ -69,6 +90,13 @@ const tr = {
   ...trAdminSettings,
   ...trAdminSafety,
   ...trAdminChat,
+  ...trAdminPosts,
+  ...trAdminPolls,
+  ...trAdminAccessBans,
+  ...trAdminProfanity,
+  ...trAdminOps,
+  ...trAdminPending,
+  ...trAdminAcademic,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -92,6 +120,13 @@ const en: Dictionary = {
   ...enAdminSettings,
   ...enAdminSafety,
   ...enAdminChat,
+  ...enAdminPosts,
+  ...enAdminPolls,
+  ...enAdminAccessBans,
+  ...enAdminProfanity,
+  ...enAdminOps,
+  ...enAdminPending,
+  ...enAdminAcademic,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -111,6 +146,13 @@ const ar: Dictionary = {
   ...arAdminSettings,
   ...arAdminSafety,
   ...arAdminChat,
+  ...arAdminPosts,
+  ...arAdminPolls,
+  ...arAdminAccessBans,
+  ...arAdminProfanity,
+  ...arAdminOps,
+  ...arAdminPending,
+  ...arAdminAcademic,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

@@ -26,3 +26,33 @@
   color: var(--link);
   font-weight: 600;
 }
+
+.md blockquote {
+  margin: 0;
+  padding: var(--space-3);
+  border-inline-start: 4px solid var(--link);
+  background: var(--surface-2, rgba(127, 127, 127, 0.1));
+  border-radius: var(--radius-sm, 6px);
+}
+.md blockquote p {
+  margin: 0;
+}
+.tableWrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.md table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-sm, 0.9em);
+}
+.md th,
+.md td {
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+  vertical-align: top;
+}
+.md th {
+  background: var(--surface-2, rgba(127, 127, 127, 0.12));
+}

@@ -95,6 +95,13 @@ E2E_PORT=5190 E2E_ADMIN_EMAIL=admin1@bingol.edu.tr npx playwright test
 E2E_BASE_URL=http://localhost:8095 E2E_ADMIN_EMAIL=admin1@bingol.edu.tr npx playwright test site.spec.ts
 ```
 
+Backend'siz kritik yol testleri (`e2e/mocked-critical.spec.ts`: yönetici girişi, kullanıcı listesi, gönderi gizleme,
+küfür listesi; tüm `/api` istekleri `page.route` ile taklit edilir): `npm run e2e:mock` (ilk kez `npm run e2e:install`).
+Yavaş makinede `npm run build && npx vite preview --port 4180` açıp `E2E_BASE_URL=http://localhost:4180 npm run e2e:mock` daha hızlıdır.
+
+OpenAPI tipleri: `npm run gen:api` (`docs/openapi.json` -> `src/api/generated/schema.d.ts`); tip güvenli örnek
+modüller `src/api/typed/*` (bkz. `docs/MOBILE_CODEGEN.md`).
+
 Notlar: giriş hız sınırı (e-posta başına 15 dk'da 10, IP başına 30) nedeniyle testler belirteçleri yeniden kullanır;
 çok çalıştırdıysanız `docker compose exec -T redis redis-cli flushall` ile sınırlar sıfırlanır. `E2E_SHOTS=1` ekran
 görüntülerini `e2e/.results/` altına yazar (commit'lenmez).

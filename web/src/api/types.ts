@@ -75,7 +75,15 @@ export interface VersionCheck {
 export type Settings = Record<string, string>;
 
 // ---------- Sözleşmeler ----------
-export type LegalType = 'TERMS' | 'PRIVACY' | 'KVKK' | 'COMMUNITY_RULES';
+export type LegalType =
+  | 'TERMS'
+  | 'PRIVACY'
+  | 'KVKK'
+  | 'COMMUNITY_RULES'
+  | 'EXPLICIT_CONSENT'
+  | 'COOKIES'
+  | 'CONTENT_REMOVAL'
+  | 'RETENTION';
 export interface LegalSummary {
   type: LegalType;
   version: number;
@@ -176,6 +184,8 @@ export interface AdminUserDetail extends AdminUserRow {
   consents: { type: LegalType; version: number; acceptedAt: string }[];
   recentActivity: { day: string; opens: number }[];
   extras?: UserExtras;
+  /** Sosyal takip sayıları (BE5 sağlarsa). */
+  follow?: { followerCount: number; followingCount: number };
 }
 export interface UserExtras {
   showEmail: boolean;
@@ -302,7 +312,9 @@ export type ReportTargetType =
   | 'MESSAGE_IMAGE'
   | 'USER_AVATAR'
   | 'COMMUNITY_COVER'
-  | 'EVENT_COVER';
+  | 'EVENT_COVER'
+  | 'FEED_POST'
+  | 'FEED_COMMENT';
 export type ReportReasonCode =
   | 'SPAM'
   | 'HARASSMENT'
@@ -338,6 +350,10 @@ export interface ReportView {
   hidden: boolean;
   hiddenBy: 'AUTO' | 'ADMIN' | null;
   openReporters: number;
+  /** Yönetici kuyruğu eklentileri (sunucu doldurur). */
+  reporter?: ReportPerson | null;
+  reportedUser?: ReportPerson | null;
+  viewerPath?: string | null;
 }
 export interface ResolveReportRequest {
   action: ReportResolution;
@@ -391,12 +407,14 @@ export interface HashCursorPage<T> {
   nextCursor: string | null;
 }
 
-// ---------- Yönetici sohbet görüntüleyici (kullanıcı bazlı) / şifreleme durumu ----------
+// ---------- Yönetici sohbet görüntüleyici (kullanıcı bazlı) / toplu izleme / şifreleme durumu ----------
 export interface ChatPerson {
   id: number | null;
   displayName: string | null;
   avatarUrl: string | null;
+  email?: string | null;
 }
+export type ChatKind = 'DIRECT' | 'GROUP' | 'CLUB' | 'EVENT';
 export interface ChatLastMessage {
   id: number;
   senderId: number;
@@ -405,11 +423,19 @@ export interface ChatLastMessage {
   error: string | null;
   deleted: boolean;
   hidden: boolean;
+  suppressed?: boolean;
   createdAt: string;
+}
+/** Kullanıcının sohbet üzerindeki kendi durumu (yalnız bilgi; yönetici için kısıt DEĞİLDİR). */
+export interface ChatUserState {
+  hiddenByUser: boolean;
+  cleared: boolean;
+  archived: boolean;
+  muted: boolean;
 }
 export interface AdminChatConversation {
   id: number;
-  type: 'DIRECT' | 'GROUP';
+  type: ChatKind;
   title: string | null;
   peer: ChatPerson | null;
   memberCount: number;
@@ -417,6 +443,9 @@ export interface AdminChatConversation {
   totalMessages: number;
   lastActivityAt: string | null;
   left: boolean;
+  joinedAt?: string | null;
+  leftAt?: string | null;
+  state?: ChatUserState | null;
   lastMessage: ChatLastMessage | null;
 }
 export interface AdminChatConversationPage {
@@ -424,17 +453,30 @@ export interface AdminChatConversationPage {
   items: AdminChatConversation[];
   nextCursor: number | null;
 }
+export interface AdminChatViewer {
+  id: number;
+  displayName: string | null;
+  at: string;
+}
 export interface AdminChatAttachment {
   id: number;
-  kind: string;
+  kind: 'IMAGE' | 'VIDEO' | string;
   contentType: string | null;
   width: number;
   height: number;
+  durationMs?: number | null;
   bytes: number;
+  /** Tek gönderimlik medya. */
+  viewOnce?: boolean;
+  /** Tek gönderimlik eki açanlar. */
+  viewedBy?: AdminChatViewer[];
+  /** Saklama süresi dolduğu için baytları silinmiş (önizleme yok). */
+  purged?: boolean;
   hidden: boolean;
-  /** Yönetici önizleme ucu (Bearer ile istenir): /api/admin/media/attachments/{id}/preview */
-  previewUrl: string;
-  thumbUrl: string;
+  messageDeleted?: boolean;
+  /** Yönetici önizleme ucu (Bearer ile istenir); purged ise null olabilir. */
+  previewUrl: string | null;
+  thumbUrl: string | null;
 }
 export interface AdminChatRevision {
   text: string | null;
@@ -448,10 +490,13 @@ export interface AdminChatReply {
   error: string | null;
   deleted: boolean;
 }
+export type ReceiptStatus = 'SENT' | 'DELIVERED' | 'READ';
 export interface AdminChatMessage {
   id: number;
+  conversationId?: number;
   senderId: number;
   senderName: string | null;
+  sender?: ChatPerson | null;
   /** Açılan kullanıcının kendi mesajı mı (balon yönü). */
   mine: boolean;
   createdAt: string;
@@ -464,18 +509,151 @@ export interface AdminChatMessage {
   deletedAt: string | null;
   deletedBy: number | null;
   deletedByName: string | null;
+  deleteKind?: string | null;
   hidden: boolean;
+  /** Gölge engel: alıcıya iletilmedi. */
+  suppressed?: boolean;
+  blockedBy?: ChatPerson | null;
+  status?: ReceiptStatus | null;
   replyTo: AdminChatReply | null;
   reactions: { emoji: string; userId: number }[];
   attachments: AdminChatAttachment[];
 }
+export interface AdminChatMember {
+  person: ChatPerson;
+  role: string | null;
+  joinedAt: string | null;
+  leftAt: string | null;
+}
 export interface AdminChatMessagePage {
   user: ChatPerson;
-  conversation: { id: number; type: 'DIRECT' | 'GROUP'; title: string | null; peer: ChatPerson | null; left: boolean };
+  conversation: {
+    id: number;
+    type: ChatKind;
+    title: string | null;
+    peer: ChatPerson | null;
+    left: boolean;
+    state?: ChatUserState | null;
+    members?: AdminChatMember[];
+  };
   /** Eskiden yeniye sıralı. */
   items: AdminChatMessage[];
   /** Daha eski sayfa için `before` imleci; yoksa null. */
   nextBefore: number | null;
+}
+// Toplu izleme alanı (/api/admin/chat-media, /chat-messages, /chat-media/stats)
+export interface AdminMediaItem {
+  attachmentId: number;
+  conversationId: number;
+  conversationTitle: string | null;
+  conversationType: ChatKind;
+  messageId: number;
+  sender: ChatPerson;
+  recipients: ChatPerson[];
+  memberCount: number;
+  kind: 'IMAGE' | 'VIDEO' | string;
+  viewOnce: boolean;
+  viewedBy: AdminChatViewer[];
+  purged: boolean;
+  messageDeleted: boolean;
+  hidden: boolean;
+  suppressed: boolean;
+  createdAt: string;
+  width: number;
+  height: number;
+  durationMs: number | null;
+  bytes: number;
+  previewUrl: string | null;
+  thumbUrl: string | null;
+}
+export interface AdminMediaPage {
+  items: AdminMediaItem[];
+  nextCursor: number | null;
+}
+export interface AdminFeedConversation {
+  id: number;
+  type: ChatKind;
+  title: string | null;
+  memberCount: number;
+}
+export interface AdminFeedMessage {
+  message: AdminChatMessage;
+  conversation: AdminFeedConversation;
+}
+export interface AdminFeedPage {
+  items: AdminFeedMessage[];
+  nextCursor: number | null;
+}
+export interface AdminMediaCounts {
+  imageCount: number;
+  videoCount: number;
+  viewOnceCount: number;
+  deletedMessageMediaCount: number;
+  hiddenCount: number;
+  suppressedCount: number;
+  purgedCount: number;
+  totalBytes: number;
+}
+export interface AdminMediaStats extends AdminMediaCounts {
+  last24h: AdminMediaCounts;
+}
+// Şikâyet detayı (GET /api/admin/reports/{id}) ve kuyruk satırı eklentileri
+export interface ReportPerson {
+  id: number | null;
+  displayName: string | null;
+  email: string | null;
+}
+export interface ReportContextMessage {
+  reported: boolean;
+  message: AdminChatMessage;
+}
+export interface ReportContentSummary {
+  kind: string;
+  id: number | null;
+  title: string | null;
+  text: string | null;
+  communityId: number | null;
+  ownerId: number | null;
+  imageUrl: string | null;
+  deleted: boolean;
+  status: string | null;
+  createdAt: string | null;
+  /** FEED_POST: kendi kimligi; FEED_COMMENT: ait oldugu gonderi. */
+  postId?: number | null;
+  /** FEED_POST: yonetici medya onizleme baglantilari. */
+  media?: { id: number; kind: string; url: string; thumbUrl: string }[] | null;
+}
+export interface ReportContext {
+  /** MESSAGE | MESSAGE_IMAGE | USER | CONTENT | NONE */
+  type: string;
+  targetExists: boolean;
+  conversation: { id: number; type: ChatKind; title: string | null; memberCount: number; members: AdminChatMember[] } | null;
+  reportedMessageId: number | null;
+  reportedAttachmentId: number | null;
+  messages: ReportContextMessage[];
+  content: ReportContentSummary | null;
+  userStats: { reportsAgainstUser: number; activeStrikes: number; totalStrikes: number } | null;
+}
+export interface ReportDetail {
+  id: number;
+  targetType: ReportTargetType;
+  targetId: number;
+  reason: string;
+  reasonCode: string | null;
+  note: string | null;
+  status: ReportStatus;
+  resolution: ReportResolution | null;
+  priority: number;
+  createdAt: string;
+  resolvedAt: string | null;
+  reporter: ReportPerson | null;
+  reportedUser: ReportPerson | null;
+  context: ReportContext | null;
+  relatedReports: {
+    sameTargetCount: number;
+    last: { id: number; reporter: ReportPerson | null; reason: string; status: string; createdAt: string }[];
+  } | null;
+  viewerPath: string | null;
 }
 export interface CryptoStatus {
   activeKeyId: string;

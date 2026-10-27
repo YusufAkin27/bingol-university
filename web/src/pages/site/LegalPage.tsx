@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { isApiError } from '../../api/client';
-import { getLegal, parseLegalType } from '../../api/legal';
+import { LEGAL_TYPES, getLegal, parseLegalType } from '../../api/legal';
 import { qk } from '../../api/queryKeys';
 import type { LegalType } from '../../api/types';
 import { Button, EmptyState, ErrorState, Icon, Skeleton } from '../../components/ui';
@@ -21,7 +21,7 @@ import shared from './components/site.module.css';
 import styles from './LegalPage.module.css';
 import NotFoundPage from './NotFoundPage';
 
-const TYPES: LegalType[] = ['TERMS', 'PRIVACY', 'KVKK', 'COMMUNITY_RULES'];
+const TYPES: LegalType[] = [...LEGAL_TYPES];
 /** paths.ts'te liste yolu yok; /legal NotFoundPage üzerinden LegalListPage'e düşer (routes.tsx'e dokunulmadı). */
 const LEGAL_INDEX = '/legal';
 

@@ -8,6 +8,17 @@ import type {
   PublishLegalRequest,
 } from './types';
 
+export const LEGAL_TYPES: readonly LegalType[] = [
+  'TERMS',
+  'PRIVACY',
+  'KVKK',
+  'COMMUNITY_RULES',
+  'EXPLICIT_CONSENT',
+  'COOKIES',
+  'CONTENT_REMOVAL',
+  'RETENTION',
+];
+
 // --- herkese açık ---
 export const listLegal = () => publicApi.get<LegalSummary[]>('/legal');
 export const getLegal = (type: LegalType) => publicApi.get<LegalContent>(`/legal/${type}`);
@@ -23,5 +34,5 @@ export const getLegalAcceptanceStats = () => api.get<LegalAcceptanceStat[]>('/ad
 export function parseLegalType(raw: string | undefined): LegalType | null {
   if (!raw) return null;
   const n = raw.toUpperCase().replace(/-/g, '_');
-  return n === 'TERMS' || n === 'PRIVACY' || n === 'KVKK' || n === 'COMMUNITY_RULES' ? n : null;
+  return (LEGAL_TYPES as readonly string[]).includes(n) ? (n as LegalType) : null;
 }

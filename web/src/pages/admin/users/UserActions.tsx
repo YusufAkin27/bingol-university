@@ -2,7 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { qk } from '../../../api/queryKeys';
 import type { AdminUserDetail, Role } from '../../../api/types';
-import { deleteUser, setUserRole, suspendUser, unsuspendUser } from '../../../api/users';
+import {
+  deleteUser,
+  revokeUserSessions,
+  sendUserReset,
+  setUserRole,
+  suspendUser,
+  unsuspendUser,
+  verifyUserEmail,
+} from '../../../api/users';
 import {
   Button,
   Card,
@@ -25,7 +33,7 @@ interface Props {
   onDeleted?: () => void;
 }
 
-type Dialog = null | 'suspend' | 'unsuspend' | 'role' | 'delete';
+type Dialog = null | 'suspend' | 'unsuspend' | 'role' | 'delete' | 'verify' | 'reset' | 'revoke';
 
 /** Askıya al / geri aç, rol değiştir ve hesap sil işlemleri; hepsi onay penceresinden geçer. */
 export function UserActions({ user, selfId, onDeleted }: Props) {
@@ -90,6 +98,31 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
       onError(e);
     },
   });
+  const verifyEmail = useMutation({
+    mutationFn: () => verifyUserEmail(user.id),
+    onSuccess: () => {
+      toast.success(t('admin.users.actions.verifyEmail.done'));
+      close();
+      refresh();
+    },
+    onError,
+  });
+  const sendReset = useMutation({
+    mutationFn: () => sendUserReset(user.id),
+    onSuccess: () => {
+      toast.success(t('admin.users.actions.sendReset.done'));
+      close();
+    },
+    onError,
+  });
+  const revoke = useMutation({
+    mutationFn: () => revokeUserSessions(user.id),
+    onSuccess: () => {
+      toast.success(t('admin.users.actions.revoke.done'));
+      close();
+    },
+    onError,
+  });
   const remove = useMutation({
     mutationFn: () => deleteUser(user.id),
     onSuccess: () => {
@@ -132,6 +165,26 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
               {t('admin.users.actions.suspend')}
             </Button>
           )}
+        </div>
+
+        {!user.emailVerified && (
+          <div className={styles.actionRow}>
+            <Button variant="primary" onClick={() => setDialog('verify')}>
+              {t('admin.users.actions.verifyEmail')}
+            </Button>
+          </div>
+        )}
+
+        <div className={styles.actionRow}>
+          <Button variant="secondary" onClick={() => setDialog('reset')}>
+            {t('admin.users.actions.sendReset')}
+          </Button>
+        </div>
+
+        <div className={styles.actionRow}>
+          <Button variant="secondary" onClick={() => setDialog('revoke')}>
+            {t('admin.users.actions.revoke')}
+          </Button>
         </div>
 
         <div className={styles.actionRow}>
@@ -214,6 +267,35 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         title={t('admin.users.actions.unsuspend')}
         message={t('admin.users.actions.unsuspend.message', { name: user.displayName })}
         confirmLabel={t('admin.users.actions.unsuspend')}
+      />
+
+      <ConfirmDialog
+        open={dialog === 'verify'}
+        onClose={close}
+        onConfirm={() => verifyEmail.mutate()}
+        loading={verifyEmail.isPending}
+        title={t('admin.users.actions.verifyEmail')}
+        message={t('admin.users.actions.verifyEmail.message', { name: user.displayName })}
+        confirmLabel={t('admin.users.actions.verifyEmail')}
+      />
+      <ConfirmDialog
+        open={dialog === 'reset'}
+        onClose={close}
+        onConfirm={() => sendReset.mutate()}
+        loading={sendReset.isPending}
+        title={t('admin.users.actions.sendReset')}
+        message={t('admin.users.actions.sendReset.message', { name: user.displayName })}
+        confirmLabel={t('admin.users.actions.sendReset')}
+      />
+      <ConfirmDialog
+        open={dialog === 'revoke'}
+        onClose={close}
+        onConfirm={() => revoke.mutate()}
+        loading={revoke.isPending}
+        danger
+        title={t('admin.users.actions.revoke')}
+        message={t('admin.users.actions.revoke.message', { name: user.displayName })}
+        confirmLabel={t('admin.users.actions.revoke')}
       />
 
       <ConfirmDialog

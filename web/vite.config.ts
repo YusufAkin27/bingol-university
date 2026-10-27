@@ -27,6 +27,19 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          // büyük bağımlılıklar ayrı, uzun süre önbelleklenebilir parçalar olur
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return undefined;
+            if (/recharts|d3-|victory-vendor/.test(id)) return 'vendor-charts';
+            if (/react-router|@remix-run/.test(id)) return 'vendor-router';
+            if (/@tanstack/.test(id)) return 'vendor-query';
+            if (/[/]react(-dom)?[/]|scheduler/.test(id)) return 'vendor-react';
+            return undefined;
+          },
+        },
+      },
     },
     test: {
       environment: 'jsdom',

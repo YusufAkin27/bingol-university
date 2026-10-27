@@ -1,15 +1,26 @@
 // Tek sohbet balonu. Yön: açılan kullanıcının mesajı bir yanda, karşı taraflar diğer yanda (Arapçada ayna, mantıksal CSS).
-// Silinmiş mesaj da çözülmüş metinle "silindi" rozetiyle gösterilir; düzenleme geçmişi <details> içindedir.
+// Hiçbir mesaj gizlenmez: silinmiş mesaj çözülmüş metinle (soluk + "Silindi" rozeti), gölge engelli mesaj "iletilmedi" rozetiyle,
+// düzenleme geçmişi <details> içinde, tek gönderimlik ekler "Açan" bilgisiyle gösterilir.
 import type { AdminChatMessage } from '../../../api/types';
-import { Badge } from '../../../components/ui';
+import { Avatar, Badge } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { AttachmentThumb } from './AttachmentThumb';
-import { bubbleSide } from './chatLogic';
+import { attachmentToItem, bubbleSide, personName, receiptTicks } from './chatLogic';
+import { MediaThumb } from './MediaThumb';
 import styles from './chat.module.css';
 
-export function ChatBubble({ m }: { m: AdminChatMessage }) {
+interface Props {
+  m: AdminChatMessage;
+  /** Ek tıklanınca (ek kimliği). */
+  onOpenMedia?: (attachmentId: number) => void;
+  highlighted?: boolean;
+  /** Şikâyet edilen mesaj işareti. */
+  reported?: boolean;
+}
+
+export function ChatBubble({ m, onOpenMedia, highlighted, reported }: Props) {
   const { t, formatDateTime } = useI18n();
   const side = bubbleSide(m);
+  const name = personName(m.sender, m.senderName) ?? t('admin.chat.sender', { id: m.senderId });
   const body =
     m.text !== null ? (
       m.text === '' ? null : (
@@ -22,36 +33,64 @@ export function ChatBubble({ m }: { m: AdminChatMessage }) {
     );
   const reactions = new Map<string, number>();
   for (const r of m.reactions) reactions.set(r.emoji, (reactions.get(r.emoji) ?? 0) + 1);
+  const ticks = side === 'self' ? receiptTicks(m.status) : '';
 
   return (
     <li
-      className={`${styles.row} ${side === 'self' ? styles.rowSelf : styles.rowPeer}`}
+      id={`msg-${m.id}`}
+      className={`${styles.row} ${side === 'self' ? styles.rowSelf : styles.rowPeer} ${highlighted ? styles.highlight : ''} ${
+        reported ? styles.reportedRow : ''
+      }`}
       data-testid="chat-bubble"
       data-side={side}
       data-deleted={m.deleted ? 'true' : 'false'}
+      data-highlighted={highlighted ? 'true' : undefined}
     >
-      <div className={`${styles.bubble} ${side === 'self' ? styles.bubbleSelf : styles.bubblePeer} ${m.deleted ? styles.bubbleDeleted : ''}`}>
+      {side === 'peer' && (
+        <span className={styles.rowAvatar}>
+          <Avatar name={name} src={m.sender?.avatarUrl} size={28} />
+        </span>
+      )}
+      <div
+        className={`${styles.bubble} ${side === 'self' ? styles.bubbleSelf : styles.bubblePeer} ${
+          m.deleted ? styles.bubbleDeleted : ''
+        } ${m.suppressed ? styles.bubbleSuppressed : ''}`}
+      >
         <div className={styles.meta}>
-          <strong dir="auto">{m.senderName ?? t('admin.chat.sender', { id: m.senderId })}</strong>
+          <strong dir="auto">{name}</strong>
           <time dateTime={m.createdAt}>{formatDateTime(m.createdAt)}</time>
           <span className="ltr">#{m.id}</span>
+          {ticks && (
+            <span
+              className={`${styles.ticks} ${m.status === 'READ' ? styles.ticksRead : ''}`}
+              title={t(`admin.chat.receipt.${m.status as 'SENT'}`)}
+              aria-label={t(`admin.chat.receipt.${m.status as 'SENT'}`)}
+              data-testid="receipt"
+            >
+              {ticks}
+            </span>
+          )}
         </div>
+
+        {reported && (
+          <Badge tone="danger">
+            <span data-testid="reported-badge">{t('admin.reports.ctx.reportedMsg')}</span>
+          </Badge>
+        )}
 
         {m.replyTo && (
           <blockquote className={styles.reply} dir="auto">
-            {m.replyTo.text !== null
-              ? m.replyTo.text
-              : t('admin.chat.replyMissing')}
+            {m.replyTo.text !== null ? m.replyTo.text : t('admin.chat.replyMissing')}
             {m.replyTo.deleted && ` (${t('admin.chat.badge.deleted')})`}
           </blockquote>
         )}
 
-        {body}
+        <div className={m.deleted ? styles.dimmed : undefined}>{body}</div>
 
         {m.attachments.length > 0 && (
-          <div className={styles.attachments}>
+          <div className={`${styles.attachments} ${m.deleted ? styles.dimmed : ''}`}>
             {m.attachments.map((a) => (
-              <AttachmentThumb key={a.id} a={a} />
+              <MediaThumb key={a.id} item={attachmentToItem(a, m, null)} onOpen={() => onOpenMedia?.(a.id)} />
             ))}
           </div>
         )}
@@ -62,16 +101,24 @@ export function ChatBubble({ m }: { m: AdminChatMessage }) {
               <span data-testid="deleted-badge">{t('admin.chat.badge.deleted')}</span>
             </Badge>
           )}
+          {m.suppressed && (
+            <Badge tone="warning">
+              <span data-testid="suppressed-badge">{t('admin.chat.badge.suppressed')}</span>
+            </Badge>
+          )}
           {m.hidden && <Badge tone="warning">{t('admin.chat.badge.hidden')}</Badge>}
           {m.edited && <Badge tone="info">{t('admin.chat.badge.edited')}</Badge>}
           {m.replyTo && <Badge tone="neutral">{t('admin.chat.badge.reply')}</Badge>}
-          {m.attachments.length > 0 && <Badge tone="neutral">{t('admin.chat.badge.attachment')}</Badge>}
           {[...reactions.entries()].map(([emoji, n]) => (
             <Badge key={emoji} tone="neutral">
               {emoji} {n}
             </Badge>
           ))}
         </div>
+
+        {m.suppressed && m.blockedBy && (
+          <p className={styles.muted}>{t('admin.chat.blockedBy', { name: m.blockedBy.displayName ?? `#${m.blockedBy.id}` })}</p>
+        )}
 
         {m.deleted && (
           <p className={styles.muted} data-testid="deleted-info">

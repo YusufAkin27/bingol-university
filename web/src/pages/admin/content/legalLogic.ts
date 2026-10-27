@@ -1,6 +1,15 @@
 import type { Lang, LegalTranslation, LegalType, LegalVersionRow, PublishLegalRequest } from '../../../api/types';
 
-export const LEGAL_TYPES: LegalType[] = ['TERMS', 'PRIVACY', 'KVKK', 'COMMUNITY_RULES'];
+export const LEGAL_TYPES: LegalType[] = [
+  'TERMS',
+  'PRIVACY',
+  'KVKK',
+  'COMMUNITY_RULES',
+  'EXPLICIT_CONSENT',
+  'COOKIES',
+  'CONTENT_REMOVAL',
+  'RETENTION',
+];
 export const LEGAL_LANGS: Lang[] = ['tr', 'en', 'ar'];
 export const MAX_TITLE = 200;
 export const MAX_CONTENT = 100000;

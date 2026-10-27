@@ -42,6 +42,10 @@ const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
 const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
+const LegacyMessageRedirect = lazy(() => import('./pages/admin/chat/LegacyMessageRedirect'));
+const ChatFeedPage = lazy(() => import('./pages/admin/ChatFeedPage'));
+const PostsAdminPage = lazy(() => import('./pages/admin/PostsAdminPage'));
+const PollsAdminPage = lazy(() => import('./pages/admin/PollsAdminPage'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
 const TicketsPage = lazy(() => import('./pages/admin/TicketsPage'));
@@ -57,7 +61,14 @@ const CampaignComposePage = lazy(() => import('./pages/admin/CampaignComposePage
 const AppealsPage = lazy(() => import('./pages/admin/AppealsPage'));
 const SuspendRecommendationsPage = lazy(() => import('./pages/admin/SuspendRecommendationsPage'));
 const BlocklistPage = lazy(() => import('./pages/admin/BlocklistPage'));
+const AccessBansPage = lazy(() => import('./pages/admin/AccessBansPage'));
+const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
+const AcademicCalendarPage = lazy(() => import('./pages/admin/academic/AcademicCalendarPage'));
+const AcademicExamsPage = lazy(() => import('./pages/admin/academic/AcademicExamsPage'));
+const AcademicAnnouncementsPage = lazy(() => import('./pages/admin/academic/AcademicAnnouncementsPage'));
+const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
+const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const EventApplicationsPage = lazy(() => import('./pages/admin/EventApplicationsPage'));
 const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
@@ -119,6 +130,10 @@ export function AppRoutes() {
           <Route path="users" element={<UsersPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
           <Route path="users/:id/messages" element={<UserMessagesPage />} />
+          <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
+          <Route path="chat-feed" element={<ChatFeedPage />} />
+          <Route path="posts" element={<PostsAdminPage />} />
+          <Route path="polls" element={<PollsAdminPage />} />
           <Route path="analytics/:tab?" element={<AnalyticsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="support/tickets" element={<TicketsPage />} />
@@ -134,7 +149,14 @@ export function AppRoutes() {
           <Route path="moderation/appeals" element={<AppealsPage />} />
           <Route path="moderation/suspensions" element={<SuspendRecommendationsPage />} />
           <Route path="moderation/blocklist" element={<BlocklistPage />} />
+          <Route path="security/access-bans" element={<AccessBansPage />} />
+          <Route path="profanity" element={<ProfanityPage />} />
+          <Route path="academic/calendar" element={<AcademicCalendarPage />} />
+          <Route path="academic/exams" element={<AcademicExamsPage />} />
+          <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
+          <Route path="pending-users" element={<PendingUsersPage />} />
           <Route path="crypto" element={<CryptoPage />} />
+          <Route path="ops" element={<OpsPage />} />
           <Route path="events/applications" element={<EventApplicationsPage />} />
           <Route path="communities/audit" element={<ClubAuditPage />} />
           <Route path="settings" element={<SettingsPage />} />

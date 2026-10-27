@@ -2,6 +2,7 @@
 // API: GET /api/admin/reports?status=&order=priority|desc|asc&targetType=&cursor=&size= (imeç tabanlı; priority modunda imeç = sayfa no),
 //      POST /api/admin/reports/{id}/resolve {action,message,reasonCode}, POST /api/admin/reports/bulk-resolve, GET /api/admin/reports/reason-templates (api/reports.ts),
 //      GET /api/admin/users/{id} (kullanıcı raporlarında hedef önizlemesi). Askıya alma, resolve eylemiyle (SUSPEND_USER) yapılır.
+//      GET /api/admin/reports/{id} (şikâyet bağlamı: mesaj ±10, ekler, ilişkili şikâyetler; chat/ReportContext.tsx).
 //      Satırda sunucu önizlemesi (preview), priority, hidden/hiddenBy, openReporters bulunur; görseller AuthImage ile yetkili çekilir.
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -48,6 +49,7 @@ import {
   validateDecision,
 } from './reports/reportLogic';
 import { AuthImage } from './moderation/AuthImage';
+import { ReportContextCard } from './chat/ReportContext';
 import { TARGET_TYPES, cleanReasonCode, toggleSelected } from './moderation/modLogic';
 import modStyles from './moderation/moderation.module.css';
 import { BulkBar } from './reports/BulkBar';
@@ -71,7 +73,15 @@ function TargetPreview({ report }: { report: ReportView }) {
   });
   const typeLabel = t(`admin.reports.targetType.${report.targetType}`);
   const listLink =
-    report.targetType === 'COMMUNITY' ? paths.admin.communities : report.targetType === 'EVENT' ? paths.admin.events : null;
+    report.targetType === 'COMMUNITY'
+      ? paths.admin.communities
+      : report.targetType === 'EVENT'
+        ? paths.admin.events
+        : report.targetType === 'FEED_POST'
+          ? `${paths.admin.posts}?open=${report.targetId}`
+          : report.targetType === 'FEED_COMMENT'
+            ? paths.admin.posts
+            : null;
 
   return (
     <div className={styles.preview}>
@@ -337,6 +347,11 @@ export default function ReportsPage() {
                         {n > 1 && <Badge tone="danger">{t('admin.reports.sameTarget', { n })}</Badge>}
                       </span>
                       <span className={styles.reason}>{t(`admin.reports.reason.${r.reason}`)}</span>
+                      {(r.reporter?.displayName || r.reportedUser?.displayName) && (
+                        <span className={styles.note} dir="auto" data-testid="report-people">
+                          {r.reporter?.displayName ?? '?'} → {r.reportedUser?.displayName ?? '?'}
+                        </span>
+                      )}
                       {r.note && <span className={styles.note}>{r.note}</span>}
                       {r.preview?.kind === 'TEXT' && r.preview.text && (
                         <span className={styles.note} dir="auto">
@@ -385,13 +400,14 @@ export default function ReportsPage() {
                 <Card title={t('admin.reports.preview.title')}>
                   <TargetPreview report={selected} />
                 </Card>
+                <ReportContextCard key={selected.id} reportId={selected.id} />
                 <Card title={t(`admin.reports.reason.${selected.reason}`)}>
                   <dl className={styles.facts}>
                     <div>
                       <dt>{t('admin.reports.reportedBy')}</dt>
                       <dd>
                         <Link to={paths.admin.user(selected.reporterId)}>
-                          {t('admin.reports.reporterId', { id: selected.reporterId })}
+                          {selected.reporter?.displayName ?? t('admin.reports.reporterId', { id: selected.reporterId })}
                         </Link>
                       </dd>
                     </div>

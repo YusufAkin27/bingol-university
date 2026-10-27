@@ -32,9 +32,15 @@ export const paths = {
     login: `${ADMIN_BASE}/login`,
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
+    pendingUsers: `${ADMIN_BASE}/pending-users`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
-    userMessages: (id: number | string, conversationId?: number | string) =>
-      `${ADMIN_BASE}/users/${id}/messages${conversationId === undefined ? '' : `?c=${conversationId}`}`,
+    userMessages: (id: number | string, conversationId?: number | string, messageId?: number | string) =>
+      `${ADMIN_BASE}/users/${id}/messages${
+        conversationId === undefined ? '' : `?c=${conversationId}${messageId === undefined ? '' : `&m=${messageId}`}`
+      }`,
+    chatFeed: `${ADMIN_BASE}/chat-feed`,
+    posts: `${ADMIN_BASE}/posts`,
+    polls: `${ADMIN_BASE}/polls`,
     analytics: (tab?: 'overview' | 'growth' | 'engagement' | 'retention' | 'demographics') =>
       `${ADMIN_BASE}/analytics${tab ? `/${tab}` : ''}`,
     reports: `${ADMIN_BASE}/reports`,
@@ -51,7 +57,13 @@ export const paths = {
     appeals: `${ADMIN_BASE}/moderation/appeals`,
     suspensions: `${ADMIN_BASE}/moderation/suspensions`,
     blocklist: `${ADMIN_BASE}/moderation/blocklist`,
+    accessBans: `${ADMIN_BASE}/security/access-bans`,
+    profanity: `${ADMIN_BASE}/profanity`,
+    acdCalendar: `${ADMIN_BASE}/academic/calendar`,
+    acdExams: `${ADMIN_BASE}/academic/exams`,
+    acdAnnouncements: `${ADMIN_BASE}/academic/announcements`,
     crypto: `${ADMIN_BASE}/crypto`,
+    ops: `${ADMIN_BASE}/ops`,
     eventApplications: `${ADMIN_BASE}/events/applications`,
     clubAudit: `${ADMIN_BASE}/communities/audit`,
     settings: `${ADMIN_BASE}/settings`,

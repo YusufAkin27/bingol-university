@@ -39,13 +39,19 @@ export const adminNav: AdminNavGroup[] = [
   {
     id: 'people',
     labelKey: 'admin.nav.group.people',
-    items: [{ id: 'users', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' }],
+    items: [
+      { id: 'users', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
+      { id: 'pendingUsers', to: paths.admin.pendingUsers, labelKey: 'admin.nav.pendingUsers', icon: 'mail' },
+    ],
   },
   {
     id: 'moderation',
     labelKey: 'admin.nav.group.moderation',
     items: [
       { id: 'reports', to: paths.admin.reports, labelKey: 'admin.nav.reports', icon: 'flag' },
+      { id: 'chatFeed', to: paths.admin.chatFeed, labelKey: 'admin.nav.chatFeed', icon: 'message' },
+      { id: 'posts', to: paths.admin.posts, labelKey: 'admin.nav.posts', icon: 'list' },
+      { id: 'polls', to: paths.admin.polls, labelKey: 'admin.nav.polls', icon: 'chart' },
       {
         id: 'communities',
         to: paths.admin.communities,
@@ -57,6 +63,8 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'appeals', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'alert' },
       { id: 'suspensions', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'users' },
       { id: 'blocklist', to: paths.admin.blocklist, labelKey: 'admin.nav.blocklist', icon: 'eyeOff' },
+      { id: 'accessBans', to: paths.admin.accessBans, labelKey: 'admin.nav.accessBans', icon: 'shield' },
+      { id: 'profanity', to: paths.admin.profanity, labelKey: 'admin.nav.profanity', icon: 'eyeOff' },
       {
         id: 'eventApplications',
         to: paths.admin.eventApplications,
@@ -64,6 +72,16 @@ export const adminNav: AdminNavGroup[] = [
         icon: 'list',
       },
       { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
+      { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
+    ],
+  },
+  {
+    id: 'academic',
+    labelKey: 'admin.nav.group.academic',
+    items: [
+      { id: 'acdCalendar', to: paths.admin.acdCalendar, labelKey: 'admin.nav.acdCalendar', icon: 'calendar' },
+      { id: 'acdExams', to: paths.admin.acdExams, labelKey: 'admin.nav.acdExams', icon: 'list' },
+      { id: 'acdAnnouncements', to: paths.admin.acdAnnouncements, labelKey: 'admin.nav.acdAnnouncements', icon: 'news' },
     ],
   },
   {

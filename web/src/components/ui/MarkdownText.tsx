@@ -37,7 +37,20 @@ function inline(text: string): ReactNode[] {
 type Block =
   | { kind: 'h'; level: 3 | 4 | 5; text: string }
   | { kind: 'ul' | 'ol'; items: string[] }
-  | { kind: 'p'; lines: string[] };
+  | { kind: 'p'; lines: string[] }
+  | { kind: 'quote'; lines: string[] }
+  | { kind: 'table'; head: string[]; rows: string[][] };
+
+/** "| a | b |" satırını hücrelere böler (baştaki/sondaki boru atılır). */
+function cells(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((c) => c.trim());
+}
+const TABLE_SEP = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
 
 export function parseBlocks(src: string): Block[] {
   const blocks: Block[] = [];
@@ -57,6 +70,25 @@ export function parseBlocks(src: string): Block[] {
       flush();
       // Sayfa başlığı zaten h1/h2: içerik başlıkları h3'ten başlar
       blocks.push({ kind: 'h', level: (h[1].length + 2) as 3 | 4 | 5, text: h[2] });
+      continue;
+    }
+    const q = /^>\s?(.*)$/.exec(line);
+    if (q) {
+      if (cur && (cur as Block).kind === 'quote') (cur as { lines: string[] }).lines.push(q[1]);
+      else {
+        flush();
+        cur = { kind: 'quote', lines: [q[1]] };
+      }
+      continue;
+    }
+    if (line.trimStart().startsWith('|')) {
+      if (cur && (cur as Block).kind === 'table') {
+        // Ayırıcı satır (---) atlanır; kalanlar gövde satırı
+        if (!TABLE_SEP.test(line)) (cur as { rows: string[][] }).rows.push(cells(line));
+      } else {
+        flush();
+        cur = { kind: 'table', head: cells(line), rows: [] };
+      }
       continue;
     }
     const ul = /^\s*[-*]\s+(.*)$/.exec(line);
@@ -106,6 +138,37 @@ export function MarkdownText({ text, className }: { text: string; className?: st
                   <li key={j}>{inline(it)}</li>
                 ))}
               </ol>
+            );
+          case 'quote':
+            return (
+              <blockquote key={i}>
+                {b.lines.map((l, j) => (
+                  <p key={j}>{inline(l)}</p>
+                ))}
+              </blockquote>
+            );
+          case 'table':
+            return (
+              <div key={i} className={styles.tableWrap}>
+                <table>
+                  <thead>
+                    <tr>
+                      {b.head.map((h, j) => (
+                        <th key={j}>{inline(h)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((r, j) => (
+                      <tr key={j}>
+                        {r.map((c, k) => (
+                          <td key={k}>{inline(c)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             );
           default:
             return (

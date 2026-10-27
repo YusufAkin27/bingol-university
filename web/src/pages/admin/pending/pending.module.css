@@ -1,0 +1,67 @@
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-3);
+}
+.search {
+  flex: 1 1 260px;
+  max-width: 460px;
+  min-width: 0;
+}
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.intro,
+.meta {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-block-end: var(--space-3);
+}
+.meta {
+  margin-block-end: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.idMain {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.more {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.failList {
+  margin-block-start: var(--space-3);
+  padding-inline-start: var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  max-height: 240px;
+  overflow: auto;
+}
+.progress {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,163 @@
+/* Akademik yönetim sayfaları (yalnızca tasarım token'ları, mantıksal özellikler). */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: end;
+}
+.toolbar > * {
+  min-width: 10rem;
+}
+.spacer {
+  flex: 1;
+}
+.rowList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.item {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.itemTitle {
+  margin: 0;
+  font-size: var(--text-md, 1rem);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.body {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+.wide {
+  grid-column: 1 / -1;
+}
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5, 1.5rem);
+}
+.preview {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+}
+.errorList {
+  margin: 0;
+  padding-inline-start: var(--space-5, 1.25rem);
+  font-size: var(--text-sm);
+}
+
+/* Ay görünümü */
+.monthNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.monthTitle {
+  margin: 0;
+  font-size: var(--text-lg, 1.125rem);
+  min-inline-size: 10rem;
+  text-align: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+.dow {
+  padding: var(--space-2);
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+.cell {
+  min-block-size: 5.5rem;
+  padding: var(--space-1, 0.25rem);
+  border-block-start: 1px solid var(--border);
+  border-inline-start: 1px solid var(--border);
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-inline-size: 0;
+}
+.cellOut {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.dayNum {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted);
+}
+.chip {
+  display: block;
+  inline-size: 100%;
+  padding: 1px var(--space-1, 0.25rem);
+  border: 0;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--primary-soft, var(--surface-2));
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-xs, 0.75rem);
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 1px;
+}
+.chipDraft {
+  opacity: 0.6;
+  border: 1px dashed var(--border-strong);
+}
+@media (max-width: 40rem) {
+  .cell {
+    min-block-size: 4rem;
+  }
+}

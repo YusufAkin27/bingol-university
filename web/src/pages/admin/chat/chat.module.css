@@ -1,15 +1,35 @@
-/* Yönetici sohbet görüntüleyici. Yalnızca tasarım token'ları ve mantıksal özellikler (Arapçada RTL ayna). */
+/* Yonetici sohbet goruntuleyici + toplu izleme. Yalnizca tasarim token'lari ve mantiksal ozellikler (Arapcada RTL ayna). */
 .layout {
   display: grid;
-  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
   gap: var(--space-4);
   margin-block-start: var(--space-4);
   align-items: start;
 }
 @media (max-width: 52rem) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+  /* tek sutun: sohbet secilmediyse liste, secildiyse mesajlar */
+  .layout[data-open='true'] .listPanel {
+    display: none;
+  }
+  .layout[data-open='false'] .chatPanel {
+    display: none;
+  }
+}
+.backBtn {
+  display: none;
+}
+@media (max-width: 52rem) {
+  .backBtn {
+    display: inline-flex;
+  }
+}
+.auditNote {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 .panel {
   background: var(--surface);
@@ -17,13 +37,19 @@
   border-radius: var(--radius-md);
   display: grid;
   min-block-size: 0;
+  min-inline-size: 0;
 }
 .panelHead {
   padding: var(--space-3) var(--space-4);
   border-block-end: 1px solid var(--border);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-3);
+}
+.panelSearch {
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--border);
 }
 .convList {
   list-style: none;
@@ -85,6 +111,12 @@
   padding: var(--space-4);
   background: var(--surface-2);
 }
+@media (max-width: 52rem) {
+  .scroller {
+    max-block-size: 75vh;
+    padding: var(--space-3);
+  }
+}
 .messages {
   list-style: none;
   margin: 0;
@@ -94,16 +126,32 @@
 }
 .row {
   display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
 }
-/* flex-end/flex-start yazı yönüne göre döner: RTL'de kendi mesajı sola geçer (ayna) */
+/* flex-end/flex-start yazi yonune gore doner: RTL'de kendi mesaji sola gecer (ayna) */
 .rowSelf {
   justify-content: flex-end;
 }
 .rowPeer {
   justify-content: flex-start;
 }
+.rowAvatar {
+  flex: none;
+}
+.highlight {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  background: var(--primary-soft);
+}
+.reportedRow {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
 .bubble {
   max-inline-size: min(34rem, 85%);
+  min-inline-size: 0;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
@@ -121,6 +169,12 @@
   border-style: dashed;
   border-color: var(--danger);
 }
+.bubbleSuppressed {
+  border-color: var(--warning);
+}
+.dimmed {
+  opacity: 0.65;
+}
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -128,6 +182,12 @@
   align-items: baseline;
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+.ticks {
+  letter-spacing: -0.2em;
+}
+.ticksRead {
+  color: var(--primary);
 }
 .text {
   margin: 0;
@@ -158,22 +218,32 @@
   margin: 0;
   display: grid;
   gap: 2px;
+  min-inline-size: 0;
 }
 .thumbBtn {
   padding: 0;
   border: 0;
   background: none;
   cursor: zoom-in;
+  color: inherit;
 }
 .imgThumb {
+  display: block;
   max-inline-size: 12rem;
   max-block-size: 12rem;
   border-radius: var(--radius-sm);
 }
-.imgFull {
-  max-inline-size: 100%;
-  max-block-size: 28rem;
+.placeholder {
+  display: grid;
+  place-items: center;
+  inline-size: 8rem;
+  block-size: 6rem;
+  border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-2);
 }
 .dayDivider {
   text-align: center;
@@ -191,4 +261,238 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   align-items: end;
+}
+
+/* ---- Lightbox ---- */
+.lbScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgb(0 0 0 / 0.85);
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+}
+.lb {
+  position: relative;
+  inline-size: min(70rem, 100%);
+  max-block-size: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  color: #fff;
+}
+.lb a {
+  color: #fff;
+  text-decoration: underline;
+}
+.lbClose {
+  display: flex;
+  justify-content: flex-end;
+}
+.lbClose button {
+  color: #fff;
+}
+.lbStage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 0;
+}
+.lbStage button {
+  color: #fff;
+}
+.lbMedia {
+  display: grid;
+  place-items: center;
+  min-block-size: 10rem;
+  min-inline-size: 0;
+}
+.lbImg {
+  max-inline-size: 100%;
+  max-block-size: 68vh;
+  border-radius: var(--radius-sm);
+}
+.lbNote {
+  text-align: center;
+  margin: 0;
+}
+.lbInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.lbInfo .muted {
+  color: #cfd6df;
+}
+
+/* ---- Toplu izleme (chat-feed) ---- */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+  margin-block: var(--space-4);
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  margin-block: var(--space-3);
+}
+.filters > * {
+  min-inline-size: 0;
+}
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 24rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.gridItem {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+}
+.tile {
+  margin: 0;
+  position: relative;
+}
+.tileBtn {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: zoom-in;
+  color: inherit;
+}
+.tileImg {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tilePlaceholder {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-2);
+}
+.cap {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-sm);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.feedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.feedRow {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.feedHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+}
+.feedInner {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.picked {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pickResults {
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  max-block-size: 12rem;
+  overflow-y: auto;
+}
+.pickResults button {
+  inline-size: 100%;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  padding: var(--space-2) var(--space-3);
+  color: inherit;
+  cursor: pointer;
+}
+.pickResults button:hover {
+  background: var(--surface-2);
+}
+.ctxList {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  max-block-size: 28rem;
+  overflow-y: auto;
+}
+
+.facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }

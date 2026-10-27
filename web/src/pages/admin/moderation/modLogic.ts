@@ -28,6 +28,8 @@ export const TARGET_TYPES: ReportTargetType[] = [
   'USER_AVATAR',
   'COMMUNITY_COVER',
   'EVENT_COVER',
+  'FEED_POST',
+  'FEED_COMMENT',
 ];
 
 /** Toplu karar en çok 100 rapor kabul eder. */

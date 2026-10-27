@@ -21,6 +21,7 @@ import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { ActivityBars } from './users/ActivityBars';
+import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
 import { UserExtras } from './users/UserExtras';
 import styles from './users/users.module.css';
@@ -158,6 +159,18 @@ export default function UserDetailPage() {
                 </div>
               ))}
             </dl>
+            {u.follow && (
+              <dl className={styles.counts} data-testid="follow-stats">
+                <div className={styles.count}>
+                  <dt>{t('admin.social.follow.followers')}</dt>
+                  <dd>{formatNumber(u.follow.followerCount)}</dd>
+                </div>
+                <div className={styles.count}>
+                  <dt>{t('admin.social.follow.following')}</dt>
+                  <dd>{formatNumber(u.follow.followingCount)}</dd>
+                </div>
+              </dl>
+            )}
           </Card>
 
           <UserExtras u={u} />
@@ -186,6 +199,8 @@ export default function UserDetailPage() {
               </>
             )}
           </Card>
+
+          <UserDevices userId={u.id} />
 
           <Card title={t('admin.users.detail.consents')}>
             {u.consents.length === 0 ? (

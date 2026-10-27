@@ -59,6 +59,7 @@ export const qk = {
     list: (status: ReportStatus, order: ReportOrder = 'desc', targetType: ReportTargetType | null = null) =>
       ['reports', 'list', status, order, targetType ?? 'ALL'] as const,
     templates: () => ['reports', 'templates'] as const,
+    detail: (id: number) => ['reports', 'detail', id] as const,
   },
   moderation: {
     all: ['moderation'] as const,
@@ -67,9 +68,30 @@ export const qk = {
     blocklist: () => ['moderation', 'blocklist'] as const,
   },
   crypto: { status: () => ['crypto', 'status'] as const },
+  ops: { part: (name: string) => ['ops', name] as const },
+  adminPosts: {
+    list: (f: unknown) => ['adminPosts', 'list', f] as const,
+    stats: () => ['adminPosts', 'stats'] as const,
+    detail: (id: number) => ['adminPosts', 'detail', id] as const,
+    comments: (id: number) => ['adminPosts', 'comments', id] as const,
+  },
+  adminPolls: {
+    list: (f: unknown) => ['adminPolls', 'list', f] as const,
+    results: (id: number) => ['adminPolls', 'results', id] as const,
+    menuRatings: () => ['adminPolls', 'menuRatings'] as const,
+  },
+  adminSocial: {
+    stories: (hidden: boolean) => ['adminSocial', 'stories', hidden] as const,
+    trending: () => ['adminSocial', 'trending'] as const,
+    banned: () => ['adminSocial', 'banned'] as const,
+  },
   adminChat: {
     conversations: (userId: number) => ['adminChat', 'conversations', userId] as const,
     messages: (userId: number, conversationId: number) => ['adminChat', 'messages', userId, conversationId] as const,
+    media: (f: unknown) => ['adminChat', 'media', f] as const,
+    mediaStats: () => ['adminChat', 'mediaStats'] as const,
+    feed: (f: unknown) => ['adminChat', 'feed', f] as const,
+    userSearch: (q: string) => ['adminChat', 'userSearch', q] as const,
   },
   admission: {
     summary: (eventId: number) => ['admission', 'summary', eventId] as const,

@@ -181,6 +181,25 @@ export default function SettingsPage() {
                   <SettingRow k="address" label={t('admin.settings.key.address')} kind="textarea" />
                 </div>
               </Card>
+              <Card title={t('admin.settings.general.legal')}>
+                <p>{t('admin.settings.general.legalHint')}</p>
+                <div className={styles.grid}>
+                  <SettingRow k="legal.controller.name" label={t('admin.settings.key.legal.controller.name')} />
+                  <SettingRow
+                    k="legal.controller.address"
+                    label={t('admin.settings.key.legal.controller.address')}
+                    kind="textarea"
+                  />
+                  <SettingRow
+                    k="legal.controller.email"
+                    label={t('admin.settings.key.legal.controller.email')}
+                    kind="email"
+                  />
+                  <SettingRow k="legal.controller.kep" label={t('admin.settings.key.legal.controller.kep')} ltr />
+                  <SettingRow k="legal.controller.verbis" label={t('admin.settings.key.legal.controller.verbis')} ltr />
+                  <SettingRow k="legal.hosting.location" label={t('admin.settings.key.legal.hosting.location')} />
+                </div>
+              </Card>
               <Card title={t('admin.settings.general.social')}>
                 <div className={styles.grid}>
                   <SettingRow k="instagram" label={t('admin.settings.key.instagram')} ltr />
