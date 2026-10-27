@@ -29,7 +29,7 @@ public final class ModerationDtos {
     public record ReportView(Long id, Long reporterId, ReportTargetType targetType, Long targetId, ReportReason reason,
                              String note, Report.Status status, Report.Resolution resolution, String createdAt,
                              int priority, String reasonCode, MediaPreview preview, boolean hidden, String hiddenBy,
-                             long openReporters) {
+                             long openReporters, Person reporter, Person reportedUser, String viewerPath) {
         public static ReportView of(Report r) {
             return of(r, null);
         }
@@ -38,9 +38,18 @@ public final class ModerationDtos {
             return new ReportView(r.getId(), r.getReporterId(), r.getTargetType(), r.getTargetId(), r.getReason(),
                     r.getNote(), r.getStatus(), r.getResolution(), r.getCreatedAt().toString(), r.getPriority(),
                     r.getReasonCode(), e == null ? null : e.preview(), e != null && e.hidden(),
-                    e == null ? null : e.hiddenBy(), e == null ? 0 : e.openReporters());
+                    e == null ? null : e.hiddenBy(), e == null ? 0 : e.openReporters(), null, null, null);
+        }
+
+        /** Yonetici kuyrugu: sikayet eden / sikayet edilen kullanici ve sohbet izleyici baglantisi eklenir. */
+        public ReportView withPeople(Person reporter, Person reportedUser, String viewerPath) {
+            return new ReportView(id, reporterId, targetType, targetId, reason, note, status, resolution, createdAt,
+                    priority, reasonCode, preview, hidden, hiddenBy, openReporters, reporter, reportedUser, viewerPath);
         }
     }
+
+    /** Kisa kisi gorunumu (yonetici): kimlik, ad, e-posta. */
+    public record Person(Long id, String displayName, String email) {}
 
     public record ReportQueue(List<ReportView> items, Long nextCursor) {}
 

@@ -1,5 +1,6 @@
 package edu.bingol.backend.moderation;
 
+import edu.bingol.backend.admin.chat.AdminReportContextService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
@@ -46,10 +47,12 @@ public class AdminModerationController {
     private final NewsRepository news;
     private final RateLimiter limiter;
     private final I18n i18n;
+    private final AdminReportContextService context;
 
     public AdminModerationController(ReportService reports, ReportRepository reportRepo,
                                      UserModerationService userModeration, UserRepository users, NewsRepository news,
-                                     RateLimiter limiter, I18n i18n) {
+                                     RateLimiter limiter, I18n i18n,
+                                     AdminReportContextService context) {
         this.reports = reports;
         this.reportRepo = reportRepo;
         this.userModeration = userModeration;
@@ -57,6 +60,7 @@ public class AdminModerationController {
         this.news = news;
         this.limiter = limiter;
         this.i18n = i18n;
+        this.context = context;
     }
 
     /**
@@ -75,11 +79,11 @@ public class AdminModerationController {
             int page = cursor == null ? 0 : (int) Math.min(cursor, 100_000L);
             Slice<Report> slice = reports.queueByPriority(status, targetType, page, s);
             List<ReportView> items = slice.getContent().stream().map(r -> ReportView.of(r, reports.enrich(r))).toList();
-            return new ReportQueue(items, slice.hasNext() ? (long) page + 1 : null);
+            return new ReportQueue(context.decorate(items), slice.hasNext() ? (long) page + 1 : null);
         }
         List<Report> rows = reports.queue(status, targetType, cursor, s, "desc".equalsIgnoreCase(order));
         CursorPage<ReportView> page = CursorPage.of(rows, s, Report::getId, r -> ReportView.of(r, reports.enrich(r)));
-        return new ReportQueue(page.items(), page.nextCursor());
+        return new ReportQueue(context.decorate(page.items()), page.nextCursor());
     }
 
     @PostMapping("/reports/{id}/resolve")

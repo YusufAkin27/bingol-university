@@ -26,7 +26,10 @@ public class AuditRecorder {
     static boolean shouldAudit(String method, String path) {
         boolean write = !method.equals("GET") && !method.equals("HEAD") && !method.equals("OPTIONS");
         // T8: yonetici sohbet gorseli onizlemesi (GET) de kisisel icerik gosterir -> denetlenir
-        return write || path.endsWith("/export.csv") || path.startsWith("/api/admin/media/attachments/");
+        // Erisim engeli listesi/istatistigi ve kullanici cihaz/IP gecmisi (kisisel veri) goruntulemesi de denetlenir
+        boolean accessBan = path.startsWith("/api/admin/access-bans")
+                || (path.startsWith("/api/admin/users/") && path.endsWith("/devices"));
+        return write || accessBan || path.endsWith("/export.csv") || path.startsWith("/api/admin/media/attachments/");
     }
 
     public void record(HttpServletRequest req, Authentication auth, int status) {

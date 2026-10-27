@@ -118,6 +118,13 @@ public class MessageAttachmentService {
     private ChatEventBus bus;
     @Value("${app.chat.media.view-once-ttl-hours:24}")
     private int viewOnceTtlHours = 24;
+    /** Tek gosterimlik bayt saklama suresi (gun; yonetici onizlemesi icin). 0 = eski davranis: hemen/24 sa sonra siler. */
+    @Value("${app.chat.media.view-once-retention-days:365}")
+    private int viewOnceRetentionDays = 365;
+
+    void setViewOnceRetentionDays(int days) {
+        this.viewOnceRetentionDays = days;
+    }
 
     // Video mesaj sinirlari (varsayilanlar application.properties ile ayni)
     @Value("${app.chat.media.video-max-bytes:41943040}")
@@ -544,7 +551,9 @@ public class MessageAttachmentService {
         if (a.getUploaderId().equals(userId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "MEDIA_VIEW_ONCE_OWN", "Tek gösterimlik görselinizi açamazsınız.");
         }
-        if (a.getPurgedAt() != null || viewsRepo.existsByAttachmentIdAndUserId(a.getId(), userId)) {
+        // Baytlar yonetici icin saklansa da alici erisimi kapanir: silinmis, zaten acilmis ya da kullanici suresi (24 sa) dolmus
+        if (a.getPurgedAt() != null || viewsRepo.existsByAttachmentIdAndUserId(a.getId(), userId)
+                || userAccessExpired(a)) {
             throw expired();
         }
         ResponseEntity<Resource> res = store.serve(BUCKET, a.getStorageKey());
@@ -569,7 +578,8 @@ public class MessageAttachmentService {
         try {
             long recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(a.getConversationId())
                     .stream().filter(m -> !m.getUserId().equals(a.getUploaderId())).count();
-            if (viewsRepo.countByAttachmentId(a.getId()) >= recipients) {
+            // Saklama acikken (varsayilan) baytlar yonetici onizlemesi icin KALIR; yalniz retention=0 ise hemen silinir
+            if (viewOnceRetentionDays <= 0 && viewsRepo.countByAttachmentId(a.getId()) >= recipients) {
                 purge(a);
             }
             if (bus != null) {
@@ -591,11 +601,22 @@ public class MessageAttachmentService {
         store.delete(BUCKET, a.getStorageKey());
     }
 
-    /** Suresi dolan (varsayilan 24 sa) tek gosterimlik eklerin baytlarini siler; silinen sayisi doner. */
+    /** Alici tarafi kullanici suresi (view-once-ttl-hours) dolduysa true. */
+    private boolean userAccessExpired(MessageAttachment a) {
+        return a.getCreatedAt() != null
+                && a.getCreatedAt().isBefore(Instant.now().minus(Duration.ofHours(Math.max(1, viewOnceTtlHours))));
+    }
+
+    /**
+     * Tek gosterimlik eklerin baytlarini siler; silinen sayisi doner. Saklama gun sayisi > 0 ise (varsayilan 365)
+     * yonetici onizlemesi icin o sure beklenir, 0 ise eski davranis (kullanici suresi 24 sa dolunca) gecerlidir.
+     */
     public int purgeExpiredViewOnce() {
         int n = 0;
         try {
-            Instant before = Instant.now().minus(Duration.ofHours(Math.max(1, viewOnceTtlHours)));
+            Instant before = viewOnceRetentionDays > 0
+                    ? Instant.now().minus(Duration.ofDays(viewOnceRetentionDays))
+                    : Instant.now().minus(Duration.ofHours(Math.max(1, viewOnceTtlHours)));
             for (MessageAttachment a : repo.expiredViewOnce(before, PageRequest.of(0, 500))) {
                 try {
                     purge(a);
@@ -619,6 +640,10 @@ public class MessageAttachmentService {
     public ResponseEntity<Resource> streamForAdmin(Long attachmentId, boolean thumb, String rangeHeader,
                                                    HttpServletResponse resp) {
         MessageAttachment a = repo.findById(attachmentId).orElseThrow(MessageAttachmentService::notFound);
+        if (a.getPurgedAt() != null) {
+            // saklama suresi dolmus tek gosterimlik: bayt yok
+            throw new ApiException(HttpStatus.GONE, "MEDIA_PURGED", "Bu görselin saklama süresi doldu; içerik silindi.");
+        }
         if (a.isVideo() && !thumb && resp != null) {
             writeVideo(a, rangeHeader, resp);
             return null;

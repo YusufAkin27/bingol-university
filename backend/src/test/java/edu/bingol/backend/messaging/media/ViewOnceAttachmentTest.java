@@ -190,7 +190,7 @@ class ViewOnceAttachmentTest {
     }
 
     @Test
-    void recipientOpensOnceThenGets410AndBytesAreDeletedInDirect() throws Exception {
+    void recipientOpensOnceThenGets410ButBytesAreRetainedForAdmin() throws Exception {
         MessageAttachment a = viewOnce();
 
         var resp = service.stream(PEER, CONV, a.getId(), false);
@@ -202,8 +202,37 @@ class ViewOnceAttachmentTest {
         ApiException second = fail(() -> service.stream(PEER, CONV, a.getId(), false));
         assertEquals(HttpStatus.GONE, second.status());
         assertEquals("MEDIA_VIEW_ONCE_EXPIRED", second.code());
+        // yeni kural: alici acinca bayt SILINMEZ (saklama suresi dolana kadar yonetici onizlemesi icin)
+        assertNull(a.getPurgedAt());
+        assertNotNull(store.read(MessageAttachmentService.BUCKET, a.getStorageKey()));
+        assertEquals(HttpStatus.OK, service.streamForAdmin(a.getId(), false).getStatusCode());
+        // gonderen 403, kucuk resim 404 ayni kalir
+        assertEquals(HttpStatus.FORBIDDEN, fail(() -> service.stream(ME, CONV, a.getId(), false)).status());
+        assertEquals(HttpStatus.NOT_FOUND, fail(() -> service.stream(PEER, CONV, a.getId(), true)).status());
+    }
+
+    @Test
+    void retentionZeroKeepsOldBehaviourAndAdminGetsMediaPurged() throws Exception {
+        service.setViewOnceRetentionDays(0);
+        MessageAttachment a = viewOnce();
+
+        service.stream(PEER, CONV, a.getId(), false);
+
         assertNotNull(a.getPurgedAt());
         assertNull(store.read(MessageAttachmentService.BUCKET, a.getStorageKey()));
+        ApiException e = fail(() -> service.streamForAdmin(a.getId(), false));
+        assertEquals(HttpStatus.GONE, e.status());
+        assertEquals("MEDIA_PURGED", e.code());
+    }
+
+    @Test
+    void recipientAccessClosesAfterUserTtlEvenThoughBytesAreRetained() throws Exception {
+        MessageAttachment a = viewOnce();
+        a.setCreatedAt(Instant.now().minus(Duration.ofHours(25)));
+
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> service.stream(PEER, CONV, a.getId(), false)).code());
+        assertTrue(viewed.isEmpty());
+        assertEquals(HttpStatus.OK, service.streamForAdmin(a.getId(), false).getStatusCode());
     }
 
     @Test
@@ -295,14 +324,15 @@ class ViewOnceAttachmentTest {
         assertTrue(seen.viewed()); // gonderen: en az bir alici acti
         assertFalse(service.viewsFor(THIRD, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
 
-        // sure dolunca zamanli temizlik kalan baytlari siler; goruntuleme bilgisi kalir
-        a.setCreatedAt(Instant.now().minus(Duration.ofHours(25)));
+        // saklama (365 gun) dolunca zamanli temizlik baytlari siler; goruntuleme bilgisi kalir
+        a.setCreatedAt(Instant.now().minus(Duration.ofDays(366)));
         when(repo.expiredViewOnce(any(), any())).thenReturn(List.of(a));
         assertEquals(1, service.purgeExpiredViewOnce());
         assertNotNull(a.getPurgedAt());
         assertNull(store.read(MessageAttachmentService.BUCKET, a.getStorageKey()));
         ApiException late = fail(() -> service.stream(THIRD, CONV, a.getId(), false));
         assertEquals("MEDIA_VIEW_ONCE_EXPIRED", late.code());
+        assertEquals("MEDIA_PURGED", fail(() -> service.streamForAdmin(a.getId(), false)).code());
         assertNull(service.viewsFor(THIRD, List.of(a.getMessageId())).get(a.getMessageId()).get(0).url());
         assertTrue(service.viewsFor(PEER, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
     }
