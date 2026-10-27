@@ -1120,15 +1120,16 @@ void main() {
       });
     EventsPage build(Session s) => EventsPage(session: s);
 
-    _matrix('EventsPage', full, build, expectFinder: () => find.text('Katıldığım etkinlik'));
+    _matrix('EventsPage', full, build, expectFinder: () => find.textContaining('Bingöl Üniversitesi'));
 
     testWidgets('yukleniyor -> dolu', (tester) async {
       final be = full()..delay = const Duration(milliseconds: 300);
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Katıldığım etkinlik'), findsNothing); // iskelet gorunur
       await settle(tester, const Duration(seconds: 2));
+      await _reveal(tester, find.text('Resmi'));
       expect(find.text('Katıldığım etkinlik'), findsOneWidget);
       expect(find.text('Resmi'), findsOneWidget);
       _noErrors(tester);
@@ -1172,23 +1173,23 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Katılacağın bir etkinlik yok.'), findsOneWidget);
       be.fail('/me/events*');
-      await tester.tap(find.text('Yaklaşan'));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.text('Etkinliklerim'));
+      await tester.tap(find.text('Geçmiş'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Yeniden dene'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);
     });
 
-    testWidgets('RSVP: katiliyorum iyimser guncelleme ve hata geri alma', (tester) async {
+    testWidgets('RSVP: Katil sunucu hatasinda durum degismez, geri alma dugmesi yok', (tester) async {
       final be = full();
       be.fail('/events/5/rsvp');
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      await tester.tap(find.text('Katılıyorum').first);
+      expect(find.text('Katılıyorum'), findsNothing);
+      await tester.tap(find.text('Katıl').first);
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.requests.any((r) => r.startsWith('PUT /events/5/rsvp')), isTrue);
-      expect(find.text('Katılıyorum'), findsWidgets); // hata sonrası geri alındı
+      expect(find.text('Katıl'), findsWidgets); // hata sonrasi hala katilabilir
+      expect(find.text('Vazgeç'), findsNothing);
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1324,10 +1325,9 @@ void main() {
       final be = full(rsvp: null, manage: false);
       be.fail('/events/5/rsvp');
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      await _reveal(tester, find.text('Katılıyorum'));
-      await tester.tap(find.text('Katılıyorum'));
+      await tester.tap(find.text('Katıl'));
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Katılıyorsun'), findsNothing);
+      expect(find.text('Etkinliklerimde'), findsNothing);
       _noErrors(tester);
       await unmount(tester);
     });

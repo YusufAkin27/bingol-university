@@ -13,6 +13,8 @@ import '../clubs/club_detail_page.dart';
 import '../platform/qr_scan_page.dart';
 import 'event_cover.dart';
 import 'event_form_page.dart';
+import 'event_parts.dart';
+import 'events_page.dart';
 import 'qr_painter.dart';
 import '../../core/typography.dart';
 
@@ -178,7 +180,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       ..showSnackBar(SnackBar(content: Text(m)));
   }
 
-  Future<void> _setRsvp(String status) async {
+  /// Katıl / İlgileniyorum: yalnızca ekler. Geri alma "Katılımı yönet" bağlantısından, onayla yapılır.
+  Future<void> _join(String status) async {
     if (_rsvpBusy) return;
     final ev = _ev!;
     final cap = (ev['capacity'] as num?)?.toInt();
@@ -187,37 +190,83 @@ class _EventDetailPageState extends State<EventDetailPage> {
       _toast('Kontenjan doldu. "İlgileniyorum" ile takipte kalabilirsin.');
       return;
     }
-    // İyimser güncelleme: sayaç ve durum hemen değişir, hata olursa geri alınır.
-    final old = Map<String, dynamic>.from(ev);
-    final next = _rsvp == status ? null : status;
-    var g = going;
-    if (_rsvp == 'GOING') g--;
-    if (next == 'GOING') g++;
-    var i = (ev['interestedCount'] as num?)?.toInt();
-    if (i != null) {
-      if (_rsvp == 'INTERESTED') i--;
-      if (next == 'INTERESTED') i++;
-    }
-    setState(() {
-      _rsvpBusy = true;
-      _ev = {...ev, 'myRsvp': next, 'goingCount': g < 0 ? 0 : g, if (i != null) 'interestedCount': i < 0 ? 0 : i};
-    });
+    setState(() => _rsvpBusy = true);
     try {
-      if (next == null) {
-        await widget.session.api.delete('$_path/rsvp');
-      } else {
-        await widget.session.api.put('$_path/rsvp', {'status': status});
-      }
-      if (mounted) setState(() => _rsvpBusy = false);
+      await widget.session.api.put('$_path/rsvp', {'status': status});
+      if (!mounted) return;
+      setState(() => _rsvpBusy = false);
+      showJoinedToast(context, _openMine);
       await _load(refresh: true);
     } catch (e) {
       if (mounted) {
         setState(() {
-          _ev = old;
           _rsvpBusy = false;
+          if (e is ApiError && e.code == 'EVENT_REGISTRATION_CLOSED') _ev = {...ev, 'registrationClosed': true};
         });
       }
-      _toast(errorText(e));
+      _toast(eventErrorText(e));
+    }
+  }
+
+  void _openMine() {
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventsPage(session: widget.session, initialTab: 1)),
+    );
+  }
+
+  /// İkincil "Katılımı yönet": onay diyaloğundan sonra RSVP silinir.
+  Future<void> _leave() async {
+    if (_rsvpBusy) return;
+    final ok = await confirmEventDialog(
+      context,
+      title: 'Katılımdan ayrıl',
+      message: 'Bu etkinlik Etkinliklerim listenden çıkarılacak.',
+      confirmLabel: 'Ayrıl',
+      danger: true,
+    );
+    if (!ok || !mounted) return;
+    setState(() => _rsvpBusy = true);
+    try {
+      await widget.session.api.delete('$_path/rsvp');
+      if (mounted) setState(() => _rsvpBusy = false);
+      await _load(refresh: true);
+    } catch (e) {
+      if (mounted) setState(() => _rsvpBusy = false);
+      _toast(eventErrorText(e));
+    }
+  }
+
+  /// Yönetici menüsü: düzenle / kayıtları kapat-aç / iptal et.
+  Future<void> _manageAction(String action) async {
+    final api = widget.session.api;
+    try {
+      switch (action) {
+        case 'edit':
+          await _edit();
+          return;
+        case 'close':
+          await api.post('$_path/close', {});
+          _toast('Kayıtlar kapatıldı.');
+        case 'reopen':
+          await api.post('$_path/reopen', {});
+          _toast('Kayıtlar yeniden açıldı.');
+        case 'cancel':
+          final ok = await confirmEventDialog(
+            context,
+            title: 'Etkinliği iptal et',
+            message: 'Bu etkinlik tüm katılımcılar için iptal edilecek.',
+            confirmLabel: 'İptal et',
+            danger: true,
+          );
+          if (!ok || !mounted) return;
+          await api.delete(_path);
+          _toast('Etkinlik iptal edildi.');
+      }
+      if (mounted) await _load(refresh: true);
+    } catch (e) {
+      _toast(eventErrorText(e));
     }
   }
 
@@ -306,7 +355,69 @@ class _EventDetailPageState extends State<EventDetailPage> {
         child: ListView(padding: EdgeInsets.zero, children: _content(context)),
       );
     }
-    return Scaffold(backgroundColor: t.bg, body: body);
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: body,
+      bottomNavigationBar: (!_loading && _ev != null && !eventIsCancelled(_ev!)) ? _actionBar() : null,
+    );
+  }
+
+  /// Altta sabit eylem çubuğu: "Katıl" ya da "Etkinliklerimde" durumu.
+  Widget _actionBar() {
+    final t = context.bu;
+    final ev = _ev!;
+    final closed = eventIsClosed(ev);
+    final rsvp = _rsvp;
+    Widget main;
+    if (rsvp == 'GOING') {
+      main = EventJoinedChip(large: true, onTap: _openMine);
+    } else if (closed) {
+      main = const BuButton(label: 'Kayıtlar kapalı', icon: LucideIcons.lock, kind: BuButtonKind.soft);
+    } else {
+      main = BuButton(
+        label: 'Katıl',
+        icon: LucideIcons.check,
+        busy: _rsvpBusy,
+        onPressed: _rsvpBusy ? null : () => _join('GOING'),
+      );
+    }
+    final showInterest = rsvp != 'GOING' && !closed;
+    return Material(
+      color: t.bg,
+      elevation: 8,
+      shadowColor: Colors.black.withValues(alpha: .25),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+          child: Row(children: [
+            Expanded(child: main),
+            if (showInterest) ...[
+              const SizedBox(width: 10),
+              rsvp == 'INTERESTED'
+                  ? const EventStatusTag('İlgileniyorum', tone: EventTone.warn)
+                  : Tooltip(
+                      message: 'İlgileniyorum',
+                      child: SizedBox(
+                        width: 54,
+                        height: 54,
+                        child: Material(
+                          color: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd)),
+                          child: InkWell(
+                            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
+                            child: Icon(LucideIcons.star, size: 22, color: t.ink),
+                          ),
+                        ),
+                      ),
+                    ),
+            ],
+          ]),
+        ),
+      ),
+    );
   }
 
   List<Widget> _content(BuildContext context) {
@@ -357,7 +468,33 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               ),
             ),
-            if (!_manage)
+            if (_manage && !eventIsCancelled(ev))
+              Positioned(
+                right: 20,
+                top: pad.top + 12,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                      popupMenuTheme: PopupMenuThemeData(color: t.sf, surfaceTintColor: Colors.transparent)),
+                  child: PopupMenuButton<String>(
+                    tooltip: 'Yönet',
+                    onSelected: _manageAction,
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+                      PopupMenuItem(
+                          value: eventIsClosed(ev) ? 'reopen' : 'close',
+                          child: Text(eventIsClosed(ev) ? 'Kayıtları yeniden aç' : 'Kayıtları kapat')),
+                      PopupMenuItem(value: 'cancel', child: Text('İptal et', style: TextStyle(color: t.danger))),
+                    ],
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.ellipsis, size: 22, color: Colors.white),
+                    ),
+                  ),
+                ),
+              )
+            else if (!_manage)
               Positioned(
                 right: 20,
                 top: pad.top + 12,
@@ -397,11 +534,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (rsvp == 'GOING')
-            const _Pill('Katılıyorsun', ok: true)
-          else if (rsvp == 'INTERESTED')
-            const _Pill('İlgileniyorsun'),
-          if (rsvp != null) const SizedBox(height: 8),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            if (eventIsCancelled(ev)) const _Pill('İptal edildi', warn: true),
+            if (!eventIsCancelled(ev) && eventIsClosed(ev)) const _Pill('Kayıtlar kapalı'),
+            if (rsvp == 'GOING') const _Pill('Etkinliklerimde', ok: true) else if (rsvp == 'INTERESTED') const _Pill('İlgileniyorum'),
+          ]),
+          if (rsvp != null || eventIsCancelled(ev) || eventIsClosed(ev)) const SizedBox(height: 8),
           Text('${ev['title'] ?? ''}',
               style: BuType.display.copyWith(letterSpacing: -.4, height: 1.2, color: t.ink)),
           if (organizer != null && organizer.isNotEmpty)
@@ -478,36 +616,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          // Dar ekranda (320 dp) iki ikonlu düğme yan yana sığmaz: alt alta dizilir.
-          LayoutBuilder(builder: (context, box) {
-            final going = BuButton(
-              label: rsvp == 'GOING' ? 'Katılıyorsun' : 'Katılıyorum',
-              icon: LucideIcons.check,
-              kind: rsvp == 'GOING' ? BuButtonKind.primary : BuButtonKind.soft,
-              busy: _rsvpBusy,
-              onPressed: () => _setRsvp('GOING'),
-            );
-            final interested = BuButton(
-              label: rsvp == 'INTERESTED' ? 'İlgileniyorsun' : 'İlgileniyorum',
-              icon: LucideIcons.star,
-              kind: rsvp == 'INTERESTED' ? BuButtonKind.primary : BuButtonKind.outline,
-              onPressed: _rsvpBusy ? null : () => _setRsvp('INTERESTED'),
-            );
-            if (box.maxWidth < 380) {
-              return Column(children: [going, const SizedBox(height: 10), interested]);
-            }
-            return Row(children: [
-              Expanded(child: going),
-              const SizedBox(width: 10),
-              Expanded(child: interested),
-            ]);
-          }),
           if (full && rsvp != 'GOING')
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text('Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.',
-                  style: BuType.caption.copyWith(color: t.danger)),
-            ),
+            Text('Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.',
+                style: BuType.caption.copyWith(color: t.danger)),
           if (rsvp == 'GOING') ...[const SizedBox(height: 10), _attendanceBlock()],
           if (rsvp != null) ...[
             const SizedBox(height: 10),
@@ -519,14 +630,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
               onPressed: _openChat,
             ),
           ],
-          if (_manage) ...[
-            const SizedBox(height: 18),
-            BuButton(
-              label: 'Etkinliği düzenle',
-              icon: LucideIcons.pencil,
-              kind: BuButtonKind.outline,
-              onPressed: _edit,
+          if (rsvp != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                onPressed: _rsvpBusy ? null : _leave,
+                child: Text('Katılımı yönet', style: BuType.label.copyWith(color: t.mut)),
+              ),
             ),
+          ],
+          if (_manage) ...[
             const SizedBox(height: 18),
             _manageBlock(),
           ],
@@ -729,10 +843,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
 }
 
 class _Pill extends StatelessWidget {
-  const _Pill(this.text, {this.ok = false});
+  const _Pill(this.text, {this.ok = false, this.warn = false});
 
   final String text;
   final bool ok;
+  final bool warn;
 
   @override
   Widget build(BuildContext context) {
@@ -741,9 +856,11 @@ class _Pill extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        decoration: BoxDecoration(color: ok ? t.okSoft : t.soft, borderRadius: BorderRadius.circular(999)),
+        decoration: BoxDecoration(
+            color: ok ? t.okSoft : (warn ? t.danger.withValues(alpha: .14) : t.soft),
+            borderRadius: BorderRadius.circular(999)),
         child: Text(text,
-            style: BuType.micro.copyWith(color: ok ? t.ok : t.onSoft)),
+            style: BuType.micro.copyWith(color: ok ? t.ok : (warn ? t.danger : t.onSoft))),
       ),
     );
   }

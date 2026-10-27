@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/api.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -11,6 +12,7 @@ import '../../widgets/common.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_cover.dart';
 import '../events/event_detail_page.dart';
+import '../events/event_parts.dart';
 import '../events/events_page.dart';
 import '../menu/menu_page.dart';
 import '../news/news_detail_page.dart';
@@ -270,41 +272,41 @@ class _HomeTabState extends State<HomeTab> {
       ..showSnackBar(SnackBar(content: Text(m)));
   }
 
-  /// İyimser RSVP: "Katılıyorum" GOING yazar, "Katılıyorsun"a basınca vazgeçilir (DELETE).
-  Future<void> _toggleRsvp() async {
+  /// "Katıl": GOING yazar ve Etkinliklerim'e ekler; kart üzerinden geri alma yoktur.
+  Future<void> _join() async {
     final ev = _event;
     final id = (ev?['id'] as num?)?.toInt();
     if (ev == null || id == null || _rsvpBusy) return;
-    final mine = ev['myRsvp'] == 'GOING';
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
     final cap = (ev['capacity'] as num?)?.toInt();
-    if (!mine && cap != null && going >= cap) {
+    if (cap != null && going >= cap) {
       _toast('Kontenjan doldu.');
       return;
     }
     final gen = _gen;
     setState(() {
       _rsvpBusy = true;
-      _event = {
-        ...ev,
-        'myRsvp': mine ? null : 'GOING',
-        'goingCount': (going + (mine ? -1 : 1)).clamp(0, 1 << 30),
-      };
+      _event = {...ev, 'myRsvp': 'GOING', 'goingCount': going + 1};
     });
     try {
-      if (mine) {
-        await _s.api.delete('/events/$id/rsvp');
-      } else {
-        await _s.api.put('/events/$id/rsvp', {'status': 'GOING'});
-      }
-      if (mounted) unawaited(_loadPreview(id, gen));
+      await _s.api.put('/events/$id/rsvp', {'status': 'GOING'});
+      if (!mounted) return;
+      showJoinedToast(context, _openMyEvents);
+      unawaited(_loadPreview(id, gen));
     } catch (e) {
       if (!mounted) return;
-      setState(() => _event = ev);
-      _toast(errorText(e));
+      setState(() => _event = {
+            ...ev,
+            if (e is ApiError && e.code == 'EVENT_REGISTRATION_CLOSED') 'registrationClosed': true,
+          });
+      _toast(eventErrorText(e));
     } finally {
       if (mounted) setState(() => _rsvpBusy = false);
     }
+  }
+
+  void _openMyEvents() {
+    if (mounted) _push(EventsPage(session: _s, initialTab: 1));
   }
 
   @override
@@ -602,11 +604,13 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 const SizedBox(width: 8),
                 if (mine)
-                  _whitePill('Katılıyorsun', id == null ? null : _toggleRsvp, busy: _rsvpBusy, check: true)
+                  _whitePill('Etkinliklerimde', _openMyEvents, check: true)
                 else if (full)
                   _whitePill('Dolu', null)
+                else if (e['registrationClosed'] == true)
+                  _whitePill('Kayıt kapalı', null)
                 else
-                  _whitePill('Katılıyorum', id == null ? null : _toggleRsvp, busy: _rsvpBusy),
+                  _whitePill('Katıl', id == null ? null : _join, busy: _rsvpBusy),
               ]),
           ],
         ),

@@ -143,6 +143,11 @@ class ChatRealtime with WidgetsBindingObserver {
       _receipts.add(ReceiptEvent(_i(m['conversationId']), kind, _i(m['upToMessageId']), m['status'] as String?));
       return;
     }
+    // Ayrılma/çıkarılma/kulüp silinmesi: sohbet listesi yeniden çekilsin.
+    if (m['type'] == 'conversation-removed') {
+      _resync.add(null);
+      return;
+    }
     if (m['type'] != 'viewed') return;
     _viewed.add(ViewedEvent(_i(m['conversationId']), _i(m['messageId']), _i(m['attachmentId']), _i(m['userId'])));
   }

@@ -214,10 +214,18 @@ void main() {
       expect(find.text('En çok katılım'), findsOneWidget);
       expect(find.text('42 kişi katılıyor'), findsOneWidget);
       expect(find.byType(EventCoverImage), findsOneWidget);
-      await tester.tap(find.text('Katılıyorum'));
+      expect(find.text('Katılıyorum'), findsNothing);
+      await tester.tap(find.text('Katıl'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.requests, contains('PUT /events/9/rsvp'));
       expect(find.text('43 kişi katılıyor'), findsOneWidget);
+      // Durum: "Etkinliklerimde"; geri alma yok, kısa onay + kısayol.
+      expect(find.text('Etkinliklerimde'), findsOneWidget);
+      expect(find.text('Etkinliklerime eklendi'), findsOneWidget);
+      await tester.tap(find.text('Etkinliklerimde'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byType(EventsPage), findsOneWidget);
+      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
       await unmount(tester);
     });
 

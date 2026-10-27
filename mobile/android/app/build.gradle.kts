@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "edu.bingol.bu_kampus"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android 13 compileSdk 37 ister; AGP 9.1 en fazla 36 onerir (uyari bastirilir)
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

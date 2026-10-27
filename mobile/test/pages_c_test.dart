@@ -95,16 +95,17 @@ final _cases = <PageCase>[
       {
         'id': 1,
         'title': 'Kariyer Günleri ve Çok Uzun Bir Etkinlik Başlığı ' * 2,
-        'startsAt': '2026-12-01T10:00:00',
+        'startsAt': '2098-12-01T10:00:00',
         'location': 'Konferans Salonu',
         'myRsvp': 'GOING',
       },
-      {'id': 2, 'title': 'Geçmiş Etkinlik', 'startsAt': '2020-01-01T10:00:00', 'location': ''},
+      {'id': 2, 'title': 'Yaklaşan Etkinlik', 'startsAt': '2099-01-01T10:00:00', 'location': ''},
     ])),
     empty: (b) => b.on('/me/events', _page([])),
-    marker: 'Geçmiş Etkinlik',
-    emptyMarker: 'Yaklaşan bir etkinliğiniz yok.',
+    marker: 'Yaklaşan Etkinlik',
+    emptyMarker: 'Katılacağın bir etkinlik yok.',
     failKeys: ['/me/events'],
+    checkLoading: false, // iskelet kartlar gosterilir
   ),
   PageCase(
     'SavedNewsPage',

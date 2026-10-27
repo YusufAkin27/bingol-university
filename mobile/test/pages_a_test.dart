@@ -689,11 +689,11 @@ void main() {
       b.fail('/events/7/rsvp');
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 1));
-      final btn = find.text('Katılıyorum');
+      final btn = find.text('Katıl');
       if (btn.evaluate().isNotEmpty) {
         await tester.tap(btn);
         await settle(tester, const Duration(seconds: 1));
-        expect(find.text('Katılıyorum'), findsOneWidget);
+        expect(find.text('Katıl'), findsOneWidget);
       }
       noErr(tester);
     });

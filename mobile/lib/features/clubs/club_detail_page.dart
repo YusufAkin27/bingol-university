@@ -9,7 +9,11 @@ import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
+import 'club_actions.dart';
+import 'club_form_page.dart';
 import 'club_join_flow.dart';
+import 'club_members_page.dart';
+import 'club_requests_page.dart';
 import '../../core/typography.dart';
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler.
@@ -54,7 +58,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   bool get _isMember => _status == 'ACTIVE';
   bool get _isPending => _status == 'PENDING';
   String? get _role => _club?['myRole']?.toString();
-  bool get _isManager => _isMember && (_role == 'OWNER' || _role == 'MODERATOR');
+  bool get _isOwner => _isMember && _role == 'OWNER';
+  bool get _isManager => _isMember && isClubManagerRole(_role);
 
   @override
   void initState() {
@@ -166,26 +171,98 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     if (mounted) setState(() => _busy = false);
   }
 
-  Future<void> _leave() async {
-    final isPending = _isPending;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(isPending ? 'İsteği geri çek' : 'Kulüpten ayrıl'),
-        content: Text(isPending
-            ? 'Katılma isteğiniz geri çekilsin mi?'
-            : '${_club?['name'] ?? 'Bu kulüp'} kulübünden ayrılmak istiyor musunuz?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
-          TextButton(onPressed: () => Navigator.pop(c, true), child: Text(isPending ? 'Geri çek' : 'Ayrıl')),
-        ],
-      ),
-    );
-    if (ok != true) return;
+  /// Bekleyen katılma isteğini geri çeker.
+  Future<void> _withdraw() async {
+    final ok = await confirmDialog(context,
+        title: 'İsteği geri çek', message: 'Katılma isteğiniz geri çekilsin mi?', confirmLabel: 'Geri çek');
+    if (!ok) return;
     setState(() => _busy = true);
     try {
       await widget.session.api.delete('$_base/membership');
       await _load();
+    } catch (e) {
+      if (mounted) _snack(errorText(e));
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  /// Kulüpten ayrıl: onay + DELETE membership; başarıda sayfa "Katıl" durumuna döner.
+  Future<void> _leave() async {
+    final left = await leaveClubFlow(
+      context,
+      widget.session,
+      communityId: widget.communityId,
+      clubName: (_club?['name'] ?? '').toString(),
+      isOwner: _isOwner,
+    );
+    if (!left || !mounted) return;
+    setState(() => _busy = true);
+    await _load();
+    if (mounted) setState(() => _busy = false);
+  }
+
+  Future<void> _edit() async {
+    final res = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => ClubFormPage(session: widget.session, club: _club)),
+    );
+    if (res != null && mounted) await _load();
+  }
+
+  Future<void> _openRequests() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => ClubRequestsPage(session: widget.session, communityId: widget.communityId)),
+    );
+    if (mounted) await _load();
+  }
+
+  Future<void> _openMembers() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+          builder: (_) => ClubMembersPage(session: widget.session, communityId: widget.communityId, myRole: _role)),
+    );
+    if (mounted) await _load();
+  }
+
+  Future<void> _changeCover() async {
+    try {
+      final img = await _images.pickPrepared(ImageSource.gallery);
+      if (img == null || !mounted) return;
+      setState(() => _busy = true);
+      await MultipartUploader(widget.session).upload('$_base/cover', img);
+      if (mounted) await _load();
+    } on ImageException catch (e) {
+      if (mounted) {
+        _snack(e.code == 'TOO_LARGE'
+            ? 'Görsel çok büyük.'
+            : e.code == 'UNSUPPORTED_TYPE'
+                ? 'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.'
+                : 'Görsel okunamadı.');
+      }
+    } catch (e) {
+      if (mounted) _snack(errorText(e));
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  /// İki aşamalı silme: uyarı + kulüp adını yazarak onay.
+  Future<void> _delete() async {
+    final name = (_club?['name'] ?? '').toString();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => _DeleteClubDialog(name: name),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await widget.session.api.delete(_base);
+      widget.session.badges.conversationsDirty.value++;
+      if (!mounted) return;
+      _snack('Kulüp silindi.');
+      Navigator.pop(context, 'deleted');
+      return;
     } catch (e) {
       if (mounted) _snack(errorText(e));
     }
@@ -319,24 +396,6 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _reportPost(Map<String, dynamic> p) => ReportSheet.show(context, widget.session,
       targetType: 'POST', targetId: (p['id'] as num).toInt(), title: 'Gönderiyi şikâyet et');
 
-  Future<void> _review(Map<String, dynamic> r, bool approve) async {
-    try {
-      await widget.session.api.post('$_base/requests/${r['userId']}/${approve ? 'approve' : 'reject'}');
-      if (!mounted) return;
-      setState(() => _requests.items.remove(r));
-      if (approve) {
-        final c = Map<String, dynamic>.from(_club!);
-        c['memberCount'] = ((c['memberCount'] as num?) ?? 0) + 1;
-        setState(() => _club = c);
-        _members.loaded = false;
-        _members.next = null;
-        _members.items.clear();
-      }
-    } catch (e) {
-      if (mounted) _snack(errorText(e));
-    }
-  }
-
   void _setTab(int i) {
     setState(() => _tab = i);
     if (!_cur.loaded) _refreshTab(reset: true);
@@ -430,13 +489,57 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             top: MediaQuery.of(context).padding.top + 8,
             child: _glassBtn(LucideIcons.arrowLeft, () => Navigator.pop(context), 'Geri'),
           ),
-          if (_role != 'OWNER')
-            Positioned(
-              right: 20,
-              top: MediaQuery.of(context).padding.top + 8,
-              child: _glassBtn(LucideIcons.flag, _reportClub, 'Kulübü şikâyet et'),
-            ),
+          Positioned(
+            right: 20,
+            top: MediaQuery.of(context).padding.top + 8,
+            child: _menu(),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Kulüp seçenekleri (⋯): yönetim (yalnız yetkili), ayrılma (üye), şikâyet (sahip değilse).
+  Widget _menu() {
+    final pendingCount = _requests.items.length;
+    return PopupMenuButton<String>(
+      tooltip: 'Kulüp seçenekleri',
+      onSelected: (v) {
+        switch (v) {
+          case 'edit':
+            _edit();
+          case 'requests':
+            _openRequests();
+          case 'members':
+            _openMembers();
+          case 'cover':
+            _changeCover();
+          case 'delete':
+            _delete();
+          case 'leave':
+            _leave();
+          case 'report':
+            _reportClub();
+        }
+      },
+      itemBuilder: (_) => [
+        if (_isManager) ...[
+          const PopupMenuItem(value: 'edit', child: Text('Kulübü düzenle')),
+          PopupMenuItem(
+              value: 'requests', child: Text(pendingCount > 0 ? 'Başvurular ($pendingCount)' : 'Başvurular')),
+          const PopupMenuItem(value: 'members', child: Text('Üyeleri yönet')),
+          const PopupMenuItem(value: 'cover', child: Text('Kapağı değiştir')),
+        ],
+        if (_isOwner) PopupMenuItem(value: 'delete', child: Text('Kulübü sil', style: dangerItemStyle(context))),
+        if (_isMember)
+          PopupMenuItem(value: 'leave', child: Text('Kulüpten ayrıl', style: dangerItemStyle(context))),
+        if (!_isOwner) const PopupMenuItem(value: 'report', child: Text('Kulübü şikâyet et')),
+      ],
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
+        child: const Icon(LucideIcons.ellipsis, size: 22, color: Colors.white),
       ),
     );
   }
@@ -512,12 +615,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   Widget _membershipButton() {
     if (_isMember) {
+      // Ayrılma eylemi belirgin değil: ⋯ menüsündeki "Kulüpten ayrıl".
       return BuButton(
-          label: 'Üyesin', icon: LucideIcons.check, kind: BuButtonKind.soft, compact: true, busy: _busy, onPressed: _leave);
+          label: 'Üyesin', icon: LucideIcons.check, kind: BuButtonKind.soft, compact: true, busy: _busy, onPressed: () {});
     }
     if (_isPending) {
       return BuButton(
-          label: 'İstek gönderildi', kind: BuButtonKind.outline, compact: true, busy: _busy, onPressed: _leave);
+          label: 'İstek gönderildi', kind: BuButtonKind.outline, compact: true, busy: _busy, onPressed: _withdraw);
     }
     if (_status == 'BANNED') {
       return const BuButton(label: 'Katılamazsın', kind: BuButtonKind.outline, compact: true);
@@ -658,81 +762,26 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         ),
       );
 
+  /// Başvurular özeti: ayrı sayfada yönetilir.
   Widget _requestsSection(BuTokens t) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         child: BuCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          onTap: _openRequests,
+          child: Row(
             children: [
-              Text('Bekleyen istekler (${_requests.items.length}${_requests.next != null ? '+' : ''})',
-                  style: BuType.bodyStrong.copyWith(color: t.ink)),
-              const SizedBox(height: 8),
-              for (final r in _requests.items)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Row(
-                    children: [
-                      BuAvatar(name: r['displayName']?.toString(), url: r['avatarUrl']?.toString(), size: 36),
-                      const SizedBox(width: 10),
-                      Expanded(
-                          child: Text((r['displayName'] ?? 'Kullanıcı').toString(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.bodyStrong.copyWith(color: t.ink))),
-                      BuIconButton(icon: LucideIcons.x, size: 36, onTap: () => _review(r, false), tooltip: 'Reddet'),
-                      const SizedBox(width: 6),
-                      BuIconButton(icon: LucideIcons.check, size: 36, filled: true, onTap: () => _review(r, true), tooltip: 'Onayla'),
-                    ],
-                  ),
-                  ..._answersOf(t, r),
-                    ],
-                  ),
-                ),
-              if (_requests.next != null)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: _requests.loading ? null : () => _fetch(_requests, _requestsPath),
-                    child: const Text('Daha fazla istek'),
-                  ),
-                ),
+              Icon(LucideIcons.userCheck, size: 20, color: t.pr),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('Bekleyen başvurular',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+              ),
+              BuBadge('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
+              const SizedBox(width: 6),
+              Icon(LucideIcons.chevronRight, size: 18, color: t.mut),
             ],
           ),
         ),
       );
-
-  List<Widget> _answersOf(BuTokens t, Map<String, dynamic> r) {
-    final answers = r['answers'];
-    if (answers is! List || answers.isEmpty) return const [];
-    return [
-      Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(top: 6, left: 46),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final a in answers.whereType<Map>())
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text((a['question'] ?? '').toString(),
-                        style: BuType.label.copyWith(color: t.mut)),
-                    Text((a['answer'] ?? '').toString(), style: BuType.caption.copyWith(color: t.ink)),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    ];
-  }
 
   Widget _postMenu(BuTokens t, Map<String, dynamic> p) {
     final pinned = p['pinned'] == true;
@@ -869,6 +918,61 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           if (role == 'MODERATOR') const BuBadge('Moderatör', soft: true),
         ],
       ),
+    );
+  }
+}
+
+/// Kulübü silmeden önce son onay: uyarı + kulüp adını yazma.
+class _DeleteClubDialog extends StatefulWidget {
+  const _DeleteClubDialog({required this.name});
+
+  final String name;
+
+  @override
+  State<_DeleteClubDialog> createState() => _DeleteClubDialogState();
+}
+
+class _DeleteClubDialogState extends State<_DeleteClubDialog> {
+  final _c = TextEditingController();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final match = _c.text.trim() == widget.name.trim();
+    return AlertDialog(
+      title: const Text('Kulübü sil'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Üyeler, etkinlikler ve sohbet silinir. Bu işlem geri alınamaz.',
+                style: BuType.body.copyWith(color: t.ink)),
+            const SizedBox(height: 12),
+            Text('Onaylamak için kulüp adını yaz: ${widget.name}', style: BuType.caption.copyWith(color: t.mut)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _c,
+              autofocus: true,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(hintText: 'Kulüp adı'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Vazgeç')),
+        TextButton(
+          onPressed: match ? () => Navigator.pop(context, true) : null,
+          child: Text('Sil', style: match ? TextStyle(color: t.pr) : null),
+        ),
+      ],
     );
   }
 }

@@ -55,6 +55,8 @@ class _ChatTabState extends State<ChatTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    // Kulüpten ayrılma/silme gibi işlemler listeyi geçersiz kılar.
+    widget.session.badges.conversationsDirty.addListener(_scheduleReload);
     _rt = ChatRealtime(widget.session);
     if (widget.connectRealtime) _rt.start();
     _subs
@@ -67,6 +69,7 @@ class _ChatTabState extends State<ChatTab> {
 
   @override
   void dispose() {
+    widget.session.badges.conversationsDirty.removeListener(_scheduleReload);
     _badgeTimer?.cancel();
     _reloadTimer?.cancel();
     for (final s in _subs) {

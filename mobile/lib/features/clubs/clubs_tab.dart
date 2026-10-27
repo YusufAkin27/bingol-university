@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'club_detail_page.dart';
+import 'club_form_page.dart';
 import 'club_join_flow.dart';
 import '../../core/typography.dart';
 
@@ -165,6 +166,12 @@ class _ClubsTabState extends State<ClubsTab> {
     if (mounted) _reload(silent: true);
   }
 
+  /// Kulüp kur: form -> (ACTIVE ise kulüp sayfası / onaya gönderildi bilgisi) -> liste yenilenir.
+  Future<void> _create() async {
+    final created = await openCreateClub(context, widget.session);
+    if (created && mounted) _reload(silent: true);
+  }
+
   void _setTab(int i) {
     if (i == _tab) return;
     setState(() { _tab = i; _category = null; _items = []; _cursor = null; });
@@ -220,6 +227,12 @@ class _ClubsTabState extends State<ClubsTab> {
           BuHeader(
             title: 'Kulüpler',
             actions: [
+              BuIconButton(
+                icon: LucideIcons.plus,
+                tooltip: 'Kulüp kur',
+                filled: true,
+                onTap: _create,
+              ),
               BuIconButton(
                 icon: _searching ? LucideIcons.x : LucideIcons.search,
                 tooltip: 'Ara',
