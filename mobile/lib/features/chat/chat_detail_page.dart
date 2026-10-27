@@ -389,8 +389,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   void _onScroll() {
     if (!_scroll.hasClients) return;
-    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300)
+    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
       _loadOlder();
+    }
     final away = _scroll.position.pixels > 200;
     if (_showDown.value != away) _showDown.value = away;
     if (!away && _newBelow.value != 0) _newBelow.value = 0;
@@ -627,8 +628,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       } else {
         _msgs.add(m);
         // Aşağıda değilken gelen yeni (başkasının) mesajlar düğmedeki rozeti artırır.
-        if (id != null && id > newest && !_isMine(m) && _showDown.value)
+        if (id != null && id > newest && !_isMine(m) && _showDown.value) {
           _newBelow.value++;
+        }
       }
     }
     _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
@@ -655,8 +657,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   String _newClientId() => ChatRealtime.newClientId();
 
   void _onInput() {
-    if (_input.text.isNotEmpty && _editing == null && _rtOn)
+    if (_input.text.isNotEmpty && _editing == null && _rtOn) {
       _rt.sendTyping(_cid);
+    }
   }
 
   Future<void> _submit() async {
@@ -731,8 +734,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _ackTimers[cid]?.cancel();
         _ackTimers[cid] = Timer(const Duration(seconds: 8), () {
           _ackTimers.remove(cid);
-          if (mounted && local['_state'] == 'pending' && local['id'] == null)
+          if (mounted && local['_state'] == 'pending' && local['id'] == null) {
             _sendRest(local);
+          }
         });
         return;
       }
@@ -1211,16 +1215,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (id != null && id == _myId) return 'Sen';
     if (id != null && _names[id] != null) return _names[id]!;
     final p = _peer;
-    if (_direct && p != null && (p['id'] as num?)?.toInt() == id)
+    if (_direct && p != null && (p['id'] as num?)?.toInt() == id) {
       return (p['displayName'] as String?) ?? 'Kullanıcı';
+    }
     return 'Kullanıcı';
   }
 
   String get _title {
-    if (_direct)
+    if (_direct) {
       return (_peer?['displayName'] as String?) ??
           (_conv['title'] as String?) ??
           'Sohbet';
+    }
     return (_conv['title'] as String?) ?? 'Grup';
   }
 
@@ -1687,7 +1693,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             filled: true,
             onTap: () => Navigator.pop(context, _changed)),
         const SizedBox(width: 12),
-        GestureDetector(
+        Semantics(
+          button: true,
+          label: _direct ? 'Profili aç' : 'Sohbet bilgisi',
+          excludeSemantics: true,
+          onTap: _direct
+              ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
+              : _openInfo,
+          child: GestureDetector(
             onTap: _direct
                 ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
                 : _openInfo,
@@ -1697,6 +1710,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 size: 42,
                 group: !_direct,
                 headers: _avatarHeaders(_avatarUrl))),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: InkWell(
@@ -1857,8 +1871,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               },
               child: Stack(clipBehavior: Clip.none, children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: t.sf,
                     shape: BoxShape.circle,
@@ -1898,6 +1912,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Widget _list(BuTokens t, int peerRead) {
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
+        excludeFromSemantics: true, // klavye kapatma jesti: ekran okuyucuya boş bir düğme olarak çıkmasın
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: ListView.builder(
           controller: _scroll,
@@ -2080,7 +2095,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (banner != null)
           Container(
             margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 4, 8),
             decoration: BoxDecoration(
                 color: t.sf2, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
@@ -2119,7 +2134,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
             child: Align(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: Text('$len/$_maxLen',
                   style: BuType.micro.copyWith(
                       color: len > _maxLen ? t.danger : t.mut,
@@ -2177,7 +2192,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 ),
                 if (_editing == null)
                   SizedBox(
-                    width: 38,
+                    width: 44,
                     height: 46,
                     child: IconButton(
                       key: const ValueKey('cameraShortcut'),

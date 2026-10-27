@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../features/system/gate_views.dart';
 import 'analytics.dart';
 import 'api.dart';
+import 'device_identity.dart';
 
 const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
 
@@ -175,7 +176,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
     _lastCheck = DateTime.now();
     try {
       final r = await Future.wait([
-        _getMap('/app/version?platform=ios&version=${Uri.encodeQueryComponent(appVersion)}'),
+        _getMap('/app/version?platform=${DeviceIdentity.platform == 'ios' ? 'ios' : 'android'}&version=${Uri.encodeQueryComponent(appVersion)}'),
         _getMap('/app/info'),
       ]);
       if (r[0] != null || r[1] != null) _setOffline(false);

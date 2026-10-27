@@ -139,7 +139,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: c));
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: bu.mut, fontWeight: FontWeight.w500),
+      hintStyle: BuType.body.copyWith(color: bu.mut),
       counterText: '',
       filled: true,
       fillColor: bu.sf,
@@ -156,8 +156,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final bu = context.bu;
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
-      child: Text(t.toUpperCase(),
-          style: BuType.label.copyWith(color: bu.mut, letterSpacing: 0.3)),
+      child: Text(t,
+          style: BuType.label.copyWith(color: bu.mut)),
     );
   }
 
@@ -183,7 +183,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
     return Column(
       children: [
-        GestureDetector(
+        Semantics(
+          button: true,
+          label: 'Profil fotoğrafını değiştir',
+          child: GestureDetector(
           onTap: _pickAvatar,
           child: SizedBox(
             width: 98,
@@ -211,8 +214,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                     ),
                   ),
-                Positioned(
-                  right: -2,
+                PositionedDirectional(
+                  end: -2,
                   bottom: -2,
                   child: Container(
                     width: 34,
@@ -228,12 +231,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 10),
-        GestureDetector(
+        )),
+        const SizedBox(height: 4),
+        InkWell(
           onTap: _pickAvatar,
-          child: Text(_uploading ? 'Yükleniyor…' : 'Fotoğrafı değiştir',
-              style: BuType.bodyStrong.copyWith(color: bu.pr)),
+          borderRadius: BorderRadius.circular(8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Center(
+              widthFactor: 1,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(_uploading ? 'Yükleniyor…' : 'Fotoğrafı değiştir',
+                    style: BuType.bodyStrong.copyWith(color: bu.pr)),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -250,7 +263,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         Widget row(IconData icon, String label, String value, {bool danger = false}) => ListTile(
               leading: Icon(icon, color: danger ? bu.danger : bu.ink),
               title: Text(label,
-                  style: TextStyle(fontWeight: FontWeight.w700, color: danger ? bu.danger : bu.ink)),
+                  style: BuType.bodyStrong.copyWith(color: danger ? bu.danger : bu.ink)),
               onTap: () => Navigator.pop(ctx, value),
             );
         return SafeArea(
@@ -421,8 +434,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      height: 52,
-                      padding: const EdgeInsets.only(left: 16, right: 12),
+                      constraints: const BoxConstraints(minHeight: 52),
+                      padding: const EdgeInsetsDirectional.only(start: 16, end: 12),
                       decoration: BoxDecoration(
                         color: bu.sf,
                         borderRadius: BorderRadius.circular(14),

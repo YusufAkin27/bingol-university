@@ -4,6 +4,8 @@ import 'post_models.dart';
 /// Gönderi uçları (docs/POSTS_DESIGN.md). Tek HTTP katmanı `session.api`; GET'ler her istekte sunucuya
 /// doğrulatılır (ETag/If-None-Match), yani bayat veri sunulmaz. Hatalar `ApiError` olarak fırlar.
 /// Medya yükleme (`POST /posts/media`) `post_media_uploader.dart` içindedir.
+Map<String, dynamic>? _m(Object? v) => v is Map ? Map<String, dynamic>.from(v) : null;
+
 class PostApi {
   PostApi(this.session);
 
@@ -26,26 +28,26 @@ class PostApi {
   Future<PostPage<Post>> feed({String scope = 'latest', String? cursor, int size = 10}) =>
       _posts('/feed', {'scope': scope, 'cursor': cursor, 'size': size});
 
-  Future<Post> get(int id) async => Post.fromJson((await session.api.get('/posts/$id')) as Map<String, dynamic>?);
+  Future<Post> get(int id) async => Post.fromJson(_m(await session.api.get('/posts/$id')));
 
   Future<Post> create({String? text, List<int> mediaIds = const []}) async {
     final r = await session.api.post('/posts', {
       if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
       if (mediaIds.isNotEmpty) 'mediaIds': mediaIds,
     });
-    return Post.fromJson(r as Map<String, dynamic>?);
+    return Post.fromJson(_m(r));
   }
 
   Future<Post> update(int id, String text) async =>
-      Post.fromJson((await session.api.patch('/posts/$id', {'text': text})) as Map<String, dynamic>?);
+      Post.fromJson(_m(await session.api.patch('/posts/$id', {'text': text})));
 
   Future<void> delete(int id) => session.api.delete('/posts/$id');
 
   Future<LikeResult> like(int id) async =>
-      LikeResult.fromJson((await session.api.put('/posts/$id/like')) as Map<String, dynamic>?);
+      LikeResult.fromJson(_m(await session.api.put('/posts/$id/like')));
 
   Future<LikeResult> unlike(int id) async =>
-      LikeResult.fromJson((await session.api.delete('/posts/$id/like')) as Map<String, dynamic>?);
+      LikeResult.fromJson(_m(await session.api.delete('/posts/$id/like')));
 
   Future<PostPage<PostLiker>> likers(int id, {String? cursor, int size = 30}) async {
     final r = await session.api.get('/posts/$id/likes${_q({'cursor': cursor, 'size': size})}');
@@ -68,11 +70,11 @@ class PostApi {
       'text': text,
       if (parentId != null) 'parentId': parentId,
     });
-    return PostComment.fromJson(r as Map<String, dynamic>?);
+    return PostComment.fromJson(_m(r));
   }
 
   Future<PostComment> editComment(int id, String text) async =>
-      PostComment.fromJson((await session.api.patch('/comments/$id', {'text': text})) as Map<String, dynamic>?);
+      PostComment.fromJson(_m(await session.api.patch('/comments/$id', {'text': text})));
 
   Future<void> deleteComment(int id) => session.api.delete('/comments/$id');
 

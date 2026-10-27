@@ -146,21 +146,10 @@ class _SupportPageState extends State<SupportPage> {
     );
   }
 
-  Widget _cta(BuTokens t) => Material(
-        color: t.pr,
-        borderRadius: BorderRadius.circular(26),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(26),
-          onTap: () => _push(NewTicketPage(session: widget.session)),
-          child: SizedBox(
-            height: 52,
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(LucideIcons.plus, size: 18, color: t.onPr),
-              const SizedBox(width: 8),
-              Text('Destek talebi oluştur', style: BuType.bodyStrong.copyWith(color: t.onPr)),
-            ]),
-          ),
-        ),
+  Widget _cta(BuTokens t) => BuButton(
+        label: 'Destek talebi oluştur',
+        icon: LucideIcons.plus,
+        onPressed: () => _push(NewTicketPage(session: widget.session)),
       );
 
   Widget _faqCard(BuTokens t) {
@@ -174,7 +163,7 @@ class _SupportPageState extends State<SupportPage> {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           decoration: rows.isEmpty ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
-          child: Text(cat.toUpperCase(),
+          child: Text(trUpper(cat),
               style: BuType.micro.copyWith(letterSpacing: .5, color: t.pr)),
         ));
       }
@@ -184,7 +173,10 @@ class _SupportPageState extends State<SupportPage> {
         rows.add(Container(
           decoration: rows.isEmpty ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            InkWell(
+            Semantics(
+              button: true,
+              expanded: open,
+              child: InkWell(
               onTap: () => setState(() => open ? _open.remove(i) : _open.add(i)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -197,11 +189,11 @@ class _SupportPageState extends State<SupportPage> {
                   Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: t.mut),
                 ]),
               ),
-            ),
+            )),
             if (open)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                child: Text('${it['answer'] ?? ''}', style: BuType.caption.copyWith(height: 1.5, color: t.mut)),
+                child: Text('${it['answer'] ?? ''}', style: BuType.body.copyWith(height: 1.5, color: t.mut)),
               ),
           ]),
         ));
@@ -253,7 +245,7 @@ class _SupportPageState extends State<SupportPage> {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('${_tickets[i]['subject'] ?? ''}',
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: BuType.bodyStrong.copyWith(color: t.ink)),
                     const SizedBox(height: 2),
@@ -291,12 +283,13 @@ class _SupportPageState extends State<SupportPage> {
         child: InkWell(
           customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           onTap: onTap,
-          child: SizedBox(
-            height: 50,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 50),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon, size: 16, color: t.pr),
               const SizedBox(width: 8),
-              Text(label, style: BuType.label.copyWith(color: t.ink)),
+              Flexible(child: Text(label, textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.ink))),
             ]),
           ),
         ),

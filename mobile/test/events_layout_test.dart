@@ -87,8 +87,8 @@ Future<ui.Image> _makeImage(WidgetTester tester, Color base, Color stripe) async
   }))!;
 }
 
-final _lightCover = (const Color(0xFFF8F8F4), const Color(0xFFFFFFFF));
-final _darkCover = (const Color(0xFF16202B), const Color(0xFF0B0F14));
+const _lightCover = (Color(0xFFF8F8F4), Color(0xFFFFFFFF));
+const _darkCover = (Color(0xFF16202B), Color(0xFF0B0F14));
 
 Future<void> _useCover(WidgetTester tester, (Color, Color)? c) async {
   if (c == null) {
@@ -111,10 +111,10 @@ class _Cfg {
 }
 
 final _cfgs = <_Cfg>[
-  _Cfg('s320_x13_acik_uzun_acikkapak', kPhoneSmall, 1.3, false, _lightCover, _long),
-  _Cfg('s390_koyu_uzun_koyukapak', kPhoneMedium, 1.0, true, _darkCover, _long),
-  _Cfg('s430_acik_kisa_kapaksiz', kPhoneLarge, 1.0, false, null, _short),
-  _Cfg('s320_x13_koyutema_uzun_acikkapak', kPhoneSmall, 1.3, true, _lightCover, _long),
+  const _Cfg('s320_x13_acik_uzun_acikkapak', kPhoneSmall, 1.3, false, _lightCover, _long),
+  const _Cfg('s390_koyu_uzun_koyukapak', kPhoneMedium, 1.0, true, _darkCover, _long),
+  const _Cfg('s430_acik_kisa_kapaksiz', kPhoneLarge, 1.0, false, null, _short),
+  const _Cfg('s320_x13_koyutema_uzun_acikkapak', kPhoneSmall, 1.3, true, _lightCover, _long),
 ];
 
 final _boundary = GlobalKey();

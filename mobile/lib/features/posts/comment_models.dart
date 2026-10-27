@@ -5,6 +5,9 @@ import 'post_models.dart' show CommentUser;
 export 'post_models.dart' show CommentUser;
 
 /// Sözleşme CommentView. Alanlar iyimser güncelleme için değiştirilebilir.
+int? _n(Object? v) => v is num ? v.toInt() : null;
+String? _s(Object? v) => v is String ? v : null;
+
 class Comment {
   Comment({
     required this.id,
@@ -50,21 +53,21 @@ class Comment {
     final r = j['replyToUser'];
     final prev = j['previewReplies'];
     return Comment(
-      id: (j['id'] as num?)?.toInt() ?? 0,
-      postId: (j['postId'] as num?)?.toInt() ?? 0,
-      parentId: (j['parentId'] as num?)?.toInt(),
-      rootId: (j['rootId'] as num?)?.toInt(),
-      depth: (j['depth'] as num?)?.toInt() ?? 0,
+      id: _n(j['id']) ?? 0,
+      postId: _n(j['postId']) ?? 0,
+      parentId: _n(j['parentId']),
+      rootId: _n(j['rootId']),
+      depth: _n(j['depth']) ?? 0,
       author: a is Map<String, dynamic> ? CommentUser.fromJson(a) : const CommentUser(id: 0, displayName: ''),
       replyToUser: r is Map<String, dynamic> ? CommentUser.fromJson(r) : null,
-      text: j['text'] as String?,
+      text: _s(j['text']),
       deleted: j['deleted'] == true,
-      replyCount: (j['replyCount'] as num?)?.toInt() ?? 0,
+      replyCount: _n(j['replyCount']) ?? 0,
       mine: j['mine'] == true,
       canEdit: j['canEdit'] == true,
       canDelete: j['canDelete'] == true,
-      createdAt: j['createdAt'] as String?,
-      editedAt: j['editedAt'] as String?,
+      createdAt: _s(j['createdAt']),
+      editedAt: _s(j['editedAt']),
       previews: prev is List
           ? [for (final p in prev) if (p is Map<String, dynamic>) Comment.fromJson(p)]
           : const [],
@@ -143,8 +146,8 @@ class CommentPage {
     final list = m['items'];
     return CommentPage(
       [if (list is List) for (final e in list) if (e is Map<String, dynamic>) Comment.fromJson(e)],
-      m['nextCursor'] as String?,
-      (m['total'] as num?)?.toInt(),
+      _s(m['nextCursor']),
+      _n(m['total']),
     );
   }
 }

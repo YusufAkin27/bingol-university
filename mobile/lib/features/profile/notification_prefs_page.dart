@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../core/session.dart';
+import '../academic/reminder_settings_page.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
@@ -16,23 +19,35 @@ class PrefSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onChanged == null ? null : () => onChanged!(!value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        width: 46,
-        height: 28,
-        padding: const EdgeInsets.all(3),
-        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-        decoration: BoxDecoration(color: value ? t.pr : t.sf2, borderRadius: BorderRadius.circular(14)),
-        child: Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .3), blurRadius: 3, offset: const Offset(0, 1))],
+    // Kapalı: çerçeveli iz + koyu topuz (iz/topuz kontrastı >= 3:1); açık: kırmızı iz + onPr topuz.
+    return Semantics(
+      toggled: value,
+      enabled: onChanged != null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onChanged == null ? null : () => onChanged!(!value),
+        child: SizedBox(
+          width: 52,
+          height: 44, // dokunma alanı
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: 46,
+              height: 28,
+              padding: const EdgeInsets.all(3),
+              alignment: value ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+              decoration: BoxDecoration(
+                color: value ? t.pr : t.sf2,
+                borderRadius: BorderRadius.circular(14),
+                border: value ? null : Border.all(color: t.mut, width: 1.5),
+              ),
+              child: Container(
+                width: value ? 22 : 18,
+                height: value ? 22 : 18,
+                margin: EdgeInsets.all(value ? 0 : 2),
+                decoration: BoxDecoration(color: value ? t.onPr : t.mut, shape: BoxShape.circle),
+              ),
+            ),
           ),
         ),
       ),
@@ -51,25 +66,51 @@ class PrefSwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: t.ink))),
-          PrefSwitch(value: value, onChanged: onChanged),
-        ],
+    // Tüm satır dokunulabilir; ekran okuyucu "etiket, anahtar, açık/kapalı" okur.
+    return MergeSemantics(
+      child: Semantics(
+        child: InkWell(
+          onTap: onChanged == null ? null : () => onChanged!(!value),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 52),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 10, 4),
+            child: Row(
+              children: [
+                Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: t.ink))),
+                const SizedBox(width: 8),
+                PrefSwitch(value: value, onChanged: onChanged),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
+/// Sunucunun ana bayrakları (her zaman gösterilir).
 const _prefRows = [
   ('news', 'Haberler'),
   ('announcements', 'Duyurular'),
   ('events', 'Etkinlikler'),
   ('communities', 'Topluluklar'),
   ('messages', 'Mesajlar'),
+];
+
+/// Sunucu yanıtında anahtar varsa gösterilen ek ana bayraklar (backend eklenene kadar gizli kalır).
+const _optionalRows = [
+  ('polls', 'Anketler'),
+  ('academicAnnouncements', 'Akademik duyurular'),
+  ('stories', 'Hikâyeler'),
+];
+
+/// Alt türler (`subtypes`): yalnızca sunucu yanıtında bulunanlar gösterilir; bilinmeyen anahtar gönderilmez (400).
+const _subtypeRows = [
+  ('POST_MENTION', 'Etiketlenmeler'),
+  ('USER_FOLLOW', 'Yeni takipçiler'),
+  ('POST_LIKE', 'Gönderi beğenileri'),
+  ('POST_COMMENT', 'Gönderi yorumları'),
+  ('COMMENT_REPLY', 'Yorum yanıtları'),
 ];
 
 /// Bildirim anahtarları grubu: yüklenir, her değişiklik anında kaydedilir, hatada geri alınır.
@@ -103,13 +144,14 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
     }
   }
 
-  Future<void> _set(String key, bool value) async {
-    final old = Map<String, dynamic>.from(_prefs!);
-    setState(() => _prefs![key] = value);
+  Map<String, dynamic> get _subs => (_prefs?['subtypes'] is Map) ? (_prefs!['subtypes'] as Map).cast<String, dynamic>() : {};
+
+  /// Yalnız değişen alan gönderilir (kısmi güncelleme); hatada eski değere dönülür.
+  Future<void> _save(Map<String, dynamic> body, void Function() apply) async {
+    final old = jsonDecode(jsonEncode(_prefs)) as Map<String, dynamic>;
+    setState(apply);
     try {
-      final r = await widget.session.api.put('/notifications/preferences', {
-        for (final row in _prefRows) row.$1: _prefs![row.$1] == true,
-      });
+      final r = await widget.session.api.put('/notifications/preferences', body);
       if (mounted && r is Map<String, dynamic>) setState(() => _prefs = r);
     } catch (e) {
       if (!mounted) return;
@@ -117,6 +159,15 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
     }
   }
+
+  Future<void> _set(String key, bool value) => _save({key: value}, () => _prefs![key] = value);
+
+  Future<void> _setSub(String key, bool value) => _save({
+        'subtypes': {key: value}
+      }, () {
+        final m = Map<String, dynamic>.from(_subs)..[key] = value;
+        _prefs!['subtypes'] = m;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -134,10 +185,51 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
     if (_prefs == null) {
       return const BuCard(child: SizedBox(height: 52, child: LoadingView()));
     }
-    return BuGroup(children: [
-      for (final r in _prefRows)
-        PrefSwitchRow(label: r.$2, value: _prefs![r.$1] == true, onChanged: (v) => _set(r.$1, v)),
-    ]);
+    final subs = _subs;
+    final subRows = [for (final r in _subtypeRows) if (subs.containsKey(r.$1)) r];
+    final optional = [for (final r in _optionalRows) if (_prefs!.containsKey(r.$1)) r];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BuGroup(children: [
+          for (final r in _prefRows)
+            PrefSwitchRow(label: r.$2, value: _prefs![r.$1] == true, onChanged: (v) => _set(r.$1, v)),
+          for (final r in optional)
+            PrefSwitchRow(label: r.$2, value: _prefs![r.$1] == true, onChanged: (v) => _set(r.$1, v)),
+        ]),
+        if (subRows.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const BuSectionTitle('Sosyal'),
+          const SizedBox(height: 8),
+          BuGroup(children: [
+            for (final r in subRows)
+              PrefSwitchRow(
+                // Üst bayrak (topluluklar) kapalıysa alt tür etkisizdir.
+                label: r.$2,
+                value: subs[r.$1] == true && _prefs!['communities'] == true,
+                onChanged: _prefs!['communities'] == true ? (v) => _setSub(r.$1, v) : null,
+              ),
+          ]),
+        ],
+        const SizedBox(height: 16),
+        const BuSectionTitle('Bu cihazda'),
+        const SizedBox(height: 8),
+        BuGroup(children: [
+          InkWell(
+            onTap: () => Navigator.push<void>(
+                context, MaterialPageRoute<void>(builder: (_) => ReminderSettingsPage(session: widget.session))),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 52),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
+              child: Row(children: [
+                Expanded(child: Text('Ders ve sınav hatırlatmaları', style: BuType.bodyStrong.copyWith(color: t.ink))),
+                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+              ]),
+            ),
+          ),
+        ]),
+      ],
+    );
   }
 }
 

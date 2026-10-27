@@ -166,7 +166,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     final target = role == 'OWNER';
     final canAct = !self && !target && (_isOwner || role == 'MEMBER');
     return BuCard(
-      padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 6, 8),
       child: Row(
         children: [
           BuAvatar(name: m['displayName']?.toString(), url: m['avatarUrl']?.toString(), size: 38),

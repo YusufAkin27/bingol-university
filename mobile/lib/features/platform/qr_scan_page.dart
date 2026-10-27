@@ -153,9 +153,9 @@ class _QrScanPageState extends State<QrScanPage> {
                         );
                       },
                     ),
-                    Positioned(
+                    PositionedDirectional(
                       top: 12,
-                      right: 12,
+                      end: 12,
                       child: BuIconButton(
                         icon: _torch ? LucideIcons.zapOff : LucideIcons.zap,
                         tooltip: 'El feneri',

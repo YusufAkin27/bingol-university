@@ -488,7 +488,7 @@ void main() {
 
     test('sikistirma basarisizsa ozgun uygunsa o kullanilir, degilse reddedilir', () async {
       final ok = FakeCompressor()
-        ..infoResult = VideoInfo(path: '/o.mp4', sizeBytes: 30 * _mb, durationMs: 30000, width: 1920, height: 1080);
+        ..infoResult = const VideoInfo(path: '/o.mp4', sizeBytes: 30 * _mb, durationMs: 30000, width: 1920, height: 1080);
       final v = await _svc(ok).prepare(const PickedVideo('/o.mp4'));
       expect(v.path, '/o.mp4');
       final big = FakeCompressor()..infoResult = _origBig();
@@ -498,7 +498,7 @@ void main() {
 
     test('kucuk ve <=1280 px video yeniden kodlanmaz; poster alinir', () async {
       final c = FakeCompressor()
-        ..infoResult = VideoInfo(path: '/s.mp4', sizeBytes: 3 * _mb, durationMs: 9000, width: 1280, height: 720);
+        ..infoResult = const VideoInfo(path: '/s.mp4', sizeBytes: 3 * _mb, durationMs: 9000, width: 1280, height: 720);
       final v = await _svc(c).prepare(const PickedVideo('/s.mp4'));
       expect(c.compressCalls, 0);
       expect(v.poster, isNotNull);

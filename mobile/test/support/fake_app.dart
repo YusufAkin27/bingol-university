@@ -12,6 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+// Akademik sahte uçlar (fakeAcademic) ayrı dosyada; testler yalnız fake_app.dart'ı içe aktarır.
+export 'fake_academic.dart' show FakeAcademic, fakeAcademic;
+
 /// Ortak widget test çerçevesi: sahte backend + oturum + tema sarmalayıcı.
 ///
 /// Kullanım:
@@ -334,6 +337,32 @@ Future<void> loadTestFonts() async {
     inter.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
   }
   if (haveInter) await inter.load();
+  await loadIconFonts();
+}
+
+/// Lucide ikon yazı tipi (testte kare yerine gerçek ikon çizilsin diye). Paket varlığı `pubspec.lock`
+/// ile aynı sürümde pub önbelleğinden okunur; bulunamazsa sessizce atlanır.
+Future<void> loadIconFonts() async {
+  // Material ikonları (Icons.*) da kare yerine gerçek çizilsin.
+  final root = Platform.environment['FLUTTER_ROOT'] ?? 'C:/src/flutter';
+  final mi = File('$root/bin/cache/artifacts/material_fonts/materialicons-regular.otf');
+  if (mi.existsSync()) {
+    final l = FontLoader('MaterialIcons')..addFont(Future.value(ByteData.sublistView(mi.readAsBytesSync())));
+    await l.load();
+  }
+  final cache = Platform.environment['PUB_CACHE'] ?? 'C:/pubcache';
+  final hosted = Directory('$cache/hosted/pub.dev');
+  if (!hosted.existsSync()) return;
+  for (final d in hosted.listSync().whereType<Directory>()) {
+    final name = d.uri.pathSegments.where((e) => e.isNotEmpty).last;
+    if (!name.startsWith('lucide_icons_flutter-')) continue;
+    final file = File('${d.path}/assets/lucide.ttf');
+    if (!file.existsSync()) continue;
+    final l = FontLoader('packages/lucide_icons_flutter/Lucide')
+      ..addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+    await l.load();
+    return;
+  }
 }
 
 /// Akademik katalog için küçük sahte veri (`GET /catalog/academic`).
@@ -537,6 +566,9 @@ class FakePosts {
   /// Tüm beğeniler: id kümesi.
   final Set<int> likedIds = {};
 
+  /// Kaydedilen gönderi kimlikleri (yer imi).
+  final Set<int> savedIds = {};
+
   int _nextPost = 2000;
   int _nextComment = 5000;
   int _nextMedia = 9000;
@@ -588,7 +620,7 @@ class FakePosts {
     return {'items': slice, 'nextCursor': more ? 'p${page + 1}' : null, if (total != null) 'total': total};
   }
 
-  Map<String, dynamic> _withCounts(Map<String, dynamic> p) => {...p, 'likedByMe': likedIds.contains(p['id'])};
+  Map<String, dynamic> _withCounts(Map<String, dynamic> p) => {...p, 'likedByMe': likedIds.contains(p['id']), 'savedByMe': savedIds.contains(p['id'])};
 
   List<Map<String, dynamic>> _rootsWithPreview(int postId) {
     final all = comments[postId] ?? [];
@@ -616,6 +648,16 @@ class FakePosts {
     FakeResult notFound() =>
         const FakeResult.json({'code': 'POST_NOT_FOUND', 'message': 'Gönderi bulunamadı.'}, status: 404);
 
+    if (path == '/posts/saved' && m == 'GET') {
+      return FakeResult.json(_page([for (final p in posts) if (savedIds.contains(p['id'])) _withCounts(p)], uri));
+    }
+    final save = RegExp(r'^/posts/(\d+)/save$').firstMatch(path);
+    if (save != null && (m == 'PUT' || m == 'DELETE')) {
+      final id = int.parse(save.group(1)!);
+      if (postById(id) == null) return notFound();
+      m == 'PUT' ? savedIds.add(id) : savedIds.remove(id);
+      return FakeResult.json({'saved': m == 'PUT'});
+    }
     if (path == '/feed' && m == 'GET') {
       if (failFeed) return const FakeResult.json({'code': 'SERVER_ERROR', 'message': 'Hata'}, status: 500);
       var list = [for (final p in posts) _withCounts(p)];
@@ -794,6 +836,211 @@ class FakePosts {
 /// Not: `/feed?scope=latest|popular` imleci `p2`, `p3` ... biçimindedir.
 FakePosts fakePosts(FakeBackend b, {int count = 12, int pageSize = 10, bool withMedia = true, bool empty = false}) {
   final f = FakePosts(b, count: count, pageSize: pageSize, withMedia: withMedia)..emptyFeed = empty;
+  b.handlers.add(f.handle);
+  return f;
+}
+
+/// Örnek anket JSON'u (sözleşme PollView; varsayılan: açık, tek seçim, 3 seçenek, oy verilmemiş).
+/// Sonuç alanları (`results`...) [FakePolls] tarafından `resultsVisible` ve oylara göre doldurulur.
+Map<String, dynamic> samplePoll({
+  int id = 1,
+  String title = 'Yeni dönem başkanı',
+  String type = 'SINGLE',
+  bool anonymous = false,
+  bool closed = false,
+  String? closesAt,
+  int? communityId = 5,
+  String? communityName = 'Robotik Kulübü',
+  int optionCount = 3,
+  List<int>? myOptionIds,
+  int? myRating,
+  bool canVote = true,
+  String? voteBlockedReason,
+  bool allowChangeVote = true,
+  String showResults = 'ALWAYS',
+  int? maxChoices,
+  String state = 'OPEN',
+  List<String>? menuItems,
+}) =>
+    {
+      'id': id,
+      'title': title,
+      'description': null,
+      'type': type,
+      'scope': communityId == null ? 'GLOBAL' : 'COMMUNITY',
+      'communityId': communityId,
+      'communityName': communityName,
+      'options': type == 'RATING'
+          ? [for (var i = 1; i <= 5; i++) {'id': id * 100 + i, 'text': '$i', 'position': i}]
+          : [for (var i = 1; i <= optionCount; i++) {'id': id * 100 + i, 'text': 'Seçenek $i', 'position': i}],
+      'maxChoices': maxChoices,
+      'anonymous': anonymous,
+      'allowChangeVote': allowChangeVote,
+      'showResults': showResults,
+      'opensAt': DateTime.now().subtract(const Duration(hours: 1)).toUtc().toIso8601String(),
+      'closesAt': closesAt ?? DateTime.now().add(const Duration(days: 2, hours: 3)).toUtc().toIso8601String(),
+      'status': closed ? 'CLOSED' : 'OPEN',
+      'state': closed ? 'CLOSED' : state,
+      'canVote': canVote,
+      'voteBlockedReason': voteBlockedReason,
+      'canManage': false,
+      'myVote': myOptionIds != null || myRating != null
+          ? {'optionIds': myOptionIds ?? <int>[], 'rating': myRating, 'votedAt': '2026-10-27T10:00:00+03:00'}
+          : null,
+      if (menuItems != null) 'menuItems': menuItems,
+    };
+
+/// [fakePolls] durumu: oy kaydeder; `results`, `totalVotes`, `turnout`, `average` değerlerini sözleşmeye uygun hesaplar
+/// (`showResults` kuralı: ALWAYS | AFTER_VOTE | AFTER_CLOSE).
+class FakePolls {
+  FakePolls(this.backend);
+
+  final FakeBackend backend;
+  final List<Map<String, dynamic>> polls = [];
+
+  /// Bugünün menü anketi; null = 204.
+  Map<String, dynamic>? menuPoll;
+
+  /// Dolu ise oy/geri çekme bu hata koduyla (409) reddedilir.
+  String? voteError;
+  int pageSize = 20;
+
+  Map<String, dynamic>? byId(int id) {
+    for (final p in [...polls, if (menuPoll != null) menuPoll!]) {
+      if (p['id'] == id) return p;
+    }
+    return null;
+  }
+
+  /// Diğer kullanıcıların oyları: seçenek id -> adet (`myVote` ayrıca sayılır).
+  final Map<int, Map<int, int>> others = {};
+
+  Map<String, dynamic> _view(Map<String, dynamic> p) {
+    final out = {for (final e in p.entries) e.key: e.value};
+    final opts = (p['options'] as List).cast<Map<String, dynamic>>();
+    final mv = p['myVote'] as Map<String, dynamic>?;
+    final mine = <int>[...((mv?['optionIds'] as List?)?.cast<int>() ?? const <int>[])];
+    final base = others[p['id']] ?? const <int, int>{};
+    final voted = mv != null;
+    final closed = p['status'] == 'CLOSED';
+    final visible = switch (p['showResults']) {
+      'AFTER_CLOSE' => closed,
+      'AFTER_VOTE' => voted || closed,
+      _ => true,
+    };
+    out['resultsVisible'] = visible;
+    if (!visible) {
+      out['results'] = null;
+      out['totalVotes'] = null;
+      out['turnout'] = null;
+      return out;
+    }
+    final counts = {for (final o in opts) o['id'] as int: (base[o['id']] ?? 0) + (mine.contains(o['id']) ? 1 : 0)};
+    final people = base.values.fold<int>(0, (a, b) => a + b) + (voted ? 1 : 0);
+    out['results'] = [
+      for (final o in opts)
+        {
+          'optionId': o['id'],
+          'count': counts[o['id']],
+          'percent': people == 0 ? 0.0 : (counts[o['id']]! * 1000 ~/ people) / 10.0,
+        }
+    ];
+    out['totalVotes'] = people;
+    out['turnout'] = {'voted': people, 'eligible': 40, 'percent': people * 100 / 40};
+    if (p['type'] == 'RATING' && mv?['rating'] != null) {
+      out['average'] = (mv!['rating'] as num).toDouble();
+      out['ratingCount'] = 1;
+    }
+    return out;
+  }
+
+  FakeResult _err(String code, [int status = 409]) => FakeResult.json({'code': code, 'message': ''}, status: status);
+
+  Map<String, dynamic>? _body(http.Request req) {
+    try {
+      return (jsonDecode(req.body) as Map).cast<String, dynamic>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FakeResult? handle(http.Request req, String path) {
+    if (!path.startsWith('/polls')) return null;
+    final m = req.method;
+    if (path == '/polls' && m == 'GET') {
+      final scope = req.url.queryParameters['scope'] ?? 'open';
+      final size = int.tryParse(req.url.queryParameters['size'] ?? '') ?? pageSize;
+      final cursor = int.tryParse(req.url.queryParameters['cursor'] ?? '');
+      final all = polls.where((p) {
+        final closed = p['status'] == 'CLOSED';
+        final voted = p['myVote'] != null;
+        if (scope.startsWith('community:')) return '${p['communityId']}' == scope.substring(10);
+        return switch (scope) {
+          'open' => !closed,
+          'mine' => voted,
+          'closed' => closed,
+          _ => true,
+        };
+      }).toList()
+        ..sort((a, b) => (b['id'] as int).compareTo(a['id'] as int));
+      final start = cursor == null ? all : all.where((p) => (p['id'] as int) < cursor).toList();
+      final slice = start.take(size).toList();
+      final more = start.length > size;
+      return FakeResult.json({
+        'items': [for (final p in slice) _view(p)],
+        'nextCursor': more ? slice.last['id'] : null,
+      });
+    }
+    if (path == '/polls/menu/today' && m == 'GET') {
+      return menuPoll == null ? const FakeResult.json(null, status: 204) : FakeResult.json(_view(menuPoll!));
+    }
+    if (path == '/polls' && m == 'POST') {
+      final b = _body(req) ?? {};
+      final id = 900 + polls.length;
+      final p = samplePoll(
+          id: id,
+          title: '${b['title']}',
+          type: '${b['type']}',
+          anonymous: b['anonymous'] == true,
+          optionCount: (b['options'] as List?)?.length ?? 0,
+          communityId: (b['communityId'] as num?)?.toInt());
+      polls.add(p);
+      return FakeResult.json(_view(p), status: 201);
+    }
+    final mm = RegExp(r'^/polls/(\d+)(/vote)?$').firstMatch(path);
+    if (mm == null) return null;
+    final p = byId(int.parse(mm.group(1)!));
+    if (p == null) return _err('POLL_NOT_FOUND', 404);
+    if (mm.group(2) == null) return m == 'GET' ? FakeResult.json(_view(p)) : null;
+    if (voteError != null) return _err(voteError!);
+    if (m == 'POST') {
+      final b = _body(req) ?? {};
+      if (b['rating'] != null) {
+        final r = (b['rating'] as num).toInt();
+        p['myVote'] = {'optionIds': [(p['id'] as int) * 100 + r], 'rating': r, 'votedAt': 'x'};
+      } else {
+        p['myVote'] = {
+          'optionIds': [for (final e in (b['optionIds'] as List? ?? [])) (e as num).toInt()],
+          'rating': null,
+          'votedAt': 'x'
+        };
+      }
+      return FakeResult.json(_view(p));
+    }
+    if (m == 'DELETE') {
+      p['myVote'] = null;
+      return FakeResult.json(_view(p));
+    }
+    return null;
+  }
+}
+
+/// Anket uçlarını durumlu sahte olarak kurar (bkz. [FakePolls]). `count` açık anket sayısı.
+FakePolls fakePolls(FakeBackend b, {int count = 3}) {
+  final f = FakePolls(b);
+  for (var i = 1; i <= count; i++) {
+    f.polls.add(samplePoll(id: i, title: 'Anket $i'));
+  }
   b.handlers.add(f.handle);
   return f;
 }

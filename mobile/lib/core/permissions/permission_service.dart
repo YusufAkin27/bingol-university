@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 /// Uygulamanın istediği izinler (paket türlerinden bağımsız; testte sahte servisle değiştirilir).
-enum AppPermission { notifications, location, contacts, camera, microphone, photos }
+enum AppPermission { notifications, contacts, camera, microphone, photos }
 
 /// İzin durumu. [unavailable]: bu platformda/ortamda sorgulanamadı (örn. test, masaüstü);
 /// çağıran engellemez, işlemi dener (image_picker gibi kendi istemini yapan paketler devralır).
@@ -34,7 +34,6 @@ abstract class PermissionService {
 class SystemPermissionService implements PermissionService {
   ph.Permission _map(AppPermission p) => switch (p) {
         AppPermission.notifications => ph.Permission.notification,
-        AppPermission.location => ph.Permission.locationWhenInUse,
         AppPermission.contacts => ph.Permission.contacts,
         AppPermission.camera => ph.Permission.camera,
         AppPermission.microphone => ph.Permission.microphone,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/identifier.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -64,17 +65,18 @@ class AuthScaffold extends StatelessWidget {
                       if (showBack)
                         Semantics(
                           button: true,
-                          label: 'Geri',
+                          label: context.l10n.authBack,
                           child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
                             onTap: () => Navigator.maybePop(context),
                             child: Container(
-                              width: 40,
-                              height: 40,
+                              width: 44,
+                              height: 44,
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(LucideIcons.arrowLeft, color: Colors.white, size: 20),
+                              child: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: Colors.white, size: 20),
                             ),
                           ),
                         )
@@ -173,7 +175,7 @@ class _PasswordFieldState extends State<PasswordField> {
         hint: widget.label,
         icon: LucideIcons.lock,
         suffix: IconButton(
-          tooltip: _hidden ? 'Şifreyi göster' : 'Şifreyi gizle',
+          tooltip: _hidden ? context.l10n.authShowPassword : context.l10n.authHidePassword,
           icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 18, color: t.mut),
           onPressed: () => setState(() => _hidden = !_hidden),
         ),
@@ -197,7 +199,7 @@ class IdentifierField extends StatelessWidget {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (context, value, _) {
-        final deco = authFieldDecoration(context, hint: 'Okul numarası veya e-posta', icon: LucideIcons.mail);
+        final deco = authFieldDecoration(context, hint: context.l10n.authIdHint, icon: LucideIcons.mail);
         return TextFormField(
           controller: controller,
           enabled: enabled,
@@ -214,7 +216,7 @@ class IdentifierField extends StatelessWidget {
             helperMaxLines: 2,
             helperStyle: BuType.caption.copyWith(color: t.mut),
             suffixText: isStudentNumberInput(value.text) ? '@bingol.edu.tr' : null,
-            suffixStyle: BuType.body.copyWith(color: t.mut.withValues(alpha: 0.7)),
+            suffixStyle: BuType.body.copyWith(color: t.mut),
           ),
         );
       },

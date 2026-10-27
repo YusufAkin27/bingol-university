@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../widgets/simple_markdown.dart';
 import '../../core/typography.dart';
 
 /// Sözleşme listesi (kullanım koşulları, gizlilik, KVKK, topluluk kuralları).
@@ -68,7 +69,7 @@ class _LegalListPageState extends State<LegalListPage> {
                               ),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               child: Row(children: [
                                 Icon(LucideIcons.fileText, size: 20, color: t.pr),
                                 const SizedBox(width: 14),
@@ -77,11 +78,11 @@ class _LegalListPageState extends State<LegalListPage> {
                                     Text((d['title'] as String?) ?? (d['type'] as String? ?? ''),
                                         style: BuType.bodyStrong.copyWith(color: t.ink)),
                                     const SizedBox(height: 2),
-                                    Text('Sürüm ${d['version']} · ${niceDate(d['publishedAt'] as String?)}',
+                                    Text(_versionLine(d),
                                         style: BuType.caption.copyWith(color: t.mut)),
                                   ]),
                                 ),
-                                Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
+                                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
                               ]),
                             ),
                           ),
@@ -96,6 +97,12 @@ class _LegalListPageState extends State<LegalListPage> {
       ),
     );
   }
+}
+
+/// "Sürüm 2 · 1 Ocak 2026"; yayın tarihi yoksa yalnız "Sürüm 2" (sondaki " ·" kalmaz).
+String _versionLine(Map<String, dynamic> d) {
+  final date = niceDate(d['publishedAt'] as String?);
+  return date.isEmpty ? 'Sürüm ${d['version']}' : 'Sürüm ${d['version']} · $date';
 }
 
 class LegalDocPage extends StatefulWidget {
@@ -136,14 +143,13 @@ class _LegalDocPageState extends State<LegalDocPage> {
                         : ListView(
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                             children: [
-                              Text('Sürüm ${d!['version']} · ${niceDate(d['publishedAt'] as String?)}',
+                              Text(_versionLine(d!),
                                   style: BuType.caption.copyWith(color: t.mut)),
                               const SizedBox(height: 14),
                               BuCard(
                                 padding: const EdgeInsets.all(18),
-                                // Düz metin olarak çizilir: HTML/Markdown yorumlanmaz.
-                                child: SelectableText((d['content'] as String?) ?? '',
-                                    style: BuType.body.copyWith(height: 1.6, color: t.ink)),
+                                // Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
+                                child: SimpleMarkdown((d['content'] as String?) ?? ''),
                               ),
                             ],
                           ),

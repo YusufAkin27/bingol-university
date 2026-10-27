@@ -109,7 +109,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
         body: SafeArea(
           child: Column(children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
+              padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 16, 0),
               child: Row(children: [
                 IconButton(
                   key: const ValueKey('previewClose'),

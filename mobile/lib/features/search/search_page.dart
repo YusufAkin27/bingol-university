@@ -12,10 +12,11 @@ import '../../widgets/common.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../posts/post_routes.dart';
 import '../profile/user_profile_page.dart';
 import '../../core/typography.dart';
 
-/// Genel arama: haber/duyuru, kulüp, etkinlik ve kişi.
+/// Genel arama: haber/duyuru, kulüp, etkinlik, gönderi ve kişi.
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key, required this.session});
 
@@ -29,7 +30,7 @@ class SearchPage extends StatefulWidget {
 class _Hit {
   _Hit({required this.type, required this.id, required this.title, this.snippet, this.date, this.imageUrl});
 
-  final String type; // NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, USER
+  final String type; // NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, POSTS, USER
   final int id;
   final String title;
   final String? snippet;
@@ -37,13 +38,14 @@ class _Hit {
   final String? imageUrl;
 }
 
-enum _Tab { all, news, club, event, person }
+enum _Tab { all, news, club, event, post, person }
 
 const _tabLabels = {
   _Tab.all: 'Tümü',
   _Tab.news: 'Haber',
   _Tab.club: 'Kulüp',
   _Tab.event: 'Etkinlik',
+  _Tab.post: 'Gönderi',
   _Tab.person: 'Kişi',
 };
 
@@ -57,6 +59,9 @@ _Tab _tabOf(String type) {
     case 'EVENT':
     case 'EVENT_OFFICIAL':
       return _Tab.event;
+    case 'POSTS':
+    case 'POST':
+      return _Tab.post;
     default:
       return _Tab.person;
   }
@@ -73,6 +78,9 @@ String _badgeOf(String type) {
     case 'EVENT':
     case 'EVENT_OFFICIAL':
       return 'Etkinlik';
+    case 'POSTS':
+    case 'POST':
+      return 'Gönderi';
     default:
       return 'Kişi';
   }
@@ -86,6 +94,8 @@ IconData _iconOf(String type) {
       return LucideIcons.users;
     case _Tab.event:
       return LucideIcons.calendar;
+    case _Tab.post:
+      return LucideIcons.messageSquare;
     default:
       return LucideIcons.user;
   }
@@ -109,6 +119,7 @@ const _tabTypes = <_Tab, List<String>>{
   _Tab.news: ['NEWS', 'ANNOUNCEMENT'],
   _Tab.club: ['COMMUNITY'],
   _Tab.event: ['EVENT', 'EVENT_OFFICIAL'],
+  _Tab.post: ['POSTS'],
 };
 
 _Hit _hitFromSearch(Map h) => _Hit(
@@ -392,6 +403,10 @@ class _SearchPageState extends State<SearchPage> {
       case 'EVENT':
         page = EventDetailPage(session: s, eventId: h.id);
         break;
+      case 'POSTS':
+      case 'POST':
+        openPostDetail(context, s, h.id);
+        return;
       default:
         openUserProfile(context, s, userId: h.id, name: h.title, avatarUrl: h.imageUrl);
         return;
@@ -419,7 +434,7 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: SizedBox(
-                height: 36,
+                height: 44,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -464,7 +479,7 @@ class _SearchPageState extends State<SearchPage> {
             style: BuType.bodyStrong.copyWith(color: t.ink),
             cursorColor: t.pr,
             decoration: InputDecoration(
-              hintText: 'Haber, kulüp, etkinlik, kişi ara',
+              hintText: 'Haber, kulüp, etkinlik, gönderi, kişi ara',
               hintStyle: BuType.body.copyWith(color: t.mut),
               isCollapsed: true,
               border: InputBorder.none,
@@ -476,14 +491,19 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
         if (_ctrl.text.isNotEmpty)
-          GestureDetector(
-            onTap: () {
-              _ctrl.clear();
-              _onChanged('');
-            },
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(start: 8),
-              child: Icon(LucideIcons.x, size: 18, color: t.mut),
+          Semantics(
+            button: true,
+            label: 'Aramayı temizle',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                _ctrl.clear();
+                _onChanged('');
+              },
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(start: 8, top: 12, bottom: 12, end: 4),
+                child: Icon(LucideIcons.x, size: 18, color: t.mut),
+              ),
             ),
           ),
       ]),
@@ -491,19 +511,28 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _chip(BuTokens t, String label, bool on, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: on ? t.ink : t.sf,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: on ? t.ink : t.bd),
+    // Dokunma alanı 44 dp; görünen hap 36 dp.
+    return Semantics(
+      button: true,
+      selected: on,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          height: 44,
+          alignment: Alignment.center,
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: on ? t.ink : t.sf,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: on ? t.ink : t.bd),
+            ),
+            child: Text(label, style: BuType.label.copyWith(color: on ? t.bg : t.mut)),
+          ),
         ),
-        child: Text(label,
-            style: BuType.label.copyWith(color: on ? t.bg : t.mut)),
       ),
     );
   }
@@ -523,9 +552,17 @@ class _SearchPageState extends State<SearchPage> {
             child: Text('SON ARAMALAR',
                 style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
           ),
-          GestureDetector(
+          InkWell(
             onTap: _clearRecent,
-            child: Text('Temizle', style: BuType.label.copyWith(color: t.pr)),
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                widthFactor: 1,
+                child: Text('Temizle', style: BuType.label.copyWith(color: t.pr)),
+              ),
+            ),
           ),
         ]),
         const SizedBox(height: 4),
@@ -533,7 +570,7 @@ class _SearchPageState extends State<SearchPage> {
           InkWell(
             onTap: () => _useRecent(q),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               child: Row(children: [
                 Icon(LucideIcons.history, size: 16, color: t.mut),
                 const SizedBox(width: 12),

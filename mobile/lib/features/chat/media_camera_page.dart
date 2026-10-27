@@ -128,6 +128,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     } catch (_) {
       return;
     }
+    if (!mounted) return;
     setState(() {
       _recording = true;
       _secs = 0;

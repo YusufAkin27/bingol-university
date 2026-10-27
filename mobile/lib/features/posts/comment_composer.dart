@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../core/session.dart';
 import 'comment_tile.dart' show kCommentMax;
+import 'mention_assist.dart';
 
 /// Yorum yazma çubuğu: metin kutusu + ayrı gönder düğmesi, "Yanıtlıyor: @ad ✕" bandı, sayaç ve hata satırı.
 class CommentComposer extends StatelessWidget {
@@ -17,6 +19,7 @@ class CommentComposer extends StatelessWidget {
     this.onCancelReply,
     this.error,
     this.sending = false,
+    this.session,
   });
 
   final TextEditingController controller;
@@ -28,6 +31,9 @@ class CommentComposer extends StatelessWidget {
   final VoidCallback? onCancelReply;
   final String? error;
   final bool sending;
+
+  /// Verilirse yazarken `@anma` / `#etiket` önerileri gösterilir.
+  final Session? session;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +49,7 @@ class CommentComposer extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (session != null) MentionAssist(session: session!, controller: controller, maxLength: kCommentMax),
             if (replyingTo != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -57,10 +64,12 @@ class CommentComposer extends StatelessWidget {
                     Semantics(
                       button: true,
                       label: 'Yanıtı iptal et',
+                      excludeSemantics: true,
+                      onTap: onCancelReply,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
                         onTap: onCancelReply,
-                        child: SizedBox(width: 32, height: 28, child: Icon(LucideIcons.x, size: 16, color: t.mut)),
+                        child: SizedBox(width: 44, height: 44, child: Icon(LucideIcons.x, size: 16, color: t.mut)),
                       ),
                     ),
                   ],
@@ -83,7 +92,7 @@ class CommentComposer extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: replyingTo != null ? 'Yanıtını yaz…' : 'Yorum yaz…',
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                         counterText: '',
                       ),
                     ),

@@ -119,6 +119,7 @@ class Post {
     this.likeCount = 0,
     this.commentCount = 0,
     this.likedByMe = false,
+    this.savedByMe = false,
     this.mine = false,
     this.canEdit = false,
     this.canDelete = false,
@@ -134,6 +135,7 @@ class Post {
         likeCount: _int(j?['likeCount']),
         commentCount: _int(j?['commentCount']),
         likedByMe: j?['likedByMe'] == true,
+        savedByMe: j?['savedByMe'] == true,
         mine: j?['mine'] == true,
         canEdit: j?['canEdit'] == true,
         canDelete: j?['canDelete'] == true,
@@ -148,6 +150,7 @@ class Post {
   final int likeCount;
   final int commentCount;
   final bool likedByMe;
+  final bool savedByMe;
   final bool mine;
   final bool canEdit;
   final bool canDelete;
@@ -159,6 +162,7 @@ class Post {
   /// [editedAt] ve [text] için null verilemez; `clearText` metni siler.
   Post copyWith({
     bool? likedByMe,
+    bool? savedByMe,
     int? likeCount,
     int? commentCount,
     String? text,
@@ -173,6 +177,7 @@ class Post {
         likeCount: likeCount ?? this.likeCount,
         commentCount: commentCount ?? this.commentCount,
         likedByMe: likedByMe ?? this.likedByMe,
+        savedByMe: savedByMe ?? this.savedByMe,
         mine: mine,
         canEdit: canEdit,
         canDelete: canDelete,

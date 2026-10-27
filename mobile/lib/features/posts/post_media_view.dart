@@ -58,7 +58,8 @@ class PostMediaView extends StatelessWidget {
     });
   }
 
-  Widget _cell(BuildContext context, int i, double w, double h, Map<String, String> headers, {int more = 0, bool single = false}) {
+  Widget _cell(BuildContext context, int i, double w, double h, Map<String, String> headers,
+      {int more = 0, bool single = false}) {
     return _MediaCell(
       key: ValueKey('postMediaCell$i'),
       media: media[i],
@@ -70,6 +71,8 @@ class PostMediaView extends StatelessWidget {
       controller: autoplayController,
       onTap: () => onOpen(i),
       onDoubleTap: onDoubleTap,
+      semanticLabel:
+          '${media[i].isVideo ? 'Video' : 'Fotoğraf'} ${i + 1} / ${media.length}${more > 0 ? ', +$more daha' : ''}',
     );
   }
 
@@ -148,8 +151,10 @@ class _MediaCell extends StatelessWidget {
     this.onDoubleTap,
     this.controller,
     this.more = 0,
+    this.semanticLabel,
   });
 
+  final String? semanticLabel;
   final PostMedia media;
   final double width;
   final double height;
@@ -213,23 +218,29 @@ class _MediaCell extends StatelessWidget {
       child: SizedBox(
         width: width,
         height: height,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        child: Semantics(
+          button: true,
+          label: semanticLabel ?? (media.isVideo ? 'Video' : 'Fotoğraf'),
+          excludeSemantics: true,
           onTap: onTap,
-          onDoubleTap: onDoubleTap,
-          child: Stack(fit: StackFit.expand, children: [
-            stack,
-            if (more > 0)
-              Positioned.fill(
-                child: Container(
-                  key: const ValueKey('postMediaMore'),
-                  color: Colors.black.withValues(alpha: .55),
-                  alignment: Alignment.center,
-                  child: Text('+$more',
-                      style: BuType.title.copyWith(color: Colors.white), maxLines: 1, overflow: TextOverflow.clip),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            onDoubleTap: onDoubleTap,
+            child: Stack(fit: StackFit.expand, children: [
+              stack,
+              if (more > 0)
+                Positioned.fill(
+                  child: Container(
+                    key: const ValueKey('postMediaMore'),
+                    color: Colors.black.withValues(alpha: .55),
+                    alignment: Alignment.center,
+                    child: Text('+$more',
+                        style: BuType.title.copyWith(color: Colors.white), maxLines: 1, overflow: TextOverflow.clip),
+                  ),
                 ),
-              ),
-          ]),
+            ]),
+          ),
         ),
       ),
     );

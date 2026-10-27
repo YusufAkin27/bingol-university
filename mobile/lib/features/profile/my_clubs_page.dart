@@ -189,7 +189,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
       {bool owner = false, bool pending = false}) {
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(2, 14, 0, 10),
+        padding: const EdgeInsetsDirectional.fromSTEB(2, 14, 0, 10),
         child: Text('$title (${list.length})', style: BuType.label.copyWith(color: t.mut)),
       ),
       for (final c in list) ...[
@@ -209,7 +209,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final manager = isClubManagerRole(c['myRole']?.toString()) && !pending;
     return BuCard(
       onTap: () => _open(c),
-      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 6, 12),
       child: Row(
         children: [
           BuAvatar(name: c['name'] as String?, url: (c['logoUrl'] ?? c['coverUrl']) as String?, size: 52, square: true),

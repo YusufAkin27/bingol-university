@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/identifier.dart';
 import '../../core/session.dart';
 import 'auth_widgets.dart';
@@ -54,7 +55,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       showBack: true,
-      title: 'Şifreni sıfırla',
+      title: context.l10n.authResetTitle,
       children: [
         if (_error != null) Notice(_error!),
         Form(
@@ -66,7 +67,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: _busy ? null : _sendCode,
-                child: BusyLabel(busy: _busy, label: 'Kod gönder'),
+                child: BusyLabel(busy: _busy, label: context.l10n.authSendCode),
               ),
             ],
           ),

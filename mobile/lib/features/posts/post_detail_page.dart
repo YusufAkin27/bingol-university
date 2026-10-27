@@ -257,6 +257,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               CommentComposer(
                 controller: _text,
                 focusNode: _focus,
+                session: widget.session,
                 onSend: _send,
                 replyingTo: _replyTo?.c.author.displayName,
                 onCancelReply: _cancelReply,

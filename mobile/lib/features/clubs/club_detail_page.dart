@@ -14,6 +14,7 @@ import 'club_form_page.dart';
 import 'club_join_flow.dart';
 import 'club_members_page.dart';
 import 'club_requests_page.dart';
+import '../polls/poll_routes.dart';
 import '../../core/typography.dart';
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler.
@@ -41,6 +42,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Object? _error;
   bool _busy = false;
   int _tab = 0;
+  int _pollGen = 0; // çekme-yenilemede anket sekmesini yeniden yükler
 
   final _posts = _Paged();
   final _events = _Paged();
@@ -78,6 +80,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   Future<void> _load() async {
+    _pollGen++;
     try {
       final r = await widget.session.api.get(_base);
       if (!mounted) return;
@@ -115,9 +118,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         _ => '$_base/members',
       };
 
-  void _refreshTab({bool reset = false}) => _fetch(_cur, _curPath, reset: reset);
+  void _refreshTab({bool reset = false}) {
+    if (_tab == 3) return; // Anketler sekmesi kendi içeriğini yükler
+    _fetch(_cur, _curPath, reset: reset);
+  }
 
   void _more() {
+    if (_tab == 3) return;
     final p = _cur;
     if (p.next != null && !p.loading) _fetch(p, _curPath);
   }
@@ -175,7 +182,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _withdraw() async {
     final ok = await confirmDialog(context,
         title: 'İsteği geri çek', message: 'Katılma isteğiniz geri çekilsin mi?', confirmLabel: 'Geri çek');
-    if (!ok) return;
+    if (!ok || !mounted) return;
     setState(() => _busy = true);
     try {
       await widget.session.api.delete('$_base/membership');
@@ -398,7 +405,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   void _setTab(int i) {
     setState(() => _tab = i);
-    if (!_cur.loaded) _refreshTab(reset: true);
+    if (i != 3 && !_cur.loaded) _refreshTab(reset: true);
   }
 
   Future<void> _refresh() async {
@@ -484,13 +491,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               ],
             ]),
           ),
-          Positioned(
-            left: 20,
+          PositionedDirectional(
+            start: 20,
             top: MediaQuery.of(context).padding.top + 8,
             child: _glassBtn(LucideIcons.arrowLeft, () => Navigator.pop(context), 'Geri'),
           ),
-          Positioned(
-            right: 20,
+          PositionedDirectional(
+            end: 20,
             top: MediaQuery.of(context).padding.top + 8,
             child: _menu(),
           ),
@@ -536,9 +543,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         if (!_isOwner) const PopupMenuItem(value: 'report', child: Text('Kulübü şikâyet et')),
       ],
       child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), shape: BoxShape.circle),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(color: Colors.black.withValues(alpha: .45), shape: BoxShape.circle),
         child: const Icon(LucideIcons.ellipsis, size: 20, color: Colors.white),
       ),
     );
@@ -547,12 +554,12 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget _glassBtn(IconData icon, VoidCallback onTap, String tip) => Tooltip(
         message: tip,
         child: Material(
-          color: Colors.white.withValues(alpha: .22),
+          color: Colors.black.withValues(alpha: .45),
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onTap,
-            child: SizedBox(width: 42, height: 42, child: Icon(icon, size: 20, color: Colors.white)),
+            child: SizedBox(width: 44, height: 44, child: Icon(buDirIcon(context, icon), size: 20, color: Colors.white)),
           ),
         ),
       );
@@ -634,7 +641,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   Widget _tabs(BuTokens t) {
-    const names = ['Gönderiler', 'Etkinlikler', 'Üyeler'];
+    const names = ['Gönderiler', 'Etkinlikler', 'Üyeler', 'Anketler'];
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
@@ -650,8 +657,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       border: Border(bottom: BorderSide(color: i == _tab ? t.pr : Colors.transparent, width: 2))),
-                  child: Text(names[i],
-                      style: BuType.bodyStrong.copyWith(color: i == _tab ? t.pr : t.mut)),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(names[i],
+                        maxLines: 1, style: BuType.bodyStrong.copyWith(color: i == _tab ? t.pr : t.mut)),
+                  ),
                 ),
               ),
             ),
@@ -661,6 +671,15 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   List<Widget> _content(BuTokens t) {
+    if (_tab == 3) {
+      return [
+        PollClubSection(
+            key: ValueKey('polls-$_pollGen'),
+            session: widget.session,
+            communityId: widget.communityId,
+            canCreate: _isManager),
+      ];
+    }
     final p = _cur;
     final out = <Widget>[];
     if (_tab == 0) {
@@ -705,15 +724,15 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget _composer(BuTokens t) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         child: BuCard(
-          padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_image != null)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8, right: 6),
+                  padding: const EdgeInsetsDirectional.only(bottom: 8, end: 6),
                   child: Stack(
-                    alignment: Alignment.topRight,
+                    alignment: AlignmentDirectional.topEnd,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
@@ -777,7 +796,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               ),
               BuBadge('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
               const SizedBox(width: 6),
-              Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
             ],
           ),
         ),
@@ -894,7 +913,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               ],
             ),
           ),
-          Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
+          Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
         ],
       ),
     );

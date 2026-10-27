@@ -1,0 +1,146 @@
+{
+  "@@locale": "tr",
+  "commonRetry": "Yeniden dene",
+  "commonRetryShort": "Tekrar dene",
+  "commonCancel": "Vazgeç",
+  "commonClose": "Kapat",
+  "commonLoading": "Yükleniyor",
+  "commonUpdate": "Güncelle",
+  "commonOpenInStore": "Mağazada aç",
+  "commonSomethingWentWrong": "Bir şeyler ters gitti",
+  "configError": "Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.",
+  "exitAgainHint": "Çıkmak için tekrar geri basın",
+  "navHome": "Ana Sayfa",
+  "navDiscover": "Keşfet",
+  "navChat": "Sohbet",
+  "navClubs": "Kulüpler",
+  "navProfile": "Profil",
+  "updateRequiredTitle": "Güncelleme gerekli",
+  "updateRequiredBody": "Uygulamayı kullanmaya devam etmek için yeni sürüme güncellemeniz gerekiyor.",
+  "updateAvailable": "Yeni sürüm mevcut.",
+  "updateAvailableVersion": "Yeni sürüm mevcut ({version}).",
+  "@updateAvailableVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accessBlockedTitle": "Erişim kapatıldı",
+  "accessBlockedBody": "Bu cihaza veya ağa erişim kapatıldı. Hatalı olduğunu düşünüyorsan destek ile iletişime geç.",
+  "settingsTitle": "Ayarlar",
+  "settingsSectionAppearance": "GÖRÜNÜM",
+  "settingsSectionNotifications": "BİLDİRİMLER",
+  "settingsSectionPrivacy": "GİZLİLİK VE HESAP",
+  "themeSystem": "Sistem",
+  "themeLight": "Açık",
+  "themeDark": "Koyu",
+  "settingsLanguage": "Dil",
+  "settingsLanguageHint": "Arayüz, bildirim ve e-posta dili",
+  "languageSystem": "Sistem",
+  "pushPermission": "Bildirim izni (push)",
+  "pushNotConfigured": "Henüz yapılandırılmadı",
+  "pushOn": "Açık",
+  "pushOff": "Kapalı (sistem ayarlarından açın)",
+  "pushNotGranted": "İzin verilmedi",
+  "pushOnToast": "Anlık bildirimler açık.",
+  "pushStatusToast": "Anlık bildirimler: {status}",
+  "@pushStatusToast": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsShowEmail": "E-postamı diğerlerine göster",
+  "settingsFindContacts": "Rehberden kişi bul",
+  "settingsPrivacyData": "Gizlilik ve veriler",
+  "settingsSupport": "Destek ve SSS",
+  "settingsLogoutAll": "Tüm cihazlardan çıkış yap",
+  "settingsLogoutAllTitle": "Tüm cihazlardan çıkış",
+  "settingsLogoutAllBody": "Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.",
+  "settingsLogoutAllConfirm": "Çıkış yap",
+  "settingsVersion": "BÜ Kampüs · Sürüm {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "loginWelcome": "Hoş geldiniz",
+  "loginSubtitle": "Bingöl Üniversitesi hesabınızla giriş yapın.",
+  "loginReplacedNotice": "Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.",
+  "loginPasswordRequired": "Şifrenizi girin.",
+  "loginForgotPassword": "Şifremi unuttum",
+  "loginSubmit": "Giriş yap",
+  "loginNoAccount": "Hesabınız yok mu?",
+  "loginRegister": "Kayıt ol",
+  "loginCompleteVerification": "Doğrulamayı tamamla",
+  "authBack": "Geri",
+  "authShowPassword": "Şifreyi göster",
+  "authHidePassword": "Şifreyi gizle",
+  "authPasswordLabel": "Şifre",
+  "authIdHint": "Okul numarası veya e-posta",
+  "authVerify": "Doğrula",
+  "authResendCode": "Kodu yeniden gönder",
+  "authResendIn": "Yeniden gönder ({seconds} sn)",
+  "@authResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "authNewCodeIn": "Yeni kod için {seconds} sn bekleyin",
+  "@authNewCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "authCodeSent": "Kod gönderildi.",
+  "authNewCodeSent": "Yeni kod gönderildi.",
+  "authEnterCode": "Kodu girin",
+  "authCodeSentTo": "{email} adresine kod gönderildi.",
+  "@authCodeSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerifyEmailTitle": "E-postanızı doğrulayın",
+  "authVerifySubtitle": "Kod {email} adresine gönderildi. 10 dakika geçerlidir.",
+  "@authVerifySubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authUnverifiedNotice": "E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.",
+  "authUseOtherAccount": "Başka hesapla giriş yap",
+  "authResetTitle": "Şifreni sıfırla",
+  "authSendCode": "Kod gönder",
+  "authNewPasswordTitle": "Yeni şifre",
+  "authNewPasswordLabel": "Yeni şifre (en az 8 karakter)",
+  "authUpdatePassword": "Şifreyi güncelle",
+  "authPasswordUpdated": "Şifre güncellendi.",
+  "authSessionExpired": "Süre doldu. Baştan başlayın.",
+  "authCreateAccount": "Hesap oluştur",
+  "authSelectDepartment": "Bölümünüzü seçin.",
+  "authSelectGrade": "Sınıfınızı seçin.",
+  "authDepartmentsLoadFailed": "Bölüm listesi yüklenemedi. Yeniden deneyin.",
+  "authNameRequired": "Adınızı ve soyadınızı girin.",
+  "authNameHint": "Ad soyad",
+  "authPasswordMin8": "Şifre (en az 8 karakter)",
+  "authTermsPrefix": "",
+  "authTermsLink": "Kullanım koşulları",
+  "authTermsSep": " ve ",
+  "authPrivacyLink": "gizlilik politikasını",
+  "authTermsSuffix": " kabul ediyorum",
+  "authMustAccept": "Devam etmek için kabul etmelisiniz.",
+  "authHaveAccount": "Zaten hesabınız var mı?"
+}

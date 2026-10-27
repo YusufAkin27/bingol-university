@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../api.dart' show ApiError;
+import '../device_identity.dart';
 import 'stomp_frame.dart';
 
 export 'stomp_frame.dart';
@@ -161,6 +162,7 @@ class StompClient {
         'host': host,
         'heart-beat': '${heartbeat.inMilliseconds},${heartbeat.inMilliseconds}',
         'Authorization': 'Bearer $token',
+        ...DeviceIdentity.instance.stompHeaders,
       }));
       // Sunucu 10 sn içinde CONNECTED gelmezse bağlantıyı bırak.
       _connectTimeout = Timer(const Duration(seconds: 10), () => _onClosed(gen));

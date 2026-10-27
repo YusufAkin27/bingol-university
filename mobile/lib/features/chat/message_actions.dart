@@ -78,11 +78,11 @@ class _MessageActionsOverlay extends StatelessWidget {
   final List<String> emojis;
   final String? myReaction;
 
-  static const _barH = 40.0;
+  static const _barH = 52.0;
   static const _gap = 8.0;
   static const _rowH = 44.0;
   static const _cardPad = 6.0;
-  static const _chip = 32.0;
+  static const _chip = 44.0;
   static const _edge = 12.0;
 
   @override
@@ -91,6 +91,8 @@ class _MessageActionsOverlay extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
+    // Baloncuk fiziksel olarak sağda mı: giden mesaj sağdan sola düzende solda durur.
+    final right = Directionality.of(context) == TextDirection.rtl ? !mine : mine;
 
     final hasBar = emojis.isNotEmpty;
     final hasCard = actions.isNotEmpty;
@@ -109,7 +111,7 @@ class _MessageActionsOverlay extends StatelessWidget {
         .toDouble();
 
     final prevW = math.min(anchor.width, size.width - _edge * 2);
-    final prevLeft = (mine ? anchor.right - prevW : anchor.left)
+    final prevLeft = (right ? anchor.right - prevW : anchor.left)
         .clamp(_edge, math.max(_edge, size.width - _edge - prevW))
         .toDouble();
 
@@ -188,7 +190,7 @@ class _MessageActionsOverlay extends StatelessWidget {
           ),
           if (hasBar)
             Positioned(
-              left: clampX(barW, mine),
+              left: clampX(barW, right),
               top: top,
               width: barW,
               height: _barH,
@@ -197,7 +199,7 @@ class _MessageActionsOverlay extends StatelessWidget {
                 child: ScaleTransition(
                   scale: scale,
                   alignment:
-                      mine ? Alignment.bottomRight : Alignment.bottomLeft,
+                      right ? Alignment.bottomRight : Alignment.bottomLeft,
                   child: Container(
                     key: const ValueKey('msgActions.reactions'),
                     decoration: BoxDecoration(
@@ -224,7 +226,7 @@ class _MessageActionsOverlay extends StatelessWidget {
             ),
           if (hasCard)
             Positioned(
-              left: clampX(cardW, mine),
+              left: clampX(cardW, right),
               top: top + barBlock + prevH + _gap,
               width: cardW,
               height: cardH,
@@ -232,7 +234,7 @@ class _MessageActionsOverlay extends StatelessWidget {
                 opacity: fade,
                 child: ScaleTransition(
                   scale: scale,
-                  alignment: mine ? Alignment.topRight : Alignment.topLeft,
+                  alignment: right ? Alignment.topRight : Alignment.topLeft,
                   child: Container(
                     key: const ValueKey('msgActions.card'),
                     padding: const EdgeInsets.symmetric(vertical: _cardPad),

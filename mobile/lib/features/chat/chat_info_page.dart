@@ -132,8 +132,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     if (id == null) return null;
     if (id == widget.session.userId) return 'Sen';
     for (final mem in _members) {
-      if ((mem['userId'] as num?)?.toInt() == id)
+      if ((mem['userId'] as num?)?.toInt() == id) {
         return mem['displayName'] as String?;
+      }
     }
     if (_direct) return _peer?['displayName'] as String?;
     return (m['senderName'] as String?) ?? 'Kullanıcı';
@@ -313,8 +314,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   Future<void> _leave() async {
     if (!await _confirm(
-        'Sohbetten ayrılınsın mı?', 'Bu sohbetten ayrılırsınız.', 'Ayrıl'))
+        'Sohbetten ayrılınsın mı?', 'Bu sohbetten ayrılırsınız.', 'Ayrıl')) {
       return;
+    }
     try {
       await _api.post('/conversations/$_cid/leave');
       if (mounted) Navigator.pop(context, 'left');
@@ -333,7 +335,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         _toast('Engel kaldırıldı');
       } else {
         if (!await _confirm('Kullanıcı engellensin mi?',
-            'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle')) return;
+            'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle')) {
+          return;
+        }
         await _api.post('/users/$pid/block');
         if (mounted) setState(() => _merge({'blocked': true}));
         _toast('Kullanıcı engellendi');
@@ -353,8 +357,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Future<bool> _removeMember(Map<String, dynamic> m) async {
     final name = (m['displayName'] as String?) ?? 'Kullanıcı';
     if (!await _confirm(
-        'Üye çıkarılsın mı?', '$name gruptan çıkarılır.', 'Çıkar'))
+        'Üye çıkarılsın mı?', '$name gruptan çıkarılır.', 'Çıkar')) {
       return false;
+    }
     try {
       await _api.delete(
           '/conversations/$_cid/members/${(m['userId'] as num).toInt()}');
@@ -440,8 +445,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       if (!mounted) return;
       setState(() {
         _avatarVersion++;
-        if (res is Map && res['avatarUrl'] != null)
+        if (res is Map && res['avatarUrl'] != null) {
           _merge({'avatarUrl': res['avatarUrl']});
+        }
       });
     } catch (e) {
       _toast(errorText(e));
@@ -609,12 +615,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     Widget? sub;
     if (_direct) {
       final s = widget.subtitle;
-      if (s != null && s.isNotEmpty)
+      if (s != null && s.isNotEmpty) {
         sub = Text(s,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: BuType.label.copyWith(color: t.mut));
+      }
     } else {
       sub = Wrap(
           alignment: WrapAlignment.center,
@@ -643,8 +650,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         Stack(clipBehavior: Clip.none, children: [
           avatar,
           if (_admin)
-            Positioned(
-              right: -2,
+            PositionedDirectional(
+              end: -2,
               bottom: -2,
               child: Tooltip(
                 message: 'Fotoğrafı değiştir',
@@ -803,7 +810,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
             ),
-            child: Text('Tüm medyayı gör', style: BuType.bodyStrong),
+            child: const Text('Tüm medyayı gör', style: BuType.bodyStrong),
           ),
         ),
       ]);

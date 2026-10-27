@@ -126,7 +126,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
           right: 0,
           top: 0,
           child: Container(
-            padding: EdgeInsets.fromLTRB(4, top + 4, 12, 8),
+            padding: EdgeInsetsDirectional.fromSTEB(4, top + 4, 12, 8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -161,9 +161,10 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   }
 
   Widget _content() {
-    if (_loading)
+    if (_loading) {
       return const Center(
           child: CircularProgressIndicator(color: Colors.white));
+    }
     final err = _error;
     if (err != null) {
       return Center(

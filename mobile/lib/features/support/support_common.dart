@@ -118,10 +118,10 @@ class SupportField extends StatelessWidget {
       style: BuType.body.copyWith(color: t.ink),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: t.mut),
+        hintStyle: BuType.body.copyWith(color: t.mut),
         filled: true,
         fillColor: t.sf,
-        counterStyle: TextStyle(color: t.mut),
+        counterStyle: BuType.caption.copyWith(color: t.mut),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         enabledBorder: b(t.bd),
         focusedBorder: b(t.pr),

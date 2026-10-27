@@ -1,8 +1,32 @@
+import java.util.Base64
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// FCM: google-services.json yoksa (git'te degildir) eklenti uygulanmaz, derleme bozulmaz; push calismaz.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn("UYARI: android/app/google-services.json yok; Firebase/push bu derlemede devre disi.")
+}
+
+// Imza: android/key.properties (git'te degil; sablon key.properties.example). Bkz. docs/ANDROID_RELEASE.md
+val keyProps = Properties()
+val keyPropsFile = rootProject.file("key.properties")
+val hasReleaseKey = keyPropsFile.exists()
+if (hasReleaseKey) keyPropsFile.inputStream().use { keyProps.load(it) }
+
+// `flutter build ... --dart-define=ALLOW_INSECURE_API=true` (ya da -Pbu.cleartext=true) ise duz http'ye izin verilir.
+val dartDefines: List<String> =
+    ((project.findProperty("dart-defines") as String?) ?: "")
+        .split(",")
+        .filter { it.isNotBlank() }
+        .mapNotNull { runCatching { String(Base64.getDecoder().decode(it), Charsets.UTF_8) }.getOrNull() }
+val allowCleartext = dartDefines.contains("ALLOW_INSECURE_API=true") || project.findProperty("bu.cleartext") == "true"
 
 android {
     namespace = "edu.bingol.bu_kampus"
@@ -16,25 +40,45 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "edu.bingol.bu_kampus"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // 24: video_player, camera, mobile_scanner (ML Kit) gereksinimlerini karsilar
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
+        targetSdk = 36 // Google Play hedef API (Android 16); Flutter varsayilani da 36
+        // pubspec.yaml `version: 1.0.0+N` -> versionName=1.0.0, versionCode=N (her magaza yuklemesinde N artar)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["usesCleartext"] = allowCleartext.toString()
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = rootProject.file(keyProps.getProperty("storeFile"))
+                storePassword = keyProps.getProperty("storePassword")
+                keyAlias = keyProps.getProperty("keyAlias")
+                keyPassword = keyProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            // Yerel gelistirme sunucusu (http) yalniz debug'da; ayrica src/debug networkSecurityConfig.
+            manifestPlaceholders["usesCleartext"] = "true"
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (hasReleaseKey) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Karar: key.properties yoksa derleme DURMAZ (gelistirici/elden test), debug anahtariyla imzalanir
+                // ve net uyari basilir. Bu cikti Google Play'e YUKLENEMEZ.
+                logger.warn("UYARI: android/key.properties yok; release DEBUG anahtariyla imzalaniyor. Play'e yuklenemez. docs/ANDROID_RELEASE.md")
+                signingConfig = signingConfigs.getByName("debug")
+            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isDebuggable = false
         }
     }
 }

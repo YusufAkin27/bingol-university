@@ -81,7 +81,9 @@ class _ForwardSheetState extends State<ForwardSheet> {
     final peer = c['peer'];
     if ((c['type'] as String?) == 'DIRECT' &&
         peer is Map &&
-        peer['displayName'] != null) return '${peer['displayName']}';
+        peer['displayName'] != null) {
+      return '${peer['displayName']}';
+    }
     return (c['title'] as String?) ?? 'Sohbet';
   }
 
@@ -158,9 +160,10 @@ class _ForwardSheetState extends State<ForwardSheet> {
 
   Widget _list(BuTokens t, List<Map<String, dynamic>> shown) {
     if (_loading) return const SizedBox(height: 160, child: LoadingView());
-    if (_error != null)
+    if (_error != null) {
       return SizedBox(
           height: 220, child: ErrorView(error: _error!, onRetry: _load));
+    }
     if (shown.isEmpty) {
       return const SizedBox(
           height: 160,

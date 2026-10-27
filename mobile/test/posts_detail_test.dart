@@ -125,10 +125,13 @@ Future<void> _tapReplyOf(WidgetTester tester, String text) async {
 }
 
 Future<void> _openDeep(WidgetTester tester) async {
-  await tester.tap(find.text('1 yanıtı göster'));
-  await settle(tester);
-  await tester.tap(find.text('1 yanıtı göster'));
-  await settle(tester);
+  for (var i = 0; i < 2; i++) {
+    // Dar ekranda 44 dp dokunma satırları listeyi uzatır: düğme alt çubuğun arkasında kalmasın.
+    await tester.ensureVisible(find.text('1 yanıtı göster'));
+    await tester.pump();
+    await tester.tap(find.text('1 yanıtı göster'));
+    await settle(tester);
+  }
 }
 
 void main() {

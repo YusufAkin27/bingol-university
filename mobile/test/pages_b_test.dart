@@ -581,7 +581,7 @@ void main() {
       final be = full();
       await _pump(
         tester,
-        ChatDetailPage(session: makeSession(be), connectRealtime: false, conversation: {
+        ChatDetailPage(session: makeSession(be), connectRealtime: false, conversation: const {
           'id': 1,
           'type': 'DIRECT',
           'blocked': true,

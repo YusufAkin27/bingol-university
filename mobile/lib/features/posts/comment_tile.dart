@@ -9,6 +9,7 @@ import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
 import 'comment_controller.dart';
 import 'comment_models.dart';
+import 'rich_text.dart';
 
 const kCommentMax = 1000;
 
@@ -179,9 +180,9 @@ class _CommentTileState extends State<CommentTile> {
         Row(
           children: [
             Flexible(
-              flex: 3,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
+                excludeFromSemantics: true, // profil düğmesi avatarda
                 onTap: () => _profile(c.author),
                 child: Text(c.author.displayName,
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
@@ -189,37 +190,24 @@ class _CommentTileState extends State<CommentTile> {
             ),
             if (meta.isNotEmpty) ...[
               const SizedBox(width: 6),
-              Flexible(
-                flex: 2,
-                child: Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-              ),
+              Text(meta, maxLines: 1, style: BuType.caption.copyWith(color: t.mut)),
             ],
-            const Spacer(),
-            if (!n.c.isTemp)
-              Semantics(
-                button: true,
-                label: 'Yorum seçenekleri',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: _menu,
-                  child: SizedBox(width: 36, height: 28, child: Icon(LucideIcons.ellipsis, size: 18, color: t.mut)),
-                ),
-              ),
           ],
         ),
         if (_editing)
           _editor(t)
         else ...[
           const SizedBox(height: 2),
-          Text.rich(
-            TextSpan(children: [
-              if (c.replyToUser != null)
-                TextSpan(
-                  text: '@${c.replyToUser!.displayName} ',
-                  style: base.copyWith(color: t.pr, fontWeight: FontWeight.w600),
-                ),
-              TextSpan(text: c.text ?? '', style: base),
-            ]),
+          RichPostText(
+            c.text ?? '',
+            style: base,
+            session: widget.session,
+            prefix: c.replyToUser == null
+                ? null
+                : TextSpan(
+                    text: '@${c.replyToUser!.displayName} ',
+                    style: base.copyWith(color: t.pr, fontWeight: FontWeight.w600),
+                  ),
           ),
           const SizedBox(height: 4),
           _actions(t),
@@ -234,15 +222,24 @@ class _CommentTileState extends State<CommentTile> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
+            // Dokunma alanı en az 44 dp: küçük avatar ortalanır.
+            Semantics(
+              label: '${c.author.displayName} profili',
+              button: true,
+              excludeSemantics: true,
               onTap: () => _profile(c.author),
-              child: Semantics(
-                label: '${c.author.displayName} profili',
-                button: true,
-                child: BuAvatar(name: c.author.displayName, url: c.author.avatarUrl, size: size),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _profile(c.author),
+                child: SizedBox(
+                  width: size < 44 ? 44 : size,
+                  height: size < 44 ? 44 : size,
+                  child: Align(
+                      alignment: AlignmentDirectional.topStart,
+                      child: BuAvatar(name: c.author.displayName, url: c.author.avatarUrl, size: size)),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
             Expanded(child: content),
           ],
         ),
@@ -294,16 +291,39 @@ class _CommentTileState extends State<CommentTile> {
       );
     }
     if (n.pending) return Text('Gönderiliyor…', style: BuType.caption.copyWith(color: t.mut));
-    return Semantics(
-      button: true,
-      label: '${c.author.displayName} kişisine yanıt ver',
-      child: InkWell(
-        onTap: () => widget.onReply(n),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text('Yanıtla', style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+    return Row(
+      children: [
+        Semantics(
+          button: true,
+          label: '${c.author.displayName} kişisine yanıt ver',
+          excludeSemantics: true,
+          onTap: () => widget.onReply(n),
+          child: InkWell(
+            onTap: () => widget.onReply(n),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                widthFactor: 1,
+                child: Text('Yanıtla', style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ),
         ),
-      ),
+        const Spacer(),
+        if (!n.c.isTemp)
+          Semantics(
+            button: true,
+            label: 'Yorum seçenekleri',
+            excludeSemantics: true,
+            onTap: _menu,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _menu,
+              child: SizedBox(width: 44, height: 44, child: Icon(LucideIcons.ellipsis, size: 18, color: t.mut)),
+            ),
+          ),
+      ],
     );
   }
 

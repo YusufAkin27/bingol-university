@@ -91,19 +91,19 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
                 const SizedBox(height: 56),
                 Divider(color: t.bd, height: 1),
                 const SizedBox(height: 14),
-                Text('Hesap yönetimi', style: BuType.caption.copyWith(color: t.mut.withValues(alpha: 0.7))),
+                Text('Hesap yönetimi', style: BuType.caption.copyWith(color: t.mut)),
                 Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: TextButton(
                     onPressed: _deleteAccount,
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      minimumSize: const Size(0, 36),
+                      minimumSize: const Size(44, 44),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                     ),
                     child: Text('Hesabımı sil',
-                        style: BuType.caption.copyWith(color: t.mut.withValues(alpha: 0.7))),
+                        style: BuType.caption.copyWith(color: t.mut)),
                   ),
                 ),
               ],
@@ -162,8 +162,9 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
     return AlertDialog(
       backgroundColor: t.sf,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      title: Text('Hesabı sil', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-      content: Column(
+      title: Text('Hesabı sil', style: BuType.title.copyWith(color: t.ink)),
+      content: SingleChildScrollView(
+       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -178,7 +179,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
             enabled: !_busy,
             autofocus: true,
             onSubmitted: (_) => _submit(),
-            style: TextStyle(color: t.ink),
+            style: BuType.body.copyWith(color: t.ink),
             decoration: const InputDecoration(labelText: 'Şifre'),
           ),
           if (_error != null) ...[
@@ -186,17 +187,18 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
             Text(_error!, style: BuType.label.copyWith(color: t.danger)),
           ],
         ],
+       ),
       ),
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.pop(context, false),
-          child: Text('Vazgeç', style: TextStyle(color: t.mut, fontWeight: FontWeight.w700)),
+          child: Text('Vazgeç', style: BuType.bodyStrong.copyWith(color: t.mut)),
         ),
         TextButton(
           onPressed: _busy ? null : _submit,
           child: _busy
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text('Hesabı sil', style: TextStyle(color: t.danger, fontWeight: FontWeight.w800)),
+              : Text('Hesabı sil', style: BuType.bodyStrong.copyWith(color: t.danger)),
         ),
       ],
     );

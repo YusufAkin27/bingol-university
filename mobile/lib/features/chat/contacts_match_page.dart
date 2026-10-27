@@ -41,7 +41,7 @@ class ContactsEntryRow extends StatelessWidget {
                 child: Text('Rehberden kişi bul',
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
               ),
-              Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
               const SizedBox(width: 14),
             ],
           ),

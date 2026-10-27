@@ -12,7 +12,7 @@ import 'realtime/chat_realtime.dart';
 enum SessionState { loading, signedOut, signedIn }
 
 /// Oturumun neden zorla kapandığı.
-enum SignOutReason { expired, replaced }
+enum SignOutReason { expired, replaced, blocked }
 
 /// Tek cihaz kuralı: sunucunun mobil istemci işareti (her girişte gönderilir).
 const kClientMobile = 'mobile';
@@ -23,6 +23,7 @@ class Session extends ChangeNotifier {
     api.onTokensChanged = _persist;
     api.onSessionExpired = () => signOut(remote: false);
     api.onSessionReplaced = () => forceSignOut(reason: SignOutReason.replaced);
+    api.onAccessBlocked = _onAccessBlocked;
     realtime = ChatRealtime(this);
   }
 
@@ -41,6 +42,18 @@ class Session extends ChangeNotifier {
   /// Başka cihazda giriş yapıldı bilgisi: giriş ekranında bir kez gösterilir, kapatılınca silinir.
   final replacedNotice = ValueNotifier<bool>(false);
   bool _forcing = false;
+
+  /// 403 ACCESS_BLOCKED: cihaz/ağ engeli. Ana uygulama bu bayrakla engel ekranını gösterir.
+  final accessBlocked = ValueNotifier<bool>(false);
+
+  void _onAccessBlocked() {
+    accessBlocked.value = true;
+    // Oturum varsa sunucuya hiçbir istek atmadan yerel olarak kapatılır (refresh/logout denenmez).
+    forceSignOut(reason: SignOutReason.blocked);
+  }
+
+  /// Engel ekranından "tekrar dene": bayrağı kaldırır, giriş ekranına dönülür.
+  void dismissAccessBlocked() => accessBlocked.value = false;
 
   /// Doğrulaması bekleyen kayıt (şifresiz, 72 sa). Testler bellek içi depo atar.
   PendingVerificationStore pending = PendingVerificationStore();
@@ -74,10 +87,15 @@ class Session extends ChangeNotifier {
 
   Future<void> _loadMe() async {
     try {
-      final me = await api.get('/auth/me') as Map<String, dynamic>;
-      userId = (me['id'] as num?)?.toInt();
-      displayName = me['displayName'] as String?;
-      email = me['email'] as String?;
+      final me = await api.get('/auth/me');
+      if (me is Map) {
+        final id = me['id'];
+        final dn = me['displayName'];
+        final em = me['email'];
+        userId = id is num ? id.toInt() : null;
+        displayName = dn is String ? dn : null;
+        email = em is String ? em : null;
+      }
       _set(SessionState.signedIn);
     } on ApiError catch (e) {
       // Ağ yokken oturumu silmeyiz; yalnızca sunucudan gelen 401 oturumu bitirir.
@@ -95,8 +113,10 @@ class Session extends ChangeNotifier {
   /// Profil düzenlendikten sonra karşılama adını tazeler.
   Future<void> refreshName() async {
     try {
-      final me = await api.get('/auth/me') as Map<String, dynamic>;
-      displayName = me['displayName'] as String?;
+      final me = await api.get('/auth/me');
+      if (me is! Map) return;
+      final dn = me['displayName'];
+      displayName = dn is String ? dn : displayName;
       notifyListeners();
     } catch (_) {}
   }
@@ -159,8 +179,10 @@ class Session extends ChangeNotifier {
       '/auth/verify-reset-code',
       {'email': normalizeIdentifier(email), 'code': code.trim()},
       false,
-    ) as Map<String, dynamic>;
-    return res['resetToken'] as String;
+    );
+    final token = res is Map ? res['resetToken'] : null;
+    if (token is! String || token.isEmpty) throw ApiError(0, 'BAD_RESPONSE', '');
+    return token;
   }
 
   Future<void> resetPassword(String email, String resetToken, String newPassword) => api.post(
@@ -241,7 +263,7 @@ class Session extends ChangeNotifier {
 
   Future<void> _accept(dynamic res) async {
     replacedNotice.value = false;
-    await api.setTokens(Tokens.fromJson(res as Map<String, dynamic>));
+    await api.setTokens(Tokens.fromJson(res));
     await _loadMe();
   }
 

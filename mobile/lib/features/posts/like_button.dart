@@ -170,8 +170,8 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
         onTap: _toggle,
         radius: 24,
         child: SizedBox(
-          width: size + 14,
-          height: 40,
+          width: 44,
+          height: 44,
           child: Center(
             child: AnimatedBuilder(
               animation: _anim,
@@ -202,8 +202,10 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
           onTap: () => showLikersSheet(context, widget.session, _post.id, total: _count),
           borderRadius: BorderRadius.circular(8),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 40, minWidth: 24),
-            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Center(child: countText)),
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Align(alignment: AlignmentDirectional.centerStart, widthFactor: 1, child: countText)),
           ),
         ),
     ]);

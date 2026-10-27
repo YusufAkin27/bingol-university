@@ -142,8 +142,9 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
                       selfId: widget.selfId,
                       onRemove: removable
                           ? () async {
-                              if (await widget.onRemove!(m) && mounted)
+                              if (await widget.onRemove!(m) && mounted) {
                                 setState(() => _all.remove(m));
+                              }
                             }
                           : null,
                     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/locale_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
@@ -35,11 +36,11 @@ class UpdateRequiredScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.system_update, size: 57.5, color: t.pr),
                   const SizedBox(height: 20),
-                  Text('Güncelleme gerekli',
+                  Text(context.l10n.updateRequiredTitle,
                       style: BuType.title.copyWith(color: t.ink)),
                   const SizedBox(height: 10),
                   Text(
-                    'Uygulamayı kullanmaya devam etmek için yeni sürüme güncellemeniz gerekiyor.',
+                    context.l10n.updateRequiredBody,
                     textAlign: TextAlign.center,
                     style: BuType.body.copyWith(color: t.mut, height: 1.4),
                   ),
@@ -48,7 +49,7 @@ class UpdateRequiredScreen extends StatelessWidget {
                     FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: t.pr, foregroundColor: t.onPr),
                       onPressed: () => openStore(storeUrl),
-                      child: const Text('Mağazada aç'),
+                      child: Text(context.l10n.commonOpenInStore),
                     ),
                 ],
               ),
@@ -72,7 +73,8 @@ class TopStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final bg = danger ? t.danger : t.soft;
-    final fg = danger ? Colors.white : t.onSoft;
+    // Koyu temada danger açık tondur (FF8A82): sabit beyaz yazı okunmazdı; zemin rengi (t.bg) her iki temada AA verir.
+    final fg = danger ? t.bg : t.onSoft;
     return Container(
       width: double.infinity,
       color: bg,
@@ -115,17 +117,58 @@ class UpdateNotice extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                latest == null ? 'Yeni sürüm mevcut.' : 'Yeni sürüm mevcut ($latest).',
+                latest == null ? context.l10n.updateAvailable : context.l10n.updateAvailableVersion(latest!),
                 style: BuType.body.copyWith(color: t.ink),
               ),
             ),
-            if (canOpen) TextButton(onPressed: () => openStore(storeUrl), child: const Text('Güncelle')),
+            if (canOpen) TextButton(onPressed: () => openStore(storeUrl), child: Text(context.l10n.commonUpdate)),
             IconButton(
-              tooltip: 'Kapat',
+              tooltip: context.l10n.commonClose,
               icon: Icon(Icons.close, size: 16, color: t.mut),
               onPressed: onClose,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 403 ACCESS_BLOCKED: cihaz veya ağ erişimi kapatıldı. Oturum silinmiş olur; yeniden denemek giriş ekranına döner.
+class AccessBlockedScreen extends StatelessWidget {
+  const AccessBlockedScreen({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: t.bg,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.block, size: 57.5, color: t.pr),
+                  const SizedBox(height: 20),
+                  Text(context.l10n.accessBlockedTitle, style: BuType.title.copyWith(color: t.ink)),
+                  const SizedBox(height: 10),
+                  Text(
+                    context.l10n.accessBlockedBody,
+                    textAlign: TextAlign.center,
+                    style: BuType.body.copyWith(color: t.mut, height: 1.4),
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton(onPressed: onRetry, child: Text(context.l10n.commonRetryShort)),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

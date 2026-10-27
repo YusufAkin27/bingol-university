@@ -74,7 +74,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     onSoft: Color(0xFF8E1B13),
     nav: Color(0xFF171E33),
     onNav: Color(0xFFFFFFFF),
-    h1: Color(0xFFF73A2E),
+    h1: Color(0xFFDC3125), // beyaz yazı AA (4.5:1): önceki F73A2E ~3.8:1 idi
     h2: Color(0xFFC62A20),
     ok: Color(0xFF1B7A4B),
     okSoft: Color(0xFFDFF3E8),
@@ -238,7 +238,9 @@ class BuTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : Colors.transparent),
         checkColor: WidgetStatePropertyAll(t.onPr),
-        side: BorderSide(color: t.bd, width: 2),
+        // İşaretsiz kutu zeminde kaybolmasın (WCAG 1.4.11): çerçeve soluk yazı renginde.
+        side: WidgetStateBorderSide.resolveWith(
+            (s) => BorderSide(color: s.contains(WidgetState.selected) ? t.pr : t.mut, width: 2)),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

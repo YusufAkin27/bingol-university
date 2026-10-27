@@ -40,7 +40,9 @@ class _ClubsTabState extends State<ClubsTab> {
   void initState() {
     super.initState();
     _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
+      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
+        _loadMore();
+      }
     });
     _reload();
     _loadCategories();
@@ -57,7 +59,9 @@ class _ClubsTabState extends State<ClubsTab> {
     final q = <String>['size=20'];
     if (cursor != null) q.add('cursor=${Uri.encodeQueryComponent(cursor)}');
     if (_tab == 0) {
-      if (_category != null) q.add('category=${Uri.encodeQueryComponent(_category!)}');
+      if (_category != null) {
+        q.add('category=${Uri.encodeQueryComponent(_category!)}');
+      }
       if (_query.isNotEmpty) q.add('q=${Uri.encodeQueryComponent(_query)}');
     }
     return '${_tab == 0 ? '/communities' : '/me/communities'}?${q.join('&')}';
@@ -70,7 +74,8 @@ class _ClubsTabState extends State<ClubsTab> {
       if (!mounted || res is! List) return;
       final cats = <String>[
         for (final e in res)
-          if (e is Map && (e['category']?.toString().trim() ?? '').isNotEmpty) e['category'].toString().trim(),
+          if (e is Map && (e['category']?.toString().trim() ?? '').isNotEmpty)
+            e['category'].toString().trim(),
       ];
       setState(() => _categories = cats);
     } catch (_) {}
@@ -78,7 +83,12 @@ class _ClubsTabState extends State<ClubsTab> {
 
   Future<void> _reload({bool silent = false}) async {
     final gen = ++_gen;
-    if (!silent) setState(() { _loading = true; _error = null; });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final res = await widget.session.api.get(_path(null));
       if (!mounted || gen != _gen) return;
@@ -91,7 +101,10 @@ class _ClubsTabState extends State<ClubsTab> {
       });
     } catch (e) {
       if (!mounted || gen != _gen) return;
-      setState(() { _error = e; _loading = false; });
+      setState(() {
+        _error = e;
+        _loading = false;
+      });
     }
   }
 
@@ -123,7 +136,10 @@ class _ClubsTabState extends State<ClubsTab> {
   List<Map<String, dynamic>> _parse(dynamic res) {
     final raw = res is Map ? res['items'] : res;
     if (raw is! List) return [];
-    return raw.whereType<Map>().map((m) => Map<String, dynamic>.from(m)).toList();
+    return raw
+        .whereType<Map>()
+        .map((m) => Map<String, dynamic>.from(m))
+        .toList();
   }
 
   void _toast(String msg) {
@@ -133,7 +149,7 @@ class _ClubsTabState extends State<ClubsTab> {
   }
 
   Future<void> _join(Map<String, dynamic> c) async {
-    final id = (c['id'] as num).toInt();
+    final id = ((c['id'] as num?)?.toInt() ?? -1);
     if (_joining.contains(id)) return;
     setState(() => _joining.add(id));
     try {
@@ -142,12 +158,15 @@ class _ClubsTabState extends State<ClubsTab> {
         widget.session,
         communityId: id,
         clubName: (c['name'] ?? '').toString(),
-        needsApproval: c['joinPolicy'] == 'APPROVAL' || c['visibility'] == 'PRIVATE',
+        needsApproval:
+            c['joinPolicy'] == 'APPROVAL' || c['visibility'] == 'PRIVATE',
       );
       if (!mounted || st == null) return;
       setState(() {
         c['myStatus'] = st;
-        if (c['myStatus'] == 'ACTIVE') c['memberCount'] = ((c['memberCount'] as num?) ?? 0).toInt() + 1;
+        if (c['myStatus'] == 'ACTIVE') {
+          c['memberCount'] = ((c['memberCount'] as num?) ?? 0).toInt() + 1;
+        }
       });
     } catch (e) {
       if (mounted) _toast(errorText(e));
@@ -160,7 +179,8 @@ class _ClubsTabState extends State<ClubsTab> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ClubDetailPage(session: widget.session, communityId: (c['id'] as num).toInt()),
+        builder: (_) => ClubDetailPage(
+            session: widget.session, communityId: ((c['id'] as num?)?.toInt() ?? -1)),
       ),
     );
     if (mounted) _reload(silent: true);
@@ -174,7 +194,12 @@ class _ClubsTabState extends State<ClubsTab> {
 
   void _setTab(int i) {
     if (i == _tab) return;
-    setState(() { _tab = i; _category = null; _items = []; _cursor = null; });
+    setState(() {
+      _tab = i;
+      _category = null;
+      _items = [];
+      _cursor = null;
+    });
     _reload();
   }
 
@@ -210,7 +235,10 @@ class _ClubsTabState extends State<ClubsTab> {
     if (_tab == 0) return _items;
     return _items.where((c) {
       if (_category != null && c['category'] != _category) return false;
-      if (_query.isNotEmpty && !('${c['name']}').toLowerCase().contains(_query.toLowerCase())) return false;
+      if (_query.isNotEmpty &&
+          !('${c['name']}').toLowerCase().contains(_query.toLowerCase())) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -255,7 +283,10 @@ class _ClubsTabState extends State<ClubsTab> {
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: BuSegmented(items: const ['Keşfet', 'Kulüplerim'], index: _tab, onChanged: _setTab),
+            child: BuSegmented(
+                items: const ['Keşfet', 'Kulüplerim'],
+                index: _tab,
+                onChanged: _setTab),
           ),
           if (cats.isNotEmpty)
             SizedBox(
@@ -264,10 +295,16 @@ class _ClubsTabState extends State<ClubsTab> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
-                  BuChip(label: 'Tümü', selected: _category == null, onTap: () => _setCategory(null)),
+                  BuChip(
+                      label: 'Tümü',
+                      selected: _category == null,
+                      onTap: () => _setCategory(null)),
                   for (final c in cats) ...[
                     const SizedBox(width: 8),
-                    BuChip(label: c, selected: _category == c, onTap: () => _setCategory(c)),
+                    BuChip(
+                        label: c,
+                        selected: _category == c,
+                        onTap: () => _setCategory(c)),
                   ],
                 ],
               ),
@@ -294,7 +331,9 @@ class _ClubsTabState extends State<ClubsTab> {
               height: 360,
               child: EmptyView(
                 icon: LucideIcons.users,
-                text: _tab == 1 ? 'Henüz hiçbir kulübe üye değilsin.' : 'Kulüp bulunamadı.',
+                text: _tab == 1
+                    ? 'Henüz hiçbir kulübe üye değilsin.'
+                    : 'Kulüp bulunamadı.',
               ),
             ),
           ],
@@ -313,13 +352,17 @@ class _ClubsTabState extends State<ClubsTab> {
           if (i >= list.length) {
             return const Padding(
               padding: EdgeInsets.all(12),
-              child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             );
           }
           final c = list[i];
           return _ClubCard(
             club: c,
-            busy: _joining.contains((c['id'] as num).toInt()),
+            busy: _joining.contains(((c['id'] as num?)?.toInt() ?? -1)),
             onOpen: () => _open(c),
             onJoin: () => _join(c),
           );
@@ -330,11 +373,16 @@ class _ClubsTabState extends State<ClubsTab> {
 }
 
 extension on Widget {
-  Widget withTop(double v) => Padding(padding: EdgeInsets.only(top: v), child: this);
+  Widget withTop(double v) =>
+      Padding(padding: EdgeInsets.only(top: v), child: this);
 }
 
 class _ClubCard extends StatelessWidget {
-  const _ClubCard({required this.club, required this.busy, required this.onOpen, required this.onJoin});
+  const _ClubCard(
+      {required this.club,
+      required this.busy,
+      required this.onOpen,
+      required this.onJoin});
 
   final Map<String, dynamic> club;
   final bool busy;
@@ -361,15 +409,42 @@ class _ClubCard extends StatelessWidget {
         radius: 22,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         onTap: onOpen,
-        child: Row(
-          children: [
-            BuAvatar(name: name, url: club['logoUrl'] as String?, size: 48, square: true),
-            const SizedBox(width: 12),
-            Expanded(child: _titles(t, name, sub, 15)),
-            const SizedBox(width: 8),
-            button,
-          ],
-        ),
+        // Büyük yazı ölçeğinde düğme adı ezmesin: düğme başlığın altına iner.
+        child: MediaQuery.textScalerOf(context).scale(10) > 12
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BuAvatar(
+                      name: name,
+                      url: club['logoUrl'] as String?,
+                      size: 48,
+                      square: true),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _titles(t, name, sub, 15),
+                        const SizedBox(height: 8),
+                        button
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  BuAvatar(
+                      name: name,
+                      url: club['logoUrl'] as String?,
+                      size: 48,
+                      square: true),
+                  const SizedBox(width: 12),
+                  Expanded(child: _titles(t, name, sub, 15)),
+                  const SizedBox(width: 8),
+                  button,
+                ],
+              ),
       );
     }
 
@@ -384,12 +459,16 @@ class _ClubCard extends StatelessWidget {
             height: 74,
             width: double.infinity,
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(21)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(21)),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   if (cover != null)
-                    Image.network(cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _cover(t, member))
+                    Image.network(cover,
+                        fit: BoxFit.cover,
+                        cacheWidth: 800,
+                        errorBuilder: (_, __, ___) => _cover(t, member))
                   else
                     _cover(t, member),
                 ],
@@ -411,16 +490,24 @@ class _ClubCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: t.sf,
                           borderRadius: BorderRadius.circular(19),
-                          boxShadow: const [BoxShadow(color: Color(0x26171E33), blurRadius: 6, offset: Offset(0, 2))],
+                          boxShadow: const [
+                            BoxShadow(
+                                color: Color(0x26171E33),
+                                blurRadius: 6,
+                                offset: Offset(0, 2))
+                          ],
                         ),
-                        child: BuAvatar(name: name, url: logo, size: 42, square: true),
+                        child: BuAvatar(
+                            name: name, url: logo, size: 42, square: true),
                       ),
                       const Spacer(),
                       button,
                     ],
                   ),
                 ),
-                Transform.translate(offset: const Offset(0, -12), child: _titles(t, name, sub, 16)),
+                Transform.translate(
+                    offset: const Offset(0, -12),
+                    child: _titles(t, name, sub, 16)),
               ],
             ),
           ),
@@ -432,7 +519,7 @@ class _ClubCard extends StatelessWidget {
   Widget _cover(BuTokens t, bool member) {
     return Container(
       decoration: BoxDecoration(
-        color: member ? t.ink : null,
+        color: member ? t.nav : null,
         gradient: member ? null : t.hero,
       ),
       child: Align(
@@ -460,9 +547,12 @@ class _ClubCard extends StatelessWidget {
         Text(name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: BuType.title.copyWith(fontSize: size, color: t.ink)),
+            style: BuType.heading.copyWith(color: t.ink)),
         const SizedBox(height: 3),
-        Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
+        Text(sub,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: BuType.caption.copyWith(color: t.mut)),
       ],
     );
   }
@@ -470,13 +560,26 @@ class _ClubCard extends StatelessWidget {
   Widget _statusButton(String status) {
     switch (status) {
       case 'ACTIVE':
-        return BuButton(label: 'Üyesin', kind: BuButtonKind.soft, compact: true, onPressed: onOpen);
+        return BuButton(
+            label: 'Üyesin',
+            kind: BuButtonKind.soft,
+            compact: true,
+            onPressed: onOpen);
       case 'PENDING':
-        return BuButton(label: 'İstek gönderildi', kind: BuButtonKind.outline, compact: true, onPressed: onOpen);
+        return BuButton(
+            label: 'İstek gönderildi',
+            kind: BuButtonKind.outline,
+            compact: true,
+            onPressed: onOpen);
       case 'BANNED':
-        return const BuButton(label: 'Engelli', kind: BuButtonKind.outline, compact: true);
+        return const BuButton(
+            label: 'Engelli', kind: BuButtonKind.outline, compact: true);
       default:
-        return BuButton(label: 'Katıl', compact: true, busy: busy, onPressed: busy ? null : onJoin);
+        return BuButton(
+            label: 'Katıl',
+            compact: true,
+            busy: busy,
+            onPressed: busy ? null : onJoin);
     }
   }
 }

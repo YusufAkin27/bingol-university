@@ -8,6 +8,8 @@ import '../../widgets/common.dart' show relativeTime;
 import 'post_api.dart';
 import 'post_models.dart';
 import 'post_routes.dart';
+import 'rich_text.dart';
+import 'save_button.dart';
 
 typedef PostMediaBuilder = Widget Function(BuildContext context, Post post);
 typedef PostLikeBuilder = Widget Function(BuildContext context, Post post, ValueChanged<Post> onChanged);
@@ -95,19 +97,23 @@ class _PostCardState extends State<PostCard> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () => openUserPosts(context, widget.session,
                         userId: p.author.id, name: p.author.displayName),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(p.author.displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: BuType.bodyStrong.copyWith(color: t.ink)),
-                        if (meta.isNotEmpty)
-                          Text(meta,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(p.author.displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: BuType.caption.copyWith(color: t.mut)),
-                      ],
+                              style: BuType.bodyStrong.copyWith(color: t.ink)),
+                          if (meta.isNotEmpty)
+                            Text(meta,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: BuType.caption.copyWith(color: t.mut)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -133,18 +139,24 @@ class _PostCardState extends State<PostCard> {
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
                   onTap: _open,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(LucideIcons.messageCircle, size: 19, color: t.mut),
-                        const SizedBox(width: 6),
-                        Text('${p.commentCount}', style: BuType.label.copyWith(color: t.mut)),
-                      ],
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.messageCircle, size: 19, color: t.mut),
+                          const SizedBox(width: 6),
+                          Text('${p.commentCount}', style: BuType.label.copyWith(color: t.mut)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                const Spacer(),
+                SaveButton(session: widget.session, post: p, onChanged: widget.onChanged),
               ],
             ),
           ),
@@ -160,7 +172,7 @@ class _PostCardState extends State<PostCard> {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
       child: LayoutBuilder(builder: (context, c) {
         final tp = TextPainter(
-          text: TextSpan(text: text, style: style),
+          text: TextSpan(text: richPlain(text), style: style),
           maxLines: widget.maxLines,
           textDirection: Directionality.of(context),
           textScaler: MediaQuery.textScalerOf(context),
@@ -172,9 +184,11 @@ class _PostCardState extends State<PostCard> {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true, // ekran okuyucu için ayrı "yorumlar" düğmesi var
               onTap: _open,
-              child: Text(
+              child: RichPostText(
                 text,
+                session: widget.session,
                 maxLines: (_expanded || !widget.expandable) ? null : widget.maxLines,
                 overflow: (_expanded || !widget.expandable) ? TextOverflow.clip : TextOverflow.ellipsis,
                 style: style,
@@ -184,9 +198,13 @@ class _PostCardState extends State<PostCard> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _expanded = true),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text('devamını oku', style: BuType.label.copyWith(color: t.pr)),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    widthFactor: 1,
+                    child: Text('devamını oku', style: BuType.label.copyWith(color: t.pr)),
+                  ),
                 ),
               ),
             if (p.editedAt != null)
@@ -243,15 +261,19 @@ class _FallbackLikeState extends State<_FallbackLike> {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: _toggle,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(liked ? Icons.favorite : LucideIcons.heart, size: 19, color: liked ? t.pr : t.mut),
-            const SizedBox(width: 6),
-            Text('${widget.post.likeCount}', style: BuType.label.copyWith(color: liked ? t.pr : t.mut)),
-          ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(liked ? Icons.favorite : LucideIcons.heart, size: 19, color: liked ? t.pr : t.mut),
+              const SizedBox(width: 6),
+              Text('${widget.post.likeCount}', style: BuType.label.copyWith(color: liked ? t.pr : t.mut)),
+            ],
+          ),
         ),
       ),
     );
@@ -335,6 +357,7 @@ class _FallbackMedia extends StatelessWidget {
         Image.network(
           m.thumbUrl ?? m.url,
           headers: headers,
+          cacheWidth: 800,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)),
         ),

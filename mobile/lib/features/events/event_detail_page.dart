@@ -470,24 +470,30 @@ class _EventDetailPageState extends State<EventDetailPage> {
             if (cover == null) ...[
               Positioned(
                   right: -40, top: -50, child: _circle(200, .15)),
-              Positioned(left: 30, bottom: -70, child: _circle(160, .10)),
+              PositionedDirectional(start: 30, bottom: -70, child: _circle(160, .10)),
             ],
-            Positioned(
-              left: 20,
+            PositionedDirectional(
+              start: 20,
               top: pad.top + 12,
-              child: GestureDetector(
+              child: Semantics(
+                button: true,
+                label: 'Geri',
+                excludeSemantics: true,
                 onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.arrowLeft, size: 20, color: Colors.white),
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
+                    child: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 20, color: Colors.white),
+                  ),
                 ),
               ),
             ),
             if (_manage && !eventIsCancelled(ev))
-              Positioned(
-                right: 20,
+              PositionedDirectional(
+                end: 20,
                 top: pad.top + 12,
                 child: Theme(
                   data: Theme.of(context).copyWith(
@@ -503,8 +509,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       PopupMenuItem(value: 'cancel', child: Text('İptal et', style: TextStyle(color: t.danger))),
                     ],
                     child: Container(
-                      width: 42,
-                      height: 42,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
                       child: const Icon(LucideIcons.ellipsis, size: 20, color: Colors.white),
                     ),
@@ -512,8 +518,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               )
             else if (!_manage)
-              Positioned(
-                right: 20,
+              PositionedDirectional(
+                end: 20,
                 top: pad.top + 12,
                 child: Semantics(
                   button: true,
@@ -522,8 +528,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     onTap: () => ReportSheet.show(context, widget.session,
                         targetType: 'EVENT', targetId: widget.eventId, title: 'Etkinliği şikâyet et'),
                     child: Container(
-                      width: 42,
-                      height: 42,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
                       child: const Icon(LucideIcons.flag, size: 18, color: Colors.white),
                     ),
@@ -531,8 +537,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               ),
             if (starts != null)
-              Positioned(
-                left: 20,
+              PositionedDirectional(
+                start: 20,
                 bottom: 18,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -686,8 +692,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       width: size + (shown.length - 1) * 20 + (more > 0 ? 34 : 0),
       child: Stack(children: [
         for (var i = 0; i < shown.length; i++)
-          Positioned(
-            left: i * 20.0,
+          PositionedDirectional(
+            start: i * 20.0,
             child: Container(
               decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
               child: BuAvatar(
@@ -697,8 +703,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
             ),
           ),
         if (more > 0)
-          Positioned(
-            left: shown.length * 20.0 + 6,
+          PositionedDirectional(
+            start: shown.length * 20.0 + 6,
             child: Container(
               height: size,
               alignment: Alignment.center,

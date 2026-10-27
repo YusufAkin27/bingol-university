@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/identifier.dart';
@@ -94,7 +95,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
     try {
       await widget.session.forgotPassword(widget.email);
       if (!mounted) return;
-      setState(() => _info = 'Kod gönderildi.');
+      setState(() => _info = context.l10n.authCodeSent);
       _startCooldown();
     } catch (e) {
       if (mounted) setState(() => _error = errorText(e));
@@ -106,8 +107,8 @@ class _ResetCodePageState extends State<ResetCodePage> {
     final t = context.bu;
     return AuthScaffold(
       showBack: true,
-      title: 'Kodu girin',
-      subtitle: '${fullEmail(widget.email)} adresine kod gönderildi.',
+      title: context.l10n.authEnterCode,
+      subtitle: context.l10n.authCodeSentTo(fullEmail(widget.email)),
       children: [
         if (_error != null) Notice(_error!),
         if (_info != null) Notice(_info!, error: false),
@@ -120,13 +121,13 @@ class _ResetCodePageState extends State<ResetCodePage> {
         const SizedBox(height: 20),
         FilledButton(
           onPressed: _busy ? null : _verify,
-          child: BusyLabel(busy: _busy, label: 'Doğrula'),
+          child: BusyLabel(busy: _busy, label: context.l10n.authVerify),
         ),
         const SizedBox(height: 8),
         Center(
           child: _cooldown > 0
-              ? Text('Yeniden gönder ($_cooldown sn)', style: BuType.body.copyWith(color: t.mut))
-              : TextButton(onPressed: _busy ? null : _resend, child: const Text('Kodu yeniden gönder')),
+              ? Text(context.l10n.authResendIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut))
+              : TextButton(onPressed: _busy ? null : _resend, child: Text(context.l10n.authResendCode)),
         ),
       ],
     );

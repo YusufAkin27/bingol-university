@@ -173,8 +173,8 @@ class ChatInfoThumb extends StatelessWidget {
                   child: Icon(Icons.play_circle_fill_rounded,
                       size: 27, color: Colors.white70)),
               if (durationMs != null)
-                Positioned(
-                  left: 4,
+                PositionedDirectional(
+                  start: 4,
                   bottom: 4,
                   child: Container(
                     padding:
@@ -232,8 +232,9 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
 
   void _onScroll() {
     if (_scroll.hasClients &&
-        _scroll.position.pixels > _scroll.position.maxScrollExtent - 400)
+        _scroll.position.pixels > _scroll.position.maxScrollExtent - 400) {
       _f.load();
+    }
   }
 
   /// Izgara ekranı doldurmuyorsa kaydırma olmayacağından devamını kendimiz iste.
@@ -244,7 +245,9 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
           _f.loadingMore ||
           _f.loading ||
           _f.moreError != null ||
-          !_scroll.hasClients) return;
+          !_scroll.hasClients) {
+        return;
+      }
       if (_scroll.position.maxScrollExtent <= 0) _f.load();
     });
   }

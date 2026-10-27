@@ -113,20 +113,24 @@ class _SheetBodyState extends State<_SheetBody> {
             const SizedBox(height: 16),
             Text(widget.title, style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 4),
-            Text('Sebep seçin. Şikâyetiniz yöneticilere iletilir.', style: TextStyle(color: t.mut)),
+            Text('Sebep seçin. Şikâyetiniz yöneticilere iletilir.', style: BuType.body.copyWith(color: t.mut)),
             const SizedBox(height: 12),
             for (final r in ReportSheet.reasons)
+              Semantics(
+                inMutuallyExclusiveGroup: true,
+                checked: _reason == r.$1,
+                child:
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
                 enabled: !_busy,
                 onTap: () => setState(() => _reason = r.$1),
-                title: Text(r.$2, style: TextStyle(fontWeight: FontWeight.w600, color: t.ink)),
+                title: Text(r.$2, style: BuType.bodyStrong.copyWith(color: t.ink)),
                 trailing: Icon(
                   _reason == r.$1 ? LucideIcons.circleCheck : LucideIcons.circle,
                   color: _reason == r.$1 ? t.pr : t.mut,
                 ),
-              ),
+              )),
             const SizedBox(height: 8),
             TextField(
               controller: _details,

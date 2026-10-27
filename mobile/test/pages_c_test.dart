@@ -58,7 +58,7 @@ String _today() {
 
 Map<String, dynamic> _page(List<Object> items) => {'items': items, 'nextCursor': null};
 
-final _cases = <PageCase>[
+final kPageCases = <PageCase>[
   PageCase(
     'ProfileTab',
     (b, tc) => ProfileTab(session: makeSession(b), themeController: tc),
@@ -357,7 +357,7 @@ void main() {
   // Ahem yazı tipi sahte taşma üretir; gerçek Roboto yüklenir.
   setUpAll(loadTestFonts);
 
-  for (final c in _cases) {
+  for (final c in kPageCases) {
     group(c.name, () {
       testWidgets('yükleniyor -> dolu veri', (tester) async {
         final b = FakeBackend(delay: const Duration(milliseconds: 300));
@@ -459,6 +459,7 @@ void main() {
       expect(find.text('Hesabımı sil'), findsNothing);
       await tester.scrollUntilVisible(find.text('Gizlilik ve veriler'), 200, scrollable: find.byType(Scrollable).first);
       await tester.ensureVisible(find.text('Gizlilik ve veriler'));
+      await tester.pump(); // kaydırma çerçevesi uygulansın (liste uzadıkça öğe ekran dışında kalıyordu)
       await tester.tap(find.text('Gizlilik ve veriler'));
       await settle(tester, const Duration(milliseconds: 500));
       await tester.scrollUntilVisible(find.text('Hesabımı sil'), 200, scrollable: find.byType(Scrollable).first);
@@ -571,7 +572,7 @@ void main() {
   group('Diğer etkileşimler', () {
     testWidgets('bildirimler: tümünü okundu yap sunucuya gider', (tester) async {
       final b = FakeBackend();
-      _cases.firstWhere((c) => c.name == 'NotificationsPage').full(b);
+      kPageCases.firstWhere((c) => c.name == 'NotificationsPage').full(b);
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b))));
       await settle(tester);
@@ -599,7 +600,7 @@ void main() {
 
     testWidgets('öneriler: oy verme uyarlanır, hatada geri alınır', (tester) async {
       final b = FakeBackend();
-      _cases.firstWhere((c) => c.name == 'SuggestionsPage').full(b);
+      kPageCases.firstWhere((c) => c.name == 'SuggestionsPage').full(b);
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(SuggestionsPage(session: makeSession(b))));
       await settle(tester);

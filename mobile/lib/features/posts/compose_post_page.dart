@@ -12,6 +12,7 @@ import '../chat/media_camera_page.dart';
 import '../chat/media_library.dart';
 import '../chat/media_pick.dart';
 import '../chat/media_picker_page.dart';
+import 'mention_assist.dart';
 import 'post_api.dart';
 import 'post_draft_store.dart';
 import 'post_media_uploader.dart';
@@ -579,11 +580,19 @@ class _ComposePostPageState extends State<ComposePostPage> with WidgetsBindingOb
             decoration: InputDecoration(
               hintText: 'Ne düşünüyorsun?',
               hintStyle: BuType.body.copyWith(color: t.mut),
+              // Tema dolgu + çerçeve verir; burada çerçevesiz, geniş yazı alanı istenir (aksi halde ipucu kenara yapışır).
+              filled: false,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,
             ),
           ),
+          MentionAssist(session: widget.session, controller: _text, maxLength: kPostMaxText),
           if (_textError != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),

@@ -372,7 +372,7 @@ class _EventFormPageState extends State<EventFormPage> {
   }
 
   Widget _label(BuTokens t, String s) => Padding(
-        padding: const EdgeInsets.only(left: 2, bottom: 6),
+        padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
         child: Text(s, style: BuType.label.copyWith(color: t.mut)),
       );
 
@@ -440,9 +440,9 @@ class _EventFormPageState extends State<EventFormPage> {
             else
               EventCoverImage(url: existing!),
             if (has)
-              Positioned(
+              PositionedDirectional(
                 top: 8,
-                right: 8,
+                end: 8,
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   _glass(LucideIcons.pencil, 'Kapağı değiştir', _busy ? null : _chooseCover),
                   const SizedBox(width: 8),
@@ -463,7 +463,7 @@ class _EventFormPageState extends State<EventFormPage> {
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onTap,
-            child: SizedBox(width: 36, height: 36, child: Icon(icon, size: 16, color: Colors.white)),
+            child: SizedBox(width: 44, height: 44, child: Icon(icon, size: 18, color: Colors.white)),
           ),
         ),
       );

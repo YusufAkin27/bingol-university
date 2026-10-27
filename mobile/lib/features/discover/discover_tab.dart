@@ -6,7 +6,11 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart';
+import '../follow/follow_suggestions.dart';
 import '../posts/post_feed_view.dart';
+import '../posts/trending_tags_strip.dart';
+import '../stories/story_tray.dart';
+import '../polls/poll_routes.dart';
 import '../posts/post_routes.dart';
 import '../search/search_page.dart';
 
@@ -28,12 +32,30 @@ class _DiscoverTabState extends State<DiscoverTab> {
   static const _types = ['HABER', 'DUYURU', 'ETKINLIK', 'SAVED'];
   static const _labels = ['Haber', 'Duyuru', 'Etkinlik', 'Kaydedilenler'];
   static const _pageSize = 20;
+  static const _scopes = [
+    ('latest', 'Yeni'),
+    ('popular', 'Popüler'),
+    ('following', 'Takip'),
+    ('department', 'Bölümüm'),
+  ];
 
   final _scroll = ScrollController();
   final List<Map<String, dynamic>> _items = [];
   final Set<int> _savedIds = {};
 
   final _feedController = PostFeedController();
+  final _trayController = StoryTrayController();
+  final _headerKey = GlobalKey();
+  late final Widget _feedHeader = Column(
+    key: _headerKey,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      StoryTray(session: widget.session, controller: _trayController),
+      TrendingTagsStrip(session: widget.session),
+      const SizedBox(height: 8),
+    ],
+  );
+  bool? _hasDepartment; // 'Bölümüm' sekmesi için profil bölümü (ilk seçimde yüklenir)
 
   /// 0 Gönderiler (varsayılan), 1 Haberler.
   int _segment = 0;
@@ -363,6 +385,45 @@ class _DiscoverTabState extends State<DiscoverTab> {
     return const SizedBox(height: 4);
   }
 
+  void _selectScope(String s) {
+    if (s == _scope) return;
+    setState(() => _scope = s);
+    if (s == 'department' && _hasDepartment == null) _loadDepartment();
+  }
+
+  Future<void> _loadDepartment() async {
+    try {
+      final r = await widget.session.api.get('/users/me');
+      final d = r is Map ? (r['department'] ?? '').toString().trim() : '';
+      if (mounted) setState(() => _hasDepartment = d.isNotEmpty);
+    } catch (_) {
+      if (mounted) setState(() => _hasDepartment = true); // bilinmiyorsa sunucu yanıtı belirlesin
+    }
+  }
+
+  Widget? _emptyFor(BuildContext c) {
+    if (_scope == 'following') return FollowingEmptyPanel(session: widget.session);
+    if (_scope == 'department') {
+      final t = c.bu;
+      return Column(
+        children: [
+          SizedBox(
+            height: 280,
+            child: EmptyView(
+              icon: LucideIcons.graduationCap,
+              text: _hasDepartment == false
+                  ? 'Bölümünü profilinden seçersen bölümündeki gönderileri burada görürsün.'
+                  : 'Bölümünden henüz gönderi yok.',
+            ),
+          ),
+          if (_hasDepartment == false)
+            Text('Profil > Profili düzenle', style: TextStyle(color: t.mut)),
+        ],
+      );
+    }
+    return null;
+  }
+
   void _selectSegment(int i) {
     if (i == _segment) return;
     setState(() => _segment = i);
@@ -391,6 +452,11 @@ class _DiscoverTabState extends State<DiscoverTab> {
             title: 'Keşfet',
             actions: [
               BuIconButton(
+                icon: LucideIcons.vote,
+                tooltip: 'Anketler',
+                onTap: () => openPollList(context, widget.session),
+              ),
+              BuIconButton(
                 icon: LucideIcons.search,
                 tooltip: 'Ara',
                 onTap: () => Navigator.push(
@@ -417,23 +483,18 @@ class _DiscoverTabState extends State<DiscoverTab> {
           ),
           const SizedBox(height: 12),
           SizedBox(
-            height: 38,
+            height: 44,
             child: posts
                 ? ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     children: [
-                      Center(
-                          child: BuChip(
-                              label: 'Yeni',
-                              selected: _scope == 'latest',
-                              onTap: () => setState(() => _scope = 'latest'))),
-                      const SizedBox(width: 8),
-                      Center(
-                          child: BuChip(
-                              label: 'Popüler',
-                              selected: _scope == 'popular',
-                              onTap: () => setState(() => _scope = 'popular'))),
+                      for (final e in _scopes) ...[
+                        Center(
+                            child: BuChip(
+                                label: e.$2, selected: _scope == e.$1, onTap: () => _selectScope(e.$1))),
+                        const SizedBox(width: 8),
+                      ],
                     ],
                   )
                 : ListView.separated(
@@ -456,7 +517,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
             child: IndexedStack(
               index: _segment,
               children: [
-                PostFeedView(session: widget.session, scope: _scope, controller: _feedController),
+                PostFeedView(
+                  session: widget.session,
+                  scope: _scope,
+                  controller: _feedController,
+                  header: _feedHeader,
+                  emptyBuilder: (_scope == 'following' || _scope == 'department') ? (c) => _emptyFor(c)! : null,
+                ),
                 _newsStarted ? _body(t) : const SizedBox.shrink(),
               ],
             ),

@@ -296,7 +296,7 @@ void main() {
         ChatInfoPage(
           session: makeSession(be),
           conversation: const {'id': 5, 'type': 'GROUP', 'title': 'Proje Grubu', 'memberCount': 2},
-          members: [
+          members: const [
             {'userId': 1, 'displayName': 'Ayşe Yılmaz'},
             {'userId': 2, 'displayName': 'Mehmet Kaya'},
           ],

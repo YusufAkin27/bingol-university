@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -110,9 +111,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     _lastBack = now;
     final m = ScaffoldMessenger.of(context);
     m.hideCurrentSnackBar();
-    m.showSnackBar(const SnackBar(
-      content: Text('Çıkmak için tekrar geri basın'),
-      duration: Duration(seconds: 2),
+    m.showSnackBar(SnackBar(
+      content: Text(context.l10n.exitAgainHint),
+      duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating,
     ));
   }

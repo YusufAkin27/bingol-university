@@ -85,7 +85,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
   }
 
   Future<void> _unblock(Map<String, dynamic> u) async {
-    final id = (u['id'] as num).toInt();
+    final id = ((u['id'] as num?)?.toInt() ?? -1);
     setState(() => _busy.add(id));
     try {
       await widget.session.api.delete('/users/$id/block');
@@ -129,7 +129,18 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
               return const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()));
             }
             final u = _items![i];
-            final id = (u['id'] as num).toInt();
+            final id = ((u['id'] as num?)?.toInt() ?? -1);
+            // Büyük yazıda ad sıkışıp kaybolmasın: düğme adın altına iner.
+            final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
+            final nameText = Text((u['displayName'] as String?) ?? 'Kullanıcı',
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink));
+            final unblockBtn = BuButton(
+              label: 'Engeli kaldır',
+              compact: true,
+              kind: BuButtonKind.outline,
+              busy: _busy.contains(id),
+              onPressed: () => _unblock(u),
+            );
             return Container(
               decoration: BoxDecoration(
                 color: t.sf,
@@ -138,23 +149,23 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
               ),
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(children: [
-                BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 40),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text((u['displayName'] as String?) ?? 'Kullanıcı',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(color: t.ink)),
-                ),
-                BuButton(
-                  label: 'Engeli kaldır',
-                  compact: true,
-                  kind: BuButtonKind.outline,
-                  busy: _busy.contains(id),
-                  onPressed: () => _unblock(u),
-                ),
-              ]),
+              child: stacked
+                  ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 40),
+                        const SizedBox(width: 12),
+                        Expanded(child: nameText),
+                      ]),
+                      const SizedBox(height: 10),
+                      unblockBtn,
+                    ])
+                  : Row(children: [
+                      BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 40),
+                      const SizedBox(width: 12),
+                      Expanded(child: nameText),
+                      const SizedBox(width: 8),
+                      unblockBtn,
+                    ]),
             );
           },
         ),

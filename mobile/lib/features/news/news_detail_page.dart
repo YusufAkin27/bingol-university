@@ -118,9 +118,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
                   children: [
-                    Row(children: [
+                    Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       BuBadge(TypeBadge.label(type), soft: type != 'HABER'),
-                      const SizedBox(width: 10),
                       Text(niceDate(n['publishedDate'] as String?),
                           style: BuType.caption.copyWith(color: t.mut)),
                     ]),
@@ -129,8 +128,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       Row(children: [
                         Icon(LucideIcons.calendar, size: 14.5, color: t.pr),
                         const SizedBox(width: 6),
-                        Text('Etkinlik tarihi: ${niceDate(eventDate)}',
-                            style: BuType.label.copyWith(color: t.ink)),
+                        Expanded(
+                          child: Text('Etkinlik tarihi: ${niceDate(eventDate)}',
+                              style: BuType.label.copyWith(color: t.ink)),
+                        ),
                       ]),
                     ],
                     const SizedBox(height: 14),
@@ -201,16 +202,20 @@ class _Article extends StatelessWidget {
         .map((p) => p.trim())
         .where((p) => p.isNotEmpty)
         .toList();
-    final style = BuType.heading.copyWith(height: 1.65, color: t.ink);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final p in paragraphs)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: SelectableText(p, style: style),
-          ),
-      ],
+    // Uzun okuma metni: kalın değil normal ağırlık.
+    final style = BuType.heading.copyWith(fontWeight: FontWeight.w400, height: 1.65, color: t.ink);
+    // SelectionArea: metin seçilip kopyalanabilir; SelectableText gibi sahte "dokunma hedefi" üretmez.
+    return SelectionArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final p in paragraphs)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Text(p, style: style),
+            ),
+        ],
+      ),
     );
   }
 }

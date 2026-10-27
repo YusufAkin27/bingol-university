@@ -1,14 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
 import 'app_gate.dart' show ConnectivityHint;
+import 'device_identity.dart';
 
 /// Taban adres derleme anında verilir: `--dart-define=API_BASE=http://192.168.1.20:8080`.
 /// Android emülatöründe bilgisayarın localhost'u 10.0.2.2'dir; gerçek iPhone için bilgisayarın LAN IP'si gerekir.
 const apiOrigin = String.fromEnvironment('API_BASE', defaultValue: 'http://10.0.2.2:8080');
 const apiBase = '$apiOrigin/api';
+
+/// Yerel/elden test sürümünde (`--dart-define=ALLOW_INSECURE_API=true`) http'ye izin verir.
+/// Mağaza (üretim) derlemesinde verilmez; Android tarafı ayrıca cleartext'i kapalı tutar.
+const allowInsecureApi = bool.fromEnvironment('ALLOW_INSECURE_API');
+
+/// Release derlemede API adresi https olmalı (ya da bilinçli ALLOW_INSECURE_API). Debug/test'te her zaman geçerli.
+bool apiConfigValid({String origin = apiOrigin, bool release = kReleaseMode, bool allowInsecure = allowInsecureApi}) {
+  if (!release) return true;
+  final u = Uri.tryParse(origin);
+  if (u == null || u.host.isEmpty) return false;
+  if (u.scheme == 'https') return true;
+  return allowInsecure && u.scheme == 'http';
+}
 
 /// Sunucunun `{code,message}` hatası. Mantık `code` üzerine kurulur; `message` kullanıcıya gösterilir.
 class ApiError implements Exception {
@@ -39,8 +54,15 @@ class ApiResponse {
 class Tokens {
   Tokens(this.access, this.refresh);
 
-  factory Tokens.fromJson(Map<String, dynamic> j) =>
-      Tokens(j['accessToken'] as String, j['refreshToken'] as String);
+  /// Beklenmeyen/bozuk gövdede [ApiError] (status 0, BAD_RESPONSE) fırlatır; TypeError sızmaz.
+  factory Tokens.fromJson(Object? j) {
+    if (j is Map) {
+      final a = j['accessToken'];
+      final r = j['refreshToken'];
+      if (a is String && a.isNotEmpty && r is String && r.isNotEmpty) return Tokens(a, r);
+    }
+    throw ApiError(0, 'BAD_RESPONSE', '');
+  }
 
   final String access;
   final String refresh;
@@ -64,9 +86,32 @@ class ApiClient {
   /// Başka cihazda giriş yapıldı (401 SESSION_REPLACED): yeniden denemeden oturum kapatılır.
   void Function()? onSessionReplaced;
 
+  /// 403 ACCESS_BLOCKED: cihaz/ağ engeli. Oturum silinir, refresh denenmez, engel ekranı gösterilir.
+  void Function()? onAccessBlocked;
+
   Future<Tokens>? _inflight;
 
   static const _timeout = Duration(seconds: 20);
+
+  /// Bundan büyük JSON yanıtı işlenmez (bellek koruması).
+  static const maxResponseBytes = 20 * 1024 * 1024;
+
+  /// Cihaz kimliği başlıkları + dil; her isteğe eklenir.
+  void _baseHeaders(http.Request req) {
+    req.headers.addAll(DeviceIdentity.instance.httpHeaders);
+    req.headers['Accept-Language'] = lang;
+  }
+
+  /// İsteği gönderir; gönderme VE gövde okuma zaman aşımına tabidir, aşırı büyük yanıt reddedilir.
+  Future<http.Response> _fetch(http.Request req) async {
+    final streamed = await _http.send(req).timeout(_timeout);
+    final len = streamed.contentLength;
+    if (len != null && len > maxResponseBytes) {
+      unawaited(streamed.stream.listen((_) {}).cancel());
+      throw ApiError(0, 'RESPONSE_TOO_LARGE', '');
+    }
+    return http.Response.fromStream(streamed).timeout(_timeout);
+  }
   static const _maxCache = 100;
 
   // ETag önbelleği (LRU, kullanıcıya özel): anahtar = dil + yetkili mi + yol.
@@ -85,13 +130,13 @@ class ApiClient {
   /// 2xx dışında `{code,message}` gövdesinden [ApiError] fırlatır.
   Future<List<int>> getBytes(String path, {bool retried = false}) async {
     final req = http.Request('GET', Uri.parse('$apiBase$path'));
-    req.headers['Accept-Language'] = lang;
+    _baseHeaders(req);
     req.headers['Accept'] = 'image/*, application/json';
     final t = tokens;
     if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
     http.Response res;
     try {
-      res = await http.Response.fromStream(await _http.send(req).timeout(_timeout));
+      res = await _fetch(req);
     } catch (_) {
       _hintNetwork(path);
       throw ApiError(0, 'NETWORK', '');
@@ -101,7 +146,7 @@ class ApiClient {
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork && e.code != 'SESSION_REPLACED') onSessionExpired?.call();
+        if (!e.isNetwork && e.code != 'SESSION_REPLACED' && e.code != 'ACCESS_BLOCKED') onSessionExpired?.call();
         rethrow;
       }
       return getBytes(path, retried: true);
@@ -127,7 +172,7 @@ class ApiClient {
       {Object? body, bool auth = true, bool retried = false, bool retriedTransient = false}) async {
     final isGet = method == 'GET';
     final req = http.Request(method, Uri.parse('$apiBase$path'));
-    req.headers['Accept-Language'] = lang;
+    _baseHeaders(req);
     req.headers['Accept'] = 'application/json';
     if (body != null) {
       req.headers['Content-Type'] = 'application/json; charset=utf-8';
@@ -142,8 +187,9 @@ class ApiClient {
 
     http.Response res;
     try {
-      res = await http.Response.fromStream(await _http.send(req).timeout(_timeout));
-    } catch (_) {
+      res = await _fetch(req);
+    } catch (e) {
+      if (e is ApiError) rethrow; // örn. RESPONSE_TOO_LARGE: yeniden denemenin anlamı yok
       if (isGet && !retriedTransient) {
         await Future<void>.delayed(retryDelay);
         return _sendFull(method, path,
@@ -164,7 +210,7 @@ class ApiClient {
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork && e.code != 'SESSION_REPLACED') onSessionExpired?.call();
+        if (!e.isNetwork && e.code != 'SESSION_REPLACED' && e.code != 'ACCESS_BLOCKED') onSessionExpired?.call();
         rethrow;
       }
       return _sendFull(method, path, body: body, auth: auth, retried: true, retriedTransient: retriedTransient);
@@ -196,7 +242,7 @@ class ApiClient {
   bool _checkReplaced(http.Response res) {
     if (res.statusCode != 401 || tokens == null) return false;
     try {
-      final j = jsonDecode(utf8.decode(res.bodyBytes));
+      final j = jsonDecode(utf8.decode(res.bodyBytes, allowMalformed: true));
       if (j is Map && j['code'] == 'SESSION_REPLACED') {
         onSessionReplaced?.call();
         return true;
@@ -216,7 +262,7 @@ class ApiClient {
   }
 
   dynamic _decode(http.Response res) {
-    final text = utf8.decode(res.bodyBytes);
+    final text = utf8.decode(res.bodyBytes, allowMalformed: true);
     dynamic json;
     if (text.isNotEmpty) {
       try {
@@ -228,8 +274,10 @@ class ApiClient {
     if (res.statusCode >= 200 && res.statusCode < 300) return json;
     final retryAfter = int.tryParse((res.headers['retry-after'] ?? '').trim());
     if (json is Map && json['code'] is String) {
-      throw ApiError(res.statusCode, json['code'] as String, (json['message'] as String?) ?? '',
-          retryAfter: retryAfter);
+      final code = json['code'] as String;
+      final msg = json['message'];
+      if (res.statusCode == 403 && code == 'ACCESS_BLOCKED') onAccessBlocked?.call();
+      throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter);
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);
   }
@@ -241,7 +289,7 @@ class ApiClient {
     final old = tokens?.refresh;
     if (old == null) throw ApiError(401, 'INVALID_REFRESH_TOKEN', '');
     final res = await _sendRaw('/auth/refresh', {'refreshToken': old});
-    final t = Tokens.fromJson(res as Map<String, dynamic>);
+    final t = Tokens.fromJson(res);
     await setTokens(t); // önce yeni çifti yaz
     return t;
   }

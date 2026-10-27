@@ -1,0 +1,6 @@
+# Bu dosyayi key.properties adiyla kopyalayip doldurun. key.properties ve *.jks GIT'E GIRMEZ.
+# storeFile, android/ klasorune gore (veya mutlak) yoldur.
+storeFile=../../bu-upload.jks
+storePassword=<KEYSTORE_SIFRESI>
+keyAlias=upload
+keyPassword=<ANAHTAR_SIFRESI>

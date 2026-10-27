@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../core/typography.dart';
+import '../polls/poll_menu_card.dart';
 
 const _months = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -162,13 +163,13 @@ class _MenuPageState extends State<MenuPage> {
       padding: const EdgeInsets.fromLTRB(_hPad, 16, _hPad, 0),
       child: Row(
         children: [
-          BuIconButton(icon: LucideIcons.chevronLeft, size: 36, tooltip: 'Önceki ay', onTap: () => _changeMonth(-1)),
+          BuIconButton(icon: LucideIcons.chevronLeft, size: 44, tooltip: 'Önceki ay', onTap: () => _changeMonth(-1)),
           Expanded(
             child: Text('${_months[_month.month - 1]} ${_month.year}',
                 textAlign: TextAlign.center,
                 style: BuType.bodyStrong.copyWith(color: t.ink)),
           ),
-          BuIconButton(icon: LucideIcons.chevronRight, size: 36, tooltip: 'Sonraki ay', onTap: () => _changeMonth(1)),
+          BuIconButton(icon: LucideIcons.chevronRight, size: 44, tooltip: 'Sonraki ay', onTap: () => _changeMonth(1)),
         ],
       ),
     );
@@ -176,8 +177,10 @@ class _MenuPageState extends State<MenuPage> {
 
   Widget _dayStrip(BuTokens t) {
     final w = _cellWidth(MediaQuery.of(context).size.width);
+    // Büyük yazı ölçeğinde gün hücresi taşmasın: yükseklik yazı ölçeğiyle büyür.
+    final stripH = MediaQuery.textScalerOf(context).scale(48).clamp(66.0, 130.0);
     return SizedBox(
-      height: 66,
+      height: stripH,
       child: ListView.separated(
         key: ValueKey(_monthParam(_month)),
         controller: _strip,
@@ -190,6 +193,11 @@ class _MenuPageState extends State<MenuPage> {
           final on = d.day == _selected.day;
           return SizedBox(
             width: w,
+            child: Semantics(
+              button: true,
+              selected: on,
+              label: '${d.day} ${_months[d.month - 1]}',
+              child: ExcludeSemantics(
             child: Material(
               color: on ? t.pr : t.sf,
               shape: RoundedRectangleBorder(
@@ -210,7 +218,7 @@ class _MenuPageState extends State<MenuPage> {
                   ],
                 ),
               ),
-            ),
+            ))),
           );
         },
       ),
@@ -222,7 +230,7 @@ class _MenuPageState extends State<MenuPage> {
     if (_error != null) return ErrorView(error: _error!, onRetry: _load);
 
     final items = _menus[_selected.day];
-    final label = '${_isToday(_selected) ? 'BUGÜN · ' : ''}${_selected.day} ${_months[_selected.month - 1].toUpperCase().replaceAll('I', 'İ')}';
+    final label = '${_isToday(_selected) ? 'BUGÜN · ' : ''}${_selected.day} ${trUpper(_months[_selected.month - 1])}';
     final later = _menus.keys.where((d) => d > _selected.day).toList()..sort();
 
     return RefreshIndicator(
@@ -253,6 +261,7 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
           ),
+          if (_isToday(_selected)) PollMenuCard(session: widget.session),
           if (_menus.isEmpty)
             const Padding(
               padding: EdgeInsets.only(top: 48),

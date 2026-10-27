@@ -207,7 +207,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             style: BuType.body.copyWith(color: t.ink),
             decoration: InputDecoration(
               hintText: 'Yanıt yazın',
-              hintStyle: TextStyle(color: t.mut),
+              hintStyle: BuType.body.copyWith(color: t.mut),
               counterText: '',
               filled: true,
               fillColor: t.sf2,

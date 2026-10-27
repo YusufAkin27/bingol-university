@@ -20,10 +20,6 @@ PermissionInfo permissionInfo(AppPermission p) => switch (p) {
           'Bildirimler',
           LucideIcons.bell,
           'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.'),
-      AppPermission.location => const PermissionInfo(
-          'Konum',
-          LucideIcons.mapPin,
-          'Yakındaki etkinlik ve duyuruları gösterebilmek için yaklaşık konumunuzu kullanırız.'),
       AppPermission.contacts => const PermissionInfo(
           'Rehber',
           LucideIcons.contact,

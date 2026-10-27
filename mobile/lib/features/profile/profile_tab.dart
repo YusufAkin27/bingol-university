@@ -6,6 +6,10 @@ import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../academic/academic_hub_page.dart';
+import '../follow/follow_suggestions.dart';
+import '../follow/follow_summary.dart';
+import '../posts/saved_posts_page.dart';
 import '../posts/user_posts_page.dart';
 import 'edit_profile_page.dart';
 import 'my_clubs_page.dart';
@@ -116,6 +120,8 @@ class _ProfileTabState extends State<ProfileTab> {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, kNavInset + 24),
                     children: [
                       _HeaderCard(profile: p),
+                      if (widget.session.userId != null)
+                        FollowSummary(session: widget.session, userId: widget.session.userId!, name: widget.session.displayName),
                       const SizedBox(height: 12),
                       BuCard(
                         padding: EdgeInsets.zero,
@@ -141,8 +147,23 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                         BuMenuRow(
                           icon: LucideIcons.bookmark,
+                          label: 'Kaydedilen gönderiler',
+                          onTap: () => _go(SavedPostsPage(session: widget.session)),
+                        ),
+                        BuMenuRow(
+                          icon: LucideIcons.userPlus,
+                          label: 'Önerilen kişiler',
+                          onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
+                        ),
+                        BuMenuRow(
+                          icon: LucideIcons.newspaper,
                           label: 'Kaydedilenler',
                           onTap: () => _go(SavedNewsPage(session: widget.session)),
+                        ),
+                        BuMenuRow(
+                          icon: LucideIcons.graduationCap,
+                          label: 'Akademik',
+                          onTap: () => _go(AcademicHubPage(session: widget.session)),
                         ),
                         BuMenuRow(
                           icon: LucideIcons.calendar,
@@ -207,44 +228,46 @@ class _HeaderCard extends StatelessWidget {
       child: Text(initialsOf(name),
           style: BuType.display.copyWith(color: Colors.white)),
     );
+    final avatar = url == null
+        ? initials
+        : ClipOval(
+            child: Image.network(url,
+                width: 72, height: 72, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
+          );
+    // Büyük yazı ölçeğinde avatar üstte, bilgiler altta: ad kırpılmaz.
+    final stacked = MediaQuery.textScalerOf(context).scale(10) > 14;
+    final info = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(name ?? '',
+            maxLines: stacked ? null : 3, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
+        const SizedBox(height: 2),
+        Text((profile['email'] as String?) ?? '',
+            maxLines: stacked ? 2 : 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
+        if (tag.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          BuBadge(tag, soft: true),
+        ],
+      ],
+    );
     return BuCard(
       padding: const EdgeInsets.all(18),
       radius: 22,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              if (url == null)
-                initials
-              else
-                ClipOval(
-                  child: Image.network(url,
-                      width: 72, height: 72, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
-                ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.title.copyWith(color: t.ink)),
-                    const SizedBox(height: 2),
-                    Text((profile['email'] as String?) ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(color: t.mut)),
-                    if (tag.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      BuBadge(tag, soft: true),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
+          if (stacked) ...[
+            avatar,
+            const SizedBox(height: 12),
+            info,
+          ] else
+            Row(
+              children: [
+                avatar,
+                const SizedBox(width: 16),
+                Expanded(child: info),
+              ],
+            ),
           if (bio.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text(bio, style: BuType.body.copyWith(height: 1.45, color: t.mut)),
@@ -266,12 +289,12 @@ class _Stat extends StatelessWidget {
     final t = context.bu;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
         child: Column(
           children: [
             Text(value ?? '–', style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 2),
-            Text(label, style: BuType.caption.copyWith(color: t.mut)),
+            Text(label, textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
           ],
         ),
       ),

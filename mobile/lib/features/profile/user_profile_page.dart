@@ -9,6 +9,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
+import '../follow/follow_summary.dart';
 import '../posts/profile_posts_section.dart';
 import 'edit_profile_page.dart';
 
@@ -312,6 +313,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               style: BuType.label.copyWith(
                   color: _presence?['online'] == true ? t.ok : t.mut)),
         ],
+        FollowSummary(
+            key: ValueKey('follow-${widget.userId}'), session: widget.session, userId: widget.userId, name: _name),
         const SizedBox(height: 20),
         if (_self)
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -391,7 +394,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             const SizedBox(height: 6),
             Text(label,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: BuType.label.copyWith(color: t.ink)),

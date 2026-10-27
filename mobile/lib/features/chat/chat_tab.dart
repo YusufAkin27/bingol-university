@@ -163,8 +163,9 @@ class _ChatTabState extends State<ChatTab> {
       final total = res is Map
           ? res['total']
           : null; // UnreadSummary: total (sessiz olmayanlar)
-      if (total is num && mounted)
+      if (total is num && mounted) {
         widget.session.badges.chat.value = total.toInt();
+      }
     } catch (_) {
       // Rozet yedek olarak eldeki listeden hesaplanır.
       if (!_archived && mounted) _syncBadgeLocal();
@@ -202,8 +203,9 @@ class _ChatTabState extends State<ChatTab> {
     final mine = (m['senderId'] as num?)?.toInt() == widget.session.userId;
     final row = Map<String, dynamic>.from(_items[i]);
     row['lastMessage'] = m;
-    if (!mine)
+    if (!mine) {
       row['unreadCount'] = ((row['unreadCount'] as num?)?.toInt() ?? 0) + 1;
+    }
     setState(() {
       _items
         ..removeAt(i)
@@ -480,8 +482,9 @@ class _ChatTabState extends State<ChatTab> {
     }
     if (_error != null && _items.isEmpty) {
       return [
+        // hasScrollBody:false alt çocuğun doğal boyutunu ister; ErrorView sınırlı yüksekliğe ihtiyaç duyar.
         SliverFillRemaining(
-            hasScrollBody: false,
+            hasScrollBody: true,
             child: ErrorView(error: _error!, onRetry: _load)),
       ];
     }
@@ -504,7 +507,7 @@ class _ChatTabState extends State<ChatTab> {
               child: Text('Arşiv',
                   style: BuType.bodyStrong.copyWith(color: t.mut)),
             ),
-            Icon(LucideIcons.chevronRight, size: 16, color: t.mut),
+            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
           ],
         ),
       ),
@@ -546,68 +549,68 @@ class _ChatTabState extends State<ChatTab> {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
       sliver: SliverList.builder(
-      itemCount: head + list.length + (_loadingMore ? 1 : 0),
-      itemBuilder: (_, i) {
-        if (i < head) return _archiveEntry(t);
-        final k = i - head;
-        if (k >= list.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(
-                child: SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2.4))),
+        itemCount: head + list.length + (_loadingMore ? 1 : 0),
+        itemBuilder: (_, i) {
+          if (i < head) return _archiveEntry(t);
+          final k = i - head;
+          if (k >= list.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(
+                  child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2.4))),
+            );
+          }
+          final c = list[k];
+          final row = Dismissible(
+            key: ValueKey('conv-${c['id']}'),
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (_) async {
+              await _toggleArchive(c);
+              return false; // satırı _toggleArchive kendisi kaldırır
+            },
+            background: Container(
+              alignment: AlignmentDirectional.centerEnd,
+              padding: const EdgeInsetsDirectional.only(end: 20),
+              color: t.pr,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(LucideIcons.archive, color: t.onPr),
+                  Text(_archived ? 'Çıkar' : 'Arşivle',
+                      style: BuType.micro.copyWith(color: t.onPr)),
+                ],
+              ),
+            ),
+            child: Builder(
+              builder: (rowCtx) => _ConversationRow(
+                title: _title(c),
+                conversation: c,
+                onTap: () => _openChat(c),
+                onLongPress: () {
+                  HapticFeedback.selectionClick();
+                  _showActions(c, rowCtx);
+                },
+              ),
+            ),
           );
-        }
-        final c = list[k];
-        final row = Dismissible(
-          key: ValueKey('conv-${c['id']}'),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (_) async {
-            await _toggleArchive(c);
-            return false; // satırı _toggleArchive kendisi kaldırır
-          },
-          background: Container(
-            alignment: AlignmentDirectional.centerEnd,
-            padding: const EdgeInsetsDirectional.only(end: 20),
-            color: t.pr,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(LucideIcons.archive, color: t.onPr),
-                Text(_archived ? 'Çıkar' : 'Arşivle',
-                    style: BuType.micro.copyWith(color: t.onPr)),
-              ],
+          final removing = _removing.contains((c['id'] as num?)?.toInt());
+          return ClipRect(
+            key: ValueKey('wrap-${c['id']}'),
+            child: IgnorePointer(
+              ignoring: removing,
+              child: AnimatedAlign(
+                alignment: Alignment.topCenter,
+                heightFactor: removing ? 0 : 1,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: row,
+              ),
             ),
-          ),
-          child: Builder(
-            builder: (rowCtx) => _ConversationRow(
-              title: _title(c),
-              conversation: c,
-              onTap: () => _openChat(c),
-              onLongPress: () {
-                HapticFeedback.selectionClick();
-                _showActions(c, rowCtx);
-              },
-            ),
-          ),
-        );
-        final removing = _removing.contains((c['id'] as num?)?.toInt());
-        return ClipRect(
-          key: ValueKey('wrap-${c['id']}'),
-          child: IgnorePointer(
-            ignoring: removing,
-            child: AnimatedAlign(
-              alignment: Alignment.topCenter,
-              heightFactor: removing ? 0 : 1,
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              child: row,
-            ),
-          ),
-        );
-      },
+          );
+        },
       ),
     );
   }
@@ -660,32 +663,36 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
                 color: t.sf2, borderRadius: BorderRadius.circular(20)),
-            child: Row(
-              children: [
-                for (var i = 0; i < filters.length; i++)
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => onSelect(i),
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(
-                          color: i == selected ? t.ink : Colors.transparent,
-                          borderRadius: BorderRadius.circular(17),
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(filters[i],
-                              maxLines: 1,
-                              softWrap: false,
-                              style: BuType.label.copyWith(
-                                  color: i == selected ? t.bg : t.mut)),
+            // Sabit yükseklikli denetim: yazı ölçeği sınırlanır, etiketler aynı boyutta kalır.
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.1,
+              child: Row(
+                children: [
+                  for (var i = 0; i < filters.length; i++)
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onSelect(i),
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: i == selected ? t.ink : Colors.transparent,
+                            borderRadius: BorderRadius.circular(17),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(filters[i],
+                                maxLines: 1,
+                                softWrap: false,
+                                style: BuType.label.copyWith(
+                                    color: i == selected ? t.bg : t.mut)),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -717,28 +724,23 @@ class _SkeletonList extends StatelessWidget {
 
   Widget _skeletonRow(BuTokens t, Widget Function(double, double) bar) {
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Container(
-                width: 52,
-                height: 52,
-                decoration:
-                    BoxDecoration(color: t.sf2, shape: BoxShape.circle)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  bar(140, 14),
-                  const SizedBox(height: 8),
-                  bar(220, 12)
-                ],
-              ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [bar(140, 14), const SizedBox(height: 8), bar(220, 12)],
             ),
-            bar(28, 10),
-          ],
-        ),
+          ),
+          bar(28, 10),
+        ],
+      ),
     );
   }
 }
@@ -836,14 +838,17 @@ class _ConversationRow extends StatelessWidget {
                         const SizedBox(width: 4),
                       ],
                       if (once) ...[
-                        OnceBadge(color: unread > 0 && !muted ? t.ink : t.mut, size: 16),
+                        OnceBadge(
+                            color: unread > 0 && !muted ? t.ink : t.mut,
+                            size: 16),
                         const SizedBox(width: 6),
                       ],
                       Expanded(
                         child: Text(preview,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: BuType.caption.copyWith(color: unread > 0 && !muted ? t.ink : t.mut)),
+                            style: BuType.caption.copyWith(
+                                color: unread > 0 && !muted ? t.ink : t.mut)),
                       ),
                     ]),
                   ],
@@ -884,7 +889,9 @@ class _ConversationRow extends StatelessWidget {
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) return text.replaceAll(RegExp(r'\s+'), ' ');
     final att = last['attachments'];
-    if (att is List && att.isNotEmpty) return viewOnceAttachment(last) != null ? _onceText : 'Görsel';
+    if (att is List && att.isNotEmpty) {
+      return viewOnceAttachment(last) != null ? _onceText : 'Görsel';
+    }
     return '';
   }
 

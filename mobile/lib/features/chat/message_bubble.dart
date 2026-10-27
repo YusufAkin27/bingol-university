@@ -268,11 +268,12 @@ class MessageBubble extends StatelessWidget {
           horizontal: hasMedia ? 6 : 14, vertical: hasMedia ? 6 : 9),
       decoration: BoxDecoration(
         color: mine ? t.soft : t.sf,
-        borderRadius: BorderRadius.only(
-          topLeft: r,
-          topRight: r,
-          bottomLeft: (mine || !tail) ? r : small,
-          bottomRight: (mine && tail) ? small : r,
+        // Mantıksal köşeler: sağdan sola düzende kuyruk köşesi de aynalanır.
+        borderRadius: BorderRadiusDirectional.only(
+          topStart: r,
+          topEnd: r,
+          bottomStart: (mine || !tail) ? r : small,
+          bottomEnd: (mine && tail) ? small : r,
         ),
       ),
       child: Column(
@@ -321,7 +322,7 @@ class MessageBubble extends StatelessWidget {
     );
 
     final column = Align(
-      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: Column(
         crossAxisAlignment:
             mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -682,7 +683,7 @@ class _LocalGrid extends StatelessWidget {
                     ColoredBox(
                       color: Colors.black.withValues(alpha: .5),
                       child: Center(
-                          child: Text('+$extra', style: BuType.title.copyWith(color: Colors.white))),
+                          child: Text('+$extra', textDirection: TextDirection.ltr, style: BuType.title.copyWith(color: Colors.white))),
                     ),
                 ]),
               ),
@@ -752,12 +753,24 @@ class _AttachmentImage extends StatelessWidget {
         );
 
     if (hidden) {
-      return box(ColoredBox(
-        color: t.sf2,
-        child: Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
-      ));
+      return Semantics(
+        label: 'Görsel kullanılamıyor',
+        excludeSemantics: true,
+        child: box(ColoredBox(
+          color: t.sf2,
+          child: Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+        )),
+      );
     }
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      image: true,
+      excludeSemantics: true,
+      label: video
+          ? (durationMs != null ? 'Video, ${formatMediaDuration(durationMs)}' : 'Video')
+          : 'Fotoğraf',
+      onTap: onTap,
+      child: GestureDetector(
       onTap: onTap,
       child: box(Stack(fit: StackFit.expand, children: [
         if (thumb == null)
@@ -781,7 +794,8 @@ class _AttachmentImage extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2)))),
           errorBuilder: (c, e, s) => ColoredBox(
             color: t.sf2,
-            child: Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+            // Videoda oynat simgesi zaten ortada: kırık görsel simgesi onunla üst üste binmesin.
+            child: video ? null : Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
           ),
         ),
         if (video && more == 0) ...[
@@ -794,11 +808,11 @@ class _AttachmentImage extends StatelessWidget {
           ColoredBox(
             color: Colors.black.withValues(alpha: .5),
             child: Center(
-                child: Text('+$more',
+                child: Text('+$more', textDirection: TextDirection.ltr,
                     style: BuType.title.copyWith(color: Colors.white))),
           ),
       ])),
-    );
+    ));
   }
 }
 
@@ -873,11 +887,12 @@ class _SwipeReplyState extends State<_SwipeReply>
   void initState() {
     super.initState();
     _back.addListener(() {
-      if (mounted)
+      if (mounted) {
         setState(() => _p =
             (_from * (1 - Curves.easeOutCubic.transform(_back.value)))
                 .clamp(0.0, _max)
                 .toDouble());
+      }
     });
   }
 

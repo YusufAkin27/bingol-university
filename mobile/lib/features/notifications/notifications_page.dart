@@ -6,13 +6,8 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import '../chat/chat_detail_page.dart';
-import '../clubs/club_detail_page.dart';
-import '../events/event_detail_page.dart';
-import '../news/news_detail_page.dart';
-import '../posts/post_routes.dart';
-import '../support/support_page.dart';
-import '../support/support_ticket_page.dart';
+import '../../core/push/push_router.dart';
+import '../../core/push/push_targets.dart';
 import '../../core/typography.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
@@ -136,50 +131,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return {};
   }
 
-  int? _id(Object? v) => v == null ? null : int.tryParse(v.toString());
-
   Future<void> _open(Map<String, dynamic> n) async {
     _markOne(n);
+    // Tek yönlendirme tablosu: push dokunuşu ile aynı (core/push/push_targets.dart).
     final d = _data(n);
-    // Yeni yük: targetType + targetId; eski yük: target + value veya doğrudan anahtarlar.
-    final target = (d['targetType'] ?? d['target'])?.toString().toUpperCase();
-    final value = d['targetId'] ?? d['value'];
-    final newsId = _id(d['newsId'] ?? (target == 'NEWS' || target == 'ANNOUNCEMENT' ? value : null));
-    final eventId = _id(d['eventId'] ?? (target == 'EVENT' ? value : null));
-    final communityId = _id(d['communityId'] ?? (target == 'COMMUNITY' ? value : null));
-    final convId = _id(d['conversationId'] ?? (target == 'CONVERSATION' || target == 'MESSAGE' ? value : null));
-    final ticketId = _id(d['ticketId'] ?? (target == 'TICKET' ? value : null));
-    final feedbackId = _id(d['feedbackId'] ?? (target == 'FEEDBACK' ? value : null));
-
-    final postId = _id(d['postId'] ?? (target == 'POST' ? value : null));
-    if (postId != null) {
-      await openPostDetail(context, _s, postId, focusCommentId: _id(d['commentId']));
-      return;
-    }
-
-    Widget? page;
-    if (convId != null) {
-      try {
-        final c = await _s.api.get('/conversations/$convId') as Map<String, dynamic>;
-        if (!mounted) return;
-        page = ChatDetailPage(session: _s, conversation: c);
-      } catch (e) {
-        if (mounted) _snack(errorText(e));
-        return;
-      }
-    } else if (eventId != null) {
-      page = EventDetailPage(session: _s, eventId: eventId);
-    } else if (communityId != null) {
-      page = ClubDetailPage(session: _s, communityId: communityId);
-    } else if (ticketId != null) {
-      page = SupportTicketPage(session: _s, ticketId: ticketId);
-    } else if (feedbackId != null) {
-      page = SupportPage(session: _s);
-    } else if (newsId != null) {
-      page = NewsDetailPage(session: _s, item: {'id': newsId, 'title': n['title']});
-    }
-    if (page == null || !mounted) return;
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+    final t = resolvePushTarget(d);
+    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) return;
+    await PushRouter.open(d);
   }
 
   IconData _icon(String? type) {
@@ -194,6 +152,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return LucideIcons.messageCircle;
       case 'COMMUNITY':
         return LucideIcons.users;
+      case 'POLL':
+      case 'POLL_CLOSED':
+      case 'POLL_NEW':
+        return LucideIcons.vote;
       case 'POST_LIKE':
         return LucideIcons.heart;
       case 'POST_COMMENT':
@@ -220,20 +182,34 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    // Büyük yazı ölçeğinde başlığı ezmesin diye düğme başlığın altına iner.
+    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 340;
     final pill = _unread > 0 || _s.badges.notifications.value > 0
-        ? GestureDetector(
-            onTap: _markAll,
-            child: Container(
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(18)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.checkCheck, size: 14.5, color: t.onSoft),
-                const SizedBox(width: 6),
-                Text('Tümünü okundu yap',
-                    style: BuType.label.copyWith(color: t.onSoft)),
-              ]),
-            ),
+        ? ConstrainedBox(
+            // Dar ekran/büyük yazıda başlığı ezmesin: en çok genişliğin %45'i, metin kısalır.
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .45)),
+              child: Material(
+                color: t.soft,
+                borderRadius: BorderRadius.circular(22),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: _markAll,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(LucideIcons.checkCheck, size: 14.5, color: t.onSoft),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text('Tümünü okundu yap',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: BuType.label.copyWith(color: t.onSoft)),
+                      ),
+                    ]),
+                  ),
+                ),
+              ),
           )
         : null;
 
@@ -285,8 +261,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
         BuHeader(
           title: 'Bildirimler',
           onBack: () => Navigator.pop(context),
-          actions: [if (pill != null) pill],
+          actions: [if (pill != null && !bigText) pill],
         ),
+        if (pill != null && bigText)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
+          ),
         Expanded(child: body),
       ]),
     );
@@ -295,7 +276,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
     final un = n['read'] != true;
     final body = (n['body'] as String?) ?? '';
-    return Material(
+    return Semantics(
+      button: true,
+      label: un ? 'Okunmamış bildirim' : null,
+      child: Material(
       color: un ? t.soft : t.sf,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
@@ -317,7 +301,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: un ? 14 : 0),
+                padding: EdgeInsetsDirectional.only(end: un ? 14 : 0),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text((n['title'] as String?) ?? '',
                       style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
@@ -347,6 +331,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ]),
         ),
       ),
-    );
+    ));
   }
 }

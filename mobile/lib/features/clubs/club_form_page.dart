@@ -360,7 +360,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
           ),
         if (_questions.length < _maxQuestions)
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: BuButton(
               label: 'Soru ekle',
               icon: LucideIcons.plus,
@@ -393,10 +393,10 @@ class _ClubFormPageState extends State<ClubFormPage> {
             ),
           ),
           if (has)
-            Positioned(
-              right: 10,
+            PositionedDirectional(
+              end: 10,
               bottom: 10,
-              child: BuIconButton(icon: LucideIcons.camera, size: 38, tooltip: 'Kapağı değiştir', onTap: _busy ? null : _pickCover),
+              child: BuIconButton(icon: LucideIcons.camera, size: 44, tooltip: 'Kapağı değiştir', onTap: _busy ? null : _pickCover),
             ),
         ],
       ),

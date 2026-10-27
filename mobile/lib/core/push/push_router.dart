@@ -1,70 +1,120 @@
 import 'package:flutter/material.dart';
 
+import '../../features/academic/announcements_page.dart';
+import '../../features/academic/exams_page.dart';
+import '../../features/academic/timetable_page.dart';
 import '../../features/chat/chat_detail_page.dart';
 import '../../features/clubs/club_detail_page.dart';
 import '../../features/events/event_detail_page.dart';
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
+import '../../features/polls/poll_routes.dart';
 import '../../features/posts/post_routes.dart';
+import '../../features/posts/social_api.dart';
+import '../../features/profile/user_profile_page.dart';
+import '../../features/stories/story_viewer_page.dart';
+import '../../features/support/support_page.dart';
+import '../../features/support/support_ticket_page.dart';
 import '../api.dart';
 import '../nav.dart';
 import '../session.dart';
+import 'push_targets.dart';
 
-/// Push `data` yüküne göre sayfa açar (MOBILE_API_GUIDE bölüm 6).
+/// Push / yerel hatırlatma `data` yüküne göre sayfa açar (MOBILE_API_GUIDE bölüm 6).
+/// Eşleme saf fonksiyonda ([resolvePushTarget]); burada yalnız gezinme vardır.
+/// Çözülemeyen/hatalı hedef Bildirimler listesine düşer; hiçbir koşulda exception sızmaz.
 class PushRouter {
   PushRouter._();
 
   /// PushService tarafından atanır.
   static Session? session;
 
-  static int? _id(Object? v) => v == null ? null : int.tryParse('$v');
-
-  /// Kampanya hedefi (`target`/`value`) veya doğrudan anahtarlar (conversationId...) kabul edilir.
   static Future<void> open(Map<String, dynamic> data) async {
     final s = session;
-    if (s != null && '${data['type']}'.toLowerCase() == 'session_replaced') {
+    final target = resolvePushTarget(data);
+    if (s != null && target.dest == PushDest.signOut) {
       await s.forceSignOut(reason: SignOutReason.replaced);
       return;
     }
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
-
-    var conversationId = _id(data['conversationId']);
-    var eventId = _id(data['eventId']);
-    var communityId = _id(data['communityId']);
-    var newsId = _id(data['newsId']);
-    final target = '${data['targetType'] ?? data['target'] ?? ''}'.toUpperCase();
-    final value = _id(data['targetId'] ?? data['value']);
-    final postId = _id(data['postId']) ?? (target == 'POST' ? value : null);
-    if (postId != null && conversationId == null) {
-      await openPostDetail(nav.context, s, postId, focusCommentId: _id(data['commentId']));
-      return;
+    try {
+      if (await _go(nav, s, target)) return;
+    } catch (_) {
+      // Açılamayan hedef: bildirim listesine düş.
     }
-    if (value != null) {
-      if (target == 'NEWS') newsId ??= value;
-      if (target == 'EVENT') eventId ??= value;
-      if (target == 'COMMUNITY') communityId ??= value;
-    }
+    if (!nav.mounted) return;
+    nav.push(MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+  }
 
-    if (conversationId != null) {
-      try {
-        final conv = await s.api.get('/conversations/$conversationId') as Map<String, dynamic>;
-        nav.push(MaterialPageRoute(builder: (_) => ChatDetailPage(session: s, conversation: conv)));
-        return;
-      } on ApiError {
-        // Sohbet açılamazsa bildirim listesine düş.
+  /// true = hedef açıldı.
+  static Future<bool> _go(NavigatorState nav, Session s, PushTarget t) async {
+    final id = t.id;
+    final ctx = nav.context;
+    void push(Widget page) => nav.push(MaterialPageRoute<void>(builder: (_) => page));
+    switch (t.dest) {
+      case PushDest.conversation:
+        try {
+          final conv = await s.api.get('/conversations/$id') as Map<String, dynamic>;
+          push(ChatDetailPage(session: s, conversation: conv));
+          return true;
+        } on ApiError {
+          return false;
+        }
+      case PushDest.event:
+        push(EventDetailPage(session: s, eventId: id!));
+        return true;
+      case PushDest.community:
+        push(ClubDetailPage(session: s, communityId: id!));
+        return true;
+      case PushDest.news:
+        push(NewsDetailPage(session: s, item: <String, dynamic>{'id': id}));
+        return true;
+      case PushDest.post:
+        await openPostDetail(ctx, s, id!, focusCommentId: t.commentId);
+        return true;
+      case PushDest.poll:
+        await openPollDetail(ctx, s, id!);
+        return true;
+      case PushDest.user:
+        await openUserProfile(ctx, s, userId: id!);
+        return true;
+      case PushDest.story:
+        return _openStory(nav, s, id!);
+      case PushDest.deptAnnouncement:
+        push(AnnouncementDetailPage(session: s, id: id!));
+        return true;
+      case PushDest.timetable:
+        push(TimetablePage(session: s));
+        return true;
+      case PushDest.exams:
+        push(ExamsPage(session: s));
+        return true;
+      case PushDest.ticket:
+        push(SupportTicketPage(session: s, ticketId: id!));
+        return true;
+      case PushDest.feedback:
+        push(SupportPage(session: s));
+        return true;
+      case PushDest.signOut:
+      case PushDest.notifications:
+        return false;
+    }
+  }
+
+  /// Hikâye sahibinin halkasını bulup oynatıcıyı açar; halka yoksa (süresi doldu) profiline düşer.
+  static Future<bool> _openStory(NavigatorState nav, Session s, int userId) async {
+    try {
+      final groups = await SocialApi(s).tray();
+      final i = groups.indexWhere((g) => g.userId == userId);
+      if (i >= 0) {
+        await nav.push<void>(MaterialPageRoute<void>(
+            builder: (_) => StoryViewerPage(session: s, groups: groups, initialGroup: i)));
+        return true;
       }
-    } else if (eventId != null) {
-      nav.push(MaterialPageRoute(builder: (_) => EventDetailPage(session: s, eventId: eventId!)));
-      return;
-    } else if (communityId != null) {
-      nav.push(MaterialPageRoute(builder: (_) => ClubDetailPage(session: s, communityId: communityId!)));
-      return;
-    } else if (newsId != null) {
-      nav.push(MaterialPageRoute(
-          builder: (_) => NewsDetailPage(session: s, item: <String, dynamic>{'id': newsId})));
-      return;
-    }
-    nav.push(MaterialPageRoute(builder: (_) => NotificationsPage(session: s)));
+    } catch (_) {}
+    if (!nav.mounted) return false;
+    await openUserProfile(nav.context, s, userId: userId);
+    return true;
   }
 }

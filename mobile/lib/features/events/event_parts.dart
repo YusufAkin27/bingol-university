@@ -169,8 +169,8 @@ class EventAvatarStack extends StatelessWidget {
           width: size + (shown.length - 1) * 16,
           child: Stack(children: [
             for (var i = 0; i < shown.length; i++)
-              Positioned(
-                left: i * 16.0,
+              PositionedDirectional(
+                start: i * 16.0,
                 child: Container(
                   decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
                   child: BuAvatar(
@@ -197,8 +197,8 @@ class EventCoverFallback extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(gradient: t.hero),
       child: Stack(children: [
-        Positioned(
-          right: -30,
+        PositionedDirectional(
+          end: -30,
           top: -40,
           child: Container(
             width: 140,

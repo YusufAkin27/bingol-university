@@ -102,6 +102,7 @@ class _Tile extends StatelessWidget {
             if (m != null)
               Image.network(m.thumbUrl ?? m.url,
                   headers: postAuthHeaders(session),
+                  cacheWidth: 400,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)))
             else

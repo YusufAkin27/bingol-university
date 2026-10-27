@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -98,7 +99,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     try {
       await widget.session.resendCode(widget.email);
       if (!mounted) return;
-      setState(() => _info = 'Yeni kod gönderildi.');
+      setState(() => _info = context.l10n.authNewCodeSent);
       _startCooldown();
     } catch (e) {
       if (!mounted) return;
@@ -112,10 +113,10 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     final t = context.bu;
     return AuthScaffold(
       showBack: true,
-      title: 'E-postanızı doğrulayın',
-      subtitle: 'Kod ${widget.displayEmail ?? fullEmail(widget.email)} adresine gönderildi. 10 dakika geçerlidir.',
+      title: context.l10n.authVerifyEmailTitle,
+      subtitle: context.l10n.authVerifySubtitle(widget.displayEmail ?? fullEmail(widget.email)),
       children: [
-        if (widget.unverified) const Notice('E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.', error: false),
+        if (widget.unverified) Notice(context.l10n.authUnverifiedNotice, error: false),
         if (_error != null) Notice(_error!),
         if (_info != null) Notice(_info!, error: false),
         OtpCodeBoxes(
@@ -127,23 +128,19 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
         const SizedBox(height: 20),
         FilledButton(
           onPressed: _busy ? null : _verify,
-          child: BusyLabel(busy: _busy, label: 'Doğrula'),
+          child: BusyLabel(busy: _busy, label: context.l10n.authVerify),
         ),
         const SizedBox(height: 12),
         Center(
           child: _cooldown > 0
-              ? Text.rich(TextSpan(style: BuType.body.copyWith(color: t.mut), children: [
-                  const TextSpan(text: 'Yeni kod için '),
-                  TextSpan(text: '$_cooldown sn', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
-                  const TextSpan(text: ' bekleyin'),
-                ]))
-              : TextButton(onPressed: _busy ? null : _resend, child: const Text('Kodu yeniden gönder')),
+              ? Text(context.l10n.authNewCodeIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut))
+              : TextButton(onPressed: _busy ? null : _resend, child: Text(context.l10n.authResendCode)),
         ),
         if (widget.unverified)
           Center(
             child: TextButton(
               onPressed: _busy ? null : () => Navigator.of(context).popUntil((r) => r.isFirst),
-              child: const Text('Başka hesapla giriş yap'),
+              child: Text(context.l10n.authUseOtherAccount),
             ),
           ),
       ],

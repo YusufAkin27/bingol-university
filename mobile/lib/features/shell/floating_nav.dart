@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,12 +18,17 @@ class FloatingNav extends StatelessWidget {
   final ValueNotifier<int> chatBadge;
 
   static const double height = 62;
+
+  static List<String> _labels(BuildContext context) {
+    final l = context.l10n;
+    return [l.navHome, l.navDiscover, l.navChat, l.navClubs, l.navProfile];
+  }
   static const _items = [
-    (LucideIcons.house, 'Ana Sayfa'),
-    (LucideIcons.compass, 'Keşfet'),
-    (LucideIcons.messageCircle, 'Sohbet'),
-    (LucideIcons.users, 'Kulüpler'),
-    (LucideIcons.user, 'Profil'),
+    LucideIcons.house,
+    LucideIcons.compass,
+    LucideIcons.messageCircle,
+    LucideIcons.users,
+    LucideIcons.user,
   ];
 
   @override
@@ -108,8 +114,8 @@ class FloatingNav extends StatelessWidget {
                     for (var i = 0; i < n; i++)
                       Expanded(
                         child: _NavItem(
-                          icon: _items[i].$1,
-                          label: _items[i].$2,
+                          icon: _items[i],
+                          label: _labels(context)[i],
                           selected: i == index,
                           badge: i == _chatIndex ? chatBadge : null,
                           onTap: () {
@@ -208,8 +214,12 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                             borderRadius: BorderRadius.circular(9),
                             border: Border.all(color: t.nav, width: 1.5),
                           ),
-                          child: Text(n > 99 ? '99+' : '$n',
-                              style: BuType.caption.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1.1)),
+                          // Rozet sabit boyutlu: yazı ölçeği büyüyünce simgeyi örtmesin.
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: 1.15,
+                            child: Text(n > 99 ? '99+' : '$n',
+                                style: BuType.caption.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1.1)),
+                          ),
                         )
                       : const SizedBox.shrink(),
                 );

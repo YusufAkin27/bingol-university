@@ -47,11 +47,11 @@ class ContactMatch {
 
   factory ContactMatch.fromJson(Map<String, dynamic> j) => ContactMatch(
         hash: '${j['hash'] ?? ''}',
-        userId: (j['userId'] as num).toInt(),
+        userId: (j['userId'] as num).toInt(), // bozuksa çağıran try/catch ile eşleşmeyi atlar
         displayName: '${j['displayName'] ?? ''}',
-        avatarUrl: j['avatarUrl'] as String?,
-        faculty: j['faculty'] as String?,
-        department: j['department'] as String?,
+        avatarUrl: j['avatarUrl'] is String ? j['avatarUrl'] as String : null,
+        faculty: j['faculty'] is String ? j['faculty'] as String : null,
+        department: j['department'] is String ? j['department'] as String : null,
       );
 
   final String hash;

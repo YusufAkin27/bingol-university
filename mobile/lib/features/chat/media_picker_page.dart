@@ -296,7 +296,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         key: const ValueKey('limitedBanner'),
         width: double.infinity,
         color: t.sf2,
-        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
         child: Row(children: [
           Expanded(
             child: Text('Yalnızca izin verdiğin öğeler görünüyor.', style: BuType.caption.copyWith(color: t.mut)),

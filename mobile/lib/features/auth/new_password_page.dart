@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/api.dart';
 import '../../core/session.dart';
 import 'auth_widgets.dart';
@@ -44,8 +45,8 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).popUntil((r) => r.isFirst);
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Şifre güncellendi.'),
+      messenger.showSnackBar(SnackBar(
+        content: Text(context.l10n.authPasswordUpdated),
       ));
     } on ApiError catch (e) {
       if (!mounted) return;
@@ -54,7 +55,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         final messenger = ScaffoldMessenger.of(context);
         Navigator.of(context).popUntil((r) => r.isFirst);
         messenger.showSnackBar(
-            const SnackBar(content: Text('Süre doldu. Baştan başlayın.')));
+            SnackBar(content: Text(context.l10n.authSessionExpired)));
         return;
       }
       setState(() => _error = errorText(e));
@@ -69,7 +70,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       showBack: true,
-      title: 'Yeni şifre',
+      title: context.l10n.authNewPasswordTitle,
       children: [
         if (_error != null) Notice(_error!),
         Form(
@@ -79,7 +80,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             children: [
               PasswordField(
                 controller: _password,
-                label: 'Yeni şifre (en az 8 karakter)',
+                label: context.l10n.authNewPasswordLabel,
                 validator: validateNewPassword,
                 autofillHints: const [AutofillHints.newPassword],
                 onSubmitted: _save,
@@ -87,7 +88,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: _busy ? null : _save,
-                child: BusyLabel(busy: _busy, label: 'Şifreyi güncelle'),
+                child: BusyLabel(busy: _busy, label: context.l10n.authUpdatePassword),
               ),
             ],
           ),

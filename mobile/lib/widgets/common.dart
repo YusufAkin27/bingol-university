@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/locale_controller.dart';
 import '../core/session.dart';
 import '../core/typography.dart';
 
@@ -41,7 +42,25 @@ class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
 
   @override
-  Widget build(BuildContext context) => const Center(child: CircularProgressIndicator());
+  Widget build(BuildContext context) => Center(
+      child: Semantics(
+          label: context.l10n.commonLoading, child: const CircularProgressIndicator()));
+}
+
+/// Hata/boş görünümü: sınırlı yükseklikte ortalar, sığmazsa (320 dp + büyük yazı) kaydırır;
+/// sınırsız yükseklikte (ListView içinde) düz ortalar.
+class _FitCenter extends StatelessWidget {
+  const _FitCenter({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, c) => c.hasBoundedHeight
+            ? SingleChildScrollView(
+                child: ConstrainedBox(constraints: BoxConstraints(minHeight: c.maxHeight), child: Center(child: child)))
+            : Center(child: child),
+      );
 }
 
 /// Hata durumu + yeniden dene. Ağ hatası da sunucu hatası da aynı kalıp.
@@ -54,22 +73,21 @@ class ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Center(
+    return _FitCenter(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 43, color: cs.onSurfaceVariant),
+            ExcludeSemantics(child: Icon(Icons.cloud_off_outlined, size: 43, color: cs.onSurfaceVariant)),
             const SizedBox(height: 12),
-            Text(errorText(error),
-                textAlign: TextAlign.center, style: TextStyle(color: cs.onSurfaceVariant)),
+            Text(errorText(error), textAlign: TextAlign.center, style: BuType.body.copyWith(color: cs.onSurfaceVariant)),
             const SizedBox(height: 16),
             OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(minimumSize: const Size(160, 44)),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(160, 48)),
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Yeniden dene'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -87,15 +105,15 @@ class EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Center(
+    return _FitCenter(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 43, color: cs.onSurfaceVariant),
+            ExcludeSemantics(child: Icon(icon, size: 43, color: cs.onSurfaceVariant)),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: TextStyle(color: cs.onSurfaceVariant)),
+            Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: cs.onSurfaceVariant)),
           ],
         ),
       ),
@@ -217,6 +235,7 @@ class NewsThumb extends StatelessWidget {
         url!,
         width: width,
         height: height,
+        cacheWidth: width.isFinite ? (width * MediaQuery.devicePixelRatioOf(context)).ceil() : 800,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => box,
         loadingBuilder: (_, child, p) => p == null ? child : box,

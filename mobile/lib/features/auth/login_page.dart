@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../widgets/bu_widgets.dart';
 
 import '../../core/api.dart';
@@ -90,8 +91,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      title: 'Hoş geldiniz',
-      subtitle: 'Bingöl Üniversitesi hesabınızla giriş yapın.',
+      title: context.l10n.loginWelcome,
+      subtitle: context.l10n.loginSubtitle,
       children: [
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
@@ -102,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Stack(
                     children: [
                       Notice(
-                        'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.',
+                        context.l10n.loginReplacedNotice,
                         error: false,
                       ),
                       PositionedDirectional(
@@ -110,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                         end: 0,
                         child: IconButton(
                           key: const ValueKey('replaced-notice-close'),
-                          tooltip: 'Kapat',
+                          tooltip: context.l10n.commonClose,
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.close, size: 18),
                           onPressed: widget.session.dismissReplacedNotice,
@@ -137,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,
-                  validator: (v) => (v == null || v.isEmpty) ? 'Şifrenizi girin.' : null,
+                  validator: (v) => (v == null || v.isEmpty) ? context.l10n.loginPasswordRequired : null,
                   onSubmitted: _submit,
                 ),
                 Align(
@@ -154,24 +155,25 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
-                    child: const Text('Şifremi unuttum',
+                    child: Text(context.l10n.loginForgotPassword,
                         style: BuType.bodyStrong),
                   ),
                 ),
                 const SizedBox(height: 8),
                 FilledButton(
                   onPressed: _busy ? null : _submit,
-                  child: BusyLabel(busy: _busy, label: 'Giriş yap'),
+                  child: BusyLabel(busy: _busy, label: context.l10n.loginSubmit),
                 ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('Hesabınız yok mu?',
+            Text(context.l10n.loginNoAccount,
                 style: BuType.body.copyWith(color: context.bu.mut)),
             TextButton(
               onPressed: _busy
@@ -180,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                         context,
                         MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session)),
                       ),
-              child: const Text('Kayıt ol'),
+              child: Text(context.l10n.loginRegister),
             ),
           ],
         ),
@@ -201,7 +203,7 @@ class _PendingBanner extends StatelessWidget {
     final t = context.bu;
     return Semantics(
       button: true,
-      label: 'Doğrulamayı tamamla',
+      label: context.l10n.loginCompleteVerification,
       child: Material(
         color: t.soft,
         borderRadius: BorderRadius.circular(14),
@@ -219,7 +221,7 @@ class _PendingBanner extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Doğrulamayı tamamla', style: BuType.bodyStrong.copyWith(color: t.onSoft)),
+                      Text(context.l10n.loginCompleteVerification, style: BuType.bodyStrong.copyWith(color: t.onSoft)),
                       Text(pending.email,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -227,7 +229,7 @@ class _PendingBanner extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(LucideIcons.chevronRight, color: t.onSoft, size: 18),
+                Icon(buDirIcon(context, LucideIcons.chevronRight), color: t.onSoft, size: 18),
               ],
             ),
           ),

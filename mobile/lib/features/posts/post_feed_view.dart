@@ -37,10 +37,18 @@ class PostFeedView extends StatefulWidget {
     this.mediaBuilder,
     this.likeBuilder,
     this.menuBuilder,
+    this.emptyBuilder,
+    this.header,
   });
 
   final Session session;
   final String scope;
+
+  /// Akış boşken gösterilecek özel içerik (örn. Takip: önerilen kişiler). Verilmezse varsayılan boş görünüm.
+  final WidgetBuilder? emptyBuilder;
+
+  /// Listenin ilk öğesi olarak kaydırılan üst bölüm (hikâye şeridi, trend etiketler). Hata ekranı dışında hep görünür.
+  final Widget? header;
   final PostFeedController? controller;
   final PostMediaBuilder? mediaBuilder;
   final PostLikeBuilder? likeBuilder;
@@ -209,16 +217,31 @@ class _PostFeedViewState extends State<PostFeedView> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    if (!_loaded && _error == null) return const _FeedSkeleton();
-    if (_error != null && !_loaded) return ErrorView(error: _error!, onRetry: _reload);
+    final header = widget.header;
+    if (!_loaded && _error == null) return _FeedSkeleton(header: header);
+    if (_error != null && !_loaded) {
+      final err = ErrorView(error: _error!, onRetry: _reload);
+      return header == null ? err : Column(children: [header, Expanded(child: err)]);
+    }
+    if (_items.isEmpty && widget.emptyBuilder != null) {
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: kNavInset),
+          children: [if (header != null) header, widget.emptyBuilder!(context)],
+        ),
+      );
+    }
     if (_items.isEmpty) {
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
-          children: const [
-            SizedBox(
+          children: [
+            if (header != null) header,
+            const SizedBox(
               height: 320,
               child: EmptyView(
                   icon: LucideIcons.messageSquareText, text: 'Henüz gönderi yok. İlk gönderiyi sen paylaş!'),
@@ -233,8 +256,12 @@ class _PostFeedViewState extends State<PostFeedView> {
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, kNavInset),
-        itemCount: _items.length + 1,
+        itemCount: _items.length + 1 + (header == null ? 0 : 1),
         itemBuilder: (context, i) {
+          if (header != null) {
+            if (i == 0) return header;
+            i--;
+          }
           if (i == _items.length) return _footer(t);
           final p = _items[i];
           return Padding(
@@ -276,7 +303,9 @@ class _PostFeedViewState extends State<PostFeedView> {
 }
 
 class _FeedSkeleton extends StatelessWidget {
-  const _FeedSkeleton();
+  const _FeedSkeleton({this.header});
+
+  final Widget? header;
 
   @override
   Widget build(BuildContext context) {
@@ -290,6 +319,7 @@ class _FeedSkeleton extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       children: [
+        if (header != null) header!,
         for (var i = 0; i < 3; i++)
           Container(
             margin: const EdgeInsets.only(bottom: 12),

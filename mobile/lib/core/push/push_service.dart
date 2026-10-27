@@ -8,10 +8,52 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/permissions_page.dart';
 import '../nav.dart';
+import '../notify/local_reminders.dart';
 import '../session.dart';
 import 'push_router.dart';
 
 const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
+
+/// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır).
+/// Sunucu `notification` bloklu mesaj gönderdiği için sistem bildirimi kendisi gösterir; burada yalnız
+/// Firebase hazırlanır (yük işlenmez, UI/oturuma dokunulmaz). Dokunuş [PushService] ile yönlendirilir.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {}
+}
+
+/// Ön plan bildirimi için uygulama içi şerit. Sessiz saat ve tür tercihleri SUNUCUDA uygulanır (kapalı
+/// türde/sessiz saatte push hiç gelmez); gelen her ön plan mesajı gösterilir. Başlık+gövde boşsa gösterilmez.
+/// Aynı anda tek şerit; [onOpen] "Aç" eylemidir. Gösterildiyse true.
+bool showPushBanner(
+  BuildContext? ctx, {
+  required String title,
+  required String body,
+  required VoidCallback onOpen,
+  String actionLabel = 'Aç',
+}) {
+  if (ctx == null || (title.isEmpty && body.isEmpty)) return false;
+  final messenger = ScaffoldMessenger.maybeOf(ctx);
+  if (messenger == null) return false;
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 5),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
+        ],
+      ),
+      action: SnackBarAction(label: actionLabel, onPressed: onOpen),
+    ));
+  return true;
+}
 
 /// FCM kaydı + ön plan şeridi + dokunuşla yönlendirme. Firebase yapılandırılmamışsa
 /// (GoogleService-Info.plist yok) sessizce devre dışı kalır; uygulama etkilenmez.
@@ -42,6 +84,7 @@ class PushService {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return false;
     try {
       await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       _enabled = true;
     } catch (e) {
       debugPrint('Push devre disi (Firebase yapilandirilmamis): ${e.runtimeType}');
@@ -49,8 +92,28 @@ class PushService {
     return _enabled;
   }
 
+  bool _tapBridge = false;
+
+  /// Yerel hatırlatma dokunuşları (soğuk başlatma: bekleyen yük; ön plan: 'onTap') push ile aynı yönlendiriciye gider.
+  Future<void> _attachReminderTaps() async {
+    if (!_tapBridge) {
+      _tapBridge = true;
+      ChannelReminderBackend.channel.setMethodCallHandler((call) async {
+        if (call.method == 'onTap' && call.arguments is Map) {
+          _open((call.arguments as Map).map((k, v) => MapEntry('$k', v)));
+        }
+        return null;
+      });
+    }
+    try {
+      final p = await LocalReminders.instance.backend.takeLaunchPayload();
+      if (p != null && p.isNotEmpty) _open(Map<String, dynamic>.from(p));
+    } catch (_) {}
+  }
+
   Future<void> onSignedIn() async {
     PushRouter.session = session;
+    unawaited(_attachReminderTaps());
     if (!await _ensureInit()) return;
     try {
       final fm = FirebaseMessaging.instance;
@@ -88,6 +151,8 @@ class PushService {
   }
 
   Future<void> onSignedOut() async {
+    // Kullanıcıya özel yerel hatırlatmalar çıkışta silinir (başka hesapta görünmesin).
+    unawaited(LocalReminders.instance.cancelAll());
     final t = _token;
     _token = null;
     await _refreshSub?.cancel();
@@ -133,28 +198,9 @@ class PushService {
   }
 
   void _showBanner(RemoteMessage m) {
-    final ctx = rootNavigatorKey.currentContext;
-    if (ctx == null) return;
     final n = m.notification;
-    final title = n?.title ?? '';
-    final body = n?.body ?? '';
-    if (title.isEmpty && body.isEmpty) return;
-    final messenger = ScaffoldMessenger.maybeOf(ctx);
-    messenger
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-            if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
-          ],
-        ),
-        action: SnackBarAction(label: 'Aç', onPressed: () => _open(m.data)),
-      ));
+    showPushBanner(rootNavigatorKey.currentContext,
+        title: n?.title ?? '', body: n?.body ?? '', onOpen: () => _open(m.data));
   }
 
   void _open(Map<String, dynamic> data) {

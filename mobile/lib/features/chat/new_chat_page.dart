@@ -326,8 +326,9 @@ class _NewChatPageState extends State<NewChatPage> {
                   maxLength: 100,
                   style: BuType.body.copyWith(color: t.ink),
                   onChanged: (_) {
-                    if (_createError != null)
+                    if (_createError != null) {
                       setState(() => _createError = null);
+                    }
                   },
                   decoration: InputDecoration(
                     hintText: 'Grup adı',
@@ -369,9 +370,10 @@ class _NewChatPageState extends State<NewChatPage> {
       return ErrorView(
           error: _searchError!, onRetry: () => _runSearch(_lastQuery));
     }
-    if (_results.isEmpty)
+    if (_results.isEmpty) {
       return const EmptyView(
           icon: LucideIcons.userX, text: 'Eşleşen kişi bulunamadı.');
+    }
     return RefreshIndicator(
       onRefresh: () => _runSearch(_lastQuery),
       child: ListView.builder(

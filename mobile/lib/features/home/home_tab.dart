@@ -37,8 +37,18 @@ class HomeTab extends StatefulWidget {
 
 const _newsTypes = [('HABER', 'Haber'), ('DUYURU', 'Duyuru'), ('ETKINLIK', 'Etkinlik')];
 const _monthNames = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+  'Ocak',
+  'Şubat',
+  'Mart',
+  'Nisan',
+  'Mayıs',
+  'Haziran',
+  'Temmuz',
+  'Ağustos',
+  'Eylül',
+  'Ekim',
+  'Kasım',
+  'Aralık',
 ];
 
 class _HomeTabState extends State<HomeTab> {
@@ -316,10 +326,12 @@ class _HomeTabState extends State<HomeTab> {
     if (_loading) {
       body = const LoadingView();
     } else if (_error != null) {
-      body = ErrorView(error: _error!, onRetry: () {
-        setState(() => _loading = true);
-        _load();
-      });
+      body = ErrorView(
+          error: _error!,
+          onRetry: () {
+            setState(() => _loading = true);
+            _load();
+          });
     } else {
       body = RefreshIndicator(
         color: t.pr,
@@ -335,22 +347,21 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   List<Widget> _content(BuildContext context) {
-    final maintenance = _info?['maintenance'] as Map?;
-    final banner = _info?['banner'] as Map?;
+    final maintenance = _info?['maintenance'] is Map ? _info!['maintenance'] as Map : null;
+    final banner = _info?['banner'] is Map ? _info!['banner'] as Map : null;
     return [
       _header(context),
       if (maintenance?['enabled'] == true)
         Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: StaleBanner(text: (maintenance?['message'] as String?) ?? 'Sistem bakımda.'),
+          child: StaleBanner(text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ?? 'Sistem bakımda.'),
         ),
-      if (banner != null && ((banner['text'] ?? banner['message']) as String?)?.isNotEmpty == true)
+      if (banner != null && (banner['text'] ?? banner['message']) is String && ((banner['text'] ?? banner['message']) as String).isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 12),
           child: InkWell(
-            onTap: () => _openUrl(banner['url'] as String?),
-            child: StaleBanner(
-                text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
+            onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
+            child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
           ),
         ),
       if (_newsStale)
@@ -480,9 +491,7 @@ class _HomeTabState extends State<HomeTab> {
                         children: [
                           Text(_greeting, style: BuType.caption.copyWith(color: t.mut)),
                           Text(name.isEmpty ? 'BÜ Kampüs' : name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.title.copyWith(color: t.ink)),
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
                         ],
                       ),
                     ),
@@ -537,8 +546,7 @@ class _HomeTabState extends State<HomeTab> {
           children: [
             _heroPill(LucideIcons.calendar, 'Sıradaki etkinlik'),
             const SizedBox(height: 12),
-            Text('Yaklaşan etkinlik yok',
-                style: BuType.title.copyWith(height: 1.2)),
+            Text('Yaklaşan etkinlik yok', style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 14),
             _whitePill('Etkinliklere göz at', () => _push(EventsPage(session: _s))),
           ],
@@ -559,13 +567,13 @@ class _HomeTabState extends State<HomeTab> {
           ? null
           : () => official
               ? _push(NewsDetailPage(session: _s, item: {
-                    'id': id,
-                    'title': e['title'],
-                    'type': 'ETKINLIK',
-                    'imageUrl': e['imageUrl'],
-                    'publishedDate': e['date'],
-                    'url': e['url'],
-                  }))
+                  'id': id,
+                  'title': e['title'],
+                  'type': 'ETKINLIK',
+                  'imageUrl': e['imageUrl'],
+                  'publishedDate': e['date'],
+                  'url': e['url'],
+                }))
               : _push(EventDetailPage(session: _s, eventId: id)),
       child: _heroShell(
         cover,
@@ -578,9 +586,7 @@ class _HomeTabState extends State<HomeTab> {
             ]),
             const SizedBox(height: 10),
             Text((e['title'] as String?) ?? '',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: BuType.title.copyWith(height: 1.2)),
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 6),
             Wrap(spacing: 14, runSpacing: 2, children: [
               if (when.isNotEmpty) Text(when, style: BuType.caption),
@@ -663,18 +669,24 @@ class _HomeTabState extends State<HomeTab> {
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: busy ? null : onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-          child: busy
-              ? const SizedBox(
-                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: BuColors.red700))
-              : Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (check) ...const [
-                    Icon(LucideIcons.check, size: 13.5, color: Color(0xFF8E1B13)),
-                    SizedBox(width: 4),
-                  ],
-                  Text(label, style: BuType.label.copyWith(color: const Color(0xFF8E1B13))),
-                ]),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Center(
+              widthFactor: 1,
+              child: busy
+                  ? const SizedBox(
+                      width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: BuColors.red700))
+                  : Row(mainAxisSize: MainAxisSize.min, children: [
+                      if (check) ...const [
+                        Icon(LucideIcons.check, size: 13.5, color: Color(0xFF8E1B13)),
+                        SizedBox(width: 4),
+                      ],
+                      Text(label, style: BuType.label.copyWith(color: const Color(0xFF8E1B13))),
+                    ]),
+            ),
+          ),
         ),
       ),
     );
@@ -690,15 +702,15 @@ class _HomeTabState extends State<HomeTab> {
     ];
     return Row(
       children: [
-        for (final it in items)
-          Expanded(child: _QuickItem(icon: it.$1, label: it.$2, badge: it.$3, onTap: it.$4)),
+        for (final it in items) Expanded(child: _QuickItem(icon: it.$1, label: it.$2, badge: it.$3, onTap: it.$4)),
       ],
     );
   }
 
   Widget _bento(BuildContext context) {
     final t = context.bu;
-    final items = List<String>.from((_today?['items'] as List?) ?? const []);
+    final todayItems = _today?['items'];
+    final items = [for (final x in (todayItems is List ? todayItems : const [])) '$x'.trim()];
     final clubCount = (_summary?['communities'] as num?)?.toInt();
     return IntrinsicHeight(
       child: Row(
@@ -811,12 +823,11 @@ class _HomeTabState extends State<HomeTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(value, style: BuType.title.copyWith(color: fg, height: 1.2)),
-                  Text(label,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: sub)),
+                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: sub)),
                 ],
               ),
             ),
-            Icon(LucideIcons.arrowRight, size: 20, color: arrow),
+            Icon(buDirIcon(context, LucideIcons.arrowRight), size: 20, color: arrow),
           ]),
         ),
       ),
@@ -838,9 +849,7 @@ class _HomeTabState extends State<HomeTab> {
             BuAvatar(name: c['name'] as String?, url: c['coverUrl'] as String?, size: 36, square: true, dark: i.isOdd),
             const SizedBox(height: 10),
             Text((c['name'] as String?) ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: BuType.bodyStrong.copyWith(color: t.ink)),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
             const SizedBox(height: 2),
             Text(members == null ? '' : '$members üye',
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
@@ -855,9 +864,8 @@ class _HomeTabState extends State<HomeTab> {
     final img = n['imageUrl'] as String?;
     final type = n['type'] as String?;
     final eventDate = type == 'ETKINLIK' ? n['eventDate'] as String? : null;
-    final dateText = (eventDate != null && eventDate.isNotEmpty)
-        ? fmtDate(eventDate)
-        : fmtDate(n['publishedDate'] as String?);
+    final dateText =
+        (eventDate != null && eventDate.isNotEmpty) ? fmtDate(eventDate) : fmtDate(n['publishedDate'] as String?);
     return BuCard(
       padding: const EdgeInsets.all(12),
       radius: 18,
@@ -904,61 +912,67 @@ class _QuickItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 62,
-            height: 62,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: t.sf,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: t.bd),
-                  ),
-                  child: Icon(icon, size: 21.5, color: t.pr),
-                ),
-                if (badge != null)
-                  ValueListenableBuilder<int>(
-                    valueListenable: badge!,
-                    builder: (_, n, __) => n <= 0
-                        ? const SizedBox.shrink()
-                        : Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              constraints: const BoxConstraints(minWidth: 18),
-                              height: 18,
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: t.pr,
-                                borderRadius: BorderRadius.circular(9),
-                                border: Border.all(color: t.bg, width: 2),
+    // Sabit boyutlu kutular (rozet, kısa etiket) çok büyük yazı ölçeğinde taşmasın: ölçek 1.3 ile sınırlı.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        onTap: onTap,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 62,
+                height: 62,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: t.sf,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: t.bd),
+                      ),
+                      child: Icon(icon, size: 21.5, color: t.pr),
+                    ),
+                    if (badge != null)
+                      ValueListenableBuilder<int>(
+                        valueListenable: badge!,
+                        builder: (_, n, __) => n <= 0
+                            ? const SizedBox.shrink()
+                            : Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  constraints: const BoxConstraints(minWidth: 18),
+                                  height: 18,
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: t.pr,
+                                    borderRadius: BorderRadius.circular(9),
+                                    border: Border.all(color: t.bg, width: 2),
+                                  ),
+                                  child: Text(n > 99 ? '99+' : '$n', style: BuType.micro.copyWith(color: t.onPr)),
+                                ),
                               ),
-                              child: Text(n > 99 ? '99+' : '$n',
-                                  style: BuType.micro.copyWith(color: t.onPr)),
-                            ),
-                          ),
-                  ),
-              ],
-            ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: t.ink)),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: BuType.label.copyWith(color: t.ink)),
-        ],
+        ),
       ),
     );
   }
@@ -1031,8 +1045,7 @@ class _AvatarStack extends StatelessWidget {
                 decoration: BoxDecoration(
                     shape: BoxShape.circle, color: const Color(0xFF171E33), border: Border.all(color: _ring, width: 2)),
                 child: Text(extra > 99 ? '99+' : '+$extra',
-                    maxLines: 1,
-                    style: BuType.micro.copyWith(color: Colors.white)),
+                    maxLines: 1, style: BuType.micro.copyWith(color: Colors.white)),
               ),
             ),
         ],

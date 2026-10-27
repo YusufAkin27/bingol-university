@@ -93,20 +93,7 @@ class NewsTile extends StatelessWidget {
               ],
             ),
           ),
-          if (onToggleSave != null)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onToggleSave,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 8),
-                child: Tooltip(
-                  message: saved ? 'Favorilerden çıkar' : 'Favorilere ekle',
-                  child: Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-                      size: 20,
-                      color: saved ? t.pr : t.mut),
-                ),
-              ),
-            ),
+          if (onToggleSave != null) _SaveIcon(saved: saved, onTap: onToggleSave!, size: 20),
         ],
       ),
     );
@@ -152,8 +139,7 @@ class NewsFeaturedCard extends StatelessWidget {
                   child: Container(
                     width: 150,
                     height: 150,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle, color: Colors.white.withValues(alpha: .15)),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .15)),
                   ),
                 ),
                 if (img != null && img.isNotEmpty)
@@ -165,8 +151,8 @@ class NewsFeaturedCard extends StatelessWidget {
                 Positioned(
                   left: 14,
                   top: 14,
-                  child: BuBadge(TypeBadge.label(item['type'] as String?),
-                      color: Colors.white, onColor: BuColors.red800),
+                  child:
+                      BuBadge(TypeBadge.label(item['type'] as String?), color: Colors.white, onColor: BuColors.red800),
                 ),
               ],
             ),
@@ -189,20 +175,47 @@ class NewsFeaturedCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onToggleSave != null)
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onToggleSave,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
-                          size: 21.5, color: saved ? t.pr : t.mut),
-                    ),
-                  ),
+                if (onToggleSave != null) _SaveIcon(saved: saved, onTap: onToggleSave!, size: 21.5),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Favori simgesi: görünür 20 dp, dokunma alanı 44x44 dp; ekran okuyucuya düğme olarak bildirilir.
+class _SaveIcon extends StatelessWidget {
+  const _SaveIcon({required this.saved, required this.onTap, required this.size});
+
+  final bool saved;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final label = saved ? 'Favorilerden çıkar' : 'Favorilere ekle';
+    return Semantics(
+      button: true,
+      toggled: saved,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: label,
+        excludeFromSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child:
+                Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark, size: size, color: saved ? t.pr : t.mut),
+          ),
+        ),
       ),
     );
   }

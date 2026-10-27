@@ -2,21 +2,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import '../academic/reminder_settings_page.dart';
 import '../chat/contacts_match_page.dart';
 import '../support/support_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
 import '../../core/typography.dart';
 
-const _langs = [('tr', 'Türkçe'), ('en', 'English'), ('ar', 'العربية')];
+const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.session, required this.themeController, this.push});
+  const SettingsPage({super.key, required this.session, required this.themeController, this.push, this.localeController});
+
+  /// Verilmezse uygulama genelindeki örnek kullanılır.
+  final LocaleController? localeController;
 
   final Session session;
 
@@ -29,10 +34,11 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _lang = 'tr';
   bool _showEmail = false;
   bool _loaded = false;
-  String _pushStatus = '...';
+  String _pushStatus = '...'; // 'notConfigured' | 'on' | 'off' | 'notGranted'
+
+  LocaleController? get _lc => widget.localeController ?? LocaleController.current;
 
   @override
   void initState() {
@@ -42,15 +48,15 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadPushStatus() async {
-    var text = 'Henüz yapılandırılmadı';
+    var text = 'notConfigured';
     try {
       final configured = (widget.push?.enabled ?? false) || Firebase.apps.isNotEmpty;
       if (configured) {
         final st = await FirebaseMessaging.instance.getNotificationSettings();
         text = switch (st.authorizationStatus) {
-          AuthorizationStatus.authorized || AuthorizationStatus.provisional => 'Açık',
-          AuthorizationStatus.denied => 'Kapalı (sistem ayarlarından açın)',
-          _ => 'İzin verilmedi',
+          AuthorizationStatus.authorized || AuthorizationStatus.provisional => 'on',
+          AuthorizationStatus.denied => 'off',
+          _ => 'notGranted',
         };
       }
     } catch (_) {}
@@ -64,16 +70,16 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (c) => AlertDialog(
         backgroundColor: t.sf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Tüm cihazlardan çıkış', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-        content: Text('Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.',
+        title: Text(context.l10n.settingsLogoutAllTitle, style: BuType.title.copyWith(color: t.ink)),
+        content: Text(context.l10n.settingsLogoutAllBody,
             style: BuType.body.copyWith(height: 1.4, color: t.mut)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: Text('Vazgeç', style: TextStyle(color: t.mut, fontWeight: FontWeight.w700))),
+              child: Text(context.l10n.commonCancel, style: BuType.bodyStrong.copyWith(color: t.mut))),
           TextButton(
               onPressed: () => Navigator.pop(c, true),
-              child: Text('Çıkış yap', style: TextStyle(color: t.danger, fontWeight: FontWeight.w800))),
+              child: Text(context.l10n.settingsLogoutAllConfirm, style: BuType.bodyStrong.copyWith(color: t.danger))),
         ],
       ),
     );
@@ -94,8 +100,6 @@ class _SettingsPageState extends State<SettingsPage> {
       final r = await widget.session.api.get('/users/me') as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
-        final l = r['language'] as String?;
-        if (l != null && _langs.any((e) => e.$1 == l)) _lang = l;
         _showEmail = r['showEmail'] == true;
         _loaded = true;
       });
@@ -124,7 +128,14 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _pickLang() async {
+    final lc = _lc;
+    if (lc == null) return;
     final t = context.bu;
+    final l10n = context.l10n;
+    final options = <(String, String)>[
+      ('system', l10n.languageSystem),
+      for (final e in _langNames.entries) (e.key, e.value),
+    ];
     final chosen = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: t.sf,
@@ -132,22 +143,25 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (ctx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const SizedBox(height: 16),
-          Text('Bildirim ve e-posta dili', style: BuType.heading.copyWith(color: t.ink)),
+          Text(l10n.settingsLanguageHint, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
           const SizedBox(height: 8),
-          for (final l in _langs)
+          for (final o in options)
             ListTile(
-              title: Text(l.$2, style: TextStyle(fontWeight: FontWeight.w600, color: t.ink)),
-              trailing: l.$1 == _lang ? Icon(LucideIcons.check, color: t.pr) : null,
-              onTap: () => Navigator.pop(ctx, l.$1),
+              title: Text(o.$2, style: BuType.bodyStrong.copyWith(color: t.ink)),
+              selected: o.$1 == lc.pref,
+              trailing: o.$1 == lc.pref ? Icon(LucideIcons.check, color: t.pr) : null,
+              onTap: () => Navigator.pop(ctx, o.$1),
             ),
           const SizedBox(height: 8),
         ]),
       ),
     );
-    if (chosen == null || chosen == _lang) return;
-    final old = _lang;
-    setState(() => _lang = chosen);
-    await _patch({'language': chosen}, () => _lang = old);
+    if (chosen == null || chosen == lc.pref) return;
+    await lc.set(chosen);
+    // Sunucu profil dili (bildirim/e-posta) uygulama diliyle eşitlenir; hata sessizdir.
+    try {
+      await widget.session.api.patch('/users/me', {'language': lc.locale.languageCode});
+    } catch (_) {}
   }
 
   Future<void> _toggleEmail(bool v) async {
@@ -166,23 +180,34 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final langName = _langs.firstWhere((e) => e.$1 == _lang).$2;
+    final l10n = context.l10n;
+    final lc = _lc;
+    final langName = lc == null
+        ? ''
+        : (lc.pref == 'system' ? l10n.languageSystem : (_langNames[lc.pref] ?? lc.pref));
+    final pushText = switch (_pushStatus) {
+      'notConfigured' => l10n.pushNotConfigured,
+      'on' => l10n.pushOn,
+      'off' => l10n.pushOff,
+      'notGranted' => l10n.pushNotGranted,
+      _ => _pushStatus,
+    };
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: 'Ayarlar', onBack: () => Navigator.pop(context)),
+          BuHeader(title: l10n.settingsTitle, onBack: () => Navigator.pop(context)),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 32),
               children: [
-                _label('GÖRÜNÜM'),
+                _label(l10n.settingsSectionAppearance),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: ListenableBuilder(
                     listenable: widget.themeController,
                     builder: (_, __) => BuSegmented(
-                      items: const ['Sistem', 'Açık', 'Koyu'],
+                      items: [l10n.themeSystem, l10n.themeLight, l10n.themeDark],
                       index: _modeIndex,
                       onChanged: (i) => widget.themeController
                           .set(const [ThemeMode.system, ThemeMode.light, ThemeMode.dark][i]),
@@ -195,12 +220,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: BuGroup(children: [
                     BuMenuRow(
                       icon: LucideIcons.globe,
-                      label: 'Bildirim ve e-posta dili',
-                      onTap: _loaded ? _pickLang : null,
+                      label: l10n.settingsLanguage,
+                      onTap: _lc != null ? _pickLang : null,
                       // Flexible: dar ekranda sağdaki metin kısalır, satır taşmaz.
                       trailing: Flexible(
                         child: Padding(
-                          padding: const EdgeInsets.only(right: 4),
+                          padding: const EdgeInsetsDirectional.only(end: 4),
                           child: Text(langName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -210,7 +235,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ]),
                 ),
-                _label('BİLDİRİMLER'),
+                _label(l10n.settingsSectionNotifications),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: NotificationPrefsGroup(session: widget.session),
@@ -219,17 +244,29 @@ class _SettingsPageState extends State<SettingsPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: BuGroup(children: [
+                    // Akademik: ders/sınav yerel hatırlatmaları (docs: lib/features/academic).
+                    BuMenuRow(
+                      icon: LucideIcons.alarmClock,
+                      label: 'Ders ve sınav hatırlatmaları',
+                      onTap: () => _push(ReminderSettingsPage(session: widget.session)),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: BuGroup(children: [
                     BuMenuRow(
                       icon: LucideIcons.bellRing,
-                      label: 'Bildirim izni (push)',
+                      label: l10n.pushPermission,
                       showChevron: false,
-                      onTap: () => _toast(_pushStatus == 'Açık'
-                          ? 'Anlık bildirimler açık.'
-                          : 'Anlık bildirimler: $_pushStatus'),
+                      onTap: () => _toast(_pushStatus == 'on'
+                          ? l10n.pushOnToast
+                          : l10n.pushStatusToast(pushText)),
                       trailing: Flexible(
                         child: Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Text(_pushStatus,
+                          padding: const EdgeInsetsDirectional.only(end: 4),
+                          child: Text(pushText,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: BuType.label.copyWith(color: t.mut)),
@@ -238,35 +275,36 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ]),
                 ),
-                _label('GİZLİLİK VE HESAP'),
+                _label(l10n.settingsSectionPrivacy),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: BuGroup(children: [
                     PrefSwitchRow(
-                        label: 'E-postamı diğerlerine göster',
+                        label: l10n.settingsShowEmail,
                         value: _showEmail,
                         onChanged: _loaded ? _toggleEmail : null),
                     BuMenuRow(
                         icon: LucideIcons.contact,
-                        label: 'Rehberden kişi bul',
+                        label: l10n.settingsFindContacts,
                         onTap: () => _push(ContactsMatchPage(session: widget.session))),
                     BuMenuRow(
                         icon: LucideIcons.shield,
-                        label: 'Gizlilik ve veriler',
+                        label: l10n.settingsPrivacyData,
                         onTap: () => _push(PrivacyDataPage(session: widget.session))),
                     BuMenuRow(
                         icon: LucideIcons.circleQuestionMark,
-                        label: 'Destek ve SSS',
+                        label: l10n.settingsSupport,
                         onTap: () => _push(SupportPage(session: widget.session))),
                     BuMenuRow(
                         icon: LucideIcons.logOut,
-                        label: 'Tüm cihazlardan çıkış yap',
+                        label: l10n.settingsLogoutAll,
+                        danger: true,
                         showChevron: false,
                         onTap: _logoutAll),
                   ]),
                 ),
                 const SizedBox(height: 18),
-                Center(child: Text('BÜ Kampüs · Sürüm 1.0.0', style: BuType.caption.copyWith(color: t.mut))),
+                Center(child: Text(l10n.settingsVersion('1.0.0'), style: BuType.caption.copyWith(color: t.mut))),
               ],
             ),
           ),

@@ -75,9 +75,9 @@ class _PostLoginGateState extends State<PostLoginGate> {
   }
 }
 
-const _firstRun = [AppPermission.notifications, AppPermission.location, AppPermission.contacts];
+const _firstRun = [AppPermission.notifications, AppPermission.contacts];
 
-/// Tam ekran, sıcak bir "İzinler" sayfası: bildirim, yaklaşık konum, rehber. Atlanabilir.
+/// Tam ekran, sıcak bir "İzinler" sayfası: bildirim, rehber. Atlanabilir.
 class PermissionsPage extends StatefulWidget {
   const PermissionsPage({super.key, required this.onFinished, this.onGranted, this.service});
 

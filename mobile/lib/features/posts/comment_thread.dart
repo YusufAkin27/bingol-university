@@ -91,23 +91,28 @@ class CommentThread extends StatelessWidget {
     Widget link(String label, VoidCallback onTap, {IconData? icon}) => Semantics(
           button: true,
           label: label,
+          excludeSemantics: true,
+          onTap: onTap,
           child: InkWell(
             onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(width: 18, height: 1.5, color: t.bd),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-                  ),
-                  if (icon != null) ...[const SizedBox(width: 4), Icon(icon, size: 14, color: t.mut)],
-                ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 18, height: 1.5, color: t.bd),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                    ),
+                    if (icon != null) ...[const SizedBox(width: 4), Icon(icon, size: 14, color: t.mut)],
+                  ],
+                ),
               ),
             ),
           ),
@@ -197,7 +202,13 @@ class CommentsSkeleton extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [bar(110, 11), const SizedBox(height: 8), bar(double.infinity, 11), const SizedBox(height: 6), bar(160, 11)],
+                      children: [
+                        bar(110, 11),
+                        const SizedBox(height: 8),
+                        bar(double.infinity, 11),
+                        const SizedBox(height: 6),
+                        bar(160, 11)
+                      ],
                     ),
                   ),
                 ],
@@ -217,6 +228,5 @@ class CommentsError extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) =>
-      SizedBox(height: 220, child: ErrorView(error: error, onRetry: onRetry));
+  Widget build(BuildContext context) => SizedBox(height: 220, child: ErrorView(error: error, onRetry: onRetry));
 }

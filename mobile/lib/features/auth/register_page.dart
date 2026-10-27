@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
@@ -46,8 +47,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _catalog.load();
   }
 
-  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? 'Bölümünüzü seçin.' : null;
-  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? 'Sınıfınızı seçin.' : null;
+  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? context.l10n.authSelectDepartment : null;
+  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? context.l10n.authSelectGrade : null;
 
   @override
   void dispose() {
@@ -66,7 +67,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _termsError = !_terms;
       _tried = true;
       if (!academic && _catalog.state == CatalogState.error) {
-        _error = 'Bölüm listesi yüklenemedi. Yeniden deneyin.';
+        _error = context.l10n.authDepartmentsLoadFailed;
       }
     });
     if (_busy || !valid || !academic || !_terms) return;
@@ -104,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final t = context.bu;
     return AuthScaffold(
       showBack: true,
-      title: 'Hesap oluştur',
+      title: context.l10n.authCreateAccount,
       children: [
         Form(
           key: _form,
@@ -135,9 +136,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   autofillHints: const [AutofillHints.name],
                   maxLength: 80,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Adınızı ve soyadınızı girin.' : null,
+                      (v == null || v.trim().isEmpty) ? context.l10n.authNameRequired : null,
                   style: BuType.body.copyWith(color: t.ink),
-                  decoration: authFieldDecoration(context, hint: 'Ad soyad', icon: LucideIcons.user)
+                  decoration: authFieldDecoration(context, hint: context.l10n.authNameHint, icon: LucideIcons.user)
                       .copyWith(counterText: ''),
                 ),
                 const SizedBox(height: 14),
@@ -145,7 +146,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 14),
                 PasswordField(
                   controller: _password,
-                  label: 'Şifre (en az 8 karakter)',
+                  label: context.l10n.authPasswordMin8,
                   validator: validateNewPassword,
                   autofillHints: const [AutofillHints.newPassword],
                   onSubmitted: _submit,
@@ -164,30 +165,31 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextSpan(
                       style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
                       children: [
+                        TextSpan(text: context.l10n.authTermsPrefix),
                         TextSpan(
-                          text: 'Kullanım koşulları',
+                          text: context.l10n.authTermsLink,
                           recognizer: _termsLink,
                           style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
                         ),
-                        const TextSpan(text: ' ve '),
+                        TextSpan(text: context.l10n.authTermsSep),
                         TextSpan(
-                          text: 'gizlilik politikasını',
+                          text: context.l10n.authPrivacyLink,
                           recognizer: _privacyLink,
                           style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
                         ),
-                        const TextSpan(text: ' kabul ediyorum'),
+                        TextSpan(text: context.l10n.authTermsSuffix),
                       ],
                     ),
                   ),
                   subtitle: _termsError
-                      ? Text('Devam etmek için kabul etmelisiniz.',
+                      ? Text(context.l10n.authMustAccept,
                           style: BuType.caption.copyWith(color: t.danger))
                       : null,
                 ),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: _busy ? null : _submit,
-                  child: BusyLabel(busy: _busy, label: 'Kayıt ol'),
+                  child: BusyLabel(busy: _busy, label: context.l10n.loginRegister),
                 ),
               ],
             ),
@@ -198,10 +200,10 @@ class _RegisterPageState extends State<RegisterPage> {
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('Zaten hesabınız var mı?', style: BuType.body.copyWith(color: t.mut)),
+            Text(context.l10n.authHaveAccount, style: BuType.body.copyWith(color: t.mut)),
             TextButton(
               onPressed: _busy ? null : () => Navigator.maybePop(context),
-              child: const Text('Giriş yap'),
+              child: Text(context.l10n.loginSubmit),
             ),
           ],
         ),
