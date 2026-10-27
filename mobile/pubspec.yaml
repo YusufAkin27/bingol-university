@@ -42,6 +42,7 @@ flutter:
   assets:
     - assets/branding/logo_horizontal.png
     - assets/branding/logo_horizontal_dark.png
+    - assets/branding/logo.png
     - assets/branding/mark.png
     - assets/branding/mark_white.png
     - assets/branding/default_avatar.png
@@ -62,13 +63,13 @@ flutter:
         - asset: assets/fonts/Inter-ExtraBold.ttf
           weight: 800
 
-# Başlatıcı simgeleri: `dart run flutter_launcher_icons` (kaynaklar brand/build.js ile üretilir)
+# Başlatıcı simgeleri: `dart run flutter_launcher_icons` (kaynaklar: node tool/make_icon_from_logo.js, kaynak assets/branding/logo.png)
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/branding/icon_1024.png"
   remove_alpha_ios: true
   min_sdk_android: 21
-  adaptive_icon_background: "#F73A2E"
+  adaptive_icon_background: "#F73B2E"
   adaptive_icon_foreground: "assets/branding/adaptive_foreground.png"
   adaptive_icon_monochrome: "assets/branding/adaptive_monochrome.png"
