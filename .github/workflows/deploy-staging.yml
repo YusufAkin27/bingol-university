@@ -1,0 +1,89 @@
+name: Deploy staging
+
+# main'e birlesince CI yesilse (workflow_run) ya da elle (workflow_dispatch) staging'e dagitir.
+# GitHub Environment "staging": gerekirse onay kurali eklenir (bkz. docs/CI_CD.md).
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Dagitilacak imaj etiketi (bos = latest)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Staging dagitimi
+    # workflow_run: yalniz basarili CI ve push olayi
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+    env:
+      TAG: ${{ inputs.tag != '' && inputs.tag || 'latest' }}
+      DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH || '/opt/bu-kampus' }}
+    steps:
+      - name: SSH anahtarini hazirla
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Dagit (cek, kaldir, saglik denetimi, hata olursa geri don)
+        env:
+          HOST: ${{ secrets.STAGING_HOST }}
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          REPO_LC: ${{ github.repository }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.STAGING_GHCR_TOKEN }}
+          HEALTH_URL: ${{ vars.STAGING_HEALTH_URL || 'http://127.0.0.1:8080/actuator/health' }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes "$SSH_USER@$HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' TAG='$TAG' REPO='${REPO_LC,,}' GHCR_USER='$GHCR_USER' GHCR_TOKEN='$GHCR_TOKEN' HEALTH_URL='$HEALTH_URL' bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          # Geri donus icin su an calisan imaj kimlikleri
+          mkdir -p .deploy
+          $COMPOSE images --format json > .deploy/previous-images.json 2>/dev/null || true
+          if [ -f .deploy/current.env ]; then cp .deploy/current.env .deploy/previous.env; fi
+          printf 'BACKEND_IMAGE=ghcr.io/%s-backend:%s\nWEB_IMAGE=ghcr.io/%s-web:%s\n' "$REPO" "$TAG" "$REPO" "$TAG" > .deploy/current.env
+          set -a; . .deploy/current.env; set +a
+          $COMPOSE pull backend web
+          $COMPOSE up -d
+          ok=0
+          for i in $(seq 1 30); do
+            if curl -fsS "$HEALTH_URL" | grep -q '"UP"'; then ok=1; break; fi
+            sleep 5
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "Saglik denetimi basarisiz; onceki surume donuluyor"
+            if [ -f .deploy/previous.env ]; then
+              set -a; . .deploy/previous.env; set +a
+              cp .deploy/previous.env .deploy/current.env
+              $COMPOSE up -d
+            fi
+            exit 1
+          fi
+          docker image prune -f >/dev/null
+          echo "Dagitim tamam: $TAG"
+          REMOTE
+      - name: Dis saglik denetimi
+        if: vars.STAGING_URL != ''
+        run: curl -fsS --retry 5 --retry-delay 5 "${{ vars.STAGING_URL }}/api/status" > /dev/null

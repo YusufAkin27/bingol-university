@@ -1,0 +1,207 @@
+name: CI
+
+# Her push (tum dallar) ve PR'da: backend, web, mobil testleri + Docker imaj derlemesi.
+# Imajlar GHCR'ye yalniz main dalinda ve v* etiketlerinde itilir.
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Web Playwright e2e isini de calistir'
+        type: boolean
+        default: false
+
+# Ayni dal/PR icin eski kosu iptal edilir (etiket kosulari iptal edilmez)
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.8'
+  NODE_VERSION: '22'
+
+jobs:
+  backend:
+    name: Backend (mvn verify, H2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      # Testler H2 + Flyway kapali calisir; Postgres/Redis gerekmez (PostgreSQL'e ozel sorgular duman betikleriyle dogrulanir)
+      - name: mvn verify (jacoco dahil)
+        run: mvn -B verify
+      - name: Test raporlari
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: backend-test-reports
+          path: |
+            backend/target/surefire-reports
+            backend/target/site/jacoco
+          retention-days: 14
+          if-no-files-found: ignore
+
+  web:
+    name: Web (lint, tip, test, derleme)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Web dist
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 7
+
+  # Playwright e2e: agir ve backend gerektirebilir; yalniz elle tetiklenir (workflow_dispatch run_e2e=true)
+  web-e2e:
+    name: Web e2e (istege bagli)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - name: Playwright raporu
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 7
+          if-no-files-found: ignore
+
+  mobile:
+    name: Mobil (analyze + test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      # Yerel yol paketi mobile/packages/video_compress_android pubspec'te path ile baglidir
+      - run: flutter pub get
+      - run: dart analyze
+      - run: flutter test
+
+  openapi-drift:
+    name: OpenAPI surukleme kontrolu
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # Betik CANLI bir sunucu ister (docs/openapi.json ile karsilastirir). Staging adresi
+      # vars.OPENAPI_CHECK_BASE ile verilmezse atlanir; uyumsuzlukta is akisi basarisiz olmaz (bilgilendirme).
+      - name: scripts/openapi-check.js (canli sunucu varsa)
+        if: vars.OPENAPI_CHECK_BASE != '' && hashFiles('scripts/openapi-check.js') != ''
+        continue-on-error: true
+        env:
+          BASE: ${{ vars.OPENAPI_CHECK_BASE }}
+          ADMIN_PASSWORD: ${{ secrets.OPENAPI_CHECK_ADMIN_PASSWORD }}
+        run: node scripts/openapi-check.js
+
+  workflows-lint:
+    name: Workflow YAML sozdizimi
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm install --no-save --no-package-lock --no-audit --no-fund --prefix .ci-tools js-yaml@4.1.0
+      - run: node scripts/check-workflows.js
+
+  docker:
+    name: Docker imajlari (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Imaj derlemesi testler yesil olmadan itilmez; PR/dal kosularinda yalniz derleme dogrulanir
+    needs: [backend, web]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [backend, web]
+    env:
+      PUSH: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: docker/setup-buildx-action@v3.10.0
+      - name: GHCR girisi
+        if: env.PUSH == 'true'
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5.7.0
+        with:
+          images: ghcr.io/${{ github.repository }}-${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
+            type=ref,event=tag
+      - uses: docker/build-push-action@v6.18.0
+        with:
+          context: ./${{ matrix.image }}
+          push: ${{ env.PUSH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

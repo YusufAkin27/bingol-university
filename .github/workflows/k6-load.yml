@@ -1,0 +1,55 @@
+name: k6 load
+
+# Elle tetiklenen yuk testi: yalniz STAGING. Test kullanicilari staging'de onceden olusturulmus olmali (bkz. scripts/k6/README.md).
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Senaryo'
+        type: choice
+        options: [smoke, feed, chat, auth]
+        default: smoke
+      base_url:
+        description: 'API tabani (bos = vars.STAGING_URL)'
+        required: false
+        default: ''
+      vus:
+        description: 'Sanal kullanici (bos = senaryo varsayilani)'
+        required: false
+        default: ''
+      duration:
+        description: 'Sure ornek 2m (bos = senaryo varsayilani)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    env:
+      BASE_URL: ${{ inputs.base_url != '' && inputs.base_url || vars.STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: grafana/setup-k6-action@v1
+      - name: Calistir
+        env:
+          K6_EMAIL: ${{ secrets.K6_EMAIL }}
+          K6_PASSWORD: ${{ secrets.K6_PASSWORD }}
+          K6_EMAIL_2: ${{ secrets.K6_EMAIL_2 }}
+          K6_PASSWORD_2: ${{ secrets.K6_PASSWORD_2 }}
+        run: |
+          if [ -z "$BASE_URL" ]; then echo "BASE_URL/STAGING_URL tanimli degil"; exit 1; fi
+          ARGS=""
+          if [ -n "${{ inputs.vus }}" ]; then ARGS="$ARGS --vus ${{ inputs.vus }}"; fi
+          if [ -n "${{ inputs.duration }}" ]; then ARGS="$ARGS --duration ${{ inputs.duration }}"; fi
+          k6 run $ARGS -e BASE_URL="$BASE_URL" --summary-export=k6-summary.json scripts/k6/${{ inputs.script }}.js
+      - uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: k6-summary-${{ inputs.script }}
+          path: k6-summary.json
+          if-no-files-found: ignore
