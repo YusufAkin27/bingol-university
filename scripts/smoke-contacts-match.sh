@@ -40,8 +40,10 @@ R=$(match "{\"hashes\":[\"$HC\"]}")
 check "engelli C gelmez" 0 "$(echo "$R" | grep -c "\"userId\":$IDC")"
 
 echo "== 501 hash"
+BIGF=$(mktemp); trap 'rm -f "$BIGF"' EXIT
 BIG=$(for i in $(seq 1 501); do printf '"%064x",' $i; done); BIG=${BIG%,}
-check "501 -> 400" 400 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" -H "Authorization: Bearer $TA" $A/users/contacts/match -d "{\"hashes\":[$BIG]}")"
+printf '{"hashes":[%s]}' "$BIG" > "$BIGF"  # Windows komut satiri siniri nedeniyle govde dosyadan gonderilir
+check "501 -> 400" 400 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" -H "Authorization: Bearer $TA" $A/users/contacts/match --data-binary @"$BIGF")"
 check "kimliksiz -> 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" $A/users/contacts/match -d '{"hashes":[]}')"
 
 echo "== rate limit (saatte 6)"

@@ -10,7 +10,7 @@ BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 H='Content-Type: application/json'
 FAIL=0
-WORK=$(mktemp -d)
+WORK=$(mktemp -d); command -v cygpath >/dev/null && WORK=$(cygpath -m "$WORK")  # Windows curl icin C:/... yolu
 RUN=$(date +%s)
 
 check() { if [ "$2" = "$3" ]; then echo "  ok   $1 ($3)"; else echo "  FAIL $1 (beklenen $2, gelen $3)"; FAIL=1; fi; }
@@ -60,7 +60,7 @@ echo "== kullanicilar =="
 EA="rcpa${RUN}@bingol.edu.tr"; EB="rcpb${RUN}@bingol.edu.tr"
 TA=$(register "$EA" "Alici A"); TB=$(register "$EB" "Alici B")
 [ -n "$TA" ] && [ -n "$TB" ] || { echo "  FAIL kayit (token yok)"; exit 1; }
-UB=$(curl -s -H "Authorization: Bearer $TB" $A/me | jget id)
+UB=$(curl -s -H "Authorization: Bearer $TB" $A/users/me | jget id)
 AUTH_A="Authorization: Bearer $TA"; AUTH_B="Authorization: Bearer $TB"
 
 CONV=$(curl -s -X POST -H "$H" -H "$AUTH_A" $A/conversations -d "{\"userId\":$UB}" | jget id)
