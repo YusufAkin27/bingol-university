@@ -1,6 +1,0 @@
-  /// Kulüp kur: form -> (ACTIVE ise kulüp sayfası / onaya gönderildi bilgisi) -> liste yenilenir.
-  Future<void> _create() async {
-    final created = await openCreateClub(context, widget.session);
-    if (created && mounted) _reload(silent: true);
-  }
-
