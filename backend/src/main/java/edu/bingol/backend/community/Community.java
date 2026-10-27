@@ -22,8 +22,8 @@ public class Community {
 
     public enum Visibility { PUBLIC, PRIVATE }
 
-    /** PENDING_REVIEW: admin onayi bekler; HIDDEN: rapor sonucu gizlendi. */
-    public enum Status { PENDING_REVIEW, ACTIVE, REJECTED, HIDDEN }
+    /** PENDING_REVIEW: admin onayi bekler; HIDDEN: rapor sonucu gizlendi; DELETED: sahibi/yonetici sildi (yumusak). */
+    public enum Status { PENDING_REVIEW, ACTIVE, REJECTED, HIDDEN, DELETED }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

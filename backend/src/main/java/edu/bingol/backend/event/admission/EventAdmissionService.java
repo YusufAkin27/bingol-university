@@ -135,6 +135,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
     public ApplicationView apply(Actor a, Long eventId, ApplyRequest r) {
         UserEvent e = events.loadVisible(a, eventId);
         requireOpenForAdmission(e);
+        if (e.isRegistrationClosed()) {
+            throw new ApiException(HttpStatus.CONFLICT, "EVENT_REGISTRATION_CLOSED", "Bu etkinliğin kayıtları kapatıldı.");
+        }
         EventAdmission c = configs.findById(eventId).orElse(null);
         if (c == null || c.getMode() != Mode.APPROVAL) {
             throw new ApiException(HttpStatus.CONFLICT, "ADMISSION_NOT_REQUIRED",

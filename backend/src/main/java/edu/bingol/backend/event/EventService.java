@@ -248,6 +248,39 @@ public class EventService {
     public void delete(Actor a, Long id) {
         UserEvent e = load(id);
         requireManager(a, e);
+        cancelInternal(e);
+    }
+
+    /** Kayitlari kapatir/yeniden acar (idempotent): kapaliyken yeni RSVP/basvuru 409 EVENT_REGISTRATION_CLOSED olur. */
+    @Transactional
+    public EventView setRegistrationClosed(Actor a, Long id, boolean closed) {
+        UserEvent e = load(id);
+        requireManager(a, e);
+        requireCoverEditable(e); // ACTIVE / PENDING_REVIEW disinda 409 EVENT_NOT_EDITABLE
+        if (e.getEndsAt().isBefore(Instant.now())) {
+            throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
+        }
+        if (e.isRegistrationClosed() != closed) {
+            e.setRegistrationClosed(closed);
+            e.setUpdatedAt(Instant.now());
+            events.save(e);
+        }
+        return views(List.of(e), a, true).get(0);
+    }
+
+    /** Kulup silinince: kulubun bitmemis, yayindaki/onay bekleyen etkinlikleri iptal edilir (katilimcilara haber gider). */
+    @Transactional
+    public int cancelForDeletedClub(Long communityId) {
+        int n = 0;
+        for (Long eventId : events.liveIdsByCommunity(communityId,
+                List.of(UserEvent.Status.ACTIVE, UserEvent.Status.PENDING_REVIEW), Instant.now())) {
+            events.findById(eventId).ifPresent(this::cancelInternal);
+            n++;
+        }
+        return n;
+    }
+
+    private void cancelInternal(UserEvent e) {
         if (e.getStatus() == UserEvent.Status.CANCELLED) {
             return;
         }
@@ -334,14 +367,33 @@ public class EventService {
         return views(List.of(loadVisible(a, id)), a, true).get(0);
     }
 
-    /** mode: attending (RSVP'li yaklasanlar) | organizing (olusturduklarim). */
+    /**
+     * Etkinliklerim. mode: upcoming (yaklasan: RSVP'li + olusturduklarim) | going (yaklasan, yalniz GOING) |
+     * past (bitmis: RSVP'li + olusturduklarim, yeniden eskiye) | created (olusturduklarim, iptaller haric) |
+     * attending (eski: yaklasan RSVP'liler; varsayilan, bilinmeyen modlar da) | organizing (created'in eski adi).
+     * Imec = son kaydin id'si.
+     */
     @Transactional(readOnly = true)
     public CursorPage<EventView> mine(Actor a, String mode, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
         List<UserEvent> rows;
-        if ("organizing".equals(mode)) {
+        String m = mode == null ? "attending" : mode;
+        if ("organizing".equals(m) || "created".equals(m)) {
             rows = events.organizing(a.id(), UserEvent.Status.CANCELLED, Paging.descStart(cursor), PageRequest.of(0, s + 1));
-        } else {
+        } else if ("upcoming".equals(m) || "going".equals(m)) {
+            Cursor c = cursorOf(cursor);
+            rows = events.mineUpcoming(UserEvent.Status.ACTIVE, Instant.now(), c.start(), c.id(), a.id(),
+                    "upcoming".equals(m), "going".equals(m), EventRsvp.Status.GOING,
+                    Community.Status.ACTIVE, Community.Visibility.PUBLIC, CommunityMember.Status.ACTIVE,
+                    PageRequest.of(0, s + 1));
+        } else if ("past".equals(m)) {
+            Cursor c = cursor == null ? new Cursor(FAR_FUTURE, Long.MAX_VALUE)
+                    : events.findById(cursor).map(e -> new Cursor(e.getStartsAt(), e.getId()))
+                            .orElse(new Cursor(MIN_DATE, 0L)); // kayit yoksa bos sayfa (basa sarma yok)
+            rows = events.minePast(UserEvent.Status.ACTIVE, Instant.now(), c.start(), c.id(), a.id(),
+                    Community.Status.ACTIVE, Community.Visibility.PUBLIC, CommunityMember.Status.ACTIVE,
+                    PageRequest.of(0, s + 1));
+        } else { // attending ve bilinmeyen modlar (eski davranis)
             Cursor c = cursorOf(cursor);
             rows = events.attending(UserEvent.Status.ACTIVE, Instant.now(), c.start(), c.id(), a.id(),
                     Community.Status.ACTIVE, Community.Visibility.PUBLIC, CommunityMember.Status.ACTIVE,
@@ -442,6 +494,11 @@ public class EventService {
             admission.guardDirectRsvp(e, status);
         }
         Optional<EventRsvp> existing = rsvps.findByEventIdAndUserId(id, a.id());
+        // Kayit kapaliyken yeni katilim yok; mevcut RSVP'si olan geri cekilebilir / ilgiye dusebilir ama GOING'e gecemez.
+        if (e.isRegistrationClosed() && (existing.isEmpty()
+                || (status == EventRsvp.Status.GOING && existing.get().getStatus() != EventRsvp.Status.GOING))) {
+            throw new ApiException(HttpStatus.CONFLICT, "EVENT_REGISTRATION_CLOSED", "Bu etkinliğin kayıtları kapatıldı.");
+        }
         if (existing.isPresent()) {
             EventRsvp r = existing.get();
             if (r.getStatus() != status) {
@@ -649,7 +706,7 @@ public class EventService {
                     e.getCommunityId(), e.getCommunityId() == null ? null : communityNames.get(e.getCommunityId()),
                     e.getCreatedBy(),
                     o == null ? null : o.getDisplayName(), e.getStatus(), mine.get(e.getId()),
-                    manageable.contains(e.getId()), e.getCreatedAt()));
+                    manageable.contains(e.getId()), e.getCreatedAt(), e.isRegistrationClosed()));
         }
         return out;
     }

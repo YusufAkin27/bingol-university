@@ -576,10 +576,31 @@ node scripts/openapi-errors.js --inject docs/MOBILE_API_GUIDE.md                
   "endsAt": "2026-11-10T17:00:00Z", "location": "Kongre Merkezi", "coverUrl": "/files/covers/ab12.jpg",
   "capacity": 300, "goingCount": 142, "interestedCount": null, "communityId": 3, "communityName": "Kariyer Kulübü",
   "createdBy": 5, "organizerName": "Ayşe K.", "status": "ACTIVE", "myRsvp": "GOING", "canManage": false,
-  "createdAt": "2026-10-01T10:00:00Z" }
+  "createdAt": "2026-10-01T10:00:00Z", "registrationClosed": false }
 ```
 
 Katılımcı önizlemesi için `GET /api/events/{id}/attendees/preview` çağrılır. Hız sınırı: dakikada 60.
+
+## Kulüp ve etkinlik yaşam döngüsü (kurma, ayrılma, silme, kapatma, Etkinliklerim)
+
+**Kulüp kurma** — `POST /api/communities` `{name, description?, category?, joinPolicy?: OPEN|APPROVAL, visibility?: PUBLIC|PRIVATE}` (her doğrulanmış kullanıcı; saatte 5; aynı anda en çok 3 sahip olunan kulüp, aşımda `409 COMMUNITY_LIMIT`).
+- Ayar `app.community.auto-approve` (`APP_COMMUNITY_AUTO_APPROVE`, varsayılan **true**): `201 Created` + `CommunityView.status = "ACTIVE"` (kulüp hemen yayında, sohbet odası kurulu, `myRole = "OWNER"`). `false` ise eski akış: `202 Accepted` + `status = "PENDING_REVIEW"` (yönetici onayı; onaylanınca bildirim gelir). İstemci iki durumu da `status` alanından ayırt etmelidir.
+- Düzenleme `PATCH /api/communities/{id}` (`name, description, category, joinPolicy, visibility`; hepsi isteğe bağlı), kapak `POST /api/communities/{id}/cover`, logo `POST|DELETE /api/communities/{id}/logo`. Yetki: `EDIT_INFO` (sahip/yönetici/yetkilendirilmiş üye); yetkisiz `403`.
+- **Silme** `DELETE /api/communities/{id}` → `204` (yalnız sahip veya sistem yöneticisi; saatte 10; diğerleri `403 FORBIDDEN`). Yumusak silme (`status = DELETED`): keşfet/arama/`me/communities`'ten düşer, sonrasında her uç `404 COMMUNITY_NOT_FOUND` verir (sahibe de). Etkileri: kulüp sohbet odası kapanır (tüm üyeler odadan çıkar; WS `conversation-removed` olayı), kulübün **bitmemiş** etkinlikleri iptal edilir (katılımcılara `notif.event.cancelled`, etkinlik odaları kapanır; geçmiş etkinlikler görünmez olur), aktif üyelere `notif.community.deleted` bildirimi gider, kapak/logo dosyaları silinir.
+- İstek yönetimi (değişmedi): `GET /api/communities/{id}/requests?cursor&size&include=answers`, `POST .../requests/{userId}/approve|reject`, `GET|PUT .../join-questions`; üye yönetimi `DELETE .../members/{userId}?ban=`, `PUT .../members/{userId}/role`. Yetki `MANAGE_MEMBERS`; eşit/üst düzey üyeye müdahale `403 ESCALATION_DENIED`; sahip çıkarılamaz `403 OWNER_PROTECTED`.
+
+**Kulüpten ayrılma** — `DELETE /api/communities/{id}/membership` → `204` (saatte 60). Sahip ayrılamaz: `409 OWNER_CANNOT_LEAVE` (önce `POST .../ownership-transfer` ya da kulübü sil). Ayrılınca (çıkarılma/yasaklanma/istek reddi dahil, aynı kural):
+- Kulüp sohbetinden çıkarılır (üyelik satırı `leftAt` ile kapanır) ve bağlı etkinlik sohbetlerinden de (kendi oluşturduğu etkinlik hariç).
+- `GET /api/conversations` listesinde artık görünmez; `GET|POST /api/conversations/{id}/messages`, `/read`, medya, okunmamış sayacı, arama `404` verir; `GET /api/communities/{id}/chat` `404 CHAT_ROOM_NOT_FOUND`.
+- Açık WebSocket: kullanıcı sohbetin `/user/queue/*` teslim listesinden düştüğü için yeni olay almaz. Ek olarak `/user/queue/message-events` kuyruğuna **`{"type":"conversation-removed","conversationId":7,"at":"..."}`** gelir; istemci konuşmayı listeden ve açık ekrandan kaldırmalıdır.
+- Yeniden katılırsa (`join`/onay) sohbet listede yeniden belirir; yalnız yeniden katılımdan sonraki mesajlar görünür (`joinedAt` kuralı), eskiler görünmez ve okunmamış sayılmaz.
+
+**Etkinlik** — oluşturma `POST /api/events` (kulüp etkinliği için `MANAGE_EVENTS`; bağımsız etkinlik herkese açık, yönetici ayarı `events_require_approval` açıksa `202 PENDING_REVIEW`). Düzenleme `PATCH /api/events/{id}`. Yetkili: oluşturan, ortak organizatör, kulüp yetkilisi, yönetici (`EventView.canManage`).
+- **İptal** (etkinlik CANCELLED olur, katılımcılara bildirim, sohbet odası kapanır): `DELETE /api/events/{id}` → `204` ya da eşdeğeri `POST /api/events/{id}/cancel` → `204`. İdempotent.
+- **Kayıtları kapat** `POST /api/events/{id}/close` → `200 EventView` (`registrationClosed: true`); **yeniden aç** `POST /api/events/{id}/reopen` → `200 EventView`. İdempotent; saatte 60 yönetim işlemi. Kapalıyken: etkinlik görünür kalır; yeni RSVP/başvuru (ve `INTERESTED → GOING` geçişi) `409 EVENT_REGISTRATION_CLOSED`; mevcut RSVP'ler etkilenmez, geri çekilme (`DELETE .../rsvp`) çalışır. İptal/reddedilmiş etkinlikte `409 EVENT_NOT_EDITABLE`, bitmişte `409 EVENT_ENDED`, yetkisizde `403`.
+- `EventView`'a yeni alan **`registrationClosed`** (boolean). Tam alan listesi: `id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount, interestedCount, communityId, communityName, createdBy, organizerName, status, myRsvp, canManage, createdAt, registrationClosed`.
+- **RSVP** `PUT /api/events/{id}/rsvp {"status":"GOING"|"INTERESTED"}` ("Katılıyorum" = `GOING`); katılımcı listesine (`GET .../attendees`, organizatör) girer ve "Etkinliklerim"de görünür. Geri çekme `DELETE .../rsvp`. Sınır: kullanıcı başına dakikada 30 (genel) ve **aynı etkinlikte dakikada 5 değişiklik** (PUT+DELETE toplam); aşımda `429` + `Retry-After`.
+- **Etkinliklerim** `GET /api/me/events?mode=&cursor=&size=` (takma ad: `GET /api/events/me`), imleçli (`cursor` = son kaydın `id`'si): `mode=upcoming` yaklaşan/süren, RSVP'lim (GOING+INTERESTED) + oluşturduklarım; `going` yaklaşan, yalnız GOING; `past` bitmiş, RSVP'lim + oluşturduklarım, yeniden eskiye; `created` oluşturduklarım (iptaller hariç, `id` azalan; bekleyen onaylılar dahil). Eski adlar: `attending` (varsayılan; yaklaşan RSVP'liler) ve `organizing` (= `created`). Bilinmeyen mod `attending` gibi davranır.
 
 ## Rehber eşleştirme
 

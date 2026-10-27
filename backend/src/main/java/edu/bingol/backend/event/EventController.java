@@ -109,13 +109,17 @@ public class EventController {
 
     @PatchMapping("/events/{id}")
     public EventView update(@PathVariable Long id, @Valid @RequestBody UpdateEventRequest r) {
-        return events.update(Actor.current(), id, r);
+        Actor a = Actor.current();
+        limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
+        return events.update(a, id, r);
     }
 
     @DeleteMapping("/events/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        events.delete(Actor.current(), id);
+        Actor a = Actor.current();
+        limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
+        events.delete(a, id);
     }
 
     /** multipart alani "file", jpg/png/webp, en fazla 3 MB; 1600 px sinirina kucultulur. PUT ana sozlesme, POST eski ad. */
@@ -143,13 +147,41 @@ public class EventController {
     public RsvpResult rsvp(@PathVariable Long id, @Valid @RequestBody RsvpRequest r) {
         Actor a = Actor.current();
         limiter.check("event-rsvp:user:" + a.id(), 30, Duration.ofMinutes(1));
+        limiter.check("event-rsvp-change:user:" + a.id() + ":event:" + id, 5, Duration.ofMinutes(1)); // ayni etkinlikte dakikada 5 degisiklik
         return events.rsvp(a, id, r.status());
     }
 
     @DeleteMapping("/events/{id}/rsvp")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelRsvp(@PathVariable Long id) {
-        events.cancelRsvp(Actor.current(), id);
+        Actor a = Actor.current();
+        limiter.check("event-rsvp-change:user:" + a.id() + ":event:" + id, 5, Duration.ofMinutes(1));
+        events.cancelRsvp(a, id);
+    }
+
+    /** Organizator: etkinligi iptal eder (DELETE /events/{id} ile ayni; katilimcilara bildirim, sohbet odasi kapanir). */
+    @PostMapping("/events/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancel(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
+        events.delete(a, id);
+    }
+
+    /** Organizator: kayitlari kapatir (yeni RSVP yok; etkinlik gorunur kalir, mevcut RSVP'ler etkilenmez). Idempotent. */
+    @PostMapping("/events/{id}/close")
+    public EventView close(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
+        return events.setRegistrationClosed(a, id, true);
+    }
+
+    /** Organizator: kapatilmis kayitlari yeniden acar. Idempotent. */
+    @PostMapping("/events/{id}/reopen")
+    public EventView reopen(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
+        return events.setRegistrationClosed(a, id, false);
     }
 
     /** Organizatore: katilimcilar (varsayilan GOING; status=INTERESTED da istenebilir). */
@@ -169,7 +201,11 @@ public class EventController {
         return previews.preview(a, id);
     }
 
-    @GetMapping("/me/events")
+    /**
+     * Etkinliklerim. mode: upcoming | going | past | created (eski: attending | organizing). Imecli.
+     * /events/me, /me/events'in takma adidir.
+     */
+    @GetMapping({"/me/events", "/events/me"})
     public CursorPage<EventView> mine(@RequestParam(defaultValue = "attending") String mode,
                                       @RequestParam(required = false) Long cursor,
                                       @RequestParam(defaultValue = "20") int size) {

@@ -56,6 +56,22 @@ senkron ve uyelik islemiyle ayni islemde yayinlanir. Dinleyici hatasi uyelik isl
 - Sabitleme: `PUT/DELETE /api/communities/{id}/posts/{postId}/pin` (MANAGE_POSTS, en fazla 3); kaldirma:
   `DELETE /api/communities/{id}/posts/{postId}` (yazar veya MANAGE_POSTS).
 
+## 6. Kulup kurma (auto-approve), silme, ayrilma (V250)
+
+- **`app.community.auto-approve`** (env `APP_COMMUNITY_AUTO_APPROVE`, varsayilan `true`): `POST /api/communities` kulubu hemen `ACTIVE` yapar,
+  sohbet odasi kurulur, yanit **201** (eski onay akisi: `false` -> **202** + `PENDING_REVIEW`). Olusturan `OWNER`. Kota: 3 sahip olunan kulup (`COMMUNITY_LIMIT`).
+- **`DELETE /api/communities/{id}`** (yeni, 204; yalniz sahip/ADMIN, `403 FORBIDDEN`; saatte 10): yumusak silme, `Community.Status.DELETED`
+  (V250: `ck_community_status` kisitina `DELETED` eklendi). `CommunityService.load/loadVisible` DELETED'i herkese 404 verir. Etkileri:
+  `ClubExtrasHooks.onCommunityDeleted` -> sohbet odasi kapanir (`RoomConversations.closeRoom`: herkes `leftAt` ile cikar) ve `ClubDeletedEvent`
+  yayinlanir; `event.EventClubDeletedListener` (AFTER_COMMIT, REQUIRES_NEW) kulubun bitmemis etkinliklerini iptal eder (`notif.event.cancelled`,
+  etkinlik odalari kapanir); aktif uyelere `notif.community.deleted` (tr/en/ar); kapak/logo `media.release`; denetim `COMMUNITY_DELETED`.
+- **Ayrilma** (`DELETE .../membership`, degisiklik yok; denetlendi): sahip `409 OWNER_CANNOT_LEAVE`; uyelik satiri silinir, `onMemberGone` odadan
+  cikarir (`leftAt`) ve `ClubMemberLeftEvent` ile etkinlik odalarindan dusurur (kendi etkinligi haric). Mesajlasma tarafinda tum yollar
+  `leftAt IS NULL` ister (liste, mesajlar, read, medya, okunmamis) -> 404. Yeniden katilimda `joinedAt` yenilenir, eski gecmis gorunmez.
+- **Yeni WS olayi** `conversation-removed` (`/user/queue/message-events`, `{type, conversationId, at}`): oda uyeligi dusen (ayrilma, cikarma,
+  yasaklama, oda kapanisi/kulup silme) kullanicilara commit sonrasi gonderilir (`RoomConversations.notifyRemoved`).
+- Yeni hata kodu yok (`OWNER_CANNOT_LEAVE`, `FORBIDDEN` zaten ceviriliydi). Yeni bildirim: `notif.community.deleted.*`.
+
 ## Hata kodlari
 
 Yeni hata kodu eklenmedi.

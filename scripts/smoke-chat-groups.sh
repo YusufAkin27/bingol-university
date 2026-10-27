@@ -46,10 +46,15 @@ TA=$(register "$ADMIN_EMAIL" "Sistem Yoneticisi")
 [ -n "$T1" ] && [ -n "$T2" ] && [ -n "$T3" ] && [ -n "$TA" ] || { echo "kayit basarisiz"; exit 1; }
 
 echo "== kulup sohbeti"
-step "kulup olustur" 202 POST /communities "$T1" "{\"name\":\"Sohbet Kulubu $SFX\",\"description\":\"chat\",\"visibility\":\"PUBLIC\",\"joinPolicy\":\"OPEN\"}"
+call POST /communities "$T1" "{\"name\":\"Sohbet Kulubu $SFX\",\"description\":\"chat\",\"visibility\":\"PUBLIC\",\"joinPolicy\":\"OPEN\"}"
+# auto-approve acikken 201 (ACTIVE), kapaliyken 202 (onay bekler)
+if [ "$CODE" = "201" ] || [ "$CODE" = "202" ]; then echo "  ok   kulup olustur ($CODE)"; else echo "  FAIL kulup olustur ($CODE)"; FAIL=1; fi
+CREATE_CODE=$CODE
 C=$(printf '%s' "$BODY" | idof)
-step "onaysiz kulupte sohbet yok" 404 GET /communities/$C/chat "$T1"
-step "admin onayla" 204 POST /admin/communities/$C/approve "$TA"
+if [ "$CREATE_CODE" = "202" ]; then
+  step "onaysiz kulupte sohbet yok" 404 GET /communities/$C/chat "$T1"
+  step "admin onayla" 204 POST /admin/communities/$C/approve "$TA"
+fi
 step "sahip sohbeti alir" 200 GET /communities/$C/chat "$T1"
 contains "tur CLUB" '"type":"CLUB"' "$BODY"
 contains "communityId dolu" "\"communityId\":$C" "$BODY"

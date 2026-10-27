@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -93,14 +94,55 @@ public class CommunityService {
             c.setVisibility(r.visibility());
         }
         c.setOwnerId(a.id());
-        c.setStatus(Community.Status.PENDING_REVIEW);
+        // auto-approve (varsayilan acik): kulup hemen yayinda; kapaliysa eski yonetici onayi akisi.
+        c.setStatus(autoApprove ? Community.Status.ACTIVE : Community.Status.PENDING_REVIEW);
         try {
             communities.saveAndFlush(c);
         } catch (DataIntegrityViolationException e) {
             throw new ApiException(HttpStatus.CONFLICT, "SLUG_CONFLICT", "Topluluk adı çakıştı, tekrar deneyin.");
         }
         members.save(new CommunityMember(c.getId(), a.id(), Role.OWNER, CommunityMember.Status.ACTIVE));
+        if (autoApprove) {
+            hooks.onCommunityActivated(c); // sohbet odasi kurulur, sahip odaya girer
+        }
         return c;
+    }
+
+    /** Yeni kulup yonetici onayi beklemeden yayina girsin mi (app.community.auto-approve). */
+    @Value("${app.community.auto-approve:true}")
+    private boolean autoApprove;
+
+    void setAutoApprove(boolean v) { // testler icin
+        this.autoApprove = v;
+    }
+
+    /**
+     * Sahip (veya ADMIN) kulubu siler (yumusak, DELETED): kesfet/aramadan duser, sohbet odasi kapanir (herkes
+     * odadan cikar), bagli gelecek etkinlikler iptal edilir (ClubDeletedEvent dinleyicisi), uyeler bilgilendirilir.
+     */
+    @Transactional
+    public void delete(Actor a, Long id) {
+        Community c = loadVisible(a, id);
+        if (!a.admin() && !c.getOwnerId().equals(a.id())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için topluluk sahibi olmalısınız.");
+        }
+        String cover = c.getCoverUrl();
+        String logo = c.getLogoUrl();
+        c.setStatus(Community.Status.DELETED);
+        c.setCoverUrl(null);
+        c.setLogoUrl(null);
+        c.setUpdatedAt(Instant.now());
+        communities.saveAndFlush(c);
+        media.release(cover);
+        media.release(logo);
+        audit.record(id, a.id(), null, ClubAuditService.COMMUNITY_DELETED, null);
+        // Uyelere haber (500 ile sinirli); silen kisi haric.
+        for (Long uid : members.userIdsByStatus(id, CommunityMember.Status.ACTIVE, PageRequest.of(0, 500))) {
+            if (!uid.equals(a.id())) {
+                notifications.sendTemplated(uid, NotificationType.COMMUNITY, "notif.community.deleted", data(id), c.getName());
+            }
+        }
+        hooks.onCommunityDeleted(c);
     }
 
     /** Ad'dan benzersiz slug: cakisirsa -2, -3 ... eklenir; cok cakisirsa rastgele ek. */
@@ -394,8 +436,9 @@ public class CommunityService {
 
     // ---- diger modullerin kullandigi yardimcilar ----
 
+    /** Silinmis (DELETED) kulup yokmus gibi 404 verir. */
     public Community load(Long id) {
-        return communities.findById(id)
+        return communities.findById(id).filter(c -> c.getStatus() != Community.Status.DELETED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "COMMUNITY_NOT_FOUND", "Topluluk bulunamadı."));
     }
 

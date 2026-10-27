@@ -44,7 +44,7 @@ public final class EventDtos {
                             String location, String coverUrl, Integer capacity, int goingCount,
                             Long interestedCount, Long communityId, String communityName, Long createdBy,
                             String organizerName, UserEvent.Status status, EventRsvp.Status myRsvp,
-                            boolean canManage, Instant createdAt) {
+                            boolean canManage, Instant createdAt, boolean registrationClosed) {
     }
 
     public record RsvpRequest(@NotNull EventRsvp.Status status) {

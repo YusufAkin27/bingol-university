@@ -167,6 +167,12 @@ public final class MessagingDtos {
     public record ConversationUpdatedEvent(String type, Long conversationId, Long userId, String title,
                                            String avatarUrl, String at) {}
 
+    /**
+     * /user/queue/message-events, type = "conversation-removed": kullanici kulup/etkinlik sohbetinden dustu
+     * (ayrildi, cikarildi, yasaklandi, oda kapandi/kulup silindi). Istemci konusmayi listeden ve acik ekrandan kaldirir.
+     */
+    public record ConversationRemovedEvent(String type, Long conversationId, String at) {}
+
     public record UnreadItem(Long conversationId, long unread, boolean muted) {}
 
     /** `total`: sessize alinmamis konusmalardaki toplam okunmamis (rozet sayisi); `mutedTotal`: sessizdekiler. */

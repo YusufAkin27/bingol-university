@@ -1,5 +1,6 @@
 package edu.bingol.backend.community.extras;
 
+import edu.bingol.backend.community.ClubDeletedEvent;
 import edu.bingol.backend.community.ClubMemberLeftEvent;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityRepository;
@@ -89,6 +90,20 @@ public class ClubExtrasHooks {
             answers.deleteMember(communityId, userId);
         } catch (RuntimeException e) {
             log.warn("Basvuru yanitlari silinemedi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
+        }
+    }
+
+    /** Kulup silindi: sohbet odasi kapanir (herkes cikar, kimse goremez); bagli etkinlikler olay dinleyicisinde iptal edilir. */
+    public void onCommunityDeleted(Community c) {
+        try {
+            rooms.closeRoom(RoomKind.COMMUNITY, c.getId());
+        } catch (RuntimeException e) {
+            log.warn("Kulup odasi kapatilamadi (kulup {}): {}", c.getId(), e.toString());
+        }
+        try {
+            events.publishEvent(new ClubDeletedEvent(c.getId()));
+        } catch (RuntimeException e) {
+            log.warn("Kulup silme olayi dinleyicisi hata verdi (kulup {}): {}", c.getId(), e.toString());
         }
     }
 

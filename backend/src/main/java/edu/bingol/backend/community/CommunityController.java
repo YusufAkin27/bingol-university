@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -54,14 +55,26 @@ public class CommunityController {
         this.limiter = limiter;
     }
 
-    /** Onay bekleyen topluluk olusturur (202). */
+    /**
+     * Kulup olusturur: auto-approve acikken (varsayilan) hemen yayinda, 201 + status ACTIVE; kapaliyken onay
+     * bekler, 202 + status PENDING_REVIEW. Olusturan OWNER olur.
+     */
     @PostMapping("/communities")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public CommunityView create(@Valid @RequestBody CreateCommunityRequest r) {
+    public ResponseEntity<CommunityView> create(@Valid @RequestBody CreateCommunityRequest r) {
         Actor a = Actor.current();
         limiter.check("community-create:user:" + a.id(), 5, Duration.ofHours(1));
         Community c = communities.create(a, r);
-        return communities.get(a, c.getId());
+        CommunityView v = communities.get(a, c.getId());
+        return ResponseEntity.status(c.getStatus() == Community.Status.ACTIVE ? HttpStatus.CREATED : HttpStatus.ACCEPTED).body(v);
+    }
+
+    /** Yalniz sahip (veya ADMIN): kulubu siler (yumusak); sohbet odasi kapanir, bagli gelecek etkinlikler iptal olur. */
+    @DeleteMapping("/communities/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("community-delete:user:" + a.id(), 10, Duration.ofHours(1));
+        communities.delete(a, id);
     }
 
     @GetMapping("/communities")

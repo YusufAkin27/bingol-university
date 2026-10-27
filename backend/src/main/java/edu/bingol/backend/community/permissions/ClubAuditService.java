@@ -32,6 +32,7 @@ public class ClubAuditService {
     public static final String INVITE_REVOKED = "INVITE_REVOKED";
     public static final String INVITE_USED = "INVITE_USED";
     public static final String ANNOUNCEMENT_POSTED = "ANNOUNCEMENT_POSTED";
+    public static final String COMMUNITY_DELETED = "COMMUNITY_DELETED";
     public static final String CHAT_ROOM_CLOSED = "CHAT_ROOM_CLOSED";
     public static final String CHAT_ROOM_OPENED = "CHAT_ROOM_OPENED";
     public static final String JOIN_QUESTIONS_SET = "JOIN_QUESTIONS_SET";

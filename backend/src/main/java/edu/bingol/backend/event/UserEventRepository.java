@@ -92,6 +92,56 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                               @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
                               Pageable page);
 
+    /**
+     * Etkinliklerim, yaklasan/suren (mode upcoming|going): RSVP'li etkinlikler; own=true ise olusturduklarim da;
+     * goingOnly=true ise yalniz GOING. Takvim sirasi, imec (cs, cid).
+     */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.status = :active AND e.endsAt >= :now
+              AND (e.startsAt > :cs OR (e.startsAt = :cs AND e.id > :cid))
+              AND ((:own = true AND e.createdBy = :uid)
+                   OR e.id IN (SELECT r.eventId FROM EventRsvp r
+                               WHERE r.userId = :uid AND (:goingOnly = false OR r.status = :going)))
+              AND (e.createdBy = :uid OR e.communityId IS NULL OR e.communityId IN (
+                    SELECT c.id FROM Community c WHERE c.status = :cActive AND (c.visibility = :pub
+                      OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
+            ORDER BY e.startsAt, e.id
+            """)
+    List<UserEvent> mineUpcoming(@Param("active") UserEvent.Status active, @Param("now") Instant now,
+                                 @Param("cs") Instant cursorStart, @Param("cid") long cursorId,
+                                 @Param("uid") Long userId, @Param("own") boolean own,
+                                 @Param("goingOnly") boolean goingOnly,
+                                 @Param("going") EventRsvp.Status going,
+                                 @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                                 @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                                 @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                                 Pageable page);
+
+    /** Etkinliklerim, gecmis (mode past): bitmis ACTIVE etkinlikler (RSVP'li + olusturduklarim); yeniden eskiye, imec (cs, cid). */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.status = :active AND e.endsAt < :now
+              AND (e.startsAt < :cs OR (e.startsAt = :cs AND e.id < :cid))
+              AND (e.createdBy = :uid OR e.id IN (SELECT r.eventId FROM EventRsvp r WHERE r.userId = :uid))
+              AND (e.createdBy = :uid OR e.communityId IS NULL OR e.communityId IN (
+                    SELECT c.id FROM Community c WHERE c.status = :cActive AND (c.visibility = :pub
+                      OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
+            ORDER BY e.startsAt DESC, e.id DESC
+            """)
+    List<UserEvent> minePast(@Param("active") UserEvent.Status active, @Param("now") Instant now,
+                             @Param("cs") Instant cursorStart, @Param("cid") long cursorId,
+                             @Param("uid") Long userId,
+                             @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                             @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                             @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                             Pageable page);
+
+    /** Kulubun bitmemis, verilen durumlardaki etkinlik kimlikleri (kulup silinince iptal icin). */
+    @Query("SELECT e.id FROM UserEvent e WHERE e.communityId = :cid AND e.status IN :statuses AND e.endsAt > :now")
+    List<Long> liveIdsByCommunity(@Param("cid") Long communityId, @Param("statuses") List<UserEvent.Status> statuses,
+                                  @Param("now") Instant now);
+
     /** Duzenlediklerim (iptal edilenler haric), yeniden eskiye. */
     @Query("SELECT e FROM UserEvent e WHERE e.createdBy = :uid AND e.status <> :cancelled AND e.id < :cursor ORDER BY e.id DESC")
     List<UserEvent> organizing(@Param("uid") Long userId, @Param("cancelled") UserEvent.Status cancelled,

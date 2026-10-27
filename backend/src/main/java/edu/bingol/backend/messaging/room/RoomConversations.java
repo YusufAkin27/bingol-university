@@ -5,6 +5,8 @@ import edu.bingol.backend.messaging.Conversation;
 import edu.bingol.backend.messaging.ConversationMember;
 import edu.bingol.backend.messaging.ConversationMemberRepository;
 import edu.bingol.backend.messaging.ConversationRepository;
+import edu.bingol.backend.messaging.dto.MessagingDtos;
+import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.time.Instant;
@@ -139,7 +141,41 @@ public class RoomConversations {
         }
         m.setLeftAt(Instant.now());
         members.save(m);
+        notifyRemoved(l.getConversationId(), java.util.List.of(userId));
         return true;
+    }
+
+    /** Ayrilan/cikarilan kullanicilarin istemcisi konusmayi listeden dusursun (`/user/queue/message-events`). */
+    private void notifyRemoved(Long conversationId, Collection<Long> userIds) {
+        if (bus == null || userIds.isEmpty()) {
+            return;
+        }
+        Runnable send = () -> {
+            try {
+                bus.publish("message-events", userIds, new MessagingDtos.ConversationRemovedEvent(
+                        "conversation-removed", conversationId, Instant.now().toString()));
+            } catch (RuntimeException e) {
+                // teslim hatasi islemi bozmaz; istemci listeyi yenileyince konusma zaten gelmez
+            }
+        };
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            send.run();
+                        }
+                    });
+        } else {
+            send.run();
+        }
+    }
+
+    private ChatEventBus bus;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setBus(ChatEventBus bus) {
+        this.bus = bus;
     }
 
     /**
@@ -161,9 +197,12 @@ public class RoomConversations {
     @Transactional
     public void closeRoom(RoomKind kind, Long refId) {
         links.findByKindAndRefId(kind, refId).ifPresent(l -> {
+            java.util.List<Long> leaving = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(l.getConversationId())
+                    .stream().map(ConversationMember::getUserId).toList();
             l.setClosed(true);
             links.save(l);
             links.leaveAll(l.getConversationId(), Instant.now());
+            notifyRemoved(l.getConversationId(), leaving);
         });
     }
 

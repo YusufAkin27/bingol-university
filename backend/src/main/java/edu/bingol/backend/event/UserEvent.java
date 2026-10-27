@@ -51,6 +51,10 @@ public class UserEvent {
     @Column(nullable = false)
     private int goingCount;
 
+    /** true: yeni RSVP/basvuru kabul edilmez; etkinlik gorunur kalir, mevcut RSVP'ler etkilenmez. */
+    @Column(nullable = false)
+    private boolean registrationClosed;
+
     private Long communityId;
 
     @Column(nullable = false)
