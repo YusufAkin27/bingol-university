@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -36,18 +38,43 @@ class FloatingNav extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(side, 0, side, bottom > 0 ? bottom : 16),
       child: RepaintBoundary(
+        // "Sıvı cam": arkadaki içerik bulanıklaşır, yüzey yarı saydam gradyan, kenarda ışık yansıması çizgisi.
         child: Container(
           height: height,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.all(1),
           decoration: BoxDecoration(
-            color: t.nav.withValues(alpha: .94),
             borderRadius: BorderRadius.circular(height / 2),
-            border: Border.all(color: dark ? t.bd : t.bd.withValues(alpha: .5)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: dark ? .38 : .95),
+                Colors.white.withValues(alpha: dark ? .06 : .25),
+                Colors.white.withValues(alpha: dark ? .22 : .70),
+              ],
+            ),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: dark ? .30 : .10), blurRadius: 24, offset: const Offset(0, 8)),
+              BoxShadow(color: Colors.black.withValues(alpha: dark ? .35 : .14), blurRadius: 28, offset: const Offset(0, 10)),
             ],
           ),
-          child: LayoutBuilder(builder: (context, c) {
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(height / 2 - 1),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: dark ? .16 : .62),
+                      Colors.white.withValues(alpha: dark ? .05 : .34),
+                    ],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: LayoutBuilder(builder: (context, c) {
             final slot = c.maxWidth / n;
             final pillW = (slot - 6).clamp(44.0, 56.0);
             final visual = rtl ? n - 1 - index : index;
@@ -63,10 +90,16 @@ class FloatingNav extends StatelessWidget {
                   height: 44,
                   child: DecoratedBox(
                     key: const ValueKey('nav-pill'),
+                    // Cam damla: marka renginde yarı saydam dolgu + üstte ışık parlaması + ince parlak kenar.
                     decoration: BoxDecoration(
-                      color: t.pr,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [t.pr.withValues(alpha: .92), t.pr.withValues(alpha: .74)],
+                      ),
                       borderRadius: BorderRadius.circular(22),
-                      boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .35), blurRadius: 12, offset: const Offset(0, 4))],
+                      border: Border.all(color: Colors.white.withValues(alpha: dark ? .35 : .55), width: 1),
+                      boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .35), blurRadius: 14, offset: const Offset(0, 4))],
                     ),
                   ),
                 ),
@@ -90,6 +123,10 @@ class FloatingNav extends StatelessWidget {
               ],
             );
           }),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -133,7 +170,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final color = widget.selected ? t.onPr : t.onNav.withValues(alpha: .7);
+    final color = widget.selected ? t.onPr : t.ink.withValues(alpha: .72);
     Widget icon = ScaleTransition(
       scale: _scale,
       child: TweenAnimationBuilder<Color?>(
