@@ -6,7 +6,10 @@ This summary shows how long your personal data is kept and what happens afterwar
 
 ## 1. Principles
 
-Data is kept for the time needed for its purpose and as permitted by law, then **deleted**, **destroyed** or **anonymised** by nightly jobs. Where a legal retention duty exists, data is kept for that period.
+1. Data is kept for the time needed for its purpose and for as long as the legislation permits.
+2. When the period ends, data is **deleted**, **destroyed** or made **anonymous** automatically by nightly jobs.
+3. If there is a legal retention duty, data is kept for the relevant period.
+4. Periodic destruction: the automatic cleanup jobs run daily/hourly; the numbers of deleted records are written to the system log.
 
 ## 2. Retention periods
 
@@ -55,7 +58,7 @@ As a service provider we may be required by law (notably Law No. 5651 and its re
 
 ## 5. Destruction methods
 
-Database records are deleted securely; files are removed from storage; anonymisation irreversibly replaces identifying fields; for encrypted data, access is closed together with the key. Removal from backups occurs within the backup cycle.
+Database records are deleted securely; files are removed from storage; anonymisation irreversibly replaces identifying fields; for encrypted data, access is closed together with the key. Backups are taken encrypted and kept for a limited time; removal of deleted data from backups occurs within the backup cycle.
 
 ## 6. Your rights
 

@@ -22,9 +22,9 @@ Başkasına yüz yüze söylemeyeceğiniz bir şeyi yazmayın; paylaştığını
 | **Teknik kötüye kullanım** | Bot, toplu tarama, rehber/kullanıcı dizinini toplamak, güvenlik açığı sömürmek, yasak/engel dolanmak (yeni hesap, VPN) | Hataları Destek'e bildirmek |
 | **Telif ihlali** | Başkasının eserini izinsiz paylaşmak | Kaynak göstererek kısa alıntı |
 
-**Herkese açık alanlarda ifade filtresi.** Topluluk, etkinlik, profil, grup başlığı, gönderi, yorum ve hikâye gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanılamaz; bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
+**Herkese açık alanlarda ifade filtresi.** Topluluk, etkinlik, profil, grup başlığı ve gönderi metni gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanılamaz; bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
 
-**Gönderi, yorum ve hikâyeler.** Paylaştığınız gönderi, yorum ve hikâyelerden (ve içlerindeki etiket/anmalardan) siz sorumlusunuz. İçerikler yayımlanmadan önce insan denetiminden geçmez; yukarıdaki kurallara aykırı olanlar şikâyet üzerine gizlenebilir veya kaldırılabilir. Başkasının fotoğrafını, kişisel verisini veya özel yazışmasını izinsiz paylaşmayın.
+**Gönderiler.** Bir gönderi tek bir fotoğraf ve en çok 7 kelimelik kısa bir metinden oluşur ve beğenilebilir. Paylaştığınız gönderilerden siz sorumlusunuz. İçerikler yayımlanmadan önce insan denetiminden geçmez; yukarıdaki kurallara aykırı olanlar şikâyet üzerine gizlenebilir veya kaldırılabilir. Başkasının fotoğrafını, kişisel verisini veya özel yazışmasını izinsiz paylaşmayın.
 
 ## 3. Etkinlik ve kulüp yöneticileri için ek kurallar
 
@@ -32,16 +32,19 @@ Başkasına yüz yüze söylemeyeceğiniz bir şeyi yazmayın; paylaştığını
 2. Katılımcı bilgilerini yalnızca etkinlik amacıyla kullanın; yoklama kayıtlarını paylaşmayın.
 3. Yoklama QR kodlarını yalnızca etkinlik yerinde ve süresinde kullanın.
 4. Yönetici yetkilerinizi devrederken yeni yöneticiyi bilgilendirin; üyelerin sohbet odalarında Topluluk Kurallarını uygulayın.
+5. Kulüp sahibi olarak hesabınızı silerseniz kulübün sahipliği en eski aktif yönetici (yoksa moderatör) üyeye devredilir; devralacak kimse yoksa kulüp kapatılır ve üyelere bildirilir. Hizmet yöneticileri, kuralları ihlal eden bir kulübü gerekçeli olarak kapatabilir veya sahipliğini devredebilir.
 
 ## 4. Mesajlaşma ve gizlilik
 
 1. Mesajlarınız şifreli saklanır ancak uçtan uca şifreli değildir; şikâyet incelemesinde yetkili yöneticiler görüntüleyebilir (her erişim kayda alınır).
 2. Tek gönderimlik fotoğrafın ekran görüntüsü alınmasına karşı mutlak garanti yoktur; hassas görselleri paylaşmayın.
 3. İstemediğiniz kişiyi **engelleyebilirsiniz**; engellenen kişinin mesajları size iletilmez.
+4. Fotoğrafların konum gibi gömülü üst verisi (EXIF) sunucuda temizlenir; ancak sohbet videolarındaki üst veri (çekim zamanı, konum etiketi) sunucuda temizlenmez. Konum veya kişisel bilgi içerebilecek videoları göndermeden önce dikkatli olun.
+5. Mesaj içeriğini yalnızca tam yönetici ve moderatör rolündeki yöneticiler; şikâyet incelemesi, güvenlik/kötüye kullanım veya yasal talep gibi gerekçelerle, yazılı gerekçe girerek ve her seferinde denetim kaydına yazılarak görüntüleyebilir. Yönetici olmayan hiç kimse özel yazışmalara erişemez.
 
 ## 5. Nasıl bildirilir?
 
-1. Kullanıcı, mesaj, gönderi, yorum, hikâye, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın, nedeni seçin ve isterseniz kısa bir not ekleyin.
+1. Kullanıcı, mesaj, gönderi, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın, nedeni seçin ve isterseniz kısa bir not ekleyin.
 2. Acil/ağır durumlarda (tehdit, istismar) ayrıca Destek bölümünden bize yazın ve gerekirse kolluk kuvvetlerine başvurun.
 3. Hukuka aykırı içerik veya telif bildirimleri için [İçerik Bildirimi ve Kaldırma](/legal/content-removal) usulünü izleyin.
 4. Asılsız veya art niyetli raporlar rapor yapma yetkinizi kısıtlayabilir. Günlük rapor sayısı sınırlıdır.
@@ -50,7 +53,7 @@ Başkasına yüz yüze söylemeyeceğiniz bir şeyi yazmayın; paylaştığını
 
 | Basamak | Ne olur? |
 |---|---|
-| 1. İçerik işlemi | İçerik kaldırılır veya gizlenir; size uygulama içi bildirim yapılabilir |
+| 1. İçerik işlemi | İçerik kaldırılır veya gizlenir; size uygulama içi bildirim yapılabilir. Aynı içerik birbirinden bağımsız birkaç hesap tarafından bildirilirse inceleme tamamlanana kadar otomatik ve geçici olarak gizlenebilir; yönetici incelemesi sonucunda yeniden görünür kılınabilir |
 | 2. Uyarı ve ihlal kaydı | İhlal hesabınıza kaydedilir. 180 gün içinde çözülmüş 3 ihlalde yöneticiye askıya alma **önerisi** düşer |
 | 3. Geçici askıya alma | Süreli olarak hesabınız kullanılamaz |
 | 4. Kalıcı kapatma | Hesap kalıcı olarak kapatılır |

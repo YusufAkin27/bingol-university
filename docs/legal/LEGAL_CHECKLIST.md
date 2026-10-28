@@ -5,7 +5,7 @@ Bu klasördeki metinler, uygulamanın **gerçek davranışına** dayanılarak T�
 ## 0. Yapı
 
 - Tek doğruluk kaynağı: `docs/legal/<tür>_<dil>.md` (tr esas, en/ar bilgi amaçlı çeviri; Arapça V480 ile eklendi).
-- Üretim: `node scripts/build-legal-migration.js` → `backend/src/main/resources/db/migration/V480__legal_texts_v3.sql` (`--check` ile güncellik kontrolü; V290/V370 dondurulmuştur). Sonraki değişiklikte yeni V48x eklenir. Kullanıcı notları: `docs/LEGAL_NOTES.md`.
+- Üretim: `node scripts/build-legal-migration-v820.js` → `backend/src/main/resources/db/migration/V820__legal_terms_v4.sql` (`--check` ile güncellik kontrolü; V290/V370/V480/V620 dondurulmuştur). Sonraki değişiklikte yeni V82x eklenir. Yayın öncesi avukat soruları: `docs/LEGAL_NOTES.md` başı. Kullanıcı notları: `docs/LEGAL_NOTES.md`.
 - Sunum anında `{{...}}` yer tutucuları `app_setting`'ten doldurulur (`LegalService.render`, 60 sn önbellek). Boş değerli kimlik satırı/cümle metinden çıkar; ham `{{…}}` hiçbir zaman gösterilmez.
 - İç belgeler: `docs/legal/internal/01…09` (kullanıcıya gösterilmez).
 

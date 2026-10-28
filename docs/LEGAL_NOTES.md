@@ -1,10 +1,34 @@
-# Hukuki Metinler: Kullanıcı Notları (V480)
+# Hukuki Metinler: Kullanıcı Notları (V480, V620, V820)
 
 Bu belge **uygulama işleticisi (siz) içindir**; kullanıcıya gösterilmez. Metinlerin kendisinde "taslak" ibaresi yoktur. Ancak metinler yapay zekâ ile, uygulamanın gerçek davranışına (kod, `docs/ENCRYPTION.md`, saklama süreleri) bakılarak hazırlanmış **iyi niyetli ve ayrıntılı** metinlerdir; kesin hukuki güvence sağlamaz. Yayından önce bir avukata kısa kontrol ettirmeniz önerilir (bkz. bölüm 5). Daha geniş liste: `docs/legal/LEGAL_CHECKLIST.md`, iç belgeler: `docs/legal/internal/01-09`.
 
+## Yayın öncesi avukat kontrol listesi (toplu: B1 + PAKET LG)
+
+Aşağıdakiler kodla doğrulanan olgulara dayalı **sorulardır**; metinlerin hiçbiri hukuki görüş değildir. Her madde için ilgili belge ve bölüm yazılıdır.
+
+1. **Kimlik, statü ve üniversite izni.** Veri sorumlusu gerçek kişi (Yusuf Akın). Üniversite adı/logosu/haber-duyuru-yemek içeriğinin kullanımı için yazılı izin veya protokol gerekir mi? Kullanım Koşulları 15.1 ve 8.3 "resmî uygulama değildir / izin ima edilmez" yaklaşımı yeterli mi?
+2. **VERBİS ve KEP.** Gerçek kişinin sicil kaydı yükümlülüğü, çalışan/bilanço eşikleri, ana faaliyet ölçütü; aydınlatmada KEP zorunluluğu; şahsi adresin sözleşmelerde herkese açık yayımlanması (bölüm 2 uyarısı). Boş bırakılan `legal.controller.kep` / `verbis` doğru mu?
+3. **Yurt dışı aktarım (KVKK m.9).** Firebase/APNs ve Brevo için mekanizma: standart sözleşme (Kurum'a 5 iş günü içinde bildirim), yeterlilik kararı veya arızi aktarım için açık rıza; düzenli push aktarımında "açık rıza" dayanağı 2024 değişikliği sonrası yeterli mi? Doğrulama/şifre sıfırlama e-postaları "sözleşmenin ifası" ile mi aktarılır? Brevo'nun ülkesi, DPA; barındırma sağlayıcısının ülkesi (`legal.hosting.location`).
+4. **5651 yer sağlayıcı.** Bildirim-kaldırma usulü yeterli mi; **trafik bilgisi saklama süresi:** uygulama cihaz/IP günlüğünü yalnız **90 gün** tutuyor. PAKET LG ile İçerik Bildirimi 7.3 ve Gizlilik 6.2 bu gerçeğe göre düzeltildi ("mevzuatın öngördüğü süre boyunca saklarız" vaadi kaldırıldı). Mevzuat yer sağlayıcıya daha uzun süre (ör. 6 ay–2 yıl) yüklüyorsa `app.security.ban-log-retention-days` uzatılmalı ve metinler yeniden güncellenmeli: hangi süre ve hangi kayıtlar?
+5. **Ticari elektronik ileti (6563).** Yöneticilerin tüm doğrulanmış kullanıcılara gönderdiği duyuru/kampanya e-postaları "ticari ileti" sayılır mı; ad/bölüm/fakülte/sınıf kişiselleştirmesi meşru menfaatle yeterli mi, yoksa opt-in mi gerekir? Abonelikten çıkış bağlantısı mevcut (`/api/public/mail/unsubscribe`).
+6. **Özel yazışmaya yönetici erişimi.** Haberleşme gizliliği (TCK m.132-134) ve KVKK açısından: (a) mesajlar uçtan uca şifreli değil ve yönetim paneli teknik olarak bir kullanıcının üye olduğu/olmuş olduğu **tüm** sohbetleri listeleyebiliyor (kapsam yalnız üyelikle sınırlı, rapor bağlamıyla sınırlı değil); metinler bunu açıkça yazıyor ve erişimi gerekçe + değiştirilemez kayıtla kurallaştırıyor, bu yeterli mi yoksa erişim yalnız raporlu sohbetlerle teknik olarak da sınırlanmalı mı? (b) gerekçe serbest metindir (en az 10 karakter), gerekçenin doğruluğu sistemce denetlenmez; (c) metinlerde "yöneticilerin gizlilik yükümlülüğüne uyması esastır" denir, imzalı taahhütname (`docs/legal/internal/07`) fiilen alınmalı; (d) erişim kaydı 730 gün: ölçülü mü?
+7. **Gizli ankette veri dışa aktarma.** "Verilerimi indir" kullanıcının KENDİ oyunu (seçenek metniyle) kendi dosyasında gösterir; hiçbir başka uçta gösterilmez. "Gizli oy" vaadiyle çelişir mi?
+8. **Kulüp sahibi devri/kapatma.** Hesabını silen kulüp sahibinin kulübü en eski aktif yönetici (yoksa moderatör) üyeye **o kişinin ayrıca rızası alınmadan** devredilir, kimse yoksa kapatılır; kulüp gönderilerinin metni (yazar anonim) kalır, görselleri silinir. Silme hakkı ile üçüncü kişilerin bağlamı dengesi uygun mu?
+9. **Kullanım Koşulları sorumluluk sınırı ve genel işlem şartları.** Madde 10 (olduğu gibi sunum, dolaylı zarar, ispatlanan doğrudan zarar sınırı, kasıt/ağır kusur istisnası), madde 11 (tazminat), madde 17 (HMK m.193 delil sözleşmesi, e-posta ile tebligat), madde 14 (yetkili mahkeme; ücretsiz hizmette 6502), madde 16 (tek taraflı değişiklik/sonlandırma): TBK m.20-25 ve m.115 açısından geçerli mi? Bu maddelerin EN sürümü önceden eksikti (özetti); PAKET LG ile TR'nin tam çevirisi oldu, bağlayıcı olan yine Türkçe metindir.
+10. **Çocuk / 18 yaş altı.** Yalnız bingol.edu.tr e-postasıyla kayıt var ama 18 yaş altı öğrenci olabilir (açık lise/hazırlık vb.). Yasal temsilci onayı yaklaşımı yeterli mi? Aydınlatma yaşa uygun mu?
+11. **Arapça ve İngilizce terimler.** Arapça çeviri yapay zekâ çevirisidir; **anadili Arapça olan ve Türk/Arap hukuk terminolojisini bilen bir hukuk çevirmeni kontrol etmelidir** (Kurul, KEP, yer sağlayıcı, veri sorumlusu/işleyen, açık rıza, anonimleştirme, tazminat, delil sözleşmesi). Bilinen tutarsızlık: `terms_ar`/`privacy_ar` yöneticiyi «المسؤول», `kvkk_ar`/`community_rules_ar`/`content_removal_ar` «المدير» diye anar; çevirmen tek terime indirmeli. İngilizce için de aynı kontrol önerilir.
+12. **Sohbet videosunda üst veri.** Sunucu video dosyasının içindeki üst veriyi (çekim zamanı, konum etiketi) temizlemez (denetim bulgusu; fotoğrafta EXIF temizlenir). Metinler bunu açıkça yazar. Ürün tarafında temizleme (ör. sunucuda `ffmpeg -map_metadata -1` ya da istemcide) KVKK ölçülülük açısından değerlendirilmeli; avukata: yazılı uyarı yeterli mi?
+13. **Otomatik gizleme.** Aynı içerik birbirinden bağımsız 3 hesaptan (24 saatten eski) bildirilirse içerik inceleme bitene dek otomatik gizlenir (geri alınabilir türlerde). KVKK m.11/1-g (otomatik analiz sonucu aleyhe sonuca itiraz) ve ifade özgürlüğü açısından kabul edilebilir mi? Metinler bunu şeffaf biçimde söyler.
+14. **Üniversite e-posta altyapısı.** Doğrulama kodu, şifre sıfırlama ve duyuru e-postaları bingol.edu.tr posta kutusuna gittiği için üniversitenin e-posta sistemlerinden geçer. Metinler bunu "bizim aktarımımız değil, e-postanın doğası" diye not eder; ek bir yükümlülük doğurur mu?
+15. **Yedekler ve silme.** Saatlik şifreli yedek (yerelde en yeni 3; uzak kopya isteğe bağlı) hesap silme/imha taleplerine nasıl yansıyor? Yedekten geri yüklemede silinmiş hesapların yeniden anonimleştirilmesi (`docs/DEPLOY.md` 187. satır) bir süreç olarak yazılı olmalı mı?
+16. **Silinen mesajların süresiz saklanması.** `app.chat.deleted-retention-days=0` (süresiz) ölçülülük ilkesi açısından makul mü, bir üst sınır önerilir mi?
+17. **Rıza kayıt ayrıntısı.** EXPLICIT_CONSENT madde bazında (rehber/bildirim ayrı) kayıt altına alınmıyor, yalnız belge düzeyinde (bölüm 3, madde 3).
+
+(İç süreç notu, metinlerde YAZILMAZ: tam yönetici atama/düşürme **iki kişi onaylıdır**; öneren onaylayamaz, öneri 24 saat geçerlidir.)
+
 ## 1. Ne var, nasıl çalışıyor?
 
-- **Kaynak:** `docs/legal/<tür>_<dil>.md` (tr esas; en ve ar çevirisi). Dosyalar `scripts/build-legal-migration.js` ile `backend/.../db/migration/V480__legal_texts_v3.sql` dosyasına gömülür (`node scripts/build-legal-migration.js`, `--check` ile güncellik kontrolü). V290 ve V370 dondurulmuştur, dokunmayın. Metin değişirse yeni V48x ekleyin.
+- **Kaynak:** `docs/legal/<tür>_<dil>.md` (tr esas; en ve ar çevirisi). Dosyalar `scripts/build-legal-migration.js` ile `backend/.../db/migration/V480__legal_texts_v3.sql` dosyasına gömülür (`node scripts/build-legal-migration.js`, `--check` ile güncellik kontrolü). V290 ve V370 dondurulmuştur, dokunmayın. Metin değişirse yeni sürüm ekleyin. **Güncel üretim V820’dir** (`scripts/build-legal-migration-v820.js`, bölüm 9); V480 ve V620 de dondurulmuştur.
 - **8 tür:** Kullanım Koşulları (TERMS), Gizlilik Politikası (PRIVACY), KVKK Aydınlatma (KVKK), Topluluk Kuralları (COMMUNITY_RULES), Açık Rıza (EXPLICIT_CONSENT), Çerez/Yerel Depolama (COOKIES), İçerik Bildirimi ve Kaldırma = 5651 yer sağlayıcı prosedürü (CONTENT_REMOVAL), Saklama ve İmha (RETENTION).
 - **Sürümleme (V480):** TERMS, PRIVACY ve CONTENT_REMOVAL için yeni sürüm (tr+en+ar aynı numara, eskiler pasif). Diğer beş türde **sürüm değişmez**, mevcut aktif sürüme yalnız Arapça eklenir. `LegalService.pending` TERMS/PRIVACY için eski sürümü onaylamış herkesten **yeniden onay** ister (V480 sonrası ilk girişte). Bunu istemiyorsanız (henüz canlıda kullanıcı yoksa sorun yok) `require_reaccept` değerini V480 çalışmadan önce betikte `FALSE` yapın.
 - **Arapça/İngilizce:** Her ikisinin başında "çeviri bilgi amaçlıdır; bağlayıcı metin Türkçedir" notu var. Arapça çeviri yapay zekâ çevirisidir; anadili Arapça olan biri ve hukuk bilen biri gözden geçirmelidir (özellikle KVKK/5651 terimleri, "Kurul", "KEP", "yer sağlayıcı").
@@ -50,7 +74,7 @@ Not: `relation` ve `jurisdiction` anahtarları V480 ile boş eklendi, V481 ile d
 - 18 yaş altı kullanıcı: yasal temsilci onayı yaklaşımı net değil; metin "yasal temsilcinin bilgisi ve izni" der.
 - Yönetici mesaj erişimi: kodda serbest gerekçe alanı yok; `docs/legal/internal/04` erişim defteri uygulanmalı. Silinen mesajların süresiz saklanması (varsayılan) KVKK ölçülülük açısından makul bir süreye bağlanmalı. `message_access_audit`/`admin_audit` için saklama süresi kodda yok.
 - İstemciler `/legal/...` bağlantılarını sayfa içinde açmıyorsa (mobil `SimpleMarkdown` tablo/alıntıyı çizer; bağlantıları nasıl yönlendirdiği doğrulanmadı) metinler arası atıflar çalışmayabilir.
-- EN metinleri Türkçeden kısadır (özet çeviri); AR çeviriler tam. Anlaşmazlıkta Türkçe esastır (metinlerde yazılı).
+- EN ve AR metinler PAKET LG (V820) ile Türkçeyle bölüm bölüm ve madde madde eşittir (testle doğrulanır: `LegalMigrationV820FileTest`); Arapça çevirinin anadil hukuk çevirmeni kontrolü hâlâ gerekir (avukat listesi madde 11). Anlaşmazlıkta Türkçe esastır (metinlerde yazılı).
 - Testler bu ortamda koşulamadı (Docker motoru yanıt vermedi); V480 SQL'i PostgreSQL'de çalıştırılmadı.
 
 ## 5. Yayın öncesi avukata önerilen kısa kontrol kapsamı
@@ -72,7 +96,7 @@ Not: `relation` ve `jurisdiction` anahtarları V480 ile boş eklendi, V481 ile d
 
 ## 7. Kalan dikkat noktaları (V481 sonrası)
 
-- KVKK metni alıcı tablosunda "Bingöl Üniversitesi ilgili birimleri / yetkili yöneticiler" satırı var (kvkk tr/en/ar). Uygulama bağımsız ve kişisel işletildiği için, verinin gerçekten üniversite birimlerine aktarılıp aktarılmadığı doğrulanmalı; aktarılmıyorsa satır kaldırılmalı (yeni sözleşme sürümü gerekir; `docs/legal/kvkk_*.md` + `scripts/build-legal-migration.js` ile V482). Bu görevde metinlere dokunulmadı.
+- ~~KVKK alıcı tablosundaki "Bingöl Üniversitesi ilgili birimleri / yetkili yöneticiler" satırı~~ **V820 ile kaldırıldı** (kod doğrulandı: bölüm 9).
 - Kullanım Koşulları madde 15.1 artık `legal.controller.relation` değerini gösterir (varsayılan cümlenin yerine geçer). Marka/logo maddesi (m.7: "adı ve logosu ilgili kuruma aittir") ve relation değeri birlikte "izin/ortaklık ima edilmez" mesajını verir.
 - Üniversiteden yazılı izin yoksa ad/logo/içerik kullanımı riski sürer (bölüm 4).
 
@@ -90,7 +114,53 @@ Not: `relation` ve `jurisdiction` anahtarları V480 ile boş eklendi, V481 ile d
 3. **Mesaj erişim / yönetici kayıtlarının 730 gün saklanması** (ve 5651 trafik bilgisi için 90 günlük cihaz/IP günlüğünün yeterliliği) ölçülü mü?
 4. **`activity_daily` (hangi günlerde uygulama açıldı) 400 gün** ve analitik ham olay 45 gün: meşru menfaat dengesi.
 5. **Hesap silme politikası:** kulüp sahibinin hesabı silinince sahiplik en eski aktif ADMIN (yoksa MODERATOR) üyeye otomatik devredilir, yoksa kulüp kapatılır; kulübe bağlı olmayan bitmemiş etkinlikler iptal edilir; kulüp gönderisi görselleri anında silinir ama **metinleri** (yazar anonim) kalır. Bu denge (başkalarının bağlamı vs silme hakkı) uygun mu?
-6. **Terms (Kullanım Koşulları):** `terms_*.md` hâlâ "yorumlar ve 24 saatlik hikâyeler" ve eski saklama ifadelerini içerebilir; bu görevde TERMS değiştirilmedi (yeni sürüm + yeniden onay gerektirir). KVKK alıcı tablosundaki "Bingöl Üniversitesi ilgili birimleri / yetkili yöneticiler" satırı da aynen duruyor (bölüm 7).
+6. **Terms (Kullanım Koşulları):** ~~hâlâ "yorumlar ve 24 saatlik hikâyeler" içeriyordu~~ **V820 ile düzeltildi**; KVKK alıcı satırı da kaldırıldı (bölüm 9).
 7. **Gizli anket oyu:** "Verilerimi indir" kullanıcının KENDİ oyunu (seçenek metniyle) kendi dosyasında gösterir (`polls` bölümü; başka hiçbir uçta gösterilmez). Bu, gizlilik vaadiyle çelişir mi?
 
 **Kod karşılığı (B1):** `ExtraExporters` (bookmarks, communityMemberships, communityPosts, eventRsvps, eventAttendance, createdEvents, mailCampaigns, feedbackVotes, conversationMemberships); `DataExportController` bölüm hatasında 500 yerine `{error:SECTION_UNAVAILABLE}`; `AccountDataPurger` kapsam testi (`ExtraExportersTest`); `UserAccountDeletedEvent` → `CommunityAccountListener` (sahipsiz kulüp, gönderi görselleri), `EventAccountListener` (organizatör etkinlikleri, başvurular, bekleme listesi terfisi); `CommunityPostMedia` (gönderi/kulüp silinince görsel diskten); V621 (`message_access_audit` 730 günden eski satırlar silinebilir; önceki tetikleyici her DELETE'i reddettiği için gecelik temizlik hiç çalışmıyordu).
+
+## 9. V820: Kullanım Koşulları / KVKK güncellemesi, EN-AR tam çeviri, yeniden onay kararı (PAKET LG, 2026-10-28)
+
+**Ne değişti?** `docs/legal/{terms,privacy,kvkk,community_rules,content_removal,retention}_{tr,en,ar}.md` güncellendi ve `scripts/build-legal-migration-v820.js` ile `V820__legal_terms_v4.sql` üretildi (altı tür için tek yeni sürüm, tr+en+ar aynı numara, eskiler pasif; EXPLICIT_CONSENT ve COOKIES değişmedi). V620 ve öncesi **dondurulmuştur**; `build-legal-migration-v620.js` ve `build-legal-migration.js` artık kendi migration'larını yeniden üretmez. Metin değişirse yeni V82x eklenir.
+
+**Koddan doğrulananlar ve metinlerde yapılan düzeltmeler**
+
+| Konu | Kod gerçeği | Metin (önce → sonra) |
+|---|---|---|
+| Gönderi | `PostService.create`: tam 1 fotoğraf zorunlu, ≤7 kelime/60 karakter tek satır metin, video reddedilir (`requireImage`); yorum/hikâye/etiket/kaydet tabloları V470'te silindi | "gönderiler, yorumlar ve 24 saatlik hikâyeler", "hikâye videosu 30 sn", "#/@ etiket", "gönderi (Keşfet) videoları sunucuda yeniden kodlanır" → kaldırıldı; "tek fotoğraf + ≤7 kelime + beğeni" |
+| Üniversiteye veri aktarımı | Yalnız `NewsScraper`/`MenuScraper` üniversite sitelerine istek atar (okuma); kullanıcı verisi giden hiçbir istemci yok; e-posta alan adı denetimi yerel; yönetim paneli yöneticileri işletici tarafından tanımlanır (`AdminProfile`) | KVKK ve Gizlilik alıcı tablosunda "Bingöl Üniversitesi ilgili birimleri / Üniversite yönetimi" satırı → kaldırıldı; "Üniversiteye aktarım yoktur" paragrafı + bingol.edu.tr posta kutusu notu eklendi |
+| Sohbet videosu | `MessageAttachmentService.uploadVideo`: yalnız tür/boyut/süre (`Mp4Info`) denetimi, **yeniden kodlama ve üst veri temizliği yok**; yalnız poster görseli `ImageProcessor` ile yeniden kodlanır (EXIF temizlenir); tek gösterimlik yalnız fotoğraf | Metin yalnızca "cihazda sıkıştırılır, sunucu yeniden kodlamaz" diyordu → "video içindeki üst veri (çekim zamanı/konum etiketi) sunucuda temizlenmez, cihaz sıkıştırması garanti etmez" açıkça eklendi (yanlış güvence riski giderildi) |
+| Yönetici rolleri | `AdminProfile` FULL/MODERATOR/SUPPORT/EDITOR/VIEWER, `PermissionMatrix`: `chat.read` yalnız FULL+MODERATOR, `users.pii` yalnız FULL+MODERATOR, diğerleri maskeli | Gizlilik 14 (yeni bölüm), KVKK 8, Kullanım Koşulları 1.4/6.2-6.5, Topluluk Kuralları 4.5: roller, kişisel veri erişim sınırı, "yönetici olmayan kimse özel yazışmaya erişemez" |
+| Yönetici müdahalesi ve denetim | `AdminChatActionController`: mesaj gizle/geri aç/kalıcı sil, sohbet kapat/aç, üye çıkar (sebep zorunlu, `@AdminReasonRequired`); içerik görüntüleme `AdminDecryptService.requireReason` (≥10 karakter), `AdminConversationExportService.MIN_REASON`=20 + `X-Admin-Confirm`; `message_access_audit` (yönetici, hedef, sohbet, sayı, gerekçe, IP, zaman; 730 gün; yazılamazsa içerik gösterilmez); `ClubAdminController` kulüp kapat/aç/devret | Önceden gerekçe zorunluluğundan söz edilmiyordu → eklendi |
+| Otomatik gizleme | `ReportService.applyPolicy`: ≥3 bağımsız (≥24 sa yaşında hesap) açık raporlayıcı → geri alınabilir türde otomatik gizleme (`ModerationProperties.autoHideThreshold=3`) | Hiçbir metinde yoktu → Kullanım Koşulları 5.3, Gizlilik 13.4, KVKK 9, Topluluk Kuralları 6, İçerik Bildirimi 2 |
+| Hesap silince kulüp / etkinlik | `CommunityAccountListener` (en eski aktif ADMIN, yoksa MODERATOR'a devir, yoksa kapat; yeni sahibe bildirim), `EventAccountListener` | Gizlilik 7 ve Saklama 3'te vardı; Kullanım Koşulları 7/13 ve Topluluk Kuralları 3'e eklendi |
+| 5651 trafik bilgisi | Cihaz/IP günlüğü **90 gün** (`app.security.ban-log-retention-days`); mevzuat süresini uygulayan kod yok | İçerik Bildirimi 7.3 "mevzuatın öngördüğü süre boyunca, bütünlüğü korunarak saklarız" (**yanlış vaat**) → "elimizde bulunduğu ölçüde veririz; uygulama 90 gün tutar; mevzuat daha uzun süre getirirse güncellenir" |
+| Saklama 1.4 ve 5 | Temizlik işleri yalnız satır sayısını günlüğe yazar (`ChunkedDeleter`); yedek: saatlik şifreli, yerelde en yeni 3 (`docs/BACKUP.md`) | "kişisel veri imhası kayıt altına alınır" → "silinen kayıt sayıları sistem günlüğüne yazılır"; yedek cümlesine "şifreli alınır ve sınırlı süre tutulur" |
+| Yedek / anahtar kaybı | Ana anahtar kaybında mesaj/medya okunamaz (`docs/ENCRYPTION.md`) | Kullanım Koşulları 10.4 (EN'de eksikti) tam çevrildi, netleştirildi |
+| Teyit edilenler (değişmedi) | JWT erişim 15 dk / yenileme 30 gün; kod 10 dk, 5 deneme; tek mobil oturum; sohbet görseli 1600 px, mesaj başı 10 ek, video 60 sn/40 MB; rehber 500 özet/istek; "Verilerimi indir" günde 3; itiraz günde 5; rapor günde 20; ihlal eşiği 3/180 gün; olay sohbet odası 7 gün sonra; tek gösterimlik 24 sa/365 gün; bildirim 30/90 gün; ham analitik 45; aktiflik 400; mail 7/30; kampanya 180; admin_audit 365; erişim/kulüp kaydı 730 | `LegalMigrationV820FileTest` bu sayıları `application.properties` ve kaynak sabitleriyle karşılaştırır |
+
+**EN/AR tam çeviri.** Önceden EN metinler özetti (madde sayısı: terms 39/73, privacy 20/32, kvkk 2/21, community_rules 4/14, content_removal 15/22, retention 0/4 numaralı madde); AR metinler tr ile uyumluydu ama `terms_ar` 8. bölümde birleşmiş bir madde (2 ve 3) vardı. Şimdi altı belgenin her biri üç dilde aynı bölüm sayısına, aynı bölüm numaralarına ve her bölümde aynı madde / tablo satırı / bağlantı / yer tutucu sayısına sahiptir. Yer tutucular (`{{controller.*}}`, `{{support.email}}`, `{{hosting.location}}`) aynen korunmuştur. Her EN/AR belgenin başında "çeviri bilgi amaçlıdır; Türkçe metin esastır" notu durur.
+
+**Madde sayısı tablosu (numaralı madde; önce → sonra)**
+
+| Belge | tr | en | ar |
+|---|---|---|---|
+| Kullanım Koşulları | 73 → 76 | 39 → 76 | 72 → 76 |
+| Gizlilik Politikası | 32 → 37 | 20 → 37 | 32 → 37 |
+| KVKK Aydınlatma | 21 → 21 | 2 → 21 | 21 → 21 |
+| Topluluk Kuralları | 14 → 17 | 4 → 17 | 14 → 17 |
+| İçerik Bildirimi ve Kaldırma | 22 → 22 | 15 → 22 | 22 → 22 |
+| Saklama ve İmha | 4 → 4 | 0 → 4 | 4 → 4 |
+
+(Bölüm sayıları: terms 19, privacy 14 → 15 (yeni "14. Yönetici rolleri ve erişim yetkileri", İletişim 15 oldu), kvkk 11, community_rules 7, content_removal 8, retention 6; üç dilde eşit.)
+
+**`require_reaccept` kararı: altı türün hepsi FALSE.** Gerekçe: (1) Türkçe esas metinde sorumluluk sınırı, tazminat, delil sözleşmesi, yönetici erişimi ve kayda alınması zaten vardı (V480); değişen yalnızca kaldırılmış özelliklerin metinden çıkarılması, eksik EN çevirilerin tamamlanması, yanlış/eksik beyanların kodla uyumlu hale getirilmesi ve mevcut uygulamanın (yönetici rolleri, gerekçe zorunluluğu, otomatik gizleme) şeffaf anlatılmasıdır; **yeni bir işleme amacı veya veri kategorisi yoktur**. (2) Kullanıcı aleyhine yeni bir yükümlülük veya hak kısıtı eklenmedi; tersine üniversite "alıcısı" kaldırıldı ve bir yanlış güvence (video üst verisi, 5651 saklama) düzeltildi. (3) "Yönetici erişim şeffaflığı" KVKK m.10 aydınlatma güncellemesidir, açık rıza gerektirmez. (4) İngilizce sürümde eksik olan sorumluluk sınırı İngilizce okuyanlar için yeni görünse de bağlayıcı metin Türkçedir ve orada zaten vardı. TERMS için TRUE yapılırsa tüm mevcut kullanıcılara yeniden onay çıkar; avukat farklı görürse yeni bir V82x ile `require_reaccept=TRUE` sürümü yayımlanabilir.
+
+**Tutarlılık doğrulaması (`LegalService.pending`).** `needed = min(güncel sürüm, max(güncel.requireReaccept ? güncel : 0, docs.maxReacceptVersion(tür)))`. V480'in TERMS/PRIVACY sürümleri TRUE idi; V820 sürümleri FALSE olsa da `maxReacceptVersion` V480 sürümünü verir: V480 sürümünü (veya sonrasını) onaylamış kullanıcı bekleyen sayılmaz, onaylamamış olan (V480 öncesi kayıtlı) kullanıcı güncel sürümü onaylayana kadar bekleyen sayılır. Yeni kayıtlar `acceptTerms` ile güncel sürümü onaylar. COMMUNITY_RULES/KVKK için `max=0` olduğundan hiç bekleyen oluşmaz. `LegalServiceTest` bu mantığı kapsar; V820 bunu değiştirmez.
+
+**Doğrulayamadıklarım**
+- V820 SQL'i PostgreSQL'de çalıştırılmadı (H2 testleri yalnız dosya yapısını/metin eşitliğini denetler); aynı yapı V620 ile canlıda doğrulanmış kalıbı izler.
+- Gerçek barındırma konumu (`Türkiye`), Brevo'nun ülkesi/DPA'sı, yöneticilerin imzalı gizlilik taahhüdü, üniversiteden yazılı izin: kodla doğrulanamaz.
+- Mobil: `ios/Runner/Info.plist` içinde artık kullanılmayan `NSLocationWhenInUseUsageDescription` anahtarı ("yaklaşık konumunuzu kullanırız") duruyor; kodda konum eklentisi/izni yok (metinler "konum istemez" der ve doğrudur) ama plist metni çelişkili görünür ve mağaza incelemesinde sorun çıkarabilir: mobil ekip kaldırmalı (bu pakette mobil koda dokunulmadı).
+- `terms_ar` ve `privacy_ar` içindeki yönetici terimi tutarsızlığı (avukat listesi madde 11) çevirmene bırakıldı.
+- Render: web `MarkdownText`/mobil `SimpleMarkdown` yeni uzunluk ve tablolarla mevcut render testleriyle denendi; gerçek cihazda görsel taşma kontrolü yapılmadı.

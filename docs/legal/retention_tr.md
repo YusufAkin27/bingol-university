@@ -7,7 +7,7 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 1. Veriler, işleme amacı için gerekli süre kadar ve mevzuatın izin verdiği süre boyunca saklanır.
 2. Süre dolunca veri otomatik gece işleriyle **silinir**, **yok edilir** veya **anonim** hale getirilir.
 3. Yasal bir saklama yükümlülüğü varsa ilgili süre boyunca saklanır.
-4. Periyodik imha: otomatik temizleme işleri günlük/saatlik çalışır; kişisel veri imhası kayıt altına alınır.
+4. Periyodik imha: otomatik temizleme işleri günlük/saatlik çalışır; silinen kayıt sayıları sistem günlüğüne yazılır.
 
 ## 2. Saklama süreleri
 
@@ -56,7 +56,7 @@ Hizmet sağlayıcı olarak, yürürlükteki mevzuat (özellikle 5651 sayılı Ka
 
 ## 5. İmha yöntemleri
 
-Veritabanı kayıtları güvenli silme ile kaldırılır; dosyalar depolamadan silinir; anonimleştirmede kimliği belirleyen alanlar geri döndürülemez şekilde değiştirilir; şifreli verilerde anahtarla birlikte erişim kapatılır. Yedeklerden silinme, yedek döngüsü içinde gerçekleşir.
+Veritabanı kayıtları güvenli silme ile kaldırılır; dosyalar depolamadan silinir; anonimleştirmede kimliği belirleyen alanlar geri döndürülemez şekilde değiştirilir; şifreli verilerde anahtarla birlikte erişim kapatılır. Yedekler şifreli alınır ve sınırlı süre tutulur; silinen verilerin yedeklerden düşmesi yedek döngüsü içinde gerçekleşir.
 
 ## 6. Haklarınız
 

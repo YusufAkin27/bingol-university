@@ -14,7 +14,7 @@ const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migrat
 // V480'de tr/en metni degisen turler: yeni surum (tr+en+ar). Digerlerine yalniz mevcut aktif surume ar eklenir (yeniden onay uretmez).
 const CHANGED = new Set(['TERMS', 'PRIVACY', 'CONTENT_REMOVAL']);
 if (!process.argv.includes('--regenerate-frozen-v480')) {
-  console.error('V480 donduruldu (docs/legal V620 icin degisti). Yeni metin: node scripts/build-legal-migration-v620.js');
+  console.error('V480 donduruldu (docs/legal V620 icin degisti). Yeni metin: node scripts/build-legal-migration-v820.js');
   process.exit(0);
 }
 

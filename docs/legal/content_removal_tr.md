@@ -11,7 +11,7 @@ Bu metin, BÜ Kampüs'te yer alan kullanıcı içeriklerine ilişkin hukuka ayk�
 
 ## 2. Hızlı yol: uygulama içi bildirim
 
-Kullanıcı, mesaj, gönderi, yorum, hikâye, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın. Gönderi, yorum ve hikâyeler yayımlanmadan önce insan denetiminden geçmez; bildirim üzerine yetkili yöneticiler içeriği inceler, gizler veya kaldırır; içeriği paylaşan kullanıcıya uygulama içi bildirim yapılabilir ve itiraz hakkı saklıdır. Bildirimler yetkili yöneticilerce incelenir; ilgili sohbet bağlamı da görülebilir. Bu yol hızlıdır ve Topluluk Kuralları ihlalleri için uygundur.
+Kullanıcı, mesaj, gönderi, topluluk veya etkinlik üzerinde **Bildir** seçeneğini kullanın. Gönderiler yayımlanmadan önce insan denetiminden geçmez; bildirim üzerine yetkili yöneticiler içeriği inceler, gizler veya kaldırır (aynı içerik birbirinden bağımsız birkaç hesap tarafından bildirilirse inceleme tamamlanana kadar otomatik ve geçici olarak gizlenebilir); içeriği paylaşan kullanıcıya uygulama içi bildirim yapılabilir ve itiraz hakkı saklıdır. Bildirimler yetkili yöneticilerce incelenir; ilgili sohbet bağlamı da görülebilir. Bu yol hızlıdır ve Topluluk Kuralları ihlalleri için uygundur.
 
 ## 3. Resmi bildirim usulü
 
@@ -46,7 +46,7 @@ Telif bildiriminde şunları belirtin: (a) eserin tanımı ve hak sahibi olduğu
 
 1. Yer sağlayıcı olarak yalnızca kendi içeriğimizden değil, kullanıcıların paylaştığı içerikten, **ancak hukuka aykırı olduğunu bildirim veya başka yolla öğrendiğimizde** ve bu içeriği yayından çıkarmadığımız takdirde, kanunda öngörülen ölçüde sorumlu tutulabiliriz (5651 sayılı Kanun m.5). Bu nedenle usulüne uygun bildirimleri öncelikle ve gecikmeksizin değerlendiririz.
 2. Kişilik hakkı ihlali iddialarında hâkim kararıyla içeriğin çıkarılması veya erişimin engellenmesi yolu (5651 m.9) ayrıca saklıdır; böyle bir karar bize ulaştığında kararda öngörülen süre içinde uygularız. Bildirimde bulunmanız, bu yargısal yolu kullanmanıza engel değildir.
-3. Yer sağlayıcı sıfatıyla, ilgili mevzuatın gerektirdiği trafik bilgilerini (ör. erişim zamanı, IP adresi) mevzuatın öngördüğü süre boyunca, bütünlüğü korunarak saklarız ve yetkili makamlara talep halinde veririz. Uygulamanın olağan işleyişi için tuttuğu cihaz/IP kayıtlarının süreleri [Saklama ve İmha](/legal/retention) metnindedir.
+3. Yetkili makamların talep ettiği trafik bilgilerini (ör. erişim zamanı, IP adresi), elimizde bulunduğu ve saklama süresi dolmadığı ölçüde, talep halinde veririz. Uygulamanın güvenlik amacıyla tuttuğu cihaz/IP kayıtları varsayılan olarak 90 gün saklanır ([Saklama ve İmha](/legal/retention)). Mevzuat yer sağlayıcılar için daha uzun bir trafik bilgisi saklama süresi öngörüyorsa bu süre uygulanması gereken kapsamda belirlenir ve bu metin güncellenir.
 4. İçeriği uygulamadan kaldırmak, içeriğin başka ortamlarda bulunmasını engellemez; içeriği paylaşan kişinin hukuki sorumluluğu kendisine aittir.
 
 ## 8. Kayıt ve gizlilik

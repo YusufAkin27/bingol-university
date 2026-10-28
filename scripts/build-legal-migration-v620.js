@@ -12,6 +12,12 @@
 const fs = require('fs');
 const path = require('path');
 
+// V620 de artik DONDURULDU: docs/legal V820'de degisti, bu betik V620'yi yeniden URETMEZ (--check dahil). Yeni metin: scripts/build-legal-migration-v820.js
+if (!process.argv.includes('--regenerate-frozen-v620')) {
+  console.error('V620 donduruldu (docs/legal V820 icin degisti). Yeni metin: node scripts/build-legal-migration-v820.js');
+  process.exit(0);
+}
+
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'docs', 'legal');
 const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V620__legal_retention_fix.sql');
