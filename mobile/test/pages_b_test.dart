@@ -1,4 +1,3 @@
-import 'package:bu_kampus/widgets/bu_widgets.dart' show BuAvatar;
 import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';

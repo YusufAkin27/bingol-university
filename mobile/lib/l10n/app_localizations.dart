@@ -12690,6 +12690,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Açıklama çok uzun. Lütfen kısalt.'**
   String get evdErrDescTooLongServer;
+
+  /// No description provided for @clubMgmtCategoryNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilmedi'**
+  String get clubMgmtCategoryNone;
+
+  /// No description provided for @clubMgmtCategoryInactive.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} (kullanım dışı)'**
+  String clubMgmtCategoryInactive(String name);
+
+  /// No description provided for @clubMgmtCategoryInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.'**
+  String get clubMgmtCategoryInvalid;
 }
 
 class _AppLocalizationsDelegate

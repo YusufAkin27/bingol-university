@@ -312,8 +312,13 @@ void main() {
           SettingsPage(session: makeSession(b), themeController: ThemeController()), kPhoneSmall, false, outer: true));
       await settle(tester);
       await tester.scrollUntilVisible(find.textContaining('cihazlardan'), 100, scrollable: find.byType(Scrollable).first);
+      // scrollUntilVisible satır önbellek alanında oluşunca durur (ekran dışı kalabilir): önce görünür yap.
+      await tester.ensureVisible(find.textContaining('cihazlardan').last);
+      await tester.pump();
       await tester.tap(find.textContaining('cihazlardan').last);
       await settle(tester, const Duration(milliseconds: 600));
+      // Diyalog gerçekten açılmış olmalı (dokunuş ekran dışında kalırsa test sessizce geçmesin).
+      expect(find.text('Tüm cihazlardan çıkış'), findsOneWidget);
       if (_shots) await _shot(tester, 'Dialog_cikis_acik');
       noErr(tester);
       await unmount(tester);
@@ -388,8 +393,10 @@ void main() {
       kPageCases.firstWhere((c) => c.name == 'MenuPage').full(b2);
       await tester.pumpWidget(buildApp(MenuPage(session: makeSession(b2))));
       await settle(tester);
-      expect(find.bySemanticsLabel('Önceki ay'), findsWidgets);
-      expect(find.bySemanticsLabel('Sonraki ay'), findsWidgets);
+      // Gün gezgini düğmeleri IconButton.tooltip ile etiketli (anlamsal ağaçta `tooltip`).
+      expect(find.byTooltip('Önceki gün'), findsOneWidget);
+      expect(find.byTooltip('Sonraki gün'), findsOneWidget);
+      expect(tester.getSemantics(find.byKey(const ValueKey('yemek_day_prev'))).tooltip, 'Önceki gün');
       await unmount(tester);
       h.dispose();
     });

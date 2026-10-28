@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../clubs/club_actions.dart';
+import '../clubs/club_categories.dart';
 import '../clubs/club_detail_page.dart';
 import '../clubs/club_form_page.dart';
 import '../clubs/club_members_page.dart';
@@ -238,7 +239,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final members = (c['memberCount'] as num?)?.toInt();
     final sub = [
       if (owner) l.profilyardRoleFounder,
-      if ((c['category'] as String?)?.isNotEmpty == true) c['category'] as String,
+      if ((c['category'] as String?)?.isNotEmpty == true) ClubCategories.labelFor(c['category'] as String),
       if (members != null) l.profilePrefsMembersCount('$members'),
     ].join(' · ');
     final inReview = owner && (c['status'] == 'PENDING_REVIEW' || c['status'] == 'PENDING');

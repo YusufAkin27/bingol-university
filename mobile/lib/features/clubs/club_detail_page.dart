@@ -13,6 +13,7 @@ import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../events/event_form_page.dart';
 import 'club_actions.dart';
+import 'club_categories.dart';
 import 'club_form_page.dart';
 import 'club_join_flow.dart';
 import 'club_members_page.dart';
@@ -86,6 +87,12 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   Future<void> _load() async {
     _pollGen++;
+    // Kategori adı etkin listeden çözülür; liste boşsa arka planda çekilip etiket tazelenir.
+    if (ClubCategories.active.isEmpty) {
+      ClubCategories.load(widget.session.api).then((l) {
+        if (mounted && l != null) setState(() {});
+      });
+    }
     try {
       final r = await widget.session.api.get(_base);
       if (!mounted) return;
@@ -430,7 +437,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final c = _club!;
     final l10n = context.l10n;
     final parts = <String>[
-      if ((c['category'] ?? '').toString().isNotEmpty) c['category'].toString(),
+      if ((c['category'] ?? '').toString().isNotEmpty) ClubCategories.labelFor(c['category'].toString()),
       l10n.clubMemberCount('${c['memberCount'] ?? 0}'),
       c['visibility'] == 'PRIVATE' ? l10n.clubPrivate : l10n.clubPublic,
     ];

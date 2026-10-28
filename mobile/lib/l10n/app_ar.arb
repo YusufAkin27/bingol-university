@@ -2097,5 +2097,8 @@
   "evdEndAdjusted": "تم ضبط النهاية تلقائيًا بعد ساعة من البدء.",
   "evdDescCounter": "{count}/{max}",
   "evdErrDescTooLong": "يجب ألا يتجاوز الوصف {max} حرفًا.",
-  "evdErrDescTooLongServer": "الوصف طويل جدًا. يرجى اختصاره."
+  "evdErrDescTooLongServer": "الوصف طويل جدًا. يرجى اختصاره.",
+  "clubMgmtCategoryNone": "غير محدد",
+  "clubMgmtCategoryInactive": "{name} (غير مستخدم)",
+  "clubMgmtCategoryInvalid": "التصنيف المحدد غير صالح. اختر تصنيفا آخر من القائمة."
 }

@@ -4,6 +4,7 @@ import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import 'club_categories.dart';
 
 /// Tasarımdaki sabit ton çiftleri (açık: zemin/yazı, koyu: zemin/yazı).
 const _tones = <List<Color>>[
@@ -170,7 +171,7 @@ class ClubsRowCard extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final name = (club['name'] as String?) ?? '';
-    final category = (club['category'] as String?)?.trim() ?? '';
+    final category = ClubCategories.labelFor(club['category'] as String?);
     final desc = ((club['shortDescription'] ?? club['description']) as String?)
             ?.trim() ??
         '';

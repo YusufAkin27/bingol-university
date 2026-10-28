@@ -2097,5 +2097,8 @@
   "evdEndAdjusted": "The end was automatically set to 1 hour after the start.",
   "evdDescCounter": "{count}/{max}",
   "evdErrDescTooLong": "The description can be at most {max} characters.",
-  "evdErrDescTooLongServer": "The description is too long. Please shorten it."
+  "evdErrDescTooLongServer": "The description is too long. Please shorten it.",
+  "clubMgmtCategoryNone": "Not selected",
+  "clubMgmtCategoryInactive": "{name} (no longer in use)",
+  "clubMgmtCategoryInvalid": "The selected category is not valid. Pick another one from the list."
 }

@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'club_categories.dart';
 import 'club_detail_page.dart';
 import 'club_form_page.dart';
 import 'club_join_flow.dart';
@@ -26,7 +27,7 @@ class _ClubsTabState extends State<ClubsTab> {
   bool _searching = false;
   final _search = TextEditingController();
   final _scroll = ScrollController();
-  List<String> _categories = const [];
+  List<ClubCategory> _categories = const [];
   List<Map<String, dynamic>> _mine = [];
 
   List<Map<String, dynamic>> _items = [];
@@ -67,18 +68,19 @@ class _ClubsTabState extends State<ClubsTab> {
     return '/communities?${q.join('&')}';
   }
 
-  /// Keşfet kategorileri sunucudan gelir (GET /communities/categories); hata çipleri gizler.
+  /// Keşfet kategorileri sunucudan gelir (GET /communities/categories, admin sırasıyla, yalnız aktifler);
+  /// boş (count 0) kategoriler çipte gizlenir; hata çipleri gizler.
   Future<void> _loadCategories() async {
-    try {
-      final res = await widget.session.api.get('/communities/categories');
-      if (!mounted || res is! List) return;
-      final cats = <String>[
-        for (final e in res)
-          if (e is Map && (e['category']?.toString().trim() ?? '').isNotEmpty)
-            e['category'].toString().trim(),
-      ];
-      setState(() => _categories = cats);
-    } catch (_) {}
+    final list = await ClubCategories.load(widget.session.api);
+    if (!mounted || list == null) return;
+    setState(() {
+      _categories = [for (final c in list) if (!c.isEmpty) c];
+      // Seçili kategori artık listede yoksa süzgeç sıfırlanır.
+      if (_category != null && !_categories.any((c) => c.key == _category)) {
+        _category = null;
+        _reload(silent: true);
+      }
+    });
   }
 
   /// "Kulüplerim" şeridi (GET /me/communities); hata şeridi gizler.
@@ -307,9 +309,9 @@ class _ClubsTabState extends State<ClubsTab> {
                     for (final c in cats) ...[
                       const SizedBox(width: 8),
                       BuChip(
-                          label: c,
-                          selected: _category == c,
-                          onTap: () => _setCategory(c)),
+                          label: c.name,
+                          selected: _category == c.key,
+                          onTap: () => _setCategory(c.key)),
                     ],
                   ],
                 ),

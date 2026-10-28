@@ -245,6 +245,7 @@ void main() {
       expect(_suffix(), findsOneWidget);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextFormField).first, 'Sifre1234');
       await tester.pump();
       await tester.tap(find.text('Kayıt ol').last);
@@ -269,11 +270,17 @@ void main() {
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
+      // Kayıt 3 adımlı sihirbaz: numara 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
+      await fillAcademic(tester);
+      await tester.tap(find.text('Devam'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
       await tester.enterText(find.byType(TextFormField).at(1), '123');
-      await tester.ensureVisible(find.text('Kayıt ol').last);
-      await tester.tap(find.text('Kayıt ol').last);
+      await tester.pump();
+      await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
+      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });

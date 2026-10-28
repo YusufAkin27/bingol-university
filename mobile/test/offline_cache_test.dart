@@ -115,6 +115,7 @@ void main() {
       expect(CachePolicy.diskTtl('/menu?month=2026-10'), const Duration(days: 7));
       expect(CachePolicy.diskTtl('/catalog/academic'), isNotNull);
       expect(CachePolicy.diskTtl('/users/me'), const Duration(days: 3));
+      expect(CachePolicy.diskTtl('/communities/categories'), const Duration(days: 1));
       expect(CachePolicy.diskTtl('/conversations/7/messages?size=30'), isNull);
       expect(CachePolicy.diskTtl('/conversations?size=50'), isNull);
       expect(CachePolicy.diskTtl('/auth/me'), isNull);

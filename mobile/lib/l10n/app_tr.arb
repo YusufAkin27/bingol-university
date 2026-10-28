@@ -3740,5 +3740,15 @@
       }
     }
   },
-  "evdErrDescTooLongServer": "Açıklama çok uzun. Lütfen kısalt."
+  "evdErrDescTooLongServer": "Açıklama çok uzun. Lütfen kısalt.",
+  "clubMgmtCategoryNone": "Seçilmedi",
+  "clubMgmtCategoryInactive": "{name} (kullanım dışı)",
+  "@clubMgmtCategoryInactive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtCategoryInvalid": "Seçilen kategori geçerli değil. Listeden başka bir kategori seç."
 }

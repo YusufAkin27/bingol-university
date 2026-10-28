@@ -6873,4 +6873,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get evdErrDescTooLongServer => 'Açıklama çok uzun. Lütfen kısalt.';
+
+  @override
+  String get clubMgmtCategoryNone => 'Seçilmedi';
+
+  @override
+  String clubMgmtCategoryInactive(String name) {
+    return '$name (kullanım dışı)';
+  }
+
+  @override
+  String get clubMgmtCategoryInvalid =>
+      'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.';
 }

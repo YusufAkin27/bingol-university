@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import 'club_categories.dart';
 import 'club_detail_page.dart';
 import 'kulup_widgets.dart';
 
@@ -53,12 +54,19 @@ class _ClubFormPageState extends State<ClubFormPage> {
 
   late final _name = TextEditingController(text: (widget.club?['name'] ?? '').toString());
   late final _desc = TextEditingController(text: (widget.club?['description'] ?? '').toString());
-  late final _category = TextEditingController(text: (widget.club?['category'] ?? '').toString());
+  /// Seçili kategori anahtarı (null = seçilmedi). Düzenlemede kulübün mevcut anahtarıyla başlar.
+  late String? _category = _origCategory;
+  String? get _origCategory {
+    final k = (widget.club?['category'] ?? '').toString().trim();
+    return k.isEmpty ? null : k;
+  }
+
   late String _visibility = widget.club?['visibility'] == 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
   late String _policy = widget.club?['joinPolicy'] == 'APPROVAL' ? 'APPROVAL' : 'OPEN';
   final _questions = <TextEditingController>[];
   List<String> _origQuestions = const [];
-  List<String> _categories = const [];
+  List<ClubCategory> _categories = const [];
+  bool _catsLoaded = false;
   PreparedImage? _cover;
   final _images = ImageService();
   final _scroll = ScrollController();
@@ -82,7 +90,6 @@ class _ClubFormPageState extends State<ClubFormPage> {
   void dispose() {
     _name.dispose();
     _desc.dispose();
-    _category.dispose();
     _scroll.dispose();
     for (final c in _questions) {
       c.dispose();
@@ -90,37 +97,19 @@ class _ClubFormPageState extends State<ClubFormPage> {
     super.dispose();
   }
 
-  /// Kategori öğesi düz metin ya da {category|name|label|key} nesnesi olabilir; ad {tr,en,ar} haritası da olabilir.
-  static String? _categoryLabel(Object? e, String lang) {
-    String? pick(Object? v) {
-      if (v is String) return v.trim().isEmpty ? null : v.trim();
-      if (v is Map) return pick(v[lang]) ?? pick(v['tr']) ?? pick(v.values.isEmpty ? null : v.values.first);
-      return null;
-    }
-
-    if (e is Map) {
-      for (final k in const ['category', 'name', 'label', 'key']) {
-        final v = pick(e[k]);
-        if (v != null) return v;
-      }
-      return null;
-    }
-    return pick(e);
-  }
-
+  /// Etkin kategoriler (admin sırasıyla); ad sunucuda istek diline çevrilmiştir.
   Future<void> _loadCategories() async {
-    try {
-      final res = await widget.session.api.get('/communities/categories');
-      if (!mounted || res is! List) return;
-      final lang = Localizations.localeOf(context).languageCode;
-      final out = <String>[];
-      for (final e in res) {
-        final c = _categoryLabel(e, lang);
-        if (c != null && !out.contains(c)) out.add(c);
-      }
-      setState(() => _categories = out);
-    } catch (_) {}
+    final list = await ClubCategories.load(widget.session.api);
+    if (!mounted) return;
+    setState(() {
+      _catsLoaded = true;
+      if (list != null) _categories = list;
+    });
   }
+
+  /// Kulübün mevcut kategorisi etkin listede yoksa (pasif/silinmiş) salt-okunur "kullanım dışı" gösterilir.
+  bool get _origInactive =>
+      _edit && _origCategory != null && _catsLoaded && !_categories.any((c) => c.key == _origCategory);
 
   Future<void> _loadQuestions() async {
     try {
@@ -161,7 +150,6 @@ class _ClubFormPageState extends State<ClubFormPage> {
     if (n.length < 3) e['name'] = context.l10n.clubMgmtNameMin;
     if (n.length > 80) e['name'] = context.l10n.clubMgmtNameMax;
     if (_desc.text.trim().length > 1000) e['description'] = context.l10n.clubMgmtDescMax;
-    if (_category.text.trim().length > 40) e['category'] = context.l10n.clubMgmtCategoryMax;
     setState(() {
       _errors
         ..clear()
@@ -181,6 +169,12 @@ class _ClubFormPageState extends State<ClubFormPage> {
         return;
       }
     }
+    if (err is ApiError && err.code == 'COMMUNITY_CATEGORY_INVALID') {
+      setState(() => _errors['category'] = err.message.isNotEmpty ? err.message : context.l10n.clubMgmtCategoryInvalid);
+      // Liste güncel olmayabilir (kategori pasifleşti): yeniden çek.
+      _loadCategories();
+      return;
+    }
     setState(() => _formError = errorText(err));
   }
 
@@ -195,19 +189,24 @@ class _ClubFormPageState extends State<ClubFormPage> {
     final body = <String, dynamic>{
       'name': _name.text.trim(),
       'description': _desc.text.trim(),
-      'category': _category.text.trim(),
       'joinPolicy': _policy,
       'visibility': _visibility,
     };
     try {
       Map<String, dynamic> result;
       if (_edit) {
+        // Değişmeyen kategori aynen gönderilir (pasif olsa da kabul edilir); temizlenen boş gider.
+        if (_category != null) {
+          body['category'] = _category;
+        } else if (_origCategory != null) {
+          body['category'] = '';
+        }
         await api.patch('/communities/$_id', body);
         result = {'updated': true, 'id': _id};
       } else {
-        // Boş açıklama/kategori hiç gönderilmez.
+        // Boş açıklama / seçilmeyen kategori hiç gönderilmez.
         if ((body['description'] as String).isEmpty) body.remove('description');
-        if ((body['category'] as String).isEmpty) body.remove('category');
+        if (_category != null) body['category'] = _category;
         final res = await api.post('/communities', body);
         final m = res is Map ? Map<String, dynamic>.from(res) : <String, dynamic>{};
         final st = (m['status'] ?? '').toString();
@@ -289,29 +288,20 @@ class _ClubFormPageState extends State<ClubFormPage> {
                   ),
                   const SizedBox(height: 14),
                   _label(t, l10n.clubMgmtCategoryLabel),
-                  if (_categories.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final c in _categories)
-                          _choiceChip(t, c, _category.text.trim() == c,
-                              () => setState(() => _category.text = _category.text.trim() == c ? '' : c)),
-                      ],
-                    ),
-                  if (_categories.isEmpty || (_category.text.trim().isNotEmpty && !_categories.contains(_category.text.trim())))
-                    Padding(
-                      padding: EdgeInsets.only(top: _categories.isEmpty ? 0 : 8),
-                      child: TextField(
-                        controller: _category,
-                        maxLength: 40,
-                        onChanged: (_) => setState(() {}),
-                        style: BuType.body.copyWith(fontSize: 14.5, color: t.ink),
-                        decoration: kulupField(context, hint: l10n.clubMgmtCategoryHint, error: _errors['category']),
-                      ),
-                    ),
-                  if (_errors['category'] != null && _categories.isNotEmpty && _categories.contains(_category.text.trim()))
-                    _hint(t, _errors['category']!, error: true),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _choiceChip(t, l10n.clubMgmtCategoryNone, _category == null, () => setState(() => _category = null)),
+                      for (final c in _categories)
+                        _choiceChip(t, c.name, _category == c.key, () => setState(() => _category = c.key),
+                            icon: ClubCategory.iconFor(c.icon)),
+                      if (_origInactive)
+                        _choiceChip(t, l10n.clubMgmtCategoryInactive(ClubCategories.labelFor(_origCategory)),
+                            _category == _origCategory, () => setState(() => _category = _origCategory)),
+                    ],
+                  ),
+                  if (_errors['category'] != null) _hint(t, _errors['category']!, error: true),
                   const SizedBox(height: 14),
                   _label(t, l10n.clubMgmtVisibility),
                   _segGroup(
@@ -371,7 +361,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
       );
 
   /// Kategori çipi: 44 dp, hap; seçili: yumuşak kırmızı zemin + kırmızı çizgi.
-  Widget _choiceChip(BuTokens t, String label, bool on, VoidCallback onTap) => Semantics(
+  Widget _choiceChip(BuTokens t, String label, bool on, VoidCallback onTap, {IconData? icon}) => Semantics(
         button: true,
         selected: on,
         child: Material(
@@ -386,7 +376,10 @@ class _ClubFormPageState extends State<ClubFormPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Center(
                   widthFactor: 1,
-                  child: Text(label, style: BuType.bodyStrong.copyWith(color: on ? t.pr : t.ink)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (icon != null) ...[Icon(icon, size: 15, color: on ? t.pr : t.ink), const SizedBox(width: 6)],
+                    Flexible(child: Text(label, style: BuType.bodyStrong.copyWith(color: on ? t.pr : t.ink))),
+                  ]),
                 ),
               ),
             ),

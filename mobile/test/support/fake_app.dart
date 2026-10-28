@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/pending_verification.dart';
-import 'package:bu_kampus/core/pending_verification.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
@@ -423,6 +422,8 @@ Future<void> fillAcademic(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 400));
   await tester.tap(find.text('3. sınıf').last);
   await tester.pump();
+  // Sınıf sayfası kapanış animasyonu bitmeden 'Devam' dokunuşu engelleyiciye çarpar.
+  await tester.pump(const Duration(milliseconds: 400));
   await tester.pump(const Duration(milliseconds: 400));
 }
 
@@ -437,6 +438,8 @@ Future<void> fillRegister(WidgetTester tester,
   await tester.enterText(fields.at(1), email);
   await tester.pump();
   await tester.tap(find.text('Devam'));
+  // Adım geçiş animasyonu bitmeden eski adımın alanı hâlâ ağaçta olur ('first' yanlış alanı bulur).
+  await tester.pump(const Duration(milliseconds: 400));
   await tester.pump(const Duration(milliseconds: 400));
   await tester.enterText(find.byType(TextFormField).first, password);
   await tester.pump();

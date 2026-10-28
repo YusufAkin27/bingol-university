@@ -106,6 +106,11 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Fakülte seçin'), findsNothing);
       expect(find.text('Bölüm seçin'), findsOneWidget);
+      // Sınıf artık satır içi çip değil, bölüm seçici gibi liste sayfası: açılınca seçenekler görünür.
+      expect(find.text('Sınıf seçin'), findsOneWidget);
+      await tester.tap(find.text('Sınıf seçin'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Hazırlık'), findsOneWidget);
       await unmount(tester);
     });
@@ -361,8 +366,14 @@ void main() {
 
     testWidgets('yalnızca sınıf değişirse yalnızca grade gider', (tester) async {
       final b = await open(tester);
-      await tester.tap(find.text('3. sınıf'));
+      // Sınıf seçici liste sayfası: mevcut sınıf satırına dokun, listeden 3. sınıfı seç.
+      await tester.tap(find.text('2. sınıf'));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('3. sınıf').last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('Kaydet').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['PATCH /users/me'] as Map;

@@ -6897,4 +6897,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evdErrDescTooLongServer =>
       'The description is too long. Please shorten it.';
+
+  @override
+  String get clubMgmtCategoryNone => 'Not selected';
+
+  @override
+  String clubMgmtCategoryInactive(String name) {
+    return '$name (no longer in use)';
+  }
+
+  @override
+  String get clubMgmtCategoryInvalid =>
+      'The selected category is not valid. Pick another one from the list.';
 }

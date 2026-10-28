@@ -18,7 +18,7 @@ class CachePolicy {
     (RegExp(r'^/catalog/'), _day * 30),
     (RegExp(r'^/faq($|/)'), _day * 30),
     (RegExp(r'^/legal($|/)'), _day * 30),
-    (RegExp(r'^/communities/categories$'), _day * 30),
+    (RegExp(r'^/communities/categories$'), _day),
     (RegExp(r'^/communities(/\d+)?$'), _day * 3),
     (RegExp(r'^/events/(featured|calendar)$'), _day),
     (RegExp(r'^/events(/\d+)?$'), _day),

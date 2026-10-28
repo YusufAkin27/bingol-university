@@ -6837,4 +6837,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get evdErrDescTooLongServer => 'الوصف طويل جدًا. يرجى اختصاره.';
+
+  @override
+  String get clubMgmtCategoryNone => 'غير محدد';
+
+  @override
+  String clubMgmtCategoryInactive(String name) {
+    return '$name (غير مستخدم)';
+  }
+
+  @override
+  String get clubMgmtCategoryInvalid =>
+      'التصنيف المحدد غير صالح. اختر تصنيفا آخر من القائمة.';
 }
