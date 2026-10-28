@@ -26,12 +26,12 @@ jobs:
       run:
         working-directory: mobile
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-java@v4.7.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: '17'
-      - uses: subosito/flutter-action@v2.21.0
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -60,7 +60,7 @@ jobs:
       - run: flutter test
       - name: App Bundle
         run: flutter build appbundle --release --dart-define=API_BASE=${{ vars.API_BASE || 'https://api.example.invalid' }}
-      - uses: actions/upload-artifact@v4.6.2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-release-aab
           path: mobile/build/app/outputs/bundle/release/*.aab

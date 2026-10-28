@@ -1,11 +1,20 @@
-# Izleme yigini. Mevcut compose ile BIRLESTIRILIR (BE2'nin docker-compose.prod.yml dosyasina dokunmaz):
-#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml up -d
-# Yerel deneme: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d
-# Tum servisler ayni compose agindadir; portlar yalniz 127.0.0.1'e baglanir (SSH tuneli ya da ters vekil ile erisin).
+# Izleme yigini: docker-compose.prod.yml (ve staging) uzerine BINDIRILIR. KOK docker-compose.yml ILE BIRLESTIRMEYIN
+# (backend:8080 / web:8090 internete duz HTTP acilir). Dogru komut:
+#   docker compose -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml --env-file .env.prod up -d
+#   staging: docker compose -p bu-staging -f docker-compose.prod.yml -f docker-compose.staging.yml #            -f monitoring/docker-compose.monitoring.yml --env-file .env.staging up -d
+# Bu bindirme YALNIZ uretim/staging (docker-compose.prod.yml) icindir: ag adi `edge` prod dosyasinda tanimlidir.
+# Izleme servisleri backend ile AYNI aga (edge) katilir; boylece Prometheus backend:8081'i kazir (eskiden default agda
+# kaldiklari icin cozulemiyordu). Portlar yalniz 127.0.0.1'e baglanir (SSH tuneli ya da ters vekil ile erisin).
 # Gerekli .env: GRAFANA_ADMIN_PASSWORD, ALERT_* (bkz. docs/OBSERVABILITY.md).
 services:
   # Backend: aktuator AYRI yonetim portunda (8081) ve yalniz compose agi icinde; 8080'de /actuator/** yoktur.
   # Saglik denetimi de 8081'e tasinir (prod profili MANAGEMENT_PORT verilince health'i orada sunar).
+  # Caddy'nin aktif saglik denetimi de ayni porta tasinir (BACKEND_HEALTH_PORT): aksi halde 8080'de /actuator/health 404 doner,
+  # Caddy tek upstream'i "unhealthy" sayar ve tum site 503 olurdu (H3).
+  caddy:
+    environment:
+      BACKEND_HEALTH_PORT: "8081"
+
   backend:
     environment:
       MANAGEMENT_PORT: "8081"
@@ -28,6 +37,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=${PROM_RETENTION:-15d}
+    networks: [edge]
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
@@ -55,6 +65,7 @@ services:
       SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-0}
+    networks: [edge]
     volumes:
       - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertdata:/alertmanager
@@ -69,6 +80,7 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    networks: [edge]
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -86,6 +98,7 @@ services:
     command:
       - --path.rootfs=/host
       - --collector.textfile.directory=/textfile
+    networks: [edge]
     volumes:
       - /:/host:ro,rslave
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/textfile:ro
@@ -94,8 +107,12 @@ services:
     image: prom/blackbox-exporter:v0.25.0
     restart: unless-stopped
     command: ['--config.file=/etc/blackbox/blackbox.yml']
+    networks: [edge]
     volumes:
       - ./monitoring/prometheus/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+
+networks:
+  edge: {}          # docker-compose.prod.yml ile ayni ag (birlesimde tek tanim)
 
 volumes:
   promdata:

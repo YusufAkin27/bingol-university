@@ -33,8 +33,8 @@ jobs:
     env:
       BASE_URL: ${{ inputs.base_url != '' && inputs.base_url || vars.STAGING_URL }}
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: grafana/setup-k6-action@v1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1 # v1
       - name: Calistir
         env:
           K6_EMAIL: ${{ secrets.K6_EMAIL }}
@@ -47,7 +47,7 @@ jobs:
           if [ -n "${{ inputs.vus }}" ]; then ARGS="$ARGS --vus ${{ inputs.vus }}"; fi
           if [ -n "${{ inputs.duration }}" ]; then ARGS="$ARGS --duration ${{ inputs.duration }}"; fi
           k6 run $ARGS -e BASE_URL="$BASE_URL" --summary-export=k6-summary.json scripts/k6/${{ inputs.script }}.js
-      - uses: actions/upload-artifact@v4.6.2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: k6-summary-${{ inputs.script }}

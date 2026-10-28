@@ -1,10 +1,41 @@
 # BÜ Kampüs - Caddy (otomatik HTTPS / Let's Encrypt). docker-compose.prod.yml bu dosyayı bağlar.
 # Karar: Caddy önde; /api, /files, /ws doğrudan backend'e (video yüklemeleri nginx'in 12 MB sınırına takılmasın),
-# diğer her şey web (nginx) statik/SPA. Env: DOMAIN, ACME_EMAIL, MAX_BODY.
+# diğer her şey web (nginx) statik/SPA. Env: DOMAIN, ACME_EMAIL, MAX_BODY, BACKEND_HEALTH_PORT.
 {
 	email {$ACME_EMAIL}
 	# Sunucu başlığını ve yönetim API'sini dışa vermeyiz (admin API yalnızca konteyner içinden)
 	admin 127.0.0.1:2019
+
+	servers {
+		timeouts {
+			# slowloris: başlıklar 10 sn içinde gelmeli. Gövde süresi SINIRLANMAZ (yavaş mobil ağda 40 MB video yükleme).
+			read_header 10s
+		}
+	}
+}
+
+# Backend vekili (3 gövde-sınırı bloğu ortak kullanır). X-Forwarded-* Caddy tarafından üretilir (istemcinin gönderdiği ezilir);
+# güven modeli DEĞİŞMEZ: backend yalnız docker ağındaki proxy'den XFF kabul eder (APP_SECURITY_TRUSTED_PROXIES).
+(backend_proxy) {
+	reverse_proxy backend:8080 {
+		header_up X-Forwarded-For {client_ip}
+		header_up X-Real-IP {client_ip}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		# WebSocket ve video akışı için tamponlama yok
+		flush_interval -1
+		transport http {
+			read_timeout 180s
+			write_timeout 180s
+			dial_timeout 5s
+		}
+		# Sağlık denetimi: ana portta /actuator/health (8080). İzleme bindirmesi MANAGEMENT_PORT=8081 verince actuator YALNIZ
+		# orada sunulur; compose o durumda BACKEND_HEALTH_PORT=8081 verir (yoksa 8080'de 404 -> "unhealthy" -> tüm site 503).
+		health_uri /actuator/health
+		health_port {$BACKEND_HEALTH_PORT:8080}
+		health_interval 15s
+		health_timeout 3s
+	}
 }
 
 {$DOMAIN} {
@@ -26,28 +57,33 @@
 		respond "Not Found" 404
 	}
 
-	# API, dosyalar, WebSocket: backend. X-Forwarded-* Caddy tarafından üretilir (istemcinin gönderdiği ezilir).
-	@backend path /api/* /files/* /ws /ws/*
-	handle @backend {
+	# Gövde sınırı (M27): kimliksiz saldırgan 55 MB'lık JSON ile heap'i şişiremesin (rate limit gövde bağlandıktan SONRA çalışır).
+	#  1) YÜKLEME yolları (multipart: medya/gönderi/sohbet/avatar/kapak/logo/menü görseli): MAX_BODY (varsayılan 55 MB).
+	#     Yeni bir yükleme ucu eklenirse BU regex'e de eklenmeli; yoksa 128 KB'a takılır (413).
+	#  2) /api/admin/*: 2 MB (e-posta şablonu/HTML gibi yönetici metinleri). 3) geri kalan /api/*, /files/*, /ws: 128 KB.
+	@upload path_regexp upload ^/api/(posts/media|users/me/avatar|communities/[^/]+/(cover|logo|posts/upload)|events/[^/]+/cover|conversations/[^/]+/(avatar|media)|admin/menu/[^/]+/image)/?$
+	handle @upload {
 		request_body {
 			max_size {$MAX_BODY}
 		}
-		reverse_proxy backend:8080 {
-			header_up X-Forwarded-For {client_ip}
-			header_up X-Real-IP {client_ip}
-			header_up X-Forwarded-Proto {scheme}
-			header_up X-Forwarded-Host {host}
-			# WebSocket ve video akışı için tamponlama yok
-			flush_interval -1
-			transport http {
-				read_timeout 180s
-				write_timeout 180s
-				dial_timeout 5s
-			}
-			health_uri /actuator/health
-			health_interval 15s
-			health_timeout 3s
+		import backend_proxy
+	}
+
+	@admin path /api/admin/*
+	handle @admin {
+		request_body {
+			max_size 2MB
 		}
+		import backend_proxy
+	}
+
+	# API, dosyalar, WebSocket: backend (/ws: yükseltme isteğinin gövdesi yok; STOMP çerçeveleri bu sınıra girmez)
+	@backend path /api/* /files/* /ws /ws/*
+	handle @backend {
+		request_body {
+			max_size 128KB
+		}
+		import backend_proxy
 	}
 
 	# Tanıtım sitesi + /admin SPA

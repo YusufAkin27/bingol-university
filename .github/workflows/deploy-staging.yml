@@ -2,6 +2,10 @@ name: Deploy staging
 
 # main'e birlesince CI yesilse (workflow_run) ya da elle (workflow_dispatch) staging'e dagitir.
 # GitHub Environment "staging": gerekirse onay kurali eklenir (bkz. docs/CI_CD.md).
+#
+# Guvenlik (A4): girdiler regex ile dogrulanir; degerler uzak kabuk KOMUT SATIRINA degil, yalniz SSH stdin'ine
+# (printf %q ile kacirilmis) yazilir; GHCR token'i hicbir yerde argv'de gorunmez. Otomatik (workflow_run) yol
+# degismez `sha-<head_sha>` etiketini dagitir (CI'in dogruladigi surum), `latest`i degil.
 on:
   workflow_run:
     workflows: ['CI']
@@ -10,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Dagitilacak imaj etiketi (bos = latest)'
+        description: 'Dagitilacak imaj etiketi (bos = latest). Yalniz [A-Za-z0-9._-]'
         required: false
         default: ''
 
@@ -32,9 +36,25 @@ jobs:
       name: staging
       url: ${{ vars.STAGING_URL }}
     env:
-      TAG: ${{ inputs.tag != '' && inputs.tag || 'latest' }}
+      # Ifadeler yalniz env'e yazilir (run govdesine enjekte edilmez)
+      TAG: ${{ inputs.tag != '' && inputs.tag || (github.event_name == 'workflow_run' && format('sha-{0}', github.event.workflow_run.head_sha) || 'latest') }}
       DEPLOY_PATH: ${{ vars.STAGING_DEPLOY_PATH || '/opt/bu-kampus' }}
+      HEALTH_URL: ${{ vars.STAGING_HEALTH_URL || '' }}
+      REPO_NAME: ${{ github.repository }}
+      GHCR_USER: ${{ github.actor }}
     steps:
+      - name: Girdileri dogrula
+        run: |
+          set -euo pipefail
+          re_fail() { echo "gecersiz girdi: $1" >&2; exit 1; }
+          [[ "$TAG" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || re_fail TAG
+          [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]{1,200}$ ]] || re_fail DEPLOY_PATH
+          [[ "$REPO_NAME" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || re_fail REPO_NAME
+          [[ "$GHCR_USER" =~ ^[A-Za-z0-9-]{1,39}(\[bot\])?$ ]] || re_fail GHCR_USER
+          if [ -n "$HEALTH_URL" ]; then
+            [[ "$HEALTH_URL" =~ ^https?://[A-Za-z0-9._:/?=%-]{1,200}$ ]] || re_fail HEALTH_URL
+          fi
+          echo "dogrulandi: tag=$TAG"
       - name: SSH anahtarini hazirla
         env:
           SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
@@ -48,28 +68,44 @@ jobs:
         env:
           HOST: ${{ secrets.STAGING_HOST }}
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
-          REPO_LC: ${{ github.repository }}
-          GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.STAGING_GHCR_TOKEN }}
-          HEALTH_URL: ${{ vars.STAGING_HEALTH_URL || 'http://127.0.0.1:8080/actuator/health' }}
         run: |
-          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes "$SSH_USER@$HOST" \
-            "DEPLOY_PATH='$DEPLOY_PATH' TAG='$TAG' REPO='${REPO_LC,,}' GHCR_USER='$GHCR_USER' GHCR_TOKEN='$GHCR_TOKEN' HEALTH_URL='$HEALTH_URL' bash -s" <<'REMOTE'
+          set -euo pipefail
+          [[ "$SSH_USER" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || { echo "gecersiz SSH_USER" >&2; exit 1; }
+          [[ "$HOST" =~ ^[A-Za-z0-9._:-]{1,255}$ ]] || { echo "gecersiz HOST" >&2; exit 1; }
+          REPO_LC="${REPO_NAME,,}"
+          # Uzak komut satirinda DEGER YOK: degiskenler stdin'den (kacirilmis) gelir, ardindan betik.
+          {
+            printf 'DEPLOY_PATH=%q\n' "$DEPLOY_PATH"
+            printf 'TAG=%q\n' "$TAG"
+            printf 'REPO=%q\n' "$REPO_LC"
+            printf 'GHCR_USER=%q\n' "$GHCR_USER"
+            printf 'GHCR_TOKEN=%q\n' "$GHCR_TOKEN"
+            printf 'HEALTH_URL=%q\n' "$HEALTH_URL"
+            cat <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
-          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
-          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          # docker-compose.yml ile BIRLESTIRME YASAK (8080/8090 portlari internete acilir); prod dosyasi tek basina calisir.
+          COMPOSE="docker compose -p bu-staging -f docker-compose.prod.yml -f docker-compose.staging.yml --env-file .env.staging"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          unset GHCR_TOKEN
           # Geri donus icin su an calisan imaj kimlikleri
           mkdir -p .deploy
-          $COMPOSE images --format json > .deploy/previous-images.json 2>/dev/null || true
+          $COMPOSE images --format json </dev/null > .deploy/previous-images.json 2>/dev/null || true
           if [ -f .deploy/current.env ]; then cp .deploy/current.env .deploy/previous.env; fi
           printf 'BACKEND_IMAGE=ghcr.io/%s-backend:%s\nWEB_IMAGE=ghcr.io/%s-web:%s\n' "$REPO" "$TAG" "$REPO" "$TAG" > .deploy/current.env
           set -a; . .deploy/current.env; set +a
-          $COMPOSE pull backend web
-          $COMPOSE up -d
+          $COMPOSE pull backend web </dev/null
+          $COMPOSE up -d </dev/null
+          healthy() {
+            cid="$($COMPOSE ps -q backend </dev/null | head -1)"
+            [ -n "$cid" ] || return 1
+            [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid")" = healthy ] || return 1
+            if [ -n "$HEALTH_URL" ]; then curl -fsS -m 10 "$HEALTH_URL" </dev/null | grep -q '"UP"' || return 1; fi
+          }
           ok=0
-          for i in $(seq 1 30); do
-            if curl -fsS "$HEALTH_URL" | grep -q '"UP"'; then ok=1; break; fi
+          for i in $(seq 1 40); do
+            if healthy; then ok=1; break; fi
             sleep 5
           done
           if [ "$ok" -ne 1 ]; then
@@ -77,13 +113,16 @@ jobs:
             if [ -f .deploy/previous.env ]; then
               set -a; . .deploy/previous.env; set +a
               cp .deploy/previous.env .deploy/current.env
-              $COMPOSE up -d
+              $COMPOSE up -d </dev/null
             fi
             exit 1
           fi
           docker image prune -f >/dev/null
           echo "Dagitim tamam: $TAG"
           REMOTE
+          } | ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes "$SSH_USER@$HOST" bash -s
       - name: Dis saglik denetimi
         if: vars.STAGING_URL != ''
-        run: curl -fsS --retry 5 --retry-delay 5 "${{ vars.STAGING_URL }}/api/status" > /dev/null
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: curl -fsS --retry 5 --retry-delay 5 "${STAGING_URL}/api/status" > /dev/null

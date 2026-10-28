@@ -34,10 +34,10 @@ Bu belge tek VPS için **yedekleme politikasını ve kararlarını** özetler. A
 
 ## Durum dosyaları (gözlemlenebilirlik)
 
-`BACKUP_STATUS_FILE` (varsayılan `/var/backups/last-success.json`, `backups` volume'u); başarısızlık dosyası aynı dizinde `last-failure.json`. İkisi de atomik yazılır. Başarıda `last-failure.json` silinir.
+`BACKUP_STATUS_FILE` (compose'ta sabit: `/var/backups/metrics/last-success.json`; backend aynı host dizinini `/backup-status` altında salt okunur bağlar ve `BACKUP_STATUS_FILE=/backup-status/last-success.json` okur, böylece uygulama içi gösterge UNKNOWN kalmaz); başarısızlık dosyası aynı dizinde `last-failure.json`. İkisi de atomik yazılır. Başarıda `last-failure.json` silinir.
 
 ```json
-{"time":"2026-10-28T13:52:20+0300","file":"20261028T135217","sizeBytes":485280,"durationSec":3,"dbOk":true,"filesOk":true}
+{"lastSuccessAt":"2026-10-28T10:52:20Z","time":"2026-10-28T10:52:20Z","file":"20261028T135217","sizeBytes":485280,"durationSec":3,"dbOk":true,"filesOk":true}
 {"time":"2026-10-28T13:52:26+0300","error":"pg_dump basarisiz...","durationSec":3,"dbOk":false,"filesOk":false}
 ```
 
@@ -47,11 +47,13 @@ Bu belge tek VPS için **yedekleme politikasını ve kararlarını** özetler. A
 
 ```bash
 DC="docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod"
-$DC exec backup /opt/backup/backup.sh --dry-run    # ön kontrol, hiçbir şey yazmaz
-$DC exec backup /opt/backup/backup.sh              # hemen yedek
+# Elle komutlar TEK KULLANICIYLA (postgres, uid 70) çalışır: -u postgres şart (root sahipli 700 dizin saatlik prune'u çökertir).
+# Betikler root çağrılsa bile kendilerini postgres'e geçirir, yine de -u postgres kullanın.
+$DC exec -u postgres backup /opt/backup/backup.sh --dry-run    # ön kontrol, hiçbir şey yazmaz
+$DC exec -u postgres backup /opt/backup/backup.sh              # hemen yedek
 $DC exec backup ls -l /var/backups/daily           # en fazla 3 dizin
 $DC exec backup cat /var/backups/last-success.json
-$DC exec backup /opt/backup/verify-restore.sh --latest   # gerçek geri yükleme denemesi (canlıya dokunmaz)
+$DC exec -u postgres backup /opt/backup/verify-restore.sh --latest   # gerçek geri yükleme denemesi (canlıya dokunmaz)
 ```
 
 Geri yükleme: BACKUP_RESTORE.md bölüm 5 (`restore.sh <yedek> --identity <anahtar> ...`; canlı DB adı bilinçli `--overwrite-live` ister, uygulamayı durdurma adımı bölümde). Kod konumu: `scripts/backup/` (`backup.sh`, `restore.sh`, `verify-restore.sh`, `lib.sh`, `selftest.sh`).

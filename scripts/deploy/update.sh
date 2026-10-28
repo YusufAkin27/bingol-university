@@ -19,6 +19,10 @@ while [ $# -gt 0 ]; do
     *) echo "bilinmeyen arguman: $1" >&2; exit 2;;
   esac
 done
+# docker-compose.yml (kok dosya) ile birlestirme YASAK: backend:8080 ve web:8090 internete duz HTTP yayinlanir (Caddy atlanir).
+case " $COMPOSE_FILES " in
+  *" docker-compose.yml "*) echo "COMPOSE_FILES kok docker-compose.yml iceriyor: yalniz docker-compose.prod.yml (+ staging/monitoring bindirmeleri) kullanin" >&2; exit 2;;
+esac
 [ -f "$ENV_FILE" ] || { echo "$ENV_FILE yok (bash scripts/ops/gen-secrets.sh)" >&2; exit 1; }
 DC=(docker compose -p "$PROJECT" $COMPOSE_FILES --env-file "$ENV_FILE")
 mkdir -p .deploy
@@ -59,7 +63,7 @@ fi
 # --- yedek (Flyway geri sarilmaz: sema degisikliginden once) ---
 if [ "$FIRST" = 0 ] && [ "$BACKUP" = 1 ]; then
   log "guncelleme oncesi yedek"
-  "${DC[@]}" exec -T backup /opt/backup/backup.sh || { echo "yedek basarisiz: --no-backup ile gecilebilir (onerilmez)" >&2; exit 1; }
+  "${DC[@]}" exec -T -u postgres backup /opt/backup/backup.sh || { echo "yedek basarisiz: --no-backup ile gecilebilir (onerilmez)" >&2; exit 1; }
 fi
 
 # --- kod cek ---

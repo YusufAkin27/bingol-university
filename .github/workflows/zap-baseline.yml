@@ -23,13 +23,13 @@ jobs:
     env:
       TARGET: ${{ inputs.target != '' && inputs.target || vars.STAGING_URL }}
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Hedef denetimi
         run: |
           if [ -z "$TARGET" ]; then echo "STAGING_URL tanimli degil"; exit 1; fi
           case "$TARGET" in https://*) ;; *) echo "Hedef https:// olmali"; exit 1;; esac
       - name: ZAP baseline (API)
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed # v0.14.0
         with:
           target: ${{ env.TARGET }}
           rules_file_name: .zap/rules.tsv

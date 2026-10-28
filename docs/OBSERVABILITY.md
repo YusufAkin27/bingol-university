@@ -8,11 +8,15 @@ backend:8081 /actuator/prometheus  <--  Prometheus  -->  Alertmanager (e-posta /
                                       Grafana (panolar)      node-exporter, blackbox (disk, yedek, TLS)
 ```
 
-Hepsi `monitoring/docker-compose.monitoring.yml` içindedir ve mevcut compose dosyalarıyla `-f` ile birleşir:
+Hepsi `monitoring/docker-compose.monitoring.yml` içindedir ve **yalnız** `docker-compose.prod.yml` (ve isteğe bağlı staging) üzerine bindirilir:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml up -d
+docker compose -f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml --env-file .env.prod up -d
 ```
+
+**Kök `docker-compose.yml` ile BİRLEŞTİRMEYİN** (`-f docker-compose.yml -f docker-compose.prod.yml ...`): o dosya backend:8080 ve web:8090'ı internete düz HTTP yayınlar (Caddy atlanır). `docker-compose.prod.yml` bu portları `ports: !reset []` ile sıfırlar, yine de doğru komut yukarıdaki gibidir; `scripts/ci/compose-ports-check.sh` yalnız Caddy 80/443'ün açık kaldığını CI'da denetler.
+
+Bindirme `MANAGEMENT_PORT=8081` verir: actuator yalnız 8081'de sunulur, 8080'de `/actuator/**` yoktur. Bunun iki sonucu bindirmede çözülmüştür: (1) Caddy'nin aktif sağlık denetimi `BACKEND_HEALTH_PORT=8081` ile aynı porta taşınır (aksi halde 8080'de 404 → tek upstream "unhealthy" → tüm site 503 olurdu); (2) izleme servisleri backend ile aynı `edge` ağına katılır, Prometheus `backend:8081`'i çözer. Yönetim portu Caddy üzerinden dışarı verilmez (`@internal` 404).
 
 Gerekli `.env`: `GRAFANA_ADMIN_PASSWORD` (zorunlu), `ALERT_SMTP_HOST/PORT/USER/PASSWORD`, `ALERT_EMAIL_FROM/TO`, isteğe bağlı `SLACK_WEBHOOK_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (Alertmanager'da ilgili alıcı bloğunun yorumunu açın), `BACKUP_METRICS_DIR`. Prometheus/Grafana yalnız `127.0.0.1`'e bağlanır; SSH tüneli ya da ters vekil (Caddy) ile erişin.
 
@@ -35,7 +39,7 @@ Hazır Micrometer: `http_server_requests_seconds_*` (uri, method, status; histog
 
 Ayrı sayaç gerektirmeyenler PromQL ile: giriş başarısızlığı `rate(http_server_requests_seconds_count{uri="/api/auth/login",status="401"}[5m])`; engellenen erişim `status=~"403|429"`; gönderi/yorum `method="POST",uri=~"/api/posts.*"`; medya yükleme süresi `http_server_requests_seconds_bucket{uri=~".*media.*"}`. Push kuyruk uzunluğu şu an dışa açık değil (`PushDispatcher` içindeki havuz özel); `PushQueueStuck` uyarısı düşen/başarısız sayaçlardan türetilir. Kalıcı push kuyruğu (outbox) gelince onun gösterge metrikleri eklenmelidir.
 
-Uyarılar: `monitoring/prometheus/alert.rules.yml` — BackendDown, High5xxRate, HighLatencyP95, DbPoolExhausted, PushQueueStuck, MailQueueStuck, HighJvmHeap, DiskLow, BackupTooOld, CertExpiry, ProbeFailed. Pano: Grafana "BU Kampus / BU Uygulama" (otomatik yüklenir; JVM, HTTP, DB, uygulama).
+Uyarılar: `monitoring/prometheus/alert.rules.yml` — BackendDown, High5xxRate, HighLatencyP95, DbPoolExhausted, PushQueueStuck, MailQueueStuck, HighJvmHeap, DiskLow, BackupTooOld (eşik **3 saat**), BackupLastRunFailed, BackupVerifyFailed, BackupVerifyStale, CertExpiry, ProbeFailed. Pano: Grafana "BU Kampus / BU Uygulama" (otomatik yüklenir; JVM, HTTP, DB, uygulama).
 
 ### Yedek metriği (BE2 ile uyum)
 
@@ -79,3 +83,9 @@ Yedek servisi (`docker-compose.prod.yml` > `backup`, `scripts/backup/`) metrikle
 | `backup_verify_last_status` | gauge | Son doğrulama 1/0 | uyarı önerisi: `== 0` |
 
 `/var/backups/last_success` (unix sn) yedek konteynerinde tutulur; yönetici API'si (`app.ops.backup-status-file`) compose'ta `/backup-status/backup.prom` dosyasını okur (`APP_OPS_BACKUP_STATUS_FILE`, aynı textfile dizini salt okunur bağlıdır; içindeki `backup_last_success_timestamp_seconds <sn>` satırı ayrıştırılır). Yedek hiç çalışmadıysa dosya sıfır değerlerle oluşturulur (`absent()` değil ama `time() - 0` çok büyük: `BackupTooOld` tetiklenir, istenen davranış). Başarısızlıkta ayrıca `BACKUP_WEBHOOK_URL`'e bildirim gider.
+
+## Yedek durum göstergesi (uygulama içi) ve uyarı kanalları (A4)
+
+- Uygulama içi `backup` göstergesi (`BackupStatusProvider`) `BACKUP_STATUS_FILE` dosyasını okur. Compose'ta yedek servisi `/var/backups/metrics/last-success.json` yazar; backend aynı host dizinini (`${BACKUP_METRICS_DIR:-./monitoring/textfile}`) `/backup-status` altında **salt okunur** bağlar ve `BACKUP_STATUS_FILE=/backup-status/last-success.json` okur. Biçim `{"lastSuccessAt":"2026-10-28T09:05:00Z",...}` (UTC, `Z` sonekli; yerel saat dilimli biçim `Instant.parse` ile ayrışmaz ve gösterge hep UNKNOWN olurdu).
+- Prometheus kuralları: `BackupTooOld` (`time() - backup_last_success_timestamp_seconds > 10800`; saatlik yedek + 3 saatlik pencere), `BackupLastRunFailed` (`backup_last_status == 0` 2 saat), `BackupVerifyFailed` (`backup_verify_last_status == 0`), `BackupVerifyStale` (son başarılı geri yükleme doğrulaması 9 günden eski; doğrulama hiç yapılandırılmadıysa da tetiklenir).
+- `BACKUP_WEBHOOK_URL` dolu ise yedek/doğrulama hatası ayrıca webhook ile bildirilir (JSON kaçışı düzeltildi; eski `sed` ifadesi geçersiz olduğundan bildirim hiç gitmiyordu).

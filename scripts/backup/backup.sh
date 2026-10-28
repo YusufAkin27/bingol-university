@@ -8,6 +8,8 @@ set -Eeuo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$HERE/lib.sh"
+# Elle/guncelleme betigi root olarak cagirsa bile tek kullanici (postgres) ile calis: root sahipli dizin prune'u cokertirdi (H2)
+drop_root "$HERE/backup.sh" "$@"
 
 DRY=0
 [ "${1:-}" = "--dry-run" ] && DRY=1
@@ -52,7 +54,7 @@ pg_isready -q -t 10 || die "PostgreSQL yanit vermiyor ($PGHOST)"
 psql -Atqc 'select 1' >/dev/null || die "PostgreSQL kimlik dogrulamasi/sorgu basarisiz"
 [ -d "$UPLOADS_DIR" ] || die "uploads dizini yok: $UPLOADS_DIR"
 AGE_ARGS=(-r "$RECIPIENT")
-[ -z "$EXTRA_RECIPIENT" ] || AGE_ARGS+=(-r "$EXTRA_RECIPIENT")
+[ -z "$EXTRA_RECIPIENT" ] || [ "$EXTRA_RECIPIENT" = "$RECIPIENT" ] || AGE_ARGS+=(-r "$EXTRA_RECIPIENT")
 printf 'age-denemesi' | age "${AGE_ARGS[@]}" >/dev/null || die "age alicisi gecersiz"
 if [ -n "${BACKUP_REMOTE:-}" ]; then
   rclone lsd "${BACKUP_REMOTE%%:*}:" >/dev/null 2>&1 || rclone about "${BACKUP_REMOTE%%:*}:" >/dev/null 2>&1 \
@@ -81,7 +83,7 @@ elif [ "$FREE_B" -lt "$((NEED * 2))" ]; then
 fi
 
 mkdir -p "$PART" "$BACKUP_DIR/daily" "$BACKUP_DIR/weekly" "$BACKUP_DIR/monthly"
-chmod 700 "$PART"
+chmod 750 "$PART"   # tek kullanici (postgres); node-exporter/backend bu dizine girmez
 log "yedek basliyor: $STAMP"
 
 # --- manifest icin satir sayilari (dogrulama karsilastirmasi) ---
@@ -124,17 +126,19 @@ DBB="$(stat -c %s "$PART/db.dump.age")"; UPB="$(stat -c %s "$PART/uploads.tar.zs
 
 mv "$PART" "$DEST"
 
-# --- saklama: YALNIZ basarili yedekten sonra, en yeni KEEP_D tane kalir (varsayilan 3 = 3 saatlik pencere) ---
-# Haftalik/aylik kopya (hardlink) yalniz KEEP_W/KEEP_M > 0 ise uretilir.
+# --- uzak kopya (istege bagli): rotasyondan ONCE; hata burada beklenir ama rotasyonu engellemez (disk dolmasin) ---
+REMOTE_ERR=""
+if [ -n "${BACKUP_REMOTE:-}" ]; then
+  log "rclone -> $BACKUP_REMOTE"
+  rclone copy "$DEST" "${BACKUP_REMOTE%/}/$STAMP" --checksum --transfers 2 || REMOTE_ERR="rclone yuklemesi basarisiz"
+fi
+
+# --- saklama: YALNIZ basarili yerel yedekten sonra, en yeni KEEP_D tane kalir (varsayilan 3 = 3 saatlik pencere) ---
+# Haftalik/aylik kopya (hardlink) yalniz KEEP_W/KEEP_M > 0 ise uretilir. prune hatasi yedegi basarisiz saymaz.
 if [ "$KEEP_W" -gt 0 ] && [ "$(date +%u)" = 7 ]; then cp -al "$DEST" "$BACKUP_DIR/weekly/$STAMP"; fi
 if [ "$KEEP_M" -gt 0 ] && [ "$(date +%d)" = 01 ]; then cp -al "$DEST" "$BACKUP_DIR/monthly/$STAMP"; fi
 prune "$BACKUP_DIR/daily" "$KEEP_D"; prune "$BACKUP_DIR/weekly" "$KEEP_W"; prune "$BACKUP_DIR/monthly" "$KEEP_M"
-
-# --- uzak kopya (istege bagli) ---
-if [ -n "${BACKUP_REMOTE:-}" ]; then
-  log "rclone -> $BACKUP_REMOTE"
-  rclone copy "$DEST" "${BACKUP_REMOTE%/}/$STAMP" --checksum --transfers 2 || die "rclone yuklemesi basarisiz"
-fi
+[ -z "$REMOTE_ERR" ] || die "$REMOTE_ERR"
 
 NOW=$(date +%s)
 echo "$NOW" > "$BACKUP_DIR/last_success"

@@ -36,12 +36,16 @@ Her yedek `daily/<YYYYMMDDTHHMMSS>/` altında dört dosyadır:
 age-keygen -o kurtarma.age.key        # "Public key: age1..." satırını not edin -> BACKUP_AGE_RECIPIENT
 age-keygen -o verify.age.key          # haftalık otomatik doğrulama anahtarı -> BACKUP_VERIFY_AGE_RECIPIENT
 # kurtarma.age.key: şifre yöneticisi + çevrimdışı kasa (>= 2 yer, KEY_MANAGEMENT.md)
-# verify.age.key  : sunucuya, deploy/backup-keys/verify.key olarak (izin 600); sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
+# verify.age.key  : sunucuya, deploy/backup-keys/verify.key olarak; sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
+#   İzin: konteynerdeki zamanlayıcı postgres (uid 70) olarak çalışır; 0600 + başka sahip ise okuyamaz. Ya
+#   `sudo chown 70:70 deploy/backup-keys/verify.key && chmod 0400 deploy/backup-keys/verify.key`, ya da yedek konteyneri
+#   başlarken kök olarak okunup postgres'e özel 0400 kopya (/run/age-key/age.key) yapılır (anahtar sonradan konduysa
+#   `docker compose restart backup`). Okunamazsa doğrulama sessiz kalmaz: backup_verify_last_status 0 + webhook + BackupVerifyFailed.
 
 # Sunucuda .env.prod:
 #   BACKUP_AGE_RECIPIENT=age1...   BACKUP_VERIFY_AGE_RECIPIENT=age1...   BACKUP_REMOTE=...   BACKUP_WEBHOOK_URL=...
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build backup
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backup /opt/backup/backup.sh --dry-run
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec -u postgres backup /opt/backup/backup.sh --dry-run
 ```
 
 ## 3. Zamanlama, metrik, uyarı
@@ -64,10 +68,10 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec backup /opt/
 
 ```bash
 DC="docker compose -f docker-compose.prod.yml --env-file .env.prod"
-$DC exec backup /opt/backup/backup.sh --dry-run        # bağlantı, anahtar, disk, uzak hedef denemesi; hiçbir şey yazmaz
-$DC exec backup /opt/backup/backup.sh                  # hemen yedek al
+$DC exec -u postgres backup /opt/backup/backup.sh --dry-run        # bağlantı, anahtar, disk, uzak hedef denemesi; hiçbir şey yazmaz
+$DC exec -u postgres backup /opt/backup/backup.sh                  # hemen yedek al
 $DC exec backup ls -l /var/backups/daily               # yedekleri listele
-$DC exec backup /opt/backup/verify-restore.sh --latest # geçici sunucuda geri yükleme denemesi (canlıya dokunmaz)
+$DC exec -u postgres backup /opt/backup/verify-restore.sh --latest # geçici sunucuda geri yükleme denemesi (canlıya dokunmaz)
 ```
 
 `scripts/backup/selftest.sh` (Docker gerekir, repo kökünden): geçici postgres + geçici volume'lar + yeni age anahtarıyla tüm hattı (dry-run, yedek, sha256, doğrulama, `restore.sh`, bozuk yedek reddi, canlı DB hedefi reddi) uçtan uca dener; çalışan yığına dokunmaz.
@@ -93,10 +97,11 @@ Hedef süre: 2 saat. Gerekenler: (a) yedek dosyaları (sunucudan, uzak kopyadan 
 4. **Veritabanını yükleyin** (backup konteyneri imajı araçları taşır; özel anahtarı geçici olarak bağlayın, iş bitince silin):
    ```bash
    docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm \
-     -v "$PWD/restore-in:/restore:ro" -v "$PWD/kurtarma.age.key:/run/backup/restore.key:ro" \
-     backup restore.sh /restore --identity /run/backup/restore.key --target-db bingol_restore --uploads-to /tmp/up
+     -v "$PWD/restore-in:/restore:ro" -e BACKUP_AGE_IDENTITY_SRC=/run/restore-key/restore.key \
+     -v "$PWD/kurtarma.age.key:/run/restore-key/restore.key:ro" \
+     backup restore.sh /restore --target-db bingol_restore --uploads-to /tmp/up
    ```
-   `restore.sh` yeni bir veritabanı (`bingol_restore`) oluşturur ve yükler; canlı veritabanı adı (`bingol`) bilinçli `--overwrite-live` olmadan **reddedilir**. Boş yeni sunucuda doğrudan canlı adına yüklemek için `--target-db bingol --overwrite-live` kullanın (backend kapalıyken).
+   `restore.sh` yeni bir veritabanı (`bingol_restore`) oluşturur ve yükler; canlı veritabanı adı (`bingol`) bilinçli `--overwrite-live` olmadan **reddedilir**. Boş yeni sunucuda doğrudan canlı adına yüklemek için `--target-db bingol --overwrite-live` kullanın (backend kapalıyken). `restore.sh` her zaman ÖNCE kuru doğrulama yapar (sha256, anahtar okunabilir/geçerli, `age -d | pg_restore --list`, tam şifre çözme, uploads arşivi); başarısızsa hiçbir şey değişmez (`--check-only` yalnız bunu yapar). `--overwrite-live` mevcut canlı veritabanını **silmez**: yeni veritabanı geçici adla kurulur, canlı ad `bingol_prev_<damga>` olarak SAKLANIR ve yenisi yerine konur (sorun yoksa `dropdb bingol_prev_...`). Yedek dizini başka sahipli/0700 ise konteynerdeki postgres okuyamaz: `chmod -R a+rX <yedek-dizini>` (içerik age ile şifreli; `restore-live.sh` bunu kendisi yapar).
 5. **Dosyaları yükleyin:** `--uploads-to` ile çıkarılan dizini `uploads` volume'una taşıyın (`docker run --rm -v <proje>_uploads:/d -v $PWD/up:/s alpine cp -a /s/. /d/`; sahibi `1001` olmalı: `chown -R 1001 /d`).
 6. **Backend'i başlatın:** `DC up -d`. Açılışta `ProdSettingsValidator` ve `KeyProvider` anahtarları doğrular; Flyway yalnızca eksik migration'ları uygular.
 7. **KVKK sonrası işlemler:** yedeğin alındığı tarihten sonra **silinen/anonimleştirilen hesapları yeniden anonimleştirin** (silme günlüğü/denetim kaydından: `docs/legal/internal/01_saklama_ve_imha_politikasi.md`), bildirim ve oturumlar zaten geçersizdir (Redis boş: kullanıcılar yeniden giriş yapar).
@@ -147,3 +152,5 @@ Saatlik/son-3 politikası, `last-success.json` / `last-failure.json` biçimi, ş
 ```bash
 bash scripts/backup/restore-live.sh <yedek-dizini> <kurtarma.age.key>
 ```
+
+`restore-live.sh` yığını durdurmadan ÖNCE yedeği kuru doğrular (yanlış/okunamayan anahtar veya bozuk dump: hiçbir şey değişmez), anahtarı konteynere `/run/restore-key/restore.key` olarak bağlar (servisin `:ro /run/backup` bağlamasının altına değil) ve postgres için 0400 kopyaya çevirir, canlı veritabanını silmez (`bingol_prev_<damga>`), uploads'ı önce geçici dizine çıkarıp sonra yerine koyar, adım hatasında yığını yeniden başlatmaya çalışır. Geçici yığında uçtan uca denenmiştir (yanlış anahtar: yığın dokunulmadan kalır; doğru anahtar: DB + dosyalar geri gelir).

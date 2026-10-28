@@ -72,14 +72,41 @@ groups:
           summary: "Disk bosluk %15'in altinda"
           description: "{{ $labels.mountpoint }}: %{{ $value | humanizePercentage }} bos."
 
-      # Yedekleme metrigi BE2 tarafindan node_exporter textfile collector ile yazilir:
-      # backup_last_success_timestamp_seconds (docs/OBSERVABILITY.md). Metrik hic yoksa da uyarir.
+      # Yedekleme metrikleri scripts/backup (lib.sh metric_write) tarafindan node_exporter textfile collector ile yazilir
+      # (docs/OBSERVABILITY.md). Yedek SAATLIKtir, yerel pencere 3 saat: bu yuzden esik 3 saat (eskiden 36 saat: kurtarilabilir
+      # son durum cok eskimeden haber gelmiyordu). Metrik hic yoksa da uyarir.
       - alert: BackupTooOld
-        expr: (time() - backup_last_success_timestamp_seconds) > 129600 or absent(backup_last_success_timestamp_seconds)
-        for: 30m
+        expr: (time() - backup_last_success_timestamp_seconds) > 10800 or absent(backup_last_success_timestamp_seconds)
+        for: 10m
         labels: {severity: critical}
         annotations:
-          summary: "Son basarili yedek 36 saatten eski ya da metrik yok"
+          summary: "Son basarili yedek 3 saatten eski ya da metrik yok"
+          description: "Saatlik yedek calismiyor/basarisiz (uzak kopya dahil). docker compose logs backup; docs/BACKUP_RESTORE.md."
+
+      - alert: BackupLastRunFailed
+        expr: backup_last_status == 0
+        for: 2h
+        labels: {severity: critical}
+        annotations:
+          summary: "Son yedek denemesi basarisiz (2 saattir)"
+          description: "backup_last_status=0; last-failure.json ve konteyner gunlugune bakin."
+
+      # Haftalik geri yukleme dogrulamasi: anahtar okunamazsa/yedek bozuksa metrik 0 olur (scripts/backup/verify-restore.sh)
+      - alert: BackupVerifyFailed
+        expr: backup_verify_last_status == 0 and backup_verify_last_success_timestamp_seconds > 0
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "Haftalik geri yukleme dogrulamasi BASARISIZ"
+          description: "Yedeklerin geri yuklenebilirligi kanitlanamadi (verify.key izni/sahipligi, bozuk dump?). docs/BACKUP_RESTORE.md."
+
+      - alert: BackupVerifyStale
+        expr: (time() - backup_verify_last_success_timestamp_seconds) > 9 * 86400
+        for: 1h
+        labels: {severity: warning}
+        annotations:
+          summary: "Basarili geri yukleme dogrulamasi 9 gunden eski (ya da hic yapilmadi)"
+          description: "BACKUP_VERIFY_AGE_RECIPIENT ve deploy/backup-keys/verify.key yapilandirilmis mi? Haftalik dogrulama pazar 04:30."
 
       - alert: CertExpiry
         expr: (probe_ssl_earliest_cert_expiry - time()) < 14 * 86400

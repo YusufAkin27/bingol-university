@@ -3,6 +3,11 @@
 #   cp .env.prod.example .env.prod        # veya: bash scripts/ops/gen-secrets.sh
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 #
+# UYARI: bu dosya TEK BASINA calisir. Kok docker-compose.yml ile (`-f docker-compose.yml -f docker-compose.prod.yml`)
+# BIRLESTIRMEYIN: o dosya backend:8080 ve web:8090'i internete duz HTTP yayinlar. Birlestirilirse bile asagidaki
+# `ports: !reset []` bu portlari sifirlar (Compose >= 2.24); disariya yalniz Caddy'nin 80/443 portu acik kalir.
+# Izleme: `-f docker-compose.prod.yml -f monitoring/docker-compose.monitoring.yml` (docs/OBSERVABILITY.md).
+#
 # Mimari karari: Caddy ÖNDE (TLS + güvenlik başlıkları). /api, /files, /ws doğrudan backend'e gider
 # (nginx'in 12 MB gövde sınırı video yüklemelerini keserdi); geri kalan her şey `web` (nginx) statik/SPA.
 # Dışa yalnızca Caddy'nin 80/443 portu açıktır; postgres/redis/backup ağ içindedir (internal ağ, internete çıkışı yok).
@@ -36,7 +41,9 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN gerekli (.env.prod)}
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL gerekli (.env.prod)}
-      MAX_BODY: ${CADDY_MAX_BODY:-55MB}
+      MAX_BODY: ${CADDY_MAX_BODY:-55MB}           # yalniz yukleme yollari (deploy/Caddyfile @upload)
+      # Saglik denetimi portu: ana port (8080) ya da izleme bindirmesinde yonetim portu (8081); bindirme bunu ezer
+      BACKEND_HEALTH_PORT: ${BACKEND_HEALTH_PORT:-8080}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data          # sertifikalar: KAYBETMEYİN (Let's Encrypt limitleri)
@@ -61,7 +68,9 @@ services:
       context: ./web
       args:
         VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+    image: ${WEB_IMAGE:-bu-web:local}
     restart: unless-stopped
+    ports: !reset []                   # kok compose ile birlestirilse bile 8090 yayinlanmaz
     <<: *hardening
     cap_add:
       - CHOWN
@@ -95,6 +104,7 @@ services:
       redis:
         condition: service_healthy
     networks: [edge, internal]          # edge: FCM/SMTP için çıkış; internal: db/redis
+    ports: !reset []                    # kok compose ile birlestirilse bile 8080 yayinlanmaz (yalniz Caddy 80/443)
     expose:
       - "8080"
     environment:
@@ -138,6 +148,9 @@ services:
       SENTRY_DSN: ${SENTRY_DSN:-}
       STORAGE_DIR: /data/uploads
       APP_OPS_BACKUP_STATUS_FILE: /backup-status/backup.prom
+      # Uygulama ici yedek gostergesi (BackupStatusProvider): yedek servisi ayni dosyayi yazar (asagida backup.BACKUP_STATUS_FILE,
+      # ayni host dizini ${BACKUP_METRICS_DIR}); bicim {"lastSuccessAt":"...Z"}. Yol/biçim uyusmazsa gosterge hep UNKNOWN olur (M25).
+      BACKUP_STATUS_FILE: /backup-status/last-success.json
       # Gönderi videosu 40 MB: prod varsayılanı (5 MB) yeterli olmaz
       MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-45MB}
       MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-50MB}
@@ -253,7 +266,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "noeviction"]
+    # volatile-lru: bellek dolunca YALNIZ TTL'li anahtarlar (refresh token, hiz siniri sayaci, dogrulama kodu, presence...) atilir;
+    # TTL'siz kalici isaretler (suspended:<id>) asla atilmaz. noeviction dolunca yazmalari (giris/kayit) reddederdi.
+    # AOF (appendonly) korunur: yeniden baslatmada oturumlar kaybolmaz. Gerekce ve izleme: docs/DEPLOY.md "Redis".
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru"]
     mem_limit: ${REDIS_MEM_LIMIT:-320m}
     cpus: 0.5
     networks: [internal]
@@ -282,6 +298,9 @@ services:
       postgres:
         condition: service_healthy
     networks: [internal, edge]          # edge: rclone/webhook çıkışı
+    # age ozel anahtarinin postgres (uid 70) icin okunabilir 0400 kopyasi (entrypoint, kok iken kopyalar); diske yazilmaz
+    tmpfs:
+      - /run/age-key:mode=0700,uid=70,gid=70
     environment:
       PGHOST: postgres
       PGUSER: bingol
@@ -293,11 +312,14 @@ services:
       BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-3}      # saatlik yedek, en yeni 3 (3 saatlik pencere)
       BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-0}
       BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-0}
-      BACKUP_STATUS_FILE: ${BACKUP_STATUS_FILE:-/var/backups/last-success.json}   # last-failure.json ayni dizinde
+      # Durum JSON'u backend ile PAYLASILAN dizinde (${BACKUP_METRICS_DIR} = backend'de /backup-status, salt okunur); last-failure.json ayni dizinde
+      BACKUP_STATUS_FILE: /var/backups/metrics/last-success.json
       BACKUP_CRON: ${BACKUP_CRON:-5 * * * *}
       BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-30 4 * * 0}
       BACKUP_VERIFY_AGE_RECIPIENT: ${BACKUP_VERIFY_AGE_RECIPIENT:-}
-      BACKUP_AGE_IDENTITY_FILE: ${BACKUP_AGE_IDENTITY_FILE:-/run/backup/verify.key}
+      # Kaynak: host'taki 0600 anahtar (baska sahip olabilir); entrypoint postgres icin /run/age-key/age.key kopyasini uretir
+      BACKUP_AGE_IDENTITY_SRC: /run/backup/verify.key
+      BACKUP_AGE_IDENTITY_FILE: /run/age-key/age.key
       RCLONE_CONFIG_PASS: ${RCLONE_CONFIG_PASS:-}
       TZ: Europe/Istanbul
     volumes:
