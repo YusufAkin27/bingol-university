@@ -12,6 +12,7 @@ import edu.bingol.backend.auth.dto.ResetPasswordRequest;
 import edu.bingol.backend.auth.dto.ResetTokenResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.UserView;
+import edu.bingol.backend.auth.dto.VerifyEmailRequest;
 import edu.bingol.backend.auth.dto.VerifyRequest;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
@@ -119,13 +120,13 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public TokenResponse verifyEmail(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
+    public TokenResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest r, HttpServletRequest http) {
         String ip = clientIp.limitKey(http);
         limiter.check("verify:ip:" + ip, 60, Duration.ofMinutes(10));
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("verify:email:" + ed + ":" + ip, 10, Duration.ofMinutes(10));
         limiter.check("verify:email:" + ed, 60, Duration.ofMinutes(10));
-        return auth.verifyEmail(r.email(), r.code(), r.client(), contexts.of(http));
+        return auth.verifyEmail(r.email(), r.code(), r.client(), contexts.of(http), r.password());
     }
 
     @PostMapping("/login")

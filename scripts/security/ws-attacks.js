@@ -32,7 +32,7 @@ async function register(email, name) {
   await sleep(1000);
   const logs = execSync('docker compose logs backend', { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const m = [...logs.matchAll(new RegExp(email.replace('.', '\\.') + ' icin dogrulama kodu: (\\d+)', 'g'))].pop();
-  let r = await api('POST', '/auth/verify-email', null, { email, code: m && m[1] });
+  let r = await api('POST', '/auth/verify-email', null, { email, code: m && m[1], password: 'Sifre1234' });
   if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: 'Sifre1234' });
   const token = r.json.accessToken;
   const me = await api('GET', '/users/me', token);

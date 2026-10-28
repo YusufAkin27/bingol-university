@@ -6965,4 +6965,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateRequiredRecheck => 'Check again';
+
+  @override
+  String get legalReacceptTitle => 'Agreements updated';
+
+  @override
+  String get legalReacceptIntro =>
+      'We have updated our terms and privacy documents. To keep using the app, please read and accept the updated documents.';
+
+  @override
+  String get legalReacceptIntroSoft =>
+      'New versions of some documents have been published. You can review and accept them now or later; you will need to accept them in the coming days.';
+
+  @override
+  String get legalReacceptListTitle => 'Updated documents';
+
+  @override
+  String get legalReacceptTypeTerms => 'Terms of Use';
+
+  @override
+  String get legalReacceptTypePrivacy => 'Privacy Policy';
+
+  @override
+  String get legalReacceptTypeKvkk => 'Data Protection Notice (KVKK)';
+
+  @override
+  String get legalReacceptTypeRules => 'Community Rules';
+
+  @override
+  String get legalReacceptNoteExplicit =>
+      'Optional explicit consents are separate from this acceptance and are not given by it.';
+
+  @override
+  String get legalReacceptCheck =>
+      'I have read and accept the updated documents';
+
+  @override
+  String get legalReacceptAccept => 'Accept';
+
+  @override
+  String get legalReacceptLater => 'Later';
+
+  @override
+  String get legalReacceptDecline => 'I do not accept';
+
+  @override
+  String get legalReacceptDeclineTitle =>
+      'You cannot continue without accepting';
+
+  @override
+  String get legalReacceptDeclineBody =>
+      'If you do not accept the current agreements you cannot use the app. You can delete your account, or sign out and decide again later.';
+
+  @override
+  String get legalReacceptDeleteAccount => 'Delete my account';
+
+  @override
+  String get legalReacceptSignOut => 'Sign out';
+
+  @override
+  String get legalReacceptOutdated =>
+      'The documents were updated again. Please review the new versions and accept again.';
+
+  @override
+  String get authVerifyPasswordLabel => 'The password you chose at sign-up';
+
+  @override
+  String get authVerifyPasswordNote =>
+      'For security, enter the password you used when registering again.';
+
+  @override
+  String get authVerifyPasswordRequired =>
+      'Enter the password you chose at sign-up.';
 }

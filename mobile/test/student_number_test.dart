@@ -145,6 +145,8 @@ void main() {
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
       expect((b.bodies['POST /auth/verify-email'] as Map)['email'], '226051015');
+      // Parola kaniti: girişte girilen şifre doğrulama isteğine eklenir
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
       expect(s.state, SessionState.signedIn);
       expect(await s.pending.load(), isNull);
       await unmount(tester);

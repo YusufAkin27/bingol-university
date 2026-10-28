@@ -45,7 +45,7 @@ check resend 202 "$(status "$R")"
 echo "== dogrulama (kod log'dan)"
 sleep 2
 CODE=$(docker compose logs backend 2>&1 | grep "$MAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-R=$(post /auth/verify-email "{\"email\":\"$NUM\",\"code\":\"$CODE\",\"client\":\"mobile\"}")
+R=$(post /auth/verify-email "{\"email\":\"$NUM\",\"code\":\"$CODE\",\"password\":\"Sifre1234x\",\"client\":\"mobile\"}")
 check verify-email 200 "$(status "$R")"
 
 echo "== dogrulandiktan sonra numara ve tam e-posta ile giris"

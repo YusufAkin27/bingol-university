@@ -142,7 +142,7 @@ async function ensureUser(email, name) {
   await new Promise((r) => setTimeout(r, 1200));
   const code = codeFromLog(email);
   if (!code) throw new Error('dogrulama kodu log\'da yok: ' + email + ' (register=' + reg.status + ')');
-  const v = await call('POST', '/api/auth/verify-email', { body: { email, code } });
+  const v = await call('POST', '/api/auth/verify-email', { body: { email, code, password: PASS } });
   checkBody('verify ' + email, 'POST', '/api/auth/verify-email', v);
   if (v.status !== 200) throw new Error('verify basarisiz ' + v.status + ' ' + v.text);
   return v.json;

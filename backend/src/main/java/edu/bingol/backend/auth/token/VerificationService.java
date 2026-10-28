@@ -84,6 +84,15 @@ public class VerificationService {
         return verify(VERIFY, email, code, scope);
     }
 
+    /**
+     * Kodu tuketmeden BIR yanlis deneme sayar (kayit dogrulamasinda parola kaniti basarisizsa): sayaclar/kilitler
+     * gercek yanlis kodla ayni islenir; kilit asilirsa 429 firlatir. Dogru kod bu yolla asla tuketilmez.
+     */
+    public void recordWrongAttempt(String email, String scope) {
+        // 6 hane olmayan deger hicbir kodla eslesmez: yalniz yanlis deneme sayilir
+        verify(VERIFY, email, "x", scope);
+    }
+
     public boolean verifyReset(String email, String code) {
         return verify(RESET, email, code, null);
     }

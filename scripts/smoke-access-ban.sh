@@ -26,7 +26,7 @@ register() {
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$email icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$email\",\"code\":\"$c\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$email\",\"code\":\"$c\",\"password\":\"Sifre1234\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
     t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$email\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi

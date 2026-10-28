@@ -6937,4 +6937,75 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get updateRequiredRecheck => 'Tekrar kontrol et';
+
+  @override
+  String get legalReacceptTitle => 'Sözleşmeler güncellendi';
+
+  @override
+  String get legalReacceptIntro =>
+      'Kullanım koşulları ve gizlilik metinlerinde değişiklik yaptık. Uygulamayı kullanmaya devam etmek için güncellenen belgeleri okuyup kabul etmeniz gerekiyor.';
+
+  @override
+  String get legalReacceptIntroSoft =>
+      'Bazı belgelerin yeni sürümü yayımlandı. Şimdi inceleyip kabul edebilir ya da daha sonraya bırakabilirsiniz; ilerleyen günlerde kabul etmeniz gerekecek.';
+
+  @override
+  String get legalReacceptListTitle => 'Güncellenen belgeler';
+
+  @override
+  String get legalReacceptTypeTerms => 'Kullanım Koşulları';
+
+  @override
+  String get legalReacceptTypePrivacy => 'Gizlilik Politikası';
+
+  @override
+  String get legalReacceptTypeKvkk => 'KVKK Aydınlatma Metni';
+
+  @override
+  String get legalReacceptTypeRules => 'Topluluk Kuralları';
+
+  @override
+  String get legalReacceptNoteExplicit =>
+      'İsteğe bağlı açık rıza izinleri bu onaydan ayrıdır; bu işlemle verilmiş sayılmaz.';
+
+  @override
+  String get legalReacceptCheck =>
+      'Güncellenen belgeleri okudum ve kabul ediyorum';
+
+  @override
+  String get legalReacceptAccept => 'Kabul et';
+
+  @override
+  String get legalReacceptLater => 'Daha sonra';
+
+  @override
+  String get legalReacceptDecline => 'Kabul etmiyorum';
+
+  @override
+  String get legalReacceptDeclineTitle => 'Kabul etmeden devam edilemez';
+
+  @override
+  String get legalReacceptDeclineBody =>
+      'Güncel sözleşmeleri kabul etmezseniz uygulamayı kullanamazsınız. Hesabınızı silebilir ya da çıkış yapıp daha sonra tekrar karar verebilirsiniz.';
+
+  @override
+  String get legalReacceptDeleteAccount => 'Hesabımı sil';
+
+  @override
+  String get legalReacceptSignOut => 'Çıkış yap';
+
+  @override
+  String get legalReacceptOutdated =>
+      'Belgeler yeniden güncellendi. Lütfen yeni sürümleri inceleyip tekrar kabul edin.';
+
+  @override
+  String get authVerifyPasswordLabel => 'Kayıtta belirlediğiniz şifre';
+
+  @override
+  String get authVerifyPasswordNote =>
+      'Güvenlik için, kayıt sırasında girdiğiniz şifreyi yeniden girin.';
+
+  @override
+  String get authVerifyPasswordRequired =>
+      'Kayıtta belirlediğiniz şifreyi girin.';
 }

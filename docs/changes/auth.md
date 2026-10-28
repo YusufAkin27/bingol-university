@@ -17,6 +17,16 @@ Cagiran cihazin da oturumu kapanir; yeniden giris gerekir.
 - **Access token iptali**: `JwtAuthFilter`, `pwchg:<uid>` (epoch sn) isaretinden once uretilen token'lari reddeder (`rolechg:` ile ayni mantik, TTL = access omru + 1 dk).
 - **Refresh token indeksi**: `rtu:<uid>` kumesi; `RefreshTokenService.revokeAll(uid)`.
 
+## Kayit dogrulamada parola kaniti (B3, 2026-10-28)
+
+- **Sorun (A1 kalan risk):** gercek e-posta sahibi kayit olduktan sonra saldirgan ayni adrese yeniden `register` gonderirse bekleyen kayit "son yazan kazanir" ile ezilir ve sahibine yeni kod gider; sahip bu kodu girerse SALDIRGANIN parolasi etkinlesirdi.
+- **Cozum:** `POST /api/auth/verify-email` govdesine `password` (<= 72) eklendi (`VerifyEmailRequest`; `verify-reset-code` eskisi gibi `VerifyRequest`). Istemci kayit adiminda girdigi parolayi dogrulama adiminda yeniden gonderir; `AuthService.verifyEmail` bunu bekleyen kayitta saklanan BCrypt ozetiyle karsilastirir (`encoder.matches`). Uyusmazsa/yoksa genel `400 INVALID_CODE` (enumerasyon yok) ve **yanlis deneme sayilir** (`VerificationService.recordWrongAttempt`: kodu TUKETMEZ, dogru kod yanmaz; 5 deneme/10 dk kilidi, kume ve saatlik toplam sinirlari gercek yanlis kodla ayni). Parola kontrolu kod dogrulamasindan ONCE yapilir.
+- **Geriye uyumluluk:** `app.auth.verify-requires-password` (`AUTH_VERIFY_REQUIRES_PASSWORD`, varsayilan **true**). `false` iken `password` YOKSA kontrol atlanir (parola kanitini bilmeyen eski istemciler); `password` GELIRSE her durumda dogrulanir. Mobil ve yeni web surumleri her zaman gonderir. Eski istemciler yayilinca bayrak true kalmali; `false` yalniz gecis penceresi icindir ve A1 riskini geri acar.
+- Mobil: kayit/giriste girilen parola bellekte tutulur ve dogrulamada gonderilir; uygulama yeniden acilip bellekte yoksa dogrulama ekraninda "Kayitta belirlediginiz sifre" alani cikar.
+- Smoke/e2e betikleri (`scripts/*.sh|js`) `verify-email` govdesine `password` ekler.
+- Testler: `AuthServiceTest` (uyusmazlik, eksik parola, IP kapsamli sayac, bayrak kapaliyken eski istemci, bayrak kapaliyken verilen yanlis parola), `VerificationServiceTest.recordWrongAttempt*`.
+- Hata kodu degisikligi yok (mevcut `INVALID_CODE`).
+
 ## Diger modullerin kullanabilecegi servis
 
 `auth.token.SessionService.revokeAll(userId)`: refresh token'lar + `pwchg` isareti. Sifre sifirlama/degistirme akislari bunu cagirmalidir.

@@ -52,6 +52,9 @@ public class AuthService {
     private final PendingRegistrationStore pending;
     private final SessionService sessions;
     private final CatalogService catalog;
+    /** Dogrulamada parola kaniti zorunlu mu (varsayilan evet; eski istemciler icin kapatilabilir). */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.verify-requires-password:true}")
+    private boolean verifyRequiresPassword = true;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
     private final String dummyHash;
     /** Erisim engeli (IP/cihaz/kullanici) ve cihaz gunlugu; testlerde/eski cagrilarda null olabilir. */
@@ -80,6 +83,10 @@ public class AuthService {
         this.pending = pending;
         this.sessions = sessions;
         this.dummyHash = encoder.encode("dummy-password-for-timing");
+    }
+
+    void setVerifyRequiresPassword(boolean v) {
+        this.verifyRequiresPassword = v;
     }
 
     @Autowired(required = false)
@@ -270,11 +277,30 @@ public class AuthService {
     }
 
     public TokenResponse verifyEmail(String rawEmail, String code, String client, ClientContext ctx) {
+        return verifyEmail(rawEmail, code, client, ctx, null);
+    }
+
+    /**
+     * `password`: kayit sirasinda girilen parolanin yeniden gonderilmesi (parola kaniti). Bekleyen kaydin parola
+     * ozetiyle eslesmezse genel 400 INVALID_CODE doner ve yanlis deneme sayilir; boylece adres sahibine giden bir
+     * kodu, baskasinin ayni adrese yeniden gonderdigi kayit (son yazan kazanir) icin kullandirmak parolayi
+     * etkinlestiremez. `app.auth.verify-requires-password=false` iken parola YOKSA kontrol atlanir (eski istemciler);
+     * parola varsa her durumda dogrulanir.
+     */
+    public TokenResponse verifyEmail(String rawEmail, String code, String client, ClientContext ctx, String password) {
         String email = normalizeEmail(rawEmail);
         Pending p = pending.find(email);
         User existing = users.findByEmail(email).orElse(null);
         if (p == null || (existing != null && existing.isEmailVerified())) {
             throw invalidCode();
+        }
+        if (password != null || verifyRequiresPassword) {
+            boolean proven = password != null && fitsBcrypt(password) && encoder.matches(password, p.passwordHash());
+            if (!proven) {
+                // Kodu tuketmeden yanlis deneme say (kod dogru olsa bile): tahmin/DoS butceleri ayni kalir.
+                verification.recordWrongAttempt(email, ctx == null || ctx.ip() == null ? null : ClientIp.limitKey(ctx.ip()));
+                throw invalidCode();
+            }
         }
         boolean ok = ctx == null || ctx.ip() == null ? verification.verify(email, code.trim())
                 : verification.verify(email, code.trim(), ClientIp.limitKey(ctx.ip()));

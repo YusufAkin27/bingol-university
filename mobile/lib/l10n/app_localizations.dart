@@ -12786,6 +12786,132 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tekrar kontrol et'**
   String get updateRequiredRecheck;
+
+  /// No description provided for @legalReacceptTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sözleşmeler güncellendi'**
+  String get legalReacceptTitle;
+
+  /// No description provided for @legalReacceptIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım koşulları ve gizlilik metinlerinde değişiklik yaptık. Uygulamayı kullanmaya devam etmek için güncellenen belgeleri okuyup kabul etmeniz gerekiyor.'**
+  String get legalReacceptIntro;
+
+  /// No description provided for @legalReacceptIntroSoft.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bazı belgelerin yeni sürümü yayımlandı. Şimdi inceleyip kabul edebilir ya da daha sonraya bırakabilirsiniz; ilerleyen günlerde kabul etmeniz gerekecek.'**
+  String get legalReacceptIntroSoft;
+
+  /// No description provided for @legalReacceptListTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncellenen belgeler'**
+  String get legalReacceptListTitle;
+
+  /// No description provided for @legalReacceptTypeTerms.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım Koşulları'**
+  String get legalReacceptTypeTerms;
+
+  /// No description provided for @legalReacceptTypePrivacy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik Politikası'**
+  String get legalReacceptTypePrivacy;
+
+  /// No description provided for @legalReacceptTypeKvkk.
+  ///
+  /// In tr, this message translates to:
+  /// **'KVKK Aydınlatma Metni'**
+  String get legalReacceptTypeKvkk;
+
+  /// No description provided for @legalReacceptTypeRules.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk Kuralları'**
+  String get legalReacceptTypeRules;
+
+  /// No description provided for @legalReacceptNoteExplicit.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteğe bağlı açık rıza izinleri bu onaydan ayrıdır; bu işlemle verilmiş sayılmaz.'**
+  String get legalReacceptNoteExplicit;
+
+  /// No description provided for @legalReacceptCheck.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncellenen belgeleri okudum ve kabul ediyorum'**
+  String get legalReacceptCheck;
+
+  /// No description provided for @legalReacceptAccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul et'**
+  String get legalReacceptAccept;
+
+  /// No description provided for @legalReacceptLater.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha sonra'**
+  String get legalReacceptLater;
+
+  /// No description provided for @legalReacceptDecline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul etmiyorum'**
+  String get legalReacceptDecline;
+
+  /// No description provided for @legalReacceptDeclineTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul etmeden devam edilemez'**
+  String get legalReacceptDeclineTitle;
+
+  /// No description provided for @legalReacceptDeclineBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncel sözleşmeleri kabul etmezseniz uygulamayı kullanamazsınız. Hesabınızı silebilir ya da çıkış yapıp daha sonra tekrar karar verebilirsiniz.'**
+  String get legalReacceptDeclineBody;
+
+  /// No description provided for @legalReacceptDeleteAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabımı sil'**
+  String get legalReacceptDeleteAccount;
+
+  /// No description provided for @legalReacceptSignOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış yap'**
+  String get legalReacceptSignOut;
+
+  /// No description provided for @legalReacceptOutdated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Belgeler yeniden güncellendi. Lütfen yeni sürümleri inceleyip tekrar kabul edin.'**
+  String get legalReacceptOutdated;
+
+  /// No description provided for @authVerifyPasswordLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtta belirlediğiniz şifre'**
+  String get authVerifyPasswordLabel;
+
+  /// No description provided for @authVerifyPasswordNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenlik için, kayıt sırasında girdiğiniz şifreyi yeniden girin.'**
+  String get authVerifyPasswordNote;
+
+  /// No description provided for @authVerifyPasswordRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtta belirlediğiniz şifreyi girin.'**
+  String get authVerifyPasswordRequired;
 }
 
 class _AppLocalizationsDelegate

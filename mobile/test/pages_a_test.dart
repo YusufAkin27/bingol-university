@@ -235,12 +235,34 @@ void main() {
       final b = newB()..fail('/auth/verify-email', status: 400, code: 'INVALID_CODE', message: 'Kod geçersiz.');
       final c = TextEditingController();
       addTearDown(c.dispose);
-      await tester.pumpWidget(buildApp(VerifyCodePage(session: makeSession(b, signedIn: false), email: 'a@bingol.edu.tr')));
+      // Kayıt şifresi bellekte: parola alanı çıkmaz, doğrulama isteğine şifre eklenir.
+      final s = makeSession(b, signedIn: false)..rememberCredentials('a@bingol.edu.tr', 'Sifre1234');
+      await tester.pumpWidget(buildApp(VerifyCodePage(session: s, email: 'a@bingol.edu.tr')));
+      expect(find.text('Kayıtta belirlediğiniz şifre'), findsNothing);
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Kod geçersiz.'), findsOneWidget);
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
       await unmount(tester);
       noErr(tester);
+    });
+
+    testWidgets('verify: kayit sifresi bellekte yoksa parola kaniti istenir ve istege eklenir', (tester) async {
+      final b = newB()..on('/auth/verify-email', {'accessToken': 'a', 'refreshToken': 'r'});
+      await tester.pumpWidget(buildApp(VerifyCodePage(session: makeSession(b, signedIn: false), email: 'a@bingol.edu.tr')));
+      expect(find.text('Kayıtta belirlediğiniz şifre'), findsOneWidget);
+      // Şifre boşken kod tamamlansa da istek gitmez
+      await tester.enterText(find.byType(EditableText).first, '123456');
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Kayıtta belirlediğiniz şifreyi girin.'), findsOneWidget);
+      expect(b.count('POST /auth/verify-email'), 0);
+      await tester.enterText(find.byType(TextFormField).first, 'Sifre1234');
+      await tester.pump();
+      await tester.tap(find.text('Doğrula'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(b.count('POST /auth/verify-email'), 1);
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
+      await unmount(tester);
     });
 
     testWidgets('resetCode: dogru kod yeni sifre ekranina gecer', (tester) async {

@@ -39,6 +39,9 @@ class VerifyCodePage extends StatefulWidget {
 
 class _VerifyCodePageState extends State<VerifyCodePage> {
   final _code = TextEditingController();
+  final _password = TextEditingController();
+  // Kayıt şifresi bellekte yoksa (uygulama yeniden açıldı) parola kanıtı için kullanıcıdan istenir.
+  late final bool _needsPassword = !widget.session.hasRememberedPassword(widget.email);
   bool _busy = false;
   String? _error;
   String? _info;
@@ -55,6 +58,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   void dispose() {
     _timer?.cancel();
     _code.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -74,13 +78,17 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       setState(() => _error = context.l10n.authRestEnterCode);
       return;
     }
+    if (_needsPassword && _password.text.isEmpty) {
+      setState(() => _error = context.l10n.authVerifyPasswordRequired);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
       _info = null;
     });
     try {
-      await widget.session.verifyEmail(widget.email, _code.text);
+      await widget.session.verifyEmail(widget.email, _code.text, password: _needsPassword ? _password.text : null);
       // Oturum açıldı: kök ekran ana sayfaya geçer, kimlik ekranlarını kapat.
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     } on ApiError catch (e) {
@@ -127,6 +135,16 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
           hasError: _error != null,
           onCompleted: _verify,
         ),
+        if (_needsPassword) ...[
+          const SizedBox(height: 14),
+          Text(context.l10n.authVerifyPasswordNote, style: BuType.caption.copyWith(color: t.mut, height: 1.35)),
+          const SizedBox(height: 8),
+          PasswordField(
+            controller: _password,
+            label: context.l10n.authVerifyPasswordLabel,
+            onSubmitted: _verify,
+          ),
+        ],
         const SizedBox(height: 14),
         Center(
           child: _cooldown > 0

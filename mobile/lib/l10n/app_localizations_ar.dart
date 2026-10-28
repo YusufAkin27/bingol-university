@@ -6903,4 +6903,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get updateRequiredRecheck => 'تحقق مرة أخرى';
+
+  @override
+  String get legalReacceptTitle => 'تم تحديث الاتفاقيات';
+
+  @override
+  String get legalReacceptIntro =>
+      'أجرينا تغييرات على شروط الاستخدام ووثائق الخصوصية. لمواصلة استخدام التطبيق، يرجى قراءة الوثائق المحدّثة والموافقة عليها.';
+
+  @override
+  String get legalReacceptIntroSoft =>
+      'تم نشر إصدارات جديدة من بعض الوثائق. يمكنك مراجعتها والموافقة عليها الآن أو لاحقًا، وستحتاج إلى الموافقة عليها في الأيام القادمة.';
+
+  @override
+  String get legalReacceptListTitle => 'الوثائق المحدّثة';
+
+  @override
+  String get legalReacceptTypeTerms => 'شروط الاستخدام';
+
+  @override
+  String get legalReacceptTypePrivacy => 'سياسة الخصوصية';
+
+  @override
+  String get legalReacceptTypeKvkk => 'إشعار حماية البيانات (KVKK)';
+
+  @override
+  String get legalReacceptTypeRules => 'قواعد المجتمع';
+
+  @override
+  String get legalReacceptNoteExplicit =>
+      'أذونات الموافقة الصريحة الاختيارية منفصلة عن هذه الموافقة ولا تُعدّ ممنوحة بها.';
+
+  @override
+  String get legalReacceptCheck => 'لقد قرأت الوثائق المحدّثة وأوافق عليها';
+
+  @override
+  String get legalReacceptAccept => 'أوافق';
+
+  @override
+  String get legalReacceptLater => 'لاحقًا';
+
+  @override
+  String get legalReacceptDecline => 'لا أوافق';
+
+  @override
+  String get legalReacceptDeclineTitle => 'لا يمكن المتابعة دون الموافقة';
+
+  @override
+  String get legalReacceptDeclineBody =>
+      'إذا لم توافق على الاتفاقيات الحالية فلن تتمكن من استخدام التطبيق. يمكنك حذف حسابك، أو تسجيل الخروج واتخاذ القرار لاحقًا.';
+
+  @override
+  String get legalReacceptDeleteAccount => 'حذف حسابي';
+
+  @override
+  String get legalReacceptSignOut => 'تسجيل الخروج';
+
+  @override
+  String get legalReacceptOutdated =>
+      'تم تحديث الوثائق مرة أخرى. يرجى مراجعة الإصدارات الجديدة والموافقة عليها من جديد.';
+
+  @override
+  String get authVerifyPasswordLabel => 'كلمة المرور التي اخترتها عند التسجيل';
+
+  @override
+  String get authVerifyPasswordNote =>
+      'لأسباب أمنية، أعد إدخال كلمة المرور التي استخدمتها عند التسجيل.';
+
+  @override
+  String get authVerifyPasswordRequired =>
+      'أدخل كلمة المرور التي اخترتها عند التسجيل.';
 }

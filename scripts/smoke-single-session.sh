@@ -17,7 +17,7 @@ curl -s -o /dev/null -X POST -H "$H" $A/auth/register \
   -d "{\"email\":\"$EMAIL\",\"password\":\"Sifre1234\",\"displayName\":\"Tek Oturum\",\"acceptTerms\":true}"
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\"}"
+curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"Sifre1234\"}"
 
 login() { # $1 = client (mobile|web|bos)
   if [ -n "${1:-}" ]; then

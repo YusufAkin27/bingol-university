@@ -52,7 +52,7 @@ async function register(email, name) {
     const m = [...logs.matchAll(new RegExp(email.replace(/\./g, '\\.') + ' icin dogrulama kodu: (\\d+)', 'g'))].pop();
     code = m && m[1];
   }
-  let r = await api('POST', '/auth/verify-email', null, { email, code });
+  let r = await api('POST', '/auth/verify-email', null, { email, code, password: 'Sifre1234' });
   if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: 'Sifre1234' });
   if (!r.json || !r.json.accessToken) throw new Error('kayit basarisiz: ' + email + ' ' + r.text);
   const token = r.json.accessToken;

@@ -14,7 +14,7 @@ curl -s -o /dev/null -X POST -H "$H" $A/auth/register \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"displayName\":\"$NAME\",\"acceptTerms\":true}"
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-TOKEN=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\"}" |
+TOKEN=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"$PASS\"}" |
   grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 if [ -z "$TOKEN" ]; then
   TOKEN=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}" |

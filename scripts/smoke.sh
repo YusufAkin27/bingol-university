@@ -20,7 +20,7 @@ register() {
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap onceden kayitliysa (ornek: onceki betik) giris yap
   if [ -z "$t" ]; then

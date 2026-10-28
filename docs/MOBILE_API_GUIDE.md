@@ -54,8 +54,9 @@ Accept-Language: tr
 ### 1.2 Kod gönderme/doğrulama
 ```http
 POST /api/auth/resend-code    {"email":"ayse@bingol.edu.tr"}   → 202 (hesap var olsun olmasın aynı yanıt)
-POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913"}
+POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","password":"Sifre1234","client":"mobile"}
 ```
+**Parola kanıtı (`password`, zorunlu):** istemci kayıt adımında girdiği şifreyi doğrulama isteğinde yeniden gönderir; sunucu bekleyen kaydın şifre özetiyle karşılaştırır. Uyuşmazsa/eksikse genel `400 INVALID_CODE` ve yanlış deneme sayılır (kod tüketilmez). Amaç: aynı e-postaya başkasının yeniden kayıt göndermesiyle sahibin koduna kendi şifresini bağlamasını (hesap devralma) engellemek. Şifre bellekte yoksa (uygulama yeniden açıldı) istemci kullanıcıdan "kayıtta belirlediğiniz şifre"yi ister. Eski istemciler için sunucu bayrağı `app.auth.verify-requires-password=false` (varsayılan true; yalnız geçiş penceresi).
 `verify-email` → `200`:
 ```json
 {"accessToken":"eyJhbGciOiJIUzI1NiJ9...","refreshToken":"cn219myvLJlkbdbg-_aBxsQygQN2L8_spDoX26JW3XE","expiresInSeconds":900,"tokenType":"Bearer"}

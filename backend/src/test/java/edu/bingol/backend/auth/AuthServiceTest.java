@@ -46,6 +46,10 @@ class AuthServiceTest {
     private final AccountCreator accounts = mock(AccountCreator.class);
     private final JwtService jwt = mock(JwtService.class);
     private final RefreshTokenService refresh = mock(RefreshTokenService.class);
+    /** Bekleyen kayitta saklanan parolanin (Sifre1234) ozeti: dogrulamada parola kaniti icin. */
+    private static final String PW = "Sifre1234";
+    private static final String PW_HASH = new BCryptPasswordEncoder(4).encode(PW);
+
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh,
             verification, new AdminProperties(List.of()), accounts, pending, sessions, new CatalogService());
 
@@ -122,7 +126,7 @@ class AuthServiceTest {
 
     @Test
     void verifyEmailWithoutPendingRegistrationIsGenericInvalidCode() {
-        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456", null, null, PW));
 
         assertEquals("INVALID_CODE", e.code());
         verifyNoInteractions(verification);
@@ -130,10 +134,10 @@ class AuthServiceTest {
 
     @Test
     void verifyEmailWithWrongCodeCreatesNoAccount() {
-        when(pending.find(EMAIL)).thenReturn(new Pending("h", "Ali", "tr"));
+        when(pending.find(EMAIL)).thenReturn(new Pending(PW_HASH, "Ali", "tr"));
         when(verification.verify(EMAIL, "000000")).thenReturn(false);
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "000000"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "000000", null, null, PW));
 
         assertEquals("INVALID_CODE", e.code());
         verify(users, never()).save(any());
@@ -141,14 +145,14 @@ class AuthServiceTest {
 
     @Test
     void verifyEmailCreatesAccountViaTransactionalCreatorAndClearsPending() {
-        Pending p = new Pending("hash-1", "Ali", "en");
+        Pending p = new Pending(PW_HASH, "Ali", "en");
         when(pending.find(EMAIL)).thenReturn(p);
         when(verification.verify(EMAIL, "123456")).thenReturn(true);
         User created = verifiedUser();
         when(accounts.create(EMAIL, p)).thenReturn(created);
         when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
 
-        auth.verifyEmail(EMAIL, " 123456 ");
+        auth.verifyEmail(EMAIL, " 123456 ", null, null, PW);
 
         verify(accounts).create(EMAIL, p);
         verify(pending).delete(EMAIL);
@@ -156,12 +160,12 @@ class AuthServiceTest {
 
     @Test
     void verifyEmailUniqueViolationBecomes409NotServerError() {
-        Pending p = new Pending("hash-1", "Ali", "en");
+        Pending p = new Pending(PW_HASH, "Ali", "en");
         when(pending.find(EMAIL)).thenReturn(p);
         when(verification.verify(EMAIL, "123456")).thenReturn(true);
         when(accounts.create(EMAIL, p)).thenThrow(new org.springframework.dao.DataIntegrityViolationException("uq"));
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456", null, null, PW));
 
         assertEquals("EMAIL_ALREADY_REGISTERED", e.code());
         assertEquals(HttpStatus.CONFLICT, e.status());
@@ -313,7 +317,7 @@ class AuthServiceTest {
 
     @Test
     void verifyEmailWithClientContextScopesAttemptsToIpPrefix() {
-        Pending p = new Pending("hash-1", "Ali", "en");
+        Pending p = new Pending(PW_HASH, "Ali", "en");
         when(pending.find(EMAIL)).thenReturn(p);
         when(verification.verify(EMAIL, "123456", "v6:2001:0db8:0001:0002::/64")).thenReturn(true);
         when(accounts.create(EMAIL, p)).thenReturn(verifiedUser());
@@ -321,9 +325,74 @@ class AuthServiceTest {
         edu.bingol.backend.accessban.ClientContext ctx =
                 new edu.bingol.backend.accessban.ClientContext("2001:db8:1:2:aaaa:bbbb:cccc:dddd", null, "WEB", null);
 
-        auth.verifyEmail(EMAIL, "123456", "web", ctx);
+        auth.verifyEmail(EMAIL, "123456", "web", ctx, PW);
 
         verify(verification).verify(EMAIL, "123456", "v6:2001:0db8:0001:0002::/64");
+    }
+
+    @Test
+    void verifyEmailWithWrongPasswordProofIsGenericInvalidCodeAndCountsAttemptWithoutConsumingCode() {
+        // Hesap devralma: saldirgan ayni adrese yeniden kayit gonderdi; sahibinin kodu + sahibinin parolasi uyusmaz.
+        when(pending.find(EMAIL)).thenReturn(new Pending(new BCryptPasswordEncoder(4).encode("SaldirganPw1"), "Mallory", "tr"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456", null, null, PW));
+
+        assertEquals("INVALID_CODE", e.code());
+        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        verify(verification).recordWrongAttempt(EMAIL, null);
+        verify(verification, never()).verify(anyString(), anyString());
+        verify(verification, never()).verify(anyString(), anyString(), anyString());
+        verifyNoInteractions(accounts);
+        verify(pending, never()).delete(anyString());
+    }
+
+    @Test
+    void verifyEmailWithoutPasswordIsRejectedWhenProofRequired() {
+        when(pending.find(EMAIL)).thenReturn(new Pending(PW_HASH, "Ali", "tr"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456", null, null, null));
+
+        assertEquals("INVALID_CODE", e.code());
+        verify(verification).recordWrongAttempt(EMAIL, null);
+        verifyNoInteractions(accounts);
+    }
+
+    @Test
+    void verifyEmailWrongPasswordProofUsesIpScopeForAttemptCounter() {
+        when(pending.find(EMAIL)).thenReturn(new Pending(PW_HASH, "Ali", "tr"));
+        edu.bingol.backend.accessban.ClientContext ctx =
+                new edu.bingol.backend.accessban.ClientContext("203.0.113.9", null, "WEB", null);
+
+        assertThrows(ApiException.class, () -> auth.verifyEmail(EMAIL, "123456", "web", ctx, "YanlisSifre1"));
+
+        verify(verification).recordWrongAttempt(EMAIL, "203.0.113.9");
+    }
+
+    @Test
+    void verifyEmailLegacyClientWithoutPasswordPassesWhenFlagOff() {
+        auth.setVerifyRequiresPassword(false);
+        Pending p = new Pending(PW_HASH, "Ali", "tr");
+        when(pending.find(EMAIL)).thenReturn(p);
+        when(verification.verify(EMAIL, "123456")).thenReturn(true);
+        when(accounts.create(EMAIL, p)).thenReturn(verifiedUser());
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
+
+        auth.verifyEmail(EMAIL, "123456", null, null, null);
+
+        verify(accounts).create(EMAIL, p);
+        verify(verification, never()).recordWrongAttempt(anyString(), any());
+    }
+
+    @Test
+    void verifyEmailPasswordIsStillCheckedWhenSuppliedAndFlagOff() {
+        auth.setVerifyRequiresPassword(false);
+        when(pending.find(EMAIL)).thenReturn(new Pending(PW_HASH, "Ali", "tr"));
+
+        ApiException e = assertThrows(ApiException.class,
+                () -> auth.verifyEmail(EMAIL, "123456", null, null, "BaskaSifre99"));
+
+        assertEquals("INVALID_CODE", e.code());
+        verifyNoInteractions(accounts);
     }
 
     @Test
@@ -348,13 +417,13 @@ class AuthServiceTest {
     @Test
     void studentNumberVerifiesAndLogsIn() {
         String mail = "226051015@bingol.edu.tr";
-        Pending p = new Pending("hash-1", "Ali", "tr");
+        Pending p = new Pending(PW_HASH, "Ali", "tr");
         when(pending.find(mail)).thenReturn(p);
         when(verification.verify(mail, "123456")).thenReturn(true);
         when(accounts.create(mail, p)).thenReturn(verifiedUser());
         when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
 
-        auth.verifyEmail("226051015", "123456");
+        auth.verifyEmail("226051015", "123456", null, null, PW);
 
         verify(accounts).create(mail, p);
         verify(pending).delete(mail);

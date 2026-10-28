@@ -21,7 +21,7 @@ register() { # email ad -> access token
   local c
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
   local t
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap daha once olusturulmussa (ornegin smoke.sh calistiysa) giris yap
   [ -n "$t" ] || t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |

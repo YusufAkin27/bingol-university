@@ -65,6 +65,32 @@ class VerificationServiceTest {
     }
 
     @Test
+    void recordWrongAttemptCountsButNeverConsumesTheStoredCode() {
+        // Parola kaniti basarisiz: sayac artar, dogru kod tuketilmez (sahibinin kodu yanmaz)
+        storedCode("123456");
+        when(ops.increment("vc:sc:" + EMAIL + ":203.0.113.9:att")).thenReturn(1L);
+        when(ops.increment("vc:gatt:" + EMAIL)).thenReturn(1L);
+        when(ops.increment("vc:tot:" + EMAIL)).thenReturn(1L);
+
+        service.recordWrongAttempt(EMAIL, "203.0.113.9");
+
+        verify(ops).increment("vc:sc:" + EMAIL + ":203.0.113.9:att");
+        verify(ops).increment("vc:tot:" + EMAIL);
+        verify(redis, never()).delete("vc:" + EMAIL);
+    }
+
+    @Test
+    void recordWrongAttemptBeyondLimitLocksAndThrows429() {
+        storedCode("123456");
+        when(ops.increment("vc:att:" + EMAIL)).thenReturn(6L);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.recordWrongAttempt(EMAIL, null));
+
+        assertEquals("TOO_MANY_ATTEMPTS", e.code());
+        verify(redis, never()).delete("vc:" + EMAIL);
+    }
+
+    @Test
     void missingCodeIsRejectedWithoutCountingAttempts() {
         assertFalse(service.verify(EMAIL, "123456"));
         verify(ops, never()).increment(anyString());

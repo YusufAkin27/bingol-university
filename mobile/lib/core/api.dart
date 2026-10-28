@@ -131,6 +131,10 @@ class ApiClient {
   /// 403 ACCESS_BLOCKED: cihaz/ağ engeli. Oturum silinir, refresh denenmez, engel ekranı gösterilir.
   void Function()? onAccessBlocked;
 
+  /// 403 LEGAL_REACCEPT_REQUIRED: yeni sözleşme sürümü onaylanmadan yazma isteği reddedildi.
+  /// Parametre: yanıttaki `requiresAcceptance` listesi (yoksa null). Hata yine çağırana iletilir.
+  void Function(Object? requiresAcceptance)? onLegalReaccept;
+
   Future<Tokens>? _inflight;
 
   static const _timeout = Duration(seconds: 20);
@@ -389,6 +393,7 @@ class ApiClient {
       final code = json['code'] as String;
       final msg = json['message'];
       if (res.statusCode == 403 && code == 'ACCESS_BLOCKED') onAccessBlocked?.call();
+      if (res.statusCode == 403 && code == 'LEGAL_REACCEPT_REQUIRED') onLegalReaccept?.call(json['requiresAcceptance']);
       throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter);
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);

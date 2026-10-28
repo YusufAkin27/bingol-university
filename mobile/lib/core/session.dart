@@ -12,6 +12,7 @@ import 'identifier.dart';
 import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
+import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
 
 enum SessionState { loading, signedOut, signedIn }
@@ -29,10 +30,15 @@ class Session extends ChangeNotifier {
     api.onSessionExpired = () => signOut(remote: false);
     api.onSessionReplaced = () => forceSignOut(reason: SignOutReason.replaced);
     api.onAccessBlocked = _onAccessBlocked;
+    legal = LegalReacceptController(api);
+    api.onLegalReaccept = legal.onRequired;
     realtime = ChatRealtime(this);
   }
 
   final ApiClient api;
+
+  /// Sözleşme yeniden onayı (acceptance-status + 403 LEGAL_REACCEPT_REQUIRED): kabuk bu durumu dinler.
+  late final LegalReacceptController legal;
 
   /// Alt gezinme/üst çan rozetleri; sayfalar okuyunca değerini düşürür.
   final badges = AppBadges();
@@ -199,17 +205,32 @@ class Session extends ChangeNotifier {
   Future<void> resendCode(String email) =>
       api.post('/auth/resend-code', {'email': normalizeIdentifier(email)}, false);
 
-  Future<void> verifyEmail(String email, String code) async {
-    final res = await api.post('/auth/verify-email', {'email': normalizeIdentifier(email), 'code': code.trim(), 'client': kClientMobile}, false);
+  /// Kayıt sırasında girilen şifre bellekte duruyor mu (doğrulama adımı parola kanıtı için)?
+  bool hasRememberedPassword(String email) => _memPassword != null && _memId == fullEmail(email);
+
+  /// `password`: parola kanıtı (sunucu bekleyen kaydın şifre özetiyle karşılaştırır; uyuşmazsa genel
+  /// INVALID_CODE). Verilmezse kayıt/girişte bellekte tutulan şifre kullanılır.
+  Future<void> verifyEmail(String email, String code, {String? password}) async {
+    final remembered = hasRememberedPassword(email) ? _memPassword : null;
+    final proof = (password != null && password.isNotEmpty) ? password : remembered;
+    final res = await api.post(
+      '/auth/verify-email',
+      {
+        'email': normalizeIdentifier(email),
+        'code': code.trim(),
+        'client': kClientMobile,
+        if (proof != null) 'password': proof,
+      },
+      false,
+    );
     await pending.clear();
-    final pw = _memPassword;
-    final id = _memId;
+    final id = _memId ?? fullEmail(email);
     _memPassword = null;
     _memId = null;
     if (res is Map && res['accessToken'] != null) {
       await _accept(res);
-    } else if (pw != null && id == fullEmail(email)) {
-      await login(id!, pw); // sunucu token döndürmediyse bir kez giriş dene
+    } else if (proof != null) {
+      await login(id, proof); // sunucu token döndürmediyse bir kez giriş dene
     }
   }
 
@@ -265,6 +286,7 @@ class Session extends ChangeNotifier {
       if (reason == SignOutReason.replaced) replacedNotice.value = true;
       await api.setTokens(null);
       badges.reset();
+      legal.reset();
       userId = null;
       displayName = null;
       email = null;
@@ -298,6 +320,7 @@ class Session extends ChangeNotifier {
     }
     await api.setTokens(null);
     badges.reset();
+    legal.reset();
     userId = null;
     displayName = null;
     email = null;

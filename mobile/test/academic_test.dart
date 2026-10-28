@@ -1,5 +1,6 @@
 import 'package:bu_kampus/core/academic_catalog.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
+import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
@@ -297,6 +298,13 @@ void main() {
       expect(body['department'], 'Bilgisayar Mühendisliği');
       expect(body['grade'], '3');
       expect(body['acceptTerms'], true);
+      // Parola kaniti: doğrulama adımında kayıtta girilen şifre yeniden gönderilir (parola alanı çıkmaz)
+      b.on('/auth/verify-email', {'accessToken': 'a', 'refreshToken': 'r'});
+      expect(find.byType(VerifyCodePage), findsOneWidget);
+      expect(find.text('Kayıtta belirlediğiniz şifre'), findsNothing);
+      await tester.enterText(find.byType(EditableText).first, '123456');
+      await settle(tester, const Duration(milliseconds: 600));
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
       await unmount(tester);
     });
 

@@ -55,7 +55,7 @@ async function ensureUser(email, name) {
   await sleep(1500);
   const code = codeFromLogs(email);
   if (code) {
-    const v = await api('POST', '/auth/verify-email', null, { email, code });
+    const v = await api('POST', '/auth/verify-email', null, { email, code, password: PASS });
     if (v.status === 200 && v.json?.accessToken) return v.json.accessToken;
   }
   return login(email, PASS);

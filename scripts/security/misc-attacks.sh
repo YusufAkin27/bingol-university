@@ -21,7 +21,7 @@ mk_user() {
   local code
   code=$(docker compose logs backend 2>&1 | grep "$email icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
   [ -n "$code" ] && curl -s -o /dev/null -X POST -H 'Content-Type: application/json' "$A/auth/verify-email" \
-    -d "{\"email\":\"$email\",\"code\":\"$code\"}"
+    -d "{\"email\":\"$email\",\"code\":\"$code\",\"password\":\"$PASS\"}"
 }
 login() {
   curl -s -X POST -H 'Content-Type: application/json' "$A/auth/login" \
