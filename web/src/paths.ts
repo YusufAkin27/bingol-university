@@ -61,6 +61,7 @@ export const paths = {
     accessBans: `${ADMIN_BASE}/security/access-bans`,
     profanity: `${ADMIN_BASE}/profanity`,
     communityCategories: `${ADMIN_BASE}/community-categories`,
+    contentReview: `${ADMIN_BASE}/content-review`,
     acdCalendar: `${ADMIN_BASE}/academic/calendar`,
     acdExams: `${ADMIN_BASE}/academic/exams`,
     acdAnnouncements: `${ADMIN_BASE}/academic/announcements`,

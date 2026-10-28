@@ -22,7 +22,7 @@ export function AttentionPanel({ overview }: { overview: UseQueryResult<Analytic
         {
           id: 'communities',
           n: o.communities.pending,
-          to: paths.admin.communities,
+          to: `${paths.admin.communities}?tab=queue`, // onay bekleyenler: Kulüpler > Onay kuyruğu sekmesi
           key: 'admin.dashboard.attention.communities',
         },
         { id: 'events', n: o.events.pending, to: paths.admin.events, key: 'admin.dashboard.attention.events' },

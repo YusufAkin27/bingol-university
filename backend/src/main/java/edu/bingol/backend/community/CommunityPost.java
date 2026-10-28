@@ -43,4 +43,19 @@ public class CommunityPost {
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    /** Yonetici gizlemesi (V670): geri alinabilir; dolu iken akis/duyuru listelerinden dusulur, silinmis sayilmaz. */
+    private Instant hiddenAt;
+
+    @Column(length = 300)
+    private String hiddenReason;
+
+    private Long hiddenBy;
+
+    /** Yonetici metin duzenlemesi (V670). */
+    private Instant editedAt;
+
+    public boolean isHidden() {
+        return hiddenAt != null;
+    }
 }

@@ -77,6 +77,7 @@ export const adminNav: AdminNavGroup[] = [
         icon: 'community',
       },
       { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
+      { id: 'contentReview', to: paths.admin.contentReview, labelKey: 'admin.p06.nav.contentReview', icon: 'flag' },
       { id: 'events', to: paths.admin.events, labelKey: 'admin.nav.events', icon: 'calendar', end: true },
       {
         id: 'eventApplications',

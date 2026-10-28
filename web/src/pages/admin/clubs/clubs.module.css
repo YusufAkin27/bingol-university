@@ -1,0 +1,182 @@
+/* Kulüp yönetimi ve kulüp içeriği moderasyonu (P06/P10). Yalnız mevcut tasarım token'ları; mantıksal özellikler (RTL uyumlu). */
+.tabsWrap {
+  margin-block-end: var(--space-4);
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  margin-block: var(--space-3);
+}
+.filters > * {
+  min-inline-size: 0;
+}
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.meta {
+  margin: 0 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.tableCard {
+  display: grid;
+  gap: var(--space-3);
+}
+.pager {
+  display: flex;
+  justify-content: center;
+}
+.nameCell {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+.nameMain {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.head {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.row {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.rowHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.personName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+.text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.reason {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.roleSelect {
+  min-inline-size: 9rem;
+}
+.zone {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.zoneDanger {
+  border-color: var(--danger, var(--border));
+}
+.zoneTitle {
+  margin: 0;
+  font-size: var(--text-md, 1rem);
+}
+.zoneText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.dl {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.dlRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+.dlRow dt {
+  color: var(--text-muted);
+}
+.dlRow dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.historyItem {
+  display: grid;
+  gap: 2px;
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--border);
+}

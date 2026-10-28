@@ -22,7 +22,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     /** Sabitli yazilar (en fazla 3), yeniden eskiye; engellenen yazarlar haric. */
     @Query("""
             SELECT p FROM CommunityPost p
-            WHERE p.communityId = :cid AND p.pinned = TRUE AND p.deleted = FALSE AND p.authorId NOT IN :excluded
+            WHERE p.communityId = :cid AND p.pinned = TRUE AND p.deleted = FALSE AND p.hiddenAt IS NULL AND p.authorId NOT IN :excluded
             ORDER BY p.id DESC
             """)
     List<CommunityPost> pinned(@Param("cid") Long communityId, @Param("excluded") Collection<Long> excluded);
@@ -30,7 +30,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     /** Akis: sabitlenmemis yazilar, id'ye gore azalan imec; engellenen yazarlar haric. */
     @Query("""
             SELECT p FROM CommunityPost p
-            WHERE p.communityId = :cid AND p.pinned = FALSE AND p.deleted = FALSE
+            WHERE p.communityId = :cid AND p.pinned = FALSE AND p.deleted = FALSE AND p.hiddenAt IS NULL
               AND p.id < :cursor AND p.authorId NOT IN :excluded
             ORDER BY p.id DESC
             """)

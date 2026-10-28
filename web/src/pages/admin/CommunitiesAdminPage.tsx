@@ -30,7 +30,8 @@ import styles from './community/review.module.css';
 
 const STATUSES: CommunityStatus[] = ['PENDING_REVIEW', 'ACTIVE', 'REJECTED', 'HIDDEN'];
 
-export default function CommunitiesAdminPage() {
+/** `embedded`: Kulüpler sayfasının "Onay kuyruğu" sekmesi içinde; başlığı üst sayfa çizer. */
+export default function CommunitiesAdminPage({ embedded = false }: { embedded?: boolean } = {}) {
   const i18n = useI18n();
   const { t, formatDateTime, formatNumber } = i18n;
   const toast = useToast();
@@ -109,13 +110,18 @@ export default function CommunitiesAdminPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.communities.title')} />
+      {!embedded && <PageHeader title={t('admin.communities.title')} />}
       <div className={styles.tabsWrap}>
         <Tabs
           tabs={tabs}
           value={status}
           label={t('admin.communities.tabs')}
-          onChange={(id) => setParams(id === 'PENDING_REVIEW' ? {} : { status: id }, { replace: true })}
+          onChange={(id) => {
+            const next = new URLSearchParams(params);
+            if (id === 'PENDING_REVIEW') next.delete('status');
+            else next.set('status', id);
+            setParams(next, { replace: true });
+          }}
         />
       </div>
 

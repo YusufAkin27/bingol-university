@@ -18,7 +18,7 @@ public interface ClubAnnouncementRepository extends JpaRepository<CommunityPost,
 
     @Query("""
             SELECT p FROM CommunityPost p
-            WHERE p.communityId = :cid AND p.announcement = TRUE AND p.deleted = FALSE
+            WHERE p.communityId = :cid AND p.announcement = TRUE AND p.deleted = FALSE AND p.hiddenAt IS NULL
               AND p.id < :cursor AND p.authorId NOT IN :excluded
             ORDER BY p.id DESC
             """)

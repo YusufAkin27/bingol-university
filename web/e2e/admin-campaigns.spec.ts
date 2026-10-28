@@ -175,7 +175,7 @@ test.describe('topluluklar ve etkinlikler', () => {
     const noName = `${PREFIX}red-${STAMP}`;
     await makeCommunity(okName);
     await makeCommunity(noName);
-    await openAsAdmin(page, '/admin/communities');
+    await openAsAdmin(page, '/admin/communities?tab=queue');
 
     const okRow = page.getByRole('listitem').filter({ hasText: okName });
     await expect(okRow).toBeVisible();
@@ -201,7 +201,7 @@ test.describe('topluluklar ve etkinlikler', () => {
   test('topluluk: önizleme çekmecesinden onaylanır', async ({ page }) => {
     const name = `${PREFIX}cekmece-${STAMP}`;
     await makeCommunity(name);
-    await openAsAdmin(page, '/admin/communities');
+    await openAsAdmin(page, '/admin/communities?tab=queue');
     await page.getByRole('listitem').filter({ hasText: name }).getByRole('heading').click();
     const drawer = page.getByRole('dialog');
     await expect(drawer.getByText('Katılım politikası')).toBeVisible();

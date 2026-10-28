@@ -143,6 +143,19 @@ public class CommunityService {
      */
     @Transactional
     public void delete(Actor a, Long id) {
+        delete(a, id, "notif.community.deleted", null);
+    }
+
+    /** Yonetici silmesi (P06): ayni islem, uyelere "sahibi tarafindan" demeyen metinle; denetim detayina yonetici notu. */
+    @Transactional
+    public void deleteByAdmin(Actor admin, Long id, String reason) {
+        if (!admin.admin()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
+        }
+        delete(admin, id, "notif.community.adminDeleted", "admin" + (reason == null ? "" : " reason=" + reason));
+    }
+
+    private void delete(Actor a, Long id, String notifKey, String auditDetail) {
         Community c = loadVisible(a, id);
         if (!a.admin() && !c.getOwnerId().equals(a.id())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için topluluk sahibi olmalısınız.");
@@ -156,11 +169,11 @@ public class CommunityService {
         communities.saveAndFlush(c);
         media.release(cover);
         media.release(logo);
-        audit.record(id, a.id(), null, ClubAuditService.COMMUNITY_DELETED, null);
+        audit.record(id, a.id(), null, ClubAuditService.COMMUNITY_DELETED, auditDetail);
         // Uyelere haber (500 ile sinirli); silen kisi haric.
         for (Long uid : members.userIdsByStatus(id, CommunityMember.Status.ACTIVE, PageRequest.of(0, 500))) {
             if (!uid.equals(a.id())) {
-                notifications.sendTemplated(uid, NotificationType.COMMUNITY, "notif.community.deleted", data(id), c.getName());
+                notifications.sendTemplated(uid, NotificationType.COMMUNITY, notifKey, data(id), c.getName());
             }
         }
         hooks.onCommunityDeleted(c);
@@ -223,11 +236,29 @@ public class CommunityService {
 
     @Transactional
     public CommunityView update(Actor a, Long id, UpdateCommunityRequest r) {
+        return update(a, id, r, true);
+    }
+
+    /**
+     * Yonetici duzenlemesi (P06): kufur suzgeci ATLANIR (yonetici ihlalli metni temizlemek icin duzenler; islem
+     * denetim kaydina yazilir). Kategori kurali (aktif kategori) ve oda basligi senkronu aynen uygulanir.
+     */
+    @Transactional
+    public CommunityView adminUpdate(Actor a, Long id, UpdateCommunityRequest r) {
+        if (!a.admin()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
+        }
+        return update(a, id, r, false);
+    }
+
+    private CommunityView update(Actor a, Long id, UpdateCommunityRequest r, boolean guarded) {
         Community c = load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
-        ContentGuard.changed(guard, Entity.CLUB, "name", a.id(), c.getName(), r.name());
-        ContentGuard.changed(guard, Entity.CLUB, "description", a.id(), c.getDescription(), r.description());
-        ContentGuard.changed(guard, Entity.CLUB, "category", a.id(), c.getCategory(), r.category());
+        if (guarded) {
+            ContentGuard.changed(guard, Entity.CLUB, "name", a.id(), c.getName(), r.name());
+            ContentGuard.changed(guard, Entity.CLUB, "description", a.id(), c.getDescription(), r.description());
+            ContentGuard.changed(guard, Entity.CLUB, "category", a.id(), c.getCategory(), r.category());
+        }
         boolean renamed = false;
         if (r.name() != null && !r.name().isBlank()) {
             if (r.name().trim().length() < 3) {
