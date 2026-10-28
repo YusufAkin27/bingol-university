@@ -40,6 +40,9 @@ public class PostMediaController {
     @ResponseStatus(HttpStatus.CREATED)
     public PostMediaService.Uploaded upload(@RequestParam("file") MultipartFile file,
                                             @RequestParam(value = "poster", required = false) MultipartFile poster) {
+        if (PostMediaService.isVideo(file)) {
+            throw PostMediaService.videoNotAllowed(); // sade gonderi: video yok
+        }
         return service.upload(CurrentUser.id(), file, poster);
     }
 

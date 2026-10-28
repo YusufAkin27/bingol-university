@@ -16,7 +16,7 @@ public class ColumnMediaReferenceSource implements MediaReferenceSource {
     private static final Logger log = LoggerFactory.getLogger(ColumnMediaReferenceSource.class);
     private static final Pattern IDENT = Pattern.compile("[a-z_][a-z0-9_]*");
     static final List<String> DEFAULTS = List.of(
-            "app_user.avatar_url", "conversation.avatar_url", "community.cover_url", "community_post.image_url", "user_event.cover_url");
+            "app_user.avatar_url", "conversation.avatar_url", "community.cover_url", "community_post.image_url", "user_event.cover_url", "menu_day.image_url");
 
     private final JdbcTemplate jdbc;
     private final List<String[]> columns = new ArrayList<>();

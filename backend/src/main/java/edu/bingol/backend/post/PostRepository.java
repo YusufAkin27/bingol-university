@@ -16,31 +16,35 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             + "AND NOT EXISTS (SELECT 1 FROM UserBlock b WHERE (b.blockerId = :viewer AND b.blockedId = p.authorId) "
             + "OR (b.blockerId = p.authorId AND b.blockedId = :viewer)) ";
 
+    /** Sade Kesfet: yalniz gorunur FOTOGRAFI olan gonderiler akista listelenir (video-only/metin-only eskiler gizli; veri silinmez). */
+    String PHOTO = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.kind = 'IMAGE' AND pm.hiddenAt IS NULL) ";
+    String FEED_VISIBLE = VISIBLE + PHOTO;
+
     String LATEST_AFTER = "AND (p.createdAt < :at OR (p.createdAt = :at AND p.id < :cid)) ";
     String POPULAR_AFTER = "AND (p.score < :sc OR (p.score = :sc AND p.id < :cid)) ";
     String LATEST_ORDER = "ORDER BY p.createdAt DESC, p.id DESC";
     String POPULAR_ORDER = "ORDER BY p.score DESC, p.id DESC";
 
     // --- Akis: yeni ---
-    @Query("SELECT p FROM Post p WHERE " + VISIBLE + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + FEED_VISIBLE + LATEST_ORDER)
     List<Post> latestFirst(@Param("viewer") Long viewer, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE " + VISIBLE + LATEST_AFTER + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + FEED_VISIBLE + LATEST_AFTER + LATEST_ORDER)
     List<Post> latestAfter(@Param("viewer") Long viewer, @Param("at") Instant at, @Param("cid") Long cid, Pageable page);
 
     // --- Akis: populer (son 7 gun) ---
-    @Query("SELECT p FROM Post p WHERE p.createdAt >= :since AND " + VISIBLE + POPULAR_ORDER)
+    @Query("SELECT p FROM Post p WHERE p.createdAt >= :since AND " + FEED_VISIBLE + POPULAR_ORDER)
     List<Post> popularFirst(@Param("viewer") Long viewer, @Param("since") Instant since, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE p.createdAt >= :since AND " + VISIBLE + POPULAR_AFTER + POPULAR_ORDER)
+    @Query("SELECT p FROM Post p WHERE p.createdAt >= :since AND " + FEED_VISIBLE + POPULAR_AFTER + POPULAR_ORDER)
     List<Post> popularAfter(@Param("viewer") Long viewer, @Param("since") Instant since, @Param("sc") double sc,
                             @Param("cid") Long cid, Pageable page);
 
     // --- Yazara gore (profil / benim) ---
-    @Query("SELECT p FROM Post p WHERE p.authorId = :author AND " + VISIBLE + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE p.authorId = :author AND " + FEED_VISIBLE + LATEST_ORDER)
     List<Post> byAuthorFirst(@Param("author") Long author, @Param("viewer") Long viewer, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE p.authorId = :author AND " + VISIBLE + LATEST_AFTER + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE p.authorId = :author AND " + FEED_VISIBLE + LATEST_AFTER + LATEST_ORDER)
     List<Post> byAuthorAfter(@Param("author") Long author, @Param("viewer") Long viewer, @Param("at") Instant at,
                              @Param("cid") Long cid, Pageable page);
 

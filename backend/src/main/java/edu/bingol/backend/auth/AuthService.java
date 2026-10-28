@@ -54,6 +54,9 @@ public class AuthService {
     /** Erisim engeli (IP/cihaz/kullanici) ve cihaz gunlugu; testlerde/eski cagrilarda null olabilir. */
     private AccessGuard guard;
     private DeviceLogService deviceLog;
+    /** Guvenlik e-postasi (istege bagli: mail'siz kurulan testler icin). */
+    @Autowired(required = false)
+    private edu.bingol.backend.mail.MailService mail;
 
     /** Herkese acik gorunen ad denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -193,6 +196,48 @@ public class AuthService {
         users.save(user);
         // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
         sessions.revokeAll(user.getId());
+    }
+
+    /**
+     * Oturum acik kullanicinin sifre degisimi. Tum oturumlar (refresh + access, WebSocket dahil) kapanir; isteyen
+     * cihaz ayni istemci turunde yeni token cifti alir (mevcut mekanizma tek cihazi koruyamaz: `pwchg:` isareti
+     * kullanicinin TUM eski token'larini reddeder). Sifre/ozet log'a yazilmaz.
+     */
+    public TokenResponse changePassword(Long userId, String currentPassword, String newPassword, String client) {
+        User user = users.findById(userId).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
+        if (!encoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
+        }
+        if (currentPassword.equals(newPassword)) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
+                    "Yeni şifre mevcut şifreyle aynı olamaz.");
+        }
+        user.setPasswordHash(encoder.encode(newPassword));
+        users.save(user);
+        sessions.revokeAll(userId);
+        // Iptal isareti `iatms <= isaret` token'lari reddeder: yeni token'in iatms'i kesin buyuk olsun.
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        notifyPasswordChanged(user);
+        return tokens(user, client);
+    }
+
+    private void notifyPasswordChanged(User user) {
+        if (mail == null) {
+            return;
+        }
+        try {
+            mail.sendPasswordChanged(user.getEmail(),
+                    java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+                            .format(java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Istanbul"))),
+                    Lang.of(user.getLanguage()));
+        } catch (RuntimeException e) {
+            log.warn("Sifre degisti e-postasi kuyruga yazilamadi (user {}): {}", user.getId(), e.toString());
+        }
     }
 
     public TokenResponse verifyEmail(String rawEmail, String code) {

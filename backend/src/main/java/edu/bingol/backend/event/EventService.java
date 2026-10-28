@@ -16,6 +16,7 @@ import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
 import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.event.extras.CoOrganizerLookup;
+import edu.bingol.backend.event.dto.EventDtos;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
 import edu.bingol.backend.event.dto.EventDtos.CreateEventRequest;
@@ -199,6 +200,10 @@ public class EventService {
         e.setCapacity(r.capacity());
         e.setCreatedBy(a.id());
         events.save(e);
+        if (r.joinPolicy() != null && r.joinPolicy() != edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN
+                && admission != null) {
+            admission.applyJoinPolicy(e, r.joinPolicy());
+        }
         return views(List.of(e), a, true).get(0);
     }
 
@@ -251,6 +256,9 @@ public class EventService {
         e.setEndsAt(end);
         e.setUpdatedAt(now);
         events.save(e);
+        if (r.joinPolicy() != null && admission != null) {
+            admission.applyJoinPolicy(e, r.joinPolicy());
+        }
         if (startChanged) {
             // Yeni saat icin hatirlatmalar yeniden gonderilebilsin.
             rsvps.resetReminders(e.getId());
@@ -491,6 +499,13 @@ public class EventService {
     private Map<Long, EventRsvp.Status> myRsvps(Actor a, List<Long> eventIds) {
         Map<Long, EventRsvp.Status> mine = new HashMap<>();
         rsvps.findByUserIdAndEventIdIn(a.id(), eventIds).forEach(r -> mine.put(r.getEventId(), r.getStatus()));
+        if (admission != null) { // bekleyen/reddedilen katilim istegi GOING olmayan her durumun onune gecer
+            admission.requestStates(a.id(), eventIds).forEach((eid, st) -> {
+                if (mine.get(eid) != EventRsvp.Status.GOING) {
+                    mine.put(eid, st);
+                }
+            });
+        }
         return mine;
     }
 
@@ -514,14 +529,20 @@ public class EventService {
         if (!e.getEndsAt().isAfter(Instant.now())) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Etkinlik sona erdi.");
         }
-        if (admission != null) {
-            admission.guardDirectRsvp(e, status);
+        if (status != EventRsvp.Status.GOING && status != EventRsvp.Status.INTERESTED) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz katılım durumu.");
         }
         Optional<EventRsvp> existing = rsvps.findByEventIdAndUserId(id, a.id());
         // Kayit kapaliyken yeni katilim yok; mevcut RSVP'si olan geri cekilebilir / ilgiye dusebilir ama GOING'e gecemez.
         if (e.isRegistrationClosed() && (existing.isEmpty()
                 || (status == EventRsvp.Status.GOING && existing.get().getStatus() != EventRsvp.Status.GOING))) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_REGISTRATION_CLOSED", "Bu etkinliğin kayıtları kapatıldı.");
+        }
+        // APPROVAL: GOING dogrudan katilim degil katilim istegidir (PENDING); kabul edilmis GOING aynen kalir.
+        if (status == EventRsvp.Status.GOING && admission != null
+                && !(existing.isPresent() && existing.get().getStatus() == EventRsvp.Status.GOING)
+                && admission.requestIfApprovalRequired(a, e)) {
+            return new RsvpResult(EventRsvp.Status.PENDING, events.goingCount(id), e.getCapacity());
         }
         if (existing.isPresent()) {
             EventRsvp r = existing.get();
@@ -555,6 +576,8 @@ public class EventService {
     public void cancelRsvp(Actor a, Long id) {
         UserEvent e = loadVisible(a, id);
         if (admission != null && admission.withdrawAccepted(a, e)) {
+            // Istek geri cekildi / koltuk birakildi; kalan ilgileniyorum kaydi da silinir.
+            rsvps.findByEventIdAndUserId(id, a.id()).filter(r -> r.getStatus() != EventRsvp.Status.GOING).ifPresent(rsvps::delete);
             leaveRoom(a, e);
             return;
         }
@@ -575,7 +598,7 @@ public class EventService {
         }
         if (to == EventRsvp.Status.GOING) {
             chat.onGoing(eventId, userId);
-        } else if (from == EventRsvp.Status.GOING && to != EventRsvp.Status.INTERESTED) { // ilgileniyorum da odada kalir
+        } else if (from == EventRsvp.Status.GOING) { // yalnizca GOING odada kalir (INTERESTED'a dusen de cikar)
             chat.onLeft(eventId, userId);
         }
     }
@@ -738,6 +761,11 @@ public class EventService {
                 list.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList());
         Map<Long, User> organizers = communities.usersById(list.stream().map(UserEvent::getCreatedBy).toList());
         Set<Long> manageable = manageableIds(list, a);
+        Map<Long, edu.bingol.backend.event.admission.EventAdmission.Mode> policies =
+                admission == null ? Map.of() : admission.joinPolicies(ids);
+        Map<Long, Long> pending = admission == null || manageable.isEmpty() ? Map.of()
+                : admission.pendingCounts(manageable);
+        Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         List<EventView> out = new ArrayList<>();
         for (UserEvent e : list) {
             User o = organizers.get(e.getCreatedBy());
@@ -747,7 +775,11 @@ public class EventService {
                     e.getCommunityId(), e.getCommunityId() == null ? null : communityNames.get(e.getCommunityId()),
                     e.getCreatedBy(),
                     o == null ? null : o.getDisplayName(), e.getStatus(), mine.get(e.getId()),
-                    manageable.contains(e.getId()), e.getCreatedAt(), e.isRegistrationClosed()));
+                    manageable.contains(e.getId()), e.getCreatedAt(), e.isRegistrationClosed(),
+                    policies.getOrDefault(e.getId(), edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN),
+                    new EventDtos.OrganizerView(e.getCreatedBy(), o == null ? null : o.getDisplayName(),
+                            o == null || hideAvatar.contains(e.getCreatedBy()) ? null : o.getAvatarUrl()),
+                    manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null));
         }
         return out;
     }

@@ -70,3 +70,11 @@ Yonetici kullaniciyi, kayitsiz kisiyi (IP/CIDR) ya da mobil cihazi engeller; eng
 - **Hata kodları (tr/en/ar):** `CONTENT_PROFANITY` (422), `PROFANITY_TERM_INVALID` (400), `PROFANITY_TERM_EXISTS` (409), `PROFANITY_TERM_NOT_FOUND` (404).
 - **Sınırlar:** büyük harfli ASCII `I` ("SIKISIK") belirsizdir ve `i` sayılır (izin listesine bilinen masum sözcükler eklenir); FLAG modu moderasyon rapor kuyruğuna kayıt düşürmez (yalnızca istatistik); Arapça yalnızca kök/ek eşleşmesi yapar.
 - Duman: `scripts/smoke-profanity.sh`.
+
+## Günün menüsüne isteğe bağlı fotoğraf (V390, `menu`)
+
+- `menu_day.image_url VARCHAR(500) NULL`. `MenuResponse` artık `{date, items, imageUrl}` (eski alanlar aynı; `imageUrl` yoksa `null`; ETag gövdeden üretildiği için fotoğraf değişince değişir).
+- Admin: `GET /api/admin/menu?from=&to=` (boşsa içinde bulunulan ay, en çok 366 gün), `PUT /api/admin/menu/{date}/image` (multipart `file`; `MediaService.storeImage(..., COVER)` ile doğrulama/yeniden kodlama/EXIF temizliği, `/files/covers/...`; eski dosya `release` ile silinir), `DELETE .../image` (204). Hız sınırı 60/saat. Satır yoksa 404 `MENU_DAY_NOT_FOUND` (satır uydurulmaz).
+- `MenuSyncService` yalnız `items` günceller; `image_url` korunur. `menu_day.image_url` medya yetim temizliği referans sütunlarına eklendi.
+- Hata kodları (tr/en/ar `ops*.properties`): `MENU_DAY_NOT_FOUND`, `MENU_DATE_INVALID`, `MENU_RANGE_INVALID`.
+- Akşam yemeği: backend'de öğün/akşam kavramı yoktur (menü gün başına tek `items` listesidir); değişiklik gerekmedi.

@@ -134,12 +134,19 @@ public class EventAdmissionService implements EventAdmissionHooks {
                 }
             }
         }
+        switchMode(e, c, r.mode(), r.mode() == Mode.APPROVAL ? questions : List.of());
+        return new ConfigView(eventId, c.getMode(), c.questions());
+    }
+
+    /** Mod + sorulari yazar; APPROVAL -> OPEN gecisinde bekleyen basvurulari kapatip haber verir. */
+    private void switchMode(UserEvent e, EventAdmission c, Mode mode, List<String> questions) {
+        Long eventId = e.getId();
         Mode old = c.getMode();
-        c.setMode(r.mode());
-        c.setQuestions(r.mode() == Mode.APPROVAL ? questions : List.of());
+        c.setMode(mode);
+        c.setQuestions(questions);
         c.setUpdatedAt(Instant.now());
         configs.save(c);
-        if (old == Mode.APPROVAL && r.mode() == Mode.OPEN) {
+        if (old == Mode.APPROVAL && mode == Mode.OPEN) {
             // Etkinlik herkese acildi: bekleyen basvurular anlamini yitirir; kabul edilenler GOING olarak kalir.
             List<Status> open = List.of(Status.PENDING, Status.WAITLISTED);
             List<Long> users = apps.userIdsByStatus(eventId, open);
@@ -149,7 +156,6 @@ public class EventAdmissionService implements EventAdmissionHooks {
                         e.getTitle());
             }
         }
-        return new ConfigView(eventId, c.getMode(), c.questions());
     }
 
     // ---- basvuru (kullanici) ----
@@ -318,6 +324,35 @@ public class EventAdmissionService implements EventAdmissionHooks {
         return new DecisionItem(appId, applyDecision(e, app, action, Texts.blankToNull(reason), a), null);
     }
 
+    /**
+     * Istegi kullanici kimligiyle onaylar (GET /requests ailesi). Kontenjan doluysa bekleme listesine dusurmek yerine
+     * 409 EVENT_FULL doner ve istek PENDING kalir; organizator yer acinca yeniden onaylar.
+     */
+    @Transactional
+    public DecisionItem approveRequest(Actor a, Long eventId, Long userId) {
+        UserEvent e = events.requireManager(a, events.load(eventId));
+        requireOpenForAdmission(e);
+        eventRows.lock(eventId);
+        EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
+        if (app.getStatus() == Status.PENDING || app.getStatus() == Status.WAITLISTED) {
+            Integer cap = eventRows.capacityOf(eventId);
+            if (cap != null && eventRepo.goingCount(eventId) >= cap) {
+                throw new ApiException(HttpStatus.CONFLICT, "EVENT_FULL", "Etkinliğin kontenjanı doldu.");
+            }
+        }
+        return new DecisionItem(app.getId(), applyDecision(e, app, Action.ACCEPT, null, a), null);
+    }
+
+    /** Istegi kullanici kimligiyle reddeder (kabul edilmis katilimci da cikarilir). */
+    @Transactional
+    public DecisionItem rejectRequest(Actor a, Long eventId, Long userId, String reason) {
+        UserEvent e = events.requireManager(a, events.load(eventId));
+        requireOpenForAdmission(e);
+        eventRows.lock(eventId);
+        EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
+        return new DecisionItem(app.getId(), applyDecision(e, app, Action.REJECT, Texts.blankToNull(reason), a), null);
+    }
+
     /** Organizator katilimciyi cikarir (basvurusu REJECTED olur); yer acilirsa siradaki terfi eder. */
     @Transactional
     public void removeParticipant(Actor a, Long eventId, Long userId) {
@@ -367,6 +402,71 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     @Override
+    public Mode joinPolicyOf(Long eventId) {
+        return modeOf(eventId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Mode> joinPolicies(java.util.Collection<Long> eventIds) {
+        Map<Long, Mode> out = new java.util.HashMap<>();
+        if (!eventIds.isEmpty()) {
+            configs.findAllById(eventIds).forEach(c -> out.put(c.getEventId(), c.getMode()));
+        }
+        return out;
+    }
+
+    @Override
+    @Transactional
+    public void applyJoinPolicy(UserEvent e, Mode mode) {
+        EventAdmission c = configs.findById(e.getId()).orElse(null);
+        Mode cur = c == null ? Mode.OPEN : c.getMode();
+        if (cur == mode) {
+            return;
+        }
+        eventRows.lock(e.getId());
+        if (c == null) {
+            c = new EventAdmission(e.getId());
+        }
+        switchMode(e, c, mode, mode == Mode.APPROVAL ? c.questions() : List.of());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, EventRsvp.Status> requestStates(Long userId, java.util.Collection<Long> eventIds) {
+        Map<Long, EventRsvp.Status> out = new java.util.HashMap<>();
+        if (eventIds.isEmpty()) {
+            return out;
+        }
+        for (EventApplication x : apps.mineAmong(userId, eventIds, List.of(Status.PENDING, Status.WAITLISTED, Status.REJECTED))) {
+            out.put(x.getEventId(), x.getStatus() == Status.REJECTED ? EventRsvp.Status.REJECTED : EventRsvp.Status.PENDING);
+        }
+        return out;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Long> pendingCounts(java.util.Collection<Long> eventIds) {
+        Map<Long, Long> out = new java.util.HashMap<>();
+        if (!eventIds.isEmpty()) {
+            for (Object[] row : apps.countByEvents(eventIds, Status.PENDING)) {
+                out.put((Long) row[0], ((Number) row[1]).longValue());
+            }
+        }
+        return out;
+    }
+
+    @Override
+    @Transactional
+    public boolean requestIfApprovalRequired(Actor a, UserEvent e) {
+        if (modeOf(e.getId()) != Mode.APPROVAL) {
+            return false;
+        }
+        apply(a, e.getId(), null);
+        return true;
+    }
+
+    @Override
     public void guardDirectRsvp(UserEvent e, EventRsvp.Status status) {
         if (status == EventRsvp.Status.GOING && modeOf(e.getId()) == Mode.APPROVAL) {
             throw new ApiException(HttpStatus.CONFLICT, "APPLICATION_REQUIRED",
@@ -377,9 +477,10 @@ public class EventAdmissionService implements EventAdmissionHooks {
     @Override
     @Transactional
     public boolean withdrawAccepted(Actor a, UserEvent e) {
-        boolean accepted = apps.findByEventIdAndUserId(e.getId(), a.id())
-                .map(x -> x.getStatus() == Status.ACCEPTED).orElse(false);
-        if (!accepted) {
+        boolean open = apps.findByEventIdAndUserId(e.getId(), a.id())
+                .map(x -> x.getStatus() == Status.ACCEPTED || x.getStatus() == Status.PENDING
+                        || x.getStatus() == Status.WAITLISTED).orElse(false);
+        if (!open) {
             return false;
         }
         withdraw(a, e.getId());

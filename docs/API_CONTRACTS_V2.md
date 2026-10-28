@@ -254,6 +254,8 @@ Push `targetType` yönlendirme tablosu (mobil, `lib/core/push/push_targets.dart`
 
 ## [HAZIR] Gönderi sosyal
 
+> **Güncelleme 2026-10-28:** kaydet, #etiket, @bahsetme, trend etiket, hikâyeler ve beğenenler listesi kaldırıldı (uçlar `410 FEATURE_REMOVED`); yalnız takip/akış kapsamları kalır. Geçerli sözleşme: POSTS_DESIGN.md başındaki kutu.
+
 Paketler: `post/social` (kaydet, @etiket, #etiket), `post/follow` (takip), `post/story` (hikâye). Migration `V340__post_social.sql` (önek `soc340_`). Hepsi JWT ister. Hata gövdesi `{code,message}`. Sayfalama: `?cursor=&size=` -> `{items, nextCursor}`. Ayrıntı: `docs/changes/post.md`, `docs/MOBILE_API_GUIDE.md`.
 
 ### 1. Kaydetme

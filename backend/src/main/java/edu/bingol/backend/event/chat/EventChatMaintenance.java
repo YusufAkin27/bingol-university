@@ -55,7 +55,7 @@ public class EventChatMaintenance {
                       WHERE l.kind = 'EVENT' AND l.closed = FALSE AND l.conversation_id = m.conversation_id
                         AND e.created_by <> m.user_id
                         AND NOT EXISTS (SELECT 1 FROM event_rsvp r WHERE r.event_id = e.id AND r.user_id = m.user_id
-                                        AND r.status IN ('GOING', 'INTERESTED'))
+                                        AND r.status = 'GOING')
                         AND NOT EXISTS (SELECT 1 FROM event_co_organizer c WHERE c.event_id = e.id AND c.user_id = m.user_id)
                         AND NOT EXISTS (SELECT 1 FROM community_member cm WHERE cm.community_id = e.community_id
                                         AND cm.user_id = m.user_id AND cm.status = 'ACTIVE' AND cm.role <> 'MEMBER'))

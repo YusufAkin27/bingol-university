@@ -9,7 +9,11 @@ public final class PostDtos {
 
     private PostDtos() {}
 
+    /** Eski ust sinir (yalniz geri uyum); yeni gonderi kurali MAX_WORDS/MAX_CHARS. */
     public static final int MAX_TEXT = 2000;
+    /** Sade gonderi metni: en cok 7 kelime ve 60 karakter, tek satir. */
+    public static final int MAX_WORDS = 7;
+    public static final int MAX_CHARS = 60;
 
     /** Medya gorunumu (B uretir). url: /api/posts/media/{id}, thumbUrl: ...?thumb=true. */
     public record MediaView(Long id, String kind, String url, String thumbUrl, Integer width, Integer height,
@@ -33,9 +37,9 @@ public final class PostDtos {
         }
     }
 
-    public record CreatePostRequest(@Size(max = 100_000) String text, @Size(max = 10) List<Long> mediaIds) {}
+    public record CreatePostRequest(@Size(max = 1000) String text, @Size(max = 10) List<Long> mediaIds) {}
 
-    public record UpdatePostRequest(@Size(max = 100_000) String text) {}
+    public record UpdatePostRequest(@Size(max = 1000) String text) {}
 
     /** Akis sayfasi: nextCursor opak metin (null = son sayfa). */
     public record FeedPage(List<PostView> items, String nextCursor, String hint) {

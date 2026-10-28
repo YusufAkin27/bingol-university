@@ -1,7 +1,9 @@
 package edu.bingol.backend.auth;
 
 import edu.bingol.backend.accessban.ClientContexts;
+import edu.bingol.backend.auth.dto.ChangePasswordRequest;
 import edu.bingol.backend.auth.dto.EmailRequest;
+import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.RefreshRequest;
@@ -39,9 +41,11 @@ public class AuthController {
 
     private final ClientIp clientIp;
     private final ClientContexts contexts;
+    private final JwtService jwt;
 
     public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp,
-                          ClientContexts contexts) {
+                          ClientContexts contexts, JwtService jwt) {
+        this.jwt = jwt;
         this.contexts = contexts;
         this.clientIp = clientIp;
         this.i18n = i18n;
@@ -122,6 +126,23 @@ public class AuthController {
         Long userId = (Long) authentication.getPrincipal();
         limiter.check("logoutall:user:" + userId, 5, Duration.ofMinutes(15));
         auth.logoutAll(userId);
+    }
+
+    /** 200 + yeni token cifti: diger tum oturumlar kapanir, istemci yeni cifti saklamalidir. */
+    @PostMapping("/change-password")
+    public TokenResponse changePassword(@Valid @RequestBody ChangePasswordRequest r, Authentication authentication,
+                                        HttpServletRequest http) {
+        Long userId = (Long) authentication.getPrincipal();
+        limiter.check("chpw:user:" + userId, 5, Duration.ofHours(1));
+        limiter.check("chpw:ip:" + clientIp.of(http), 10, Duration.ofHours(1));
+        return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http));
+    }
+
+    /** Istegi yapan access token'in istemci turu (`cl`); yoksa web. */
+    private String callerClient(HttpServletRequest http) {
+        String h = http.getHeader("Authorization");
+        JwtService.Identity id = h != null && h.startsWith("Bearer ") ? jwt.parse(h.substring(7).trim()) : null;
+        return id == null ? null : id.client();
     }
 
     @GetMapping("/me")

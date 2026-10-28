@@ -42,6 +42,16 @@ public class PostService {
         this.socialFeeds = socialFeeds;
     }
 
+    /** Kesfet top puani/siralamasi (setter: kurucu imzasi degismesin). */
+    private PostRankService rank;
+    private PostRankRepository rankRepo;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRank(PostRankService rank, PostRankRepository rankRepo) {
+        this.rank = rank;
+        this.rankRepo = rankRepo;
+    }
+
     public PostService(PostRepository posts, UserRepository users, UserBlockRepository blocks,
                        PostViewAssembler assembler, ContentGuard guard, ObjectProvider<PostMediaBinder> binders,
                        ApplicationEventPublisher events) {
@@ -54,29 +64,37 @@ public class PostService {
         this.events = events;
     }
 
+    /** Sade gonderi: tam 1 fotograf (zorunlu) + en cok 7 kelimelik, istege bagli tek satir metin. */
     @Transactional
     public PostView create(Long uid, CreatePostRequest req) {
         String text = normalize(req.text());
         List<Long> mediaIds = req.mediaIds() == null ? List.of() : req.mediaIds().stream().distinct().toList();
-        if (text == null && mediaIds.isEmpty()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_EMPTY", "Gönderi için metin veya medya gerekli.");
+        int requested = req.mediaIds() == null ? 0 : req.mediaIds().size();
+        if (mediaIds.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_PHOTO_REQUIRED", "Gönderi için bir fotoğraf gerekli.");
         }
-        checkLength(text);
+        if (mediaIds.size() > 1 || requested > 1) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_SINGLE_PHOTO_ONLY",
+                    "Gönderiye yalnızca tek bir fotoğraf eklenebilir.");
+        }
+        checkText(text);
         guard.assertClean(ContentGuard.Entity.POST, "text", uid, text);
         PostMediaBinder binder = binders.getIfAvailable();
-        if (!mediaIds.isEmpty() && binder == null) {
+        if (binder == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", "Seçilen medya geçersiz.");
         }
+        binder.requireImage(uid, mediaIds); // video/yabancı/geçersiz medya: gönderi kaydedilmeden reddedilir
         Post p = new Post();
         p.setAuthorId(uid);
         p.setBody(text);
-        p = posts.saveAndFlush(p);
-        if (!mediaIds.isEmpty()) {
-            binder.attach(p.getId(), uid, mediaIds);
-            p.setMediaCount((short) mediaIds.size());
-            p = posts.saveAndFlush(p);
+        if (rank != null) {
+            p.setRankScore(rank.initialScore(p)); // soguk baslangic: yeni gonderi hemen gorunur
         }
-        events.publishEvent(new SocialTextEvent(p.getId(), null, uid, text));
+        p = posts.saveAndFlush(p);
+        binder.attach(p.getId(), uid, mediaIds);
+        p.setMediaCount((short) mediaIds.size());
+        p = posts.saveAndFlush(p);
+        // Etiket/bahsetme kaldirildi: SocialTextEvent artik yayinlanmaz
         return assembler.assemble(uid, p);
     }
 
@@ -92,15 +110,14 @@ public class PostService {
             throw new ApiException(HttpStatus.FORBIDDEN, "POST_FORBIDDEN", "Bu işlem için yetkiniz yok.");
         }
         String text = normalize(rawText);
-        if (text == null && p.getMediaCount() == 0) {
+        if (text == null && p.getMediaCount() == 0) { // yalniz fotografsiz eski gonderiler
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_EMPTY", "Gönderi için metin veya medya gerekli.");
         }
-        checkLength(text);
+        checkText(text);
         guard.assertChanged(ContentGuard.Entity.POST, "text", uid, p.getBody(), text);
         p.setBody(text);
         p.setEditedAt(Instant.now());
         Post saved = posts.saveAndFlush(p);
-        events.publishEvent(new SocialTextEvent(saved.getId(), null, uid, text));
         return assembler.assemble(uid, saved);
     }
 
@@ -126,6 +143,9 @@ public class PostService {
         if ("following".equalsIgnoreCase(scope) || "department".equalsIgnoreCase(scope)) {
             return socialFeed(viewer, scope.toLowerCase(java.util.Locale.ROOT), cursor, n);
         }
+        if ("top".equalsIgnoreCase(scope) && rank != null) {
+            return topFeed(viewer, cursor, size);
+        }
         if (scope != null && !scope.isBlank() && !"latest".equalsIgnoreCase(scope) && !"popular".equalsIgnoreCase(scope)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "FEED_SCOPE_INVALID", "Geçersiz akış türü.");
         }
@@ -142,6 +162,30 @@ public class PostService {
                 ? posts.latestFirst(viewer, PageRequest.of(0, n + 1))
                 : posts.latestAfter(viewer, c.at(), c.id(), PageRequest.of(0, n + 1));
         return page(viewer, rows, n, p -> PostCursor.latest(p.getCreatedAt(), p.getId()));
+    }
+
+    /**
+     * top: onceden hesaplanmis rank_score'a gore (rank_score DESC, id DESC) imecli sayfa. Varsayilan 12, ust sinir 30.
+     * Puan istemciye donmez. Sayfa icinde ayni yazar ardisik en cok maxAuthorRun (kayipsiz yeniden siralama).
+     * Imlec yeniden hesap sonrasi eskiyse hint=RANK_REFRESHED (nadir kopya olabilir; istemci id ile ayiklar).
+     */
+    private FeedPage topFeed(Long viewer, String cursor, int size) {
+        PostRankProperties cfg = rank.props();
+        int n = size <= 0 ? cfg.defaultPageSize() : Math.min(size, cfg.maxPageSize());
+        PostCursor.Top c = PostCursor.decodeTop(cursor);
+        List<Post> rows = c == null
+                ? rankRepo.topFirst(viewer, PageRequest.of(0, n + 1))
+                : rankRepo.topAfter(viewer, c.score(), c.id(), PageRequest.of(0, n + 1));
+        boolean more = rows.size() > n;
+        List<Post> items = more ? rows.subList(0, n) : rows;
+        String next = null;
+        if (more) {
+            Post last = items.get(items.size() - 1);
+            next = PostCursor.top(last.getRankScore(), last.getId(), rank.version());
+        }
+        String hint = c != null && c.version() != rank.version() ? "RANK_REFRESHED" : null;
+        List<Post> shown = PostRank.diversify(items, Post::getAuthorId, cfg.maxAuthorRun());
+        return new FeedPage(assembler.assemble(viewer, shown), next, hint);
     }
 
     /** following | department kapsamları (post.social sorguları). */
@@ -210,14 +254,28 @@ public class PostService {
         if (s == null) {
             return null;
         }
-        String t = s.strip();
+        String t = s.replaceAll("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$", "");
         return t.isEmpty() ? null : t;
     }
 
-    private static void checkLength(String text) {
-        if (text != null && text.length() > PostDtos.MAX_TEXT) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_TOO_LONG",
-                    "Gönderi metni en çok 2000 karakter olabilir.", String.valueOf(PostDtos.MAX_TEXT));
+    /**
+     * Sade metin kurali: tek satir, en cok {@link PostDtos#MAX_WORDS} kelime (Unicode bosluga gore) ve
+     * {@link PostDtos#MAX_CHARS} karakter (kod noktasi). Bos metin serbest.
+     */
+    static void checkText(String text) {
+        if (text == null) {
+            return;
+        }
+        if (text.codePoints().anyMatch(c -> c == '\n' || c == '\r' || c == 0x0B || c == 0x0C || c == 0x85
+                || c == 0x2028 || c == 0x2029)) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_TEXT_INVALID",
+                    "Gönderi metni tek satır olmalıdır.");
+        }
+        int words = text.split("[\\s\\p{Z}]+").length;
+        if (words > PostDtos.MAX_WORDS || text.codePointCount(0, text.length()) > PostDtos.MAX_CHARS) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_TEXT_TOO_LONG",
+                    "Gönderi metni en çok 7 kelime ve 60 karakter olabilir.", String.valueOf(PostDtos.MAX_WORDS),
+                    String.valueOf(PostDtos.MAX_CHARS));
         }
     }
 

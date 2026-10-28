@@ -286,6 +286,31 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     // ------------------------------------------------------------------ baglama / gorunum (SPI)
 
     @Override
+    @Transactional(readOnly = true)
+    public void requireImage(long ownerId, List<Long> mediaIds) {
+        if (mediaIds == null || mediaIds.size() != 1 || mediaIds.get(0) == null) {
+            throw invalid();
+        }
+        PostMedia m = repo.findById(mediaIds.get(0)).orElse(null);
+        if (m == null || !m.getOwnerId().equals(ownerId) || m.getPostId() != null || m.isHidden()) {
+            throw invalid();
+        }
+        if (m.isVideo()) {
+            throw videoNotAllowed();
+        }
+    }
+
+    public static ApiException videoNotAllowed() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "POST_VIDEO_NOT_ALLOWED",
+                "Gönderilerde video desteklenmiyor; yalnızca fotoğraf eklenebilir.");
+    }
+
+    /** Controller: sade gonderide video yuklemesi kapali (servis eski kayitlar/testler icin video yolunu korur). */
+    public static boolean isVideo(MultipartFile file) {
+        return isVideoUpload(file);
+    }
+
+    @Override
     @Transactional
     public void attach(long postId, long ownerId, List<Long> mediaIds) {
         if (mediaIds == null || mediaIds.isEmpty()) {

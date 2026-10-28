@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+// Devre disi: sade gonderi sozlesmesi (uc RemovedFeatureController ile 410 FEATURE_REMOVED doner). Geri almak icin @RestController ekleyin ve 410 eslemesini kaldirin.
 @RequestMapping("/api/users")
 public class MentionSuggestController {
 

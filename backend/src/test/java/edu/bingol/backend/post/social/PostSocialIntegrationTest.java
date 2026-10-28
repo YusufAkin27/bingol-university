@@ -14,6 +14,7 @@ import edu.bingol.backend.moderation.UserBlockRepository;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
+import edu.bingol.backend.post.PostFixtures;
 import edu.bingol.backend.post.PostService;
 import edu.bingol.backend.post.comment.CommentDtos.CommentView;
 import edu.bingol.backend.post.comment.PostCommentService;
@@ -39,6 +40,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class PostSocialIntegrationTest {
 
     @Autowired PostService posts;
+    @Autowired edu.bingol.backend.post.PostRepository postRepo;
+    @Autowired edu.bingol.backend.post.media.PostMediaRepository mediaRepo;
     @Autowired PostCommentService comments;
     @Autowired FollowService follow;
     @Autowired PostSaveService saves;
@@ -63,7 +66,7 @@ class PostSocialIntegrationTest {
     }
 
     private PostView post(User u, String text) {
-        return posts.create(u.getId(), new CreatePostRequest(text, null));
+        return posts.get(u.getId(), PostFixtures.withPhoto(postRepo, mediaRepo, u.getId(), text).getId());
     }
 
     private static String code(Runnable r) {
@@ -209,166 +212,7 @@ class PostSocialIntegrationTest {
         assertNull(p2.nextCursor());
     }
 
-    // ------------------------------------------------------------------ kaydet
-
-    @Test
-    void savePostsFlagListOrderAndHiding() {
-        User a = user(null);
-        User b = user(null);
-        PostView p1 = post(b, "bir");
-        PostView p2 = post(b, "iki");
-        saves.save(a.getId(), p1.id());
-        saves.save(a.getId(), p1.id());
-        saves.save(a.getId(), p2.id());
-        assertTrue(posts.get(a.getId(), p1.id()).savedByMe());
-        assertFalse(posts.get(b.getId(), p1.id()).savedByMe(), "kaydeden gizli: baskasi goremez");
-
-        FeedPage list = saves.list(a.getId(), null, 10);
-        assertEquals(List.of(p2.id(), p1.id()), list.items().stream().map(PostView::id).toList());
-        assertTrue(list.items().stream().allMatch(PostView::savedByMe));
-        assertTrue(saves.list(b.getId(), null, 10).items().isEmpty(), "yalniz kendi listem");
-
-        saves.unsave(a.getId(), p1.id());
-        saves.unsave(a.getId(), p1.id());
-        assertEquals(1, saves.list(a.getId(), null, 10).items().size());
-
-        jdbc.update("UPDATE post SET hidden_at = CURRENT_TIMESTAMP WHERE id = ?", p2.id());
-        assertTrue(saves.list(a.getId(), null, 10).items().isEmpty(), "gizlenen gonderi listeden duser");
-        assertEquals("POST_NOT_FOUND", code(() -> saves.save(a.getId(), p2.id())));
-    }
-
-    @Test
-    void savedListPagesWithCursor() {
-        User a = user(null);
-        User b = user(null);
-        for (int i = 0; i < 4; i++) {
-            saves.save(a.getId(), post(b, "k" + i).id());
-        }
-        FeedPage p1 = saves.list(a.getId(), null, 3);
-        assertEquals(3, p1.items().size());
-        FeedPage p2 = saves.list(a.getId(), p1.nextCursor(), 3);
-        assertEquals(1, p2.items().size());
-        assertNull(p2.nextCursor());
-    }
-
-    // ------------------------------------------------------------------ #etiket
-
-    @Test
-    void hashtagsAreIndexedUpdatedAndQueried() {
-        tags.clearCache();
-        User a = user(null);
-        String t1 = "bahar" + UUID.randomUUID().toString().substring(0, 6).replaceAll("[^a-z]", "x");
-        PostView p = post(a, "Merhaba #" + t1 + " #Gündüz");
-        assertTrue(p.hashtags().contains(t1));
-        assertTrue(p.hashtags().contains("gündüz"));
-
-        FeedPage byTag = tags.posts(a.getId(), t1, null, 10);
-        assertEquals(List.of(p.id()), byTag.items().stream().map(PostView::id).toList());
-        // aksansiz arama ayni etikete gider
-        assertEquals(1, tags.posts(a.getId(), "GUNDUZ", null, 100).items().stream().filter(x -> x.id().equals(p.id())).count());
-
-        assertTrue(tags.suggest(t1.substring(0, 6)).stream().anyMatch(s -> s.tag().equals(t1)));
-        assertTrue(tags.trending(20).stream().anyMatch(s -> s.tag().equals(t1)));
-
-        // duzenleme etiketi kaldirir
-        PostView edited = posts.update(a.getId(), p.id(), "etiketsiz");
-        assertTrue(edited.hashtags().isEmpty());
-        assertTrue(tags.posts(a.getId(), t1, null, 10).items().isEmpty());
-    }
-
-    @Test
-    void hashtagFeedHidesDeletedHiddenAndBlocked() {
-        tags.clearCache();
-        User a = user(null);
-        User b = user(null);
-        User viewer = user(null);
-        String tag = "etk" + UUID.randomUUID().toString().substring(0, 6).replaceAll("[^a-z]", "y");
-        PostView ok = post(a, "#" + tag + " bir");
-        PostView gone = post(a, "#" + tag + " iki");
-        PostView hidden = post(a, "#" + tag + " uc");
-        PostView blockedAuthor = post(b, "#" + tag + " dort");
-        posts.delete(a.getId(), gone.id(), false);
-        jdbc.update("UPDATE post SET hidden_at = CURRENT_TIMESTAMP WHERE id = ?", hidden.id());
-        blocks.saveAndFlush(new UserBlock(viewer.getId(), b.getId()));
-
-        List<Long> ids = tags.posts(viewer.getId(), tag, null, 20).items().stream().map(PostView::id).toList();
-        assertEquals(List.of(ok.id()), ids);
-        assertFalse(ids.contains(blockedAuthor.id()));
-    }
-
-    @Test
-    void invalidTagIsRejectedAndUnknownTagIsEmpty() {
-        User a = user(null);
-        assertEquals("HASHTAG_INVALID", code(() -> tags.posts(a.getId(), "a", null, 10)));
-        assertTrue(tags.posts(a.getId(), "yokboyleetiket", null, 10).items().isEmpty());
-        assertTrue(tags.suggest("").isEmpty());
-    }
-
-    // ------------------------------------------------------------------ @etiket
-
-    @Test
-    void mentionsAreValidatedStoredAndNotifiedOnce() {
-        User a = user(null);
-        User b = user(null);
-        User blockedByA = user(null);
-        blocks.saveAndFlush(new UserBlock(a.getId(), blockedByA.getId()));
-        String text = "Selam @[B](uid:" + b.getId() + ") @[Engelli](uid:" + blockedByA.getId() + ") @[Ben](uid:"
-                + a.getId() + ") @[Yok](uid:999999999)";
-        PostView p = post(a, text);
-        assertEquals(text, p.text(), "metin bicimi korunur");
-        List<Long> ids = p.mentions().stream().map(m -> m.id()).sorted().toList();
-        assertEquals(List.of(Math.min(a.getId(), b.getId()), Math.max(a.getId(), b.getId())), ids);
-        assertEquals(1, notifCount(b.getId(), "POST_MENTION"));
-        assertEquals(0, notifCount(a.getId(), "POST_MENTION"), "kendi etiketi icin bildirim yok");
-        assertEquals(0, notifCount(blockedByA.getId(), "POST_MENTION"));
-
-        // duzenleme: zaten etiketliye tekrar bildirim yok; etiket kaldirilirsa liste temizlenir
-        posts.update(a.getId(), p.id(), text + " ek");
-        assertEquals(1, notifCount(b.getId(), "POST_MENTION"));
-        PostView cleared = posts.update(a.getId(), p.id(), "etiketsiz");
-        assertTrue(cleared.mentions().isEmpty());
-    }
-
-    @Test
-    void tooManyMentionsRejected() {
-        User a = user(null);
-        StringBuilder b = new StringBuilder();
-        for (int i = 1; i <= 11; i++) {
-            b.append("@[K](uid:").append(i).append(") ");
-        }
-        assertEquals("MENTION_TOO_MANY", code(() -> post(a, b.toString())));
-    }
-
-    @Test
-    void commentMentionsAreReturnedAndNotified() {
-        User author = user(null);
-        User commenter = user(null);
-        User target = user(null);
-        PostView p = post(author, "gonderi");
-        CommentView c = comments.create(commenter.getId(), p.id(), "Bak @[T](uid:" + target.getId() + ")", null);
-        assertEquals(1, c.mentions().size());
-        assertEquals(target.getId(), c.mentions().get(0).id());
-        assertEquals(1, notifCount(target.getId(), "POST_MENTION"));
-    }
-
-    @Test
-    void mentionSuggestPrioritisesFollowedAndFiltersBlocked() {
-        String dept = "Sg-" + UUID.randomUUID().toString().substring(0, 6);
-        User me = user(dept);
-        User followed = user(null);
-        User mate = user(dept);
-        User blockedUser = user(dept);
-        follow.follow(me.getId(), followed.getId());
-        blocks.saveAndFlush(new UserBlock(me.getId(), blockedUser.getId()));
-        List<Long> ids = suggest.suggest(me.getId(), "", null, 8).stream().map(MentionSuggestService.Suggestion::id).toList();
-        assertTrue(ids.indexOf(followed.getId()) >= 0 && ids.indexOf(followed.getId()) < ids.indexOf(mate.getId()));
-        assertFalse(ids.contains(blockedUser.getId()));
-        assertFalse(ids.contains(me.getId()));
-        // adla arama (buyuk/kucuk harf duyarsiz)
-        List<MentionSuggestService.Suggestion> byName = suggest.suggest(me.getId(),
-                followed.getDisplayName().toUpperCase(java.util.Locale.ROOT), null, 8);
-        assertTrue(byName.stream().anyMatch(s -> s.id().equals(followed.getId())));
-    }
+    // Kaydet / #etiket / @bahsetme testleri sade Kesfet sozlesmesiyle kaldirildi (uclar 410, olay yayinlanmaz).
 
     // ------------------------------------------------------------------ hikayeler
 

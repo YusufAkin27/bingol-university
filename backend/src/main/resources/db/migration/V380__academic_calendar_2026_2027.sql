@@ -1,0 +1,77 @@
+-- 2026-2027 egitim-ogretim yili resmi akademik takvimi (Bingol Universitesi, PDF'ten).
+-- Herkese acik (scope_department bos) ve yayinda; ogrenci kendisi eklemez. Bitis tarihi gunun 23:59'una (Istanbul) cekilir.
+INSERT INTO academic_event (kind, title, starts_at, ends_at, all_day, published)
+SELECT v.kind,
+       v.title,
+       v.s::date::timestamp AT TIME ZONE 'Europe/Istanbul',
+       CASE WHEN v.e IS NULL THEN NULL
+            ELSE (v.e::date::timestamp + INTERVAL '23 hours 59 minutes') AT TIME ZONE 'Europe/Istanbul' END,
+       TRUE,
+       TRUE
+FROM (VALUES
+    -- Guz donemi
+    ('DERS_KAYIT',      'Güz: Yeni kayıtlar',                                         '2026-08-24', '2026-08-28'),
+    ('DERS_KAYIT',      'Güz: Katkı payı ve öğrenim ücretlerinin ödenmesi',           '2026-09-14', '2026-09-18'),
+    ('DERS_KAYIT',      'Güz: Ders kayıtları',                                        '2026-09-14', '2026-09-18'),
+    ('DERS_KAYIT',      'Güz: Danışmanların ders kayıtlarını onaylaması',             '2026-09-14', '2026-09-21'),
+    ('DIGER',           'Yabancı dil muafiyet sınavı',                                '2026-09-18', NULL),
+    ('DONEM_BASLANGIC', 'Güz: Derslerin başlaması',                                   '2026-09-21', NULL),
+    ('DIGER',           'Güz: Ders ekleme-bırakma (danışman gözetiminde)',            '2026-10-02', NULL),
+    ('VIZE',            'Güz: Ara sınavlar',                                          '2026-11-07', '2026-11-15'),
+    ('DIGER',           'Güz: Derslerin sona ermesi',                                 '2027-01-03', NULL),
+    ('FINAL',           'Güz: Yarıyıl sonu sınavları',                                '2027-01-04', '2027-01-15'),
+    ('BUT',             'Güz: Bütünleme sınavları',                                   '2027-01-25', '2027-01-29'),
+    ('DIGER',           'Güz: Tek ders sınavı başvurusu son gün',                     '2027-02-03', NULL),
+    ('DIGER',           'Güz: Tek ders sınavı',                                       '2027-02-05', NULL),
+    -- Bahar donemi
+    ('DERS_KAYIT',      'Bahar: Katkı payı ve öğrenim ücretlerinin ödenmesi',         '2027-02-08', '2027-02-12'),
+    ('DERS_KAYIT',      'Bahar: Ders kayıtları',                                      '2027-02-08', '2027-02-12'),
+    ('DERS_KAYIT',      'Bahar: Danışmanların ders kayıtlarını onaylaması',           '2027-02-08', '2027-02-15'),
+    ('DONEM_BASLANGIC', 'Bahar: Derslerin başlaması',                                 '2027-02-15', NULL),
+    ('DIGER',           'Bahar: Ders ekleme-bırakma (danışman gözetiminde)',          '2027-02-26', NULL),
+    ('VIZE',            'Bahar: Ara sınavlar',                                        '2027-04-10', '2027-04-18'),
+    ('DIGER',           'Mezuniyet törenleri',                                        '2027-05-31', '2027-06-04'),
+    ('DIGER',           'Bahar: Derslerin sona ermesi',                               '2027-06-06', NULL),
+    ('FINAL',           'Bahar: Yarıyıl sonu sınavları',                              '2027-06-07', '2027-06-18'),
+    ('BUT',             'Bahar: Bütünleme sınavları',                                 '2027-06-28', '2027-07-02'),
+    ('DIGER',           'Bahar: Tek ders sınavı başvurusu son gün',                   '2027-07-07', NULL),
+    ('DIGER',           'Bahar: Tek ders sınavı',                                     '2027-07-09', NULL),
+    ('DIGER',           '1. ek sınavlar (azami öğrenim süresini dolduranlar)',        '2027-07-12', '2027-07-16'),
+    ('DIGER',           '2. ek sınavlar (azami öğrenim süresini dolduranlar)',        '2027-07-26', '2027-07-30'),
+    -- Yaz okulu
+    ('DERS_KAYIT',      'Yaz okulu: Müracaat',                                        '2027-07-05', '2027-07-06'),
+    ('DERS_KAYIT',      'Yaz okulu: Kesin ders kaydı ve ücret yatırılması',           '2027-07-08', '2027-07-09'),
+    ('DONEM_BASLANGIC', 'Yaz okulu: Derslerin başlaması',                             '2027-07-12', NULL),
+    ('DIGER',           'Yaz okulu: Derslerin bitişi',                                '2027-08-27', NULL),
+    ('FINAL',           'Yaz okulu: Yarıyıl sonu sınavları',                          '2027-08-31', '2027-09-02'),
+    ('DIGER',           'Yaz okulu: Tek ders sınavı başvurusu son gün',               '2027-09-06', NULL),
+    ('DIGER',           'Yaz okulu: Tek ders sınavı',                                 '2027-09-08', NULL),
+    -- Kurumlar arasi yatay gecis
+    ('DIGER',           'Kurumlar arası yatay geçiş (güz): Başvuru',                  '2026-08-03', '2026-08-07'),
+    ('DIGER',           'Kurumlar arası yatay geçiş (güz): Sonuçların ilanı',         '2026-08-17', NULL),
+    ('DIGER',           'Kurumlar arası yatay geçiş (güz): Asıl kayıt',               '2026-08-19', '2026-08-20'),
+    ('DIGER',           'Kurumlar arası yatay geçiş (güz): Yedek kayıt',              '2026-08-25', NULL),
+    ('DIGER',           'Kurumlar arası yatay geçiş (bahar, ön lisans): Başvuru',     '2027-01-18', '2027-01-22'),
+    ('DIGER',           'Kurumlar arası yatay geçiş (bahar, ön lisans): Sonuçların ilanı', '2027-01-29', NULL),
+    ('DIGER',           'Kurumlar arası yatay geçiş (bahar, ön lisans): Asıl kayıt',  '2027-02-02', '2027-02-03'),
+    ('DIGER',           'Kurumlar arası yatay geçiş (bahar, ön lisans): Yedek kayıt', '2027-02-05', NULL),
+    -- Ek madde-1 yatay gecis
+    ('DIGER',           'Ek madde-1 yatay geçiş (güz): Başvuru',                      '2026-08-01', '2026-08-15'),
+    ('DIGER',           'Ek madde-1 yatay geçiş (güz): Sonuçların ilanı',             '2026-08-21', NULL),
+    ('DIGER',           'Ek madde-1 yatay geçiş (güz): Asıl kayıt',                   '2026-08-25', '2026-08-26'),
+    ('DIGER',           'Ek madde-1 yatay geçiş (güz): Yedek kayıt',                  '2026-08-28', NULL),
+    ('DIGER',           'Ek madde-1 yatay geçiş (bahar): Başvuru',                    '2027-01-11', '2027-01-15'),
+    ('DIGER',           'Ek madde-1 yatay geçiş (bahar): Sonuçların ilanı',           '2027-01-22', NULL),
+    ('DIGER',           'Ek madde-1 yatay geçiş (bahar): Asıl kayıt',                 '2027-01-26', '2027-01-27'),
+    ('DIGER',           'Ek madde-1 yatay geçiş (bahar): Yedek kayıt',                '2027-01-29', NULL),
+    -- Resmi tatiller
+    ('RESMI_TATIL',     'Cumhuriyet Bayramı',                                         '2026-10-28', '2026-10-29'),
+    ('RESMI_TATIL',     'Yılbaşı tatili',                                             '2027-01-01', NULL),
+    ('RESMI_TATIL',     'Ramazan Bayramı',                                            '2027-03-08', '2027-03-11'),
+    ('RESMI_TATIL',     'Ulusal Egemenlik ve Çocuk Bayramı',                          '2027-04-23', NULL),
+    ('RESMI_TATIL',     'Emek ve Dayanışma Günü',                                     '2027-05-01', NULL),
+    ('RESMI_TATIL',     'Kurban Bayramı',                                             '2027-05-15', '2027-05-18'),
+    ('RESMI_TATIL',     'Atatürk''ü Anma, Gençlik ve Spor Bayramı',                   '2027-05-19', NULL),
+    ('RESMI_TATIL',     '15 Temmuz Demokrasi ve Milli Birlik Günü',                   '2027-07-15', NULL),
+    ('RESMI_TATIL',     'Zafer Bayramı',                                              '2027-08-30', NULL)
+) AS v(kind, title, s, e);

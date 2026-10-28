@@ -3,6 +3,7 @@ package edu.bingol.backend.event.dto;
 import edu.bingol.backend.event.EventAttendance.Method;
 import edu.bingol.backend.event.EventRsvp;
 import edu.bingol.backend.event.UserEvent;
+import edu.bingol.backend.event.admission.EventAdmission;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -26,7 +27,9 @@ public final class EventDtos {
             @NotNull Instant endsAt,
             @Size(max = 200) String location,
             @Min(1) @Max(100000) Integer capacity,
-            Long communityId) {
+            Long communityId,
+            /** Bos = OPEN. APPROVAL: katilim organizator onayiyla. */
+            EventAdmission.Mode joinPolicy) {
     }
 
     /** Hepsi opsiyonel. capacity = 0 sinirsiz yapar. */
@@ -36,15 +39,24 @@ public final class EventDtos {
             Instant startsAt,
             Instant endsAt,
             @Size(max = 200) String location,
-            @Min(0) @Max(100000) Integer capacity) {
+            @Min(0) @Max(100000) Integer capacity,
+            /** Bos = degismez. APPROVAL -> OPEN: bekleyen istekler kapanir, kabul edilenler kalir. */
+            EventAdmission.Mode joinPolicy) {
     }
 
-    /** myRsvp: GOING | INTERESTED | null. interestedCount yalnizca detayda doludur. */
+    public record OrganizerView(Long id, String displayName, String avatarUrl) {
+    }
+
+    /**
+     * myRsvp: GOING | INTERESTED | PENDING (katilim istegi onay bekliyor) | REJECTED | null. interestedCount yalnizca
+     * detayda doludur. joinPolicy: OPEN | APPROVAL. pendingCount yalnizca yonetene (canManage) dolu, digerlerinde null.
+     */
     public record EventView(Long id, String title, String description, Instant startsAt, Instant endsAt,
                             String location, String coverUrl, Integer capacity, int goingCount,
                             Long interestedCount, Long communityId, String communityName, Long createdBy,
                             String organizerName, UserEvent.Status status, EventRsvp.Status myRsvp,
-                            boolean canManage, Instant createdAt, boolean registrationClosed) {
+                            boolean canManage, Instant createdAt, boolean registrationClosed,
+                            EventAdmission.Mode joinPolicy, OrganizerView organizer, Long pendingCount) {
     }
 
     public record RsvpRequest(@NotNull EventRsvp.Status status) {

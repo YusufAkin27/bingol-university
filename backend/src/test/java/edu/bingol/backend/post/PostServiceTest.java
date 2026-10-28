@@ -11,6 +11,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.moderation.UserBlock;
 import edu.bingol.backend.moderation.UserBlockRepository;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
+import edu.bingol.backend.post.media.PostMedia;
 import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
 import edu.bingol.backend.user.User;
@@ -44,8 +45,15 @@ class PostServiceTest {
         return users.saveAndFlush(u);
     }
 
+    @Autowired edu.bingol.backend.post.media.PostMediaRepository mediaRepo;
+
+    /** Akis/moderasyon testleri icin dogrudan fotografli gonderi (kurallar create* testlerinde). */
     private PostView post(User u, String text) {
-        return service.create(u.getId(), new CreatePostRequest(text, null));
+        return service.get(u.getId(), PostFixtures.withPhoto(posts, mediaRepo, u.getId(), text).getId());
+    }
+
+    private Long uploaded(User u, String kind) {
+        return PostFixtures.media(mediaRepo, u.getId(), null, kind).getId();
     }
 
     private static ApiException fails(Runnable r) {
@@ -53,16 +61,96 @@ class PostServiceTest {
     }
 
     @Test
-    void createValidatesEmptyAndTooLong() {
+    void createRequiresExactlyOnePhoto() {
         User a = newUser();
-        assertEquals("POST_EMPTY", fails(() -> post(a, "   ")).code());
-        assertEquals("POST_TOO_LONG", fails(() -> post(a, "x".repeat(2001))).code());
-        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(1L)))).code());
-        PostView v = post(a, "  merhaba  ");
-        assertEquals("merhaba", v.text());
+        assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest("merhaba", null))).code());
+        assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of()))).code());
+        Long i1 = uploaded(a, "IMAGE");
+        Long i2 = uploaded(a, "IMAGE");
+        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i2)))).code());
+        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code());
+        Long vid = uploaded(a, "VIDEO");
+        assertEquals("POST_VIDEO_NOT_ALLOWED", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid)))).code());
+        User b = newUser();
+        Long foreign = uploaded(b, "IMAGE");
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(foreign)))).code());
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(987654321L)))).code());
+    }
+
+    @Test
+    void createWithSinglePhotoAndOptionalShortText() {
+        User a = newUser();
+        PostView noText = service.create(a.getId(), new CreatePostRequest("   ", List.of(uploaded(a, "IMAGE"))));
+        assertNull(noText.text());
+        assertEquals(1, noText.media().size());
+        assertEquals("IMAGE", noText.media().get(0).kind());
+        assertEquals(0, noText.commentCount());
+        assertTrue(noText.hashtags().isEmpty() && noText.mentions().isEmpty() && !noText.savedByMe());
+        PostView v = service.create(a.getId(), new CreatePostRequest("  güzel bir gün  ", List.of(uploaded(a, "IMAGE"))));
+        assertEquals("güzel bir gün", v.text());
         assertTrue(v.mine() && v.canEdit() && v.canDelete());
-        assertEquals(0, v.likeCount());
-        assertTrue(v.media().isEmpty());
+        Long used = v.media().get(0).id();
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(used)))).code());
+    }
+
+    @Test
+    void textRuleSevenWordsSixtyCharsSingleLine() {
+        PostService.checkText(null);
+        PostService.checkText("bir iki üç dört beş altı yedi");
+        PostService.checkText("a".repeat(60));
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("bir iki üç dört beş altı yedi sekiz")).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("a".repeat(61))).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("1\u00A02\u20093 4 5 6 7 8")).code());
+        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\nsatir")).code());
+        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\u2028satir")).code());
+        User a = newUser();
+        Long img = uploaded(a, "IMAGE");
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
+                new CreatePostRequest("bir iki üç dört beş altı yedi sekiz", List.of(img)))).code());
+        PostView ok = post(a, "tamam");
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.update(a.getId(), ok.id(), "bir iki üç dört beş altı yedi sekiz")).code());
+        assertEquals("POST_TEXT_INVALID", fails(() -> service.update(a.getId(), ok.id(), "a\nb")).code());
+        assertNull(service.update(a.getId(), ok.id(), " ").text(), "fotografli gonderide metin silinebilir");
+    }
+
+    @Test
+    void feedHidesPostsWithoutImageAndShowsOnlyFirstImage() {
+        User a = newUser();
+        User v = newUser();
+        PostView photo = post(a, "foto");
+        Post videoOnly = new Post();
+        videoOnly.setAuthorId(a.getId());
+        videoOnly.setMediaCount((short) 1);
+        videoOnly = posts.saveAndFlush(videoOnly);
+        PostMedia onlyVid = PostFixtures.media(mediaRepo, a.getId(), videoOnly.getId(), "VIDEO");
+        Post textOnly = new Post();
+        textOnly.setAuthorId(a.getId());
+        textOnly.setBody("eski metin");
+        textOnly = posts.saveAndFlush(textOnly);
+        Post multi = new Post();
+        multi.setAuthorId(a.getId());
+        multi.setMediaCount((short) 3);
+        multi = posts.saveAndFlush(multi);
+        PostFixtures.media(mediaRepo, a.getId(), multi.getId(), "VIDEO");
+        PostMedia im1 = PostFixtures.media(mediaRepo, a.getId(), multi.getId(), "IMAGE");
+        im1.setPosition((short) 1);
+        mediaRepo.saveAndFlush(im1);
+        PostMedia im2 = PostFixtures.media(mediaRepo, a.getId(), multi.getId(), "IMAGE");
+        im2.setPosition((short) 2);
+        mediaRepo.saveAndFlush(im2);
+
+        List<PostView> items = service.byAuthor(v.getId(), a.getId(), null, 20).items();
+        List<Long> ids = items.stream().map(PostView::id).toList();
+        assertTrue(ids.contains(photo.id()) && ids.contains(multi.getId()));
+        assertFalse(ids.contains(videoOnly.getId()), "video-only akistan gizli");
+        assertFalse(ids.contains(textOnly.getId()), "fotografsiz eski gonderi akistan gizli");
+        Long hiddenId = videoOnly.getId();
+        assertTrue(service.feed(v.getId(), "latest", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
+        assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
+        Long multiId = multi.getId();
+        PostView m = items.stream().filter(i -> i.id().equals(multiId)).findFirst().orElseThrow();
+        assertEquals(List.of(im1.getId()), m.media().stream().map(x -> x.id()).toList());
+        assertTrue(posts.findById(hiddenId).isPresent() && mediaRepo.findById(onlyVid.getId()).isPresent(), "veri silinmedi");
     }
 
     @Test
@@ -133,7 +221,6 @@ class PostServiceTest {
         PostView up = service.update(a.getId(), pv.id(), "ikinci");
         assertEquals("ikinci", up.text());
         assertNotNull(up.editedAt());
-        assertEquals("POST_EMPTY", fails(() -> service.update(a.getId(), pv.id(), " ")).code());
         PostView other = service.get(b.getId(), pv.id());
         assertFalse(other.mine() || other.canEdit() || other.canDelete());
         service.delete(b.getId(), pv.id(), true);
@@ -151,7 +238,7 @@ class PostServiceTest {
         counters.incrementLikes(pv.id(), -5);
         PostView v = service.get(a.getId(), pv.id());
         assertEquals(0, v.likeCount());
-        assertEquals(3, v.commentCount());
+        assertEquals(0, v.commentCount(), "yorum sayisi DTO'da sabit 0 (yorum kaldirildi)");
         counters.incrementLikes(pv.id(), 2);
         assertEquals(2, counters.likeCount(pv.id()));
     }

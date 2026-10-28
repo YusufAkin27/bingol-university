@@ -4,7 +4,6 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.post.PostDtos.AuthorView;
 import edu.bingol.backend.post.PostDtos.MediaView;
 import edu.bingol.backend.post.PostDtos.PostView;
-import edu.bingol.backend.post.spi.PostExtrasLookup;
 import edu.bingol.backend.post.spi.PostLikeLookup;
 import edu.bingol.backend.post.spi.PostMediaLookup;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
@@ -40,14 +39,6 @@ public class PostViewAssembler {
         this.likeLookups = likeLookups;
     }
 
-    /** Sosyal ekler (kaydetme, etiketler); yoksa bos (setter: mevcut kurucu degismesin). */
-    private ObjectProvider<PostExtrasLookup> extrasLookups;
-
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setExtrasLookups(ObjectProvider<PostExtrasLookup> extrasLookups) {
-        this.extrasLookups = extrasLookups;
-    }
-
     public List<PostView> assemble(Long viewerId, List<Post> posts) {
         if (posts.isEmpty()) {
             return List.of();
@@ -60,10 +51,6 @@ public class PostViewAssembler {
         Map<Long, List<MediaView>> media = mediaFor(postIds, viewerId);
         Set<Long> liked = likedFor(viewerId, postIds);
         boolean admin = CurrentUser.isAdmin();
-        Map<Long, PostExtrasLookup.Extras> extras = new HashMap<>();
-        if (extrasLookups != null) {
-            extrasLookups.orderedStream().forEach(l -> extras.putAll(l.postExtras(viewerId, postIds)));
-        }
 
         List<PostView> out = new ArrayList<>(posts.size());
         for (Post p : posts) {
@@ -71,10 +58,10 @@ public class PostViewAssembler {
             AuthorView author = a == null ? new AuthorView(p.getAuthorId(), "", null, null)
                     : new AuthorView(a.id(), a.displayName(), a.avatarUrl(), a.department());
             boolean mine = p.getAuthorId().equals(viewerId);
-            PostExtrasLookup.Extras x = extras.getOrDefault(p.getId(), PostExtrasLookup.Extras.EMPTY);
+            // Sade gonderi sozlesmesi: yorum/kaydet/etiket/bahsetme kaldirildi -> geriye uyumlu sabit degerler
             out.add(new PostView(p.getId(), author, p.getBody(), media.getOrDefault(p.getId(), List.of()),
-                    p.getLikeCount(), p.getCommentCount(), liked.contains(p.getId()), mine, mine, mine || admin,
-                    p.getCreatedAt(), p.getEditedAt(), x.savedByMe(), x.mentions(), x.hashtags()));
+                    p.getLikeCount(), 0, liked.contains(p.getId()), mine, mine, mine || admin,
+                    p.getCreatedAt(), p.getEditedAt(), false, List.of(), List.of()));
         }
         return out;
     }
@@ -86,7 +73,11 @@ public class PostViewAssembler {
     private Map<Long, List<MediaView>> mediaFor(Collection<Long> postIds, Long viewerId) {
         Map<Long, List<MediaView>> all = new HashMap<>();
         mediaLookups.orderedStream().forEach(l -> all.putAll(l.viewsFor(postIds, viewerId)));
-        return all;
+        // Yalniz ilk FOTOGRAF gosterilir: eski video/coklu gorselli gonderilerde fazlasi gizlenir (veri silinmez)
+        Map<Long, List<MediaView>> firstImage = new HashMap<>();
+        all.forEach((id, list) -> list.stream().filter(m -> "IMAGE".equals(m.kind())).findFirst()
+                .ifPresent(m -> firstImage.put(id, List.of(m))));
+        return firstImage;
     }
 
     private Set<Long> likedFor(Long viewerId, Collection<Long> postIds) {

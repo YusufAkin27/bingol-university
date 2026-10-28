@@ -45,7 +45,7 @@ class EventServiceTest {
     private final Instant end = start.plus(Duration.ofHours(2));
 
     private CreateEventRequest req(Instant s, Instant e, Integer cap, Long communityId) {
-        return new CreateEventRequest("Konferans", "aciklama", s, e, "Salon", cap, communityId);
+        return new CreateEventRequest("Konferans", "aciklama", s, e, "Salon", cap, communityId, null);
     }
 
     private ApiException error(Runnable r) {
@@ -245,7 +245,7 @@ class EventServiceTest {
         activeEvent(null, 0);
 
         assertEquals(HttpStatus.FORBIDDEN,
-                error(() -> svc.update(user, 5L, new UpdateEventRequest("Yeni baslik", null, null, null, null, null))).status());
+                error(() -> svc.update(user, 5L, new UpdateEventRequest("Yeni baslik", null, null, null, null, null, null))).status());
         assertEquals(HttpStatus.FORBIDDEN, error(() -> svc.delete(user, 5L)).status());
     }
 
@@ -254,7 +254,7 @@ class EventServiceTest {
         UserEvent e = activeEvent(10, 6);
         e.setCreatedBy(1L);
 
-        ApiException ex = error(() -> svc.update(user, 5L, new UpdateEventRequest(null, null, null, null, null, 5)));
+        ApiException ex = error(() -> svc.update(user, 5L, new UpdateEventRequest(null, null, null, null, null, 5, null)));
 
         assertEquals("CAPACITY_TOO_LOW", ex.code());
     }
@@ -279,5 +279,104 @@ class EventServiceTest {
         svc.delete(user, 5L);
 
         assertEquals(UserEvent.Status.CANCELLED, e.getStatus());
+    }
+
+    // ---- herkes olusturur / joinPolicy / istek akisi ----
+
+    private edu.bingol.backend.event.admission.EventAdmissionHooks hooks() {
+        edu.bingol.backend.event.admission.EventAdmissionHooks h =
+                mock(edu.bingol.backend.event.admission.EventAdmissionHooks.class);
+        when(h.joinPolicies(any())).thenReturn(Map.of());
+        when(h.pendingCounts(any())).thenReturn(Map.of());
+        when(h.requestStates(any(), any())).thenReturn(Map.of());
+        svc.setAdmission(h);
+        return h;
+    }
+
+    private void stubViews() {
+        when(events.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(communities.namesById(any())).thenReturn(Map.of());
+        when(communities.usersById(any())).thenReturn(Map.of());
+    }
+
+    @Test
+    void anyUserCanCreateClublessEventAndItIsActiveWhenApprovalNotRequired() {
+        var h = hooks();
+        when(h.requireApproval()).thenReturn(false);
+        stubViews();
+
+        EventView v = svc.create(user, req(start, end, 20, null));
+
+        assertEquals(UserEvent.Status.ACTIVE, v.status());
+        assertEquals(null, v.communityId());
+        assertEquals(edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN, v.joinPolicy());
+        assertEquals(Long.valueOf(1L), v.organizer().id());
+        verify(h).beforeCreate(user);
+        verify(communities, never()).require(any(), anyLong(), any());
+    }
+
+    @Test
+    void createWithApprovalPolicyStoresIt() {
+        var h = hooks();
+        when(h.requireApproval()).thenReturn(false);
+        stubViews();
+        var policy = edu.bingol.backend.event.admission.EventAdmission.Mode.APPROVAL;
+
+        svc.create(user, new CreateEventRequest("Hali saha", null, start, end, "Saha", 14, null, policy));
+
+        verify(h).applyJoinPolicy(any(), org.mockito.ArgumentMatchers.eq(policy));
+    }
+
+    @Test
+    void goingInApprovalEventBecomesPendingWithoutTakingASeat() {
+        var h = hooks();
+        activeEvent(1, 0);
+        when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.empty());
+        when(h.requestIfApprovalRequired(any(), any())).thenReturn(true);
+
+        var res = svc.rsvp(user, 5L, EventRsvp.Status.GOING);
+
+        assertEquals(EventRsvp.Status.PENDING, res.myRsvp());
+        verify(events, never()).tryIncrementGoing(anyLong());
+        verify(rsvps, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void persistedStatusCannotBePendingOrRejected() {
+        activeEvent(null, 0);
+        assertEquals("VALIDATION_ERROR", error(() -> svc.rsvp(user, 5L, EventRsvp.Status.PENDING)).code());
+        assertEquals("VALIDATION_ERROR", error(() -> svc.rsvp(user, 5L, EventRsvp.Status.REJECTED)).code());
+    }
+
+    @Test
+    void viewShowsDerivedPendingRsvpAndPendingCountOnlyToManager() {
+        var h = hooks();
+        UserEvent e = activeEvent(10, 0);
+        e.setCreatedBy(1L);
+        when(h.requestStates(any(), any())).thenReturn(Map.of(5L, EventRsvp.Status.PENDING));
+        when(h.pendingCounts(any())).thenReturn(Map.of(5L, 3L));
+        when(communities.namesById(any())).thenReturn(Map.of());
+        when(communities.usersById(any())).thenReturn(Map.of());
+
+        EventView mine = svc.get(user, 5L);
+        assertEquals(Long.valueOf(3L), mine.pendingCount());
+        assertEquals(EventRsvp.Status.PENDING, mine.myRsvp());
+
+        e.setCreatedBy(99L);
+        EventView other = svc.get(new Actor(2L, false), 5L);
+        assertEquals(null, other.pendingCount());
+    }
+
+    @Test
+    void goingToInterestedLeavesTheChatRoom() {
+        activeEvent(null, 1);
+        EventRsvp existing = new EventRsvp(5L, 1L, EventRsvp.Status.GOING);
+        when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.of(existing));
+        var chat = mock(edu.bingol.backend.event.chat.EventChatHooks.class);
+        svc.setChat(chat);
+
+        svc.rsvp(user, 5L, EventRsvp.Status.INTERESTED);
+
+        verify(chat).onLeft(5L, 1L);
     }
 }

@@ -27,4 +27,8 @@ public class MenuDay {
     /** Yemekler, satir sonu ile ayrilmis. */
     @Column(nullable = false, length = 1000)
     private String items;
+
+    /** Istege bagli menu fotografi (/files/covers/...); senkron dokunmaz. */
+    @Column(length = 500)
+    private String imageUrl;
 }

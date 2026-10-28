@@ -62,6 +62,7 @@ public class EventAdmissionController {
     public ApplicationView apply(@PathVariable Long id, @Valid @RequestBody(required = false) ApplyRequest r) {
         Actor a = Actor.current();
         limiter.check("event-apply:user:" + a.id(), 20, Duration.ofMinutes(1));
+        limiter.check("event-apply-hour:user:" + a.id(), 60, Duration.ofHours(1)); // istek spam
         return admission.apply(a, id, r);
     }
 
@@ -129,6 +130,33 @@ public class EventAdmissionController {
         Actor a = Actor.current();
         limiter.check("event-remove:user:" + a.id(), 60, Duration.ofMinutes(1));
         admission.removeParticipant(a, id, userId);
+    }
+
+    // ---- katilim istekleri (kullanici kimligiyle; /applications ailesinin sade takma adlari) ----
+
+    /** Organizator: istekler (varsayilan PENDING). */
+    @GetMapping("/events/{id}/requests")
+    public CursorPage<ApplicantView> requests(@PathVariable Long id,
+                                              @RequestParam(defaultValue = "PENDING") EventApplication.Status status,
+                                              @RequestParam(required = false) Long cursor,
+                                              @RequestParam(defaultValue = "50") int size) {
+        return admission.list(Actor.current(), id, status, cursor, size);
+    }
+
+    /** Onay: kontenjan doluysa 409 EVENT_FULL. */
+    @PostMapping("/events/{id}/requests/{userId}/approve")
+    public DecisionItem approveRequest(@PathVariable Long id, @PathVariable Long userId) {
+        Actor a = Actor.current();
+        limiter.check("event-decide:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return admission.approveRequest(a, id, userId);
+    }
+
+    @PostMapping("/events/{id}/requests/{userId}/reject")
+    public DecisionItem rejectRequest(@PathVariable Long id, @PathVariable Long userId,
+                                      @Valid @RequestBody(required = false) SingleDecisionRequest r) {
+        Actor a = Actor.current();
+        limiter.check("event-decide:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return admission.rejectRequest(a, id, userId, r == null ? null : r.reason());
     }
 
     private DecisionItem one(Long id, Long appId, Action action, String reason) {

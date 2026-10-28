@@ -72,7 +72,7 @@ class EventQaTest {
         assertEquals(HttpStatus.NOT_FOUND, error(() -> svc.requireManager(stranger, e)).status());
         assertEquals(HttpStatus.NOT_FOUND, error(() -> svc.attendees(stranger, 5L, null, null, 10)).status());
         assertEquals(HttpStatus.NOT_FOUND,
-                error(() -> svc.update(stranger, 5L, new UpdateEventRequest("Yeni", null, null, null, null, null))).status());
+                error(() -> svc.update(stranger, 5L, new UpdateEventRequest("Yeni", null, null, null, null, null, null))).status());
         assertEquals(HttpStatus.NOT_FOUND, error(() -> svc.delete(stranger, 5L)).status());
     }
 
@@ -107,7 +107,7 @@ class EventQaTest {
         Instant far = Instant.parse("2100-06-01T00:00:00Z");
         assertEquals("INVALID_DATES",
                 error(() -> svc.create(stranger, new edu.bingol.backend.event.dto.EventDtos.CreateEventRequest(
-                        "Uzak", null, far, far.plusSeconds(60), null, null, null))).code());
+                        "Uzak", null, far, far.plusSeconds(60), null, null, null, null))).code());
         assertEquals("INVALID_DATES", error(() -> EventService.validateDates(start, Instant.MAX)).code());
     }
 
@@ -118,7 +118,7 @@ class EventQaTest {
         Instant far = Instant.parse("2200-01-01T00:00:00Z");
 
         assertEquals("INVALID_DATES",
-                error(() -> svc.update(stranger, 5L, new UpdateEventRequest(null, null, far, far.plusSeconds(60), null, null))).code());
+                error(() -> svc.update(stranger, 5L, new UpdateEventRequest(null, null, far, far.plusSeconds(60), null, null, null))).code());
     }
 
     @Test
@@ -202,7 +202,7 @@ class EventQaTest {
         when(communities.usersById(any())).thenReturn(Map.of());
         when(communities.namesById(any())).thenReturn(Map.of());
 
-        svc.update(stranger, 5L, new UpdateEventRequest(null, null, start.plusSeconds(3600), end.plusSeconds(3600), null, null));
+        svc.update(stranger, 5L, new UpdateEventRequest(null, null, start.plusSeconds(3600), end.plusSeconds(3600), null, null, null));
 
         verify(rsvps).resetReminders(5L);
     }
@@ -214,7 +214,7 @@ class EventQaTest {
         when(communities.usersById(any())).thenReturn(Map.of());
         when(communities.namesById(any())).thenReturn(Map.of());
 
-        svc.update(stranger, 5L, new UpdateEventRequest(null, "yeni aciklama", null, null, null, null));
+        svc.update(stranger, 5L, new UpdateEventRequest(null, "yeni aciklama", null, null, null, null, null));
 
         verify(rsvps, never()).resetReminders(anyLong());
     }
@@ -304,7 +304,7 @@ class EventQaTest {
         when(communities.usersById(any())).thenReturn(Map.of());
         when(communities.namesById(any())).thenReturn(Map.of());
 
-        svc.update(stranger, 5L, new UpdateEventRequest(null, null, null, null, null, 0));
+        svc.update(stranger, 5L, new UpdateEventRequest(null, null, null, null, null, 0, null));
 
         assertEquals(null, e.getCapacity());
     }
@@ -316,7 +316,7 @@ class EventQaTest {
         e.setStartsAt(Instant.now().minus(Duration.ofMinutes(10)));
 
         ApiException ex = error(() -> svc.update(stranger, 5L,
-                new UpdateEventRequest(null, null, Instant.now().plus(Duration.ofDays(1)), end, null, null)));
+                new UpdateEventRequest(null, null, Instant.now().plus(Duration.ofDays(1)), end, null, null, null)));
 
         assertEquals("EVENT_STARTED", ex.code());
         assertFalse(ex.status().is2xxSuccessful());

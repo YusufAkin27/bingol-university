@@ -19,6 +19,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 | Push | `POST /api/admin/push/audience-count`, `POST/GET /api/admin/push/campaigns`, `GET .../{id}`, `POST .../{id}/cancel` |
 | Topluluk / etkinlik onayı | `GET /api/admin/communities`, `POST /api/admin/communities/{id}/approve\|reject`, `GET /api/admin/events`, `POST /api/admin/events/{id}/approve\|reject` |
 | Haber senkronu | `POST /api/admin/sync`, `POST /api/admin/sync-menu`, `GET /api/status` |
+| Menü fotoğrafı | `GET /api/admin/menu?from=&to=` → `[{date, items, imageUrl}]`; `PUT /api/admin/menu/{date}/image` (multipart `file`, jpg/png/webp) → `200 {date, imageUrl}`; `DELETE /api/admin/menu/{date}/image` → 204. Satır yoksa 404 `MENU_DAY_NOT_FOUND`; geçersiz tarih 400 `MENU_DATE_INVALID`/`MENU_RANGE_INVALID`. Kullanıcı uçları (`/api/menu`, `/api/menu/today`) yanıtına `imageUrl` (string|null) eklendi. |
 | İstatistik (basit) | `GET /api/admin/stats` |
 | Genel (giriş gerekmez) | `GET /api/app/info` (mağaza linkleri, iletişim, banner), `GET /api/faq`, `GET /api/legal*` |
 

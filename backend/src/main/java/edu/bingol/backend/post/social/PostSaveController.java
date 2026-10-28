@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Gonderi kaydetme uclari. {@code /saved} sabit yolu {@code /{id}} desenlerinden once eslesir. */
-@RestController
+// Devre disi: sade gonderi sozlesmesi (uc RemovedFeatureController ile 410 FEATURE_REMOVED doner). Geri almak icin @RestController ekleyin ve 410 eslemesini kaldirin.
 @RequestMapping("/api/posts")
 public class PostSaveController {
 

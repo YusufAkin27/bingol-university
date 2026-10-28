@@ -487,8 +487,8 @@ class EventAdmissionServiceTest {
     }
 
     @Test
-    void withdrawAcceptedHookIgnoresUsersWithoutAcceptedApplication() {
-        app(10L, 1L, Status.PENDING);
+    void withdrawAcceptedHookIgnoresUsersWithoutOpenApplication() {
+        app(10L, 1L, Status.REJECTED);
         assertEquals(false, svc.withdrawAccepted(user, event));
 
         when(apps.findByEventIdAndUserId(EVENT_ID, 3L)).thenReturn(Optional.empty());
@@ -574,5 +574,77 @@ class EventAdmissionServiceTest {
 
         assertEquals("EVENT_ENDED", error(() -> svc.setConfig(organizer, EVENT_ID,
                 new AdmissionDtos.ConfigRequest(Mode.APPROVAL, null))).code());
+    }
+
+    // ---- joinPolicy / istek uclari ----
+
+    @Test
+    void goingInApprovalModeOpensPendingRequest() {
+        when(apps.findByEventIdAndUserId(EVENT_ID, 1L)).thenReturn(Optional.empty());
+        assertEquals(true, svc.requestIfApprovalRequired(user, event));
+        org.mockito.ArgumentCaptor<EventApplication> cap = org.mockito.ArgumentCaptor.forClass(EventApplication.class);
+        verify(apps).saveAndFlush(cap.capture());
+        assertEquals(Status.PENDING, cap.getValue().getStatus());
+        verify(notifications).sendTemplated(eq(ORGANIZER), eq(edu.bingol.backend.notification.NotificationType.EVENT),
+                eq("notif.admission.received"), org.mockito.ArgumentMatchers.<Map<String, String>>any(), eq("Konferans"), eq("Kisi1"));
+    }
+
+    @Test
+    void goingInOpenModeIsNotARequest() {
+        config.setMode(Mode.OPEN);
+        assertEquals(false, svc.requestIfApprovalRequired(user, event));
+        verify(apps, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void pendingRequestCanBeWithdrawnThroughRsvpHook() {
+        app(10L, 1L, Status.PENDING);
+        assertEquals(true, svc.withdrawAccepted(user, event));
+        assertEquals(Status.CANCELLED, apps.findByEventIdAndUserId(EVENT_ID, 1L).get().getStatus());
+    }
+
+    @Test
+    void approveRequestFailsWithEventFullWhenCapacityReached() {
+        EventApplication a = app(10L, 1L, Status.PENDING);
+        when(eventRepo.goingCount(EVENT_ID)).thenReturn(1);
+        assertEquals("EVENT_FULL", error(() -> svc.approveRequest(organizer, EVENT_ID, 1L)).code());
+        assertEquals(Status.PENDING, a.getStatus());
+    }
+
+    @Test
+    void approveRequestAcceptsWhenSeatAvailable() {
+        EventApplication a = app(10L, 1L, Status.PENDING);
+        when(eventRepo.goingCount(EVENT_ID)).thenReturn(0);
+        when(eventRepo.tryIncrementGoing(EVENT_ID)).thenReturn(1);
+        assertEquals(Status.ACCEPTED, svc.approveRequest(organizer, EVENT_ID, 1L).status());
+        assertEquals(Status.ACCEPTED, a.getStatus());
+    }
+
+    @Test
+    void rejectRequestNotifiesAndNonOrganizerIsForbidden() {
+        EventApplication a = app(10L, 1L, Status.PENDING);
+        assertEquals("FORBIDDEN", error(() -> svc.rejectRequest(user, EVENT_ID, 1L, null)).code());
+        assertEquals(Status.REJECTED, svc.rejectRequest(organizer, EVENT_ID, 1L, null).status());
+        assertEquals(Status.REJECTED, a.getStatus());
+    }
+
+    @Test
+    void requestStatesMapPendingWaitlistedAndRejected() {
+        EventApplication p = new EventApplication(8L, 1L);
+        p.setStatus(Status.WAITLISTED);
+        EventApplication r = new EventApplication(9L, 1L);
+        r.setStatus(Status.REJECTED);
+        when(apps.mineAmong(eq(1L), anyCollection(), anyCollection())).thenReturn(java.util.List.of(p, r));
+        Map<Long, EventRsvp.Status> m = svc.requestStates(1L, java.util.List.of(8L, 9L));
+        assertEquals(EventRsvp.Status.PENDING, m.get(8L));
+        assertEquals(EventRsvp.Status.REJECTED, m.get(9L));
+    }
+
+    @Test
+    void switchingApprovalToOpenClosesPendingRequests() {
+        when(apps.userIdsByStatus(eq(EVENT_ID), anyCollection())).thenReturn(java.util.List.of(1L));
+        svc.applyJoinPolicy(event, Mode.OPEN);
+        assertEquals(Mode.OPEN, config.getMode());
+        verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
     }
 }

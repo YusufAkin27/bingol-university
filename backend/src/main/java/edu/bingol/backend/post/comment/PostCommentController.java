@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Gonderi yorum uclari: yalnizca HTTP eslemesi + hiz siniri; kurallar PostCommentService'te. */
-@RestController
+// Devre disi: sade gonderi sozlesmesi (uc RemovedFeatureController ile 410 FEATURE_REMOVED doner). Geri almak icin @RestController ekleyin ve 410 eslemesini kaldirin.
 @RequestMapping("/api")
 public class PostCommentController {
 

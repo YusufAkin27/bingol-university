@@ -135,6 +135,16 @@ POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword"
 - `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
 - Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
 
+### 1.7a Şifre değiştirme (oturum açıkken)
+```http
+POST /api/auth/change-password   (Bearer)
+{"currentPassword":"Eski1234x","newPassword":"Yeni1234x"}
+→ 200 {"accessToken":"...","refreshToken":"...","expiresInSeconds":900,"tokenType":"Bearer"}
+```
+- Yanıt `login` ile aynı biçimdedir ve **204 değildir**: başarıda kullanıcının tüm oturumları (diğer cihazlar dahil, çağıran cihazın eski token çifti de) kapanır; sunucu çağıran cihaza aynı istemci türünde (`cl`) **yeni token çifti** verir. İstemci eski access/refresh token'ı bu çiftle **hemen değiştirmelidir**; aksi halde sonraki istek `401 SESSION_REPLACED` alır. Eski token'la uçuşta olan istekler 401 alabilir: yeni çiftle bir kez yeniden deneyin.
+- Çağıran cihazın açık WebSocket bağlantısı iptal olayıyla (`session-replaced`) kapanır: bu olayda çıkış yapmayın, yeni access token'la yeniden bağlanın (diğer cihazlar giriş ekranına döner).
+- `newPassword` 8-72 karakter (kayıt/sıfırlama ile aynı; `400 VALIDATION_ERROR`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
+
 ### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
 Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
 ```http
@@ -348,6 +358,7 @@ Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve bireb
 | `POST /api/auth/forgot-password` | IP başına saatte 10; e-posta başına saatte 5 |
 | `POST /api/auth/verify-reset-code`, `reset-password` | IP başına 10 dk'da 20 |
 | `POST /api/auth/logout-all` | kullanıcı başına 15 dk'da 5 |
+| `POST /api/auth/change-password` | kullanıcı başına saatte 5; IP başına saatte 10 |
 | Mesaj gönderme (WS ve REST ortak) | kullanıcı başına dakikada 30 |
 | Yazıyor bilgisi | konuşma başına 2 sn'de 1 (sessizce atılır) |
 | `POST /api/conversations` | günde 30 |
@@ -554,6 +565,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `VALIDATION_ERROR` | 400 | Geçersiz istek. | Invalid request. | طلب غير صالح. |
 | `VERSION_OUTDATED` | 409 | Bu belgenin yeni bir sürümü yayımlandı. Güncel sürümü onaylayın. | A newer version of this document has been published. Please accept the current version. | تم نشر إصدار أحدث من هذا المستند. يرجى قبول الإصدار الحالي. |
 | `WRONG_PASSWORD` | 403 | Şifre hatalı. | Incorrect password. | كلمة المرور غير صحيحة. |
+| `PASSWORD_UNCHANGED` | 422 | Yeni şifre mevcut şifreyle aynı olamaz. | The new password must differ from the current password. | يجب أن تختلف كلمة المرور الجديدة عن الحالية. |
 
 <!-- ERRORS:END -->
 
@@ -655,6 +667,14 @@ Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kiş
 
 ## Gönderiler (Keşfet akışı)
 Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.
+
+> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir.**
+> - Gönderi: **tam 1 fotoğraf zorunlu**, metin isteğe bağlı: tek satır, **en çok 7 kelime ve 60 karakter**. Önce `POST /api/posts/media` (yalnız görsel; video `400 POST_VIDEO_NOT_ALLOWED`), sonra `POST /api/posts` `{"text":"güzel bir gün","mediaIds":[12]}` → 201 `PostView`.
+> - Hatalar: `400 POST_PHOTO_REQUIRED` (mediaIds boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_VIDEO_NOT_ALLOWED`, `400 POST_MEDIA_INVALID`, `422 POST_TEXT_TOO_LONG` (7 kelime/60 karakter aşıldı; PATCH'te de), `422 POST_TEXT_INVALID` (satır sonu), `422 CONTENT_PROFANITY`. Eski `POST_TOO_LONG` (2000) ve `POST_EMPTY` (oluşturmada) artık dönmez.
+> - **Kaldırıldı → `410 FEATURE_REMOVED`** (`{"code","message"}`): yorumlar (`/api/posts/{id}/comments`, `/api/comments/**`), hikâyeler (`/api/stories/**`, `/api/users/{id}/stories`), etiketler (`/api/hashtags/**`), `GET /api/users/mention-suggest`, kaydet (`/api/posts/{id}/save`, `/api/posts/saved`), `GET /api/posts/{id}/likes`. İstemci 410'u yeniden denememeli; ilgili arayüzü kaldırıp (gerekirse "uygulamayı güncelleyin" göstererek) çağrıyı bırakmalıdır.
+> - **Kalan:** beğeni (`PUT|DELETE /api/posts/{id}/like`), takip ve akış kapsamları, gönderi sil/düzenle(metin), rapor.
+> - `PostView` geriye uyumlu: `commentCount=0`, `savedByMe=false`, `mentions=[]`, `hashtags=[]`, `media` ≤ 1 (yalnız ilk görsel). Eski video-only/fotoğrafsız gönderiler listelerde yoktur.
+> - Yeni gönderi örneği: istek `{"text":"kampüste akşam","mediaIds":[12]}` → `201 {"id":91,"author":{…},"text":"kampüste akşam","media":[{"id":12,"kind":"IMAGE","url":"/api/posts/media/12","thumbUrl":"/api/posts/media/12?thumb=true","width":1080,"height":1350,"durationMs":null}],"likeCount":0,"commentCount":0,"likedByMe":false,"mine":true,"canEdit":true,"canDelete":true,"createdAt":"…","editedAt":null,"savedByMe":false,"mentions":[],"hashtags":[]}`.
 
 | Uç | Açıklama |
 |---|---|

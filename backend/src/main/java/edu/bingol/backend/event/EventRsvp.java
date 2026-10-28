@@ -19,7 +19,11 @@ import lombok.Setter;
 @Setter
 public class EventRsvp {
 
-    public enum Status { GOING, INTERESTED }
+    /**
+     * Kalici degerler yalnizca GOING ve INTERESTED'dir (tablo CHECK'i). PENDING ve REJECTED TURETILMISTIR: katilim
+     * istegi (event_application) bekliyor/reddedildi ise yanitlardaki myRsvp bunu gosterir; asla yazilmaz.
+     */
+    public enum Status { GOING, INTERESTED, PENDING, REJECTED }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

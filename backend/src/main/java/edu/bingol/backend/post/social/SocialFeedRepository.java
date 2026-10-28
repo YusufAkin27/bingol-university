@@ -2,6 +2,7 @@ package edu.bingol.backend.post.social;
 
 import static edu.bingol.backend.post.PostRepository.LATEST_AFTER;
 import static edu.bingol.backend.post.PostRepository.LATEST_ORDER;
+import static edu.bingol.backend.post.PostRepository.FEED_VISIBLE;
 import static edu.bingol.backend.post.PostRepository.VISIBLE;
 
 import edu.bingol.backend.post.Post;
@@ -20,17 +21,17 @@ public interface SocialFeedRepository extends Repository<Post, Long> {
     String DEPARTMENT = "p.authorId IN (SELECT u.id FROM User u WHERE u.department = :dept) AND ";
     String HASHTAG = "EXISTS (SELECT 1 FROM PostHashtag h WHERE h.id.a = p.id AND h.id.b = :tag) AND ";
 
-    @Query("SELECT p FROM Post p WHERE " + FOLLOWING + VISIBLE + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + FOLLOWING + FEED_VISIBLE + LATEST_ORDER)
     List<Post> followingFirst(@Param("viewer") Long viewer, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE " + FOLLOWING + VISIBLE + LATEST_AFTER + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + FOLLOWING + FEED_VISIBLE + LATEST_AFTER + LATEST_ORDER)
     List<Post> followingAfter(@Param("viewer") Long viewer, @Param("at") Instant at, @Param("cid") Long cid,
                               Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + VISIBLE + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + FEED_VISIBLE + LATEST_ORDER)
     List<Post> departmentFirst(@Param("viewer") Long viewer, @Param("dept") String dept, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + VISIBLE + LATEST_AFTER + LATEST_ORDER)
+    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + FEED_VISIBLE + LATEST_AFTER + LATEST_ORDER)
     List<Post> departmentAfter(@Param("viewer") Long viewer, @Param("dept") String dept, @Param("at") Instant at,
                                @Param("cid") Long cid, Pageable page);
 

@@ -55,6 +55,10 @@ public class Post {
     @Column(nullable = false)
     private double score;
 
+    /** Kesfet "top" siralama puani (PostRankService; istemciye donmez). */
+    @Column(nullable = false)
+    private double rankScore;
+
     public boolean isVisible() {
         return deletedAt == null && hiddenAt == null;
     }

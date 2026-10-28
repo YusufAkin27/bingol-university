@@ -13,6 +13,7 @@ import edu.bingol.backend.moderation.MediaPreview;
 import edu.bingol.backend.moderation.ReportTargetHandler;
 import edu.bingol.backend.moderation.ReportTargetType;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
+import edu.bingol.backend.post.PostFixtures;
 import edu.bingol.backend.post.PostService;
 import edu.bingol.backend.post.admin.AdminPostService.CommentPage;
 import edu.bingol.backend.post.admin.AdminPostService.PostPage;
@@ -37,6 +38,8 @@ class PostAdminTest {
 
     @Autowired AdminPostService admin;
     @Autowired PostService posts;
+    @Autowired edu.bingol.backend.post.PostRepository postRepo;
+    @Autowired edu.bingol.backend.post.media.PostMediaRepository mediaRepo;
     @Autowired PostCommentService comments;
     @Autowired PostLikeService likes;
     @Autowired UserRepository users;
@@ -55,8 +58,14 @@ class PostAdminTest {
         return users.saveAndFlush(u);
     }
 
+    /** Fotografsiz (yonetici listeleri/handler/saklama testleri; akis disinda). */
     private long post(User u, String text) {
-        return posts.create(u.getId(), new CreatePostRequest(text, null)).id();
+        return PostFixtures.textOnly(postRepo, u.getId(), text).getId();
+    }
+
+    /** Fotografli: sade Kesfet'te akista gorunen gonderi. */
+    private long photoPost(User u, String text) {
+        return PostFixtures.withPhoto(postRepo, mediaRepo, u.getId(), text).getId();
     }
 
     private ReportTargetHandler handler(ReportTargetType t) {
@@ -75,7 +84,7 @@ class PostAdminTest {
     void hideRemovesFromFeedAndUnhideRestores() {
         User a = user("Yazar Bir");
         User v = user("Okur");
-        long id = post(a, "gizlenecek gonderi");
+        long id = photoPost(a, "gizlenecek gonderi");
         assertTrue(inFeed(v, id));
 
         PostRow hidden = admin.hide(id, "  spam  ");

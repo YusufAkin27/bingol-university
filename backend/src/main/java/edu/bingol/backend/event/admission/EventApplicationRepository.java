@@ -28,6 +28,15 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
     List<EventApplication> pageByStatus(@Param("eid") Long eventId, @Param("status") EventApplication.Status status,
                                         @Param("cursor") long cursor, Pageable page);
 
+    /** Kullanicinin verilen etkinliklerdeki basvurulari (belirli durumlar), toplu. */
+    @Query("SELECT a FROM EventApplication a WHERE a.userId = :uid AND a.eventId IN :ids AND a.status IN :statuses")
+    List<EventApplication> mineAmong(@Param("uid") Long userId, @Param("ids") Collection<Long> eventIds,
+                                     @Param("statuses") Collection<EventApplication.Status> statuses);
+
+    /** Etkinlik basina belirli durumdaki basvuru sayisi: [eventId, count]. */
+    @Query("SELECT a.eventId, COUNT(a) FROM EventApplication a WHERE a.eventId IN :ids AND a.status = :status GROUP BY a.eventId")
+    List<Object[]> countByEvents(@Param("ids") Collection<Long> eventIds, @Param("status") EventApplication.Status status);
+
     /** Kullanicinin kendi listesi: yeniden eskiye imec. */
     @Query("SELECT a FROM EventApplication a WHERE a.userId = :uid AND a.id < :cursor ORDER BY a.id DESC")
     List<EventApplication> mine(@Param("uid") Long userId, @Param("cursor") long cursor, Pageable page);

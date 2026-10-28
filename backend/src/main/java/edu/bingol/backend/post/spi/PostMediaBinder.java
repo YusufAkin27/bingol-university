@@ -9,6 +9,12 @@ import java.util.List;
  */
 public interface PostMediaBinder {
 
+    /**
+     * Sade gonderi: medya tam 1 adet, ownerId'ye ait, baglanmamis ve FOTOGRAF olmali.
+     * Video -> 400 POST_VIDEO_NOT_ALLOWED; diger gecersizlik -> 400 POST_MEDIA_INVALID.
+     */
+    void requireImage(long ownerId, List<Long> mediaIds);
+
     void attach(long postId, long ownerId, List<Long> mediaIds);
 
     /** Gonderiye bagli medya id'leri (silme olayi icin). */

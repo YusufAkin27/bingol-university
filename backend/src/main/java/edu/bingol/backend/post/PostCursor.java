@@ -35,6 +35,33 @@ public record PostCursor(Instant at, double score, long id) {
         }
     }
 
+    /** Kesfet top imleci: (rankScore, id) + hesap surumu (kopya/atlama ipucu icin). */
+    public record Top(double score, long id, long version) {}
+
+    public static String top(double score, long id, long version) {
+        return enc("T|" + score + "|" + id + "|" + version);
+    }
+
+    /** Bos imlec null (ilk sayfa); bozuk imlec 400 POST_CURSOR_INVALID. */
+    public static Top decodeTop(String cursor) {
+        if (cursor == null || cursor.isBlank()) {
+            return null;
+        }
+        try {
+            String[] p = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8).split("\\|");
+            if (p.length != 4 || !"T".equals(p[0])) {
+                throw new IllegalArgumentException();
+            }
+            double s = Double.parseDouble(p[1]);
+            if (Double.isNaN(s) || Double.isInfinite(s)) {
+                throw new IllegalArgumentException();
+            }
+            return new Top(s, Long.parseLong(p[2]), Long.parseLong(p[3]));
+        } catch (RuntimeException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_CURSOR_INVALID", "Geçersiz sayfa imleci.");
+        }
+    }
+
     private static String enc(String s) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(s.getBytes(StandardCharsets.UTF_8));
     }

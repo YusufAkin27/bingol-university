@@ -39,11 +39,5 @@ public class PostLikeController {
         return service.unlike(uid, id);
     }
 
-    @GetMapping("/likes")
-    public LikersPage likers(@PathVariable Long id, @RequestParam(required = false) String cursor,
-                             @RequestParam(defaultValue = "20") int size) {
-        Long uid = CurrentUser.id();
-        limiter.check("post:likes:" + uid, 120, Duration.ofMinutes(1));
-        return service.listLikers(id, uid, cursor, size);
-    }
+    // GET /likes (begenenler listesi) kaldirildi: RemovedFeatureController 410 doner.
 }
