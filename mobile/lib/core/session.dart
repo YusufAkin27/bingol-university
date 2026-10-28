@@ -408,6 +408,12 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
       return _withRetry(l.errServiceBusy, e, l);
     case 'LEGAL_REACCEPT_REQUIRED':
       return l.errLegalReaccept;
+    case 'CONVERSATION_CLOSED': // P08: yönetici sohbeti kapattı (sebep istemciye gelmez)
+      return l.chatClosedBanner;
+    case 'CERTIFICATE_REVOKED': // P07: yönetici sertifikayı iptal etti, yeniden alınamaz
+      return l.errCertificateRevoked;
+    case 'COMMUNITY_NOT_FOUND': // P06: kulüp kapatıldı (HIDDEN) / silindi
+      return l.clubUnavailable;
   }
   return null;
 }

@@ -11,6 +11,7 @@ import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import 'bubble_text_meta.dart';
 import 'chat_media.dart';
+import 'message_placeholder.dart';
 import 'chatd_parts.dart';
 
 String _two(int n) => n.toString().padLeft(2, '0');
@@ -113,7 +114,10 @@ class MessageBubble extends StatelessWidget {
     final reply = m['replyTo'] is Map
         ? Map<String, dynamic>.from(m['replyTo'] as Map)
         : null;
-    final text = deleted ? context.l10n.chatMiscThisMessageDeleted : (m['text'] as String?) ?? '';
+    // Silinen/gizlenen/yönetici kaldırması: sunucunun sabit Türkçe metni yerine uygulama dilinde yer tutucu.
+    final text = (deleted || removed)
+        ? removedPlaceholder(context, serverText: m['text'] as String?, deleted: deleted, removed: removed)
+        : (m['text'] as String?) ?? '';
     final maxW = MediaQuery.sizeOf(context).width * .78;
     final allAtts =
         (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
@@ -398,7 +402,8 @@ class MessageBubble extends StatelessWidget {
   Widget _quote(BuildContext context, BuTokens t, Map<String, dynamic> reply, Color fg) {
     final bar = mine ? t.onPr : (replyMine ? t.pr : t.ok);
     final raw = reply['deleted'] == true
-        ? context.l10n.chatMiscThisMessageDeleted
+        ? removedPlaceholder(context,
+            serverText: reply['text'] as String?, deleted: true, removed: true)
         : (reply['text'] as String?) ?? '';
     final quoted = raw.isEmpty
         ? (reply['kind'] == 'VIDEO'

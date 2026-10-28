@@ -42,7 +42,14 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
     final t = context.bu;
     final l = context.l10n;
     final tone = P2Tones.of(context);
-    final items = [l.profil2DelItem1, l.profil2DelItem2, l.profil2DelItem3, l.profil2DelItem4];
+    final items = [
+      l.profil2DelItem1,
+      l.profil2DelItem2,
+      l.profil2DelItemUsage,
+      l.profil2DelItem3,
+      l.profil2DelItemClubOwner,
+      l.profil2DelItem4,
+    ];
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(

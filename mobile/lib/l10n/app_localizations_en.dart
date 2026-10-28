@@ -7037,4 +7037,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authVerifyPasswordRequired =>
       'Enter the password you chose at sign-up.';
+
+  @override
+  String get chatClosedBanner =>
+      'This conversation was closed by an administrator.';
+
+  @override
+  String get chatAdminRemovedMsg =>
+      'This message was removed by an administrator';
+
+  @override
+  String get chatModRemovedMsg => 'This message was removed';
+
+  @override
+  String get errCertificateRevoked =>
+      'This certificate was revoked by an administrator.';
+
+  @override
+  String get clubUnavailable => 'This club is not available right now.';
+
+  @override
+  String get profil2DelItemUsage =>
+      'Your device, IP and usage (analytics) records are deleted immediately.';
+
+  @override
+  String get profil2DelItemClubOwner =>
+      'Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.';
 }

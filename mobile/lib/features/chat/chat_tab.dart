@@ -14,6 +14,7 @@ import 'chat_media.dart';
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
+import 'message_placeholder.dart';
 import 'new_chat_page.dart';
 import '../../core/typography.dart';
 
@@ -779,7 +780,7 @@ class _ConversationRow extends StatelessWidget {
       if (s is String) status = s.toUpperCase();
       final removed = last['removed'] == true || last['deleted'] == true;
       if (removed) {
-        preview = l.chatMiscMessageDeleted;
+        preview = isAdminRemovedText(last['text'] as String?) ? l.chatAdminRemovedMsg : l.chatMiscMessageDeleted;
       } else {
         final p = _preview(context, last);
         preview = p.$1;

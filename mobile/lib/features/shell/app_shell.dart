@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../news/news_list_page.dart';
 import '../../core/locale_controller.dart';
+import '../../core/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -46,6 +47,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     s.realtime?.start();
     _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
+    shellTabRequest.addListener(_onTabRequest);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onTabRequest());
     _refreshBadges();
     _poll = Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
   }
@@ -53,11 +56,20 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    shellTabRequest.removeListener(_onTabRequest);
     _poll?.cancel();
     _msgSub?.cancel();
     s.realtime?.stop();
     _discoverType.dispose();
     super.dispose();
+  }
+
+  /// Push yönlendirmesinden gelen "sekmeye geç" isteği (ör. sohbetten çıkarıldı -> Sohbet listesi).
+  void _onTabRequest() {
+    final v = shellTabRequest.value;
+    if (v == null) return;
+    shellTabRequest.value = null;
+    if (mounted && v >= 0 && v <= AppTab.profile) setState(() => _tab = v);
   }
 
   @override

@@ -3798,5 +3798,12 @@
   "legalReacceptOutdated": "Belgeler yeniden güncellendi. Lütfen yeni sürümleri inceleyip tekrar kabul edin.",
   "authVerifyPasswordLabel": "Kayıtta belirlediğiniz şifre",
   "authVerifyPasswordNote": "Güvenlik için, kayıt sırasında girdiğiniz şifreyi yeniden girin.",
-  "authVerifyPasswordRequired": "Kayıtta belirlediğiniz şifreyi girin."
+  "authVerifyPasswordRequired": "Kayıtta belirlediğiniz şifreyi girin.",
+  "chatClosedBanner": "Bu sohbet yönetici tarafından kapatıldı.",
+  "chatAdminRemovedMsg": "Bu mesaj yönetici tarafından kaldırıldı",
+  "chatModRemovedMsg": "Bu mesaj kaldırıldı",
+  "errCertificateRevoked": "Bu sertifika yönetici tarafından iptal edildi.",
+  "clubUnavailable": "Kulüp şu an kullanılamıyor.",
+  "profil2DelItemUsage": "Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.",
+  "profil2DelItemClubOwner": "Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır."
 }

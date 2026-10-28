@@ -2134,5 +2134,12 @@
   "legalReacceptOutdated": "تم تحديث الوثائق مرة أخرى. يرجى مراجعة الإصدارات الجديدة والموافقة عليها من جديد.",
   "authVerifyPasswordLabel": "كلمة المرور التي اخترتها عند التسجيل",
   "authVerifyPasswordNote": "لأسباب أمنية، أعد إدخال كلمة المرور التي استخدمتها عند التسجيل.",
-  "authVerifyPasswordRequired": "أدخل كلمة المرور التي اخترتها عند التسجيل."
+  "authVerifyPasswordRequired": "أدخل كلمة المرور التي اخترتها عند التسجيل.",
+  "chatClosedBanner": "أغلق أحد المشرفين هذه المحادثة.",
+  "chatAdminRemovedMsg": "أزال أحد المشرفين هذه الرسالة",
+  "chatModRemovedMsg": "تمت إزالة هذه الرسالة",
+  "errCertificateRevoked": "ألغى أحد المشرفين هذه الشهادة.",
+  "clubUnavailable": "هذا النادي غير متاح حاليًا.",
+  "profil2DelItemUsage": "يتم حذف سجلات أجهزتك وعنوان IP وبيانات الاستخدام (التحليلات) فورًا.",
+  "profil2DelItemClubOwner": "تُنقل ملكية النوادي التي تملكها إلى عضو مشرف؛ وإذا لم يوجد مرشح يُغلق النادي."
 }

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/permissions_page.dart';
 import '../locale_controller.dart';
 import '../notify/local_reminders.dart';
+import '../closed_conversations.dart';
 import '../session.dart';
 import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
@@ -295,6 +296,8 @@ class PushService with WidgetsBindingObserver {
   /// Ön plan mesajı: açık sohbetse hiçbir şey gösterme; değilse kısa uygulama içi şerit. Rozetler güncellenir.
   /// Dönüş: şerit gösterildi mi (test için).
   bool handleForeground({required String title, required String body, required Map<String, dynamic> data}) {
+    // Kapatma/yeniden açma durumu, sohbet açıkken şerit bastırılsa bile işlenir (bant canlı görünsün).
+    ClosedConversations.instance.applyPushData(data);
     if (active.shouldSuppress(data)) return false;
     final type = '${data['type'] ?? ''}'.toUpperCase();
     if (type == 'MESSAGE' || data['conversationId'] != null) {

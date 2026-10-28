@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../api.dart';
+import '../closed_conversations.dart';
 import '../connectivity/connectivity_service.dart';
 
 enum OutboxStatus { pending, failed }
@@ -361,6 +362,8 @@ class Outbox extends ChangeNotifier {
       return false;
     }
     // Diğer 4xx: kalıcı hata (içerik/izin); kullanıcı elle yeniden dener ya da siler.
+    // 409 CONVERSATION_CLOSED (P08): yönetici sohbeti kapattı; ekranlar yazma alanını kapatır.
+    if (e.code == 'CONVERSATION_CLOSED') ClosedConversations.instance.markClosed(it.conversationId);
     it.status = OutboxStatus.failed;
     it.errorCode = e.code;
     return false;

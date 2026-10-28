@@ -14,6 +14,7 @@ import '../../features/profile/user_profile_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
 import '../api.dart';
+import '../closed_conversations.dart';
 import '../nav.dart';
 import '../session.dart';
 import 'push_targets.dart';
@@ -29,6 +30,8 @@ class PushRouter {
 
   static Future<void> open(Map<String, dynamic> data) async {
     final s = session;
+    // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
+    ClosedConversations.instance.applyPushData(data);
     final target = resolvePushTarget(data);
     if (s != null && target.dest == PushDest.signOut) {
       await s.forceSignOut(reason: SignOutReason.replaced);
@@ -70,6 +73,11 @@ class PushRouter {
         } on ApiError {
           return false;
         }
+      case PushDest.chatList:
+        // Sohbet sekmesi: açık rotaları kapatıp kabukta Sohbet'e geç.
+        nav.popUntil((r) => r.isFirst);
+        shellTabRequest.value = 2;
+        return true;
       case PushDest.event:
         push(EventDetailPage(session: s, eventId: id!));
         return true;

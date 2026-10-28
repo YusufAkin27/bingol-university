@@ -12912,6 +12912,48 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kayıtta belirlediğiniz şifreyi girin.'**
   String get authVerifyPasswordRequired;
+
+  /// No description provided for @chatClosedBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbet yönetici tarafından kapatıldı.'**
+  String get chatClosedBanner;
+
+  /// No description provided for @chatAdminRemovedMsg.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj yönetici tarafından kaldırıldı'**
+  String get chatAdminRemovedMsg;
+
+  /// No description provided for @chatModRemovedMsg.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj kaldırıldı'**
+  String get chatModRemovedMsg;
+
+  /// No description provided for @errCertificateRevoked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sertifika yönetici tarafından iptal edildi.'**
+  String get errCertificateRevoked;
+
+  /// No description provided for @clubUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp şu an kullanılamıyor.'**
+  String get clubUnavailable;
+
+  /// No description provided for @profil2DelItemUsage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.'**
+  String get profil2DelItemUsage;
+
+  /// No description provided for @profil2DelItemClubOwner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.'**
+  String get profil2DelItemClubOwner;
 }
 
 class _AppLocalizationsDelegate

@@ -122,7 +122,12 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         setState(() => _requests.items.clear());
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e);
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        // Kulüp kapatıldı/silindi (404): eski veriyi göstermeye devam etme.
+        if (clubIsGone(e)) _club = null;
+      });
     }
   }
 
@@ -460,7 +465,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     Widget body;
-    if (_error != null && _club == null) {
+    if (_error != null && _club == null && clubIsGone(_error!)) {
+      // Kulüp kapatıldı (HIDDEN) ya da silindi: etkinlik ve sohbet odası da kapanır; yeniden denemenin anlamı yok.
+      body = Column(children: [
+        BuHeader(title: context.l10n.clubTitle, onBack: () => Navigator.pop(context)),
+        Expanded(child: EmptyView(key: const ValueKey('clubUnavailable'), icon: LucideIcons.users, text: context.l10n.clubUnavailable)),
+      ]);
+    } else if (_error != null && _club == null) {
       body = Column(children: [
         BuHeader(title: context.l10n.clubTitle, onBack: () => Navigator.pop(context)),
         Expanded(child: ErrorView(error: _error!, onRetry: () {
@@ -1111,3 +1122,6 @@ class _DeleteClubDialogState extends State<_DeleteClubDialog> {
     );
   }
 }
+
+/// Kulüp ayrıntısı/alt kaynağı 404 (kapatılmış `HIDDEN`, silinmiş ya da var olmayan kulüp).
+bool clubIsGone(Object e) => e is ApiError && (e.status == 404 || e.code == 'COMMUNITY_NOT_FOUND');

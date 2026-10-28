@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart' show VideoPlayerController;
 
 import '../../core/api.dart';
+import '../../core/closed_conversations.dart';
 import '../../core/locale_controller.dart';
 import '../../core/outbox/outbox.dart';
 import '../../core/permissions/ensure_permission.dart';
@@ -204,6 +205,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       ? Map<String, dynamic>.from(_conv['peer'] as Map)
       : null;
   bool get _blocked => _conv['blocked'] == true;
+
+  /// Yönetici sohbeti kapattı (P08): yazma alanı kapanır, "kapatıldı" bandı görünür (sebep gösterilmez).
+  bool get _closed => ClosedConversations.instance.isClosed(_cid);
+  void _onClosedChanged() {
+    if (!mounted) return;
+    setState(() {
+      if (_closed) {
+        _editing = null;
+        _replyTo = null;
+      }
+    });
+  }
   bool get _room => _type == 'CLUB' || _type == 'EVENT';
   int? get _roomTargetId =>
       ((_type == 'CLUB' ? _conv['communityId'] : _conv['eventId']) as num?)
@@ -264,6 +277,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_conv['id'] is num) ActiveConversation.instance.enter(_cid); // bu sohbet açık: ön plan bildirimi/şeridi bastırılır
     _scroll.addListener(_onScroll);
     _input.addListener(_onInput);
+    ClosedConversations.instance.addListener(_onClosedChanged);
     _watchOutbox();
     _boot();
   }
@@ -303,7 +317,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         }
       } else if (it.status == OutboxStatus.failed && m['_state'] != 'failed') {
         m['_state'] = 'failed';
-        m['_error'] = null;
+        m['_error'] = it.errorCode == 'CONVERSATION_CLOSED' ? context.l10n.chatClosedBanner : null;
         dirty = true;
       }
     }
@@ -341,6 +355,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _hiOff?.cancel();
     _deliverySub?.cancel();
     _outbox?.removeListener(_onOutboxChanged);
+    ClosedConversations.instance.removeListener(_onClosedChanged);
     _hi.dispose();
     _showDown.dispose();
     _newBelow.dispose();
@@ -575,8 +590,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _typingOff =
             Timer(const Duration(seconds: 4), () => _typingNow.value = false);
       }),
+      _rt.deletedMessages.listen((e) {
+        // Gizleme/silme olayı yalnız kimlik taşır: yer tutucu metni için son sayfayı tazele.
+        if (e.conversationId == _cid) _poll(force: true);
+      }),
       _rt.errors.listen((e) {
         final cid = e.clientId;
+        if (e.code == 'CONVERSATION_CLOSED') {
+          ClosedConversations.instance.markClosed(_cid);
+        }
         if (cid == null) return;
         _ackTimers.remove(cid)?.cancel();
         final i =
@@ -584,7 +606,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (i >= 0 && mounted) {
           setState(() {
             _msgs[i]['_state'] = 'failed';
-            _msgs[i]['_error'] = null;
+            _msgs[i]['_error'] =
+                e.code == 'CONVERSATION_CLOSED' ? context.l10n.chatClosedBanner : null;
           });
         }
       }),
@@ -603,6 +626,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final cid = m['clientId'] as String?;
     if (cid != null) _ackTimers.remove(cid)?.cancel();
     final mine = (m['senderId'] as num?)?.toInt() == _myId;
+    // Kapalı sohbette canlı yeni mesaj = sohbet yeniden açılmış.
+    ClosedConversations.instance.markOpen(_cid);
     setState(() => _merge([m]));
     if (mine) {
       _changed = true;
@@ -853,6 +878,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     // Engel bilgisi sızdırılmaz: olası engel hata kodları yok sayılır (mesaj gönderilmiş görünür).
     if (e is ApiError && (e.code == 'BLOCKED' || e.code == 'USER_BLOCKED')) {
       setState(() => local['_state'] = null);
+      return;
+    }
+    // Yönetici kapattı (409): yazma alanı kapanır; mesaj kalıcı hatalı (kuyruktaysa kuyruk da failed yapar).
+    if (e is ApiError && e.code == 'CONVERSATION_CLOSED') {
+      ClosedConversations.instance.markClosed(_cid);
+      setState(() {
+        local['_state'] = 'failed';
+        local['_error'] = context.l10n.chatClosedBanner;
+      });
       return;
     }
     // Ağ yok ve mesaj çevrimdışı kuyruğa alındı: kırmızı hata değil, "bekliyor" (bağlantı gelince gider).
@@ -1802,7 +1836,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         body: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
           Expanded(child: _body(t)),
-          _composer(t),
+          _closed ? _closedBar(t) : _composer(t),
         ]),
       ),
     );
@@ -2245,6 +2279,27 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       onOpenViewOnce: (a) => _openViewOnce(m, a),
       highlight: (_searching && _query.isNotEmpty) ? _query : null,
       onReact: (e) => _react(m, e),
+    );
+  }
+
+  /// Kapalı sohbet bandı: yazma alanı yerine geçer (sebep gösterilmez).
+  Widget _closedBar(BuTokens t) {
+    return Container(
+      key: const ValueKey('chatClosedBanner'),
+      width: double.infinity,
+      decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 14 + MediaQuery.of(context).padding.bottom),
+      child: Row(children: [
+        Icon(LucideIcons.lock, size: 18, color: t.mut),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            child: Text(context.l10n.chatClosedBanner,
+                style: BuType.body.copyWith(color: t.mut, height: 1.4)),
+          ),
+        ),
+      ]),
     );
   }
 

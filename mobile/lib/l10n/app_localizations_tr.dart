@@ -7008,4 +7008,28 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get authVerifyPasswordRequired =>
       'Kayıtta belirlediğiniz şifreyi girin.';
+
+  @override
+  String get chatClosedBanner => 'Bu sohbet yönetici tarafından kapatıldı.';
+
+  @override
+  String get chatAdminRemovedMsg => 'Bu mesaj yönetici tarafından kaldırıldı';
+
+  @override
+  String get chatModRemovedMsg => 'Bu mesaj kaldırıldı';
+
+  @override
+  String get errCertificateRevoked =>
+      'Bu sertifika yönetici tarafından iptal edildi.';
+
+  @override
+  String get clubUnavailable => 'Kulüp şu an kullanılamıyor.';
+
+  @override
+  String get profil2DelItemUsage =>
+      'Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.';
+
+  @override
+  String get profil2DelItemClubOwner =>
+      'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.';
 }

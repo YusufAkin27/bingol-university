@@ -6973,4 +6973,27 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get authVerifyPasswordRequired =>
       'أدخل كلمة المرور التي اخترتها عند التسجيل.';
+
+  @override
+  String get chatClosedBanner => 'أغلق أحد المشرفين هذه المحادثة.';
+
+  @override
+  String get chatAdminRemovedMsg => 'أزال أحد المشرفين هذه الرسالة';
+
+  @override
+  String get chatModRemovedMsg => 'تمت إزالة هذه الرسالة';
+
+  @override
+  String get errCertificateRevoked => 'ألغى أحد المشرفين هذه الشهادة.';
+
+  @override
+  String get clubUnavailable => 'هذا النادي غير متاح حاليًا.';
+
+  @override
+  String get profil2DelItemUsage =>
+      'يتم حذف سجلات أجهزتك وعنوان IP وبيانات الاستخدام (التحليلات) فورًا.';
+
+  @override
+  String get profil2DelItemClubOwner =>
+      'تُنقل ملكية النوادي التي تملكها إلى عضو مشرف؛ وإذا لم يوجد مرشح يُغلق النادي.';
 }

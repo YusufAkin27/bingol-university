@@ -39,6 +39,15 @@ class ViewedEvent {
 }
 
 /// `/user/queue/message-events` `receipt`: kendi mesajlarınız `upToMessageId`'ye kadar iletildi/okundu.
+/// `/user/queue/message-events` `deleted`: mesaj herkes için silindi ya da yönetici tarafından gizlendi/silindi (P08).
+/// Olay yalnız kimliği taşır; yer tutucu metni için sohbet mesaj sayfasını yeniden çekin. Geri gösterme (unhide)
+/// için olay YOKTUR: sohbet açılınca/yenilenince taze çekim yeterlidir.
+class MessageDeletedEvent {
+  MessageDeletedEvent(this.conversationId, this.messageId);
+  final int conversationId;
+  final int messageId;
+}
+
 class ReceiptEvent {
   ReceiptEvent(this.conversationId, this.kind, this.upToMessageId, this.status);
   final int conversationId;
@@ -94,6 +103,7 @@ class ChatRealtime with WidgetsBindingObserver {
   final _errors = StreamController<ChatError>.broadcast();
   final _viewed = StreamController<ViewedEvent>.broadcast();
   final _receipts = StreamController<ReceiptEvent>.broadcast();
+  final _deleted = StreamController<MessageDeletedEvent>.broadcast();
   final _connected = StreamController<bool>.broadcast();
   final _resync = StreamController<void>.broadcast();
   final _fatal = StreamController<StompFatal>.broadcast();
@@ -109,6 +119,7 @@ class ChatRealtime with WidgetsBindingObserver {
   Stream<ChatError> get errors => _errors.stream;
   Stream<ViewedEvent> get viewed => _viewed.stream;
   Stream<ReceiptEvent> get receipts => _receipts.stream;
+  Stream<MessageDeletedEvent> get deletedMessages => _deleted.stream;
   Stream<bool> get connected => _connected.stream;
   bool get isConnected => _client.isConnected;
 
@@ -154,6 +165,10 @@ class ChatRealtime with WidgetsBindingObserver {
       _resync.add(null);
       return;
     }
+    if (m['type'] == 'deleted') {
+      _deleted.add(MessageDeletedEvent(_i(m['conversationId']), _i(m['messageId'])));
+      return;
+    }
     if (m['type'] != 'viewed') return;
     _viewed.add(ViewedEvent(_i(m['conversationId']), _i(m['messageId']), _i(m['attachmentId']), _i(m['userId'])));
   }
@@ -164,6 +179,9 @@ class ChatRealtime with WidgetsBindingObserver {
 
   @visibleForTesting
   void debugEmitMessage(Map<String, dynamic> m) => _messages.add(m);
+
+  @visibleForTesting
+  void debugEmitError(ChatError e) => _errors.add(e);
 
   void stop() {
     if (!_started) return;
@@ -179,7 +197,7 @@ class ChatRealtime with WidgetsBindingObserver {
   void dispose() {
     stop();
     _client.dispose();
-    for (final c in [_messages, _reads, _typing, _errors, _viewed, _receipts, _connected, _resync, _fatal]) {
+    for (final c in [_messages, _reads, _typing, _errors, _viewed, _receipts, _deleted, _connected, _resync, _fatal]) {
       c.close();
     }
   }

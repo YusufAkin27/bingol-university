@@ -4,6 +4,9 @@
 enum PushDest {
   signOut,
   conversation,
+
+  /// Sohbet sekmesi (liste): yönetici üyeliği kaldırdı (`CONVERSATION_REMOVED`), açılacak sohbet yok.
+  chatList,
   event,
   community,
   news,
@@ -96,6 +99,9 @@ PushDest? _destOf(String t) {
 PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final d = data ?? const <String, dynamic>{};
   if ('${d['type']}'.toLowerCase() == 'session_replaced') return const PushTarget(PushDest.signOut);
+
+  // P08: yönetici sohbetten çıkardı/oda kaldırıldı: sohbet artık yok, kullanıcı listeye gider.
+  if ('${d['event'] ?? ''}'.toUpperCase() == 'CONVERSATION_REMOVED') return const PushTarget(PushDest.chatList);
 
   final target = '${d['targetType'] ?? d['target'] ?? ''}'.trim().toUpperCase();
   final value = _id(d['targetId'] ?? d['value']);
