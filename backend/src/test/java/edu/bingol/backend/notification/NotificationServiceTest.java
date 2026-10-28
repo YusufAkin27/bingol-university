@@ -157,7 +157,7 @@ class NotificationServiceTest {
         FakeFcmSender.Sent s = fcm.last();
         assertEquals("conv:5", s.collapseKey());
         assertEquals("3", s.data().get("count"));
-        assertEquals("Ali (3)", s.title());
+        assertEquals("Ali", s.title()); // mesajlarda baslik sabit, govde "N yeni mesaj" (mock i18n bos doner)
     }
 
     @Test

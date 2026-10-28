@@ -122,6 +122,7 @@ public class AuthService {
         String de = blankToNull(department);
         String gr = blankToNull(grade);
         catalog.requireValid(fa, de, gr);
+        verification.requireMailQuota();
         User user = users.findByEmail(email).orElse(null);
         if (user != null && user.isEmailVerified()) {
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
@@ -143,6 +144,7 @@ public class AuthService {
 
     public void resendCode(String rawEmail) {
         String email = normalizeEmail(rawEmail);
+        verification.requireMailQuota();
         Pending p = pending.find(email);
         if (p == null) {
             return;
@@ -162,6 +164,7 @@ public class AuthService {
     /** Hesap var ve dogrulanmissa sifirlama kodu gonderir; her durumda ayni cevap (enumerasyon yok). */
     public void forgotPassword(String rawEmail) {
         String email = normalizeEmail(rawEmail);
+        verification.requireMailQuota();
         users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive).ifPresent(u -> {
             try {
                 verification.issueReset(email, Lang.of(u.getLanguage()));

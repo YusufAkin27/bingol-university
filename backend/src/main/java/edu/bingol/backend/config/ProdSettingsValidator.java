@@ -110,7 +110,8 @@ public class ProdSettingsValidator {
             if (uat > 0 && !user.substring(uat + 1).equalsIgnoreCase(domain)
                     && !domain.endsWith("." + user.substring(uat + 1).toLowerCase(java.util.Locale.ROOT))) {
                 warnings.add("MAIL_FROM alan adi (" + domain + ") SMTP kullanici alan adindan farkli; DKIM/SPF "
-                        + "hizalamasini (DMARC) saglayicida dogrulayin");
+                        + "hizalamasini (DMARC) saglayicida dogrulayin (Brevo/SES gibi servislerde bu uyari beklenir: SMTP kullanicisi "
+                        + "alan adi degildir; alan adi saglayicida dogrulanmissa sorun yok, bkz. docs/MAIL_DELIVERABILITY.md bolum 9)");
             }
         }
         boolean tls = env.getProperty("spring.mail.properties.mail.smtp.starttls.required", Boolean.class, false)

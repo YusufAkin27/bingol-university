@@ -51,11 +51,14 @@ public class MailQueueWorker {
     private final MailSuppressionService suppression;
     private final UnsubscribeTokens tokens;
     private final SchedulerLock schedulerLock;
+    private final MailDailyQuota quota;
 
     @Autowired
     public MailQueueWorker(MailOutboxRepository outbox, MailRenderer renderer, MailTransport transport,
                            MailProperties props, JsonMapper json, MeterRegistry metrics,
-                           MailSuppressionService suppression, UnsubscribeTokens tokens, SchedulerLock schedulerLock) {
+                           MailSuppressionService suppression, UnsubscribeTokens tokens, SchedulerLock schedulerLock,
+                           MailDailyQuota quota) {
+        this.quota = quota;
         this.outbox = outbox;
         this.renderer = renderer;
         this.transport = transport;
@@ -67,10 +70,17 @@ public class MailQueueWorker {
         this.schedulerLock = schedulerLock;
     }
 
+    /** Eski 9 parametreli imza (geriye uyumluluk): gunluk kota korumasi olmadan. */
+    public MailQueueWorker(MailOutboxRepository outbox, MailRenderer renderer, MailTransport transport,
+                           MailProperties props, JsonMapper json, MeterRegistry metrics,
+                           MailSuppressionService suppression, UnsubscribeTokens tokens, SchedulerLock schedulerLock) {
+        this(outbox, renderer, transport, props, json, metrics, suppression, tokens, schedulerLock, null);
+    }
+
     /** Eski imza (geriye uyumluluk): duyuru bastirma/abonelik ve dagitik kilit olmadan; yalniz islemsel akis. */
     public MailQueueWorker(MailOutboxRepository outbox, MailRenderer renderer, MailTransport transport,
                            MailProperties props, JsonMapper json, MeterRegistry metrics) {
-        this(outbox, renderer, transport, props, json, metrics, null, null, null);
+        this(outbox, renderer, transport, props, json, metrics, null, null, null, null);
     }
 
     /** Yeni e-posta yazilinca (transaction commit'inden sonra) beklemeden bir tur calistirir. */
@@ -150,12 +160,24 @@ public class MailQueueWorker {
             return;
         }
         boolean announcement = MailCategory.of(m.getTemplate()) == MailCategory.ANNOUNCEMENT;
+        if (props.enabled() && quota != null && !quota.allow(announcement)) {
+            // Gunluk kota: DEAD yapma, kota gunu donene dek beklemede tut (kod postalari o zaman zaten bayatlar
+            // ve isStaleCodeMail ile gonderilmeden kapanir; duyurular ertesi gun gider).
+            m.setNextAttemptAt(quota.nextReset(Instant.now()));
+            metrics.counter("mail.queue.quota_deferred").increment();
+            log.warn("Gunluk e-posta kotasi doldu/ayrildi, kayit ertelendi id={} sablon={}", m.getId(), m.getTemplate());
+            outbox.save(m);
+            return;
+        }
         if (announcement && !prepareAnnouncement(m)) {
             outbox.save(m);
             return;
         }
         try {
             deliver(m);
+            if (props.enabled() && quota != null) {
+                quota.recordSent();
+            }
             m.markSent(Instant.now());
             metrics.counter("mail.queue.sent").increment();
         } catch (Exception e) {

@@ -776,7 +776,7 @@ public class EventService {
     }
 
     /** Bitis baslangictan SONRA olmali (esitlik gecersiz); asiri tarihler reddedilir. */
-    void validateDates(Instant start, Instant end) {
+    static void validateDates(Instant start, Instant end) {
         if (!end.isAfter(start)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Bitiş zamanı başlangıçtan sonra olmalı.");
         }

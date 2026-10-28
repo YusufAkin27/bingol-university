@@ -79,7 +79,7 @@ class PushDeliveryTest {
 
         PushMessage m = fcm.messages().get(0);
         assertEquals(7, m.badge());
-        assertEquals("conv-9", m.threadId());
+        assertEquals("conv:9", m.threadId());
         assertEquals("chat", m.channelId());
         assertEquals("MESSAGE", m.category());
         assertTrue(m.highPriority());

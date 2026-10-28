@@ -20,6 +20,11 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param unsubscribeBaseUrl abonelikten cikma baglantisinin kok adresi (PUBLIC_WEB_URL; /api istekleri backend'e vekillenir)
  * @param unsubscribeTtlDays abonelik jetonunun gecerlilik suresi (gun)
  * @param unsubscribeKey abonelik jetonu HMAC anahtari (bos = JWT sirrindan turetilir)
+ * @param dailyLimit saglayici gunluk gonderim kotasi (Brevo ucretsiz ~300); 0 = sinirsiz (kota korumasi kapali)
+ * @param dailyReserve gunluk kotanin islemsel postalara (kod/guvenlik) ayrilan kismi: duyuru/CUSTOM postalar yalniz
+ *                    {@code dailyLimit - dailyReserve} altinda gonderilir
+ * @param dailyResetHourUtc saglayicinin kota gununu sifirladigi UTC saati (0-23); varsayilan 21 = 00:00 Istanbul.
+ *                         Brevo'nun sifirlama saati belgelenmemisse/degisirse buradan ayarlanir
  */
 @ConfigurationProperties("app.mail")
 public record MailProperties(
@@ -35,17 +40,29 @@ public record MailProperties(
         @DefaultValue("300") int recipientGapSeconds,
         @DefaultValue("") String unsubscribeBaseUrl,
         @DefaultValue("180") int unsubscribeTtlDays,
-        @DefaultValue("") String unsubscribeKey) {
+        @DefaultValue("") String unsubscribeKey,
+        @DefaultValue("0") int dailyLimit,
+        @DefaultValue("60") int dailyReserve,
+        @DefaultValue("21") int dailyResetHourUtc) {
 
     /** Baglama icin kanonik kurucu (birden fazla kurucu oldugundan acikca isaretlenir). */
     @ConstructorBinding
     public MailProperties {
     }
 
+    /** Eski 13 alanli kurucu (kota alanlari olmadan; geriye uyumluluk). */
+    public MailProperties(boolean enabled, String from, String fromName, long queuePollMs, int maxAttempts,
+                          int batchSize, boolean allowLogOnly, String replyTo, int maxPerMinute,
+                          int recipientGapSeconds, String unsubscribeBaseUrl, int unsubscribeTtlDays,
+                          String unsubscribeKey) {
+        this(enabled, from, fromName, queuePollMs, maxAttempts, batchSize, allowLogOnly, replyTo, maxPerMinute,
+                recipientGapSeconds, unsubscribeBaseUrl, unsubscribeTtlDays, unsubscribeKey, 0, 60, 21);
+    }
+
     /** Eski 7 alanli kurucu (geriye uyumluluk: testler/diger moduller). */
     public MailProperties(boolean enabled, String from, String fromName, long queuePollMs, int maxAttempts,
                           int batchSize, boolean allowLogOnly) {
-        this(enabled, from, fromName, queuePollMs, maxAttempts, batchSize, allowLogOnly, "", 30, 300, "", 180, "");
+        this(enabled, from, fromName, queuePollMs, maxAttempts, batchSize, allowLogOnly, "", 30, 300, "", 180, "", 0, 60, 21);
     }
 
     /** `from` adresinin alan adi (kucuk harf); yoksa bos. */

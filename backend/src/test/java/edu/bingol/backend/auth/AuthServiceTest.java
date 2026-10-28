@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.auth.jwt.JwtService;
@@ -95,14 +96,16 @@ class AuthServiceTest {
         ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR));
 
         assertEquals("EMAIL_ALREADY_REGISTERED", e.code());
-        verifyNoInteractions(verification);
+        verify(verification).requireMailQuota();
+        verifyNoMoreInteractions(verification);
     }
 
     @Test
     void resendCodeWithoutPendingRegistrationDoesNothing() {
         auth.resendCode(EMAIL);
 
-        verifyNoInteractions(verification);
+        verify(verification).requireMailQuota();
+        verifyNoMoreInteractions(verification);
     }
 
     @Test

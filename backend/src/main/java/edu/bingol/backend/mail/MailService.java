@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,14 +33,35 @@ public class MailService {
     private final MailProperties props;
     private final JsonMapper json;
     private final ApplicationEventPublisher events;
+    private final MailDailyQuota quota;
 
+    @Autowired
     public MailService(MailOutboxRepository outbox, MailTransport transport, MailProperties props,
-                       JsonMapper json, ApplicationEventPublisher events) {
+                       JsonMapper json, ApplicationEventPublisher events, MailDailyQuota quota) {
+        this.quota = quota;
         this.outbox = outbox;
         this.transport = transport;
         this.props = props;
         this.json = json;
         this.events = events;
+    }
+
+    /** Eski imza (geriye uyumluluk): kota korumasi olmadan. */
+    public MailService(MailOutboxRepository outbox, MailTransport transport, MailProperties props,
+                       JsonMapper json, ApplicationEventPublisher events) {
+        this(outbox, transport, props, json, events, null);
+    }
+
+    /**
+     * Kod (kayit/sifre) gondermeden once cagrilir: gunluk kota tamamen dolduysa 503 MAIL_QUOTA_EXHAUSTED.
+     * Karar GLOBALDIR (e-postadan bagimsiz), bu yuzden hesabin varligini sizdirmaz; cagiran, hesap sorgusundan
+     * ONCE cagirmalidir. Kota korumasi kapaliyken (limit 0) veya e-posta kapaliyken hicbir sey yapmaz.
+     */
+    public void requireCodeQuota() {
+        if (quota != null && props.enabled() && quota.exhausted()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                    "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+        }
     }
 
     /** Genel giris: sablonu degiskenleriyle kuyruga yazar. Gonderim arka planda yapilir. */

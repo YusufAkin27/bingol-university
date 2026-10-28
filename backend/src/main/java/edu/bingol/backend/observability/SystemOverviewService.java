@@ -51,7 +51,7 @@ public class SystemOverviewService {
     /** Tum gosterge anahtarlari (metrik kaydi icin sabit liste). */
     public static List<String> indicatorKeys() {
         java.util.ArrayList<String> keys = new java.util.ArrayList<>(List.of(
-                "mail.dead", "mail.pending", "mail.oldestPendingAge",
+                "mail.dead", "mail.pending", "mail.oldestPendingAge", "mail.dailyQuota",
                 "push.dead", "push.pending", "push.oldestPendingAge",
                 "campaign.overdue", "campaign.counts",
                 "websocket.sessions", "db", "redis", "fcm", "disk.storage", "backup.age"));
@@ -84,12 +84,15 @@ public class SystemOverviewService {
     private final BackupStatusProvider backup;
     private final StorageProperties storage;
     private final I18n i18n;
+    private final ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota;
     private final AtomicReference<Cached> cache = new AtomicReference<>();
 
     public SystemOverviewService(ObservabilityProperties props, QueueQueries queues, JdbcTemplate jdbc,
                                  StringRedisTemplate redis, ObjectProvider<SimpUserRegistry> users,
                                  ObjectProvider<PushDispatcher> push, JobMonitor jobs, BackupStatusProvider backup,
-                                 StorageProperties storage, I18n i18n) {
+                                 StorageProperties storage, I18n i18n,
+                                 ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota) {
+        this.mailQuota = mailQuota;
         this.props = props;
         this.queues = queues;
         this.jdbc = jdbc;
@@ -156,6 +159,19 @@ public class SystemOverviewService {
         out.put("mail.dead", dead(q.count("DEAD"), l));
         out.put("mail.pending", Indicator.ok(q.pending(), null));
         out.put("mail.oldestPendingAge", age(q.oldestOverdueSeconds(), l));
+        out.put("mail.dailyQuota", dailyQuota(l));
+    }
+
+    /** Gunluk e-posta kotasi kullanimi (%): %80 WARN, %95 CRIT; kota korumasi kapaliysa UNKNOWN. */
+    private Indicator dailyQuota(Locale l) {
+        edu.bingol.backend.mail.MailDailyQuota q = mailQuota.getIfAvailable();
+        if (q == null || !q.enabled()) {
+            return Indicator.unknown(null);
+        }
+        long pct = Math.round(q.percent());
+        IndicatorStatus st = Indicator.byThreshold(pct, 80, 95);
+        return new Indicator(st, pct, Map.of("warn", 80, "crit", 95),
+                st == IndicatorStatus.OK ? null : msg(l, "obs.msg.MAIL_QUOTA", pct));
     }
 
     private void push(Map<String, Indicator> out, Instant now, Locale l) {

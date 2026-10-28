@@ -21,9 +21,10 @@ import org.junit.jupiter.api.Test;
 class QueryRulesTest {
 
     private static final Path SRC = Path.of("src/main/java");
-    /** Kucuk, sinirli tablolar: app_setting, access_ban_anonymizer, sync_status. */
+    /** Kucuk, sinirli tablolar: app_setting, access_ban_anonymizer, sync_status, kulup kategorileri. */
     private static final Set<String> FINDALL_ALLOWED = Set.of(
-            "AccessBanCache.java", "AccessBanService.java", "AppInfoService.java", "LegalService.java", "StatusService.java");
+            "AccessBanCache.java", "AccessBanService.java", "AppInfoService.java", "LegalService.java", "StatusService.java",
+            "CommunityCategoryService.java"); // kulup kategorileri: yoneticinin tanimladigi birkac satir
     private static final Pattern FIND_ALL_CALL = Pattern.compile("\\.findAll\\(\\)");
     private static final Pattern FIND_ALL_DECL = Pattern.compile("List<[^>]+>\\s+findAll\\(\\)");
 

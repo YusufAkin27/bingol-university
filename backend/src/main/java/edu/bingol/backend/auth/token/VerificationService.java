@@ -41,6 +41,11 @@ public class VerificationService {
         this.mail = mail;
     }
 
+    /** Gunluk e-posta kotasi doluysa genel 503 MAIL_QUOTA_EXHAUSTED (e-postadan bagimsiz: enumerasyon yok). */
+    public void requireMailQuota() {
+        mail.requireCodeQuota();
+    }
+
     /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
     public void issue(String email, Lang lang) {
         issue(VERIFY, email, lang);
