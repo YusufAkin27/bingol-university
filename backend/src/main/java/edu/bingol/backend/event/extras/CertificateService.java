@@ -57,6 +57,10 @@ public class CertificateService {
                     "Bu işlem için etkinliğe katılmış (yoklaması alınmış) olmalısınız.");
         }
         EventCertificate c = repo.findByEventIdAndUserId(eventId, a.id()).orElse(null);
+        if (c != null && c.isRevoked()) {
+            // Yonetici iptali (V690): kullanici ayni sertifikayi yeniden alamaz
+            throw new ApiException(HttpStatus.CONFLICT, "CERTIFICATE_REVOKED", "Bu sertifika yönetici tarafından iptal edildi.");
+        }
         if (c == null) {
             User u = communities.usersById(List.of(a.id())).get(a.id());
             c = new EventCertificate();
@@ -84,7 +88,7 @@ public class CertificateService {
         EventCertificate c = repo.findByCode(code).orElseThrow(CertificateService::notFound);
         UserEvent e = eventRepo.findById(c.getEventId()).orElse(null);
         User u = communities.usersById(List.of(c.getUserId())).get(c.getUserId());
-        boolean valid = e != null && e.getStatus() != UserEvent.Status.CANCELLED && e.getStatus() != UserEvent.Status.HIDDEN
+        boolean valid = !c.isRevoked() && e != null && e.getStatus() != UserEvent.Status.CANCELLED && e.getStatus() != UserEvent.Status.HIDDEN
                 && u != null && u.getStatus() != UserStatus.DELETED
                 && attended(c.getEventId(), c.getUserId());
         if (!valid) {

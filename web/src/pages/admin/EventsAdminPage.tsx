@@ -5,18 +5,29 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { listAdminEvents, type EventStatusFilter } from '../../api/adminEvents';
+import {
+  EVENT_BULK_MAX,
+  bulkEvents,
+  exportEventsCsv,
+  listAdminEvents,
+  type EventBulkAction,
+  type EventBulkResult,
+  type EventStatusFilter,
+} from '../../api/adminEvents';
 import { approveEvent, rejectEvent } from '../../api/approvals';
 import { qk } from '../../api/queryKeys';
 import type { EventJoinPolicy, EventView } from '../../api/types';
 import {
   Badge,
+  BulkBar,
   Button,
   EmptyState,
   ErrorState,
+  GuardedAction,
   Icon,
   Input,
   LoadMore,
+  Modal,
   PageHeader,
   SearchInput,
   Select,
@@ -32,8 +43,10 @@ import { Callout } from './campaigns/shared';
 import { RejectDialog } from './community/ReviewParts';
 import styles from './community/review.module.css';
 import { EventDetailDrawer } from './events/EventDetailDrawer';
+import { CsvButton } from './events/ops/opsParts';
 import { eventErrorMessage } from './events/errors';
 import evStyles from './events/events.module.css';
+import opsStyles from './events/ops/ops.module.css';
 import { EVENT_STATUS_TABS, dayBoundIso, eventTiming, relativeStart } from './events/lib';
 
 type Scope = 'all' | 'standalone';
@@ -58,6 +71,9 @@ export default function EventsAdminPage() {
   const to = params.get('to') ?? '';
   const [q, setQ] = useState('');
   const [rejecting, setRejecting] = useState<EventView | null>(null);
+  // P07: toplu işlem seçimi (en çok EVENT_BULK_MAX etkinlik) ve kısmi başarı raporu
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkResult, setBulkResult] = useState<EventBulkResult | null>(null);
 
   const setView = (next: Record<string, string>) => {
     const cur: Record<string, string> = {};
@@ -66,6 +82,7 @@ export default function EventsAdminPage() {
     if (joinPolicy) cur.join = joinPolicy;
     if (from) cur.from = from;
     if (to) cur.to = to;
+    setSelected(new Set()); // süzgeç/sekme değişince seçim sıfırlanır (görünmeyen kayıt işlenmesin)
     const merged = { ...cur, ...next };
     for (const k of Object.keys(merged)) if (!merged[k]) delete merged[k];
     if (merged.status === 'PENDING_REVIEW') delete merged.status;
@@ -80,7 +97,13 @@ export default function EventsAdminPage() {
   };
 
   const filters = useMemo(
-    () => ({ q: q.trim(), standalone: scope === 'standalone', joinPolicy, from: dayBoundIso(from, false), to: dayBoundIso(to, true) }),
+    () => ({
+      q: q.trim(),
+      standalone: scope === 'standalone',
+      joinPolicy,
+      from: dayBoundIso(from, false),
+      to: dayBoundIso(to, true),
+    }),
     [q, scope, joinPolicy, from, to],
   );
   const query = useInfiniteQuery({
@@ -124,8 +147,28 @@ export default function EventsAdminPage() {
     },
   });
 
+  const toggle = (id: number, on: boolean) =>
+    setSelected((cur) => {
+      const next = new Set(cur);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  const allOnPage = items.length > 0 && items.slice(0, EVENT_BULK_MAX).every((e) => selected.has(e.id));
+  const bulkAction =
+    (action: EventBulkAction) =>
+    async ({ reason, idempotencyKey }: { reason: string; idempotencyKey: string }) => {
+      const res = await bulkEvents(action, [...selected], reason, { idempotencyKey });
+      setBulkResult(res);
+      setSelected(new Set());
+      return res;
+    };
+
   const tabs = EVENT_STATUS_TABS.map((s) => ({ id: s, label: t(`admin.events.status.${s}`) }));
-  const scopes = (['all', 'standalone'] as const).map((k) => ({ id: k, label: t(`admin.events.scope.${k}`) }));
+  const scopes = (['all', 'standalone'] as const).map((k) => ({
+    id: k,
+    label: t(`admin.events.scope.${k}`),
+  }));
   const pending = status === 'PENDING_REVIEW';
   const now = new Date();
 
@@ -163,7 +206,11 @@ export default function EventsAdminPage() {
     const timing = eventTiming(ev.startsAt, now);
     if (timing === 'past') return <Badge tone="danger">{t('admin.events.timing.past')}</Badge>;
     if (timing === 'soon')
-      return <Badge tone="warning">{t('admin.events.timing.soon', { when: relativeStart(ev.startsAt, locale, now) })}</Badge>;
+      return (
+        <Badge tone="warning">
+          {t('admin.events.timing.soon', { when: relativeStart(ev.startsAt, locale, now) })}
+        </Badge>
+      );
     return null;
   }
 
@@ -171,11 +218,25 @@ export default function EventsAdminPage() {
     <div>
       <PageHeader title={t('admin.events.title')} />
       <div className={styles.tabsWrap}>
-        <Tabs tabs={tabs} value={status} label={t('admin.events.tabs')} onChange={(id) => setView({ status: id })} />
+        <Tabs
+          tabs={tabs}
+          value={status}
+          label={t('admin.events.tabs')}
+          onChange={(id) => setView({ status: id })}
+        />
       </div>
       <div className={styles.toolbar}>
-        <Tabs tabs={scopes} value={scope} label={t('admin.events.scope.label')} onChange={(id) => setView({ scope: id })} />
-        <SearchInput label={t('admin.events.search')} placeholder={t('admin.events.search')} onSearch={setQ} />
+        <Tabs
+          tabs={scopes}
+          value={scope}
+          label={t('admin.events.scope.label')}
+          onChange={(id) => setView({ scope: id })}
+        />
+        <SearchInput
+          label={t('admin.events.search')}
+          placeholder={t('admin.events.search')}
+          onSearch={setQ}
+        />
       </div>
       <div className={evStyles.filters}>
         <label className={evStyles.filterField}>
@@ -188,12 +249,33 @@ export default function EventsAdminPage() {
         </label>
         <label className={evStyles.filterField}>
           {t('admin.events.filter.from')}
-          <Input type="date" className="ltr" value={from} onChange={(e) => setView({ from: e.target.value })} />
+          <Input
+            type="date"
+            className="ltr"
+            value={from}
+            onChange={(e) => setView({ from: e.target.value })}
+          />
         </label>
         <label className={evStyles.filterField}>
           {t('admin.events.filter.to')}
           <Input type="date" className="ltr" value={to} onChange={(e) => setView({ to: e.target.value })} />
         </label>
+      </div>
+      <div className={evStyles.filters}>
+        <CsvButton
+          label={t('admin.p07.exportList')}
+          filename="events.csv"
+          fetchCsv={() =>
+            exportEventsCsv({
+              status,
+              q: filters.q,
+              standalone: filters.standalone,
+              joinPolicy: filters.joinPolicy || undefined,
+              from: filters.from,
+              to: filters.to,
+            })
+          }
+        />
       </div>
       <Callout tone="info">{t('admin.events.clubRule')}</Callout>
 
@@ -219,9 +301,30 @@ export default function EventsAdminPage() {
         />
       ) : (
         <>
-          <ul className={styles.list} aria-label={t('admin.events.title')} style={{ listStyle: 'none', padding: 0 }}>
+          <label className={evStyles.filterField}>
+            <span>
+              <input
+                type="checkbox"
+                checked={allOnPage}
+                onChange={(e) =>
+                  setSelected(
+                    e.target.checked ? new Set(items.slice(0, EVENT_BULK_MAX).map((x) => x.id)) : new Set(),
+                  )
+                }
+              />{' '}
+              {t('admin.p07.bulk.selectAll')}
+            </span>
+          </label>
+          <ul
+            className={styles.list}
+            aria-label={t('admin.events.title')}
+            style={{ listStyle: 'none', padding: 0 }}
+          >
             {items.map((ev) => {
-              const timing = ev.status === 'PENDING_REVIEW' || ev.status === 'ACTIVE' ? eventTiming(ev.startsAt, now) : 'later';
+              const timing =
+                ev.status === 'PENDING_REVIEW' || ev.status === 'ACTIVE'
+                  ? eventTiming(ev.startsAt, now)
+                  : 'later';
               return (
                 <li
                   key={ev.id}
@@ -237,6 +340,16 @@ export default function EventsAdminPage() {
                 >
                   <div className={styles.main}>
                     <div className={styles.titleRow}>
+                      <input
+                        type="checkbox"
+                        className={opsStyles.pick}
+                        aria-label={t('admin.p07.bulk.select', { title: ev.title })}
+                        checked={selected.has(ev.id)}
+                        disabled={!selected.has(ev.id) && selected.size >= EVENT_BULK_MAX}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onChange={(e) => toggle(ev.id, e.target.checked)}
+                      />
                       <h2 className={styles.name}>{ev.title}</h2>
                       {timingBadge(ev)}
                       {ev.communityName ? (
@@ -244,9 +357,13 @@ export default function EventsAdminPage() {
                       ) : (
                         <Badge>{t('admin.events.standalone')}</Badge>
                       )}
-                      {ev.joinPolicy === 'APPROVAL' && <Badge tone="warning">{t('admin.events.join.APPROVAL')}</Badge>}
+                      {ev.joinPolicy === 'APPROVAL' && (
+                        <Badge tone="warning">{t('admin.events.join.APPROVAL')}</Badge>
+                      )}
                       {!!ev.pendingCount && (
-                        <Badge tone="warning">{t('admin.events.pendingRequests', { n: formatNumber(ev.pendingCount) })}</Badge>
+                        <Badge tone="warning">
+                          {t('admin.events.pendingRequests', { n: formatNumber(ev.pendingCount) })}
+                        </Badge>
                       )}
                     </div>
                     {ev.description ? (
@@ -268,7 +385,8 @@ export default function EventsAdminPage() {
                         {ev.capacity === null ? t('admin.events.unlimited') : formatNumber(ev.capacity)}
                       </span>
                       <span>
-                        {t('admin.events.organizer')}: {ev.organizerName || ev.organizer?.displayName || `#${ev.createdBy}`}
+                        {t('admin.events.organizer')}:{' '}
+                        {ev.organizerName || ev.organizer?.displayName || `#${ev.createdBy}`}
                       </span>
                     </div>
                   </div>
@@ -276,7 +394,9 @@ export default function EventsAdminPage() {
                     {ev.status === 'PENDING_REVIEW' ? (
                       actionsFor(ev)
                     ) : (
-                      <StatusPill tone={toneFor(ev.status)}>{t(`admin.events.status.${ev.status}`)}</StatusPill>
+                      <StatusPill tone={toneFor(ev.status)}>
+                        {t(`admin.events.status.${ev.status}`)}
+                      </StatusPill>
                     )}
                   </div>
                 </li>
@@ -289,6 +409,81 @@ export default function EventsAdminPage() {
             onLoadMore={() => void query.fetchNextPage()}
           />
         </>
+      )}
+
+      <BulkBar count={selected.size} onClear={() => setSelected(new Set())}>
+        {selected.size >= EVENT_BULK_MAX && (
+          <span className={opsStyles.muted}>{t('admin.p07.bulk.limit', { max: EVENT_BULK_MAX })}</span>
+        )}
+        <GuardedAction
+          size="sm"
+          variant="secondary"
+          title={t('admin.p07.bulk.hide.title', { n: selected.size })}
+          consequence={t('admin.p07.bulk.hide.consequence')}
+          irreversible={false}
+          requireReason
+          impact={{ count: selected.size, noun: t('admin.p07.bulk.noun') }}
+          confirmLabel={t('admin.p07.bulk.hide.confirm')}
+          errorMessage={(e) => eventErrorMessage(i18n, e)}
+          successMessage={false}
+          invalidateKeys={[[...qk.events.all]]}
+          onConfirm={bulkAction('HIDE')}
+        >
+          {t('admin.p07.bulk.hide')}
+        </GuardedAction>
+        <GuardedAction
+          size="sm"
+          variant="danger"
+          danger
+          title={t('admin.p07.bulk.cancel.title', { n: selected.size })}
+          consequence={t('admin.p07.bulk.cancel.consequence')}
+          irreversible
+          requireReason
+          impact={{ count: selected.size, noun: t('admin.p07.bulk.noun') }}
+          confirmLabel={t('admin.p07.bulk.cancel.confirm')}
+          errorMessage={(e) => eventErrorMessage(i18n, e)}
+          successMessage={false}
+          invalidateKeys={[[...qk.events.all]]}
+          onConfirm={bulkAction('CANCEL')}
+        >
+          {t('admin.p07.bulk.cancel')}
+        </GuardedAction>
+      </BulkBar>
+
+      {bulkResult && (
+        <Modal
+          open
+          onClose={() => setBulkResult(null)}
+          title={t('admin.p07.bulk.result.title')}
+          footer={<Button onClick={() => setBulkResult(null)}>{t('admin.p07.bulk.result.close')}</Button>}
+        >
+          <div data-testid="bulk-result">
+            <p>
+              {t('admin.p07.bulk.result.summary', {
+                done: formatNumber(bulkResult.done),
+                total: formatNumber(bulkResult.requested),
+                failed: formatNumber(bulkResult.failed),
+              })}
+            </p>
+            {bulkResult.failed > 0 && (
+              <>
+                <h3>{t('admin.p07.bulk.result.failed')}</h3>
+                <ul className={opsStyles.bulkList}>
+                  {bulkResult.items
+                    .filter((x) => !x.ok)
+                    .map((x) => (
+                      <li key={x.id}>
+                        {t('admin.p07.bulk.result.item', {
+                          id: x.id,
+                          reason: i18n.td(`admin.p07.bulk.err.${x.error ?? ''}`, x.error ?? String(x.status)),
+                        })}
+                      </li>
+                    ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </Modal>
       )}
 
       <EventDetailDrawer id={openId} onClose={() => setOpen(null)} />

@@ -35,6 +35,7 @@ import trAdminShell from './tr/admin-shell'; // yalnız tr (yönetim kabuğu), a
 import trAdminP05 from './tr/admin-p05'; // yalnız tr (yıkıcı eylem onayları), aynı kural
 import trAdminP03 from './tr/admin-p03'; // yalnız tr (anket yönetimi), aynı kural
 import trAdminWp02 from './tr/admin-wp02'; // yalnız tr (denetim v2, sohbet sebebi), aynı kural
+import trAdminP07 from './tr/admin-p07'; // yalnız tr (etkinlik derin yönetimi), aynı kural
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -134,6 +135,7 @@ const tr = {
   ...trAdminP05,
   ...trAdminP03,
   ...trAdminWp02,
+  ...trAdminP07,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -176,6 +178,7 @@ const en: Dictionary = {
   ...trAdminP05,
   ...trAdminP03,
   ...trAdminWp02,
+  ...trAdminP07,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -214,6 +217,7 @@ const ar: Dictionary = {
   ...trAdminP05,
   ...trAdminP03,
   ...trAdminWp02,
+  ...trAdminP07,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

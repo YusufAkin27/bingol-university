@@ -747,3 +747,36 @@ Kişisel veri okuyan uçlar kayda girer (sebep zorunlu değil; kayıt zorunlu): 
 
 ### Yeni hata kodları (3 dilde `i18n/obs*.properties`)
 `REASON_REQUIRED` (400, `{0}` en az uzunluk), `ADMIN_EMAIL_PINNED` (409), `REQUEST_IN_PROGRESS` (409), `IDEMPOTENCY_KEY_REUSED` (422).
+
+
+## Etkinlik derin yönetimi (P07, V690)
+
+Kapsam: `/api/admin/events/{id}/...` (ADMIN). Kod: `event/admin/**` (`EventAdminOpsController`, `EventAdminOpsService`, `EventAdminBulkService`, `EventAdminCsvService`, `EventAdminAuditWriter`). Mevcut moderasyon uçları (`GET/PATCH/DELETE /{id}`, `hide|unhide|cancel|approve|reject`) değişmedi. Migration `V690__event_admin_p07.sql`: `event_certificate.revoked_at/revoked_by/revoke_reason` + indeks `p07_cert_event_id`.
+
+**Kişisel veri kararı:** e-posta HER ZAMAN maskeli (`a***@bingol.edu.tr`; tam adres hiçbir uçta/CSV'de yok). Geri bildirimde yazan kimliği (id/ad/e-posta) hiçbir koşulda dönmez (geri bildirimler zaten anonimdir). Sertifika kodunun yalnız ipucu döner (`ABCD...QRST`). Okumalar (`applications`, `attendance`, `certificates`, `organizers`, CSV'ler) `@AuditRead` ile denetim kaydına girer.
+
+**Yazma kuralları:** hepsi `AuditContext.target("EVENT", id)` ile denetlenir; sebep ZORUNLU (`@AdminReasonRequired`, en az 5; web 10) — `X-Admin-Reason` başlığı ya da gövdede `reason`. `AdminGuardPolicy` tablosu: başvuru kabul/ret, sertifika iptali, geri bildirim/duyuru/düzenleyen silme ve `POST /bulk` yıkıcıdır (sebep + 20/saat). Kullanıcı kaydı gerektiren yazmalar (başvuru kararı, yoklama düzeltmesi: `decided_by`/`marked_by` → `app_user` FK) JWT yöneticisi ister; Basic auth yöneticisinde `403 EVENT_ADMIN_ACCOUNT_REQUIRED` (okumalar Basic ile çalışır).
+
+| Uç | Davranış |
+|---|---|
+| `GET /{id}/applications?status=&cursor=&size=` | Sayfalı (artan id imeci, `size` ≤ 100). `status`: PENDING/ACCEPTED/WAITLISTED/REJECTED/CANCELLED (boş = hepsi). Yanıt `{items[{id,userId,displayName,emailMasked,department,status,note,answers,queuedAt,decidedBy,decidedAt,decisionNote,createdAt,updatedAt}], nextCursor, summary{mode,capacity,goingCount,seatsLeft,pending,accepted,waitlisted,rejected,cancelled}}`. |
+| `POST /{id}/applications/{userId}/accept` | Zorla kabul. Mevcut atomik kapasite mantığı: dolu etkinlikte `409 EVENT_FULL`, başvuru PENDING kalır, kapasite asla aşılmaz. Etkinlik ACTIVE ve bitmemiş olmalı (`EVENT_NOT_OPEN`/`EVENT_ENDED`). Gecersiz geçiş `409 INVALID_APPLICATION_STATE` (reddedilmiş başvuru yeniden kabul edilemez). Başvurana bildirim gider; yönetici sebebi başvurana gösterilmez. Yanıt `{id,userId,status,summary}`. |
+| `POST /{id}/applications/{userId}/reject` | Zorla ret; kabul edilmiş katılımcı da çıkarılır (koltuk serbest, bekleme listesinin başı otomatik terfi eder). |
+| `GET /{id}/attendance` | `{rows[{userId,displayName,emailMasked,department,rsvp(GOING/WALK_IN),present(null=işaretsiz),method,markedBy,markedByName,markedAt,hasCertificate,certificateRevoked}], summary{going,present,absent,unmarked,walkIns}, truncated}` (en çok 5.000 satır). |
+| `PUT /{id}/attendance/{userId}` `{present, reason}` | Elle düzeltme (`AttendanceService.mark` kuralları: etkinlik ACTIVE, yoklama penceresi açık, APPROVAL'da yalnız kabul edilmiş katılımcı). Yanıt `{userId,present,certificateExists,certificateValid}`. **Sertifika etkisi:** "yok" yapılırsa sertifika doğrulaması geçersiz döner (kayıt silinmez), "var" yapılırsa tekrar geçerli olur; iptal edilmiş sertifika yoklamayla geri gelmez. |
+| `GET /{id}/certificates?cursor=&size=` | Sayfalı; `{id,userId,holderName,emailMasked,codeHint,issuedAt,attended,revoked,revokedAt,revokedBy,revokeReason,valid}`. |
+| `POST /{id}/certificates/{userId}/revoke` | İptal: satır silinmez; doğrulama geçersiz (`GET /api/certificates/verify/{code}` → `valid:false`) ve kullanıcı yeniden alamaz (`409 CERTIFICATE_REVOKED`). Zaten iptalse `409 CERTIFICATE_REVOKED`. |
+| `POST /{id}/certificates/{userId}/restore` | İptali geri alır (yanlış iptale karşı); iptal değilse `409 CERTIFICATE_NOT_REVOKED`. |
+| `GET /{id}/feedback?cursor=&size=` | Anonim: `{items[{id,rating,comment,createdAt}], nextCursor, summary{total,average,distribution[5]}}`. |
+| `DELETE /{id}/feedback/{fid}` | Kalıcı siler (başka etkinliğin kaydı `404 FEEDBACK_NOT_FOUND`). Denetim özetine yorum metni yazılmaz. Yazan yeniden gönderebilir. |
+| `GET /{id}/announcements?cursor=&size=` | Duyuru KAYITLARI `{id,senderId,senderName,recipients,createdAt}` (duyuru metni zaten saklanmaz). |
+| `DELETE /{id}/announcements/{aid}` | Yalnız kaydı siler: gönderilmiş bildirimler geri alınmaz; kayıt günlük sınıra sayıldığından organizatöre o gün için yeniden hak açar. |
+| `GET /{id}/organizers` | `[{userId,displayName,emailMasked,role(OWNER/CO_ORGANIZER),addedBy,createdAt,removable}]` (sahip + ortak düzenleyenler). |
+| `DELETE /{id}/organizers/{userId}` | Yalnız ortak düzenleyen. Sahip `409 EVENT_OWNER_PROTECTED`; sahip hesabı aktif değilse (silinmiş/askıda) son aktif düzenleyen `409 EVENT_LAST_ORGANIZER`; yoksa `404 CO_ORGANIZER_NOT_FOUND`. |
+| `GET /{id}/attendance.csv`, `GET /{id}/applications.csv?status=` | UTF-8 BOM, CRLF, formül kaçışlı (`'=` önekli), e-posta maskeli, en çok 50.000 satır; kendisi de denetlenir (`csv satir=N`). Doğrulama hatası (404 vb.) CSV değil JSON döner. |
+| `GET /export.csv` | `GET /api/admin/events` ile aynı süzgeçler (`status` boş = ALL); sahip e-postası maskeli. |
+| `POST /bulk` `{action: HIDE\|UNHIDE\|CANCEL, ids[1..100], reason}` | Her etkinlik KENDİ işlemiyle (moderasyon servisi) işlenir; kısmi başarı `200`: `{action,requested,done,failed,items[{id,ok,status,error}]}`. Yinelenen kimlik tek sayılır; >100 `400 EVENT_BULK_LIMIT`; sebep boşsa `400 VALIDATION_ERROR`. İstek satırına ek olarak her etkinlik için ayrı denetim satırı yazılır (`/api/admin/events/{id}/hide|unhide|cancel`, hedef `EVENT/{id}`), böylece etkinliğin kendi Denetim sekmesinde de görünür. |
+
+Yeni hata kodları (3 dilde `i18n/eventadmin*.properties`): `EVENT_ADMIN_ACCOUNT_REQUIRED` (403), `EVENT_OWNER_PROTECTED` (409), `EVENT_LAST_ORGANIZER` (409), `CERTIFICATE_REVOKED` (409), `CERTIFICATE_NOT_REVOKED` (409), `ANNOUNCEMENT_NOT_FOUND` (404), `EVENT_BULK_LIMIT` (400, `{0}` = 100).
+
+Web: `EventDetailDrawer` sekmeleri (Genel, Başvurular, Yoklama, Sertifikalar, Geri bildirim, Duyurular, Düzenleyenler, Denetim) — `pages/admin/events/ops/*`; listede çoklu seçim + `BulkBar` + CSV (`EventsAdminPage`). Metinler yalnız Türkçe: `i18n/tr/admin-p07.ts`. Duman betiği: `scripts/smoke-admin-events.sh`.

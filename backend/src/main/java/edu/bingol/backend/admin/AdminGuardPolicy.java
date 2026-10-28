@@ -25,12 +25,34 @@ public final class AdminGuardPolicy {
     private static final Pattern BLOCKLIST = Pattern.compile("^/api/admin/moderation/blocklist(/[^/]+)?$");
     private static final Pattern SUSPEND_REC =
             Pattern.compile("^/api/admin/moderation/suspend-recommendations/[^/]+/accept$");
+    /** P07 etkinlik derin yonetimi: basvuruyu zorla kabul/ret ve sertifika iptali (POST). */
+    private static final Pattern EVENT_DECIDE =
+            Pattern.compile("^/api/admin/events/[^/]+/(applications/[^/]+/(accept|reject)|certificates/[^/]+/revoke)$");
+    /** P07: geri bildirim, duyuru kaydi, ortak duzenleyen silme (DELETE). */
+    private static final Pattern EVENT_DELETE =
+            Pattern.compile("^/api/admin/events/[^/]+/(feedback|announcements|organizers)/[^/]+$");
+
+    /** P06 kulup derin yonetimi: kapat/yeniden ac/zorla devir (POST). */
+    private static final Pattern CLUB_POST =
+            Pattern.compile("^/api/admin/communities/[^/]+/(close|reopen|transfer-ownership)$");
+    /** P06: kulup silme, uye cikarma, davet iptali, kulup gonderisi/duyurusu silme (DELETE). */
+    private static final Pattern CLUB_DELETE = Pattern.compile(
+            "^/api/admin/(communities/[^/]+(/members/[^/]+|/invites/[^/]+)?|community-posts/[^/]+)$");
+    /** P06: uye rolu degistirme (PATCH). */
+    private static final Pattern CLUB_ROLE = Pattern.compile("^/api/admin/communities/[^/]+/members/[^/]+/role$");
 
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
 
     private AdminGuardPolicy() {}
+
+    /** P06: kulup/kulup icerigi yikici islemi mi (sebep ister, saatlik siki hiz siniri). */
+    static boolean clubDestructive(String method, String path) {
+        return ("POST".equals(method) && CLUB_POST.matcher(path).matches())
+                || ("DELETE".equals(method) && CLUB_DELETE.matcher(path).matches())
+                || ("PATCH".equals(method) && CLUB_ROLE.matcher(path).matches());
+    }
 
     public static boolean isWrite(String method) {
         return "POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method) || "DELETE".equals(method);
@@ -66,6 +88,13 @@ public final class AdminGuardPolicy {
             }
         }
         if ("POST".equals(method) && BULK.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (("POST".equals(method) && EVENT_DECIDE.matcher(path).matches())
+                || ("DELETE".equals(method) && EVENT_DELETE.matcher(path).matches())) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (clubDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

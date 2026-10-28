@@ -1,0 +1,150 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.bar label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+}
+.chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 5.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.chip dt {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.chip dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.scroll {
+  overflow-x: auto;
+}
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.table th,
+.table td {
+  padding: var(--space-2);
+  text-align: start;
+  vertical-align: top;
+  border-block-end: 1px solid var(--border);
+}
+.table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.sub {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.answers {
+  margin: 0;
+  padding-inline-start: 1.1em;
+  overflow-wrap: anywhere;
+}
+.note {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.cardMain {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.dist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.distRow {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 3rem;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-sm);
+}
+.track {
+  block-size: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--border);
+  overflow: hidden;
+}
+.fill {
+  display: block;
+  block-size: 100%;
+  background: var(--primary);
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+.bulkList {
+  margin: 0;
+  padding-inline-start: 1.1em;
+  max-block-size: 40vh;
+  overflow: auto;
+}
+.pick {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: var(--space-2);
+}

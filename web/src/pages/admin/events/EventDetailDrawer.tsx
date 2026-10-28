@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   cancelEvent,
   deleteEvent,
@@ -12,7 +12,18 @@ import {
 } from '../../../api/adminEvents';
 import { approveEvent, rejectEvent } from '../../../api/approvals';
 import { AuditTrail } from '../../../components/admin/guard';
-import { Badge, Button, Drawer, ErrorState, Icon, Skeleton, StatusPill, toneFor, useToast } from '../../../components/ui';
+import {
+  Badge,
+  Button,
+  Drawer,
+  ErrorState,
+  Icon,
+  Skeleton,
+  StatusPill,
+  Tabs,
+  toneFor,
+  useToast,
+} from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Callout } from '../campaigns/shared';
 import { DetailList, RejectDialog } from '../community/ReviewParts';
@@ -20,11 +31,28 @@ import { EventEditForm } from './EventEditForm';
 import { ReasonDialog } from './ReasonDialog';
 import { eventErrorMessage } from './errors';
 import { allowed, type ReasonAction } from './lib';
+import { ApplicationsPanel } from './ops/ApplicationsPanel';
+import { AttendancePanel } from './ops/AttendancePanel';
+import { CertificatesPanel } from './ops/CertificatesPanel';
+import { AnnouncementsPanel, FeedbackPanel, OrganizersPanel } from './ops/ContentPanels';
 import styles from './events.module.css';
 
 const detailKey = (id: number) => ['events', 'detail', id] as const;
 
 type Dialog = null | ReasonAction | 'reject';
+
+/** P07 sekmeleri: Genel (mevcut ayrıntı) + derin yönetim bölümleri + Denetim. */
+const TAB_IDS = [
+  'info',
+  'applications',
+  'attendance',
+  'certificates',
+  'feedback',
+  'announcements',
+  'organizers',
+  'audit',
+] as const;
+type TabId = (typeof TAB_IDS)[number];
 
 /** Etkinlik ayrıntı çekmecesi: bilgi, istek sayıları, durum geçmişi ve `allowedActions`'a göre işlemler. */
 export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose: () => void }) {
@@ -36,6 +64,11 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
   const [editing, setEditing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [dialogError, setDialogError] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>('info');
+  // Başka etkinlik açılınca ya da çekmece kapanınca Genel sekmesine dön
+  useEffect(() => {
+    setTab('info');
+  }, [id]);
 
   const q = useQuery({
     queryKey: detailKey(id ?? 0),
@@ -67,9 +100,19 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
 
   const reasoned = useMutation({
     mutationFn: (v: { action: Exclude<ReasonAction, 'delete'>; reason: string }) =>
-      (v.action === 'hide' ? hideEvent : v.action === 'unhide' ? unhideEvent : cancelEvent)(id ?? 0, v.reason),
+      (v.action === 'hide' ? hideEvent : v.action === 'unhide' ? unhideEvent : cancelEvent)(
+        id ?? 0,
+        v.reason,
+      ),
     onSuccess: (next, v) =>
-      accept(next, v.action === 'hide' ? 'admin.events.toast.hide' : v.action === 'unhide' ? 'admin.events.toast.unhide' : 'admin.events.toast.cancel'),
+      accept(
+        next,
+        v.action === 'hide'
+          ? 'admin.events.toast.hide'
+          : v.action === 'unhide'
+            ? 'admin.events.toast.unhide'
+            : 'admin.events.toast.cancel',
+      ),
     onError: fail,
   });
   const remove = useMutation({
@@ -124,10 +167,15 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
   const history = [...(d?.history ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   const footer =
-    d && !editing ? (
+    d && !editing && tab === 'info' ? (
       <div className={styles.footer}>
         {allowed(actions, 'approve') && (
-          <Button loading={approve.isPending} disabled={busy} leftIcon={<Icon name="check" size={16} />} onClick={() => approve.mutate()}>
+          <Button
+            loading={approve.isPending}
+            disabled={busy}
+            leftIcon={<Icon name="check" size={16} />}
+            onClick={() => approve.mutate()}
+          >
             {t('admin.review.approve')}
           </Button>
         )}
@@ -175,7 +223,13 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
 
   return (
     <>
-      <Drawer open={id !== null} onClose={close} size="lg" title={ev?.title ?? t('common.loading')} footer={footer}>
+      <Drawer
+        open={id !== null}
+        onClose={close}
+        size="lg"
+        title={ev?.title ?? t('common.loading')}
+        footer={footer}
+      >
         {q.isError ? (
           <ErrorState description={eventErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
         ) : !d || !ev ? (
@@ -195,75 +249,103 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
             }}
           />
         ) : (
-          <div className={styles.body}>
-            <div className={styles.badges}>
-              <StatusPill tone={toneFor(ev.status)}>{t(`admin.events.status.${ev.status}`)}</StatusPill>
-              {ev.communityName ? <Badge tone="info">{ev.communityName}</Badge> : <Badge>{t('admin.events.standalone')}</Badge>}
-            </div>
-            {ev.communityId == null && <Callout tone="info">{t('admin.events.standaloneNote')}</Callout>}
-            {ev.status === 'HIDDEN' && <Callout tone="warning">{t('admin.events.hiddenNote')}</Callout>}
-            <p className={styles.desc}>{ev.description || t('admin.events.noDescription')}</p>
-            <DetailList
-              items={[
-                { label: t('admin.events.starts'), value: formatDateTime(ev.startsAt) },
-                { label: t('admin.events.ends'), value: formatDateTime(ev.endsAt) },
-                { label: t('admin.events.location'), value: ev.location || '—' },
-                { label: t('admin.events.capacity'), value: ev.capacity == null ? t('admin.events.unlimited') : formatNumber(ev.capacity) },
-                { label: t('admin.events.organizer'), value: organizer },
-                {
-                  label: t('admin.events.organizerEmail'),
-                  value: d.organizerEmail ? <span className="ltr">{d.organizerEmail}</span> : '—',
-                },
-                { label: t('admin.events.community'), value: ev.communityName || t('admin.events.standalone') },
-                { label: t('admin.events.joinPolicy'), value: t(`admin.events.join.${ev.joinPolicy ?? 'OPEN'}`) },
-                { label: t('admin.events.going'), value: formatNumber(ev.goingCount) },
-                { label: t('admin.events.attended'), value: formatNumber(d.attendedCount) },
-                { label: t('admin.events.created'), value: formatDateTime(ev.createdAt) },
-                ...(d.reviewNote ? [{ label: t('admin.events.reviewNote'), value: d.reviewNote }] : []),
-                ...(d.moderationReason
-                  ? [
-                      { label: t('admin.events.moderationReason'), value: d.moderationReason },
-                      { label: t('admin.events.moderatedAt'), value: formatDateTime(d.moderatedAt) },
-                    ]
-                  : []),
-              ]}
-            />
-
-            <h3 className={styles.h3}>{t('admin.events.requests.title')}</h3>
-            <dl className={styles.counts} data-testid="request-counts">
-              {(['pending', 'waitlisted', 'accepted', 'rejected', 'cancelled'] as const).map((k) => (
-                <div key={k} className={styles.count}>
-                  <dt>{t(`admin.events.requests.${k}`)}</dt>
-                  <dd>{formatNumber(d.requests[k])}</dd>
+          <Tabs
+            label={t('admin.p07.tabs')}
+            value={tab}
+            onChange={(next) => setTab(next as TabId)}
+            tabs={TAB_IDS.map((x) => ({ id: x, label: t(`admin.p07.tab.${x}`) }))}
+          >
+            {tab === 'applications' && <ApplicationsPanel eventId={ev.id} eventStatus={ev.status} />}
+            {tab === 'attendance' && <AttendancePanel eventId={ev.id} />}
+            {tab === 'certificates' && <CertificatesPanel eventId={ev.id} />}
+            {tab === 'feedback' && <FeedbackPanel eventId={ev.id} />}
+            {tab === 'announcements' && <AnnouncementsPanel eventId={ev.id} />}
+            {tab === 'organizers' && <OrganizersPanel eventId={ev.id} />}
+            {tab === 'audit' && <AuditTrail targetType="EVENT" targetId={ev.id} />}
+            {tab === 'info' && (
+              <div className={styles.body}>
+                <div className={styles.badges}>
+                  <StatusPill tone={toneFor(ev.status)}>{t(`admin.events.status.${ev.status}`)}</StatusPill>
+                  {ev.communityName ? (
+                    <Badge tone="info">{ev.communityName}</Badge>
+                  ) : (
+                    <Badge>{t('admin.events.standalone')}</Badge>
+                  )}
                 </div>
-              ))}
-            </dl>
+                {ev.communityId == null && <Callout tone="info">{t('admin.events.standaloneNote')}</Callout>}
+                {ev.status === 'HIDDEN' && <Callout tone="warning">{t('admin.events.hiddenNote')}</Callout>}
+                <p className={styles.desc}>{ev.description || t('admin.events.noDescription')}</p>
+                <DetailList
+                  items={[
+                    { label: t('admin.events.starts'), value: formatDateTime(ev.startsAt) },
+                    { label: t('admin.events.ends'), value: formatDateTime(ev.endsAt) },
+                    { label: t('admin.events.location'), value: ev.location || '—' },
+                    {
+                      label: t('admin.events.capacity'),
+                      value: ev.capacity == null ? t('admin.events.unlimited') : formatNumber(ev.capacity),
+                    },
+                    { label: t('admin.events.organizer'), value: organizer },
+                    {
+                      label: t('admin.events.organizerEmail'),
+                      value: d.organizerEmail ? <span className="ltr">{d.organizerEmail}</span> : '—',
+                    },
+                    {
+                      label: t('admin.events.community'),
+                      value: ev.communityName || t('admin.events.standalone'),
+                    },
+                    {
+                      label: t('admin.events.joinPolicy'),
+                      value: t(`admin.events.join.${ev.joinPolicy ?? 'OPEN'}`),
+                    },
+                    { label: t('admin.events.going'), value: formatNumber(ev.goingCount) },
+                    { label: t('admin.events.attended'), value: formatNumber(d.attendedCount) },
+                    { label: t('admin.events.created'), value: formatDateTime(ev.createdAt) },
+                    ...(d.reviewNote ? [{ label: t('admin.events.reviewNote'), value: d.reviewNote }] : []),
+                    ...(d.moderationReason
+                      ? [
+                          { label: t('admin.events.moderationReason'), value: d.moderationReason },
+                          { label: t('admin.events.moderatedAt'), value: formatDateTime(d.moderatedAt) },
+                        ]
+                      : []),
+                  ]}
+                />
 
-            <h3 className={styles.h3}>{t('admin.events.history.title')}</h3>
-            {history.length === 0 ? (
-              <p className={styles.muted}>{t('admin.events.history.empty')}</p>
-            ) : (
-              <ol className={styles.timeline} data-testid="history">
-                {history.map((h) => (
-                  <li key={h.id} className={styles.step}>
-                    <div className={styles.stepHead}>
-                      <strong>{td(`admin.events.history.action.${h.action}`, h.action)}</strong>
-                      <span className={styles.muted}>{formatDateTime(h.createdAt)}</span>
+                <h3 className={styles.h3}>{t('admin.events.requests.title')}</h3>
+                <dl className={styles.counts} data-testid="request-counts">
+                  {(['pending', 'waitlisted', 'accepted', 'rejected', 'cancelled'] as const).map((k) => (
+                    <div key={k} className={styles.count}>
+                      <dt>{t(`admin.events.requests.${k}`)}</dt>
+                      <dd>{formatNumber(d.requests[k])}</dd>
                     </div>
-                    <div className={styles.muted}>
-                      {h.adminName || t('admin.events.history.auto')}
-                      {h.fromStatus && h.toStatus && h.fromStatus !== h.toStatus
-                        ? ` · ${t(`admin.events.status.${h.fromStatus}`)} → ${t(`admin.events.status.${h.toStatus}`)}`
-                        : ''}
-                    </div>
-                    {h.reason && <p className={styles.reason}>{h.reason}</p>}
-                  </li>
-                ))}
-              </ol>
+                  ))}
+                </dl>
+
+                <h3 className={styles.h3}>{t('admin.events.history.title')}</h3>
+                {history.length === 0 ? (
+                  <p className={styles.muted}>{t('admin.events.history.empty')}</p>
+                ) : (
+                  <ol className={styles.timeline} data-testid="history">
+                    {history.map((h) => (
+                      <li key={h.id} className={styles.step}>
+                        <div className={styles.stepHead}>
+                          <strong>{td(`admin.events.history.action.${h.action}`, h.action)}</strong>
+                          <span className={styles.muted}>{formatDateTime(h.createdAt)}</span>
+                        </div>
+                        <div className={styles.muted}>
+                          {h.adminName || t('admin.events.history.auto')}
+                          {h.fromStatus && h.toStatus && h.fromStatus !== h.toStatus
+                            ? ` · ${t(`admin.events.status.${h.fromStatus}`)} → ${t(`admin.events.status.${h.toStatus}`)}`
+                            : ''}
+                        </div>
+                        {h.reason && <p className={styles.reason}>{h.reason}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
             )}
-          </div>
+          </Tabs>
         )}
-        {ev && !editing && <AuditTrail targetType="EVENT" targetId={ev.id} />}
       </Drawer>
 
       {ev && (dialog === 'hide' || dialog === 'unhide' || dialog === 'cancel') && (
@@ -287,7 +369,13 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
         />
       )}
       {ev && dialog === 'reject' && (
-        <RejectDialog open name={ev.title} loading={reject.isPending} onClose={() => setDialog(null)} onConfirm={(r) => reject.mutate(r)} />
+        <RejectDialog
+          open
+          name={ev.title}
+          loading={reject.isPending}
+          onClose={() => setDialog(null)}
+          onConfirm={(r) => reject.mutate(r)}
+        />
       )}
     </>
   );

@@ -140,3 +140,11 @@ Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). 
 - DTO `@Size` üst sınırları eskisi gibi geniş kaldı (150/2000/200; yalnızca sütun güvenliği); asıl sınır servistedir ki özel hata kodu dönsün. Bu sınırları aşan istek (örn. 2001 karakterlik açıklama) `VALIDATION_ERROR` alır.
 - Etkinlik moderasyonu (V460) kuralları aynen korunur: kulüp zorunlu, `ACTIVE`/`PENDING_REVIEW`, admin uçları.
 - Yeni hata kodları (tr/en/ar `i18n/event*.properties`, `{0}` = sınır): `EVENT_TITLE_TOO_LONG`, `EVENT_DESCRIPTION_TOO_LONG`, `EVENT_LOCATION_TOO_LONG`, `EVENT_TOO_LONG`.
+
+
+## Yönetici etkinlik derin yönetimi (P07, V690)
+
+- Yeni yönetici uçları `event/admin/**`: başvuru listesi/zorla kabul-ret, yoklama listesi/elle düzeltme, sertifika listesi/iptal/iptali geri alma, anonim geri bildirim listesi/silme, duyuru kaydı listesi/silme, düzenleyen listesi/çıkarma, CSV'ler (yoklama, başvuru, etkinlik listesi) ve toplu gizle/yeniden yayınla/iptal (`POST /api/admin/events/bulk`, ≤ 100). Sözleşme: `docs/ADMIN_API.md` "Etkinlik derin yönetimi (P07)".
+- **Kullanıcı tarafı davranış değişikliği:** `event_certificate` artık iptal edilebilir (V690: `revoked_at/by/reason`). İptal edilmiş sertifika `GET /api/certificates/verify/{code}` içinde `valid:false` döner ve `GET /api/events/{id}/certificate` `409 CERTIFICATE_REVOKED` verir (mobil: yeni hata kodu genel hata olarak gösterilir).
+- Yönetici yoklama düzeltmesi "yok" yaparsa sertifika doğrulaması geçersiz döner (kayıt silinmez); tekrar "var" yapılırsa geçerli olur.
+- Yeni hata kodları `i18n/eventadmin*.properties` (basename'e `i18n/eventadmin` eklendi).

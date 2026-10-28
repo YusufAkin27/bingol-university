@@ -37,4 +37,16 @@ public class EventCertificate {
 
     @Column(nullable = false)
     private Instant issuedAt = Instant.now();
+
+    /** Yonetici iptali (V690): dolu ise sertifika gecersizdir ve kullanici yeniden duzenleyemez. */
+    private Instant revokedAt;
+
+    private Long revokedBy;
+
+    @Column(length = 300)
+    private String revokeReason;
+
+    public boolean isRevoked() {
+        return revokedAt != null;
+    }
 }
