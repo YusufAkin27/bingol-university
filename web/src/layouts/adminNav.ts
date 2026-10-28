@@ -99,6 +99,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'legal', to: paths.admin.legal, labelKey: 'admin.nav.legal', icon: 'file' },
       { id: 'faq', to: paths.admin.faq, labelKey: 'admin.nav.faq', icon: 'help' },
       { id: 'news', to: paths.admin.news, labelKey: 'admin.nav.news', icon: 'news' },
+      { id: 'menu', to: paths.admin.menu, labelKey: 'admin.nav.menu', icon: 'calendar' },
     ],
   },
   {

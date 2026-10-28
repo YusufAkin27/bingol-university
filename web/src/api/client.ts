@@ -67,13 +67,15 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
     Accept: 'application/json',
     'Accept-Language': getCurrentLang(),
   };
-  if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+  const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+  // FormData'da Content-Type'ı tarayıcı sınır (boundary) ile kendisi koyar.
+  if (opts.body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
   if (token && opts.auth !== false) headers.Authorization = `Bearer ${token}`;
   try {
     return await fetch(buildUrl(path, opts.query), {
       method: opts.method ?? 'GET',
       headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body: opts.body === undefined ? undefined : isForm ? (opts.body as FormData) : JSON.stringify(opts.body),
       signal: opts.signal,
     });
   } catch (e) {
@@ -166,6 +168,8 @@ export const api = {
     apiFetch<T>(path, { method: 'POST', body: body ?? undefined }),
   put: <T = void>(path: string, body?: unknown) =>
     apiFetch<T>(path, { method: 'PUT', body: body ?? undefined }),
+  /** multipart/form-data yükleme (gövde FormData; başlık tarayıcıda kurulur). */
+  putForm: <T = void>(path: string, form: FormData) => apiFetch<T>(path, { method: 'PUT', body: form }),
   patch: <T = void>(path: string, body?: unknown) =>
     apiFetch<T>(path, { method: 'PATCH', body: body ?? undefined }),
   del: <T = void>(path: string) => apiFetch<T>(path, { method: 'DELETE' }),

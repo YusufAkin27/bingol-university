@@ -29,6 +29,8 @@ export interface MenuDay {
   /** yyyy-MM-dd */
   date: string;
   items: string[];
+  /** Günün isteğe bağlı fotoğrafı (yoksa null/eksik). */
+  imageUrl?: string | null;
 }
 
 export interface SourceStatus {

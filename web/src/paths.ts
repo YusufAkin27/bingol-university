@@ -41,6 +41,7 @@ export const paths = {
     chatFeed: `${ADMIN_BASE}/chat-feed`,
     posts: `${ADMIN_BASE}/posts`,
     polls: `${ADMIN_BASE}/polls`,
+    menu: `${ADMIN_BASE}/content/menu`,
     analytics: (tab?: 'overview' | 'growth' | 'engagement' | 'retention' | 'demographics') =>
       `${ADMIN_BASE}/analytics${tab ? `/${tab}` : ''}`,
     reports: `${ADMIN_BASE}/reports`,

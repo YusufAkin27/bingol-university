@@ -80,6 +80,9 @@ export const qk = {
     results: (id: number) => ['adminPolls', 'results', id] as const,
     menuRatings: () => ['adminPolls', 'menuRatings'] as const,
   },
+  adminMenu: {
+    month: (from: string, to: string) => ['adminMenu', 'month', from, to] as const,
+  },
   adminSocial: {
     stories: (hidden: boolean) => ['adminSocial', 'stories', hidden] as const,
     trending: () => ['adminSocial', 'trending'] as const,

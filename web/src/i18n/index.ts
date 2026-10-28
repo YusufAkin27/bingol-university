@@ -19,6 +19,7 @@ import trAdminSafety from './tr/admin-safety';
 import trAdminChat from './tr/admin-chat';
 import trAdminPosts from './tr/admin-posts';
 import trAdminPolls from './tr/admin-polls';
+import trAdminMenu from './tr/admin-menu';
 import trAdminAccessBans from './tr/admin-accessbans';
 import trAdminProfanity from './tr/admin-profanity';
 import trAdminOps from './tr/admin-ops';
@@ -43,6 +44,7 @@ import enAdminSafety from './en/admin-safety';
 import enAdminChat from './en/admin-chat';
 import enAdminPosts from './en/admin-posts';
 import enAdminPolls from './en/admin-polls';
+import enAdminMenu from './en/admin-menu';
 import enAdminAccessBans from './en/admin-accessbans';
 import enAdminProfanity from './en/admin-profanity';
 import enAdminOps from './en/admin-ops';
@@ -67,6 +69,7 @@ import arAdminSafety from './ar/admin-safety';
 import arAdminChat from './ar/admin-chat';
 import arAdminPosts from './ar/admin-posts';
 import arAdminPolls from './ar/admin-polls';
+import arAdminMenu from './ar/admin-menu';
 import arAdminAccessBans from './ar/admin-accessbans';
 import arAdminProfanity from './ar/admin-profanity';
 import arAdminOps from './ar/admin-ops';
@@ -92,6 +95,7 @@ const tr = {
   ...trAdminChat,
   ...trAdminPosts,
   ...trAdminPolls,
+  ...trAdminMenu,
   ...trAdminAccessBans,
   ...trAdminProfanity,
   ...trAdminOps,
@@ -122,6 +126,7 @@ const en: Dictionary = {
   ...enAdminChat,
   ...enAdminPosts,
   ...enAdminPolls,
+  ...enAdminMenu,
   ...enAdminAccessBans,
   ...enAdminProfanity,
   ...enAdminOps,
@@ -148,6 +153,7 @@ const ar: Dictionary = {
   ...arAdminChat,
   ...arAdminPosts,
   ...arAdminPolls,
+  ...arAdminMenu,
   ...arAdminAccessBans,
   ...arAdminProfanity,
   ...arAdminOps,
