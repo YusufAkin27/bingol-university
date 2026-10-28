@@ -24,6 +24,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { QuickSendDialog } from './campaigns/QuickSendDialog';
 import { ActivityBars } from './users/ActivityBars';
+import { AuditTrail } from '../../components/admin/guard';
 import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
 import { UserExtras } from './users/UserExtras';
@@ -217,6 +218,8 @@ export default function UserDetailPage() {
           </Card>
 
           <UserDevices userId={u.id} />
+
+          <AuditTrail targetType="USER" targetId={u.id} />
 
           <Card title={t('admin.users.detail.consents')}>
             {u.consents.length === 0 ? (

@@ -98,6 +98,9 @@ export function Lightbox({
           )}
           <MediaBadges item={item} />
           <ViewedByLine item={item} />
+          <span className={styles.muted} data-testid="lightbox-audit">
+            {t('admin.wp02.reason.audited')}
+          </span>
           {item.link && (
             <Link to={item.link} onClick={onClose}>
               {t('admin.chat.showInChat')}

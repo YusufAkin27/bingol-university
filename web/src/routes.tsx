@@ -80,6 +80,7 @@ const EventApplicationsPage = lazy(() => import('./pages/admin/EventApplications
 const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
+const MessageAccessPage = lazy(() => import('./pages/admin/MessageAccessPage'));
 const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
 
 function PageFallback() {
@@ -179,6 +180,7 @@ export function AppRoutes() {
             <Route path="communities/audit" element={<ClubAuditPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="audit" element={<AuditPage />} />
+            <Route path="audit/message-access" element={<MessageAccessPage />} />
             <Route path="*" element={<AdminNotFoundPage />} />
           </Route>
         </Route>

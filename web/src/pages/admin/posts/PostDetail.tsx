@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { adminPostsApi, qk } from '../../../api';
+import { AuditTrail } from '../../../components/admin/guard';
 import { Avatar, Badge, Drawer, ErrorState, Skeleton } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminErrorMessage } from '../campaigns/shared';
@@ -100,6 +101,7 @@ export function PostDetailDrawer({ postId, onClose }: { postId: number; onClose:
           )}
         </div>
       )}
+      <AuditTrail targetType="POST" targetId={postId} />
       {actions.dialogs}
       {lb !== null && <Lightbox items={items} index={lb} onIndex={setLb} onClose={() => setLb(null)} />}
     </Drawer>

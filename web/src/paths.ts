@@ -73,5 +73,6 @@ export const paths = {
     clubAudit: `${ADMIN_BASE}/communities/audit`,
     settings: `${ADMIN_BASE}/settings`,
     audit: `${ADMIN_BASE}/audit`,
+    auditMessageAccess: `${ADMIN_BASE}/audit/message-access`,
   },
 } as const;

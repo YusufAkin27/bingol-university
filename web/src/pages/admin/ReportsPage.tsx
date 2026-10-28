@@ -402,7 +402,7 @@ export default function ReportsPage() {
                 <Card title={t('admin.reports.preview.title')}>
                   <TargetPreview report={selected} />
                 </Card>
-                <ReportContextCard key={selected.id} reportId={selected.id} />
+                <ReportContextCard key={selected.id} reportId={selected.id} targetType={selected.targetType} />
                 <Card title={t(`admin.reports.reason.${selected.reason}`)}>
                   <dl className={styles.facts}>
                     <div>

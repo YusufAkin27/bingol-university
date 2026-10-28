@@ -11,6 +11,7 @@ import {
   type AdminEventPatch,
 } from '../../../api/adminEvents';
 import { approveEvent, rejectEvent } from '../../../api/approvals';
+import { AuditTrail } from '../../../components/admin/guard';
 import { Badge, Button, Drawer, ErrorState, Icon, Skeleton, StatusPill, toneFor, useToast } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Callout } from '../campaigns/shared';
@@ -262,6 +263,7 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
             )}
           </div>
         )}
+        {ev && !editing && <AuditTrail targetType="EVENT" targetId={ev.id} />}
       </Drawer>
 
       {ev && (dialog === 'hide' || dialog === 'unhide' || dialog === 'cancel') && (

@@ -130,6 +130,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'settings', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'audit', to: paths.admin.audit, labelKey: 'admin.nav.audit', icon: 'list' },
+      { id: 'messageAccess', to: paths.admin.auditMessageAccess, labelKey: 'admin.wp02.nav.messageAccess', icon: 'shield' },
       { id: 'crypto', to: paths.admin.crypto, labelKey: 'admin.nav.crypto', icon: 'shield' },
     ],
   },

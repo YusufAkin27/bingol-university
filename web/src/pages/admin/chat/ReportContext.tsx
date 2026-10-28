@@ -1,7 +1,7 @@
 // Şikâyet bağlamı kartı: şikâyet eden/edilen, sebep+not, şikâyet edilen mesajın (silinmiş olsa da) çevresi ve ilişkili şikâyetler.
 // API: GET /api/admin/reports/{id} (api/adminChat.ts#getReportDetail). Sunucu her çağrıda denetim kaydı yazar.
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminChatApi, qk } from '../../../api';
 import type { ReportPerson } from '../../../api/types';
@@ -11,6 +11,8 @@ import { paths } from '../../../paths';
 import { FeedContentMedia } from '../posts/FeedContentMedia';
 import { adminErrorMessage } from '../campaigns/shared';
 import { ChatBubble } from './ChatBubble';
+import { chatReasonKey, isReasonRequiredError, rejectChatReason } from './chatReason';
+import { ReasonGate } from './ReasonGate';
 import { Lightbox } from './Lightbox';
 import { collectLightboxItems } from './chatLogic';
 import styles from './chat.module.css';
@@ -31,17 +33,54 @@ export function localViewerPath(p: string | null | undefined): string | null {
   return p.replace(/^\/admin(?=\/)/, paths.admin.dashboard);
 }
 
-export function ReportContextCard({ reportId }: { reportId: number }) {
+/**
+ * Şikâyet bağlamı. Sohbet MESAJI şikâyetlerinde özel yazışma açıldığı için sebep gerekir (ReasonGate,
+ * `X-Admin-Reason`); diğer hedef türlerinde sebep istenmez. Sunucu beklenmedik biçimde sebep isterse kapı açılır.
+ */
+export function ReportContextCard({ reportId, targetType }: { reportId: number; targetType?: string }) {
+  const { t } = useI18n();
+  const [forced, setForced] = useState(false);
+  const body = (reason: string | null) => (
+    <ReportContextBody reportId={reportId} reason={reason} onNeedReason={() => setForced(true)} />
+  );
+  return (
+    <Card title={t('admin.reports.ctx.title')}>
+      {targetType === 'MESSAGE' || forced ? (
+        <ReasonGate storeKey={chatReasonKey.report(reportId)} initialText={`${t('admin.wp02.reason.tpl.reportText')}${reportId}`}>
+          {(reason) => body(reason)}
+        </ReasonGate>
+      ) : (
+        body(null)
+      )}
+    </Card>
+  );
+}
+
+function ReportContextBody({
+  reportId,
+  reason,
+  onNeedReason,
+}: {
+  reportId: number;
+  reason: string | null;
+  onNeedReason: () => void;
+}) {
   const i18n = useI18n();
   const { t, formatDateTime } = i18n;
   const q = useQuery({
     queryKey: qk.reports.detail(reportId),
-    queryFn: () => adminChatApi.getReportDetail(reportId),
+    queryFn: () => adminChatApi.getReportDetail(reportId, reason),
     staleTime: Infinity,
     gcTime: 0,
     refetchOnWindowFocus: false,
     retry: false,
   });
+  const needsReason = isReasonRequiredError(q.error);
+  useEffect(() => {
+    if (!needsReason) return;
+    if (reason) rejectChatReason(chatReasonKey.report(reportId));
+    else onNeedReason();
+  }, [needsReason, reason, reportId, onNeedReason]);
   const [lb, setLb] = useState<number | null>(null);
   const d = q.data;
   const ctx = d?.context ?? null;
@@ -58,7 +97,7 @@ export function ReportContextCard({ reportId }: { reportId: number }) {
   const viewer = localViewerPath(d?.viewerPath);
 
   return (
-    <Card title={t('admin.reports.ctx.title')}>
+    <>
       {q.isError ? (
         <ErrorState compact description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
       ) : q.isLoading || !d ? (
@@ -186,6 +225,6 @@ export function ReportContextCard({ reportId }: { reportId: number }) {
         </div>
       )}
       {lb !== null && <Lightbox items={lbItems} index={lb} onIndex={setLb} onClose={() => setLb(null)} />}
-    </Card>
+    </>
   );
 }

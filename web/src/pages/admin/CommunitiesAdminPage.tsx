@@ -3,6 +3,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AuditTrail } from '../../components/admin/guard';
 import { approveCommunity, listCommunities, rejectCommunity } from '../../api/approvals';
 import { qk } from '../../api/queryKeys';
 import type { CommunityStatus, CommunityView } from '../../api/types';
@@ -224,6 +225,7 @@ export default function CommunitiesAdminPage() {
                 { label: t('admin.communities.created'), value: formatDateTime(selected.createdAt) },
               ]}
             />
+            <AuditTrail targetType="COMMUNITY" targetId={selected.id} />
           </>
         )}
       </Drawer>

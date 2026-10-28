@@ -7,11 +7,14 @@ import type { ApiErrorBody, TokenResponse } from './types';
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
-  constructor(status: number, code: string, message: string) {
+  /** 429/409 yanıtlarındaki Retry-After başlığı (saniye); yoksa undefined. */
+  readonly retryAfter?: number;
+  constructor(status: number, code: string, message: string, retryAfter?: number) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
+    if (retryAfter !== undefined) this.retryAfter = retryAfter;
   }
 }
 
@@ -88,6 +91,8 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
 }
 
 async function toError(res: Response): Promise<ApiError> {
+  const ra = Number(res.headers.get('Retry-After'));
+  const retryAfter = Number.isFinite(ra) && ra > 0 ? Math.ceil(ra) : undefined;
   let body: Partial<ApiErrorBody> | null = null;
   try {
     body = (await res.json()) as Partial<ApiErrorBody>;
@@ -95,10 +100,10 @@ async function toError(res: Response): Promise<ApiError> {
     body = null;
   }
   if (body && typeof body.code === 'string') {
-    return new ApiError(res.status, body.code, typeof body.message === 'string' ? body.message : body.code);
+    return new ApiError(res.status, body.code, typeof body.message === 'string' ? body.message : body.code, retryAfter);
   }
   const code = res.status >= 500 ? 'SERVER_ERROR' : `HTTP_${res.status}`;
-  return new ApiError(res.status, code, res.statusText || code);
+  return new ApiError(res.status, code, res.statusText || code, retryAfter);
 }
 
 // ---------- tek-uçuş refresh ----------

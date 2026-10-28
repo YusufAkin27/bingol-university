@@ -7,7 +7,8 @@ import type { I18n } from '../i18n/I18nProvider';
  */
 export function errorMessage(i18n: Pick<I18n, 't' | 'td'>, e: unknown): string {
   if (isApiError(e)) {
-    const known = i18n.td(`common.error.${e.code}`, '');
+    if (e.status === 429 && e.retryAfter) return i18n.t('admin.wp02.err.rateLimitedWait', { n: e.retryAfter });
+    const known = i18n.td(`common.error.${e.code}`, '') || i18n.td(`admin.wp02.err.${e.code}`, '');
     if (known) return known;
     if (e.status === 0) return i18n.t('common.error.NETWORK_ERROR');
     if (e.status >= 500) return i18n.t('common.error.SERVER_ERROR');
@@ -23,10 +24,13 @@ export function errorMessage(i18n: Pick<I18n, 't' | 'td'>, e: unknown): string {
  */
 export function adminError(i18n: Pick<I18n, 't' | 'td'>, e: unknown, ...scopes: string[]): string {
   if (isApiError(e)) {
+    // Hız sınırı: sunucu Retry-After verdiyse bekleme süresi de gösterilir (tüm yazma uçları için ortak).
+    if (e.status === 429 && e.retryAfter) return i18n.t('admin.wp02.err.rateLimitedWait', { n: e.retryAfter });
     for (const scope of scopes.length ? scopes : ['admin.err']) {
       const own = i18n.td(`${scope}.${e.code}`, '');
       if (own) return own;
     }
   }
+  // Yönetici yazma güvenliği kodları (sebep, idempotency, sabit yönetici e-postası) `errorMessage` içinde ortaktır.
   return errorMessage(i18n, e);
 }

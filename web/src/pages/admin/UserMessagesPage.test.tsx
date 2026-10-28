@@ -1,9 +1,10 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
+import { chatReasonKey, clearAllChatReasons, setChatReason } from './chat/chatReason';
 import LegacyMessageRedirect from './chat/LegacyMessageRedirect';
 import UserMessagesPage from './UserMessagesPage';
 
@@ -139,9 +140,15 @@ function renderPage(route = '/admin/users/7/messages?c=30', lang: 'tr' | 'ar' = 
 }
 
 beforeEach(() => {
+  // Sohbet içeriği sebep ister (W-P02): sebep kapısı geçilmiş sayılır; sebep akışı chatReason.test.tsx'te sınanır.
+  setChatReason(chatReasonKey.user(7), 'Şikayet incelemesi (test)');
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: () => 'blob:test', revokeObjectURL: () => {} }));
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  cleanup(); // önce bileşenleri kaldır: sebep deposu temizlenince kapı yeniden render etmesin
+  vi.unstubAllGlobals();
+  clearAllChatReasons();
+});
 
 describe('Kullanıcı mesajları sayfası', () => {
   it('tüm sohbetleri durum rozetleriyle gösterir (silinmiş, ayrılmış, arşivli, gölge engelli)', async () => {

@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import { screen, within, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
+import { chatReasonKey, clearAllChatReasons, setChatReason } from './chat/chatReason';
 import ReportsPage from './ReportsPage';
 
 const person = (id: number, name: string) => ({ id, displayName: name, email: `${name.toLowerCase()}@bingol.edu.tr` });
@@ -84,9 +85,15 @@ const detail = {
 };
 
 beforeEach(() => {
+  // Sohbet mesajı şikayeti bağlamı sebep ister (W-P02): kapı geçilmiş sayılır; akış chatReason.test.tsx'te sınanır.
+  setChatReason(chatReasonKey.report(11), 'Rapor incelemesi #11 (test)');
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: () => 'blob:test', revokeObjectURL: () => {} }));
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  cleanup(); // önce bileşenleri kaldır: sebep deposu temizlenince kapı yeniden render etmesin
+  vi.unstubAllGlobals();
+  clearAllChatReasons();
+});
 
 function setup(ctx: unknown = detail) {
   mockFetch((url) => {

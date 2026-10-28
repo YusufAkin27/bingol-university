@@ -1,8 +1,9 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
+import { chatReasonKey, clearAllChatReasons, setChatReason } from './chat/chatReason';
 import ChatFeedPage from './ChatFeedPage';
 
 const person = (id: number, name: string) => ({ id, displayName: name, avatarUrl: null, email: `${name}@bingol.edu.tr` });
@@ -85,9 +86,15 @@ function setup(opts: { mediaError?: boolean } = {}) {
 }
 
 beforeEach(() => {
+  // Sohbet içeriği sebep ister (W-P02): sebep kapısı geçilmiş sayılır; sebep akışı chatReason.test.tsx'te sınanır.
+  setChatReason(chatReasonKey.feed(), 'Şikayet incelemesi (test)');
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: () => 'blob:test', revokeObjectURL: () => {} }));
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  cleanup(); // önce bileşenleri kaldır: sebep deposu temizlenince kapı yeniden render etmesin
+  vi.unstubAllGlobals();
+  clearAllChatReasons();
+});
 
 describe('Sohbet medyası ve mesajlar sayfası', () => {
   it('istatistik kartları ve medya ızgarası rozetlerle gelir; sonraki sayfa yüklenir', async () => {

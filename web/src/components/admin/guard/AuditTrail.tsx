@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { api, isApiError } from '../../../api/client';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { paths } from '../../../paths';
 import { ErrorState, Spinner } from '../../ui/Feedback';
 import styles from './guard.module.css';
 
@@ -13,6 +15,8 @@ export interface AuditTrailEntry {
   method?: string | null;
   path?: string | null;
   reason?: string | null;
+  /** P02: kısa özet ("rol -> USER"). */
+  summary?: string | null;
   at: string;
 }
 
@@ -70,10 +74,18 @@ export function AuditTrail({ targetType, targetId, size = 20, title }: AuditTrai
               </p>
               <p className={styles.auditAction}>{r.action ?? [r.method, r.path].filter(Boolean).join(' ')}</p>
               {r.reason && <p className={styles.auditReason}>{t('admin.guard.audit.reason', { reason: r.reason })}</p>}
+              {r.summary && <p className={styles.auditReason}>{t('admin.wp02.trail.summary', { summary: r.summary })}</p>}
             </li>
           ))}
         </ol>
       )}
+      <p className={styles.auditEmpty}>
+        <Link
+          to={`${paths.admin.audit}?${new URLSearchParams({ targetType: targetType.toUpperCase(), targetId: String(targetId) }).toString()}`}
+        >
+          {t('admin.wp02.trail.viewAll')}
+        </Link>
+      </p>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 // SAYFA: Sohbet medyası ve mesajlar (/admin/chat-feed) — tüm sohbetlerdeki fotoğraf/videoları ve mesajları ayrı bir alanda gösterir.
 // API: GET /api/admin/chat-media/stats, /api/admin/chat-media, /api/admin/chat-messages (api/adminChat.ts). Her sayfa denetim kaydına yazılır.
+// Sohbet içeriği SEBEP ister (ReasonGate; `X-Admin-Reason`). İstatistikler sebepsizdir.
 // Silinmiş mesajlar, gölge engelli (iletilmemiş) mesajlar ve tek gönderimlik medya da listelenir; hiçbir şey gizlenmez.
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -7,6 +8,8 @@ import { adminChatApi, qk } from '../../api';
 import { PageHeader, StatCard, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
+import { chatReasonKey } from './chat/chatReason';
+import { ReasonGate } from './chat/ReasonGate';
 import { EMPTY_FILTERS, FeedFilters, MediaTab, MessagesTab, type FeedFilterState } from './chat/FeedParts';
 import { formatBytes } from './chat/chatLogic';
 import styles from './chat/chat.module.css';
@@ -41,17 +44,27 @@ export default function ChatFeedPage() {
           loading={stats.isLoading}
         />
       </div>
-      <Tabs
-        label={t('admin.chatFeed.tabs')}
-        value={tab}
-        onChange={(id) => setTab(id as 'media' | 'messages')}
-        tabs={[
-          { id: 'media', label: t('admin.chatFeed.tab.media') },
-          { id: 'messages', label: t('admin.chatFeed.tab.messages') },
-        ]}
-      />
-      <FeedFilters tab={tab} value={filters} onChange={setFilters} />
-      {tab === 'media' ? <MediaTab filters={filters} /> : <MessagesTab filters={filters} />}
+      <ReasonGate storeKey={chatReasonKey.feed()}>
+        {(reason) => (
+          <>
+            <Tabs
+              label={t('admin.chatFeed.tabs')}
+              value={tab}
+              onChange={(id) => setTab(id as 'media' | 'messages')}
+              tabs={[
+                { id: 'media', label: t('admin.chatFeed.tab.media') },
+                { id: 'messages', label: t('admin.chatFeed.tab.messages') },
+              ]}
+            />
+            <FeedFilters tab={tab} value={filters} onChange={setFilters} />
+            {tab === 'media' ? (
+              <MediaTab filters={filters} reason={reason} />
+            ) : (
+              <MessagesTab filters={filters} reason={reason} />
+            )}
+          </>
+        )}
+      </ReasonGate>
     </>
   );
 }

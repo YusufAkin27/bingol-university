@@ -22,6 +22,7 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { adminErrorMessage } from '../campaigns/shared';
 import { ChatBubble } from './ChatBubble';
+import { chatReasonKey, useRejectOnReasonError } from './chatReason';
 import { Lightbox } from './Lightbox';
 import { MediaBadges, MediaThumb } from './MediaThumb';
 import { collectLightboxItems, mediaToItem, nextCursorParam, parseId, viewerLink } from './chatLogic';
@@ -200,7 +201,7 @@ function useAutoLoad(enabled: boolean, load: () => void) {
   return ref;
 }
 
-export function MediaTab({ filters }: { filters: FeedFilterState }) {
+export function MediaTab({ filters, reason }: { filters: FeedFilterState; reason: string }) {
   const i18n = useI18n();
   const { t, formatDateTime } = i18n;
   const convId = parseId(useDebouncedValue(filters.conversationId, 400) || null);
@@ -218,11 +219,13 @@ export function MediaTab({ filters }: { filters: FeedFilterState }) {
   );
   const q = useInfiniteQuery({
     queryKey: qk.adminChat.media(f),
-    queryFn: ({ pageParam }) => adminChatApi.listChatMedia(f, pageParam, 30),
+    queryFn: ({ pageParam }) => adminChatApi.listChatMedia(f, reason, pageParam, 30),
     initialPageParam: undefined as number | undefined,
     getNextPageParam: nextCursorParam,
     staleTime: 30_000,
   });
+  // Sunucu sebebi kabul etmezse (400 REASON_REQUIRED) sebep silinir ve kapı yeniden sorar.
+  useRejectOnReasonError(chatReasonKey.feed(), q.error);
   const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
   const lbItems = useMemo(
     () => items.map((x) => mediaToItem(x, viewerLink(x.sender.id, x.conversationId, x.messageId))),
@@ -261,7 +264,7 @@ export function MediaTab({ filters }: { filters: FeedFilterState }) {
   );
 }
 
-export function MessagesTab({ filters }: { filters: FeedFilterState }) {
+export function MessagesTab({ filters, reason }: { filters: FeedFilterState; reason: string }) {
   const i18n = useI18n();
   const { t } = i18n;
   const convId = parseId(useDebouncedValue(filters.conversationId, 400) || null);
@@ -279,13 +282,14 @@ export function MessagesTab({ filters }: { filters: FeedFilterState }) {
   );
   const q = useInfiniteQuery({
     queryKey: qk.adminChat.feed(f),
-    queryFn: ({ pageParam }) => adminChatApi.listChatMessages(f, pageParam, 30),
+    queryFn: ({ pageParam }) => adminChatApi.listChatMessages(f, reason, pageParam, 30),
     initialPageParam: undefined as number | undefined,
     getNextPageParam: nextCursorParam,
     staleTime: Infinity,
     gcTime: 0,
     refetchOnWindowFocus: false,
   });
+  useRejectOnReasonError(chatReasonKey.feed(), q.error);
   const rows = useMemo<AdminFeedMessage[]>(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
   // Akışta "mine" anlamsız: tüm mesajlar aynı yönde, gönderen adıyla gösterilir.
   const msgs = useMemo(() => rows.map((r) => ({ ...r.message, mine: false })), [rows]);

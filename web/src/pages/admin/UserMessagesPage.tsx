@@ -2,6 +2,7 @@
 // API: GET /api/admin/users/{id}/conversations?cursor&size ve .../conversations/{cid}/messages?before&size (api/adminChat.ts).
 // Kullanıcının tüm sohbetleri (silinmiş/ayrılmış/arşivli dahil) ve sohbetteki herkesin mesajları gelir; silinmiş mesajlar,
 // düzenleme geçmişi, gölge engelli (iletilmemiş) mesajlar ve tek gönderimlik ekler de görünür. Hiçbir şey gizlenmez.
+// Sohbet içeriği SEBEP ister (>= 10 karakter; ReasonGate sorar, her istekte `X-Admin-Reason` ile gider).
 // Her sayfa isteği sunucuda otomatik denetim kaydı üretir; düz metin yalnızca önbellekte (gcTime 0) tutulur, depoya yazılmaz.
 // Mesajlar yeniden eskiye sayfalanır: en yeni 50 yüklenir, yukarı kaydırdıkça `before` imleciyle eskiler gelir.
 // `?m=` verilirse hedef mesaj bulunana dek eski sayfalar yüklenir, mesaja kaydırılır ve vurgulanır.
@@ -14,6 +15,8 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { ChatBubble } from './chat/ChatBubble';
+import { chatReasonKey, useRejectOnReasonError } from './chat/chatReason';
+import { ReasonGate } from './chat/ReasonGate';
 import { Lightbox } from './chat/Lightbox';
 import {
   MESSAGE_PAGE_SIZE,
@@ -35,20 +38,28 @@ import { adminErrorMessage } from './campaigns/shared';
 const MAX_TARGET_FETCHES = 40;
 
 export default function UserMessagesPage() {
+  const { t } = useI18n();
+  const userId = Number(useParams().id);
+  usePageTitle(t('admin.chat.title'));
+  return (
+    <ReasonGate storeKey={chatReasonKey.user(userId)}>
+      {(reason) => <UserMessagesView userId={userId} reason={reason} />}
+    </ReasonGate>
+  );
+}
+
+function UserMessagesView({ userId, reason }: { userId: number; reason: string }) {
   const i18n = useI18n();
   const { t, formatDate, formatNumber } = i18n;
-  const params = useParams();
-  const userId = Number(params.id);
   const [search, setSearch] = useSearchParams();
   const convId = parseId(search.get('c'));
   const mParam = parseId(search.get('m'));
   const [filter, setFilter] = useState('');
   const [lb, setLb] = useState<number | null>(null);
-  usePageTitle(t('admin.chat.title'));
 
   const convs = useInfiniteQuery({
     queryKey: qk.adminChat.conversations(userId),
-    queryFn: ({ pageParam }) => adminChatApi.listConversations(userId, pageParam, 20),
+    queryFn: ({ pageParam }) => adminChatApi.listConversations(userId, reason, pageParam, 20),
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     enabled: Number.isInteger(userId) && userId > 0,
@@ -65,7 +76,7 @@ export default function UserMessagesPage() {
 
   const msgs = useInfiniteQuery({
     queryKey: qk.adminChat.messages(userId, convId ?? 0),
-    queryFn: ({ pageParam }) => adminChatApi.getConversationMessages(userId, convId as number, pageParam, MESSAGE_PAGE_SIZE),
+    queryFn: ({ pageParam }) => adminChatApi.getConversationMessages(userId, convId as number, reason, pageParam, MESSAGE_PAGE_SIZE),
     initialPageParam: undefined as number | undefined,
     getNextPageParam: nextBeforeParam,
     enabled: convId !== null,
@@ -73,6 +84,8 @@ export default function UserMessagesPage() {
     gcTime: 0,
     refetchOnWindowFocus: false,
   });
+  // Sunucu sebebi kabul etmezse (400 REASON_REQUIRED) sebep silinir ve kapı yeniden sorar.
+  useRejectOnReasonError(chatReasonKey.user(userId), convs.error, msgs.error);
   const messages = useMemo(() => flattenPages(msgs.data?.pages ?? []), [msgs.data]);
   const info = msgs.data?.pages[0]?.conversation;
   const lbItems = useMemo(() => collectLightboxItems(messages, () => null), [messages]);
