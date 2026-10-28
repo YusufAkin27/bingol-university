@@ -32,9 +32,6 @@ public class Post {
     private int likeCount;
 
     @Column(nullable = false)
-    private int commentCount;
-
-    @Column(nullable = false)
     private short mediaCount;
 
     @Column(nullable = false)

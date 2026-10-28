@@ -35,10 +35,10 @@ public final class NotificationDtos {
 
     /** subtype ve count (gruplanmis bildirimdeki adet) eklendi; mevcut alanlar aynen korunur. */
     public record NotificationView(Long id, NotificationType type, String title, String body, String data,
-                                   boolean read, String createdAt, String subtype, int count) {
+                                   boolean read, String createdAt, String subtype, int count, String groupKey) {
         public static NotificationView of(Notification n) {
             return new NotificationView(n.getId(), n.getType(), n.getTitle(), n.getBody(), n.getData(),
-                    n.getReadAt() != null, n.getCreatedAt().toString(), n.getSubtype(), n.getGroupCount());
+                    n.getReadAt() != null, n.getCreatedAt().toString(), n.getSubtype(), n.getGroupCount(), n.getCollapseKey());
         }
     }
 

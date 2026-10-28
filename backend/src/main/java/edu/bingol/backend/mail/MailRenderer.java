@@ -34,6 +34,7 @@ public class MailRenderer {
 
     private final ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
     private final String layout;
+    private CustomMailContent custom;
 
     public MailRenderer() {
         messages.setBasename("i18n/mail");
@@ -42,7 +43,19 @@ public class MailRenderer {
         layout = readLayout();
     }
 
+    /** Yonetici sablonlari (mail/campaign) icin cozucu; yoksa CUSTOM sablon gonderilemez. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setCustom(CustomMailContent custom) {
+        this.custom = custom;
+    }
+
     public Rendered render(MailTemplate template, Lang lang, Map<String, String> vars) {
+        if (template == MailTemplate.CUSTOM) {
+            if (custom == null) {
+                throw new IllegalStateException("CUSTOM e-posta cozucusu yok");
+            }
+            return custom.render(lang, vars);
+        }
         String prefix = "mail.tpl." + template.key() + ".";
         String[] paragraphs = text(prefix + "body", lang).split("\n");
         String code = vars.get("code");

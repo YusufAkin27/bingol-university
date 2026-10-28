@@ -10,15 +10,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.export.DataExporter;
 import edu.bingol.backend.moderation.MediaPreview;
+import edu.bingol.backend.moderation.Report;
+import edu.bingol.backend.moderation.ReportReason;
+import edu.bingol.backend.moderation.ReportRepository;
 import edu.bingol.backend.moderation.ReportTargetHandler;
 import edu.bingol.backend.moderation.ReportTargetType;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostFixtures;
 import edu.bingol.backend.post.PostService;
-import edu.bingol.backend.post.admin.AdminPostService.CommentPage;
 import edu.bingol.backend.post.admin.AdminPostService.PostPage;
 import edu.bingol.backend.post.admin.AdminPostService.PostRow;
-import edu.bingol.backend.post.comment.PostCommentService;
 import edu.bingol.backend.post.like.PostLikeService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
@@ -40,7 +41,7 @@ class PostAdminTest {
     @Autowired PostService posts;
     @Autowired edu.bingol.backend.post.PostRepository postRepo;
     @Autowired edu.bingol.backend.post.media.PostMediaRepository mediaRepo;
-    @Autowired PostCommentService comments;
+    @Autowired ReportRepository reports;
     @Autowired PostLikeService likes;
     @Autowired UserRepository users;
     @Autowired JdbcTemplate jdbc;
@@ -109,44 +110,98 @@ class PostAdminTest {
         posts.delete(a.getId(), p3, false);
         String q = a.getDisplayName();
 
-        assertEquals(List.of(p3, p2, p1), ids(admin.list(null, 50, q, null, null, null, null, null)));
-        assertEquals(List.of(p2), ids(admin.list(null, 50, q, true, null, null, null, null)));
-        assertEquals(List.of(p3), ids(admin.list(null, 50, q, null, true, null, null, null)));
-        assertEquals(List.of(p1), ids(admin.list(null, 50, q, false, false, false, null, null)));
-        assertEquals(List.of(), ids(admin.list(null, 50, q, null, null, true, null, null)));
+        assertEquals(List.of(p3, p2, p1), ids(admin.list(null, 50, q, null, null, null, null, null, null, null, null)));
+        assertEquals(List.of(p2), ids(admin.list(null, 50, q, true, null, null, null, null, null, null, null)));
+        assertEquals(List.of(p3), ids(admin.list(null, 50, q, null, true, null, null, null, null, null, null)));
+        assertEquals(List.of(p1), ids(admin.list(null, 50, q, false, false, false, null, null, null, null, null)));
+        assertEquals(List.of(), ids(admin.list(null, 50, q, null, null, true, null, null, null, null, null)));
 
-        PostPage first = admin.list(null, 2, q, null, null, null, null, null);
+        PostPage first = admin.list(null, 2, q, null, null, null, null, null, null, null, null);
         assertEquals(2, first.items().size());
         assertNotNull(first.nextCursor());
-        PostPage second = admin.list(first.nextCursor(), 2, q, null, null, null, null, null);
+        PostPage second = admin.list(first.nextCursor(), 2, q, null, null, null, null, null, null, null, null);
         assertEquals(List.of(p1), ids(second));
         assertNull(second.nextCursor());
         // LIKE ozel karakterleri joker olmaz
-        assertEquals(List.of(), ids(admin.list(null, 50, "%", null, null, null, null, null)));
-        assertThrows(ApiException.class, () -> admin.list(null, 5, null, null, null, null, "bozuk", null));
+        assertEquals(List.of(), ids(admin.list(null, 50, "%", null, null, null, null, null, null, null, null)));
+        assertThrows(ApiException.class, () -> admin.list(null, 5, null, null, null, null, "bozuk", null, null, null, null));
     }
 
     @Test
-    void deleteAndCommentModeration() {
+    void deleteWithReasonNotifiesAuthorAndStoresReason() {
         User a = user("Yazar");
-        User c = user("Yorumcu");
-        long id = post(a, "yorumlu");
-        long cid = comments.create(c.getId(), id, "guzel", null).id();
-        long rid = comments.create(a.getId(), id, "tesekkurler", cid).id();
+        long id = photoPost(a, "silinecek");
+        int before = notifCount(a.getId());
 
-        CommentPage page = admin.comments(id, null, 10);
-        assertEquals(2, page.items().size());
-        assertTrue(admin.hideComment(cid).hidden());
-        assertFalse(admin.unhideComment(cid).hidden());
+        admin.delete(1L, id, "  uygunsuz  ");
 
-        admin.deleteComment(1L, rid);
-        assertTrue(admin.comments(id, null, 10).items().stream().filter(x -> x.id() == rid).findFirst().orElseThrow().deleted());
-        assertThrows(ApiException.class, () -> admin.hideComment(-5));
-
-        admin.delete(1L, id);
-        assertTrue(admin.detail(id).post().deleted());
-        assertEquals(1L, admin.detail(id).post().deletedBy());
+        AdminPostService.PostRow row = admin.detail(id).post();
+        assertTrue(row.deleted());
+        assertEquals(1L, row.deletedBy());
+        assertEquals("uygunsuz", row.hiddenReason());
+        assertEquals(before + 1, notifCount(a.getId()), "yazara kaldirildi bildirimi");
         assertThrows(ApiException.class, () -> admin.detail(-1));
+        assertEquals("POST_NOT_FOUND", assertThrows(ApiException.class, () -> admin.delete(1L, id, null)).code());
+    }
+
+    @Test
+    void editTextKeepsFormatRulesAndSkipsProfanityGuard() {
+        User a = user("Duzenlenen");
+        long id = photoPost(a, "kotu metin");
+        int before = notifCount(a.getId());
+
+        PostRow edited = admin.editText(id, "  temiz metin  ");
+        assertEquals("temiz metin", edited.text());
+        assertNotNull(edited.editedAt());
+        assertEquals(before + 1, notifCount(a.getId()), "yazara duzenleme bildirimi");
+
+        assertNull(admin.editText(id, "   ").text(), "bos metin temizlenir (fotograf kalir)");
+        assertEquals("POST_TEXT_INVALID", assertThrows(ApiException.class, () -> admin.editText(id, "iki\nsatir")).code());
+        assertEquals("POST_TEXT_TOO_LONG", assertThrows(ApiException.class,
+                () -> admin.editText(id, "bir iki uc dort bes alti yedi sekiz")).code());
+        assertEquals("POST_NOT_FOUND", assertThrows(ApiException.class, () -> admin.editText(-1, "x")).code());
+        long textOnly = post(a, "fotografsiz");
+        assertEquals("POST_EMPTY", assertThrows(ApiException.class, () -> admin.editText(textOnly, " ")).code());
+
+        posts.delete(a.getId(), id, false);
+        assertEquals("POST_NOT_FOUND", assertThrows(ApiException.class, () -> admin.editText(id, "x")).code());
+    }
+
+    @Test
+    void statusAuthorAndReportFilters() {
+        User a = user("Suzgec " + UUID.randomUUID().toString().substring(0, 6));
+        User r = user("Rapor");
+        long visible = post(a, "gorunur");
+        long hidden = post(a, "gizli");
+        long deleted = post(a, "silinmis");
+        admin.hide(hidden, "x");
+        posts.delete(a.getId(), deleted, false);
+        Report rep = new Report();
+        rep.setReporterId(r.getId());
+        rep.setTargetType(ReportTargetType.FEED_POST);
+        rep.setTargetId(visible);
+        rep.setReason(ReportReason.OTHER);
+        reports.saveAndFlush(rep);
+        // Rapor-silme entegrasyonu (ReportService.resolve) PostgreSQL ozel SQL kullanir (ON CONFLICT): H2'de degil duman betigiyle.
+        assertEquals(1, admin.detail(visible).post().openReportCount());
+        assertEquals(1, admin.detail(visible).reports().size());
+        assertEquals("OPEN", admin.detail(visible).reports().get(0).status());
+
+        assertEquals(List.of(visible), ids(admin.list(null, 50, null, null, null, null, null, null, "VISIBLE", a.getId(), null)));
+        assertEquals(List.of(hidden), ids(admin.list(null, 50, null, null, null, null, null, null, "hidden", a.getId(), null)));
+        assertEquals(List.of(deleted), ids(admin.list(null, 50, null, null, null, null, null, null, "DELETED", a.getId(), null)));
+        assertEquals(3, admin.list(null, 50, null, null, null, null, null, null, "ALL", a.getId(), null).items().size());
+        assertEquals(List.of(visible), ids(admin.list(null, 50, null, null, null, null, null, null, null, a.getId(), 1)));
+        assertEquals(List.of(), ids(admin.list(null, 50, null, null, null, null, null, null, null, a.getId(), 2)));
+        assertEquals(List.of(hidden), ids(admin.list(null, 50, "gizli", null, null, null, null, null, null, a.getId(), null)),
+                "metin aramasi");
+        assertEquals("VALIDATION_ERROR", assertThrows(ApiException.class,
+                () -> admin.list(null, 5, null, null, null, null, null, null, "bozuk", null, null)).code());
+    }
+
+    private int notifCount(Long userId) {
+        Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE user_id = ?", Integer.class, userId);
+        return n == null ? 0 : n;
     }
 
     @Test
@@ -188,37 +243,18 @@ class PostAdminTest {
     }
 
     @Test
-    void feedCommentHandler() {
-        User a = user("Yazar");
-        User c = user("Yorumcu");
-        long id = post(a, "metin");
-        long cid = comments.create(c.getId(), id, "kotu yorum", null).id();
-        ReportTargetHandler h = handler(ReportTargetType.FEED_COMMENT);
-        assertTrue(h.exists(cid));
-        assertEquals(c.getId(), h.ownerId(cid).orElseThrow());
-        assertEquals("kotu yorum", h.preview(cid).orElseThrow().text());
-        h.hide(cid);
-        assertTrue(admin.comments(id, null, 10).items().get(0).hidden());
-        h.unhide(cid);
-        assertFalse(admin.comments(id, null, 10).items().get(0).hidden());
-        comments.delete(c.getId(), cid, false);
-        assertFalse(h.exists(cid));
-    }
-
-    @Test
     void exportersCoverOwnDataOnly() {
         User a = user("Disa Aktar");
         User o = user("Baska");
         long mine = post(a, "benim gonderim");
         long other = post(o, "baskasi");
-        comments.create(a.getId(), other, "benim yorumum", null);
         likes.like(a.getId(), other);
         likes.like(o.getId(), mine);
 
         Map<?, ?> p = (Map<?, ?>) export("posts", a.getId());
         assertEquals(1, p.get("count"));
         assertFalse(p.toString().contains("baskasi"));
-        assertEquals(1, ((Map<?, ?>) export("postComments", a.getId())).get("count"));
+        assertTrue(exporters.stream().noneMatch(e -> e.section().equals("postComments")));
         assertEquals(1, ((Map<?, ?>) export("postLikes", a.getId())).get("count"));
     }
 
@@ -227,12 +263,11 @@ class PostAdminTest {
     }
 
     @Test
-    void accountPurgeRemovesPostsLikesComments() {
+    void accountPurgeRemovesPostsAndLikes() {
         User a = user("Silinecek");
         User o = user("Kalan");
         long mine = post(a, "silinecek gonderi");
         long other = post(o, "kalan gonderi");
-        comments.create(a.getId(), other, "silinecek yorum", null);
         likes.like(a.getId(), other);
 
         purger.purge(a.getId());
@@ -240,7 +275,6 @@ class PostAdminTest {
         assertTrue(admin.detail(mine).post().deleted());
         assertFalse(admin.detail(other).post().deleted());
         assertEquals(0, admin.detail(other).post().likeCount());
-        assertEquals(0, admin.detail(other).post().commentCount());
         assertEquals(0L, jdbc.queryForObject("SELECT COUNT(*) FROM post_like WHERE user_id = ?", Long.class, a.getId()));
     }
 
@@ -282,5 +316,19 @@ class PostAdminTest {
         assertNull(PostSearchProvider.snippet("   "));
         assertEquals("a b", PostSearchProvider.snippet("a\n  b"));
         assertTrue(PostSearchProvider.snippet("x".repeat(400)).length() <= 161);
+    }
+
+    @Test
+    void searchVisibilityMatchesFeed() {
+        User u = user("Aranan");
+        long photo = photoPost(u, "arama metni");
+        long textOnly = post(u, "arama metni");
+        List<Long> found = jdbc.queryForList("SELECT p.id FROM post p JOIN app_user u ON u.id = p.author_id WHERE "
+                + PostSearchProvider.VISIBLE_SQL, Long.class);
+        assertTrue(found.contains(photo));
+        assertFalse(found.contains(textOnly), "fotografsiz gonderi aramada gorunmez");
+        // akisla tutarlilik
+        assertTrue(inFeed(u, photo));
+        assertFalse(inFeed(u, textOnly));
     }
 }

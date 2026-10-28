@@ -18,6 +18,7 @@ public class FcmHealthIndicator implements HealthIndicator {
     public Health health() {
         Health.Builder b = Health.up()
                 .withDetail("enabled", dispatcher.fcmEnabled())
+                .withDetail("projectId", String.valueOf(dispatcher.fcmCheck(false).projectId()))
                 .withDetail("delivered", dispatcher.deliveredCount())
                 .withDetail("failures", dispatcher.failureCount())
                 .withDetail("retries", dispatcher.retryCount());

@@ -1,4 +1,4 @@
 package edu.bingol.backend.mail;
 
-/** Kuyruktaki e-postanin durumu. FAILED = en az bir deneme basarisiz, yeniden denenecek. */
-public enum MailStatus { PENDING, SENT, FAILED, DEAD }
+/** SKIPPED: bilerek gonderilmedi (bastirma listesi, kalici adres hatasi); saglik gostergesinde alarm uretmez. */
+public enum MailStatus { PENDING, SENT, FAILED, DEAD, SKIPPED }

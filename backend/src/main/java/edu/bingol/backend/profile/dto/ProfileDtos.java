@@ -27,16 +27,28 @@ public final class ProfileDtos {
     /** Baskasinin profili: e-posta yalnizca sahibi izin verdiyse. */
     public record PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                                 String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
-                                Boolean followedByMe) {
+                                Boolean followedByMe, Boolean followsMe) {
         /** Takip alanlari olmadan (yalniz profil ucu doldurur; digerlerinde null). */
         public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                              String bio, String avatarUrl, String email) {
-            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, null, null, null);
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, null, null, null, null);
+        }
+
+        /** Eski 11 alanli kurucu (followsMe null). */
+        public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
+                             String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
+                             Boolean followedByMe) {
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followerCount,
+                    followingCount, followedByMe, null);
+        }
+
+        public PublicProfile withFollow(long followers, long following, boolean followedByMe, boolean followsMe) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
+                    following, followedByMe, followsMe);
         }
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe) {
-            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
-                    following, followedByMe);
+            return withFollow(followers, following, followedByMe, false);
         }
 
         public static PublicProfile of(User u) {

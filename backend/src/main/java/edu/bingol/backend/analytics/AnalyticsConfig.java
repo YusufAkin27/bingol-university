@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AnalyticsConfig {
 
-    public static final int EVENT_RETENTION_DAYS = 180;
+    public static final int EVENT_RETENTION_DAYS = 45; // ham olay; kalici ozet: analytics_event_daily
 
     /** Testte sabit saatle degistirilebilsin diye bean. */
     @Bean

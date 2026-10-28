@@ -107,6 +107,7 @@ class PostLikeServiceTest {
             assertTrue(f.get().liked()); // hiçbiri hata fırlatmaz
         }
         ex.shutdown();
+        assertTrue(ex.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS));
         assertEquals(1, count(p));
         assertEquals(1, likes.findAll().stream().filter(l -> l.getId().getPostId().equals(p.getId())).count());
     }

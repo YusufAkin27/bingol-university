@@ -98,6 +98,11 @@ public class PushDispatcher {
         return fcm.enabled() || (outbox != null && outbox.holdWhenDisabled());
     }
 
+    /** Yonetici kontrolu: yapilandirma durumu; dryRun=true ise FCM validateOnly istegi (cihaza gitmez). */
+    public edu.bingol.backend.notification.fcm.FcmCheck fcmCheck(boolean dryRun) {
+        return fcm.check(dryRun);
+    }
+
     /** FCM kimligi gercekten var mi (saglik gostergesi icin). */
     public boolean fcmEnabled() {
         return fcm.enabled();

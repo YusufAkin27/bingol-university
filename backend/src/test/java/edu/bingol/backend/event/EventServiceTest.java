@@ -17,6 +17,7 @@ import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember.Role;
+import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.event.dto.EventDtos.CreateEventRequest;
 import edu.bingol.backend.event.dto.EventDtos.EventView;
@@ -83,25 +84,39 @@ class EventServiceTest {
     }
 
     @Test
-    void independentEventNeedsAdminApproval() {
+    void clublessEventIsRejectedEvenForAdmin() {
+        assertEquals("EVENT_CLUB_REQUIRED", error(() -> svc.create(user, req(start, end, 50, null))).code());
+        assertEquals("EVENT_CLUB_REQUIRED", error(() -> svc.create(new Actor(500L, true), req(start, end, null, null))).code());
+        verify(events, never()).save(any());
+    }
+
+    @Test
+    void plainMemberWithEventGrantCreatesPendingReviewEvent() {
+        Community c = new Community();
+        c.setId(10L);
+        c.setStatus(Community.Status.ACTIVE);
+        when(communities.load(10L)).thenReturn(c);
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MEMBER));
         when(events.save(any())).thenAnswer(i -> i.getArgument(0));
         when(communities.namesById(any())).thenReturn(Map.of());
         when(communities.usersById(any())).thenReturn(Map.of());
 
-        EventView v = svc.create(user, req(start, end, 50, null));
+        EventView v = svc.create(user, req(start, end, null, 10L));
 
         assertEquals(UserEvent.Status.PENDING_REVIEW, v.status());
     }
 
     @Test
-    void adminIndependentEventIsActiveImmediately() {
+    void systemAdminCreatesActiveClubEvent() {
+        Community c = new Community();
+        c.setId(10L);
+        c.setStatus(Community.Status.ACTIVE);
+        when(communities.load(10L)).thenReturn(c);
         when(events.save(any())).thenAnswer(i -> i.getArgument(0));
         when(communities.namesById(any())).thenReturn(Map.of());
         when(communities.usersById(any())).thenReturn(Map.of());
 
-        EventView v = svc.create(new Actor(500L, true), req(start, end, null, null));
-
-        assertEquals(UserEvent.Status.ACTIVE, v.status());
+        assertEquals(UserEvent.Status.ACTIVE, svc.create(new Actor(500L, true), req(start, end, null, 10L)).status());
     }
 
     @Test
@@ -125,6 +140,7 @@ class EventServiceTest {
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MODERATOR));
         when(events.save(any())).thenAnswer(i -> i.getArgument(0));
         when(communities.namesById(any())).thenReturn(Map.of());
         when(communities.usersById(any())).thenReturn(Map.of());
@@ -300,29 +316,19 @@ class EventServiceTest {
     }
 
     @Test
-    void anyUserCanCreateClublessEventAndItIsActiveWhenApprovalNotRequired() {
-        var h = hooks();
-        when(h.requireApproval()).thenReturn(false);
-        stubViews();
-
-        EventView v = svc.create(user, req(start, end, 20, null));
-
-        assertEquals(UserEvent.Status.ACTIVE, v.status());
-        assertEquals(null, v.communityId());
-        assertEquals(edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN, v.joinPolicy());
-        assertEquals(Long.valueOf(1L), v.organizer().id());
-        verify(h).beforeCreate(user);
-        verify(communities, never()).require(any(), anyLong(), any());
-    }
-
-    @Test
     void createWithApprovalPolicyStoresIt() {
         var h = hooks();
         when(h.requireApproval()).thenReturn(false);
         stubViews();
         var policy = edu.bingol.backend.event.admission.EventAdmission.Mode.APPROVAL;
 
-        svc.create(user, new CreateEventRequest("Hali saha", null, start, end, "Saha", 14, null, policy));
+        Community c = new Community();
+        c.setId(10L);
+        c.setStatus(Community.Status.ACTIVE);
+        when(communities.load(10L)).thenReturn(c);
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.ADMIN));
+
+        svc.create(user, new CreateEventRequest("Hali saha", null, start, end, "Saha", 14, 10L, policy));
 
         verify(h).applyJoinPolicy(any(), org.mockito.ArgumentMatchers.eq(policy));
     }

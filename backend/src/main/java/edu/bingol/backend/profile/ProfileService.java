@@ -119,7 +119,7 @@ public class ProfileService {
         }
         try {
             edu.bingol.backend.post.follow.FollowService.Stats s = followService.stats(viewerId, targetId);
-            return p.withFollow(s.followerCount(), s.followingCount(), s.followedByMe());
+            return p.withFollow(s.followerCount(), s.followingCount(), s.followedByMe(), s.followsMe());
         } catch (RuntimeException e) {
             return p; // sayaclar profil yanitini asla bozmaz
         }

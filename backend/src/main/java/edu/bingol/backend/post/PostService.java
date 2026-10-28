@@ -94,7 +94,6 @@ public class PostService {
         binder.attach(p.getId(), uid, mediaIds);
         p.setMediaCount((short) mediaIds.size());
         p = posts.saveAndFlush(p);
-        // Etiket/bahsetme kaldirildi: SocialTextEvent artik yayinlanmaz
         return assembler.assemble(uid, p);
     }
 
@@ -119,6 +118,27 @@ public class PostService {
         p.setEditedAt(Instant.now());
         Post saved = posts.saveAndFlush(p);
         return assembler.assemble(uid, saved);
+    }
+
+    /**
+     * Yonetici metin duzenlemesi (AdminPostService cagirir). Silinmis gonderi 404; gizli gonderi duzenlenebilir.
+     * Bicim kurali (tek satir, 7 kelime/60 karakter) uygulanir; ContentGuard (kufur suzgeci) bilincli olarak ATLANIR:
+     * yonetici ihlalli metni temizlemek icin duzenler, islem denetim kaydina (AuditInterceptor) yazilir. Bos metin
+     * fotografli gonderide serbesttir (metin temizlenir).
+     * @return gonderi yazarinin kimligi (bildirim icin)
+     */
+    @Transactional
+    public Long adminEdit(Long id, String rawText) {
+        Post p = posts.findById(id).filter(x -> x.getDeletedAt() == null).orElseThrow(PostService::notFound);
+        String text = normalize(rawText);
+        if (text == null && p.getMediaCount() == 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_EMPTY", "Gönderi için metin veya medya gerekli.");
+        }
+        checkText(text);
+        p.setBody(text);
+        p.setEditedAt(Instant.now());
+        posts.saveAndFlush(p);
+        return p.getAuthorId();
     }
 
     /** Yazar ya da ADMIN siler (yumuşak); medya temizliği PostDeletedEvent ile B'ye bildirilir. */

@@ -27,6 +27,14 @@ public interface FcmSender {
         return new SendResult(send(tokens, m.title(), m.body(), m.data(), m.collapseKey()), List.of());
     }
 
+    /**
+     * Yapilandirma kontrolu. dryRun=true ise Firebase'e validateOnly istegi atilir (hicbir cihaza bildirim gitmez).
+     * Varsayilan: kimlik yoksa "DISABLED".
+     */
+    default FcmCheck check(boolean dryRun) {
+        return new FcmCheck(enabled(), false, null, enabled() ? "UNSUPPORTED" : "DISABLED");
+    }
+
     /** false ise gonderim yapilmaz (kimlik bilgisi yok); uygulama ici bildirim kutusu yine yazilir. */
     default boolean enabled() {
         return true;

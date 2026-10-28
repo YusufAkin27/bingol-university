@@ -54,6 +54,7 @@ public class MailService {
             m.setTemplate(template);
             m.setLang(lang.code());
             m.setVarsJson(toJson(vars));
+            m.setPriority(MailCategory.of(template).priority());
             m.setCreatedAt(Instant.now());
             m.setNextAttemptAt(m.getCreatedAt());
             outbox.save(m);

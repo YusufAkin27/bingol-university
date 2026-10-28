@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class ActivityTracker {
 
     private static final Logger log = LoggerFactory.getLogger(ActivityTracker.class);
-    static final Duration SEEN_INTERVAL = Duration.ofMinutes(5);
+    static final Duration SEEN_INTERVAL = Duration.ofMinutes(15); // app_user satiri guncellemesi (indeksli kolon, HOT degil) 3 kat azalir
     private static final Duration DAY_KEY_TTL = Duration.ofHours(30);
 
     private final StringRedisTemplate redis;

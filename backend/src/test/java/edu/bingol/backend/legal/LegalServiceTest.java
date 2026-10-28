@@ -68,4 +68,50 @@ class LegalServiceTest {
         when(docs.findByActiveTrue()).thenReturn(List.of(doc(LegalType.TERMS), doc(LegalType.COOKIES)));
         assertThat(service.pending(1L, Lang.TR)).extracting("type").containsExactly(LegalType.TERMS);
     }
+
+    private static LegalDocument docLang(LegalType t, String lang, int version, boolean active) {
+        LegalDocument d = doc(t);
+        d.setLang(lang);
+        d.setVersion(version);
+        d.setActive(active);
+        return d;
+    }
+
+    @Test
+    void guncelCozumuIstenenDildeYoksaTurkce() {
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.TERMS, "ar")).thenReturn(java.util.Optional.of(docLang(LegalType.TERMS, "ar", 5, true)));
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.PRIVACY, "ar")).thenReturn(java.util.Optional.empty());
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.PRIVACY, "tr")).thenReturn(java.util.Optional.of(docLang(LegalType.PRIVACY, "tr", 5, true)));
+        assertThat(service.current(LegalType.TERMS, Lang.AR).getLang()).isEqualTo("ar");
+        assertThat(service.current(LegalType.PRIVACY, Lang.AR).getLang()).isEqualTo("tr");
+    }
+
+    @Test
+    void yeniSurumYayinlaninca_eskiOnayliKullaniciYenidenOnayBekler_arapcaSurumuTetiklemez() {
+        // Aktif tr belge surum 5; kullanici yalniz 4'u onaylamis
+        when(docs.findByActiveTrue()).thenReturn(List.of(docLang(LegalType.TERMS, "tr", 5, true),
+                docLang(LegalType.TERMS, "ar", 5, true)));
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.TERMS, "ar"))
+                .thenReturn(java.util.Optional.of(docLang(LegalType.TERMS, "ar", 5, true)));
+        when(acc.existsByUserIdAndDocTypeAndVersion(1L, LegalType.TERMS, 4)).thenReturn(true);
+        when(acc.existsByUserIdAndDocTypeAndVersion(1L, LegalType.TERMS, 5)).thenReturn(false);
+        assertThat(service.pending(1L, Lang.AR)).extracting("version").containsExactly(5);
+        // Surum 5 onaylaninca bekleyen kalmaz
+        when(acc.existsByUserIdAndDocTypeAndVersion(1L, LegalType.TERMS, 5)).thenReturn(true);
+        assertThat(service.pending(1L, Lang.AR)).isEmpty();
+    }
+
+    @Test
+    void eskiSurumOnayiReddedilir() {
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.TERMS, "tr"))
+                .thenReturn(java.util.Optional.of(docLang(LegalType.TERMS, "tr", 5, true)));
+        org.junit.jupiter.api.Assertions.assertThrows(edu.bingol.backend.common.ApiException.class,
+                () -> service.accept(1L, List.of(new edu.bingol.backend.legal.LegalDtos.ConsentItem(LegalType.TERMS, 4))));
+    }
+
+    @Test
+    void relationVeJurisdictionYerTutucusuYedekMetinleriKullanir() {
+        when(settings.findAll()).thenReturn(List.of());
+        assertThat(service.render("{{controller.jurisdiction|Bingöl}} mahkemeleri")).isEqualTo("Bingöl mahkemeleri");
+    }
 }

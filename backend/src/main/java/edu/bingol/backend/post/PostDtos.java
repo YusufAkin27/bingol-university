@@ -21,21 +21,10 @@ public final class PostDtos {
 
     public record AuthorView(Long id, String displayName, String avatarUrl, String department) {}
 
-    /** Etiketlenen kullanici (metindeki @[Ad](uid:N) biciminden dogrulanmis). */
-    public record MentionView(Long id, String displayName) {}
-
+    /** Sade gonderi gorunumu: 1 fotograf + kisa metin + begeni (yorum/kaydet/etiket/bahsetme kaldirildi). */
     public record PostView(Long id, AuthorView author, String text, List<MediaView> media, int likeCount,
-                           int commentCount, boolean likedByMe, boolean mine, boolean canEdit, boolean canDelete,
-                           Instant createdAt, Instant editedAt, boolean savedByMe, List<MentionView> mentions,
-                           List<String> hashtags) {
-        /** Eski 12 alanli kurucu (sosyal alanlar bos). */
-        public PostView(Long id, AuthorView author, String text, List<MediaView> media, int likeCount,
-                        int commentCount, boolean likedByMe, boolean mine, boolean canEdit, boolean canDelete,
-                        Instant createdAt, Instant editedAt) {
-            this(id, author, text, media, likeCount, commentCount, likedByMe, mine, canEdit, canDelete, createdAt,
-                    editedAt, false, List.of(), List.of());
-        }
-    }
+                           boolean likedByMe, boolean mine, boolean canEdit, boolean canDelete,
+                           Instant createdAt, Instant editedAt) {}
 
     public record CreatePostRequest(@Size(max = 1000) String text, @Size(max = 10) List<Long> mediaIds) {}
 

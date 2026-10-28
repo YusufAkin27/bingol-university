@@ -37,17 +37,27 @@ public class NotificationService {
     private final DeviceRepository devices;
     private final PushDispatcher dispatcher;
     private final I18n i18n;
+    private final PushGate gate;
+    private final RecipientGuard guard;
 
     @Autowired
     public NotificationService(NotificationRepository notifications, NotificationPrefRepository prefs,
                                NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices,
-                               PushDispatcher dispatcher, I18n i18n) {
+                               PushDispatcher dispatcher, I18n i18n, PushGate gate, RecipientGuard guard) {
         this.notifications = notifications;
         this.prefs = prefs;
         this.subtypePrefs = subtypePrefs;
         this.devices = devices;
         this.dispatcher = dispatcher;
         this.i18n = i18n;
+        this.gate = gate;
+        this.guard = guard;
+    }
+
+    NotificationService(NotificationRepository notifications, NotificationPrefRepository prefs,
+                        NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices,
+                        PushDispatcher dispatcher, I18n i18n) {
+        this(notifications, prefs, subtypePrefs, devices, dispatcher, i18n, PushGate.OPEN, RecipientGuard.ALLOW_ALL);
     }
 
     /** Es zamanli gonderimle (retry'siz) kurar; yalnizca birim testler icin. */
@@ -55,7 +65,8 @@ public class NotificationService {
                         NotificationSubtypePrefRepository subtypePrefs, DeviceRepository devices, FcmSender fcm,
                         I18n i18n) {
         this(notifications, prefs, subtypePrefs, devices,
-                new PushDispatcher(fcm, devices, Runnable::run, (task, delay) -> { }), i18n);
+                new PushDispatcher(fcm, devices, Runnable::run, (task, delay) -> { }), i18n, PushGate.OPEN,
+                RecipientGuard.ALLOW_ALL);
     }
 
     /** Hazir metinle tek kullaniciya (icerik zaten dilden bagimsizsa: haber basligi, kullanici girdisi vb.). */
@@ -80,16 +91,33 @@ public class NotificationService {
      * mesaj metni bildirim tablosuna yazilmaz (sifreli saklama bozulmasin). `pushPreview` doluysa yalniz FCM govdesine gider.
      */
     public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data) {
+        sendNewMessage(userId, title, pushPreview, data, true);
+    }
+
+    /** push=false: yalniz uygulama ici kayit (alici uygulamayi on planda kullaniyor; canli olay zaten gitti). */
+    public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data, boolean push) {
         String stored = i18n.msg("notif.message.new", i18n.langOf(userId));
         String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
-        send(userId, NotificationType.MESSAGE, null, key, title, stored,
-                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data);
+        NotificationSubtype sub = data == null || data.get("conversationType") == null ? null
+                : "GROUP".equals(data.get("conversationType")) ? NotificationSubtype.MESSAGE_GROUP
+                : NotificationSubtype.MESSAGE_DIRECT;
+        doSend(userId, NotificationType.MESSAGE, sub, key, title, stored,
+                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push);
     }
 
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true);
+    }
+
+    private void doSend(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
+                        String title, String body, String pushBody, Map<String, String> data, boolean push) {
         try {
+            // Askidaki/silinmis hesaba bildirim yok (SYSTEM = hesap/moderasyon bildirimleri istisna).
+            if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
+                return;
+            }
             NotificationPref pref = prefs.findById(userId).orElse(null);
             if (!enabled(pref, type) || !subtypeEnabled(userId, type, subtype)) {
                 return;
@@ -113,17 +141,39 @@ public class NotificationService {
             n.setData(json != null && json.length() > 1000 ? null : json);
             notifications.save(n);
 
+            if (!push) {
+                return; // alici uygulamada: yalnizca uygulama ici kayit
+            }
             if (type != NotificationType.SYSTEM && QuietHours.isQuiet(pref, Instant.now())) {
-                return; // sessiz saat: yalnizca uygulama ici kayit
+                return; // sessiz saat: yalnizca uygulama ici kayit (SYSTEM = hesap guvenligi sessiz saati asar)
             }
             if (!dispatcher.enabled()) {
                 return; // FCM kapali: uygulama ici kayit yazildi, push atlanir
             }
-            List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int count = n.getGroupCount();
+            if (type == NotificationType.POST_LIKE && count > 1) {
+                return; // birlesen begeni: ilk begeniden push gitti, devami yalniz kutuda guncellenir
+            }
+            String pTitle = title;
+            String pBody = pushBody;
+            if (type == NotificationType.MESSAGE) {
+                if (!gate.allowMessagePush(userId, key == null ? "msg" : key)) {
+                    return; // ayni sohbet pencerede / dakikalik ust sinir
+                }
+                if (count > 1) {
+                    pBody = i18n.msg("notif.message.many", i18n.langOf(userId), String.valueOf(count));
+                }
+            } else {
+                if (type != NotificationType.SYSTEM && !gate.allowGeneralPush(userId)) {
+                    return;
+                }
+                if (count > 1) {
+                    pTitle = truncate(title, 180) + " (" + count + ")";
+                }
+            }
+            List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int badge = (int) notifications.countByUserIdAndReadAtIsNull(userId);
-            push(tokens, count > 1 ? truncate(title, 180) + " (" + count + ")" : title, pushBody, type, subtype, data,
-                    count, key, badge);
+            push(tokens, pTitle, pBody, type, subtype, data, count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }
@@ -251,7 +301,8 @@ public class NotificationService {
             return;
         }
         Map<String, String> payload = PushPayload.build(type, subtype, data, count);
-        dispatcher.dispatch(tokens, PushMessages.of(type, title, body == null ? "" : body, payload, collapseKey, badge));
+        dispatcher.dispatch(tokens, PushMessages.of(type, subtype, title, body == null ? "" : body, payload,
+                collapseKey, badge));
     }
 
     /** Basit JSON (yalnizca dize degerler); kacis yapilir. */

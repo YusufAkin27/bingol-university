@@ -3,7 +3,7 @@ package edu.bingol.backend.post;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/** Gonderi sayaclari icin atomik SQL (yaris durumsuz). Negatife dusmez. begeni: C, yorum: D cagirir. */
+/** Gonderi sayaclari icin atomik SQL (yaris durumsuz). Negatife dusmez. begeni servisi cagirir. */
 @Component
 public class PostCounters {
 
@@ -15,10 +15,6 @@ public class PostCounters {
 
     public void incrementLikes(long postId, int delta) {
         jdbc.update("UPDATE post SET like_count = GREATEST(like_count + ?, 0) WHERE id = ?", delta, postId);
-    }
-
-    public void incrementComments(long postId, int delta) {
-        jdbc.update("UPDATE post SET comment_count = GREATEST(comment_count + ?, 0) WHERE id = ?", delta, postId);
     }
 
     /** Guncel begeni sayisi (yanit icin). */

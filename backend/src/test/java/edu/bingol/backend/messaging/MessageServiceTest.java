@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -33,6 +34,7 @@ import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -250,7 +252,7 @@ class MessageServiceTest {
         ArgumentCaptor<List<Long>> to = ArgumentCaptor.forClass(List.class);
         verify(bus).publish(eq("messages"), to.capture(), any(MessageView.class));
         assertEquals(List.of(ME, PEER), to.getValue());
-        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any()); // onizleme kapali: metin yok
+        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any(), eq(true)); // onizleme kapali: metin yok
     }
 
     @Test
@@ -264,7 +266,7 @@ class MessageServiceTest {
         assertEquals(CONV, draft.getValue().getConversationId());
         assertEquals(ME, draft.getValue().getSenderId());
         assertEquals("c1", draft.getValue().getClientId());
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any());
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any(), eq(true));
     }
 
     @Test
@@ -276,7 +278,7 @@ class MessageServiceTest {
         withPreview.send(ME, CONV, "a".repeat(150), "c9");
 
         ArgumentCaptor<String> prev = ArgumentCaptor.forClass(String.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any());
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any(), eq(true));
         assertEquals(101, prev.getValue().length()); // 100 karakter + "..."
     }
 
@@ -334,7 +336,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void manyOfflineRecipientsAreNotifiedInOneBulkCall() {
+    void manyOfflineRecipientsAreNotifiedIndividuallyWithTheirOwnPrefs() {
         direct.setType(Conversation.Type.GROUP); // birebirde karsi taraf tek; toplu yol grup/oda icindir
         List<ConversationMember> room = new java.util.ArrayList<>();
         room.add(ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER));
@@ -348,8 +350,69 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendBulk(eq(others), eq(NotificationType.MESSAGE), anyString(), anyString(), any());
-        verify(notifications, never()).sendNewMessage(anyLong(), anyString(), any(), any());
+        verify(notifications, never()).sendBulk(any(), any(), anyString(), anyString(), any());
+        for (Long id : others) {
+            verify(notifications).sendNewMessage(eq(id), anyString(), any(), any(), eq(true)); // her aliciya kendi tercihiyle
+        }
+        verify(notifications, never()).sendNewMessage(eq(ME), anyString(), any(), any(), anyBoolean());
+    }
+
+    @Test
+    void recipientViewingThisConversationGetsNoNotificationAtAll() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+        when(presence.viewingAmong(any(), eq(CONV))).thenReturn(Set.of(PEER));
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void foregroundRecipientGetsInAppRowButNoPush() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+        when(presence.foregroundAmong(any())).thenReturn(Set.of(PEER));
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(false));
+    }
+
+    @Test
+    void stickyArchivedRecipientGetsNoNotification() {
+        ConversationMember archived = ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER);
+        archived.setArchivedAt(java.time.Instant.now());
+        archived.setArchiveSticky(true);
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
+                ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), archived));
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void suspendedRecipientGetsNoNotification() {
+        User suspended = mock(User.class);
+        when(suspended.getId()).thenReturn(PEER);
+        when(suspended.isActive()).thenReturn(false);
+        when(users.findAllById(any())).thenReturn(List.of(suspended));
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void notificationDataCarriesConversationType() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "selam", "c1");
+
+        ArgumentCaptor<Map<String, String>> d = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), d.capture(), eq(true));
+        assertEquals("DIRECT", d.getValue().get("conversationType"));
     }
 
     @Test
@@ -559,7 +622,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any());
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true));
     }
 
     @Test

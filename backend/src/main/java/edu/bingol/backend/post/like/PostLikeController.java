@@ -39,5 +39,5 @@ public class PostLikeController {
         return service.unlike(uid, id);
     }
 
-    // GET /likes (begenenler listesi) kaldirildi: RemovedFeatureController 410 doner.
+    // GET /likes (begenenler listesi) kaldirildi (sade Kesfet sozlesmesi).
 }

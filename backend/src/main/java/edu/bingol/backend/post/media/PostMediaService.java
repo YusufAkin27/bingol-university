@@ -123,7 +123,7 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     /** `file` video/mp4 ise video (istege bagli `poster`), degilse gorsel hattidir. */
     public Uploaded upload(Long userId, MultipartFile file, MultipartFile poster) {
         limiter.check("postmedia:hour:" + userId, uploadsPerHour, Duration.ofHours(1));
-        if (repo.countByOwnerIdAndPostIdIsNullAndStoryIdIsNull(userId) >= pendingMax) {
+        if (repo.countByOwnerIdAndPostIdIsNull(userId) >= pendingMax) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "POST_MEDIA_PENDING_LIMIT",
                     "Gönderiye eklenmemiş çok fazla medya var. Önce gönderinizi paylaşın.", String.valueOf(pendingMax));
         }
@@ -368,9 +368,6 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         if (m == null || m.isHidden()) {
             return Optional.empty();
         }
-        if (m.getStoryId() != null) {
-            return accessibleStory(viewerId, m);
-        }
         if (m.getPostId() == null) {
             return m.getOwnerId().equals(viewerId) ? Optional.of(m) : Optional.empty(); // baglanmamis: yalniz sahibi
         }
@@ -379,22 +376,6 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
             return Optional.empty();
         }
         if (!p.getAuthorId().equals(viewerId) && blocks.hiddenFrom(viewerId).contains(p.getAuthorId())) {
-            return Optional.empty();
-        }
-        return Optional.of(m);
-    }
-
-    /** Hikaye medyasi: suresi dolmamis, silinmemis/gizlenmemis ve engel iliskisi yok (sahibi kendi medyasini hep gorur). */
-    private Optional<PostMedia> accessibleStory(Long viewerId, PostMedia m) {
-        PostMediaRepository.StoryState s = repo.storyState(m.getStoryId()).orElse(null);
-        if (s == null || s.getDeletedAt() != null) {
-            return Optional.empty();
-        }
-        if (s.getAuthorId().equals(viewerId)) {
-            return Optional.of(m);
-        }
-        if (s.getHiddenAt() != null || s.getExpiresAt().isBefore(Instant.now())
-                || blocks.hiddenFrom(viewerId).contains(s.getAuthorId())) {
             return Optional.empty();
         }
         return Optional.of(m);
@@ -575,17 +556,6 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     @Transactional
     public int purgeUser(Long userId) {
         List<PostMedia> rows = repo.findByOwnerId(userId);
-        rows.forEach(this::remove);
-        return rows.size();
-    }
-
-    /** Hikaye temizligi (post.story): verilen hikayelerin medya satirlari ve baytlari kaldirilir. */
-    @Transactional
-    public int removeStoryMedia(Collection<Long> storyIds) {
-        if (storyIds == null || storyIds.isEmpty()) {
-            return 0;
-        }
-        List<PostMedia> rows = repo.findByStoryIdIn(storyIds);
         rows.forEach(this::remove);
         return rows.size();
     }

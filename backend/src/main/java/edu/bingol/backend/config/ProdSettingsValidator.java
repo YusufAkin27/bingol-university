@@ -77,6 +77,7 @@ public class ProdSettingsValidator {
         } else if (!notBlank(env, "spring.mail.host") || "localhost".equals(env.getProperty("spring.mail.host"))) {
             errors.add("MAIL_ENABLED=true iken MAIL_HOST zorunlu");
         }
+        validateMailDeliverability(env, errors, warnings);
 
         // Cihaz kimligi HMAC anahtari istege bagli (bos = JWT sirrindan turetilir); verilirse yeterince uzun olmali.
         String hmac = env.getProperty("app.security.device-hmac-key", "");
@@ -88,6 +89,43 @@ public class ProdSettingsValidator {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }
         return new Result(errors, warnings);
+    }
+
+    /** E-posta teslim edilebilirligi tutarliligi (yalniz MAIL_ENABLED=true iken). Ayrinti: docs/MAIL_DELIVERABILITY.md. */
+    static void validateMailDeliverability(Environment env, List<String> errors, List<String> warnings) {
+        if (!env.getProperty("app.mail.enabled", Boolean.class, false)) {
+            return;
+        }
+        String from = env.getProperty("app.mail.from", "no-reply@bingol.edu.tr").trim();
+        int at = from.lastIndexOf('@');
+        String domain = at < 0 ? "" : from.substring(at + 1).toLowerCase(java.util.Locale.ROOT);
+        if (from.isEmpty() || at < 1 || domain.isEmpty()) {
+            errors.add("MAIL_FROM zorunlu ve ad@alanadi bicimde olmali");
+        } else if (domain.equals("localhost") || domain.endsWith(".local") || domain.endsWith(".invalid")
+                || domain.equals("example.com")) {
+            errors.add("MAIL_FROM alan adi gercek ve DNS'te SPF/DKIM/DMARC kayitli olmali (su an: " + domain + ")");
+        } else {
+            String user = env.getProperty("spring.mail.username", "");
+            int uat = user.lastIndexOf('@');
+            if (uat > 0 && !user.substring(uat + 1).equalsIgnoreCase(domain)
+                    && !domain.endsWith("." + user.substring(uat + 1).toLowerCase(java.util.Locale.ROOT))) {
+                warnings.add("MAIL_FROM alan adi (" + domain + ") SMTP kullanici alan adindan farkli; DKIM/SPF "
+                        + "hizalamasini (DMARC) saglayicida dogrulayin");
+            }
+        }
+        boolean tls = env.getProperty("spring.mail.properties.mail.smtp.starttls.required", Boolean.class, false)
+                || env.getProperty("spring.mail.properties.mail.smtp.ssl.enable", Boolean.class, false);
+        if (!tls) {
+            warnings.add("SMTP icin TLS zorunlu degil: MAIL_REQUIRE_TLS=true (veya port 465 icin MAIL_SSL=true) onerilir");
+        }
+        String unsub = env.getProperty("app.mail.unsubscribe-base-url", "");
+        if (unsub.isBlank() || unsub.contains("localhost") || !unsub.startsWith("https://")) {
+            warnings.add("PUBLIC_WEB_URL https ve herkese acik olmali: duyuru maillerindeki abonelikten cikma baglantisi "
+                    + "bu adresi kullanir (su an gecersiz/localhost ise duyurular gonderilmez)");
+        }
+        if (env.getProperty("app.mail.max-per-minute", Integer.class, 30) <= 0) {
+            warnings.add("MAIL_MAX_PER_MINUTE sinirsiz: yeni alan adinda isinma (warm-up) plani uygulayin");
+        }
     }
 
     private static boolean notBlank(Environment env, String key) {

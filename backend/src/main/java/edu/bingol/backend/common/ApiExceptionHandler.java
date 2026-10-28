@@ -30,8 +30,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Map<String, String>> api(ApiException e) {
         if (e instanceof FieldApiException f) { // alana bagli hata: {code,message,field}
-            return ResponseEntity.status(f.status()).body(Map.of("code", f.code(), "field", f.field(),
-                    "message", i18n.error(f.code(), f.getMessage(), locale(), f.args())));
+            return ResponseEntity.status(f.status()).body(withTrace(Map.of("code", f.code(), "field", f.field(),
+                    "message", i18n.error(f.code(), f.getMessage(), locale(), f.args()))));
         }
         return body(e.status(), e.code(), i18n.error(e.code(), e.getMessage(), locale(), e.args()));
     }
@@ -39,7 +39,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(RateLimitedException.class)
     ResponseEntity<Map<String, String>> rateLimited(RateLimitedException e) {
         return ResponseEntity.status(e.status()).header(HttpHeaders.RETRY_AFTER, String.valueOf(e.retryAfterSeconds()))
-                .body(Map.of("code", e.code(), "message", i18n.error(e.code(), e.getMessage(), locale(), e.args())));
+                .body(withTrace(Map.of("code", e.code(), "message", i18n.error(e.code(), e.getMessage(), locale(), e.args()))));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -65,11 +65,42 @@ public class ApiExceptionHandler {
                 i18n.error("FILE_TOO_LARGE", "Dosya çok büyük.", locale(), new Object[] {"5"}));
     }
 
+    /**
+     * Veritabani zaman asimi / kilit zaman asimi / baglanti havuzu tukenmesi: 503 DB_TIMEOUT (Retry-After: 5).
+     * statement_timeout (SQLSTATE 57014), lock_timeout (55P03) ve Hikari connectionTimeout buraya duser;
+     * surec calismaya devam eder, istemci tekrar dener.
+     */
+    @ExceptionHandler({org.springframework.dao.QueryTimeoutException.class,
+            org.springframework.dao.CannotAcquireLockException.class,
+            org.springframework.dao.PessimisticLockingFailureException.class,
+            org.springframework.dao.DataAccessResourceFailureException.class,
+            org.springframework.jdbc.CannotGetJdbcConnectionException.class,
+            jakarta.persistence.QueryTimeoutException.class,
+            jakarta.persistence.LockTimeoutException.class,
+            jakarta.persistence.PessimisticLockException.class})
+    ResponseEntity<Map<String, String>> dbTimeout(Exception e) {
+        org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class).warn("DB_TIMEOUT: {}", e.toString());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).header(HttpHeaders.RETRY_AFTER, "5")
+                .body(withTrace(Map.of("code", "DB_TIMEOUT", "message",
+                        i18n.error("DB_TIMEOUT", "Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.", locale(), new Object[0]))));
+    }
+
     private static Locale locale() {
         return LocaleContextHolder.getLocale();
     }
 
     private static ResponseEntity<Map<String, String>> body(HttpStatus status, String code, String message) {
-        return ResponseEntity.status(status).body(Map.of("code", code, "message", message));
+        return ResponseEntity.status(status).body(withTrace(Map.of("code", code, "message", message)));
+    }
+
+    /** Korelasyon kimligi (X-Request-Id; RequestIdFilter MDC'ye koyar) varsa `traceId` olarak eklenir. */
+    private static Map<String, String> withTrace(Map<String, String> body) {
+        String id = org.slf4j.MDC.get("requestId");
+        if (id == null) {
+            return body;
+        }
+        Map<String, String> copy = new java.util.LinkedHashMap<>(body);
+        copy.put("traceId", id);
+        return copy;
     }
 }

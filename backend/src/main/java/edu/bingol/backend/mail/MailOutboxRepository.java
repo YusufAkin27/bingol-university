@@ -13,17 +13,37 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
     /**
      * Zamani gelen e-postalari atomik olarak "kiralar": next_attempt_at ileri alinir, boylece baska sunucu
      * ayni kaydi almaz; sunucu cokerse kira bitince kayit yeniden denenir. SKIP LOCKED cok sunucu guvenlidir.
+     * YALNIZ islemsel (priority=0) kayitlar; duyurular {@link #claimDueAnnouncements} ile hiz sinirli alinir.
      */
     @Transactional
     @Query(value = """
             UPDATE mail_outbox SET next_attempt_at = :leaseUntil
             WHERE id IN (SELECT id FROM mail_outbox
-                         WHERE status IN ('PENDING', 'FAILED') AND next_attempt_at <= :now
+                         WHERE status IN ('PENDING', 'FAILED') AND priority = 0 AND next_attempt_at <= :now
                          ORDER BY next_attempt_at, id LIMIT :batch FOR UPDATE SKIP LOCKED)
             RETURNING id
             """, nativeQuery = true)
     List<Long> claimDue(@Param("now") Instant now, @Param("leaseUntil") Instant leaseUntil,
                         @Param("batch") int batch);
+
+    /** Duyuru (priority=1) kayitlari icin {@link #claimDue}: ayri alinir ki hiz siniri butcesi kadar kiralansin. */
+    @Transactional
+    @Query(value = """
+            UPDATE mail_outbox SET next_attempt_at = :leaseUntil
+            WHERE id IN (SELECT id FROM mail_outbox
+                         WHERE status IN ('PENDING', 'FAILED') AND priority > 0 AND next_attempt_at <= :now
+                         ORDER BY next_attempt_at, id LIMIT :batch FOR UPDATE SKIP LOCKED)
+            RETURNING id
+            """, nativeQuery = true)
+    List<Long> claimDueAnnouncements(@Param("now") Instant now, @Param("leaseUntil") Instant leaseUntil,
+                                     @Param("batch") int batch);
+
+    /** Son dakikada gonderilen duyuru sayisi (hiz siniri butcesi; cok ornekte ortak). */
+    long countByPriorityGreaterThanAndStatusAndSentAtAfter(int priority, MailStatus status, Instant after);
+
+    /** Bu adrese yakin zamanda duyuru gonderildi mi (ayni aliciya tekrar siniri). */
+    boolean existsByToAddressAndPriorityGreaterThanAndStatusAndSentAtAfter(String toAddress, int priority,
+                                                                          MailStatus status, Instant after);
 
     long countByStatus(MailStatus status);
 

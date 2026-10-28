@@ -31,6 +31,7 @@ public class FirebaseFcmSender implements FcmSender {
     private static final int MAX_APNS_COLLAPSE_ID = 64;
 
     private final FirebaseMessaging messaging;
+    private final String projectId;
 
     public FirebaseFcmSender(InputStream credentials) throws IOException {
         FirebaseApp app = FirebaseApp.getApps().isEmpty()
@@ -38,6 +39,26 @@ public class FirebaseFcmSender implements FcmSender {
                         .setCredentials(GoogleCredentials.fromStream(credentials)).build())
                 : FirebaseApp.getInstance();
         this.messaging = FirebaseMessaging.getInstance(app);
+        this.projectId = app.getOptions().getProjectId();
+        log.info("FCM etkin: Firebase proje kimligi={}", projectId); // proje kimligi gizli degildir; anahtar yazilmaz
+    }
+
+    @Override
+    public FcmCheck check(boolean dryRun) {
+        if (!dryRun) {
+            return new FcmCheck(true, false, projectId, null);
+        }
+        try {
+            // Konu mesaji + validateOnly: kimlik/proje/yetki dogrulanir, hicbir cihaza gonderilmez.
+            messaging.send(com.google.firebase.messaging.Message.builder().setTopic("bu-validate")
+                    .setNotification(Notification.builder().setTitle("validate").setBody("validate").build()).build(), true);
+            return new FcmCheck(true, true, projectId, null);
+        } catch (FirebaseMessagingException e) {
+            return new FcmCheck(true, false, projectId,
+                    e.getMessagingErrorCode() == null ? "ERROR" : e.getMessagingErrorCode().name());
+        } catch (RuntimeException e) {
+            return new FcmCheck(true, false, projectId, e.getClass().getSimpleName());
+        }
     }
 
     @Override

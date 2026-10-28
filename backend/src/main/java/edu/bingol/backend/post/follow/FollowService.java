@@ -34,9 +34,18 @@ public class FollowService {
 
     public record FollowResult(boolean following, long followerCount) {}
 
-    public record Stats(long followerCount, long followingCount, boolean followedByMe) {}
+    public record Stats(long followerCount, long followingCount, boolean followedByMe, boolean followsMe) {
+        public Stats(long followerCount, long followingCount, boolean followedByMe) {
+            this(followerCount, followingCount, followedByMe, false);
+        }
+    }
 
-    public record UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe) {}
+    public record UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
+                           boolean followsMe) {
+        public UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe) {
+            this(id, displayName, avatarUrl, department, followedByMe, false);
+        }
+    }
 
     public record UserPage(List<UserItem> items, String nextCursor) {}
 
@@ -125,7 +134,9 @@ public class FollowService {
                 (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2)}, target);
         long[] c = r.isEmpty() ? new long[] {0, 0} : r.get(0);
         boolean mine = viewer != null && !viewer.equals(target) && follows.existsById(new edu.bingol.backend.post.social.PairId(viewer, target));
-        return new Stats(c[0], c[1], mine);
+        boolean theirs = viewer != null && !viewer.equals(target)
+                && follows.existsById(new edu.bingol.backend.post.social.PairId(target, viewer));
+        return new Stats(c[0], c[1], mine, theirs);
     }
 
     // ---------------------------------------------------------------- listeler
@@ -172,11 +183,14 @@ public class FollowService {
         Map<Long, PublicProfile> byId = new HashMap<>();
         profiles.mapAll(viewer, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
         Set<Long> mine = new HashSet<>(follows.followedAmong(viewer, ids));
+        Set<Long> theirs = new HashSet<>(follows.followingMeAmong(viewer, ids));
         List<UserItem> out = new ArrayList<>();
         for (Long id : ids) {
             PublicProfile p = byId.get(id);
             if (p != null) {
-                out.add(new UserItem(p.id(), p.displayName(), p.avatarUrl(), p.department(), mine.contains(id)));
+                boolean self = id.equals(viewer);
+                out.add(new UserItem(p.id(), p.displayName(), p.avatarUrl(), p.department(),
+                        !self && mine.contains(id), !self && theirs.contains(id)));
             }
         }
         return out;

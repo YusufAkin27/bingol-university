@@ -16,18 +16,9 @@ import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
 import edu.bingol.backend.post.PostFixtures;
 import edu.bingol.backend.post.PostService;
-import edu.bingol.backend.post.comment.CommentDtos.CommentView;
-import edu.bingol.backend.post.comment.PostCommentService;
 import edu.bingol.backend.post.follow.FollowService;
-import edu.bingol.backend.post.story.StoryCleanupJob;
-import edu.bingol.backend.post.story.StoryDtos.CreateRequest;
-import edu.bingol.backend.post.story.StoryDtos.StoryView;
-import edu.bingol.backend.post.story.StoryDtos.TrayItem;
-import edu.bingol.backend.post.story.StoryService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -35,21 +26,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/** Gonderi sosyal ozellikleri: takip, kaydet, #etiket, @etiket, akis kapsamlari, hikayeler, KVKK (H2 uyumlu yollar). */
+/** Gonderi sosyal ozellikleri: takip, akis kapsamlari, KVKK (H2 uyumlu yollar). */
 @SpringBootTest
 class PostSocialIntegrationTest {
 
     @Autowired PostService posts;
     @Autowired edu.bingol.backend.post.PostRepository postRepo;
     @Autowired edu.bingol.backend.post.media.PostMediaRepository mediaRepo;
-    @Autowired PostCommentService comments;
     @Autowired FollowService follow;
-    @Autowired PostSaveService saves;
-    @Autowired HashtagService tags;
-    @Autowired StoryService stories;
-    @Autowired StoryCleanupJob cleanup;
     @Autowired SocialAccountPurger purger;
-    @Autowired MentionSuggestService suggest;
     @Autowired UserRepository users;
     @Autowired UserBlockRepository blocks;
     @Autowired JdbcTemplate jdbc;
@@ -98,6 +83,33 @@ class PostSocialIntegrationTest {
         assertEquals(0, follow.unfollow(a.getId(), b.getId()).followerCount());
         assertEquals(0, follow.unfollow(a.getId(), b.getId()).followerCount(), "tekrar birakma sayaci eksiye dusurmez");
         assertEquals(0, follow.stats(a.getId(), a.getId()).followingCount());
+    }
+
+    @Test
+    void followsMeFlagsInStatsAndLists() {
+        User a = user(null);
+        User b = user(null);
+        User c = user(null);
+        follow.follow(b.getId(), a.getId()); // b -> a
+        follow.follow(a.getId(), c.getId()); // a -> c
+        follow.follow(c.getId(), a.getId()); // c -> a (karsilikli)
+        FollowService.Stats s = follow.stats(a.getId(), b.getId());
+        assertTrue(s.followsMe());
+        assertFalse(s.followedByMe());
+        assertFalse(follow.stats(a.getId(), a.getId()).followsMe(), "kendi profilinde false");
+        List<FollowService.UserItem> items = follow.followers(a.getId(), a.getId(), null, 20).items();
+        assertEquals(2, items.size());
+        for (FollowService.UserItem it : items) {
+            assertTrue(it.followsMe());
+            assertEquals(it.id().equals(c.getId()), it.followedByMe());
+        }
+        // baska bakan: b, a'nin takipcilerini goruntuler; kendi satiri isaretsiz
+        for (FollowService.UserItem it : follow.followers(b.getId(), a.getId(), null, 20).items()) {
+            if (it.id().equals(b.getId())) {
+                assertFalse(it.followedByMe());
+                assertFalse(it.followsMe());
+            }
+        }
     }
 
     @Test
@@ -212,122 +224,18 @@ class PostSocialIntegrationTest {
         assertNull(p2.nextCursor());
     }
 
-    // Kaydet / #etiket / @bahsetme testleri sade Kesfet sozlesmesiyle kaldirildi (uclar 410, olay yayinlanmaz).
-
-    // ------------------------------------------------------------------ hikayeler
-
-    @Test
-    void textStoryValidation() {
-        User a = user(null);
-        assertEquals("STORY_EMPTY", code(() -> stories.create(a.getId(), new CreateRequest(null, null, "cap", null))));
-        assertEquals("STORY_BACKGROUND_INVALID",
-                code(() -> stories.create(a.getId(), new CreateRequest(null, "merhaba", null, "kirmizi"))));
-        assertEquals("STORY_TOO_LONG",
-                code(() -> stories.create(a.getId(), new CreateRequest(null, "x".repeat(201), null, null))));
-        assertEquals("POST_MEDIA_INVALID", code(() -> stories.create(a.getId(), new CreateRequest(987654L, null, null, null))));
-        StoryView s = stories.create(a.getId(), new CreateRequest(null, "merhaba", "alt", "#ff0000"));
-        assertEquals("TEXT", s.kind());
-        assertEquals("#FF0000", s.background());
-        assertTrue(s.mine());
-        assertEquals(0, s.viewCount());
-        assertTrue(s.expiresAt().isAfter(Instant.now().plus(23, ChronoUnit.HOURS)));
-    }
-
-    @Test
-    void trayOrderViewsAndViewersAccess() {
-        User viewer = user(null);
-        User seenAuthor = user(null);
-        User unseenAuthor = user(null);
-        User notFollowed = user(null);
-        follow.follow(viewer.getId(), seenAuthor.getId());
-        follow.follow(viewer.getId(), unseenAuthor.getId());
-        StoryView mine = stories.create(viewer.getId(), new CreateRequest(null, "benim", null, null));
-        StoryView s1 = stories.create(seenAuthor.getId(), new CreateRequest(null, "bir", null, null));
-        stories.create(unseenAuthor.getId(), new CreateRequest(null, "iki", null, null));
-        stories.create(notFollowed.getId(), new CreateRequest(null, "uc", null, null));
-
-        stories.markViewed(viewer.getId(), s1.id());
-        stories.markViewed(viewer.getId(), s1.id());
-        List<TrayItem> tray = stories.tray(viewer.getId());
-        assertEquals(3, tray.size(), "kendim + takip ettiklerim; takip edilmeyen yok");
-        assertTrue(tray.get(0).mine());
-        assertEquals(unseenAuthor.getId(), tray.get(1).user().id());
-        assertTrue(tray.get(1).hasUnseen());
-        assertEquals(seenAuthor.getId(), tray.get(2).user().id());
-        assertFalse(tray.get(2).hasUnseen());
-
-        // sayac idempotent; sahibi sayilmaz
-        stories.markViewed(seenAuthor.getId(), s1.id());
-        assertEquals(1, stories.ofUser(seenAuthor.getId(), seenAuthor.getId()).get(0).viewCount());
-        assertNull(stories.ofUser(viewer.getId(), seenAuthor.getId()).get(0).viewCount(), "sayac yalniz sahibe");
-        assertTrue(stories.ofUser(viewer.getId(), seenAuthor.getId()).get(0).viewedByMe());
-
-        assertEquals(1, stories.viewers(seenAuthor.getId(), s1.id(), null, 10).items().size());
-        assertEquals("STORY_FORBIDDEN", code(() -> stories.viewers(viewer.getId(), s1.id(), null, 10)));
-        assertEquals(1, stories.ofUser(viewer.getId(), viewer.getId()).size());
-        assertEquals(mine.id(), stories.ofUser(viewer.getId(), viewer.getId()).get(0).id());
-    }
-
-    @Test
-    void blockedAndExpiredAndDeletedStoriesAreInvisible() {
-        User a = user(null);
-        User b = user(null);
-        StoryView s = stories.create(a.getId(), new CreateRequest(null, "gizlenecek", null, null));
-        assertEquals(1, stories.ofUser(b.getId(), a.getId()).size());
-
-        blocks.saveAndFlush(new UserBlock(b.getId(), a.getId()));
-        assertTrue(stories.ofUser(b.getId(), a.getId()).isEmpty());
-        assertEquals("STORY_NOT_FOUND", code(() -> stories.markViewed(b.getId(), s.id())));
-        blocks.deleteAll(blocks.findAll().stream().filter(x -> x.getBlockerId().equals(b.getId())).toList());
-
-        // sure dolumu
-        jdbc.update("UPDATE story SET expires_at = ? WHERE id = ?",
-                java.sql.Timestamp.from(Instant.now().minusSeconds(60)), s.id());
-        assertTrue(stories.ofUser(b.getId(), a.getId()).isEmpty());
-        assertEquals("STORY_NOT_FOUND", code(() -> stories.markViewed(b.getId(), s.id())));
-
-        // sahibi silme: baskasi silemez
-        StoryView s2 = stories.create(a.getId(), new CreateRequest(null, "silinecek", null, null));
-        assertEquals("STORY_FORBIDDEN", code(() -> stories.delete(b.getId(), s2.id(), false)));
-        stories.delete(a.getId(), s2.id(), false);
-        assertTrue(stories.ofUser(a.getId(), a.getId()).isEmpty());
-        assertEquals("STORY_NOT_FOUND", code(() -> stories.delete(a.getId(), s2.id(), false)));
-    }
-
-    @Test
-    void cleanupRemovesExpiredAfterRetention() {
-        User a = user(null);
-        StoryView expiredLong = stories.create(a.getId(), new CreateRequest(null, "eski", null, null));
-        StoryView expiredRecent = stories.create(a.getId(), new CreateRequest(null, "yeni bitti", null, null));
-        StoryView live = stories.create(a.getId(), new CreateRequest(null, "canli", null, null));
-        Instant now = Instant.now();
-        jdbc.update("UPDATE story SET expires_at = ? WHERE id = ?",
-                java.sql.Timestamp.from(now.minus(30, ChronoUnit.HOURS)), expiredLong.id());
-        jdbc.update("UPDATE story SET expires_at = ? WHERE id = ?",
-                java.sql.Timestamp.from(now.minus(2, ChronoUnit.HOURS)), expiredRecent.id());
-        assertTrue(cleanup.run(now) >= 1);
-        assertEquals(0, count("SELECT COUNT(*) FROM story WHERE id = ?", expiredLong.id()));
-        assertEquals(1, count("SELECT COUNT(*) FROM story WHERE id = ?", expiredRecent.id()), "24 saat dolmadi");
-        assertEquals(1, count("SELECT COUNT(*) FROM story WHERE id = ?", live.id()));
-    }
-
     // ------------------------------------------------------------------ KVKK
 
     @Test
     void accountPurgeRemovesSocialData() {
         User a = user(null);
         User b = user(null);
-        PostView p = post(b, "kaydedilecek");
-        saves.save(a.getId(), p.id());
         follow.follow(a.getId(), b.getId());
         follow.follow(b.getId(), a.getId());
-        stories.create(a.getId(), new CreateRequest(null, "benim", null, null));
 
         purger.purge(a.getId());
 
-        assertEquals(0, count("SELECT COUNT(*) FROM post_save WHERE user_id = ?", a.getId()));
         assertEquals(0, count("SELECT COUNT(*) FROM user_follow WHERE follower_id = ? OR followee_id = ?", a.getId(), a.getId()));
-        assertEquals(0, count("SELECT COUNT(*) FROM story WHERE author_id = ?", a.getId()));
         assertEquals(0, follow.stats(b.getId(), b.getId()).followerCount(), "karsi tarafin sayaci duser");
         assertEquals(0, follow.stats(b.getId(), b.getId()).followingCount());
     }
@@ -335,15 +243,13 @@ class PostSocialIntegrationTest {
     @Test
     void exportersAreRegistered() {
         List<String> sections = exporters.stream().map(DataExporter::section).toList();
-        assertTrue(sections.containsAll(List.of("savedPosts", "follows", "stories")));
+        assertTrue(sections.containsAll(List.of("follows")));
         User a = user(null);
         User b = user(null);
         follow.follow(a.getId(), b.getId());
-        stories.create(a.getId(), new CreateRequest(null, "x", null, null));
         Object f = exporters.stream().filter(e -> e.section().equals("follows")).findFirst().orElseThrow().export(a.getId());
         assertTrue(f.toString().contains(String.valueOf(b.getId())));
-        Object s = exporters.stream().filter(e -> e.section().equals("stories")).findFirst().orElseThrow().export(a.getId());
-        assertTrue(s.toString().contains("TEXT"));
+        assertTrue(sections.stream().noneMatch(x -> x.equals("savedPosts") || x.equals("stories")));
     }
 
     private long count(String sql, Object... args) {

@@ -32,31 +32,6 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
 
     long countByOwnerIdAndPostIdIsNull(Long ownerId);
 
-    /** Bekleyen (ne gonderiye ne hikayeye baglanmis) yuklemeler. */
-    long countByOwnerIdAndPostIdIsNullAndStoryIdIsNull(Long ownerId);
-
-    /** Hikaye erisim karari icin hikayenin durumu. */
-    interface StoryState {
-        Long getAuthorId();
-
-        Instant getExpiresAt();
-
-        Instant getDeletedAt();
-
-        Instant getHiddenAt();
-    }
-
-    @Query("SELECT s.authorId AS authorId, s.expiresAt AS expiresAt, s.deletedAt AS deletedAt, s.hiddenAt AS hiddenAt "
-            + "FROM Story s WHERE s.id = :id")
-    Optional<StoryState> storyState(@Param("id") Long storyId);
-
-    List<PostMedia> findByStoryIdIn(Collection<Long> storyIds);
-
-    /** Hikayeye atomik baglama: yalniz sahibinin, baglanmamis, gizli olmayan medya. */
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE PostMedia m SET m.storyId = :story WHERE m.id = :id AND m.ownerId = :owner "
-            + "AND m.postId IS NULL AND m.storyId IS NULL AND m.hiddenAt IS NULL")
-    int bindStory(@Param("id") Long id, @Param("owner") Long ownerId, @Param("story") Long storyId);
 
     boolean existsByStorageKey(String storageKey);
 
@@ -64,7 +39,7 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     // clearAutomatically: ayni islemde onceden yuklenen (postId=null) nesne bayat kalmasin; yoksa gorunum siralamasi NPE verir
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE PostMedia m SET m.postId = :post, m.position = :pos WHERE m.id = :id AND m.ownerId = :owner "
-            + "AND m.postId IS NULL AND m.storyId IS NULL AND m.hiddenAt IS NULL")
+            + "AND m.postId IS NULL AND m.hiddenAt IS NULL")
     int bind(@Param("id") Long id, @Param("owner") Long ownerId, @Param("post") Long postId,
              @Param("pos") short position);
 
@@ -77,7 +52,7 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
     int unhideByPost(@Param("post") Long postId);
 
     /** Baglanmamis ve `before`dan eski yuklemeler (supurucu). */
-    @Query("SELECT m FROM PostMedia m WHERE m.postId IS NULL AND m.storyId IS NULL AND m.createdAt < :before ORDER BY m.id")
+    @Query("SELECT m FROM PostMedia m WHERE m.postId IS NULL AND m.createdAt < :before ORDER BY m.id")
     List<PostMedia> stale(@Param("before") Instant before, Pageable page);
 
     /** Silinmesinden (`before`) bu yana saklama suresi dolan gonderilerin medyasi. */
@@ -87,6 +62,6 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
 
     /** Yalniz hala baglanmamissa siler (supurucu ile baglama yarisi). */
     @Modifying(flushAutomatically = true)
-    @Query("DELETE FROM PostMedia m WHERE m.id = :id AND m.postId IS NULL AND m.storyId IS NULL")
+    @Query("DELETE FROM PostMedia m WHERE m.id = :id AND m.postId IS NULL")
     int deleteIfUnattached(@Param("id") Long id);
 }

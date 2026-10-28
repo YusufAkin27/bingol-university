@@ -87,10 +87,6 @@ public class PostMedia {
 
     private Instant transcodeAt;
 
-    /** Hikaye medyasi ise hikaye kimligi (post.story); dolu satir "baglanmamis yukleme" sayilmaz. */
-    @Column(name = "story_id")
-    private Long storyId;
-
     public boolean isVideo() {
         return VIDEO.equals(kind);
     }

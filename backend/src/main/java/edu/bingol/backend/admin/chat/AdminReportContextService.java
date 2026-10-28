@@ -40,7 +40,7 @@ public class AdminReportContextService {
     /** Kesfet gonderisi/yorumu icin medya onizleme baglantisi (yonetici ucu). */
     public record ContentMedia(long id, String kind, String url, String thumbUrl) {}
 
-    /** postId/media yalniz FEED_POST (media) ve FEED_COMMENT (postId) icin dolar; status VISIBLE|HIDDEN|DELETED (FEED_*). */
+    /** postId/media yalniz FEED_POST (media) icin dolar; status VISIBLE|HIDDEN|DELETED (FEED_*). */
     public record Content(String kind, Long id, String title, String text, Long communityId, Long ownerId,
                           String imageUrl, boolean deleted, String status, String createdAt, Long postId,
                           List<ContentMedia> media) {}
@@ -158,8 +158,6 @@ public class AdminReportContextService {
                 return owner("SELECT created_by FROM user_event WHERE id = ?", id);
             case "FEED_POST":
                 return owner("SELECT author_id FROM post WHERE id = ?", id);
-            case "FEED_COMMENT":
-                return owner("SELECT author_id FROM post_comment WHERE id = ?", id);
             default:
                 return new Target(null, null, null, null);
         }
@@ -188,7 +186,7 @@ public class AdminReportContextService {
                 return new Context(type, t.ownerId != null && userExists(r.getTargetId()), null, null, null, List.of(),
                         null, stats(t.ownerId));
             }
-            case "POST", "COMMUNITY", "EVENT", "FEED_POST", "FEED_COMMENT":
+            case "POST", "COMMUNITY", "EVENT", "FEED_POST":
                 return new Context(type, t.ownerId != null, null, null, null, List.of(), content(type, r.getTargetId()),
                         stats(t.ownerId));
             default:
@@ -265,8 +263,6 @@ public class AdminReportContextService {
                         rs.getString("cover_url"), false, rs.getString("status"), ts(rs.getTimestamp("created_at")), null, null), id));
             case "FEED_POST":
                 return feedPost(id);
-            case "FEED_COMMENT":
-                return feedComment(id);
             default:
                 return first(jdbc.query("SELECT id, title, description, community_id, created_by, created_at "
                                 + "FROM user_event WHERE id = ?", (rs, i) -> new Content("EVENT", rs.getLong("id"),
@@ -285,15 +281,6 @@ public class AdminReportContextService {
                         rs.getLong("author_id"), thumb, rs.getTimestamp("deleted_at") != null,
                         feedStatus(rs.getTimestamp("deleted_at"), rs.getTimestamp("hidden_at")),
                         ts(rs.getTimestamp("created_at")), rs.getLong("id"), media), id));
-    }
-
-    private Content feedComment(long id) {
-        return first(jdbc.query("SELECT id, post_id, author_id, body, created_at, deleted_at, hidden_at "
-                        + "FROM post_comment WHERE id = ?",
-                (rs, i) -> new Content("FEED_COMMENT", rs.getLong("id"), null, rs.getString("body"), null,
-                        rs.getLong("author_id"), null, rs.getTimestamp("deleted_at") != null,
-                        feedStatus(rs.getTimestamp("deleted_at"), rs.getTimestamp("hidden_at")),
-                        ts(rs.getTimestamp("created_at")), rs.getLong("post_id"), List.of()), id));
     }
 
     private static String feedStatus(java.sql.Timestamp deletedAt, java.sql.Timestamp hiddenAt) {

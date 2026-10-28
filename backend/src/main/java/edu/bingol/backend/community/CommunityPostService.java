@@ -79,9 +79,10 @@ public class CommunityPostService {
             if (uid.equals(a.id()) || hidden.contains(uid)) {
                 continue;
             }
-            notifications.send(uid, NotificationType.COMMUNITY, c.getName(),
-                    view.authorName() + ": " + preview(p.getContent()), Map.of("communityId", cid.toString(),
-                            "postId", p.getId().toString()));
+            // Alt tur COMMUNITY_POST (tercihle kapatilabilir) + kulup basina birlesme: okunmamis yazilar tek satir.
+            notifications.send(uid, NotificationType.COMMUNITY, edu.bingol.backend.notification.NotificationSubtype.COMMUNITY_POST,
+                    "commpost:" + cid, c.getName(), view.authorName() + ": " + preview(p.getContent()),
+                    Map.of("communityId", cid.toString(), "postId", p.getId().toString()));
         }
         return view;
     }

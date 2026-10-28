@@ -143,12 +143,45 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                                   @Param("now") Instant now);
 
     /** Duzenlediklerim (iptal edilenler haric), yeniden eskiye. */
-    @Query("SELECT e FROM UserEvent e WHERE e.createdBy = :uid AND e.status <> :cancelled AND e.id < :cursor ORDER BY e.id DESC")
+    @Query("SELECT e FROM UserEvent e WHERE e.createdBy = :uid AND e.status <> :cancelled AND e.status <> edu.bingol.backend.event.UserEvent.Status.HIDDEN AND e.id < :cursor ORDER BY e.id DESC")
     List<UserEvent> organizing(@Param("uid") Long userId, @Param("cancelled") UserEvent.Status cancelled,
                                @Param("cursor") long cursor, Pageable page);
 
     @Query("SELECT e FROM UserEvent e WHERE e.status = :status AND e.id < :cursor ORDER BY e.id DESC")
     List<UserEvent> byStatus(@Param("status") UserEvent.Status status, @Param("cursor") long cursor, Pageable page);
+
+    /**
+     * Yonetici listesi (suzme). Tum parametreler parametrelidir; "yok" sentineli: anyStatus=true, communityId=0,
+     * standalone=false, policyFilter=0 (1=OPEN, 2=APPROVAL), q='' (qLike metni onceden katlanmis + kacirilmis, ESCAPE '!').
+     * Metin eslesmesi baslik/yer/kulup adi/organizator adi uzerinde; katlama: I/i/ı/İ -> i + kucuk harf.
+     */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.id < :cursor
+              AND (:anyStatus = true OR e.status = :status)
+              AND (:communityId = 0 OR e.communityId = :communityId)
+              AND (:standalone = false OR e.communityId IS NULL)
+              AND e.startsAt >= :from AND e.startsAt < :to
+              AND (:policyFilter = 0
+                   OR (:policyFilter = 1 AND e.id NOT IN (SELECT a.eventId FROM EventAdmission a
+                                                          WHERE a.mode = edu.bingol.backend.event.admission.EventAdmission.Mode.APPROVAL))
+                   OR (:policyFilter = 2 AND e.id IN (SELECT a.eventId FROM EventAdmission a
+                                                      WHERE a.mode = edu.bingol.backend.event.admission.EventAdmission.Mode.APPROVAL)))
+              AND (:hasQ = false
+                   OR lower(replace(replace(replace(e.title, 'İ', 'i'), 'I', 'i'), 'ı', 'i')) LIKE :qLike ESCAPE '!'
+                   OR lower(replace(replace(replace(coalesce(e.location, ''), 'İ', 'i'), 'I', 'i'), 'ı', 'i')) LIKE :qLike ESCAPE '!'
+                   OR e.communityId IN (SELECT c.id FROM Community c
+                                        WHERE lower(replace(replace(replace(c.name, 'İ', 'i'), 'I', 'i'), 'ı', 'i')) LIKE :qLike ESCAPE '!')
+                   OR e.createdBy IN (SELECT u.id FROM User u
+                                      WHERE lower(replace(replace(replace(coalesce(u.displayName, ''), 'İ', 'i'), 'I', 'i'), 'ı', 'i')) LIKE :qLike ESCAPE '!'))
+            ORDER BY e.id DESC
+            """)
+    List<UserEvent> adminSearch(@Param("anyStatus") boolean anyStatus, @Param("status") UserEvent.Status status,
+                                @Param("communityId") long communityId, @Param("standalone") boolean standalone,
+                                @Param("from") Instant from, @Param("to") Instant to,
+                                @Param("policyFilter") int policyFilter,
+                                @Param("hasQ") boolean hasQ, @Param("qLike") String qLike,
+                                @Param("cursor") long cursor, Pageable page);
 
     /** Genel arama (SearchProvider): ILIKE; ACTIVE ve topluluksuz ya da PUBLIC + ACTIVE topluluk etkinlikleri. */
     @Query(value = """

@@ -30,6 +30,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     Optional<Notification> findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(Long userId, String collapseKey);
 
+    /** Okunmus olsa da ayni anahtarli kayit var mi (takip bildirimi tekrarini onlemek icin). */
+    boolean existsByUserIdAndCollapseKey(Long userId, String collapseKey);
+
     List<Notification> findTop500ByUserIdOrderByIdDesc(Long userId);
 
     @Transactional

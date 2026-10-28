@@ -11,7 +11,9 @@ public enum MailTemplate {
     ACCOUNT_DELETED("deleted"),
     SECURITY_NEW_LOGIN("newlogin"),
     SECURITY_PASSWORD_CHANGED("pwchanged"),
-    ANNOUNCEMENT("announcement");
+    ANNOUNCEMENT("announcement"),
+    /** Yonetici sablonu (mail/campaign): icerik gonderim aninda {@link CustomMailContent} ile veritabanindan cozulur. */
+    CUSTOM("custom");
 
     private final String key;
 

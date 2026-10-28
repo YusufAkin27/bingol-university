@@ -94,7 +94,7 @@ public class PostRankService {
                 Map<Long, Integer> reports = toMap(ranks.openReports(ids));
                 for (Post p : batch) {
                     double ageH = Duration.between(p.getCreatedAt(), now).toSeconds() / 3600.0;
-                    p.setRankScore(PostRank.compute(props, p.getLikeCount(), p.getCommentCount(),
+                    p.setRankScore(PostRank.compute(props, p.getLikeCount(), 0,
                             followers.getOrDefault(p.getAuthorId(), 0), recent.getOrDefault(p.getId(), 0),
                             reports.getOrDefault(p.getId(), 0), ageH));
                 }

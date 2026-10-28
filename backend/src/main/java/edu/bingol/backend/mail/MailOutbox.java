@@ -56,6 +56,17 @@ public class MailOutbox {
 
     private Instant sentAt;
 
+    /** 0 = islemsel, 1 = duyuru (bkz. {@link MailCategory#priority()}); V421. */
+    @Column(nullable = false)
+    private int priority;
+
+    /** Bilerek gonderilmedi (bastirma listesi / kalici adres hatasi): SKIPPED, degiskenler temizlenir. */
+    public void markSkipped(String reason) {
+        status = MailStatus.SKIPPED;
+        lastError = reason == null ? null : reason.substring(0, Math.min(reason.length(), MAX_ERROR_LENGTH));
+        scrubVars();
+    }
+
     public void markSent(Instant now) {
         status = MailStatus.SENT;
         sentAt = now;

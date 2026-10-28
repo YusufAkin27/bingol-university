@@ -125,36 +125,9 @@ class PostNotifierTest {
     @Test
     void ownActionAndBlockedPairsGetNoNotification() {
         notifier.onLike(1L, 50L, 1L);
-        notifier.onComment(1L, 50L, 1L, 9L);
-        notifier.onReply(1L, 50L, 9L, 1L, 1L);
         when(blocks.isBlocked(2L, 1L)).thenReturn(true);
         notifier.onLike(2L, 50L, 1L);
-        notifier.onComment(2L, 50L, 1L, 9L);
-        notifier.onReply(2L, 50L, 9L, 1L, null);
         verify(notifications, never()).send(anyLong(), any(NotificationType.class), any(), any(), anyString(),
-                anyString(), anyMap());
-    }
-
-    @Test
-    void commentCarriesCommentId() {
-        notifier.onComment(2L, 50L, 1L, 77L);
-        ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
-        verify(notifications).send(eq(1L), eq(NotificationType.POST_COMMENT), eq(NotificationSubtype.POST_COMMENT),
-                eq(null), anyString(), eq("notif.post.comment.body|Ayse"), data.capture());
-        assertEquals("77", data.getValue().get("commentId"));
-        assertEquals("50", data.getValue().get("postId"));
-    }
-
-    @Test
-    void replyNotifiesParentAuthorAndReplyToUserOnceEach() {
-        notifier.onReply(2L, 50L, 77L, 10L, 11L);
-        verify(notifications).send(eq(10L), eq(NotificationType.COMMENT_REPLY), eq(NotificationSubtype.COMMENT_REPLY),
-                eq(null), anyString(), anyString(), anyMap());
-        verify(notifications).send(eq(11L), eq(NotificationType.COMMENT_REPLY), eq(NotificationSubtype.COMMENT_REPLY),
-                eq(null), anyString(), anyString(), anyMap());
-
-        notifier.onReply(2L, 50L, 78L, 10L, 10L); // aynı kişi: tek bildirim
-        verify(notifications, times(2)).send(eq(10L), any(NotificationType.class), any(), any(), anyString(),
                 anyString(), anyMap());
     }
 
@@ -162,8 +135,6 @@ class PostNotifierTest {
     void failuresNeverPropagate() {
         when(users.findById(anyLong())).thenThrow(new IllegalStateException("db"));
         notifier.onLike(2L, 50L, 1L);
-        notifier.onComment(2L, 50L, 1L, 1L);
-        notifier.onReply(2L, 50L, 1L, 3L, 4L);
     }
 
     // --- Şablon anahtarları: üç dilde mevcut ---
@@ -180,8 +151,7 @@ class PostNotifierTest {
     @Test
     void templateKeysExistInAllLanguages() throws IOException {
         List<String> keys = List.of("notif.post.like.title", "notif.post.like.body", "notif.post.like.many.body",
-                "notif.post.comment.title", "notif.post.comment.body", "notif.comment.reply.title",
-                "notif.comment.reply.body");
+                "notif.post.adminedit.title", "notif.post.adminedit.body");
         for (String f : List.of("post.properties", "post_en.properties", "post_ar.properties")) {
             Properties p = load(f);
             for (String k : keys) {
@@ -192,5 +162,24 @@ class PostNotifierTest {
             assertTrue(p.getProperty("notif.post.like.body").contains("{0}"));
             assertTrue(p.getProperty("notif.post.like.many.body").contains("{1}"));
         }
+    }
+
+    @Test
+    void followIsNotNotifiedAgainAfterUnfollowRefollow() {
+        when(rows.existsByUserIdAndCollapseKey(2L, "follow:1")).thenReturn(true);
+
+        notifier.onFollow(1L, 2L);
+
+        verify(notifications, org.mockito.Mockito.never()).send(anyLong(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void firstFollowIsNotified() {
+        when(rows.existsByUserIdAndCollapseKey(2L, "follow:1")).thenReturn(false);
+
+        notifier.onFollow(1L, 2L);
+
+        verify(notifications).send(eq(2L), eq(NotificationType.USER_FOLLOW), eq(NotificationSubtype.USER_FOLLOW),
+                eq("follow:1"), any(), any(), any());
     }
 }

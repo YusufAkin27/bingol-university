@@ -2,17 +2,17 @@ package edu.bingol.backend.post.admin;
 
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
-import edu.bingol.backend.post.admin.AdminPostService.CommentPage;
-import edu.bingol.backend.post.admin.AdminPostService.CommentRow;
 import edu.bingol.backend.post.admin.AdminPostService.PostDetail;
 import edu.bingol.backend.post.admin.AdminPostService.PostPage;
 import edu.bingol.backend.post.admin.AdminPostService.PostRow;
 import edu.bingol.backend.post.admin.AdminPostService.Stats;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.time.Duration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Yonetici gonderi/yorum moderasyonu (`/api/admin/**` yalnizca ADMIN). Yazma islemleri AuditInterceptor ile
+ * Yonetici gonderi moderasyonu (`/api/admin/**` yalnizca ADMIN). Yazma islemleri AuditInterceptor ile
  * denetlenir; medya akisi (`GET /api/admin/posts/media/{id}`) PostMediaController'dadir (denetlenir).
  */
 @RestController
@@ -33,6 +33,9 @@ public class AdminPostController {
 
     public record ReasonRequest(@Size(max = 300) String reason) {}
 
+    /** Metin bos/bosluk ise temizlenir (fotograf kalir); bicim kurali serviste. */
+    public record EditRequest(@Size(max = 1000) String text) {}
+
     private final AdminPostService service;
     private final RateLimiter limiter;
 
@@ -41,15 +44,20 @@ public class AdminPostController {
         this.limiter = limiter;
     }
 
-    /** Imlec = gonderi id (en yeni once); q = yazar adi/e-postasi; tarih = YYYY-AA-GG (Europe/Istanbul). */
+    /**
+     * Imlec = gonderi id (en yeni once). q = gonderi metni / yazar adi / e-postasi; status = ALL|VISIBLE|HIDDEN|DELETED;
+     * authorId; minReports = en az N acik sikayet; from/to = YYYY-AA-GG (Europe/Istanbul).
+     */
     @GetMapping("/posts")
     public PostPage list(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "20") int size,
                          @RequestParam(required = false) String q, @RequestParam(required = false) Boolean hidden,
                          @RequestParam(required = false) Boolean deleted,
                          @RequestParam(required = false) Boolean hasMedia, @RequestParam(required = false) String from,
-                         @RequestParam(required = false) String to) {
+                         @RequestParam(required = false) String to, @RequestParam(required = false) String status,
+                         @RequestParam(required = false) Long authorId,
+                         @RequestParam(required = false) Integer minReports) {
         limit();
-        return service.list(cursor, size, q, hidden, deleted, hasMedia, from, to);
+        return service.list(cursor, size, q, hidden, deleted, hasMedia, from, to, status, authorId, minReports);
     }
 
     @GetMapping("/posts/stats")
@@ -76,37 +84,19 @@ public class AdminPostController {
         return service.unhide(id);
     }
 
+    /** Metin duzenleme (denetim kaydi; yazara bildirim). */
+    @PatchMapping("/posts/{id}")
+    public PostRow edit(@PathVariable long id, @Valid @RequestBody EditRequest body) {
+        limit();
+        return service.editText(id, body.text());
+    }
+
+    /** Silme; istege bagli govde {reason} yazara giden gerekcedir. Acik sikayetler sonuclandirilir. */
     @DeleteMapping("/posts/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable long id) {
+    public void delete(@PathVariable long id, @RequestBody(required = false) ReasonRequest body) {
         limit();
-        service.delete(CurrentUser.id(), id);
-    }
-
-    @GetMapping("/posts/{id}/comments")
-    public CommentPage comments(@PathVariable long id, @RequestParam(required = false) Long cursor,
-                                @RequestParam(defaultValue = "30") int size) {
-        limit();
-        return service.comments(id, cursor, size);
-    }
-
-    @PostMapping("/comments/{id}/hide")
-    public CommentRow hideComment(@PathVariable long id, @RequestBody(required = false) ReasonRequest body) {
-        limit();
-        return service.hideComment(id);
-    }
-
-    @PostMapping("/comments/{id}/unhide")
-    public CommentRow unhideComment(@PathVariable long id, @RequestBody(required = false) ReasonRequest body) {
-        limit();
-        return service.unhideComment(id);
-    }
-
-    @DeleteMapping("/comments/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteComment(@PathVariable long id) {
-        limit();
-        service.deleteComment(CurrentUser.id(), id);
+        service.delete(CurrentUser.id(), id, body == null ? null : body.reason());
     }
 
     private void limit() {

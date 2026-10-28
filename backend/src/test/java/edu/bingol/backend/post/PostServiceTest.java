@@ -84,8 +84,6 @@ class PostServiceTest {
         assertNull(noText.text());
         assertEquals(1, noText.media().size());
         assertEquals("IMAGE", noText.media().get(0).kind());
-        assertEquals(0, noText.commentCount());
-        assertTrue(noText.hashtags().isEmpty() && noText.mentions().isEmpty() && !noText.savedByMe());
         PostView v = service.create(a.getId(), new CreatePostRequest("  güzel bir gün  ", List.of(uploaded(a, "IMAGE"))));
         assertEquals("güzel bir gün", v.text());
         assertTrue(v.mine() && v.canEdit() && v.canDelete());
@@ -234,11 +232,9 @@ class PostServiceTest {
         PostView pv = post(a, "sayac");
         counters.incrementLikes(pv.id(), 1);
         counters.incrementLikes(pv.id(), 1);
-        counters.incrementComments(pv.id(), 3);
         counters.incrementLikes(pv.id(), -5);
         PostView v = service.get(a.getId(), pv.id());
         assertEquals(0, v.likeCount());
-        assertEquals(0, v.commentCount(), "yorum sayisi DTO'da sabit 0 (yorum kaldirildi)");
         counters.incrementLikes(pv.id(), 2);
         assertEquals(2, counters.likeCount(pv.id()));
     }
@@ -250,7 +246,6 @@ class PostServiceTest {
         PostView low = post(a, "dusuk");
         PostView high = post(a, "yuksek");
         counters.incrementLikes(high.id(), 10);
-        counters.incrementComments(high.id(), 5);
         scoreJob.recompute();
         List<Long> ids = service.feed(v.getId(), "popular", null, 20).items().stream().map(PostView::id).toList();
         assertTrue(ids.indexOf(high.id()) >= 0 && ids.indexOf(high.id()) < ids.indexOf(low.id()));

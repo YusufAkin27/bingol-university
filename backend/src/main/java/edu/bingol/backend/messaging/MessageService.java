@@ -305,8 +305,9 @@ public class MessageService {
         }
 
         // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
-        Set<Long> muted = active.stream().filter(ConversationMember::isMuted).map(ConversationMember::getUserId)
-                .collect(java.util.stream.Collectors.toSet());
+        // Sessiz (muted/mutedForever) ve yapiskan arsivdeki (archiveSticky) uyelere de bildirim yok.
+        Set<Long> muted = active.stream().filter(a -> a.isMuted() || (a.getArchivedAt() != null && a.isArchiveSticky()))
+                .map(ConversationMember::getUserId).collect(java.util.stream.Collectors.toSet());
         List<Long> candidates = recipients.stream().filter(id -> !id.equals(senderId) && !muted.contains(id)).toList();
         if (candidates.isEmpty()) {
             return;
@@ -314,9 +315,10 @@ public class MessageService {
         String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null ? conv.getTitle() : null;
         String preview = previewOf(m);
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
-                "messageId", String.valueOf(m.getId()));
+                "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
+        Long convId = conv.getId();
         try {
-            fanout.execute(() -> notifyOffline(senderId, title, preview, data, candidates));
+            fanout.execute(() -> notifyOffline(senderId, convId, title, preview, data, candidates));
         } catch (RejectedExecutionException e) {
             log.warn("Bildirim kuyrugu dolu, mesaj {} icin bildirim atlandi", m.getId());
         }
@@ -332,21 +334,33 @@ public class MessageService {
                 : body.length() > PUSH_PREVIEW ? body.substring(0, PUSH_PREVIEW) + "…" : body;
     }
 
-    /** Cevrimdisi alicilara bildirim (asenkron calisir; hata gondericiyi etkilemez). Cevrimici durum tek MGET ile okunur. */
-    private void notifyOffline(Long senderId, String groupTitle, String preview, Map<String, String> data,
-                               List<Long> candidates) {
+    /**
+     * Cevrimdisi alicilara bildirim (asenkron; hata gondericiyi etkilemez). Cevrimici olanlara yalniz canli WS olayi gider.
+     * Sohbeti su an goruntuleyene hicbir sey yazilmaz; uygulamasi on planda olana yalniz uygulama ici kayit (push yok);
+     * askidaki/silinmis hesaba bildirim yok. Presence/viewing/foreground tek MGET'lerle okunur.
+     */
+    private void notifyOffline(Long senderId, Long conversationId, String groupTitle, String preview,
+                               Map<String, String> data, List<Long> candidates) {
         try {
             Set<Long> online = presence.onlineAmong(candidates);
-            List<Long> offline = candidates.stream().filter(id -> !online.contains(id)).toList();
+            Set<Long> viewing = presence.viewingAmong(candidates, conversationId);
+            List<Long> offline = candidates.stream().filter(id -> !online.contains(id) && !viewing.contains(id)).toList();
             if (offline.isEmpty()) {
                 return;
             }
+            Set<Long> inactive = new java.util.HashSet<>();
+            users.findAllById(offline).forEach(u -> {
+                if (!u.isActive()) {
+                    inactive.add(u.getId());
+                }
+            });
+            Set<Long> foreground = presence.foregroundAmong(offline);
             String senderName = users.findById(senderId).map(User::getDisplayName).orElse("Yeni mesaj");
             String title = groupTitle == null ? senderName : groupTitle + " - " + senderName;
-            if (offline.size() > BULK_NOTIFY_THRESHOLD) {
-                notifications.sendBulk(offline, NotificationType.MESSAGE, title, preview == null ? "Yeni mesaj" : preview, data);
-            } else {
-                offline.forEach(id -> notifications.sendNewMessage(id, title, preview, data));
+            for (Long id : offline) {
+                if (!inactive.contains(id)) {
+                    notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id));
+                }
             }
         } catch (RuntimeException e) {
             log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());

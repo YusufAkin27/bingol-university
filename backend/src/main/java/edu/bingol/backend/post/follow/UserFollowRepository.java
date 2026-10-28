@@ -39,6 +39,10 @@ public interface UserFollowRepository extends JpaRepository<UserFollow, PairId> 
     @Query("SELECT f.id.b FROM UserFollow f WHERE f.id.a = :viewer AND f.id.b IN :ids")
     List<Long> followedAmong(@Param("viewer") Long viewer, @Param("ids") Collection<Long> ids);
 
+    /** Verilen kimliklerden bakani takip edenler (followsMe; tek sorgu). */
+    @Query("SELECT f.id.a FROM UserFollow f WHERE f.id.b = :viewer AND f.id.a IN :ids")
+    List<Long> followingMeAmong(@Param("viewer") Long viewer, @Param("ids") Collection<Long> ids);
+
     @Query("SELECT f FROM UserFollow f WHERE f.id.a = :uid OR f.id.b = :uid")
     List<UserFollow> involving(@Param("uid") Long uid);
 }

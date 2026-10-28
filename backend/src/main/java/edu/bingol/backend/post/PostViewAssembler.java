@@ -58,10 +58,9 @@ public class PostViewAssembler {
             AuthorView author = a == null ? new AuthorView(p.getAuthorId(), "", null, null)
                     : new AuthorView(a.id(), a.displayName(), a.avatarUrl(), a.department());
             boolean mine = p.getAuthorId().equals(viewerId);
-            // Sade gonderi sozlesmesi: yorum/kaydet/etiket/bahsetme kaldirildi -> geriye uyumlu sabit degerler
             out.add(new PostView(p.getId(), author, p.getBody(), media.getOrDefault(p.getId(), List.of()),
-                    p.getLikeCount(), 0, liked.contains(p.getId()), mine, mine, mine || admin,
-                    p.getCreatedAt(), p.getEditedAt(), false, List.of(), List.of()));
+                    p.getLikeCount(), liked.contains(p.getId()), mine, mine, mine || admin,
+                    p.getCreatedAt(), p.getEditedAt()));
         }
         return out;
     }

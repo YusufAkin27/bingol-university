@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Her gece 03:15 (Istanbul): 180 gunden eski analitik olaylari siler. Hata exception sizdirmaz. */
+/** Her gece 03:15 (Istanbul): 45 gunden eski (dbmaint ile ayni sinir; ozet analytics_event_daily) analitik olaylari siler. Hata exception sizdirmaz. */
 @Component
 public class EventRetention {
 

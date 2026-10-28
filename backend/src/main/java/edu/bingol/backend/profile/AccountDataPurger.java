@@ -29,6 +29,8 @@ public class AccountDataPurger {
             "DELETE FROM poll_ballot WHERE user_id = ?",
             // KVKK: cihaz/IP gecmisi (erisim engeli modulu) hesap silinince kendi kayitlari silinir
             "DELETE FROM user_device_log WHERE user_id = ?",
+            // Mail kampanyasi alici kayitlari (kisisel veri: kullanici kimligi ile gonderim durumu)
+            "DELETE FROM mail_campaign_recipient WHERE user_id = ?",
             "DELETE FROM notification WHERE user_id = ?",
             "DELETE FROM notification_pref WHERE user_id = ?",
             "DELETE FROM notification_subtype_pref WHERE user_id = ?",

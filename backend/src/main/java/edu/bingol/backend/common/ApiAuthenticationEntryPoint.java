@@ -38,7 +38,9 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setHeader("WWW-Authenticate", "Basic realm=\"admin\"");
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + escape(message) + "\"}");
+        String traceId = org.slf4j.MDC.get("requestId");
+        String trace = traceId == null ? "" : ",\"traceId\":\"" + escape(traceId) + "\"";
+        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + escape(message) + "\"" + trace + "}");
     }
 
     private static String escape(String s) {

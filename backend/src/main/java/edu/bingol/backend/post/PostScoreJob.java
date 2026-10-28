@@ -49,7 +49,7 @@ public class PostScoreJob {
                 List<Post> batch = posts.scoreBatch(since, cursor, PageRequest.of(0, BATCH));
                 for (Post p : batch) {
                     double ageH = Duration.between(p.getCreatedAt(), now).toSeconds() / 3600.0;
-                    p.setScore(PostScore.compute(p.getLikeCount(), p.getCommentCount(), ageH));
+                    p.setScore(PostScore.compute(p.getLikeCount(), 0, ageH));
                 }
                 posts.saveAll(batch);
                 return batch.size() < BATCH ? null : batch.get(batch.size() - 1).getId();

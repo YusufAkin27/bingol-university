@@ -157,7 +157,7 @@ public class AnalyticsReportService {
 
     public PushReport push() {
         long[] totals = repo.pushTotals();
-        return new PushReport(new PushTotals(totals[0], totals[1]), campaigns.list(null, 10).items());
+        return new PushReport(new PushTotals(totals[0], totals[1]), campaigns.list(null, 10, null).items());
     }
 
     public ContentReport content(String from, String to) {

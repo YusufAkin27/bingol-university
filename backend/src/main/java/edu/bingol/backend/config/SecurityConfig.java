@@ -101,6 +101,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // T27: herkese acik destek talebi (hiz siniri + e-posta dogrulamasi servis katmaninda)
                 .requestMatchers("/api/public/support/**").permitAll()
+                // Mail teslim edilebilirligi: imzali jetonla abonelikten cikma (IP hiz siniri controller'da)
+                .requestMatchers("/api/public/mail/unsubscribe").permitAll()
                 // T14: katilim sertifikasi dogrulama herkese acik (kod tahmin edilemez, IP hiz siniri var)
                 .requestMatchers(HttpMethod.GET, "/api/certificates/verify/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/news","/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()

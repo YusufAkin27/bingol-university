@@ -2,7 +2,8 @@ package edu.bingol.backend.community;
 
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
-import edu.bingol.backend.community.dto.CommunityDtos.CategoryCount;
+import edu.bingol.backend.community.category.CommunityCategoryDtos.PublicCategory;
+import edu.bingol.backend.community.category.CommunityCategoryService;
 import edu.bingol.backend.community.dto.CommunityDtos.CommunityView;
 import edu.bingol.backend.community.dto.CommunityDtos.CreateCommunityRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
@@ -45,9 +46,11 @@ public class CommunityController {
     private final RateLimiter limiter;
     private final ClubRoleService roles;
     private final ClubJoinFormService joinForm;
+    private final CommunityCategoryService categories;
 
     public CommunityController(CommunityService communities, CommunityPostService posts, RateLimiter limiter,
-                               ClubRoleService roles, ClubJoinFormService joinForm) {
+                               ClubRoleService roles, ClubJoinFormService joinForm, CommunityCategoryService categories) {
+        this.categories = categories;
         this.roles = roles;
         this.joinForm = joinForm;
         this.communities = communities;
@@ -136,10 +139,16 @@ public class CommunityController {
         return joinForm.requests(a, id, cursor, size, "answers".equals(include));
     }
 
-    /** Kesfette gorunen kategoriler ve kulup sayilari. */
+    /**
+     * Aktif kulup kategorileri (yonetici sirasiyla, ad istek dilinde) + kesfette gorunen kulup sayisi.
+     * ETag (ShallowEtagHeaderFilter) + X-Categories-Version basligi: degismediyse 304.
+     */
     @GetMapping("/communities/categories")
-    public List<CategoryCount> categories() {
-        return communities.categories();
+    public ResponseEntity<List<PublicCategory>> categories() {
+        return ResponseEntity.ok()
+                .header("X-Categories-Version", categories.version())
+                .header("Vary", "Accept-Language")
+                .body(categories.listActive());
     }
 
     @PostMapping("/communities/{id}/requests/{userId}/approve")

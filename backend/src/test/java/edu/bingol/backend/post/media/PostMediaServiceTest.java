@@ -130,7 +130,7 @@ class PostMediaServiceTest {
                 .sorted(java.util.Comparator.comparing(PostMedia::getPosition)).toList());
         when(repo.findByOwnerId(anyLong())).thenAnswer(inv -> db.values().stream()
                 .filter(m -> m.getOwnerId().equals(inv.<Long>getArgument(0))).toList());
-        when(repo.countByOwnerIdAndPostIdIsNullAndStoryIdIsNull(anyLong())).thenAnswer(inv -> db.values().stream()
+        when(repo.countByOwnerIdAndPostIdIsNull(anyLong())).thenAnswer(inv -> db.values().stream()
                 .filter(m -> m.getOwnerId().equals(inv.<Long>getArgument(0)) && m.getPostId() == null).count());
         when(repo.existsByStorageKey(anyString())).thenAnswer(inv -> db.values().stream()
                 .anyMatch(m -> m.getStorageKey().equals(inv.getArgument(0))));

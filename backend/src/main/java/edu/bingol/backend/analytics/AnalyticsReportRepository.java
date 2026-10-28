@@ -176,18 +176,37 @@ public class AnalyticsReportRepository {
 
     // --- etkilesim ---
 
+    /**
+     * Ham olay yalniz son ~45 gun tutulur; tamamlanmis gunler analytics_event_daily'den (kalici ozet), son 2 gun
+     * (rollup gece 03:00'te gelir) ham tablodan okunur. Ozetteki "users" gunluk tekildir: aralik toplami gun-kullanici sayisidir.
+     */
+    private static MapSqlParameterSource withCut(DateRange r) {
+        LocalDate cut = LocalDate.now(DateRange.ISTANBUL).minusDays(2);
+        return params(r).addValue("cut", cut)
+                .addValue("rawFrom", cut.atStartOfDay(DateRange.ISTANBUL).toOffsetDateTime());
+    }
+
     public List<TopEvent> topEvents(DateRange r, int limit) {
-        return jdbc.query("SELECT name, count(*) AS cnt, count(DISTINCT user_id) AS uniq FROM analytics_event "
-                + "WHERE created_at >= :start AND created_at < :end GROUP BY name ORDER BY cnt DESC, name LIMIT :lim",
-                params(r).addValue("lim", limit),
+        return jdbc.query("SELECT name, sum(cnt) AS cnt, sum(uniq) AS uniq FROM ("
+                + "SELECT name, events AS cnt, users AS uniq FROM analytics_event_daily "
+                + "WHERE day >= :from AND day <= :to AND day < :cut "
+                + "UNION ALL "
+                + "SELECT name, count(*), count(DISTINCT user_id) FROM analytics_event "
+                + "WHERE created_at >= :start AND created_at < :end AND created_at >= :rawFrom GROUP BY name) t "
+                + "GROUP BY name ORDER BY cnt DESC, name LIMIT :lim",
+                withCut(r).addValue("lim", limit),
                 (rs, i) -> new TopEvent(rs.getString("name"), rs.getLong("cnt"), rs.getLong("uniq")));
     }
 
     /** Ekran goruntulemeleri: `screen_view` olaylari, ekrana gore. */
     public List<ScreenViews> screenViews(DateRange r, int limit) {
-        return jdbc.query("SELECT screen, count(*) AS views FROM analytics_event WHERE name = 'screen_view' "
-                + "AND screen IS NOT NULL AND created_at >= :start AND created_at < :end "
-                + "GROUP BY screen ORDER BY views DESC, screen LIMIT :lim", params(r).addValue("lim", limit),
+        return jdbc.query("SELECT screen, sum(views) AS views FROM ("
+                + "SELECT screen, events AS views FROM analytics_event_daily WHERE name = 'screen_view' AND screen <> '' "
+                + "AND day >= :from AND day <= :to AND day < :cut "
+                + "UNION ALL "
+                + "SELECT screen, count(*) FROM analytics_event WHERE name = 'screen_view' AND screen IS NOT NULL "
+                + "AND created_at >= :start AND created_at < :end AND created_at >= :rawFrom GROUP BY screen) t "
+                + "GROUP BY screen ORDER BY views DESC, screen LIMIT :lim", withCut(r).addValue("lim", limit),
                 (rs, i) -> new ScreenViews(rs.getString("screen"), rs.getLong("views")));
     }
 
@@ -207,8 +226,17 @@ public class AnalyticsReportRepository {
     }
 
     public List<DayCount> searchesPerDay(DateRange r) {
-        return series(r, "SELECT CAST(created_at AT TIME ZONE " + IST + " AS date) AS day, count(*) AS n FROM analytics_event "
-                + "WHERE name = 'search' AND created_at >= :start AND created_at < :end GROUP BY 1");
+        return series(r, "SELECT day, sum(n) AS n FROM ("
+                + "SELECT day, events AS n FROM analytics_event_daily WHERE name = 'search' "
+                + "AND day >= :from AND day <= :to AND day < :cut "
+                + "UNION ALL "
+                + "SELECT CAST(created_at AT TIME ZONE " + IST + " AS date), count(*) FROM analytics_event "
+                + "WHERE name = 'search' AND created_at >= :start AND created_at < :end AND created_at >= :rawFrom GROUP BY 1) u "
+                + "GROUP BY day",
+                new MapSqlParameterSource()
+                        .addValue("cut", LocalDate.now(DateRange.ISTANBUL).minusDays(2))
+                        .addValue("rawFrom", LocalDate.now(DateRange.ISTANBUL).minusDays(2)
+                                .atStartOfDay(DateRange.ISTANBUL).toOffsetDateTime()));
     }
 
     /** Aralikta kayit olan kullanicilar icin adim sayilari (adimlar birbirinden bagimsiz sayilir). */

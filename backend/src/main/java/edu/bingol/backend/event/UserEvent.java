@@ -67,6 +67,14 @@ public class UserEvent {
     @Column(length = 300)
     private String reviewNote;
 
+    /** Son yonetici moderasyonu (gizle/iptal) gerekcesi, yapan yonetici ve zamani; NULL = hic moderasyon yok. */
+    @Column(length = 300)
+    private String moderationReason;
+
+    private Long moderatedBy;
+
+    private Instant moderatedAt;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 

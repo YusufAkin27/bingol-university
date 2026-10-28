@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -67,18 +68,22 @@ public class PostLikeService implements PostLikeLookup {
     /** Idempotent beğeni. Gönderi görünür değilse 404 POST_NOT_FOUND. */
     public LikeState like(Long userId, Long postId) {
         Long authorId = authorOrThrow(postId, userId);
-        boolean added;
-        try {
-            added = Boolean.TRUE.equals(tx.execute(st -> {
-                if (likes.existsById(new PostLikeId(postId, userId))) {
-                    return false;
+        boolean added = false;
+        // Eş zamanlı çift PUT: ikinci işlem unique ihlali (PG/H2) ya da kilit/eşzamanlılık hatası (H2 MVCC) alabilir.
+        // Satır başka işlem tarafından eklenmişse sonuç "zaten beğenilmiş"tir; eklenmemişse bir kez yeniden denenir.
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                added = Boolean.TRUE.equals(tx.execute(st -> insertLike(userId, postId)));
+                break;
+            } catch (DataIntegrityViolationException | ConcurrencyFailureException e) {
+                if (likeExists(userId, postId)) {
+                    added = false; // sayaç, satırı ekleyen ilk istekte arttı
+                    break;
                 }
-                likes.saveAndFlush(new PostLike(postId, userId));
-                counters.incrementLikes(postId, 1);
-                return true;
-            }));
-        } catch (DataIntegrityViolationException e) {
-            added = false; // eş zamanlı ikinci PUT: zaten beğenilmiş, sayaç ilk istekte arttı
+                if (attempt == 2) {
+                    throw e;
+                }
+            }
         }
         if (added) {
             try {
@@ -88,6 +93,24 @@ public class PostLikeService implements PostLikeLookup {
             }
         }
         return new LikeState(true, counters.likeCount(postId));
+    }
+
+    /** Atomik: satır gerçekten eklendiyse sayaç artar. (saveAndFlush = merge: çift sayardı.) */
+    private boolean insertLike(Long userId, Long postId) {
+        int n = jdbc.update("INSERT INTO post_like (post_id, user_id, created_at) SELECT ?, ?, CURRENT_TIMESTAMP "
+                + "WHERE NOT EXISTS (SELECT 1 FROM post_like WHERE post_id = ? AND user_id = ?)",
+                postId, userId, postId, userId);
+        if (n == 0) {
+            return false;
+        }
+        counters.incrementLikes(postId, 1);
+        return true;
+    }
+
+    private boolean likeExists(Long userId, Long postId) {
+        Integer c = jdbc.queryForObject("SELECT COUNT(*) FROM post_like WHERE post_id = ? AND user_id = ?",
+                Integer.class, postId, userId);
+        return c != null && c > 0;
     }
 
     public LikeState unlike(Long userId, Long postId) {

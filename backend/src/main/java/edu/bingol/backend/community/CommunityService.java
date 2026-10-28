@@ -61,6 +61,18 @@ public class CommunityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ContentGuard guard;
 
+    /** Kategori dogrulamasi (istege bagli: null iken serbest metin, eski davranis). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.community.category.CommunityCategoryService categoryService;
+
+    void setCategoryService(edu.bingol.backend.community.category.CommunityCategoryService s) { // testler icin
+        this.categoryService = s;
+    }
+
+    private String category(String raw, String current) {
+        return categoryService == null ? Texts.blankToNull(raw) : categoryService.resolveForWrite(raw, current);
+    }
+
     public CommunityService(CommunityRepository communities, CommunityMemberRepository members, UserRepository users,
                             BlockService blocks, NotificationService notifications, MediaService media,
                             ClubPermissions permissions, ClubAuditService audit, ClubExtrasHooks hooks) {
@@ -95,7 +107,7 @@ public class CommunityService {
         c.setName(r.name().trim());
         c.setSlug(uniqueSlug(c.getName()));
         c.setDescription(Texts.blankToNull(r.description()));
-        c.setCategory(Texts.blankToNull(r.category()));
+        c.setCategory(category(r.category(), null));
         if (r.joinPolicy() != null) {
             c.setJoinPolicy(r.joinPolicy());
         }
@@ -228,7 +240,7 @@ public class CommunityService {
             c.setDescription(Texts.blankToNull(r.description()));
         }
         if (r.category() != null) {
-            c.setCategory(Texts.blankToNull(r.category()));
+            c.setCategory(category(r.category(), c.getCategory()));
         }
         if (r.joinPolicy() != null) {
             c.setJoinPolicy(r.joinPolicy());

@@ -1,0 +1,131 @@
+package edu.bingol.backend.dbmaint;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import edu.bingol.backend.config.SchedulerLock;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+/** Saklama gorevleri H2 (PostgreSQL modu) uzerinde: parcali silme, ust sinir, SENT/DEAD ayrimi. */
+class DbMaintenanceJobTest {
+
+    private static final Instant NOW = Instant.parse("2026-10-28T00:00:00Z");
+
+    private JdbcTemplate plain;
+    private DbMaintenanceJob job;
+
+    @BeforeEach
+    void setUp() {
+        DriverManagerDataSource ds = new DriverManagerDataSource(
+                "jdbc:h2:mem:dbmaint" + System.nanoTime() + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1", "sa", "");
+        plain = new JdbcTemplate(ds);
+        plain.execute("CREATE TABLE notification (id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id BIGINT NOT NULL, "
+                + "read_at TIMESTAMP WITH TIME ZONE, created_at TIMESTAMP WITH TIME ZONE NOT NULL)");
+        plain.execute("CREATE TABLE mail_outbox (id BIGINT AUTO_INCREMENT PRIMARY KEY, status VARCHAR(12) NOT NULL, "
+                + "sent_at TIMESTAMP WITH TIME ZONE, created_at TIMESTAMP WITH TIME ZONE NOT NULL)");
+        plain.execute("CREATE TABLE activity_daily (user_id BIGINT NOT NULL, day DATE NOT NULL, opens INT NOT NULL DEFAULT 1, PRIMARY KEY (user_id, day))");
+        plain.execute("CREATE TABLE analytics_event (id BIGINT AUTO_INCREMENT PRIMARY KEY, created_at TIMESTAMP WITH TIME ZONE NOT NULL)");
+        for (String t : new String[] {"admin_audit", "message_access_audit", "club_audit"}) {
+            plain.execute("CREATE TABLE " + t + " (id BIGINT AUTO_INCREMENT PRIMARY KEY, created_at TIMESTAMP WITH TIME ZONE NOT NULL)");
+        }
+        NamedParameterJdbcTemplate jdbc = new NamedParameterJdbcTemplate(plain);
+        // parca 100 (alt sinir): 250 satir 3 parcada silinmeli
+        ChunkedDeleter deleter = new ChunkedDeleter(jdbc, new SimpleMeterRegistry(), 100, 0, 50);
+        AnalyticsRollup rollup = Mockito.mock(AnalyticsRollup.class);
+        job = new DbMaintenanceJob(deleter, jdbc, rollup, Mockito.mock(SchedulerLock.class),
+                Clock.fixed(NOW, ZoneOffset.UTC), true, 30, 90, 3, 7, 30, 365, 730, 45, 400);
+    }
+
+    private void ins(String table, String col, int daysAgo, int n) {
+        for (int i = 0; i < n; i++) {
+            plain.update("INSERT INTO " + table + " (" + col + ") VALUES (?)",
+                    java.sql.Timestamp.from(NOW.minusSeconds(daysAgo * 86400L)));
+        }
+    }
+
+    @Test
+    void analyticsRawEventsDeletedInChunks() {
+        ins("analytics_event", "created_at", 60, 250);
+        ins("analytics_event", "created_at", 10, 7);
+        Map<String, Integer> r = job.runAll();
+        assertEquals(250, r.get("analytics_event"));
+        assertEquals(7, plain.queryForObject("SELECT count(*) FROM analytics_event", Integer.class));
+    }
+
+    @Test
+    void mailSentShortDeadLongPendingKept() {
+        for (int i = 0; i < 5; i++) {
+            plain.update("INSERT INTO mail_outbox (status, sent_at, created_at) VALUES ('SENT', ?, ?)",
+                    java.sql.Timestamp.from(NOW.minusSeconds(10 * 86400L)), java.sql.Timestamp.from(NOW.minusSeconds(10 * 86400L)));
+        }
+        plain.update("INSERT INTO mail_outbox (status, sent_at, created_at) VALUES ('SENT', ?, ?)",
+                java.sql.Timestamp.from(NOW.minusSeconds(86400L)), java.sql.Timestamp.from(NOW.minusSeconds(86400L)));
+        plain.update("INSERT INTO mail_outbox (status, created_at) VALUES ('DEAD', ?)", java.sql.Timestamp.from(NOW.minusSeconds(10 * 86400L)));
+        plain.update("INSERT INTO mail_outbox (status, created_at) VALUES ('DEAD', ?)", java.sql.Timestamp.from(NOW.minusSeconds(40 * 86400L)));
+        plain.update("INSERT INTO mail_outbox (status, created_at) VALUES ('PENDING', ?)", java.sql.Timestamp.from(NOW.minusSeconds(400 * 86400L)));
+        Map<String, Integer> r = job.runAll();
+        assertEquals(5, r.get("mail_sent"));
+        assertEquals(1, r.get("mail_dead"));
+        assertEquals(1, plain.queryForObject("SELECT count(*) FROM mail_outbox WHERE status = 'PENDING'", Integer.class));
+    }
+
+    @Test
+    void notificationAgeAndPerUserCap() {
+        // kullanici 1: 10 yeni bildirim (cap 3 -> 3 kalir); kullanici 2: 2 bildirim (dokunulmaz); 1 eski okunmus; 1 cok eski okunmamis
+        for (int i = 0; i < 10; i++) {
+            plain.update("INSERT INTO notification (user_id, created_at) VALUES (1, ?)", java.sql.Timestamp.from(NOW.minusSeconds(3600L + i)));
+        }
+        plain.update("INSERT INTO notification (user_id, created_at) VALUES (2, ?)", java.sql.Timestamp.from(NOW.minusSeconds(60)));
+        plain.update("INSERT INTO notification (user_id, created_at) VALUES (2, ?)", java.sql.Timestamp.from(NOW.minusSeconds(120)));
+        plain.update("INSERT INTO notification (user_id, read_at, created_at) VALUES (3, ?, ?)",
+                java.sql.Timestamp.from(NOW.minusSeconds(40 * 86400L)), java.sql.Timestamp.from(NOW.minusSeconds(41 * 86400L)));
+        plain.update("INSERT INTO notification (user_id, created_at) VALUES (3, ?)", java.sql.Timestamp.from(NOW.minusSeconds(100 * 86400L)));
+        Map<String, Integer> r = job.runAll();
+        assertEquals(1, r.get("notification_read"));
+        assertEquals(1, r.get("notification_unread"));
+        assertEquals(7, r.get("notification_cap"));
+        assertEquals(3, plain.queryForObject("SELECT count(*) FROM notification WHERE user_id = 1", Integer.class));
+        assertEquals(2, plain.queryForObject("SELECT count(*) FROM notification WHERE user_id = 2", Integer.class));
+        // en yeniler kaldi
+        assertEquals(3607L, NOW.getEpochSecond() - plain.queryForObject(
+                "SELECT max(created_at) FROM notification WHERE user_id = 1", java.sql.Timestamp.class).toInstant().getEpochSecond());
+    }
+
+    @Test
+    void auditTablesRespectTheirOwnRetention() {
+        ins("admin_audit", "created_at", 400, 3);
+        ins("admin_audit", "created_at", 100, 2);
+        ins("message_access_audit", "created_at", 400, 2); // 730 gun icinde: kalir
+        ins("club_audit", "created_at", 800, 4);
+        Map<String, Integer> r = job.runAll();
+        assertEquals(3, r.get("admin_audit"));
+        assertEquals(0, r.get("message_access_audit"));
+        assertEquals(4, r.get("club_audit"));
+    }
+
+    @Test
+    void activityDailyOlderThanRetentionDeleted() {
+        plain.update("INSERT INTO activity_daily (user_id, day) VALUES (1, DATE '2025-01-01')");
+        plain.update("INSERT INTO activity_daily (user_id, day) VALUES (1, DATE '2026-10-01')");
+        assertEquals(1, job.runAll().get("activity_daily"));
+        assertEquals(1, plain.queryForObject("SELECT count(*) FROM activity_daily", Integer.class));
+    }
+
+    @Test
+    void failingTaskDoesNotStopOthers() {
+        plain.execute("DROP TABLE admin_audit");
+        ins("analytics_event", "created_at", 60, 3);
+        Map<String, Integer> r = job.runAll();
+        assertEquals(0, r.get("admin_audit"));
+        assertEquals(3, r.get("analytics_event"));
+    }
+}

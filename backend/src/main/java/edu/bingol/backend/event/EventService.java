@@ -61,6 +61,16 @@ public class EventService {
     static final YearMonth MIN_MONTH = YearMonth.of(2000, 1);
     static final YearMonth MAX_MONTH = YearMonth.of(2100, 1);
     static final int NOTIFY_LIMIT = 500;
+
+    // Yazma yolundaki sinirlar (V550 oncesi kayitlar etkilenmez: yalniz olusturma/degisen alan denetlenir).
+    @org.springframework.beans.factory.annotation.Value("${app.event.max-title-length:100}")
+    private int maxTitleLength = 100;
+    @org.springframework.beans.factory.annotation.Value("${app.event.max-description-length:1000}")
+    private int maxDescriptionLength = 1000;
+    @org.springframework.beans.factory.annotation.Value("${app.event.max-location-length:120}")
+    private int maxLocationLength = 120;
+    @org.springframework.beans.factory.annotation.Value("${app.event.max-duration-days:30}")
+    private int maxDurationDays = 30;
     static final int CALENDAR_USER_LIMIT = 300;
     static final int CALENDAR_OFFICIAL_LIMIT = 200;
 
@@ -163,35 +173,40 @@ public class EventService {
     // ---- olusturma / guncelleme / silme ----
 
     /**
-     * Topluluga bagliysa yalnizca MODERATOR+ olusturur ve etkinlik hemen yayindadir; bagimsizsa PENDING_REVIEW olur
-     * (ADMIN olusturursa dogrudan ACTIVE).
+     * Yalnizca kulup adina (communityId zorunlu, yoksa 400 EVENT_CLUB_REQUIRED). MODERATOR+ ve sistem ADMIN'i dogrudan
+     * ACTIVE; MANAGE_EVENTS verilmis sade uye PENDING_REVIEW (yonetici onayi); izni olmayan 403.
      */
     @Transactional
     public EventView create(Actor a, CreateEventRequest r) {
         Instant now = Instant.now();
         validateDates(r.startsAt(), r.endsAt());
+        validateDuration(r.startsAt(), r.endsAt());
         if (!r.startsAt().isAfter(now)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "PAST_EVENT", "Geçmişe etkinlik açılamaz.");
+        }
+        validateTexts(r.title(), r.description(), r.location());
+        if (r.title().trim().length() < 3) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Başlık en az 3 karakter olmalı.");
+        }
+        // Kulup zorunlu: bagimsiz (kulupsuz) etkinlik acilamaz (mevcut kulupsuz kayitlar etkilenmez).
+        if (r.communityId() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_CLUB_REQUIRED", "Etkinlik bir kulüp adına açılmalıdır.");
         }
         ContentGuard.clean(guard, Entity.EVENT, "title", a.id(), r.title());
         ContentGuard.clean(guard, Entity.EVENT, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.EVENT, "location", a.id(), r.location());
         UserEvent e = new UserEvent();
-        if (r.communityId() != null) {
-            Community c = communities.load(r.communityId());
-            if (c.getStatus() != Community.Status.ACTIVE) {
-                throw new ApiException(HttpStatus.CONFLICT, "COMMUNITY_NOT_ACTIVE", "Topluluk henüz yayında değil.");
-            }
-            communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
-            e.setCommunityId(c.getId());
-            e.setStatus(UserEvent.Status.ACTIVE);
-        } else {
-            if (admission != null) {
-                admission.beforeCreate(a);
-            }
-            boolean review = !a.admin() && (admission == null || admission.requireApproval());
-            e.setStatus(review ? UserEvent.Status.PENDING_REVIEW : UserEvent.Status.ACTIVE);
+        Community c = communities.load(r.communityId());
+        if (c.getStatus() != Community.Status.ACTIVE) {
+            throw new ApiException(HttpStatus.CONFLICT, "COMMUNITY_NOT_ACTIVE", "Topluluk henüz yayında değil.");
         }
+        // MANAGE_EVENTS yoksa 403. Yonetici/yetkili (MODERATOR+, sistem ADMIN'i) dogrudan yayinda; ozel yetki verilmis
+        // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
+        communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
+        e.setCommunityId(c.getId());
+        boolean staff = a.admin() || communities.roleOf(c.getId(), a.id())
+                .map(role -> role != CommunityMember.Role.MEMBER).orElse(false);
+        e.setStatus(staff ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
         e.setTitle(r.title().trim());
         e.setDescription(Texts.blankToNull(r.description()));
         e.setStartsAt(r.startsAt());
@@ -224,6 +239,12 @@ public class EventService {
         Instant start = r.startsAt() != null ? r.startsAt() : e.getStartsAt();
         Instant end = r.endsAt() != null ? r.endsAt() : e.getEndsAt();
         validateDates(start, end);
+        if (r.startsAt() != null || r.endsAt() != null) {
+            validateDuration(start, end);
+        }
+        // Metin sinirlari yalniz DEGISEN alana uygulanir (eski, sinirdan uzun kayit bozulmadan yeniden kaydedilebilir).
+        validateTexts(changed(r.title(), e.getTitle()), changed(r.description(), e.getDescription()),
+                changed(r.location(), e.getLocation()));
         boolean startChanged = !start.equals(e.getStartsAt());
         if (startChanged && !e.getStartsAt().isAfter(now)) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_STARTED", "Başlamış etkinliğin başlangıcı değiştirilemez.");
@@ -310,10 +331,22 @@ public class EventService {
     }
 
     private void cancelInternal(UserEvent e) {
+        cancelInternal(e, e.getStatus() == UserEvent.Status.ACTIVE);
+    }
+
+    /**
+     * Yonetici iptali (EventModerationService): ACTIVE/HIDDEN etkinlikte katilimcilara ve istek sahiplerine iptal
+     * bildirimi gider (gizliyken katilimcilar gizlemeden haberdar edilmemisti, iptalde haberdar edilir);
+     * PENDING_REVIEW'de katilimci yoktur. Sohbet odasi kapanir, hatirlatmalar ACTIVE disinda zaten durur.
+     */
+    void cancelByModerator(UserEvent e) {
+        cancelInternal(e, e.getStatus() == UserEvent.Status.ACTIVE || e.getStatus() == UserEvent.Status.HIDDEN);
+    }
+
+    private void cancelInternal(UserEvent e, boolean wasActive) {
         if (e.getStatus() == UserEvent.Status.CANCELLED) {
             return;
         }
-        boolean wasActive = e.getStatus() == UserEvent.Status.ACTIVE;
         e.setStatus(UserEvent.Status.CANCELLED);
         e.setUpdatedAt(Instant.now());
         String oldCover = e.getCoverUrl();
@@ -637,6 +670,12 @@ public class EventService {
         return Paging.map(rows, s, UserEvent::getId, items -> views(items, none, false));
     }
 
+    /** Yonetici gorunumu: gorunurluk/yetki kisiti yok; pendingCount tum etkinlikler icin dolu (ADMIN her etkinligi yonetir). */
+    @Transactional(readOnly = true)
+    public List<EventView> adminViews(List<UserEvent> rows, boolean detail) {
+        return views(rows, new Actor(-1L, true), detail);
+    }
+
     @Transactional
     public void review(Long id, boolean approve, String reason) {
         UserEvent e = load(id);
@@ -674,6 +713,10 @@ public class EventService {
     }
 
     public UserEvent requireManager(Actor a, UserEvent e) {
+        // Yonetici gizledigi etkinlik organizatore de gorunmez (gizleme yonetici islemidir).
+        if (e.getStatus() == UserEvent.Status.HIDDEN && !a.admin()) {
+            throw notFound();
+        }
         if (!canManage(a, e)) {
             // Gorunmeyen (onay bekleyen/gizli topluluk) etkinligin varligi sizmasin: once 404, gorunenlerde 403.
             ensureVisible(a, e);
@@ -689,7 +732,8 @@ public class EventService {
 
     private UserEvent ensureVisible(Actor a, UserEvent e) {
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
-            if (canManage(a, e)) {
+            // HIDDEN: yalnizca yoneticiye gorunur (organizator dahil herkese 404).
+            if ((e.getStatus() != UserEvent.Status.HIDDEN || a.admin()) && canManage(a, e)) {
                 return e;
             }
             throw notFound();
@@ -705,13 +749,48 @@ public class EventService {
         return e;
     }
 
-    static void validateDates(Instant start, Instant end) {
+    /** Gonderilen metin mevcutla (kirpilmis) ayniysa null: o alan yeniden denetlenmez. */
+    private static String changed(String incoming, String existing) {
+        if (incoming == null) {
+            return null;
+        }
+        String t = incoming.trim();
+        return t.equals(existing == null ? "" : existing) ? null : incoming;
+    }
+
+    /** Baslik/aciklama/yer ust sinirlari (kirpilmis uzunluk); null alan atlanir. */
+    void validateTexts(String title, String description, String location) {
+        if (title != null && title.trim().length() > maxTitleLength) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_TITLE_TOO_LONG",
+                    "Başlık en fazla " + maxTitleLength + " karakter olabilir.", String.valueOf(maxTitleLength));
+        }
+        if (description != null && description.trim().length() > maxDescriptionLength) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_DESCRIPTION_TOO_LONG",
+                    "Açıklama en fazla " + maxDescriptionLength + " karakter olabilir.",
+                    String.valueOf(maxDescriptionLength));
+        }
+        if (location != null && location.trim().length() > maxLocationLength) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_LOCATION_TOO_LONG",
+                    "Yer en fazla " + maxLocationLength + " karakter olabilir.", String.valueOf(maxLocationLength));
+        }
+    }
+
+    /** Bitis baslangictan SONRA olmali (esitlik gecersiz); asiri tarihler reddedilir. */
+    void validateDates(Instant start, Instant end) {
         if (!end.isAfter(start)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Bitiş zamanı başlangıçtan sonra olmalı.");
         }
         // Asiri uzak tarih veritabani zaman damgasi araligini tasirip 500 uretmesin.
         if (end.isAfter(FAR_FUTURE) || start.isBefore(MIN_DATE)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Tarih aralığı geçersiz.");
+        }
+    }
+
+    /** Bitis baslangictan en cok maxDurationDays gun sonra (yalniz tarih yazilirken; eski uzun kayitlar etkilenmez). */
+    void validateDuration(Instant start, Instant end) {
+        if (java.time.Duration.between(start, end).compareTo(java.time.Duration.ofDays(maxDurationDays)) > 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_TOO_LONG",
+                    "Etkinlik en fazla " + maxDurationDays + " gün sürebilir.", String.valueOf(maxDurationDays));
         }
     }
 
@@ -762,9 +841,9 @@ public class EventService {
         Map<Long, User> organizers = communities.usersById(list.stream().map(UserEvent::getCreatedBy).toList());
         Set<Long> manageable = manageableIds(list, a);
         Map<Long, edu.bingol.backend.event.admission.EventAdmission.Mode> policies =
-                admission == null ? Map.of() : admission.joinPolicies(ids);
-        Map<Long, Long> pending = admission == null || manageable.isEmpty() ? Map.of()
-                : admission.pendingCounts(manageable);
+                admission == null ? new HashMap<>() : new HashMap<>(admission.joinPolicies(ids));
+        Map<Long, Long> pending = admission == null || manageable.isEmpty() ? new HashMap<>()
+                : new HashMap<>(admission.pendingCounts(manageable));
         Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         List<EventView> out = new ArrayList<>();
         for (UserEvent e : list) {

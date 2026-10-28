@@ -12,10 +12,8 @@ import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.time.Clock;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Gönderi etkileşim bildirimleri (beğeni, yorum, yanıt). Hata bildirimi kullanıcı eylemini ASLA bozmaz.
+ * Gönderi etkileşim bildirimleri (beğeni, takip). Hata bildirimi kullanıcı eylemini ASLA bozmaz.
  *
  * <p>Beğeni birleştirme: mevcut {@code NotificationService} gruplamasına dayanır. Toplama anahtarı
  * {@code postlike:<postId>:<pencere>}; pencere = epoch saniye / 600 (sabit 10 dakikalık dilim). Aynı anahtarlı
@@ -33,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Alıcı metni kendi dilinde üretilir. Tercih ve sessiz saat {@code NotificationService.send} içinde uygulanır.
  */
 @Service
-public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPort {
+public class PostNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(PostNotifier.class);
     static final long WINDOW_SECONDS = 600;
@@ -77,69 +75,9 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
                     ? i18n.msg("notif.post.like.many.body", lang, name, String.valueOf(others))
                     : i18n.msg("notif.post.like.body", lang, name);
             notifications.send(postAuthorId, NotificationType.POST_LIKE, NotificationSubtype.POST_LIKE, key, title, body,
-                    data(postId, null));
+                    data(postId));
         } catch (RuntimeException e) {
             log.warn("Begeni bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
-        }
-    }
-
-    /** Gönderiye yorum yapıldı; gönderi yazarına bildirim (kök yorum için; yanıtlar için {@link #onReply}). */
-    @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void onComment(Long actorId, Long postId, Long postAuthorId, Long commentId) {
-        try {
-            if (!shouldNotify(actorId, postAuthorId)) {
-                return;
-            }
-            sendOne(postAuthorId, actorId, NotificationType.POST_COMMENT, NotificationSubtype.POST_COMMENT,
-                    "notif.post.comment", postId, commentId);
-        } catch (RuntimeException e) {
-            log.warn("Yorum bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
-        }
-    }
-
-    /**
-     * Yoruma yanıt verildi: ebeveyn yorumun yazarına ve (farklıysa) yanıtlanan kullanıcıya. Her biri için kendi
-     * eylemi / engel kuralı ayrı uygulanır; aynı kişiye tek bildirim gider.
-     */
-    @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void onReply(Long actorId, Long postId, Long commentId, Long parentAuthorId, Long replyToUserId) {
-        try {
-            Set<Long> targets = new LinkedHashSet<>();
-            if (parentAuthorId != null) {
-                targets.add(parentAuthorId);
-            }
-            if (replyToUserId != null) {
-                targets.add(replyToUserId);
-            }
-            for (Long uid : targets) {
-                try {
-                    if (shouldNotify(actorId, uid)) {
-                        sendOne(uid, actorId, NotificationType.COMMENT_REPLY, NotificationSubtype.COMMENT_REPLY,
-                                "notif.comment.reply", postId, commentId);
-                    }
-                } catch (RuntimeException e) {
-                    log.warn("Yanit bildirimi gonderilemedi (kullanici {}): {}", uid, e.toString());
-                }
-            }
-        } catch (RuntimeException e) {
-            log.warn("Yanit bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
-        }
-    }
-
-    /** @etiket: gonderide ya da yorumda etiketlenene (kendi etiketi / engelli iliski haric). commentId null = gonderi. */
-    // afterCommit geri cagrisindan gelir: kapanmis islemde kalmasin diye yeni islem (yoksa kayit kalici olmaz)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void onMention(Long actorId, Long postId, Long commentId, Long mentionedUserId) {
-        try {
-            if (!shouldNotify(actorId, mentionedUserId)) {
-                return;
-            }
-            sendOne(mentionedUserId, actorId, NotificationType.POST_MENTION, NotificationSubtype.POST_MENTION,
-                    commentId == null ? "notif.post.mention" : "notif.comment.mention", postId, commentId);
-        } catch (RuntimeException e) {
-            log.warn("Etiket bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
         }
     }
 
@@ -148,6 +86,10 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
     public void onFollow(Long followerId, Long followeeId) {
         try {
             if (!shouldNotify(followerId, followeeId)) {
+                return;
+            }
+            // Takip birak-al spam'i: ayni kisiden bir kez bildirildiyse (okunmus olsa da) tekrar bildirilmez.
+            if (notificationRows.existsByUserIdAndCollapseKey(followeeId, "follow:" + followerId)) {
                 return;
             }
             Lang lang = i18n.langOf(followeeId);
@@ -163,13 +105,6 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
         }
     }
 
-    private void sendOne(Long recipient, Long actorId, NotificationType type, NotificationSubtype sub, String key,
-                         Long postId, Long commentId) {
-        Lang lang = i18n.langOf(recipient);
-        String body = i18n.msg(key + ".body", lang, actorName(actorId));
-        notifications.send(recipient, type, sub, null, i18n.msg(key + ".title", lang), body, data(postId, commentId));
-    }
-
     private boolean shouldNotify(Long actorId, Long recipientId) {
         return recipientId != null && actorId != null && !Objects.equals(actorId, recipientId)
                 && !blocks.isBlocked(actorId, recipientId);
@@ -180,14 +115,11 @@ public class PostNotifier implements edu.bingol.backend.post.spi.PostNotifierPor
     }
 
     /** target/value → push yükünde targetType:"POST", targetId:&lt;postId&gt; olur. */
-    private static Map<String, String> data(Long postId, Long commentId) {
+    private static Map<String, String> data(Long postId) {
         Map<String, String> d = new LinkedHashMap<>();
         d.put("target", "POST");
         d.put("value", String.valueOf(postId));
         d.put("postId", String.valueOf(postId));
-        if (commentId != null) {
-            d.put("commentId", String.valueOf(commentId));
-        }
         return d;
     }
 }

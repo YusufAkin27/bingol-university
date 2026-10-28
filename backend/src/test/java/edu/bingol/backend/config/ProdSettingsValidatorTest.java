@@ -17,6 +17,8 @@ class ProdSettingsValidatorTest {
                 .withProperty("app.cors.allowed-origins", "https://kampus.bingol.edu.tr")
                 .withProperty("app.mail.enabled", "true")
                 .withProperty("spring.mail.host", "smtp.example.com")
+                .withProperty("spring.mail.properties.mail.smtp.starttls.required", "true")
+                .withProperty("app.mail.unsubscribe-base-url", "https://kampus.bingol.edu.tr")
                 .withProperty("app.fcm.credentials-file", "/run/secrets/fcm.json");
     }
 
