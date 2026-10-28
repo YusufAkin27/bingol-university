@@ -84,4 +84,8 @@ public interface PostMediaTranscodeRepository extends JpaRepository<PostMedia, L
 
     @Query("SELECT COUNT(m) FROM PostMedia m WHERE m.transcodeStatus = :st")
     long countByStatus(@Param("st") String status);
+
+    /** Yonetim paneli: son 24 saatte tamamlanan donusumler (transcode_at tamamlanma aninda yazilir). */
+    @Query("SELECT COUNT(m) FROM PostMedia m WHERE m.transcodeStatus = 'DONE' AND m.transcodeAt >= :since")
+    long countDoneSince(@Param("since") Instant since);
 }

@@ -405,6 +405,8 @@ Anket (yalnız ADMIN; yazma işlemleri denetim kaydına yazılır; **sonuçlar h
 
 Yönetici anketi oluşturmak için kullanıcı uçlarını kullanır: `POST /api/polls` (JWT ADMIN; `scope=GLOBAL|MENU`). Basic auth ile oluşturulamaz (oluşturan kimliği gerekir).
 
+**Düzenleme** de kullanıcı ucudur: `PATCH /api/polls/{id}` (JWT ADMIN her ankete yetkilidir; yalnız verilen alanlar değişir, `closesAt:""` kapanışı kaldırır, taslakta `draft:false` yayınlar). Oy alınmış açık ankette yapısal alanlar (tür, seçenekler, gizlilik, hedef kitle, açılış, oy değiştirme) `409 POLL_LOCKED`, kapalı ankette `409 POLL_CLOSED`. **Web paneli (P03)** bu sözleşmeyi birebir kullanır (`web/src/api/adminPolls.ts`); menü puanlamaları ayrı uç değildir: `GET /api/admin/polls?scope=MENU` listesi + `GET /{id}` içindeki `average`/`results`. Silme/iptal/kapatma ve toplu işlemde sebep `X-Admin-Reason` başlığıyla gider (toplu uçta zorunlu, bkz. AdminGuardPolicy).
+
 Push kuyruğu:
 
 | Uç | Açıklama |

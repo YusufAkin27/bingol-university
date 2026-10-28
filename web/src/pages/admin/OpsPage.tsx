@@ -268,6 +268,11 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
         <Panel i18n={i18n} q={tc}>
           {(s) => (
             <>
+              {s.enabled === false && (
+                <Callout tone="warning" role="status">
+                  {t('admin.p03.ops.transcodeDisabled')}
+                </Callout>
+              )}
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 {s.processing !== undefined && (

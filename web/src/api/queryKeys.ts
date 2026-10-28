@@ -76,9 +76,9 @@ export const qk = {
     detail: (id: number) => ['adminPosts', 'detail', id] as const,
   },
   adminPolls: {
-    list: (f: unknown) => ['adminPolls', 'list', f] as const,
-    results: (id: number) => ['adminPolls', 'results', id] as const,
-    menuRatings: () => ['adminPolls', 'menuRatings'] as const,
+    list: (f: unknown, page: number) => ['adminPolls', 'list', f, page] as const,
+    stats: () => ['adminPolls', 'stats'] as const,
+    detail: (id: number) => ['adminPolls', 'detail', id] as const,
   },
   adminMenu: {
     month: (from: string, to: string) => ['adminMenu', 'month', from, to] as const,

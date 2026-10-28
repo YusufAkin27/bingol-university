@@ -33,6 +33,7 @@ import trAdminAcademic from './tr/admin-academic';
 import trAdminGuard from './tr/admin-guard'; // yalnız tr: en/ar sözlüklerine de aynı Türkçe metin katılır
 import trAdminShell from './tr/admin-shell'; // yalnız tr (yönetim kabuğu), aynı kural
 import trAdminP05 from './tr/admin-p05'; // yalnız tr (yıkıcı eylem onayları), aynı kural
+import trAdminP03 from './tr/admin-p03'; // yalnız tr (anket yönetimi), aynı kural
 import trAdminWp02 from './tr/admin-wp02'; // yalnız tr (denetim v2, sohbet sebebi), aynı kural
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
@@ -131,6 +132,7 @@ const tr = {
   ...trAdminGuard,
   ...trAdminShell,
   ...trAdminP05,
+  ...trAdminP03,
   ...trAdminWp02,
   ...trSiteNew,
   ...trLegal,
@@ -172,6 +174,7 @@ const en: Dictionary = {
   ...trAdminGuard,
   ...trAdminShell,
   ...trAdminP05,
+  ...trAdminP03,
   ...trAdminWp02,
   ...enSiteNew,
   ...enLegal,
@@ -209,6 +212,7 @@ const ar: Dictionary = {
   ...trAdminGuard,
   ...trAdminShell,
   ...trAdminP05,
+  ...trAdminP03,
   ...trAdminWp02,
   ...arSiteNew,
   ...arLegal,

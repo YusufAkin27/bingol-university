@@ -119,6 +119,18 @@ describe('Operasyon paneli', () => {
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead'))).toBe(true));
   });
 
+  it('dönüştürme kuyruğu kartı sayaçları gösterir; kapalıysa uyarı çıkar', async () => {
+    mockFetch((url) => {
+      if (url.endsWith('/admin/ops/transcode/stats'))
+        return jsonResponse(200, { enabled: false, pending: 2, processing: 1, failed: 3, doneLast24h: 7 });
+      return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
+    });
+    renderWithProviders(<OpsPage />);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Kuyruklar' }));
+    expect(await screen.findByText(/Video dönüştürme kapalı/)).toBeInTheDocument();
+    expect(screen.getByText('Medya dönüştürme')).toBeInTheDocument();
+  });
+
   it('yedekleme ucu yoksa zarifçe "Veri yok" gösterir', async () => {
     setup();
     renderWithProviders(<OpsPage />);

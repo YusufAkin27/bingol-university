@@ -29,7 +29,10 @@ export interface PushOutboxStats {
   oldestPendingAgeSeconds: number | null;
   oldestPendingAt?: string | null;
 }
+/** GET /api/admin/ops/transcode/stats (media.transcode.AdminTranscodeController): video yeniden kodlama kuyruğu sayaçları. */
 export interface TranscodeStats {
+  /** false: ffmpeg dönüştürme kapalı, videolar olduğu gibi saklanır. */
+  enabled?: boolean;
   pending: number;
   processing?: number;
   failed: number;
