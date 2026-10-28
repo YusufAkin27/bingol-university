@@ -18,6 +18,8 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -64,11 +66,15 @@ public class AdminUserController {
                                            @RequestParam(required = false) Short classYear,
                                            @RequestParam(required = false) String language,
                                            @RequestParam(required = false) Boolean verified,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdFrom,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
+                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "20") int size,
                                            @RequestParam(required = false) String sort) {
-        return service.list(new UserFilter(q, status, role, faculty, department, classYear, language, verified),
-                sort, page, size);
+        return service.list(new UserFilter(q, status, role, faculty, department, classYear, language, verified,
+                createdFrom, createdTo, seenFrom, seenTo), sort, page, size);
     }
 
     /** Ayni filtreler; UTF-8 BOM'lu, formul-enjeksiyonuna karsi kacirilmis, en cok 50.000 satir, akis halinde. */
@@ -81,16 +87,24 @@ public class AdminUserController {
                           @RequestParam(required = false) Short classYear,
                           @RequestParam(required = false) String language,
                           @RequestParam(required = false) Boolean verified,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdFrom,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
                           @RequestParam(required = false) String sort,
                           HttpServletResponse res) throws IOException {
-        UserFilter f = new UserFilter(q, status, role, faculty, department, classYear, language, verified);
+        UserFilter f = new UserFilter(q, status, role, faculty, department, classYear, language, verified,
+                createdFrom, createdTo, seenFrom, seenTo);
+        f.where(); // ters tarih araligi da yanit yazilmadan once 400 versin
+        AuditContext.target("USER", null).summary("kullanici CSV disa aktarma (suzgecli)");
         UserFilter.orderBy(sort); // gecersiz sort, yanit yazilmadan once 400 versin
         res.setStatus(HttpStatus.OK.value());
         res.setContentType("text/csv; charset=UTF-8");
         res.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"users.csv\"");
         res.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
         try (Writer w = new BufferedWriter(new OutputStreamWriter(res.getOutputStream(), StandardCharsets.UTF_8))) {
-            service.writeCsv(f, sort, w);
+            int rows = service.writeCsv(f, sort, w);
+            AuditContext.summary("kullanici CSV disa aktarma: " + rows + " satir, tam e-posta");
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }

@@ -3,6 +3,8 @@ package edu.bingol.backend.admin;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,17 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  * siralama alani beyaz listeden secilir, LIKE ozel karakterleri kacirilir.
  */
 public record UserFilter(String q, UserStatus status, Role role, String faculty, String department,
-                         Short classYear, String language, Boolean verified) {
+                         Short classYear, String language, Boolean verified,
+                         LocalDate createdFrom, LocalDate createdTo, LocalDate seenFrom, LocalDate seenTo) {
+
+    /** Gun sinirlari (kayit/son gorulme araligi) Europe/Istanbul gunune gore yorumlanir (analytics.DateRange ile ayni). */
+    static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
+
+    /** Tarih araligi olmayan eski bicim (P09 oncesi cagrilar ve testler). */
+    public UserFilter(String q, UserStatus status, Role role, String faculty, String department,
+                      Short classYear, String language, Boolean verified) {
+        this(q, status, role, faculty, department, classYear, language, verified, null, null, null, null);
+    }
 
     /** WHERE govdesi (basinda "WHERE" yok; bos filtre icin "TRUE") ve baglanacak degerler. */
     public record Where(String sql, MapSqlParameterSource params) {}
@@ -23,7 +35,10 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
     private static final Map<String, String> SORT_COLUMNS = Map.of(
             "createdAt", "created_at",
             "lastSeenAt", "last_seen_at",
-            "displayName", "lower(display_name)");
+            "displayName", "lower(display_name)",
+            "faculty", "lower(faculty)",
+            "role", "role",
+            "status", "status");
 
     public Where where() {
         List<String> c = new ArrayList<>();
@@ -60,7 +75,25 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
             c.add("email_verified = :verified");
             p.addValue("verified", verified);
         }
+        range(c, p, "created_at", "created", createdFrom, createdTo);
+        range(c, p, "last_seen_at", "seen", seenFrom, seenTo);
         return new Where(c.isEmpty() ? "TRUE" : String.join(" AND ", c), p);
+    }
+
+    /** [from 00:00, to+1 gun 00:00) araligi; ters aralik 400. Ucu acik araliklar desteklenir. */
+    private static void range(List<String> c, MapSqlParameterSource p, String col, String name,
+                              LocalDate from, LocalDate to) {
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz tarih aralığı.");
+        }
+        if (from != null) {
+            c.add(col + " >= :" + name + "From");
+            p.addValue(name + "From", from.atStartOfDay(ZONE).toOffsetDateTime());
+        }
+        if (to != null) {
+            c.add(col + " < :" + name + "To");
+            p.addValue(name + "To", to.plusDays(1).atStartOfDay(ZONE).toOffsetDateTime());
+        }
     }
 
     /**

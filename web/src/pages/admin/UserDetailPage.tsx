@@ -27,6 +27,7 @@ import { ActivityBars } from './users/ActivityBars';
 import { AuditTrail } from '../../components/admin/guard';
 import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
+import { UserDeepTabs } from './users/UserDeepTabs';
 import { UserExtras } from './users/UserExtras';
 import styles from './users/users.module.css';
 
@@ -179,6 +180,8 @@ export default function UserDetailPage() {
           </Card>
 
           <UserExtras u={u} />
+
+          <UserDeepTabs user={u} />
 
           <Card title={t('admin.users.detail.activity')}>
             <ActivityBars data={u.recentActivity} />

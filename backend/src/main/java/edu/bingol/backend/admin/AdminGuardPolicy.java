@@ -49,6 +49,14 @@ public final class AdminGuardPolicy {
     private static final Pattern SUPPORT_DELETE = Pattern.compile("^/api/admin/support/(tickets|feedback)/[^/]+$");
     private static final Pattern SUPPORT_MERGE = Pattern.compile("^/api/admin/support/feedback/merge$");
 
+    /** P09 kullanici derin yonetimi: profil mudahalesi (PATCH), oturum/push cihazi sonlandirma (DELETE), KVKK disa aktarma (POST). */
+    private static final Pattern USER_PROFILE = Pattern.compile("^/api/admin/users/[^/]+/profile$");
+    private static final Pattern USER_EXTRA_DELETE =
+            Pattern.compile("^/api/admin/users/[^/]+/(push-devices|sessions)/[^/]+$");
+    private static final Pattern USER_EXPORT = Pattern.compile("^/api/admin/users/[^/]+/export$");
+    /** Kullanici adina KVKK disa aktarma icin en kisa sebep (kisisel verinin tamami cikar). */
+    public static final int EXPORT_MIN_REASON = 20;
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -113,6 +121,13 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if (modSupportDestructive(method, path)) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && USER_EXPORT.matcher(path).matches()) {
+            return EXPORT_MIN_REASON;
+        }
+        if (("PATCH".equals(method) && USER_PROFILE.matcher(path).matches())
+                || ("DELETE".equals(method) && USER_EXTRA_DELETE.matcher(path).matches())) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

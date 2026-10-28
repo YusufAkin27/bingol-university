@@ -3,8 +3,9 @@
 //      GET /api/faculties (fakülte filtresi; api/appInfo.ts `getFaculties`).
 // Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&sort=&page=
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { bulkUsers, USER_BULK_MAX, type BulkUserAction, type BulkUserResult } from '../../api/adminUsers';
 import { getFaculties } from '../../api/appInfo';
 import { qk } from '../../api/queryKeys';
 import type { AdminUserRow } from '../../api/types';
@@ -12,10 +13,13 @@ import { exportUsersCsv, listUsers } from '../../api/users';
 import {
   Avatar,
   Badge,
+  BulkBar,
   Button,
   EmptyState,
   ErrorState,
+  GuardedAction,
   Icon,
+  Modal,
   Pagination,
   PageHeader,
   SearchInput,
@@ -28,7 +32,7 @@ import {
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
-import { errorMessage } from '../../lib/errors';
+import { adminError, errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
 import { DebouncedInput } from './users/DebouncedInput';
 import {
@@ -41,6 +45,7 @@ import {
   parseUserFilters,
   type UserFilters,
 } from './users/filters';
+import deep from './users/deep.module.css';
 import styles from './users/users.module.css';
 
 export default function UsersPage() {
@@ -54,6 +59,8 @@ export default function UsersPage() {
   const filters = useMemo(() => parseUserFilters(sp), [sp]);
   const [exporting, setExporting] = useState(false);
   const [searchKey, setSearchKey] = useState(0);
+  const [selected, setSelected] = useState<Set<string | number>>(new Set());
+  const [bulkResult, setBulkResult] = useState<BulkUserResult | null>(null);
 
   const update = (patch: Partial<UserFilters>) =>
     setSp(filtersToSearch({ ...filters, page: 0, ...patch }), { replace: !('page' in patch) });
@@ -66,6 +73,16 @@ export default function UsersPage() {
     queryFn: () => listUsers(apiParams),
     placeholderData: keepPreviousData,
   });
+
+  // Süzgeç/sayfa değişince seçim sıfırlanır: görünmeyen satırlar üzerinde toplu işlem yapılmasın.
+  useEffect(() => setSelected(new Set()), [sp]);
+
+  const bulkAction = (action: BulkUserAction) => async ({ reason, idempotencyKey }: { reason: string; idempotencyKey: string }) => {
+    const res = await bulkUsers(action, [...selected].map(Number), reason, { idempotencyKey });
+    setBulkResult(res);
+    setSelected(new Set());
+  };
+  const overLimit = selected.size > USER_BULK_MAX;
 
   async function onExport() {
     setExporting(true);
@@ -299,6 +316,27 @@ export default function UsersPage() {
         </Select>
       </div>
 
+      <div className={deep.dateFilters} role="group" aria-label={t('admin.p09.filter.dates')}>
+        {(
+          [
+            ['createdFrom', 'admin.p09.filter.createdFrom'],
+            ['createdTo', 'admin.p09.filter.createdTo'],
+            ['seenFrom', 'admin.p09.filter.seenFrom'],
+            ['seenTo', 'admin.p09.filter.seenTo'],
+          ] as const
+        ).map(([key, label]) => (
+          <label key={key} className={deep.dateField}>
+            {t(label)}
+            <input
+              type="date"
+              value={filters[key]}
+              max="9999-12-31"
+              onChange={(e) => update({ [key]: e.target.value } as Partial<UserFilters>)}
+            />
+          </label>
+        ))}
+      </div>
+
       {list.isError && !data ? (
         <ErrorState description={errorMessage(i18n, list.error)} onRetry={() => void list.refetch()} />
       ) : (
@@ -317,6 +355,8 @@ export default function UsersPage() {
               loading={list.isLoading}
               sort={sortState}
               onSortChange={(s) => update({ sort: `${s.key},${s.dir}` })}
+              selectedKeys={selected}
+              onSelectionChange={setSelected}
               onRowClick={(u) =>
                 navigate(paths.admin.user(u.id), { state: { from: `${location.pathname}${location.search}` } })
               }
@@ -341,6 +381,98 @@ export default function UsersPage() {
             )}
           </div>
         </>
+      )}
+      <BulkBar count={selected.size} onClear={() => setSelected(new Set())}>
+        {overLimit && <span className={deep.hint}>{t('admin.p09.bulk.limit', { max: USER_BULK_MAX })}</span>}
+        <GuardedAction
+          size="sm"
+          variant="danger"
+          danger
+          disabled={overLimit}
+          title={t('admin.p09.bulk.suspend.title', { n: selected.size })}
+          message={t('admin.p09.bulk.protect')}
+          consequence={t('admin.p09.bulk.suspend.consequence')}
+          irreversible={false}
+          requireReason
+          impact={{ count: selected.size, noun: t('admin.p09.bulk.noun') }}
+          confirmLabel={t('admin.p09.bulk.suspend.confirm')}
+          errorMessage={(e) => adminError(i18n, e, 'admin.p09.err')}
+          successMessage={false}
+          invalidateKeys={[[...qk.users.all]]}
+          onConfirm={bulkAction('SUSPEND')}
+        >
+          {t('admin.p09.bulk.suspend')}
+        </GuardedAction>
+        <GuardedAction
+          size="sm"
+          variant="secondary"
+          disabled={overLimit}
+          title={t('admin.p09.bulk.unsuspend.title', { n: selected.size })}
+          message={t('admin.p09.bulk.protect')}
+          consequence={t('admin.p09.bulk.unsuspend.consequence')}
+          irreversible={false}
+          requireReason
+          impact={{ count: selected.size, noun: t('admin.p09.bulk.noun') }}
+          confirmLabel={t('admin.p09.bulk.unsuspend.confirm')}
+          errorMessage={(e) => adminError(i18n, e, 'admin.p09.err')}
+          successMessage={false}
+          invalidateKeys={[[...qk.users.all]]}
+          onConfirm={bulkAction('UNSUSPEND')}
+        >
+          {t('admin.p09.bulk.unsuspend')}
+        </GuardedAction>
+        <GuardedAction
+          size="sm"
+          variant="secondary"
+          disabled={overLimit}
+          title={t('admin.p09.bulk.revoke.title', { n: selected.size })}
+          message={t('admin.p09.bulk.protect')}
+          consequence={t('admin.p09.bulk.revoke.consequence')}
+          irreversible={false}
+          requireReason
+          impact={{ count: selected.size, noun: t('admin.p09.bulk.noun') }}
+          confirmLabel={t('admin.p09.bulk.revoke.confirm')}
+          errorMessage={(e) => adminError(i18n, e, 'admin.p09.err')}
+          successMessage={false}
+          invalidateKeys={[[...qk.users.all]]}
+          onConfirm={bulkAction('REVOKE_SESSIONS')}
+        >
+          {t('admin.p09.bulk.revoke')}
+        </GuardedAction>
+      </BulkBar>
+
+      {bulkResult && (
+        <Modal
+          open
+          onClose={() => setBulkResult(null)}
+          title={t('admin.p09.bulk.result.title')}
+          footer={<Button onClick={() => setBulkResult(null)}>{t('admin.p09.bulk.result.close')}</Button>}
+        >
+          <div data-testid="user-bulk-result">
+            <p>
+              {t('admin.p09.bulk.result.summary', {
+                done: formatNumber(bulkResult.done),
+                total: formatNumber(bulkResult.requested),
+                skipped: formatNumber(bulkResult.skipped),
+                failed: formatNumber(bulkResult.failed),
+              })}
+            </p>
+            {bulkResult.skipped + bulkResult.failed > 0 && (
+              <ul className={deep.bulkList}>
+                {bulkResult.results
+                  .filter((x) => x.status !== 'DONE')
+                  .map((x) => (
+                    <li key={x.id}>
+                      {t('admin.p09.bulk.result.item', {
+                        id: x.id,
+                        reason: td(`admin.p09.bulk.code.${x.code ?? ''}`, x.code ?? x.status),
+                      })}
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+        </Modal>
       )}
     </div>
   );

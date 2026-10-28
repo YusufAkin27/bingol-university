@@ -217,9 +217,14 @@ export interface UserListParams {
   classYear?: number;
   language?: Lang;
   verified?: boolean;
+  /** Kayıt / son görülme tarih aralığı (yyyy-MM-dd, uçlar dahil, Europe/Istanbul günü). */
+  createdFrom?: string;
+  createdTo?: string;
+  seenFrom?: string;
+  seenTo?: string;
   page?: number;
   size?: number;
-  /** örn. `createdAt,desc` (createdAt | lastSeenAt | displayName) */
+  /** örn. `createdAt,desc` (createdAt | lastSeenAt | displayName | faculty | role | status) */
   sort?: string;
 }
 export interface BasicStats {

@@ -780,3 +780,27 @@ Kapsam: `/api/admin/events/{id}/...` (ADMIN). Kod: `event/admin/**` (`EventAdmin
 Yeni hata kodları (3 dilde `i18n/eventadmin*.properties`): `EVENT_ADMIN_ACCOUNT_REQUIRED` (403), `EVENT_OWNER_PROTECTED` (409), `EVENT_LAST_ORGANIZER` (409), `CERTIFICATE_REVOKED` (409), `CERTIFICATE_NOT_REVOKED` (409), `ANNOUNCEMENT_NOT_FOUND` (404), `EVENT_BULK_LIMIT` (400, `{0}` = 100).
 
 Web: `EventDetailDrawer` sekmeleri (Genel, Başvurular, Yoklama, Sertifikalar, Geri bildirim, Duyurular, Düzenleyenler, Denetim) — `pages/admin/events/ops/*`; listede çoklu seçim + `BulkBar` + CSV (`EventsAdminPage`). Metinler yalnız Türkçe: `i18n/tr/admin-p07.ts`. Duman betiği: `scripts/smoke-admin-events.sh`.
+
+## Kullanıcı derin yönetimi (P09)
+
+Kapsam: `/api/admin/users/**` (ADMIN). Kod: `admin/users/extras/**` (`AdminUserExtrasController`, `AdminUserProfileService`, `AdminUserSessionService`, `AdminPushDeviceService`, `AdminUserNotificationService`, `AdminUserExportService`, `AdminUserBulkService`) + `admin/UserFilter`/`AdminUserController` (süzgeç/CSV genişletmesi) + `AdminGuardPolicy` (yeni yazma kuralları). Hepsi `AuditContext.target("USER", id)` ile denetlenir; kullanıcıya dönen bildirimler alıcının kayıtlı dilindedir. Yönetim paneli yalnız Türkçedir (`web/src/i18n/tr/admin-p09.ts`).
+
+**Not (uç adı):** `GET /api/admin/users/{id}/devices` erişim engeli modülünün cihaz/IP GÜNLÜĞÜDÜR (V280). FCM cihaz kayıtları `push-devices` altındadır.
+
+| Uç | Davranış |
+|---|---|
+| `PATCH /users/{id}/profile` `{clearAvatar?, clearBio?, displayName?, reason?}` | Sebep ZORUNLU (≥5; başlık `X-Admin-Reason` ya da gövde). En az bir alan yoksa `400 PROFILE_PATCH_EMPTY`. Küfür filtresi (ContentGuard) YÖNETİCİ düzenlemesinde atlanır; görünen ad yine `DisplayNamePolicy`'den geçer (geçersizse hiçbir alan değişmez). Yanıt `{avatarCleared,bioCleared,displayNameChanged}` (zaten boş alan "değişmedi" sayılır). Değişiklik olduysa kullanıcıya yerelleştirilmiş SİSTEM bildirimi gider (`notif.profile.moderated.*`). Silinmiş hesap `404`. |
+| `GET /users/{id}/sessions` | Refresh oturumları: `{total, items[{id, client(web/mobile), createdAt, expiresAt}]}`. Redis `rtu:<uid>` kümesi yalnız özet (SHA-256) tuttuğundan cihaz/IP BİLGİSİ YOKTUR; `id` özetin ilk 16 hex'i (belirteç elde edilemez). |
+| `DELETE /users/{id}/sessions/{sid}` | Tek oturum: refresh belirteci silinir + `rtx:` mezar taşı; sebep ZORUNLU. O oturumdan alınmış access token en çok 15 dk yaşar (hemen kesmek için mevcut `POST /users/{id}/revoke-sessions`). Bulunamayan/bozuk kimlik `404 SESSION_NOT_FOUND`. |
+| `GET /users/{id}/push-devices` | `[{id,platform,appVersion,locale,tokenTail,createdAt,lastSeenAt}]`; FCM belirteci ASLA tam dönmez (yalnız son ≤6 karakter, kısa belirteçte en çok dörtte biri). |
+| `DELETE /users/{id}/push-devices/{deviceId}` | Sebep ZORUNLU; başka kullanıcının cihazı `404 PUSH_DEVICE_NOT_FOUND`. |
+| `GET /users/{id}/notifications?type=&unread=&page=&size=` | Bildirim kutusu geçmişi (sayfa tabanlı, `size` ≤ 100); `{id,type,subtype,title,body,read,groupCount,createdAt,readAt}`. İçerik kişisel veri olabilir: `@AuditRead` (okuma denetim kaydına yazılır). Geçersiz `type` `400`. |
+| `POST /users/{id}/export` | Kullanıcı adına KVKK dışa aktarma (JSON indirme; `DataExporter` bölümleri `GET /users/me/export` ile aynı + `subjectUserId`). Sebep ≥ 20 karakter (`REASON_REQUIRED`), ikinci onay `X-Admin-Confirm: <kullanıcı id>` (`400 EXPORT_CONFIRM_MISMATCH`), kullanıcı başına günde BİR (`429` + `Retry-After`; doğrulama hataları hakkı tüketmez). Kullanıcıya bildirim GİTMEZ; POST olduğu için denetlenir. |
+| `POST /users/bulk` `{action: SUSPEND\|UNSUSPEND\|REVOKE_SESSIONS, ids[1..100], reason}` | Sebep ZORUNLU (≥5). Her kimlik kendi işleminde; kısmi başarı `200`: `{action,requested,done,skipped,failed,results[{id,status(DONE/SKIPPED/FAILED),code}]}`. Atlananlar: `SELF` (yönetici kendisi), `ADMIN_TARGET` (ADMIN rolü), `ADMIN_EMAIL_PINNED` (ADMIN_EMAILS), `ALREADY_SUSPENDED`, `NOT_SUSPENDED`; başarısız: `USER_NOT_FOUND` (yok/silinmiş), `INTERNAL_ERROR`. > 100 kimlik `400 USER_BULK_LIMIT`. |
+| `GET /users` ve `GET /users/export.csv` | Mevcut süzgeçlere ek: `createdFrom`, `createdTo`, `seenFrom`, `seenTo` (`yyyy-MM-dd`, uçlar dahil, Europe/Istanbul günü; ters aralık/geçersiz tarih `400`). Sıralama beyaz listesine `faculty`, `role`, `status` eklendi (e-posta ile sıralama bilinçli olarak KAPALI). CSV: e-posta TAM (yönetici işlevi), formül kaçışlı, en çok 50.000 satır, süzgeçler uygulanır; her dışa aktarma denetlenir (satır sayısı özette). |
+
+`AdminGuardPolicy`: `PATCH …/profile`, `DELETE …/sessions/{sid}`, `DELETE …/push-devices/{id}` sebep ≥5 ve "yıkıcı" (saatlik sıkı sınır); `POST …/export` sebep ≥20 ve yıkıcı; `POST /users/bulk` mevcut `BULK` kuralıyla kapsanır.
+
+Yeni hata kodları (3 dilde `i18n/useradmin*.properties`): `PROFILE_PATCH_EMPTY` (400), `SESSION_NOT_FOUND` (404), `PUSH_DEVICE_NOT_FOUND` (404), `EXPORT_CONFIRM_MISMATCH` (400), `USER_BULK_LIMIT` (400). Duman: `scripts/smoke-admin-users.sh`.
+
+Web: `UserDetailPage` "Derin yönetim" kartı (`pages/admin/users/UserDeepTabs.tsx`: Profil müdahalesi, Oturumlar, Cihazlar, Bildirimler, Veri dışa aktarma [iki aşamalı: yetki kutusu → sebep ≥20 + kimlik yazdırma]); `UsersPage` tarih süzgeçleri, çoklu seçim + `BulkBar` (toplu askı / askıyı kaldır / oturumları kapat, `BulkImpactNotice` + sebep, sonuç raporu), süzgeçli CSV. API: `web/src/api/adminUsers.ts`.
