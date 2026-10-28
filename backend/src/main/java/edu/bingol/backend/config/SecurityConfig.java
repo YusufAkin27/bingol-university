@@ -106,7 +106,7 @@ public class SecurityConfig {
                         && "/actuator/prometheus".equals(request.getRequestURI())).permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/auth/change-password","/api/legal/consents", "/api/legal/consents/**").authenticated()
+                .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/auth/change-password","/api/legal/consents", "/api/legal/consents/**", "/api/legal/accept", "/api/legal/acceptance-status").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
                         "/api/app/info", "/api/app/version", "/api/faculties", "/api/catalog/academic", "/api/catalog/departments").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()

@@ -53,6 +53,12 @@ public interface EventAdmissionHooks {
     /** Etkinlik iptal edildi: bekleyen basvurular kapanir. */
     void onEventCancelled(UserEvent e);
 
+    /**
+     * Hesap silindi: kullanicinin acik basvurulari (PENDING/WAITLISTED/ACCEPTED) kapatilir ve koltugu serbest kalan
+     * etkinliklerde (basvurusuyla ya da dogrudan GOING iken) bekleme listesi terfi eder.
+     */
+    void onUserDeleted(Long userId, java.util.Collection<Long> freedEventIds);
+
     /** APPROVAL modunda elle yoklama yalnizca kabul edilmis (GOING) katilimciya yapilir; degilse 409. */
     void requireEligibleForMark(UserEvent e, Long userId);
 }

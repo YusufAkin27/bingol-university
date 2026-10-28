@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class AccountDataPurger {
 
     /** Silinecek tablolar (hepsinde user_id sutunu var). Topluluk sahipligi ve yasak kayitlari korunur. */
-    static final List<String> DELETES = List.of(
+    public static final List<String> DELETES = List.of(
             "DELETE FROM device WHERE user_id = ?",
             // Kalici push kuyrugu: bekleyen push kayitlari
             "DELETE FROM push_outbox WHERE user_id = ?",
@@ -44,7 +44,7 @@ public class AccountDataPurger {
             "DELETE FROM community_member WHERE user_id = ? AND role <> 'OWNER' AND status <> 'BANNED'");
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
-    static final List<String> SCRUBS = List.of(
+    public static final List<String> SCRUBS = List.of(
             // Anket oylari anonimlestirilir: kullanici bagi kalkar, secenek sayaclari ve toplam oy korunur
             "UPDATE poll_vote SET user_id = NULL WHERE user_id = ?",
             "UPDATE poll SET created_by = NULL WHERE created_by = ?",

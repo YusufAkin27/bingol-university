@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class DataExportController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataExportController.class);
+
     private final List<DataExporter> exporters;
     private final RateLimiter limiter;
 
@@ -34,7 +36,13 @@ public class DataExportController {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("exportedAt", Instant.now().toString());
         for (DataExporter e : exporters) {
-            out.put(e.section(), e.export(uid));
+            // Tek bolumun hatasi butun indirmeyi 500'e dusurmesin: bolume hata isareti yazilir
+            try {
+                out.put(e.section(), e.export(uid));
+            } catch (RuntimeException ex) {
+                log.warn("veri disa aktarim bolumu basarisiz ({}): {}", e.section(), ex.toString());
+                out.put(e.section(), Map.of("error", "SECTION_UNAVAILABLE"));
+            }
         }
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"my-data.json\"")

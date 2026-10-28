@@ -73,8 +73,8 @@ const m = {
   'pg.delete.lead':
     'BÜ Kampüs hesabınızı uygulamadan kendiniz silebilirsiniz. Bu sayfa adımları ve silinen verileri anlatır.',
   'pg.delete.meta': 'BÜ Kampüs hesabınızı uygulama içinden nasıl silersiniz ve hesap silinince hangi veriler kaldırılır.',
-  'pg.delete.app': 'Uygulama: {app} · Geliştirici: {dev}',
-  'pg.delete.dev': 'Bingöl Üniversitesi',
+  'pg.delete.app': 'Uygulama: {app} · Geliştirici: {dev} · Bağımsız uygulama',
+  'pg.delete.app.nodev': 'Uygulama: {app} · Bağımsız uygulama',
   'pg.delete.s6.h': 'Silinen ve saklanan veriler ve süreleri',
   'pg.delete.s6.p1':
     'Hesabınızı sildiğinizde veriler aşağıdaki tabloya göre işlenir. “Hesap silinince” sütunu işlemi, “Süre” sütunu verinin ne zaman kaldırıldığını gösterir.',
@@ -105,7 +105,7 @@ const m = {
   'pg.delete.t.r7.b': 'Metinler temizlenir; kimliksiz kayıt kalır',
   'pg.delete.t.r7.c': 'Hesapsız (herkese açık) destek talepleri 365 gün',
   'pg.delete.t.r8.a': 'Mesajlar ve topluluk gönderileri',
-  'pg.delete.t.r8.b': 'Başkalarının sohbet bağlamı için kalır; yazar anonim görünür',
+  'pg.delete.t.r8.b': 'Başkalarının sohbet bağlamı için kalır; yazar anonim görünür. Gönderilere eklediğiniz görseller silinir',
   'pg.delete.t.r8.c': 'Saklama ve İmha Politikasındaki sürelere göre',
   'pg.delete.t.r9.a': 'Sözleşme ve rıza onay kayıtları, moderasyon kayıtları, yönetici işlem kayıtları',
   'pg.delete.t.r9.b': 'Hukuki ispat, güvenlik ve denetim için saklanır',

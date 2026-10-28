@@ -17,19 +17,21 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 | E-posta doğrulama / şifre sıfırlama kodu | 10 dakika (en çok 5 deneme) | Geçersiz olur / silinir |
 | Erişim anahtarı | 15 dakika | Geçersiz olur |
 | Yenileme anahtarı (özet olarak) | En çok 30 gün; çıkış/şifre değişimi/yeni mobil girişte erken silinir | Silinir |
-| Bildirim kutusu | Okunmuş 90 gün, okunmamış 365 gün | Silinir |
+| Bildirim kutusu | Okunmuş 30 gün, okunmamış 90 gün; kullanıcı başına en yeni 200 bildirim tutulur | Silinir |
 | Cihaz bildirim anahtarı | 60 gün görülmezse | Silinir |
-| Cihaz kimliği (özet) ve IP kayıtları | 90 gün | Silinir |
+| Cihaz kimliği (özet) ve IP kayıtları | 90 gün (hesap silinince hemen) | Silinir |
 | Uygunsuz ifade filtresi kaydı (alan, kullanıcı, zaman; metin yok) | 90 gün | Silinir |
 | Push bildirim kuyruğu | Bekleyen en çok 24 saat denenir; gönderilen 7 gün, başarısız 30 gün | Silinir |
-| Hikâye | 24 saat görünür; bitişinden 24 saat sonra | Kalıcı silinir |
-| Silinen gönderinin medya dosyaları | 30 gün | Diskten ve veritabanından silinir |
+| Silinen gönderinin (Keşfet) medya dosyaları | 30 gün | Diskten ve veritabanından silinir |
+| Kulüp gönderisine eklenen görsel | Gönderi silinince, kulüp kapanınca veya hesap silinince hemen | Diskten silinir |
 | Gönderiye bağlanmamış yüklenen medya | 24 saat | Silinir |
-| Takip ilişkileri, kaydedilen gönderiler, kişisel ders programı ve sınav kayıtları | Hesap açık olduğu sürece | Hesap silinince silinir |
+| Takip ilişkileri, favori haberler, kişisel ders programı ve sınav kayıtları | Hesap açık olduğu sürece | Hesap silinince silinir |
 | Anket oy kaydı | Hesap açık olduğu sürece | Hesap silinince kullanıcı bağlantısı kopar (kimliksiz sayaç kalır); katılım kaydı silinir |
 | Erişim engeli kaydı | Engel sürdükçe ve denetim için gerekli süre | Silinir / pasifleşir |
-| Analitik olaylar | 180 gün | Silinir |
-| E-posta kuyruğu (gönderilmiş/başarısız) | 30 gün | Silinir |
+| Analitik ham olaylar (ekran/olay adı, zaman) | 45 gün (hesap silinince hemen) | Silinir; kalıcı olarak yalnızca kişiye bağlı olmayan, toplulaştırılmış günlük özetler kalır |
+| Günlük aktiflik kaydı (hangi günlerde uygulamayı açtığınız) | 400 gün (hesap silinince hemen) | Silinir |
+| E-posta kuyruğu | Gönderilenler 7 gün, gönderilemeyenler (başarısız) 30 gün | Silinir |
+| Yönetici duyuru e-postası (kampanya) kayıtları: kampanya ve alıcı satırları | Kampanya bitiminden 180 gün (hesap silinince alıcı satırınız hemen silinir) | Silinir |
 | Mesajlar | Hesap açık olduğu sürece; hesap silinse de sohbet bağlamı için kalır (yazar anonim) | Ayarlanırsa süre sonunda silinir |
 | Silinen mesajların ve düzenleme geçmişinin şifreli kopyası | Varsayılan süresiz (ayarlanabilir) | Süre ayarlıysa kalıcı silinir |
 | Tek gönderimlik fotoğrafın şifreli kopyası | 365 gün (ayarlanabilir) | Silinir; görüntüleme kaydı kalır |
@@ -39,13 +41,14 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 | Destek / geri bildirim / itiraz / rapor notları | Hesap silinince metinler temizlenir | Kimliksiz kayıt kalır |
 | Sözleşme ve rıza onay kayıtları | Hesap silinse de ispat için | Yasal zamanaşımı sonuna kadar |
 | Moderasyon ihlal ve yasak izleri | Hesap silinse de kimliksiz | Güvenlik/ispat süresince |
-| Yönetici işlem kaydı ve mesaj erişim kaydı | Değiştirilemez; denetim / yasal süre | Dış arşive aktarılabilir, sonra yok edilir |
+| Yönetici işlem kaydı (IP dahil) | 365 gün | Silinir |
+| Mesaj erişim kaydı ve kulüp yönetim işlem kaydı | 730 gün (kayıtlar yalnız eklenir, değiştirilemez) | Süre sonunda silinir |
 | Rehber eşleştirme özetleri | **Saklanmaz** | — |
 | Konum | **Toplanmaz ve saklanmaz** (uygulama konum izni istemez) | — |
 
 ## 3. Hesap silinince
 
-Hesap silme **anonimleştirmedir**. Silinenler: bildirim cihaz anahtarları ve bekleyen push kayıtları, bildirim kutusu ve tercihleri, kaydedilen gönderiler, takip ilişkileri, hikâyeler, ders programı ve sınav kayıtları, anket katılım kaydı, beğeni ve yorumlar, Keşfet gönderileri (medya 30 gün sonra), favoriler, oy ve etkinlik geri bildirimleri, engel listesi, kulüp başvuru yanıtları, topluluk üyelikleri, yüklenen sohbet fotoğrafları. Anonimleştirilenler: ad, e-posta, profil. Korunanlar (kimliksiz/sınırlı): mesajlar ve topluluk gönderileri (başkalarının bağlamı), sözleşme onayları, moderasyon izleri, yönetici kayıtları, anonim etkinlik sayaçları. Cihaz/IP ve analitik kayıtları kendi sürelerinde silinir. Ayrıntı: [Gizlilik Politikası](/legal/privacy).
+Hesap silme **anonimleştirmedir**. Silinenler: bildirim cihaz anahtarları ve bekleyen push kayıtları, bildirim kutusu ve tercihleri, takip ilişkileri, ders programı ve sınav kayıtları, anket katılım kaydı, beğeniler, Keşfet gönderileri (medya 30 gün sonra), favoriler, oy ve etkinlik geri bildirimleri, engel listesi, kulüp başvuru yanıtları, topluluk üyelikleri, e-posta kampanyası alıcı satırları, yüklenen sohbet fotoğrafları, **cihaz/IP kayıtları ve analitik olaylarınız ile günlük aktiflik kaydınız (hemen)**, kulüp gönderilerine eklediğiniz görseller (hemen diskten). Etkinlik başvurularınız kapatılır (bekleme listesindeki sıradaki kişi yer alır) ve oluşturduğunuz, kulübe bağlı olmayan bitmemiş etkinlikler iptal edilir. Kulüp sahibiyseniz sahiplik, kulübün en eski aktif yöneticisine devredilir; yönetici yoksa kulüp kapatılır ve üyelere bildirilir. Anonimleştirilenler: ad, e-posta, profil. Korunanlar (kimliksiz/sınırlı): mesajlar ve topluluk gönderilerinin metni (başkalarının bağlamı), sözleşme onayları, moderasyon izleri, yönetici kayıtları, anonim etkinlik sayaçları. Diğer kayıtlar yukarıdaki tablodaki sürelerde silinir. Ayrıntı: [Gizlilik Politikası](/legal/privacy).
 
 ## 4. Yasal saklama yükümlülükleri
 

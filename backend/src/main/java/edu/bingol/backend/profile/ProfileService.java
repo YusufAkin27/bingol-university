@@ -262,14 +262,28 @@ public class ProfileService {
         // KVKK: cihaz/FCM, bildirim kutusu ve tercihleri, kayitli haberler, kulup yanitlari, uyelikler
         purger.purge(u.getId());
         // Silinen kullanicinin RSVP'leri kapasiteden yer tutmasin
+        List<Long> freedEvents = new java.util.ArrayList<>();
         for (EventRsvp r : rsvps.findByUserId(u.getId())) {
             if (r.getStatus() == EventRsvp.Status.GOING) {
                 events.decrementGoing(r.getEventId());
+                freedEvents.add(r.getEventId());
             }
             rsvps.delete(r);
         }
         // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
         redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + u.getId(), "1");
+        // Sahipsiz kulup, yetim basvuru/bekleme listesi, gonderi gorselleri: commit sonrasi dinleyicilerde
+        if (publisher != null) {
+            publisher.publishEvent(new UserAccountDeletedEvent(u.getId(), List.copyOf(freedEvents)));
+        }
+    }
+
+    /** Hesap silme sonrasi toparlayicilar (testlerde yoksa atlanir). */
+    private org.springframework.context.ApplicationEventPublisher publisher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPublisher(org.springframework.context.ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
     }
 
     public List<String> faculties() {

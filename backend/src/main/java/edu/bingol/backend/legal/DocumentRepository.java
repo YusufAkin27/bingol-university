@@ -22,6 +22,13 @@ public interface DocumentRepository extends JpaRepository<LegalDocument, Long> {
     @Query("SELECT COALESCE(MAX(d.version), 0) FROM LegalDocument d WHERE d.type = :type")
     int maxVersion(@Param("type") LegalType type);
 
+    /**
+     * Yeniden onay isteyen EN YENI surum (yoksa 0). Bilgilendirme niteligindeki (require_reaccept=false) sonraki
+     * surumler, daha once yayimlanmis zorunlu onayi ortadan kaldirmaz.
+     */
+    @Query("SELECT COALESCE(MAX(d.version), 0) FROM LegalDocument d WHERE d.type = :type AND d.lang = 'tr' AND d.requireReaccept = true")
+    int maxReacceptVersion(@Param("type") LegalType type);
+
     @Transactional
     @Modifying
     @Query("UPDATE LegalDocument d SET d.active = false WHERE d.type = :type AND d.active = true")

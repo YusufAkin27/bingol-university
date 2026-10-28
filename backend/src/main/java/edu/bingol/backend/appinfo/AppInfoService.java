@@ -26,7 +26,8 @@ public class AppInfoService {
     public record Social(String instagram, String twitter, String youtube) {}
 
     public record AppInfo(String appName, String website, String contactEmail, String supportEmail, String phone,
-                          String address, Social social, Banner banner, Maintenance maintenance, List<String> languages) {}
+                          String address, Social social, Banner banner, Maintenance maintenance, List<String> languages,
+                          String operatorName, String kvkkEmail) {}
 
     public record VersionCheck(boolean updateRequired, boolean updateAvailable, String latestVersion, String storeUrl) {}
 
@@ -47,7 +48,9 @@ public class AppInfoService {
                         : new Banner(localized(s, "banner_text", lang), nz(s.get("banner_url"))),
                 new Maintenance("true".equalsIgnoreCase(s.get("maintenance_mode")),
                         localized(s, "maintenance_message", lang)),
-                List.of(Lang.TR.code(), Lang.EN.code(), Lang.AR.code()));
+                List.of(Lang.TR.code(), Lang.EN.code(), Lang.AR.code()),
+                // Uygulamayi isleten / veri sorumlusunun ADI ve KVKK e-postasi (sozlesmelerle ayni ayar); adres/kimlik YOK
+                nz(s.get("legal.controller.name")), nz(s.get("legal.controller.email")));
     }
 
     /** Istemci surumu minimum surumun altindaysa updateRequired (zorunlu guncelleme). */

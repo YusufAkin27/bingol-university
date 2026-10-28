@@ -330,6 +330,21 @@ public class EventService {
         return n;
     }
 
+    /**
+     * Hesabi silinen organizatorun kulube bagli olmayan, bitmemis etkinlikleri iptal edilir (yonetecek kimse kalmaz;
+     * katilimcilara haber gider). Kulup etkinlikleri kulup yetkililerinde kalir.
+     */
+    @Transactional
+    public int cancelForDeletedOrganizer(Long userId) {
+        int n = 0;
+        for (Long eventId : events.liveIdsByOrganizer(userId,
+                List.of(UserEvent.Status.ACTIVE, UserEvent.Status.PENDING_REVIEW), Instant.now())) {
+            events.findById(eventId).ifPresent(this::cancelInternal);
+            n++;
+        }
+        return n;
+    }
+
     private void cancelInternal(UserEvent e) {
         cancelInternal(e, e.getStatus() == UserEvent.Status.ACTIVE);
     }

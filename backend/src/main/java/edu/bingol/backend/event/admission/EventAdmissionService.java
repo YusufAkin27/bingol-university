@@ -501,6 +501,30 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Override
     @Transactional
+    public void onUserDeleted(Long userId, java.util.Collection<Long> freedEventIds) {
+        java.util.Set<Long> promote = new java.util.LinkedHashSet<>(freedEventIds);
+        List<Status> open = List.of(Status.PENDING, Status.WAITLISTED, Status.ACCEPTED);
+        for (EventApplication app : apps.findByUserIdOrderByIdDesc(userId)) {
+            if (!open.contains(app.getStatus())) {
+                continue;
+            }
+            eventRows.lock(app.getEventId());
+            if (app.getStatus() == Status.ACCEPTED) {
+                promote.add(app.getEventId()); // RSVP/koltuk hesap silmede zaten birakildi
+            }
+            setStatus(app, Status.CANCELLED, null, null);
+            apps.saveAndFlush(app);
+        }
+        for (Long eventId : promote) {
+            eventRepo.findById(eventId).ifPresent(e -> {
+                eventRows.lock(eventId);
+                promoteWaitlist(e);
+            });
+        }
+    }
+
+    @Override
+    @Transactional
     public void onEventCancelled(UserEvent e) {
         List<Status> open = List.of(Status.PENDING, Status.WAITLISTED);
         List<Long> users = apps.userIdsByStatus(e.getId(), open);

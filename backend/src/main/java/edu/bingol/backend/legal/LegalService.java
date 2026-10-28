@@ -100,12 +100,26 @@ public class LegalService {
         }
     }
 
-    /** Yeniden onay gerektiren ve henuz onaylanmamis guncel belgeler. */
+    /**
+     * Yeniden onay gerektiren ve henuz onaylanmamis guncel belgeler. Guncel surum yalnizca bilgilendirme niteligindeyse
+     * (require_reaccept=false) bile, daha once yayimlanmis zorunlu bir surum (ornegin V480) onaylanmadiysa o onay beklenir;
+     * bilgilendirme duzeltmesi eski zorunlu onayi dusurmez. Cevaptaki surum her zaman guncel (onaylanabilir) surumdur.
+     */
     public List<PendingConsent> pending(Long userId, Lang lang) {
         List<PendingConsent> out = new ArrayList<>();
         for (LegalDocument base : baseDocs()) {
-            if (base.getType().isSignupRequired() && base.isRequireReaccept()
-                    && !acceptances.existsByUserIdAndDocTypeAndVersion(userId, base.getType(), base.getVersion())) {
+            if (!base.getType().isSignupRequired()) {
+                continue;
+            }
+            int needed = Math.min(base.getVersion(),
+                    Math.max(base.isRequireReaccept() ? base.getVersion() : 0, docs.maxReacceptVersion(base.getType())));
+            if (needed <= 0) {
+                continue;
+            }
+            boolean accepted = acceptances.existsByUserIdAndDocTypeAndVersion(userId, base.getType(), base.getVersion())
+                    || (needed < base.getVersion()
+                    && acceptances.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(userId, base.getType(), needed));
+            if (!accepted) {
                 LegalDocument shown = findCurrent(base.getType(), lang).orElse(base);
                 out.add(new PendingConsent(base.getType(), base.getVersion(), shown.getTitle()));
             }

@@ -72,8 +72,8 @@ const m = {
   'pg.delete.lead':
     'You can delete your BÜ Kampüs account yourself from the app. This page explains the steps and what is removed.',
   'pg.delete.meta': 'How to delete your BÜ Kampüs account from inside the app and which data is removed.',
-  'pg.delete.app': 'App: {app} · Developer: {dev}',
-  'pg.delete.dev': 'Bingöl University',
+  'pg.delete.app': 'App: {app} · Developer: {dev} · Independent app',
+  'pg.delete.app.nodev': 'App: {app} · Independent app',
   'pg.delete.s6.h': 'Data deleted and retained, and for how long',
   'pg.delete.s6.p1':
     'When you delete your account, your data is handled as shown in the table below. The “When you delete” column gives the action and the “Period” column says when the data is removed.',
@@ -104,7 +104,7 @@ const m = {
   'pg.delete.t.r7.b': 'Text is cleared; an anonymous record remains',
   'pg.delete.t.r7.c': 'Public (no-account) support requests 365 days',
   'pg.delete.t.r8.a': 'Messages and community posts',
-  'pg.delete.t.r8.b': 'Kept for the context of other people; the author appears anonymous',
+  'pg.delete.t.r8.b': 'Kept for the context of other people; the author appears anonymous. Images you attached to posts are deleted',
   'pg.delete.t.r8.c': 'According to the Retention and Destruction Policy',
   'pg.delete.t.r9.a': 'Agreement and consent records, moderation records, administrator action logs',
   'pg.delete.t.r9.b': 'Kept as legal proof and for security and audit',

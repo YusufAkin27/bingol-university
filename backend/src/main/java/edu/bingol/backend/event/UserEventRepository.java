@@ -138,6 +138,11 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                              Pageable page);
 
     /** Kulubun bitmemis, verilen durumlardaki etkinlik kimlikleri (kulup silinince iptal icin). */
+    /** Hesap silme: kullanicinin kulube bagli olmayan, bitmemis etkinlikleri. */
+    @Query("SELECT e.id FROM UserEvent e WHERE e.createdBy = :uid AND e.communityId IS NULL AND e.status IN :statuses AND e.endsAt > :now")
+    List<Long> liveIdsByOrganizer(@Param("uid") Long userId, @Param("statuses") List<UserEvent.Status> statuses,
+                                  @Param("now") Instant now);
+
     @Query("SELECT e.id FROM UserEvent e WHERE e.communityId = :cid AND e.status IN :statuses AND e.endsAt > :now")
     List<Long> liveIdsByCommunity(@Param("cid") Long communityId, @Param("statuses") List<UserEvent.Status> statuses,
                                   @Param("now") Instant now);

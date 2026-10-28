@@ -20,13 +20,13 @@
 | Kimlik | Ad-soyad |
 | İletişim | Kurumsal e-posta adresi (bingol.edu.tr), destek taleplerinde iletişim e-postası |
 | Eğitim/mesleki bilgi | Fakülte, bölüm, sınıf, öğrenci/personel rolü |
-| Görsel | Profil fotoğrafı; sohbet/gönderi/hikâye fotoğrafları ve videoları (gönderi videoları sunucuda yeniden kodlanır ve şifreli saklanır) |
-| Kullanıcı içeriği | Mesajlar, topluluk ve Keşfet gönderileri, yorumlar, 24 saatlik hikâyeler, etiketler (#) ve anmalar (@), anket oyları, etkinlik başvuru yanıtları, geri bildirim, destek ve itiraz metinleri, biyografi |
-| Müşteri işlem / kullanım | Topluluk üyelikleri, etkinlik katılımı ve yoklama, favoriler, takip ilişkileri, kaydedilen gönderiler, bildirim ve gizlilik tercihleri, engelleme listesi |
+| Görsel | Profil fotoğrafı; sohbet/gönderi fotoğrafları ve videoları (gönderi videoları sunucuda yeniden kodlanır ve şifreli saklanır) |
+| Kullanıcı içeriği | Mesajlar, topluluk ve Keşfet gönderileri, anket oyları, etkinlik başvuru yanıtları, geri bildirim, destek ve itiraz metinleri, biyografi |
+| Müşteri işlem / kullanım | Topluluk üyelikleri, etkinlik katılımı ve yoklama, favoriler, takip ilişkileri, bildirim ve gizlilik tercihleri, engelleme listesi, aldığınız yönetici duyuru e-postası kampanyalarının kaydı (kampanya ve gönderim durumu) |
 | Kişisel plan | Kullanıcının kendi girdiği ders programı, ders, dönem ve sınav kayıtları |
 | İşlem güvenliği | Oturum bilgisi, şifre özeti, cihaz tanımlayıcısının geri döndürülemez özeti, IP adresi, platform ve uygulama sürümü, erişim engeli kayıtları, hata ve giriş denemeleri |
 | Hukuki işlem / uyum | Sözleşme onay kayıtları, şikâyet/rapor ve moderasyon kayıtları, yönetici erişim kayıtları |
-| Pazarlama | İşlenmez (reklam/pazarlama amacıyla işleme yapılmaz) |
+| Pazarlama | İşlenmez (reklam/pazarlama amacıyla işleme yapılmaz). Yöneticilerin gönderdiği duyuru e-postaları hizmet ve topluluk duyurusudur; her e-postada abonelikten çıkış bağlantısı bulunur |
 | Özel nitelikli veri | Bilerek talep edilmez. Kullanıcı içeriği içinde (ör. mesajda) paylaşılan özel nitelikli veriler, yalnızca sizin paylaşımınız çerçevesinde barındırılır; bunları işlemeyi amaçlamayız. |
 
 ## 3. İşleme amaçları
@@ -39,7 +39,7 @@
 6. Hizmetin iyileştirilmesi, hata ve performans takibi (toplulaştırılmış analiz).
 7. Hukuki yükümlülüklerin yerine getirilmesi, yetkili makam taleplerinin karşılanması, hakların kullanılması ve savunulması.
 8. Sözleşme ve rıza kayıtlarının tutulması.
-9. Gönderi, yorum, hikâye, takip, kaydetme, etiketleme, anket ve kişisel ders programı hizmetlerinin sunulması.
+9. Gönderi, takip, favori, anket ve kişisel ders programı hizmetlerinin sunulması; yönetici duyuru e-postalarının gönderilmesi.
 10. Herkese açık alanlarda uygunsuz ifadenin otomatik filtrelenmesi ve şikâyetlerin yürütülmesi.
 
 ## 4. Hukuki sebepler
@@ -60,12 +60,12 @@
 | Alıcı grubu | Aktarılan veri | Amaç | Yurt içi / yurt dışı |
 |---|---|---|---|
 | Barındırma ve altyapı hizmet sağlayıcıları (veri işleyen) | Hizmet verisi (mesajlar şifreli) | Hizmetin barındırılması | {{hosting.location|Barındırma konumu veri sorumlusunca ayrıca bildirilir}} |
-| E-posta gönderim altyapısı (veri işleyen) | Alıcı e-posta, e-posta içeriği | Doğrulama/şifre sıfırlama/güvenlik e-postaları | {{hosting.location|Sağlayıcının bulunduğu ülke}} |
-| Google LLC (Firebase Cloud Messaging) ve iOS için Apple Inc. (APNs) | Cihaz bildirim anahtarı, bildirim başlığı/kısa metni, hedef bilgisi, platform | Anlık bildirim iletimi | **Yurt dışı** |
+| E-posta gönderim hizmeti sağlayıcısı: Brevo (SMTP; veri işleyen) | Alıcı e-posta, e-posta içeriği; duyuru e-postalarında ad ve bölüm/fakülte/sınıf gibi kişiselleştirme alanları | Doğrulama/şifre sıfırlama/güvenlik e-postaları ve yönetici duyuruları | **Yurt dışı olabilir** (sağlayıcının sunucuları Avrupa'da veya başka ülkelerde bulunabilir) |
+| Bildirim sağlayıcısı: Google LLC (Firebase Cloud Messaging) ve iOS için Apple Inc. (APNs) | Cihaz bildirim anahtarı, bildirim başlığı/kısa metni, hedef bilgisi, platform | Anlık bildirim iletimi | **Yurt dışı** |
 | Yetkili kamu kurum ve kuruluşları (mahkeme, savcılık, kolluk, Kurul vb.) | Talep kapsamındaki veri | Hukuki yükümlülük | Yurt içi |
 | Bingöl Üniversitesi ilgili birimleri / yetkili yöneticiler | Moderasyon, destek ve güvenlik için gerekli veri | Hizmet yönetimi | Yurt içi |
 
-**Yurt dışına aktarım (m.9).** Anlık bildirim için cihaz bildirim anahtarınız ve bildirim içeriği Firebase/APNs üzerinden yurt dışına aktarılır. Bu aktarım; Kanun'un 9. maddesi ve ilgili Kurul düzenlemeleri çerçevesinde, **bildirim iznine dayanan açık rızanıza** ve/veya yeterlilik/uygun güvence mekanizmalarına (standart sözleşme vb.) dayanır. Bildirim iznini vermemeniz halinde anlık bildirim almazsınız ancak uygulama içi bildirim kutusu ve diğer hizmetler çalışmaya devam eder. Rızanızı cihaz ayarlarından veya uygulamadaki İzinler/Bildirim ayarlarından istediğiniz zaman geri alabilirsiniz.
+**Yurt dışına aktarım (m.9).** Anlık bildirim için cihaz bildirim anahtarınız ve bildirim içeriği Firebase/APNs üzerinden yurt dışına aktarılır. Bu aktarım; Kanun'un 9. maddesi ve ilgili Kurul düzenlemeleri çerçevesinde, **bildirim iznine dayanan açık rızanıza** ve/veya yeterlilik/uygun güvence mekanizmalarına (standart sözleşme vb.) dayanır. Bildirim iznini vermemeniz halinde anlık bildirim almazsınız ancak uygulama içi bildirim kutusu ve diğer hizmetler çalışmaya devam eder. Rızanızı cihaz ayarlarından veya uygulamadaki İzinler/Bildirim ayarlarından istediğiniz zaman geri alabilirsiniz. E-posta gönderim hizmeti sağlayıcısının (Brevo) sunucuları da yurt dışında bulunabilir; doğrulama, şifre sıfırlama ve duyuru e-postalarının iletimi için e-posta adresiniz ve e-posta içeriği bu sağlayıcıya aktarılabilir ve bu aktarım da yukarıdaki m.9 çerçevesindeki mekanizmalara dayanır.
 
 ## 6. Kişisel verilerin toplanma yöntemi
 
@@ -73,7 +73,7 @@ Verileriniz; uygulama ve web sitesi üzerinden elektronik ortamda, kayıt/profil
 
 ## 7. Saklama süresi
 
-Kişisel veriler, işleme amacı için gerekli süre ve ilgili mevzuatta öngörülen süre boyunca saklanır, süre bitiminde silinir, yok edilir veya anonim hale getirilir. Başlıca süreler: bekleyen kayıt 1 saat; doğrulama kodu 10 dakika; yenileme anahtarı en çok 30 gün; okunmuş bildirim 90 gün, okunmamış 365 gün; cihaz bildirim anahtarı 60 gün görülmezse; cihaz/IP güvenlik kayıtları 90 gün; uygunsuz ifade filtresi kaydı 90 gün; hikâyeler görünürlük bitiminden 24 saat sonra; push kuyruğu kaydı gönderildikten 7 gün (başarısızsa 30 gün); analitik olaylar 180 gün; e-posta kuyruğu 30 gün; tek gönderimlik fotoğrafın şifreli kopyası 365 gün; herkese açık destek talebi 365 gün. Hesap açık olduğu sürece profil ve içerikleriniz saklanır; silinen mesajların şifreli kopyası ve sözleşme onay kayıtları güvenlik/ispat amacıyla ayrıca tutulabilir. Ayrıntılı tablo: [Saklama ve İmha](/legal/retention).
+Kişisel veriler, işleme amacı için gerekli süre ve ilgili mevzuatta öngörülen süre boyunca saklanır, süre bitiminde silinir, yok edilir veya anonim hale getirilir. Başlıca süreler: bekleyen kayıt 1 saat; doğrulama kodu 10 dakika; yenileme anahtarı en çok 30 gün; okunmuş bildirim 30 gün, okunmamış 90 gün (kullanıcı başına en yeni 200); cihaz bildirim anahtarı 60 gün görülmezse; cihaz/IP güvenlik kayıtları 90 gün; uygunsuz ifade filtresi kaydı 90 gün; push kuyruğu kaydı gönderildikten 7 gün (başarısızsa 30 gün); analitik ham olaylar 45 gün (ardından yalnızca kişiye bağlı olmayan toplulaştırılmış özetler); günlük aktiflik kaydı 400 gün; e-posta kuyruğu gönderilenler 7 gün, başarısızlar 30 gün; yönetici duyuru e-postası (kampanya) kayıtları kampanya bitiminden 180 gün; yönetici işlem kaydı 365 gün; mesaj erişim ve kulüp işlem kaydı 730 gün; tek gönderimlik fotoğrafın şifreli kopyası 365 gün; herkese açık destek talebi 365 gün. Hesap açık olduğu sürece profil ve içerikleriniz saklanır; silinen mesajların şifreli kopyası ve sözleşme onay kayıtları güvenlik/ispat amacıyla ayrıca tutulabilir. Ayrıntılı tablo: [Saklama ve İmha](/legal/retention).
 
 ## 8. Mesajlara yönetici erişimi (şeffaflık notu)
 

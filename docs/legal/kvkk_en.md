@@ -17,11 +17,11 @@ Under Article 10 of the Personal Data Protection Law No. 6698 ("**KVKK**") and t
 
 ## 2. Categories of personal data
 
-Identity (name); contact (university e-mail, contact e-mail in support requests); education/professional (faculty, department, year, role); visual (profile photo, chat/post/story photos and videos; post videos are re-encoded and stored encrypted on the server); user content (messages, community and Discover posts, comments, 24-hour stories, hashtags and mentions, poll votes, application answers, feedback, support and appeal texts, bio); personal plan (timetable, courses, semester and exams entered by you); usage (memberships, attendance, bookmarks, follows, saved posts, notification and privacy preferences, block list); transaction security (session data, password hash, non-reversible device-identifier digest, IP address, platform, app version, ban records); legal/compliance (agreement acceptances, reports and moderation records, administrator access records). Marketing: not processed. Special categories: not requested; any shared by you inside content is only hosted as you shared it.
+Identity (name); contact (university e-mail, contact e-mail in support requests); education/professional (faculty, department, year, role); visual (profile photo, chat/post photos and videos; post videos are re-encoded and stored encrypted on the server); user content (messages, community and Discover posts, poll votes, application answers, feedback, support and appeal texts, bio); personal plan (timetable, courses, semester and exams entered by you); usage (memberships, attendance, bookmarks, follows, notification and privacy preferences, block list, record of the administrator announcement e-mail campaigns you received (campaign and delivery status)); transaction security (session data, password hash, non-reversible device-identifier digest, IP address, platform, app version, ban records); legal/compliance (agreement acceptances, reports and moderation records, administrator access records). Marketing: not processed (administrator announcement e-mails are service and community announcements and carry an unsubscribe link). Special categories: not requested; any shared by you inside content is only hosted as you shared it.
 
 ## 3. Purposes
 
-Membership and verification; providing news, announcements, events, menu, communities, events, attendance, messaging, search and bookmarks; notifications; support and appeals; security, abuse prevention and moderation; improving the service (aggregate analytics); legal obligations and defence of rights; keeping agreement and consent records; providing posts, comments, stories, follows, saving, tagging, polls and personal timetable features; automatic filtering of inappropriate language in public areas and handling reports.
+Membership and verification; providing news, announcements, events, menu, communities, events, attendance, messaging, search and bookmarks; notifications; support and appeals; security, abuse prevention and moderation; improving the service (aggregate analytics); legal obligations and defence of rights; keeping agreement and consent records; providing posts, follows, bookmarks, polls and personal timetable features; sending administrator announcement e-mails; automatic filtering of inappropriate language in public areas and handling reports.
 
 ## 4. Legal bases
 
@@ -39,12 +39,12 @@ Membership and verification; providing news, announcements, events, menu, commun
 | Recipient group | Data | Purpose | Domestic / abroad |
 |---|---|---|---|
 | Hosting and infrastructure providers (processors) | Service data (messages encrypted) | Hosting | {{hosting.location|Notified separately by the controller}} |
-| E-mail delivery provider (processor) | Recipient address, content | Verification/reset/security e-mails | {{hosting.location|Provider's country}} |
-| Google LLC (Firebase Cloud Messaging) and Apple Inc. (APNs) | Push token, notification title/short text, target, platform | Push delivery | **Abroad** |
+| E-mail delivery service provider: Brevo (SMTP; processor) | Recipient address, content; in announcement e-mails name and department/faculty/year used for personalisation | Verification/reset/security e-mails and administrator announcements | **May be abroad** (the provider's servers may be in Europe or other countries) |
+| Notification provider: Google LLC (Firebase Cloud Messaging) and Apple Inc. (APNs) | Push token, notification title/short text, target, platform | Push delivery | **Abroad** |
 | Competent public authorities | Data within the request | Legal obligation | Domestic |
 | University units / authorised administrators | Data needed for moderation, support, security | Administration | Domestic |
 
-**Transfer abroad (Art. 9).** Push delivery transfers your device token and notification content abroad via Firebase/APNs. This relies on your **explicit consent given through the notification permission** and/or adequacy/appropriate-safeguard mechanisms (e.g. standard contract) under Article 9 and the Board's rules. Without notification permission you receive no push notifications but the in-app inbox and other services continue. You can withdraw consent at any time.
+**Transfer abroad (Art. 9).** Push delivery transfers your device token and notification content abroad via Firebase/APNs. This relies on your **explicit consent given through the notification permission** and/or adequacy/appropriate-safeguard mechanisms (e.g. standard contract) under Article 9 and the Board's rules. Without notification permission you receive no push notifications but the in-app inbox and other services continue. You can withdraw consent at any time. The servers of the e-mail delivery provider (Brevo) may also be abroad; your e-mail address and the e-mail content may be passed to this provider to deliver verification, reset and announcement e-mails, and this transfer relies on the same Article 9 mechanisms described above.
 
 ## 6. Method of collection
 
@@ -52,7 +52,7 @@ Electronically through the app and website: registration/profile forms, messagin
 
 ## 7. Retention
 
-Data is kept for the time required by the purpose and applicable law, then deleted, destroyed or anonymised. Main periods: pending registration 1 hour; verification code 10 minutes; refresh token at most 30 days; read notifications 90 days, unread 365; push token after 60 days unseen; device/IP records 90 days; language-filter log 90 days; stories 24 hours after expiry; push queue entries 7 days after sending (30 if failed); analytics 180 days; e-mail queue 30 days; view-once photo encrypted copy 365 days; public support request 365 days. See [Retention](/legal/retention).
+Data is kept for the time required by the purpose and applicable law, then deleted, destroyed or anonymised. Main periods: pending registration 1 hour; verification code 10 minutes; refresh token at most 30 days; read notifications 30 days, unread 90 (newest 200 per user); push token after 60 days unseen; device/IP records 90 days; language-filter log 90 days; push queue entries 7 days after sending (30 if failed); raw analytics events 45 days (then only non-personal aggregated summaries); daily activity record 400 days; e-mail queue 7 days when sent, 30 days when failed; administrator announcement e-mail (campaign) records 180 days after the campaign ends; administrator action log 365 days; message-access and club action logs 730 days; view-once photo encrypted copy 365 days; public support request 365 days. See [Retention](/legal/retention).
 
 ## 8. Administrator access to messages (transparency)
 

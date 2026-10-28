@@ -60,3 +60,13 @@ Yalnizca aktif, dogrulanmis, bingol.edu.tr (alt alan dahil) hesaplar; kendisi ve
 alan bazli gizlilige (`PublicProfileMapper`) uyar. Rate limit: kullanici basina 6/saat, IP basina 30/saat. Hash ve sonuclar saklanmaz/loglanmaz.
 `app_user.email_sha256` (VARCHAR 64) + indeks `usr240_email_sha256`: `User` entity'sinin `@PrePersist/@PreUpdate` kancasi doldurur,
 silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu sutunu icermez. Not: profilde "dizinde gorunme" ayari yoktur; uygulanmadi.
+
+## KVKK hesap silme / veri indirme tamlığı (B1, 2026-10-28)
+
+- **Hesap silme** (`ProfileService.anonymize` → `UserAccountDeletedEvent`, commit sonrası dinleyiciler, hata silmeyi etkilemez):
+  - `CommunityAccountListener`: kullanıcı kulüp **sahibi**ysa sahiplik en eski aktif ADMIN (yoksa MODERATOR) üyeye devredilir (3 kulüp sınırını aşmayan, aktif hesap; `club_audit` `OWNER_AUTO_TRANSFERRED`, bildirim `notif.community.ownerAutoTransferred`); aday yoksa kulüp kapatılır (`CommunityService.delete`: üyelere haber, bağlı gelecek etkinlikler iptal). Kullanıcının gönderi görselleri alandan kaldırılıp diskten silinir (`CommunityPostMedia`); kulüp silinince de aynı.
+  - `EventAccountListener`: kulübe bağlı olmayan, bitmemiş etkinlikleri iptal; açık başvurular (PENDING/WAITLISTED/ACCEPTED) kapanır; serbest kalan koltuklarda bekleme listesi terfi eder (`EventAdmissionHooks.onUserDeleted`).
+  - Kulüp gönderisi silinince (`CommunityPostService.delete`, rapor "gizle") `image_url` boşaltılır ve dosya (başka kayıt kullanmıyorsa) silinir.
+- **`GET /api/users/me/export`**: yeni bölümler `bookmarks`, `communityMemberships`, `communityPosts`, `eventRsvps`, `eventAttendance`, `createdEvents`, `mailCampaigns`, `feedbackVotes`, `conversationMemberships` (`export/ExtraExporters`). Bir bölüm hata verirse çıktı 500 olmaz; o bölümde `{"error":"SECTION_UNAVAILABLE"}` görünür.
+- **`GET /api/app/info`**: `operatorName` (`legal.controller.name`) ve `kvkkEmail` (`legal.controller.email`) alanları eklendi (ayar boşsa `null`; adres/kimlik gelmez). Web hesap silme sayfası "Geliştirici" satırını buradan okur.
+- **Sözleşme yeniden onayı**: bkz. `docs/LEGAL_NOTES.md` bölüm 8 (`GET /api/legal/acceptance-status`, `POST /api/legal/accept`, 403 `LEGAL_REACCEPT_REQUIRED`).

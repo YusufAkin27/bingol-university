@@ -12,6 +12,11 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
 
     Optional<CommunityPost> findByIdAndCommunityIdAndDeletedFalse(Long id, Long communityId);
 
+    /** Gorselli yazilar: hesap/kulup silinirken dosyalari temizlemek icin. */
+    List<CommunityPost> findByAuthorIdAndImageUrlIsNotNull(Long authorId);
+
+    List<CommunityPost> findByCommunityIdAndImageUrlIsNotNull(Long communityId);
+
     long countByCommunityIdAndPinnedTrueAndDeletedFalse(Long communityId);
 
     /** Sabitli yazilar (en fazla 3), yeniden eskiye; engellenen yazarlar haric. */

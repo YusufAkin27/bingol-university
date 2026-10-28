@@ -25,26 +25,26 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 | **Messages:** text, photos, videos, edit history, reactions, read state, chat settings | Messaging | Contract | While the account is open; encrypted copies of deleted messages and edit history kept for security (default indefinite, configurable) |
 | **View-once photo:** encrypted file, open record | Messaging; security review | Contract; legitimate interest | Recipient access once / max 24 h; encrypted copy for admin review **365 days** (configurable) |
 | **Community and event data:** memberships, posts, RSVP, attendance, application answers | Community and event features | Contract | While the account is open; some records stay anonymous |
-| **Posts (Discover):** text, photos, videos, hashtags (#), mentions (@), likes, comments | Posting and interaction | Contract | While the account is open; after a post is deleted its media files are removed from disk after 30 days; uploads not attached to a post are deleted after 24 hours |
-| **Stories:** photo/video, text, viewers | 24-hour temporary sharing | Contract | Visible for 24 hours; permanently deleted 24 hours after expiry (configurable) |
-| **Follows and saved posts** | Building your feed, saving items for later | Contract | While the account is open; deleted with the account |
+| **Posts (Discover):** text, photos, videos, likes | Posting and interaction | Contract | While the account is open; after a post is deleted its media files are removed from disk after 30 days; uploads not attached to a post are deleted after 24 hours. An image attached to a club post is deleted from disk at once when the post, the club or the account is deleted |
+| **Follows and bookmarked news** | Building your feed, saving items for later | Contract | While the account is open; deleted with the account |
 | **Polls:** participation record and your vote | Voting | Contract | While the account is open; on account deletion the participation record is deleted and the vote is detached from you. In a secret poll, which option you chose is not shown to other users or administrators. No separate automatic deletion period applies to the vote records of finished polls. |
 | **Timetable, course and exam data:** courses, sessions, semester and exams you enter yourself; announcement read marks | Personal timetable and exam tracking | Contract | While the account is open; deleted with the account |
-| **Notification inbox and preferences** | Notifications | Contract | Read 90 days, unread 365 days |
+| **Notification inbox and preferences** | Notifications | Contract | Read 30 days, unread 90 days; the newest 200 notifications per user are kept |
 | **Device push token (FCM):** token, platform, app version, language, last seen | Push notifications | Contract; explicit consent (notification permission) | Removed after 60 days unseen; on logout/deletion |
 | **Push notification queue:** target user/device, title and short text, delivery status | Delivering push notifications from a durable queue with retries | Contract | Pending entries are retried for at most 24 hours; sent entries are deleted after 7 days, failed ones after 30 days; deleted on logout/account deletion |
 | **Inappropriate-language filter log:** which field, which user's content was rejected/flagged, and when (the rejected text is not stored) | Preventing abuse in public areas | Legitimate interest | 90 days |
 | **Device and IP records:** non-reversible HMAC digest of device identifier, platform, app version, IP, last seen and event type | Security, abuse prevention, ban evasion | Legitimate interest; legal obligation | Default **90 days**; ban records while a ban lasts |
-| **Usage events (analytics):** screen, event name, limited values, time | Improving the service; reports are aggregated | Legitimate interest | **180 days** |
+| **Usage events (analytics):** screen, event name, limited values, time | Improving the service; reports are aggregated | Legitimate interest | Raw events **45 days** (immediately on account deletion); afterwards only non-personal, aggregated daily summaries remain. Daily activity record (which days you opened the app) **400 days** (immediately on account deletion) |
 | **Support, feedback, appeals, reports** | Handling requests, moderation | Contract; legitimate interest; legal obligation | Texts scrubbed on account deletion; public (logged-out) tickets 365 days |
 | **Blocks and moderation records** | Safety and moderation | Legitimate interest; legal obligation | Moderation trail kept anonymously |
-| **Administrator action and message-access logs** | Accountability | Legitimate interest; legal obligation | Tamper-resistant; for legal/audit period |
+| **Administrator action and message-access logs** | Accountability | Legitimate interest; legal obligation | Administrator action log (including IP) 365 days; message-access log and club administration action log 730 days (entries are append-only and cannot be altered); deleted when the period ends |
 | **Agreement acceptances:** document, version, time | Proof of acceptance | Legal obligation; legitimate interest | Kept after account deletion |
-| **E-mail queue:** recipient, subject, status | Verification, reset and security e-mails | Contract | Sent/failed entries deleted after 30 days |
+| **E-mail queue:** recipient, subject, status | Verification, reset and security e-mails and administrator announcements | Contract; legitimate interest for announcements | Sent entries deleted after 7 days, failed (undeliverable) entries after 30 days |
+| **Administrator announcement e-mail (campaign) records:** campaign name and status, your user ID as recipient and delivery status | Sending service and community announcements (not advertising or marketing; every e-mail has an unsubscribe link). Profile fields such as name, department, faculty and year may be used to personalise the message | Legitimate interest (Art. 5/2-f); contract | Deleted 180 days after the campaign ends; your recipient row is deleted at once when you delete your account |
 | **Contact matching:** SHA-256 digests of e-mails in your address book | Finding people you know | **Explicit consent** | **Not stored or logged**; in memory only while the request is processed |
 | **Device location** | — | — | The app does **not ask for location permission**; device location (GPS/network) is **not collected, sent or stored** (see 5) |
 
-> **In short:** Device/IP records 90 days, analytics 180 days, notifications 90/365 days, e-mail queue 30 days.
+> **In short:** Device/IP records 90 days, raw analytics events 45 days, daily activity record 400 days, notifications 30 days (read) / 90 days (unread), e-mail queue 7 days (30 if failed), announcement campaign records 180 days.
 
 ## 3. How messages are stored and who can see them
 
@@ -62,7 +62,7 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 | Recipient | What | Purpose | Location |
 |---|---|---|---|
 | **Google Firebase Cloud Messaging** (and Apple APNs for iOS) | Device push token, notification title/short text, target | Push delivery | Outside Türkiye |
-| **E-mail (SMTP) provider** | Recipient address, e-mail content | Verification, reset, security e-mails | {{hosting.location|Provider's country}} |
+| **E-mail delivery service provider: Brevo (SMTP)** (processor) | Recipient address, e-mail content (verification code, announcement text; for announcements, name and department/faculty/year for personalisation) | Verification, reset, security e-mails and administrator announcements | May be outside Türkiye (the provider's servers may be in Europe or other countries); see the KVKK Notice |
 | **Hosting provider** | All service data (messages encrypted) | Hosting | {{hosting.location|Stated before publication}} |
 | **Competent public authorities** | Data within the request | Legal obligation | Türkiye |
 | **University / authorised administrators** | Data needed for moderation and support | Service administration | Türkiye |
@@ -81,16 +81,16 @@ Device-identifier digest, platform, app version, IP and time are recorded on reg
 
 ## 7. Account deletion and data export
 
-**Download my data:** Profile > Download my data (JSON, up to 3 per day; deleted messages excluded).
+**Download my data:** Profile > Download my data (JSON, up to 3 per day; deleted messages excluded). The file covers your profile and privacy settings, consent records, messages and chat memberships, posts and likes, follows, bookmarked news, community memberships and posts, event attendance, application and check-in records, events you created, announcement e-mail campaigns you received, notifications and device records, support requests and your device/IP history. If a section cannot be prepared temporarily, an error marker appears in that section and the others are still delivered.
 
 **Account deletion = anonymisation**
 
 | What happens | Data |
 |---|---|
-| **Deleted** | Push tokens and pending push entries, notification inbox and preferences, saved posts, follows, stories, timetable and exam data, poll participation record, likes and comments (comments on others' posts show as deleted), Discover posts (media files removed after 30 days), bookmarks, feedback votes and event feedback, block list, club application answers, community memberships, chat photos you uploaded |
+| **Deleted** | Push tokens and pending push entries, notification inbox and preferences, follows, timetable and exam data, poll participation record, likes, Discover posts (media files removed after 30 days), bookmarks, feedback votes and event feedback, block list, club application answers, community memberships, your rows in announcement e-mail campaigns, chat photos you uploaded, **your device/IP records, analytics events and daily activity record (immediately)**, images you attached to club posts (immediately, from disk). Your event applications are closed (the next person on the waiting list moves up) and unfinished events you created that are not tied to a club are cancelled. **If you own a club:** ownership passes to its longest-standing active administrator (or moderator); if nobody can take over, the club is closed and its members are notified |
 | **Anonymised** | Name, e-mail, profile, bio, photo; poll vote records (link to you removed); support, feedback, appeal, report and event application texts are scrubbed |
 | **Kept (limited)** | Messages and community posts (others' context; author appears anonymous), agreement acceptances, moderation records, anonymous attendance/RSVP counters, administrator action and access logs |
-| **Cleaned by time** | Device/IP records (90 days), language-filter log (90 days), analytics (180 days), e-mail queue (30 days) |
+| **Cleaned by time** | Device/IP records (90 days), language-filter log (90 days), raw analytics events (45 days), daily activity record (400 days), e-mail queue (sent 7 days, failed 30 days), announcement campaign records (180 days), administrator action log (365 days), message-access and club action logs (730 days) |
 
 ## 8. Security
 
@@ -104,13 +104,12 @@ No tracking or advertising cookies. See the [Cookie Policy](/legal/cookies).
 
 The service is not designed for persons under 18; if such a registration is found we may require a legal representative's consent or close the account.
 
-## 11. Posts, stories, comments and content moderation
+## 11. Posts and content moderation
 
-1. Posts, comments, stories, hashtags (#) and mentions (@) are shown to other signed-in users; visibility is mutually closed with users you block or who block you. Any visibility options offered in the app are shown on the relevant screen.
-2. Mentioning a user with `@` may send them a notification.
-3. Stories are visible for 24 hours; the story owner can see who viewed it; they are permanently deleted 24 hours after expiry.
-4. **Language filter.** Insults, abuse, hate speech or sexually explicit expressions in public areas (communities, events, profiles, group titles, posts, comments, stories) may be rejected automatically. **Chat messages (one-to-one and group) are not pre-screened.** The filter acts at submission time; which field and which user's content was rejected is kept for 90 days, the rejected text is not stored. The decision is automatic without human review; you may contest it through Support.
-5. **Reports and removal.** Posts, comments, stories and messages can be reported with **Report**; authorised administrators review and may hide or remove content. See [Content Notice and Removal](/legal/content-removal) and the [Community Rules](/legal/community-rules).
+1. Posts are shown to other signed-in users; visibility is mutually closed with users you block or who block you. Any visibility options offered in the app are shown on the relevant screen.
+2. **Club post images.** An image attached to a club post is unlinked and deleted from disk when you delete the post, when the club is closed or when you delete your account.
+3. **Language filter.** Insults, abuse, hate speech or sexually explicit expressions in public areas (communities, events, profiles, group titles, posts) may be rejected automatically. **Chat messages (one-to-one and group) are not pre-screened.** The filter acts at submission time; which field and which user's content was rejected is kept for 90 days, the rejected text is not stored. The decision is automatic without human review; you may contest it through Support.
+4. **Reports and removal.** Posts and messages can be reported with **Report**; authorised administrators review and may hide or remove content. See [Content Notice and Removal](/legal/content-removal) and the [Community Rules](/legal/community-rules).
 
 ## 12. Your rights, changes, contact
 

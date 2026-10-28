@@ -23,26 +23,26 @@ Veri sorumlusu: {{controller.name}}{{?controller.address}}, {{controller.address
 | **Mesajlar:** metin, fotoğraf, video, düzenleme geçmişi, tepkiler, okundu bilgisi, sohbet ayarları (sessiz/arşiv) | Mesajlaşma hizmeti | Sözleşmenin ifası | Hesap açık olduğu sürece; silinen mesajların şifreli kopyası ve düzenleme geçmişi güvenlik amacıyla saklanır (varsayılan süresiz, ayarlanabilir) |
 | **Tek gönderimlik fotoğraf:** şifreli dosya, açılma kaydı | Mesajlaşma ve güvenlik incelemesi | Sözleşmenin ifası; meşru menfaat | Alıcı erişimi bir kez / en çok 24 saat; şifreli kopya yönetici incelemesi için **365 gün** (ayarlanabilir) |
 | **Topluluk ve etkinlik verileri:** üyelikler, gönderiler, RSVP, yoklama (QR/elle), başvuru yanıtları, etkinlik geri bildirimi | Topluluk ve etkinlik hizmetleri | Sözleşmenin ifası | Hesap açık olduğu sürece; yoklama/gönderi kayıtları anonim biçimde kalabilir |
-| **Gönderiler (Keşfet):** metin, fotoğraf, video, etiketler (#), anmalar (@), beğeniler, yorumlar | Gönderi paylaşımı ve etkileşim | Sözleşmenin ifası | Hesap açık olduğu sürece; gönderi silinince medya dosyası 30 gün sonra diskten silinir; gönderiye bağlanmamış yüklemeler 24 saat sonra silinir |
-| **Hikâyeler:** fotoğraf/video, metin, görüntüleyenler | 24 saatlik geçici paylaşım | Sözleşmenin ifası | 24 saat görünür; bitişinden 24 saat sonra kalıcı silinir (ayarlanabilir) |
-| **Takip ilişkileri ve kaydedilen gönderiler** | Akışınızı oluşturma, içerikleri sonra okumak üzere saklama | Sözleşmenin ifası | Hesap açık olduğu sürece; hesap silinince silinir |
+| **Gönderiler (Keşfet):** metin, fotoğraf, video, beğeniler | Gönderi paylaşımı ve etkileşim | Sözleşmenin ifası | Hesap açık olduğu sürece; gönderi silinince medya dosyası 30 gün sonra diskten silinir; gönderiye bağlanmamış yüklemeler 24 saat sonra silinir. Kulüp gönderisine eklenen görsel, gönderi/kulüp/hesap silinince hemen diskten silinir |
+| **Takip ilişkileri ve favori haberler** | Akışınızı oluşturma, içerikleri sonra okumak üzere saklama | Sözleşmenin ifası | Hesap açık olduğu sürece; hesap silinince silinir |
 | **Anketler:** katılım kaydı ve oyunuz | Oylama hizmeti | Sözleşmenin ifası | Hesap açık olduğu sürece; hesap silinince katılım kaydı silinir, oy kaydı kimliksizleşir. Gizli ankette oyunuzun hangi seçeneğe verildiği diğer kullanıcılara ve yöneticilere gösterilmez. Bitmiş anketlerin oy kayıtları için ayrı bir otomatik silme süresi uygulanmaz. |
 | **Ders programı, ders ve sınav bilgileri:** kendi girdiğiniz dersler, oturumlar, dönem ve sınav kayıtları; duyuru okundu bilgisi | Kişisel ders programı ve sınav takibi | Sözleşmenin ifası | Hesap açık olduğu sürece; hesap silinince silinir |
-| **Bildirim kutusu ve tercihler:** bildirim içerikleri, sessiz saatler, tür tercihleri | Bildirim hizmeti | Sözleşmenin ifası | Okunmuş bildirim 90 gün, okunmamış 365 gün sonra silinir |
+| **Bildirim kutusu ve tercihler:** bildirim içerikleri, sessiz saatler, tür tercihleri | Bildirim hizmeti | Sözleşmenin ifası | Okunmuş bildirim 30 gün, okunmamış 90 gün sonra silinir; kullanıcı başına en yeni 200 bildirim tutulur |
 | **Cihaz bildirim anahtarı (FCM):** anahtar, platform, uygulama sürümü, dil, son görülme | Anlık bildirim göndermek | Sözleşmenin ifası; açık rıza (bildirim izni) | 60 gün görülmeyen anahtar gece temizlenir; çıkışta/hesap silmede silinir |
 | **Push bildirim kuyruğu:** hedef kullanıcı/cihaz, bildirim başlığı ve kısa metni, gönderim durumu | Anlık bildirimin kalıcı kuyruktan, yeniden denemeyle gönderilmesi | Sözleşmenin ifası | Bekleyen kayıt en çok 24 saat denenir; gönderilenler 7 gün, başarısız olanlar 30 gün sonra silinir; çıkışta/hesap silmede silinir |
 | **Cihaz kimliği ve IP kayıtları:** cihaz tanımlayıcısının geri döndürülemez özeti (HMAC), platform, uygulama sürümü, IP adresi, son görülme ve olay türü (kayıt/giriş/istek) | Güvenlik, kötüye kullanım ve yasaklı kullanıcı engelinin dolanılmasını önleme | Meşru menfaat (m.5/2-f); hukuki yükümlülük (m.5/2-ç) | Varsayılan **90 gün**; engel kayıtları engel sürdükçe (bkz. 6) |
-| **Kullanım olayları (analitik):** ekran adı, olay adı, sınırlı özellik değerleri, zaman; son görülme ve günlük aktiflik | Hizmeti iyileştirme, hata/performans takibi; raporlar toplulaştırılmıştır | Meşru menfaat (m.5/2-f) | Olaylar **180 gün** |
+| **Kullanım olayları (analitik):** ekran adı, olay adı, sınırlı özellik değerleri, zaman; son görülme ve günlük aktiflik | Hizmeti iyileştirme, hata/performans takibi; raporlar toplulaştırılmıştır | Meşru menfaat (m.5/2-f) | Ham olaylar **45 gün** (hesap silinince hemen); sonrasında yalnızca kişiye bağlı olmayan, toplulaştırılmış günlük özetler kalır. Günlük aktiflik kaydı (hangi günlerde uygulamayı açtığınız) **400 gün** (hesap silinince hemen) |
 | **Destek, geri bildirim, itiraz, rapor:** metinleriniz ve iletişim e-postanız | Taleplerin yanıtlanması, moderasyon | Sözleşmenin ifası; meşru menfaat; hukuki yükümlülük | Hesap silinince metinler temizlenir, kayıt kimliksiz kalır; herkese açık (girişsiz) destek talepleri 365 gün |
 | **Uygunsuz ifade filtresi kaydı:** hangi alanda, hangi kullanıcının içeriğinin reddedildiği/işaretlendiği ve zamanı (reddedilen metin kaydedilmez) | Herkese açık alanlarda kötüye kullanımın önlenmesi | Meşru menfaat (m.5/2-f) | 90 gün |
 | **Engelleme ve moderasyon kayıtları:** engellediğiniz kişiler, ihlal kayıtları, rapor kararları, yasak izleri | Güvenlik ve moderasyon | Meşru menfaat; hukuki yükümlülük | Moderasyon izi hesap silindikten sonra da kimliksiz tutulur |
-| **Yönetici erişim ve işlem kayıtları** (mesaj görüntüleme kaydı dahil) | Hesap verebilirlik, yetkisiz erişimin önlenmesi | Meşru menfaat; hukuki yükümlülük | Değiştirilemez biçimde tutulur; yasal/denetim saklama süresi boyunca |
+| **Yönetici erişim ve işlem kayıtları** (mesaj görüntüleme kaydı dahil) | Hesap verebilirlik, yetkisiz erişimin önlenmesi | Meşru menfaat; hukuki yükümlülük | Yönetici işlem kaydı (IP dahil) 365 gün; mesaj erişim kaydı ve kulüp yönetim işlem kaydı 730 gün (kayıtlar yalnız eklenir, değiştirilemez); süre sonunda silinir |
 | **Sözleşme onayları:** belge türü, sürüm, zaman | Rızanın/onayın ispatı | Hukuki yükümlülük; meşru menfaat | Hesap silindikten sonra da saklanır |
-| **E-posta kuyruğu:** alıcı, konu, gönderim durumu | Doğrulama/şifre sıfırlama/güvenlik e-postaları | Sözleşmenin ifası | Gönderilmiş veya başarısız kayıtlar 30 gün sonra silinir |
+| **E-posta kuyruğu:** alıcı, konu, gönderim durumu | Doğrulama/şifre sıfırlama/güvenlik e-postaları ve yönetici duyuruları | Sözleşmenin ifası; duyurularda meşru menfaat | Gönderilen kayıtlar 7 gün, başarısız (gönderilemeyen) kayıtlar 30 gün sonra silinir |
+| **Yönetici duyuru e-postaları (kampanya) kayıtları:** kampanya adı ve durumu, alıcı olarak kullanıcı kimliğiniz ve gönderim durumu | Hizmet ve topluluk duyurularının gönderilmesi (reklam/pazarlama değildir; e-postalardaki bağlantıdan abonelikten çıkabilirsiniz). Duyuruda ad, bölüm, fakülte, sınıf gibi profil alanları kişiselleştirme için kullanılabilir | Meşru menfaat (m.5/2-f); sözleşmenin ifası | Kampanya bitiminden 180 gün sonra silinir; hesap silinince alıcı satırınız hemen silinir |
 | **Rehber eşleştirme:** rehberinizdeki e-postaların SHA-256 özeti (yalnızca istek sırasında) | Rehberinizde tanıdıklarınızı bulmak | **Açık rıza** (m.5/1) | **Saklanmaz, kaydedilmez**; yalnızca isteğin işlenmesi süresince bellekte |
 | **Cihaz konumu** | — | — | Uygulama konum izni **istemez**; cihaz konumu (GPS/ağ) **toplanmaz, sunucuya gönderilmez ve saklanmaz** (bkz. 5) |
 
-> **Özetle:** İşlediğimiz her veri bir amaca bağlıdır; çoğu hesabınız açık olduğu sürece tutulur. Cihaz/IP kayıtları 90 gün, analitik olaylar 180 gün, bildirimler 90/365 gün, hikâyeler görünürlük bitiminden sonra 24 saat, e-posta kuyruğu 30 gün saklanır.
+> **Özetle:** İşlediğimiz her veri bir amaca bağlıdır; çoğu hesabınız açık olduğu sürece tutulur. Cihaz/IP kayıtları 90 gün, analitik ham olaylar 45 gün, günlük aktiflik kaydı 400 gün, bildirimler okunmuşsa 30/okunmamışsa 90 gün, e-posta kuyruğu 7 gün (başarısızsa 30 gün), duyuru kampanyası kayıtları 180 gün saklanır.
 
 ## 3. Mesajlarınız nasıl saklanır ve kim görebilir?
 
@@ -63,7 +63,7 @@ Veri sorumlusu: {{controller.name}}{{?controller.address}}, {{controller.address
 | Alıcı | Ne paylaşılır? | Amaç | Konum |
 |---|---|---|---|
 | **Google Firebase Cloud Messaging (FCM)** (ve iOS için Apple APNs) | Cihaz bildirim anahtarı, bildirim başlığı/kısa metni, hedef bilgisi | Anlık bildirim iletimi | Yurt dışı (Google/Apple altyapısı); bkz. KVKK Aydınlatma Metni |
-| **E-posta (SMTP) altyapısı** | Alıcı e-posta adresi, e-posta içeriği (doğrulama kodu vb.) | Doğrulama, şifre sıfırlama ve güvenlik e-postaları | {{hosting.location|Barındırma ve e-posta sağlayıcısının bulunduğu ülke}} |
+| **E-posta gönderim hizmeti sağlayıcısı: Brevo (SMTP)** (veri işleyen) | Alıcı e-posta adresi, e-posta içeriği (doğrulama kodu, duyuru metni; duyurularda kişiselleştirme için ad ve bölüm/fakülte/sınıf bilgisi) | Doğrulama, şifre sıfırlama, güvenlik e-postaları ve yönetici duyuruları | Yurt dışı olabilir (sağlayıcının sunucuları Avrupa'da veya başka ülkelerde bulunabilir); bkz. KVKK Aydınlatma Metni |
 | **Barındırma / sunucu sağlayıcısı** | Tüm hizmet verisi (şifreli mesajlar dahil) | Hizmetin barındırılması | {{hosting.location|Barındırma konumu yayın öncesi belirtilir}} |
 | **Yetkili kamu kurumları** (mahkeme, savcılık, kolluk, KVKK Kurulu vb.) | Talep kapsamındaki veri | Hukuki yükümlülük | Yurt içi |
 | **Üniversite yönetimi / yetkili yöneticiler** | Moderasyon ve destek için gerekli veri | Hizmetin yönetimi, güvenlik | Yurt içi |
@@ -86,16 +86,16 @@ Reklam ağları, veri komisyoncuları veya sosyal medya takip araçlarıyla veri
 
 ## 7. Hesap silme ve veri taşınabilirliği
 
-**Verilerimi indir:** Profil > Verilerimi indir ile kendi verilerinizi (günde 3 kez sınırla) JSON olarak indirebilirsiniz. Silinmiş mesajlar çıktıya dahil değildir.
+**Verilerimi indir:** Profil > Verilerimi indir ile kendi verilerinizi (günde 3 kez sınırla) JSON olarak indirebilirsiniz. Çıktı; profil ve gizlilik ayarlarınızı, onay kayıtlarınızı, mesajlarınızı ve sohbet üyeliklerinizi, gönderi ve beğenilerinizi, takiplerinizi, favori haberlerinizi, topluluk üyeliklerinizi ve gönderilerinizi, etkinlik katılım, başvuru ve yoklama kayıtlarınızı, oluşturduğunuz etkinlikleri, size gelen duyuru e-postası kampanyalarını, bildirimlerinizi ve cihaz kayıtlarınızı, destek taleplerinizi ve cihaz/IP geçmişinizi içerir. Silinmiş mesajlar çıktıya dahil değildir. Bir bölüm geçici olarak hazırlanamazsa o bölümde hata işareti görünür, diğer bölümler yine verilir.
 
 **Hesap silme = anonimleştirme.** Hesabınızı sildiğinizde:
 
 | Ne olur? | Hangi veriler |
 |---|---|
-| **Silinir** | Bildirim cihaz anahtarlarınız ve bekleyen push kayıtlarınız, bildirim kutunuz ve tercihleriniz, kaydedilen gönderileriniz, takip ilişkileriniz, hikâyeleriniz, ders programı ve sınav kayıtlarınız, anket katılım kaydınız, beğeni ve yorumlarınız (başkasının gönderisindeki yorumlar "silindi" olarak görünür), Keşfet gönderileriniz (medya dosyaları 30 gün sonra diskten kalkar), favori haberleriniz, geri bildirim oylarınız, etkinlik geri bildirimleriniz, engelleme listeniz, kulüp başvuru yanıtlarınız, topluluk üyelikleriniz (sahiplik devri yapılmadan sahip satırı silinmez), yüklediğiniz sohbet fotoğrafları |
+| **Silinir** | Bildirim cihaz anahtarlarınız ve bekleyen push kayıtlarınız, bildirim kutunuz ve tercihleriniz, takip ilişkileriniz, ders programı ve sınav kayıtlarınız, anket katılım kaydınız, beğenileriniz, Keşfet gönderileriniz (medya dosyaları 30 gün sonra diskten kalkar), favori haberleriniz, geri bildirim oylarınız, etkinlik geri bildirimleriniz, engelleme listeniz, kulüp başvuru yanıtlarınız, topluluk üyelikleriniz, duyuru e-postası kampanyalarındaki alıcı satırlarınız, yüklediğiniz sohbet fotoğrafları, **cihaz/IP kayıtlarınız, analitik olaylarınız ve günlük aktiflik kaydınız (hemen)**, kulüp gönderilerine eklediğiniz görseller (hemen, diskten). Etkinlik başvurularınız kapatılır (bekleme listesindeki sıradaki kişi yer alır) ve oluşturduğunuz, kulübe bağlı olmayan bitmemiş etkinlikler iptal edilir. **Kulüp sahibiyseniz:** sahiplik kulübün en eski aktif yöneticisine (yoksa moderatörüne) devredilir; devralacak kimse yoksa kulüp kapatılır ve üyelerine bildirilir |
 | **Anonimleştirilir** | Ad, e-posta, profil bilgileri, biyografi, fotoğraf; anket oy kayıtları (kullanıcı bağlantısı koparılır); destek, geri bildirim, itiraz, rapor ve etkinlik başvurusu metinleri temizlenir (kayıt kimliksiz kalır) |
 | **Korunur (sınırlı)** | Gönderdiğiniz mesajlar ve topluluk gönderileri (başkalarının sohbet bağlamının parçası; yazar "Silinmiş kullanıcı" gibi anonim görünür); sözleşme onay kayıtları (hukuki kanıt); moderasyon ihlal/rapor ve yasak izleri; anonim yoklama/RSVP sayaçları; yönetici işlem ve erişim kayıtları |
-| **Süreyle temizlenir** | Cihaz/IP kayıtları (90 gün), uygunsuz ifade filtresi kaydı (90 gün), analitik olaylar (180 gün), e-posta kuyruğu (30 gün) |
+| **Süreyle temizlenir** | Cihaz/IP kayıtları (90 gün), uygunsuz ifade filtresi kaydı (90 gün), analitik ham olaylar (45 gün), günlük aktiflik kaydı (400 gün), e-posta kuyruğu (gönderilen 7 gün, başarısız 30 gün), duyuru kampanyası kayıtları (180 gün), yönetici işlem kaydı (365 gün), mesaj erişim ve kulüp işlem kaydı (730 gün) |
 
 > **Özetle:** Hesabınızı silince kimliğiniz çıkar, kişisel veriniz silinir veya anonimleşir. Başkalarının haklarını ve yasal delil/güvenlik ihtiyacını korumak için bazı kayıtlar kimliksiz ve sınırlı olarak kalır.
 
@@ -124,13 +124,12 @@ KVKK m.11 uyarınca verilerinize erişme, düzeltme, silme, itiraz ve diğer hak
 
 Bu politikayı güncelleyebiliriz. Önemli değişikliklerde sizden yeniden onay alırız; güncel sürüm ve geçmiş bu sayfada yer alır.
 
-## 13. Gönderiler, hikâyeler, yorumlar ve içerik denetimi
+## 13. Gönderiler ve içerik denetimi
 
-1. **Kimler görür?** Gönderi, yorum, hikâye, etiket (#) ve anmalar (@) uygulamaya giriş yapmış diğer kullanıcılara gösterilir; engellediğiniz veya sizi engelleyen kullanıcılarla karşılıklı görünürlük kapanır. Uygulamada sunulan görünürlük seçenekleri ilgili ekranda gösterilir.
-2. **Anma ve etiket.** Bir gönderide `@` ile andığınız kullanıcıya bildirim gidebilir; `#` etiketleri gönderilerin etikete göre listelenmesi için kullanılır.
-3. **Hikâyeler** 24 saat görünür; kimin görüntülediği hikâye sahibi için kaydedilir; süre bitiminden 24 saat sonra kalıcı silinir.
-4. **Uygunsuz ifade filtresi.** Topluluk, etkinlik, profil, gönderi, yorum ve hikâye gibi herkese açık alanlarda küfür, hakaret ve benzeri ifadeler otomatik olarak reddedilebilir. **Sohbet mesajları (birebir ve grup) ön denetimden geçirilmez.** Filtre yalnızca kayıt anında çalışır; hangi alanın, hangi kullanıcının içeriğinin reddedildiği 90 gün saklanır, reddedilen metin kaydedilmez. Reddedilen içerik yayımlanmaz; karar insan incelemesi olmadan otomatik verilir ve itirazınızı Destek bölümünden iletebilirsiniz.
-5. **Şikâyet ve kaldırma.** Gönderi, yorum, hikâye ve mesajlar **Bildir** ile şikâyet edilebilir; yetkili yöneticiler inceler, içeriği gizleyebilir veya kaldırabilir. Usul için [İçerik Bildirimi ve Kaldırma](/legal/content-removal) ve [Topluluk Kuralları](/legal/community-rules) metinlerine bakın.
+1. **Kimler görür?** Gönderiler uygulamaya giriş yapmış diğer kullanıcılara gösterilir; engellediğiniz veya sizi engelleyen kullanıcılarla karşılıklı görünürlük kapanır. Uygulamada sunulan görünürlük seçenekleri ilgili ekranda gösterilir.
+2. **Kulüp gönderisi görselleri.** Kulüp gönderisine eklediğiniz görsel, gönderiyi sildiğinizde, kulüp kapandığında veya hesabınızı sildiğinizde bağlantısı kaldırılır ve dosya diskten silinir.
+3. **Uygunsuz ifade filtresi.** Topluluk, etkinlik, profil ve gönderi gibi herkese açık alanlarda küfür, hakaret ve benzeri ifadeler otomatik olarak reddedilebilir. **Sohbet mesajları (birebir ve grup) ön denetimden geçirilmez.** Filtre yalnızca kayıt anında çalışır; hangi alanın, hangi kullanıcının içeriğinin reddedildiği 90 gün saklanır, reddedilen metin kaydedilmez. Reddedilen içerik yayımlanmaz; karar insan incelemesi olmadan otomatik verilir ve itirazınızı Destek bölümünden iletebilirsiniz.
+4. **Şikâyet ve kaldırma.** Gönderi ve mesajlar **Bildir** ile şikâyet edilebilir; yetkili yöneticiler inceler, içeriği gizleyebilir veya kaldırabilir. Usul için [İçerik Bildirimi ve Kaldırma](/legal/content-removal) ve [Topluluk Kuralları](/legal/community-rules) metinlerine bakın.
 
 ## 14. İletişim
 

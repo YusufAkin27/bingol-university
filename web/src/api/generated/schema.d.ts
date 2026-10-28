@@ -2372,8 +2372,10 @@ export interface components {
             appName?: string | null;
             banner?: components["schemas"]["Banner"] | null;
             contactEmail?: string | null;
+            kvkkEmail?: string | null;
             languages?: string[];
             maintenance?: components["schemas"]["Maintenance"] | null;
+            operatorName?: string | null;
             phone?: string | null;
             social?: components["schemas"]["Social"] | null;
             supportEmail?: string | null;

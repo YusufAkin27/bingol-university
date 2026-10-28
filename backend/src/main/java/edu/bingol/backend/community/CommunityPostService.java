@@ -117,6 +117,17 @@ public class CommunityPostService {
         p.setDeleted(true);
         p.setPinned(false);
         posts.save(p);
+        if (postMedia != null) {
+            postMedia.release(List.of(p)); // KVKK: gorsel alandan kalkar, dosya diskten silinir
+        }
+    }
+
+    /** Gorsel temizligi (testlerde yoksa atlanir). */
+    private CommunityPostMedia postMedia;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPostMedia(CommunityPostMedia postMedia) {
+        this.postMedia = postMedia;
     }
 
     @Transactional

@@ -12,6 +12,10 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
 
     Optional<CommunityMember> findByCommunityIdAndUserId(Long communityId, Long userId);
 
+    /** Sahip silinince devir adayi: verilen rollerdeki aktif uyeler, en eski katilan once. */
+    List<CommunityMember> findByCommunityIdAndStatusAndRoleInOrderByJoinedAtAscIdAsc(
+            Long communityId, CommunityMember.Status status, Collection<CommunityMember.Role> roles);
+
     long countByCommunityIdAndStatus(Long communityId, CommunityMember.Status status);
 
     /** Uye listesi / bekleyen istekler: id'ye gore artan, engellenenler haric. */

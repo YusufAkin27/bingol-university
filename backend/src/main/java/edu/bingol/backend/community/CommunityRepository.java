@@ -15,6 +15,9 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
 
     boolean existsBySlug(String slug);
 
+    /** Hesap silme: kullanicinin sahibi oldugu topluluklar (verilen durumlarda). */
+    List<Community> findByOwnerIdAndStatusIn(Long ownerId, Collection<Community.Status> statuses);
+
     /** Topluluk satirini kilitler: gunluk duyuru siniri gibi say-sonra-ekle kontrollerini seri hale getirir. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c.id FROM Community c WHERE c.id = :id")

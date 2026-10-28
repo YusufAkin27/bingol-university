@@ -78,7 +78,17 @@ public final class CommunityReportHandlers {
                 p.setDeleted(true);
                 p.setPinned(false);
                 posts.save(p);
+                if (postMedia != null) {
+                    postMedia.release(java.util.List.of(p));
+                }
             });
+        }
+
+        private CommunityPostMedia postMedia;
+
+        @org.springframework.beans.factory.annotation.Autowired(required = false)
+        void setPostMedia(CommunityPostMedia postMedia) {
+            this.postMedia = postMedia;
         }
     }
 }

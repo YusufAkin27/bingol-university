@@ -31,9 +31,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class LegalController {
 
     private final LegalService legal;
+    private final boolean enforceReaccept;
 
-    public LegalController(LegalService legal) {
+    public LegalController(LegalService legal,
+                           @org.springframework.beans.factory.annotation.Value("${app.legal.enforce-reaccept:false}") boolean enforceReaccept) {
         this.legal = legal;
+        this.enforceReaccept = enforceReaccept;
     }
 
     private static Lang lang() {
@@ -72,11 +75,26 @@ public class LegalController {
         return legal.pending(CurrentUser.id(), lang());
     }
 
-    @PostMapping("/legal/consents")
+    /**
+     * Istemci kapisi: yeniden onay bekleyen belgeler (bos = serbest). `enforced` true ise bekleyen onay varken yazma
+     * uclari 403 LEGAL_REACCEPT_REQUIRED doner (okuma, hesap silme, veri indirme, cikis, destek ve legal uclari haric).
+     */
+    @GetMapping("/legal/acceptance-status")
+    public AcceptanceStatus acceptanceStatus() {
+        List<RequiredItem> items = legal.pending(CurrentUser.id(), lang()).stream()
+                .map(p -> new RequiredItem(p.type(), p.version())).toList();
+        return new AcceptanceStatus(items, enforceReaccept);
+    }
+
+    @PostMapping({"/legal/consents", "/legal/accept"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void accept(@Valid @RequestBody AcceptRequest r) {
         legal.accept(CurrentUser.id(), r.items());
     }
+
+    public record RequiredItem(LegalType type, int version) {}
+
+    public record AcceptanceStatus(List<RequiredItem> requiresAcceptance, boolean enforced) {}
 
     @GetMapping("/legal/consents/mine")
     public List<AcceptanceView> mine() {

@@ -647,4 +647,27 @@ class EventAdmissionServiceTest {
         assertEquals(Mode.OPEN, config.getMode());
         verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
     }
+
+    @Test
+    void deletedUsersOpenApplicationsAreCancelledAndWaitlistIsPromoted() {
+        EventApplication accepted = app(10L, 1L, Status.ACCEPTED);
+        EventApplication rejected = new EventApplication(EVENT_ID, 1L);
+        rejected.setId(11L);
+        rejected.setStatus(Status.REJECTED);
+        when(apps.findByUserIdOrderByIdDesc(1L)).thenReturn(List.of(accepted, rejected));
+        EventApplication w1 = app(20L, 2L, Status.WAITLISTED);
+        when(eventRepo.findById(EVENT_ID)).thenReturn(Optional.of(event));
+        when(eventRows.capacityOf(EVENT_ID)).thenReturn(1);
+        when(eventRepo.goingCount(EVENT_ID)).thenReturn(0, 1);
+        when(apps.waitlist(eq(EVENT_ID), eq(Status.WAITLISTED), any(Pageable.class))).thenAnswer(inv ->
+                w1.getStatus() == Status.WAITLISTED ? List.of(w1) : List.of());
+        when(eventRepo.tryIncrementGoing(EVENT_ID)).thenReturn(1);
+        when(rsvps.findByEventIdAndUserId(eq(EVENT_ID), anyLong())).thenReturn(Optional.empty());
+
+        svc.onUserDeleted(1L, List.of());
+
+        assertEquals(Status.CANCELLED, accepted.getStatus());
+        assertEquals(Status.REJECTED, rejected.getStatus()); // kapanmis durum degismez
+        assertEquals(Status.ACCEPTED, w1.getStatus()); // siradaki terfi etti
+    }
 }

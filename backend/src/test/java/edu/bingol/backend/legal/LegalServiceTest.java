@@ -114,4 +114,27 @@ class LegalServiceTest {
         when(settings.findAll()).thenReturn(List.of());
         assertThat(service.render("{{controller.jurisdiction|Bingöl}} mahkemeleri")).isEqualTo("Bingöl mahkemeleri");
     }
+
+    @Test
+    void bilgilendirmeSurumuEskiZorunluOnayiDusurmez() {
+        // Aktif surum 6 yalniz bilgilendirme (false); surum 5 zorunluydu. Kullanici yalniz 4'u onaylamis -> bekler.
+        LegalDocument current = docLang(LegalType.PRIVACY, "tr", 6, true);
+        current.setRequireReaccept(false);
+        when(docs.findByActiveTrue()).thenReturn(List.of(current));
+        when(docs.maxReacceptVersion(LegalType.PRIVACY)).thenReturn(5);
+        when(acc.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(1L, LegalType.PRIVACY, 5)).thenReturn(false);
+        assertThat(service.pending(1L, Lang.TR)).extracting("version").containsExactly(6);
+        // 5'i onaylayan (ya da yeni kayit olan) kullanici beklemez
+        when(acc.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(1L, LegalType.PRIVACY, 5)).thenReturn(true);
+        assertThat(service.pending(1L, Lang.TR)).isEmpty();
+    }
+
+    @Test
+    void hicZorunluSurumYoksaBekleyenOnayYok() {
+        LegalDocument current = docLang(LegalType.KVKK, "tr", 3, true);
+        current.setRequireReaccept(false);
+        when(docs.findByActiveTrue()).thenReturn(List.of(current));
+        when(docs.maxReacceptVersion(LegalType.KVKK)).thenReturn(0);
+        assertThat(service.pending(1L, Lang.TR)).isEmpty();
+    }
 }

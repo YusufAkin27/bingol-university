@@ -62,6 +62,10 @@ export interface AppInfo {
   banner: { text: string; url: string | null } | null;
   maintenance: { enabled: boolean; message: string | null };
   languages: Lang[];
+  /** Uygulamayı işleten / veri sorumlusunun adı (`legal.controller.name`); ayar boşsa null. Adres/kimlik gelmez. */
+  operatorName?: string | null;
+  /** KVKK başvuru e-postası (`legal.controller.email`); ayar boşsa null. */
+  kvkkEmail?: string | null;
   /** Sözleşmede mağaza bağlantıları; mevcut backend bunları `GET /app/version` ile verir. */
   stores?: { android?: string | null; ios?: string | null };
 }

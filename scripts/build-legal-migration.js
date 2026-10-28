@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // docs/legal/<tur>_<dil>.md dosyalarindan guncel sozlesme migration'ini uretir: V480__legal_texts_v3.sql
-// (V290 ve V370 onceki nesillerdir, DONDURULMUSTUR; bu betik yalniz V480'i yazar. Sonraki metin degisikliginde yeni bir V48x ekleyin.)
+// (V290 ve V370 onceki nesillerdir, DONDURULMUSTUR. V480 de artik DONDURULDU: docs/legal V620'de duzeltildi, bu betik V480'i
+// yeniden URETMEZ. Sonraki metin degisikligi: scripts/build-legal-migration-v620.js ornegiyle yeni bir V62x betigi/migration'i.)
 // Kullanim: node scripts/build-legal-migration.js [--check]   (--check: dosyayi yazmadan ayni mi diye bakar)
 // Tek dogruluk kaynagi Markdown dosyalaridir; SQL'i elle DUZENLEMEYIN.
 'use strict';
@@ -12,6 +13,10 @@ const SRC = path.join(ROOT, 'docs', 'legal');
 const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V480__legal_texts_v3.sql');
 // V480'de tr/en metni degisen turler: yeni surum (tr+en+ar). Digerlerine yalniz mevcut aktif surume ar eklenir (yeniden onay uretmez).
 const CHANGED = new Set(['TERMS', 'PRIVACY', 'CONTENT_REMOVAL']);
+if (!process.argv.includes('--regenerate-frozen-v480')) {
+  console.error('V480 donduruldu (docs/legal V620 icin degisti). Yeni metin: node scripts/build-legal-migration-v620.js');
+  process.exit(0);
+}
 
 // [dosya oneki, LegalType, kayitta zorunlu onay / yeniden onay]
 const TYPES = [

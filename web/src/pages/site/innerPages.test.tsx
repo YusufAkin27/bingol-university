@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
 import { dictionaries } from '../../i18n';
@@ -51,23 +51,41 @@ function renderAt(route: string, lang: 'tr' | 'en' | 'ar' = 'tr') {
 describe('hesap silme sayfası (Google Play veri silme gereği)', () => {
   it('silme tablosu anahtarları tr/en/ar üçünde dolu', () => {
     for (const lang of ['tr', 'en', 'ar'] as const)
-      for (const k of [...deleteTableKeys(), 'pg.delete.app', 'pg.delete.dev', 'pg.delete.s6.h', 'pg.delete.s6.p1']) {
+      for (const k of [...deleteTableKeys(), 'pg.delete.app', 'pg.delete.app.nodev', 'pg.delete.s6.h', 'pg.delete.s6.p1']) {
         const v = (dictionaries[lang] as Record<string, string>)[k];
         expect(v?.trim(), `${lang}:${k}`).toBeTruthy();
       }
   });
 
-  it('uygulama + geliştirici satırı, saklama süreleri ve /data-request yolu', async () => {
+  it('geliştirici adı ayardan gelir (operatorName); ayar boşsa yalnız "Bağımsız uygulama"; üniversite adı yok', async () => {
+    mockFetch((url) =>
+      url.includes('/app/info') ? jsonResponse(200, { ...emptyInfo, operatorName: 'Yusuf Akın' }) : jsonResponse(404, {}),
+    );
+    renderWithProviders(
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>,
+      { route: '/delete-account', lang: 'tr' },
+    );
+    await screen.findByRole('heading', { level: 1, name: 'Hesap silme' });
+    await waitFor(() =>
+      expect(screen.getByTestId('delete-app-line')).toHaveTextContent(
+        'Uygulama: BÜ Kampüs · Geliştirici: Yusuf Akın · Bağımsız uygulama',
+      ),
+    );
+    expect(screen.getByTestId('delete-app-line')).not.toHaveTextContent('Bingöl Üniversitesi');
+  });
+
+  it('uygulama satırı, saklama süreleri ve /data-request yolu', async () => {
     renderAt('/delete-account');
     await screen.findByRole('heading', { level: 1, name: 'Hesap silme' });
-    expect(screen.getByTestId('delete-app-line')).toHaveTextContent(
-      'Uygulama: BÜ Kampüs · Geliştirici: Bingöl Üniversitesi',
-    );
+    expect(screen.getByTestId('delete-app-line')).toHaveTextContent('Uygulama: BÜ Kampüs · Bağımsız uygulama');
+    expect(screen.getByTestId('delete-app-line')).not.toHaveTextContent('Bingöl Üniversitesi');
     const table = screen.getByRole('table', { name: /silinen ve saklanan veriler/i });
     const text = table.textContent ?? '';
     for (const n of ['45 gün', '90 gün', '365 gün', '7 gün', '30 gün']) expect(text).toContain(n);
     expect(within(table).getAllByRole('columnheader')).toHaveLength(3);
-    expect(screen.getAllByRole('link').some((a) => a.getAttribute('href') === '/data-request')).toBe(true);
+    expect(screen.getAllByRole('link').some((a) => /^(\/(tr|en|ar))?\/data-request$/.test(a.getAttribute('href') ?? ''))).toBe(true);
   });
 });
 
@@ -77,7 +95,7 @@ describe('alt bilgi', () => {
     const footer = await screen.findByRole('contentinfo');
     const heading = within(footer).getByRole('heading', { name: 'İletişim' });
     expect(heading).toBeInTheDocument();
-    expect(within(footer).getByRole('link', { name: 'Bize yazın' })).toHaveAttribute('href', '/contact');
+    expect(within(footer).getByRole('link', { name: 'Bize yazın' })).toHaveAttribute('href', expect.stringMatching(/^(\/(tr|en|ar))?\/contact$/));
   });
 
   it('mobilde bağlantı grupları akordeondur (aria-expanded), masaüstünde düz listedir', async () => {
