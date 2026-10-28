@@ -9,7 +9,8 @@ import {
   type ReactNode,
 } from 'react';
 import { isolateLatinIdentifiers } from './bidi';
-import { translate, hasKey, type TParams, type TranslationKey } from './index';
+import type { TParams, TranslationKey } from './index';
+import { hasKey, isLoaded, loadDictionary, translate, type DictScope } from './registry';
 import {
   applyDocumentLang,
   dirOf,
@@ -49,18 +50,57 @@ export function I18nProvider({
   children,
   initialLang,
   forcedLang,
+  scope = 'site',
 }: {
   children: ReactNode;
   initialLang?: Lang;
   /** Verilirse dil sabittir (yönetim paneli: tr): seçim yazılmaz, siteye ait tercih korunur. */
   forcedLang?: Lang;
+  /** Yüklenecek sözlük kapsamı: 'admin' site sözlüğüne ek olarak yönetim sözlüğünü de indirir (yalnız /admin). */
+  scope?: DictScope;
 }) {
   const [stateLang, setLangState] = useState<Lang>(initialLang ?? getCurrentLang);
-  const lang = forcedLang ?? stateLang;
+  const wanted = forcedLang ?? stateLang;
+  const scopes = useMemo<DictScope[]>(() => (scope === 'admin' ? ['site', 'admin'] : ['site']), [scope]);
+  const ready = (l: Lang) => scopes.every((s) => isLoaded(l, s));
 
-  // İlk boyamada <html lang dir> senkron olsun
+  // Sözlük dil başına lazy yüklenir: yüklenene dek önceki dil gösterilir (ilk açılışta hiçbir şey çizilmez, yanıp sönme olmaz).
+  // Yükleme hatasında görünen dil korunur; hiç dil yoksa Türkçe yedeğe, o da yoksa anahtar metinlerine düşülür.
+  const [shown, setShown] = useState<Lang | null>(() => (ready(wanted) ? wanted : null));
+  const lang: Lang | null = ready(wanted) ? wanted : shown;
+
   useEffect(() => {
-    applyDocumentLang(lang);
+    if (ready(wanted)) {
+      setShown(wanted);
+      return;
+    }
+    let cancelled = false;
+    const loadAll = (l: Lang) => Promise.all(scopes.map((s) => loadDictionary(l, s)));
+    loadAll(wanted).then(
+      () => {
+        if (!cancelled) setShown(wanted);
+      },
+      () => {
+        if (cancelled) return;
+        if (shown) return;
+        loadAll('tr').then(
+          () => !cancelled && setShown('tr'),
+          () => !cancelled && setShown(wanted),
+        );
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // ready/shown türevleri: yalnız hedef dil ve kapsam değişince yeniden dene
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, scopes]);
+
+  const effective: Lang = lang ?? wanted;
+
+  // İlk boyamada <html lang dir> senkron olsun (görünen dile göre)
+  useEffect(() => {
+    if (lang) applyDocumentLang(lang);
   }, [lang]);
 
   // Sabitleme: API istekleri (Accept-Language) de bu dili kullanır; çıkınca site dili geri gelir
@@ -85,6 +125,7 @@ export function I18nProvider({
   );
 
   const value = useMemo<I18n>(() => {
+    const lang = effective;
     const locale = localeOf(lang);
     // Arapça cümle içindeki alan adı/e-posta/URL soldan sağa yalıtılır (bkz. bidi.ts)
     const bidi = lang === 'ar' ? isolateLatinIdentifiers : (s: string) => s;
@@ -95,7 +136,7 @@ export function I18nProvider({
       setLang,
       t: (key, params) => bidi(translate(lang, key, params)),
       td: (key, fallback, params) =>
-        hasKey(key) ? bidi(translate(lang, key, params)) : (fallback ?? key.split('.').pop() ?? key),
+        hasKey(key, lang) ? bidi(translate(lang, key, params)) : (fallback ?? key.split('.').pop() ?? key),
       formatDate: (v, opts) => {
         const d = toDate(v);
         return d ? new Intl.DateTimeFormat(locale, opts ?? { dateStyle: 'medium' }).format(d) : '—';
@@ -108,8 +149,10 @@ export function I18nProvider({
       },
       formatNumber: (n, opts) => new Intl.NumberFormat(locale, opts).format(n),
     };
-  }, [lang, setLang]);
+  }, [effective, setLang]);
 
+  // Hiçbir sözlük yokken (ilk yükleme) anahtar metni göstermemek için çizimi ertele
+  if (lang === null) return null;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

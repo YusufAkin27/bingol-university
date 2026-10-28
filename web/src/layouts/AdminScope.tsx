@@ -8,7 +8,7 @@ import { I18nProvider } from '../i18n/I18nProvider';
  */
 export function AdminScope() {
   return (
-    <I18nProvider forcedLang="tr">
+    <I18nProvider forcedLang="tr" scope="admin">
       <Outlet />
     </I18nProvider>
   );

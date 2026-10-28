@@ -7,7 +7,7 @@ import { buildNewFaq, NEW_FAQ_IDS } from './components/newFaq';
 import FaqPage from './FaqPage';
 import FeaturesPage from './FeaturesPage';
 import LegalListPage from './LegalListPage';
-import { dictionaries } from '../../i18n';
+import { dictionaries } from '../../i18n/all';
 import { translate } from '../../i18n';
 
 describe('Tanıtım sitesi: yeni özellikler', () => {

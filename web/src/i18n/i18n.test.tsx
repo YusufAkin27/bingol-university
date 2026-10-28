@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { dictionaries, hasKey, translate } from './index';
+import { dictionaries } from './all';
+import { hasKey, translate } from './index';
 import { I18nProvider, useI18n } from './I18nProvider';
 import { getCurrentLang, getStoredLang } from './lang';
 

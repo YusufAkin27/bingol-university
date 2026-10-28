@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
 import { setTokens } from '../../auth/tokens';
-import { dictionaries } from '../../i18n';
+import { dictionaries } from '../../i18n/all';
 import { AppRoutes } from '../../routes';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';

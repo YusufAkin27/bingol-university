@@ -2,7 +2,7 @@
  * `<head>` SEO etiketlerinin saf modeli. Çalışma zamanı (`usePageMeta`, DOM'a yazar) ve derleme zamanı
  * önrender (HTML dizgesi üretir) aynı modeli kullanır; böylece iki çıktı birbirinden ayrışmaz.
  */
-import { dictionaries } from '../i18n';
+import { translate } from '../i18n/registry';
 import { LANGS, dirOf, type Lang } from '../i18n/lang';
 
 export const DEFAULT_PUBLIC_URL = 'https://bukampus.net';
@@ -59,8 +59,7 @@ export interface HeadInput {
   canonicalPath?: string;
 }
 
-const t = (lang: Lang, key: string): string =>
-  (dictionaries[lang] as Record<string, string>)[key] ?? (dictionaries.tr as Record<string, string>)[key] ?? key;
+const t = (lang: Lang, key: string): string => translate(lang, key);
 
 export function buildHeadModel(i: HeadInput): HeadModel {
   const canonicalPath = i.canonicalPath ?? i.path;

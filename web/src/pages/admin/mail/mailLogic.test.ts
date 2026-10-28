@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../../../api/client';
-import { dictionaries, translate } from '../../../i18n';
+import { dictionaries } from '../../../i18n/all';
+import { translate } from '../../../i18n';
 import {
   audienceReady,
   buildAudience,

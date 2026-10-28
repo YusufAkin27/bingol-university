@@ -4,7 +4,7 @@
 //         dist/index.html (kök), dist/sitemap.xml, dist/robots.txt, dist/.well-known/security.txt ({{ORIGIN}} doldurulur).
 // Köken: PUBLIC_WEB_URL (yoksa VITE_PUBLIC_URL, yoksa https://bukampus.net). Headless tarayıcı gerekmez.
 // Mantık src/seo/*.ts içindedir (testli); bu dosya yalnızca dosya sistemi ve doğrulama işini yapar.
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
@@ -39,8 +39,50 @@ try {
   await server.close();
 }
 
+// Parça ipuçları: sözlük ve sayfa parçaları HTML'den önceden istenir (modulepreload), böylece ana paket çalışınca
+// sırayla indirme şelalesi oluşmaz. Kaynak: vite manifest'i (build.manifest); yoksa ipucu verilmez, site yine çalışır.
+const manifestPath = join(dist, '.vite', 'manifest.json');
+const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
+const PAGE_SRC = {
+  home: 'HomePage', features: 'FeaturesPage', about: 'AboutPage', download: 'DownloadPage', news: 'NewsListPage',
+  menu: 'MenuPage', help: 'HelpPage', faq: 'FaqPage', contact: 'ContactPage', brand: 'BrandPage',
+  changelog: 'ChangelogPage', deleteAccount: 'DeleteAccountPage', dataRequest: 'DataRequestPage',
+  privacy: 'LegalPage', terms: 'LegalPage', legal: 'LegalListPage', legalKvkk: 'LegalPage',
+  legalCommunityRules: 'LegalPage', legalExplicitConsent: 'LegalPage', legalContentRemoval: 'LegalPage',
+  legalRetention: 'LegalPage', cookies: 'CookiesPage', guidelines: 'CommunityGuidelinesPage',
+  accessibility: 'AccessibilityPage', security: 'SecurityPage', sitemap: 'SitemapPage',
+};
+// girdi paketinin (index.html) zaten yüklediği dosyalar yeniden ipucu olmasın
+// (SEO bloğu hariç: betik yeniden çalışınca önceki ipuçları girdi sayılmasın)
+const templateNoSeo = template.replace(/<!--seo:start-->[\s\S]*?<!--seo:end-->/, '');
+const entryFiles = new Set(
+  [...templateNoSeo.matchAll(/(?:src|href)="\/(assets\/[^"]+\.js)"/g)].map((m) => m[1]),
+);
+function closure(srcKey) {
+  const js = [];
+  const css = [];
+  const seen = new Set();
+  const walk = (k) => {
+    const c = manifest?.[k];
+    if (!c || seen.has(k)) return;
+    seen.add(k);
+    if (!entryFiles.has(c.file)) js.push('/' + c.file);
+    for (const f of c.css ?? []) css.push('/' + f);
+    for (const i of c.imports ?? []) walk(i);
+  };
+  walk(srcKey);
+  return { js, css };
+}
+const hints = manifest
+  ? {
+      dictionary: (lang) => closure(`src/i18n/bundles/site.${lang}.ts`).js,
+      page: (id) => (PAGE_SRC[id] ? closure(`src/pages/site/${PAGE_SRC[id]}.tsx`) : { js: [], css: [] }),
+    }
+  : undefined;
+if (!hints) console.warn('prerender: vite manifest yok, modulepreload ipuçları atlandı');
+
 const buildDate = new Date().toISOString().slice(0, 10);
-const result = mod.prerender({ template, origin, buildDate });
+const result = mod.prerender({ template, origin, buildDate, hints });
 const resolvedOrigin = origin.replace(/\/+$/, '') || 'https://bukampus.net';
 
 for (const [rel, html] of result.files) {
@@ -54,6 +96,9 @@ const secPath = join(dist, '.well-known', 'security.txt');
 if (existsSync(secPath)) {
   writeFileSync(secPath, mod.renderSecurityTxt(readFileSync(secPath, 'utf8'), resolvedOrigin), 'utf8');
 }
+
+// manifest yalnızca derleme aracıdır; yayına girmesin
+rmSync(join(dist, '.vite'), { recursive: true, force: true });
 
 // --- doğrulama: yer tutucu kalmamalı, kritik sayfalar eksiksiz olmalı ---
 function walk(dir, out = []) {

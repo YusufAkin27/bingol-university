@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 import { clearTokens } from '../auth/tokens';
+import '../i18n/all'; // tüm sözlükler eşzamanlı kayıtlı (uygulamada dil başına lazy yüklenir)
 import { setCurrentLang } from '../i18n/lang';
 
 // Paket paralel calisirken yavas makinelerde findBy* varsayilan 1 sn yetmeyebiliyor

@@ -9,21 +9,13 @@ const site = {
   'site.nav.main': 'Ana menü',
   'site.nav.openMenu': 'Menüyü aç',
   'site.nav.closeMenu': 'Menüyü kapat',
-  'site.nav.admin': 'Yönetici girişi',
   'site.footer.tagline': 'Duyurular, etkinlikler, yemek listesi ve kampüs topluluğu cebinizde.',
-  'site.footer.legal': 'Yasal',
-  'site.footer.get': 'Uygulamayı edinin',
-  'site.footer.contact': 'İletişim',
   'site.footer.rights': '© {year} BÜ Kampüs. Tüm hakları saklıdır.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
   'site.store.getItOn': 'Şuradan indirin',
   'site.store.downloadOn': 'Şuradan indirin',
   'site.store.soon': 'Yakında',
-  'site.store.playMain': 'Google Play’den edinin',
-  'site.store.appleMain': 'App Store’dan indirin',
-  'site.store.playTop': 'Android için',
-  'site.store.appleTop': 'iPhone ve iPad için',
   'site.store.soonNote': 'Mağaza bağlantısı henüz yayınlanmadı. Yayınlandığında bu düğme çalışır hâle gelecek.',
   'site.store.newTab': 'Yeni sekmede açılır',
 
@@ -35,10 +27,8 @@ const site = {
   'site.meta.contact': 'BÜ Kampüs uygulaması için iletişim bilgileri ve uygulama içi destek talebi.',
   'site.meta.dataRequest': 'KVKK kapsamındaki haklarınız, verilerinizi indirme, hesabınızı silme ve başvuru yolları.',
   'site.meta.legal': 'Kullanım koşulları, gizlilik politikası, KVKK aydınlatma metni ve topluluk kuralları.',
-  'site.mock.alt': 'Uygulama ekranının şematik çizimi',
   'site.maintenance.title': 'Bakım çalışması',
 
-  'site.home.title': 'Ana sayfa',
   'site.home.heroTitle': 'Kampüs hayatı tek uygulamada',
   'site.home.heroLead':
     'Duyurular, haberler, etkinlikler, yemek listesi ve öğrenci toplulukları BÜ Kampüs uygulamasında.',
@@ -122,7 +112,6 @@ const site = {
   'site.about.whoText':
     'Uygulama, Bingöl Üniversitesi bünyesinde bir üniversite projesi olarak geliştirilmektedir.',
   'site.about.whoContact': 'İletişim bilgileri uygulama yönetimi tarafından girilir.',
-  'site.about.website': 'Resmî web sitesi',
   'site.about.readPrivacy': 'Gizlilik politikası ve KVKK metni',
 
   'site.download.title': 'Uygulamayı indir',
@@ -158,7 +147,6 @@ const site = {
   'site.contact.address': 'Adres',
   'site.contact.website': 'Web sitesi',
   'site.contact.social': 'Sosyal medya',
-  'site.contact.sendMail': 'E-posta gönder',
   'site.contact.inAppTitle': 'Uygulama içinden destek talebi',
   'site.contact.inAppText':
     'Giriş yaptıysanız destek talebini doğrudan uygulamadan açın; yanıtı da uygulamada görürsünüz.',

@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
-import { dictionaries } from '../../i18n';
+import { dictionaries } from '../../i18n/all';
 import { COOKIE_KEY, hasAcknowledgedCookies, resetCookieChoice } from '../../lib/cookieConsent';
 import { isoDate } from '../../lib/date';
 import { shiftMonth } from './MenuPage';

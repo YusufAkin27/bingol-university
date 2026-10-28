@@ -21,7 +21,6 @@ const legal = {
   'legal.versions': 'Previous versions',
   'legal.versionsNone': 'There are no other versions.',
   'legal.versionRow': 'Version {version}, {date}',
-  'legal.current': 'Current',
   'legal.fallbackLang': 'This document is not published in your language, so the Turkish version is shown.',
   'legal.otherDocs': 'Other documents',
   'legal.allDocs': 'All documents',

@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "check:bundle": "node scripts/check-bundle-size.mjs",
     "check:contract": "node scripts/check-admin-contract.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

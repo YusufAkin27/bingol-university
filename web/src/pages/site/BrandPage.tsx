@@ -210,7 +210,7 @@ export default function BrandPage() {
               <p className={shared.muted}>{t('pg.brand.space.text')}</p>
               <div className={styles.spaceBox} aria-hidden="true">
                 <div className={styles.spaceInner}>
-                  <img src="/brand/horizontal-light.svg" alt="" height={64} />
+                  <img src="/brand/horizontal-light.svg" alt="" height={64} loading="lazy" decoding="async" />
                 </div>
                 <span className={`${styles.x} ${styles.xTop}`}>x</span>
                 <span className={`${styles.x} ${styles.xBottom}`}>x</span>
@@ -223,15 +223,15 @@ export default function BrandPage() {
               <p className={shared.muted}>{t('pg.brand.min.text')}</p>
               <ul className={styles.minRow}>
                 <li>
-                  <img src="/brand/mark.svg" alt="" width={16} height={16} />
+                  <img src="/brand/mark.svg" alt="" width={16} height={16} loading="lazy" decoding="async" />
                   <span>{t('pg.brand.min.mark')}</span>
                 </li>
                 <li>
-                  <img src="/brand/horizontal-light.svg" alt="" height={28} />
+                  <img src="/brand/horizontal-light.svg" alt="" height={28} loading="lazy" decoding="async" />
                   <span>{t('pg.brand.min.horizontal')}</span>
                 </li>
                 <li>
-                  <img src="/brand/vertical-light.svg" alt="" height={64} />
+                  <img src="/brand/vertical-light.svg" alt="" height={64} loading="lazy" decoding="async" />
                   <span>{t('pg.brand.min.vertical')}</span>
                 </li>
               </ul>
@@ -246,7 +246,7 @@ export default function BrandPage() {
             <ul className={styles.donts}>
               <li className={styles.dont}>
                 <div className={`${styles.preview} ${styles.light}`}>
-                  <img src="/brand/horizontal-light.svg" alt="" height={56} />
+                  <img src="/brand/horizontal-light.svg" alt="" height={56} loading="lazy" decoding="async" />
                   <span className={`${styles.badge} ${styles.badgeOk}`}>
                     <Icon name="check" size={14} />
                     <span className="sr-only">{t('pg.brand.do.label')}</span>
@@ -261,6 +261,8 @@ export default function BrandPage() {
                       className={styles[`bad_${k}`]}
                       src={k === 'busy' ? '/brand/horizontal-light.svg' : '/brand/mark.svg'}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       height={56}
                     />
                     <span className={`${styles.badge} ${styles.badgeNo}`}>

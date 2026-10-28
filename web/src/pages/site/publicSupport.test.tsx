@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
-import { dictionaries } from '../../i18n';
+import { dictionaries } from '../../i18n/all';
 import { isoDate } from '../../lib/date';
 import { validatePublicForm } from '../../api/publicSupport';
 import { resetCookieChoice } from '../../lib/cookieConsent';

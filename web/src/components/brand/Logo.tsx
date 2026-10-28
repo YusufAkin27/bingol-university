@@ -29,12 +29,15 @@ function Img({
   height,
   alt,
   className,
+  lazy,
 }: {
   src: string;
   width: number;
   height: number;
   alt: string;
   className?: string;
+  /** Gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
+  lazy?: boolean;
 }) {
   return (
     <img
@@ -46,6 +49,7 @@ function Img({
       className={className}
       draggable={false}
       decoding="async"
+      loading={lazy ? 'lazy' : undefined}
     />
   );
 }
@@ -82,8 +86,8 @@ export function Logo({
       const d = dims('dark');
       content = (
         <>
-          <Img src={l.a.src} width={l.w} height={h} alt={alt} className={`${styles.img} ${styles.forLight}`} />
-          <Img src={d.a.src} width={d.w} height={h} alt="" className={`${styles.img} ${styles.forDark}`} />
+          <Img src={l.a.src} width={l.w} height={h} alt={alt} lazy className={`${styles.img} ${styles.forLight}`} />
+          <Img src={d.a.src} width={d.w} height={h} alt="" lazy className={`${styles.img} ${styles.forDark}`} />
         </>
       );
     } else {

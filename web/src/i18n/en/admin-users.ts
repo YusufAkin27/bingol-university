@@ -95,7 +95,7 @@ const m = {
   'admin.audit.title': 'Audit log',
   'admin.audit.filters.label': 'Audit log filters',
   'admin.audit.col.time': 'Time',
-  'admin.audit.col.admin': 'Admin',
+  'admin.audit.col.admin': 'Administrator',
   'admin.audit.col.method': 'Method',
   'admin.audit.col.path': 'Path',
   'admin.audit.col.status': 'Status',

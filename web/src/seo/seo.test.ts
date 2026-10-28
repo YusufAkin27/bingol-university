@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { dictionaries } from '../i18n';
+import { dictionaries } from '../i18n/all';
 import { LANGS } from '../i18n/lang';
 import { isAdminPath, localizePath, splitLangPath, switchLangPath } from '../i18n/langPath';
 import { buildHeadModel, normalizeOrigin, pageUrl } from './headModel';

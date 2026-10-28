@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
-import { dictionaries } from '../../i18n';
+import { dictionaries } from '../../i18n/all';
 import { AppRoutes } from '../../routes';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';

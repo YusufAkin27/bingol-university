@@ -5,7 +5,8 @@
  * (1) routes.tsx'e rota, (2) paths.ts'e yol, (3) buraya satır (başlık/açıklama çeviri anahtarlarıyla).
  * Yönetim paneli (/admin/**) burada YER ALMAZ: yalnız Türkçedir ve arama motorlarına kapalıdır.
  */
-import { dictionaries, type TranslationKey } from '../i18n';
+import type { TranslationKey } from '../i18n';
+import { translate } from '../i18n/registry';
 import type { Lang } from '../i18n/lang';
 import type { LegalType } from '../api/types';
 import { paths } from '../paths';
@@ -141,9 +142,7 @@ export interface ResolvedMeta {
 
 /** Dile göre başlık/açıklama çözümü. */
 export function resolveMeta(meta: RouteMeta, lang: Lang): ResolvedMeta {
-  const dict = dictionaries[lang] as Record<string, string>;
-  const tr = dictionaries.tr as Record<string, string>;
-  const t = (k: string) => dict[k] ?? tr[k] ?? k;
+  const t = (k: string) => translate(lang, k);
   const appName = t('common.appName');
   const title = t(meta.titleKey);
   return {

@@ -22,7 +22,6 @@ const legal = {
   'legal.versions': 'Önceki sürümler',
   'legal.versionsNone': 'Başka sürüm yok.',
   'legal.versionRow': 'Sürüm {version}, {date}',
-  'legal.current': 'Güncel',
   'legal.fallbackLang': 'Bu belge seçtiğiniz dilde yayımlanmadığı için Türkçe sürümü gösteriliyor.',
   'legal.otherDocs': 'Diğer belgeler',
   'legal.allDocs': 'Tüm belgeler',

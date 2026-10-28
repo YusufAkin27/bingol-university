@@ -15,6 +15,18 @@ const KEYS: Record<ErrorKind, { title: string; text: string }> = {
   maintenance: { title: 'pg.err.maint.title', text: 'pg.err.maint.text' },
 };
 
+/** Sözlük parçası yüklenemediyse (ağ koptu) anahtar metni yerine gösterilen sabit yedek (tr + en). */
+const FALLBACK: Record<string, string> = {
+  'pg.err.title': 'Bir sorun oluştu / Something went wrong',
+  'pg.err.text': 'Sayfa yüklenemedi. Lütfen tekrar deneyin. / The page could not be loaded. Please try again.',
+  'pg.err.network.title': 'Bağlantı sorunu / Connection problem',
+  'pg.err.network.text': 'Ağ bağlantınızı kontrol edip tekrar deneyin. / Check your connection and try again.',
+  'pg.err.maint.title': 'Bakımdayız / Under maintenance',
+  'pg.err.maint.text': 'Kısa süre sonra tekrar deneyin. / Please try again shortly.',
+  'common.retry': 'Tekrar dene / Retry',
+  'pg.err.home': 'Ana sayfa / Home',
+};
+
 /** Ağ/parça yükleme hatası mı (lazy import başarısız, fetch düştü) yoksa kod hatası mı. */
 export function classifyError(error: unknown): ErrorKind {
   const msg = error instanceof Error ? `${error.name} ${error.message}` : String(error);
@@ -47,7 +59,10 @@ export class ErrorBoundary extends Component<Props, { error: unknown; failed: bo
   render() {
     if (!this.state.failed) return this.props.children;
     const lang = getCurrentLang();
-    const tr = (key: string) => translate(lang, key);
+    const tr = (key: string) => {
+      const v = translate(lang, key);
+      return v === key ? (FALLBACK[key] ?? key) : v;
+    };
     const kind = classifyError(this.state.error);
     return (
       <ErrorScreen

@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: false,
+      // scripts/prerender.mjs sözlük/sayfa parçalarını modulepreload olarak HTML'e yazar (manifest sonra silinir)
+      manifest: true,
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {

@@ -4,7 +4,8 @@
  * Open Graph, Twitter kartı, JSON-LD ve <noscript> içinde sayfanın temel metni. SPA kabuğu aynı HTML'e yüklenir
  * (hydrate yok; createRoot mevcut kök içeriğini değiştirir). Headless tarayıcı gerekmez: metinler routeMeta + sözlükten gelir.
  */
-import { dictionaries, type TranslationKey } from '../i18n';
+import type { TranslationKey } from '../i18n';
+import { dictionaries } from '../i18n/all'; // önrender tüm dilleri eşzamanlı ister (çalışma zamanı paketine girmez)
 import { LANGS, dirOf, type Lang } from '../i18n/lang';
 import { buildNewFaq } from '../pages/site/components/newFaq';
 import { breadcrumbLd, faqLd, mobileAppLd, organizationLd } from '../pages/site/components/jsonLd';
@@ -139,8 +140,34 @@ export function renderNoscript(meta: RouteMeta, lang: Lang): string {
   return `<noscript><main style="max-width:48rem;margin:0 auto;padding:1.5rem 1rem;font:16px/1.6 system-ui,sans-serif">\n${parts.filter(Boolean).join('\n')}\n</main></noscript>`;
 }
 
+/**
+ * Derleme çıktısındaki parça adresleri (scripts/prerender.mjs, vite manifest'inden): sayfanın sözlük parçası ve sayfa parçası
+ * HTML'den ÖNCEDEN istenir; aksi halde ana paket çalışıp rota ve sözlük açılana dek bu parçalar indirilmez (şelale).
+ */
+export interface AssetHints {
+  /** Dilin site sözlüğü parçası (ve statik bağımlılıkları). */
+  dictionary(lang: Lang): string[];
+  /** Sayfanın JS parçaları ve CSS dosyaları (statik bağımlılıklar dahil, girdi paketinin zaten yüklediği parçalar hariç). */
+  page(metaId: string): { js: string[]; css: string[] };
+}
+
+function renderHints(hints: AssetHints, meta: RouteMeta, lang: Lang): string[] {
+  const page = hints.page(meta.id);
+  const js = [...new Set([...hints.dictionary(lang), ...page.js])];
+  return [
+    ...page.css.map((href) => `<link rel="stylesheet" crossorigin href="${esc(href)}" data-pre="1" />`),
+    ...js.map((href) => `<link rel="modulepreload" crossorigin href="${esc(href)}" data-pre="1" />`),
+  ];
+}
+
 /** Şablona (dist/index.html) bir sayfanın head + noscript içeriğini işler. */
-export function applyTemplate(template: string, meta: RouteMeta, lang: Lang, origin: string): string {
+export function applyTemplate(
+  template: string,
+  meta: RouteMeta,
+  lang: Lang,
+  origin: string,
+  hints?: AssetHints,
+): string {
   const start = template.indexOf(SEO_START);
   const end = template.indexOf(SEO_END);
   if (start < 0 || end < start) throw new Error(`Şablonda ${SEO_START} ... ${SEO_END} işaretleri yok`);
@@ -154,7 +181,8 @@ export function applyTemplate(template: string, meta: RouteMeta, lang: Lang, ori
     description: resolved.description,
     appName: resolved.appName,
   });
-  const head = `${SEO_START}\n    ${serializeHead(model, routeJsonLd(meta, lang, origin))}\n    ${SEO_END}`;
+  const lines = [serializeHead(model, routeJsonLd(meta, lang, origin)), ...(hints ? renderHints(hints, meta, lang) : [])];
+  const head = `${SEO_START}\n    ${lines.join('\n    ')}\n    ${SEO_END}`;
   return (
     template.slice(0, start) +
     head +
@@ -199,17 +227,22 @@ export interface PrerenderResult {
   pageCount: number;
 }
 
-export function prerender(opts: { template: string; origin?: string; buildDate: string }): PrerenderResult {
+export function prerender(opts: {
+  template: string;
+  origin?: string;
+  buildDate: string;
+  hints?: AssetHints;
+}): PrerenderResult {
   const origin = normalizeOrigin(opts.origin);
   const files = new Map<string, string>();
   for (const l of LANGS) {
     for (const meta of ROUTE_META) {
-      files.set(pageFile(l.code, meta.path), applyTemplate(opts.template, meta, l.code, origin));
+      files.set(pageFile(l.code, meta.path), applyTemplate(opts.template, meta, l.code, origin, opts.hints));
     }
   }
   // Kök: dil seçimi istemcide yapılır (kayıtlı dil / tarayıcı dili); JS'siz botlar Türkçe ana sayfa üstverisini görür
   const home = ROUTE_META.find((r) => r.home)!;
-  files.set('index.html', applyTemplate(opts.template, home, 'tr', origin));
+  files.set('index.html', applyTemplate(opts.template, home, 'tr', origin, opts.hints));
   files.set('sitemap.xml', buildSitemap(origin, opts.buildDate));
   files.set('robots.txt', buildRobots(origin));
   return { files, pageCount: LANGS.length * ROUTE_META.length };

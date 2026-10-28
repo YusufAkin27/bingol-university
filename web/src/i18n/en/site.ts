@@ -8,21 +8,13 @@ const site = {
   'site.nav.main': 'Main menu',
   'site.nav.openMenu': 'Open menu',
   'site.nav.closeMenu': 'Close menu',
-  'site.nav.admin': 'Admin sign-in',
   'site.footer.tagline': 'Announcements, events, the dining menu and your campus community, in your pocket.',
-  'site.footer.legal': 'Legal',
-  'site.footer.get': 'Get the app',
-  'site.footer.contact': 'Contact',
   'site.footer.rights': '© {year} BÜ Kampüs. All rights reserved.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
   'site.store.getItOn': 'Get it on',
   'site.store.downloadOn': 'Download on the',
   'site.store.soon': 'Coming soon',
-  'site.store.playMain': 'Get it on Google Play',
-  'site.store.appleMain': 'Download on the App Store',
-  'site.store.playTop': 'For Android',
-  'site.store.appleTop': 'For iPhone and iPad',
   'site.store.soonNote': 'The store link has not been published yet. This button will work once it is.',
   'site.store.newTab': 'Opens in a new tab',
 
@@ -38,10 +30,8 @@ const site = {
   'site.meta.dataRequest':
     'Your rights under the Turkish data protection law (KVKK), how to download your data, delete your account and apply.',
   'site.meta.legal': 'Terms of use, privacy policy, KVKK notice and community rules.',
-  'site.mock.alt': 'Schematic drawing of an app screen',
   'site.maintenance.title': 'Maintenance',
 
-  'site.home.title': 'Home',
   'site.home.heroTitle': 'Campus life in one app',
   'site.home.heroLead':
     'Announcements, news, events, the dining menu and student communities in the BÜ Kampüs app.',
@@ -125,7 +115,6 @@ const site = {
   'site.about.whoText':
     'The app is developed as a university project within Bingöl University.',
   'site.about.whoContact': 'Contact details are entered by the app administrators.',
-  'site.about.website': 'Official website',
   'site.about.readPrivacy': 'Privacy policy and KVKK notice',
 
   'site.download.title': 'Download the app',
@@ -161,7 +150,6 @@ const site = {
   'site.contact.address': 'Address',
   'site.contact.website': 'Website',
   'site.contact.social': 'Social media',
-  'site.contact.sendMail': 'Send an email',
   'site.contact.inAppTitle': 'Support request from the app',
   'site.contact.inAppText': 'If you are signed in, open a support request right in the app and read the reply there.',
   'site.contact.inApp1': 'Open the app and sign in.',

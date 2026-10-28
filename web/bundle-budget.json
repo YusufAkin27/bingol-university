@@ -1,0 +1,18 @@
+{
+  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin.",
+  "initialJsGzipKB": 100,
+  "routeJsGzipKB": 135,
+  "initialCssGzipKB": 10,
+  "totalJsGzipKB": 680,
+  "chunks": {
+    "*": 70,
+    "index": 24,
+    "vendor-react": 50,
+    "vendor-router": 16,
+    "vendor-query": 15,
+    "vendor-charts": 125,
+    "site.*": 21,
+    "admin.tr": 66,
+    "routes.admin": 16
+  }
+}

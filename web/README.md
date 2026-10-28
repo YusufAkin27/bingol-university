@@ -54,7 +54,7 @@ Docker: derleme `VITE_API_BASE=/api` ile yapılır; `WEB_PORT` (compose) dış p
 ## Yeni sayfa nasıl eklenir
 
 1. `src/pages/admin/XPage.tsx` (veya `site/`) açın; **ilk satırlara hangi API uçlarını kullandığını** yorum olarak yazın. `export default` bileşen.
-2. `src/routes.tsx` içine `const XPage = lazy(() => import('./pages/admin/XPage'))` ve `<Route path="..." element={<XPage />} />` ekleyin.
+2. Site sayfası: `src/routes.tsx`; yönetim sayfası: `src/routes.admin.tsx` (ayrı parça, site ziyaretçisi indirmez). `const XPage = lazy(() => import('./pages/.../XPage'))` ve `<Route path="..." element={<XPage />} />` ekleyin.
 3. Yönetim menüsünde görünecekse `src/layouts/adminNav.ts` içine öğe ekleyin (yol `paths.ts`'ten).
 4. Metinleri **ilgili ad alanı dosyasına** üç dilde ekleyin (`i18n/tr|en|ar/<ad-alanı>.ts`). Anahtarlar `admin.<alan>.*`, `site.*`, `legal.*`, `common.*` önekiyle başlar.
    Eksik anahtar derlemede (en/ar `Record<TranslationKey,string>`) ve testte (`i18n.test.tsx`: üç sözlüğün anahtar kümesi eşit, yer tutucular aynı) yakalanır.
@@ -76,7 +76,13 @@ grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe 
 `tr` (varsayılan), `en`, `ar` (`<html dir="rtl" lang="ar">`). Harici kütüphane yok; `useI18n()`:
 `t('key', {param})`, `td(dinamikAnahtar, fallback)`, `formatDate/formatDateTime/formatNumber` (Latin rakamlı `ar`).
 
-**Yönetim paneli (`/admin`, giriş dahil) YALNIZ Türkçedir:** `layouts/AdminScope.tsx` dili `tr`ye sabitler (`I18nProvider forcedLang`), dil seçici yoktur, sitenin `bu.lang` tercihi korunur ve panelden çıkınca geri gelir. Yeni panel metinleri yalnız `tr/` altına yazılır; en/ar karşılığı gerekmeyen ad alanları (`tr/admin-guard.ts`, `tr/admin-shell.ts`) `scripts/check-i18n.mjs` içinde `TR_ONLY` listesindedir ve `i18n/index.ts` en/ar sözlüklerine aynı Türkçe metni katar.
+**Yönetim paneli (`/admin`, giriş dahil) YALNIZ Türkçedir:** `layouts/AdminScope.tsx` dili `tr`ye sabitler (`I18nProvider forcedLang`), dil seçici yoktur, sitenin `bu.lang` tercihi korunur ve panelden çıkınca geri gelir. Yeni panel metinleri yalnız `tr/` altına yazılır; en/ar karşılığı gerekmeyen ad alanları (`tr/admin-guard.ts`, `tr/admin-shell.ts`) `scripts/check-i18n.mjs` içinde `TR_ONLY` listesindedir ve `i18n/all.ts` en/ar sözlüklerine aynı Türkçe metni katar.
+
+**Sözlükler dil başına ve kapsam başına lazy parçadır** (ana paket küçük kalır): `i18n/bundles/site.{tr,en,ar}.ts` (ziyaretçi yalnız kendi dilini indirir), `bundles/admin.tr.ts` (yalnız `/admin`; yönetim yalnız Türkçe), `registry.ts` (çalışma zamanı kayıt defteri: `loadDictionary`, `translate`, `hasKey`; indirme hatasında `I18nProvider` görünen dili korur, hiç dil yoksa Türkçeye düşer). `i18n/index.ts` yalnız tür (`TranslationKey`) ve `translate/hasKey` cephesidir, sözlük içermez; **uygulama kodu `i18n/all.ts`'i içe aktarmaz** (tüm diller ana pakete girer). `all.ts` testler (`test/setup.ts` otomatik içe aktarır), önrender ve betikler içindir. Yeni ad alanı: üç dilde dosya aç, ilgili `bundles/*` dosyasına ve `all.ts`'e ekle. `scripts/prerender.mjs` sayfanın sözlük ve sayfa parçalarını `modulepreload` olarak HTML'e yazar (vite manifest'inden).
+
+## Performans ve paket bütçesi
+
+`npm run check:bundle` (build sonrası): `dist/assets` gzip boyutları `bundle-budget.json` ile karşılaştırılır (girdi paketi, en ağır önrender sayfa, parça başına, toplam). Aşımda çıkış kodu 1; CI'da uyarı (`continue-on-error`). Yeni büyük bağımlılık ya da sayfa eklerken önce bütçeye bakın; bilinçli yükseltmeyi dosyada gerekçeleyin. Yazı tipleri değişken Inter (latin 48 KB, latin-ext 85 KB nadiren, `inter-turkish` 3 KB yalnız Ğ ğ İ ı Ş ş); `/assets/*` ve `/fonts/*` nginx'te 1 yıl `immutable`, HTML `no-cache`.
 
 ## API sözleşmesi
 

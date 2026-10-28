@@ -5,7 +5,9 @@ import { isApiError } from './api/client';
 import { AuthProvider } from './auth/AuthProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
+import { isAdminPath } from './adminBase';
 import { I18nProvider } from './i18n/I18nProvider';
+import type { Lang } from './i18n/lang';
 import { ThemeProvider } from './lib/theme';
 import { AppRoutes } from './routes';
 
@@ -22,12 +24,17 @@ export function makeQueryClient() {
   });
 }
 
+/** Yönetim paneli yalnız Türkçedir: /admin açılışında üst sağlayıcı da tr ister (kullanılmayacak site dilinin sözlüğü indirilmesin). */
+function initialProviderLang(): Lang | undefined {
+  return typeof window !== 'undefined' && isAdminPath(window.location.pathname) ? 'tr' : undefined;
+}
+
 /** Router dışındaki sağlayıcılar (testlerde de kullanılır). */
 export function Providers({ children, client }: { children: ReactNode; client?: QueryClient }) {
   const [qc] = useState(() => client ?? makeQueryClient());
   return (
     <QueryClientProvider client={qc}>
-      <I18nProvider>
+      <I18nProvider initialLang={initialProviderLang()}>
         <ThemeProvider>
           <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>

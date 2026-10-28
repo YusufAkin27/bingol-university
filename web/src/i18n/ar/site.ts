@@ -8,21 +8,13 @@ const site = {
   'site.nav.main': 'القائمة الرئيسية',
   'site.nav.openMenu': 'فتح القائمة',
   'site.nav.closeMenu': 'إغلاق القائمة',
-  'site.nav.admin': 'دخول المسؤول',
   'site.footer.tagline': 'الإعلانات والفعاليات وقائمة الطعام ومجتمع الحرم الجامعي في جيبك.',
-  'site.footer.legal': 'قانوني',
-  'site.footer.get': 'احصل على التطبيق',
-  'site.footer.contact': 'اتصل بنا',
   'site.footer.rights': '© {year} BÜ Kampüs. جميع الحقوق محفوظة.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
   'site.store.getItOn': 'احصل عليه من',
   'site.store.downloadOn': 'حمّله من',
   'site.store.soon': 'قريبًا',
-  'site.store.playMain': 'احصل عليه من Google Play',
-  'site.store.appleMain': 'حمّله من App Store',
-  'site.store.playTop': 'لأجهزة أندرويد',
-  'site.store.appleTop': 'لأجهزة آيفون وآيباد',
   'site.store.soonNote': 'لم يُنشر رابط المتجر بعد. سيعمل هذا الزر عند نشره.',
   'site.store.newTab': 'يفتح في علامة تبويب جديدة',
 
@@ -37,10 +29,8 @@ const site = {
   'site.meta.dataRequest':
     'حقوقك بموجب قانون حماية البيانات الشخصية التركي (KVKK)، وكيفية تنزيل بياناتك وحذف حسابك وتقديم الطلب.',
   'site.meta.legal': 'شروط الاستخدام وسياسة الخصوصية ونص KVKK وقواعد المجتمع.',
-  'site.mock.alt': 'رسم تخطيطي لشاشة من التطبيق',
   'site.maintenance.title': 'صيانة',
 
-  'site.home.title': 'الرئيسية',
   'site.home.heroTitle': 'حياة الحرم الجامعي في تطبيق واحد',
   'site.home.heroLead':
     'الإعلانات والأخبار والفعاليات وقائمة الطعام والمجتمعات الطلابية في تطبيق BÜ Kampüs.',
@@ -121,7 +111,6 @@ const site = {
   'site.about.whoText':
     'يُطوَّر التطبيق كمشروع جامعي داخل جامعة بينغول.',
   'site.about.whoContact': 'تُدخل إدارة التطبيق بيانات التواصل.',
-  'site.about.website': 'الموقع الرسمي',
   'site.about.readPrivacy': 'سياسة الخصوصية ونص KVKK',
 
   'site.download.title': 'حمّل التطبيق',
@@ -157,7 +146,6 @@ const site = {
   'site.contact.address': 'العنوان',
   'site.contact.website': 'الموقع الإلكتروني',
   'site.contact.social': 'وسائل التواصل الاجتماعي',
-  'site.contact.sendMail': 'إرسال بريد إلكتروني',
   'site.contact.inAppTitle': 'طلب دعم من داخل التطبيق',
   'site.contact.inAppText': 'إن كنت مسجّلًا للدخول فافتح طلب الدعم مباشرة من التطبيق وستجد الرد هناك.',
   'site.contact.inApp1': 'افتح التطبيق وسجّل الدخول.',
