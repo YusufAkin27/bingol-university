@@ -1,5 +1,7 @@
 .wrap {
   display: grid;
+  /* minmax(0, 1fr): yatay kayan gün şeridi sütunu genişletip sayfayı taşırmasın */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   max-width: 980px;
   margin-inline: auto;
@@ -67,6 +69,7 @@
 
 /* Gün şeridi: yatay kaydırılır, mobilde başlığın altına yapışır */
 .stripWrap {
+  min-width: 0;
   position: sticky;
   top: var(--header-h);
   z-index: 5;

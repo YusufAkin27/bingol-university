@@ -24,7 +24,7 @@ export const tooltipStyle = {
   contentStyle: {
     background: 'var(--surface)',
     border: '1px solid var(--border)',
-    borderRadius: 8,
+    borderRadius: 'var(--radius-sm)',
     color: 'var(--text)',
     boxShadow: 'var(--shadow-2)',
     fontSize: 13,

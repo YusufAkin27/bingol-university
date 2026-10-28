@@ -25,6 +25,7 @@ const m = {
   'pg.cookie.text':
     'Bu site yalnızca çalışması için gerekli tarayıcı depolamasını (dil ve tema tercihi) kullanır; izleme, analiz veya reklam çerezi kullanmaz.',
   'pg.cookie.more': 'Çerez Politikası',
+  'pg.cookie.short': 'Yalnızca zorunlu depolama kullanılır, izleme yok.',
   'pg.cookie.ok': 'Anladım',
 
   // --- hata / bakım ekranları ---

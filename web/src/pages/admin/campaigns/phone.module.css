@@ -9,7 +9,7 @@
 .phone {
   position: relative;
   width: min(100%, 300px);
-  border-radius: 34px;
+  border-radius: var(--radius-xl);
   padding: 10px;
   background: #171e33;
   box-shadow:
@@ -23,12 +23,12 @@
   margin-inline: auto;
   width: 78px;
   height: 20px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: #000;
   z-index: 1;
 }
 .screen {
-  border-radius: 26px;
+  border-radius: calc(var(--radius-xl) - 8px);
   min-height: 220px;
   padding: 52px 12px 24px;
   background:
@@ -48,7 +48,7 @@
 .notif {
   background: rgba(255, 255, 255, 0.94);
   color: #101c33;
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 10px 12px 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   text-align: start;
@@ -87,7 +87,7 @@
   margin-inline-start: auto;
   background: #b3261e;
   color: #fff;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 1px 7px;
   font-size: 0.66rem;
   font-weight: 700;

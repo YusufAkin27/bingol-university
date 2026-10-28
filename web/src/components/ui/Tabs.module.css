@@ -34,7 +34,7 @@
   inset-inline: var(--space-3);
   inset-block-end: -1px;
   height: 3px;
-  border-radius: 3px 3px 0 0;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
   background: var(--accent);
 }
 .panel {

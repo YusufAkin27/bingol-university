@@ -32,7 +32,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-inline-start-width: 4px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
 }
 .card[data-status='OK'] {
   border-inline-start-color: var(--success);

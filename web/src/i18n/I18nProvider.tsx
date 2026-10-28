@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { isolateLatinIdentifiers } from './bidi';
 import { translate, hasKey, type TParams, type TranslationKey } from './index';
 import {
   applyDocumentLang,
@@ -48,14 +49,16 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
 
   const value = useMemo<I18n>(() => {
     const locale = localeOf(lang);
+    // Arapça cümle içindeki alan adı/e-posta/URL soldan sağa yalıtılır (bkz. bidi.ts)
+    const bidi = lang === 'ar' ? isolateLatinIdentifiers : (s: string) => s;
     return {
       lang,
       dir: dirOf(lang),
       locale,
       setLang,
-      t: (key, params) => translate(lang, key, params),
+      t: (key, params) => bidi(translate(lang, key, params)),
       td: (key, fallback, params) =>
-        hasKey(key) ? translate(lang, key, params) : (fallback ?? key.split('.').pop() ?? key),
+        hasKey(key) ? bidi(translate(lang, key, params)) : (fallback ?? key.split('.').pop() ?? key),
       formatDate: (v, opts) => {
         const d = toDate(v);
         return d ? new Intl.DateTimeFormat(locale, opts ?? { dateStyle: 'medium' }).format(d) : '—';

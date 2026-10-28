@@ -1,3 +1,5 @@
+/* Masaüstü: altta ortalanmış yüzen kart. Mobil (<= 640px): tam genişlik, sayfa akışının sonunda yapışkan alt çubuk;
+   akışta yer kaplar, böylece alt bilgiyi örtmez ve kısa metin + tek düğmeyle ekranın ~%8'ini tutar. */
 .banner {
   position: fixed;
   inset-inline: var(--space-4);
@@ -17,19 +19,44 @@
 }
 .text {
   flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: var(--text-sm);
+}
+.short {
+  display: none;
 }
 .link {
   font-weight: 700;
   white-space: nowrap;
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .banner {
-    flex-direction: column;
-    align-items: stretch;
-    inset-inline: var(--space-3);
-    inset-block-end: var(--space-3);
+    position: sticky;
+    inset-inline: 0;
+    inset-block-end: 0;
+    max-width: none;
+    margin: 0;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    padding-block-end: max(var(--space-2), env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-color: var(--border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .text {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+  }
+  .long {
+    display: none;
+  }
+  .short {
+    display: inline;
+  }
+  .link {
+    white-space: normal;
   }
 }
 @media print {

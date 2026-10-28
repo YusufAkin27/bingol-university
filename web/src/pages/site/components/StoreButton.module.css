@@ -45,7 +45,7 @@ a.onDark:hover {
 .soon.onDark {
   background: transparent;
   color: #d9dce8;
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: var(--hero-line);
 }
 .glyph {
   flex: none;

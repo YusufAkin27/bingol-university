@@ -13,8 +13,9 @@
   --red-800: #8e1b13; /* yumusak zemin ustunde yazi, hero dugmesi yazisi */
   --chrome: #171e33; /* koyu kabuk: alt bilgi, yonetim yan menusu, ipucu */
   --chrome-2: #232b47;
-  --hero: #f73a2e;
+  --hero: #dc3125; /* beyaz yazi 4,66:1 (logo kirmizisi #f73a2e beyazla yalniz 3,75:1) */
   --hero-end: #c62a20;
+  --hero-line: rgba(255, 255, 255, 0.8); /* hero uzerindeki cerceve: zemine karsi >= 3:1 */
   --hero-contrast: #ffffff;
 
   /* Anlamsal renkler (açık tema) */
@@ -73,21 +74,23 @@
 
   /* Yarıçap: küçük denetimler yumuşak, büyük yüzeyler biraz daha geniş */
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 10px; /* cip, etiket, kucuk denetim */
+  --radius-md: 14px; /* girdi, dugme */
+  --radius-lg: 20px; /* kart, tablo, panel (mobil BuTokens ile ayni) */
+  --radius-xl: 34px; /* yalniz telefon maketi kabugu */
   --radius-pill: 999px;
 
-  /* Gölge */
-  --shadow-1: 0 1px 2px rgba(23, 30, 51, 0.06), 0 1px 1px rgba(23, 30, 51, 0.04);
+  /* Gölge: kartlar mobildeki gibi gölgesiz, ince kenarlıklıdır (--shadow-1 bilerek yok) */
+  --shadow-1: none;
   --shadow-2: 0 4px 14px rgba(23, 30, 51, 0.09), 0 1px 3px rgba(23, 30, 51, 0.06);
   --shadow-3: 0 18px 48px rgba(23, 30, 51, 0.22);
 
-  /* Tipografi: yerel yığınlar, dış CDN yok */
+  /* Tipografi: Inter (kendi sunucumuzdan, bkz. global.css @font-face), mobil uygulamayla aynı */
   --font-sans:
-    system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  --font-display:
-    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Noto Serif', Georgia, serif;
+    'Inter', 'Inter Fallback', system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  --font-display: var(--font-sans);
+  --weight-display: 800;
   --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
 
   --text-xs: 0.8125rem;
@@ -155,7 +158,7 @@
     --chart-6: #93bd6a;
     --chart-grid: #2e3247;
     --chart-axis: #a5a9ba;
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-1: none;
     --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
     --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
   }
@@ -208,17 +211,16 @@
   --chart-6: #93bd6a;
   --chart-grid: #2e3247;
   --chart-axis: #a5a9ba;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-1: none;
   --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.45);
   --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
 }
 
-/* Arapça: Naskh/Tajawal benzeri yerel yığın; harf aralığı sıfır, satır yüksekliği biraz artırılır */
+/* Arapça: Tajawal/Noto Sans Arabic benzeri yerel yığın (başlıklar da aynı yığın); harf aralığı sıfır, satır yüksekliği biraz artırılır */
 :root:lang(ar) {
   --font-sans:
     'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, 'Geeza Pro', 'Droid Arabic Naskh', system-ui,
     sans-serif;
-  --font-display:
-    'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', 'Geeza Pro', 'Droid Arabic Naskh', 'Segoe UI', serif;
+  --font-display: var(--font-sans);
   --leading-body: 1.75;
 }

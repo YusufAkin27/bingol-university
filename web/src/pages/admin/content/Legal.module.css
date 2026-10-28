@@ -13,7 +13,7 @@
   padding: var(--space-4);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
   cursor: pointer;
   min-width: 0;
@@ -146,7 +146,7 @@
   padding: var(--space-4) var(--space-5);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
 }
 .previewTitle {
   margin: 0 0 var(--space-3);

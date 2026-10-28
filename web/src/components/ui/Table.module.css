@@ -1,8 +1,7 @@
 .wrap {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 .scroll {

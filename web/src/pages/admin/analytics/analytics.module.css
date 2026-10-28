@@ -196,7 +196,7 @@
 .legendStep {
   width: 28px;
   height: 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   border: 1px solid var(--border);
 }
 

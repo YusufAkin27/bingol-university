@@ -27,6 +27,7 @@
   align-items: center;
   gap: var(--space-4);
   min-height: var(--header-h);
+  min-width: 0;
 }
 .nav {
   display: flex;
@@ -58,6 +59,7 @@
 .tools {
   display: flex;
   align-items: center;
+  flex: none;
   gap: var(--space-1);
   margin-inline-start: auto;
 }
@@ -67,6 +69,16 @@
 .main {
   flex: 1;
   outline: none;
+}
+
+/* Dar ekran: logo küçülür, boşluklar daralır; araç düğmeleri (dil, tema, hamburger) ekran içinde kalır */
+@media (max-width: 480px) {
+  .bar {
+    gap: var(--space-2);
+  }
+  .tools {
+    gap: 0;
+  }
 }
 
 @media (max-width: 1020px) {

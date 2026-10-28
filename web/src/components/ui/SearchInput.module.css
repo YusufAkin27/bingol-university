@@ -12,7 +12,7 @@
   padding-inline: 2.5rem;
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--text-base);
 }
 .input::-webkit-search-cancel-button {

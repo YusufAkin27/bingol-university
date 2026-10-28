@@ -24,6 +24,7 @@ const m = {
   'pg.cookie.text':
     'This site only uses the browser storage it needs to work (language and theme preference). It does not use tracking, analytics or advertising cookies.',
   'pg.cookie.more': 'Cookie Policy',
+  'pg.cookie.short': 'Essential storage only, no tracking.',
   'pg.cookie.ok': 'Got it',
 
   // --- error / maintenance screens ---
@@ -126,7 +127,7 @@ const m = {
   'pg.security.s1.l2':
     'Messages are stored encrypted on the server. The server manages the keys, so messages are not protected in a way that only your device can decrypt; authorised processes can decrypt them.',
   'pg.security.s1.l3':
-    'Administrator access is recorded: authorized administrators may view conversations for security and legal obligations, and every access is written to an immutable audit log. Deleted messages may be retained for security and legal obligations.',
+    'Administrator access is recorded: authorised administrators may view conversations for security and legal obligations, and every access is written to an immutable audit log. Deleted messages may be retained for security and legal obligations.',
   'pg.security.s1.l4':
     'Passwords are stored irreversibly (as hashes); session refresh tokens are also kept only as hashes.',
   'pg.security.s1.l5': 'Sign-up is only possible with bingol.edu.tr email addresses and email verification.',

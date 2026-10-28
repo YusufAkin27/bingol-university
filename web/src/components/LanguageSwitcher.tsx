@@ -7,9 +7,15 @@ import styles from './LanguageSwitcher.module.css';
 export function LanguageSwitcher({ compact }: { compact?: boolean }) {
   const { lang, setLang, t } = useI18n();
   return (
-    <label className={styles.wrap}>
+    <label className={`${styles.wrap} ${compact ? styles.wrapCompact : ''}`}>
       <span className="sr-only">{t('common.language')}</span>
       <Icon name="globe" size={18} />
+      {/* dar ekranda dil adı yerine kısa kod görünür; yerel <select> görünmez ama dokunulabilir kalır */}
+      {compact && (
+        <span className={styles.code} aria-hidden="true">
+          {lang}
+        </span>
+      )}
       <select
         className={`${styles.select} ${compact ? styles.compact : ''}`}
         value={lang}

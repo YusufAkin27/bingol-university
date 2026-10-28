@@ -13,7 +13,8 @@ export function CookieBanner() {
   return (
     <section className={styles.banner} aria-label={t('pg.cookie.label')}>
       <p className={styles.text}>
-        {t('pg.cookie.text')}{' '}
+        <span className={styles.long}>{t('pg.cookie.text')}</span>
+        <span className={styles.short}>{t('pg.cookie.short')}</span>{' '}
         <Link to={paths.site.cookies} className={styles.link}>
           {t('pg.cookie.more')}
         </Link>
