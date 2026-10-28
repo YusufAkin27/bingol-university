@@ -28,7 +28,7 @@ Controller: {{controller.name}}{{?controller.address}}, {{controller.address}}{{
 | **Posts (Discover):** text, photos, videos, hashtags (#), mentions (@), likes, comments | Posting and interaction | Contract | While the account is open; after a post is deleted its media files are removed from disk after 30 days; uploads not attached to a post are deleted after 24 hours |
 | **Stories:** photo/video, text, viewers | 24-hour temporary sharing | Contract | Visible for 24 hours; permanently deleted 24 hours after expiry (configurable) |
 | **Follows and saved posts** | Building your feed, saving items for later | Contract | While the account is open; deleted with the account |
-| **Polls:** participation record and your vote | Voting | Contract | While the account is open; on account deletion the participation record is deleted and the vote is detached from you. In a secret poll, which option you chose is not shown to other users or administrators. <DOĞRULANACAK: whether finished polls' votes have a separate automatic deletion period> |
+| **Polls:** participation record and your vote | Voting | Contract | While the account is open; on account deletion the participation record is deleted and the vote is detached from you. In a secret poll, which option you chose is not shown to other users or administrators. No separate automatic deletion period applies to the vote records of finished polls. |
 | **Timetable, course and exam data:** courses, sessions, semester and exams you enter yourself; announcement read marks | Personal timetable and exam tracking | Contract | While the account is open; deleted with the account |
 | **Notification inbox and preferences** | Notifications | Contract | Read 90 days, unread 365 days |
 | **Device push token (FCM):** token, platform, app version, language, last seen | Push notifications | Contract; explicit consent (notification permission) | Removed after 60 days unseen; on logout/deletion |
@@ -73,7 +73,7 @@ We do not share data with ad networks, data brokers or social-media trackers.
 
 1. **Notifications:** optional; notification types and **quiet hours** are configurable. Without permission, the in-app inbox still works.
 2. **Contact matching:** only SHA-256 digests of e-mails (up to 500 per request) are sent; they are **not stored or logged**; names and phone numbers are never sent.
-3. **Location:** the app does **not ask for location permission** and does not collect, send or store your location. The IP address recorded for security (see 6) is not device location, and the application code does not infer location or region from IP addresses. <DOĞRULANACAK: whether the hosting/reverse-proxy (CDN) provider derives a rough country/region from IP and passes it to us> If location is ever processed we will update this text and ask for consent again.
+3. **Location:** the app does **not ask for location permission** and does not collect, send or store your location. The IP address recorded for security (see 6) is not device location, and the application code does not infer location or region from IP addresses. Hosting and network infrastructure providers may keep their own technical logs under their own policies; we do not use them to determine location. If location is ever processed we will update this text and ask for consent again.
 
 ## 6. Device/IP records and access bans
 
@@ -106,7 +106,7 @@ The service is not designed for persons under 18; if such a registration is foun
 
 ## 11. Posts, stories, comments and content moderation
 
-1. Posts, comments, stories, hashtags (#) and mentions (@) are shown to other signed-in users; visibility is mutually closed with users you block or who block you. <DOĞRULANACAK: narrower visibility options such as followers/club for posts/stories>
+1. Posts, comments, stories, hashtags (#) and mentions (@) are shown to other signed-in users; visibility is mutually closed with users you block or who block you. Any visibility options offered in the app are shown on the relevant screen.
 2. Mentioning a user with `@` may send them a notification.
 3. Stories are visible for 24 hours; the story owner can see who viewed it; they are permanently deleted 24 hours after expiry.
 4. **Language filter.** Insults, abuse, hate speech or sexually explicit expressions in public areas (communities, events, profiles, group titles, posts, comments, stories) may be rejected automatically. **Chat messages (one-to-one and group) are not pre-screened.** The filter acts at submission time; which field and which user's content was rejected is kept for 90 days, the rejected text is not stored. The decision is automatic without human review; you may contest it through Support.

@@ -17,6 +17,13 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 - **Üretim:** `prod` profili, `ProdSettingsValidator`, güvenlik başlıkları (HSTS vb.), `SchedulerLock` (çoklu örnek kilidi altyapısı), [DEPLOY.md](DEPLOY.md); mesaj şifreleme ve medya hattı ([ENCRYPTION.md](ENCRYPTION.md), [MEDIA_PIPELINE.md](MEDIA_PIPELINE.md)).
 - **i18n:** metinler modül bazlı paketlere bölündü (`i18n/<modül>.properties`).
 
+- **Keşfet gönderileri (sadeleştirme):** gönderi = tek fotoğraf + ≤7 kelime metin; yorum, hikâye, etiket/bahsetme, kaydet ve beğenenler listesi kaldırıldı (`410 FEATURE_REMOVED`); `GET /api/feed?scope=top` puanlı akış (imleç, `hint`); arama yalnız görünür+fotoğraflı gönderileri bulur; beğeni sayacı yarışı düzeltildi. Bkz. `changes/post.md`, [POSTS_DESIGN.md](POSTS_DESIGN.md).
+- **Takip:** profil ve takipçi/takip edilen listelerinde `followsMe` (karşılıklılık istemcide `followedByMe && followsMe`).
+- **Yemek menüsü fotoğrafı:** menü yanıtlarında `imageUrl`, yönetici uçları `GET /api/admin/menu`, `PUT|DELETE /api/admin/menu/{date}/image` (web: yönetim paneli menü fotoğrafı sayfası).
+- **Auth:** `POST /api/auth/change-password` (oturum açıkken şifre değiştirme; kullanıcı başına saatte 5).
+- **Etkinlik:** herkes etkinlik açar; `joinPolicy` (`OPEN|APPROVAL`), katılım isteği uçları (`GET /events/{id}/requests`, `.../approve|reject`), `myRsvp=PENDING|REJECTED`. Bkz. `changes/event.md`.
+- **Akademik takvim** 2026-2027 verisi; `docs/openapi.json` yeniden üretildi.
+
 ### Mobil (Flutter)
 
 - Çok ekranlı uygulama: kimlik (kayıt, doğrulama, şifre sıfırlama), Ana Sayfa, Keşfet, Sohbet, Kulüpler, Etkinlikler, Yemek, Bildirimler, Arama, Destek, Profil, Ayarlar; açık/koyu tema ve tasarım belirteçleri.

@@ -28,16 +28,16 @@ Doğrulama: `curl localhost:8080/actuator/health` içinde `fcm.details.enabled` 
 
 ## 3. iOS (APNs)
 
-iOS push için ücretli Apple Developer hesabı gerekir.
+iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (plist, `.p8`, imza anahtarı, test): [MOBILE_PUSH.md](MOBILE_PUSH.md) "iOS anahtarlarını nasıl ekleriz". Hazırlık kontrolü: `powershell -File scripts/check-ios-push.ps1`.
 
 1. developer.apple.com, Certificates/Identifiers & Profiles, Keys: "Apple Push Notifications service (APNs)" etkin yeni anahtar oluşturun, `.p8` dosyasını indirin (bir kez indirilir), Key ID ve Team ID'yi not edin.
 2. Firebase konsolu, Proje ayarları, Cloud Messaging, "Apple uygulaması yapılandırması": APNs Authentication Key olarak `.p8`, Key ID ve Team ID'yi yükleyin.
-3. Xcode'da Push Notifications ve Background Modes (Remote notifications) yeteneklerini ekleyin.
+3. Push Notifications ve Background Modes (Remote notifications) yetenekleri projeye eklidir (`Runner.entitlements`, `Info.plist`); imzaya bağlamak için `scripts/check-ios-push.ps1 -Enable`.
 
 ## 4. Mobil yerleşim
 
 - Android: `google-services.json` dosyasını `mobile/android/app/` altına koyun.
-- iOS: `GoogleService-Info.plist` dosyasını `mobile/ios/Runner/` altına koyun (Xcode'da hedefe ekleyin).
+- iOS: `GoogleService-Info.plist` dosyasını `mobile/ios/Runner/` altına koyun (Xcode'a elle eklemek gerekmez; build fazı dosya varsa pakete kopyalar).
 - Bu dosyalar sır değildir ancak ortama özeldir; commit edilip edilmeyeceğine ekip karar verir.
 - Android 13+ için `POST_NOTIFICATIONS` izni istenmeli; kanallar `chat`, `event`, `announcement` oluşturulmalıdır.
 - Token alındığında ve her açılışta `POST /api/devices` çağrılır, çıkışta `DELETE /api/devices/{token}`.
@@ -69,3 +69,9 @@ iOS push için ücretli Apple Developer hesabı gerekir.
 | Android geliyor, iOS gelmiyor | APNs anahtarı Firebase'e yüklenmemiş / bundle id uyuşmuyor |
 | `failures` artıyor | FCM kotası/ağ; 3 yeniden denemeden sonra vazgeçilir |
 | Bildirim kutusunda var, push yok | Sessiz saat, tercih kapalı ya da cihaz kaydı yok |
+
+## Akıllı bildirim ve doğrulama
+
+- Kimlik doğrulaması: yönetici olarak `POST /api/admin/push/fcm/validate` (kuru çalıştırma, cihaza gitmez). `validated=true` kimlik+proje+yetkinin geçerli olduğunu gösterir; `error` kodu (`UNAUTHENTICATED`, `PERMISSION_DENIED`...) nedeni verir. `GET .../status` yalnız kimliğin yüklenip yüklenmediğini ve Firebase proje kimliğini söyler.
+- Android kanalları: `chat`, `event`, `announcement`, `poll`, `social`; sohbet bastırma için istemci `PUT/DELETE /api/conversations/{id}/viewing` ve `PUT /api/devices/{fcmToken}/state` çağırır. Ayrıntı: `docs/changes/push.md`.
+- Ayarlar: `app.push.message-window-seconds` (20), `app.push.max-per-minute` (10), `app.push.message-preview` (false).

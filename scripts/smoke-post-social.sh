@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Gonderi sosyal ozellikleri (kaydet, @etiket, #etiket, takip, akis kapsamlari, hikayeler) icin duman testi.
+# Gonderi sosyal ozellikleri icin duman testi: takip (followedByMe/followsMe), akis kapsamlari (following/department),
+# kaldirilan ozelliklerin uclarinin artik olmadigi (404).
 # Kullanim: BASE=http://localhost:8080 ./scripts/smoke-post-social.sh   (gercek PostgreSQL gerekir)
 # Onkosul: compose'ta MAIL_ENABLED=false (dogrulama kodu log'dan okunur); kayit ucu IP basina saatte 10 sinirli:
 # gerekirse once `docker compose exec -T redis redis-cli flushall`.
@@ -39,6 +40,10 @@ AC="Authorization: Bearer $TC"
 IDA=$(uid_of "$AA"); IDB=$(uid_of "$AB"); IDC=$(uid_of "$AC")
 [ -n "$IDA" ] && [ -n "$IDB" ] && [ -n "$IDC" ] || { echo "profil okunamadi"; exit 1; }
 
+TMPD=$(mktemp -d)
+printf 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' | base64 -d > "$TMPD/a.png"
+TMPW=$(cygpath -m "$TMPD" 2>/dev/null || echo "$TMPD")
+
 echo "== takip"
 check "girissiz 401" 401 "$(code -X POST $A/users/$IDB/follow)"
 check "kendini takip 400" 400 "$(code -X POST -H "$AA" $A/users/$IDA/follow)"
@@ -49,70 +54,54 @@ has "takipci sayaci 1" '"followerCount":1' "$R"
 R=$(curl -s -X POST -H "$AA" $A/users/$IDB/follow)
 has "ikinci takip idempotent (sayac 1)" '"followerCount":1' "$R"
 P=$(curl -s -H "$AA" $A/users/$IDB)
-has "profil followedByMe" '"followedByMe":true' "$P"
+has "profil followedByMe true" '"followedByMe":true' "$P"
+has "profil followsMe false (B beni takip etmiyor)" '"followsMe":false' "$P"
 has "profil followerCount" '"followerCount":1' "$P"
-has "takipci listesi" "\"id\":$IDA" "$(curl -s -H "$AB" "$A/users/$IDB/followers")"
+PB=$(curl -s -H "$AB" $A/users/$IDA)
+has "B'nin gozunden A: followsMe true" '"followsMe":true' "$PB"
+has "B'nin gozunden A: followedByMe false" '"followedByMe":false' "$PB"
+LF=$(curl -s -H "$AB" "$A/users/$IDB/followers")
+has "takipci listesi" "\"id\":$IDA" "$LF"
+has "liste ogesi followsMe alani" '"followsMe":' "$LF"
+has "liste ogesi followedByMe alani" '"followedByMe":' "$LF"
 has "takip edilenler listesi" "\"id\":$IDB" "$(curl -s -H "$AA" "$A/users/$IDA/following")"
+# karsilikli: B de A'yi takip eder -> A'nin listesinde B icin followedByMe + followsMe true
+curl -s -o /dev/null -X POST -H "$AB" $A/users/$IDA/follow
+LM=$(curl -s -H "$AA" "$A/users/$IDA/following")
+has "karsilikli: followsMe true" '"followsMe":true' "$LM"
+has "karsilikli: followedByMe true" '"followedByMe":true' "$LM"
 check "oneriler 200" 200 "$(code -H "$AA" $A/users/me/follow-suggestions)"
 
-echo "== gonderi: #etiket, @etiket, kaydet"
-TAG="smk$SFX"
-R=$(curl -s -X POST -H "$AB" -H "$H" $A/posts -d "{\"text\":\"Merhaba #$TAG @[Sosyal Ayse](uid:$IDA)\"}")
+echo "== gonderi (tek foto + kisa metin) ve akis kapsamlari"
+MID=$(curl -s -X POST -H "$AB" -F "file=@$TMPW/a.png;type=image/png" $A/posts/media | jid)
+R=$(curl -s -X POST -H "$AB" -H "$H" $A/posts -d "{\"text\":\"Gunaydin kampus\",\"mediaIds\":[$MID]}")
 PID=$(echo "$R" | jid)
 [ -n "$PID" ] || { echo "  FAIL gonderi olusmadi: $R"; exit 1; }
-has "hashtags alani" "\"hashtags\":\[\"$TAG\"\]" "$R"
-has "mentions alani" "\"mentions\":\[{\"id\":$IDA" "$R"
-check "11 mention 400" 400 "$(code -X POST -H "$AB" -H "$H" $A/posts -d '{"text":"@[a](uid:1) @[a](uid:2) @[a](uid:3) @[a](uid:4) @[a](uid:5) @[a](uid:6) @[a](uid:7) @[a](uid:8) @[a](uid:9) @[a](uid:10) @[a](uid:11)"}')"
-has "etiket akisi" "\"id\":$PID" "$(curl -s -H "$AA" "$A/hashtags/$TAG/posts")"
-has "etiket onerisi" "$TAG" "$(curl -s -H "$AA" "$A/hashtags/suggest?q=smk")"
-check "gundem 200" 200 "$(code -H "$AA" "$A/hashtags/trending")"
-check "gecersiz etiket 400" 400 "$(code -H "$AA" "$A/hashtags/a/posts")"
-has "mention onerisi" "displayName" "$(curl -s -H "$AA" "$A/users/mention-suggest?q=Sosyal")"
-N=$(curl -s -H "$AA" "$A/notifications?size=20")
-has "etiket bildirimi" 'POST_MENTION' "$N"
-
-check "kaydet" 200 "$(code -X PUT -H "$AA" $A/posts/$PID/save)"
-check "kaydet idempotent" 200 "$(code -X PUT -H "$AA" $A/posts/$PID/save)"
-has "savedByMe true" '"savedByMe":true' "$(curl -s -H "$AA" $A/posts/$PID)"
-has "baskasi savedByMe false" '"savedByMe":false' "$(curl -s -H "$AC" $A/posts/$PID)"
-has "kaydedilenler listesi" "\"id\":$PID" "$(curl -s -H "$AA" "$A/posts/saved")"
-check "kaydi kaldir" 200 "$(code -X DELETE -H "$AA" $A/posts/$PID/save)"
-
-echo "== akis kapsamlari"
 has "following kapsami" "\"id\":$PID" "$(curl -s -H "$AA" "$A/feed?scope=following")"
 F=$(curl -s -H "$AC" "$A/feed?scope=following")
 if echo "$F" | grep -q "\"id\":$PID,"; then echo "  FAIL takip etmeyen following'te gordu"; FAIL=1; else echo "  ok   takip etmeyen gormez"; fi
 has "department bos+ipucu" 'NO_DEPARTMENT' "$(curl -s -H "$AC" "$A/feed?scope=department")"
+check "top 200" 200 "$(code -H "$AA" "$A/feed?scope=top")"
 check "gecersiz kapsam 400" 400 "$(code -H "$AA" "$A/feed?scope=bogus")"
 check "latest hala 200" 200 "$(code -H "$AA" "$A/feed?scope=latest")"
 
-echo "== hikayeler"
-check "bos hikaye 400" 400 "$(code -X POST -H "$AB" -H "$H" $A/stories -d '{}')"
-check "gecersiz renk 400" 400 "$(code -X POST -H "$AB" -H "$H" $A/stories -d '{"text":"selam","background":"mavi"}')"
-R=$(curl -s -X POST -H "$AB" -H "$H" $A/stories -d '{"text":"Gunaydin","background":"#336699"}')
-SID=$(echo "$R" | jid)
-[ -n "$SID" ] || { echo "  FAIL hikaye olusmadi: $R"; exit 1; }
-has "hikaye TEXT" '"kind":"TEXT"' "$R"
-T=$(curl -s -H "$AA" $A/stories/tray)
-has "tepsi: takip edilen hikayesi" "\"id\":$IDB" "$T"
-has "tepsi: gorulmemis" '"hasUnseen":true' "$T"
-check "goruntule 204" 204 "$(code -X POST -H "$AA" $A/stories/$SID/view)"
-check "goruntule idempotent 204" 204 "$(code -X POST -H "$AA" $A/stories/$SID/view)"
-T=$(curl -s -H "$AA" $A/stories/tray)
-has "tepsi: goruldu" '"hasUnseen":false' "$T"
-has "kullanici hikayeleri" "\"id\":$SID" "$(curl -s -H "$AA" $A/users/$IDB/stories)"
-has "goruntuleyenler (sahip)" "\"id\":$IDA" "$(curl -s -H "$AB" $A/stories/$SID/viewers)"
-check "goruntuleyenler baskasi 403" 403 "$(code -H "$AA" $A/stories/$SID/viewers)"
-has "viewCount sahibe" '"viewCount":1' "$(curl -s -H "$AB" $A/users/$IDB/stories)"
-check "baskasi silemez 403" 403 "$(code -X DELETE -H "$AA" $A/stories/$SID)"
-check "sahip siler" 204 "$(code -X DELETE -H "$AB" $A/stories/$SID)"
-check "silinen goruntulenemez 404" 404 "$(code -X POST -H "$AA" $A/stories/$SID/view)"
+echo "== kaldirilan uclar: artik yok (404)"
+check "etiket 404" 404 "$(code -H "$AA" "$A/hashtags/trending")"
+check "mention onerisi 404" 404 "$(code -H "$AA" "$A/users/mention-suggest?q=Sosyal")"
+check "kaydet 404" 404 "$(code -X PUT -H "$AA" $A/posts/$PID/save)"
+check "begenenler 404" 404 "$(code -H "$AA" "$A/posts/$PID/likes")"
+check "yorumlar 404" 404 "$(code -H "$AA" "$A/posts/$PID/comments")"
+check "hikaye olustur 404" 404 "$(code -X POST -H "$AB" -H "$H" $A/stories -d '{"text":"x"}')"
+check "hikaye tepsisi 404" 404 "$(code -H "$AA" $A/stories/tray)"
 
 echo "== takibi birak"
 R=$(curl -s -X DELETE -H "$AA" $A/users/$IDB/follow)
 has "birak: following false" '"following":false' "$R"
 has "sayac 0" '"followerCount":0' "$R"
+has "birakinca followedByMe false" '"followedByMe":false' "$(curl -s -H "$AA" $A/users/$IDB)"
+has "B hala A'yi takip ediyor: followsMe true" '"followsMe":true' "$(curl -s -H "$AA" $A/users/$IDB)" || true
 
+rm -rf "$TMPD"
 echo
 [ "$FAIL" = 0 ] && echo "TUM KONTROLLER GECTI" || echo "BAZI KONTROLLER BASARISIZ"
 exit $FAIL

@@ -39,3 +39,24 @@ Dogrulama: `MAIL_ENABLED=true` ile bir kayit yapin; `select status, attempts, la
 5. Gorsel duzen `src/main/resources/mail-templates/layout.html` icindedir (600px, `#C62A20` baslik bandi, `#171E33` metin, `#FAF6F3` zemin, koyu mod meta + medya sorgusu, Arapcada `dir="rtl"`).
 
 Sablonlarin cagrildigi yerler (kayit disindakiler sonraki modullerce baglanmalidir): dogrulama kodu `VerificationService` (bagli). Sifre sifirlama, hesap silindi, yeni cihaz girisi ve sifre degisti bildirimleri icin servis metotlari hazirdir; sifre sifirlama ozelligi eklendiginde cagrilmalidir.
+
+## Teslim edilebilirlik (spam'e dusmeme) - V420/V421
+
+- `MailCategory` (TRANSACTIONAL/ANNOUNCEMENT; `MailCategory.of(template)`): duyuru turu `List-Unsubscribe` + `List-Unsubscribe-Post` (RFC 8058) + `Precedence: bulk`, govdede abonelikten cik baglantisi; islemsel `Auto-Submitted: auto-generated`. `Message-ID` gonderen alan adiyla, `Date`, `Reply-To` (`MAIL_REPLY_TO`).
+- Bastirma listesi `mail_suppression` (V420, yalniz SHA-256 ozeti; UNSUBSCRIBED/BOUNCED/COMPLAINT): duyuru gitmez, islemsel gider. Uc: `GET/POST /api/public/mail/unsubscribe?token=` (herkese acik, IP basina saatte 60; GET durum degistirmez; 3 dilli sayfa; HMAC jeton, 180 gun).
+- Kuyruk (V421 `mail_outbox.priority`): islemsel once ve sinirsiz; duyuru `app.mail.max-per-minute` (30) ve ayni aliciya `app.mail.recipient-gap-seconds` (300) ile sinirli. Yeni durum `SKIPPED` (bastirilmis/bounce/abonelik adresi yok; saglik alarmi uretmez).
+- SMTP anindaki kalici alici hatasi (550/551/553 + kullanici yok) yeniden denenmez, adres BOUNCED bastirilir; gecici/politika hatalari yeniden denenir.
+- `MailTransport.send(...)` eski 5 parametreli imza korunur (islemsel); yeni imza `(…, MailCategory, unsubscribeUrl)`. `MailProperties` eski 7 alanli kurucuyu korur. `MailQueueWorker.purgeOld` `SchedulerLock("mail-purge")` ile sarili.
+- Yeni toplu sablon (kendi enum degeri) eklenirse `MailCategory.ANNOUNCEMENT_TEMPLATES`'e adi eklenmelidir (aksi halde islemsel sayilir).
+- `ProdSettingsValidator`: `MAIL_FROM` bos/yerel ise hata; TLS zorunlu degil, `PUBLIC_WEB_URL` https degil, From/SMTP alan adi farki, sinirsiz hiz icin uyari. Ayrinti ve DNS listesi: [../MAIL_DELIVERABILITY.md](../MAIL_DELIVERABILITY.md).
+
+
+## Yonetici sablonlari ve toplu/secili e-posta kampanyalari (V430, `mail/campaign`)
+
+Yeni uclar: `/api/admin/mail/templates|campaigns|variables` (ayrinti ve ornekler: docs/ADMIN_API.md "Mail sablonlari ve kampanyalari").
+
+- `MailTemplate.CUSTOM`: kuyruk satiri yalniz `tplId`, `tplVer` ve alici degiskenlerini (`ad`, `eposta`, `bolum`, `fakulte`, `sinif`, `uygulamaUrl`, `abonelikCikUrl`) tasir; icerik gonderim aninda `CustomMailRenderer` ile veritabanindaki **sabit surumden** cozulur (`MailRenderer` bu sablonda `CustomMailContent`'e devreder, ayni `layout.html`). Kategori ANNOUNCEMENT (`MailCategory`): abonelikten cik alt bilgisi, bastirma listesi ve hiz siniri kuyruk iscisindedir; sablon govdesinde ikinci bir alt bilgi eklenmez.
+- HTML kaydedilirken jsoup Safelist ile temizlenir; degerler HTML icin kacislanir. Konu tek satira indirilir (baslik enjeksiyonu).
+- `MailCampaignDispatcher` (`app.mail.campaign-poll-ms`=10000, `app.mail.campaign-batch`=200, `SchedulerLock` + `FOR UPDATE SKIP LOCKED`): zamani gelen kampanyayi cozer (`MailAudienceResolver`: tum/filtre/secili kullanicilar/e-posta listesi -> yalniz kayitli kullanicilar), bastirilmis (`MailSuppressionGateImpl` -> `MailSuppressionService`), askidaki/silinmis/dogrulanmamis ve tekrar eden adresleri atlar, kalanlari `MailService.enqueue` ile yazar. Her alici `mail_campaign_recipient (campaign_id,user_id)` UNIQUE; "QUEUED" isareti ile kuyruk satiri ayni transaction'dadir (tekrar gonderim olmaz).
+- KVKK: kampanyada yalniz kullanici kimligi; `app.mail.campaign-retention-days` (180) sonra gece silinir; hesap silmede `AccountDataPurger` alici satirlarini siler.
+- Hata kodlari `i18n/mailadmin*.properties` (basename'e eklendi).

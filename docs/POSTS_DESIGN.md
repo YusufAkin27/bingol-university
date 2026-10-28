@@ -99,3 +99,36 @@ Backend: birim + H2 (PostgreSQL'e özel SQL için `scripts/smoke-posts.sh`, ASCI
 
 M1: post_models/post_api hazir (lib/features/posts/post_models.dart, post_api.dart). PostApi(session); Post/PostMedia/PostComment/PostPage<T>/LikeResult; postMediaUrl(), postAuthHeaders(session).
 - M5: fakePosts hazir - `test/support/fake_app.dart`: `final f = fakePosts(backend, count: 12, pageSize: 10, withMedia: true, empty: false)` (FakePosts: posts, comments, seedComments(postId), emptyFeed, failFeed, uploadError, likedIds); `FakeBackend.handlers` (yonteme duyarli), `FakeResult`; `samplePost/sampleComment/samplePostMedia/samplePostAuthor`, `kFakePng/kFakeMp4`. Imlec p2,p3...
+
+## Keşfet puanlama (`GET /api/feed?scope=top`)
+
+**Kapsamlar:** `top` (puanlı; Keşfet'in önerilen varsayılanı), `latest`, `popular`, `following`, `department`. API'nin kapsamsız varsayılanı `latest` olarak KALDI (geriye uyum); mobil `scope=top` ister. `popular` (eski `score` kolonu, 7 gün penceresi) ve `latest` değişmedi.
+
+**Formül** (`PostRank`, saf fonksiyon; puan istemciye dönmez):
+```
+engagement = wL*ln(1+beğeni) + wC*ln(1+yorum) + wF*ln(1+yazarTakipçi) + wV*ln(1+son24saatBeğeni)
+sönüm      = 0.5 ^ (yaşSaat / yarıÖmür)
+soğuk      = yaş < coldStartHours ? coldStartBonus*(1 - yaş/coldStartHours) : 0
+puan       = (engagement*sönüm + soğuk) * reportPenalty ^ min(açıkŞikâyet, maxReportsCounted)
+```
+Gerekçe: log ölçek ilk beğenileri değerli kılar, viral gönderinin tek başına akışı kaplamasını önler; yarı ömür 60 sa (2,5 gün) taze gönderiyi öne çıkarır; son 24 saat beğeni terimi ivmeyi ödüllendirir; soğuk başlangıç beğenisiz yeni gönderinin ilk 6 saatte görünmesini sağlar (6. saatte sıfıra iner); açık `FEED_POST` şikâyetleri puanı yarıya böler (en çok 5 şikâyet sayılır); gizlenen/silinen gönderi ve engelli/askıdaki yazar zaten `FEED_VISIBLE` süzgecinde dışarıda; engel ilişkisi görüntüleyene göre süzülür. 14 günden eski gönderilerin puanı 0'dır (listenin sonunda `id DESC` sırasıyla kalır, akış tükenmez).
+
+**Ayarlar** (`PostRankProperties`, `app.post.rank.*`; hepsi varsayılanlıdır): `like-weight=1.0`, `comment-weight=1.5`, `follower-weight=0.6`, `velocity-weight=1.2`, `half-life-hours=60`, `cold-start-hours=6`, `cold-start-bonus=2.0`, `report-penalty=0.5`, `max-reports-counted=5`, `window-days=14`, `max-author-run=2`, `default-page-size=12`, `max-page-size=30`, `recompute-ms=300000`; ayrıca `app.post.rank.initial-delay-ms` (30000).
+
+**Hesaplama (hibrit):** (1) yeni gönderide `PostService.create` `PostRankService.initialScore` ile soğuk başlangıç puanını anında yazar; (2) `PostRankService.scheduled` her 5 dk `SchedulerLock("post-rank")` ile son 14 gündeki gönderileri 500'lük partilerle yeniden hesaplar (takipçi `user_follow_stats`, 24 sa beğeni `post_like`, açık şikâyet `report` — hepsi partiye tek sorgu, N+1 yok) ve 14 günden eskileri sıfırlar. Beğeni/takip başına artımlı yazma YAPILMAZ (yazma yolunu yavaşlatmamak için): beğeni etkisi en geç ~5 dk gecikir.
+
+**Migration:** `V410__post_rank_score.sql` — `post.rank_score DOUBLE PRECISION NOT NULL DEFAULT 0` + kısmi indeks `post410_rank_idx (rank_score DESC, id DESC) WHERE deleted_at IS NULL AND hidden_at IS NULL`. (Önceki iş: V390 menü, V400 etkinlik için ayrıldı; etkinlik işi migration kullanmadı.)
+
+**Sayfalama:** keyset, `ORDER BY rank_score DESC, id DESC`. `size` varsayılan 12, üst sınır 30 (`size` verilmezse veya ≤0 ise kapsam varsayılanı; diğer kapsamlar 10, üst sınır 20). İmleç opak Base64url: `T|<rank_score>|<id>|<hesapSürümü>`; bozuk veya başka kapsamın imleci 400 `POST_CURSOR_INVALID`. Sayfa içi yazar çeşitliliği: ardışık aynı yazardan en çok 2 gönderi; yeniden sıralama kayıpsızdır (yalnız sayfa içi sıra değişir, imleç veritabanı sırasındaki son kayıttan kurulur → kopya/atlama oluşmaz).
+
+**Bilinen ödünleşme:** puan 5 dk'da bir değiştiği için kullanıcı kaydırırken yeniden hesap olursa nadiren bir gönderi tekrar görünebilir (skoru imlecin altına düşen daha önce gösterilmiş gönderi) ya da atlanabilir (skoru yükselen henüz gösterilmemiş). Hesap sürümü imleçte taşınır; sürüm değişmişse yanıt `hint: "RANK_REFRESHED"` döner. İstemci `id`'ye göre tekilleştirir. Sürüm örneğe özeldir (çok örnekli çalışmada her örnek kendi son hesap anını bilir; en kötü durum fazladan `hint`). Tam anlık görüntü (snapshot) bilerek yapılmadı: sayfa başına sunucu durumu gerektirir.
+
+**API:**
+```
+GET /api/feed?scope=top&size=12
+-> 200 {"items":[{PostView...}], "nextCursor":"VHwxLjg3fDQyfDE3NjE2...", "hint":null}
+GET /api/feed?scope=top&cursor=VHwx...&size=12   (son sayfada nextCursor=null)
+```
+`items` biçimi mevcut `PostView`; puan/`rankScore` hiçbir yanıtta yoktur. Engelleme, gizlilik ve video-only/metin-only gizleme (`FEED_VISIBLE`) `top`'ta da geçerlidir.
+
+**Testler:** `PostRankTest` (formül: beğeni artınca puan artar, log ölçek, takipçi/ivme, yarı ömür sönümü, soğuk başlangıç, şikâyet cezası, çeşitlilik), `PostTopFeedTest` (3+ sayfa gezme kopya/atlama yok, imleç sonu, boyut 12/30, engel + video-only süzgeci, soğuk başlangıç, bozuk imleç, puan sızmaması, `latest`/`popular` sürüyor).

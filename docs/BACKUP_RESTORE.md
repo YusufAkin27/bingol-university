@@ -6,9 +6,9 @@ Kapsam: PostgreSQL veritabanı + yüklenen dosyalar (`uploads` volume: avatarlar
 
 | Hedef | Değer | Nasıl sağlanır |
 |---|---|---|
-| **RPO** (kabul edilen en çok veri kaybı) | **24 saat** | Günlük 03:00 yedek. Daha sıkı RPO gerekirse `BACKUP_CRON` sıklaştırılır (ör. 6 saatte bir) ya da WAL arşivi (pgBackRest/WAL-G) eklenir; bu belge yalnız günlük mantıksal yedeği kapsar. |
+| **RPO** (kabul edilen en çok veri kaybı) | **1 saat** | Saatlik yedek (`BACKUP_CRON=5 * * * *`). Güncel politika özeti: [BACKUP.md](BACKUP.md). Daha sıkı RPO için WAL arşivi (pgBackRest/WAL-G) gerekir. |
 | **RTO** (kabul edilen en uzun kesinti) | **2 saat** | Aşağıdaki geri yükleme adımları; veritabanı ~birkaç GB için `pg_restore` dakikalar sürer. Yılda 2 tatbikatta süre ölçülür. |
-| Saklama | 14 günlük + 8 haftalık + 12 aylık | `BACKUP_KEEP_DAILY/WEEKLY/MONTHLY`. Pazar yedeği haftalığa, ayın 1'i aylığa sabit bağlantıyla (hardlink) kopyalanır. |
+| Saklama | **En yeni 3 yedek** (3 saatlik pencere) | `BACKUP_KEEP_DAILY=3`; haftalık/aylık varsayılan kapalı (`BACKUP_KEEP_WEEKLY/MONTHLY=0`, açılırsa hardlink kopyası). **Uzak kopya (`BACKUP_REMOTE`) olmadan disk kaybı = tüm yedeklerin kaybı.** |
 | Doğrulama | Haftalık otomatik geri yükleme denemesi | Pazar 04:30 `verify-restore.sh --latest` (aşağıda). |
 
 KVKK: yedekler kişisel veri içerir. Saklama süresi (öneri <= 12 ay, aylık en eski) saklama politikasıyla uyumlu olmalıdır (`docs/legal/internal/01_saklama_ve_imha_politikasi.md`); **silinen hesaplar yedekten geri yüklenince yeniden anonimleştirilmelidir** (bölüm 5, adım 7).
@@ -46,13 +46,13 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec backup /opt/
 
 ## 3. Zamanlama, metrik, uyarı
 
-- `backup` servisi (supercronic): `BACKUP_CRON` (varsayılan **03:00**, `Europe/Istanbul`) ve `BACKUP_VERIFY_CRON` (varsayılan **pazar 04:30**).
+- `backup` servisi (supercronic): `BACKUP_CRON` (varsayılan **her saat :05**, `Europe/Istanbul`) ve `BACKUP_VERIFY_CRON` (varsayılan **pazar 04:30**).
 - **Başarısızlıkta:** betik sıfır olmayan kodla çıkar, `backup_last_status 0` yazar, `BACKUP_WEBHOOK_URL`'e bildirim gönderir. Yarım yedek (`.partial-*`) silinir; önceki yedekler korunur.
 - **Metrikler** (Prometheus textfile biçimi, `monitoring/textfile/backup.prom` ← `BACKUP_METRICS_DIR`; aynı dosya `http://backup:9199/backup.prom` ile de sunulur):
 
 | Metrik | Anlam |
 |---|---|
-| `backup_last_success_timestamp_seconds` | Son **başarılı** yedek (unix sn). `monitoring/prometheus/alert.rules.yml` `BackupTooOld` bunu bekler (36 saat). |
+| `backup_last_success_timestamp_seconds` | Son **başarılı** yedek (unix sn). `monitoring/prometheus/alert.rules.yml` `BackupTooOld` bunu bekler (36 saat; saatlik yedekte ~3 saate çekin). |
 | `backup_last_run_timestamp_seconds`, `backup_last_status` | Son deneme ve sonucu (1/0) |
 | `backup_last_duration_seconds`, `backup_last_db_bytes`, `backup_last_uploads_bytes` | Süre ve (şifreli) boyutlar |
 | `backup_verify_last_success_timestamp_seconds`, `backup_verify_last_status` | Son başarılı geri yükleme doğrulaması. **Öneri: `time() - backup_verify_last_success_timestamp_seconds > 9*86400` uyarısı.** |
@@ -139,3 +139,11 @@ Her tatbikatın kaydı (tarih, süre, bulgu) `docs/RUNBOOK.md` sonundaki "Tatbik
 - Uploads ve veritabanı aynı anda atomik değildir; yetim dosya/satır için süpürücüler (`MediaOrphanSweeper`, `PostMediaJanitor`) vardır.
 - Redis yedeklenmez (geçici veri); kayıp sonucu: kullanıcılar yeniden giriş yapar.
 - `backups` volume'u aynı sunucudadır; sunucu kaybı için **uzak kopya şarttır**.
+
+## 9. Saatlik politika, durum JSON'u ve tek komutla canlı geri yükleme
+
+Saatlik/son-3 politikası, `last-success.json` / `last-failure.json` biçimi, şifreleme ve `.env` yedeği kararları: [BACKUP.md](BACKUP.md). Sunucuda tek komutla geri yükleme (uygulamayı durdurur, DB + dosyaları geri koyar, Redis'i temizler, başlatır; onay ister, **sunucuda denenmemiş betik: ilk kullanımı staging'de deneyin**):
+
+```bash
+bash scripts/backup/restore-live.sh <yedek-dizini> <kurtarma.age.key>
+```

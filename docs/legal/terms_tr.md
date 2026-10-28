@@ -94,8 +94,8 @@ Bu bölüm, mesajlarınızın sizinle karşı taraf arasında "tamamen gizli" ol
 
 ## 10. Hizmet seviyesi, sorumluluk sınırı
 
-1. Hizmet "olduğu gibi" ve "mevcut haliyle" sunulur. Kesintisiz, hatasız veya her cihazda çalışacağı garanti edilmez; bakım, güncelleme, mücbir sebep ve üçüncü taraf hizmet (e-posta, bildirim altyapısı, barındırma) kesintileri olabilir. Zorunlu güncelleme veya bakım modu uygulanabilir.
-2. Hizmetin ücretsiz olması nedeniyle, kanunun izin verdiği ölçüde; dolaylı zararlar, kâr kaybı, veri kaybı, itibar kaybı ve üçüncü kişilerin içeriklerinden doğan zararlardan sorumlu değiliz. Bu sınırlama; kasıt, ağır kusur ve kanunen sınırlandırılamayan haller (emredici hukuk kuralları, kişilik hakları ve ölüm/yaralanma zararları dahil) için uygulanmaz.
+1. Hizmet "olduğu gibi" ve "mevcut haliyle" sunulur. Kesintisiz, hatasız veya her cihazda çalışacağı, belirli bir amaca uygun olacağı ya da içeriğinin (özellikle kaynak sitelerden derlenen bilgilerin) doğru, eksiksiz ve güncel olacağı yönünde açık veya zımni bir garanti verilmez; bakım, güncelleme, mücbir sebep ve üçüncü taraf hizmet (e-posta, bildirim altyapısı, barındırma) kesintileri olabilir. Zorunlu güncelleme veya bakım modu uygulanabilir. Bu fıkra, kanunen kaldırılamayan haklarınızı etkilemez.
+2. Hizmetin ücretsiz olması nedeniyle, kanunun izin verdiği ölçüde; dolaylı zararlar, kâr kaybı, veri kaybı, itibar kaybı ve üçüncü kişilerin içeriklerinden doğan zararlardan sorumlu değiliz; doğrudan zararlardan sorumluluğumuz da, kasıt ve ağır kusur hariç, kanunun izin verdiği ölçüde ve somut olayda ispatlanan zararla sınırlıdır. Kullanıcıların birbirleriyle ilişkilerinden, buluşmalarından, etkinliklerde yaşananlardan ve Hizmet dışındaki davranışlarından doğan uyuşmazlıklarda taraf değiliz. Bu sınırlama; kasıt, ağır kusur ve kanunen sınırlandırılamayan haller (emredici hukuk kuralları, kişilik hakları ve ölüm/yaralanma zararları dahil) için uygulanmaz.
 3. Kullanıcı içeriklerinin doğruluğunu garanti etmeyiz; üçüncü kişilerin paylaşımlarından onlar sorumludur. 5651 sayılı Kanun kapsamında yer sağlayıcı olarak, hukuka aykırı içerikten haberdar edildiğimizde usulüne uygun bildirim üzerine gerekli işlemleri yaparız.
 4. **Mesaj ve medya yedekleri.** Ana şifreleme anahtarının kaybı halinde mesajların kurtarılamayacağı riski bulunmaktadır; önemli belgelerinizin yedeğini kendiniz alın.
 
@@ -118,9 +118,33 @@ Bu koşulları, Topluluk Kurallarını veya hukuku ihlal etmeniz nedeniyle işle
 ## 14. Uygulanacak hukuk ve yetkili mahkeme
 
 1. Bu koşullara Türkiye Cumhuriyeti hukuku uygulanır.
-2. Hizmet, bir kamu üniversitesi bağlamında öğrenci/personel için ücretsiz sunulur ve kullanıcılar bu bağlamda tüketici sıfatıyla ücret karşılığı mal/hizmet almamaktadır; bu nedenle tüketici mevzuatındaki özel yetki kuralları, ancak kanunen uygulanabildiği ölçüde geçerlidir. Uyuşmazlıklarda **Bingöl mahkemeleri ve icra daireleri** yetkilidir; idari işlemlere ilişkin uyuşmazlıklarda ilgili idare mahkemesi görevlidir. Emredici yetki kuralları saklıdır.
+2. Hizmet ücretsiz sunulur; bu nedenle tüketici mevzuatındaki özel yetki ve başvuru kuralları (6502 sayılı Kanun) yalnızca kanunen uygulanabildiği ölçüde geçerlidir. Bu koşullardan doğan uyuşmazlıklarda **{{controller.jurisdiction|Bingöl}} mahkemeleri ve icra daireleri** yetkilidir; idari işlemlere ilişkin uyuşmazlıklarda ilgili idare mahkemesi görevlidir. Kanunun emredici yetki kuralları (tüketici sıfatınız varsa yerleşim yerinizdeki tüketici mahkemesi veya hakem heyeti dahil) ve yasal başvuru haklarınız saklıdır; bu madde onları sınırlamaz.
 
-## 15. İletişim
+## 15. Bingöl Üniversitesi ile ilişki; üçüncü taraf bağlantılar
+
+1. {{controller.relation|Hizmet, Bingöl Üniversitesi'nin resmî uygulaması değildir; üniversite adına açıklama yapmaz, bağlayıcı beyanda bulunmaz ve üniversitenin resmî bildiriminin yerini tutmaz. Üniversiteye ait haber, duyuru, etkinlik ve yemek listesi içeriği "kaynak: bingol.edu.tr" ibaresiyle ve kaynak sayfa bağlantısıyla sunulur. Üyelik, yalnızca üniversiteye ait e-posta adresiyle doğrulama için bu alan adını kullanır; bu durum üniversitenin Hizmeti onayladığı, işlettiği veya sorumluluk üstlendiği anlamına gelmez.}}
+2. Hizmet; kaynak site, harici bağlantı, QR veya üçüncü kişilerin paylaştığı bağlantılar aracılığıyla üçüncü taraf sitelere yönlendirebilir. Bu sitelerin içeriği, gizlilik uygulamaları ve güvenliği üzerinde denetimimiz yoktur; bunlardan sorumlu değiliz ve bağlantı onay anlamına gelmez. Bağlantıları kendi sorumluluğunuzda açarsınız.
+
+## 16. Hizmetin değiştirilmesi, kesintiler ve mücbir sebep
+
+1. Hizmeti veya özelliklerini, makul bir bildirimle (acil güvenlik/hukuki gereklilik hallerinde bildirimsiz) değiştirme, kısıtlama, askıya alma veya tamamen sonlandırma hakkımız saklıdır. Hizmetin sona ermesi halinde, mümkün olduğunca önceden duyuru yapar ve [Verilerimi indir](/legal/privacy) özelliğini bir süre açık tutmaya çalışırız. Ücretsiz Hizmetin değiştirilmesi veya sonlandırılması nedeniyle tazminat talep edilemez; kasıt ve ağır kusur halleri ile kanunun emredici hükümleri saklıdır.
+2. Bakım, güncelleme veya teknik arıza nedeniyle Hizmet geçici olarak kesilebilir; bu durumlarda uygulama "bakımda" uyarısı gösterebilir.
+3. Doğal afet, savaş, terör, salgın, elektrik/internet/altyapı ve üçüncü taraf sağlayıcı kesintileri, siber saldırı, mevzuat veya idari/yargısal karar değişikliği gibi tarafların makul kontrolü dışındaki olaylar (**mücbir sebep**) süresince yükümlülüklerin ifa edilememesinden dolayı sorumluluk doğmaz.
+
+## 17. Delil sözleşmesi ve tebligat
+
+1. Taraflar, Hizmet sunucularındaki kayıtların (sözleşme onay kayıtları, oturum/IP ve cihaz özeti kayıtları, moderasyon ve erişim günlükleri, e-posta ve bildirim kayıtları) 6100 sayılı Hukuk Muhakemeleri Kanunu m.193 anlamında **kesin delil** niteliğinde olduğunu kabul eder. Bu hüküm, emredici hukuka ve Kişisel Verileri Koruma Kurulu veya mahkemenin delil değerlendirme yetkisine halel getirmez; kayıtlara karşı gerçeğe aykırılığı ispat hakkınız saklıdır.
+2. Size yapılacak bildirim ve tebligatlar, kayıtlı kurumsal e-posta adresinize ve uygulama içi bildirim kutusuna gönderilir; gönderim anında tebliğ edilmiş sayılır. E-posta adresinizi ve iletişim bilgilerinizi güncel tutmak sizin sorumluluğunuzdadır. Bize yapılacak bildirimler {{support.email|uygulama içi Destek bölümü}} üzerinden{{?controller.kep}} veya {{controller.kep}} KEP adresine{{/controller.kep}} iletilir.
+
+## 18. Genel hükümler
+
+1. **Bölünebilirlik.** Bu koşulların bir hükmü geçersiz veya uygulanamaz bulunursa, diğer hükümler geçerliliğini korur; geçersiz hüküm, amacına en yakın geçerli hükümle yorumlanır.
+2. **Feragat etmeme.** Bir hakkımızı kullanmamamız o haktan feragat anlamına gelmez.
+3. **Devir.** Hizmeti ve bu koşullardan doğan haklarımızı, Hizmetin devri, birleşme veya yeniden yapılanma halinde, kişisel verilerin korunmasına ilişkin mevzuata uygun şekilde bir halef kuruma devredebiliriz. Siz haklarınızı bize yazılı onay olmadan devredemezsiniz.
+4. **Bütünlük ve dil.** Bu koşullar ve atıf yapılan metinler tarafların anlaşmasının tamamıdır. Türkçe metin esastır; diğer dillerdeki metinler bilgilendirme amaçlı çeviridir ve farklılık halinde Türkçe metin geçerlidir.
+5. **Başlıklar.** Başlıklar ve "Özetle" kutuları yalnızca kolaylık içindir; yorumda bağlayıcı değildir.
+
+## 19. İletişim
 
 - Genel sorular, itiraz ve talepler: {{support.email|uygulama içi Destek bölümü}}
 {{?controller.email}}- Veri sorumlusu e-posta: {{controller.email}}{{/controller.email}}

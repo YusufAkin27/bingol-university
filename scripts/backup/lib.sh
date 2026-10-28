@@ -58,6 +58,45 @@ PROM
   chmod 644 "$METRICS_FILE" 2>/dev/null || true
 }
 
+# Durum JSON'u (gozlemlenebilirlik): BACKUP_STATUS_FILE (varsayilan $BACKUP_DIR/last-success.json);
+# basarisizlik dosyasi ayni dizinde last-failure.json. Gecici ada yazilip atomik tasinir.
+STATUS_FILE="${BACKUP_STATUS_FILE:-$BACKUP_DIR/last-success.json}"
+FAILURE_FILE="$(dirname "$STATUS_FILE")/last-failure.json"
+
+json_esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r'; }
+
+# status_success <dosya-adi> <sizeBytes> <durationSec> <dbOk true/false> <filesOk true/false>
+status_success() {
+  local tmp="$STATUS_FILE.tmp.$$"
+  mkdir -p "$(dirname "$STATUS_FILE")"
+  printf '{"time":"%s","file":"%s","sizeBytes":%s,"durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
+    "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$(json_esc "$1")" "$2" "$3" "$4" "$5" > "$tmp"
+  mv -f "$tmp" "$STATUS_FILE"
+  chmod 644 "$STATUS_FILE" 2>/dev/null || true
+  # basarili yedekten sonra eski basarisizlik kaydi yaniltici olur
+  rm -f "$FAILURE_FILE"
+}
+
+# status_failure <hata-metni> <durationSec> <dbOk> <filesOk>
+status_failure() {
+  local tmp="$FAILURE_FILE.tmp.$$"
+  mkdir -p "$(dirname "$FAILURE_FILE")"
+  printf '{"time":"%s","error":"%s","durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
+    "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$(json_esc "$1")" "$2" "$3" "$4" > "$tmp"
+  mv -f "$tmp" "$FAILURE_FILE"
+  chmod 644 "$FAILURE_FILE" 2>/dev/null || true
+}
+
+# prune <dizin> <tut>: yalniz YEDEK adli (YYYYmmddTHHMMSS) dizinleri, en yeni <tut> tanesi disinda siler.
+# Yalnizca basarili yedekten SONRA cagrilir. <tut> < 1 ise hicbir sey silinmez (guvenli taraf).
+prune() {
+  local n=0 d
+  [ "${2:-0}" -ge 1 ] 2>/dev/null || { log "uyari: prune sayisi gecersiz ($2); silme yapilmadi"; return 0; }
+  for d in $(ls -1 "$1" 2>/dev/null | grep -E '^[0-9]{8}T[0-9]{6}$' | sort -r); do
+    n=$((n+1)); [ "$n" -le "$2" ] || { log "siliniyor: $1/$d"; rm -rf "${1:?}/$d"; }
+  done
+}
+
 notify() { # notify <mesaj>: webhook'a basit JSON (Slack/Discord/Mattermost "text"/"content" uyumlu)
   [ -n "${BACKUP_WEBHOOK_URL:-}" ] || return 0
   local msg

@@ -13,7 +13,9 @@ DRY=0
 [ "${1:-}" = "--dry-run" ] && DRY=1
 
 UPLOADS_DIR="${UPLOADS_DIR:-/data/uploads}"
-KEEP_D="${BACKUP_KEEP_DAILY:-14}"; KEEP_W="${BACKUP_KEEP_WEEKLY:-8}"; KEEP_M="${BACKUP_KEEP_MONTHLY:-12}"
+# Varsayilan: saatlik yedek, EN YENI 3 tutulur; haftalik/aylik kapali (0). daily = "saatlik" yedeklerin dizini.
+KEEP_D="${BACKUP_KEEP_DAILY:-3}"; KEEP_W="${BACKUP_KEEP_WEEKLY:-0}"; KEEP_M="${BACKUP_KEEP_MONTHLY:-0}"
+DB_OK=false; FILES_OK=false
 RECIPIENT="${BACKUP_AGE_RECIPIENT:-}"
 # Ek alici (ops.): sunucuda ozel anahtari duran DOGRULAMA anahtari (haftalik otomatik geri yukleme denemesi icin)
 EXTRA_RECIPIENT="${BACKUP_VERIFY_AGE_RECIPIENT:-}"
@@ -25,17 +27,23 @@ PART="$BACKUP_DIR/.partial-$STAMP"
 [ -n "$RECIPIENT" ] || die "BACKUP_AGE_RECIPIENT bos (age genel anahtari gerekli)"
 case "$RECIPIENT" in AGE-SECRET-KEY-*) die "BACKUP_AGE_RECIPIENT bir OZEL anahtar gibi gorunuyor; yalnizca genel anahtar (age1...) verin";; esac
 
-fail() {
+DIE_MSG=""
+die() { DIE_MSG="$*"; log "HATA: $*"; exit 1; }
+
+# EXIT tuzagi: die/set -e/sinyal fark etmez, sifir disi cikista durum JSON + metrik + bildirim yazilir.
+on_exit() {
   local rc=$?
-  log "BASARISIZ (cikis $rc, satir ${BASH_LINENO[0]})"
+  [ "$rc" -ne 0 ] || return 0
+  log "BASARISIZ (cikis $rc${DIE_MSG:+: $DIE_MSG})"
   rm -rf "$PART" 2>/dev/null || true
   if [ "$DRY" = 0 ]; then
-    metric_write "" "$(date +%s)" 0 "$(( $(date +%s) - START ))" "" "" "" ""
-    notify "YEDEK BASARISIZ ($(hostname)) satir ${BASH_LINENO[0]}, cikis $rc"
+    metric_write "" "$(date +%s)" 0 "$(( $(date +%s) - START ))" "" "" "" "" || true
+    # Rotasyon burada ASLA calismaz: basarisiz yedek mevcut iyi yedekleri silmez
+    status_failure "${DIE_MSG:-beklenmeyen hata (cikis $rc)}" "$(( $(date +%s) - START ))" "$DB_OK" "$FILES_OK" || true
+    notify "YEDEK BASARISIZ ($(hostname)): ${DIE_MSG:-cikis $rc}"
   fi
-  exit "${rc:-1}"
 }
-trap fail ERR
+trap on_exit EXIT
 
 # --- on kontroller (dry-run'da da calisir) ---
 command -v pg_dump >/dev/null || die "pg_dump yok"
@@ -62,6 +70,16 @@ if [ "$DRY" = 1 ]; then
   exit 0
 fi
 
+# --- disk: yeni yedek yazilirken eskiler (KEEP_D) hala durur; basari sonrasi rotasyon yapilir ---
+NEED="$(( $(psql -Atqc "select pg_database_size(current_database())") + $(du -sk "$UPLOADS_DIR" | awk '{print $1*1024}') ))"
+FREE_B="$(df -Pk "$BACKUP_DIR" | awk 'NR==2{print $4*1024}')"
+if [ "$FREE_B" -lt "$NEED" ]; then
+  die "disk yetersiz: bos $(human "$FREE_B") < gereken (en kotu durum) $(human "$NEED"); yedek alinmadi, mevcut yedekler korundu"
+elif [ "$FREE_B" -lt "$((NEED * 2))" ]; then
+  log "UYARI: bos alan $(human "$FREE_B"), veri boyutunun 2 kati altinda; diski buyutun"
+  notify "UYARI disk azaliyor ($(hostname)): bos $(human "$FREE_B")"
+fi
+
 mkdir -p "$PART" "$BACKUP_DIR/daily" "$BACKUP_DIR/weekly" "$BACKUP_DIR/monthly"
 chmod 700 "$PART"
 log "yedek basliyor: $STAMP"
@@ -77,11 +95,13 @@ UPFILES="$(find "$UPLOADS_DIR" -type f | wc -l | tr -d ' ')"
 # --- veritabani: dogrudan sifreli akis (diske acik metin yazilmaz) ---
 log "pg_dump -Fc -> age"
 pg_dump -Fc -Z 6 --no-owner --no-privileges | age "${AGE_ARGS[@]}" > "$PART/db.dump.age"
+DB_OK=true
 
 # --- yuklenen dosyalar ---
 log "uploads tar+zstd -> age"
 # --warning=no-file-changed: yazma sirasinda degisen dosya hatasi olmasin (yeni dosyalar bir sonraki yedege girer)
 tar -C "$UPLOADS_DIR" --warning=no-file-changed -cf - . | zstd -T2 -q | age "${AGE_ARGS[@]}" > "$PART/uploads.tar.zst.age"
+FILES_OK=true
 
 DBB="$(stat -c %s "$PART/db.dump.age")"; UPB="$(stat -c %s "$PART/uploads.tar.zst.age")"
 [ "$DBB" -gt 200 ] || die "db yedegi supheli derecede kucuk ($DBB bayt)"
@@ -104,15 +124,10 @@ DBB="$(stat -c %s "$PART/db.dump.age")"; UPB="$(stat -c %s "$PART/uploads.tar.zs
 
 mv "$PART" "$DEST"
 
-# --- kademeli saklama: pazar -> haftalik, ayin 1'i -> aylik (hardlink, ek yer yemez) ---
-if [ "$(date +%u)" = 7 ]; then mkdir -p "$BACKUP_DIR/weekly"; cp -al "$DEST" "$BACKUP_DIR/weekly/$STAMP"; fi
-if [ "$(date +%d)" = 01 ]; then mkdir -p "$BACKUP_DIR/monthly"; cp -al "$DEST" "$BACKUP_DIR/monthly/$STAMP"; fi
-prune() { # prune <dizin> <tut>
-  local n=0
-  for d in $(ls -1 "$1" 2>/dev/null | sort -r); do
-    n=$((n+1)); [ "$n" -le "$2" ] || { log "siliniyor: $1/$d"; rm -rf "${1:?}/$d"; }
-  done
-}
+# --- saklama: YALNIZ basarili yedekten sonra, en yeni KEEP_D tane kalir (varsayilan 3 = 3 saatlik pencere) ---
+# Haftalik/aylik kopya (hardlink) yalniz KEEP_W/KEEP_M > 0 ise uretilir.
+if [ "$KEEP_W" -gt 0 ] && [ "$(date +%u)" = 7 ]; then cp -al "$DEST" "$BACKUP_DIR/weekly/$STAMP"; fi
+if [ "$KEEP_M" -gt 0 ] && [ "$(date +%d)" = 01 ]; then cp -al "$DEST" "$BACKUP_DIR/monthly/$STAMP"; fi
 prune "$BACKUP_DIR/daily" "$KEEP_D"; prune "$BACKUP_DIR/weekly" "$KEEP_W"; prune "$BACKUP_DIR/monthly" "$KEEP_M"
 
 # --- uzak kopya (istege bagli) ---
@@ -124,4 +139,5 @@ fi
 NOW=$(date +%s)
 echo "$NOW" > "$BACKUP_DIR/last_success"
 metric_write "$NOW" "$NOW" 1 "$((NOW-START))" "$DBB" "$UPB" "" ""
+status_success "$STAMP" "$((DBB+UPB))" "$((NOW-START))" "$DB_OK" "$FILES_OK"
 log "TAMAM: $STAMP db=$(human "$DBB") uploads=$(human "$UPB") sure=$((NOW-START))sn"

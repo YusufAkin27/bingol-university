@@ -63,3 +63,61 @@ Etkinliği görebilen her giriş yapmış kullanıcı. Rate limit: 120/dk/kullan
 ## Uygunsuz ifade filtresi (V300)
 
 - `EventService.create/update` (başlık, açıklama, mekân), `AnnouncementService.send` (başlık, mesaj), `EventAdmissionService.setConfig` (yeni/değişen başvuru soruları) `ContentGuard` ile denetlenir: `422 CONTENT_PROFANITY` + `field`. PATCH yalnızca değişen alanı denetler. Etkinlik sohbet odası mesajları filtrelenmez.
+
+## Herkes etkinlik açar + katılım türü (`joinPolicy`) + katılım istekleri
+
+**Yetki kuralı (değişmedi, netleştirildi):** `POST /api/events` kimliği doğrulanmış HERKES içindir. `communityId` boşsa bağımsız (kulüpsüz) etkinlik: `events_require_approval` (varsayılan `false`) kapalıysa hemen `ACTIVE` (201), açıksa `PENDING_REVIEW` (202). `communityId` doluysa kulüp kuralı aynen sürer (`MANAGE_EVENTS`; kulüp ACTIVE olmalı). Kötüye kullanım korumaları (var olanlar): kullanıcı başına IP-bağımsız 10 etkinlik/saat (RateLimiter), bağımsız etkinlikte günlük açma sınırı (`event_daily_create_limit`, 5) ve aynı anda açık etkinlik sınırı (`event_max_open_per_user`, 5), başlık/açıklama/yer için küfür filtresi (`ContentGuard`), başlık 3-150, açıklama ≤2000, yer ≤200.
+
+**Migration YOK (V400 kullanılmadı).** Katılım türü zaten `event_admission.mode` (`OPEN`/`APPROVAL`, V62) ve istekler `event_application` (V62) tablolarında; `event.join_policy` kolonu eklemek aynı durumu iki yerde tutardı. `event_rsvp.status` CHECK'i (`GOING`,`INTERESTED`) DEĞİŞMEDİ: `PENDING`/`REJECTED` kalıcı değil, istek durumundan TÜRETİLİR (`EventRsvp.Status` enum'unda var ama yazılmaz; `PUT /rsvp` bunları 400 `VALIDATION_ERROR` ile reddeder).
+
+### Sözleşme
+- `POST /api/events` gövdesi: `{title, description?, startsAt, endsAt, location?, capacity?, communityId?, joinPolicy?}`; `joinPolicy` `OPEN` (varsayılan) | `APPROVAL`.
+- `PATCH /api/events/{id}`: `joinPolicy` isteğe bağlı (organizatör). `APPROVAL -> OPEN`: bekleyen/bekleme listesindeki istekler `CANCELLED` olur ve kullanıcılara `notif.admission.modeOpen` gider; kabul edilenler GOING kalır. Sorular için `PUT /events/{id}/admission` (mevcut) sürer.
+- `EventView` yeni alanlar: `joinPolicy` (`OPEN`|`APPROVAL`), `organizer {id, displayName, avatarUrl}` (engel ilişkisinde avatar null), `pendingCount` (yalnız `canManage` olana dolu, diğerlerinde `null`), `myRsvp` artık `GOING|INTERESTED|PENDING|REJECTED|null` (`PENDING` = istek/bekleme listesi; `GOING` olan her zaman `GOING`). Eski alanlar (`createdBy`, `organizerName`...) durur.
+- `PUT /api/events/{id}/rsvp {status}`: `INTERESTED` aynen. `GOING`: `OPEN`'da doğrudan katılım (kapasite doluysa 409 `EVENT_FULL`); `APPROVAL`'da KATILIM İSTEĞİ açar (önceden 409 `APPLICATION_REQUIRED` idi) ve `{"myRsvp":"PENDING","goingCount":3,"capacity":20}` döner; kapasite PENDING'i saymaz. Etkinlikte soru tanımlıysa `GOING` istekte cevap taşınamaz: 400 `ANSWERS_REQUIRED` → istemci `POST /events/{id}/applications {note, answers}` kullanır. Organizatör kendi etkinliğine istek açamaz (409 `ORGANIZER_CANNOT_APPLY`); reddedilmiş kullanıcı 409 `APPLICATION_REJECTED`; kayıtlar kapalıysa (APPROVAL'da da) 409 `EVENT_REGISTRATION_CLOSED`; engel ilişkisinde 404.
+- `DELETE /api/events/{id}/rsvp`: GOING'i, bekleyen isteği ve kalan INTERESTED kaydını geri çeker (idempotent); yer açılırsa bekleme listesi terfi eder.
+- Organizatör (organizatör/ortak organizatör/kulüp yetkilisi/ADMIN):
+  - `GET /api/events/{id}/requests?status=PENDING&cursor=&size=50` → `CursorPage<ApplicantView>` (`status`: `PENDING|ACCEPTED|REJECTED|WAITLISTED|CANCELLED`; `userId`, `displayName`, `avatarUrl`, `department`, `note`, `answers`).
+  - `POST /api/events/{id}/requests/{userId}/approve` → `{id, status:"ACCEPTED"}`; kontenjan doluysa 409 `EVENT_FULL` ve istek PENDING kalır (bekleme listesine düşürmek isteyen mevcut `/applications/{appId}/accept|waitlist` uçlarını kullanır).
+  - `POST /api/events/{id}/requests/{userId}/reject {reason?}` → `{id, status:"REJECTED"}` (kabul edilmiş katılımcıyı da çıkarır).
+  - Mevcut `/applications/*` uçları aynı veriyi sunar (takma ad ilişkisi).
+- Hız sınırları: istek açma 20/dk + 60/sa (`event-apply*`), karar 60/dk, RSVP 30/dk + aynı etkinlikte 5/dk.
+
+### Bildirimler (`NotificationType.EVENT`, data: `eventId`, `applicationId`; tr/en/ar mevcut)
+`notif.admission.received` (yeni istek → organizatör), `accepted`, `rejected`/`rejectedNote`, `waitlisted`, `promoted`, `removed`, `modeOpen` (karar → isteyen). Yeni anahtar eklenmedi.
+
+### Sohbet üyeliği
+`GET /api/events/{id}/chat` + `RoomConversations` (mevcut). Üyelik = GOING katılımcılar + organizatör/ortak organizatör (+ kulüp etkinliği yetkilisi). OPEN'da GOING olan girer; APPROVAL'da GOING yalnız onaydan sonra oluşur, dolayısıyla PENDING/REJECTED giremez; onayda eklenir (`EventChatHooks.onGoing`), geri çekme/ret/çıkarma/iptalde düşer (`onLeft`). Bu sürümde `GOING -> INTERESTED` geçişi de odadan çıkarır ve `EventChatMaintenance` (`app.chat.room-purge-ms`) artık INTERESTED üyeleri de düşürür (önceden odada kalıyorlardı).
+
+
+## Yönetici etkinlik moderasyonu (V460)
+
+Ayrıntılı sözleşme ve örnek yanıt: `docs/ADMIN_API.md` "Etkinlik moderasyonu". Özet:
+
+- Yeni uçlar (yalnız ADMIN, 60/dk): `GET /api/admin/events/{id}` (detay + geçmiş + `allowedActions`), `POST /api/admin/events/{id}/hide|unhide|cancel` gövde `{reason}` (zorunlu, ≤ 300). `GET /api/admin/events` süzme parametreleri kazandı: `status` (`ALL` dahil; varsayılan hâlâ `PENDING_REVIEW`), `q`, `communityId`, `standalone`, `joinPolicy`, `from`, `to`; yanıt şekli aynı. Yönetici listesinde `pendingCount`/`canManage` her etkinlik için doludur.
+- Geçişler: `ACTIVE→HIDDEN` (sessiz), `HIDDEN→ACTIVE`, `ACTIVE|PENDING_REVIEW|HIDDEN→CANCELLED` (katılımcı/istek sahibi `notif.event.cancelled`, sahibe sebepli `notif.event.cancelledByAdmin`, sohbet odası kapanır). Geçersiz geçiş 409 `EVENT_INVALID_TRANSITION`.
+- Kullanıcı tarafı davranış değişikliği: `HIDDEN` etkinlik organizatöre de 404 döner (önceden organizatör görebiliyordu); "etkinliklerim"in `created`/`organizing` modundan düşer.
+- Şema: `user_event.moderation_reason/moderated_by/moderated_at` (NULL'a izin) + `event_moderation_log` tablosu; indeksler `evm460_*`. Şikâyet işleyicisi (`EventReportHandler`) artık geri alınabilir (`unhide`) ve yalnız `ACTIVE`'i gizler.
+- Yeni çeviri anahtarları: `error.EVENT_INVALID_TRANSITION`, `notif.event.cancelledByAdmin.title/body` (`i18n/event*.properties`, tr/en/ar).
+
+
+### Etkinlik oluşturma kuralı (kulüp zorunlu) ve yönetici düzenleme/silme
+
+**Oluşturma (`POST /api/events`)**: `communityId` zorunludur; yoksa `400 EVENT_CLUB_REQUIRED` (admin dahil; bağımsız etkinlik açılamaz — mevcut kulüpsüz kayıtlar olduğu gibi kalır, listelenir, yönetilebilir). Tarih/geçmiş doğrulamaları kulüp denetiminden önce çalışır (`INVALID_DATES`, `PAST_EVENT`).
+
+| Oluşturan | Sonuç |
+|---|---|
+| Kulüp OWNER / ADMIN / MODERATOR (ya da `MANAGE_EVENTS` yetkili, rolü MEMBER değil) ve sistem ADMIN'i | `ACTIVE` (onay gerekmez) |
+| Sade `MEMBER` + özel `MANAGE_EVENTS` verilmiş (ör. `EVENT_MANAGER` şablonu) | `PENDING_REVIEW` → yönetici `approve`/`reject` eder |
+| Sade `MEMBER` (izin yok), üye olmayan | `403 FORBIDDEN` |
+| Kulüp aktif değil | `409 COMMUNITY_NOT_ACTIVE` |
+
+**Yönetici düzenleme `PATCH /api/admin/events/{id}`** (60/dk, denetlenir): gövde `{title?, description?, startsAt?, endsAt?, location?, capacity?, joinPolicy?, reason?}` (`capacity=0` sınırsız; `reason` isteğe bağlı ≤ 300, geçmişe `EDIT` yazılır). Kurallar `EventService.update` ile aynı: yalnız `ACTIVE`/`PENDING_REVIEW` (aksi `409 EVENT_NOT_EDITABLE`), bitmişse `409 EVENT_ENDED`, kapasite katılımcıdan az olamaz `409 CAPACITY_TOO_LOW`, başlamış etkinliğin başlangıcı `409 EVENT_STARTED`; saat/yer değişirse katılımcılara `notif.event.updated`. Yanıt `200` + detay.
+
+**Yönetici silme `DELETE /api/admin/events/{id}?reason=…`** (`reason` zorunlu ≤ 300; `204`): **yumuşak silme** — satır fiziksel silinmez (RSVP, yoklama, sertifika, KVKK dışa aktarımı ve denetim geçmişi buna bağlı); durum `CANCELLED` olur. Yan etkiler `cancel` ile aynı (katılımcı/istek sahibi `notif.event.cancelled`, sahibe sebepli `notif.event.cancelledByAdmin`, sohbet odası kapanır, kapak bırakılır); geçmişe `DELETE` yazılır. `ACTIVE`/`PENDING_REVIEW`/`HIDDEN` dışında `409 EVENT_INVALID_TRANSITION`. `cancel` ile fark: yalnız geçmişteki `action` ve HTTP şekli (204, gövdesiz).
+
+`allowedActions` artık `edit` ve `delete` da içerir: `PENDING_REVIEW` → `approve, reject, edit, cancel, delete`; `ACTIVE` → `edit, hide, cancel, delete`; `HIDDEN` → `unhide, cancel, delete`; `REJECTED`/`CANCELLED` → boş.
+
+**Kulüp yetkilileri** (mevcut mantık, değişmedi, test edildi): etkinliği oluşturan, ortak organizatörler ve kulüpte `MANAGE_EVENTS` yetkisi olanlar (MODERATOR+) `PATCH /api/events/{id}` ile düzenler, `DELETE /api/events/{id}` ile iptal (= yumuşak silme + bildirim) eder; yetkisiz `403`. `HIDDEN` etkinlik organizatöre de 404'tür.
+
+Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). `event_moderation_log.action` değerleri: `HIDE, UNHIDE, CANCEL, DELETE, EDIT, REPORT_HIDE, REPORT_UNHIDE`.

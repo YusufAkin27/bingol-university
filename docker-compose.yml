@@ -4,6 +4,51 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     mem_limit: ${POSTGRES_MEM_LIMIT:-1g}
+    # PostgreSQL ayari (yerel gelistirme, 1 GB sinirina gore; uretim: docker-compose.prod.yml, docs/DATABASE.md bolum 6).
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.max=5000
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-256MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-640MB}
+      - -c
+      - work_mem=${PG_WORK_MEM:-8MB}
+      - -c
+      - maintenance_work_mem=${PG_MAINTENANCE_WORK_MEM:-64MB}
+      - -c
+      - max_connections=${PG_MAX_CONNECTIONS:-100}
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - min_wal_size=256MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - autovacuum_max_workers=4
+      - -c
+      - autovacuum_naptime=30s
+      - -c
+      - autovacuum_vacuum_cost_limit=800
+      - -c
+      - log_autovacuum_min_duration=1s
+      - -c
+      - log_min_duration_statement=${PG_LOG_MIN_DURATION_MS:-500}
+      - -c
+      - log_lock_waits=on
+      - -c
+      - log_temp_files=10MB
+      - -c
+      - temp_file_limit=2GB
+      - -c
+      - track_io_timing=on
     environment:
       POSTGRES_DB: bingol
       POSTGRES_USER: bingol

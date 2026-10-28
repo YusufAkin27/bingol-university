@@ -17,7 +17,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 | Sözleşmeler | herkese açık `GET /api/legal`, `/api/legal/{type}`; yönetici `POST /api/admin/legal/{type} {tr:{title,content}, en?, ar?, requireReaccept}` |
 | Ayarlar | `GET /api/admin/settings`, `PUT /api/admin/settings/{key} {value}` (mağaza linkleri, iletişim, banner, bakım modu, sürüm kontrolü) |
 | Push | `POST /api/admin/push/audience-count`, `POST/GET /api/admin/push/campaigns`, `GET .../{id}`, `POST .../{id}/cancel` |
-| Topluluk / etkinlik onayı | `GET /api/admin/communities`, `POST /api/admin/communities/{id}/approve\|reject`, `GET /api/admin/events`, `POST /api/admin/events/{id}/approve\|reject` |
+| Topluluk / etkinlik onayı | `GET /api/admin/communities`, `POST /api/admin/communities/{id}/approve\|reject`, `GET /api/admin/events` (süzmeli), `GET /api/admin/events/{id}`, `POST /api/admin/events/{id}/approve\|reject\|hide\|unhide\|cancel` (bkz. "Etkinlik moderasyonu") |
 | Haber senkronu | `POST /api/admin/sync`, `POST /api/admin/sync-menu`, `GET /api/status` |
 | Menü fotoğrafı | `GET /api/admin/menu?from=&to=` → `[{date, items, imageUrl}]`; `PUT /api/admin/menu/{date}/image` (multipart `file`, jpg/png/webp) → `200 {date, imageUrl}`; `DELETE /api/admin/menu/{date}/image` → 204. Satır yoksa 404 `MENU_DAY_NOT_FOUND`; geçersiz tarih 400 `MENU_DATE_INVALID`/`MENU_RANGE_INVALID`. Kullanıcı uçları (`/api/menu`, `/api/menu/today`) yanıtına `imageUrl` (string|null) eklendi. |
 | İstatistik (basit) | `GET /api/admin/stats` |
@@ -347,19 +347,22 @@ Herkese açık metin alanlarında (kulüp/etkinlik/profil/grup başlığı vb.) 
 
 Ayarlar (salt okunur): `app.moderation.profanity.enabled` (varsayılan true), `mode` = `BLOCK` (varsayılan; 422 ile reddeder) | `FLAG` (engellemez, yalnızca istatistiğe `FLAG` yazar), `cache-ttl-seconds` (30). Web: `/admin/profanity`.
 
-## Keşfet gönderileri moderasyonu (`/api/admin/posts`, `/api/admin/comments`)
+## Keşfet gönderileri moderasyonu (`/api/admin/posts`)
 
 `ADMIN` (JWT) + denetim kaydı (yazma uçları ve `GET /api/admin/posts/media/{id}` önizlemesi `AuditInterceptor` ile yazılır). Hız sınırı: yönetici başına dakikada 120. Silinmiş/gizli içerik dahil hepsi görünür. Tasarım: [POSTS_DESIGN.md](POSTS_DESIGN.md), ayrıntı: [changes/post.md](changes/post.md).
 
-- `GET /api/admin/posts?cursor=&size=&q=&hidden=&deleted=&hasMedia=&from=&to=` (size 1..50, varsayılan 20; imleç = gönderi id, en yeni önce; `q` yazar adı/e-postası; tarih `YYYY-AA-GG`, Europe/Istanbul) → `{items:[PostRow], nextCursor}`. `PostRow`: `{id, author:{id,displayName,email,avatarUrl}, text, media:[{id,kind,url,thumbUrl,width,height,durationMs,hidden}], likeCount, commentCount, mediaCount, hidden, deleted, hiddenReason, createdAt, editedAt, hiddenAt, deletedAt, deletedBy}`; medya adresleri `/api/admin/posts/media/{id}[?thumb=true]` (Bearer ile blob olarak alınır).
-- `GET /api/admin/posts/{id}` → `{post: PostRow, comments: {items, nextCursor}}` (ilk 30 yorum). `404 POST_NOT_FOUND`.
-- `GET /api/admin/posts/{id}/comments?cursor=&size=` → `{items:[CommentRow], nextCursor}` (tüm yorumlar, silinmiş/gizli dahil, eskiden yeniye; imleç = yorum id). `CommentRow`: `{id, postId, parentId, rootId, depth, author, replyToUserId, text, replyCount, hidden, deleted, createdAt, deletedAt}`.
-- `POST /api/admin/posts/{id}/hide` `{reason?}` → `PostRow` (idempotent; `hidden_at` + gönderi medyası erişime kapanır: `PostMediaService.hide`). `POST .../unhide` → `PostRow` (geri alır).
-- `DELETE /api/admin/posts/{id}` → `204` (yumuşak silme + `PostDeletedEvent`; silinmişse `404`). Medya/satırlar 30 gün sonra temizlenir (`PostMediaJanitor`, `PostRetentionJob`).
-- `POST /api/admin/comments/{id}/hide|unhide` → `CommentRow`; `DELETE /api/admin/comments/{id}` → `204` (`PostCommentService.delete(admin)` semantiği: yanıtlıysa "silindi" kaydı kalır; `404 COMMENT_NOT_FOUND`).
-- `GET /api/admin/posts/stats` → `{postCount, commentCount, likeCount, mediaCount, hiddenCount, deletedCount, last24h:{aynı alanlar}}` (postCount/commentCount silinmemiş olanlar).
+**Karar:** gönderilerde **ilk gönderi onayı yoktur**; gönderi anında yayınlanır, yönetici sonradan denetler. Yorum, hikâye, #etiket/@bahsetme, kaydet ve video kaldırıldı (V470; bkz. `docs/changes/post.md`) — `/api/admin/comments`, `/api/admin/stories`, `/api/admin/hashtags` uçları yoktur.
 
-Şikâyet kuyruğu: `targetType` `FEED_POST` / `FEED_COMMENT` (kullanıcı `POST /api/reports` ile bildirir). `GET /api/admin/reports/{id}` bağlamında `context.content` = `{kind:"FEED_POST"|"FEED_COMMENT", id, text, ownerId, imageUrl, deleted, status:"VISIBLE"|"HIDDEN"|"DELETED", createdAt, postId, media:[{id,kind,url,thumbUrl}]}`; kuyruk önizlemesi (`preview`) ilk medya ya da metindir. Karar `HIDE` → gönderi/yorum gizlenir (geri alınabilir: otomatik gizleme eşiği, itiraz ve reddetmede `unhide`).
+- `GET /api/admin/posts?cursor=&size=&q=&status=&authorId=&minReports=&hasMedia=&from=&to=` (size 1..50, varsayılan 20; imleç = gönderi id, en yeni önce) → `{items:[PostRow], nextCursor}`.
+  - `q`: **gönderi metni**, yazar adı veya e-postası (ILIKE; `\ % _` kaçışlı). `status`: `ALL` (varsayılan) | `VISIBLE` | `HIDDEN` (gizli, silinmemiş) | `DELETED`; geçersiz değer `400 VALIDATION_ERROR`. `authorId`: yazar. `minReports`: en az N **açık** şikâyeti olanlar. `from`/`to`: `YYYY-AA-GG` (Europe/Istanbul). Eski `hidden=`/`deleted=` boolean süzgeçleri geriye uyum için durur.
+  - `PostRow`: `{id, author:{id,displayName,email,avatarUrl}, text, media:[{id,kind,url,thumbUrl,width,height,durationMs,hidden}], likeCount, mediaCount, hidden, deleted, hiddenReason, createdAt, editedAt, hiddenAt, deletedAt, deletedBy, openReportCount}`; medya adresleri `/api/admin/posts/media/{id}[?thumb=true]` (Bearer ile blob olarak alınır). `commentCount` kaldırıldı.
+- `GET /api/admin/posts/{id}` → `{post: PostRow, reports:[{id, reason, note, status:"OPEN"|"RESOLVED", createdAt}]}` (bu gönderiye yapılan en çok 50 şikâyet; açıklar önce). `404 POST_NOT_FOUND`.
+- `PATCH /api/admin/posts/{id}` `{text}` → `PostRow`. Metni düzenler (`editedAt` dolar, denetim kaydı, yazara yerelleştirilmiş bildirim `notif.post.adminedit`). Boş/boşluk metin = metin temizlenir (yalnız fotoğraflı gönderide; fotoğrafsız eski gönderide `400 POST_EMPTY`). Biçim kuralı yönetici için de geçerli: tek satır, en çok 7 kelime ve 60 karakter (`422 POST_TEXT_INVALID` / `POST_TEXT_TOO_LONG`); silinmiş gönderi `404`. **Küfür süzgeci (`ContentGuard`) yönetici düzenlemesinde bilerek ATLANIR**: yönetici ihlalli metni temizlemek için düzenler ve her düzenleme denetim kaydına yazılır; süzgeç yöneticiyi engellemez.
+- `POST /api/admin/posts/{id}/hide` `{reason?}` → `PostRow` (idempotent; `hidden_at` + gönderi medyası erişime kapanır: `PostMediaService.hide`; yazara bildirim gitmez, geri alınabilir). `POST .../unhide` → `PostRow` (geri alır). 30 gündür gizli kalan gönderi gece işiyle yumuşak silinir.
+- `DELETE /api/admin/posts/{id}` `{reason?}` (gövde isteğe bağlı) → `204`. Yumuşak silme + `PostDeletedEvent` (silinmişse `404`); medya/satırlar 30 gün sonra temizlenir (`PostMediaJanitor`, `PostRetentionJob`). `reason` yazara giden gerekçedir ve `post.hidden_reason`a yazılır. **Rapor entegrasyonu:** gönderinin açık `FEED_POST` şikâyeti varsa önce `ReportService.resolve(HIDE)` çağrılır (yazara `notif.mod.removed` bildirimi, tüm açık şikâyetler `RESOLVED/HIDE`, ihlal kaydı, raporlayanlara sonuç bildirimi); şikâyet yoksa yazara doğrudan `notif.mod.removed` gider.
+- `GET /api/admin/posts/stats` → `{postCount, likeCount, mediaCount, hiddenCount, deletedCount, openReportedCount, last24h:{postCount, likeCount, mediaCount, hiddenCount, deletedCount}}` (`openReportedCount` = açık şikâyeti olan farklı gönderi sayısı).
+
+Şikâyet kuyruğu: `targetType` `FEED_POST` (kullanıcı `POST /api/reports` ile bildirir; `FEED_COMMENT` ve `STORY` türleri kaldırıldı, eski kayıtları V470 siler). `GET /api/admin/reports/{id}` bağlamında `context.content` = `{kind:"FEED_POST", id, text, ownerId, imageUrl, deleted, status:"VISIBLE"|"HIDDEN"|"DELETED", createdAt, postId, media:[{id,kind,url,thumbUrl}]}`; kuyruk önizlemesi (`preview`) ilk medya ya da metindir. Karar `HIDE` → gönderi gizlenir (geri alınabilir: otomatik gizleme eşiği, itiraz ve reddetmede `unhide`); kalıcı kaldırma için gönderi ekranındaki **Sil** kullanılır (açık şikâyetleri birlikte sonuçlandırır).
 
 ## Akademik (`/api/admin/academic/*`, `/api/admin/announcements`)
 
@@ -369,20 +372,6 @@ Sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Tüm uçlar y
 - **Resmi sınav programı:** `/api/admin/academic/exams` (aynı kalıp; `faculty|department|grade` boş = herkes).
 - **Duyurular:** `GET|POST /api/admin/announcements` (`status=all|draft|scheduled|active|expired`), `GET|PATCH|DELETE .../{id}`, `publish|unpublish`, `GET .../audience-count?department&faculty&grade`. `notify=true` görünür olunca hedef kitleye bir kez push gönderir; `pinned` sabitler; `attachmentUrl` yalnız https.
 - Gelecek: bölüm yetkilisi için `DEPT_ADMIN` rolü + `dept_admin_scope(user_id, department)` (bkz. `docs/changes/academic.md`). Şimdilik yalnız ADMIN.
-
-## Hikâye moderasyonu (`/api/admin/stories`)
-
-Yalnız ADMIN; yazmalar `AuditInterceptor` ile denetlenir. Kullanıcı şikâyeti `POST /api/reports` `targetType: "STORY"` (geri alınabilir gizleme; rapor kuyruğu önizlemesi `/api/admin/posts/media/{id}` ile).
-
-| Uç | Açıklama |
-|---|---|
-| `GET /api/admin/stories?cursor&size&q&hidden=` | Sayfalı liste (imleç = hikâye id, en yeni önce); `q` yazar adı/e-postası; `hidden=true/false`. Satır: `{id, authorId, authorName, kind, mediaId, text, caption, viewCount, createdAt, expiresAt, expired, hidden, hiddenReason}` |
-| `POST /api/admin/stories/{id}/hide` `{reason?}` | Gizle (kullanıcılar için anında kaybolur) → satır |
-| `POST /api/admin/stories/{id}/unhide` | Geri al → satır |
-| `DELETE /api/admin/stories/{id}` | Yumuşak sil (204); süresi dolan/silinen hikâyeler `StoryCleanupJob` ile 24 saat sonra kalıcı silinir |
-
-Hikâye medyası `GET /api/admin/posts/media/{id}` ile görüntülenir (denetlenir).
-
 
 ## Anketler (`/api/admin/polls`) ve kalıcı push kuyruğu (`/api/admin/push/outbox`)
 
@@ -408,3 +397,276 @@ Push kuyruğu:
 | `POST /api/admin/push/outbox/retry-dead` | `{requeued:n}`: DEAD kayıtlar PENDING'e döner, deneme sayacı sıfırlanır |
 
 Sağlık: `/actuator/health` → `pushQueue` (`pending`, `sending`, `dead`, `oldestPendingAgeSeconds`; ölü kayıt ya da 15 dk'dan eski bekleyen varsa `WARN`).
+
+
+## Etkinlik moderasyonu (`/api/admin/events`) — V460
+
+Etkinlik kötüye kullanımına karşı yöneticiye gizleme/iptal ve süzmeli liste eklendi. Tüm uçlar yalnız ADMIN (JWT `ROLE_ADMIN` ya da Basic auth); hız sınırı **60/dk** (yönetici başına, 429 + `Retry-After`); POST'lar `AuditInterceptor` ile denetim kaydına yazılır (yol + yöntem + durum) ve **sebep** ayrıca `event_moderation_log` tablosuna (yönetici, geçiş, sebep) yazılır; detayda `history` olarak döner.
+
+### Durum makinesi (`UserEvent.Status`)
+
+| Mevcut durum | Uç | Yeni durum | Bildirim | Not |
+|---|---|---|---|---|
+| `PENDING_REVIEW` | `POST /{id}/approve` | `ACTIVE` | sahibe "onaylandı" | mevcut |
+| `PENDING_REVIEW` | `POST /{id}/reject` `{reason?}` | `REJECTED` | sahibe "reddedildi" | mevcut; diğer durumlarda 409 `NOT_PENDING` |
+| `ACTIVE` | `POST /{id}/hide` `{reason}` | `HIDDEN` | **yok** | sessiz, geri alınabilir |
+| `HIDDEN` | `POST /{id}/unhide` `{reason}` | `ACTIVE` | yok | |
+| `ACTIVE` / `PENDING_REVIEW` / `HIDDEN` | `POST /{id}/cancel` `{reason}` | `CANCELLED` | katılımcılara + istek sahiplerine `notif.event.cancelled` (ACTIVE/HIDDEN iken, etkinlik bitmediyse); **sahibe sebepli** `notif.event.cancelledByAdmin` | sohbet odası kapanır, bekleyen başvurular kapanır, kapak görseli bırakılır, hatırlatmalar durur (yalnız ACTIVE'e gider) |
+| `REJECTED`, `CANCELLED` | hide/unhide/cancel | — | — | 409 `EVENT_INVALID_TRANSITION` |
+
+`HIDDEN` etkinlik: listelerden, takvimden, "öne çıkan"dan, genel aramadan, "etkinliklerim"den düşer; doğrudan erişimde (`GET /api/events/{id}`, RSVP, düzenleme, silme, QR/yoklama) herkese — **organizatör dahil** — 404 `EVENT_NOT_FOUND` (yalnız yönetici görür); sohbet odası erişimi kapanır (ACTIVE şartı). `unhide` ile aynen geri gelir.
+
+### `GET /api/admin/events` — süzmeli liste
+
+Sorgu: `status` (`PENDING_REVIEW` varsayılan — eski davranış | `ACTIVE` | `REJECTED` | `CANCELLED` | `HIDDEN` | `ALL`; büyük/küçük harf fark etmez), `q` (en çok 100 karakter; başlık / yer / kulüp adı / organizatör adı; Türkçe harf duyarsız: `I`, `ı`, `İ`, `i` hepsi eşleşir; `%`/`_` düz karakterdir), `communityId`, `standalone=true` (kulüpsüz), `joinPolicy` (`OPEN`|`APPROVAL`), `from` / `to` (ISO-8601 anlık, `2026-11-01T00:00:00Z`; etkinlik **başlangıcı** `[from, to)`), `cursor` (önceki sayfanın `nextCursor`'ı), `size` (varsayılan 20). Sıralama sabit: id azalan. Gövde: `{items: EventView[], nextCursor}`. `EventView` mevcut sözleşmedir; yönetici listesinde `canManage=true` ve `pendingCount` (bekleyen katılım isteği, APPROVAL dışında 0) **her** etkinlik için doludur. Hatalar: 400 `VALIDATION_ERROR` (bilinmeyen `status`), 400 `INVALID_DATES` (`to <= from`).
+
+### `GET /api/admin/events/{id}` — detay
+
+```json
+{
+  "event": { "...EventView...": "status, communityName, organizer, joinPolicy, goingCount, interestedCount, capacity, pendingCount" },
+  "organizerEmail": "ogrenci@bingol.edu.tr",
+  "requests": {"pending": 2, "waitlisted": 0, "accepted": 1, "rejected": 0, "cancelled": 0},
+  "attendedCount": 0,
+  "reviewNote": null,
+  "moderationReason": "Uygunsuz içerik",
+  "moderatedBy": 7,
+  "moderatedAt": "2026-10-28T10:00:00Z",
+  "history": [{"id": 3, "adminId": 7, "adminName": "Yönetici", "action": "HIDE", "fromStatus": "ACTIVE", "toStatus": "HIDDEN", "reason": "Uygunsuz içerik", "createdAt": "2026-10-28T10:00:00Z"}],
+  "allowedActions": ["unhide", "cancel"]
+}
+```
+
+`history` son 20 kayıt (yeniden eskiye); `action`: `HIDE | UNHIDE | CANCEL | REPORT_HIDE | REPORT_UNHIDE` (`REPORT_*`: şikâyet çözümlemesi, `adminId` null olabilir). `allowedActions`: `PENDING_REVIEW` → `approve, reject, cancel`; `ACTIVE` → `hide, cancel`; `HIDDEN` → `unhide, cancel`; `REJECTED`/`CANCELLED` → boş. Web düğmeleri bunu esas almalıdır.
+
+### `POST /api/admin/events/{id}/hide | unhide | cancel`
+
+Gövde zorunlu: `{"reason": "…"}` (boş olamaz, ≤ 300 karakter; aşarsa 400 `VALIDATION_ERROR`). Yanıt `200` ve detay gövdesi (yukarıdaki). Hatalar: 404 `EVENT_NOT_FOUND`, 409 `EVENT_INVALID_TRANSITION` (geçersiz geçiş), 429 hız sınırı, 403 yönetici değil. `approve`/`reject` hâlâ `204`.
+
+### Şikâyet entegrasyonu
+
+`ReportTargetHandler` (EVENT) artık geri alınabilirdir: rapor `HIDE` ile çözülünce/eşik aşılınca yalnız `ACTIVE` etkinlik `HIDDEN` olur (geçmişe `REPORT_HIDE`); itiraz kabulü/rapor reddi `unhide` çağırır (`REPORT_UNHIDE`). `PENDING_REVIEW`/`CANCELLED`/`REJECTED` etkinlikler şikâyetle değiştirilmez.
+
+### Hata kodları (3 dilde `i18n/event*.properties`)
+
+`EVENT_INVALID_TRANSITION` (409; `{0}`=mevcut durum, `{1}`=işlem). Bildirim anahtarı: `notif.event.cancelledByAdmin` (`{0}` başlık, `{1}` sebep).
+
+
+## Mail şablonları ve kampanyaları (`/api/admin/mail/*`) — V430
+
+Yöneticiler veritabanında adlandırılmış, sürümlü **duyuru e-posta şablonları** tanımlar ve bunları **toplu/seçili** kullanıcılara gönderir. Yalnız ADMIN (`/api/admin/**`); yazma/önizleme/test uçları yönetici kimliği ister (**JWT ile giriş**; Basic auth 401 alır). Tüm yazma uçları denetim kaydına düşer (`AuditInterceptor`). Hata gövdesi her zaman `{code,message}` (istek dilinde; `Accept-Language`). Liste yanıtları sayfa tabanlıdır: `{items, page (0 tabanlı), totalPages, totalItems}`.
+
+Mimari: şablon `mail_template_custom` (üst kayıt) + `mail_template_custom_version` (değişmez sürümler); kampanya `mail_campaign` + alıcı satırları `mail_campaign_recipient` (`UNIQUE(campaign_id,user_id)`; **yalnız kullanıcı kimliği, e-posta metni saklanmaz**). Zamanlayıcı (`app.mail.campaign-poll-ms`, 10 sn; `SchedulerLock` + `FOR UPDATE SKIP LOCKED`) zamanı gelen kampanyanın alıcılarını çözer ve partiler halinde (`app.mail.campaign-batch`, 200) `MailService.enqueue(..., MailTemplate.CUSTOM, ...)` ile kuyruğa yazar (kategori ANNOUNCEMENT: abonelikten çık alt bilgisi, bastırma listesi, gönderim hızı sınırı mail kuyruk işçisindedir). Her alıcı için "QUEUED" işareti ve kuyruk satırı tek transaction'dadır: çift tıklama / yeniden çalıştırma / iki örnek durumunda aynı kişiye ikinci e-posta oluşmaz.
+
+### Değişkenler
+
+`GET /api/admin/mail/variables` → `{variables:[{name,placeholder,description,automatic}], maxHtmlLength:100000, maxSubjectLength:200}`. İzinli küme (başka değişken yok; yönetici özel anahtar-değer tanımlayamaz): `{{ad}}`, `{{eposta}}`, `{{bolum}}`, `{{fakulte}}`, `{{sinif}}`, `{{uygulamaUrl}}`, `{{abonelikCikUrl}}`. `{{ ad }}` (boşluklu) yazımı `{{ad}}` olarak normalize edilir; `{{{ad}}}` ve dengesiz `{{` reddedilir. HTML'de değerler **HTML kaçışlı** yerleştirilir, düz metinde olduğu gibi. Her duyuru e-postasına abonelikten çık bağlantısı kuyruk işçisi tarafından **otomatik** eklenir (şablonda ayrıca `{{abonelikCikUrl}}` kullanmak isteğe bağlıdır). Konu, mevcut `layout.html` başlık alanında da gösterilir.
+
+### Şablon uçları
+
+| Uç | Açıklama |
+|---|---|
+| `GET /templates?status=DRAFT\|PUBLISHED\|ARCHIVED&q=&page=0&size=20` | Liste (`size` en çok 100). `q` addın içinde arar (büyük/küçük harf duyarsız) → `TemplateRow` |
+| `GET /templates/{id}` | Ayrıntı (geçerli sürümün tüm dil içerikleri) → `TemplateView` |
+| `GET /templates/{id}/versions` | `[{version, createdBy, createdAt}]` (yeni → eski) |
+| `POST /templates` (201) | Oluştur (TASLAK, sürüm 1). Saatte 60 yazma |
+| `PUT /templates/{id}` | Ad/açıklama her zaman; **içerik değiştiyse yeni sürüm** (aynı içerik → sürüm artmaz). ARCHIVED düzenlenemez (409). Durum korunur |
+| `POST /templates/{id}/publish` | TASLAK/ARŞİV → YAYINDA (tr konu + gövde şart). İdempotent |
+| `POST /templates/{id}/archive` | → ARŞİV (yeni kampanyada kullanılamaz; mevcutlar sürüme sabit olduğu için etkilenmez) |
+| `DELETE /templates/{id}` (204) | Hiçbir kampanyada kullanılmamışsa sil; aksi halde 409 `MAIL_TEMPLATE_IN_USE` (arşivleyin) |
+| `POST /templates/preview` | **Kaydetmeden** önizleme (editör canlı önizleme). Saatte 240 |
+| `POST /templates/{id}/preview` | Kayıtlı sürümü önizle. Saatte 240 |
+| `POST /templates/{id}/test` (202) | Test e-postası **yalnız isteyen yöneticinin kendi adresine** (konu başına `[TEST] `). Saatte 10 |
+
+İstek `TemplateRequest` (oluştur/güncelle aynı):
+
+```json
+{
+  "name": "Bahar şenliği duyurusu",
+  "description": "Genel duyuru şablonu",
+  "tr": { "subject": "Merhaba {{ad}}, şenlik başlıyor", "html": "<h2>Bahar Şenliği</h2><p>Sevgili {{ad}} ({{bolum}}), ...</p><a href=\"{{uygulamaUrl}}\">Uygulamayı aç</a>", "text": null },
+  "en": { "subject": "Hello {{ad}}", "html": "<p>Hi {{ad}}, ...</p>", "text": null },
+  "ar": null
+}
+```
+
+- `tr` zorunlu; `en`/`ar` yoksa (`null` ya da tüm alanlar boş) o dilin alıcılarına **tr içeriği** gider (kampanya raporunda `languageFallback`). Bir dil verilirse `subject` (≤200) ve `html` (≤100000) zorunludur; `text` boşsa HTML'den üretilir (satır sonları, `- ` madde işareti, bağlantı `metin (https://...)`).
+- **HTML güvenliği (sunucuda, kaydederken):** `script/style/iframe/object/embed/form/input/svg/meta/link...` ve tüm `on*` olay öznitelikleri silinir; bağlantı (`a href`) ve görsel (`img src`) **yalnız https**; `a` etiketlerine `rel="noopener noreferrer nofollow"` zorlanır; `style` özniteliği serbest ama `expression()`, `javascript:`, `vbscript:`, `@import`, `behavior`, `-moz-binding`, ters eğik çizgi içerenler ve https olmayan `url()` içerenler öznitelikle birlikte atılır. Yanıttaki `html` zaten temizlenmiş halidir.
+
+`TemplateView` (oluştur/güncelle/ayrıntı/yayınla/arşivle yanıtı):
+
+```json
+{ "id": 7, "name": "Bahar şenliği duyurusu", "description": "...", "category": "ANNOUNCEMENT",
+  "status": "PUBLISHED", "version": 2,
+  "tr": { "subject": "...", "html": "<h2>...", "text": "..." }, "en": { "subject": "...", "html": "...", "text": "..." }, "ar": null,
+  "languages": ["tr","en"], "variablesUsed": ["ad","bolum","uygulamaUrl"],
+  "createdBy": 1, "createdAt": "2026-10-28T10:00:00Z", "updatedAt": "2026-10-28T10:05:00Z" }
+```
+
+`TemplateRow`: `{id,name,description,category,status,version,languages,updatedAt}`. `status`: `DRAFT` | `PUBLISHED` | `ARCHIVED`.
+
+Önizleme isteği: `POST /templates/preview` → `{ "lang": "en", "content": { "subject": "...", "html": "...", "text": null } }`; `POST /templates/{id}/preview` → `{ "lang": "ar", "version": 1 }` (gövde isteğe bağlı → tr, geçerli sürüm). Yanıt `PreviewView`:
+
+```json
+{ "lang": "ar", "usedLang": "tr", "fallback": true, "subject": "Merhaba Ayşe Yılmaz, ...",
+  "html": "<!DOCTYPE html>... (layout sarmalı, tam sayfa)", "text": "...",
+  "sampleVariables": { "ad": "Ayşe Yılmaz", "eposta": "ayse.yilmaz@bingol.edu.tr", "bolum": "Bilgisayar Mühendisliği", "fakulte": "Mühendislik Fakültesi", "sinif": "2", "uygulamaUrl": "https://...", "abonelikCikUrl": "https://.../abonelik-onizleme" } }
+```
+
+`html` tam e-posta belgesidir; admin panelinde **sandbox'lı `iframe srcdoc`** ile gösterin (kendi sayfanıza `innerHTML` basmayın). Not: önizlemede abonelikten çık alt bilgisi görünmez (gerçek gönderimde kuyruk işçisi ekler). Test gönderimi yanıtı `TestSendView`: `{queued:true, lang, usedLang, to:"a***@bingol.edu.tr"}`.
+
+### Kampanya uçları
+
+| Uç | Açıklama |
+|---|---|
+| `GET /campaigns?status=&q=&page=0&size=20` | Liste (en yeni önce) → `CampaignView` (sayaçlarla) |
+| `GET /campaigns/{id}` | Detay + sayaçlar |
+| `GET /campaigns/{id}/recipients?status=FAILED\|SKIPPED\|QUEUED\|PENDING\|CANCELLED&page=0&size=50` | Alıcı raporu / hata listesi, **adres maskeli** → `RecipientRow` |
+| `POST /campaigns/audience/preview` | Hedef kitle önizleme (kayıt yazmaz). Saatte 120 |
+| `POST /campaigns` (201) | Kampanya kaydı (TASLAK). Saatte 30 |
+| `PUT /campaigns/{id}` | Yalnız TASLAK (aksi 409 `MAIL_CAMPAIGN_NOT_EDITABLE`) |
+| `POST /campaigns/{id}/schedule` (202) | Zamanla / şimdi gönder. Saatte 20 |
+| `POST /campaigns/{id}/pause` · `/resume` · `/cancel` | Duraklat / devam / iptal. Saatte 60 |
+
+`CampaignRequest` (oluştur ve güncelle):
+
+```json
+{ "name": "Bahar şenliği - Mühendislik", "templateId": 7,
+  "audience": { "type": "FILTER", "filter": { "faculty": "Mühendislik Fakültesi", "classYear": 2 } },
+  "scheduledAt": "2026-11-01T09:00:00+03:00", "requestKey": "form-ac-2c1f..." }
+```
+
+- `templateId`: **YAYINDA** olmalı (`MAIL_TEMPLATE_NOT_PUBLISHED`). Kampanya, zamanlandığı andaki **şablon sürümüne sabitlenir** (`templateVersion`); sonradan şablon güncellenirse bu kampanya etkilenmez.
+- `audience.type`: `ALL` (tüm aktif + e-postası doğrulanmış kullanıcılar) · `FILTER` (`filter`: `faculty`, `department`, `classYear` 0-8, `role` `USER|ADMIN`, `language` `tr|en|ar`, `communityId` (aktif üyeler); alanlar VE ile birleşir, **en az biri dolu olmalı**; fakülte/bölüm büyük-küçük harf duyarsız tam eşleşme) · `USERS` (`userIds`, en çok 2000) · `EMAILS` (`emails`, en çok 2000; **yalnız kayıtlı kullanıcılarla eşleşir**, kayıtsız/bozuk adres kampanyaya eklenmez ve `unmatched` olarak sayılır; adres metni saklanmaz). Hiç eşleşen yoksa `MAIL_CAMPAIGN_NO_RECIPIENTS`; hatalı filtre/liste `MAIL_CAMPAIGN_AUDIENCE_INVALID`.
+- `scheduledAt` ISO-8601 (Europe/Istanbul için `+03:00` ofseti gönderin; sunucu UTC anı olarak saklar). Boş/geçmiş = hemen. En çok 90 gün ilerisi (`MAIL_CAMPAIGN_SCHEDULE_INVALID`). `schedule` gövdesi isteğe bağlı: `{ "scheduledAt": "..." }` zamanı geçersiz kılar.
+- `requestKey` (≤64, isteğe bağlı): aynı yönetici + aynı anahtar ile tekrar `POST /campaigns` **aynı kampanyayı** döndürür (çift tıklama koruması). Web: form açıldığında bir kez üretin.
+- `schedule` idempotenttir: ZAMANLANDI/GÖNDERİLİYOR/BİTTİ kampanyada ikinci çağrı değişiklik yapmaz (ZAMANLANDI + henüz çözülmemişse yeni `scheduledAt` zamanı günceller). Hedefte gönderilecek kimse yoksa 400 `MAIL_CAMPAIGN_NO_RECIPIENTS`.
+
+`AudiencePreviewRequest`: `{ "audience": {...}, "templateId": 7 }` (`templateId` isteğe bağlı; verilirse dil geri düşüşü hesaplanır). Yanıt:
+
+```json
+{ "total": 1240, "willSend": 1198, "skipped": 42,
+  "skippedByReason": { "SUPPRESSED": 30, "INACTIVE": 8, "DUPLICATE_ADDRESS": 2, "INVALID_ADDRESS": 2 },
+  "unmatched": 3, "languages": { "tr": 1100, "en": 80, "ar": 18 }, "languageFallback": 12 }
+```
+
+`languages` gönderilecek alıcıların **kullanılacak** dili (şablonda dili olmayanlar tr sayılır), `languageFallback` kaç alıcının dilinde içerik olmadığından tr'ye düştüğüdür. ALL/FILTER'da askıdaki, silinmiş ve e-postası doğrulanmamış kullanıcılar hiç hedefe girmez; USERS/EMAILS'te seçilmiş olup uygun olmayanlar `INACTIVE` olarak atlanmış sayılır.
+
+`CampaignView`:
+
+```json
+{ "id": 12, "name": "Bahar şenliği - Mühendislik", "templateId": 7, "templateName": "Bahar şenliği duyurusu", "templateVersion": 2,
+  "status": "SENDING",
+  "audience": { "type": "FILTER", "filter": { "faculty": "Mühendislik Fakültesi", "department": null, "classYear": 2, "role": null, "language": null, "communityId": null }, "userCount": null, "unmatched": 0 },
+  "scheduledAt": "2026-11-01T06:00:00Z", "resolvedAt": "2026-11-01T06:00:11Z", "startedAt": "2026-11-01T06:00:10Z", "finishedAt": null,
+  "createdBy": 1, "createdAt": "2026-10-28T10:10:00Z", "updatedAt": "2026-11-01T06:00:40Z", "error": null,
+  "counters": { "target": 1240, "pending": 400, "queued": 800, "skipped": 38, "failed": 2, "cancelled": 0,
+                "skippedByReason": { "SUPPRESSED": 30, "INACTIVE": 8 }, "languages": { "tr": 1100, "en": 80, "ar": 0 },
+                "languageFallback": 12, "progressPercent": 67 } }
+```
+
+- `status`: `DRAFT` (taslak) → `SCHEDULED` (zamanlandı) → `SENDING` (gönderiliyor) → `DONE` (bitti); yan durumlar `PAUSED` (duraklatıldı), `CANCELLED` (iptal), `FAILED` (sistem hatası; `error` dolu). Geçişler: `pause` SCHEDULED/SENDING'den; `resume` PAUSED'dan (alıcılar çözülmüşse SENDING, değilse SCHEDULED); `cancel` DRAFT/SCHEDULED/SENDING/PAUSED'dan (bekleyen alıcılar CANCELLED olur; zaten gönderilenler geri alınmaz); DONE/FAILED iptal edilemez (409 `MAIL_CAMPAIGN_INVALID_STATE`). Aynı duruma tekrar geçiş isteği (pause→pause, cancel→cancel) etkisizdir ve 200 döner.
+- Sayaçlar alıcı satırlarından **türetilir** (sapma olmaz): `target` = alıcı satırı sayısı (atlananlar dahil) = `pending+queued+skipped+failed+cancelled`. `queued` = e-posta kuyruğuna alınan ("gönderilen"; gerçek SMTP teslimi ve sonradan bastırılan/geri dönen adresler kuyruk işçisinin sorumluluğundadır, `/actuator/health` `mailQueue`). `skippedByReason`: `SUPPRESSED` (abonelikten çıkmış/bounce/şikâyet), `INACTIVE` (askıda/silinmiş/doğrulanmamış seçilmiş kullanıcı), `DUPLICATE_ADDRESS`, `INVALID_ADDRESS`. `failed`: kuyruğa yazılamadı (`errorCode` `MAIL_UNAVAILABLE` / `ENQUEUE_ERROR`). `audience.userCount`: USERS/EMAILS'te eşleşen kullanıcı sayısı, diğerlerinde `null`. `progressPercent` = `pending` dışındakilerin oranı.
+
+`RecipientRow`: `{userId, status (PENDING|QUEUED|SKIPPED|FAILED|CANCELLED), skipReason, errorCode, lang, langFallback, email ("a***@bingol.edu.tr"), updatedAt}`.
+
+### Hata kodları (3 dilde `i18n/mailadmin*.properties`)
+
+| Kod | HTTP | Anlam |
+|---|---|---|
+| `MAIL_TEMPLATE_INVALID` | 400 | Konu/gövde/yer tutucu geçersiz (`{0}` = alan: `subject`, `html`, `text`, `placeholder`, `tr`...) |
+| `MAIL_TEMPLATE_VARIABLE_UNKNOWN` | 400 | İzinli kümede olmayan `{{x}}` (`{0}` = ad) |
+| `MAIL_TEMPLATE_NOT_FOUND` | 404 | |
+| `MAIL_TEMPLATE_NOT_EDITABLE` | 409 | Arşivlenmiş şablon düzenlenemez |
+| `MAIL_TEMPLATE_NOT_PUBLISHED` | 409 | Kampanya için şablon YAYINDA olmalı |
+| `MAIL_TEMPLATE_IN_USE` | 409 | Kampanyada kullanılmış şablon silinemez |
+| `MAIL_CAMPAIGN_NOT_FOUND` | 404 | |
+| `MAIL_CAMPAIGN_NOT_EDITABLE` | 409 | Yalnız TASLAK düzenlenir |
+| `MAIL_CAMPAIGN_NO_RECIPIENTS` | 400 | Hedefte gönderilecek kimse yok |
+| `MAIL_CAMPAIGN_AUDIENCE_INVALID` | 400 | Boş/hatalı filtre, liste sınırı (2000) aşımı |
+| `MAIL_CAMPAIGN_SCHEDULE_INVALID` | 400 | 90 günden ileri |
+| `MAIL_CAMPAIGN_INVALID_STATE` | 409 | Durum bu işlem için uygun değil |
+| `MAIL_UNAVAILABLE` | 503 | Test e-postası kuyruğa yazılamadı (mevcut kod) |
+| Hız sınırı (mevcut 429 + `Retry-After`) | 429 | |
+
+### KVKK / saklama
+
+Alıcı satırlarında yalnız `user_id` tutulur (e-posta metni yok; `EMAILS` hedefi kimliğe çevrilip yalnız kimlik saklanır). Biten/iptal edilen kampanyalar ve alıcı satırları `app.mail.campaign-retention-days` (180) gün sonra gece 03:20'de silinir; kullanıcı hesabını silince alıcı satırları silinir (`AccountDataPurger`). Kampanya `audience_value` alanındaki kullanıcı kimlikleri (USERS/EMAILS) hesap silindikten sonra anonimleştirilmiş satırı gösterir; kampanya saklama süresiyle birlikte silinir.
+
+
+### Etkinlik oluşturma kuralı (kulüp zorunlu) ve yönetici düzenleme/silme
+
+**Oluşturma (`POST /api/events`)**: `communityId` zorunludur; yoksa `400 EVENT_CLUB_REQUIRED` (admin dahil; bağımsız etkinlik açılamaz — mevcut kulüpsüz kayıtlar olduğu gibi kalır, listelenir, yönetilebilir). Tarih/geçmiş doğrulamaları kulüp denetiminden önce çalışır (`INVALID_DATES`, `PAST_EVENT`).
+
+| Oluşturan | Sonuç |
+|---|---|
+| Kulüp OWNER / ADMIN / MODERATOR (ya da `MANAGE_EVENTS` yetkili, rolü MEMBER değil) ve sistem ADMIN'i | `ACTIVE` (onay gerekmez) |
+| Sade `MEMBER` + özel `MANAGE_EVENTS` verilmiş (ör. `EVENT_MANAGER` şablonu) | `PENDING_REVIEW` → yönetici `approve`/`reject` eder |
+| Sade `MEMBER` (izin yok), üye olmayan | `403 FORBIDDEN` |
+| Kulüp aktif değil | `409 COMMUNITY_NOT_ACTIVE` |
+
+**Yönetici düzenleme `PATCH /api/admin/events/{id}`** (60/dk, denetlenir): gövde `{title?, description?, startsAt?, endsAt?, location?, capacity?, joinPolicy?, reason?}` (`capacity=0` sınırsız; `reason` isteğe bağlı ≤ 300, geçmişe `EDIT` yazılır). Kurallar `EventService.update` ile aynı: yalnız `ACTIVE`/`PENDING_REVIEW` (aksi `409 EVENT_NOT_EDITABLE`), bitmişse `409 EVENT_ENDED`, kapasite katılımcıdan az olamaz `409 CAPACITY_TOO_LOW`, başlamış etkinliğin başlangıcı `409 EVENT_STARTED`; saat/yer değişirse katılımcılara `notif.event.updated`. Yanıt `200` + detay.
+
+**Yönetici silme `DELETE /api/admin/events/{id}?reason=…`** (`reason` zorunlu ≤ 300; `204`): **yumuşak silme** — satır fiziksel silinmez (RSVP, yoklama, sertifika, KVKK dışa aktarımı ve denetim geçmişi buna bağlı); durum `CANCELLED` olur. Yan etkiler `cancel` ile aynı (katılımcı/istek sahibi `notif.event.cancelled`, sahibe sebepli `notif.event.cancelledByAdmin`, sohbet odası kapanır, kapak bırakılır); geçmişe `DELETE` yazılır. `ACTIVE`/`PENDING_REVIEW`/`HIDDEN` dışında `409 EVENT_INVALID_TRANSITION`. `cancel` ile fark: yalnız geçmişteki `action` ve HTTP şekli (204, gövdesiz).
+
+`allowedActions` artık `edit` ve `delete` da içerir: `PENDING_REVIEW` → `approve, reject, edit, cancel, delete`; `ACTIVE` → `edit, hide, cancel, delete`; `HIDDEN` → `unhide, cancel, delete`; `REJECTED`/`CANCELLED` → boş.
+
+**Kulüp yetkilileri** (mevcut mantık, değişmedi, test edildi): etkinliği oluşturan, ortak organizatörler ve kulüpte `MANAGE_EVENTS` yetkisi olanlar (MODERATOR+) `PATCH /api/events/{id}` ile düzenler, `DELETE /api/events/{id}` ile iptal (= yumuşak silme + bildirim) eder; yetkisiz `403`. `HIDDEN` etkinlik organizatöre de 404'tür.
+
+Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). `event_moderation_log.action` değerleri: `HIDE, UNHIDE, CANCEL, DELETE, EDIT, REPORT_HIDE, REPORT_UNHIDE`.
+
+
+## Sistem durumu (`/api/admin/system/**`, yalnız ADMIN)
+
+Paket `observability`. Yazma (POST) uçları denetim kaydına düşer; hız sınırı: okuma 120/dk, yazma 30/10 dk.
+
+### `GET /api/admin/system/overview`
+
+Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, value, threshold, message}`; `message` yalnız OK değilse dolu ve istek dilindedir (`Accept-Language` tr/en/ar). `UNKNOWN` = ölçülemiyor/henüz veri yok (uyarı tetiklemez). `overall` = bilinen göstergelerin en kötüsü.
+
+```json
+{
+  "generatedAt": "2026-10-28T10:00:00Z",
+  "overall": "CRIT",
+  "indicators": {
+    "mail.dead":             {"status":"CRIT","value":25,"threshold":{"warn":1,"crit":20},"message":"25 kayıt ölü (DEAD) durumda; inceleyip yeniden deneyin."},
+    "mail.pending":          {"status":"OK","value":3,"threshold":null,"message":null},
+    "mail.oldestPendingAge": {"status":"WARN","value":900,"threshold":{"warn":600,"crit":1800},"message":"En eski bekleyen kayıt 15 dakikadır gönderilmedi."},
+    "push.dead": {}, "push.pending": {}, "push.oldestPendingAge": {},
+    "campaign.overdue":      {"status":"OK","value":0,"threshold":{"warn":600,"crit":1800},"message":null},
+    "campaign.counts":       {"status":"OK","value":{"SENT":12,"SCHEDULED":1},"threshold":null,"message":null},
+    "websocket.sessions":    {"status":"OK","value":42,"threshold":null,"message":null},
+    "db":                    {"status":"OK","value":4,"threshold":{"warn":1000},"message":null},
+    "redis":                 {"status":"OK","value":1,"threshold":null,"message":null},
+    "fcm":                   {"status":"UNKNOWN","value":null,"threshold":null,"message":"Push (FCM) kapalı veya yapılandırılmamış."},
+    "disk.storage":          {"status":"OK","value":41.5,"threshold":{"warn":80,"crit":90},"message":null},
+    "backup.age":            {"status":"UNKNOWN","value":null,"threshold":{"warn":3,"crit":6},"message":"Yedek durum dosyası yok veya okunamadı."},
+    "jobs.mail-queue":       {"status":"OK","value":3,"threshold":{"warn":120,"crit":360},"message":null}
+  }
+}
+```
+
+Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
+
+Zamanlayıcı anahtarları: `news-sync`, `menu-sync`, `mail-queue`, `push-queue`, `campaign-dispatch`, `mail-campaign`, `mail-purge`, `push-purge`, `device-cleanup`, `notification-retention`, `analytics-retention`.
+
+Eşikler (`app.observability.*`, varsayılanlar): `dead-warn=1` (≥1 WARN), `dead-crit=20` (>20 CRIT); `queue-age-warn-minutes=10`, `queue-age-crit-minutes=30` (>30 dk CRIT); `disk-warn-percent=80`, `disk-crit-percent=90`; `backup-warn-hours=3`, `backup-crit-hours=6` (saatlik yedek: >3 sa WARN, >6 sa CRIT); `db-warn-millis=1000`; `poller-max-age-seconds=120` (sık işleyici: >120 sn WARN, >360 sn CRIT); `nightly-max-age-hours=26` (>26 sa WARN, >52 sa CRIT); `monthly-max-age-days=32`. Son hata son başarıdan yeniyse en az WARN.
+
+### Ölü (DEAD) kayıtlar
+
+| Uç | Açıklama |
+|---|---|
+| `GET /dead-letters/mail?limit=50` | `[{id, template, to (maskeli: a***@alan), attempts, lastError (temizlenmiş), createdAt}]`, en çok 200 |
+| `GET /dead-letters/push?limit=50` | `[{id, userId, attempts, lastError, createdAt}]` |
+| `POST /dead-letters/{mail\|push}/retry` | Gövde `{"ids":[1,2]}`; `ids` boş/yoksa **tüm** ölüler. `{requeued:n}`. Deneme sayacı sıfırlanır, `PENDING` olur |
+| `POST /dead-letters/{mail\|push}/delete` | Gövde `{"ids":[...]}` ZORUNLU (en çok 500; boşsa 400). `{deleted:n}`; yalnız `DEAD` durumundaki satırlar etkilenir |
+
+İçerik (mail değişkenleri, push gövdesi) hiçbir uçta dönmez. Eski toplu uçlar (`/api/admin/ops/mail-outbox/retry-dead`, `/api/admin/push/outbox/retry-dead`) çalışmaya devam eder.
+
+### Yönetici uyarısı
+
+`SystemAlertService` her dakika (`SchedulerLock` `obs-alert`) genel durumu hesaplar; **CRIT olmayandan CRIT'e geçişte** (CRIT'te kalmak tekrar uyarı üretmez) en çok `app.observability.alert-interval-minutes` (60) dakikada bir tüm aktif yöneticilere uygulama içi `SYSTEM` bildirimi (alıcının dilinde, `obs.alert.*`) gönderir; `app.observability.alert-email` doluysa ayrıca kuyruk dışı, anında e-posta denenir (mail kuyruğu çökükse birincil kanal bildirimdir). Durum/kısıt Redis'te (`obs:state`, `obs:alert:sent`). Kapatma: `OBS_ALERT_ENABLED=false`.
+
+### Korelasyon kimliği
+
+Her yanıt `X-Request-Id` başlığı taşır (istemci değeri `[A-Za-z0-9._-]{8,64}` ise korunur, değilse UUID üretilir); log satırlarında `[requestId]` olarak görünür; `{code,message}` hata gövdelerine `traceId` olarak eklenir (destek talebinde bu değer istenir).

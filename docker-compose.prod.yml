@@ -176,6 +176,52 @@ services:
       - /run/postgresql
     shm_size: 256m
     mem_limit: ${POSTGRES_MEM_LIMIT:-2g}
+    # PostgreSQL ayari (20k kullanici, docs/DATABASE.md bolum 6). Varsayilanlar POSTGRES_MEM_LIMIT=2g icindir;
+    # 4 GB'lik makinede PG_SHARED_BUFFERS=1GB PG_EFFECTIVE_CACHE_SIZE=2560MB ile yukseltin.
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.max=5000
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-512MB}
+      - -c
+      - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-1280MB}
+      - -c
+      - work_mem=${PG_WORK_MEM:-8MB}
+      - -c
+      - maintenance_work_mem=${PG_MAINTENANCE_WORK_MEM:-128MB}
+      - -c
+      - max_connections=${PG_MAX_CONNECTIONS:-100}
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - min_wal_size=256MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - autovacuum_max_workers=4
+      - -c
+      - autovacuum_naptime=30s
+      - -c
+      - autovacuum_vacuum_cost_limit=800
+      - -c
+      - log_autovacuum_min_duration=1s
+      - -c
+      - log_min_duration_statement=${PG_LOG_MIN_DURATION_MS:-500}
+      - -c
+      - log_lock_waits=on
+      - -c
+      - log_temp_files=10MB
+      - -c
+      - temp_file_limit=2GB
+      - -c
+      - track_io_timing=on
     cpus: ${POSTGRES_CPUS:-2}
     networks: [internal]
     environment:
@@ -211,7 +257,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # Zamanlanmış yedek (günlük 03:00) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
+  # Zamanlanmış yedek (SAATLİK, en yeni 3 tutulur) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
   backup:
     build: ./scripts/backup
     restart: unless-stopped
@@ -235,10 +281,11 @@ services:
       BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?BACKUP_AGE_RECIPIENT gerekli (age GENEL anahtari; ozel anahtar sunucuda olmaz)}
       BACKUP_REMOTE: ${BACKUP_REMOTE:-}
       BACKUP_WEBHOOK_URL: ${BACKUP_WEBHOOK_URL:-}
-      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-14}
-      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-8}
-      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-12}
-      BACKUP_CRON: ${BACKUP_CRON:-0 3 * * *}
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-3}      # saatlik yedek, en yeni 3 (3 saatlik pencere)
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-0}
+      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-0}
+      BACKUP_STATUS_FILE: ${BACKUP_STATUS_FILE:-/var/backups/last-success.json}   # last-failure.json ayni dizinde
+      BACKUP_CRON: ${BACKUP_CRON:-5 * * * *}
       BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-30 4 * * 0}
       BACKUP_VERIFY_AGE_RECIPIENT: ${BACKUP_VERIFY_AGE_RECIPIENT:-}
       BACKUP_AGE_IDENTITY_FILE: ${BACKUP_AGE_IDENTITY_FILE:-/run/backup/verify.key}

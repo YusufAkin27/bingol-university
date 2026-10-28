@@ -42,7 +42,14 @@ Telif bildiriminde şunları belirtin: (a) eserin tanımı ve hak sahibi olduğu
 2. İtiraz bir yönetici tarafından yeniden değerlendirilir; haklı bulunursa içerik yeniden yayına alınır. Telif bildirimlerinde itiraz durumunda hak sahibine bilgi verilir; uyuşmazlık devam ederse taraflar yargı yoluna yönlendirilir.
 3. Yasal haklarınız (mahkemeye başvuru dahil) saklıdır.
 
-## 7. Kayıt ve gizlilik
+## 7. Yer sağlayıcı konumu, sorumluluk ve trafik bilgisi
+
+1. Yer sağlayıcı olarak yalnızca kendi içeriğimizden değil, kullanıcıların paylaştığı içerikten, **ancak hukuka aykırı olduğunu bildirim veya başka yolla öğrendiğimizde** ve bu içeriği yayından çıkarmadığımız takdirde, kanunda öngörülen ölçüde sorumlu tutulabiliriz (5651 sayılı Kanun m.5). Bu nedenle usulüne uygun bildirimleri öncelikle ve gecikmeksizin değerlendiririz.
+2. Kişilik hakkı ihlali iddialarında hâkim kararıyla içeriğin çıkarılması veya erişimin engellenmesi yolu (5651 m.9) ayrıca saklıdır; böyle bir karar bize ulaştığında kararda öngörülen süre içinde uygularız. Bildirimde bulunmanız, bu yargısal yolu kullanmanıza engel değildir.
+3. Yer sağlayıcı sıfatıyla, ilgili mevzuatın gerektirdiği trafik bilgilerini (ör. erişim zamanı, IP adresi) mevzuatın öngördüğü süre boyunca, bütünlüğü korunarak saklarız ve yetkili makamlara talep halinde veririz. Uygulamanın olağan işleyişi için tuttuğu cihaz/IP kayıtlarının süreleri [Saklama ve İmha](/legal/retention) metnindedir.
+4. İçeriği uygulamadan kaldırmak, içeriğin başka ortamlarda bulunmasını engellemez; içeriği paylaşan kişinin hukuki sorumluluğu kendisine aittir.
+
+## 8. Kayıt ve gizlilik
 
 Bildirim ve kaldırma kayıtları (içeriğin kendisi değil, işlem özeti ve karar) hesap verebilirlik için moderasyon izi olarak saklanır. Bildirimde verdiğiniz kişisel veriler yalnızca başvurunun değerlendirilmesi için kullanılır.
 

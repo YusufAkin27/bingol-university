@@ -81,7 +81,7 @@ curl -f localhost:8080/actuator/health
 | `ADMIN_EMAILS` | önerilir | Virgüllü; bu adresler ADMIN rolü alır |
 | `CORS_ORIGINS` | evet | Virgüllü https kökenleri (panel/web adresi) |
 | `CRYPTO_MASTER_KEYS`, `CRYPTO_ACTIVE_KEY_ID` | evet | Mesaj şifreleme ana anahtarları (`id:base64(32 bayt)`); kaybı = mesaj kaybı, yedekleyin |
-| `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | `MAIL_ENABLED=true` önerilir | Doğrulama kodu e-postası; kapalıyken kod log'a yazılır |
+| `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | `MAIL_ENABLED=true` önerilir | Doğrulama kodu e-postası; kapalıyken kod log'a yazılır. Spam'e düşmemek için ek ayarlar (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_MAX_PER_MINUTE`, SPF/DKIM/DMARC): [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) |
 | `FCM_CREDENTIALS_FILE` | hayır | Konteyner içindeki Firebase servis hesabı JSON yolu (secret olarak mount edin); boşsa push kapalı |
 | `PUBLIC_WEB_URL` | önerilir | Herkese açık web adresi (destek takip bağlantıları) |
 | `STORAGE_DIR` | hayır | Compose'ta `/data/uploads` (volume) |
@@ -134,7 +134,7 @@ void nightly() {
 - Kilit adı görev başına benzersiz olmalı (`schedlock:<ad>` anahtarı).
 - Daha zengin ihtiyaç (en az bekleme süresi, kilit denetimi) doğarsa ShedLock (JDBC provider) önerilir; bu, `pom.xml`'e bağımlılık ve yeni Flyway tablosu gerektirir.
 
-Tek örnek (varsayılan compose) çalıştırıyorsanız ek işlem gerekmez. Ayrıca: dosya yüklemeleri yerel diskte olduğundan çoklu örnek için paylaşılan volume (NFS) veya nesne depolama gerekir; WebSocket presence/pub-sub Redis üzerindendir ve örnekler arası çalışır.
+Tek örnek (varsayılan compose ve tek VPS kurulumu) çalıştırıyorsanız ek işlem gerekmez: `@Scheduled` görevleri tek süreçte çalışır, çift çalışma riski yoktur, `SchedulerLock` sarmalamasına gerek yoktur (yalnız ileride ikinci backend örneği eklenirse gerekir). Ayrıca: dosya yüklemeleri yerel diskte olduğundan çoklu örnek için paylaşılan volume (NFS) veya nesne depolama gerekir; WebSocket presence/pub-sub Redis üzerindendir ve örnekler arası çalışır.
 
 ## 7. İzleme ve uyarı
 
@@ -219,6 +219,30 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 
 ## 12. Yedekleme, izleme ve olay müdahalesi bağlantıları
 
-- Yedek servisi (`backup`) günlük 03:00 şifreli (age) `pg_dump` + uploads yedeği alır, haftalık geri yükleme doğrulaması yapar: [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Bölüm 4'teki elle komutlar yedek servisi varken gerekmez.
+- Yedek servisi (`backup`) **her saat** şifreli (age) `pg_dump` + uploads (fotoğraflar dahil) yedeği alır, **en yeni 3 tutulur**, haftalık geri yükleme doğrulaması yapar: [BACKUP.md](BACKUP.md) (politika/kararlar), [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Bölüm 4'teki elle komutlar yedek servisi varken gerekmez.
 - Anahtarlar/sırlar: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md). Olay müdahalesi: [RUNBOOK.md](RUNBOOK.md).
 - İzleme: `monitoring/` (Prometheus/Grafana/Alertmanager); yedek metriği `backup_last_success_timestamp_seconds` `monitoring/textfile/backup.prom` üzerinden gelir (aynı dosya `http://backup:9199/backup.prom` ile de sunulur, bkz. OBSERVABILITY.md sonu). İzleme yığınını `-f monitoring/docker-compose.monitoring.yml` ile ekleyin.
+
+## 13. Tek VPS: adım adım (Ubuntu 22.04/24.04 LTS)
+
+Önerilen en az: 2 vCPU, 4 GB RAM (JVM + PostgreSQL + ffmpeg), SSD; yüklemeler ve 3 yedek için veri boyutunun en az 4 katı disk.
+
+1. **DNS:** `DOMAIN` için A (ve varsa AAAA) kaydı VPS IP'sine. Yayılmadan ilk dağıtım yapmayın (Let's Encrypt hız sınırı).
+2. **SSH anahtarı (yerelde):** `ssh-keygen -t ed25519`; `ssh-copy-id root@<ip>`. Anahtarla girişin çalıştığını **ayrı bir oturumda** doğrulayın.
+3. **Sunucu hazırlığı (root):** `git clone <repo> /opt/bu && cd /opt/bu && sudo bash scripts/deploy/bootstrap-server.sh --deploy-user bu` — Docker, UFW (yalnız 22/80/443; DB/Redis/backend portu zaten yayınlanmaz), fail2ban, otomatik güvenlik güncellemesi, saat dilimi `Europe/Istanbul`, 2 GB swap. Sonra `/etc/ssh/sshd_config`: `PasswordAuthentication no`, `PermitRootLogin no`; `systemctl reload ssh`. Depo sahibi `bu` olmalı: `chown -R bu:bu /opt/bu`, `su - bu`.
+4. **Sırlar:** `bash scripts/ops/gen-secrets.sh` → `.env.prod` (izin 600). Elle doldurun: `DOMAIN`, `ACME_EMAIL`, `CORS_ORIGINS`/`PUBLIC_WEB_URL` (`https://<DOMAIN>`), `ADMIN_EMAILS`, `MAIL_*`, `BACKUP_AGE_RECIPIENT`. Tam liste ve açıklamalar `.env.prod.example` içindedir (`ProdSettingsValidator`'ın zorunlu tuttukları: `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CORS_ORIGINS`, `CRYPTO_MASTER_KEYS`/`CRYPTO_ACTIVE_KEY_ID`, `MAIL_HOST`). **`.env.prod` ve `CRYPTO_MASTER_KEYS`'i hemen şifre yöneticisine + çevrimdışı kasaya kopyalayın** (yedeğe girmez: [BACKUP.md](BACKUP.md)).
+5. **Yedek anahtarı:** çevrimdışı makinede `age-keygen -o kurtarma.age.key`; `age1...` genel anahtarı `BACKUP_AGE_RECIPIENT`'e. Önerilen: `BACKUP_REMOTE` (ikinci sunucu/S3, `deploy/rclone/rclone.conf`).
+6. **FCM (push):** Firebase servis hesabı JSON'u tek satır (`base64 -w0 firebase.json`) `FCM_CREDENTIALS_JSON`'a. Ayrıntı: [PUSH_SETUP.md](PUSH_SETUP.md). Boşsa yalnız uygulama içi bildirim çalışır.
+7. **E-posta alan adı:** SPF/DKIM/DMARC kayıtları ve `List-Unsubscribe`: [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md), [changes/mail.md](changes/mail.md). Gerçek SMTP olmadan doğrulama kodu e-postası gitmez.
+8. **İlk dağıtım:** `bash scripts/deploy/update.sh --first` (derler, başlatır, sağlık kontrolü). Doğrulama: `curl -I https://<DOMAIN>/` (200, geçerli sertifika), `https://<DOMAIN>/api/status`, `https://<DOMAIN>/actuator/health` **404** olmalı.
+9. **İlk yönetici:** `ADMIN_EMAILS`'teki adresle `bingol.edu.tr` e-postası üzerinden uygulamadan/`/api/auth/register` ile kayıt + doğrulama; giriş yapınca rol ADMIN olur. Yönetim paneli `https://<DOMAIN>/admin` (ya da `ADMIN_PATH`). Basic auth yedek yolu: `admin:$ADMIN_PASSWORD`.
+10. **Yedek ön kontrolü:** `docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod exec backup /opt/backup/backup.sh --dry-run`, sonra bir elle yedek ve `verify-restore.sh --latest` (BACKUP.md).
+11. **Güncelleme:** `bash scripts/deploy/update.sh [--ref vX.Y.Z]` (önce yedek, çek, derle, başlat, sağlık; başarısızsa otomatik geri alma). **Geri alma:** `bash scripts/deploy/rollback.sh`; şema değişikliği olan sürümde yedekten geri yükleme gerekir (bölüm 8).
+12. **Proxy doğrulaması (Caddy, `deploy/Caddyfile`):** `/files/**` ve `/api/**` backend'e gider, gövde sınırı `CADDY_MAX_BODY` (55 MB; Spring 45 MB), WebSocket `/ws` otomatik yükseltilir ve tamponlanmaz (okuma 180 sn), `X-Forwarded-For` Caddy tarafından `{client_ip}` olarak yazılır (istemci başlığı ezilir) ve backend yalnız `TRUSTED_PROXIES` ağından gelene güvenir (CLAUDE.md rate limit notu karşılandı). Yüklemeler `uploads` volume'unda (`STORAGE_DIR=/data/uploads`) kalır ve saatlik yedeğe dahildir.
+
+## Sistem durumu, Prometheus ve Uptime Kuma önerisi (VPS)
+
+- **Yönetici paneli:** `/admin/system` (API: `GET /api/admin/system/overview`). 30 sn'de bir yenilenir; CRIT'e geçişte yöneticilere uygulama içi bildirim gider, `OBS_ALERT_EMAIL` doluysa e-posta da denenir. Eşikler `app.observability.*` (bkz. ADMIN_API.md).
+- **Prometheus (`/actuator/prometheus`):** varsayılan KAPALI. Açmak için `MANAGEMENT_PORT=8081` ve `ACTUATOR_EXPOSURE=health,info,prometheus`; uç yalnız bu ayrı portta ve compose ağı içinde herkese açıktır (`ports:` ile dışarı verilmez, ana portta `/actuator/**` ADMIN'dir). Ayrıntı: OBSERVABILITY.md. Dışarıdan erişilecekse proxy'de Basic auth ya da IP kısıtı şarttır; emin değilseniz açmayın.
+- **Küçük VPS için öneri:** tam Prometheus+Grafana yığını (monitoring/) 2 GB altındaki makinede ağırdır. Bunun yerine (1) **Uptime Kuma** (tek konteyner, ~100 MB): `https://<alan>/actuator/health` için HTTP(s) monitörü (2 dk), TLS sertifika süresi monitörü, gerekirse "keyword" monitörü ile web ana sayfası; bildirim kanalı olarak e-posta/Telegram. (2) Uygulama içi uyarıyı **dış** kanalın yedeği olarak bırakın: Uptime Kuma backend tamamen çöktüğünde uyarır, `SystemAlertService` ise backend ayaktayken iç sorunları (kuyruk, yedek, disk) bildirir. İkisi birbirini tamamlar; backend çöktüğünde uygulama içi bildirim gelmez.
+- **Yedek:** yedek ajanı `last-success.json` yazmazsa `backup.age` göstergesi UNKNOWN kalır ve eskime uyarısı üretmez; yedek betiği dosyayı yazdığından emin olun.

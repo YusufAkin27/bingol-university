@@ -90,6 +90,13 @@ vm.swappiness = 10
 EOF
 sysctl --system >/dev/null
 
+
+# --- saat dilimi (yedek zamanlari/log icin) ve swap (kucuk VPS'te JVM + postgres OOM'una karsi) ---
+timedatectl set-timezone Europe/Istanbul || true
+if ! swapon --show | grep -q .; then
+  fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile >/dev/null && swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
 mkdir -p /opt/bu && chown "$DEPLOY_USER":"$DEPLOY_USER" /opt/bu
 
 cat <<EOF

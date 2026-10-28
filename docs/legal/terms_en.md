@@ -69,8 +69,8 @@ News, announcements, events and menus are compiled from Bingöl University's off
 
 ## 10. Service level and liability
 
-1. The Service is provided "as is"; uninterrupted or error-free operation is not guaranteed; maintenance and third-party outages may occur.
-2. To the extent permitted by law we are not liable for indirect damages, loss of profit, data or reputation, or damage from third-party content. This limitation does not apply to wilful misconduct, gross negligence or matters that cannot be limited by mandatory law.
+1. The Service is provided "as is" and "as available". No express or implied warranty is given that it will be uninterrupted, error-free, fit for a particular purpose, or that its content (especially information compiled from source sites) is accurate, complete or current; maintenance and third-party outages may occur. This does not affect rights that cannot be waived by law.
+2. To the extent permitted by law we are not liable for indirect damages, loss of profit, data or reputation, or damage from third-party content; our liability for direct damages is also limited, except for wilful misconduct and gross negligence, to the extent permitted by law and to proven loss. We are not a party to disputes between users or arising from events organised by others. This limitation does not apply to wilful misconduct, gross negligence or matters that cannot be limited by mandatory law.
 3. As a hosting provider under Law No. 5651 we act on duly notified unlawful content.
 
 ## 11. Indemnity
@@ -87,9 +87,33 @@ You can close your account at any time ([delete account](/delete-account)); dele
 
 ## 14. Governing law and jurisdiction
 
-Turkish law applies. The Service is offered free of charge to students and staff of a public university; consumer-specific jurisdiction rules apply only to the extent they are mandatory by law. **Bingöl courts and enforcement offices** are competent (administrative courts for administrative acts). Mandatory jurisdiction rules remain reserved.
+Turkish law applies. The Service is free of charge, so consumer-specific rules (Law No. 6502) apply only to the extent they are mandatory. **{{controller.jurisdiction|Bingöl}} courts and enforcement offices** are competent for disputes arising from these terms (administrative courts for administrative acts). Mandatory jurisdiction rules (including, if you are a consumer, the consumer court or arbitration committee of your place of residence) and your statutory rights remain reserved.
 
-## 15. Contact
+## 15. Relationship with Bingöl University; third-party links
+
+1. {{controller.relation|The Service is not an official application of Bingöl University; it makes no statements on the University's behalf and does not replace official University notices. University news, announcements, events and menus are shown with the label "source: bingol.edu.tr" and a link to the source page. The bingol.edu.tr domain is used only to verify membership; this does not mean the University endorses, operates or accepts responsibility for the Service.}}
+2. The Service may link to third-party sites. We do not control their content, privacy practices or security, are not responsible for them, and a link is not an endorsement. You open links at your own risk.
+
+## 16. Changes to the Service, outages and force majeure
+
+1. We may change, restrict, suspend or end the Service or its features with reasonable notice (without notice in urgent security or legal cases). If the Service ends we will try to announce it in advance and keep the data-download feature available for a period. No compensation can be claimed for changing or ending a free Service; wilful misconduct, gross negligence and mandatory law remain reserved.
+2. The Service may be temporarily interrupted for maintenance or technical faults.
+3. We are not liable for failure to perform caused by events beyond reasonable control (**force majeure**), such as natural disaster, war, terrorism, epidemic, power/internet/infrastructure or third-party provider outages, cyber-attack, or changes in legislation or administrative/judicial decisions.
+
+## 17. Evidence agreement and notices
+
+1. The parties accept that the Service's server records (acceptance records, session/IP and device-digest logs, moderation and access logs, e-mail and notification records) are **conclusive evidence** within the meaning of Article 193 of the Code of Civil Procedure No. 6100, without prejudice to mandatory law; your right to prove that a record is untrue remains.
+2. Notices to you are sent to your registered institutional e-mail address and the in-app inbox and are deemed delivered when sent. Keeping your contact details current is your responsibility. Notices to us go through {{support.email|the in-app Support section}}{{?controller.kep}} or the KEP address {{controller.kep}}{{/controller.kep}}.
+
+## 18. General provisions
+
+1. **Severability.** If a provision is invalid, the others remain in force and the invalid one is read as the closest valid provision.
+2. **No waiver.** Not exercising a right is not a waiver.
+3. **Assignment.** We may assign the Service and our rights to a successor in a transfer, merger or restructuring in line with data-protection law; you may not assign your rights without our written consent.
+4. **Entire agreement and language.** These terms and the texts they refer to are the entire agreement. The Turkish text prevails; other languages are informational translations.
+5. **Headings** and "In short" boxes are for convenience only.
+
+## 19. Contact
 
 - General: {{support.email|in-app Support section}}
 {{?controller.email}}- Controller e-mail: {{controller.email}}{{/controller.email}}

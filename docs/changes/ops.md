@@ -78,3 +78,12 @@ Yonetici kullaniciyi, kayitsiz kisiyi (IP/CIDR) ya da mobil cihazi engeller; eng
 - `MenuSyncService` yalnız `items` günceller; `image_url` korunur. `menu_day.image_url` medya yetim temizliği referans sütunlarına eklendi.
 - Hata kodları (tr/en/ar `ops*.properties`): `MENU_DAY_NOT_FOUND`, `MENU_DATE_INVALID`, `MENU_RANGE_INVALID`.
 - Akşam yemeği: backend'de öğün/akşam kavramı yoktur (menü gün başına tek `items` listesidir); değişiklik gerekmedi.
+
+## Sistem durumu ve gözlemlenebilirlik (`observability`)
+
+- Yeni paket `edu.bingol.backend.observability`: `SystemOverviewService` + `SystemOverviewController` (`GET /api/admin/system/overview`), `DeadLetterService` (DEAD mail/push listele, yeniden kuyruğa al, sil), `SystemAlertService` (OK→CRIT geçişinde yönetici bildirimi), `JobMonitor` (Spring zamanlayıcı gözlemi: `@Scheduled` metotlarına dokunmadan son başarı/hata), `BackupStatusProvider`, `RequestIdFilter`, `LogMasking`. Migration yok. Sözleşme: [ADMIN_API.md](../ADMIN_API.md) "Sistem durumu".
+- Prometheus: `bu_system_status`, `bu_indicator_status{indicator}` (0 OK, 1 WARN, 2 CRIT, -1 UNKNOWN), `bu_indicator_value{indicator}`, `bu_scheduler_last_success_seconds{job}`, `bu_scheduler_errors_total{job}` (mevcut `bu_mail_outbox`, `bu_push_*`, `bu_websocket_*` aynen kalır). Göstergeler en çok 15 sn'de bir hesaplanır (kazıma DB'yi yormaz).
+- **Yedek arayüzü:** `BackupStatusProvider` yalnız okur; yedek ajanı `${STORAGE_DIR}/../backups/last-success.json` (ya da `BACKUP_STATUS_FILE`) dosyasını atomik yazar: `{"lastSuccessAt":"2026-10-28T09:00:00Z"}` (ayrıca `timestamp`/`epochSeconds`/`time` alan adları ve düz unix sayısı kabul edilir). Dosya yoksa gösterge `UNKNOWN`. Konteynerde dosyanın backend'e salt okunur görünmesi gerekir.
+- Yeni log deseni: `logging.pattern.level=%5p [%X{requestId:-}]`. `X-Request-Id` yanıt başlığı + hata gövdesinde `traceId`. Sentry'deki PII temizliği (`ObservabilitySentry`) aynen geçerli; `LogMasking.scrub` yönetici panelinde gösterilen hata metinlerini maskeler.
+- i18n: `i18n/obs*.properties` (tr/en/ar), `spring.messages.basename`'e `i18n/obs` eklendi.
+- Web: `/admin/system` ("Sistem durumu", `SystemStatusPage`).

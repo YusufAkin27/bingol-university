@@ -39,7 +39,14 @@ State: (a) description of the work and proof of ownership; (b) where the content
 
 The user whose content was removed may appeal via the in-app appeal feature or Support. An administrator reviews it and restores the content if justified. For copyright notices the rights holder is informed; if the dispute continues the parties are referred to the courts. Statutory rights remain reserved.
 
-## 7. Records
+## 7. Hosting-provider position, liability and traffic data
+
+1. As a hosting provider we may be held liable not for our own content but for user content only to the extent provided by law, **when we learn that it is unlawful** (by notice or otherwise) and do not remove it (Law No. 5651, Art. 5). We therefore assess duly made notices first and without delay.
+2. The court-order route for personal-rights violations (Art. 9 of Law No. 5651) remains available; when such an order reaches us we comply within the time it sets. Sending a notice does not prevent you from using that route.
+3. As a hosting provider we keep the traffic data required by law (for example access time and IP address) with integrity for the period the legislation prescribes and provide it to competent authorities on request. Retention periods of the device/IP records kept for normal operation are in [Retention and Destruction](/legal/retention).
+4. Removing content from the app does not prevent it from existing elsewhere; the person who shared it remains legally responsible for it.
+
+## 8. Records
 
 Notice and removal records (action summary and decision, not the content) are kept as a moderation trail. Personal data in a notice is used only to assess it.
 

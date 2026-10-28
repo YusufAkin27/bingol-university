@@ -19,8 +19,8 @@ chmod 755 "$BACKUP_DIR" "$BACKUP_DIR/metrics"
 
 CRON_FILE=/tmp/backup.cron
 {
-  echo "${BACKUP_CRON:-0 3 * * *} /opt/backup/backup.sh"
-  echo "${BACKUP_VERIFY_CRON:-30 4 * * 0} /opt/backup/verify-restore.sh --latest"
+  echo "${BACKUP_CRON:-5 * * * *} flock -n /tmp/backup.lock /opt/backup/backup.sh"
+  echo "${BACKUP_VERIFY_CRON:-30 4 * * 0} flock -n /tmp/backup.lock /opt/backup/verify-restore.sh --latest"
 } > "$CRON_FILE"
 
 # Prometheus: http://backup:9199/backup.prom (node-exporter textfile icin ayni dosya: metrics/backup.prom)

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// docs/legal/<tur>_<dil>.md dosyalarindan guncel sozlesme migration'ini uretir: V370__legal_texts_v4.sql
-// (V290 ilk nesildir, DONDURULMUSTUR; bu betik artik yalniz V370'i yazar. Sonraki metin degisikliginde yeni V37x eklemek icin TARGET'i artirin.)
+// docs/legal/<tur>_<dil>.md dosyalarindan guncel sozlesme migration'ini uretir: V480__legal_texts_v3.sql
+// (V290 ve V370 onceki nesillerdir, DONDURULMUSTUR; bu betik yalniz V480'i yazar. Sonraki metin degisikliginde yeni bir V48x ekleyin.)
 // Kullanim: node scripts/build-legal-migration.js [--check]   (--check: dosyayi yazmadan ayni mi diye bakar)
 // Tek dogruluk kaynagi Markdown dosyalaridir; SQL'i elle DUZENLEMEYIN.
 'use strict';
@@ -9,9 +9,9 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'docs', 'legal');
-const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V370__legal_texts_v4.sql');
-// V370'te metni degisen turler (COOKIES degismedi; gereksiz yeni surum/yeniden onay uretmesin)
-const CHANGED = new Set(['TERMS', 'PRIVACY', 'KVKK', 'COMMUNITY_RULES', 'EXPLICIT_CONSENT', 'CONTENT_REMOVAL', 'RETENTION']);
+const OUT = path.join(ROOT, 'backend', 'src', 'main', 'resources', 'db', 'migration', 'V480__legal_texts_v3.sql');
+// V480'de tr/en metni degisen turler: yeni surum (tr+en+ar). Digerlerine yalniz mevcut aktif surume ar eklenir (yeniden onay uretmez).
+const CHANGED = new Set(['TERMS', 'PRIVACY', 'CONTENT_REMOVAL']);
 
 // [dosya oneki, LegalType, kayitta zorunlu onay / yeniden onay]
 const TYPES = [
@@ -24,7 +24,7 @@ const TYPES = [
   ['content_removal', 'CONTENT_REMOVAL', false],
   ['retention', 'RETENTION', false],
 ];
-const LANGS = ['tr', 'en'];
+
 
 function load(prefix, lang) {
   const file = path.join(SRC, `${prefix}_${lang}.md`);
@@ -44,18 +44,35 @@ function lit(tag, text) {
   return `${t}${text}${t}`;
 }
 
-let sql = `-- V370: Sozlesme metinleri 4. nesil (docs/legal/*.md'den scripts/build-legal-migration.js ile URETILDI; elle duzenlemeyin).
--- * Gonderi/yorum/hikaye, takip, kaydetme, etiket, anket, ders programi, cihaz kimligi/erisim engeli, kufur filtresi,
---   push kuyrugu, gonderi videosu yeniden kodlama/sifreleme ve konum toplanmadigi bilgisi metinlere islendi.
--- * Surum numarasi her tur icin COALESCE(MAX(version),0)+1; onceki aktif surumler pasife alinir, yeni tr+en ayni numarayla aktif eklenir.
--- * require_reaccept: TERMS, PRIVACY, KVKK, COMMUNITY_RULES icin TRUE (mevcut kullanicilar yeni surumu yeniden onaylar); digerleri bilgilendirmedir.
--- * COOKIES degismedigi icin yeni surum uretilmez.
+let sql = `-- V480: Sozlesme metinleri 5. nesil (docs/legal/*.md'den scripts/build-legal-migration.js ile URETILDI; elle duzenlemeyin).
+-- * Arapca (ar) metinler eklendi. Kullanim Kosullari (TERMS), Gizlilik (PRIVACY) ve Icerik Bildirimi (CONTENT_REMOVAL) tr/en metni degistigi icin
+--   yeni surum (COALESCE(MAX(version),0)+1) tr+en+ar ayni numarayla aktif eklenir, onceki aktif surumler pasife alinir.
+-- * Metni degismeyen turlerde (KVKK, COMMUNITY_RULES, EXPLICIT_CONSENT, COOKIES, RETENTION) mevcut aktif tr surumune ar satiri eklenir; surum degismez, yeniden onay istenmez.
+-- * require_reaccept: yeni surumde TERMS ve PRIVACY icin TRUE (mevcut kullanicilar yeniden onaylar), CONTENT_REMOVAL bilgilendirmedir.
+-- * Yeni yonetici ayarlari: legal.controller.relation (Universite ile iliski cumlesi), legal.controller.jurisdiction (yetkili mahkeme sehri). Bos birakilirsa metindeki varsayilan cumle/Bingol kullanilir.
+-- * Dosya adi V480__legal_texts_v3.sql talep uzerine boyledir (icerik olarak 5. nesil).
+
+INSERT INTO app_setting (setting_key, setting_value) VALUES
+ ('legal.controller.relation', ''),
+ ('legal.controller.jurisdiction', '')
+ON CONFLICT (setting_key) DO NOTHING;
 `;
 
 for (const [prefix, type, reaccept] of TYPES) {
-  if (!CHANGED.has(type)) continue;
   const tr = load(prefix, 'tr');
   const en = load(prefix, 'en');
+  const ar = load(prefix, 'ar');
+  if (!CHANGED.has(type)) {
+    sql += `
+-- ${type}: mevcut aktif surume Arapca ekle (yoksa)
+INSERT INTO legal_document (type, lang, version, title, content, require_reaccept, active)
+SELECT '${type}', 'ar', d.version, ${lit(`t_${prefix}_ar`, ar.title)}, ${lit(`c_${prefix}_ar`, ar.content)}, d.require_reaccept, TRUE
+FROM legal_document d
+WHERE d.type = '${type}' AND d.lang = 'tr' AND d.active
+  AND NOT EXISTS (SELECT 1 FROM legal_document x WHERE x.type = '${type}' AND x.lang = 'ar' AND (x.version = d.version OR x.active));
+`;
+    continue;
+  }
   const flag = reaccept ? 'TRUE' : 'FALSE';
   sql += `
 DO $do_${prefix}$
@@ -66,7 +83,8 @@ BEGIN
     UPDATE legal_document SET active = FALSE WHERE type = '${type}' AND active;
     INSERT INTO legal_document (type, lang, version, title, content, require_reaccept, active) VALUES
     ('${type}', 'tr', v, ${lit(`t_${prefix}_tr`, tr.title)}, ${lit(`c_${prefix}_tr`, tr.content)}, ${flag}, TRUE),
-    ('${type}', 'en', v, ${lit(`t_${prefix}_en`, en.title)}, ${lit(`c_${prefix}_en`, en.content)}, ${flag}, TRUE);
+    ('${type}', 'en', v, ${lit(`t_${prefix}_en`, en.title)}, ${lit(`c_${prefix}_en`, en.content)}, ${flag}, TRUE),
+    ('${type}', 'ar', v, ${lit(`t_${prefix}_ar`, ar.title)}, ${lit(`c_${prefix}_ar`, ar.content)}, ${flag}, TRUE);
 END
 $do_${prefix}$;
 `;
@@ -75,10 +93,10 @@ $do_${prefix}$;
 if (process.argv.includes('--check')) {
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
   if (cur !== sql) {
-    console.error('V370 eski: node scripts/build-legal-migration.js calistirin');
+    console.error('V480 eski: node scripts/build-legal-migration.js calistirin');
     process.exit(1);
   }
-  console.log('V370 guncel');
+  console.log('V480 guncel');
 } else {
   fs.writeFileSync(OUT, sql, { encoding: 'utf8' }); // BOM'suz
   console.log(`yazildi: ${OUT} (${sql.length} karakter)`);
