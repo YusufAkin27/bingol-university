@@ -115,14 +115,47 @@ export function refreshAccessToken(): Promise<string> {
   return refreshInFlight;
 }
 
+/**
+ * Refresh tek kullanımlık olduğu için YALNIZ isteğin sunucuya işlenmeden döndüğü kesin durumlar yeniden denenir:
+ * 429 (hız sınırı), 408, 502/503/504 (ağ geçidi). Ağ hatası ve 500'de istek işlenmiş olabilir; aynı token'ı
+ * tekrar göndermek "yeniden kullanım" algılamasını tetikleyip tüm oturumları kapatabilir, bu yüzden denenmez.
+ * Hiçbir geçici durum oturumu sonlandırmaz (bkz. `execute`).
+ */
+const SAFE_REFRESH_RETRY = new Set([408, 429, 502, 503, 504]);
+let refreshRetryDelays = [400, 1500];
+const MAX_RETRY_AFTER_MS = 5000;
+
+/** Yalnız testler içindir: yeniden deneme bekleme süreleri (ms). */
+export function setRefreshRetryDelays(ms: number[]): void {
+  refreshRetryDelays = ms;
+}
+
+function retryDelay(res: Response, fallback: number): number {
+  const ra = Number(res.headers.get('Retry-After'));
+  return Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, MAX_RETRY_AFTER_MS) : fallback;
+}
+
 async function doRefresh(): Promise<string> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new ApiError(401, 'UNAUTHORIZED', 'No refresh token');
-  const res = await send('/auth/refresh', { method: 'POST', body: { refreshToken }, auth: false }, null);
-  if (!res.ok) throw await toError(res);
-  const tokens = (await res.json()) as TokenResponse;
-  setTokens(tokens.accessToken, tokens.refreshToken);
-  return tokens.accessToken;
+  for (let attempt = 0; ; attempt++) {
+    const res = await send('/auth/refresh', { method: 'POST', body: { refreshToken }, auth: false }, null);
+    if (res.ok) {
+      const tokens = (await res.json()) as TokenResponse;
+      setTokens(tokens.accessToken, tokens.refreshToken);
+      return tokens.accessToken;
+    }
+    if (SAFE_REFRESH_RETRY.has(res.status) && attempt < refreshRetryDelays.length) {
+      await new Promise((r) => setTimeout(r, retryDelay(res, refreshRetryDelays[attempt])));
+      continue;
+    }
+    throw await toError(res);
+  }
+}
+
+/** Sunucu refresh token'ı açıkça reddetti mi (oturumu bitiren tek durum)? */
+function isSessionRejected(e: unknown): boolean {
+  return e instanceof ApiError && (e.status === 401 || e.status === 403);
 }
 
 async function execute(path: string, opts: RequestOptions): Promise<Response> {
@@ -132,8 +165,9 @@ async function execute(path: string, opts: RequestOptions): Promise<Response> {
     try {
       fresh = await refreshAccessToken();
     } catch (e) {
-      // Ağ/5xx: geçici hata, oturumu düşürme. Sunucu reddettiyse (4xx) oturum bitmiştir.
-      if (e instanceof ApiError && (e.status === 0 || e.status >= 500)) throw e;
+      // Oturum yalnız refresh 401/403 ile reddedilirse biter. 429/408/5xx/ağ gibi geçici hatalarda yönetici oturumda
+      // kalır (token'lar korunur); çağıran isteğe geçici hata döner ve kullanıcı yeniden deneyebilir.
+      if (!isSessionRejected(e)) throw e;
       expireSession();
       throw await toError(res);
     }
@@ -150,8 +184,7 @@ async function execute(path: string, opts: RequestOptions): Promise<Response> {
 /** api.post/put/patch/del için dar ek seçenek: yalnız başlık (örn. Idempotency-Key). */
 export type ExtraOptions = Pick<RequestOptions, 'headers'>;
 
-export async function apiFetch<T = void>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const res = await execute(path, opts);
+async function parseBody<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T;
   const text = await res.text();
   if (!text) return undefined as T;
@@ -160,6 +193,19 @@ export async function apiFetch<T = void>(path: string, opts: RequestOptions = {}
   } catch {
     throw new ApiError(res.status, 'INVALID_RESPONSE', 'Invalid JSON response');
   }
+}
+
+export async function apiFetch<T = void>(path: string, opts: RequestOptions = {}): Promise<T> {
+  return parseBody<T>(await execute(path, opts));
+}
+
+/** Gövde ile birlikte yanıt başlıklarını da döner (örn. sayfalı listelerde `X-Next-Cursor`). */
+export async function apiFetchMeta<T = void>(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<{ data: T; headers: Headers }> {
+  const res = await execute(path, opts);
+  return { data: await parseBody<T>(res), headers: res.headers };
 }
 
 /** CSV vb. dosya indirmeleri için (Authorization başlığı gerektiğinden `<a href>` yetmez). */

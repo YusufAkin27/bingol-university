@@ -1,4 +1,5 @@
 import { api } from './client';
+import { guardHeaders, type GuardOpts } from './guard';
 
 export type OpsLevel = 'UP' | 'WARN' | 'DOWN' | 'UNKNOWN';
 
@@ -44,9 +45,11 @@ export interface BackupStatus {
 
 export const getHealth = () => api.get<OpsHealth>('/admin/ops/health');
 export const getMailStats = () => api.get<MailOutboxStats>('/admin/ops/mail-outbox/stats');
-export const retryMailDead = () => api.post<{ requeued: number }>('/admin/ops/mail-outbox/retry-dead');
+export const retryMailDead = (o?: GuardOpts) =>
+  api.post<{ requeued: number }>('/admin/ops/mail-outbox/retry-dead', undefined, guardHeaders(o));
 export const getPushStats = () => api.get<PushOutboxStats>('/admin/push/outbox/stats');
-export const retryPushDead = () => api.post<{ requeued: number }>('/admin/push/outbox/retry-dead');
+export const retryPushDead = (o?: GuardOpts) =>
+  api.post<{ requeued: number }>('/admin/push/outbox/retry-dead', undefined, guardHeaders(o));
 export const getTranscodeStats = () => api.get<TranscodeStats>('/admin/ops/transcode/stats');
 export const getBackupStatus = () => api.get<BackupStatus>('/admin/ops/backup-status');
 

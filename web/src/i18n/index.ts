@@ -32,10 +32,12 @@ import trAdminPending from './tr/admin-pending';
 import trAdminAcademic from './tr/admin-academic';
 import trAdminGuard from './tr/admin-guard'; // yalnız tr: en/ar sözlüklerine de aynı Türkçe metin katılır
 import trAdminShell from './tr/admin-shell'; // yalnız tr (yönetim kabuğu), aynı kural
+import trAdminP05 from './tr/admin-p05'; // yalnız tr (yıkıcı eylem onayları), aynı kural
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
 import trSupportPublic from './tr/support-public';
+import trSeo from './tr/seo';
 
 import enCommon from './en/common';
 import enSite from './en/site';
@@ -66,6 +68,7 @@ import enSiteNew from './en/site-new';
 import enLegal from './en/legal';
 import enPages from './en/pages';
 import enSupportPublic from './en/support-public';
+import enSeo from './en/seo';
 
 import arCommon from './ar/common';
 import arSite from './ar/site';
@@ -96,6 +99,7 @@ import arSiteNew from './ar/site-new';
 import arLegal from './ar/legal';
 import arPages from './ar/pages';
 import arSupportPublic from './ar/support-public';
+import arSeo from './ar/seo';
 
 const tr = {
   ...trCommon,
@@ -125,10 +129,12 @@ const tr = {
   ...trAdminAcademic,
   ...trAdminGuard,
   ...trAdminShell,
+  ...trAdminP05,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
   ...trSupportPublic,
+  ...trSeo,
 };
 
 export type TranslationKey = keyof typeof tr;
@@ -163,10 +169,12 @@ const en: Dictionary = {
   ...enAdminAcademic,
   ...trAdminGuard,
   ...trAdminShell,
+  ...trAdminP05,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
   ...enSupportPublic,
+  ...enSeo,
 };
 
 const ar: Dictionary = {
@@ -197,10 +205,12 @@ const ar: Dictionary = {
   ...arAdminAcademic,
   ...trAdminGuard,
   ...trAdminShell,
+  ...trAdminP05,
   ...arSiteNew,
   ...arLegal,
   ...arPages,
   ...arSupportPublic,
+  ...arSeo,
 };
 
 export const dictionaries: Record<Lang, Dictionary> = { tr, en, ar };

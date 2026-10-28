@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   compareVersions,
   facultiesError,
+  isCriticalSetting,
+  isMinVersionKey,
   moveItem,
   parseFaculties,
   serializeFaculties,
@@ -97,5 +99,32 @@ describe('ayar doğrulaması (sunucu kurallarıyla uyumlu)', () => {
     expect(compareVersions('1.10.0', '1.9.3')).toBe(1);
     expect(compareVersions('1.0', '1.0.0')).toBe(0);
     expect(compareVersions('2.0.0', '10.0.0')).toBe(-1);
+  });
+});
+
+describe('kritik ayar anahtarları (onay + fark önizlemesi)', () => {
+  it('sürüm/mağaza/banner/bakım/destek e-postası/legal.* kritiktir', () => {
+    for (const k of [
+      'min_version_android',
+      'latest_version_ios',
+      'store_url_ios',
+      'banner_text_tr',
+      'banner_url',
+      'maintenance_mode',
+      'maintenance_message_ar',
+      'support_email',
+      'contact_email',
+      'legal.controller.name',
+      'legal.hosting.location',
+    ])
+      expect(isCriticalSetting(k), k).toBe(true);
+  });
+  it('uygulama adı, sosyal bağlantılar, fakülteler ve etkinlik sınırları kritik değildir', () => {
+    for (const k of ['app_name', 'website', 'phone', 'instagram', 'faculties', 'event_daily_create_limit'])
+      expect(isCriticalSetting(k), k).toBe(false);
+  });
+  it('yalnız min_version_* en düşük sürüm anahtarıdır', () => {
+    expect(isMinVersionKey('min_version_ios')).toBe(true);
+    expect(isMinVersionKey('latest_version_ios')).toBe(false);
   });
 });

@@ -1,13 +1,12 @@
 // SAYFA: SSS yönetimi (/admin/content/faq)
 // API: GET /api/admin/faq, POST /api/admin/faq, PUT/DELETE /api/admin/faq/{id} (api/faq.ts). Her dil ayrı kayıt kümesidir (lang).
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { faqApi, qk } from '../../api';
 import type { FaqAdminView, Lang } from '../../api/types';
 import {
   Badge,
   Button,
-  ConfirmDialog,
   EmptyState,
   ErrorState,
   FormField,
@@ -20,8 +19,10 @@ import {
   Switch,
   Tabs,
   Textarea,
-  useToast,
+  useGuardedMutation,
+  useUnsavedGuard,
 } from '../../components/ui';
+import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
@@ -42,52 +43,66 @@ export default function FaqAdminPage() {
   const i18n = useI18n();
   const { t } = i18n;
   usePageTitle(t('admin.faq.title'));
-  const toast = useToast();
-  const qc = useQueryClient();
 
   const [lang, setLang] = useState<Lang>('tr');
   const [editing, setEditing] = useState<FaqAdminView | 'new' | null>(null);
-  const [form, setForm] = useState<FormState>(blank);
+  const [form, setFormState] = useState<FormState>(blank);
+  const [baseline, setBaseline] = useState<FormState>(blank);
+  const setForm = (f: FormState) => setFormState(f);
   const [submitted, setSubmitted] = useState(false);
   const [deleting, setDeleting] = useState<FaqAdminView | null>(null);
 
-  const query = useQuery({ queryKey: qk.faq.admin(), queryFn: faqApi.listFaqAdmin });
+  // Sunucu en çok 50 kayıt döner; devam varsa X-Next-Cursor ile sonraki sayfa "Daha fazla yükle" ile alınır.
+  const query = useInfiniteQuery({
+    queryKey: [...qk.faq.admin(), 'pages'],
+    queryFn: ({ pageParam }) => faqApi.listFaqAdminPage(pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+  const allItems = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
 
   const groups = useMemo(() => {
-    const list = (query.data ?? [])
+    const list = allItems
       .filter((f) => f.lang === lang)
       .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
     const map = new Map<string, FaqAdminView[]>();
     for (const f of list) map.set(f.category, [...(map.get(f.category) ?? []), f]);
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b, i18n.locale));
-  }, [query.data, lang, i18n.locale]);
+  }, [allItems, lang, i18n.locale]);
   const total = groups.reduce((n, [, l]) => n + l.length, 0);
   const categories = useMemo(
-    () => [...new Set((query.data ?? []).filter((f) => f.lang === lang).map((f) => f.category))],
-    [query.data, lang],
+    () => [...new Set(allItems.filter((f) => f.lang === lang).map((f) => f.category))],
+    [allItems, lang],
   );
 
   function openNew() {
     setForm(blank);
+    setBaseline(blank);
     setSubmitted(false);
     setEditing('new');
   }
   function openEdit(f: FaqAdminView) {
-    setForm({
+    const next: FormState = {
       category: f.category,
       question: f.question,
       answer: f.answer,
       sortOrder: String(f.sortOrder),
       published: f.published,
-    });
+    };
+    setForm(next);
+    setBaseline(next);
     setSubmitted(false);
     setEditing(f);
   }
 
-  const done = () => void qc.invalidateQueries({ queryKey: qk.faq.all });
+  const dirty = editing !== null && JSON.stringify(form) !== JSON.stringify(baseline);
+  const unsaved = useUnsavedGuard(dirty);
+  const closeEditor = () => unsaved.confirmLeave(() => setEditing(null));
 
-  const save = useMutation({
-    mutationFn: () => {
+  const faqKeys = [qk.faq.all];
+
+  const save = useGuardedMutation<unknown, void>({
+    mutationFn: (_v, { idempotencyKey }) => {
       const body = {
         lang,
         category: form.category.trim(),
@@ -96,48 +111,51 @@ export default function FaqAdminPage() {
         sortOrder: Number.parseInt(form.sortOrder, 10) || 0,
         published: form.published,
       };
-      return editing && editing !== 'new' ? faqApi.updateFaq(editing.id, { ...body, lang: editing.lang }) : faqApi.createFaq(body);
+      const o = { idempotencyKey };
+      return editing && editing !== 'new'
+        ? faqApi.updateFaq(editing.id, { ...body, lang: editing.lang }, o)
+        : faqApi.createFaq(body, o);
     },
+    successMessage: t('admin.faq.saved'),
+    invalidateKeys: faqKeys,
     onSuccess: () => {
-      toast.success(t('admin.faq.saved'));
+      setBaseline(form); // kaydedildi: çıkışta uyarı çıkmasın
       setEditing(null);
-      done();
     },
-    onError: (e) => toast.error(errorMessage(i18n, e)),
   });
 
-  const toggle = useMutation({
-    mutationFn: (f: FaqAdminView) =>
-      faqApi.updateFaq(f.id, {
-        lang: f.lang,
-        category: f.category,
-        question: f.question,
-        answer: f.answer,
-        sortOrder: f.sortOrder,
-        published: !f.published,
-      }),
-    onSuccess: done,
-    onError: (e) => toast.error(errorMessage(i18n, e)),
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const toggle = useGuardedMutation<unknown, FaqAdminView>({
+    mutationFn: (f, { idempotencyKey }) =>
+      faqApi.updateFaq(
+        f.id,
+        {
+          lang: f.lang,
+          category: f.category,
+          question: f.question,
+          answer: f.answer,
+          sortOrder: f.sortOrder,
+          published: !f.published,
+        },
+        { idempotencyKey },
+      ),
+    successMessage: false,
+    invalidateKeys: faqKeys,
   });
-
-  const remove = useMutation({
-    mutationFn: (f: FaqAdminView) => faqApi.deleteFaq(f.id),
-    onSuccess: () => {
-      toast.success(t('admin.faq.deleted'));
-      setDeleting(null);
-      done();
-    },
-    onError: (e) => {
-      toast.error(errorMessage(i18n, e));
-      setDeleting(null);
-    },
-  });
+  async function toggleItem(f: FaqAdminView) {
+    setTogglingId(f.id);
+    try {
+      await toggle.run(f);
+    } finally {
+      setTogglingId(null);
+    }
+  }
 
   const req = (v: string) => (submitted && !v.trim() ? t('admin.faq.required') : null);
   const valid = form.category.trim() && form.question.trim() && form.answer.trim();
   function submit() {
     setSubmitted(true);
-    if (valid) save.mutate();
+    if (valid) void save.run();
   }
   const formLang = editing && editing !== 'new' ? editing.lang : lang;
 
@@ -166,7 +184,7 @@ export default function FaqAdminPage() {
           <Skeleton height="5rem" radius="var(--radius-md)" />
           <Skeleton height="5rem" radius="var(--radius-md)" />
         </div>
-      ) : total === 0 ? (
+      ) : total === 0 && query.hasNextPage ? null : total === 0 ? (
         <EmptyState
           icon="help"
           title={t('admin.faq.empty.title')}
@@ -202,8 +220,8 @@ export default function FaqAdminPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        loading={toggle.isPending && toggle.variables?.id === f.id}
-                        onClick={() => toggle.mutate(f)}
+                        loading={togglingId === f.id}
+                        onClick={() => void toggleItem(f)}
                       >
                         {f.published ? t('admin.faq.toggleDraft') : t('admin.faq.togglePublish')}
                       </Button>
@@ -222,14 +240,26 @@ export default function FaqAdminPage() {
         </div>
       )}
 
+      {query.hasNextPage && !query.isError && (
+        <div className={styles.more}>
+          <p className={styles.moreHint}>
+            {total === 0 ? t('admin.p05.faq.moreOtherLang') : t('admin.p05.faq.moreHint')}
+          </p>
+          <Button variant="secondary" loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+            {t('admin.p05.faq.loadMore')}
+          </Button>
+        </div>
+      )}
+      {unsaved.dialog}
+
       <Modal
         open={editing !== null}
-        onClose={() => setEditing(null)}
+        onClose={closeEditor}
         title={editing === 'new' ? t('admin.faq.modal.add') : t('admin.faq.modal.edit')}
         size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setEditing(null)}>
+            <Button variant="secondary" onClick={closeEditor}>
               {t('common.cancel')}
             </Button>
             <Button onClick={submit} loading={save.isPending}>
@@ -289,21 +319,17 @@ export default function FaqAdminPage() {
         </div>
       </Modal>
 
-      <ConfirmDialog
+      <GuardedDialog
         open={!!deleting}
         onClose={() => setDeleting(null)}
-        onConfirm={() => deleting && remove.mutate(deleting)}
-        loading={remove.isPending}
         danger
+        irreversible
         title={t('admin.faq.delete.title')}
-        message={
-          <>
-            <strong dir="auto">{deleting?.question}</strong>
-            <br />
-            {t('admin.faq.delete.body')}
-          </>
-        }
+        message={<strong dir="auto">{deleting?.question}</strong>}
         confirmLabel={t('common.delete')}
+        successMessage={t('admin.faq.deleted')}
+        invalidateKeys={faqKeys}
+        onConfirm={({ idempotencyKey }) => faqApi.deleteFaq(deleting!.id, { idempotencyKey })}
       />
     </>
   );

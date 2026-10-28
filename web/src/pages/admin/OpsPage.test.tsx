@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { levelOf, safeHttpsUrl } from '../../api/ops';
@@ -73,12 +73,50 @@ describe('Operasyon paneli', () => {
     await userEvent.click(await screen.findByRole('tab', { name: 'Kuyruklar' }));
     expect(await screen.findByText('120')).toBeInTheDocument();
     expect((await screen.findAllByText('Veri yok')).length).toBeGreaterThan(0);
+    // Onaysız istek gitmez: önce etkilenen kayıt sayısını gösteren onay penceresi açılır
     await userEvent.click(screen.getByRole('button', { name: 'Ölüleri yeniden dene' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('4 ölü kayıt etkilenecek');
+    expect(calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead'))).toBe(false);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Ölüleri yeniden dene' }));
     await waitFor(() =>
       expect(
         calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead') && c.init.method === 'POST'),
       ).toBe(true),
     );
+    expect(calls.filter((c) => c.url.endsWith('/admin/push/outbox/retry-dead'))).toHaveLength(1);
+  });
+
+  it('çok sayıda ölü kayıt (>50): sayıyı yazmadan onay kapalı', async () => {
+    const calls = setup();
+    // aynı kurulumu geçersiz kılıp ölü sayısını 120 yap
+    mockFetch((url, init) => {
+      calls.push({ url, init });
+      if (url.endsWith('/admin/push/outbox/stats'))
+        return jsonResponse(200, {
+          enabled: true,
+          pending: 0,
+          sending: 0,
+          failed: 0,
+          dead: 120,
+          sentLast24h: 1,
+          oldestPendingAgeSeconds: null,
+        });
+      if (url.endsWith('/admin/push/outbox/retry-dead')) return jsonResponse(200, { requeued: 120 });
+      return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
+    });
+    renderWithProviders(<OpsPage />);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Kuyruklar' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ölüleri yeniden dene' }));
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Ölüleri yeniden dene' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByRole('textbox'), '12');
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByRole('textbox'), '0');
+    expect(confirm).toBeEnabled();
+    await userEvent.click(confirm);
+    await waitFor(() => expect(calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead'))).toBe(true));
   });
 
   it('yedekleme ucu yoksa zarifçe "Veri yok" gösterir', async () => {

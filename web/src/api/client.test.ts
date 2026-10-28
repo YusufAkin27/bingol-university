@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
 import { setCurrentLang } from '../i18n/lang';
 import { headerOf, jsonResponse, mockFetch } from '../test/fetchMock';
-import { ApiError, apiFetch, buildUrl, setUnauthorizedHandler } from './client';
+import { ApiError, apiFetch, apiFetchMeta, buildUrl, setRefreshRetryDelays, setUnauthorizedHandler } from './client';
 
 describe('api client', () => {
   beforeEach(() => {
@@ -11,6 +11,7 @@ describe('api client', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     setUnauthorizedHandler(null);
+    setRefreshRetryDelays([400, 1500]);
   });
 
   it('Accept-Language ve Bearer başlıklarını ekler', async () => {
@@ -129,5 +130,105 @@ describe('api client', () => {
     const err = await apiFetch('/auth/login', { method: 'POST', body: {}, auth: false }).catch((e) => e);
     expect(err.code).toBe('INVALID_CREDENTIALS');
     expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  describe('refresh dayanıklılığı (geçici hatada oturum düşmez)', () => {
+    const tokens = { accessToken: 'new', refreshToken: 'r2', expiresInSeconds: 900, tokenType: 'Bearer' };
+
+    it('refresh 429 verirse oturum kapanmaz, kısa gecikmeyle yeniden denenir ve başarılı olur', async () => {
+      setRefreshRetryDelays([1, 1]);
+      setTokens('old', 'r1');
+      const onExpired = vi.fn();
+      setUnauthorizedHandler(onExpired);
+      let refreshCalls = 0;
+      mockFetch((url, init) => {
+        if (url.endsWith('/auth/refresh')) {
+          refreshCalls++;
+          return refreshCalls === 1
+            ? jsonResponse(429, { code: 'RATE_LIMITED', message: 'x' })
+            : jsonResponse(200, tokens);
+        }
+        return headerOf(init, 'Authorization') === 'Bearer new'
+          ? jsonResponse(200, { ok: true })
+          : jsonResponse(401, { code: 'UNAUTHORIZED', message: 'x' });
+      });
+      expect(await apiFetch('/admin/me')).toEqual({ ok: true });
+      expect(refreshCalls).toBe(2);
+      expect(onExpired).not.toHaveBeenCalled();
+      expect(getRefreshToken()).toBe('r2');
+    });
+
+    it('refresh sürekli 429 verirse hata döner ama oturum ve token korunur', async () => {
+      setRefreshRetryDelays([1, 1]);
+      setTokens('old', 'r1');
+      const onExpired = vi.fn();
+      setUnauthorizedHandler(onExpired);
+      let refreshCalls = 0;
+      mockFetch((url) => {
+        if (url.endsWith('/auth/refresh')) {
+          refreshCalls++;
+          return jsonResponse(429, { code: 'RATE_LIMITED', message: 'x' });
+        }
+        return jsonResponse(401, { code: 'UNAUTHORIZED', message: 'x' });
+      });
+      const err = await apiFetch('/admin/me').catch((e) => e);
+      expect(err).toMatchObject({ status: 429 });
+      expect(refreshCalls).toBe(3); // ilk deneme + 2 yeniden deneme
+      expect(onExpired).not.toHaveBeenCalled();
+      expect(getRefreshToken()).toBe('r1');
+      expect(getAccessToken()).toBe('old');
+    });
+
+    it('refresh 500 verirse yeniden denenmez (token tek kullanımlık) ama oturum da düşmez', async () => {
+      setRefreshRetryDelays([1, 1]);
+      setTokens('old', 'r1');
+      const onExpired = vi.fn();
+      setUnauthorizedHandler(onExpired);
+      let refreshCalls = 0;
+      mockFetch((url) => {
+        if (url.endsWith('/auth/refresh')) {
+          refreshCalls++;
+          return jsonResponse(500, { code: 'SERVER_ERROR', message: 'x' });
+        }
+        return jsonResponse(401, { code: 'UNAUTHORIZED', message: 'x' });
+      });
+      expect(await apiFetch('/admin/me').catch((e) => e)).toMatchObject({ status: 500 });
+      expect(refreshCalls).toBe(1);
+      expect(onExpired).not.toHaveBeenCalled();
+      expect(getRefreshToken()).toBe('r1');
+    });
+
+    it('refresh 403 ise oturum sonlanır', async () => {
+      setTokens('old', 'r1');
+      const onExpired = vi.fn();
+      setUnauthorizedHandler(onExpired);
+      mockFetch((url) =>
+        url.endsWith('/auth/refresh')
+          ? jsonResponse(403, { code: 'INVALID_REFRESH_TOKEN', message: 'x' })
+          : jsonResponse(401, { code: 'UNAUTHORIZED', message: 'x' }),
+      );
+      await apiFetch('/admin/me').catch(() => undefined);
+      expect(onExpired).toHaveBeenCalledTimes(1);
+      expect(getRefreshToken()).toBeNull();
+    });
+  });
+
+  it('apiFetchMeta gövdeyle birlikte yanıt başlıklarını döner', async () => {
+    mockFetch(
+      () =>
+        new Response(JSON.stringify([1, 2]), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'X-Next-Cursor': '3' },
+        }),
+    );
+    const r = await apiFetchMeta<number[]>('/admin/faq');
+    expect(r.data).toEqual([1, 2]);
+    expect(r.headers.get('X-Next-Cursor')).toBe('3');
+  });
+
+  it('Idempotency-Key gibi ek başlıklar gönderilir', async () => {
+    const f = mockFetch(() => jsonResponse(204));
+    await apiFetch('/admin/x', { method: 'POST', headers: { 'Idempotency-Key': 'k1' } });
+    expect(headerOf(f.mock.calls[0][1] as RequestInit, 'Idempotency-Key')).toBe('k1');
   });
 });

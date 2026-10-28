@@ -4,6 +4,7 @@ import { useNoIndex } from '../../lib/useNoIndex';
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { isApiError } from '../../api/client';
+import { isAdminPath } from '../../adminBase';
 import { useAuth } from '../../auth/AuthProvider';
 import { ForbiddenScreen } from '../../auth/ForbiddenScreen';
 import { Logo } from '../../components/brand/Logo';
@@ -30,7 +31,7 @@ export default function LoginPage() {
   usePageTitle(t('admin.login.title'));
 
   if (status === 'authenticated') {
-    return <Navigate to={from && from.startsWith('/admin') ? from : paths.admin.dashboard} replace />;
+    return <Navigate to={from && isAdminPath(from) ? from : paths.admin.dashboard} replace />;
   }
   if (status === 'forbidden') return <ForbiddenScreen />;
 

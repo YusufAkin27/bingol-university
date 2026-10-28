@@ -26,6 +26,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import styles from './content/News.module.css';
 
 const TYPES: NewsType[] = ['HABER', 'DUYURU', 'ETKINLIK'];
@@ -53,6 +54,8 @@ export default function NewsAdminPage() {
   const [vis, setVis] = useState<'' | 'visible' | 'hidden'>('');
   const [page, setPage] = useState(0);
   const [syncing, setSyncing] = useState<Source | null>(null);
+  // Gizleme/gösterme onayı: hedef satır ve yeni durum
+  const [toggling, setToggling] = useState<{ row: AdminNewsRow; hidden: boolean } | null>(null);
 
   const params = {
     q: q || undefined,
@@ -63,15 +66,6 @@ export default function NewsAdminPage() {
   };
   const list = useQuery({ queryKey: qk.news.list(params), queryFn: () => newsApi.listNews(params), placeholderData: (p) => p });
   const status = useQuery({ queryKey: qk.settings.sync(), queryFn: settingsApi.getSyncStatus });
-
-  const setHidden = useMutation({
-    mutationFn: (v: { row: AdminNewsRow; hidden: boolean }) => newsApi.setNewsHidden(v.row.id, v.hidden),
-    onSuccess: (_d, v) => {
-      toast.success(t(v.hidden ? 'admin.news.hiddenToast' : 'admin.news.shownToast'));
-      void qc.invalidateQueries({ queryKey: qk.news.all });
-    },
-    onError: (e) => toast.error(errorMessage(i18n, e)),
-  });
 
   const sync = useMutation({
     mutationFn: async (src: Source) => {
@@ -129,8 +123,7 @@ export default function NewsAdminPage() {
           variant="secondary"
           size="sm"
           label={`${r.hidden ? t('admin.news.show') : t('admin.news.hide')}: ${r.title}`}
-          disabled={setHidden.isPending && setHidden.variables?.row.id === r.id}
-          onClick={() => setHidden.mutate({ row: r, hidden: !r.hidden })}
+          onClick={() => setToggling({ row: r, hidden: !r.hidden })}
         >
           <Icon name={r.hidden ? 'eye' : 'eyeOff'} size={16} />
         </IconButton>
@@ -259,6 +252,23 @@ export default function NewsAdminPage() {
           )}
         </>
       )}
+
+      <GuardedDialog
+        open={toggling !== null}
+        onClose={() => setToggling(null)}
+        title={t(toggling?.hidden ? 'admin.p05.news.hideTitle' : 'admin.p05.news.showTitle')}
+        message={<strong dir="auto">{toggling?.row.title}</strong>}
+        consequence={t(toggling?.hidden ? 'admin.p05.news.hideConsequence' : 'admin.p05.news.showConsequence')}
+        irreversible={false}
+        confirmLabel={t(toggling?.hidden ? 'admin.news.hide' : 'admin.news.show')}
+        danger={toggling?.hidden}
+        optionalReason
+        invalidateKeys={[qk.news.all]}
+        successMessage={t(toggling?.hidden ? 'admin.news.hiddenToast' : 'admin.news.shownToast')}
+        onConfirm={({ reason, idempotencyKey }) =>
+          newsApi.setNewsHidden(toggling!.row.id, toggling!.hidden, { reason, idempotencyKey })
+        }
+      />
 
       <ConfirmDialog
         open={syncing !== null}

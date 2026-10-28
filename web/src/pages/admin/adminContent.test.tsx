@@ -180,10 +180,23 @@ describe('Sözleşme editörü', () => {
 
     await userEvent.click(screen.getByRole('switch', { name: /yeniden onay/i }));
     await userEvent.click(screen.getAllByRole('button', { name: 'Yayınla' })[0]);
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByText(/geri alınamaz/)).toBeInTheDocument();
     expect(within(dialog).getByText('İstenmeyecek')).toBeInTheDocument();
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Yayınla' }));
+    expect(within(dialog).getByTestId('legal-impact')).toHaveTextContent('mevcut onaylar geçerli kalır');
+    // yazılı onay: "YAYINLA v3" yazılmadan yayın düğmesi kapalı, istek gitmez
+    const publish = within(dialog).getByRole('button', { name: 'Yayınla' });
+    expect(publish).toBeDisabled();
+    const typeBox = within(dialog).getAllByRole('textbox')[1];
+    await userEvent.type(typeBox, 'yayınla v2');
+    expect(publish).toBeDisabled();
+    expect(calls.some((c) => c.init.method === 'POST')).toBe(false);
+    await userEvent.clear(typeBox);
+    await userEvent.type(typeBox, 'YAYINLA v3');
+    expect(publish).toBeDisabled(); // yazılı onay tamam ama sebep yok
+    await userEvent.type(within(dialog).getAllByRole('textbox')[0], 'Hukuk incelemesi sonrası');
+    expect(publish).toBeEnabled();
+    await userEvent.click(publish);
 
     await waitFor(() => expect(calls.some((c) => c.init.method === 'POST')).toBe(true));
     const post = calls.find((c) => c.init.method === 'POST')!;
@@ -192,6 +205,26 @@ describe('Sözleşme editörü', () => {
       tr: { title: 'Yeni başlık', content: '## Madde\nTASLAK metin' },
       requireReaccept: false,
     });
+    expect(decodeURIComponent((post.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe(
+      'Hukuk incelemesi sonrası',
+    );
+    expect((post.init.headers as Record<string, string>)['Idempotency-Key']).toBeTruthy();
+  });
+
+  it('yeniden onay açıkken kaç kullanıcının etkileneceğini gösterir', async () => {
+    mockFetch((url) => {
+      if (url.includes('/versions')) return jsonResponse(200, []);
+      if (url.includes('acceptance-stats')) return jsonResponse(200, [{ type: 'TERMS', version: 1, accepted: 1, totalActiveUsers: 4 }]);
+      return jsonResponse(200, []);
+    });
+    renderWithProviders(<LegalAdminPage />);
+    await userEvent.click(screen.getByRole('tab', { name: /Yeni sürüm/ }));
+    await userEvent.type(screen.getByRole('textbox', { name: /^Başlık/ }), 'Başlık');
+    fireEvent.change(document.getElementById('legal-content') as HTMLTextAreaElement, { target: { value: 'metin' } });
+    await userEvent.click(screen.getAllByRole('button', { name: 'Yayınla' })[0]);
+    const dialog = await screen.findByRole('alertdialog');
+    await waitFor(() => expect(within(dialog).getByTestId('legal-impact')).toHaveTextContent('4 etkin kullanıcının'));
+    expect(within(dialog).getByTestId('legal-impact')).toHaveTextContent('1 kullanıcı');
   });
 
   it('yarım doldurulmuş dilde yayın penceresi açılmaz', async () => {

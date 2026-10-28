@@ -4,7 +4,7 @@
 //      GET /api/status (kaynak sistem bakımı), GET/PUT /api/admin/settings (sürüm, bakım, ops_sentry_url, ops_grafana_url).
 // Henüz olmayan uçlar (404/501) kartta zarifçe "Veri yok" gösterir; docs/API_CONTRACTS_V2.md "İSTEK(web→backend)".
 // Sayfa görünürken 30 sn'de bir otomatik yenilenir.
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { isApiError } from '../../api/client';
@@ -17,12 +17,14 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  GuardedAction,
   Icon,
   Input,
   PageHeader,
   Skeleton,
   StatusPill,
   Tabs,
+  useGuardedMutation,
   useToast,
 } from '../../components/ui';
 import type { Tone } from '../../components/ui/Badge';
@@ -171,29 +173,39 @@ function HealthTab({ i18n }: { i18n: I18n }) {
 }
 
 // ---------- Kuyruklar ----------
+/** Ölü kayıtları yeniden kuyruğa alır: etkilenen sayı gösterilir (eşik üstünde sayıyı yazdırır), çift tıklama tek istek. */
 function RetryButton({
   i18n,
   run,
   invalidate,
+  count,
 }: {
   i18n: I18n;
-  run: () => Promise<{ requeued: number }>;
+  run: (o: { idempotencyKey: string }) => Promise<{ requeued: number }>;
   invalidate: string;
+  /** Yeniden denenecek ölü kayıt sayısı. */
+  count: number;
 }) {
-  const qc = useQueryClient();
   const toast = useToast();
-  const m = useMutation({
-    mutationFn: run,
-    onSuccess: (r) => {
-      toast.success(i18n.t('admin.ops.q.retried', { n: String(r?.requeued ?? 0) }));
-      void qc.invalidateQueries({ queryKey: qk.ops.part(invalidate) });
-    },
-    onError: (e) => toast.error(adminErrorMessage(i18n, e)),
-  });
   return (
-    <Button variant="secondary" size="sm" loading={m.isPending} onClick={() => m.mutate()}>
+    <GuardedAction
+      variant="secondary"
+      size="sm"
+      title={i18n.t('admin.p05.ops.retryTitle')}
+      message={i18n.t('admin.p05.ops.retryMessage')}
+      consequence={i18n.t('admin.p05.ops.retryConsequence')}
+      irreversible={false}
+      impact={{ count, noun: i18n.t('admin.p05.ops.noun') }}
+      confirmLabel={i18n.t('admin.ops.q.retry')}
+      invalidateKeys={[qk.ops.part(invalidate)]}
+      successMessage={false}
+      onConfirm={async ({ idempotencyKey }) => {
+        const r = await run({ idempotencyKey });
+        toast.success(i18n.t('admin.ops.q.retried', { n: String(r?.requeued ?? 0) }));
+      }}
+    >
       {i18n.t('admin.ops.q.retry')}
-    </Button>
+    </GuardedAction>
   );
 }
 
@@ -223,7 +235,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 )}
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
-              {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryMailDead} invalidate="mail" />}
+              {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryMailDead} invalidate="mail" count={s.dead} />}
               <Updated i18n={i18n} at={mail.dataUpdatedAt} />
             </>
           )}
@@ -246,7 +258,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 <Stat label={t('admin.ops.q.sent24h')} value={n(s.sentLast24h)} />
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
-              {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryPushDead} invalidate="push" />}
+              {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryPushDead} invalidate="push" count={s.dead} />}
               <Updated i18n={i18n} at={push.dataUpdatedAt} />
             </>
           )}
@@ -377,20 +389,16 @@ const LINK_KEYS = [
 
 function LinkRow({ i18n, k, label, saved }: { i18n: I18n; k: string; label: string; saved: string }) {
   const { t } = i18n;
-  const qc = useQueryClient();
-  const toast = useToast();
   const [edit, setEdit] = useState<string | null>(null);
   const value = edit ?? saved;
   const href = safeHttpsUrl(saved);
   const invalid = value.trim() !== '' && safeHttpsUrl(value) === null;
-  const m = useMutation({
-    mutationFn: () => putSetting(k, value.trim()),
-    onSuccess: () => {
-      toast.success(t('admin.ops.links.saved'));
-      setEdit(null);
-      void qc.invalidateQueries({ queryKey: qk.ops.part('settings') });
-    },
-    onError: (e) => toast.error(adminErrorMessage(i18n, e)),
+  const m = useGuardedMutation<void, string>({
+    mutationFn: (v, { idempotencyKey }) => putSetting(k, v, { idempotencyKey }),
+    successMessage: t('admin.ops.links.saved'),
+    errorMessage: (e) => adminErrorMessage(i18n, e),
+    invalidateKeys: [qk.ops.part('settings')],
+    onSuccess: () => setEdit(null),
   });
   return (
     <li className={styles.item}>
@@ -408,7 +416,7 @@ function LinkRow({ i18n, k, label, saved }: { i18n: I18n; k: string; label: stri
           size="sm"
           loading={m.isPending}
           disabled={invalid || edit === null}
-          onClick={() => m.mutate()}
+          onClick={() => void m.run(value.trim())}
         >
           {t('admin.ops.links.save')}
         </Button>

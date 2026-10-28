@@ -90,7 +90,7 @@ curl -f localhost:8080/actuator/health
 | `MULTIPART_MAX_FILE`, `MULTIPART_MAX_REQUEST` | hayır | Yükleme sınırları (5MB / 6MB) |
 | `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT` | hayır | Konteyner kaynak limitleri (1g / 2 / 1g / 256m) |
 | `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları (imaj varsayılanı: `-XX:MaxRAMPercentage=75`) |
-| `BACKEND_PORT`, `WEB_PORT`, `ADMIN_PATH` | hayır | Portlar ve gizli yönetim yolu |
+| `BACKEND_PORT`, `WEB_PORT`, `ADMIN_PATH` | hayır | Portlar ve gizli yönetim yolu (güvenlik önlemi DEĞİL, yalnız gürültüyü azaltır: yol istemci paketinde açıktır; `/api/admin/**` yine ADMIN yetkisiyle korunur. Ayarlıysa `/admin` rotası kayıtlı değildir) |
 | `DEVICE_HMAC_KEY` | önerilir | Cihaz kimliği (`X-Device-Id`) HMAC-SHA256 anahtarı (>= 32 karakter, `openssl rand -base64 36`). Boşsa `JWT_SECRET`'ten türetilir; anahtar değişirse mevcut cihaz engelleri eşleşmez, bu yüzden ayrı ve kalıcı tutun (verilip 32 karakterden kısaysa prod açılışı reddedilir; boşsa uyarı yok, yine de ayrı anahtar önerilir) |
 | `BAN_ALLOWLIST` | önerilir | Asla IP ile engellenmeyecek ek ağlar (virgüllü IP/CIDR; yönetici ofis çıkış adresleri). Loopback ve özel ağlar zaten muaftır |
 | `BLOCK_ANONYMIZERS` | hayır | `true` = yöneticinin yüklediği anonimleştirici (Tor/VPN/veri merkezi) aralıklarından gelen istekler engellenir (varsayılan `false`) |

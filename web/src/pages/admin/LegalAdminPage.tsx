@@ -1,7 +1,7 @@
 // SAYFA: Sözleşmeler (/admin/content/legal)
 // API: GET /api/legal, GET /api/admin/legal/{type}/versions, GET /api/admin/legal/acceptance-stats,
 //      POST /api/admin/legal/{type} {tr, en?, ar?, requireReaccept} (api/legal.ts). Yayın geri alınamaz.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { legalApi, qk } from '../../api';
 import type { Lang, LegalType, LegalVersionRow } from '../../api/types';
@@ -21,13 +21,14 @@ import {
   Table,
   Tabs,
   useToast,
+  useUnsavedGuard,
   type Column,
 } from '../../components/ui';
+import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { MarkdownEditor } from './content/MarkdownEditor';
-import { useUnsavedGuard } from './content/useUnsavedGuard';
 import {
   LEGAL_LANGS,
   LEGAL_TYPES,
@@ -49,7 +50,6 @@ export default function LegalAdminPage() {
   const { t, formatDate, formatNumber } = i18n;
   usePageTitle(t('admin.legal.title'));
   const toast = useToast();
-  const qc = useQueryClient();
 
   const [type, setType] = useState<LegalType>('TERMS');
   const [tab, setTab] = useState<'history' | 'editor'>('history');
@@ -65,34 +65,28 @@ export default function LegalAdminPage() {
   const versions = useQuery({ queryKey: qk.legal.versions(type), queryFn: () => legalApi.listLegalVersions(type) });
 
   const dirty = isDirty(drafts);
-  useUnsavedGuard(dirty, t('admin.legal.leaveConfirm'));
+  const unsaved = useUnsavedGuard(dirty);
 
   const built = useMemo(() => buildPublishRequest(drafts, reaccept), [drafts, reaccept]);
   const rows = versions.data ?? [];
 
-  const publish = useMutation({
-    mutationFn: () => legalApi.publishLegal(type, built.request!),
-    onSuccess: (r) => {
-      toast.success(t('admin.legal.publish.done', { n: r.version }));
-      setPublishOpen(false);
-      setDrafts(emptyDrafts());
-      setShowErrors(false);
-      setTab('history');
-      void qc.invalidateQueries({ queryKey: qk.legal.all });
-    },
-    onError: (e) => {
-      toast.error(errorMessage(i18n, e));
-      setPublishOpen(false);
-    },
-  });
+  const nextVer = nextVersion(rows);
+  // Seçili sözleşmenin kabul istatistiği (varsa): yeniden onay isteyen yayından kaç kullanıcı etkilenir
+  const typeStat = stats.data?.find((x) => x.type === type);
+  const publishOnSuccess = () => {
+    setDrafts(emptyDrafts());
+    setShowErrors(false);
+    setTab('history');
+  };
 
   function selectType(next: LegalType) {
     if (next === type) return;
-    if (dirty && !window.confirm(t('admin.legal.leaveConfirm'))) return;
-    setDrafts(emptyDrafts());
-    setShowErrors(false);
-    setLang('tr');
-    setType(next);
+    unsaved.confirmLeave(() => {
+      setDrafts(emptyDrafts());
+      setShowErrors(false);
+      setLang('tr');
+      setType(next);
+    });
   }
 
   function setField(field: 'title' | 'content', v: string) {
@@ -154,6 +148,7 @@ export default function LegalAdminPage() {
   return (
     <>
       <PageHeader title={t('admin.legal.title')} />
+      {unsaved.dialog}
 
       {summaries.isError && (
         <ErrorState compact onRetry={() => void summaries.refetch()} description={errorMessage(i18n, summaries.error)} />
@@ -330,53 +325,67 @@ export default function LegalAdminPage() {
           )}
 
           <div className={styles.publishRow}>
-            <Button onClick={requestPublish} disabled={!dirty} loading={publish.isPending}>
+            <Button onClick={requestPublish} disabled={!dirty}>
               {t('admin.legal.publish')}
             </Button>
           </div>
         </div>
       </div>
 
-      <Modal
+      <GuardedDialog
         open={publishOpen}
         onClose={() => setPublishOpen(false)}
         title={t('admin.legal.publish.title')}
-        size="md"
-        footer={
+        confirmLabel={t('admin.legal.publish.confirm')}
+        danger
+        irreversible
+        consequence={t('admin.p05.legal.consequence')}
+        requireReason
+        reasonMinLength={5}
+        typeToConfirm={`YAYINLA v${nextVer}`}
+        invalidateKeys={[qk.legal.all]}
+        successMessage={t('admin.legal.publish.done', { n: nextVer })}
+        onSuccess={publishOnSuccess}
+        onConfirm={({ reason, idempotencyKey }) =>
+          legalApi.publishLegal(type, built.request!, { reason, idempotencyKey })
+        }
+        extra={
           <>
-            <Button variant="secondary" onClick={() => setPublishOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button variant="danger" loading={publish.isPending} onClick={() => publish.mutate()} data-autofocus>
-              {t('admin.legal.publish.confirm')}
-            </Button>
+            <dl className={styles.summary}>
+              <div>
+                <dt>{t('admin.legal.publish.type')}</dt>
+                <dd>{t(`admin.legal.type.${type}`)}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.legal.publish.newVersion')}</dt>
+                <dd>{nextVer}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.legal.publish.langs')}</dt>
+                <dd>{built.included.map(langLabel).join(', ')}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.legal.publish.fallbackLangs')}</dt>
+                <dd>{built.fallbackLangs.length ? built.fallbackLangs.map(langLabel).join(', ') : t('admin.legal.publish.none')}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.legal.publish.reacceptLabel')}</dt>
+                <dd>{reaccept ? t('admin.legal.publish.reacceptOn') : t('admin.legal.publish.reacceptOff')}</dd>
+              </div>
+            </dl>
+            <p className={styles.hint} data-testid="legal-impact">
+              {reaccept
+                ? typeStat
+                  ? t('admin.p05.legal.impactReaccept', {
+                      total: formatNumber(typeStat.totalActiveUsers),
+                      accepted: formatNumber(typeStat.accepted),
+                    })
+                  : t('admin.p05.legal.impactReacceptUnknown')
+                : t('admin.p05.legal.impactNoReaccept')}
+            </p>
           </>
         }
-      >
-        <dl className={styles.summary}>
-          <div>
-            <dt>{t('admin.legal.publish.type')}</dt>
-            <dd>{t(`admin.legal.type.${type}`)}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.legal.publish.newVersion')}</dt>
-            <dd>{nextVersion(rows)}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.legal.publish.langs')}</dt>
-            <dd>{built.included.map(langLabel).join(', ')}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.legal.publish.fallbackLangs')}</dt>
-            <dd>{built.fallbackLangs.length ? built.fallbackLangs.map(langLabel).join(', ') : t('admin.legal.publish.none')}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.legal.publish.reacceptLabel')}</dt>
-            <dd>{reaccept ? t('admin.legal.publish.reacceptOn') : t('admin.legal.publish.reacceptOff')}</dd>
-          </div>
-        </dl>
-        <p className={styles.irreversible}>{t('admin.legal.publish.irreversible')}</p>
-      </Modal>
+      />
 
       <Modal
         open={!!viewRow}

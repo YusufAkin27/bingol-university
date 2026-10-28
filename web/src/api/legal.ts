@@ -1,4 +1,5 @@
 import { api, publicApi } from './client';
+import { guardHeaders, type GuardOpts } from './guard';
 import type {
   LegalAcceptanceStat,
   LegalContent,
@@ -24,8 +25,8 @@ export const listLegal = () => publicApi.get<LegalSummary[]>('/legal');
 export const getLegal = (type: LegalType) => publicApi.get<LegalContent>(`/legal/${type}`);
 
 // --- yönetici ---
-export const publishLegal = (type: LegalType, body: PublishLegalRequest) =>
-  api.post<{ version: number }>(`/admin/legal/${type}`, body);
+export const publishLegal = (type: LegalType, body: PublishLegalRequest, o?: GuardOpts) =>
+  api.post<{ version: number }>(`/admin/legal/${type}`, body, guardHeaders(o));
 export const listLegalVersions = (type: LegalType) =>
   api.get<LegalVersionRow[]>(`/admin/legal/${type}/versions`);
 export const getLegalAcceptanceStats = () => api.get<LegalAcceptanceStat[]>('/admin/legal/acceptance-stats');

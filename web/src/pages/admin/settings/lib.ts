@@ -78,6 +78,29 @@ export function validateSetting(key: string, value: string): SettingError | null
   return null;
 }
 
+/**
+ * Kaydetmeden önce fark önizlemesi + onay isteyen kritik anahtarlar: sürüm/mağaza bağlantıları (eski uygulamaları
+ * kilitleyebilir), duyuru bandı ve bakım (tüm kullanıcılar görür), iletişim/destek e-postası ve `legal.*`
+ * (hukuki metinlerde görünür). `maintenance_mode` ayrıca "BAKIM" yazdırır.
+ */
+export function isCriticalSetting(key: string): boolean {
+  return (
+    key.startsWith('min_version_') ||
+    key.startsWith('latest_version_') ||
+    key.startsWith('store_url_') ||
+    key.startsWith('banner_') ||
+    key.startsWith('maintenance_') ||
+    key.startsWith('legal.') ||
+    key === 'support_email' ||
+    key === 'contact_email'
+  );
+}
+
+/** Eski uygulama sürümlerini kilitleyebilen anahtar mı (en düşük sürüm). */
+export function isMinVersionKey(key: string): boolean {
+  return key.startsWith('min_version_');
+}
+
 /** Sayısal sürüm karşılaştırması: "1.10.0" > "1.9.3"; eksik parçalar 0. */
 export function compareVersions(a: string, b: string): number {
   const x = a.split('.').map(Number);

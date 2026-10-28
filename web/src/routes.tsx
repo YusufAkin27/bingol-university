@@ -126,7 +126,7 @@ export function AppRoutes() {
         <Route element={<AdminScope />}>
           <Route path={`${ADMIN_BASE.slice(1)}/login`} element={<LoginPage />} />
           <Route
-            path="admin"
+            path={ADMIN_BASE.slice(1)}
             element={
               <RequireAdmin>
                 <AdminLayout />

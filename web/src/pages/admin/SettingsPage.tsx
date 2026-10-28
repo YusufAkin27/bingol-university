@@ -2,8 +2,8 @@
 // API: GET /api/admin/settings, PUT /api/admin/settings/{key} {value} (api/settings.ts). Her alan tek tek kaydedilir.
 //      Etkinlik grubu: events_require_approval, event_max_open_per_user, event_daily_create_limit (backend V62 ile tohumlar).
 //      Anahtarlar: app_name, website, iletişim, sosyal, store_url_*, min/latest_version_*, banner_*, maintenance_*, faculties (`;` ile ayrılmış).
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { getSettings, putSetting } from '../../api/settings';
 import { qk } from '../../api/queryKeys';
 import type { Lang } from '../../api/types';
@@ -11,23 +11,27 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmDialog,
   ErrorState,
   Icon,
   PageHeader,
   Skeleton,
   Switch,
   Tabs,
-  useToast,
+  useGuardedMutation,
+  useUnsavedGuard,
 } from '../../components/ui';
+import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { EventSettings } from './settings/EventSettings';
 import { FacultyEditor } from './settings/FacultyEditor';
+import { SettingDiff } from './settings/SettingDiff';
 import {
   compareVersions,
   GROUP_KEYS,
+  isCriticalSetting,
+  isMinVersionKey,
   validateSetting,
   type SettingGroup,
 } from './settings/lib';
@@ -43,50 +47,68 @@ import styles from './settings/settings.module.css';
 
 const GROUPS: SettingGroup[] = ['general', 'stores', 'banner', 'maintenance', 'events', 'faculties'];
 const LANGS: Lang[] = ['tr', 'en', 'ar'];
+/** Kritik ayar sebebi en az bu kadar karakter (sunucu denetim kuralıyla aynı: 5). */
+const SETTING_REASON_MIN = 5;
 
 export default function SettingsPage() {
   const i18n = useI18n();
   const { t } = i18n;
   usePageTitle(t('admin.settings.title'));
-  const toast = useToast();
   const qc = useQueryClient();
   const [group, setGroup] = useState<SettingGroup>('general');
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [confirmMaintenance, setConfirmMaintenance] = useState(false);
+  // Kritik anahtarlar için onay penceresi: kaydedilecek anahtar + değer
+  const [pending, setPending] = useState<{ key: string; value: string } | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [bannerLang, setBannerLang] = useState<Lang>('tr');
 
   const q = useQuery({ queryKey: qk.settings.list(), queryFn: getSettings });
   const server = useMemo(() => q.data ?? {}, [q.data]);
 
-  const saveM = useMutation({
-    mutationFn: (v: { key: string; value: string }) => putSetting(v.key, v.value),
-    onSuccess: (_d, v) => {
-      setEdits((e) => {
-        const { [v.key]: _removed, ...rest } = e;
-        return rest;
-      });
-      setErrors((e) => {
-        const { [v.key]: _removed, ...rest } = e;
-        return rest;
-      });
-      toast.success(t('admin.settings.saved', { name: i18n.td(`admin.settings.key.${v.key}`, v.key) }));
-      void qc.invalidateQueries({ queryKey: qk.settings.all });
-      void qc.invalidateQueries({ queryKey: qk.appInfo });
-      if (v.key === 'faculties') void qc.invalidateQueries({ queryKey: qk.faculties });
-    },
-    onError: (e, v) => {
-      const msg = adminErrorMessage(i18n, e);
-      setErrors((x) => ({ ...x, [v.key]: msg }));
-      toast.error(msg);
-    },
+  /** Başarılı kayıttan sonra yerel düzenlemeyi temizler ve önbellekleri tazeler. */
+  const afterSaved = (key: string) => {
+    setEdits((e) => {
+      const { [key]: _removed, ...rest } = e;
+      return rest;
+    });
+    setErrors((e) => {
+      const { [key]: _removed, ...rest } = e;
+      return rest;
+    });
+    void qc.invalidateQueries({ queryKey: qk.settings.all });
+    void qc.invalidateQueries({ queryKey: qk.appInfo });
+    if (key === 'faculties') void qc.invalidateQueries({ queryKey: qk.faculties });
+  };
+  const savedText = (key: string) => t('admin.settings.saved', { name: i18n.td(`admin.settings.key.${key}`, key) });
+  /** Hata metnini alanın altında da gösterir (toast'u çağıran tarafı üretir). */
+  const failText = (key: string, e: unknown) => {
+    const msg = adminErrorMessage(i18n, e);
+    setErrors((x) => ({ ...x, [key]: msg }));
+    return msg;
+  };
+
+  // Kritik olmayan anahtarlar doğrudan kaydedilir; çift tıklama/Enter senkron kilitle tek isteğe iner.
+  const saveG = useGuardedMutation<void, { key: string; value: string }>({
+    mutationFn: (v, { idempotencyKey }) => putSetting(v.key, v.value, { idempotencyKey }),
+    successMessage: (_d, v) => savedText(v.key),
+    onSuccess: (_d, v) => afterSaved(v.key),
+    onError: (e, v) => void failText(v.key, e),
   });
+  const saveDirect = async (key: string, value: string) => {
+    setSavingKey(key);
+    try {
+      await saveG.run({ key, value });
+    } finally {
+      setSavingKey(null);
+    }
+  };
 
   const ctx: SettingsCtx = {
     server,
     edits,
     errors,
-    savingKey: saveM.isPending ? (saveM.variables?.key ?? null) : null,
+    savingKey,
     setEdit: (key, value) => {
       setEdits((e) => ({ ...e, [key]: value }));
       setErrors((x) => {
@@ -108,24 +130,18 @@ export default function SettingsPage() {
     save: (key) => {
       const value = valueOf({ server, edits }, key).trim();
       if (validateSetting(key, value)) return;
-      if (key === 'maintenance_mode' && value === 'true') {
-        setConfirmMaintenance(true);
+      if (value === (server[key] ?? '')) return; // fark yok
+      if (isCriticalSetting(key)) {
+        setPending({ key, value });
         return;
       }
-      saveM.mutate({ key, value });
+      void saveDirect(key, value);
     },
   };
 
   // kaydedilmemiş değişiklik varken sayfadan çıkışı uyar
   const anyDirty = Object.keys(edits).some((k) => isDirty({ server, edits }, k));
-  useEffect(() => {
-    if (!anyDirty) return;
-    const h = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener('beforeunload', h);
-    return () => window.removeEventListener('beforeunload', h);
-  }, [anyDirty]);
+  const unsaved = useUnsavedGuard(anyDirty);
 
   const groupDirty = (g: SettingGroup) => GROUP_KEYS[g].some((k) => isDirty({ server, edits }, k));
   const tabs = GROUPS.map((g) => ({
@@ -356,19 +372,62 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <ConfirmDialog
-        open={confirmMaintenance}
-        onClose={() => setConfirmMaintenance(false)}
-        onConfirm={() => {
-          setConfirmMaintenance(false);
-          saveM.mutate({ key: 'maintenance_mode', value: 'true' });
-        }}
-        danger
-        title={t('admin.settings.maintenance.confirmTitle')}
-        message={t('admin.settings.maintenance.confirmText')}
-        confirmLabel={t('admin.settings.maintenance.confirmBtn')}
-      />
+      {unsaved.dialog}
+      {pending && <CriticalSaveDialog pending={pending} server={server} onClose={() => setPending(null)} onSaved={afterSaved} onFail={failText} />}
     </SettingsProvider>
+  );
+}
+
+/** Kritik anahtar kaydı: eski → yeni fark önizlemesi + onay; bakım modunda ayrıca "BAKIM" yazdırır. */
+function CriticalSaveDialog({
+  pending,
+  server,
+  onClose,
+  onSaved,
+  onFail,
+}: {
+  pending: { key: string; value: string };
+  server: Record<string, string>;
+  onClose: () => void;
+  onSaved: (key: string) => void;
+  onFail: (key: string, e: unknown) => string;
+}) {
+  const i18n = useI18n();
+  const { t, td } = i18n;
+  const { key, value } = pending;
+  const isMaintenance = key === 'maintenance_mode';
+  const label = td(`admin.settings.key.${key}`, key);
+  const before = server[key] ?? '';
+  return (
+    <GuardedDialog
+      open
+      onClose={onClose}
+      danger={isMaintenance || isMinVersionKey(key)}
+      title={
+        isMaintenance
+          ? t(value === 'true' ? 'admin.settings.maintenance.confirmTitle' : 'admin.p05.settings.maintenanceOffTitle')
+          : t('admin.p05.settings.confirmTitle', { name: label })
+      }
+      message={
+        isMaintenance
+          ? t(value === 'true' ? 'admin.settings.maintenance.confirmText' : 'admin.p05.settings.maintenanceOffText')
+          : t('admin.p05.settings.confirmText')
+      }
+      consequence={isMinVersionKey(key) ? t('admin.p05.settings.minVersionWarning') : undefined}
+      confirmLabel={
+        isMaintenance
+          ? t(value === 'true' ? 'admin.settings.maintenance.confirmBtn' : 'admin.p05.settings.maintenanceOffBtn')
+          : t('admin.p05.settings.confirmBtn')
+      }
+      requireReason
+      reasonMinLength={SETTING_REASON_MIN}
+      typeToConfirm={isMaintenance ? 'BAKIM' : undefined}
+      extra={<SettingDiff label={label} before={before} after={value} />}
+      successMessage={t('admin.settings.saved', { name: label })}
+      errorMessage={(e) => onFail(key, e)}
+      onConfirm={({ reason, idempotencyKey }) => putSetting(key, value, { reason, idempotencyKey })}
+      onSuccess={() => onSaved(key)}
+    />
   );
 }
 
