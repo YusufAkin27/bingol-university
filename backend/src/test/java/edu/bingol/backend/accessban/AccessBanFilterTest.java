@@ -146,7 +146,7 @@ class AccessBanFilterTest {
         ar.addHeader("Accept-Language", "ar,en;q=0.8");
         MockHttpServletResponse res2 = new MockHttpServletResponse();
         passes(filter(cache(false, ""), hits()), ar, res2);
-        assertTrue(res2.getContentAsString(java.nio.charset.StandardCharsets.UTF_8).contains("تم إغلاق"));
+        assertTrue(res2.getContentAsString(java.nio.charset.StandardCharsets.UTF_8).contains("تم حظر"));
     }
 
     @Test

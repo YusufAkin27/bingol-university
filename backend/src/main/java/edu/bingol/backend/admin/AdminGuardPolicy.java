@@ -41,19 +41,6 @@ public final class AdminGuardPolicy {
     /** P06: uye rolu degistirme (PATCH). */
     private static final Pattern CLUB_ROLE = Pattern.compile("^/api/admin/communities/[^/]+/members/[^/]+/role$");
 
-    /** P11 moderasyon: strike affi, gizlenen icerik geri alma (POST); sebep sablonu silme (DELETE). */
-    private static final Pattern MOD_POST = Pattern.compile(
-            "^/api/admin/moderation/(strikes/[^/]+/forgive|hidden/[^/]+/[^/]+/restore)$");
-    private static final Pattern MOD_TEMPLATE_DELETE = Pattern.compile("^/api/admin/moderation/reason-templates/[^/]+$");
-    /** P12 destek: talep/geri bildirim silme (DELETE), geri bildirim birlestirme (POST). */
-    private static final Pattern SUPPORT_DELETE = Pattern.compile("^/api/admin/support/(tickets|feedback)/[^/]+$");
-    private static final Pattern SUPPORT_MERGE = Pattern.compile("^/api/admin/support/feedback/merge$");
-
-    /** P13 mail altyapisi: elle bastirma + toplu/tek kuyruk islemi (POST), bastirma kaldirma (DELETE). */
-    private static final Pattern MAIL_OPS_POST = Pattern.compile(
-            "^/api/admin/mail/(suppressions|outbox/(bulk|[^/]+/(retry|cancel)))$");
-    private static final Pattern MAIL_OPS_DELETE = Pattern.compile("^/api/admin/mail/suppressions/[^/]+$");
-
     /** P09 kullanici derin yonetimi: profil mudahalesi (PATCH), oturum/push cihazi sonlandirma (DELETE), KVKK disa aktarma (POST). */
     private static final Pattern USER_PROFILE = Pattern.compile("^/api/admin/users/[^/]+/profile$");
     private static final Pattern USER_EXTRA_DELETE =
@@ -69,12 +56,25 @@ public final class AdminGuardPolicy {
     private static final Pattern CHAT_DELETE =
             Pattern.compile("^/api/admin/(messages/[^/]+|conversations/[^/]+/members/[^/]+)$");
 
-    /** P15: menu toplu silme, bekleyen kayit toplu iptali, kaynak elle senkronu (POST; /news|academic/bulk zaten BULK ile kapsanir). */
-    private static final Pattern P15_POST = Pattern.compile(
-            "^/api/admin/(menu/bulk-delete|pending-registrations/bulk-cancel|sources/sync)$");
+    /** P11 moderasyon: strike affi, gizlenen icerik geri alma (POST); sebep sablonu silme (DELETE). */
+    private static final Pattern MOD_POST = Pattern.compile(
+            "^/api/admin/moderation/(strikes/[^/]+/forgive|hidden/[^/]+/[^/]+/restore)$");
+    private static final Pattern MOD_TEMPLATE_DELETE = Pattern.compile("^/api/admin/moderation/reason-templates/[^/]+$");
+    /** P12 destek: talep/geri bildirim silme (DELETE), geri bildirim birlestirme (POST). */
+    private static final Pattern SUPPORT_DELETE = Pattern.compile("^/api/admin/support/(tickets|feedback)/[^/]+$");
+    private static final Pattern SUPPORT_MERGE = Pattern.compile("^/api/admin/support/feedback/merge$");
+
+    /** P13 mail altyapisi: elle bastirma + toplu/tek kuyruk islemi (POST), bastirma kaldirma (DELETE). */
+    private static final Pattern MAIL_OPS_POST = Pattern.compile(
+            "^/api/admin/mail/(suppressions|outbox/(bulk|[^/]+/(retry|cancel)))$");
+    private static final Pattern MAIL_OPS_DELETE = Pattern.compile("^/api/admin/mail/suppressions/[^/]+$");
 
     /** P14 push kuyrugu: tek kaydi iptal (POST); toplu islemler BULK desenine girer. */
     private static final Pattern PUSH_OUTBOX_CANCEL = Pattern.compile("^/api/admin/push/outbox/[^/]+/cancel$");
+
+    /** P15: menu toplu silme, bekleyen kayit toplu iptali, kaynak elle senkronu (POST; /news|academic/bulk zaten BULK ile kapsanir). */
+    private static final Pattern P15_POST = Pattern.compile(
+            "^/api/admin/(menu/bulk-delete|pending-registrations/bulk-cancel|sources/sync)$");
 
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
@@ -89,17 +89,17 @@ public final class AdminGuardPolicy {
                 || ("PATCH".equals(method) && CLUB_ROLE.matcher(path).matches());
     }
 
+    /** P08: sohbet mudahalesi yazma islemi mi (sebep ister, saatlik siki hiz siniri). */
+    static boolean chatDestructive(String method, String path) {
+        return ("POST".equals(method) && CHAT_POST.matcher(path).matches())
+                || ("DELETE".equals(method) && CHAT_DELETE.matcher(path).matches());
+    }
+
     /** P11/P12: moderasyon af/geri alma/sablon silme, destek silme/birlestirme (sebep ister, saatlik siki hiz siniri). */
     static boolean modSupportDestructive(String method, String path) {
         return ("POST".equals(method) && (MOD_POST.matcher(path).matches() || SUPPORT_MERGE.matcher(path).matches()))
                 || ("DELETE".equals(method)
                 && (MOD_TEMPLATE_DELETE.matcher(path).matches() || SUPPORT_DELETE.matcher(path).matches()));
-    }
-
-    /** P08: sohbet mudahalesi yazma islemi mi (sebep ister, saatlik siki hiz siniri). */
-    static boolean chatDestructive(String method, String path) {
-        return ("POST".equals(method) && CHAT_POST.matcher(path).matches())
-                || ("DELETE".equals(method) && CHAT_DELETE.matcher(path).matches());
     }
 
     /** P13: mail bastirma/kuyruk yazma islemi mi (sebep ister, saatlik siki hiz siniri). */
@@ -151,12 +151,6 @@ public final class AdminGuardPolicy {
         if (clubDestructive(method, path) || chatDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
-        if (modSupportDestructive(method, path)) {
-            return DEFAULT_MIN_REASON;
-        }
-        if (mailOpsDestructive(method, path)) {
-            return DEFAULT_MIN_REASON;
-        }
         if ("POST".equals(method) && USER_EXPORT.matcher(path).matches()) {
             return EXPORT_MIN_REASON;
         }
@@ -164,10 +158,16 @@ public final class AdminGuardPolicy {
                 || ("DELETE".equals(method) && USER_EXTRA_DELETE.matcher(path).matches())) {
             return DEFAULT_MIN_REASON;
         }
-        if ("POST".equals(method) && P15_POST.matcher(path).matches()) {
+        if (modSupportDestructive(method, path)) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (mailOpsDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && PUSH_OUTBOX_CANCEL.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && P15_POST.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

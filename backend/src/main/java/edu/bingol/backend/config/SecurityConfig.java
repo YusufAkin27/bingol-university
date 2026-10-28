@@ -50,7 +50,8 @@ public class SecurityConfig {
                                  @Value("${spring.security.user.password:}") String password) {
         String effective = password;
         if (effective.isBlank()) {
-            effective = UUID.randomUUID() + "-" + UUID.randomUUID();
+            // bcrypt en cok 72 bayt kabul eder: iki UUID tiresiz = 64 karakter (tireli 73 baytla acilis coker)
+            effective = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
             LoggerFactory.getLogger(SecurityConfig.class)
                     .warn("ADMIN_PASSWORD verilmedi: yonetici Basic auth kullanilamaz (JWT ADMIN gecerlidir)");
         }

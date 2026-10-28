@@ -121,6 +121,7 @@ public final class MailTemplateSanitizer {
         Document d = Jsoup.parseBodyFragment(html);
         d.outputSettings().prettyPrint(false);
         d.select("br").after("[[NL]]");
+        d.select("br").remove(); // wholeText br'yi ayrica satir sonu sayar (cift bosluk olmasin)
         d.select("p,div,h1,h2,h3,h4,h5,h6,li,tr,blockquote,pre,table").append("[[NL]]");
         d.select("li").prepend("- ");
         for (Element a : d.select("a[href]")) {
@@ -129,7 +130,8 @@ public final class MailTemplateSanitizer {
                 a.append(" (" + href + ")");
             }
         }
-        String t = d.body().wholeText().replace("[[NL]]", "\n");
+        // Kaynak HTML'deki bicimlendirme satir sonlari bosluktur; satir sonu yalniz [[NL]] isaretlerinden gelir
+        String t = d.body().wholeText().replaceAll("[\\r\\n]+", " ").replace("[[NL]]", "\n");
         t = t.replaceAll("[ \\t\\u00A0]+", " ").replaceAll(" ?\\n ?", "\n").replaceAll("\\n{3,}", "\n\n").trim();
         return t;
     }

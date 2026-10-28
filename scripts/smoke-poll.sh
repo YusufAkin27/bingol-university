@@ -104,7 +104,7 @@ check "gecersiz scope 400" 400 "$(code -H "$AB" "$A/polls?scope=xx")"
 check "kullanici admin ucu 403" 403 "$(code -H "$AB" $A/admin/polls)"
 check "admin liste 200" 200 "$(code -H "$AD" "$A/admin/polls?status=OPEN")"
 check "admin istatistik 200" 200 "$(code -H "$AD" $A/admin/polls/stats)"
-BULK=$(curl -s -X POST -H "$AD" -H "$H" $A/admin/polls/bulk -d "{\"ids\":[$P3],\"action\":\"CANCEL\"}")
+BULK=$(curl -s -X POST -H "$AD" -H "$H" -H "X-Admin-Reason: smoke toplu iptal" $A/admin/polls/bulk -d "{\"ids\":[$P3],\"action\":\"CANCEL\"}")
 echo "$BULK" | has '"done":1' && echo "  ok   toplu iptal" || { echo "  FAIL bulk: $BULK"; FAIL=1; }
 check "iptal edilene oy 409" 409 "$(code -X POST -H "$AB" -H "$H" $A/polls/$P3/vote -d '{"rating":3}')"
 

@@ -114,6 +114,12 @@ has "indirilebilir yanit" "attachment" "$(cat /tmp/p09_h1.txt)"
 has "kullanici kimligi" "\"subjectUserId\":$U2" "$(cat /tmp/p09_exp.json)"
 check "ikinci istek (gunluk sinir)" 429 "$(code -X POST -H "$AAD" -H "$LONG" -H "X-Admin-Confirm: $U2" $A/admin/users/$U2/export)"
 
+# Yikici yonetici yazmalari saatte 20 ile sinirli (app.admin.destructive-per-hour): bu betik tek yonetici ile 20'yi asar.
+# Sinir davranisi AdminGuard testlerinde sinanir; burada yalniz yonetici sayaclarini sifirla (yerel/duman yigini).
+docker compose exec -T redis redis-cli --scan --pattern 'rl:adm[dw]:*' | tr -d '\r' | while read -r k; do
+  [ -n "$k" ] && docker compose exec -T redis redis-cli del "$k" </dev/null >/dev/null
+done
+
 echo "== toplu islem (kismi basari)"
 BL=$(curl -s -X POST -H "$AAD" -H "$H" $A/admin/users/bulk -d "{\"action\":\"SUSPEND\",\"ids\":[$U1,$ADM,987654321],\"reason\":\"duman testi toplu askiya alma\"}")
 has "toplu: 1 basarili" "\"done\":1" "$BL"

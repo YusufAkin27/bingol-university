@@ -73,7 +73,7 @@ check "entity yok CSV" 400 "$(code -H "$AD" $A/admin/academic/export.csv)"
 check "takvim CSV" 200 "$(code -H "$AD" "$A/admin/academic/export.csv?entity=CALENDAR")"
 check "sinav CSV" 200 "$(code -H "$AD" "$A/admin/academic/export.csv?entity=EXAM")"
 check "duyuru CSV" 200 "$(code -H "$AD" "$A/admin/academic/export.csv?entity=ANNOUNCEMENT")"
-EV=$(curl -s -X POST -H "$H" -H "$AD" $A/admin/academic/events -d "{\"kind\":\"HOLIDAY\",\"title\":\"=Smoke toplu $SFX\",\"startsAt\":\"2031-05-01\",\"allDay\":true,\"published\":false}")
+EV=$(curl -s -X POST -H "$H" -H "$AD" $A/admin/academic/events -d "{\"kind\":\"TATIL\",\"title\":\"=Smoke toplu $SFX\",\"startsAt\":\"2031-05-01\",\"allDay\":true,\"published\":false}")
 EID=$(echo "$EV" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$EID" ]; then
   R=$(curl -s -X POST -H "$H" -H "$AD" $A/admin/academic/bulk -d "{\"entity\":\"CALENDAR\",\"action\":\"PUBLISH\",\"ids\":[$EID],\"reason\":\"smoke yayin\"}")

@@ -15,6 +15,8 @@ FAIL=0
 check() { if [ "$2" = "$3" ]; then echo "  ok   $1 ($3)"; else echo "  FAIL $1 (beklenen $2, gelen $3)"; FAIL=1; fi; }
 has()  { if echo "$3" | grep -qF -- "$2"; then echo "  ok   $1"; else echo "  FAIL $1 (aranan: $2) -> $(echo "$3" | head -c 300)"; FAIL=1; fi; }
 hasnt() { if echo "$3" | grep -qF -- "$2"; then echo "  FAIL $1 (bulunmamali: $2)"; FAIL=1; else echo "  ok   $1"; fi; }
+# Yikici yonetici uclari sebep ister (app.admin.require-reason): her istege varsayilan sebep eklenir; sebepsiz davranis smoke-admin-*.sh betiklerinde sinanir.
+curl() { command curl -H 'X-Admin-Reason: smoke testi duman betigi' "$@"; }
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 num() { grep -o "\"$1\":[0-9.]*" | head -1 | cut -d: -f2; }   # ilk "alan":sayi
@@ -67,18 +69,22 @@ ID1=$(curl -s -H "$A1" $A/users/me | idof); ID2=$(curl -s -H "$A2" $A/users/me |
 ID3=$(curl -s -H "$A3" $A/users/me | idof); ID4=$(curl -s -H "$A4" $A/users/me | idof)
 
 echo "== profil: fakulte"
-check "fakulte A (u1)" 200 "$(code -X PATCH -H "$H" -H "$A1" $A/users/me -d "{\"faculty\":\"$FA\",\"department\":\"Bilgisayar\",\"classYear\":2}")"
-check "fakulte A (u2)" 200 "$(code -X PATCH -H "$H" -H "$A2" $A/users/me -d "{\"faculty\":\"$FA\"}")"
-check "fakulte B (u3)" 200 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d "{\"faculty\":\"$FB\"}")"
+# Profil fakulte/bolum/sinifi artik akademik katalogla dogrulanir (ACADEMIC_INVALID); serbest metin yalniz API'de reddedilir.
+# Eski (katalog oncesi) veriyi taklit etmek icin dagilim/suzgec/CSV testleri degerleri dogrudan veritabanina yazar.
+check "serbest fakulte reddedilir (katalog)" 400 "$(code -X PATCH -H "$H" -H "$A1" $A/users/me -d "{\"faculty\":\"$FA\"}")"
+SQLX() { docker compose exec -T postgres psql -U "${DB_USER:-bingol}" -d "${DB_NAME:-bingol}" -c "$1" >/dev/null 2>&1; }
+SQLX "UPDATE app_user SET faculty='$FA', department='Bilgisayar', class_year=2 WHERE id=$ID1"
+SQLX "UPDATE app_user SET faculty='$FA' WHERE id=$ID2"
+SQLX "UPDATE app_user SET faculty='$FB', department='=SUM(1+1)' WHERE id=$ID3"
 R=$(curl -s -X PATCH -H "$H" -H 'Accept-Language: en' -H "$A4" $A/users/me -d '{"faculty":"Uydurma Fakulte"}')
-has "gecersiz fakulte kodu" '"code":"INVALID_FACULTY"' "$R"
+has "gecersiz fakulte kodu" '"code":"ACADEMIC_INVALID"' "$R"
 has "gecersiz fakulte EN mesaji" "Invalid faculty" "$R"
 check "gecersiz fakulte 400" 400 "$(code -X PATCH -H "$H" -H "$A4" $A/users/me -d '{"faculty":"Uydurma Fakulte"}')"
 check "fakulte > 120 karakter" 400 "$(code -X PATCH -H "$H" -H "$A4" $A/users/me -d "{\"faculty\":\"$(printf 'z%.0s' $(seq 1 121))\"}")"
 has "profilde fakulte" "\"faculty\":\"$FA\"" "$(curl -s -H "$A1" $A/users/me)"
 has "baskasinin profilinde fakulte" "\"faculty\":\"$FA\"" "$(curl -s -H "$A2" $A/users/$ID1)"
 # u3 bolumu formul benzeri (CSV enjeksiyonu testi; gorunen ad politikasi =,+,@ karakterlerini reddeder)
-check "bolum formul" 200 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"department":"=SUM(1+1)"}')"
+check "bolum formul API'de reddedilir (katalog)" 400 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"department":"=SUM(1+1)"}')"
 check "gorunen ad formul reddi" 400 "$(code -X PATCH -H "$H" -H "$A3" $A/users/me -d '{"displayName":"=SUM(1+1)"}')"
 
 echo "== yetki: anonim 401, normal kullanici 403"
@@ -327,7 +333,7 @@ has "audit: DELETE kaydi" "\"path\":\"/api/admin/users/$ID4\"" "$(curl -s -H "$A
 for I in $ID1 $ID2 $ID3; do curl -s -o /dev/null -X DELETE -H "$AAD" $A/admin/users/$I; done
 check "fakulte A kullanicisi kalmadi" 0 "$(curl -s -H "$AAD" "$A/admin/users?faculty=$FA" | num totalItems)"
 check "ayar: fakulte listesini temizle" 204 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/faculties -d '{"value":""}')"
-check "bos listede serbest metin" 200 "$(code -X PATCH -H "$H" -H "$AAD" $A/users/me -d '{"faculty":"Serbest Fakulte"}')"
+check "bos listede de serbest metin reddedilir (katalog)" 400 "$(code -X PATCH -H "$H" -H "$AAD" $A/users/me -d '{"faculty":"Serbest Fakulte"}')"
 check "fakulteyi temizle" 200 "$(code -X PATCH -H "$H" -H "$AAD" $A/users/me -d '{"faculty":""}')"
 
 [ $FAIL -eq 0 ] && echo "TUMU GECTI" || echo "HATA VAR"

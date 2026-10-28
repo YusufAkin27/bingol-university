@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,6 +32,7 @@ public class BackupStatusProvider {
 
     private final Path file;
 
+    @Autowired
     public BackupStatusProvider(ObservabilityProperties props, StorageProperties storage) {
         this.file = resolvePath(props.backupStatusFile(), storage == null ? null : storage.dir());
     }

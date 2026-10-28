@@ -48,10 +48,13 @@ U1=$(curl -s -H "Authorization: Bearer $T1" $A/users/me | idof)
 U2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | idof)
 U3=$(curl -s -H "Authorization: Bearer $T3" $A/users/me | idof)
 
-echo "== etkinlik (istekle katilim, kapasite 1)"
+echo "== kulup (etkinlik artik kulup adina acilir) + etkinlik (istekle katilim, kapasite 1)"
+CL=$(curl -s -X POST -H "$H" -H "Authorization: Bearer $T1" $A/communities -d "{\"name\":\"Duman Kulubu $SFX\",\"description\":\"p07\",\"joinPolicy\":\"OPEN\",\"visibility\":\"PUBLIC\"}" | idof)
+[ -n "$CL" ] || { echo "kulup olusmadi"; exit 1; }
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $TA" -H "$R" $A/admin/communities/$CL/approve   # onay gerekmiyorsa 409, sorun degil
 S1=$(iso "+2 days"); E1=$(iso "+2 days +2 hours")
 EV=$(curl -s -X POST -H "$H" -H "Authorization: Bearer $T1" $A/events \
-  -d "{\"title\":\"Duman Etkinligi $SFX\",\"description\":\"p07\",\"startsAt\":\"$S1\",\"endsAt\":\"$E1\",\"location\":\"Salon\",\"capacity\":1,\"joinPolicy\":\"APPROVAL\"}")
+  -d "{\"title\":\"Duman Etkinligi $SFX\",\"description\":\"p07\",\"startsAt\":\"$S1\",\"endsAt\":\"$E1\",\"location\":\"Salon\",\"capacity\":1,\"joinPolicy\":\"APPROVAL\",\"communityId\":$CL}")
 EID=$(echo "$EV" | idof)
 [ -n "$EID" ] || { echo "etkinlik olusmadi: $EV"; exit 1; }
 # onay gerekiyorsa yonetici onaylar (gerekmiyorsa 409 NOT_PENDING gelir, sorun degil)

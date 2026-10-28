@@ -54,7 +54,7 @@ R=$(curl -s -X POST -H "$H" -H "$AD" -H "X-Admin-Reason: smoke deneme" $A/admin/
 has "MANUAL" '"reason":"MANUAL"' "$R"
 hasnt "yanitta tam adres yok" "$MAN" "$R"
 MID=$(echo "$R" | idof)
-check "ayni adres" 409 "$(code -X POST -H "$H" -H "$AD" $A/admin/mail/suppressions -d "{\"email\":\"$MAN\",\"note\":\"tekrar deneme\"}")"
+check "ayni adres" 409 "$(code -X POST -H "$H" -H "$AD" -H "X-Admin-Reason: smoke deneme" $A/admin/mail/suppressions -d "{\"email\":\"$MAN\",\"note\":\"tekrar deneme\"}")"
 L=$(curl -s -H "$AD" "$A/admin/mail/suppressions?q=$MAN")
 has "tam adresle arama" '"total":1' "$L"
 hasnt "listede tam adres yok" "$MAN" "$L"

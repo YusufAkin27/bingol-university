@@ -275,7 +275,11 @@ export function TemplateEditor({ id }: { id: number | null }) {
                 label={t('admin.mail.editor.subject')}
                 required={lang === 'tr'}
                 error={msgFor(le?.subject, MAX_SUBJECT)}
-                hint={t('admin.mail.editor.counter', { n: formatNumber(cur.subject.length), max: formatNumber(MAX_SUBJECT) })}
+                hint={
+                  <span className="ltr">
+                    {t('admin.mail.editor.counter', { n: formatNumber(cur.subject.length), max: formatNumber(MAX_SUBJECT) })}
+                  </span>
+                }
               >
                 <Input
                   ref={refs.subject}
@@ -312,7 +316,11 @@ export function TemplateEditor({ id }: { id: number | null }) {
                 label={t('admin.mail.editor.html')}
                 required={lang === 'tr'}
                 error={msgFor(le?.html, MAX_HTML)}
-                hint={t('admin.mail.editor.counter', { n: formatNumber(cur.html.length), max: formatNumber(MAX_HTML) })}
+                hint={
+                  <span className="ltr">
+                    {t('admin.mail.editor.counter', { n: formatNumber(cur.html.length), max: formatNumber(MAX_HTML) })}
+                  </span>
+                }
               >
                 <Textarea
                   ref={refs.html}

@@ -40,9 +40,9 @@ import trAdminP07 from './tr/admin-p07'; // yalnız tr (etkinlik derin yönetimi
 import trAdminP08 from './tr/admin-p08'; // yalnız tr (sohbet müdahalesi), aynı kural
 import trAdminP09 from './tr/admin-p09'; // yalnız tr (kullanıcı derin yönetimi), aynı kural
 import trAdminP11 from './tr/admin-p11'; // yalnız tr (moderasyon + destek tamamlama), aynı kural
+import trAdminP13 from './tr/admin-p13'; // yalnız tr (mail altyapısı: bastırma, kuyruk, kota), aynı kural
 import trAdminP14 from './tr/admin-p14'; // yalnız tr (push altyapısı), aynı kural
 import trAdminP15 from './tr/admin-p15'; // yalnız tr (toplu işlemler + kaynak durumu), aynı kural
-import trAdminP13 from './tr/admin-p13'; // yalnız tr (mail altyapısı: bastırma, kuyruk, kota), aynı kural
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -147,9 +147,9 @@ const tr = {
   ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
+  ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
-  ...trAdminP13,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -197,9 +197,9 @@ const en: Dictionary = {
   ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
+  ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
-  ...trAdminP13,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -243,9 +243,9 @@ const ar: Dictionary = {
   ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
+  ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
-  ...trAdminP13,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

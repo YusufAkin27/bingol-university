@@ -17,6 +17,13 @@ WORK=$(mktemp -d)
 
 check() { if [ "$2" = "$3" ]; then echo "  ok   $1 ($3)"; else echo "  FAIL $1 (beklenen $2, gelen $3)"; FAIL=1; fi; }
 has() { if echo "$3" | grep -qF -- "$2"; then echo "  ok   $1"; else echo "  FAIL $1 (aranan: $2) -> $(echo "$3" | head -c 300)"; FAIL=1; fi; }
+# Sohbet izleme okumalari da sebep ister (>= 10 karakter, V710): -X verilmeyen (GET) ve sebep basligi olmayan isteklere varsayilan sebep eklenir.
+curl() {
+  case " $* " in
+    *" -X "*|*X-Admin-Reason*) command curl "$@" ;;
+    *) command curl -H 'X-Admin-Reason: smoke izleme okumasi' "$@" ;;
+  esac
+}
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 jget() { node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const v=process.argv[1].split('.').reduce((o,k)=>o==null?o:o[k],j);console.log(v===undefined||v===null?'':v)}catch(e){console.log('')}})" "$1"; }
 win() { cygpath -m "$1" 2>/dev/null || echo "$1"; }
@@ -71,6 +78,8 @@ check "gonderen acamaz 403" 403 "$(code -H "$AUTH_A" $A/conversations/$CONV/medi
 
 echo "== sohbeti sil (kullanici A) ve engel + golge mesaj"
 check "sohbeti sil" 204 "$(code -X DELETE -H "$AUTH_A" $A/conversations/$CONV)"
+# Ayni kisiyle yeniden sohbet acmak gizlemeyi kaldirir (hiddenAt=null): durumu yeniden acmadan once yakala
+L=$(curl -s -H "$AUTH_ADM" "$A/admin/users/$IDA/conversations")
 check "B, A'yi engeller" 204 "$(code -X POST -H "$AUTH_B" $A/users/$IDA/block)"
 CONV2=$(curl -s -X POST -H "$H" -H "$AUTH_A" $A/conversations -d "{\"userId\":$IDB}" | jget id)
 curl -s -o /dev/null -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV2/messages -d "{\"text\":\"adc-golge\",\"clientId\":\"g1-$RUN\"}"
@@ -78,7 +87,6 @@ curl -s -o /dev/null -X POST -H "$H" -H "$AUTH_A" $A/conversations/$CONV2/messag
 echo "== yonetici: kullanici sohbet goruntuleyici (kisitsiz)"
 check "yetkisiz (normal kullanici) 403" 403 "$(code -H "$AUTH_A" $A/admin/users/$IDA/conversations)"
 check "tokensiz 401" 401 "$(code $A/admin/chat-media)"
-L=$(curl -s -H "$AUTH_ADM" "$A/admin/users/$IDA/conversations")
 has "sohbet listede (kullanici sildi)" "\"id\":$CONV" "$L"
 has "hiddenByUser/cleared durumu" "\"hiddenByUser\":true" "$L"
 MSGS=$(curl -s -H "$AUTH_ADM" "$A/admin/users/$IDA/conversations/$CONV/messages?size=50")
@@ -146,6 +154,8 @@ check "kalici silineni tekrar silme 409" 409 "$(code -X DELETE -H "$AUTH_ADM" -H
 has "kalici silinenin icerigi yok" "NO_CIPHERTEXT" "$(curl -s -H "$AUTH_ADM" -H "$RS" "$A/admin/users/$IDA/conversations/$CONV/messages?size=50")"
 
 echo "== P08: sohbet kapat / ac, uye cikar, ust veri"
+# B daha once A'yi engelledi (golge mesaj testi); engelli kullanicilarla grup kurulamaz (requireNotBlocked): once engeli kaldir
+curl -s -o /dev/null -X DELETE -H "$AUTH_B" $A/users/$IDA/block
 GRP=$(curl -s -X POST -H "$H" -H "$AUTH_A" $A/conversations -d "{\"title\":\"p08 grup $RUN\",\"memberIds\":[$IDB]}" | jget id)
 [ -n "$GRP" ] || { echo "  FAIL grup olusmadi"; exit 1; }
 check "grup mesaji (kapatmadan once)" 201 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$GRP/messages -d "{\"text\":\"p08-once\",\"clientId\":\"p8a-$RUN\"}")"

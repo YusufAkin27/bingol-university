@@ -11,6 +11,8 @@ FAIL=0
 
 check() { if [ "$2" = "$3" ]; then echo "  ok   $1 ($3)"; else echo "  FAIL $1 (beklenen $2, gelen $3)"; FAIL=1; fi; }
 has()  { if echo "$3" | grep -qF -- "$2"; then echo "  ok   $1"; else echo "  FAIL $1 (aranan: $2) -> $(echo "$3" | head -c 200)"; FAIL=1; fi; }
+# Yonetici yazma uclari sebep ister (app.admin.require-reason, >= 5 karakter): varsayilan sebep her istege eklenir.
+curl() { command curl -H 'X-Admin-Reason: smoke destek betigi' "$@"; }
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
@@ -66,7 +68,7 @@ check "kayit onayi: bekleyen yok" "[]" "$(curl -s -H "$ATR" $A/legal/consents/pe
 has "onay gecmisi" '"type":"TERMS"' "$(curl -s -H "$ATR" $A/legal/consents/mine)"
 check "yetkisiz yayin 403" 403 "$(code -X POST -H "$H" -H "$ATR" $A/admin/legal/terms -d '{"tr":{"title":"x","content":"y"}}')"
 PUB=$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/legal/terms -d '{"tr":{"title":"Kullanim Kosullari v2","content":"yeni icerik"},"en":{"title":"Terms of Use v2","content":"new content"}}')
-PUBV=$(echo "$PUB" | grep -o '[0-9]*' | head -1)
+PUBV=$(echo "$PUB" | grep -o '"version":[0-9]*' | head -1 | cut -d: -f2)
 [ -n "$PUBV" ] && echo "  ok   yeni surum yayinla (v$PUBV)" || { echo "  FAIL yayin: $PUB"; FAIL=1; }
 has "yeni surum EN" "Terms of Use v2" "$(curl -s -H 'Accept-Language: en' $A/legal/terms)"
 has "yeni surum AR icin TR" "Kullanim Kosullari v2" "$(curl -s -H 'Accept-Language: ar' $A/legal/terms)"
@@ -146,7 +148,8 @@ has "kitle: herkes" '"count":' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/pus
 check "kitle: gecersiz sinif" 400 "$(code -X POST -H "$H" -H "$AAD" $A/admin/push/audience-count -d '{"type":"CLASS_YEAR","value":"99"}')"
 has "kitle: bos bolum sayimi 0" '"count":0' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/push/audience-count -d '{"type":"DEPARTMENT","value":"Yok Boyle Bolum"}')"
 check "bos kitleye kampanya 400" 400 "$(code -X POST -H "$H" -H "$AAD" $A/admin/push/campaigns -d '{"audience":{"type":"DEPARTMENT","value":"Yok Boyle Bolum"},"tr":{"title":"a","body":"b"}}')"
-curl -s -o /dev/null -X PATCH -H "$H" -H "$ATR" $A/users/me -d "{\"department\":\"TestBolumu$SFX\",\"classYear\":2}"
+# Profil bolumu artik katalogla dogrulanir (ACADEMIC_INVALID): hedef kitle sayimi icin degeri dogrudan veritabanina yaz
+docker compose exec -T postgres psql -U "${DB_USER:-bingol}" -d "${DB_NAME:-bingol}" -c "UPDATE app_user SET department='TestBolumu$SFX', class_year=2 WHERE email='tr$SFX@bingol.edu.tr'" >/dev/null 2>&1
 has "kitle: bolum" '"count":1' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/push/audience-count -d "{\"type\":\"DEPARTMENT\",\"value\":\"TestBolumu$SFX\"}")"
 check "gecersiz URL hedefi" 400 "$(code -X POST -H "$H" -H "$AAD" $A/admin/push/campaigns -d '{"audience":{"type":"SELF"},"tr":{"title":"a","body":"b"},"target":{"type":"URL","value":"javascript:alert(1)"}}')"
 check "tr zorunlu" 400 "$(code -X POST -H "$H" -H "$AAD" $A/admin/push/campaigns -d '{"audience":{"type":"SELF"}}')"

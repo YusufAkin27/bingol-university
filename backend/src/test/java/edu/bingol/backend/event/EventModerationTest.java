@@ -21,7 +21,7 @@ import edu.bingol.backend.event.admission.EventAdmission;
 import edu.bingol.backend.event.admission.EventAdmissionRepository;
 import edu.bingol.backend.event.admission.EventApplication;
 import edu.bingol.backend.event.admission.EventApplicationRepository;
-import edu.bingol.backend.event.chat.EventChatHooks;
+import edu.bingol.backend.event.chat.EventChatService;
 import edu.bingol.backend.event.dto.EventAdminDtos.AdminEventDetail;
 import edu.bingol.backend.event.dto.EventDtos.EventView;
 import edu.bingol.backend.messaging.room.RoomConversations;
@@ -63,7 +63,7 @@ class EventModerationTest {
 
     @MockitoBean NotificationService notifications;
     @MockitoBean RoomConversations rooms;
-    @MockitoBean EventChatHooks chat;
+    @MockitoBean EventChatService chat;
 
     private final Instant soon = Instant.now().plus(Duration.ofDays(3));
 

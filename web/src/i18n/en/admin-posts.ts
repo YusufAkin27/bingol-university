@@ -12,7 +12,7 @@ const m = {
   'admin.posts.stats.last24h': 'Last 24 hours: {n} posts',
 
   'admin.posts.filters': 'Post filters',
-  'admin.posts.filter.q': 'Text or author (name / e-mail)',
+  'admin.posts.filter.q': 'Text or author (name / email)',
   'admin.posts.filter.qPlaceholder': 'Search text or author…',
   'admin.posts.filter.from': 'From',
   'admin.posts.filter.to': 'To',

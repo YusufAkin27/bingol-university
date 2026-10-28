@@ -16,7 +16,7 @@ export const API_PREFIX = '/api';
 /** `api.get`/`publicApi.post`/`apiBlob` vb. çağrı adı -> HTTP yöntemi (apiFetch için gövdeden okunur). */
 const CALLERS = [
   { re: /\b(?:api|publicApi)\s*\.\s*(get|post|put|patch|del|putForm)\b/g, method: (m) => (m === 'del' ? 'DELETE' : m === 'putForm' ? 'PUT' : m.toUpperCase()) },
-  { re: /\bapiBlob\b/g, method: () => 'GET' },
+  { re: /\bapiBlob\b/g, method: () => null }, // varsayılan GET; `method: 'POST'` seçeneği gövdeden okunur
   { re: /\bapiFetch(?:Meta)?\b/g, method: () => null },
 ];
 
@@ -79,7 +79,14 @@ function readLiteral(s, i) {
 
 /** Çağrı argümanlarındaki `method: 'POST'` değerini (apiFetch için) bulur. */
 function methodFromOptions(s, from) {
-  const slice = s.slice(from, from + 400);
+  // Yalnız bu çağrının argüman listesine bak (sonraki çağrıların `method:` değerine taşma).
+  let end = from;
+  let depth = 0;
+  for (; end < s.length && end < from + 400; end++) {
+    if (s[end] === '(') depth++;
+    else if (s[end] === ')' && --depth === 0) break;
+  }
+  const slice = s.slice(from, end);
   const m = /method\s*:\s*['"](GET|POST|PUT|PATCH|DELETE)['"]/.exec(slice);
   return m ? m[1] : null;
 }
@@ -88,7 +95,8 @@ function methodFromOptions(s, from) {
 export function normalizePath(p) {
   let s = p.split('?')[0];
   // `/admin/x${qs}`: yolun sonuna yapışan ifade sorgu ekidir (önünde `/` yok).
-  s = s.replace(/([^/}])\{\}$/, '$1');
+  // Ardışık ifadelerde (`/x/${id}${ban ? '?ban=true' : ''}`) sonuncusu sorgu ekidir.
+  s = s.replace(/([^/])\{\}$/, '$1');
   s = s.replace(/\{[^}]*\}/g, '{}');
   if (s.length > 1) s = s.replace(/\/+$/, '');
   return s;

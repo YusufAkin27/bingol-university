@@ -95,9 +95,9 @@ class CommunityPostServiceTest {
 
         svc.create(user, 10L, new CreatePostRequest("selam", "/files/posts/a.png"));
 
-        verify(notifications).send(eq(2L), eq(NotificationType.COMMUNITY), any(), any(), any());
-        verify(notifications, never()).send(eq(1L), any(), any(), any(), any());
-        verify(notifications, never()).send(eq(3L), any(), any(), any(), any());
+        verify(notifications).send(eq(2L), eq(NotificationType.COMMUNITY), any(), any(), any(), any(), any());
+        verify(notifications, never()).send(eq(1L), any(), any(), any(), any(), any(), any());
+        verify(notifications, never()).send(eq(3L), any(), any(), any(), any(), any(), any());
     }
 
     @Test

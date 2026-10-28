@@ -227,11 +227,9 @@ export const setClubMemberRole = (id: number, userId: number, role: Exclude<Club
 export const listJoinRequests = (id: number, page: number, size = 20) =>
   api.get<ClubPage<ClubMember>>(`/admin/communities/${id}/join-requests`, { page, size });
 export const decideJoinRequest = (id: number, userId: number, approve: boolean, o?: GuardOpts) =>
-  api.post<ClubMemberResult>(
-    `/admin/communities/${id}/join-requests/${userId}/${approve ? 'approve' : 'reject'}`,
-    undefined,
-    guardHeaders(o),
-  );
+  approve
+    ? api.post<ClubMemberResult>(`/admin/communities/${id}/join-requests/${userId}/approve`, undefined, guardHeaders(o))
+    : api.post<ClubMemberResult>(`/admin/communities/${id}/join-requests/${userId}/reject`, undefined, guardHeaders(o));
 export const listClubInvites = (id: number) => api.get<ClubInvite[]>(`/admin/communities/${id}/invites`);
 export const revokeClubInvite = (id: number, inviteId: number, o: GuardOpts) =>
   api.del<void>(`/admin/communities/${id}/invites/${inviteId}`, guardHeaders(o));

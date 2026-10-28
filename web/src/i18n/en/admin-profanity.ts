@@ -53,6 +53,6 @@ const m: Record<keyof typeof tr, string> = {
   'admin.prf.tryBlocked': 'Would be blocked',
   'admin.prf.tryClean': 'Clean: not blocked',
   'admin.prf.tryMatches': 'Matched roots',
-  'admin.prf.tryNormalized': 'Normalized text',
+  'admin.prf.tryNormalized': 'Normalised text',
 };
 export default m;

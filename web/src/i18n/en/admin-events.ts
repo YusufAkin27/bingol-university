@@ -8,8 +8,8 @@ const m = {
   'admin.events.clubRule':
     'Only club members create events. Older records without a club show a “No club” badge. Search and filters run on the server.',
   'admin.events.standaloneNote': 'This is an older event without a club; new events can only be created by club members.',
-  'admin.events.hiddenNote': 'A hidden event is invisible to the organizer too (returns 404). Nobody can see it until it is restored.',
-  'admin.events.organizerEmail': 'Organizer e-mail',
+  'admin.events.hiddenNote': 'A hidden event is invisible to the organiser too (returns 404). Nobody can see it until it is restored.',
+  'admin.events.organizerEmail': 'Organiser email',
   'admin.events.attended': 'Checked in',
   'admin.events.reviewNote': 'Review note',
   'admin.events.moderationReason': 'Moderation reason',
@@ -41,10 +41,10 @@ const m = {
   'admin.events.dialog.title.cancel': 'Cancel “{name}”?',
   'admin.events.dialog.title.delete': 'Delete “{name}”?',
   'admin.events.dialog.message.hide':
-    'The event becomes invisible to everyone, including the organizer (returns 404). It can be restored later.',
+    'The event becomes invisible to everyone, including the organiser (returns 404). It can be restored later.',
   'admin.events.dialog.message.unhide': 'The event becomes visible to everyone again.',
   'admin.events.dialog.message.cancel':
-    'The event is cancelled; attendees and the organizer are notified. This cannot be undone.',
+    'The event is cancelled; attendees and the organiser are notified. This cannot be undone.',
   'admin.events.dialog.message.delete':
     'Soft delete: the record is not removed but set to “Cancelled”; attendees are notified and the chat is closed. This cannot be undone.',
   'admin.events.dialog.reason': 'Reason',

@@ -117,7 +117,11 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
 
         <FormField
           label={t('admin.feedback.field.response')}
-          hint={t('admin.feedback.counter', { n: draft.adminResponse.length, max: MAX_FEEDBACK_RESPONSE })}
+          hint={
+            <span className="ltr">
+              {t('admin.feedback.counter', { n: draft.adminResponse.length, max: MAX_FEEDBACK_RESPONSE })}
+            </span>
+          }
         >
           <Textarea
             rows={5}

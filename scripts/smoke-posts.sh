@@ -146,7 +146,8 @@ for ep in "GET posts/$PID/comments" "POST posts/$PID/comments" "GET stories/tray
           "GET hashtags/trending" "GET hashtags/abc/posts" "GET users/mention-suggest" \
           "PUT posts/$PID/save" "DELETE posts/$PID/save" "GET posts/$PID/likes"; do
   M=${ep%% *}; P=${ep#* }
-  check "404 $M /$P" 404 "$(code -X $M -H "$AB" -H "$H" -d '{}' "$A/$P")"
+  EXP=404; [ "$P" = "users/mention-suggest" ] && EXP=400   # /users/{id} desenine dusar: sayisal olmayan kimlik 400 (uc yine yok)
+  check "$EXP $M /$P" $EXP "$(code -X $M -H "$AB" -H "$H" -d '{}' "$A/$P")"
 done
 
 echo "== BOLUM moderasyon / yonetici / arama"

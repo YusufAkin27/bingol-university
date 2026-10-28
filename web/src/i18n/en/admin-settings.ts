@@ -53,7 +53,7 @@ const m = {
   'admin.settings.general.social': 'Social media',
   'admin.settings.key.legal.controller.name': 'Controller name',
   'admin.settings.key.legal.controller.address': 'Controller address',
-  'admin.settings.key.legal.controller.email': 'Controller e-mail',
+  'admin.settings.key.legal.controller.email': 'Controller email',
   'admin.settings.key.legal.controller.kep': 'KEP address',
   'admin.settings.key.legal.controller.verbis': 'VERBIS registry no.',
   'admin.settings.key.legal.hosting.location': 'Hosting location',

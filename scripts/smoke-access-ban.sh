@@ -66,7 +66,7 @@ check "gecersiz deger 400" 400 "$(admcode -X POST $A/admin/access-bans -d '{"kin
 
 echo "== toplu (CIDR) yukleme"
 BULK="# smoke\n192.0.2.0/24 smoke-$SFX\nbozuk-satir\n10.0.0.0/8"
-R=$(adm -X POST $A/admin/access-bans/bulk -d "{\"text\":\"$BULK\",\"reasonCode\":\"SPAM\"}")
+R=$(adm -H "X-Admin-Reason: smoke toplu yukleme" -X POST $A/admin/access-bans/bulk -d "{\"text\":\"$BULK\",\"reasonCode\":\"SPAM\"}")
 has "toplu: 1 olustu" '"created":1' "$R"
 has "toplu: gecersiz satir raporlandi" 'BAN_INVALID_VALUE' "$R"
 check "CIDR icindeki IP 403" 403 "$(code -H "X-Forwarded-For: 192.0.2.77" $A/news)"

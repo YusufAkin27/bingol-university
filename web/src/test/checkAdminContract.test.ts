@@ -45,6 +45,24 @@ describe('extractCalls', () => {
     expect(calls.map((c) => c.line)).toEqual([1, 2, 3, 4, 5]);
   });
 
+  it('apiBlob method secenegini yalniz kendi cagrisindan okur (sonraki cagriya tasmaz)', () => {
+    const src = [
+      "export const d = (id: number) => apiBlob(`/admin/polls/${id}/export.csv`);",
+      "export const x = (id: number) => apiBlob(`/admin/users/${id}/export`, { method: 'POST', headers: {} });",
+      "export const e = () => apiFetch('/admin/polls/bulk', { method: 'POST', body: {} });",
+    ].join('\n');
+    expect(extractCalls(src).map((c) => `${c.method} ${c.path}`)).toEqual([
+      'GET /admin/polls/{}/export.csv',
+      'POST /admin/users/{}/export',
+      'POST /admin/polls/bulk',
+    ]);
+  });
+
+  it('ardisik ifadelerde sondaki sorgu ekini atar', () => {
+    const calls = extractCalls("api.del(`/admin/c/${id}/members/${uid}${ban ? '?ban=true' : ''}`, h);");
+    expect(calls.map((c) => c.path)).toEqual(['/admin/c/{}/members/{}']);
+  });
+
   it('degiskenle kurulan yollari dinamik sayar ve atlar', () => {
     const calls = extractCalls("const r = api.get(url); const s = api.post('/a/' + id);");
     expect(calls).toHaveLength(2);

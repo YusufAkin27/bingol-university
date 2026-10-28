@@ -31,7 +31,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.lang.missing': 'no content (Turkish is sent)',
 
   'admin.mail.templates.title': 'Mail templates',
-  'admin.mail.templates.intro': 'Versioned, three-language templates for announcement e-mails. Campaigns can only use published templates.',
+  'admin.mail.templates.intro': 'Versioned, three-language templates for announcement emails. Campaigns can only use published templates.',
   'admin.mail.templates.new': 'New template',
   'admin.mail.templates.search': 'Search by template name',
   'admin.mail.templates.col.name': 'Name',
@@ -39,7 +39,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.templates.col.version': 'Version',
   'admin.mail.templates.col.updated': 'Updated',
   'admin.mail.templates.empty.title': 'No templates yet',
-  'admin.mail.templates.empty.hint': 'Create your first e-mail template, publish it and use it in a campaign.',
+  'admin.mail.templates.empty.hint': 'Create your first email template, publish it and use it in a campaign.',
 
   'admin.mail.editor.titleNew': 'New mail template',
   'admin.mail.editor.titleEdit': 'Edit mail template',
@@ -78,10 +78,10 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.editor.deleteTitle': 'Delete this template?',
   'admin.mail.editor.deleteMsg': 'This cannot be undone. A template used in a campaign cannot be deleted; archive it instead.',
   'admin.mail.editor.deleted': 'Template deleted.',
-  'admin.mail.editor.test': 'Send test e-mail',
-  'admin.mail.editor.testLang': 'Test e-mail language',
-  'admin.mail.editor.testHint': 'The test e-mail goes only to your own address and its subject starts with [TEST]. Save first.',
-  'admin.mail.editor.testSent': 'Test e-mail queued: {to}',
+  'admin.mail.editor.test': 'Send test email',
+  'admin.mail.editor.testLang': 'Test email language',
+  'admin.mail.editor.testHint': 'The test email goes only to your own address and its subject starts with [TEST]. Save first.',
+  'admin.mail.editor.testSent': 'Test email queued: {to}',
   'admin.mail.editor.versions': 'Version history',
   'admin.mail.editor.previewVersion': 'Preview',
 
@@ -89,7 +89,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.preview.subject': 'Subject',
   'admin.mail.preview.empty': 'Enter a subject and HTML content to see a preview.',
   'admin.mail.preview.fallback': 'No content in this language; showing {lang} content.',
-  'admin.mail.preview.frameTitle': 'E-mail preview',
+  'admin.mail.preview.frameTitle': 'Email preview',
 
   'admin.mail.campaigns.title': 'Mail campaigns',
   'admin.mail.campaigns.intro': 'Send a published template to the chosen audience right away or at a later date.',
@@ -123,12 +123,12 @@ const m: Record<keyof typeof tr, string> = {
 
   'admin.mail.aud.legend': 'Audience',
   'admin.mail.aud.ALL': 'All users',
-  'admin.mail.aud.ALL.hint': 'Everyone active with a verified e-mail',
+  'admin.mail.aud.ALL.hint': 'Everyone active with a verified email',
   'admin.mail.aud.FILTER': 'Filter',
   'admin.mail.aud.FILTER.hint': 'Faculty, department, class, role, language or club',
   'admin.mail.aud.USERS': 'Pick users',
   'admin.mail.aud.USERS.hint': 'Search and add one by one',
-  'admin.mail.aud.EMAILS': 'E-mail list',
+  'admin.mail.aud.EMAILS': 'Email list',
   'admin.mail.aud.EMAILS.hint': 'Paste addresses (registered users only)',
   'admin.mail.aud.allNote': 'Sent to all active users. The next step shows how many people that is.',
   'admin.mail.aud.filterHint': 'Filled fields apply together (AND); at least one must be filled.',
@@ -141,7 +141,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.aud.role.ADMIN': 'Admin',
   'admin.mail.aud.language': 'Language',
   'admin.mail.aud.communityId': 'Club (community) ID',
-  'admin.mail.aud.emails': 'E-mail addresses',
+  'admin.mail.aud.emails': 'Email addresses',
   'admin.mail.aud.emailsHint': 'Separate with new lines, commas or spaces. Up to {max} addresses; only registered users are matched.',
   'admin.mail.aud.emailsParsed': '{valid} valid, {invalid} invalid, {dup} duplicate addresses.',
 
@@ -165,7 +165,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.sched.err.tooFar': 'You can pick at most {days} days ahead.',
 
   'admin.mail.confirm.title': 'Review before sending',
-  'admin.mail.confirm.nowNote': 'When you confirm, e-mails are queued immediately. Sent e-mails cannot be recalled.',
+  'admin.mail.confirm.nowNote': 'When you confirm, emails are queued immediately. Sent emails cannot be recalled.',
   'admin.mail.confirm.laterNote': 'The campaign starts at the chosen time; until then you can pause or cancel it.',
   'admin.mail.confirm.recipients': 'Recipients',
   'admin.mail.confirm.when': 'Time',
@@ -178,7 +178,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.detail.confirm.resume.title': 'Resume this campaign?',
   'admin.mail.detail.confirm.resume.msg': 'Sending to pending recipients continues where it stopped.',
   'admin.mail.detail.confirm.cancel.title': 'Cancel this campaign?',
-  'admin.mail.detail.confirm.cancel.msg': 'Pending recipients are cancelled. E-mails already sent cannot be recalled.',
+  'admin.mail.detail.confirm.cancel.msg': 'Pending recipients are cancelled. Emails already sent cannot be recalled.',
   'admin.mail.detail.done': 'Done.',
   'admin.mail.detail.autoRefresh': 'While sending, this page refreshes every 5 seconds.',
   'admin.mail.detail.failedTitle': 'The campaign stopped with an error',
@@ -190,7 +190,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.detail.skipped': 'Skipped',
   'admin.mail.detail.failed': 'Failed',
   'admin.mail.detail.cancelled': 'Cancelled',
-  'admin.mail.detail.queuedNote': 'Queued means written to the e-mail queue; actual delivery is the queue worker\'s job.',
+  'admin.mail.detail.queuedNote': 'Queued means written to the email queue; actual delivery is the queue worker\'s job.',
   'admin.mail.detail.info': 'Details',
   'admin.mail.detail.scheduledAt': 'Scheduled for',
   'admin.mail.detail.startedAt': 'Started',
@@ -216,7 +216,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.mail.err.MAIL_CAMPAIGN_AUDIENCE_INVALID': 'The audience is invalid (empty filter or the 2000 limit exceeded).',
   'admin.mail.err.MAIL_CAMPAIGN_SCHEDULE_INVALID': 'Invalid time: at most 90 days ahead.',
   'admin.mail.err.MAIL_CAMPAIGN_INVALID_STATE': 'The campaign state does not allow this action.',
-  'admin.mail.err.MAIL_UNAVAILABLE': 'The e-mail system is unavailable right now. Try again shortly.',
+  'admin.mail.err.MAIL_UNAVAILABLE': 'The email system is unavailable right now. Try again shortly.',
 };
 
 export default m;

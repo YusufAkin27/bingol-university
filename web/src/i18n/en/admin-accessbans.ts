@@ -110,7 +110,7 @@ const m = {
 
   'admin.ab.anon.info':
     'VPNs cannot be blocked completely; the real protection is the device ID ban. You can upload Tor exit nodes and known VPN/data-center CIDR lists here.',
-  'admin.ab.anon.setting': 'Block anonymizer networks setting',
+  'admin.ab.anon.setting': 'Block anonymiser networks setting',
   'admin.ab.anon.on': 'On',
   'admin.ab.anon.off': 'Off',
   'admin.ab.anon.settingHint': 'Read-only; the setting lives in server configuration.',

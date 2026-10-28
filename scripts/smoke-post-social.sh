@@ -87,7 +87,8 @@ check "latest hala 200" 200 "$(code -H "$AA" "$A/feed?scope=latest")"
 
 echo "== kaldirilan uclar: artik yok (404)"
 check "etiket 404" 404 "$(code -H "$AA" "$A/hashtags/trending")"
-check "mention onerisi 404" 404 "$(code -H "$AA" "$A/users/mention-suggest?q=Sosyal")"
+# Uc kaldirildi; /users/{id} desenine dusen sayisal olmayan kimlik 400 doner (profil kimligi tip hatasi)
+check "mention onerisi yok (400, /users/{id} tip hatasi)" 400 "$(code -H "$AA" "$A/users/mention-suggest?q=Sosyal")"
 check "kaydet 404" 404 "$(code -X PUT -H "$AA" $A/posts/$PID/save)"
 check "begenenler 404" 404 "$(code -H "$AA" "$A/posts/$PID/likes")"
 check "yorumlar 404" 404 "$(code -H "$AA" "$A/posts/$PID/comments")"
