@@ -8,6 +8,7 @@ import { Route, Routes } from 'react-router-dom';
 import { RequireAdmin } from './auth/RequireAdmin';
 import { Spinner } from './components/ui/Feedback';
 import { AdminLayout } from './layouts/AdminLayout';
+import { AdminScope } from './layouts/AdminScope';
 import { SiteLayout } from './layouts/SiteLayout';
 import { ADMIN_BASE } from './adminBase';
 
@@ -121,59 +122,61 @@ export function AppRoutes() {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-        {/* Yönetim: giriş sayfası korumasızdır */}
-        <Route path={`${ADMIN_BASE.slice(1)}/login`} element={<LoginPage />} />
-        <Route
-          path="admin"
-          element={
-            <RequireAdmin>
-              <AdminLayout />
-            </RequireAdmin>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="users/:id" element={<UserDetailPage />} />
-          <Route path="users/:id/messages" element={<UserMessagesPage />} />
-          <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
-          <Route path="chat-feed" element={<ChatFeedPage />} />
-          <Route path="posts" element={<PostsAdminPage />} />
-          <Route path="polls" element={<PollsAdminPage />} />
-          <Route path="content/menu" element={<MenuAdminPage />} />
-          <Route path="analytics/:tab?" element={<AnalyticsPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="support/tickets" element={<TicketsPage />} />
-          <Route path="support/tickets/:id" element={<TicketDetailPage />} />
-          <Route path="support/feedback" element={<FeedbackPage />} />
-          <Route path="content/legal" element={<LegalAdminPage />} />
-          <Route path="content/faq" element={<FaqAdminPage />} />
-          <Route path="content/news" element={<NewsAdminPage />} />
-          <Route path="communities" element={<CommunitiesAdminPage />} />
-          <Route path="events" element={<EventsAdminPage />} />
-          <Route path="campaigns" element={<CampaignsPage />} />
-          <Route path="campaigns/new" element={<CampaignComposePage />} />
-          <Route path="moderation/appeals" element={<AppealsPage />} />
-          <Route path="moderation/suspensions" element={<SuspendRecommendationsPage />} />
-          <Route path="moderation/blocklist" element={<BlocklistPage />} />
-          <Route path="security/access-bans" element={<AccessBansPage />} />
-          <Route path="profanity" element={<ProfanityPage />} />
-          <Route path="community-categories" element={<CommunityCategoriesPage />} />
-          <Route path="academic/calendar" element={<AcademicCalendarPage />} />
-          <Route path="academic/exams" element={<AcademicExamsPage />} />
-          <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
-          <Route path="pending-users" element={<PendingUsersPage />} />
-          <Route path="crypto" element={<CryptoPage />} />
-          <Route path="ops" element={<OpsPage />} />
-          <Route path="system" element={<SystemStatusPage />} />
-          <Route path="mail/templates" element={<MailTemplatesPage />} />
-          <Route path="mail/templates/:id" element={<MailTemplatesPage />} />
-          <Route path="mail/campaigns" element={<MailCampaignsPage />} />
-          <Route path="mail/campaigns/:id" element={<MailCampaignsPage />} />
-          <Route path="events/applications" element={<EventApplicationsPage />} />
-          <Route path="communities/audit" element={<ClubAuditPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="audit" element={<AuditPage />} />
-          <Route path="*" element={<AdminNotFoundPage />} />
+        {/* Yönetim: YALNIZ Türkçe (AdminScope dili sabitler); giriş sayfası korumasızdır */}
+        <Route element={<AdminScope />}>
+          <Route path={`${ADMIN_BASE.slice(1)}/login`} element={<LoginPage />} />
+          <Route
+            path="admin"
+            element={
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="users/:id" element={<UserDetailPage />} />
+            <Route path="users/:id/messages" element={<UserMessagesPage />} />
+            <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
+            <Route path="chat-feed" element={<ChatFeedPage />} />
+            <Route path="posts" element={<PostsAdminPage />} />
+            <Route path="polls" element={<PollsAdminPage />} />
+            <Route path="content/menu" element={<MenuAdminPage />} />
+            <Route path="analytics/:tab?" element={<AnalyticsPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="support/tickets" element={<TicketsPage />} />
+            <Route path="support/tickets/:id" element={<TicketDetailPage />} />
+            <Route path="support/feedback" element={<FeedbackPage />} />
+            <Route path="content/legal" element={<LegalAdminPage />} />
+            <Route path="content/faq" element={<FaqAdminPage />} />
+            <Route path="content/news" element={<NewsAdminPage />} />
+            <Route path="communities" element={<CommunitiesAdminPage />} />
+            <Route path="events" element={<EventsAdminPage />} />
+            <Route path="campaigns" element={<CampaignsPage />} />
+            <Route path="campaigns/new" element={<CampaignComposePage />} />
+            <Route path="moderation/appeals" element={<AppealsPage />} />
+            <Route path="moderation/suspensions" element={<SuspendRecommendationsPage />} />
+            <Route path="moderation/blocklist" element={<BlocklistPage />} />
+            <Route path="security/access-bans" element={<AccessBansPage />} />
+            <Route path="profanity" element={<ProfanityPage />} />
+            <Route path="community-categories" element={<CommunityCategoriesPage />} />
+            <Route path="academic/calendar" element={<AcademicCalendarPage />} />
+            <Route path="academic/exams" element={<AcademicExamsPage />} />
+            <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
+            <Route path="pending-users" element={<PendingUsersPage />} />
+            <Route path="crypto" element={<CryptoPage />} />
+            <Route path="ops" element={<OpsPage />} />
+            <Route path="system" element={<SystemStatusPage />} />
+            <Route path="mail/templates" element={<MailTemplatesPage />} />
+            <Route path="mail/templates/:id" element={<MailTemplatesPage />} />
+            <Route path="mail/campaigns" element={<MailCampaignsPage />} />
+            <Route path="mail/campaigns/:id" element={<MailCampaignsPage />} />
+            <Route path="events/applications" element={<EventApplicationsPage />} />
+            <Route path="communities/audit" element={<ClubAuditPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="audit" element={<AuditPage />} />
+            <Route path="*" element={<AdminNotFoundPage />} />
+          </Route>
         </Route>
       </Routes>
     </Suspense>

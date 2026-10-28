@@ -83,7 +83,8 @@ describe('yönlendirme', () => {
     );
     // /admin/users artık gerçek sayfa (yer tutucu değil)
     expect(await screen.findByRole('heading', { level: 1, name: 'Kullanıcılar' })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: undefined })).toBeTruthy();
+    expect(screen.getByRole('navigation', { name: 'Yönetim menüsü' })).toBeTruthy();
+    expect(screen.getByRole('navigation', { name: 'Sayfa konumu' })).toBeTruthy();
   });
 
   it('adminNav öğeleri benzersiz', () => {

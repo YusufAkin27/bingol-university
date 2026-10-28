@@ -42,6 +42,9 @@ export const adminNav: AdminNavGroup[] = [
     items: [
       { id: 'users', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
       { id: 'pendingUsers', to: paths.admin.pendingUsers, labelKey: 'admin.nav.pendingUsers', icon: 'mail' },
+      { id: 'suspensions', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'users' },
+      { id: 'appeals', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'alert' },
+      { id: 'accessBans', to: paths.admin.accessBans, labelKey: 'admin.nav.accessBans', icon: 'shield' },
     ],
   },
   {
@@ -52,6 +55,14 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'chatFeed', to: paths.admin.chatFeed, labelKey: 'admin.nav.chatFeed', icon: 'message' },
       { id: 'posts', to: paths.admin.posts, labelKey: 'admin.nav.posts', icon: 'list' },
       { id: 'polls', to: paths.admin.polls, labelKey: 'admin.nav.polls', icon: 'chart' },
+      { id: 'blocklist', to: paths.admin.blocklist, labelKey: 'admin.nav.blocklist', icon: 'eyeOff' },
+      { id: 'profanity', to: paths.admin.profanity, labelKey: 'admin.nav.profanity', icon: 'eyeOff' },
+    ],
+  },
+  {
+    id: 'community',
+    labelKey: 'admin.nav.group.community',
+    items: [
       {
         id: 'communities',
         to: paths.admin.communities,
@@ -59,27 +70,20 @@ export const adminNav: AdminNavGroup[] = [
         icon: 'community',
         end: true,
       },
-      { id: 'events', to: paths.admin.events, labelKey: 'admin.nav.events', icon: 'calendar', end: true },
-      { id: 'appeals', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'alert' },
-      { id: 'suspensions', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'users' },
-      { id: 'blocklist', to: paths.admin.blocklist, labelKey: 'admin.nav.blocklist', icon: 'eyeOff' },
-      { id: 'accessBans', to: paths.admin.accessBans, labelKey: 'admin.nav.accessBans', icon: 'shield' },
-      { id: 'profanity', to: paths.admin.profanity, labelKey: 'admin.nav.profanity', icon: 'eyeOff' },
       {
         id: 'communityCategories',
         to: paths.admin.communityCategories,
         labelKey: 'admin.nav.communityCategories',
         icon: 'community',
       },
+      { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
+      { id: 'events', to: paths.admin.events, labelKey: 'admin.nav.events', icon: 'calendar', end: true },
       {
         id: 'eventApplications',
         to: paths.admin.eventApplications,
         labelKey: 'admin.nav.eventApplications',
         icon: 'list',
       },
-      { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
-      { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
-      { id: 'system', to: paths.admin.system, labelKey: 'admin.nav.system', icon: 'chart' },
     ],
   },
   {
@@ -122,6 +126,8 @@ export const adminNav: AdminNavGroup[] = [
     id: 'system',
     labelKey: 'admin.nav.group.system',
     items: [
+      { id: 'system', to: paths.admin.system, labelKey: 'admin.nav.system', icon: 'chart' },
+      { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'settings', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'audit', to: paths.admin.audit, labelKey: 'admin.nav.audit', icon: 'list' },
       { id: 'crypto', to: paths.admin.crypto, labelKey: 'admin.nav.crypto', icon: 'shield' },
@@ -130,3 +136,44 @@ export const adminNav: AdminNavGroup[] = [
 ];
 
 export const allAdminNavItems: AdminNavItem[] = adminNav.flatMap((g) => g.items);
+
+/**
+ * Menü/arama eşleştirmesi için metni sadeleştirir: küçük harf (tr), aksansız. Böylece "gonderi" yazan
+ * kullanıcı "Gönderiler"i, "iade" yazan "İtirazlar"daki İ'yi bulur.
+ */
+export function foldTr(s: string): string {
+  return s
+    .toLocaleLowerCase('tr')
+    .replace(/ı/g, 'i')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+
+/** Sorgunun tüm sözcükleri etikette geçiyorsa eşleşir (sıra önemsiz). */
+export function navMatches(label: string, query: string): boolean {
+  const words = foldTr(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const hay = foldTr(label);
+  return words.every((w) => hay.includes(w));
+}
+
+export interface NavLocation {
+  group: AdminNavGroup;
+  item: AdminNavItem;
+}
+
+/** Yola karşılık gelen menü öğesi (en uzun yol ön eki kazanır; /admin/users/5 → Kullanıcılar). */
+export function locateNav(pathname: string): NavLocation | null {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  const root = paths.admin.dashboard.replace(/\/+$/, '');
+  let best: (NavLocation & { len: number }) | null = null;
+  for (const group of adminNav) {
+    for (const item of group.items) {
+      const base = item.to.split('?')[0].replace(/\/+$/, '') || '/';
+      // kök (Genel bakış) yalnız tam eşleşir; diğerlerinde alt yollar (users/5) üst öğeye bağlanır
+      const hit = clean === base || (base !== root && clean.startsWith(`${base}/`));
+      if (hit && (!best || base.length > best.len)) best = { group, item, len: base.length };
+    }
+  }
+  return best ? { group: best.group, item: best.item } : null;
+}

@@ -178,9 +178,9 @@ async function assertPage(page: Page, rc: RouteCase, errors: string[], lang: 'tr
     const offenders = await overflowOffenders(page);
     expect(dims.sw, `yatay tasma (${dims.sw} > ${dims.iw}): ${offenders.join(' | ')}`).toBeLessThanOrEqual(dims.iw);
   }
-  if (lang === 'ar') {
-    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  }
+  // yönetim paneli YALNIZ Türkçe: site dili Arapça olsa da yön soldan sağadır
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  void lang;
   // dokunma hedefleri: telefon genisliginde gorunen dugme ve alanlar >= 40px yuksek olmali
   if (dims.iw <= 768) {
     const small = await page.evaluate(() =>

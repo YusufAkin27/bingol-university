@@ -4,6 +4,7 @@ export * from './Fields';
 export * from './Card';
 export * from './Badge';
 export * from './Table';
+export * from './BulkBar';
 export * from './Pagination';
 export * from './Overlay';
 export * from './Tabs';

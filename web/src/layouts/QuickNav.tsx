@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Modal } from '../components/ui';
 import { useI18n } from '../i18n/I18nProvider';
-import { allAdminNavItems } from './adminNav';
+import { adminNav, navMatches } from './adminNav';
 import styles from './QuickNav.module.css';
 
 /** Ctrl/Cmd+K ile açılan sayfa arama penceresi. */
@@ -12,12 +12,16 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
 
-  const items = useMemo(() => {
-    const needle = q.trim().toLocaleLowerCase();
-    return allAdminNavItems
-      .map((i) => ({ ...i, label: t(i.labelKey) }))
-      .filter((i) => !needle || i.label.toLocaleLowerCase().includes(needle));
-  }, [q, t]);
+  const listId = useId();
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const items = useMemo(
+    () =>
+      adminNav
+        .flatMap((g) => g.items.map((i) => ({ ...i, label: t(i.labelKey), group: t(g.labelKey) })))
+        .filter((i) => navMatches(`${i.label} ${i.group}`, q)),
+    [q, t],
+  );
 
   useEffect(() => {
     if (open) {
@@ -25,6 +29,11 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
       setActive(0);
     }
   }, [open]);
+
+  // Ok tuşlarıyla seçilen satır görünür kalsın
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>('[data-active="true"]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [active]);
 
   function go(to: string) {
     onClose();
@@ -37,6 +46,12 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
         data-autofocus
         className={styles.input}
         type="search"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={items[active] ? `${listId}-${items[active].id}` : undefined}
+        autoComplete="off"
         value={q}
         placeholder={t('admin.layout.searchHint')}
         aria-label={t('admin.layout.search')}
@@ -60,18 +75,21 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
       {items.length === 0 ? (
         <p className={styles.empty}>{t('admin.layout.searchEmpty')}</p>
       ) : (
-        <ul className={styles.list}>
+        <ul className={styles.list} id={listId} role="listbox" aria-label={t('admin.layout.search')} ref={listRef}>
           {items.map((i, idx) => (
-            <li key={i.id}>
-              <button
-                type="button"
-                className={`${styles.item} ${idx === active ? styles.on : ''}`}
-                onClick={() => go(i.to)}
-                onMouseEnter={() => setActive(idx)}
-              >
-                <Icon name={i.icon} size={18} />
-                {i.label}
-              </button>
+            <li
+              key={i.id}
+              id={`${listId}-${i.id}`}
+              role="option"
+              aria-selected={idx === active}
+              data-active={idx === active}
+              className={`${styles.item} ${idx === active ? styles.on : ''}`}
+              onClick={() => go(i.to)}
+              onMouseEnter={() => setActive(idx)}
+            >
+              <Icon name={i.icon} size={18} />
+              <span className={styles.label}>{i.label}</span>
+              <span className={styles.group}>{i.group}</span>
             </li>
           ))}
         </ul>

@@ -344,12 +344,13 @@ test.describe('haber', () => {
 
 test.describe('dil ve rtl', () => {
   const pages: [string, string, string, string][] = [
-    ['/admin/reports', 'Raporlar', 'Reports', 'البلاغات'],
-    ['/admin/support/tickets', 'Destek talepleri', 'Support tickets', 'تذاكر الدعم'],
-    ['/admin/support/feedback', 'Geri bildirim ve öneriler', 'Feedback and suggestions', 'الملاحظات والاقتراحات'],
-    ['/admin/content/legal', 'Sözleşmeler', 'Legal documents', 'الاتفاقيات'],
-    ['/admin/content/faq', 'Sık sorulan sorular', 'FAQ', 'الأسئلة الشائعة'],
-    ['/admin/content/news', 'Haberler', 'News', 'الأخبار'],
+    // yönetim paneli YALNIZ Türkçe: site dili en/ar olsa da başlık Türkçe, yön soldan sağa
+    ['/admin/reports', 'Raporlar', 'Raporlar', 'Raporlar'],
+    ['/admin/support/tickets', 'Destek talepleri', 'Destek talepleri', 'Destek talepleri'],
+    ['/admin/support/feedback', 'Geri bildirim ve öneriler', 'Geri bildirim ve öneriler', 'Geri bildirim ve öneriler'],
+    ['/admin/content/legal', 'Sözleşmeler', 'Sözleşmeler', 'Sözleşmeler'],
+    ['/admin/content/faq', 'Sık sorulan sorular', 'Sık sorulan sorular', 'Sık sorulan sorular'],
+    ['/admin/content/news', 'Haberler', 'Haberler', 'Haberler'],
   ];
   for (const [path, tr, en, ar] of pages) {
     test(`${path} tr/en/ar acilir`, async ({ browser }) => {
@@ -359,7 +360,7 @@ test.describe('dil ve rtl', () => {
         await openAs(page, lang);
         await page.goto(path);
         await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
-        await expect(page.locator('html')).toHaveAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
         await ctx.close();
       }
     });

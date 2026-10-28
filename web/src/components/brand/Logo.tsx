@@ -94,7 +94,8 @@ export function Logo({
 
   if (to) {
     return (
-      <Link to={to} className={cls} data-variant={variant}>
+      // tone="auto": koyu temada açık görsel gizlenir, görünen görselin alt'ı boştur; bağlantı adı buradan gelir
+      <Link to={to} className={cls} data-variant={variant} aria-label={decorative ? undefined : alt}>
         {content}
       </Link>
     );

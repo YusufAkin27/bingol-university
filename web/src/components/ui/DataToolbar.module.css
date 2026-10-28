@@ -15,3 +15,18 @@
   gap: var(--space-2);
   margin-inline-start: auto;
 }
+
+.bar > * {
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  /* dar ekran: arama tam genişlik, filtreler ve eylemler kendi satırında, taşma yok */
+  .filters,
+  .actions {
+    flex: 1 1 100%;
+  }
+  .actions {
+    margin-inline-start: 0;
+    flex-wrap: wrap;
+  }
+}

@@ -1,12 +1,23 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { isolateLatinIdentifiers } from './bidi';
 import { translate, hasKey, type TParams, type TranslationKey } from './index';
 import {
   applyDocumentLang,
   dirOf,
   getCurrentLang,
+  getSiteLang,
   localeOf,
   setCurrentLang,
+  setForcedLang,
   type Dir,
   type Lang,
 } from './lang';
@@ -34,18 +45,44 @@ function toDate(v: string | number | Date | null | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-export function I18nProvider({ children, initialLang }: { children: ReactNode; initialLang?: Lang }) {
-  const [lang, setLangState] = useState<Lang>(initialLang ?? getCurrentLang);
+export function I18nProvider({
+  children,
+  initialLang,
+  forcedLang,
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+  /** Verilirse dil sabittir (yönetim paneli: tr): seçim yazılmaz, siteye ait tercih korunur. */
+  forcedLang?: Lang;
+}) {
+  const [stateLang, setLangState] = useState<Lang>(initialLang ?? getCurrentLang);
+  const lang = forcedLang ?? stateLang;
 
   // İlk boyamada <html lang dir> senkron olsun
   useEffect(() => {
     applyDocumentLang(lang);
   }, [lang]);
 
-  const setLang = useCallback((next: Lang) => {
-    setCurrentLang(next);
-    setLangState(next);
-  }, []);
+  // Sabitleme: API istekleri (Accept-Language) de bu dili kullanır; çıkınca site dili geri gelir
+  // (layout effect: alt bileşenlerin ilk istekleri atılmadan önce devreye girsin)
+  useLayoutEffect(() => {
+    if (!forcedLang) return;
+    setForcedLang(forcedLang);
+    applyDocumentLang(forcedLang);
+    return () => {
+      setForcedLang(null);
+      applyDocumentLang(getSiteLang());
+    };
+  }, [forcedLang]);
+
+  const setLang = useCallback(
+    (next: Lang) => {
+      if (forcedLang) return;
+      setCurrentLang(next);
+      setLangState(next);
+    },
+    [forcedLang],
+  );
 
   const value = useMemo<I18n>(() => {
     const locale = localeOf(lang);

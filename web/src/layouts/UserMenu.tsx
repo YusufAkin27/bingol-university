@@ -26,6 +26,8 @@ export function UserMenu() {
         btn.current?.focus();
       }
     };
+    // açılınca ilk öğeye odaklan (klavye ile erişim)
+    ref.current?.querySelector<HTMLElement>('[data-menuitem]')?.focus();
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -36,35 +38,55 @@ export function UserMenu() {
 
   if (!user) return null;
   return (
-    <div className={styles.wrap} ref={ref}>
+    <div
+      className={styles.wrap}
+      ref={ref}
+      onBlur={(e) => {
+        // odak bileşenin dışına çıkınca kapat (Tab ile ayrılma)
+        if (open && !e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
       <button
         ref={btn}
         type="button"
         className={styles.trigger}
-        aria-haspopup="true"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={t('admin.layout.userMenu')}
         onClick={() => setOpen((v) => !v)}
       >
-        <Avatar name={user.displayName || user.email} size={32} />
-        <span className={styles.name}>{user.displayName}</span>
+        <span aria-hidden="true" className={styles.avatar}>
+          <Avatar name={user.displayName || user.email} size={32} />
+        </span>
+        <span className={styles.name}>{user.displayName} </span>
+        {/* ad dar ekranda gizlenir; erişilebilir ad içerikten gelir (Label in Name sorunu olmasın) */}
+        <span className="sr-only">{t('admin.layout.userMenu')}</span>
         <Icon name="chevronDown" size={16} />
       </button>
       {open && (
-        <div id={menuId} className={styles.menu}>
+        <div
+          id={menuId}
+          className={styles.menu}
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+            const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('[data-menuitem]'));
+            const i = items.indexOf(document.activeElement as HTMLElement);
+            e.preventDefault();
+            items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+          }}
+        >
           <div className={styles.who}>
             <strong>{user.displayName}</strong>
             <span className="ltr">{user.email}</span>
             <span className={styles.role}>{t('admin.layout.roleAdmin')}</span>
           </div>
-          <Link to={paths.site.home} className={styles.item} onClick={() => setOpen(false)}>
+          <Link to={paths.site.home} className={styles.item} data-menuitem onClick={() => setOpen(false)}>
             <Icon name="external" size={18} />
             {t('admin.layout.viewSite')}
           </Link>
           <button
             type="button"
             className={styles.item}
+            data-menuitem
             onClick={async () => {
               setOpen(false);
               await logout();

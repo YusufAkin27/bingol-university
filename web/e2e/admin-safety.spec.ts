@@ -70,13 +70,14 @@ test.describe('Yeni yonetim sayfalari', () => {
   });
 });
 
-test.describe('Arapca ve RTL', () => {
-  test('yeni sayfalar sagdan sola yonlenir', async ({ page, request }) => {
+test.describe('Arapca site tercihi', () => {
+  test('yonetim paneli site dili Arapca olsa da Turkce ve soldan saga kalir', async ({ page, request }) => {
     await setLang(page, 'ar');
     await loginAsAdmin(page, request);
     await ensureAdminMe(page, request);
     await page.goto('/admin/crypto');
-    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
     await expect(page.getByTestId('decrypt-warning')).toHaveCount(0);
   });
 });

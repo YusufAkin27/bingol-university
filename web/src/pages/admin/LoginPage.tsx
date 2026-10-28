@@ -1,14 +1,14 @@
 import { useNoIndex } from '../../lib/useNoIndex';
-// SAYFA: Yönetici girişi (/admin/login) — iskelet tarafından tamamlanmıştır.
+// SAYFA: Yönetici girişi (/admin/login): yalnız Türkçe, sade krem zemin, mobil uygulamayla aynı tasarım dili.
 // API: POST /api/auth/login, ardından GET /api/admin/me (AuthProvider.login); rol ADMIN değilse "yetkiniz yok" ekranı.
 import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import { isApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { ForbiddenScreen } from '../../auth/ForbiddenScreen';
-import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { Logo } from '../../components/brand/Logo';
 import { ThemeToggle } from '../../components/ThemeToggle';
-import { Button, ContourBackdrop, FormField, Icon, Input, PasswordInput } from '../../components/ui';
+import { Button, FormField, Icon, Input, PasswordInput } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
@@ -38,34 +38,35 @@ export default function LoginPage() {
     e.preventDefault();
     setTouched(true);
     setError(null);
-    if (!email.trim() || !password) return;
+    if (!email.trim() || !password || !email.includes('@')) return;
     setBusy(true);
     try {
       await login(email, password);
     } catch (err) {
-      setError(errorMessage(i18n, err));
+      // 429: sunucunun hız sınırı; 401: hatalı bilgiler (sızıntısız tek genel metin)
+      setError(
+        isApiError(err) && err.status === 429
+          ? t('admin.login.rateLimited')
+          : isApiError(err) && err.status === 401
+            ? t('common.error.INVALID_CREDENTIALS')
+            : errorMessage(i18n, err),
+      );
     } finally {
       setBusy(false);
     }
   }
 
   const required = t('admin.login.required');
+  const emailError = touched ? (!email.trim() ? required : !email.includes('@') ? t('admin.login.invalidEmail') : null) : null;
   return (
     <div className={styles.page}>
-      <aside className={styles.brand}>
-        <ContourBackdrop className={styles.art} />
-        <div className={styles.brandInner}>
-          <Logo to={paths.site.home} tone="dark" height={44} />
-          <p className={styles.line}>{t('admin.login.brandLine')}</p>
-        </div>
-      </aside>
-      <main className={styles.formSide}>
-        <div className={styles.tools}>
-          <LanguageSwitcher compact />
-          <ThemeToggle />
-        </div>
-        <form className={styles.form} onSubmit={onSubmit} noValidate>
-          <div>
+      <div className={styles.tools}>
+        <ThemeToggle />
+      </div>
+      <main className={styles.center}>
+        <form className={styles.card} onSubmit={onSubmit} noValidate aria-busy={busy || undefined}>
+          <Logo to={paths.site.home} height={32} className={styles.logo} />
+          <div className={styles.head}>
             <h1 className={styles.title}>{t('admin.login.title')}</h1>
             <p className={styles.sub}>{t('admin.login.subtitle')}</p>
           </div>
@@ -75,26 +76,20 @@ export default function LoginPage() {
               <span>{error}</span>
             </div>
           )}
-          <FormField
-            label={t('admin.login.email')}
-            error={touched && !email.trim() ? required : null}
-            required
-          >
+          <FormField label={t('admin.login.email')} error={emailError} required>
             <Input
               type="email"
               name="email"
               autoComplete="username"
               inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               dir="ltr"
             />
           </FormField>
-          <FormField
-            label={t('admin.login.password')}
-            error={touched && !password ? required : null}
-            required
-          >
+          <FormField label={t('admin.login.password')} error={touched && !password ? required : null} required>
             <PasswordInput
               name="password"
               autoComplete="current-password"
@@ -108,7 +103,11 @@ export default function LoginPage() {
           <Button type="submit" size="lg" fullWidth loading={busy}>
             {busy ? t('admin.login.submitting') : t('admin.login.submit')}
           </Button>
+          <p className={styles.note}>{t('admin.login.restricted')}</p>
         </form>
+        <Link to={paths.site.home} className={styles.back}>
+          {t('admin.login.backToSite')}
+        </Link>
       </main>
     </div>
   );

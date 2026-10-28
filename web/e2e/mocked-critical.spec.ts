@@ -13,7 +13,8 @@ const json = (route: Route, body: unknown, status = 200) =>
 
 /** Varsayilan: taklit edilmeyen her /api istegi 404 (gercek sunucuya sizma olmaz). */
 async function stubAll(page: Page) {
-  await page.route('**/api/**', (r) => json(r, { code: 'NOT_FOUND', message: 'yok' }, 404));
+  // yalnız /api/ ile başlayan yollar: '**/api/**' Vite geliştirme sunucusunun /src/api/*.ts modüllerini de yutar
+  await page.route((u) => u.pathname.startsWith('/api/'), (r) => json(r, { code: 'NOT_FOUND', message: 'yok' }, 404));
   await page.route('**/api/admin/me', (r) => json(r, ME));
   await page.route('**/api/admin/analytics/**', (r) => json(r, {}, 200));
 }

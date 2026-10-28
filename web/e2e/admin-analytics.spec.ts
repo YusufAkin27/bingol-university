@@ -322,9 +322,10 @@ test.describe('denetim kaydi', () => {
 
 test.describe('diller', () => {
   for (const [lang, title, dir] of [
+    // yönetim paneli YALNIZ Türkçe: site dili tercihi ne olursa olsun Türkçe ve soldan sağa
     ['tr', 'Genel bakış', 'ltr'],
-    ['en', 'Overview', 'ltr'],
-    ['ar', 'نظرة عامة', 'rtl'],
+    ['en', 'Genel bakış', 'ltr'],
+    ['ar', 'Genel bakış', 'ltr'],
   ] as const) {
     test(`${lang}: genel bakis acilir (dir=${dir})`, async ({ page }) => {
       await prepare(page, { lang });

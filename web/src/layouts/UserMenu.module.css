@@ -16,6 +16,9 @@
 .trigger:hover {
   background: var(--surface-2);
 }
+.avatar {
+  display: inline-flex;
+}
 .name {
   max-width: 14ch;
   overflow: hidden;

@@ -1,5 +1,7 @@
 .list {
   display: flex;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
   gap: var(--space-1);
   border-block-end: 1px solid var(--border);
   overflow-x: auto;

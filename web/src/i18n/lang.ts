@@ -31,10 +31,22 @@ export function getStoredLang(): Lang {
 }
 
 let current: Lang = getStoredLang();
+// Yönetim paneli yalnız Türkçedir: /admin altında etkin dil buraya sabitlenir; site dili tercihi (current/storage) değişmez.
+let forced: Lang | null = null;
 
 /** API istemcisi Accept-Language için bunu okur. */
 export function getCurrentLang(): Lang {
+  return forced ?? current;
+}
+
+/** Siteye ait (kayıtlı) dil tercihi; yönetim paneli sabitlemesinden etkilenmez. */
+export function getSiteLang(): Lang {
   return current;
+}
+
+/** Geçici dil sabitlemesi (yönetim paneli); depoya yazmaz. `null` sabitlemeyi kaldırır. */
+export function setForcedLang(lang: Lang | null): void {
+  forced = lang;
 }
 
 export function setCurrentLang(lang: Lang): void {
@@ -45,6 +57,7 @@ export function setCurrentLang(lang: Lang): void {
 
 export function applyDocumentLang(lang: Lang): void {
   if (typeof document === 'undefined') return;
-  document.documentElement.lang = lang;
-  document.documentElement.dir = dirOf(lang);
+  const l = forced ?? lang;
+  document.documentElement.lang = l;
+  document.documentElement.dir = dirOf(l);
 }

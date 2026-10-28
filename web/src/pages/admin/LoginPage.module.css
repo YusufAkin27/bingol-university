@@ -1,71 +1,46 @@
+/* Yönetici girişi: sade krem zemin (--bg), Inter, ince kenarlıklı 20 px kart; yayın sitesi dekoru yok. */
 .page {
+  position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-}
-.brand {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(160deg, var(--hero), var(--hero-end) 60%, var(--chrome) 130%);
-  color: #fff;
-  display: flex;
-  align-items: flex-end;
-}
-.art {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  color: #fff;
-  opacity: 0.2;
-}
-:global(:root[dir='rtl']) .art {
-  transform: scaleX(-1);
-}
-.brandInner {
-  position: relative;
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-7);
-  max-width: 34rem;
-}
-.line {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  line-height: 1.3;
-  color: #fff;
-}
-.formSide {
-  position: relative;
-  display: grid;
-  place-items: center;
-  padding: var(--space-6) var(--space-4);
   background: var(--bg);
 }
 .tools {
   position: absolute;
   inset-block-start: var(--space-3);
   inset-inline-end: var(--space-3);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
 }
-.form {
+.center {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-7) var(--space-4) var(--space-6);
+}
+.card {
   width: min(100%, 400px);
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   padding: var(--space-6);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2);
+}
+.logo {
+  justify-self: start;
+}
+.head {
+  display: grid;
+  gap: var(--space-1);
 }
 .title {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .sub {
   color: var(--text-muted);
-  margin-block-start: var(--space-1);
   font-size: var(--text-sm);
 }
 .alert {
@@ -73,7 +48,7 @@
   gap: var(--space-2);
   align-items: flex-start;
   padding: var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--danger-soft);
   color: var(--danger);
   font-size: var(--text-sm);
@@ -83,31 +58,25 @@
   flex: none;
   margin-block-start: 2px;
 }
+.note {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+.back {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-underline-offset: 3px;
+}
+.back:hover {
+  color: var(--text);
+}
 
-@media (max-width: 860px) {
-  .page {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+@media (max-width: 480px) {
+  .center {
+    padding-block-start: var(--space-8);
   }
-  .brand {
-    min-height: 168px;
-  }
-  .brandInner {
+  .card {
     padding: var(--space-5) var(--space-4);
-  }
-  .line {
-    font-size: var(--text-base);
-  }
-  .formSide {
-    align-items: start;
-    padding-block-start: var(--space-5);
-  }
-  .tools {
-    position: static;
-    justify-self: end;
-    margin-block-end: var(--space-3);
-  }
-  .formSide {
-    grid-template-rows: auto 1fr;
   }
 }

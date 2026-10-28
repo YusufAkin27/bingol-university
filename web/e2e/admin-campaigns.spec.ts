@@ -446,8 +446,9 @@ test.describe('ayarlar', () => {
 test.describe('diller', () => {
   const titles: Record<'tr' | 'en' | 'ar', string[]> = {
     tr: ['Topluluklar', 'Etkinlikler', 'Kampanyalar', 'Yeni kampanya oluştur', 'Ayarlar'],
-    en: ['Communities', 'Events', 'Campaigns', 'Create a campaign', 'Settings'],
-    ar: ['المجتمعات', 'الفعاليات', 'الحملات', 'إنشاء حملة', 'الإعدادات'],
+    // yönetim paneli YALNIZ Türkçe: site dili en/ar olsa da başlıklar Türkçe kalır
+    en: ['Topluluklar', 'Etkinlikler', 'Kampanyalar', 'Yeni kampanya oluştur', 'Ayarlar'],
+    ar: ['Topluluklar', 'Etkinlikler', 'Kampanyalar', 'Yeni kampanya oluştur', 'Ayarlar'],
   };
   const urls = ['/admin/communities', '/admin/events', '/admin/campaigns', '/admin/campaigns/new', '/admin/settings'];
   for (const lang of ['tr', 'en', 'ar'] as const) {
@@ -455,7 +456,7 @@ test.describe('diller', () => {
       for (let i = 0; i < urls.length; i++) {
         await openAsAdmin(page, urls[i], lang);
         await expect(page.getByRole('heading', { level: 1, name: titles[lang][i] })).toBeVisible();
-        await expect(page.locator('html')).toHaveAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
       }
     });
   }

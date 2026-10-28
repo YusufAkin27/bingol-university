@@ -1,8 +1,7 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Icon } from './Icon';
-import { Skeleton } from './Feedback';
-import { EmptyState } from './Feedback';
+import { EmptyState, ErrorState, Skeleton } from './Feedback';
 import styles from './Table.module.css';
 
 export interface Column<T> {
@@ -34,6 +33,42 @@ interface TableProps<T> {
   onSortChange?: (next: SortState) => void;
   onRowClick?: (row: T) => void;
   caption?: string;
+  /** Yükleme hatası: tablo yerine hata durumu ve (onRetry varsa) "Tekrar dene" gösterilir. */
+  error?: boolean;
+  onRetry?: () => void;
+  /** Satır seçimi (toplu işlemler): ikisi birlikte verilirse ilk sütun onay kutusu olur. */
+  selectedKeys?: ReadonlySet<string | number>;
+  onSelectionChange?: (next: Set<string | number>) => void;
+  /** Daha geniş satır aralığı (varsayılan: yoğun). */
+  comfortable?: boolean;
+}
+
+/** Başlıktaki "tümünü seç" kutusu: kısmi seçimde karışık (indeterminate) durumdadır. */
+function SelectAll({
+  checked,
+  partial,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  partial: boolean;
+  label: string;
+  onChange: () => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = partial;
+  }, [partial]);
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      className={styles.check}
+      aria-label={label}
+      checked={checked}
+      onChange={onChange}
+    />
+  );
 }
 
 export function Table<T>({
@@ -47,8 +82,31 @@ export function Table<T>({
   onSortChange,
   onRowClick,
   caption,
+  error,
+  onRetry,
+  selectedKeys,
+  onSelectionChange,
+  comfortable,
 }: TableProps<T>) {
   const { t } = useI18n();
+  const selectable = !!selectedKeys && !!onSelectionChange;
+  const keys = rows?.map(rowKey) ?? [];
+  const selectedCount = keys.filter((k) => selectedKeys?.has(k)).length;
+
+  function toggleAll() {
+    if (!selectedKeys || !onSelectionChange) return;
+    const next = new Set(selectedKeys);
+    if (selectedCount === keys.length) keys.forEach((k) => next.delete(k));
+    else keys.forEach((k) => next.add(k));
+    onSelectionChange(next);
+  }
+  function toggleRow(k: string | number) {
+    if (!selectedKeys || !onSelectionChange) return;
+    const next = new Set(selectedKeys);
+    if (next.has(k)) next.delete(k);
+    else next.add(k);
+    onSelectionChange(next);
+  }
 
   function toggle(col: Column<T>) {
     if (!onSortChange) return;
@@ -64,15 +122,33 @@ export function Table<T>({
     }
   }
 
+  if (error && !loading) {
+    return (
+      <div className={styles.wrap}>
+        <ErrorState compact onRetry={onRetry} />
+      </div>
+    );
+  }
+
   const isEmpty = !loading && rows && rows.length === 0;
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${comfortable ? styles.comfortable : ''}`}>
       <div className={styles.scroll} tabIndex={0} role={caption ? 'region' : undefined} aria-label={caption}>
         <table className={styles.table}>
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead>
             <tr>
+              {selectable && (
+                <th scope="col" className={styles.selectCell}>
+                  <SelectAll
+                    checked={keys.length > 0 && selectedCount === keys.length}
+                    partial={selectedCount > 0 && selectedCount < keys.length}
+                    label={t('admin.table.selectAll')}
+                    onChange={toggleAll}
+                  />
+                </th>
+              )}
               {columns.map((c) => {
                 const active = sort?.key === c.key;
                 return (
@@ -120,6 +196,7 @@ export function Table<T>({
             {loading &&
               Array.from({ length: skeletonRows }, (_, i) => (
                 <tr key={`sk-${i}`} aria-hidden="true">
+                  {selectable && <td className={styles.selectCell} />}
                   {columns.map((c) => (
                     <td key={c.key}>
                       <Skeleton width={`${50 + ((i * 17 + c.key.length * 11) % 45)}%`} />
@@ -128,21 +205,37 @@ export function Table<T>({
                 </tr>
               ))}
             {!loading &&
-              rows?.map((row) => (
-                <tr
-                  key={rowKey(row)}
-                  className={onRowClick ? styles.clickable : undefined}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  onKeyDown={onRowClick ? (e) => onKey(e, row) : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                >
-                  {columns.map((c) => (
-                    <td key={c.key} className={styles[c.align ?? 'start']}>
-                      {c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? '')}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              rows?.map((row) => {
+                const k = rowKey(row);
+                const picked = !!selectedKeys?.has(k);
+                return (
+                  <tr
+                    key={k}
+                    data-selected={picked || undefined}
+                    className={onRowClick ? styles.clickable : undefined}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={onRowClick ? (e) => onKey(e, row) : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
+                  >
+                    {selectable && (
+                      <td className={styles.selectCell} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className={styles.check}
+                          aria-label={t('admin.table.selectRow')}
+                          checked={picked}
+                          onChange={() => toggleRow(k)}
+                        />
+                      </td>
+                    )}
+                    {columns.map((c) => (
+                      <td key={c.key} className={styles[c.align ?? 'start']}>
+                        {c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? '')}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
