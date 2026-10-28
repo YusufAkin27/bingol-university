@@ -115,7 +115,8 @@ class AuthServiceAccessBanTest {
         PendingRegistrationStore.Pending p = new PendingRegistrationStore.Pending("h", "Ali", "tr");
         when(pending.find(EMAIL)).thenReturn(p);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
-        when(verification.verify(EMAIL, "123456")).thenReturn(true);
+        // Baglam varsa deneme sayaci (e-posta, IP/64) cifti basinadir (3 argumanli dogrulama)
+        when(verification.verify(EMAIL, "123456", "203.0.113.9")).thenReturn(true);
         when(accounts.create(EMAIL, p)).thenReturn(user);
 
         auth.verifyEmail(EMAIL, "123456", "mobile", ctx);

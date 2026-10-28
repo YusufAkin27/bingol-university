@@ -124,4 +124,18 @@ class JwtAuthFilterTest {
         assertNotNull(id.issuedAt());
         assertNull(jwt.parse("garbage"));
     }
+
+    @Test
+    void roleChangeMarkerMillisecondPrecision() {
+        assertFalse(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_500L, null));
+        // ayni saniyede ama degisimden once uretilen eski token artik reddedilir (ms hassasiyeti)
+        assertTrue(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_100L, "1700000000400"));
+        // degisimden sonra (ayni saniye) refresh ile alinan token kabul
+        assertFalse(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_700L, "1700000000400"));
+        assertFalse(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_400L, "1700000000400"));
+        // eski surumden saniye isareti korunur
+        assertTrue(JwtAuthFilter.tokenPredatesRoleChangeMs(1_699_999_999_000L, "1700000000"));
+        assertFalse(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_000L, "1700000000"));
+        assertFalse(JwtAuthFilter.tokenPredatesRoleChangeMs(1_700_000_000_000L, "bozuk"));
+    }
 }

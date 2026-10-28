@@ -32,6 +32,40 @@ public class ClientIp {
         return resolve(req.getRemoteAddr(), req.getHeader("X-Forwarded-For"));
     }
 
+    /**
+     * Hiz siniri anahtari icin IP: IPv6 /64 onekine indirgenir (bir kullaniciya /64 verilir; adres dondurerek limit
+     * atlatilamasin), IPv4-eslenik (::ffff:a.b.c.d) IPv4'e cevrilir, IPv4 oldugu gibi kalir. Log/denetim tam adresi
+     * kullanmaya devam eder ({@link #of}).
+     */
+    public String limitKey(HttpServletRequest req) {
+        return limitKey(of(req));
+    }
+
+    public static String limitKey(String ip) {
+        if (ip == null || ip.isBlank()) {
+            return "unknown";
+        }
+        if (ip.indexOf(':') < 0 || !isLiteralIp(ip)) {
+            return ip;
+        }
+        try {
+            byte[] b = InetAddress.getByName(ip).getAddress();
+            if (b.length == 4) { // Java IPv4-eslenik IPv6'yi zaten Inet4Address'e cevirir
+                return InetAddress.getByAddress(b).getHostAddress();
+            }
+            StringBuilder sb = new StringBuilder("v6:");
+            for (int i = 0; i < 8; i++) {
+                sb.append(String.format("%02x", b[i] & 0xff));
+                if (i % 2 == 1 && i < 7) {
+                    sb.append(':');
+                }
+            }
+            return sb.append("::/64").toString();
+        } catch (Exception e) {
+            return ip;
+        }
+    }
+
     public String resolve(String remoteAddr, String xForwardedFor) {
         if (remoteAddr == null) {
             return "unknown";

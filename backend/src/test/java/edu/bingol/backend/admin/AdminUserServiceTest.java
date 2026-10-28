@@ -86,9 +86,9 @@ class AdminUserServiceTest {
         assertEquals(Role.USER, target.getRole());
         verify(users).lockAdminIds();
         verify(users).save(target);
-        // Eski JWT'yi reddettiren isaret: degisim zamani (epoch sn), access token omru + 1 dk
+        // Eski JWT'yi reddettiren isaret: degisim zamani (epoch ms), access token omru + 1 dk
         verify(ops).set(JwtAuthFilter.ROLE_CHANGED_KEY_PREFIX + 2L,
-                String.valueOf(Instant.parse("2026-10-23T12:00:00Z").getEpochSecond()), Duration.ofMinutes(16));
+                String.valueOf(Instant.parse("2026-10-23T12:00:00Z").toEpochMilli()), Duration.ofMinutes(16));
     }
 
     @Test
@@ -110,6 +110,36 @@ class AdminUserServiceTest {
 
         verify(users, never()).save(any());
         verify(ops, never()).set(anyString(), anyString(), any(Duration.class));
+    }
+
+    @Test
+    void roleMarkIsWrittenOnlyAfterCommitWithMillisecondPrecision() {
+        user(3L, Role.USER);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.changeRole(1L, 3L, Role.ADMIN);
+
+            // commit'ten once isaret yok: erken yazilirsa commit oncesi refresh eski rolle token alirdi
+            verify(ops, never()).set(eq(JwtAuthFilter.ROLE_CHANGED_KEY_PREFIX + 3L), anyString(), any(Duration.class));
+            for (var s : org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()) {
+                s.afterCommit();
+            }
+            verify(ops).set(JwtAuthFilter.ROLE_CHANGED_KEY_PREFIX + 3L,
+                    String.valueOf(Instant.parse("2026-10-23T12:00:00Z").toEpochMilli()), Duration.ofMinutes(16));
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void deleteAlsoRevokesRefreshSessions() {
+        user(4L, Role.USER);
+        var sessions = mock(edu.bingol.backend.auth.token.SessionService.class);
+        service.setSessions(sessions);
+
+        service.delete(1L, 4L);
+
+        verify(sessions).revokeAll(4L);
     }
 
     @Test

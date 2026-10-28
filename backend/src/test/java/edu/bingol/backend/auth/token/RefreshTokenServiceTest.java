@@ -38,7 +38,7 @@ class RefreshTokenServiceTest {
 
         String hash = Hashing.sha256(token);
         verify(values).set(org.mockito.ArgumentMatchers.eq("rt:" + hash),
-                org.mockito.ArgumentMatchers.eq("7:web"), any(Duration.class));
+                org.mockito.ArgumentMatchers.startsWith("7:web:"), any(Duration.class));
         verify(sets).add("rtu:7", hash);
     }
 
@@ -72,7 +72,7 @@ class RefreshTokenServiceTest {
     void issueTagsClientAndConsumeReturnsIt() {
         service.issue(7L, "MOBILE");
         verify(values).set(org.mockito.ArgumentMatchers.startsWith("rt:"),
-                org.mockito.ArgumentMatchers.eq("7:mobile"), any(Duration.class));
+                org.mockito.ArgumentMatchers.startsWith("7:mobile:"), any(Duration.class));
 
         when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:mobile");
         RefreshTokenService.Session s = service.consumeSession("tok");
@@ -116,5 +116,62 @@ class RefreshTokenServiceTest {
 
         verify(redis).delete("rtu:7");
         verify(redis, org.mockito.Mockito.never()).delete(org.mockito.ArgumentMatchers.<java.util.Collection<String>>any());
+    }
+
+    @Test
+    void consumeReadsAuthTimeAndLeavesUsedMarker() {
+        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:mobile:123456");
+
+        RefreshTokenService.Session s = service.consumeSession("tok");
+
+        assertEquals(123456L, s.authTimeMs());
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtused:" + Hashing.sha256("tok")),
+                org.mockito.ArgumentMatchers.startsWith("7:"), any(Duration.class));
+    }
+
+    @Test
+    void logoutRevokeDoesNotLeaveUsedMarkerSoLoggedOutTokenIsNotTheft() {
+        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:web:1");
+
+        service.revoke("tok");
+
+        verify(values, org.mockito.Mockito.never()).set(org.mockito.ArgumentMatchers.startsWith("rtused:"),
+                org.mockito.ArgumentMatchers.anyString(), any(Duration.class));
+    }
+
+    @Test
+    void reuseBeyondGraceIsDetectedWithinGraceIsNot() {
+        long longAgo = System.currentTimeMillis() - 60_000;
+        when(values.get("rtused:" + Hashing.sha256("old"))).thenReturn("7:" + longAgo);
+        when(values.get("rtused:" + Hashing.sha256("fresh"))).thenReturn("7:" + System.currentTimeMillis());
+
+        assertEquals(7L, service.detectReuse("old").getAsLong());
+        org.junit.jupiter.api.Assertions.assertTrue(service.detectReuse("fresh").isEmpty());
+        org.junit.jupiter.api.Assertions.assertTrue(service.detectReuse("never-seen").isEmpty());
+    }
+
+    @Test
+    void absoluteSessionLifetimeIsEnforcedFromAuthTime() {
+        long now = System.currentTimeMillis();
+        long day = 86_400_000L;
+        org.junit.jupiter.api.Assertions.assertFalse(
+                service.isExpired(new RefreshTokenService.Session(7L, "web", now - 89 * day)));
+        org.junit.jupiter.api.Assertions.assertTrue(
+                service.isExpired(new RefreshTokenService.Session(7L, "web", now - 91 * day)));
+        // eski token (authTime yok) sureye takilmaz
+        org.junit.jupiter.api.Assertions.assertFalse(service.isExpired(new RefreshTokenService.Session(7L, "web")));
+    }
+
+    @Test
+    void rotatedTokenLifetimeNeverExceedsAbsoluteLimit() {
+        long authTime = System.currentTimeMillis() - 85L * 86_400_000L; // 5 gun kaldi (mutlak 90)
+
+        service.issue(7L, "web", authTime);
+
+        org.mockito.ArgumentCaptor<Duration> ttl = org.mockito.ArgumentCaptor.forClass(Duration.class);
+        verify(values).set(org.mockito.ArgumentMatchers.startsWith("rt:"),
+                org.mockito.ArgumentMatchers.eq("7:web:" + authTime), ttl.capture());
+        org.junit.jupiter.api.Assertions.assertTrue(ttl.getValue().compareTo(Duration.ofDays(5)) <= 0);
+        org.junit.jupiter.api.Assertions.assertTrue(ttl.getValue().compareTo(Duration.ofDays(4)) > 0);
     }
 }

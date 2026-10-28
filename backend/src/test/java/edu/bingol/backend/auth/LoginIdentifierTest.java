@@ -34,4 +34,14 @@ class LoginIdentifierTest {
     void nullIsRejected() {
         assertThrows(ApiException.class, () -> LoginIdentifier.normalize(null));
     }
+
+    @Test
+    void plusAliasDetectionAndCanonicalKey() {
+        org.junit.jupiter.api.Assertions.assertTrue(LoginIdentifier.hasPlusAlias("ali+2@bingol.edu.tr"));
+        org.junit.jupiter.api.Assertions.assertFalse(LoginIdentifier.hasPlusAlias("ali@bingol.edu.tr"));
+        org.junit.jupiter.api.Assertions.assertFalse(LoginIdentifier.hasPlusAlias("226051015@bingol.edu.tr"));
+        assertEquals("ali@bingol.edu.tr", LoginIdentifier.aliasKey("ali+2@bingol.edu.tr"));
+        assertEquals("ali@bingol.edu.tr", LoginIdentifier.aliasKey("ali+a+b@bingol.edu.tr"));
+        assertEquals("ali@bingol.edu.tr", LoginIdentifier.aliasKey("ali@bingol.edu.tr"));
+    }
 }

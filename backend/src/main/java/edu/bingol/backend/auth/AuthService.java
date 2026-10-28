@@ -15,12 +15,15 @@ import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
+import java.nio.charset.StandardCharsets;
+import java.util.OptionalLong;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +106,12 @@ public class AuthService {
     }
 
     /**
-     * Kayit verisi dogrulanana kadar yalnizca Redis'te tutulur; veritabaninda hesap olusmaz. Boylece baskasinin
-     * e-postasiyla onceden kayit acip sifreyi belirleyen biri, sahibi dogruladiginda hesabi ele gecirmez.
+     * Kayit verisi dogrulanana kadar yalnizca Redis'te tutulur; veritabaninda hesap olusmaz. Ayni e-posta icin
+     * bekleyen kayit varken yeni istek SON YAZAN KAZANIR kuralini isletir: bekleyen kayit (parola/ad) ezilir ve eski
+     * kod gecersiz olur; dogrulama yalniz SON istegin parolasini etkinlestirir. Boylece baskasinin e-postasiyla
+     * onceden kayit acan biri, adres sahibi kendi kaydini yaptiginda parolasini hesaba yazdiramaz. Kayit, kod
+     * GONDERILDIKTEN sonra ezilir (bekleme suresi 429 verirse eski kayit ve eski kod birlikte kalir: eski kod yeni
+     * parolayi etkinlestiremez). Bekleyen kaydin varligi ayri bir cevapla sezdirilmez (her durumda 202).
      */
     public void register(String rawEmail, String password, String displayName, Lang lang) {
         register(rawEmail, password, displayName, lang, null, null, null);
@@ -118,6 +125,12 @@ public class AuthService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
                     "Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.");
         }
+        if (LoginIdentifier.hasPlusAlias(email)) {
+            // Tek posta kutusu = tek hesap: +etiketli adresler sinirsiz hesap/oy/kota carpani olurdu.
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_ALIAS_NOT_ALLOWED",
+                    "E-posta adresinde + etiketi kullanılamaz.");
+        }
+        requirePasswordBytes(password);
         String fa = blankToNull(faculty);
         String de = blankToNull(department);
         String gr = blankToNull(grade);
@@ -128,18 +141,12 @@ public class AuthService {
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
-        Pending waiting = pending.find(email);
-        if (waiting != null) {
-            // Bekleyen kayit varken sifre/ad ezilmez (baskasinin e-postasiyla kaydi ele gecirme penceresi);
-            // yalnizca yeni kod gider (bekleme suresi doluysa burada 429).
-            verification.issue(email, Lang.of(waiting.language()));
-            pending.markResend(email);
-            return;
-        }
-        // Kod once gider (bekleme suresi doluysa burada 429); bekleme sirasinda bekleyen kayit ezilmez.
-        verification.issue(email, lang);
+        // Kod e-postasi gitmeden once her sey dogrulansin (hata kod gonderiminden sonra kalmasin).
         ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, displayName);
-        pending.save(email, new Pending(encoder.encode(password), displayName.trim(), lang.code(), fa, de, gr));
+        String hash = encoder.encode(password);
+        // Kod once gider (bekleme suresi doluysa burada 429); bekleyen kayit ancak sonra ezilir.
+        verification.issue(email, lang);
+        pending.save(email, new Pending(hash, displayName.trim(), lang.code(), fa, de, gr));
     }
 
     public void resendCode(String rawEmail) {
@@ -179,16 +186,24 @@ public class AuthService {
 
     /** Sifirlama kodunu dogrular; dogruysa yeni sifre adimi icin tek kullanimlik anahtar verir. */
     public String verifyResetCode(String rawEmail, String code) {
+        return verifyResetCode(rawEmail, code, null);
+    }
+
+    /** `scope` (IP /64 anahtari) verilirse yanlis deneme sayaci (e-posta, istemci) cifti basinadir: baskasi kilitleyemez. */
+    public String verifyResetCode(String rawEmail, String code, String scope) {
         String email = normalizeEmail(rawEmail);
         users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
-        if (!verification.verifyReset(email, code.trim())) {
+        boolean ok = scope == null ? verification.verifyReset(email, code.trim())
+                : verification.verifyReset(email, code.trim(), scope);
+        if (!ok) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
         }
         return verification.issueResetToken(email);
     }
 
     public void resetPassword(String rawEmail, String resetToken, String newPassword) {
+        requirePasswordBytes(newPassword);
         String email = normalizeEmail(rawEmail);
         User user = users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
@@ -209,9 +224,11 @@ public class AuthService {
     public TokenResponse changePassword(Long userId, String currentPassword, String newPassword, String client) {
         User user = users.findById(userId).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
-        if (!encoder.matches(currentPassword, user.getPasswordHash())) {
+        // 72 bayt ustu parola bcrypt'te istisna firlatirdi (500); sistemde boyle bir parola olamaz.
+        if (!fitsBcrypt(currentPassword) || !encoder.matches(currentPassword, user.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
         }
+        requirePasswordBytes(newPassword);
         if (currentPassword.equals(newPassword)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
                     "Yeni şifre mevcut şifreyle aynı olamaz.");
@@ -259,7 +276,9 @@ public class AuthService {
         if (p == null || (existing != null && existing.isEmailVerified())) {
             throw invalidCode();
         }
-        if (!verification.verify(email, code.trim())) {
+        boolean ok = ctx == null || ctx.ip() == null ? verification.verify(email, code.trim())
+                : verification.verify(email, code.trim(), ClientIp.limitKey(ctx.ip()));
+        if (!ok) {
             throw invalidCode();
         }
         User user;
@@ -290,6 +309,10 @@ public class AuthService {
 
     public TokenResponse login(String rawEmail, String password, String client, ClientContext ctx) {
         String email = normalizeEmail(rawEmail);
+        if (!fitsBcrypt(password)) {
+            // Hesaptan bagimsiz sabit cevap: bcrypt 72 bayt ustunde istisna firlatirdi.
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
+        }
         User user = users.findByEmail(email).orElse(null);
         // Hesap yoksa bekleyen (dogrulanmamis) kaydin ozetiyle karsilastirilir; ikisi de yoksa sahte ozet (sure esit).
         Pending waiting = user == null ? pending.find(email) : null;
@@ -327,18 +350,46 @@ public class AuthService {
 
     public TokenResponse refresh(String refreshToken, ClientContext ctx) {
         RefreshTokenService.Session s = refresh.consumeSession(refreshToken);
-        if (s == null && refresh.wasRevoked(refreshToken)) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REPLACED",
-                    "Hesabınıza başka bir cihazdan giriş yapıldı.");
+        if (s == null) {
+            if (refresh.wasRevoked(refreshToken)) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REPLACED",
+                        "Hesabınıza başka bir cihazdan giriş yapıldı.");
+            }
+            // Tuketilmis token tekrar sunuldu (toleransin otesinde): zincirin bir kopyasi calinmis olabilir;
+            // hangisinin gercek oldugu bilinemez, kullanicinin tum oturumlari kapanir.
+            OptionalLong reused = refresh.detectReuse(refreshToken);
+            if (reused != null && reused.isPresent()) {
+                log.warn("Refresh token yeniden kullanimi tespit edildi (user {}): tum oturumlar kapatiliyor",
+                        reused.getAsLong());
+                sessions.revokeAll(reused.getAsLong());
+            }
+            throw invalidRefresh();
         }
-        User user = s == null ? null
-                : users.findById(s.userId()).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
+        if (refresh.isExpired(s) || sessionRevoked(s)) {
+            throw invalidRefresh();
+        }
+        User user = users.findById(s.userId()).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
         if (user == null) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "Oturum süresi doldu, tekrar giriş yapın.");
+            throw invalidRefresh();
         }
         requireNotBlocked(ctx, user.getId(), "/api/auth/refresh");
         logDevice(user.getId(), ctx, "REFRESH");
-        return tokens(user, s.client());
+        TokenResponse next = tokens(user, s.client(), s.authTimeMs());
+        // Tuketme ile yeni token uretimi arasinda revokeAll araya girdiyse (sifre sifirlama) yeni cift de kapanir.
+        if (sessionRevoked(s)) {
+            refresh.revoke(next.refreshToken());
+            throw invalidRefresh();
+        }
+        return next;
+    }
+
+    /** Oturum, acilisindan sonra "tum cihazlardan cik"/sifre degisimi/tek cihaz kuraliyla kapatildi mi (eski token: hayir). */
+    private boolean sessionRevoked(RefreshTokenService.Session s) {
+        return s.authTimeMs() > 0 && sessions.isRevokedSince(s.userId(), s.client(), s.authTimeMs());
+    }
+
+    private static ApiException invalidRefresh() {
+        return new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "Oturum süresi doldu, tekrar giriş yapın.");
     }
 
     public void logout(String refreshToken) {
@@ -384,8 +435,25 @@ public class AuthService {
     }
 
     private TokenResponse tokens(User user, String client) {
+        return tokens(user, client, 0L);
+    }
+
+    /** `authTimeMs` > 0 ise rotasyondur: oturumun ilk giris ani korunur (mutlak omur + iptal karsilastirmasi). */
+    private TokenResponse tokens(User user, String client, long authTimeMs) {
         String c = RefreshTokenService.normalizeClient(client);
-        return new TokenResponse(jwt.createAccessToken(user, c), refresh.issue(user.getId(), c),
-                jwt.accessTtl().toSeconds(), "Bearer");
+        String rt = authTimeMs > 0 ? refresh.issue(user.getId(), c, authTimeMs) : refresh.issue(user.getId(), c);
+        return new TokenResponse(jwt.createAccessToken(user, c), rt, jwt.accessTtl().toSeconds(), "Bearer");
+    }
+
+    /** BCrypt yalniz ilk 72 BAYT'i kullanir (ustu istisna); karakter degil bayt sayilir (Turkce/Arapca/emoji). */
+    static boolean fitsBcrypt(String password) {
+        return password != null && password.getBytes(StandardCharsets.UTF_8).length <= 72;
+    }
+
+    private static void requirePasswordBytes(String password) {
+        if (!fitsBcrypt(password)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_TOO_LONG",
+                    "Şifre çok uzun (en fazla 72 bayt; Türkçe/Arapça karakterler birden çok bayt tutar).");
+        }
     }
 }

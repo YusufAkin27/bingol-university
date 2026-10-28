@@ -81,4 +81,52 @@ class ProdSettingsValidatorTest {
     void constructorFailsFastOnInvalidEnvironment() {
         assertThrows(IllegalStateException.class, () -> new ProdSettingsValidator(new MockEnvironment()));
     }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "en-az-32-karakterlik-rastgele-bir-anahtar-yazin",
+            "YER_TUTUCU_JWT_SIRRI_EN_AZ_32_KARAKTER",
+            "change-me-to-a-long-random-secret-value-123456",
+            "ReplaceMe-ChangeMe-0123456789-abcdefghijkl"})
+    void exampleEnvPlaceholderJwtSecretsAreRejected(String secret) {
+        var r = ProdSettingsValidator.validate(valid().withProperty("jwt.secret", secret));
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("JWT_SECRET")), r.errors().toString());
+    }
+
+    @Test
+    void lowDiversityJwtSecretIsRejected() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("jwt.secret", "ababababababababababababababababab"));
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("JWT_SECRET")));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "degistir", "YER_TUTUCU_YONETICI_SIFRESI", "change-me-please-123", "short-pw"})
+    void placeholderOrShortAdminPasswordIsAnErrorWhenBasicIsEnabled(String pw) {
+        var r = ProdSettingsValidator.validate(valid().withProperty("spring.security.user.password", pw));
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("ADMIN_PASSWORD")), r.errors().toString());
+    }
+
+    @Test
+    void adminPasswordIsNotRequiredWhenBasicAuthIsDisabled() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("app.security.admin-basic.enabled", "false")
+                .withProperty("spring.security.user.password", ""));
+        assertTrue(r.errors().isEmpty(), r.errors().toString());
+    }
+
+    @Test
+    void placeholderDbPasswordAndCryptoKeysAreRejected() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("spring.datasource.password", "degistir")
+                .withProperty("app.crypto.master-keys", "k1:YER_TUTUCU_BASE64_32_BAYT"));
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("DB_PASSWORD")), r.errors().toString());
+        assertTrue(r.errors().stream().anyMatch(e -> e.contains("CRYPTO_MASTER_KEYS")), r.errors().toString());
+        assertFalse(r.errors().toString().contains("YER_TUTUCU_BASE64"));
+    }
+
+    @Test
+    void realCryptoKeyIsAccepted() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("app.crypto.master-keys",
+                "k1:q3Zr8mT1vJw0bN5xYc2LdF7sHkP9aUeGiOtR4yVn6Xs="));
+        assertTrue(r.errors().isEmpty(), r.errors().toString());
+    }
 }

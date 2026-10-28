@@ -168,14 +168,162 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerWithPendingRegistrationOnlyResendsCodeAndKeepsOriginalData() {
+    void registerWithPendingRegistrationLastWriterWinsAndIssuesNewCode() {
+        // H1: ilk kayit edenin parolasi kilitlenmez; son istek bekleyen kaydi ezer, kod yenilenir.
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
-        when(pending.find(EMAIL)).thenReturn(new Pending("orijinal-hash", "Ali", "en"));
+        when(pending.find(EMAIL)).thenReturn(new Pending("saldirgan-hash", "Mallory", "en"));
 
-        auth.register(EMAIL, "SaldirganSifre1", "Mallory", Lang.TR);
+        auth.register(EMAIL, "GercekSahip123", "Ali", Lang.TR);
 
-        verify(verification).issue(EMAIL, Lang.EN);
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(verification, pending);
+        order.verify(verification).issue(EMAIL, Lang.TR);
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        order.verify(pending).save(eq(EMAIL), cap.capture());
+        assertEquals("Ali", cap.getValue().displayName());
+        assertTrue(new BCryptPasswordEncoder(4).matches("GercekSahip123", cap.getValue().passwordHash()));
+        org.junit.jupiter.api.Assertions.assertFalse(
+                new BCryptPasswordEncoder(4).matches("SaldirganSifre1", cap.getValue().passwordHash()));
+    }
+
+    @Test
+    void registerDuringCooldownKeepsOldPendingSoOldCodeCannotActivateNewPassword() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN", "bekleyin"))
+                .when(verification).issue(anyString(), any());
+
+        assertThrows(ApiException.class, () -> auth.register(EMAIL, "BaskaSifre123", "Mallory", Lang.TR));
+
+        // Kod gonderilemediyse bekleyen kayit EZILMEZ (eski kod eski parolayi etkinlestirir, yenisini degil).
         verify(pending, never()).save(any(), any());
+    }
+
+    @Test
+    void registerRejectsPlusAliasWithoutSideEffects() {
+        ApiException e = assertThrows(ApiException.class,
+                () -> auth.register("ali+2@bingol.edu.tr", "Sifre1234", "Ali", Lang.TR));
+
+        assertEquals("EMAIL_ALIAS_NOT_ALLOWED", e.code());
+        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void registerRejectsPasswordOver72BytesBeforeSendingMail() {
+        String longPw = "ğ".repeat(40); // 40 karakter = 80 bayt (UTF-8)
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, longPw, "Ali", Lang.TR));
+
+        assertEquals("PASSWORD_TOO_LONG", e.code());
+        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void registerAcceptsMultiByteButShortEnoughPassword() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, "ğ".repeat(36), "Ali", Lang.TR); // 72 bayt
+
+        verify(pending).save(eq(EMAIL), any(Pending.class));
+    }
+
+    @Test
+    void loginWithOver72BytePasswordIsGenericInvalidCredentialsNot500() {
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "ğ".repeat(40)));
+
+        assertEquals("INVALID_CREDENTIALS", e.code());
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void resetPasswordRejectsOver72BytePassword() {
+        ApiException e = assertThrows(ApiException.class,
+                () -> auth.resetPassword(EMAIL, "tok", "ğ".repeat(40)));
+
+        assertEquals("PASSWORD_TOO_LONG", e.code());
+        verifyNoInteractions(verification);
+    }
+
+    @Test
+    void refreshReuseBeyondGraceRevokesAllSessions() {
+        when(refresh.detectReuse("calinan")).thenReturn(java.util.OptionalLong.of(7L));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("calinan"));
+
+        assertEquals("INVALID_REFRESH_TOKEN", e.code());
+        verify(sessions).revokeAll(7L);
+    }
+
+    @Test
+    void refreshUnknownTokenWithoutUsedMarkerRevokesNothing() {
+        assertThrows(ApiException.class, () -> auth.refresh("bilinmeyen"));
+
+        verify(sessions, never()).revokeAll(any());
+    }
+
+    @Test
+    void refreshAfterAbsoluteSessionLifetimeIsRejected() {
+        RefreshTokenService.Session old = new RefreshTokenService.Session(7L, "web", 1_000L);
+        when(refresh.consumeSession("tok")).thenReturn(old);
+        when(refresh.isExpired(old)).thenReturn(true);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("INVALID_REFRESH_TOKEN", e.code());
+        verify(refresh, never()).issue(any(), anyString(), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void refreshOfSessionRevokedAfterItStartedIsRejected() {
+        RefreshTokenService.Session s = new RefreshTokenService.Session(7L, "web", 5_000L);
+        when(refresh.consumeSession("tok")).thenReturn(s);
+        when(sessions.isRevokedSince(7L, "web", 5_000L)).thenReturn(true);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("INVALID_REFRESH_TOKEN", e.code());
+        verify(refresh, never()).issue(any(), anyString(), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void refreshRotationKeepsOriginalAuthTime() {
+        User u = loginUser();
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        when(refresh.consumeSession("tok")).thenReturn(new RefreshTokenService.Session(7L, "web", 5_000L));
+        when(refresh.issue(7L, "web", 5_000L)).thenReturn("yeni");
+
+        assertEquals("yeni", auth.refresh("tok").refreshToken());
+
+        verify(refresh).issue(7L, "web", 5_000L);
+    }
+
+    @Test
+    void refreshWhereRevokeAllRacedInClosesTheNewPairToo() {
+        User u = loginUser();
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        when(refresh.consumeSession("tok")).thenReturn(new RefreshTokenService.Session(7L, "web", 5_000L));
+        when(refresh.issue(7L, "web", 5_000L)).thenReturn("yeni");
+        // ilk kontrol temiz, token uretildikten sonra revokeAll araya girmis
+        when(sessions.isRevokedSince(7L, "web", 5_000L)).thenReturn(false, true);
+
+        assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        verify(refresh).revoke("yeni");
+    }
+
+    @Test
+    void verifyEmailWithClientContextScopesAttemptsToIpPrefix() {
+        Pending p = new Pending("hash-1", "Ali", "en");
+        when(pending.find(EMAIL)).thenReturn(p);
+        when(verification.verify(EMAIL, "123456", "v6:2001:0db8:0001:0002::/64")).thenReturn(true);
+        when(accounts.create(EMAIL, p)).thenReturn(verifiedUser());
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
+        edu.bingol.backend.accessban.ClientContext ctx =
+                new edu.bingol.backend.accessban.ClientContext("2001:db8:1:2:aaaa:bbbb:cccc:dddd", null, "WEB", null);
+
+        auth.verifyEmail(EMAIL, "123456", "web", ctx);
+
+        verify(verification).verify(EMAIL, "123456", "v6:2001:0db8:0001:0002::/64");
     }
 
     @Test

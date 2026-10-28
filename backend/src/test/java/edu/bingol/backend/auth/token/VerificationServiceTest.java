@@ -114,4 +114,97 @@ class VerificationServiceTest {
         assertEquals("RESEND_COOLDOWN", e.code());
         verify(mail, never()).sendVerificationCode(anyString(), anyString(), anyInt(), any());
     }
+
+    private static final String SCOPE = "203.0.113.9";
+
+    @Test
+    void attemptsAreCountedPerEmailAndClientPair() {
+        storedCode("123456");
+        when(ops.increment("vc:sc:" + EMAIL + ":" + SCOPE + ":att")).thenReturn(1L);
+
+        assertFalse(service.verify(EMAIL, "000000", SCOPE));
+
+        verify(ops).increment("vc:sc:" + EMAIL + ":" + SCOPE + ":att");
+        verify(ops, never()).increment("vc:att:" + EMAIL);
+    }
+
+    @Test
+    void attackerLockedOnItsOwnClientKeyDoesNotLockTheRealUser() {
+        storedCode("123456");
+        // saldirgan istemci sayaci asildi -> yalniz o istemcinin kilidi yazilir
+        when(ops.increment("vc:sc:" + EMAIL + ":6.6.6.6:att")).thenReturn((long) VerificationService.MAX_ATTEMPTS + 1);
+
+        assertThrows(ApiException.class, () -> service.verify(EMAIL, "000000", "6.6.6.6"));
+
+        verify(ops).set(eq("vc:sc:" + EMAIL + ":6.6.6.6:lock"), anyString(), any(java.time.Duration.class));
+        verify(ops, never()).set(eq("vc:lock:" + EMAIL), anyString(), any(java.time.Duration.class));
+        // gercek kullanici (baska istemci) hala dogru kodu girebilir
+        when(ops.increment("vc:sc:" + EMAIL + ":" + SCOPE + ":att")).thenReturn(1L);
+        when(redis.delete("vc:" + EMAIL)).thenReturn(true);
+        assertTrue(service.verify(EMAIL, "123456", SCOPE));
+    }
+
+    @Test
+    void clientLockBlocksOnlyThatClient() {
+        when(redis.hasKey("vc:sc:" + EMAIL + ":6.6.6.6:lock")).thenReturn(true);
+        storedCode("123456");
+
+        ApiException e = assertThrows(ApiException.class, () -> service.verify(EMAIL, "123456", "6.6.6.6"));
+
+        assertEquals("TOO_MANY_ATTEMPTS", e.code());
+    }
+
+    @Test
+    void distributedAttemptsOnOneCodeHitGlobalCapAndLockAddress() {
+        storedCode("123456");
+        when(ops.increment("vc:sc:" + EMAIL + ":" + SCOPE + ":att")).thenReturn(1L);
+        when(ops.increment("vc:gatt:" + EMAIL)).thenReturn((long) VerificationService.GLOBAL_ATTEMPTS + 1);
+
+        assertThrows(ApiException.class, () -> service.verify(EMAIL, "000000", SCOPE));
+
+        verify(ops).set(eq("vc:lock:" + EMAIL), anyString(), any(java.time.Duration.class));
+    }
+
+    @Test
+    void hourlyWrongTotalSurvivesCodeRefreshAndLocksAddress() {
+        storedCode("123456");
+        when(ops.increment("vc:att:" + EMAIL)).thenReturn(1L);
+        when(ops.increment("vc:tot:" + EMAIL)).thenReturn((long) VerificationService.MAX_HOURLY_WRONG + 1);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.verify(EMAIL, "000000"));
+
+        assertEquals("TOO_MANY_ATTEMPTS", e.code());
+        verify(ops).set(eq("vc:lock:" + EMAIL), anyString(), any(java.time.Duration.class));
+    }
+
+    @Test
+    void issueDoesNotUnlockWhenHourlyTotalAlreadyExceeded() {
+        when(ops.setIfAbsent(eq("vc:cd:" + EMAIL), anyString(), any(java.time.Duration.class))).thenReturn(true);
+        when(ops.get("vc:tot:" + EMAIL)).thenReturn(String.valueOf(VerificationService.MAX_HOURLY_WRONG + 1));
+
+        service.issue(EMAIL, Lang.TR);
+
+        // kod yenilemek sayaci/kilidi kaldirmaz: kilit yeniden yazilir
+        verify(ops).set(eq("vc:lock:" + EMAIL), anyString(), any(java.time.Duration.class));
+        verify(redis, never()).delete("vc:tot:" + EMAIL);
+    }
+
+    @Test
+    void wrongResetTokenDoesNotBurnTheRealOne() {
+        when(ops.get("prt:" + EMAIL)).thenReturn(Hashing.sha256("gercek"));
+
+        assertFalse(service.consumeResetToken(EMAIL, "yanlis"));
+
+        verify(redis, never()).delete("prt:" + EMAIL);
+        verify(ops, never()).getAndDelete("prt:" + EMAIL);
+    }
+
+    @Test
+    void correctResetTokenIsConsumedOnce() {
+        when(ops.get("prt:" + EMAIL)).thenReturn(Hashing.sha256("gercek"));
+        when(redis.delete("prt:" + EMAIL)).thenReturn(true, false);
+
+        assertTrue(service.consumeResetToken(EMAIL, "gercek"));
+        assertFalse(service.consumeResetToken(EMAIL, "gercek"));
+    }
 }

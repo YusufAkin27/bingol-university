@@ -39,6 +39,28 @@ public final class LoginIdentifier {
         return digits + "@" + STUDENT_DOMAIN;
     }
 
+    /** Yerel kisimda `+etiket` var mi (ali+1@bingol.edu.tr)? Kayitta reddedilir (tek kutu = tek hesap). */
+    public static boolean hasPlusAlias(String email) {
+        int at = email == null ? -1 : email.lastIndexOf('@');
+        return at > 0 && email.lastIndexOf('+', at) >= 0;
+    }
+
+    /**
+     * Hiz siniri/kota anahtari icin kanonik e-posta: `ali+x@bingol.edu.tr` -> `ali@bingol.edu.tr` (eski +etiketli
+     * hesaplar ayni sayaci paylasir). YALNIZ anahtar icindir; saklanan/gonderilen adres degismez.
+     */
+    public static String aliasKey(String email) {
+        if (email == null) {
+            return "";
+        }
+        int at = email.lastIndexOf('@');
+        if (at <= 0) {
+            return email;
+        }
+        int plus = email.indexOf('+');
+        return plus > 0 && plus < at ? email.substring(0, plus) + email.substring(at) : email;
+    }
+
     private static ApiException invalid() {
         return new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz istek.");
     }

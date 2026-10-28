@@ -34,6 +34,7 @@ public class AdminUserService {
     private final StringRedisTemplate redis;
     private final JwtService jwt;
     private final Clock clock;
+    private edu.bingol.backend.auth.token.SessionService sessions;
 
     public AdminUserService(AdminUserRepository repo, UserRepository users, ProfileService profiles,
                             StringRedisTemplate redis, JwtService jwt, Clock clock) {
@@ -43,6 +44,12 @@ public class AdminUserService {
         this.redis = redis;
         this.jwt = jwt;
         this.clock = clock;
+    }
+
+    /** Oturum iptali (istege bagli: yalniz birim testlerinde yok). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSessions(edu.bingol.backend.auth.token.SessionService sessions) {
+        this.sessions = sessions;
     }
 
     public PageResponse<AdminUserRow> list(UserFilter f, String sort, int page, int size) {
@@ -113,6 +120,10 @@ public class AdminUserService {
         profiles.anonymizeAccount(targetId);
         // Mevcut access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
         redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + targetId, "1");
+        // Refresh token'lar da kapansin (silinen hesabin oturum kumesi Redis'te bekleyip yasamasin).
+        if (sessions != null) {
+            sessions.revokeAll(targetId);
+        }
     }
 
     /** Tum yonetici satirlarini kilitleyip (yaris olmasin) en az iki aktif yonetici oldugunu dogrular. */
@@ -123,9 +134,28 @@ public class AdminUserService {
         }
     }
 
+    /**
+     * Rol degisim isareti (ms hassasiyetinde) islem COMMIT OLDUKTAN sonra yazilir: erken yazilirsa, commit'ten once
+     * refresh edilen kullanici eski rolle yeni token alir ve isaret onu rededemez. Isaret zamani commit anindan
+     * alinir (yeni token'lar isaretten buyuk iatms tasir). Islem yoksa (birim testi) hemen yazilir.
+     */
     private void markRoleChanged(Long userId) {
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            writeRoleMark(userId);
+                        }
+                    });
+        } else {
+            writeRoleMark(userId);
+        }
+    }
+
+    private void writeRoleMark(Long userId) {
         redis.opsForValue().set(JwtAuthFilter.ROLE_CHANGED_KEY_PREFIX + userId,
-                String.valueOf(clock.instant().getEpochSecond()), jwt.accessTtl().plus(Duration.ofMinutes(1)));
+                String.valueOf(clock.millis()), jwt.accessTtl().plus(Duration.ofMinutes(1)));
     }
 
     private User find(Long id) {

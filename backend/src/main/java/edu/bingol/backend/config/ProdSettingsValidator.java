@@ -19,6 +19,16 @@ public class ProdSettingsValidator {
     private static final Logger log = LoggerFactory.getLogger(ProdSettingsValidator.class);
     static final String DEV_JWT_MARKER = "dev-only";
 
+    /**
+     * .env.example / .env.prod.example ve belgelerdeki yer tutucu parcalari (kucuk harf, alt dize eslesmesi). Bu
+     * dizeler depoda herkesce okunur: oldugu gibi birakilirsa sir bilinen bir degerdir (JWT sahteciligi = ADMIN).
+     */
+    static final List<String> PLACEHOLDERS = List.of("dev-only", "change-me", "changeme", "change_me", "degistir",
+            "yer_tutucu", "yertutucu", "en-az-32", "replace-me", "replace_me", "placeholder", "your-secret",
+            "your_secret", "example-secret");
+    static final int MIN_ADMIN_PASSWORD = 12;
+    static final int MIN_DISTINCT_JWT_CHARS = 10;
+
     public ProdSettingsValidator(Environment env) {
         Result r = validate(env);
         r.warnings().forEach(w -> log.warn("Uretim ayari uyarisi: {}", w));
@@ -43,6 +53,8 @@ public class ProdSettingsValidator {
             errors.add("DB_PASSWORD zorunlu (bos olamaz)");
         } else if ("bingol".equals(env.getProperty("spring.datasource.password"))) {
             errors.add("DB_PASSWORD gelistirme varsayilani 'bingol' olamaz");
+        } else if (isPlaceholder(env.getProperty("spring.datasource.password"))) {
+            errors.add("DB_PASSWORD ornek/yer tutucu deger olamaz; rastgele bir sifre uretin");
         }
 
         String jwt = env.getProperty("jwt.secret", "");
@@ -50,12 +62,32 @@ public class ProdSettingsValidator {
             errors.add("JWT_SECRET zorunlu ve en az 32 karakter olmali");
         } else if (jwt.toLowerCase().contains(DEV_JWT_MARKER)) {
             errors.add("JWT_SECRET gelistirme varsayilani (dev-only...) olamaz; rastgele bir anahtar uretin");
+        } else if (isPlaceholder(jwt)) {
+            errors.add("JWT_SECRET ornek/yer tutucu deger olamaz (.env.example); rastgele bir anahtar uretin");
+        } else if (jwt.chars().distinct().count() < MIN_DISTINCT_JWT_CHARS) {
+            errors.add("JWT_SECRET cok dusuk cesitlilikte (tekrarli karakterler); rastgele bir anahtar uretin");
         }
 
-        if (!notBlank(env, "spring.security.user.password")) {
-            errors.add("ADMIN_PASSWORD zorunlu (yonetici Basic auth sifresi)");
-        } else if (env.getProperty("spring.security.user.password", "").length() < 12) {
-            warnings.add("ADMIN_PASSWORD 12 karakterden kisa; daha guclu bir sifre onerilir");
+        // Basic auth yalniz acikken ADMIN_PASSWORD gerekir (prod varsayilani kapali; yalniz JWT ADMIN kullanilir).
+        // Dogrulayicinin saf testleri icin varsayilan "acik": ayar verilmediyse sifre denetlenir (guvenli taraf).
+        if (env.getProperty("app.security.admin-basic.enabled", Boolean.class, true)) {
+            String adminPw = env.getProperty("spring.security.user.password", "");
+            if (adminPw.isBlank()) {
+                errors.add("ADMIN_PASSWORD zorunlu (yonetici Basic auth sifresi; Basic auth kullanmayacaksaniz "
+                        + "app.security.admin-basic.enabled=false)");
+            } else if (adminPw.length() < MIN_ADMIN_PASSWORD) {
+                errors.add("ADMIN_PASSWORD en az " + MIN_ADMIN_PASSWORD + " karakter olmali");
+            } else if (isPlaceholder(adminPw)) {
+                errors.add("ADMIN_PASSWORD ornek/yer tutucu deger olamaz; rastgele bir sifre uretin");
+            }
+        }
+
+        // Sifreleme ana anahtarlari verilmisse yer tutucu olamaz (bos olma durumunu app.crypto.require-keys denetler).
+        for (String key : List.of("app.crypto.master-keys")) {
+            String v = env.getProperty(key, "");
+            if (!v.isBlank() && isPlaceholder(v)) {
+                errors.add("CRYPTO_MASTER_KEYS ornek/yer tutucu deger olamaz; `openssl rand -base64 32` ile uretin");
+            }
         }
 
         String cors = env.getProperty("app.cors.allowed-origins", "");
@@ -127,6 +159,20 @@ public class ProdSettingsValidator {
         if (env.getProperty("app.mail.max-per-minute", Integer.class, 30) <= 0) {
             warnings.add("MAIL_MAX_PER_MINUTE sinirsiz: yeni alan adinda isinma (warm-up) plani uygulayin");
         }
+    }
+
+    /** Deger bilinen bir ornek/yer tutucu parcasini iceriyor mu (buyuk/kucuk harf duyarsiz). */
+    static boolean isPlaceholder(String value) {
+        if (value == null) {
+            return false;
+        }
+        String v = value.toLowerCase(java.util.Locale.ROOT);
+        for (String p : PLACEHOLDERS) {
+            if (v.contains(p)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean notBlank(Environment env, String key) {

@@ -38,7 +38,11 @@ public class AuditRecorder {
         try {
             Long adminId = auth != null && auth.getPrincipal() instanceof Long l ? l : null;
             // Basic auth yoneticisinde kullanici kaydi yoktur: kullanici adi e-posta alanina yazilir
-            String fallback = adminId == null && auth != null ? auth.getName() : null;
+            // (statik tek hesap: aktor kisi degil "basic-admin" olarak ayirt edilir)
+            String fallback = adminId == null && auth != null
+                    ? (auth.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails
+                            ? "basic-admin" : auth.getName())
+                    : null;
             repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, clientIp.of(req));
         } catch (RuntimeException e) {
             log.warn("Denetim kaydi yazilamadi: {}", e.toString());

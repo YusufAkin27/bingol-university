@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     public static final String SUSPENDED_KEY_PREFIX = "suspended:";
-    /** Deger: rol degisim aninin epoch saniyesi. */
+    /** Deger: rol degisim aninin epoch milisaniyesi (eski surumlerde saniye olabilir; < 1e11 ise saniye sayilir). */
     public static final String ROLE_CHANGED_KEY_PREFIX = "rolechg:";
 
     /** Deger: sifre degisimi / "tum cihazlardan cik" aninin epoch milisaniyesi (eski surumlerde saniye olabilir). */
@@ -78,11 +78,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || ("mobile".equals(id.client()) && tokenRevoked(id.issuedAtMillis(), at(v, 3)))) {
             return Verdict.REPLACED;
         }
-        return tokenPredatesRoleChange(id.issuedAt().getEpochSecond(), at(v, 1)) ? Verdict.DENIED : Verdict.OK;
+        return tokenPredatesRoleChangeMs(id.issuedAtMillis(), at(v, 1)) ? Verdict.DENIED : Verdict.OK;
     }
 
     private static String at(List<String> values, int index) {
         return index < values.size() ? values.get(index) : null;
+    }
+
+    /**
+     * ms hassasiyeti: isaret ms ise token'in iatms'i isaretten KESIN kucukse (rol degisiminden once uretildiyse)
+     * reddedilir; saniye cinsinden eski isaretlerde (&lt; 1e11) saniye karsilastirmasi korunur.
+     */
+    static boolean tokenPredatesRoleChangeMs(long issuedAtMillis, String changedAt) {
+        if (changedAt == null) {
+            return false;
+        }
+        try {
+            long r = Long.parseLong(changedAt);
+            return r < 100_000_000_000L ? issuedAtMillis / 1000 < r : issuedAtMillis < r;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /** iat saniye hassasiyetindedir: degisimden onceki saniyede uretilen token reddedilir. */

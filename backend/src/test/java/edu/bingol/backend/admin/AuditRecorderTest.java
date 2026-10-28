@@ -92,4 +92,19 @@ class AuditRecorderTest {
                 org.mockito.ArgumentMatchers.eq("/api/admin/sync"), org.mockito.ArgumentMatchers.eq(500), any());
         assertEquals(200, res.getStatus());
     }
+
+    @Test
+    void staticBasicAdminIsRecordedAsBasicAdminActor() {
+        MockHttpServletRequest req = new MockHttpServletRequest("DELETE", "/api/admin/faq/1");
+        var principal = org.springframework.security.core.userdetails.User.withUsername("admin").password("x")
+                .roles("ADMIN").build();
+        var auth = new UsernamePasswordAuthenticationToken(principal, null,
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        recorder.record(req, auth, 204);
+
+        verify(repo).insert(isNull(), org.mockito.ArgumentMatchers.eq("basic-admin"),
+                org.mockito.ArgumentMatchers.eq("DELETE"), org.mockito.ArgumentMatchers.eq("/api/admin/faq/1"),
+                anyInt(), any());
+    }
 }

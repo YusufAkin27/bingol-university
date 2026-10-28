@@ -32,12 +32,30 @@ public class SessionService {
     }
 
     public void revokeAll(Long userId) {
-        int n = refresh.revokeAll(userId);
-        // Isaret en uzun access token omru + pay kadar yasar; sonra eski token zaten bitmistir.
+        // Isaret ONCE yazilir: refresh ile yaris halinde (token tuketildi, revokeAll uyeleri okudu, yeni token
+        // eklendi) yeni token'in oturum zamani isaretten eski kalir ve AuthService.refresh bunu reddeder.
         redis.opsForValue().set(JwtAuthFilter.PASSWORD_CHANGED_KEY_PREFIX + userId,
                 String.valueOf(clock.millis()), jwt.accessTtl().plus(Duration.ofMinutes(1)));
+        int n = refresh.revokeAll(userId);
         // Acik WebSocket baglantilari da kapansin (messaging tarafi dinler).
         events.publishEvent(new SessionsRevokedEvent(userId, null, false, n > 0));
+    }
+
+    /**
+     * Oturum (authTimeMs'de acilmis) sonradan "tum cihazlardan cik"/sifre degisimi ya da (mobil icin) tek cihaz
+     * kuraliyla iptal edildi mi? authTime bilinmiyorsa (eski token, 0) false: eski oturumlar kendi sureleriyle biter.
+     */
+    public boolean isRevokedSince(Long userId, String client, long authTimeMs) {
+        if (authTimeMs <= 0) {
+            return false;
+        }
+        if (JwtAuthFilter.tokenRevoked(authTimeMs,
+                redis.opsForValue().get(JwtAuthFilter.PASSWORD_CHANGED_KEY_PREFIX + userId))) {
+            return true;
+        }
+        return RefreshTokenService.MOBILE.equals(RefreshTokenService.normalizeClient(client))
+                && JwtAuthFilter.tokenRevoked(authTimeMs,
+                redis.opsForValue().get(JwtAuthFilter.MOBILE_REVOKED_KEY_PREFIX + userId));
     }
 
     /**

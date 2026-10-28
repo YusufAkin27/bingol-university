@@ -39,16 +39,20 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /** /api/admin/** icin tek yonetici (Basic auth). Sifre verilmezse rastgele uretilir ve log'a yazilir. */
+    /**
+     * /api/admin/** icin tek yonetici (Basic auth; yalniz `app.security.admin-basic.enabled=true` iken kullanilir,
+     * prod varsayilani KAPALI). Sifre verilmezse rastgele uretilir ve HICBIR YERE yazilmaz (Basic fiilen kullanilamaz;
+     * yerelde ADMIN_PASSWORD verin). Sifre log'a yazilirsa log erisimi = tam yonetici yetkisi olurdu.
+     */
     @Bean
     UserDetailsService adminUser(PasswordEncoder encoder,
                                  @Value("${spring.security.user.name:admin}") String name,
                                  @Value("${spring.security.user.password:}") String password) {
         String effective = password;
         if (effective.isBlank()) {
-            effective = UUID.randomUUID().toString();
+            effective = UUID.randomUUID() + "-" + UUID.randomUUID();
             LoggerFactory.getLogger(SecurityConfig.class)
-                    .warn("ADMIN_PASSWORD verilmedi; gecici yonetici sifresi: {}", effective);
+                    .warn("ADMIN_PASSWORD verilmedi: yonetici Basic auth kullanilamaz (JWT ADMIN gecerlidir)");
         }
         return new InMemoryUserDetailsManager(
                 User.withUsername(name).password(encoder.encode(effective)).roles("ADMIN").build());
@@ -61,15 +65,22 @@ public class SecurityConfig {
                                     edu.bingol.backend.common.ApiAuthenticationEntryPoint apiEntryPoint,
                                     edu.bingol.backend.common.RateLimiter limiter,
                                     edu.bingol.backend.common.ClientIp clientIp,
-                                    org.springframework.core.env.Environment env) throws Exception {
+                                    org.springframework.core.env.Environment env,
+                                    @Value("${app.security.admin-basic.enabled:true}") boolean adminBasic,
+                                    @Value("${app.security.admin-basic.fail-closed:true}") boolean failClosed)
+            throws Exception {
+        // Basic kapaliyken /api/admin/** da kimliksiz isteklere {code,message} 401 doner (Basic zorlugu yok).
+        org.springframework.security.web.util.matcher.RequestMatcher apiMatcher = adminBasic
+                ? new AndRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/**"),
+                        new NegatedRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/admin/**")))
+                : PathPatternRequestMatcher.withDefaults().matcher("/api/**");
         http.csrf(AbstractHttpConfigurer::disable)
             // CORS yalnizca /api/** ve /files/** icin (CorsConfig); preflight (OPTIONS) kimlik dogrulamasindan once yanitlanir
             .cors(c -> c.configurationSource(cors))
             // Yetkisiz yonetici istekleri (403) denetim kaydina da yazilir
             // Kimliksiz 401 govdesi {code,message} olsun (mobil icin); yonetici Basic auth zorlugu (WWW-Authenticate) korunur.
-            .exceptionHandling(e -> e.accessDeniedHandler(denied).defaultAuthenticationEntryPointFor(apiEntryPoint,
-                    new AndRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/**"),
-                            new NegatedRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/admin/**")))))
+            .exceptionHandling(e -> e.accessDeniedHandler(denied)
+                    .defaultAuthenticationEntryPointFor(apiEntryPoint, apiMatcher))
             // Guvenlik basliklari. HSTS yalnizca HTTPS isteklerde yazilir (proxy arkasinda forward-headers ile).
             // CSP yalnizca API/dosya yanitlari icin kisitli; Swagger arayuzu (dev) betik yukleyebilsin diye haric.
             .headers(h -> h
@@ -110,11 +121,14 @@ public class SecurityConfig {
                 // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .anyRequest().authenticated())
-            // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*) korunur.
-            .httpBasic(Customizer.withDefaults())
-            .addFilterBefore(new BasicAuthThrottleFilter(limiter, clientIp),
-                    org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class)
             .addFilterBefore(new JwtAuthFilter(jwt, redis), UsernamePasswordAuthenticationFilter.class);
+        // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*): yalniz aciksa (prod'da varsayilan
+        // kapali; yalniz JWT ROLE_ADMIN). Aciksa basarisiz deneme sayaci + fail-closed kisitlayici onunde calisir.
+        if (adminBasic) {
+            http.httpBasic(Customizer.withDefaults())
+                .addFilterBefore(new BasicAuthThrottleFilter(limiter, clientIp, redis, failClosed),
+                        org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class);
+        }
         return http.build();
     }
 

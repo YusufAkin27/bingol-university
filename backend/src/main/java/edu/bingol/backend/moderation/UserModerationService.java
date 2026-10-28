@@ -20,11 +20,18 @@ public class UserModerationService {
     private final UserRepository users;
     private final StringRedisTemplate redis;
     private final NotificationService notifications;
+    private edu.bingol.backend.auth.token.SessionService sessions;
 
     public UserModerationService(UserRepository users, StringRedisTemplate redis, NotificationService notifications) {
         this.users = users;
         this.redis = redis;
         this.notifications = notifications;
+    }
+
+    /** Oturum iptali (istege bagli: yalniz birim testlerinde yok). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSessions(edu.bingol.backend.auth.token.SessionService sessions) {
+        this.sessions = sessions;
     }
 
     @Transactional
@@ -37,6 +44,10 @@ public class UserModerationService {
         u.setSuspendedReason(reason);
         users.save(u);
         redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId, "1");
+        // Refresh token'lar silinir ve eski access token'lar isaretlenir: geri acilinca eski oturumlar canlanmaz.
+        if (sessions != null) {
+            sessions.revokeAll(userId);
+        }
     }
 
     @Transactional
