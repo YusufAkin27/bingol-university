@@ -55,7 +55,7 @@ public class MailDailyQuota {
     }
 
     /** Duyuru icin ust sinir: limit - reserve (en az 0). */
-    int announcementCap() {
+    public int announcementCap() {
         return Math.max(0, props.dailyLimit() - Math.max(0, props.dailyReserve()));
     }
 
@@ -86,6 +86,20 @@ public class MailDailyQuota {
         }
         AtomicLong n = local.get(key);
         return n == null ? 0 : n.get();
+    }
+
+    /** Verilen ana denk gelen kota gununun basarili gonderim sayisi (yonetici gorunumu; Redis anahtari 2 gun yasar). */
+    public long usedAt(Instant at) {
+        return read(key(at));
+    }
+
+    /** Alici basina gunluk kod postasi ve IP basina gunluk kod istegi ust sinirlari (yonetici gorunumu). */
+    public int maxCodesPerEmailPerDay() {
+        return maxCodesPerEmailPerDay;
+    }
+
+    public int maxCodeRequestsPerIpPerDay() {
+        return maxCodeRequestsPerIpPerDay;
     }
 
     /** Basarili gonderimden sonra sayaci artirir. */
@@ -140,7 +154,7 @@ public class MailDailyQuota {
     }
 
     /** Tur icin kimliksiz kod postasi ust siniri (limit kapaliysa sinirsiz). */
-    int publicCap(CodeKind kind) {
+    public int publicCap(CodeKind kind) {
         if (!enabled()) {
             return Integer.MAX_VALUE;
         }
@@ -288,7 +302,7 @@ public class MailDailyQuota {
     }
 
     /** Kota gununun baslangici: UTC `dailyResetHourUtc` saatinde baslayan gun. */
-    Instant dayStart(Instant now) {
+    public Instant dayStart(Instant now) {
         int h = Math.min(23, Math.max(0, props.dailyResetHourUtc()));
         LocalDate d = now.minus(Duration.ofHours(h)).atZone(ZoneOffset.UTC).toLocalDate();
         return d.atStartOfDay(ZoneOffset.UTC).toInstant().plus(Duration.ofHours(h));

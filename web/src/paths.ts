@@ -73,6 +73,8 @@ export const paths = {
     system: `${ADMIN_BASE}/system`,
     mailTemplates: `${ADMIN_BASE}/mail/templates`,
     mailCampaigns: `${ADMIN_BASE}/mail/campaigns`,
+    mailSuppressions: `${ADMIN_BASE}/mail/suppressions`,
+    mailQueue: `${ADMIN_BASE}/mail/queue`,
     eventApplications: `${ADMIN_BASE}/events/applications`,
     clubAudit: `${ADMIN_BASE}/communities/audit`,
     settings: `${ADMIN_BASE}/settings`,

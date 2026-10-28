@@ -124,6 +124,8 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'campaigns', to: paths.admin.campaigns, labelKey: 'admin.nav.campaigns', icon: 'bell' },
       { id: 'mailTemplates', to: paths.admin.mailTemplates, labelKey: 'admin.nav.mailTemplates', icon: 'file' },
       { id: 'mailCampaigns', to: paths.admin.mailCampaigns, labelKey: 'admin.nav.mailCampaigns', icon: 'mail' },
+      { id: 'mailQueue', to: paths.admin.mailQueue, labelKey: 'admin.p13.nav.queue', icon: 'list' },
+      { id: 'mailSuppressions', to: paths.admin.mailSuppressions, labelKey: 'admin.p13.nav.suppressions', icon: 'shield' },
     ],
   },
   {

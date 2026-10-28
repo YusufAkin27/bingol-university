@@ -80,6 +80,8 @@ const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const SystemStatusPage = lazy(() => import('./pages/admin/SystemStatusPage'));
 const MailTemplatesPage = lazy(() => import('./pages/admin/MailTemplatesPage'));
 const MailCampaignsPage = lazy(() => import('./pages/admin/MailCampaignsPage'));
+const MailSuppressionPage = lazy(() => import('./pages/admin/MailSuppressionPage'));
+const MailQueuePage = lazy(() => import('./pages/admin/MailQueuePage'));
 const EventApplicationsPage = lazy(() => import('./pages/admin/EventApplicationsPage'));
 const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
@@ -184,6 +186,8 @@ export function AppRoutes() {
             <Route path="mail/templates/:id" element={<MailTemplatesPage />} />
             <Route path="mail/campaigns" element={<MailCampaignsPage />} />
             <Route path="mail/campaigns/:id" element={<MailCampaignsPage />} />
+            <Route path="mail/suppressions" element={<MailSuppressionPage />} />
+            <Route path="mail/queue" element={<MailQueuePage />} />
             <Route path="events/applications" element={<EventApplicationsPage />} />
             <Route path="communities/audit" element={<ClubAuditPage />} />
             <Route path="settings" element={<SettingsPage />} />

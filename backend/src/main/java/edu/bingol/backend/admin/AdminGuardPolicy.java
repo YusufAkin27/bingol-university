@@ -49,6 +49,11 @@ public final class AdminGuardPolicy {
     private static final Pattern SUPPORT_DELETE = Pattern.compile("^/api/admin/support/(tickets|feedback)/[^/]+$");
     private static final Pattern SUPPORT_MERGE = Pattern.compile("^/api/admin/support/feedback/merge$");
 
+    /** P13 mail altyapisi: elle bastirma + toplu/tek kuyruk islemi (POST), bastirma kaldirma (DELETE). */
+    private static final Pattern MAIL_OPS_POST = Pattern.compile(
+            "^/api/admin/mail/(suppressions|outbox/(bulk|[^/]+/(retry|cancel)))$");
+    private static final Pattern MAIL_OPS_DELETE = Pattern.compile("^/api/admin/mail/suppressions/[^/]+$");
+
     /** P09 kullanici derin yonetimi: profil mudahalesi (PATCH), oturum/push cihazi sonlandirma (DELETE), KVKK disa aktarma (POST). */
     private static final Pattern USER_PROFILE = Pattern.compile("^/api/admin/users/[^/]+/profile$");
     private static final Pattern USER_EXTRA_DELETE =
@@ -88,6 +93,12 @@ public final class AdminGuardPolicy {
     static boolean chatDestructive(String method, String path) {
         return ("POST".equals(method) && CHAT_POST.matcher(path).matches())
                 || ("DELETE".equals(method) && CHAT_DELETE.matcher(path).matches());
+    }
+
+    /** P13: mail bastirma/kuyruk yazma islemi mi (sebep ister, saatlik siki hiz siniri). */
+    static boolean mailOpsDestructive(String method, String path) {
+        return ("POST".equals(method) && MAIL_OPS_POST.matcher(path).matches())
+                || ("DELETE".equals(method) && MAIL_OPS_DELETE.matcher(path).matches());
     }
 
     public static boolean isWrite(String method) {
@@ -134,6 +145,9 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if (modSupportDestructive(method, path)) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (mailOpsDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && USER_EXPORT.matcher(path).matches()) {

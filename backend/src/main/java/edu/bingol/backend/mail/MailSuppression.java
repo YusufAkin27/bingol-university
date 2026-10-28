@@ -32,4 +32,20 @@ public class MailSuppression {
 
     @Column(nullable = false)
     private Instant createdAt;
+
+    /** Bastirmanin kapsami (P13; bugun yalniz duyuru: islemsel postalar etkilenmez). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private MailCategory category = MailCategory.ANNOUNCEMENT;
+
+    /** Yonetici notu (elle eklemede zorunlu sebep). */
+    @Column(length = 300)
+    private String note;
+
+    /** Maskeli gosterim ("a***@alan"); adres duz saklanmaz. Eski/abonelik kayitlarinda null. */
+    @Column(length = 120)
+    private String emailMasked;
+
+    /** Elle ekleyen yonetici (yoksa null). */
+    private Long createdBy;
 }

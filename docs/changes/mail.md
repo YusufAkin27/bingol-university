@@ -60,3 +60,18 @@ Yeni uclar: `/api/admin/mail/templates|campaigns|variables` (ayrinti ve ornekler
 - `MailCampaignDispatcher` (`app.mail.campaign-poll-ms`=10000, `app.mail.campaign-batch`=200, `SchedulerLock` + `FOR UPDATE SKIP LOCKED`): zamani gelen kampanyayi cozer (`MailAudienceResolver`: tum/filtre/secili kullanicilar/e-posta listesi -> yalniz kayitli kullanicilar), bastirilmis (`MailSuppressionGateImpl` -> `MailSuppressionService`), askidaki/silinmis/dogrulanmamis ve tekrar eden adresleri atlar, kalanlari `MailService.enqueue` ile yazar. Her alici `mail_campaign_recipient (campaign_id,user_id)` UNIQUE; "QUEUED" isareti ile kuyruk satiri ayni transaction'dadir (tekrar gonderim olmaz).
 - KVKK: kampanyada yalniz kullanici kimligi; `app.mail.campaign-retention-days` (180) sonra gece silinir; hesap silmede `AccountDataPurger` alici satirlarini siler.
 - Hata kodlari `i18n/mailadmin*.properties` (basename'e eklendi).
+
+
+## Yonetici mail altyapisi: bastirma listesi, kuyruk, gunluk kota (P13, V750, `mail/admin`)
+
+Yeni uclar (`/api/admin/mail/**`, yalniz ADMIN; yazmalar sebep ister ve `AuditContext` ile `MAIL_SUPPRESSION`/`MAIL_OUTBOX` hedefiyle denetlenir):
+
+- Bastirma: `GET /suppressions` (sebep, kategori, `q`, tarih, sayfali; liste MASKELI), `GET /suppressions/{id}` (`@AuditRead`; tam adres yalniz bir kullanici hesabi `email_sha256` ile eslesiyorsa), `POST /suppressions` ({email, reason?:MANUAL, note>=5}), `DELETE /suppressions/{id}`, `GET /suppressions/export.csv` (maskeli, formul kacisli, <=50 bin).
+- Kaldirma kurali: UNSUBSCRIBED/COMPLAINT (kullanicinin kendi iradesi) icin `X-Admin-Confirm: <kayit id>` basligi (yoksa 409 `MAILOPS_USER_OPTED_OUT`) + sebep >= 20; BOUNCED/MANUAL icin sebep >= 5.
+- Kuyruk: `GET /outbox` (durum, sablon, kategori, tarih, `q` = tam e-posta | `@alan` eki | kayit no; alici maskeli), `GET /outbox/{id}` (`@AuditRead`; durum gecmisi, deneme, hata [e-posta/sir maskeli], sonraki deneme; **icerik ve degiskenler hicbir yanitta yoktur**), `POST /outbox/{id}/retry`, `POST /outbox/{id}/cancel`, `POST /outbox/bulk` ({action RETRY|CANCEL, ids<=200, reason}; kismi basari `failed[]`).
+- Durum gecisleri tek atomik UPDATE (kosul: beklenen durum). Yeniden deneme yalniz DEAD/SKIPPED -> PENDING ve **guvenli olmayan denemeyi reddeder**: kod postasi 10 dk sonra (`MAILOPS_RETRY_STALE_CODE`), degiskenleri silinmis kayit (`MAILOPS_RETRY_NO_CONTENT`; DEAD/SKIPPED/iptal olurken `varsJson` KVKK geregi `{}` yapildigindan fiilen yalniz degisken gerektirmeyen `ACCOUNT_DELETED` ya da degiskeni duran kayit), bastirilmis adrese duyuru (`MAILOPS_RETRY_SUPPRESSED`). Iptal: PENDING/FAILED -> SKIPPED (+ degiskenler temizlenir). Isleyici ayni kaydi tam o anda gonderiyorsa iptal gecersiz kalabilir (mail gitmis olur); dar yaris penceresi.
+- Kota: `GET /quota` (salt okunur): limit, rezerv, duyuru ust siniri, kullanilan/kalan, yuzde ve duzey (OK / WARN >= 80 / CRITICAL >= 95 / OFF), sifirlama saati ve sonraki sifirlama, kimliksiz kod butcesi, dun/bugun sayaci (Redis anahtari 2 gun yasar; 7 gunluk gecmis tutulmaz), kuyruk ozeti.
+- `V750`: `mail_suppression` + `category`, `note`, `email_masked`, `created_by`; kuyruk arama indeksleri (`p13_*`). `SuppressionReason.MANUAL` eklendi. Adres hala DUZ saklanmaz (yalniz ozet + maskeli gosterim).
+- `AdminGuardPolicy`: elle bastirma, bastirma kaldirma, tek/toplu retry-cancel sebep ister ve "yikici" (saatlik sinir) sayilir. Hata kodlari `i18n/mailops*.properties` (`MAILOPS_*`).
+- Web: `/admin/mail/queue` (kuyruk + kota karti), `/admin/mail/suppressions`; yalniz Turkce (`i18n/tr/admin-p13.ts`).
+- Duman: `scripts/smoke-admin-mailops.sh`.

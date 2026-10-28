@@ -1,0 +1,172 @@
+/* Mail altyapısı (P13) sayfaları: yalnızca tasarım token'ları ve mantıksal özellikler. */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+  align-items: end;
+  margin-block-end: var(--space-4);
+}
+.meta {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.pager {
+  margin-block-start: var(--space-4);
+}
+.cellStack {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 7rem;
+}
+.muted {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.error {
+  max-inline-size: 18rem;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+.callout {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--info, var(--primary));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.calloutWarn {
+  border-inline-start-color: var(--warning, var(--primary));
+}
+.calloutDanger {
+  border-inline-start-color: var(--danger, var(--primary));
+}
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-4);
+}
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.timeline {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.timelineItem {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+  border-block-end: 1px dashed var(--border);
+  font-size: var(--text-sm);
+}
+.dangerZone {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+.quota {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.quotaWarn {
+  border-color: var(--warning, var(--border));
+}
+.quotaCritical {
+  border-color: var(--danger, var(--border));
+}
+.quotaHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.quotaTitle {
+  margin: 0;
+  font-size: var(--text-md);
+}
+.quotaStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.quotaStats div {
+  display: grid;
+  gap: 2px;
+}
+.quotaStats dt {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.quotaStats dd {
+  margin: 0;
+  font-weight: 600;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.track {
+  flex: 1;
+  block-size: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.fill {
+  block-size: 100%;
+  background: var(--success, var(--primary));
+  border-radius: var(--radius-pill);
+  transition: inline-size 0.3s var(--ease);
+}
+.fillWarn {
+  background: var(--warning, var(--primary));
+}
+.fillCritical {
+  background: var(--danger, var(--primary));
+}
+.barText {
+  min-inline-size: 3.5rem;
+  text-align: end;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.searchField {
+  display: grid;
+  gap: var(--space-1);
+  align-content: end;
+}
