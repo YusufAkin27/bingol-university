@@ -43,6 +43,7 @@ import trAdminP11 from './tr/admin-p11'; // yalnız tr (moderasyon + destek tama
 import trAdminP13 from './tr/admin-p13'; // yalnız tr (mail altyapısı: bastırma, kuyruk, kota), aynı kural
 import trAdminP14 from './tr/admin-p14'; // yalnız tr (push altyapısı), aynı kural
 import trAdminP15 from './tr/admin-p15'; // yalnız tr (toplu işlemler + kaynak durumu), aynı kural
+import trAdminP16 from './tr/admin-p16'; // yalnız tr (rol ve izin matrisi), aynı kural
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -150,6 +151,7 @@ const tr = {
   ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
+  ...trAdminP16,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -200,6 +202,7 @@ const en: Dictionary = {
   ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
+  ...trAdminP16,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -246,6 +249,7 @@ const ar: Dictionary = {
   ...trAdminP13,
   ...trAdminP14,
   ...trAdminP15,
+  ...trAdminP16,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

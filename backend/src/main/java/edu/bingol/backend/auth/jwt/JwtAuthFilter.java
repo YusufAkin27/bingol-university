@@ -34,6 +34,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Token imzali ve suresi icinde ama oturumu iptal edilmis: giris noktasi 401 SESSION_REPLACED yazar. */
     public static final String SESSION_REPLACED_ATTR = "auth.sessionReplaced";
 
+    /** Istek niteligi: token'daki yonetici profili talebi (P16; yoksa null) ve e-posta talebi. */
+    public static final String ADMIN_PROFILE_ATTR = "auth.adminProfile";
+    public static final String TOKEN_EMAIL_ATTR = "auth.tokenEmail";
+
     private final JwtService jwt;
     private final StringRedisTemplate redis;
 
@@ -51,6 +55,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (id != null) {
                 Verdict v = check(id);
                 if (v == Verdict.OK) {
+                    req.setAttribute(ADMIN_PROFILE_ATTR, id.adminProfile());
+                    req.setAttribute(TOKEN_EMAIL_ATTR, id.email());
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                             id.userId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + id.role().name()))));
                 } else if (v == Verdict.REPLACED) {

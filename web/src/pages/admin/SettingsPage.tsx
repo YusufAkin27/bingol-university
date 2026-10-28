@@ -19,6 +19,7 @@ import {
   Tabs,
   useGuardedMutation,
   useUnsavedGuard,
+  PermissionButton,
 } from '../../components/ui';
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -437,7 +438,8 @@ function MaintenanceButtons() {
   const dirty = isDirty(c, 'maintenance_mode');
   return (
     <>
-      <Button
+      <PermissionButton
+        permission="settings.write"
         size="sm"
         variant={valueOf(c, 'maintenance_mode') === 'true' ? 'danger' : 'primary'}
         disabled={!dirty}
@@ -446,7 +448,7 @@ function MaintenanceButtons() {
         data-testid="save-maintenance_mode"
       >
         {t('admin.settings.saveField')}
-      </Button>
+      </PermissionButton>
       {dirty && (
         <Button size="sm" variant="ghost" onClick={() => c.revert('maintenance_mode')}>
           {t('admin.settings.revert')}

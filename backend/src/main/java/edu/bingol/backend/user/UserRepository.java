@@ -43,6 +43,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "SELECT id FROM app_user WHERE role = 'ADMIN' ORDER BY id FOR UPDATE", nativeQuery = true)
     List<Long> lockAdminIds();
 
+    /** P16: etkin FULL yonetici sayisi (profili bos eski yoneticiler de FULL sayilir); son FULL korumasi icin. */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = edu.bingol.backend.user.Role.ADMIN"
+            + " AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE"
+            + " AND (u.adminProfile IS NULL OR u.adminProfile = edu.bingol.backend.admin.rbac.AdminProfile.FULL)")
+    long countFullAdmins();
+
+    /** P16: silinmemis tum yonetici hesaplari (profil atama listesi). */
+    @Query("SELECT u FROM User u WHERE u.role = edu.bingol.backend.user.Role.ADMIN"
+            + " AND u.status <> edu.bingol.backend.user.UserStatus.DELETED ORDER BY u.id")
+    List<User> findAllAdmins();
+
     @Query("SELECT u.language FROM User u WHERE u.id = :id")
     Optional<String> findLanguage(@Param("id") Long id);
 

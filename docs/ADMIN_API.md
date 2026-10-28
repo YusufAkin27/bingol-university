@@ -854,3 +854,35 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 **`GET /api/admin/sources/status`:** `{news:{maintenance, lastSuccess, lastAttempt, message (en çok 200 karakter), itemsLast7d, total, hidden, byType}, menu:{maintenance, lastSuccess, lastAttempt, message, totalDays, upcomingDays, withImage}, syncPerHour}`. Yalnız mevcut `SyncStatus` ve tablo sayılarını toplulaştırır; kaynak siteye istek atmaz.
 
 **Yeni hata kodları (3 dilde `i18n/bulkadmin*.properties`):** `BULK_EMPTY`, `BULK_LIMIT_EXCEEDED`, `EXPORT_ENTITY_INVALID`. Web: `/admin/sources` sayfası, haber/akademik/menü/bekleyen kayıt sayfalarında seçim + toplu çubuk + CSV (`pages/admin/bulk/*`, `api/adminBulk.ts`). Duman: `scripts/smoke-admin-bulk.sh`.
+
+## Yonetici rol ve izin matrisi (P16, V780)
+
+`Role` USER/ADMIN olarak KALIR. `app_user.admin_profile` (FULL, MODERATOR, SUPPORT, EDITOR, VIEWER; yalniz `role=ADMIN` icin anlamli) yoneticinin ne yapabilecegini belirler. V780 mevcut yoneticileri FULL yapar; bos profil + ADMIN = FULL (geriye uyum); `ADMIN_EMAILS` hesaplari ve Basic auth yoneticisi HER ZAMAN FULL. Panelden USER -> ADMIN yapilan hesap en dar profille (VIEWER) baslar; FULL yonetici sonra profil atar.
+
+- **Tek yer:** `admin/rbac/PermissionMatrix` (profil -> izin kumesi, kod tablosu; DB'de ozellestirme yok) ve `AdminPermissionPolicy` (yol + yontem -> gereken izin; ilk eslesen kural kazanir). GET -> `<alan>.read`, POST/PUT/PATCH/DELETE -> `<alan>.write` + ozel izinler (`users.role`, `users.delete`, `users.export`, `legal.publish`, `settings.write`, `comms.send`, `chat.read`, `system.write`, `rbac.manage`). Eslenmemis `/api/admin/**` yolu yalniz FULL'a acik (`admin.full`); `RbacCoverageTest` her admin ucunun bir izne eslendigini denetler (yeni uc = bilincli karar).
+- **Denetim:** `AdminPermissionInterceptor` (denetimden sonra, hiz sinirindan once). Izin yoksa 403 `ADMIN_PERMISSION_DENIED` ({0} = gereken izin; tr/en/ar `i18n/rbac*.properties`).
+- **JWT:** yoneticinin access token'i `ap` (profil adi) talebi tasir; izinler sunucuda profilden cozulur. Talep yoksa (eski token) kullanici kaydindan cozulur. Profil degisince hedefin `rolechg:<id>` isareti yazilir: eski token reddedilir, refresh yeni profille token verir.
+- **Maskeleme:** `users.pii` (FULL, MODERATOR) olmayan profiller (SUPPORT, VIEWER) kullanici liste/ayrintisinda e-postayi maskeli gorur (`a***@bingol.edu.tr`; `PermissionAwareMasking`); oturum/cihaz/IP uclari (`sessions`, `push-devices`, `devices`) ve bekleyen kayit listesi `users.pii` ister; CSV/KVKK disa aktarma `users.export` (yalniz FULL).
+- **Uclar (`rbac`):** `GET /api/admin/rbac/me` ({userId,email,displayName,profile,pinned,permissions[]}) ve `GET .../matrix` (her yonetici); `GET .../admins`, `GET .../changes?status=`, `PUT .../users/{id}/profile` {profile, reason}, `POST .../changes` {userId, profile, reason}, `POST .../changes/{id}/approve|reject` {note?} (yalniz `rbac.manage`).
+- **Kurallar:** kendi profilini degistiremez (`RBAC_SELF_CHANGE`); `ADMIN_EMAILS` hesabi degistirilemez (`ADMIN_EMAIL_PINNED`); son FULL dusurulemez (`RBAC_LAST_FULL`); FULL yoneticiyi dusurmek ya da birini FULL yapmak IKI KISI ONAYI ister: dogrudan PUT 409 `RBAC_APPROVAL_REQUIRED`, `POST /changes` ile oneri (24 saat gecerli; `admin_profile_change`), oneren onaylayamaz (`RBAC_SAME_APPROVER`), hedef onaylayamaz, onay aninda kurallar yeniden denetlenir (`RBAC_CHANGE_STALE`, `RBAC_CHANGE_EXPIRED`, `RBAC_CHANGE_DECIDED`); oneren reddederek geri cekebilir. Tum degisiklikler denetimlidir (hedef USER/{id}).
+- **Duman:** `scripts/smoke-admin-rbac.sh` (iki sabit FULL yonetici gerekir: `ADMIN_EMAILS=boss@...,boss2@...`).
+
+| Izin | FULL | MODERATOR | SUPPORT | EDITOR | VIEWER |
+|---|---|---|---|---|---|
+| dashboard.read, analytics.read, legal.read, content.read | x | x | x | x | x |
+| users.read (e-posta maskeli: SUPPORT, VIEWER) | x | x | x |  | x |
+| users.pii, users.write | x | x |  |  |  |
+| users.role, users.delete, users.export | x |  |  |  |  |
+| moderation.read | x | x |  |  | x |
+| moderation.write, chat.read, chat.write | x | x |  |  |  |
+| content.write | x |  |  | x |  |
+| content.hide | x | x |  | x |  |
+| support.read | x |  | x |  | x |
+| support.write | x |  | x |  |  |
+| comms.read | x |  | x | x | x |
+| comms.write, comms.announce | x |  |  | x |  |
+| comms.single | x |  | x |  |  |
+| comms.send, legal.publish, settings.write, system.write, rbac.manage, admin.full | x |  |  |  |  |
+| settings.read, system.read, audit.read | x |  |  |  | x |
+
+Not: sikayet ayrintisi (`GET /api/admin/reports/{id}`) mesaj baglamini (sohbet icerigi) dondurdugu icin `chat.read` ister; `moderation.read` yalniz sikayet listesini, kuyrugu ve disa aktarmayi acar.

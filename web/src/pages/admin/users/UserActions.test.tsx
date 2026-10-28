@@ -40,7 +40,10 @@ const base: AdminUserDetail = {
 };
 
 function calls(fn: ReturnType<typeof mockFetch>) {
-  return fn.mock.calls.map(([url, init]) => ({ url: String(url), init: init as RequestInit }));
+  // izin sorgusu (GET /admin/rbac/me, P16) test konusu değildir
+  return fn.mock.calls
+    .map(([url, init]) => ({ url: String(url), init: init as RequestInit }))
+    .filter((c) => !c.url.includes('/admin/rbac/'));
 }
 const hdr = (c: { init: RequestInit }, name: string) => (c.init.headers as Record<string, string>)[name];
 

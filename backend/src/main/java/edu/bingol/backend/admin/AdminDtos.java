@@ -22,7 +22,17 @@ public final class AdminDtos {
 
     public record AdminUserRow(Long id, String email, String displayName, String faculty, String department,
                                Short classYear, String language, Role role, UserStatus status, boolean emailVerified,
-                               String createdAt, String lastSeenAt, String avatarUrl) {}
+                               String createdAt, String lastSeenAt, String avatarUrl) {
+        /** P16: maskeli profiller (users.pii yok) icin e-posta maskelenir. */
+        public AdminUserRow masked() {
+            if (edu.bingol.backend.admin.rbac.PermissionAwareMasking.canSeePii()) {
+                return this;
+            }
+            return new AdminUserRow(id, edu.bingol.backend.admin.rbac.PermissionAwareMasking.maskEmail(email),
+                    displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt,
+                    lastSeenAt, avatarUrl);
+        }
+    }
 
     public record Counts(long feedback, long tickets, long reportsAgainst, long reportsFiled, long conversations,
                          long communities, long eventsCreated, long bookmarks) {}
@@ -35,7 +45,18 @@ public final class AdminDtos {
                                   boolean emailVerified, String createdAt, String lastSeenAt, String avatarUrl,
                                   String bio, String suspendedReason, String deletedAt, long deviceCount,
                                   List<String> platforms, Counts counts, List<Consent> consents,
-                                  List<DayOpens> recentActivity, Extras extras) {}
+                                  List<DayOpens> recentActivity, Extras extras) {
+        /** P16: maskeli profiller (users.pii yok) icin e-posta maskelenir. */
+        public AdminUserDetail masked() {
+            if (edu.bingol.backend.admin.rbac.PermissionAwareMasking.canSeePii()) {
+                return this;
+            }
+            return new AdminUserDetail(id, edu.bingol.backend.admin.rbac.PermissionAwareMasking.maskEmail(email),
+                    displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt,
+                    lastSeenAt, avatarUrl, bio, suspendedReason, deletedAt, deviceCount, platforms, counts, consents,
+                    recentActivity, extras);
+        }
+    }
 
     // --- kullanici detayi icin ek ayrintilar (mesaj ICERIGI hicbir zaman dahil degildir; yalnizca sayilar) ---
 

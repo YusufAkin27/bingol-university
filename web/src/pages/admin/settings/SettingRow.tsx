@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import { Badge, Button, FormField, Input, Textarea } from '../../../components/ui';
+import { Badge, Button, FormField, Input, PermissionButton, Textarea } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { validateSetting } from './lib';
 import styles from './settings.module.css';
@@ -89,7 +89,8 @@ export function SettingRow({
       </FormField>
       {extra}
       <div className={styles.rowActions}>
-        <Button
+        <PermissionButton
+          permission="settings.write"
           size="sm"
           disabled={!dirty || !!clientErr}
           loading={c.savingKey === k}
@@ -97,7 +98,7 @@ export function SettingRow({
           data-testid={`save-${k}`}
         >
           {t('admin.settings.saveField')}
-        </Button>
+        </PermissionButton>
         {dirty && (
           <Button size="sm" variant="ghost" onClick={() => c.revert(k)}>
             {t('admin.settings.revert')}

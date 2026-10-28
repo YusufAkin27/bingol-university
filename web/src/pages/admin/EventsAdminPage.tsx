@@ -435,6 +435,7 @@ export default function EventsAdminPage() {
           size="sm"
           variant="danger"
           danger
+          permission="content.write"
           title={t('admin.p07.bulk.cancel.title', { n: selected.size })}
           consequence={t('admin.p07.bulk.cancel.consequence')}
           irreversible

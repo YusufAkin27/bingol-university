@@ -10,7 +10,7 @@ import {
   unsuspendUser,
   verifyUserEmail,
 } from '../../../api/users';
-import { Button, Card, Select } from '../../../components/ui';
+import { Card, PermissionButton, Select } from '../../../components/ui';
 import { GuardedDialog } from '../../../components/admin/GuardedDialog';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Callout } from '../campaigns/shared';
@@ -58,34 +58,34 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
       <div className={styles.actions}>
         <div className={styles.actionRow}>
           {user.status === 'SUSPENDED' ? (
-            <Button variant="secondary" onClick={() => setDialog('unsuspend')}>
+            <PermissionButton permission="users.write" variant="secondary" onClick={() => setDialog('unsuspend')}>
               {t('admin.users.actions.unsuspend')}
-            </Button>
+            </PermissionButton>
           ) : (
-            <Button variant="secondary" onClick={() => setDialog('suspend')} disabled={isSelf}>
+            <PermissionButton permission="users.write" variant="secondary" onClick={() => setDialog('suspend')} disabled={isSelf}>
               {t('admin.users.actions.suspend')}
-            </Button>
+            </PermissionButton>
           )}
         </div>
 
         {!user.emailVerified && (
           <div className={styles.actionRow}>
-            <Button variant="primary" onClick={() => setDialog('verify')}>
+            <PermissionButton permission="users.write" variant="primary" onClick={() => setDialog('verify')}>
               {t('admin.users.actions.verifyEmail')}
-            </Button>
+            </PermissionButton>
           </div>
         )}
 
         <div className={styles.actionRow}>
-          <Button variant="secondary" onClick={() => setDialog('reset')}>
+          <PermissionButton permission="users.write" variant="secondary" onClick={() => setDialog('reset')}>
             {t('admin.users.actions.sendReset')}
-          </Button>
+          </PermissionButton>
         </div>
 
         <div className={styles.actionRow}>
-          <Button variant="secondary" onClick={() => setDialog('revoke')}>
+          <PermissionButton permission="users.write" variant="secondary" onClick={() => setDialog('revoke')}>
             {t('admin.users.actions.revoke')}
-          </Button>
+          </PermissionButton>
         </div>
 
         <div className={styles.actionRow}>
@@ -105,21 +105,22 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
                 </option>
               ))}
             </Select>
-            <Button
+            <PermissionButton
+              permission="users.role"
               variant="secondary"
               disabled={isSelf || role === user.role}
               onClick={() => setDialog('role')}
             >
               {t('admin.users.actions.role.change')}
-            </Button>
+            </PermissionButton>
           </div>
           {isSelf && <p className={styles.hint}>{t('admin.users.actions.role.self')}</p>}
         </div>
 
         <div className={styles.actionRow}>
-          <Button variant="danger" disabled={isSelf} onClick={() => setDialog('delete')}>
+          <PermissionButton permission="users.delete" variant="danger" disabled={isSelf} onClick={() => setDialog('delete')}>
             {t('admin.users.actions.delete')}
-          </Button>
+          </PermissionButton>
           {isSelf && <p className={styles.hint}>{t('admin.users.actions.delete.self')}</p>}
         </div>
       </div>

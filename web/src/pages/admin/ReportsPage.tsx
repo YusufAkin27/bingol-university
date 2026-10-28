@@ -18,7 +18,6 @@ import type {
 } from '../../api/types';
 import {
   Badge,
-  Button,
   Card,
   Checkbox,
   ConfirmDialog,
@@ -34,6 +33,7 @@ import {
   Textarea,
   toneFor,
   useToast,
+  PermissionButton,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
@@ -491,13 +491,14 @@ export default function ReportsPage() {
                       </FormField>
                     )}
                     <div className={styles.applyRow}>
-                      <Button
+                      <PermissionButton
+                        permission="moderation.write"
                         variant={action === 'SUSPEND_USER' ? 'danger' : 'primary'}
                         onClick={requestApply}
                         loading={resolve.isPending}
                       >
                         {t('admin.reports.decision.apply')}
-                      </Button>
+                      </PermissionButton>
                       <p className={styles.shortcuts} aria-label={t('admin.reports.shortcuts')}>
                         <span>
                           <kbd className={styles.kbd}>j</kbd> <kbd className={styles.kbd}>k</kbd>{' '}

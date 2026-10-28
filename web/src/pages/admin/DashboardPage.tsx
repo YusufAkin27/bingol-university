@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense, useMemo, type ReactNode } from 'react';
 import { getActiveUsers, getOverview, getRegistrations } from '../../api/analytics';
 import { qk } from '../../api/queryKeys';
+import { usePermissions } from '../../auth/permissions';
 import { ErrorState, PageHeader, Skeleton, StatCard } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const i18n = useI18n();
   const { t, formatNumber } = i18n;
   usePageTitle(t('admin.dashboard.title'));
+  const perms = usePermissions();
 
   const range = useMemo(() => lastDays(30), []);
   const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
@@ -158,9 +160,11 @@ export default function DashboardPage() {
             <StatCard title={t('admin.dashboard.kpi.newFeedback')} value={n(o?.newFeedback)} loading={loading} />
           </Section>
 
-          <Section title={t('admin.dashboard.section.moderation')}>
-            <ModerationCounters />
-          </Section>
+          {perms.can('moderation.read') && (
+            <Section title={t('admin.dashboard.section.moderation')}>
+              <ModerationCounters />
+            </Section>
+          )}
         </>
       )}
 
@@ -170,7 +174,7 @@ export default function DashboardPage() {
 
       <div className={styles.bottom}>
         <DevicePanel overview={overview} />
-        <RecentAudit />
+        {perms.can('audit.read') && <RecentAudit />}
       </div>
     </div>
   );

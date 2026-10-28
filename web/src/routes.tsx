@@ -12,6 +12,7 @@ import { AdminScope } from './layouts/AdminScope';
 import { LangScope, RootRedirect } from './layouts/LangScope';
 import { SiteLayout } from './layouts/SiteLayout';
 import { ADMIN_BASE } from './adminBase';
+import { RequirePerm } from './auth/permissions';
 
 // --- tanıtım sitesi ---
 const HomePage = lazy(() => import('./pages/site/HomePage'));
@@ -89,6 +90,7 @@ const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
 const MessageAccessPage = lazy(() => import('./pages/admin/MessageAccessPage'));
+const RolesPage = lazy(() => import('./pages/admin/RolesPage'));
 const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
 
 function PageFallback() {
@@ -149,7 +151,7 @@ export function AppRoutes() {
             <Route index element={<DashboardPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="users/:id" element={<UserDetailPage />} />
-            <Route path="users/:id/messages" element={<UserMessagesPage />} />
+            <Route path="users/:id/messages" element={<RequirePerm perm="chat.read"><UserMessagesPage /></RequirePerm>} />
             <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
             <Route path="chat-feed" element={<ChatFeedPage />} />
             <Route path="posts" element={<PostsAdminPage />} />
@@ -197,6 +199,7 @@ export function AppRoutes() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="audit" element={<AuditPage />} />
             <Route path="audit/message-access" element={<MessageAccessPage />} />
+            <Route path="roles" element={<RolesPage />} />
             <Route path="*" element={<AdminNotFoundPage />} />
           </Route>
         </Route>

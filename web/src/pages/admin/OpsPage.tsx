@@ -191,6 +191,7 @@ function RetryButton({
     <GuardedAction
       variant="secondary"
       size="sm"
+      permission="system.write"
       title={i18n.t('admin.p05.ops.retryTitle')}
       message={i18n.t('admin.p05.ops.retryMessage')}
       consequence={i18n.t('admin.p05.ops.retryConsequence')}

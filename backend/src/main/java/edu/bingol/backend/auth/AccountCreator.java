@@ -39,6 +39,7 @@ public class AccountCreator {
         user.setEmailVerified(true);
         if (user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
             user.setRole(Role.ADMIN);
+            user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
         }
         user = users.saveAndFlush(user);
         legal.recordSignupConsent(user.getId());

@@ -455,6 +455,7 @@ public class AuthService {
     private boolean promoteIfAdmin(User user) {
         if (user.getRole() != Role.ADMIN && admin.isAdminEmail(user.getEmail())) {
             user.setRole(Role.ADMIN);
+            user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
             return true;
         }
         return false;

@@ -8,7 +8,7 @@ import type { I18n } from '../i18n/I18nProvider';
 export function errorMessage(i18n: Pick<I18n, 't' | 'td'>, e: unknown): string {
   if (isApiError(e)) {
     if (e.status === 429 && e.retryAfter) return i18n.t('admin.wp02.err.rateLimitedWait', { n: e.retryAfter });
-    const known = i18n.td(`common.error.${e.code}`, '') || i18n.td(`admin.wp02.err.${e.code}`, '');
+    const known = i18n.td(`common.error.${e.code}`, '') || i18n.td(`admin.wp02.err.${e.code}`, '') || i18n.td(`admin.p16.err.${e.code}`, '');
     if (known) return known;
     if (e.status === 0) return i18n.t('common.error.NETWORK_ERROR');
     if (e.status >= 500) return i18n.t('common.error.SERVER_ERROR');

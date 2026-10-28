@@ -1,6 +1,9 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import type { QueryKey } from '@tanstack/react-query';
+import { useCan } from '../../../auth/permissions';
+import { useI18n } from '../../../i18n/I18nProvider';
 import { Button, type ButtonProps } from '../../ui/Button';
+import { Tooltip } from '../../ui/Tooltip';
 import { ConfirmDialog } from '../../ui/Overlay';
 import { BulkImpactNotice, isBulkConfirmed } from './BulkImpactNotice';
 import { ReasonField, type ReasonTemplateOption } from './ReasonField';
@@ -58,6 +61,11 @@ export interface GuardedActionProps {
   fullWidth?: boolean;
   disabled?: boolean;
   className?: string;
+  /**
+   * P16: gereken yönetici izni (örn. 'users.delete'). Yetkisizse düğme devre dışı kalır ve açıklama ipucu gösterir.
+   * UI gizlemesi güvenlik değildir; asıl denetim sunucudadır (403 ADMIN_PERMISSION_DENIED).
+   */
+  permission?: string;
 }
 
 /**
@@ -90,7 +98,10 @@ export function GuardedAction({
   fullWidth,
   disabled,
   className,
+  permission,
 }: GuardedActionProps) {
+  const { t } = useI18n();
+  const allowed = useCan(permission);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [typed, setTyped] = useState('');
@@ -138,17 +149,32 @@ export function GuardedAction({
 
   return (
     <>
-      <Button
-        variant={variant ?? (danger ? 'danger' : 'primary')}
-        size={size}
-        leftIcon={leftIcon}
-        fullWidth={fullWidth}
-        disabled={disabled}
-        className={className}
-        onClick={openDialog}
-      >
-        {children}
-      </Button>
+      {allowed ? (
+        <Button
+          variant={variant ?? (danger ? 'danger' : 'primary')}
+          size={size}
+          leftIcon={leftIcon}
+          fullWidth={fullWidth}
+          disabled={disabled}
+          className={className}
+          onClick={openDialog}
+        >
+          {children}
+        </Button>
+      ) : (
+        <Tooltip text={t('admin.p16.noPermission', { perm: permission ?? '' })}>
+          <Button
+            variant={variant ?? (danger ? 'danger' : 'primary')}
+            size={size}
+            leftIcon={leftIcon}
+            fullWidth={fullWidth}
+            disabled
+            className={className}
+          >
+            {children}
+          </Button>
+        </Tooltip>
+      )}
       <ConfirmDialog
         open={open}
         onClose={close}

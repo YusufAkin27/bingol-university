@@ -21,6 +21,7 @@ import {
   Spinner,
   Textarea,
   useToast,
+  PermissionButton,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
@@ -494,7 +495,8 @@ export default function CampaignComposePage() {
                     ))}
                   </ul>
                 )}
-                <Button
+                <PermissionButton
+                  permission="comms.send"
                   size="lg"
                   fullWidth
                   variant={state.audienceType === 'ALL' || state.notifType === 'SYSTEM' ? 'accent' : 'primary'}
@@ -510,7 +512,7 @@ export default function CampaignComposePage() {
                   data-testid="send-button"
                 >
                   {t(state.scheduleMode === 'later' ? 'admin.campaigns.send.schedule' : 'admin.campaigns.send.review')}
-                </Button>
+                </PermissionButton>
               </div>
             </Card>
           </div>

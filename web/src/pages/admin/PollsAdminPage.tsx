@@ -189,6 +189,7 @@ export default function PollsAdminPage() {
           <GuardedAction
             key={action}
             size="sm"
+            permission="content.write"
             variant={danger ? 'danger' : 'secondary'}
             danger={danger}
             irreversible={irreversible}

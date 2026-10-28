@@ -23,6 +23,7 @@ import {
   useToast,
   useUnsavedGuard,
   type Column,
+  PermissionButton,
 } from '../../components/ui';
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -325,9 +326,9 @@ export default function LegalAdminPage() {
           )}
 
           <div className={styles.publishRow}>
-            <Button onClick={requestPublish} disabled={!dirty}>
+            <PermissionButton permission="legal.publish" onClick={requestPublish} disabled={!dirty}>
               {t('admin.legal.publish')}
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       </div>

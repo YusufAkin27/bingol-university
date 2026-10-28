@@ -1,0 +1,74 @@
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.pad {
+  margin: 0;
+  padding: var(--space-4);
+}
+.me {
+  display: grid;
+  gap: var(--space-2);
+}
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.scroll {
+  overflow-x: auto;
+}
+.matrix {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.matrix th,
+.matrix td {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--border);
+  text-align: center;
+  vertical-align: top;
+}
+.matrix thead th {
+  position: sticky;
+  inset-block-start: 0;
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.matrix tbody th {
+  text-align: start;
+  font-weight: 500;
+  display: grid;
+  gap: var(--space-1);
+}
+.matrix code {
+  font-size: var(--text-sm);
+}
+.yes {
+  color: var(--success, currentColor);
+  font-weight: 600;
+}
+.no {
+  color: var(--text-muted);
+}
+.srOnly {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.assign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

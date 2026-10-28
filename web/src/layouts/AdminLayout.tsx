@@ -1,7 +1,8 @@
 import { useNoIndex } from '../lib/useNoIndex';
-import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppInfo } from '../api/hooks';
+import { RequirePerm, usePermissions } from '../auth/permissions';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Icon, IconButton, Spinner } from '../components/ui';
@@ -62,9 +63,16 @@ function readGroups(): Record<string, boolean> {
   }
 }
 
+/** Rota koruması (P16): menü öğesinin izni yoksa sayfa yerine "yetkiniz yok" gösterilir (asıl denetim sunucudadır). */
+function NavRouteGuard({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return <RequirePerm perm={locateNav(pathname)?.item.perm}>{children}</RequirePerm>;
+}
+
 export function AdminLayout() {
   useNoIndex();
   const { t } = useI18n();
+  const perms = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
   const tier = useTier();
@@ -116,11 +124,12 @@ export function AdminLayout() {
           ...g,
           label: t(g.labelKey),
           items: g.items
+            .filter((i) => perms.can(i.perm)) // yetkisiz öğe GİZLENİR (P16)
             .map((i) => ({ ...i, label: t(i.labelKey) }))
             .filter((i) => !filtering || navMatches(i.label, filter)),
         }))
         .filter((g) => g.items.length > 0),
-    [t, filter, filtering],
+    [t, filter, filtering, perms],
   );
   const matchCount = visibleGroups.reduce((n, g) => n + g.items.length, 0);
 
@@ -360,7 +369,9 @@ export function AdminLayout() {
               </div>
             }
           >
-            <Outlet />
+            <NavRouteGuard>
+              <Outlet />
+            </NavRouteGuard>
           </Suspense>
         </main>
       </div>

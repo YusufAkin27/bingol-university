@@ -37,6 +37,11 @@ public class User {
     @Column(nullable = false, length = 16)
     private Role role = Role.USER;
 
+    /** Yonetici profili (P16); yalniz role=ADMIN icin anlamli. null + ADMIN = FULL (migrasyon oncesi geriye uyum). */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private edu.bingol.backend.admin.rbac.AdminProfile adminProfile;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private UserStatus status = UserStatus.ACTIVE;

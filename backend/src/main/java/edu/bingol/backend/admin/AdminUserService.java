@@ -74,11 +74,12 @@ public class AdminUserService {
         String orderBy = UserFilter.orderBy(sort);
         int s = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int p = Math.max(page, 0);
-        return PageResponse.of(repo.page(f, orderBy, p, s), p, s, repo.count(f));
+        return PageResponse.of(repo.page(f, orderBy, p, s).stream().map(AdminUserRow::masked).toList(), p, s,
+                repo.count(f));
     }
 
     public AdminUserDetail detail(Long id) {
-        return repo.detail(id).orElseThrow(AdminUserService::notFound);
+        return repo.detail(id).orElseThrow(AdminUserService::notFound).masked();
     }
 
     /** CSV: BOM + baslik + en cok 50.000 satir; satirlar bellekte biriktirilmeden yazilir. Yazilan satir sayisini doner. */
@@ -124,6 +125,8 @@ public class AdminUserService {
             requireAnotherAdmin();
         }
         u.setRole(role);
+        // P16: yeni yonetici EN DAR profille (VIEWER) baslar; FULL yonetici sonra profil atar. Dusurulen hesapta profil silinir.
+        u.setAdminProfile(role == Role.ADMIN ? edu.bingol.backend.admin.rbac.AdminProfile.VIEWER : null);
         users.save(u);
         markRoleChanged(targetId);
     }

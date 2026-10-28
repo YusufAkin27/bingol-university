@@ -12,7 +12,7 @@ import {
 } from '../../../api/adminCommunities';
 import { approveCommunity, rejectCommunity } from '../../../api/approvals';
 import { GuardedDialog } from '../../../components/admin/GuardedDialog';
-import { Button, Checkbox, FormField, Select } from '../../../components/ui';
+import { Button, Checkbox, FormField, Select, PermissionButton } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import styles from './clubs.module.css';
 
@@ -57,9 +57,9 @@ export function ClubDangerTab({ detail, onDeleted }: { detail: ClubDetail; onDel
           <h3 className={styles.zoneTitle}>{t('admin.p06.danger.close.title')}</h3>
           <p className={styles.zoneText}>{t('admin.p06.danger.close.text')}</p>
           <div className={styles.actions}>
-            <Button variant="danger" onClick={() => setDialog('close')}>
+            <PermissionButton permission="content.write" variant="danger" onClick={() => setDialog('close')}>
               {t('admin.p06.danger.close.button')}
-            </Button>
+            </PermissionButton>
           </div>
         </section>
       )}
@@ -102,9 +102,9 @@ export function ClubDangerTab({ detail, onDeleted }: { detail: ClubDetail; onDel
           <h3 className={styles.zoneTitle}>{t('admin.p06.danger.delete.title')}</h3>
           <p className={styles.zoneText}>{t('admin.p06.danger.delete.text')}</p>
           <div className={styles.actions}>
-            <Button variant="danger" onClick={() => setDialog('delete')}>
+            <PermissionButton permission="content.write" variant="danger" onClick={() => setDialog('delete')}>
               {t('admin.p06.danger.delete.button')}
-            </Button>
+            </PermissionButton>
           </div>
         </section>
       )}

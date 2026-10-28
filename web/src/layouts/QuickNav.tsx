@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon, Modal } from '../components/ui';
+import { usePermissions } from '../auth/permissions';
 import { useI18n } from '../i18n/I18nProvider';
 import { adminNav, navMatches } from './adminNav';
 import styles from './QuickNav.module.css';
@@ -8,6 +9,7 @@ import styles from './QuickNav.module.css';
 /** Ctrl/Cmd+K ile açılan sayfa arama penceresi. */
 export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
+  const perms = usePermissions();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
@@ -19,8 +21,9 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
     () =>
       adminNav
         .flatMap((g) => g.items.map((i) => ({ ...i, label: t(i.labelKey), group: t(g.labelKey) })))
+        .filter((i) => perms.can(i.perm))
         .filter((i) => navMatches(`${i.label} ${i.group}`, q)),
-    [q, t],
+    [q, t, perms],
   );
 
   useEffect(() => {

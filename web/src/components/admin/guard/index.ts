@@ -6,5 +6,6 @@ export * from './ReasonField';
 export * from './BulkImpactNotice';
 export * from './useGuardedMutation';
 export * from './GuardedAction';
+export * from './PermissionButton';
 export * from './useUnsavedGuard';
 export * from './AuditTrail';
