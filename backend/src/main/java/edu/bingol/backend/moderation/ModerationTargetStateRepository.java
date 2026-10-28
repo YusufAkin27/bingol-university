@@ -2,11 +2,12 @@ package edu.bingol.backend.moderation;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ModerationTargetStateRepository extends JpaRepository<ModerationTargetState, Long> {
+public interface ModerationTargetStateRepository extends JpaRepository<ModerationTargetState, Long>, JpaSpecificationExecutor<ModerationTargetState> {
 
     Optional<ModerationTargetState> findByTargetTypeAndTargetId(ReportTargetType type, Long targetId);
 

@@ -35,6 +35,18 @@ public class ReportService {
     private final StrikeService strikes;
     private final ModerationProperties props;
     private final StringRedisTemplate redis;
+    /** Yonetilebilir sebep sablonlari (P11); yoksa (birim testleri) sabit DecisionReason listesi. */
+    private edu.bingol.backend.moderation.admin.ReasonTemplateService templates;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTemplates(edu.bingol.backend.moderation.admin.ReasonTemplateService templates) {
+        this.templates = templates;
+    }
+
+    /** Gecerli (etkin) karar nedeni kodu; bos ya da gecersizse bos. */
+    private Optional<String> parseReason(String code) {
+        return templates != null ? templates.validCode(code) : DecisionReason.parse(code).map(Enum::name);
+    }
 
     public ReportService(ReportRepository reports, List<ReportTargetHandler> handlerBeans,
                          UserModerationService userModeration, ModerationNotifier notifier,
@@ -149,10 +161,10 @@ public class ReportService {
 
     @Transactional
     public void resolve(Long reportId, Long adminId, Report.Resolution action, String message, String reasonCode) {
-        if (reasonCode != null && !reasonCode.isBlank() && DecisionReason.parse(reasonCode).isEmpty()) {
+        if (reasonCode != null && !reasonCode.isBlank() && parseReason(reasonCode).isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REASON_CODE_INVALID", "Geçersiz karar nedeni kodu.");
         }
-        String code = DecisionReason.parse(reasonCode).map(Enum::name).orElse(null);
+        String code = parseReason(reasonCode).orElse(null);
         Report report = reports.findById(reportId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "Rapor bulunamadı."));
         if (report.getStatus() == Report.Status.RESOLVED) {

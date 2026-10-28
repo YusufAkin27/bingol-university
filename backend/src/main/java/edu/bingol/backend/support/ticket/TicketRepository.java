@@ -4,11 +4,12 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface TicketRepository extends JpaRepository<SupportTicket, Long> {
+public interface TicketRepository extends JpaRepository<SupportTicket, Long>, JpaSpecificationExecutor<SupportTicket> {
 
     @Query("SELECT t FROM SupportTicket t WHERE t.userId = :uid AND (:cursor IS NULL OR t.id < :cursor) ORDER BY t.id DESC")
     List<SupportTicket> mine(@Param("uid") Long userId, @Param("cursor") Long cursor, Pageable pageable);

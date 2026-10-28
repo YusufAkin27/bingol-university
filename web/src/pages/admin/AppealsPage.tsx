@@ -4,7 +4,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { moderationApi, qk } from '../../api';
+import { modAdminApi, moderationApi, qk } from '../../api';
 import type { AppealStatus, AppealView } from '../../api/types';
 import {
   Badge,
@@ -25,6 +25,8 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { adminErrorMessage } from './campaigns/shared';
+import { CsvButton } from './moderation/CsvButton';
+import { csvName } from './moderation/p11Logic';
 import styles from './moderation/moderation.module.css';
 
 const STATUSES: AppealStatus[] = ['OPEN', 'ACCEPTED', 'REJECTED'];
@@ -66,7 +68,12 @@ export default function AppealsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.appeals.title')} />
+      <PageHeader
+        title={t('admin.appeals.title')}
+        actions={
+          <CsvButton filename={csvName('itirazlar')} fetcher={() => modAdminApi.exportAppealsCsv({ status })} />
+        }
+      />
       <Tabs
         label={t('admin.appeals.tabs')}
         value={status}

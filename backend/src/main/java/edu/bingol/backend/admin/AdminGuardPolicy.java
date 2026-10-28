@@ -41,6 +41,14 @@ public final class AdminGuardPolicy {
     /** P06: uye rolu degistirme (PATCH). */
     private static final Pattern CLUB_ROLE = Pattern.compile("^/api/admin/communities/[^/]+/members/[^/]+/role$");
 
+    /** P11 moderasyon: strike affi, gizlenen icerik geri alma (POST); sebep sablonu silme (DELETE). */
+    private static final Pattern MOD_POST = Pattern.compile(
+            "^/api/admin/moderation/(strikes/[^/]+/forgive|hidden/[^/]+/[^/]+/restore)$");
+    private static final Pattern MOD_TEMPLATE_DELETE = Pattern.compile("^/api/admin/moderation/reason-templates/[^/]+$");
+    /** P12 destek: talep/geri bildirim silme (DELETE), geri bildirim birlestirme (POST). */
+    private static final Pattern SUPPORT_DELETE = Pattern.compile("^/api/admin/support/(tickets|feedback)/[^/]+$");
+    private static final Pattern SUPPORT_MERGE = Pattern.compile("^/api/admin/support/feedback/merge$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -52,6 +60,13 @@ public final class AdminGuardPolicy {
         return ("POST".equals(method) && CLUB_POST.matcher(path).matches())
                 || ("DELETE".equals(method) && CLUB_DELETE.matcher(path).matches())
                 || ("PATCH".equals(method) && CLUB_ROLE.matcher(path).matches());
+    }
+
+    /** P11/P12: moderasyon af/geri alma/sablon silme, destek silme/birlestirme (sebep ister, saatlik siki hiz siniri). */
+    static boolean modSupportDestructive(String method, String path) {
+        return ("POST".equals(method) && (MOD_POST.matcher(path).matches() || SUPPORT_MERGE.matcher(path).matches()))
+                || ("DELETE".equals(method)
+                && (MOD_TEMPLATE_DELETE.matcher(path).matches() || SUPPORT_DELETE.matcher(path).matches()));
     }
 
     public static boolean isWrite(String method) {
@@ -95,6 +110,9 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if (clubDestructive(method, path)) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (modSupportDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

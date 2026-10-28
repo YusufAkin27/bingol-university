@@ -47,6 +47,15 @@ public class SupportTicket {
 
     private Instant closedAt;
 
+    // --- P12: yonetici onceligi + atama (kullanici uclarinda gosterilmez) ---
+    public enum Priority { LOW, NORMAL, HIGH, URGENT }
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 8)
+    private Priority priority = Priority.NORMAL;
+
+    private Long assigneeId;
+
     // --- T27: herkese acik talep ---
     @Column(nullable = false)
     private boolean publicTicket;

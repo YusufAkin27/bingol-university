@@ -39,11 +39,19 @@ export const getOverview = () => api.get<SystemOverview>('/admin/system/overview
 export const getDeadMail = () => api.get<MailDead[]>('/admin/system/dead-letters/mail', { limit: 100 });
 export const getDeadPush = () => api.get<PushDead[]>('/admin/system/dead-letters/push', { limit: 100 });
 
-/** ids bos = tum olu kayitlar. */
+/**
+ * ids bos = tum olu kayitlar. Yollar SABIT yazilir (kind sablonla degil): backend'in gercek uclari
+ * `POST /api/admin/system/dead-letters/{mail|push}/{retry|delete}` (gövdede `ids[]`); sözleşme denetimi
+ * (scripts/check-admin-contract.mjs) sabit yolları openapi ile birebir eşler.
+ */
 export const retryDead = (kind: DeadKind, ids: number[]) =>
-  api.post<{ requeued: number }>(`/admin/system/dead-letters/${kind}/retry`, { ids });
+  kind === 'mail'
+    ? api.post<{ requeued: number }>('/admin/system/dead-letters/mail/retry', { ids })
+    : api.post<{ requeued: number }>('/admin/system/dead-letters/push/retry', { ids });
 export const deleteDead = (kind: DeadKind, ids: number[]) =>
-  api.post<{ deleted: number }>(`/admin/system/dead-letters/${kind}/delete`, { ids });
+  kind === 'mail'
+    ? api.post<{ deleted: number }>('/admin/system/dead-letters/mail/delete', { ids })
+    : api.post<{ deleted: number }>('/admin/system/dead-letters/push/delete', { ids });
 
 /** Bilinmeyen/eksik durumu UNKNOWN sayar. */
 export function levelOf(s: string | undefined | null): SystemLevel {

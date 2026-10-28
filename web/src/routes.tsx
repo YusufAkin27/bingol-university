@@ -65,6 +65,9 @@ const CampaignComposePage = lazy(() => import('./pages/admin/CampaignComposePage
 const AppealsPage = lazy(() => import('./pages/admin/AppealsPage'));
 const SuspendRecommendationsPage = lazy(() => import('./pages/admin/SuspendRecommendationsPage'));
 const BlocklistPage = lazy(() => import('./pages/admin/BlocklistPage'));
+const StrikesPage = lazy(() => import('./pages/admin/StrikesPage'));
+const HiddenContentPage = lazy(() => import('./pages/admin/HiddenContentPage'));
+const ReasonTemplatesPage = lazy(() => import('./pages/admin/ReasonTemplatesPage'));
 const AccessBansPage = lazy(() => import('./pages/admin/AccessBansPage'));
 const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
 const CommunityCategoriesPage = lazy(() => import('./pages/admin/CommunityCategoriesPage'));
@@ -164,6 +167,9 @@ export function AppRoutes() {
             <Route path="moderation/appeals" element={<AppealsPage />} />
             <Route path="moderation/suspensions" element={<SuspendRecommendationsPage />} />
             <Route path="moderation/blocklist" element={<BlocklistPage />} />
+            <Route path="moderation/strikes" element={<StrikesPage />} />
+            <Route path="moderation/hidden" element={<HiddenContentPage />} />
+            <Route path="moderation/reason-templates" element={<ReasonTemplatesPage />} />
             <Route path="security/access-bans" element={<AccessBansPage />} />
             <Route path="profanity" element={<ProfanityPage />} />
             <Route path="community-categories" element={<CommunityCategoriesPage />} />

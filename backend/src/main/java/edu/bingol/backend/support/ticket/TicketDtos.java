@@ -43,7 +43,7 @@ public final class TicketDtos {
     /** Yonetici gorunumu: talep sahibi bilgisiyle. */
     public record AdminTicketSummary(Long id, Long userId, String userEmail, SupportTicket.Category category,
                                      String subject, SupportTicket.Status status, String createdAt, String updatedAt,
-                                     boolean publicTicket) {}
+                                     boolean publicTicket, SupportTicket.Priority priority, Long assigneeId) {}
 
     public record AdminTicketList(List<AdminTicketSummary> items, Long nextCursor) {}
 }

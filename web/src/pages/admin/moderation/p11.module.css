@@ -1,0 +1,116 @@
+/* Moderasyon + destek tamamlama (P11/P12) sayfaları: yalnızca tasarım token'ları ve mantıksal özellikler. */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+  align-items: end;
+  margin-block-end: var(--space-4);
+}
+.meta {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.pager {
+  margin-block-start: var(--space-4);
+}
+.cellStack {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 8rem;
+}
+.muted {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.preview {
+  display: grid;
+  gap: var(--space-2);
+  max-inline-size: 16rem;
+}
+.previewText {
+  margin: 0;
+  max-block-size: 5rem;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.why {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  max-inline-size: 14rem;
+  text-align: end;
+}
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+}
+.callout {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--info, var(--primary));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.calloutWarn {
+  border-inline-start-color: var(--warning, var(--primary));
+}
+.noteList {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.note {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: var(--radius-md);
+}
+.noteText {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.noteTime {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+.sideForm {
+  display: grid;
+  gap: var(--space-3);
+}
+.inlineRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: end;
+}
+.dangerZone {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+.orderBtns {
+  display: inline-flex;
+  gap: 2px;
+}

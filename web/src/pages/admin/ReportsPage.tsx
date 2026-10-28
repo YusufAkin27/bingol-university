@@ -7,7 +7,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { qk, reportsApi, usersApi } from '../../api';
+import { modAdminApi, qk, reportsApi, usersApi } from '../../api';
 import type {
   ReportOrder,
   ReportReasonCode,
@@ -49,6 +49,8 @@ import {
   validateDecision,
 } from './reports/reportLogic';
 import { AuthImage } from './moderation/AuthImage';
+import { CsvButton } from './moderation/CsvButton';
+import { csvName } from './moderation/p11Logic';
 import { ReportContextCard } from './chat/ReportContext';
 import { TARGET_TYPES, cleanReasonCode, toggleSelected } from './moderation/modLogic';
 import modStyles from './moderation/moderation.module.css';
@@ -244,7 +246,15 @@ export default function ReportsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.reports.title')} />
+      <PageHeader
+        title={t('admin.reports.title')}
+        actions={
+          <CsvButton
+            filename={csvName('raporlar')}
+            fetcher={() => modAdminApi.exportReportsCsv({ status, targetType: typeFilter })}
+          />
+        }
+      />
       <Tabs
         label={t('admin.reports.tabs')}
         value={status}

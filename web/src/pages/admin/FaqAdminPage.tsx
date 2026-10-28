@@ -2,7 +2,7 @@
 // API: GET /api/admin/faq, POST /api/admin/faq, PUT/DELETE /api/admin/faq/{id} (api/faq.ts). Her dil ayrı kayıt kümesidir (lang).
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { faqApi, qk } from '../../api';
+import { faqApi, qk, supportAdminApi } from '../../api';
 import type { FaqAdminView, Lang } from '../../api/types';
 import {
   Badge,
@@ -26,6 +26,8 @@ import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { moveItem } from './moderation/p11Logic';
+import p11 from './moderation/p11.module.css';
 import styles from './content/Faq.module.css';
 
 const LANGS: Lang[] = ['tr', 'en', 'ar'];
@@ -124,6 +126,17 @@ export default function FaqAdminPage() {
     },
   });
 
+  // P12: yukarı/aşağı sıralama (kategori içi); tüm kayıtlar yüklüyken (aksi hâlde yüklenmeyenlerle çakışabilir)
+  const reorder = useGuardedMutation<unknown, number[]>({
+    mutationFn: (ids) => supportAdminApi.reorderFaq(ids),
+    successMessage: false,
+    invalidateKeys: faqKeys,
+  });
+  const orderLocked = !!query.hasNextPage || reorder.isPending;
+  function move(list: FaqAdminView[], index: number, delta: -1 | 1) {
+    void reorder.run(moveItem(list, index, delta).map((f) => f.id));
+  }
+
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const toggle = useGuardedMutation<unknown, FaqAdminView>({
     mutationFn: (f, { idempotencyKey }) =>
@@ -200,7 +213,7 @@ export default function FaqAdminPage() {
                 <span className={styles.count}>{t('admin.faq.count', { n: list.length })}</span>
               </h2>
               <ul className={styles.items}>
-                {list.map((f) => (
+                {list.map((f, idx) => (
                   <li key={f.id} className={`${styles.item} ${f.published ? '' : styles.draft}`}>
                     <div className={styles.itemMain}>
                       <p className={styles.q} dir="auto">
@@ -217,6 +230,24 @@ export default function FaqAdminPage() {
                       </div>
                     </div>
                     <div className={styles.itemActions} dir={i18n.dir}>
+                      <span className={p11.orderBtns} role="group" aria-label={t('admin.p12.faq.order')}>
+                        <IconButton
+                          label={t('admin.p12.faq.up')}
+                          size="sm"
+                          disabled={orderLocked || idx === 0}
+                          onClick={() => move(list, idx, -1)}
+                        >
+                          <Icon name="arrowUp" size={16} />
+                        </IconButton>
+                        <IconButton
+                          label={t('admin.p12.faq.down')}
+                          size="sm"
+                          disabled={orderLocked || idx === list.length - 1}
+                          onClick={() => move(list, idx, 1)}
+                        >
+                          <Icon name="arrowDown" size={16} />
+                        </IconButton>
+                      </span>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -240,6 +271,7 @@ export default function FaqAdminPage() {
         </div>
       )}
 
+      {query.hasNextPage && !query.isError && total > 0 && <p className={styles.moreHint}>{t('admin.p12.faq.orderLocked')}</p>}
       {query.hasNextPage && !query.isError && (
         <div className={styles.more}>
           <p className={styles.moreHint}>

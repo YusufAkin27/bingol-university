@@ -101,7 +101,7 @@ public class TicketService {
                 t.isPublicTicket() ? t.getContactEmail()
                         : (byId.containsKey(t.getUserId()) ? byId.get(t.getUserId()).getEmail() : null),
                 t.getCategory(), t.getSubject(), t.getStatus(), t.getCreatedAt().toString(), t.getUpdatedAt().toString(),
-                t.isPublicTicket()));
+                t.isPublicTicket(), t.getPriority(), t.getAssigneeId()));
         return new AdminTicketList(page.items(), page.nextCursor());
     }
 

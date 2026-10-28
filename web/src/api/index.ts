@@ -29,3 +29,5 @@ export * as accessBansApi from './accessBans';
 export * as profanityApi from './profanity';
 export * as pendingUsersApi from './pendingUsers';
 export * as adminMenuApi from './adminMenu';
+export * as modAdminApi from './modAdmin';
+export * as supportAdminApi from './supportAdmin';

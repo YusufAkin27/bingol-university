@@ -3,7 +3,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { qk, supportApi } from '../../api';
+import { qk, supportAdminApi, supportApi } from '../../api';
+import type { TicketRowExtra } from '../../api/supportAdmin';
 import type { AdminTicketSummary, TicketStatus } from '../../api/types';
 import {
   DataToolbar,
@@ -21,6 +22,8 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { CsvButton } from './moderation/CsvButton';
+import { csvName } from './moderation/p11Logic';
 import styles from './support/Support.module.css';
 import { paths } from '../../paths';
 
@@ -41,9 +44,12 @@ export default function TicketsPage() {
     initialPageParam: null as number | null,
     getNextPageParam: (p) => p.nextCursor,
   });
-  const rows = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
+  const rows = useMemo(
+    () => (query.data?.pages.flatMap((p) => p.items) ?? []) as (AdminTicketSummary & TicketRowExtra)[],
+    [query.data],
+  );
 
-  const columns: Column<AdminTicketSummary>[] = [
+  const columns: Column<AdminTicketSummary & TicketRowExtra>[] = [
     {
       key: 'subject',
       header: t('admin.tickets.col.subject'),
@@ -72,12 +78,37 @@ export default function TicketsPage() {
         </span>
       ),
     },
+    {
+      key: 'priority',
+      header: t('admin.p12.col.priority'),
+      render: (r) =>
+        r.priority && r.priority !== 'NORMAL' ? (
+          <Badge tone={r.priority === 'URGENT' ? 'danger' : r.priority === 'HIGH' ? 'warning' : 'neutral'}>
+            {t(`admin.p12.priority.${r.priority}`)}
+          </Badge>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      key: 'assignee',
+      header: t('admin.p12.col.assignee'),
+      render: (r) => (r.assigneeId ? <span className="ltr">#{r.assigneeId}</span> : '—'),
+    },
     { key: 'updated', header: t('admin.tickets.col.updated'), render: (r) => formatDateTime(r.updatedAt) },
   ];
 
   return (
     <>
-      <PageHeader title={t('admin.tickets.title')} />
+      <PageHeader
+        title={t('admin.tickets.title')}
+        actions={
+          <CsvButton
+            filename={csvName('talepler')}
+            fetcher={() => supportAdminApi.exportTicketsCsv({ status, publicOnly })}
+          />
+        }
+      />
       <DataToolbar
         filters={
           <>

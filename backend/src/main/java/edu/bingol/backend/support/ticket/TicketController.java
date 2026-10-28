@@ -27,9 +27,12 @@ public class TicketController {
     private final TicketService tickets;
     private final RateLimiter limiter;
     private final PublicSupportService publicSupport;
+    private final edu.bingol.backend.support.admin.SupportAdminService adminSupport;
 
-    public TicketController(TicketService tickets, RateLimiter limiter, PublicSupportService publicSupport) {
+    public TicketController(TicketService tickets, RateLimiter limiter, PublicSupportService publicSupport,
+                            edu.bingol.backend.support.admin.SupportAdminService adminSupport) {
         this.publicSupport = publicSupport;
+        this.adminSupport = adminSupport;
         this.tickets = tickets;
         this.limiter = limiter;
     }
@@ -76,11 +79,14 @@ public class TicketController {
         return tickets.adminQueue(status, publicOnly, cursor, size);
     }
 
-    /** Destek yazışması kişisel veri içerir: okuma denetim kaydına yazılır. */
+    /**
+     * Destek yazışması kişisel veri içerir: okuma denetim kaydına yazılır. Yanıt, mesajlara ek olarak İÇ NOTLARI
+     * (`internal:true`, müşteriye görünmez), öncelik ve atamayı içerir (P12; yalnız yönetici ucu).
+     */
     @edu.bingol.backend.admin.AuditRead
     @GetMapping("/admin/support/tickets/{id}")
-    public TicketDtos.AdminTicketDetail adminDetail(@PathVariable Long id) {
-        return tickets.adminDetail(id);
+    public edu.bingol.backend.support.admin.SupportAdminDtos.AdminTicketDetailView adminDetail(@PathVariable Long id) {
+        return adminSupport.detail(id);
     }
 
     @PostMapping("/admin/support/tickets/{id}/reply")

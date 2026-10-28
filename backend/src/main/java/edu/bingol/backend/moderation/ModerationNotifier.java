@@ -22,8 +22,19 @@ public class ModerationNotifier {
         this.users = users;
     }
 
+    /** Yonetilebilir sebep sablonlari (P11); yoksa sabit DecisionReason metinleri. */
+    private edu.bingol.backend.moderation.admin.ReasonTemplateService templates;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTemplates(edu.bingol.backend.moderation.admin.ReasonTemplateService templates) {
+        this.templates = templates;
+    }
+
     /** Karar nedeni sablonunun alici dilindeki metni; yoksa null. */
     public String reasonText(Long userId, String reasonCode) {
+        if (templates != null) {
+            return templates.text(reasonCode, i18n.langOf(userId));
+        }
         return DecisionReason.parse(reasonCode)
                 .map(r -> i18n.msg(r.messageKey(), i18n.langOf(userId)))
                 .orElse(null);
@@ -49,6 +60,11 @@ public class ModerationNotifier {
     /** Icerik yeniden gorunur (rapor reddedildi veya itiraz kabul). */
     public void restored(Long ownerId, ReportTargetType type, Long targetId) {
         notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.restored", data(type, targetId));
+    }
+
+    /** Yonetici ihlali affetti (P11): ihlal sayilmaz. */
+    public void strikeForgiven(Long userId) {
+        notifications.sendTemplated(userId, NotificationType.SYSTEM, "notif.mod.strike.forgiven", null);
     }
 
     /** Raporlayana sonuc bilgisi. */

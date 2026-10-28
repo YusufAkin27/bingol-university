@@ -3,7 +3,7 @@
 //      {status, adminResponse, publicVisible} (api/feedback.ts). Yanıt/durum değişince kullanıcıya bildirim gider.
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { feedbackApi, qk } from '../../api';
+import { feedbackApi, qk, supportAdminApi } from '../../api';
 import type { AdminFeedbackView, FeedbackCategory, FeedbackStatus } from '../../api/types';
 import {
   Badge,
@@ -13,7 +13,9 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  GuardedAction,
   Icon,
+  Input,
   LoadMore,
   PageHeader,
   Select,
@@ -26,7 +28,11 @@ import {
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
+import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { CsvButton } from './moderation/CsvButton';
+import { csvName, parseAssignee } from './moderation/p11Logic';
+import p11 from './moderation/p11.module.css';
 import styles from './support/Support.module.css';
 import {
   FEEDBACK_STATUSES,
@@ -48,6 +54,8 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
     adminResponse: item.adminResponse ?? '',
     publicVisible: item.publicVisible,
   });
+  const [mergeTarget, setMergeTarget] = useState('');
+  const mergeId = parseAssignee(mergeTarget);
   const patch = feedbackPatch(item, draft);
   const publishable = canPublish(item.category);
 
@@ -136,6 +144,55 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
             {publishable ? t('admin.feedback.public.hint') : t('admin.feedback.public.disabled')}
           </p>
         </div>
+
+        <div className={p11.dangerZone}>
+          <h4>{t('admin.p12.fb.danger')}</h4>
+          <div className={p11.inlineRow}>
+            <FormField label={t('admin.p12.fb.mergeTarget')} hint={t('admin.p12.fb.mergeHint')}>
+              <Input inputMode="numeric" className="ltr" value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value)} />
+            </FormField>
+            <GuardedAction
+              variant="secondary"
+              danger
+              irreversible
+              requireReason
+              disabled={mergeId === null || mergeId === item.id}
+              title={t('admin.p12.fb.merge.title')}
+              confirmLabel={t('admin.p12.fb.merge.button')}
+              message={t('admin.p12.fb.merge.message', { source: item.id, target: mergeId ?? 0 })}
+              consequence={t('admin.p12.fb.merge.consequence')}
+              successMessage={t('admin.p12.fb.merge.done')}
+              errorMessage={(e) => adminError(i18n, e)}
+              invalidateKeys={[qk.feedback.all]}
+              onSuccess={onClose}
+              onConfirm={({ reason, idempotencyKey }) =>
+                supportAdminApi.mergeFeedback(item.id, mergeId as number, { reason, idempotencyKey })
+              }
+            >
+              {t('admin.p12.fb.merge.button')}
+            </GuardedAction>
+          </div>
+          <div>
+            <GuardedAction
+              variant="ghost"
+              danger
+              irreversible
+              requireReason
+              typeToConfirm={t('admin.p12.delete.confirmWord')}
+              title={t('admin.p12.fb.delete.title')}
+              confirmLabel={t('admin.p12.fb.delete.button')}
+              message={<strong dir="auto">{item.subject}</strong>}
+              consequence={t('admin.p12.fb.delete.consequence')}
+              successMessage={t('admin.p12.fb.delete.done')}
+              errorMessage={(e) => adminError(i18n, e)}
+              invalidateKeys={[qk.feedback.all]}
+              onSuccess={onClose}
+              onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteFeedback(item.id, { reason, idempotencyKey })}
+            >
+              {t('admin.p12.fb.delete.button')}
+            </GuardedAction>
+          </div>
+        </div>
       </div>
     </Drawer>
   );
@@ -170,7 +227,15 @@ export default function FeedbackPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.feedback.title')} />
+      <PageHeader
+        title={t('admin.feedback.title')}
+        actions={
+          <CsvButton
+            filename={csvName('geri-bildirimler')}
+            fetcher={() => supportAdminApi.exportFeedbackCsv({ status, category })}
+          />
+        }
+      />
       <DataToolbar
         filters={
           <div className={styles.filterRow}>

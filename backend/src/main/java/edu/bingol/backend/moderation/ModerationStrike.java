@@ -41,4 +41,10 @@ public class ModerationStrike {
     private Instant createdAt = Instant.now();
 
     private Instant revokedAt;
+
+    /** Yonetici afi (P11): af eden yonetici (Basic auth ise null) ve sebep. Itiraz kabulunde bos kalir. */
+    private Long forgivenBy;
+
+    @Column(length = 300)
+    private String forgivenReason;
 }

@@ -48,6 +48,13 @@ public class AdminModerationController {
     private final RateLimiter limiter;
     private final I18n i18n;
     private final AdminReportContextService context;
+    /** Yonetilebilir sebep sablonlari (P11); yoksa sabit liste. */
+    private edu.bingol.backend.moderation.admin.ReasonTemplateService templates;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTemplates(edu.bingol.backend.moderation.admin.ReasonTemplateService templates) {
+        this.templates = templates;
+    }
 
     public AdminModerationController(ReportService reports, ReportRepository reportRepo,
                                      UserModerationService userModeration, UserRepository users, NewsRepository news,
@@ -113,6 +120,9 @@ public class AdminModerationController {
     /** Karar nedeni sablonlari (istek dilinde `text` + uc dilde `texts`). */
     @GetMapping("/reports/reason-templates")
     public List<ReasonTemplate> reasonTemplates() {
+        if (templates != null) {
+            return templates.activeForResolve();
+        }
         List<ReasonTemplate> out = new ArrayList<>();
         for (DecisionReason r : DecisionReason.values()) {
             Map<String, String> texts = new LinkedHashMap<>();
@@ -143,8 +153,9 @@ public class AdminModerationController {
     }
 
     /** Toplu islemde gecersiz kod her satirda ayni hatayi uretmesin: bastan 400. */
-    private static void requireValidReason(String code) {
-        if (code != null && !code.isBlank() && DecisionReason.parse(code).isEmpty()) {
+    private void requireValidReason(String code) {
+        if (code != null && !code.isBlank() && (templates != null ? templates.validCode(code).isEmpty()
+                : DecisionReason.parse(code).isEmpty())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REASON_CODE_INVALID", "Geçersiz karar nedeni kodu.");
         }
     }
