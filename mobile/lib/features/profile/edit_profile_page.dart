@@ -33,7 +33,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late String? _grade = _g0;
   late bool _showEmail = widget.profile['showEmail'] == true;
   // Dil seçimi Ayarlar'a taşındı; mevcut değer olduğu gibi gönderilir.
-  late final String _language = (widget.profile['language'] as String?) ?? 'tr';
 
   late final String _n0 = _name.text;
   late final String _b0 = _bio.text;
@@ -106,7 +105,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (_grade != _g0) 'grade': _grade ?? '',
         'bio': _bio.text.trim(),
         'showEmail': _showEmail,
-        'language': _language,
+        // `language` bilerek gönderilmez: PATCH kısmidir; açılış anındaki bayat dil sunucudaki güncel dili ezerdi.
       });
       _saved = true;
       if (mounted) Navigator.pop(context, true);

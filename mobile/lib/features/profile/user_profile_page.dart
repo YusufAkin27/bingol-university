@@ -16,6 +16,7 @@ import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import 'edit_profile_page.dart';
 import 'icerik_user_posts_grid.dart';
+import 'profily_widgets.dart' show ProfilyPill, ProfilyTone;
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
 /// sohbetidir; "Mesaj" aynı birebir sohbete çıkarsa yeni sayfa yığılmaz, geri dönülür.
@@ -98,7 +99,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
       _stats = s.copyWith(followedByMe: want, followers: (s.followers + (want ? 1 : -1)).clamp(0, 1 << 30));
     });
     try {
-      await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
+      final res = await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
+      // Sunucunun kesin takipçi sayısı iyimser tahminin yerini alır.
+      final c = res.followerCount;
+      if (mounted && c != null) setState(() => _stats = (_stats ?? s).copyWith(followers: c));
     } catch (e) {
       if (mounted) setState(() => _stats = s);
       _toast(errorText(e));
@@ -109,12 +113,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> _load() async {
     setState(() => _error = null);
-    _loadStats();
     final api = widget.session.api;
     try {
       final r = await api.get(_self ? '/users/me' : '/users/${widget.userId}');
       if (!mounted) return;
-      setState(() => _p = Map<String, dynamic>.from(r as Map));
+      final m = Map<String, dynamic>.from(r as Map);
+      // Başkasının profil yanıtı takip alanlarını taşır: ikinci istek gerekmez.
+      final hasStats = !_self && m['followerCount'] != null;
+      setState(() {
+        _p = m;
+        if (hasStats) _stats = FollowStats.fromJson(m);
+      });
+      if (!hasStats) _loadStats();
     } catch (e) {
       if (mounted) setState(() => _error = e);
       return;
@@ -462,6 +472,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: BuType.body.copyWith(fontSize: 14, color: t.mut)),
+            ],
+            if (!_self && s != null && s.followsMe) ...[
+              const SizedBox(height: 8),
+              // Takipleşme rozeti: karşı taraf beni takip ediyor; ben de ediyorsam "Takipleşiyorsunuz".
+              ProfilyPill(s.followedByMe ? l.profilyardFollowMutual : l.profilyardFollowsYou,
+                  key: const ValueKey('followRelationPill'), tone: s.followedByMe ? ProfilyTone.green : ProfilyTone.red, small: true),
             ],
             if (presence != null) ...[
               const SizedBox(height: 4),

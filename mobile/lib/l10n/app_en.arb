@@ -2100,5 +2100,18 @@
   "evdErrDescTooLongServer": "The description is too long. Please shorten it.",
   "clubMgmtCategoryNone": "Not selected",
   "clubMgmtCategoryInactive": "{name} (no longer in use)",
-  "clubMgmtCategoryInvalid": "The selected category is not valid. Choose another one from the list."
+  "clubMgmtCategoryInvalid": "The selected category is not valid. Choose another one from the list.",
+  "errEmailAliasNotAllowed": "A + tag cannot be used in the email address. Enter your address without it.",
+  "errPasswordTooLong": "The password is too long: at most 72 bytes (Turkish and Arabic characters take more than one byte).",
+  "errPayloadTooLarge": "The data you sent is too large. Try a smaller file or shorter text.",
+  "errUploadBusy": "Another upload is in progress or the server is busy. Please wait a moment and try again.",
+  "errUploadQuota": "You have uploaded too much. Please try again a little later.",
+  "errMailQuota": "We cannot send verification codes right now. Please try again later.",
+  "errServiceBusy": "The system is busy right now. Please try again in a few seconds.",
+  "errLegalReaccept": "The agreements have been updated. You need to accept the updated agreements to continue.",
+  "coreErrRetryAfterSec": "Try again in {n} s.",
+  "coreErrRetryAfterMin": "Try again in {n} min.",
+  "clubPostTextRequired": "Add some text to share with the image.",
+  "etkinlik2QrExpired": "Expired, refreshing…",
+  "updateRequiredRecheck": "Check again"
 }

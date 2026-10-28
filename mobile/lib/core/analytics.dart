@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import 'error_log.dart';
 import 'session.dart';
 
 /// Toplulaştırılmış, kişisel veri içermeyen kullanım olayları.
@@ -76,6 +77,7 @@ class AnalyticsNavigatorObserver extends NavigatorObserver {
   void _view(Route<dynamic>? r) {
     final n = r?.settings.name;
     if (n == null || n.isEmpty || n == '/') return;
+    ErrorLog.instance.currentScreen = n;
     Analytics.instance.screenView(n);
   }
 

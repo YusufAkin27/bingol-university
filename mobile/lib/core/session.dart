@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -88,28 +90,66 @@ class Session extends ChangeNotifier {
     _set(SessionState.signedOut);
   }
 
+  /// Geçici hatada (ağ, 5xx, 429, 408) `/auth/me` yeniden denemeleri arasındaki bekleme.
+  /// Testler kısaltabilir.
+  @visibleForTesting
+  List<Duration> meRetryDelays = const [Duration(seconds: 3), Duration(seconds: 10), Duration(seconds: 30)];
+  bool _meRetrying = false;
+
   Future<void> _loadMe() async {
     try {
-      final me = await api.get('/auth/me');
-      if (me is Map) {
-        final id = me['id'];
-        final dn = me['displayName'];
-        final em = me['email'];
-        userId = id is num ? id.toInt() : null;
-        displayName = dn is String ? dn : null;
-        email = em is String ? em : null;
-      }
+      await _fetchMe();
       _set(SessionState.signedIn);
     } on ApiError catch (e) {
-      // Ağ yokken oturumu silmeyiz; yalnızca sunucudan gelen 401 oturumu bitirir.
-      if (e.isNetwork) {
-        _set(SessionState.signedIn);
-      } else if (e.code == 'SESSION_REPLACED') {
+      if (e.code == 'SESSION_REPLACED') {
         // forceSignOut zaten başlatıldı (bilgi bandıyla giriş ekranına düşer).
         return;
-      } else {
-        await signOut(remote: false);
       }
+      if (e.isAuthRejected) {
+        // Yalnız kesin yetki reddi (401, geçersiz/kullanılmış refresh, askı) oturumu bitirir.
+        await signOut(remote: false);
+        return;
+      }
+      // Ağ yok, 5xx, 429, 408 ya da beklenmeyen yanıt: oturum (token'lar) KORUNUR, çevrimdışı modda
+      // açılır; kullanıcı bilgisi arka planda kısa gecikmeyle yeniden denenir.
+      _set(SessionState.signedIn);
+      unawaited(_retryMe());
+    }
+  }
+
+  Future<void> _fetchMe() async {
+    final me = await api.get('/auth/me');
+    if (me is Map) {
+      final id = me['id'];
+      final dn = me['displayName'];
+      final em = me['email'];
+      userId = id is num ? id.toInt() : null;
+      displayName = dn is String ? dn : null;
+      email = em is String ? em : null;
+    }
+  }
+
+  Future<void> _retryMe() async {
+    if (_meRetrying) return;
+    _meRetrying = true;
+    try {
+      for (final d in meRetryDelays) {
+        await Future<void>.delayed(d);
+        if (state != SessionState.signedIn || api.tokens == null) return;
+        try {
+          await _fetchMe();
+          notifyListeners();
+          return;
+        } on ApiError catch (e) {
+          if (e.isAuthRejected) {
+            await signOut(remote: false);
+            return;
+          }
+          if (e.code == 'SESSION_REPLACED') return;
+        } catch (_) {}
+      }
+    } finally {
+      _meRetrying = false;
     }
   }
 
@@ -290,14 +330,61 @@ class Session extends ChangeNotifier {
   }
 }
 
-/// Hata kodlarına kullanıcı metni: sunucu zaten istek dilinde `message` döner; yalnızca ağ hatası yerelde.
+/// Hata kodlarına kullanıcı metni: sunucu zaten istek dilinde `message` döner; bilinen kodlar için
+/// yerelde (uygulama dilinde) sabit metin kullanılır, böylece mesaj boş/proxy yanıtı olsa da anlaşılır kalır.
 String errorText(Object e) {
   // Bağlamsız çağrılar için etkin uygulama dili (yoksa Türkçe).
   final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
   if (e is ApiError) {
     if (e.isNetwork) return l.coreErrNetwork;
-    if (e.message.isNotEmpty) return e.message;
-    if (e.status == 429) return l.coreErrTooMany;
+    final known = knownErrorText(e, l);
+    if (known != null) return known;
+    if (e.message.isNotEmpty) {
+      // 429: sunucu metni süre içermiyorsa Retry-After eklenir.
+      if (e.status == 429 && !RegExp(r'\d').hasMatch(e.message)) {
+        final h = retryAfterText(e.retryAfter, l);
+        if (h != null) return '${e.message} $h';
+      }
+      return e.message;
+    }
+    if (e.status == 429) return _withRetry(l.coreErrTooMany, e, l);
   }
   return l.coreErrGeneric;
+}
+
+String _withRetry(String text, ApiError e, AppLocalizations l) {
+  final h = retryAfterText(e.retryAfter, l);
+  return h == null ? text : '$text $h';
+}
+
+/// `Retry-After` saniyesini "N sn / N dk sonra tekrar deneyin" metnine çevirir (yoksa/0 ise null).
+String? retryAfterText(int? seconds, AppLocalizations l) {
+  if (seconds == null || seconds <= 0) return null;
+  if (seconds < 90) return l.coreErrRetryAfterSec('$seconds');
+  return l.coreErrRetryAfterMin('${(seconds / 60).ceil()}');
+}
+
+/// Backend'in sonradan eklenen hata kodları için yerel metin; bilinmiyorsa null.
+String? knownErrorText(ApiError e, AppLocalizations l) {
+  // Kodsuz 413 (proxy/nginx); kodlu 413'ler (VIDEO_TOO_LARGE, FILE_TOO_LARGE...) kendi sunucu metnini korur.
+  if (e.status == 413 && e.code.startsWith('HTTP_')) return l.errPayloadTooLarge;
+  switch (e.code) {
+    case 'EMAIL_ALIAS_NOT_ALLOWED':
+      return l.errEmailAliasNotAllowed;
+    case 'PASSWORD_TOO_LONG':
+      return l.errPasswordTooLong;
+    case 'PAYLOAD_TOO_LARGE':
+      return l.errPayloadTooLarge;
+    case 'UPLOAD_BUSY':
+      return _withRetry(l.errUploadBusy, e, l);
+    case 'UPLOAD_QUOTA_EXCEEDED':
+      return _withRetry(l.errUploadQuota, e, l);
+    case 'MAIL_QUOTA_EXHAUSTED':
+      return _withRetry(l.errMailQuota, e, l);
+    case 'DB_TIMEOUT':
+      return _withRetry(l.errServiceBusy, e, l);
+    case 'LEGAL_REACCEPT_REQUIRED':
+      return l.errLegalReaccept;
+  }
+  return null;
 }

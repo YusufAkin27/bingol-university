@@ -17,7 +17,7 @@ Future<void> openStore(String? url) async {
 
 /// Kapatılamaz zorunlu güncelleme ekranı (Sm5). [latest] verilirse sürüm satırı gösterilir.
 class UpdateRequiredScreen extends StatelessWidget {
-  const UpdateRequiredScreen({super.key, required this.storeUrl, this.latest, this.current});
+  const UpdateRequiredScreen({super.key, required this.storeUrl, this.latest, this.current, this.onRetry});
 
   final String? storeUrl;
 
@@ -26,6 +26,9 @@ class UpdateRequiredScreen extends StatelessWidget {
 
   /// Yüklü sürüm.
   final String? current;
+
+  /// "Tekrar kontrol et": mağaza adresi yoksa/çalışmıyorsa ve bayrak geri alındığında çıkış yolu.
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +50,15 @@ class UpdateRequiredScreen extends StatelessWidget {
             ],
             footer: [
               if (canOpen) SistemButton(label: context.l10n.commonOpenInStore, onPressed: () => openStore(storeUrl)),
+              if (onRetry != null) ...[
+                if (canOpen) const SizedBox(height: 10),
+                SistemButton(
+                  key: const ValueKey('update-recheck'),
+                  label: context.l10n.updateRequiredRecheck,
+                  onPressed: onRetry,
+                  kind: canOpen ? SistemButtonKind.link : SistemButtonKind.primary,
+                ),
+              ],
             ],
           ),
         ),

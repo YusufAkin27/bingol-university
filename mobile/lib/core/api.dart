@@ -43,6 +43,26 @@ class ApiError implements Exception {
   /// Ağ yok / zaman aşımı: oturum bitirilmez.
   bool get isNetwork => status == 0;
 
+  /// Geçici hata: ağ yok, zaman aşımı (408), hız sınırı (429) ya da sunucu/proxy hatası (5xx).
+  /// Bu hatalar oturumu ASLA bitirmez; kısa gecikmeyle yeniden denenir ya da çevrimdışı moda düşülür.
+  bool get isTransient => status == 0 || status == 408 || status == 429 || status >= 500;
+
+  /// Sunucu oturumu/refresh belirtecini KESİN olarak reddetti: 401 (SESSION_REPLACED ve ACCESS_BLOCKED hariç,
+  /// onların kendi yolu var) ya da 400/403 + oturumu bitiren kod. Yalnızca bu durumda yerel oturum silinir.
+  bool get isAuthRejected {
+    if (code == 'SESSION_REPLACED' || code == 'ACCESS_BLOCKED') return false;
+    if (status == 401) return true;
+    return (status == 400 || status == 403) && _sessionEndingCodes.contains(code);
+  }
+
+  static const _sessionEndingCodes = {
+    'INVALID_REFRESH_TOKEN',
+    'TOKEN_REUSED',
+    'SESSION_REVOKED',
+    'ACCOUNT_SUSPENDED',
+    'ACCOUNT_DELETED',
+  };
+
   @override
   String toString() => 'ApiError($status, $code)';
 }
@@ -220,7 +240,7 @@ class ApiClient {
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork && e.code != 'SESSION_REPLACED' && e.code != 'ACCESS_BLOCKED') onSessionExpired?.call();
+        handleRefreshFailure(e);
         rethrow;
       }
       return getBytes(path, retried: true);
@@ -294,7 +314,7 @@ class ApiClient {
       try {
         await refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork && e.code != 'SESSION_REPLACED' && e.code != 'ACCESS_BLOCKED') onSessionExpired?.call();
+        handleRefreshFailure(e);
         rethrow;
       }
       return _sendFull(method, path, body: body, auth: auth, retried: true, retriedTransient: retriedTransient);
@@ -374,13 +394,35 @@ class ApiClient {
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);
   }
 
+  /// Yenileme başarısız oldu: oturum YALNIZ kesin yetki hatasında ([ApiError.isAuthRejected]) kapanır.
+  /// Geçici hatalarda (5xx, 429, 408, ağ) belirteçler korunur; çağırana hata iletilir.
+  void handleRefreshFailure(ApiError e) {
+    if (e.isAuthRejected) onSessionExpired?.call();
+  }
+
+  /// Geçici yenileme hatasında ek deneme sayısı (kısa, artan gecikmeyle).
+  static const _refreshRetries = 2;
+
   /// Refresh token tek kullanımlıktır: eşzamanlı çağrılar aynı isteği paylaşır.
   Future<Tokens> refresh() => _inflight ??= _doRefresh().whenComplete(() => _inflight = null);
 
   Future<Tokens> _doRefresh() async {
     final old = tokens?.refresh;
     if (old == null) throw ApiError(401, 'INVALID_REFRESH_TOKEN', '');
-    final res = await _sendRaw('/auth/refresh', {'refreshToken': old});
+    dynamic res;
+    for (var attempt = 0;; attempt++) {
+      try {
+        res = await _sendRaw('/auth/refresh', {'refreshToken': old});
+        break;
+      } on ApiError catch (e) {
+        // Yalnız sunucu tarafı geçici hatalar (5xx/429/408) yeniden denenir; ağ hatası zaten
+        // çevrimdışı akışına düşer, kesin ret ise hemen iletilir.
+        if (e.isNetwork || !e.isTransient || attempt >= _refreshRetries) rethrow;
+        final ra = e.retryAfter;
+        final wait = ra != null && ra > 0 && ra <= 5 ? Duration(seconds: ra) : retryDelay * (attempt + 1);
+        await Future<void>.delayed(wait);
+      }
+    }
     final t = Tokens.fromJson(res);
     await setTokens(t); // önce yeni çifti yaz
     return t;

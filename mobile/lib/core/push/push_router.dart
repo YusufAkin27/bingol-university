@@ -45,6 +45,16 @@ class PushRouter {
     nav.push(MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
   }
 
+  /// `GET /conversations/{id}` yanıtı `{conversation, members}` sarmalayıcısıdır (ChatDetailPage
+  /// düz `ConversationView` bekler). Eski/düz biçim de kabul edilir; `id` yoksa null döner.
+  @visibleForTesting
+  static Map<String, dynamic>? conversationFromDetail(Object? body) {
+    if (body is! Map) return null;
+    final inner = body['conversation'];
+    final conv = Map<String, dynamic>.from(inner is Map ? inner : body);
+    return conv['id'] is num ? conv : null;
+  }
+
   /// true = hedef açıldı.
   static Future<bool> _go(NavigatorState nav, Session s, PushTarget t) async {
     final id = t.id;
@@ -53,7 +63,8 @@ class PushRouter {
     switch (t.dest) {
       case PushDest.conversation:
         try {
-          final conv = await s.api.get('/conversations/$id') as Map<String, dynamic>;
+          final conv = conversationFromDetail(await s.api.get('/conversations/$id'));
+          if (conv == null) return false; // beklenmeyen biçim: Bildirimler listesine düş
           push(ChatDetailPage(session: s, conversation: conv));
           return true;
         } on ApiError {

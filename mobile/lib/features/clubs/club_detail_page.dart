@@ -25,10 +25,14 @@ import '../../core/typography.dart';
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler.
 class ClubDetailPage extends StatefulWidget {
-  const ClubDetailPage({super.key, required this.session, required this.communityId});
+  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService});
 
   final Session session;
   final int communityId;
+
+  /// Testlerde galeri seçicisini taklit etmek için.
+  @visibleForTesting
+  final ImageService? imageService;
 
   @override
   State<ClubDetailPage> createState() => _ClubDetailPageState();
@@ -59,7 +63,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   final _text = TextEditingController();
   bool _sending = false;
   PreparedImage? _image;
-  final _images = ImageService();
+  late final ImageService _images = widget.imageService ?? ImageService();
+  // Görsel var ama yazı boş: sunucu yazıyı zorunlu tutar (400), bu yüzden göndermeden satır içi uyarılır.
+  bool _needText = false;
 
   String get _base => '/communities/${widget.communityId}';
   String get _status => (_club?['myStatus'] ?? 'NONE').toString();
@@ -358,7 +364,12 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   Future<void> _post() async {
     final text = _text.text.trim();
-    if ((text.isEmpty && _image == null) || _sending) return;
+    if (_sending) return;
+    if (text.isEmpty) {
+      // Sözleşme: gönderi metni zorunlu (görsel isteğe bağlı). Yükleme/istek atılmadan satır içi hata.
+      if (_image != null) setState(() => _needText = true);
+      return;
+    }
     final uploadFailed = context.l10n.clubImageUploadFailed;
     setState(() => _sending = true);
     try {
@@ -374,6 +385,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       });
       _text.clear();
       _image = null;
+      _needText = false;
       if (mounted) FocusScope.of(context).unfocus();
       await _fetch(_posts, '$_base/posts', reset: true);
     } catch (e) {
@@ -772,7 +784,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final l10n = context.l10n;
     final words = postWordCount(_text.text);
     final ok = postTextOk(_text.text);
-    final canSend = !_sending && ok && (_text.text.trim().isNotEmpty || _image != null);
+    final hasText = _text.text.trim().isNotEmpty;
+    final canSend = !_sending && ok && (hasText || _image != null);
+    final needText = _image != null && !hasText;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: BuCard(
@@ -805,7 +819,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                     controller: _text,
                     minLines: 1,
                     maxLines: 1,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) => setState(() => _needText = false),
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(kPostMaxChars),
                       FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
@@ -830,6 +844,16 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 _squareBtn(t, LucideIcons.send, canSend ? _post : null, l10n.clubShare, filled: true),
               ],
             ),
+            if (needText)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(bottom: 4, end: 8),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(l10n.clubPostTextRequired,
+                      key: const ValueKey('clubPostTextRequired'),
+                      style: BuType.caption.copyWith(color: _needText ? t.danger : t.mut)),
+                ),
+              ),
             if (_text.text.isNotEmpty)
               Padding(
                 padding: const EdgeInsetsDirectional.only(bottom: 4, end: 8),

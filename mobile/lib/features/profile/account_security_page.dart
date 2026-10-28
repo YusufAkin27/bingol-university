@@ -93,7 +93,9 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
           _currentError = e.message.isNotEmpty ? e.message : l.profil2SecWrongCurrent;
         } else if (e is ApiError && e.code == 'PASSWORD_UNCHANGED') {
           _newError = e.message.isNotEmpty ? e.message : l.profil2SecSame;
-        } else if (e is ApiError && (e.status == 429 || e.status == 422 || e.isNetwork)) {
+        } else if (e is ApiError && e.code == 'PASSWORD_TOO_LONG') {
+          _newError = errorText(e);
+        } else if (e is ApiError && (e.status == 429 || e.status == 422 || e.isNetwork || knownErrorText(e, l) != null)) {
           _toast(errorText(e));
         } else {
           // Uç yoksa (404) ya da beklenmeyen hata: genel mesaj.

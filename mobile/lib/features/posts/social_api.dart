@@ -18,12 +18,20 @@ class SocialApi {
 
   // ---------- Takip ----------
 
-  Future<FollowStats> followStats(int userId) async =>
-      FollowStats.fromJson((await session.api.get('/users/$userId/follow-stats')) as Map<String, dynamic>?);
+  /// Takip sayaçları ve ilişki bayrakları ayrı bir uçta değil, profil yanıtındadır
+  /// (`GET /users/{id}`: followerCount, followingCount, followedByMe, followsMe).
+  Future<FollowStats> followStats(int userId) async {
+    final r = await session.api.get('/users/$userId');
+    return FollowStats.fromJson(r is Map ? Map<String, dynamic>.from(r) : null);
+  }
 
-  Future<void> follow(int userId) => session.api.put('/users/$userId/follow');
+  /// `POST /users/{id}/follow` -> `{following, followerCount}`.
+  Future<FollowResult> follow(int userId) async =>
+      FollowResult.fromJson(await session.api.post('/users/$userId/follow'));
 
-  Future<void> unfollow(int userId) => session.api.delete('/users/$userId/follow');
+  /// `DELETE /users/{id}/follow` -> `{following, followerCount}`.
+  Future<FollowResult> unfollow(int userId) async =>
+      FollowResult.fromJson(await session.api.delete('/users/$userId/follow'));
 
   Future<PostPage<SocialUser>> followers(int userId, {String? cursor, int size = 30}) async => PostPage.parse(
       await session.api.get('/users/$userId/followers${_q({'cursor': cursor, 'size': size})}'), SocialUser.fromJson);

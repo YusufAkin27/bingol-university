@@ -140,7 +140,7 @@ class MultipartUploader {
       try {
         await api.refresh();
       } on ApiError catch (e) {
-        if (!e.isNetwork) api.onSessionExpired?.call();
+        api.handleRefreshFailure(e);
         rethrow;
       }
       return _send(path, image, true, method);

@@ -779,6 +779,7 @@ class _EventsPageState extends State<EventsPage> {
               IconButton(
                 tooltip: context.l10n.eventListPrevMonth,
                 visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 icon: Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 18, color: t.ink),
                 onPressed:
                     _month.isBefore(DateTime(_today.year - 1, _today.month))
@@ -788,6 +789,7 @@ class _EventsPageState extends State<EventsPage> {
               IconButton(
                 tooltip: context.l10n.eventListNextMonth,
                 visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 icon: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.ink),
                 onPressed: () => _goMonth(1),
               ),

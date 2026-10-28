@@ -361,6 +361,8 @@ void main() {
       expect(body.containsKey('department'), isFalse);
       expect(body.containsKey('grade'), isFalse);
       expect(body.containsKey('classYear'), isFalse);
+      // Bayat dil sunucudaki güncel dili ezmesin (L32).
+      expect(body.containsKey('language'), isFalse);
       await unmount(tester);
     });
 

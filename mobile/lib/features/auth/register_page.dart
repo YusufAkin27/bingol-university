@@ -35,6 +35,10 @@ class _RegisterPageState extends State<RegisterPage> {
   int _step = 0;
   bool _busy = false;
   String? _error;
+
+  /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): e-posta alanının altında gösterilir.
+  String? _emailFieldError;
+  String _emailErrorFor = '';
   late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
   String? _faculty, _department, _grade;
   bool _tried = false;
@@ -48,6 +52,10 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     super.initState();
     _catalog.load();
+    // Kullanıcı e-postayı değiştirince eski sunucu hatası kalkar.
+    _email.addListener(() {
+      if (_emailFieldError != null && _email.text != _emailErrorFor) setState(() => _emailFieldError = null);
+    });
   }
 
   String? get _departmentErr => _tried && (_department ?? '').isEmpty ? context.l10n.authSelectDepartment : null;
@@ -112,12 +120,36 @@ class _RegisterPageState extends State<RegisterPage> {
         return VerifyCodePage(session: widget.session, email: id, displayEmail: full);
       }));
     } on ApiError catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
+      if (!mounted) return;
+      if (e.code == 'EMAIL_ALIAS_NOT_ALLOWED') {
+        // Alan altında göster: e-posta adımına dön ve doğrulamayı tetikle.
+        setState(() {
+          _emailFieldError = errorText(e);
+          _emailErrorFor = _email.text;
+          _step = 1;
+          _error = null;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _form.currentState?.validate());
+      } else {
+        setState(() => _error = errorText(e));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = errorText(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Kayıtta kimlik alanı: genel kurallar + "+" etiketi (sunucu 400 EMAIL_ALIAS_NOT_ALLOWED döner).
+  String? _validateRegisterId(String? v) {
+    final server = _emailFieldError;
+    if (server != null) return server;
+    final base = validateIdentifier(v);
+    if (base != null) return base;
+    final s = normalizeIdentifier(v);
+    final at = s.indexOf('@');
+    if (at > 0 && s.substring(0, at).contains('+')) return context.l10n.errEmailAliasNotAllowed;
+    return null;
   }
 
   String _title(BuildContext c) => switch (_step) {
@@ -167,7 +199,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   .copyWith(counterText: ''),
             ),
             const SizedBox(height: 14),
-            IdentifierField(controller: _email, onSubmitted: _next),
+            IdentifierField(controller: _email, onSubmitted: _next, validator: _validateRegisterId),
           ],
         );
       default:

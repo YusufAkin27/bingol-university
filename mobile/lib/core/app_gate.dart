@@ -182,6 +182,8 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
         _getMap('/app/info'),
       ]);
       if (r[0] != null || r[1] != null) _setOffline(false);
+      // Ağ yokken zorunlu güncelleme kapısı kendiliğinden açılmasın: önceki karar korunur.
+      if (r[0] == null && r[1] == null && _d.kind == GateKind.updateRequired) return;
       final d = decideGate(r[0], r[1]);
       var showNotice = false;
       if (d.kind == GateKind.updateAvailable) {
@@ -217,7 +219,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final child = widget.child ?? const SizedBox.shrink();
     if (_d.kind == GateKind.updateRequired) {
-      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion);
+      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion, onRetry: _check);
     }
     final strips = <Widget>[
       if (_offline) TopStrip(icon: Icons.cloud_off, text: context.l10n.coreOffline, danger: true),

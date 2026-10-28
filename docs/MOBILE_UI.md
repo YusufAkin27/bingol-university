@@ -92,3 +92,9 @@ Notlar:
 ## 8. Android üretim derlemesi
 
 İmzalama (`android/key.properties`), https zorunluluğu (`API_BASE`; yerel test için `ALLOW_INSECURE_API=true`), R8, izinler, Play veri güvenliği listesi ve komutlar: [ANDROID_RELEASE.md](ANDROID_RELEASE.md).
+
+## 9. Oturum dayanıklılığı, hata kodları ve hata günlüğü (B2)
+
+- **Oturum yalnız kesin yetki hatasında kapanır:** `ApiError.isAuthRejected` (401; 400/403 + `INVALID_REFRESH_TOKEN`/`TOKEN_REUSED`/`SESSION_REVOKED`/`ACCOUNT_SUSPENDED`). 5xx, 429, 408 ve ağ hatasında token'lar korunur (`isTransient`): refresh iki kez kısa gecikmeyle yeniden denenir, açılışta `/auth/me` geçici hatada oturumu `signedIn` bırakıp arka planda tekrar dener (çevrimdışı mod).
+- **Hata kodları:** `errorText`/`knownErrorText` (core/session.dart) `EMAIL_ALIAS_NOT_ALLOWED`, `PASSWORD_TOO_LONG`, `PAYLOAD_TOO_LARGE` (ve kodsuz 413), `UPLOAD_BUSY`, `UPLOAD_QUOTA_EXCEEDED`, `MAIL_QUOTA_EXHAUSTED`, `DB_TIMEOUT`, `LEGAL_REACCEPT_REQUIRED` kodlarını tr/en/ar yerel metne çevirir; 429/503'te `Retry-After` "N sn / N dk sonra tekrar deneyin" olarak eklenir. Kayıtta `+` etiketi istemcide ve sunucu yanıtında e-posta alanının altında gösterilir; şifre sınırı 72 BAYT'tır. `LEGAL_REACCEPT_REQUIRED` için ayrı onay ekranı B3'tedir (şimdilik genel mesaj).
+- **Hata izleme (Crashlytics/Sentry yok):** `core/error_log.dart` — `FlutterError.onError`/`PlatformDispatcher.onError` yerel günlüğe (bellek 50 kayıt + `error_log.jsonl`, 64 KB) yazar; oturum açıksa mevcut analitik hattıyla anonim `app_error` olayı gider (`type`, `source`, `version` + `screen`; mesaj/yığın/kişisel veri yok; aynı hata 60 sn'de bir, saatte en çok 10). Ayrı bir kullanıcı analitik anahtarı henüz yoktur: olay, mevcut analitik toplamasıyla (gizlilik politikasında anılır) aynı kapsamdadır.

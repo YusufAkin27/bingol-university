@@ -377,7 +377,21 @@ class BuButton extends StatelessWidget {
         ),
       ),
     );
-    return compact ? btn : SizedBox(width: double.infinity, child: btn);
+    if (!compact) return SizedBox(width: double.infinity, child: btn);
+    // Görsel hap 36 dp kalır; dokunma hedefi 44 dp (kenar boşlukları da basılabilir, anlamsal ikinci düğme yok).
+    final tap = busy ? null : onPressed;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: ExcludeSemantics(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: tap)),
+          ),
+          btn,
+        ],
+      ),
+    );
   }
 }
 

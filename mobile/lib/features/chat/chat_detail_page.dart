@@ -1967,6 +1967,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           IconButton(
             tooltip: l.chatDetailPrevMatch,
             visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             icon: Icon(LucideIcons.chevronUp,
                 color: _matches.isEmpty ? t.bd : t.ink),
             onPressed: _matches.isEmpty ? null : () => _stepMatch(1),
@@ -1974,6 +1975,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           IconButton(
             tooltip: l.chatDetailNextMatch,
             visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             icon: Icon(LucideIcons.chevronDown,
                 color: _matches.isEmpty ? t.bd : t.ink),
             onPressed: _matches.isEmpty ? null : () => _stepMatch(-1),
@@ -2289,6 +2291,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 tooltip: context.l10n.chatDetailNevermind,
                 icon: Icon(LucideIcons.x, size: 16, color: t.mut),
                 onPressed: () => setState(() {

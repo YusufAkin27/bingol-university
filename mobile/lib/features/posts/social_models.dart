@@ -39,6 +39,20 @@ class SocialUser {
   final String? at;
 }
 
+/// Takip et/bırak yanıtı: `{following, followerCount}`.
+class FollowResult {
+  const FollowResult({this.following, this.followerCount});
+
+  factory FollowResult.fromJson(Object? j) {
+    if (j is! Map) return const FollowResult();
+    final c = j['followerCount'];
+    return FollowResult(following: j['following'] is bool ? j['following'] as bool : null, followerCount: c is num ? c.toInt() : null);
+  }
+
+  final bool? following;
+  final int? followerCount;
+}
+
 /// Bir kullanıcının takip özeti.
 class FollowStats {
   const FollowStats({this.followers = 0, this.following = 0, this.followedByMe = false, this.followsMe = false});

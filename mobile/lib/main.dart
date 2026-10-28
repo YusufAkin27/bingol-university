@@ -18,6 +18,7 @@ import 'core/locale_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/device_identity.dart';
+import 'core/error_log.dart';
 import 'core/nav.dart';
 import 'core/push/push_service.dart';
 import 'core/session.dart';
@@ -31,12 +32,10 @@ import 'features/shell/app_shell.dart';
 import 'features/system/gate_views.dart';
 import 'features/system/splash_screen.dart';
 
-/// Yakalanmamış hatayı yalnızca tür adıyla (kişisel veri/mesaj içermeden) analitiğe yazar.
-void _reportError(Object error, StackTrace? stack) {
-  debugPrint('Yakalanmayan hata: ${error.runtimeType}');
-  try {
-    Analytics.instance.track('app_error', props: {'type': error.runtimeType.toString()});
-  } catch (_) {}
+/// Yakalanmamış hatayı yerel günlüğe (disk + bellek) ve — oturum açıksa — anonim `app_error` analitik
+/// olayına yazar: yalnız hata türü, ekran adı ve sürüm; mesaj/yığın/kişisel veri yok ([ErrorLog]).
+void _reportError(Object error, StackTrace? stack, {String source = 'flutter'}) {
+  ErrorLog.instance.report(error, source: source);
 }
 
 /// Hata ağaçta çizim yapamadığında kırmızı ekran yerine sade bir görünüm (yalnız release).
@@ -89,7 +88,7 @@ void installErrorHandling({bool release = kReleaseMode}) {
     }
   };
   PlatformDispatcher.instance.onError = (error, stack) {
-    _reportError(error, stack);
+    _reportError(error, stack, source: 'platform');
     return true; // işlendi: süreç düşmez
   };
   if (release) ErrorWidget.builder = (_) => const _ErrorView();
@@ -132,6 +131,7 @@ Future<void> main() async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
   installErrorHandling();
+  unawaited(ErrorLog.instance.init());
   await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır
   final connectivity = ConnectivityService.instance;
   final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);

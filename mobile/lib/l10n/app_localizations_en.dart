@@ -6914,4 +6914,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get clubMgmtCategoryInvalid =>
       'The selected category is not valid. Choose another one from the list.';
+
+  @override
+  String get errEmailAliasNotAllowed =>
+      'A + tag cannot be used in the email address. Enter your address without it.';
+
+  @override
+  String get errPasswordTooLong =>
+      'The password is too long: at most 72 bytes (Turkish and Arabic characters take more than one byte).';
+
+  @override
+  String get errPayloadTooLarge =>
+      'The data you sent is too large. Try a smaller file or shorter text.';
+
+  @override
+  String get errUploadBusy =>
+      'Another upload is in progress or the server is busy. Please wait a moment and try again.';
+
+  @override
+  String get errUploadQuota =>
+      'You have uploaded too much. Please try again a little later.';
+
+  @override
+  String get errMailQuota =>
+      'We cannot send verification codes right now. Please try again later.';
+
+  @override
+  String get errServiceBusy =>
+      'The system is busy right now. Please try again in a few seconds.';
+
+  @override
+  String get errLegalReaccept =>
+      'The agreements have been updated. You need to accept the updated agreements to continue.';
+
+  @override
+  String coreErrRetryAfterSec(String n) {
+    return 'Try again in $n s.';
+  }
+
+  @override
+  String coreErrRetryAfterMin(String n) {
+    return 'Try again in $n min.';
+  }
+
+  @override
+  String get clubPostTextRequired => 'Add some text to share with the image.';
+
+  @override
+  String get etkinlik2QrExpired => 'Expired, refreshing…';
+
+  @override
+  String get updateRequiredRecheck => 'Check again';
 }

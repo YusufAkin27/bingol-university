@@ -87,6 +87,11 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
       });
     } catch (e) {
       if (mounted) setState(() => _failed = errorText(e));
+      // Yenileme hatasında zamanlayıcı yeniden kurulur: kod sessizce bayatlamasın.
+      _refresh?.cancel();
+      _refresh = Timer(const Duration(seconds: 5), () {
+        if (mounted) _loadCode();
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -139,7 +144,21 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
                         textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
                   )
                 else ...[
-                  Container(
+                  if (_failed != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(LucideIcons.triangleAlert, size: 16, color: t.danger),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text(_failed!, style: BuType.label.copyWith(color: t.danger))),
+                        ]),
+                      ),
+                    ),
+                  Opacity(
+                    opacity: left == 0 ? .35 : 1,
+                    child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -155,7 +174,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
                             textAlign: TextAlign.center, style: BuType.bodyStrong.copyWith(color: t.pr)),
                       ),
                     ),
-                  ),
+                  )),
                   const SizedBox(height: 16),
                   Text(l.etkinlik2QrManualCaption,
                       textAlign: TextAlign.center,
@@ -182,7 +201,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
                       Icon(LucideIcons.clock, size: 16, color: t.onSoft),
                       const SizedBox(width: 8),
                       Flexible(
-                        child: Text(l.etkinlik2QrRenewsIn('$left'),
+                        child: Text(left == 0 ? l.etkinlik2QrExpired : l.etkinlik2QrRenewsIn('$left'),
                             style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
                       ),
                     ]),

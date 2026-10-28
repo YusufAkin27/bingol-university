@@ -6852,4 +6852,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get clubMgmtCategoryInvalid =>
       'الفئة المحددة غير صالحة. اختر فئة أخرى من القائمة.';
+
+  @override
+  String get errEmailAliasNotAllowed =>
+      'لا يمكن استخدام وسم + في عنوان البريد الإلكتروني. أدخل عنوانك بدون علامة +.';
+
+  @override
+  String get errPasswordTooLong =>
+      'كلمة المرور طويلة جدًا: الحد الأقصى 72 بايت (الأحرف التركية والعربية تشغل أكثر من بايت).';
+
+  @override
+  String get errPayloadTooLarge =>
+      'حجم البيانات المرسلة كبير جدًا. جرّب ملفًا أصغر أو نصًا أقصر.';
+
+  @override
+  String get errUploadBusy =>
+      'هناك عملية رفع أخرى قيد التنفيذ أو الخادم مشغول. انتظر قليلًا ثم حاول مرة أخرى.';
+
+  @override
+  String get errUploadQuota =>
+      'لقد أجريت عددًا كبيرًا من عمليات الرفع. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get errMailQuota =>
+      'لا يمكننا إرسال رموز التحقق حاليًا. يرجى المحاولة لاحقًا.';
+
+  @override
+  String get errServiceBusy =>
+      'النظام مشغول حاليًا. يرجى المحاولة مرة أخرى بعد بضع ثوانٍ.';
+
+  @override
+  String get errLegalReaccept =>
+      'تم تحديث الاتفاقيات. يجب عليك الموافقة على الاتفاقيات المحدّثة للمتابعة.';
+
+  @override
+  String coreErrRetryAfterSec(String n) {
+    return 'حاول مرة أخرى بعد $n ث.';
+  }
+
+  @override
+  String coreErrRetryAfterMin(String n) {
+    return 'حاول مرة أخرى بعد $n د.';
+  }
+
+  @override
+  String get clubPostTextRequired => 'أضف نصًا لمشاركته مع الصورة.';
+
+  @override
+  String get etkinlik2QrExpired => 'انتهت الصلاحية، جارٍ التحديث…';
+
+  @override
+  String get updateRequiredRecheck => 'تحقق مرة أخرى';
 }

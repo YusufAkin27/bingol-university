@@ -6885,4 +6885,56 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get clubMgmtCategoryInvalid =>
       'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.';
+
+  @override
+  String get errEmailAliasNotAllowed =>
+      'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.';
+
+  @override
+  String get errPasswordTooLong =>
+      'Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).';
+
+  @override
+  String get errPayloadTooLarge =>
+      'Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.';
+
+  @override
+  String get errUploadBusy =>
+      'Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.';
+
+  @override
+  String get errUploadQuota =>
+      'Çok fazla yükleme yaptınız. Biraz sonra tekrar deneyin.';
+
+  @override
+  String get errMailQuota =>
+      'Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.';
+
+  @override
+  String get errServiceBusy =>
+      'Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.';
+
+  @override
+  String get errLegalReaccept =>
+      'Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.';
+
+  @override
+  String coreErrRetryAfterSec(String n) {
+    return '$n sn sonra tekrar deneyin.';
+  }
+
+  @override
+  String coreErrRetryAfterMin(String n) {
+    return '$n dk sonra tekrar deneyin.';
+  }
+
+  @override
+  String get clubPostTextRequired =>
+      'Görselle paylaşmak için bir yazı da ekleyin.';
+
+  @override
+  String get etkinlik2QrExpired => 'Süresi doldu, yenileniyor…';
+
+  @override
+  String get updateRequiredRecheck => 'Tekrar kontrol et';
 }

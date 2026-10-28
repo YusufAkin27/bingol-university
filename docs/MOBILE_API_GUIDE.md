@@ -167,7 +167,7 @@ Yönetici bir cihazı, IP'yi ya da hesabı engelleyebilir. Engelin cihaz ayağı
 
 | Başlık | Değer | Not |
 |---|---|---|
-| `X-Device-Id` | kararlı cihaz kimliği, 8-128 karakter `[A-Za-z0-9._:-]` | Android: `ANDROID_ID`; iOS: `identifierForVendor`. Ham değer sunucuda HMAC-SHA256 ile özetlenir, saklanmaz. Geçersiz/eksik başlık yok sayılır (cihaz engeli uygulanamaz) |
+| `X-Device-Id` | kararlı cihaz kimliği, 8-128 karakter `[A-Za-z0-9._:-]` | Mobil uygulama ilk açılışta rastgele bir UUID üretir ve Keychain/Keystore'da saklar (donanım kimliği okunmaz); her istekte ve STOMP CONNECT'te gönderir. Ham değer sunucuda HMAC-SHA256 ile özetlenir, saklanmaz. Geçersiz/eksik başlık yok sayılır (cihaz engeli uygulanamaz) |
 | `X-Device-Platform` | `ANDROID` \| `IOS` \| `WEB` | isteğe bağlı |
 | `X-App-Version` | ör. `1.4.2` | isteğe bağlı, en çok 32 karakter |
 

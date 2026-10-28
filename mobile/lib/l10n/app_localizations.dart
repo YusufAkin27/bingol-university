@@ -12708,6 +12708,84 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.'**
   String get clubMgmtCategoryInvalid;
+
+  /// No description provided for @errEmailAliasNotAllowed.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.'**
+  String get errEmailAliasNotAllowed;
+
+  /// No description provided for @errPasswordTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).'**
+  String get errPasswordTooLong;
+
+  /// No description provided for @errPayloadTooLarge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.'**
+  String get errPayloadTooLarge;
+
+  /// No description provided for @errUploadBusy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.'**
+  String get errUploadBusy;
+
+  /// No description provided for @errUploadQuota.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok fazla yükleme yaptınız. Biraz sonra tekrar deneyin.'**
+  String get errUploadQuota;
+
+  /// No description provided for @errMailQuota.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.'**
+  String get errMailQuota;
+
+  /// No description provided for @errServiceBusy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.'**
+  String get errServiceBusy;
+
+  /// No description provided for @errLegalReaccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.'**
+  String get errLegalReaccept;
+
+  /// No description provided for @coreErrRetryAfterSec.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} sn sonra tekrar deneyin.'**
+  String coreErrRetryAfterSec(String n);
+
+  /// No description provided for @coreErrRetryAfterMin.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} dk sonra tekrar deneyin.'**
+  String coreErrRetryAfterMin(String n);
+
+  /// No description provided for @clubPostTextRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görselle paylaşmak için bir yazı da ekleyin.'**
+  String get clubPostTextRequired;
+
+  /// No description provided for @etkinlik2QrExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süresi doldu, yenileniyor…'**
+  String get etkinlik2QrExpired;
+
+  /// No description provided for @updateRequiredRecheck.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar kontrol et'**
+  String get updateRequiredRecheck;
 }
 
 class _AppLocalizationsDelegate

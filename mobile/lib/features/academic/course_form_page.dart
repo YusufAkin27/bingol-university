@@ -304,6 +304,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
           IconButton(
             tooltip: l.acadTimeRemoveSession,
             visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             icon: Icon(LucideIcons.x, size: 18, color: t.mut),
             onPressed: () => setState(() => _sessions.removeAt(i).room.dispose()),
           ),

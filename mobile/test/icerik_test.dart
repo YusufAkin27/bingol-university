@@ -238,8 +238,7 @@ void main() {
           testWidgets('${size.width.toInt()} dp ${b.name}${rtl ? ' rtl' : ''}: gizli alanlar, menü, ızgara', (tester) async {
             useScreen(tester, size);
             final fe = FakeBackend()
-              ..on('/users/2', _profile)
-              ..on('/users/2/follow-stats', {'followerCount': 126, 'followingCount': 98, 'followedByMe': false})
+              ..on('/users/2', {..._profile, 'followerCount': 126, 'followingCount': 98, 'followedByMe': false, 'followsMe': false})
               ..on('/users/2/posts', {
                 'items': [
                   for (var i = 1; i <= 3; i++)
@@ -275,19 +274,40 @@ void main() {
       }
     }
 
-    testWidgets('Takip et iyimser günceller ve PUT gönderir', (tester) async {
+    testWidgets('Takip et iyimser günceller, POST gönderir ve sunucu sayısını alır', (tester) async {
       useScreen(tester, kPhoneMedium);
       final fe = FakeBackend()
-        ..on('/users/2', _profile)
-        ..on('/users/2/follow-stats', {'followerCount': 5, 'followingCount': 1, 'followedByMe': false})
-        ..on('/users/2/follow', {});
+        ..on('/users/2', {..._profile, 'followerCount': 5, 'followingCount': 1, 'followedByMe': false, 'followsMe': true})
+        ..on('/users/2/follow', {'following': true, 'followerCount': 6});
       await tester.pumpWidget(buildApp(UserProfilePage(session: makeSession(fe), userId: 2), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
       await tester.tap(find.byKey(const ValueKey('followButton')));
       await settle(tester);
-      expect(fe.count('PUT /users/2/follow'), 1);
+      expect(fe.count('POST /users/2/follow'), 1);
+      expect(fe.count('PUT '), 0);
+      expect(fe.count('follow-stats'), 0);
       expect(find.text('Takipte'), findsOneWidget);
       expect(find.textContaining('6 takipçi'), findsOneWidget);
+      // Karşı taraf da beni takip ediyor: takipleşme rozeti.
+      expect(find.byKey(const ValueKey('followRelationPill')), findsOneWidget);
+      expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
+      _ok(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('Takipten çık: DELETE gönderilir, "Seni takip ediyor" rozeti', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final fe = FakeBackend()
+        ..on('/users/2', {..._profile, 'followerCount': 5, 'followingCount': 1, 'followedByMe': true, 'followsMe': true})
+        ..on('/users/2/follow', {'following': false, 'followerCount': 4});
+      await tester.pumpWidget(buildApp(UserProfilePage(session: makeSession(fe), userId: 2), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('followButton')));
+      await settle(tester);
+      expect(fe.count('DELETE /users/2/follow'), 1);
+      expect(find.textContaining('4 takipçi'), findsOneWidget);
+      expect(find.text('Seni takip ediyor'), findsOneWidget);
       _ok(tester);
       await unmount(tester);
     });

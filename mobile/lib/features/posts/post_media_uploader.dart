@@ -34,6 +34,8 @@ String postErrorText(Object e, [AppLocalizations? l]) {
       case 'CONTENT_PROFANITY':
         return t.postComposeErrProfanity;
     }
+    final known = knownErrorText(e, t);
+    if (known != null) return known;
     if (e.status == 429) return t.postComposeErrRate;
     if (e.status == 413) return t.postComposeErrFileTooLarge;
     if (e.message.isNotEmpty) return e.message;

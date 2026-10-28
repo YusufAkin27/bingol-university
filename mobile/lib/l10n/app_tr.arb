@@ -3750,5 +3750,32 @@
       }
     }
   },
-  "clubMgmtCategoryInvalid": "Seçilen kategori geçerli değil. Listeden başka bir kategori seç."
+  "clubMgmtCategoryInvalid": "Seçilen kategori geçerli değil. Listeden başka bir kategori seç.",
+  "errEmailAliasNotAllowed": "E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.",
+  "errPasswordTooLong": "Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).",
+  "errPayloadTooLarge": "Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.",
+  "errUploadBusy": "Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.",
+  "errUploadQuota": "Çok fazla yükleme yaptınız. Biraz sonra tekrar deneyin.",
+  "errMailQuota": "Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.",
+  "errServiceBusy": "Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.",
+  "errLegalReaccept": "Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.",
+  "coreErrRetryAfterSec": "{n} sn sonra tekrar deneyin.",
+  "@coreErrRetryAfterSec": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "coreErrRetryAfterMin": "{n} dk sonra tekrar deneyin.",
+  "@coreErrRetryAfterMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "clubPostTextRequired": "Görselle paylaşmak için bir yazı da ekleyin.",
+  "etkinlik2QrExpired": "Süresi doldu, yenileniyor…",
+  "updateRequiredRecheck": "Tekrar kontrol et"
 }

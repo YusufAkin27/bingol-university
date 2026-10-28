@@ -113,6 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                           key: const ValueKey('replaced-notice-close'),
                           tooltip: context.l10n.commonClose,
                           visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                           icon: const Icon(Icons.close, size: 18),
                           onPressed: widget.session.dismissReplacedNotice,
                         ),

@@ -4,6 +4,7 @@ import 'package:bu_kampus/core/push/push_router.dart';
 import 'package:bu_kampus/core/push/push_service.dart';
 import 'package:bu_kampus/core/push/push_targets.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:flutter/material.dart';
@@ -141,6 +142,40 @@ void main() {
       PushRouter.open({'conversationId': '9'});
       await tester.pumpAndSettle();
       expect(find.byType(NotificationsPage), findsOneWidget);
+    });
+
+    testWidgets('sohbet push: {conversation, members} sarmalayicisi acilir, sohbet sayfasi yuklenir', (tester) async {
+      await pumpShell(tester);
+      b
+        ..on('/conversations/9', {
+          'conversation': {'id': 9, 'type': 'DIRECT', 'title': 'Ayse Demir', 'unreadCount': 1},
+          'members': <Object>[],
+        })
+        ..on('/conversations/9/messages*', {'items': <Object>[], 'nextCursor': null});
+      PushRouter.open({'conversationId': '9'});
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ChatDetailPage), findsOneWidget);
+      expect(find.byType(NotificationsPage), findsNothing);
+      expect(b.count('GET /conversations/9/messages'), greaterThan(0)); // _cid cozuldu: TypeError yok
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('sohbet push: beklenmeyen govde (id yok) Bildirimler listesine duser', (tester) async {
+      await pumpShell(tester);
+      b.on('/conversations/9', {'members': <Object>[]});
+      PushRouter.open({'conversationId': '9'});
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationsPage), findsOneWidget);
+      expect(find.byType(ChatDetailPage), findsNothing);
+    });
+
+    test('conversationFromDetail: sarmalayici, duz govde, gecersiz', () {
+      expect(PushRouter.conversationFromDetail({'conversation': {'id': 3}, 'members': []})?['id'], 3);
+      expect(PushRouter.conversationFromDetail({'id': 4, 'type': 'GROUP'})?['id'], 4);
+      expect(PushRouter.conversationFromDetail({'conversation': {'title': 'x'}}), isNull);
+      expect(PushRouter.conversationFromDetail('x'), isNull);
+      expect(PushRouter.conversationFromDetail(null), isNull);
     });
 
     testWidgets('oturum kapaliyken hicbir sey acilmaz', (tester) async {

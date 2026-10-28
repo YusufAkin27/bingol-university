@@ -1,3 +1,5 @@
+import 'dart:convert' show utf8;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -20,6 +22,7 @@ String? validateNewPassword(String? v) {
   final s = v ?? '';
   if (s.length < 8) return 'Şifre en az 8 karakter olmalı.';
   if (s.length > 72) return 'Şifre en çok 72 karakter olabilir.';
+  if (utf8.encode(s).length > 72) return 'Şifre en fazla 72 bayt olabilir.';
   return null;
 }
 
@@ -30,6 +33,8 @@ String? Function(String?) newPasswordValidator(BuildContext context) {
     final s = v ?? '';
     if (s.length < 8) return l.authPwMinErr;
     if (s.length > 72) return l.authPwMaxErr;
+    // Sunucu sınırı 72 BAYT'tır: Türkçe/Arapça karakterler birden çok bayt tutar (PASSWORD_TOO_LONG).
+    if (utf8.encode(s).length > 72) return l.errPasswordTooLong;
     return null;
   };
 }
@@ -311,9 +316,12 @@ class _PasswordFieldState extends State<PasswordField> {
 /// Okul numarası ya da e-posta alanı. Yalnız rakam yazılırken sona soluk `@bingol.edu.tr` soneki görünür;
 /// sunucuya olduğu gibi (numara ya da tam e-posta) gönderilir.
 class IdentifierField extends StatelessWidget {
-  const IdentifierField({super.key, required this.controller, this.onSubmitted, this.enabled = true});
+  const IdentifierField({super.key, required this.controller, this.onSubmitted, this.enabled = true, this.validator});
 
   final TextEditingController controller;
+
+  /// Verilirse [validateIdentifier] yerine kullanılır (kayıt: + etiketi ve sunucu hatası için).
+  final String? Function(String?)? validator;
   final VoidCallback? onSubmitted;
   final bool enabled;
 
@@ -332,7 +340,7 @@ class IdentifierField extends StatelessWidget {
           autocorrect: false,
           enableSuggestions: false,
           autofillHints: const [AutofillHints.username, AutofillHints.email],
-          validator: validateIdentifier,
+          validator: validator ?? validateIdentifier,
           style: BuType.body.copyWith(color: t.ink),
           onFieldSubmitted: (_) => onSubmitted?.call(),
           decoration: deco.copyWith(
@@ -390,12 +398,14 @@ class PasswordStrength extends StatelessWidget {
     if (password.isEmpty) return const SizedBox.shrink();
     final t = context.bu;
     final score = _score;
-    final color = score == 1 ? t.danger : (score == 2 ? Colors.orange.shade700 : Colors.green.shade600);
+    // WCAG AA belirteçleri: danger / uyarı (amber) / ok; ham Colors.* açık temada 4.5:1 altındaydı.
+    final warn = Theme.of(context).brightness == Brightness.dark ? const Color(0xFFFFC66B) : const Color(0xFF8A5200);
+    final color = score == 1 ? t.danger : (score == 2 ? warn : t.ok);
     final label = score == 1
         ? context.l10n.authPwWeak
         : (score == 2 ? context.l10n.authPwFair : context.l10n.authPwStrong);
     return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 2, right: 2),
+      padding: const EdgeInsetsDirectional.only(top: 10, start: 2, end: 2),
       child: Row(
         children: [
           for (var i = 0; i < 3; i++) ...[
@@ -429,7 +439,7 @@ class PasswordRule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final c = ok ? Colors.green.shade700 : t.mut;
+    final c = ok ? t.ok : t.mut;
     return Row(
       children: [
         Container(
@@ -437,7 +447,7 @@ class PasswordRule extends StatelessWidget {
           height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ok ? Colors.green.withValues(alpha: 0.15) : null,
+            color: ok ? t.ok.withValues(alpha: 0.15) : null,
             border: ok ? null : Border.all(color: t.bd, width: 1.5),
           ),
           child: ok ? Icon(LucideIcons.check, size: 12, color: c) : null,

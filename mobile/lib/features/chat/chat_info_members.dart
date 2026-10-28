@@ -63,6 +63,7 @@ class ChatMemberRow extends StatelessWidget {
           IconButton(
             tooltip: context.l10n.chatInfoRemoveFromGroup,
             visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             onPressed: onRemove,
             icon: Icon(LucideIcons.userMinus, size: 18, color: t.mut),
           ),

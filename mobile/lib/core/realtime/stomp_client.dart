@@ -176,7 +176,7 @@ class StompClient {
     _teardown();
     _setState(StompState.disconnected);
     // Refresh'in kesin reddi (ApiError 401, ağ dışı) oturumun bittiğini gösterir.
-    if (e is ApiError && !e.isNetwork && (e.status == 401 || e.status == 400)) {
+    if (e is ApiError && e.isAuthRejected) {
       _wanted = false;
       _fatalCtl.add(StompFatal.sessionExpired);
       return;

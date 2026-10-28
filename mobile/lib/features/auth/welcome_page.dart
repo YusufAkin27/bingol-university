@@ -177,7 +177,7 @@ class _LanguagePill extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: lc == null ? null : () => lc.set(code),
                   child: Container(
-                    constraints: const BoxConstraints(minWidth: 44, minHeight: 36),
+                    constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
