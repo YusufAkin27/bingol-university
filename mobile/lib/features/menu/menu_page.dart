@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -45,6 +46,9 @@ class _MenuPageState extends State<MenuPage> {
     _load();
   }
 
+  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
+  DateTime? _staleAt;
+
   Future<void> _load({bool silent = false}) async {
     final id = ++_reqId;
     if (!silent) {
@@ -55,7 +59,8 @@ class _MenuPageState extends State<MenuPage> {
     }
     try {
       final api = widget.session.api;
-      final res = await api.get('/menu?month=${_monthParam(_month)}');
+      final resp = await api.getResponse('/menu?month=${_monthParam(_month)}');
+      final res = resp.body;
       var maintenance = false;
       try {
         final st = await api.get('/status');
@@ -73,6 +78,7 @@ class _MenuPageState extends State<MenuPage> {
       if (!mounted || id != _reqId) return;
       setState(() {
         _menus = map;
+        _staleAt = resp.fromCache ? resp.cachedAt : null;
         _maintenance = maintenance;
         _loading = false;
         _error = null;
@@ -119,6 +125,7 @@ class _MenuPageState extends State<MenuPage> {
               padding: const EdgeInsets.only(top: 12),
               child: StaleBanner(text: context.l10n.menuStale),
             ),
+          if (!_loading) StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
           Expanded(child: _body(t)),
         ],
       ),

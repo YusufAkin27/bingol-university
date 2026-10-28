@@ -603,7 +603,7 @@ String _icsUtc(DateTime instant) {
 }
 
 /// Ders programı + sınavlar için `.ics` metni. Her oturum haftalık tekrarlanır (dönem sonuna ya da 16 haftaya kadar).
-String buildIcs(List<Course> courses, Semester? semester, List<Exam> exams, {DateTime? now}) {
+String buildIcs(List<Course> courses, Semester? semester, List<Exam> exams, {DateTime? now, AppLocalizations? l}) {
   final stamp = _icsUtc(now ?? academicClock());
   final nowWall = istanbulWall(now ?? academicClock());
   final b = StringBuffer()
@@ -643,7 +643,7 @@ String buildIcs(List<Course> courses, Semester? semester, List<Exam> exams, {Dat
       ..write('BEGIN:VEVENT\r\nUID:bu-sinav-${e.id}@bingol.edu.tr\r\nDTSTAMP:$stamp\r\n')
       ..write('DTSTART;TZID=Europe/Istanbul:${_icsLocal(day, st.hour * 60 + st.minute)}\r\n')
       ..write('DTEND;TZID=Europe/Istanbul:${_icsLocal(DateTime.utc(en.year, en.month, en.day), en.hour * 60 + en.minute)}\r\n')
-      ..write('SUMMARY:${_icsEscape('${examTypeLabel(e.type)}: ${e.title}')}\r\n');
+      ..write('SUMMARY:${_icsEscape('${l != null ? examTypeLabelL(l, e.type) : examTypeLabel(e.type)}: ${e.title}')}\r\n');
     if (e.room != null) b.write('LOCATION:${_icsEscape(e.room!)}\r\n');
     b.write('END:VEVENT\r\n');
   }

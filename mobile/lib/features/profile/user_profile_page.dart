@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show gradeLabel;
+import '../../core/academic_catalog.dart' show gradeLabelL;
 import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -150,7 +150,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   String _gradeText() {
     final g = _s('grade');
-    if (g.isNotEmpty) return gradeLabel(g);
+    if (g.isNotEmpty) return gradeLabelL(context.l10n, g);
     final y = (_p?['classYear'] as num?)?.toInt();
     return (y != null && y > 0) ? context.l10n.profileGradeYear('$y') : '';
   }

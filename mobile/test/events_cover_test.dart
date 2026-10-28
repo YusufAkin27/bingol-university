@@ -34,6 +34,8 @@ Map<String, dynamic> featured({String? cover = '/files/events/9.jpg', String? so
 
 /// Formu bir "başlat" düğmesinden açar (pop çalışsın diye).
 Widget launcher(FakeBackend b, {Map<String, dynamic>? event, CoverPicker? pick, CoverUploader? up}) {
+  // Oluşturma yalnız bir kulüp adına yapılır: tek yönetilen kulüp otomatik seçilir.
+  if (event == null) b.on('/me/communities*', {'items': [{'id': 7, 'name': 'Robotik Topluluğu', 'myRole': 'OWNER', 'myStatus': 'ACTIVE'}]});
   final s = makeSession(b);
   return Builder(
     builder: (c) => Scaffold(
@@ -311,7 +313,7 @@ void main() {
           await run(tester, b, EventsPage(session: makeSession(b)));
         });
         testWidgets('form bos | $tag', (tester) async {
-          final b = FakeBackend();
+          final b = FakeBackend()..on('/me/communities*', {'items': [{'id': 7, 'name': 'Robotik Topluluğu', 'myRole': 'OWNER', 'myStatus': 'ACTIVE'}]});
           await run(tester, b, EventFormPage(session: makeSession(b)));
         });
         testWidgets('form dolu/duzenleme | $tag', (tester) async {

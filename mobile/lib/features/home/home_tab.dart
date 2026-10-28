@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -74,6 +75,10 @@ class _HomeTabState extends State<HomeTab> {
     _load();
   }
 
+  /// Yanıt önbellekten (bayat) geldiyse sunucudan alındığı an; aksi halde null.
+  DateTime? _staleInfoAt;
+  DateTime? _staleMenuAt;
+
   void _apply(int gen, VoidCallback f) {
     if (mounted && gen == _gen) setState(f);
   }
@@ -95,12 +100,20 @@ class _HomeTabState extends State<HomeTab> {
 
     await Future.wait([
       step(() async {
-        final r = await api.get('/app/info');
-        _apply(gen, () => _info = r is Map<String, dynamic> ? r : null);
+        final res = await api.getResponse('/app/info');
+        final r = res.body;
+        _apply(gen, () {
+          _info = r is Map<String, dynamic> ? r : null;
+          _staleInfoAt = res.fromCache ? res.cachedAt : null;
+        });
       }),
       step(() async {
-        final r = await api.get('/menu/today');
-        _apply(gen, () => _today = r is Map<String, dynamic> ? r : null);
+        final res = await api.getResponse('/menu/today');
+        final r = res.body;
+        _apply(gen, () {
+          _today = r is Map<String, dynamic> ? r : null;
+          _staleMenuAt = res.fromCache ? res.cachedAt : null;
+        });
       }),
       step(() async {
         final r = await api.get('/me/summary');
@@ -311,6 +324,7 @@ class _HomeTabState extends State<HomeTab> {
     final banner = _info?['banner'] is Map ? _info!['banner'] as Map : null;
     return [
       _header(context),
+      StaleLabel(cachedAt: _staleInfoAt ?? _staleMenuAt),
       if (maintenance?['enabled'] == true)
         Padding(
           padding: const EdgeInsets.only(top: 12),

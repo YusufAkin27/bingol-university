@@ -10,6 +10,10 @@ import 'core/analytics.dart';
 import 'core/api.dart';
 import 'core/app_gate.dart';
 import 'core/app_hooks.dart';
+import 'core/cache/disk_cache.dart';
+import 'core/connectivity/connectivity_service.dart';
+import 'core/connectivity/offline_banner.dart';
+import 'core/outbox/outbox.dart';
 import 'core/locale_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -129,7 +133,12 @@ Future<void> main() async {
   }
   installErrorHandling();
   await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır
-  final session = Session(ApiClient());
+  final connectivity = ConnectivityService.instance;
+  final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);
+  final outbox = Outbox();
+  api.outbox = outbox;
+  outbox.attach(api, connectivity);
+  final session = Session(api);
   final theme = ThemeController();
   unawaited(theme.load());
   final localeCtl = LocaleController(onResolved: (c) => session.api.lang = c);
@@ -139,6 +148,7 @@ Future<void> main() async {
   final push = PushService(session);
   final hooks = AppLifecycleHooks.instance;
   hooks.onSignedIn.add((_) => push.onSignedIn()); // restore sonrası oturum açıksa bir kez tetiklenir
+  hooks.onSignedIn.add((_) => outbox.load()); // bekleyen mesajlar yüklenir ve gönderilir (oturum açıkken)
   hooks.onSignedOut.add((_) => push.onSignedOut());
   // Sunucu profil dili uygulama diliyle eşitlenir (bildirim/e-posta dili).
   hooks.onSignedIn.add((_) async {
@@ -149,11 +159,14 @@ Future<void> main() async {
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
   hooks.attach(session);
   unawaited(session.restore());
-  runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl));
+  runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl, outbox: outbox));
 }
 
 class BingolApp extends StatelessWidget {
-  BingolApp({super.key, required this.session, required this.themeController, this.push, this.localeController});
+  BingolApp({super.key, required this.session, required this.themeController, this.push, this.localeController, this.outbox});
+
+  /// Çevrimdışı mesaj kuyruğu (null ise bekleyen mesaj şeridi gösterilmez).
+  final Outbox? outbox;
 
   final LocaleController? localeController;
 
@@ -185,7 +198,12 @@ class BingolApp extends StatelessWidget {
         theme: BuTheme.light(),
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
-        builder: (context, child) => AppGate(api: session.api, child: child),
+        builder: (context, child) => AppGate(
+          api: session.api,
+          child: outbox == null || child == null
+              ? child
+              : OfflineBanner(outbox: outbox!, connectivity: session.api.connectivity, child: child),
+        ),
         home: ListenableBuilder(
           listenable: Listenable.merge([session, session.accessBlocked]),
           builder: (context, _) => session.accessBlocked.value

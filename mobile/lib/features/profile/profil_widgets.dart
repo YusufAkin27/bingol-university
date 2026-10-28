@@ -125,7 +125,8 @@ class ProfilRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        constraints: BoxConstraints(minHeight: sub == null ? 52 : 60),
+        // Tüm satırlar aynı yükseklikte; yazı ölçeği büyüse de metin tek satırda kalır.
+        constraints: const BoxConstraints(minHeight: 60),
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Row(
           children: [
@@ -134,26 +135,42 @@ class ProfilRow extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: c)),
-                  if (sub != null) Text(sub!, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
+                  Text(label,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: c)),
+                  if (sub != null)
+                    Text(sub!,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
                 ],
               ),
             ),
             if (value != null) ...[
               const SizedBox(width: 8),
-              Flexible(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 110),
                 child: Text(value!,
                     maxLines: 1,
+                    softWrap: false,
                     overflow: TextOverflow.ellipsis,
                     style: BuType.bodyStrong.copyWith(fontSize: 13.5, color: t.mut)),
               ),
             ],
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-            if (chevron && !danger && onTap != null) ...[
-              const SizedBox(width: 6),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
-            ],
+            // Ok alanı her satırda sabit genişlikte ayrılır: ok hepsinde aynı konumda.
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 18,
+              child: (chevron && !danger && onTap != null)
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut))
+                  : null,
+            ),
           ],
         ),
       ),
@@ -195,7 +212,11 @@ class ProfilToggleRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label, style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: t.ink)),
+                      Text(label,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: t.ink)),
                       if (sub != null) Text(sub!, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
                     ],
                   ),

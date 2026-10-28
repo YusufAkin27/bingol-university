@@ -70,6 +70,51 @@ String eventErrorTextL(BuildContext context, Object e) {
 }
 
 bool eventIsCancelled(Map<String, dynamic> e) => e['status'] == 'CANCELLED';
+bool eventIsPendingReview(Map<String, dynamic> e) => e['status'] == 'PENDING_REVIEW';
+bool eventIsRejected(Map<String, dynamic> e) => e['status'] == 'REJECTED';
+
+/// Admin reddinde varsa neden (alan adı sunucuya göre değişebilir).
+String? eventRejectReason(Map<String, dynamic> e) {
+  for (final k in const ['rejectReason', 'rejectionReason', 'reviewNote']) {
+    final v = e[k];
+    if (v is String && v.trim().isNotEmpty) return v.trim();
+  }
+  return null;
+}
+
+/// Etkinlik oluşturma/düzenleme hatası: kulüp kuralı kodları her zaman yerel (açık) metinle,
+/// diğerlerinde sunucunun istek dilindeki mesajı, boşsa koda göre yerel metin.
+String eventSaveErrorText(BuildContext context, Object e) {
+  final l = context.l10n;
+  if (e is ApiError && !e.isNetwork) {
+    switch (e.code) {
+      case 'EVENT_CLUB_REQUIRED':
+        return l.evcErrClubRequired;
+      case 'FORBIDDEN':
+        return l.evcErrForbidden;
+    }
+    if (e.status == 403) return l.evcErrForbidden;
+    if (e.message.isEmpty) {
+      switch (e.code) {
+        case 'COMMUNITY_NOT_ACTIVE':
+          return l.evcErrClubNotActive;
+        case 'EVENT_NOT_FOUND':
+          return l.eventFormNotFound;
+        case 'PAST_EVENT':
+          return l.evcErrPast;
+        case 'INVALID_DATES':
+          return l.evcErrDates;
+        case 'EVENT_DESCRIPTION_TOO_LONG':
+          return l.evdErrDescTooLongServer;
+        case 'CONTENT_PROFANITY':
+          return l.evcErrProfanity;
+      }
+    }
+  }
+  return errorText(e);
+}
+
+bool eventIsNotFound(Object e) => e is ApiError && e.status == 404;
 bool eventIsClosed(Map<String, dynamic> e) => e['registrationClosed'] == true;
 
 /// Katıldıktan sonra kısa onay: "Etkinliklerime eklendi" + "Etkinliklerim" kısayolu.

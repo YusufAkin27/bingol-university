@@ -608,9 +608,19 @@ class BuMenuRow extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: danger ? t.danger : t.pr),
             const SizedBox(width: 14),
-            Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: c))),
+            Expanded(
+                child: Text(label,
+                    maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis,
+                    style: BuType.bodyStrong.copyWith(color: c))),
             if (trailing != null) trailing!,
-            if (showChevron && !danger) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
+            // Ok alanı sabit: ok her satırda aynı konumda.
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 16,
+              child: (showChevron && !danger)
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut))
+                  : null,
+            ),
           ],
         ),
       ),

@@ -1209,10 +1209,8 @@ void main() {
       await tester.tap(find.text('Yoklama'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(QrScanPage), findsOneWidget);
-      await tester.tap(find.text('Kodu elle gir').first);
-      await settle(tester, const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextField).last, 'bingol-checkin:5.123.abc');
-      await tester.tap(find.text('Onayla').last);
+      await tester.tap(find.text('Yoklamayı gönder').last);
       await settle(tester, const Duration(milliseconds: 500));
       expect(be.requests, contains('POST /events/5/check-in'));
       expect(be.bodies['POST /events/5/check-in'], {'code': '5.123.abc'});
@@ -1381,10 +1379,8 @@ void main() {
       ));
       await tester.tap(find.text('ac'));
       await settle(tester, const Duration(milliseconds: 500));
-      await tester.tap(find.text('Kodu elle gir').first);
-      await settle(tester, const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextField).last, '  KOD-42 ');
-      await tester.tap(find.text('Onayla').last);
+      await tester.tap(find.text('Yoklamayı gönder'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(result, 'KOD-42');
       _noErrors(tester);
@@ -1393,9 +1389,7 @@ void main() {
 
     testWidgets('bos kod kabul edilmez', (tester) async {
       await _pump(tester, const QrScanPage(), size: kPhoneSmall);
-      await tester.tap(find.text('Kodu elle gir').first);
-      await settle(tester, const Duration(milliseconds: 400));
-      await tester.tap(find.text('Onayla').last);
+      await tester.tap(find.text('Yoklamayı gönder'));
       await tester.pump();
       expect(find.byType(QrScanPage), findsOneWidget);
       _noErrors(tester);

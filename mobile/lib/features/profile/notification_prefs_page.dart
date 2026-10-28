@@ -97,7 +97,7 @@ class PrefSwitchRow extends StatelessWidget {
 const _prefRows = ['news', 'announcements', 'events', 'messages', 'communities'];
 
 /// Sunucu yanıtında anahtar varsa gösterilen ek ana bayraklar (backend eklenene kadar gizli kalır).
-const _optionalRows = ['polls', 'academicAnnouncements', 'stories'];
+const _optionalRows = ['polls', 'academicAnnouncements'];
 
 /// Alt türler (`subtypes`): yalnızca sunucu yanıtında bulunanlar gösterilir; bilinmeyen anahtar gönderilmez (400).
 const _subtypeRows = [

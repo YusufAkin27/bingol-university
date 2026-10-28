@@ -4,7 +4,7 @@ import '../core/locale_controller.dart';
 import '../core/session.dart';
 import '../l10n/app_localizations.dart';
 import '../core/theme.dart';
-import 'bu_widgets.dart';
+import 'sistem_widgets.dart';
 import '../core/typography.dart';
 
 /// İçerik/kullanıcı raporlama alt sayfası. Sayfalar yalnızca [ReportSheet.show] çağırır.
@@ -114,7 +114,7 @@ class _SheetBodyState extends State<_SheetBody> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 28),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -128,40 +128,102 @@ class _SheetBodyState extends State<_SheetBody> {
             Text(widget.title ?? (widget.forMessage ? context.l10n.reportMessageTitle : context.l10n.reportTitle), style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 4),
             Text(context.l10n.reportPrompt, style: BuType.body.copyWith(color: t.mut)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             for (final r in ReportSheet.reasons)
               Semantics(
                 inMutuallyExclusiveGroup: true,
                 checked: _reason == r.$1,
-                child:
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
+                button: true,
                 enabled: !_busy,
-                onTap: () => setState(() => _reason = r.$1),
-                title: Text(ReportSheet.reasonLabel(context.l10n, r.$1), style: BuType.bodyStrong.copyWith(color: t.ink)),
-                trailing: Icon(
-                  _reason == r.$1 ? LucideIcons.circleCheck : LucideIcons.circle,
-                  color: _reason == r.$1 ? t.pr : t.mut,
+                excludeSemantics: true,
+                label: ReportSheet.reasonLabel(context.l10n, r.$1),
+                onTap: _busy ? null : () => setState(() => _reason = r.$1),
+                child: InkWell(
+                  onTap: _busy ? null : () => setState(() => _reason = r.$1),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(ReportSheet.reasonLabel(context.l10n, r.$1),
+                                style: BuType.bodyStrong.copyWith(color: t.ink)),
+                          ),
+                          const SizedBox(width: 12),
+                          _Radio(selected: _reason == r.$1),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              )),
-            const SizedBox(height: 8),
+              ),
+            const SizedBox(height: 10),
             TextField(
               controller: _details,
               maxLength: 500,
               maxLines: 3,
               enabled: !_busy,
-              decoration: InputDecoration(hintText: context.l10n.reportDetailsHint),
+              style: BuType.body.copyWith(color: t.ink),
+              decoration: InputDecoration(
+                hintText: context.l10n.reportDetailsHint,
+                counterText: '',
+                filled: true,
+                fillColor: t.bg,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.bd, width: 1.5)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.bd, width: 1.5)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.pr, width: 1.5)),
+              ),
             ),
             if (_error != null)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
               ),
-            BuButton(label: context.l10n.reportSend, busy: _busy, onPressed: _submit),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  flex: 10,
+                  child: SistemButton(
+                    label: context.l10n.commonCancel,
+                    kind: SistemButtonKind.outline,
+                    onPressed: _busy ? null : () => Navigator.pop(context),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 14,
+                  child: SistemButton(label: context.l10n.reportSend, busy: _busy, onPressed: _submit),
+                ),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 22 px radyo halkası (Sm2): seçiliyken kırmızı halka + iç nokta.
+class _Radio extends StatelessWidget {
+  const _Radio({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: selected ? t.pr : SistemTones.radioOff(context), width: 2),
+      ),
+      child: selected ? Container(width: 10, height: 10, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)) : null,
     );
   }
 }

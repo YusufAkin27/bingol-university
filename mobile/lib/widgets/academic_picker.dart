@@ -36,10 +36,13 @@ class AcademicFields extends StatelessWidget {
   final String? gradeError;
   final bool enabled;
 
-  String? _gradeName(List<AcademicGrade> options) {
+  String? _gradeName(BuildContext context, List<AcademicGrade> options) {
     if ((grade ?? '').isEmpty) return null;
     for (final g in options) {
-      if (g.id == grade) return g.name;
+      if (g.id == grade) {
+        final loc = gradeLabelL(context.l10n, g.id);
+        return loc == g.id ? g.name : loc;
+      }
     }
     return grade;
   }
@@ -121,7 +124,7 @@ class AcademicFields extends StatelessWidget {
             const SizedBox(height: 14),
             _FieldLabel(context.l10n.pickGrade),
             _SelectBox(
-              text: _gradeName(gradeOptions),
+              text: _gradeName(context, gradeOptions),
               placeholder: context.l10n.pickSelectGrade,
               error: gradeError != null,
               onTap: enabled ? () => _pickGrade(context) : null,
@@ -373,7 +376,10 @@ class _GradePicker extends StatelessWidget {
             child: ListView.builder(
               itemCount: grades.length,
               itemBuilder: (_, i) => _PickRow(
-                title: grades[i].name,
+                title: () {
+                  final loc = gradeLabelL(context.l10n, grades[i].id);
+                  return loc == grades[i].id ? grades[i].name : loc;
+                }(),
                 selected: grades[i].id == selected,
                 onTap: () => Navigator.pop(context, grades[i].id),
               ),

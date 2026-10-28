@@ -467,9 +467,9 @@ void main() {
 
     testWidgets('kurduklarim / uye olduklarim / bekleyen ayrimi', (tester) async {
       await _pump(tester, MyClubsPage(session: makeSession(be())));
-      expect(find.text('Kurduklarım (1)'), findsOneWidget);
-      expect(find.text('Üye olduklarım (1)'), findsOneWidget);
-      expect(find.text('Bekleyen başvurular (1)'), findsOneWidget);
+      expect(find.text('YÖNETTIKLERIM (1)'), findsOneWidget);
+      expect(find.text('ÜYESI OLDUKLARIM (1)'), findsOneWidget);
+      expect(find.text('BEKLEYEN ISTEKLER (1)'), findsOneWidget);
       expect(find.text('Onay bekliyor'), findsOneWidget);
       await unmount(tester);
     });

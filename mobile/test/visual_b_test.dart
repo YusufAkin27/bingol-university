@@ -333,7 +333,7 @@ List<_Scene> _scenes() => [
       _Scene('events_mine', () => _eventsBe(), (s) => EventsPage(session: s, initialTab: 2)),
       _Scene('event_detail', () => _eventDetailBe(manage: true), (s) => EventDetailPage(session: s, eventId: 5)),
       _Scene('event_detail_going', () => _eventDetailBe(rsvp: 'GOING'), (s) => EventDetailPage(session: s, eventId: 5)),
-      _Scene('event_form', () => FakeBackend(), (s) => EventFormPage(session: s, communityId: 7)),
+      _Scene('event_form', () => FakeBackend()..on('/me/communities*', {'items': [{'id': 7, 'name': 'Robotik Topluluğu', 'myRole': 'OWNER', 'myStatus': 'ACTIVE'}]}), (s) => EventFormPage(session: s, communityId: 7)),
     ];
 
 FakeBackend _clubBe({String status = 'ACTIVE', String? role = 'OWNER', String? name}) => FakeBackend()

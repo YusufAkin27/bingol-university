@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/academic_catalog.dart' show gradeLabelL;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -14,7 +15,7 @@ import 'academic_widgets.dart';
 import 'akad_widgets.dart';
 
 String _audience(AppLocalizations l, Announcement a) {
-  final p = [if (a.department != null) a.department!, if (a.faculty != null) a.faculty!, if (a.grade != null) l.acadGradeN(a.grade!)];
+  final p = [if (a.department != null) a.department!, if (a.faculty != null) a.faculty!, if (a.grade != null) gradeLabelL(l, a.grade)];
   return p.isEmpty ? l.acadAnnAudienceAll : p.join(' · ');
 }
 

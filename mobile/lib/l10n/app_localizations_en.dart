@@ -6199,4 +6199,702 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get akademik2SemesterTitle => 'Choose term';
+
+  @override
+  String sistemuiPermStep(String current, String total) {
+    return 'Step $current / $total';
+  }
+
+  @override
+  String get sistemuiPermNotifText =>
+      'To get instant updates about messages, events and announcements.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'To find university contacts in your address book and start chats. Your contacts are never sent to the server.';
+
+  @override
+  String get sistemuiPermCameraTitle => 'Camera and gallery';
+
+  @override
+  String get sistemuiPermCameraText =>
+      'To scan QR codes, take photos and share them.';
+
+  @override
+  String get sistemuiOfflineTitle => 'No connection';
+
+  @override
+  String get sistemuiOfflineBody =>
+      'Check your internet connection and try again. The server may be unreachable right now.';
+
+  @override
+  String get sistemuiErrorTitle => 'Something went wrong';
+
+  @override
+  String get sistemuiMaintTitle => 'System under maintenance';
+
+  @override
+  String get sistemuiMaintBody =>
+      'We are making things better for you. Please try again shortly. Your data is safe.';
+
+  @override
+  String get sistemuiMaintBand =>
+      'Some features may be temporarily unavailable.';
+
+  @override
+  String sistemuiUpdateVersions(String current, String required) {
+    return 'Installed version $current · Required version $required';
+  }
+
+  @override
+  String get sistemuiBlockedCode => 'Error code: ACCESS_BLOCKED';
+
+  @override
+  String get sistemuiQrHint => 'Bring the QR code inside the frame';
+
+  @override
+  String get sistemuiQrNotice =>
+      'Attendance opens at the event time. Scan the code shown by the organizer.';
+
+  @override
+  String get sistemuiQrOr => 'or';
+
+  @override
+  String get sistemuiQrManualHint => 'E.g. K7M4QX';
+
+  @override
+  String get sistemuiQrSubmit => 'Submit attendance';
+
+  @override
+  String get profilyardBlockedNote =>
+      'People you block cannot see your profile, message you or follow you.';
+
+  @override
+  String get profilyardBlockedEmptyTitle => 'You have not blocked anyone';
+
+  @override
+  String get profilyardBlockedEmptyBody =>
+      'You can block a disruptive user from their profile.';
+
+  @override
+  String profilyardUnblockOf(String name) {
+    return 'Unblock $name';
+  }
+
+  @override
+  String get profilyardClubsManaged => 'Managed by me';
+
+  @override
+  String get profilyardClubsMember => 'Clubs I belong to';
+
+  @override
+  String get profilyardClubsPending => 'Pending requests';
+
+  @override
+  String get profilyardRoleOwner => 'President';
+
+  @override
+  String get profilyardRoleFounder => 'Founder';
+
+  @override
+  String get profilyardRoleAdmin => 'Manager';
+
+  @override
+  String get profilyardRoleModerator => 'Moderator';
+
+  @override
+  String get profilyardRoleMember => 'Member';
+
+  @override
+  String get profilyardClubsEmptyTitle => 'You have no clubs yet';
+
+  @override
+  String get profilyardClubsEmptyBody =>
+      'Discover and join clubs, or start your own.';
+
+  @override
+  String get profilyardClubsDiscover => 'Discover clubs';
+
+  @override
+  String get profilyardEventsAttended => 'Attending';
+
+  @override
+  String get profilyardEventsCreated => 'Created by me';
+
+  @override
+  String get profilyardEventsUpcoming => 'Upcoming';
+
+  @override
+  String get profilyardEventsPast => 'Past';
+
+  @override
+  String get profilyardEventGoing => 'Going';
+
+  @override
+  String get profilyardEventRequested => 'Request sent';
+
+  @override
+  String get profilyardEventInterested => 'Interested';
+
+  @override
+  String profilyardEventPendingCount(String count) {
+    return '$count pending requests';
+  }
+
+  @override
+  String get profilyardEventsEmptyTitle => 'You have no events yet';
+
+  @override
+  String get profilyardEventsEmptyBody => 'Browse events or create your own.';
+
+  @override
+  String profilyardFollowersTab(String count) {
+    return 'Followers $count';
+  }
+
+  @override
+  String profilyardFollowingTab(String count) {
+    return 'Following $count';
+  }
+
+  @override
+  String get profilyardFollowersSearch => 'Search followers';
+
+  @override
+  String get profilyardFollowingSearch => 'Search following';
+
+  @override
+  String get profilyardFollowMutual => 'You follow each other';
+
+  @override
+  String get profilyardFollowsYou => 'Follows you';
+
+  @override
+  String get profilyardFollowingYou => 'Following';
+
+  @override
+  String get profilyardFollowNoMatch => 'No matching people.';
+
+  @override
+  String get profilyardFbIntro =>
+      'Help us improve the app. Share a suggestion, a bug you found or your thoughts.';
+
+  @override
+  String get profilyardFbType => 'Type';
+
+  @override
+  String get profilyardFbTitle => 'Title';
+
+  @override
+  String get profilyardFbMessage => 'Message';
+
+  @override
+  String get profilyardFbTitleHint => 'Summarize briefly';
+
+  @override
+  String get profilyardFbMessageHint => 'Write the details';
+
+  @override
+  String profilyardFbCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get sohbetyAddMember => 'Add member';
+
+  @override
+  String sohbetyAddCount(String n) {
+    return 'Add ($n)';
+  }
+
+  @override
+  String get sohbetyProfile => 'Profile';
+
+  @override
+  String get sohbetyNewGroup => 'New group';
+
+  @override
+  String get sohbetyNewGroupSub => 'Up to 50 people';
+
+  @override
+  String get sohbetyGroupMin => 'Select at least 2 people for a group.';
+
+  @override
+  String get sohbetyTypePerson => 'Person';
+
+  @override
+  String get sohbetyFlash => 'Flash';
+
+  @override
+  String get sohbetyStopRec => 'Stop recording';
+
+  @override
+  String get sohbetyTakePhoto => 'Take photo';
+
+  @override
+  String get sohbetyAddDone => 'Members added';
+
+  @override
+  String get etkinlik2PolicyOpen => 'Open to everyone';
+
+  @override
+  String get etkinlik2PolicyApproval => 'By request';
+
+  @override
+  String get etkinlik2PolicyApprovalTag => 'Join by request';
+
+  @override
+  String get etkinlik2Organizer => 'Organizer';
+
+  @override
+  String get etkinlik2JoinPolicyLabel => 'Participation';
+
+  @override
+  String get etkinlik2PolicyApprovalHint =>
+      'With By request, you approve each participant.';
+
+  @override
+  String get etkinlik2FormClub => 'On behalf of a club (optional)';
+
+  @override
+  String get etkinlik2ClubNone => 'Not selected';
+
+  @override
+  String get etkinlik2ClubSheetTitle => 'Choose a club';
+
+  @override
+  String get etkinlik2ClubNoneOption => 'Not on behalf of a club';
+
+  @override
+  String get etkinlik2ClubNoClubs => 'You have no clubs to host an event for.';
+
+  @override
+  String get etkinlik2ChatAutoTitle => 'Event chat opens automatically';
+
+  @override
+  String get etkinlik2ChatAutoBody =>
+      'Participants and you join the chat. With join by request, only approved people get in.';
+
+  @override
+  String get etkinlik2CapacityOptional => 'Capacity (optional)';
+
+  @override
+  String get etkinlik2Unlimited => 'Unlimited';
+
+  @override
+  String etkinlik2RegOpenSlots(String n) {
+    return 'Registration open · $n spots left';
+  }
+
+  @override
+  String get etkinlik2RegOpen => 'Registration open';
+
+  @override
+  String get etkinlik2ApprovalByOrganizer =>
+      'The organizer approves participation';
+
+  @override
+  String get etkinlik2SendRequest => 'Send join request';
+
+  @override
+  String get etkinlik2RequestHint =>
+      'You join the event chat once the organizer approves.';
+
+  @override
+  String get etkinlik2RequestSent => 'Request sent';
+
+  @override
+  String get etkinlik2AwaitingReply => 'Waiting for a reply';
+
+  @override
+  String get etkinlik2Withdraw => 'Withdraw';
+
+  @override
+  String get etkinlik2WithdrawTitle => 'Withdraw request';
+
+  @override
+  String get etkinlik2WithdrawMessage => 'Your join request will be withdrawn.';
+
+  @override
+  String get etkinlik2ChatLocked => 'Event chat · Opens once approved';
+
+  @override
+  String get etkinlik2RejectedTitle => 'Your request was declined';
+
+  @override
+  String get etkinlik2RejectedBody =>
+      'The organizer did not accept your request for this event.';
+
+  @override
+  String get etkinlik2RequestSentToast => 'Your join request was sent.';
+
+  @override
+  String get etkinlik2WithdrawnToast => 'Request withdrawn.';
+
+  @override
+  String etkinlik2GoingInterested(String going, String interested) {
+    return '$going going · $interested interested';
+  }
+
+  @override
+  String etkinlik2GoingOnly(String going) {
+    return '$going going';
+  }
+
+  @override
+  String get etkinlik2ManageRequests => 'Join requests';
+
+  @override
+  String etkinlik2ManagePending(String n) {
+    return '$n pending';
+  }
+
+  @override
+  String get etkinlik2ManageNoPending => 'No pending requests';
+
+  @override
+  String get etkinlik2ManageAttendance => 'Participants and attendance';
+
+  @override
+  String get etkinlik2ManageSettings => 'Event settings';
+
+  @override
+  String get etkinlik2ManageSection => 'Manage';
+
+  @override
+  String get etkinlik2ReqQuota => 'Capacity';
+
+  @override
+  String etkinlik2ReqSlotsLeft(String n) {
+    return '$n spots left';
+  }
+
+  @override
+  String get etkinlik2ReqNoLimit => 'No capacity limit';
+
+  @override
+  String get etkinlik2ReqFullBanner =>
+      'Capacity is full; new requests cannot be approved. Raise the capacity to free spots.';
+
+  @override
+  String etkinlik2ReqPendingHeader(String n) {
+    return 'Pending · $n';
+  }
+
+  @override
+  String get etkinlik2ReqAnsweredHeader => 'Answered';
+
+  @override
+  String get etkinlik2ReqNone => 'No pending requests.';
+
+  @override
+  String get etkinlik2Approve => 'Approve';
+
+  @override
+  String get etkinlik2Reject => 'Decline';
+
+  @override
+  String etkinlik2ApproveSem(String name) {
+    return 'Approve $name request';
+  }
+
+  @override
+  String etkinlik2RejectSem(String name) {
+    return 'Decline $name request';
+  }
+
+  @override
+  String get etkinlik2ApprovedTag => 'Approved';
+
+  @override
+  String get etkinlik2RejectedTag => 'Declined';
+
+  @override
+  String get etkinlik2ApprovedToast => 'Request approved.';
+
+  @override
+  String get etkinlik2RejectedToast => 'Request declined.';
+
+  @override
+  String get etkinlik2SettingsTitle => 'Event settings';
+
+  @override
+  String get etkinlik2SettingsPolicy => 'Participation type';
+
+  @override
+  String etkinlik2SettingsCapMin(String n) {
+    return '$n people are confirmed. You cannot set capacity below that.';
+  }
+
+  @override
+  String etkinlik2SettingsCapTooLow(String n) {
+    return 'Capacity cannot be lower than the confirmed count ($n).';
+  }
+
+  @override
+  String get etkinlik2SettingsRegChat => 'Registration and chat';
+
+  @override
+  String get etkinlik2SettingsRegOpen => 'Registration open';
+
+  @override
+  String get etkinlik2SettingsRegHint =>
+      'If you turn it off, no new requests or joins are accepted.';
+
+  @override
+  String get etkinlik2SettingsChatOpen => 'Event chat open';
+
+  @override
+  String get etkinlik2SettingsChatHint =>
+      'If you turn it off, messages stop and history is kept.';
+
+  @override
+  String get etkinlik2SettingsDanger => 'Danger zone';
+
+  @override
+  String etkinlik2SettingsCancelBody(String n) {
+    return '$n participants are notified and the chat closes. This cannot be undone.';
+  }
+
+  @override
+  String get etkinlik2SettingsSaved => 'Settings saved.';
+
+  @override
+  String get etkinlik2QrManualCaption => 'TO ENTER THE CODE MANUALLY';
+
+  @override
+  String etkinlik2QrRenewsIn(String n) {
+    return 'Code renews in $n s';
+  }
+
+  @override
+  String get etkinlik2AttendanceLabel => 'Attendance';
+
+  @override
+  String etkinlik2PresentOf(String present, String total) {
+    return '$present / $total arrived';
+  }
+
+  @override
+  String get etkinlik2FilterAll => 'All';
+
+  @override
+  String get etkinlik2FilterPresent => 'Arrived';
+
+  @override
+  String get etkinlik2FilterAbsent => 'Not arrived';
+
+  @override
+  String etkinlik2MarkSem(String name) {
+    return 'Mark $name as arrived';
+  }
+
+  @override
+  String get etkinlik2MethodQr => 'QR';
+
+  @override
+  String get etkinlik2MethodManual => 'Manual';
+
+  @override
+  String get etkinlik2ShowQrSem => 'Show QR code';
+
+  @override
+  String get etkinlik2AttendanceEmpty => 'No participants to show.';
+
+  @override
+  String get etkinlik2MarkFailed => 'Could not update attendance.';
+
+  @override
+  String get etkinlik2ChatClosedToast => 'Chat closed.';
+
+  @override
+  String get etkinlik2ChatOpenedToast => 'Chat opened.';
+
+  @override
+  String get etkinlik2NoteLabel => 'Note to the organizer (optional)';
+
+  @override
+  String get etkinlik2AnswerRequired => 'Please answer all questions.';
+
+  @override
+  String get etkinlik2ClubSemPrefix => 'Club';
+
+  @override
+  String cevrimdisiBekleyenMesaj(String n) {
+    return '$n message(s) will be sent when you are back online';
+  }
+
+  @override
+  String cevrimdisiGonderiliyor(String n) {
+    return 'Sending $n message(s)…';
+  }
+
+  @override
+  String get cevrimdisiGonderilemedi => 'Not sent';
+
+  @override
+  String cevrimdisiSonGuncelleme(String zaman) {
+    return 'Last updated: $zaman';
+  }
+
+  @override
+  String get cevrimdisiKayitliVeri => 'Showing saved data';
+
+  @override
+  String get cevrimdisiBekliyor => 'Waiting';
+
+  @override
+  String get cevrimdisiYenidenDene => 'Try again';
+
+  @override
+  String get cevrimdisiMedyaBaglanti => 'Try again when you are back online';
+
+  @override
+  String get cevrimdisiInternetYok => 'No internet connection';
+
+  @override
+  String get bildirimmobilKanalChat => 'Messages';
+
+  @override
+  String get bildirimmobilKanalEvent => 'Events';
+
+  @override
+  String get bildirimmobilKanalAnnouncement => 'Announcements and news';
+
+  @override
+  String get bildirimmobilKanalSocial => 'Social (likes, follows)';
+
+  @override
+  String get bildirimmobilKanalPoll => 'Polls';
+
+  @override
+  String get bildirimmobilKanalAcademic => 'Class and exam reminders';
+
+  @override
+  String get evcLabelClub => 'Club';
+
+  @override
+  String get evcInfoInstant => 'Published right away.';
+
+  @override
+  String get evcInfoReview => 'Published after admin approval.';
+
+  @override
+  String get evcClubRequiredHint => 'Pick a club first.';
+
+  @override
+  String get evcEmptyTitle =>
+      'You need to be a club manager to create an event';
+
+  @override
+  String get evcEmptyBody =>
+      'Events are created on behalf of clubs. Once you manage a club you can create events here.';
+
+  @override
+  String get evcBrowseClubs => 'Browse clubs';
+
+  @override
+  String get evcSubmittedTitle => 'Sent for approval';
+
+  @override
+  String get evcSubmittedBody =>
+      'Your event will be published after admin approval. You can follow its status in the Created tab.';
+
+  @override
+  String get evcOk => 'OK';
+
+  @override
+  String get evcStatusPending => 'Awaiting approval';
+
+  @override
+  String get evcStatusRejected => 'Rejected';
+
+  @override
+  String evcRejectReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get evcErrClubRequired =>
+      'An event must be created on behalf of a club. Pick a club.';
+
+  @override
+  String get evcErrForbidden =>
+      'You are not allowed to create events for this club.';
+
+  @override
+  String get evcErrClubNotActive => 'This club is not active right now.';
+
+  @override
+  String get evcErrPast => 'The event cannot start in the past.';
+
+  @override
+  String get evcErrDates => 'The end must be after the start.';
+
+  @override
+  String get evcErrProfanity =>
+      'The text contains inappropriate language. Please edit it.';
+
+  @override
+  String get evdLabelDate => 'Date';
+
+  @override
+  String get evdLabelTime => 'Start time';
+
+  @override
+  String get evdLabelDuration => 'Duration';
+
+  @override
+  String get evdChipToday => 'Today';
+
+  @override
+  String get evdChipTomorrow => 'Tomorrow';
+
+  @override
+  String get evdChipWeekend => 'This weekend';
+
+  @override
+  String get evdChipNextWeek => 'Next week';
+
+  @override
+  String get evdChipPickDate => 'Pick date';
+
+  @override
+  String get evdChipCustomTime => 'Custom time';
+
+  @override
+  String get evdDur1h => '1 hour';
+
+  @override
+  String get evdDur2h => '2 hours';
+
+  @override
+  String get evdDurHalfDay => 'Half day';
+
+  @override
+  String get evdChipCustomEnd => 'Pick end date';
+
+  @override
+  String get evdErrStartPast => 'The start cannot be in the past.';
+
+  @override
+  String get evdErrEndBeforeStart => 'The end must be after the start.';
+
+  @override
+  String get evdEndAdjusted =>
+      'The end was automatically set to 1 hour after the start.';
+
+  @override
+  String evdDescCounter(String count, String max) {
+    return '$count/$max';
+  }
+
+  @override
+  String evdErrDescTooLong(String max) {
+    return 'The description can be at most $max characters.';
+  }
+
+  @override
+  String get evdErrDescTooLongServer =>
+      'The description is too long. Please shorten it.';
 }

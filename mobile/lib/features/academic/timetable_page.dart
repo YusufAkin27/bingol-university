@@ -113,7 +113,7 @@ class _TimetablePageState extends State<TimetablePage> {
     try {
       exams = await _api.exams();
     } catch (_) {}
-    final ics = buildIcs(d.courses, d.semester, exams);
+    final ics = buildIcs(d.courses, d.semester, exams, l: context.l10n);
     final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
     if (!shared) {
       await Clipboard.setData(ClipboardData(text: ics));

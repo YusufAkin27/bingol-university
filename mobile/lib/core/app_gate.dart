@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/system/gate_views.dart';
+import '../widgets/sistem_widgets.dart';
 import 'locale_controller.dart';
 import 'analytics.dart';
 import 'api.dart';
@@ -216,12 +217,16 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final child = widget.child ?? const SizedBox.shrink();
     if (_d.kind == GateKind.updateRequired) {
-      return UpdateRequiredScreen(storeUrl: _d.storeUrl);
+      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion);
     }
     final strips = <Widget>[
       if (_offline) TopStrip(icon: Icons.cloud_off, text: context.l10n.coreOffline, danger: true),
       if (_d.maintenance)
-        TopStrip(icon: Icons.construction, text: _d.maintenanceMessage ?? context.l10n.coreMaintenance),
+        MaintenanceBand(
+          icon: Icons.construction,
+          text: _d.maintenanceMessage ?? context.l10n.coreMaintenance,
+          margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+        ),
       if (_d.banner != null) TopStrip(icon: Icons.campaign, text: _d.banner!),
     ];
     return Stack(

@@ -8,9 +8,9 @@ import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/video_service.dart';
 import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
 import 'chat_media.dart';
 import 'media_pick.dart';
+import 'sohbety_widgets.dart';
 
 /// Kamerayı açıp bir öğe (fotoğraf ya da video) döndüren işlev; testlerde sahtesi verilir.
 typedef MediaCameraLauncher = Future<MediaPick?> Function(BuildContext context);
@@ -37,6 +37,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
   bool _denied = false;
   bool _recording = false;
   bool _busy = false;
+  bool _flash = false;
   int _secs = 0;
   Timer? _tick;
   int _n = 0;
@@ -87,7 +88,23 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     await old?.dispose();
     await c.initialize();
     if (!mounted) return;
+    if (_flash) {
+      try {
+        await c.setFlashMode(FlashMode.torch);
+      } catch (_) {}
+    }
     setState(() => _ready = true);
+  }
+
+  /// Flaş: kapalı <-> sürekli (fener; fotoğrafta da videoda da yanar).
+  Future<void> _toggleFlash() async {
+    final c = _ctl;
+    if (c == null || !_ready) return;
+    final next = !_flash;
+    try {
+      await c.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (mounted) setState(() => _flash = next);
+    } catch (_) {}
   }
 
   Future<void> _flip() async {
@@ -176,87 +193,61 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
   @override
   Widget build(BuildContext context) {
     final c = _ctl;
+    final l = context.l10n;
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(children: [
-          Positioned.fill(
-            child: _denied
-                ? Center(
-                    child: Text(context.l10n.chatMiscCameraUnavailable, style: BuType.body.copyWith(color: Colors.white70)),
-                  )
-                : (_ready && c != null)
-                    ? Center(
-                        child: AspectRatio(aspectRatio: 1 / c.value.aspectRatio, child: CameraPreview(c)),
-                      )
-                    : const Center(child: CircularProgressIndicator()),
-          ),
-          PositionedDirectional(
-            top: 8,
-            start: 8,
-            child: IconButton(
-              tooltip: context.l10n.chatMiscClose,
-              icon: const Icon(LucideIcons.x, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          if (_recording)
-            PositionedDirectional(
-              top: 18,
-              start: 0,
-              end: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(999)),
-                  child: Text(formatMediaDuration(_secs * 1000),
-                      style: BuType.bodyStrong.copyWith(color: Colors.white)),
-                ),
+      backgroundColor: const Color(0xFF0E1220),
+      body: Stack(children: [
+        // Önizleme gelene kadar tasarımdaki koyu radyal zemin.
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0, -.16),
+                radius: .85,
+                colors: [Color(0xFF2A3250), Color(0xFF0E1220)],
+                stops: [0, .7],
               ),
             ),
-          PositionedDirectional(
-            bottom: 24,
-            start: 0,
-            end: 0,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text(context.l10n.chatMiscCameraHint,
-                  style: BuType.caption.copyWith(color: Colors.white70)),
-              const SizedBox(height: 14),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const SizedBox(width: 56),
-                const SizedBox(width: 28),
-                GestureDetector(
-                  key: const ValueKey('shutter'),
-                  onTap: _photo,
-                  onLongPressStart: (_) => _startVideo(),
-                  onLongPressEnd: (_) => _stopVideo(),
-                  child: Container(
-                    width: 76,
-                    height: 76,
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 4)),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: _recording ? Colors.red : Colors.white,
-                          borderRadius: BorderRadius.circular(_recording ? 12 : 40)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 28),
-                SizedBox(
-                  width: 56,
-                  child: IconButton(
-                    tooltip: context.l10n.chatMiscFlipCamera,
-                    icon: const Icon(LucideIcons.refreshCw, color: Colors.white),
-                    onPressed: _flip,
-                  ),
-                ),
-              ]),
-            ]),
           ),
-        ]),
-      ),
+        ),
+        Positioned.fill(
+          child: _denied
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(l.chatMiscCameraUnavailable,
+                        textAlign: TextAlign.center,
+                        style: BuType.body.copyWith(color: Colors.white70)),
+                  ),
+                )
+              : (_ready && c != null)
+                  ? Center(
+                      child: AspectRatio(aspectRatio: 1 / c.value.aspectRatio, child: CameraPreview(c)),
+                    )
+                  : const Center(child: CircularProgressIndicator(color: Colors.white)),
+        ),
+        Positioned.fill(
+          child: SohbetyCameraChrome(
+            recording: _recording,
+            timer: formatMediaDuration(_secs * 1000),
+            flashOn: _flash,
+            onClose: () => Navigator.pop(context),
+            onFlash: _toggleFlash,
+            // Galeri: kamerayı kapatıp seçiciye (galeriye) döner.
+            onGallery: () => Navigator.pop(context),
+            onFlip: _flip,
+            onPhoto: _photo,
+            onVideoStart: _startVideo,
+            onVideoEnd: _stopVideo,
+            closeLabel: l.chatMiscClose,
+            flashLabel: l.sohbetyFlash,
+            galleryLabel: l.chatMiscGallery,
+            flipLabel: l.chatMiscFlipCamera,
+            shutterLabel: _recording ? l.sohbetyStopRec : l.sohbetyTakePhoto,
+            hint: l.chatMiscCameraHint,
+          ),
+        ),
+      ]),
     );
   }
 }

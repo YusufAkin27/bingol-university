@@ -5,49 +5,44 @@ import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
-import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
+import 'sohbety_widgets.dart';
 
 /// "Rehberden kişi bul" giriş satırı (yeni sohbet ekranı ve ayarlar).
 class ContactsEntryRow extends StatelessWidget {
-  const ContactsEntryRow({super.key, required this.session});
+  const ContactsEntryRow(
+      {super.key,
+      required this.session,
+      this.padding = const EdgeInsets.fromLTRB(16, 12, 16, 0)});
 
   final Session session;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: BuCard(
-        padding: EdgeInsets.zero,
-        onTap: () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => ContactsMatchPage(session: session))),
-        child: SizedBox(
-          height: 56,
-          child: Row(
-            children: [
-              const SizedBox(width: 14),
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.contact, size: 16, color: t.onSoft),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(context.l10n.chatMiscContactsFind,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-              ),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
-              const SizedBox(width: 14),
-            ],
-          ),
+      padding: padding,
+      child: SohbetyCard(children: [
+        SohbetyRow(
+          key: const ValueKey('contacts-entry'),
+          minHeight: 64,
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => ContactsMatchPage(session: session))),
+          child: Row(children: [
+            const SohbetyTile(icon: LucideIcons.contact, size: 40),
+            const SizedBox(width: 12),
+            Expanded(
+                child: SohbetyTexts(
+                    title: context.l10n.chatMiscContactsFind,
+                    sub: context.l10n.chatMiscContactsSubtitle)),
+            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+          ]),
         ),
-      ),
+      ]),
     );
   }
 }
@@ -166,13 +161,11 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          BuHeader(
+          SohbetyHeader(
             title: context.l10n.chatMiscContactsFind,
-            subtitle: context.l10n.chatMiscContactsSubtitle,
             onBack: () => Navigator.pop(context),
           ),
           Expanded(child: _body(t)),
-          _PrivacyNote(color: t.mut),
         ],
       ),
     );
@@ -185,29 +178,41 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       case _Phase.error:
         return ErrorView(error: _error!, onRetry: _load);
       case _Phase.needPermission:
-        return _StateCard(
-          icon: LucideIcons.contact,
-          title: context.l10n.chatMiscContactsPermTitle,
-          text: context.l10n.chatMiscContactsPermText,
-          action: context.l10n.chatMiscContactsPermAction,
-          onAction: _load,
-        );
+        return Column(children: [
+          Expanded(
+            child: _StateCard(
+              icon: LucideIcons.contact,
+              title: context.l10n.chatMiscContactsPermTitle,
+              text: context.l10n.chatMiscContactsRationale,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 32 + MediaQuery.paddingOf(context).bottom - 16),
+            child: SohbetyButton(
+                label: context.l10n.chatMiscContactsPermAction, onPressed: _load),
+          ),
+        ]);
       case _Phase.ready:
         break;
     }
     if (_all.isEmpty) {
-      return _StateCard(
-        icon: LucideIcons.userSearch,
-        title: context.l10n.chatMiscContactsNoneTitle,
-        text: context.l10n.chatMiscContactsNoneText,
-      );
+      return Column(children: [
+        Expanded(
+          child: _StateCard(
+            icon: LucideIcons.userSearch,
+            title: context.l10n.chatMiscContactsNoneTitle,
+            text: context.l10n.chatMiscContactsNoneText,
+          ),
+        ),
+        _PrivacyNote(color: t.mut),
+      ]);
     }
     final list = _visible;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          child: BuSearchField(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: SohbetyField(
             hint: context.l10n.chatMiscContactsSearchHint,
             controller: _search,
             onChanged: (v) => setState(() => _q = v),
@@ -217,38 +222,34 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
             child: Text(context.l10n.chatMiscContactsTruncated,
-                style: BuType.caption.copyWith(color: t.mut)),
+                style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: t.mut)),
           ),
         if (_openError != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: Text(_openError!, style: BuType.caption.copyWith(color: t.danger)),
+            child: Text(_openError!,
+                style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: t.danger)),
           ),
         Expanded(
           child: list.isEmpty
               ? EmptyView(icon: LucideIcons.userX, text: context.l10n.chatMiscContactsNoSearchMatch)
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                  itemCount: list.length + 1,
-                  itemBuilder: (_, i) {
-                    if (i == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8, bottom: 2),
-                        child: Text(context.l10n.chatMiscContactsCount(list.length.toString()),
-                            style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
-                      );
-                    }
-                    return _row(t, list[i - 1]);
-                  },
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  children: [
+                    SohbetyLabel(sohbetyUpper(
+                        context, context.l10n.chatMiscContactsCount(list.length.toString()))),
+                    SohbetyCard(children: [for (final m in list) _row(t, m)]),
+                  ],
                 ),
         ),
+        _PrivacyNote(color: t.mut),
       ],
     );
   }
 
   Widget _row(BuTokens t, ContactMatch m) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return SohbetyRow(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 12, 6),
       child: Row(
         children: [
           Expanded(
@@ -257,31 +258,63 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
               onTap: () => openUserProfile(context, widget.session,
                   userId: m.userId, name: m.displayName, avatarUrl: m.avatarUrl),
               child: Row(children: [
-                BuAvatar(name: m.displayName, url: m.avatarUrl, size: 46),
+                SohbetyAvatar(name: m.displayName, url: m.avatarUrl, size: 48),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(m.displayName,
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                      if (m.sub.isNotEmpty)
-                        Text(m.sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-                    ],
-                  ),
-                ),
+                Expanded(child: SohbetyTexts(title: m.displayName, sub: m.sub)),
               ]),
             ),
           ),
           const SizedBox(width: 8),
-          BuButton(
+          _MessageButton(
             label: context.l10n.chatMiscMessage,
-            icon: LucideIcons.messageCircle,
-            compact: true,
             busy: _opening == m.userId,
-            onPressed: () => _message(m),
+            onTap: () => _message(m),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Satır sonu "Mesaj" düğmesi: 44 px, yumuşak kırmızı zemin, kırmızı yazı.
+class _MessageButton extends StatelessWidget {
+  const _MessageButton({required this.label, required this.busy, required this.onTap});
+
+  final String label;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: t.soft,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: busy ? null : onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            alignment: Alignment.center,
+            child: busy
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.4, color: t.onSoft))
+                : Text(label,
+                    maxLines: 1,
+                    style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: t.onSoft)),
+          ),
+        ),
       ),
     );
   }
@@ -295,54 +328,48 @@ class _PrivacyNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(24, 8, 24, 10 + MediaQuery.of(context).padding.bottom),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(LucideIcons.lock, size: 12.5, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(context.l10n.chatMiscContactsPrivacy,
-                style: BuType.caption.copyWith(color: color)),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.fromLTRB(24, 12, 24, 16 + MediaQuery.of(context).padding.bottom),
+      child: Text(context.l10n.chatMiscContactsPrivacy,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontFamily: 'Inter', fontSize: 13, height: 1.4, color: color)),
     );
   }
 }
 
 class _StateCard extends StatelessWidget {
-  const _StateCard({required this.icon, required this.title, required this.text, this.action, this.onAction});
+  const _StateCard({required this.icon, required this.title, required this.text});
 
   final IconData icon;
   final String title;
   final String text;
-  final String? action;
-  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(icon, size: 29, color: t.onSoft),
+              child: Icon(icon, size: 38, color: t.onSoft),
             ),
-            const SizedBox(height: 16),
-            Text(title, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
-            const SizedBox(height: 8),
-            Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              BuButton(label: action!, compact: true, onPressed: onAction),
-            ],
+            const SizedBox(height: 20),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: t.ink)),
+            const SizedBox(height: 12),
+            Text(text,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Inter', fontSize: 15, height: 1.5, color: t.mut)),
           ],
         ),
       ),

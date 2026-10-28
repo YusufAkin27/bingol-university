@@ -6149,4 +6149,692 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get akademik2SemesterTitle => 'اختر الفصل';
+
+  @override
+  String sistemuiPermStep(String current, String total) {
+    return 'الخطوة $current / $total';
+  }
+
+  @override
+  String get sistemuiPermNotifText =>
+      'لتصلك إشعارات فورية عن الرسائل والفعاليات والإعلانات.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'للعثور على جهات اتصال الجامعة في دفتر العناوين وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+
+  @override
+  String get sistemuiPermCameraTitle => 'الكاميرا والمعرض';
+
+  @override
+  String get sistemuiPermCameraText => 'لمسح رموز QR والتقاط الصور ومشاركتها.';
+
+  @override
+  String get sistemuiOfflineTitle => 'لا يوجد اتصال';
+
+  @override
+  String get sistemuiOfflineBody =>
+      'تحقق من اتصالك بالإنترنت وحاول مرة أخرى. قد يتعذر الوصول إلى الخادم الآن.';
+
+  @override
+  String get sistemuiErrorTitle => 'حدث خطأ ما';
+
+  @override
+  String get sistemuiMaintTitle => 'النظام قيد الصيانة';
+
+  @override
+  String get sistemuiMaintBody =>
+      'نعمل على تحسين التطبيق من أجلك. حاول مرة أخرى بعد قليل. بياناتك في أمان.';
+
+  @override
+  String get sistemuiMaintBand => 'قد تكون بعض الميزات غير متاحة مؤقتا.';
+
+  @override
+  String sistemuiUpdateVersions(String current, String required) {
+    return 'الإصدار المثبت $current · الإصدار المطلوب $required';
+  }
+
+  @override
+  String get sistemuiBlockedCode => 'رمز الخطأ: ACCESS_BLOCKED';
+
+  @override
+  String get sistemuiQrHint => 'ضع رمز QR داخل الإطار';
+
+  @override
+  String get sistemuiQrNotice =>
+      'يفتح تسجيل الحضور في وقت الفعالية. امسح الرمز الذي يعرضه المنظم.';
+
+  @override
+  String get sistemuiQrOr => 'أو';
+
+  @override
+  String get sistemuiQrManualHint => 'مثال: K7M4QX';
+
+  @override
+  String get sistemuiQrSubmit => 'إرسال الحضور';
+
+  @override
+  String get profilyardBlockedNote =>
+      'لا يمكن للأشخاص الذين تحظرهم رؤية ملفك الشخصي أو مراسلتك أو متابعتك.';
+
+  @override
+  String get profilyardBlockedEmptyTitle => 'لم تحظر أي شخص';
+
+  @override
+  String get profilyardBlockedEmptyBody =>
+      'يمكنك حظر مستخدم مزعج من ملفه الشخصي.';
+
+  @override
+  String profilyardUnblockOf(String name) {
+    return 'إلغاء حظر $name';
+  }
+
+  @override
+  String get profilyardClubsManaged => 'التي أديرها';
+
+  @override
+  String get profilyardClubsMember => 'التي أنا عضو فيها';
+
+  @override
+  String get profilyardClubsPending => 'الطلبات المعلقة';
+
+  @override
+  String get profilyardRoleOwner => 'الرئيس';
+
+  @override
+  String get profilyardRoleFounder => 'المؤسس';
+
+  @override
+  String get profilyardRoleAdmin => 'مدير';
+
+  @override
+  String get profilyardRoleModerator => 'مشرف';
+
+  @override
+  String get profilyardRoleMember => 'عضو';
+
+  @override
+  String get profilyardClubsEmptyTitle => 'ليس لديك أي نادٍ بعد';
+
+  @override
+  String get profilyardClubsEmptyBody =>
+      'يمكنك استكشاف الأندية والانضمام إليها أو تأسيس ناديك الخاص.';
+
+  @override
+  String get profilyardClubsDiscover => 'استكشف الأندية';
+
+  @override
+  String get profilyardEventsAttended => 'التي أشارك فيها';
+
+  @override
+  String get profilyardEventsCreated => 'التي أنشأتها';
+
+  @override
+  String get profilyardEventsUpcoming => 'القادمة';
+
+  @override
+  String get profilyardEventsPast => 'السابقة';
+
+  @override
+  String get profilyardEventGoing => 'سأحضر';
+
+  @override
+  String get profilyardEventRequested => 'تم إرسال الطلب';
+
+  @override
+  String get profilyardEventInterested => 'مهتم';
+
+  @override
+  String profilyardEventPendingCount(String count) {
+    return '$count طلبات معلقة';
+  }
+
+  @override
+  String get profilyardEventsEmptyTitle => 'ليس لديك أي فعالية بعد';
+
+  @override
+  String get profilyardEventsEmptyBody =>
+      'تصفح الفعاليات أو أنشئ فعاليتك الخاصة.';
+
+  @override
+  String profilyardFollowersTab(String count) {
+    return 'المتابعون $count';
+  }
+
+  @override
+  String profilyardFollowingTab(String count) {
+    return 'المتابَعون $count';
+  }
+
+  @override
+  String get profilyardFollowersSearch => 'ابحث في المتابعين';
+
+  @override
+  String get profilyardFollowingSearch => 'ابحث في المتابَعين';
+
+  @override
+  String get profilyardFollowMutual => 'تتابعان بعضكما';
+
+  @override
+  String get profilyardFollowsYou => 'يتابعك';
+
+  @override
+  String get profilyardFollowingYou => 'تتابعه';
+
+  @override
+  String get profilyardFollowNoMatch => 'لا يوجد أشخاص مطابقون.';
+
+  @override
+  String get profilyardFbIntro =>
+      'ساعدنا في تحسين التطبيق. اكتب اقتراحك أو الخطأ الذي واجهته أو أفكارك.';
+
+  @override
+  String get profilyardFbType => 'النوع';
+
+  @override
+  String get profilyardFbTitle => 'العنوان';
+
+  @override
+  String get profilyardFbMessage => 'الرسالة';
+
+  @override
+  String get profilyardFbTitleHint => 'لخّص باختصار';
+
+  @override
+  String get profilyardFbMessageHint => 'اكتب التفاصيل';
+
+  @override
+  String profilyardFbCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get sohbetyAddMember => 'إضافة عضو';
+
+  @override
+  String sohbetyAddCount(String n) {
+    return 'إضافة ($n)';
+  }
+
+  @override
+  String get sohbetyProfile => 'الملف الشخصي';
+
+  @override
+  String get sohbetyNewGroup => 'مجموعة جديدة';
+
+  @override
+  String get sohbetyNewGroupSub => 'حتى 50 شخصًا';
+
+  @override
+  String get sohbetyGroupMin => 'اختر شخصين على الأقل للمجموعة.';
+
+  @override
+  String get sohbetyTypePerson => 'شخص';
+
+  @override
+  String get sohbetyFlash => 'الفلاش';
+
+  @override
+  String get sohbetyStopRec => 'إيقاف التسجيل';
+
+  @override
+  String get sohbetyTakePhoto => 'التقاط صورة';
+
+  @override
+  String get sohbetyAddDone => 'تمت إضافة الأعضاء';
+
+  @override
+  String get etkinlik2PolicyOpen => 'مفتوح للجميع';
+
+  @override
+  String get etkinlik2PolicyApproval => 'بطلب';
+
+  @override
+  String get etkinlik2PolicyApprovalTag => 'الانضمام بطلب';
+
+  @override
+  String get etkinlik2Organizer => 'المنظّم';
+
+  @override
+  String get etkinlik2JoinPolicyLabel => 'المشاركة';
+
+  @override
+  String get etkinlik2PolicyApprovalHint =>
+      'عند اختيار بطلب ستوافق أنت على المشاركين.';
+
+  @override
+  String get etkinlik2FormClub => 'باسم نادٍ (اختياري)';
+
+  @override
+  String get etkinlik2ClubNone => 'غير محدد';
+
+  @override
+  String get etkinlik2ClubSheetTitle => 'اختر نادياً';
+
+  @override
+  String get etkinlik2ClubNoneOption => 'ليس باسم نادٍ';
+
+  @override
+  String get etkinlik2ClubNoClubs => 'لا توجد أندية يمكنك إنشاء فعالية لها.';
+
+  @override
+  String get etkinlik2ChatAutoTitle => 'تُفتح دردشة الفعالية تلقائياً';
+
+  @override
+  String get etkinlik2ChatAutoBody =>
+      'يدخل المشاركون وأنت إلى الدردشة. في الانضمام بطلب يدخل المعتمدون فقط.';
+
+  @override
+  String get etkinlik2CapacityOptional => 'السعة (اختياري)';
+
+  @override
+  String get etkinlik2Unlimited => 'غير محدود';
+
+  @override
+  String etkinlik2RegOpenSlots(String n) {
+    return 'التسجيل مفتوح · بقي $n مكان';
+  }
+
+  @override
+  String get etkinlik2RegOpen => 'التسجيل مفتوح';
+
+  @override
+  String get etkinlik2ApprovalByOrganizer => 'المنظّم يوافق على المشاركة';
+
+  @override
+  String get etkinlik2SendRequest => 'إرسال طلب انضمام';
+
+  @override
+  String get etkinlik2RequestHint => 'تدخل دردشة الفعالية عندما يوافق المنظّم.';
+
+  @override
+  String get etkinlik2RequestSent => 'تم إرسال الطلب';
+
+  @override
+  String get etkinlik2AwaitingReply => 'بانتظار الرد';
+
+  @override
+  String get etkinlik2Withdraw => 'سحب';
+
+  @override
+  String get etkinlik2WithdrawTitle => 'سحب الطلب';
+
+  @override
+  String get etkinlik2WithdrawMessage => 'سيتم سحب طلب انضمامك.';
+
+  @override
+  String get etkinlik2ChatLocked => 'دردشة الفعالية · تُفتح بعد الموافقة';
+
+  @override
+  String get etkinlik2RejectedTitle => 'تم رفض طلبك';
+
+  @override
+  String get etkinlik2RejectedBody => 'لم يقبل المنظّم طلبك لهذه الفعالية.';
+
+  @override
+  String get etkinlik2RequestSentToast => 'تم إرسال طلب انضمامك.';
+
+  @override
+  String get etkinlik2WithdrawnToast => 'تم سحب الطلب.';
+
+  @override
+  String etkinlik2GoingInterested(String going, String interested) {
+    return '$going مشاركاً · $interested مهتماً';
+  }
+
+  @override
+  String etkinlik2GoingOnly(String going) {
+    return '$going مشاركاً';
+  }
+
+  @override
+  String get etkinlik2ManageRequests => 'طلبات الانضمام';
+
+  @override
+  String etkinlik2ManagePending(String n) {
+    return '$n طلب معلّق';
+  }
+
+  @override
+  String get etkinlik2ManageNoPending => 'لا طلبات معلّقة';
+
+  @override
+  String get etkinlik2ManageAttendance => 'المشاركون والحضور';
+
+  @override
+  String get etkinlik2ManageSettings => 'إعدادات الفعالية';
+
+  @override
+  String get etkinlik2ManageSection => 'الإدارة';
+
+  @override
+  String get etkinlik2ReqQuota => 'السعة';
+
+  @override
+  String etkinlik2ReqSlotsLeft(String n) {
+    return 'بقي $n مكان';
+  }
+
+  @override
+  String get etkinlik2ReqNoLimit => 'لا حد للسعة';
+
+  @override
+  String get etkinlik2ReqFullBanner =>
+      'اكتملت السعة؛ لا يمكن الموافقة على طلبات جديدة. ارفع السعة لإتاحة أماكن.';
+
+  @override
+  String etkinlik2ReqPendingHeader(String n) {
+    return 'معلّق · $n';
+  }
+
+  @override
+  String get etkinlik2ReqAnsweredHeader => 'تم الرد عليها';
+
+  @override
+  String get etkinlik2ReqNone => 'لا توجد طلبات معلّقة.';
+
+  @override
+  String get etkinlik2Approve => 'قبول';
+
+  @override
+  String get etkinlik2Reject => 'رفض';
+
+  @override
+  String etkinlik2ApproveSem(String name) {
+    return 'قبول طلب $name';
+  }
+
+  @override
+  String etkinlik2RejectSem(String name) {
+    return 'رفض طلب $name';
+  }
+
+  @override
+  String get etkinlik2ApprovedTag => 'تمت الموافقة';
+
+  @override
+  String get etkinlik2RejectedTag => 'مرفوض';
+
+  @override
+  String get etkinlik2ApprovedToast => 'تمت الموافقة على الطلب.';
+
+  @override
+  String get etkinlik2RejectedToast => 'تم رفض الطلب.';
+
+  @override
+  String get etkinlik2SettingsTitle => 'إعدادات الفعالية';
+
+  @override
+  String get etkinlik2SettingsPolicy => 'نوع المشاركة';
+
+  @override
+  String etkinlik2SettingsCapMin(String n) {
+    return 'يوجد $n مؤكَّداً. لا يمكنك خفض السعة عن ذلك.';
+  }
+
+  @override
+  String etkinlik2SettingsCapTooLow(String n) {
+    return 'لا يمكن أن تقل السعة عن عدد المؤكَّدين ($n).';
+  }
+
+  @override
+  String get etkinlik2SettingsRegChat => 'التسجيل والدردشة';
+
+  @override
+  String get etkinlik2SettingsRegOpen => 'التسجيل مفتوح';
+
+  @override
+  String get etkinlik2SettingsRegHint =>
+      'عند الإيقاف لا تُقبل طلبات أو مشاركات جديدة.';
+
+  @override
+  String get etkinlik2SettingsChatOpen => 'دردشة الفعالية مفتوحة';
+
+  @override
+  String get etkinlik2SettingsChatHint =>
+      'عند الإيقاف تتوقف الرسائل ويُحتفظ بالسجل.';
+
+  @override
+  String get etkinlik2SettingsDanger => 'منطقة الخطر';
+
+  @override
+  String etkinlik2SettingsCancelBody(String n) {
+    return 'سيتم إشعار $n مشاركاً وتُغلق الدردشة. لا يمكن التراجع.';
+  }
+
+  @override
+  String get etkinlik2SettingsSaved => 'تم حفظ الإعدادات.';
+
+  @override
+  String get etkinlik2QrManualCaption => 'لإدخال الرمز يدوياً';
+
+  @override
+  String etkinlik2QrRenewsIn(String n) {
+    return 'يتجدد الرمز بعد $n ث';
+  }
+
+  @override
+  String get etkinlik2AttendanceLabel => 'الحضور';
+
+  @override
+  String etkinlik2PresentOf(String present, String total) {
+    return 'حضر $present من $total';
+  }
+
+  @override
+  String get etkinlik2FilterAll => 'الكل';
+
+  @override
+  String get etkinlik2FilterPresent => 'حضر';
+
+  @override
+  String get etkinlik2FilterAbsent => 'لم يحضر';
+
+  @override
+  String etkinlik2MarkSem(String name) {
+    return 'تعيين $name كحاضر';
+  }
+
+  @override
+  String get etkinlik2MethodQr => 'رمز QR';
+
+  @override
+  String get etkinlik2MethodManual => 'يدوي';
+
+  @override
+  String get etkinlik2ShowQrSem => 'عرض رمز QR';
+
+  @override
+  String get etkinlik2AttendanceEmpty => 'لا يوجد مشاركون للعرض.';
+
+  @override
+  String get etkinlik2MarkFailed => 'تعذّر تحديث الحضور.';
+
+  @override
+  String get etkinlik2ChatClosedToast => 'تم إغلاق الدردشة.';
+
+  @override
+  String get etkinlik2ChatOpenedToast => 'تم فتح الدردشة.';
+
+  @override
+  String get etkinlik2NoteLabel => 'ملاحظة للمنظّم (اختياري)';
+
+  @override
+  String get etkinlik2AnswerRequired => 'يجب الإجابة عن جميع الأسئلة.';
+
+  @override
+  String get etkinlik2ClubSemPrefix => 'النادي';
+
+  @override
+  String cevrimdisiBekleyenMesaj(String n) {
+    return 'سيتم إرسال $n رسالة عند عودة الاتصال';
+  }
+
+  @override
+  String cevrimdisiGonderiliyor(String n) {
+    return 'جارٍ إرسال $n رسالة…';
+  }
+
+  @override
+  String get cevrimdisiGonderilemedi => 'لم يتم الإرسال';
+
+  @override
+  String cevrimdisiSonGuncelleme(String zaman) {
+    return 'آخر تحديث: $zaman';
+  }
+
+  @override
+  String get cevrimdisiKayitliVeri => 'يتم عرض البيانات المحفوظة';
+
+  @override
+  String get cevrimdisiBekliyor => 'في الانتظار';
+
+  @override
+  String get cevrimdisiYenidenDene => 'إعادة المحاولة';
+
+  @override
+  String get cevrimdisiMedyaBaglanti => 'حاول مرة أخرى عند عودة الاتصال';
+
+  @override
+  String get cevrimdisiInternetYok => 'لا يوجد اتصال بالإنترنت';
+
+  @override
+  String get bildirimmobilKanalChat => 'الرسائل';
+
+  @override
+  String get bildirimmobilKanalEvent => 'الفعاليات';
+
+  @override
+  String get bildirimmobilKanalAnnouncement => 'الإعلانات والأخبار';
+
+  @override
+  String get bildirimmobilKanalSocial => 'اجتماعي (الإعجابات، المتابعات)';
+
+  @override
+  String get bildirimmobilKanalPoll => 'الاستطلاعات';
+
+  @override
+  String get bildirimmobilKanalAcademic => 'تذكيرات المحاضرات والامتحانات';
+
+  @override
+  String get evcLabelClub => 'النادي';
+
+  @override
+  String get evcInfoInstant => 'يُنشر فورًا.';
+
+  @override
+  String get evcInfoReview => 'يُنشر بعد موافقة المسؤول.';
+
+  @override
+  String get evcClubRequiredHint => 'اختر نادي أولًا.';
+
+  @override
+  String get evcEmptyTitle => 'يجب أن تكون مسؤولًا في نادٍ لإنشاء فعالية';
+
+  @override
+  String get evcEmptyBody =>
+      'تُنشأ الفعاليات باسم الأندية. عندما تصبح مسؤولًا في نادٍ يمكنك إنشاء الفعاليات هنا.';
+
+  @override
+  String get evcBrowseClubs => 'تصفّح الأندية';
+
+  @override
+  String get evcSubmittedTitle => 'أُرسلت للموافقة';
+
+  @override
+  String get evcSubmittedBody =>
+      'ستُنشر فعاليتك بعد موافقة المسؤول. يمكنك متابعة حالتها من تبويب ما أنشأته.';
+
+  @override
+  String get evcOk => 'حسنًا';
+
+  @override
+  String get evcStatusPending => 'بانتظار الموافقة';
+
+  @override
+  String get evcStatusRejected => 'مرفوضة';
+
+  @override
+  String evcRejectReason(String reason) {
+    return 'السبب: $reason';
+  }
+
+  @override
+  String get evcErrClubRequired => 'يجب إنشاء الفعالية باسم نادٍ. اختر نادي.';
+
+  @override
+  String get evcErrForbidden => 'ليست لديك صلاحية إنشاء فعاليات لهذا النادي.';
+
+  @override
+  String get evcErrClubNotActive => 'هذا النادي غير نشط حاليًا.';
+
+  @override
+  String get evcErrPast => 'لا يمكن أن تبدأ الفعالية في الماضي.';
+
+  @override
+  String get evcErrDates => 'يجب أن تكون النهاية بعد البداية.';
+
+  @override
+  String get evcErrProfanity => 'يحتوي النص على عبارات غير لائقة. يرجى تعديله.';
+
+  @override
+  String get evdLabelDate => 'التاريخ';
+
+  @override
+  String get evdLabelTime => 'وقت البدء';
+
+  @override
+  String get evdLabelDuration => 'المدة';
+
+  @override
+  String get evdChipToday => 'اليوم';
+
+  @override
+  String get evdChipTomorrow => 'غدًا';
+
+  @override
+  String get evdChipWeekend => 'نهاية هذا الأسبوع';
+
+  @override
+  String get evdChipNextWeek => 'الأسبوع القادم';
+
+  @override
+  String get evdChipPickDate => 'اختر تاريخًا';
+
+  @override
+  String get evdChipCustomTime => 'وقت مخصص';
+
+  @override
+  String get evdDur1h => 'ساعة';
+
+  @override
+  String get evdDur2h => 'ساعتان';
+
+  @override
+  String get evdDurHalfDay => 'نصف يوم';
+
+  @override
+  String get evdChipCustomEnd => 'اختر تاريخ الانتهاء';
+
+  @override
+  String get evdErrStartPast => 'لا يمكن أن يكون البدء في الماضي.';
+
+  @override
+  String get evdErrEndBeforeStart => 'يجب أن تكون النهاية بعد البداية.';
+
+  @override
+  String get evdEndAdjusted => 'تم ضبط النهاية تلقائيًا بعد ساعة من البدء.';
+
+  @override
+  String evdDescCounter(String count, String max) {
+    return '$count/$max';
+  }
+
+  @override
+  String evdErrDescTooLong(String max) {
+    return 'يجب ألا يتجاوز الوصف $max حرفًا.';
+  }
+
+  @override
+  String get evdErrDescTooLongServer => 'الوصف طويل جدًا. يرجى اختصاره.';
 }

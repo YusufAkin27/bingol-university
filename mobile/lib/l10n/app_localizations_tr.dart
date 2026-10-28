@@ -6178,4 +6178,699 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get akademik2SemesterTitle => 'Dönem seç';
+
+  @override
+  String sistemuiPermStep(String current, String total) {
+    return 'Adım $current / $total';
+  }
+
+  @override
+  String get sistemuiPermNotifText =>
+      'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.';
+
+  @override
+  String get sistemuiPermCameraTitle => 'Kamera ve galeri';
+
+  @override
+  String get sistemuiPermCameraText =>
+      'QR kod okutmak, fotoğraf çekmek ve paylaşmak için.';
+
+  @override
+  String get sistemuiOfflineTitle => 'Bağlantı yok';
+
+  @override
+  String get sistemuiOfflineBody =>
+      'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.';
+
+  @override
+  String get sistemuiErrorTitle => 'Bir şeyler ters gitti';
+
+  @override
+  String get sistemuiMaintTitle => 'Sistem bakımda';
+
+  @override
+  String get sistemuiMaintBody =>
+      'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.';
+
+  @override
+  String get sistemuiMaintBand =>
+      'Bazı özellikler geçici olarak kullanılamayabilir.';
+
+  @override
+  String sistemuiUpdateVersions(String current, String required) {
+    return 'Yüklü sürüm $current · Gerekli sürüm $required';
+  }
+
+  @override
+  String get sistemuiBlockedCode => 'Hata kodu: ACCESS_BLOCKED';
+
+  @override
+  String get sistemuiQrHint => 'QR kodunu çerçevenin içine getir';
+
+  @override
+  String get sistemuiQrNotice =>
+      'Yoklama etkinlik saatinde açılır. Organizatörün gösterdiği kodu okut.';
+
+  @override
+  String get sistemuiQrOr => 'veya';
+
+  @override
+  String get sistemuiQrManualHint => 'Örn. K7M4QX';
+
+  @override
+  String get sistemuiQrSubmit => 'Yoklamayı gönder';
+
+  @override
+  String get profilyardBlockedNote =>
+      'Engellediğin kişiler profilini göremez, sana mesaj yazamaz ve seni takip edemez.';
+
+  @override
+  String get profilyardBlockedEmptyTitle => 'Kimseyi engellemedin';
+
+  @override
+  String get profilyardBlockedEmptyBody =>
+      'Rahatsız edici bir kullanıcıyı profilinden engelleyebilirsin.';
+
+  @override
+  String profilyardUnblockOf(String name) {
+    return '$name engelini kaldır';
+  }
+
+  @override
+  String get profilyardClubsManaged => 'Yönettiklerim';
+
+  @override
+  String get profilyardClubsMember => 'Üyesi olduklarım';
+
+  @override
+  String get profilyardClubsPending => 'Bekleyen istekler';
+
+  @override
+  String get profilyardRoleOwner => 'Başkan';
+
+  @override
+  String get profilyardRoleFounder => 'Kurucu';
+
+  @override
+  String get profilyardRoleAdmin => 'Yönetici';
+
+  @override
+  String get profilyardRoleModerator => 'Moderatör';
+
+  @override
+  String get profilyardRoleMember => 'Üye';
+
+  @override
+  String get profilyardClubsEmptyTitle => 'Henüz bir kulübün yok';
+
+  @override
+  String get profilyardClubsEmptyBody =>
+      'Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.';
+
+  @override
+  String get profilyardClubsDiscover => 'Kulüpleri keşfet';
+
+  @override
+  String get profilyardEventsAttended => 'Katıldıklarım';
+
+  @override
+  String get profilyardEventsCreated => 'Oluşturduklarım';
+
+  @override
+  String get profilyardEventsUpcoming => 'Yaklaşan';
+
+  @override
+  String get profilyardEventsPast => 'Geçmiş';
+
+  @override
+  String get profilyardEventGoing => 'Katılıyorum';
+
+  @override
+  String get profilyardEventRequested => 'İstek gönderildi';
+
+  @override
+  String get profilyardEventInterested => 'İlgileniyorum';
+
+  @override
+  String profilyardEventPendingCount(String count) {
+    return '$count bekleyen istek';
+  }
+
+  @override
+  String get profilyardEventsEmptyTitle => 'Henüz etkinliğin yok';
+
+  @override
+  String get profilyardEventsEmptyBody =>
+      'Etkinliklere göz at ya da kendi etkinliğini oluştur.';
+
+  @override
+  String profilyardFollowersTab(String count) {
+    return 'Takipçiler $count';
+  }
+
+  @override
+  String profilyardFollowingTab(String count) {
+    return 'Takip edilenler $count';
+  }
+
+  @override
+  String get profilyardFollowersSearch => 'Takipçilerde ara';
+
+  @override
+  String get profilyardFollowingSearch => 'Takip edilenlerde ara';
+
+  @override
+  String get profilyardFollowMutual => 'Takipleşiyorsunuz';
+
+  @override
+  String get profilyardFollowsYou => 'Seni takip ediyor';
+
+  @override
+  String get profilyardFollowingYou => 'Takiptesin';
+
+  @override
+  String get profilyardFollowNoMatch => 'Eşleşen kişi yok.';
+
+  @override
+  String get profilyardFbIntro =>
+      'Uygulamayı geliştirmemize yardım et. Önerini, karşılaştığın hatayı ya da düşüncelerini yaz.';
+
+  @override
+  String get profilyardFbType => 'Tür';
+
+  @override
+  String get profilyardFbTitle => 'Başlık';
+
+  @override
+  String get profilyardFbMessage => 'Mesaj';
+
+  @override
+  String get profilyardFbTitleHint => 'Kısaca özetle';
+
+  @override
+  String get profilyardFbMessageHint => 'Ayrıntıları yaz';
+
+  @override
+  String profilyardFbCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get sohbetyAddMember => 'Üye ekle';
+
+  @override
+  String sohbetyAddCount(String n) {
+    return 'Ekle ($n)';
+  }
+
+  @override
+  String get sohbetyProfile => 'Profil';
+
+  @override
+  String get sohbetyNewGroup => 'Yeni grup';
+
+  @override
+  String get sohbetyNewGroupSub => 'En fazla 50 kişi';
+
+  @override
+  String get sohbetyGroupMin => 'Grup için en az 2 kişi seçin.';
+
+  @override
+  String get sohbetyTypePerson => 'Kişi';
+
+  @override
+  String get sohbetyFlash => 'Flaş';
+
+  @override
+  String get sohbetyStopRec => 'Kaydı durdur';
+
+  @override
+  String get sohbetyTakePhoto => 'Fotoğraf çek';
+
+  @override
+  String get sohbetyAddDone => 'Üyeler eklendi';
+
+  @override
+  String get etkinlik2PolicyOpen => 'Herkes katılabilir';
+
+  @override
+  String get etkinlik2PolicyApproval => 'İstek ile';
+
+  @override
+  String get etkinlik2PolicyApprovalTag => 'İstek ile katılım';
+
+  @override
+  String get etkinlik2Organizer => 'Organizatör';
+
+  @override
+  String get etkinlik2JoinPolicyLabel => 'Katılım';
+
+  @override
+  String get etkinlik2PolicyApprovalHint =>
+      'İstek ile seçersen katılımcıları sen onaylarsın.';
+
+  @override
+  String get etkinlik2FormClub => 'Kulüp adına (isteğe bağlı)';
+
+  @override
+  String get etkinlik2ClubNone => 'Seçilmedi';
+
+  @override
+  String get etkinlik2ClubSheetTitle => 'Kulüp seç';
+
+  @override
+  String get etkinlik2ClubNoneOption => 'Kulüp adına değil';
+
+  @override
+  String get etkinlik2ClubNoClubs => 'Etkinlik açabileceğin kulüp yok.';
+
+  @override
+  String get etkinlik2ChatAutoTitle => 'Etkinlik sohbeti otomatik açılır';
+
+  @override
+  String get etkinlik2ChatAutoBody =>
+      'Katılanlar ve sen sohbete girersiniz. İstek ile katılımda yalnızca onaylananlar girer.';
+
+  @override
+  String get etkinlik2CapacityOptional => 'Kontenjan (isteğe bağlı)';
+
+  @override
+  String get etkinlik2Unlimited => 'Sınırsız';
+
+  @override
+  String etkinlik2RegOpenSlots(String n) {
+    return 'Kayıtlar açık · $n yer kaldı';
+  }
+
+  @override
+  String get etkinlik2RegOpen => 'Kayıtlar açık';
+
+  @override
+  String get etkinlik2ApprovalByOrganizer => 'Katılımı organizatör onaylar';
+
+  @override
+  String get etkinlik2SendRequest => 'Katılma isteği gönder';
+
+  @override
+  String get etkinlik2RequestHint =>
+      'Organizatör onaylayınca etkinlik sohbetine girersin.';
+
+  @override
+  String get etkinlik2RequestSent => 'İstek gönderildi';
+
+  @override
+  String get etkinlik2AwaitingReply => 'Yanıt bekleniyor';
+
+  @override
+  String get etkinlik2Withdraw => 'Geri çek';
+
+  @override
+  String get etkinlik2WithdrawTitle => 'İsteği geri çek';
+
+  @override
+  String get etkinlik2WithdrawMessage => 'Katılma isteğin geri çekilecek.';
+
+  @override
+  String get etkinlik2ChatLocked => 'Etkinlik sohbeti · Onaylanınca açılır';
+
+  @override
+  String get etkinlik2RejectedTitle => 'İsteğin reddedildi';
+
+  @override
+  String get etkinlik2RejectedBody =>
+      'Organizatör bu etkinlik için isteğini kabul etmedi.';
+
+  @override
+  String get etkinlik2RequestSentToast => 'Katılma isteğin gönderildi.';
+
+  @override
+  String get etkinlik2WithdrawnToast => 'İstek geri çekildi.';
+
+  @override
+  String etkinlik2GoingInterested(String going, String interested) {
+    return '$going kişi katılıyor · $interested ilgileniyor';
+  }
+
+  @override
+  String etkinlik2GoingOnly(String going) {
+    return '$going kişi katılıyor';
+  }
+
+  @override
+  String get etkinlik2ManageRequests => 'Katılım istekleri';
+
+  @override
+  String etkinlik2ManagePending(String n) {
+    return '$n bekleyen istek';
+  }
+
+  @override
+  String get etkinlik2ManageNoPending => 'Bekleyen istek yok';
+
+  @override
+  String get etkinlik2ManageAttendance => 'Katılımcılar ve yoklama';
+
+  @override
+  String get etkinlik2ManageSettings => 'Etkinlik ayarları';
+
+  @override
+  String get etkinlik2ManageSection => 'Yönetim';
+
+  @override
+  String get etkinlik2ReqQuota => 'Kontenjan';
+
+  @override
+  String etkinlik2ReqSlotsLeft(String n) {
+    return '$n yer kaldı';
+  }
+
+  @override
+  String get etkinlik2ReqNoLimit => 'Kontenjan sınırı yok';
+
+  @override
+  String get etkinlik2ReqFullBanner =>
+      'Kontenjan doldu; yeni istekler onaylanamaz. Yer açmak için kontenjanı artır.';
+
+  @override
+  String etkinlik2ReqPendingHeader(String n) {
+    return 'Bekleyen · $n';
+  }
+
+  @override
+  String get etkinlik2ReqAnsweredHeader => 'Yanıtlananlar';
+
+  @override
+  String get etkinlik2ReqNone => 'Bekleyen istek yok.';
+
+  @override
+  String get etkinlik2Approve => 'Onayla';
+
+  @override
+  String get etkinlik2Reject => 'Reddet';
+
+  @override
+  String etkinlik2ApproveSem(String name) {
+    return '$name isteğini onayla';
+  }
+
+  @override
+  String etkinlik2RejectSem(String name) {
+    return '$name isteğini reddet';
+  }
+
+  @override
+  String get etkinlik2ApprovedTag => 'Onaylandı';
+
+  @override
+  String get etkinlik2RejectedTag => 'Reddedildi';
+
+  @override
+  String get etkinlik2ApprovedToast => 'İstek onaylandı.';
+
+  @override
+  String get etkinlik2RejectedToast => 'İstek reddedildi.';
+
+  @override
+  String get etkinlik2SettingsTitle => 'Etkinlik ayarları';
+
+  @override
+  String get etkinlik2SettingsPolicy => 'Katılım türü';
+
+  @override
+  String etkinlik2SettingsCapMin(String n) {
+    return 'Şu an $n kişi onaylı. Kontenjanı bundan aşağı çekemezsin.';
+  }
+
+  @override
+  String etkinlik2SettingsCapTooLow(String n) {
+    return 'Kontenjan onaylı kişi sayısından ($n) az olamaz.';
+  }
+
+  @override
+  String get etkinlik2SettingsRegChat => 'Kayıt ve sohbet';
+
+  @override
+  String get etkinlik2SettingsRegOpen => 'Kayıtlar açık';
+
+  @override
+  String get etkinlik2SettingsRegHint =>
+      'Kapatırsan yeni istek ve katılım alınmaz.';
+
+  @override
+  String get etkinlik2SettingsChatOpen => 'Etkinlik sohbeti açık';
+
+  @override
+  String get etkinlik2SettingsChatHint =>
+      'Kapatırsan mesajlar durur, geçmiş saklanır.';
+
+  @override
+  String get etkinlik2SettingsDanger => 'Tehlikeli bölge';
+
+  @override
+  String etkinlik2SettingsCancelBody(String n) {
+    return 'Katılan $n kişiye bildirim gider ve sohbet kapanır. Bu işlem geri alınamaz.';
+  }
+
+  @override
+  String get etkinlik2SettingsSaved => 'Ayarlar kaydedildi.';
+
+  @override
+  String get etkinlik2QrManualCaption => 'KODU ELLE GİRMEK İÇİN';
+
+  @override
+  String etkinlik2QrRenewsIn(String n) {
+    return 'Kod $n sn sonra yenilenir';
+  }
+
+  @override
+  String get etkinlik2AttendanceLabel => 'Yoklama';
+
+  @override
+  String etkinlik2PresentOf(String present, String total) {
+    return '$present / $total kişi geldi';
+  }
+
+  @override
+  String get etkinlik2FilterAll => 'Hepsi';
+
+  @override
+  String get etkinlik2FilterPresent => 'Geldi';
+
+  @override
+  String get etkinlik2FilterAbsent => 'Gelmedi';
+
+  @override
+  String etkinlik2MarkSem(String name) {
+    return '$name geldi olarak işaretle';
+  }
+
+  @override
+  String get etkinlik2MethodQr => 'QR';
+
+  @override
+  String get etkinlik2MethodManual => 'Elle';
+
+  @override
+  String get etkinlik2ShowQrSem => 'QR kodunu göster';
+
+  @override
+  String get etkinlik2AttendanceEmpty => 'Gösterilecek katılımcı yok.';
+
+  @override
+  String get etkinlik2MarkFailed => 'Yoklama güncellenemedi.';
+
+  @override
+  String get etkinlik2ChatClosedToast => 'Sohbet kapatıldı.';
+
+  @override
+  String get etkinlik2ChatOpenedToast => 'Sohbet açıldı.';
+
+  @override
+  String get etkinlik2NoteLabel => 'Organizatöre not (isteğe bağlı)';
+
+  @override
+  String get etkinlik2AnswerRequired => 'Tüm soruları yanıtlamalısın.';
+
+  @override
+  String get etkinlik2ClubSemPrefix => 'Kulüp';
+
+  @override
+  String cevrimdisiBekleyenMesaj(String n) {
+    return '$n mesaj bağlantı gelince gönderilecek';
+  }
+
+  @override
+  String cevrimdisiGonderiliyor(String n) {
+    return '$n mesaj gönderiliyor…';
+  }
+
+  @override
+  String get cevrimdisiGonderilemedi => 'Gönderilmedi';
+
+  @override
+  String cevrimdisiSonGuncelleme(String zaman) {
+    return 'Son güncelleme: $zaman';
+  }
+
+  @override
+  String get cevrimdisiKayitliVeri => 'Kayıtlı veriler gösteriliyor';
+
+  @override
+  String get cevrimdisiBekliyor => 'Bekliyor';
+
+  @override
+  String get cevrimdisiYenidenDene => 'Yeniden dene';
+
+  @override
+  String get cevrimdisiMedyaBaglanti => 'Bağlantı gelince tekrar deneyin';
+
+  @override
+  String get cevrimdisiInternetYok => 'İnternet bağlantısı yok';
+
+  @override
+  String get bildirimmobilKanalChat => 'Mesajlar';
+
+  @override
+  String get bildirimmobilKanalEvent => 'Etkinlikler';
+
+  @override
+  String get bildirimmobilKanalAnnouncement => 'Duyurular ve haberler';
+
+  @override
+  String get bildirimmobilKanalSocial => 'Sosyal (beğeni, takip)';
+
+  @override
+  String get bildirimmobilKanalPoll => 'Anketler';
+
+  @override
+  String get bildirimmobilKanalAcademic => 'Ders ve sınav hatırlatmaları';
+
+  @override
+  String get evcLabelClub => 'Kulüp';
+
+  @override
+  String get evcInfoInstant => 'Hemen yayınlanır.';
+
+  @override
+  String get evcInfoReview => 'Admin onayından sonra yayınlanır.';
+
+  @override
+  String get evcClubRequiredHint => 'Önce bir kulüp seç.';
+
+  @override
+  String get evcEmptyTitle =>
+      'Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın';
+
+  @override
+  String get evcEmptyBody =>
+      'Etkinlikler kulüpler adına açılır. Bir kulübün yöneticisi olduğunda burada etkinlik oluşturabilirsin.';
+
+  @override
+  String get evcBrowseClubs => 'Kulüplere göz at';
+
+  @override
+  String get evcSubmittedTitle => 'Onaya gönderildi';
+
+  @override
+  String get evcSubmittedBody =>
+      'Etkinliğin admin onayından sonra yayınlanacak. Durumunu Oluşturduklarım sekmesinden takip edebilirsin.';
+
+  @override
+  String get evcOk => 'Tamam';
+
+  @override
+  String get evcStatusPending => 'Onay bekliyor';
+
+  @override
+  String get evcStatusRejected => 'Reddedildi';
+
+  @override
+  String evcRejectReason(String reason) {
+    return 'Neden: $reason';
+  }
+
+  @override
+  String get evcErrClubRequired =>
+      'Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.';
+
+  @override
+  String get evcErrForbidden => 'Bu kulüp adına etkinlik oluşturma yetkin yok.';
+
+  @override
+  String get evcErrClubNotActive => 'Bu kulüp şu anda etkin değil.';
+
+  @override
+  String get evcErrPast => 'Etkinlik başlangıcı geçmişte olamaz.';
+
+  @override
+  String get evcErrDates => 'Bitiş, başlangıçtan sonra olmalı.';
+
+  @override
+  String get evcErrProfanity => 'Metinde uygunsuz ifade var. Lütfen düzenle.';
+
+  @override
+  String get evdLabelDate => 'Tarih';
+
+  @override
+  String get evdLabelTime => 'Başlangıç saati';
+
+  @override
+  String get evdLabelDuration => 'Süre';
+
+  @override
+  String get evdChipToday => 'Bugün';
+
+  @override
+  String get evdChipTomorrow => 'Yarın';
+
+  @override
+  String get evdChipWeekend => 'Bu hafta sonu';
+
+  @override
+  String get evdChipNextWeek => 'Gelecek hafta';
+
+  @override
+  String get evdChipPickDate => 'Tarih seç';
+
+  @override
+  String get evdChipCustomTime => 'Özel saat';
+
+  @override
+  String get evdDur1h => '1 saat';
+
+  @override
+  String get evdDur2h => '2 saat';
+
+  @override
+  String get evdDurHalfDay => 'Yarım gün';
+
+  @override
+  String get evdChipCustomEnd => 'Bitiş tarihi seç';
+
+  @override
+  String get evdErrStartPast => 'Başlangıç geçmişte olamaz.';
+
+  @override
+  String get evdErrEndBeforeStart => 'Bitiş, başlangıçtan sonra olmalı.';
+
+  @override
+  String get evdEndAdjusted =>
+      'Bitiş, başlangıçtan 1 saat sonrasına otomatik ayarlandı.';
+
+  @override
+  String evdDescCounter(String count, String max) {
+    return '$count/$max';
+  }
+
+  @override
+  String evdErrDescTooLong(String max) {
+    return 'Açıklama en fazla $max karakter olabilir.';
+  }
+
+  @override
+  String get evdErrDescTooLongServer => 'Açıklama çok uzun. Lütfen kısalt.';
 }

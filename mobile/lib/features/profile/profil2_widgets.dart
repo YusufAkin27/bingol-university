@@ -118,7 +118,11 @@ class P2Row extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(title, style: BuType.bodyStrong.copyWith(color: titleColor ?? t.ink)),
+                  Text(title,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: BuType.bodyStrong.copyWith(color: titleColor ?? t.ink)),
                   if (subtitle != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 1),

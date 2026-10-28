@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show gradeLabel;
+import '../../core/academic_catalog.dart' show gradeLabelL;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -329,7 +329,7 @@ class _HeaderBlock extends StatelessWidget {
     final year = (profile['classYear'] as num?)?.toInt();
     final g = profile['grade'];
     final grade = (g is String && g.isNotEmpty)
-        ? gradeLabel(g)
+        ? gradeLabelL(context.l10n, g)
         : (year != null && year > 0 ? context.l10n.profileGradeYear('$year') : '');
     final dept = (profile['department'] as String?) ?? '';
     final faculty = (profile['faculty'] as String?) ?? '';

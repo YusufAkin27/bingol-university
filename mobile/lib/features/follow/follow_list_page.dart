@@ -7,9 +7,10 @@ import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../posts/post_models.dart' show PostPage, postAuthHeaders;
-import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import '../profile/user_profile_page.dart';
+import '../profile/profil_widgets.dart' show ProfilCard;
+import '../profile/profily_widgets.dart';
 import 'follow_button.dart';
 
 /// Takipçiler / Takip edilenler listesi (imleçli).
@@ -32,14 +33,27 @@ class FollowListPage extends StatefulWidget {
   State<FollowListPage> createState() => _FollowListPageState();
 }
 
+/// Bir sekmenin (takipçiler / takip edilenler) sayfalı durumu.
+class _Tab {
+  final items = <SocialUser>[];
+  final followsMe = <int, bool>{}; // yalnız API alanı gelirse dolar
+  String? cursor;
+  int? total;
+  bool loading = false;
+  bool loaded = false;
+  bool more = false;
+  Object? error;
+  int gen = 0;
+}
+
 class _FollowListPageState extends State<FollowListPage> {
-  final _items = <SocialUser>[];
+  final _tabs = [_Tab(), _Tab()];
   final _scroll = ScrollController();
-  late final SocialApi _api = SocialApi(widget.session);
-  String? _cursor;
-  bool _loading = true;
-  bool _more = false;
-  Object? _error;
+  final _search = TextEditingController();
+  late int _tab = widget.followers ? 0 : 1;
+  String _query = '';
+
+  _Tab get _cur => _tabs[_tab];
 
   @override
   void initState() {
@@ -47,89 +61,132 @@ class _FollowListPageState extends State<FollowListPage> {
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
     });
-    _load();
+    _load(_tab);
   }
 
   @override
   void dispose() {
     _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  Future<PostPage<SocialUser>> _fetch(String? cursor) => widget.followers
-      ? _api.followers(widget.userId, cursor: cursor)
-      : _api.following(widget.userId, cursor: cursor);
+  Future<PostPage<SocialUser>> _fetch(int tab, String? cursor, _Tab st) async {
+    final path = tab == 0 ? 'followers' : 'following';
+    final q = 'size=30${cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}'}';
+    final res = await widget.session.api.get('/users/${widget.userId}/$path?$q');
+    final page = PostPage.parse(res, SocialUser.fromJson);
+    // `followsMe` henüz her sürümde yok: yalnız alan varsa ve bool ise kaydedilir.
+    if (res is Map && res['items'] is List) {
+      for (final e in (res['items'] as List).whereType<Map>()) {
+        final id = e['id'] ?? e['userId'];
+        final v = e['followsMe'];
+        if (id is num && v is bool) st.followsMe[id.toInt()] = v;
+      }
+    }
+    return page;
+  }
 
-  Future<void> _load({bool silent = false}) async {
-    if (!silent) setState(() => _loading = _items.isEmpty);
+  Future<void> _load(int tab, {bool silent = false}) async {
+    final st = _tabs[tab];
+    final gen = ++st.gen;
+    if (!silent) setState(() => st.loading = st.items.isEmpty);
     try {
-      final r = await _fetch(null);
-      if (!mounted) return;
+      final r = await _fetch(tab, null, st);
+      if (!mounted || gen != st.gen) return;
       setState(() {
-        _items
+        st.items
           ..clear()
           ..addAll(r.items);
-        _cursor = r.hasMore ? r.nextCursor : null;
-        _error = null;
-        _loading = false;
+        st.cursor = r.hasMore ? r.nextCursor : null;
+        st.total = r.total;
+        st.error = null;
+        st.loading = false;
+        st.loaded = true;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || gen != st.gen) return;
       setState(() {
-        _error = e;
-        _loading = false;
+        st.error = e;
+        st.loading = false;
       });
     }
   }
 
   Future<void> _loadMore() async {
-    if (_cursor == null || _more || _loading) return;
-    setState(() => _more = true);
+    final st = _cur;
+    final tab = _tab;
+    if (st.cursor == null || st.more || st.loading) return;
+    setState(() => st.more = true);
     try {
-      final r = await _fetch(_cursor);
+      final r = await _fetch(tab, st.cursor, st);
       if (!mounted) return;
       setState(() {
-        final seen = _items.map((e) => e.id).toSet();
-        _items.addAll(r.items.where((e) => seen.add(e.id)));
-        _cursor = r.hasMore ? r.nextCursor : null;
-        _more = false;
+        final seen = st.items.map((e) => e.id).toSet();
+        st.items.addAll(r.items.where((e) => seen.add(e.id)));
+        st.cursor = r.hasMore ? r.nextCursor : null;
+        st.more = false;
       });
     } catch (_) {
-      if (mounted) setState(() => _more = false);
+      if (mounted) setState(() => st.more = false);
     }
+  }
+
+  void _switch(int i) {
+    if (i == _tab) return;
+    setState(() {
+      _tab = i;
+      _search.clear();
+      _query = '';
+    });
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (!_tabs[i].loaded) _load(i);
+  }
+
+  String _label(int i) {
+    final l = context.l10n;
+    final total = _tabs[i].total;
+    if (total == null) return i == 0 ? l.followersTitle : l.followingTitle;
+    return i == 0 ? l.profilyardFollowersTab('$total') : l.profilyardFollowingTab('$total');
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final title = widget.followers ? l.followersTitle : l.followingTitle;
+    final st = _cur;
+    final name = (widget.name ?? '').trim();
+    final q = _query.trim().toLowerCase();
+    final shown = q.isEmpty
+        ? st.items
+        : st.items.where((u) => '${u.displayName} ${u.department ?? ''}'.toLowerCase().contains(q)).toList();
     Widget body;
-    if (_loading) {
+    if (st.loading) {
       body = const LoadingView();
-    } else if (_error != null && _items.isEmpty) {
-      body = ErrorView(error: _error!, onRetry: _load);
-    } else if (_items.isEmpty) {
+    } else if (st.error != null && st.items.isEmpty) {
+      body = ErrorView(error: st.error!, onRetry: () => _load(_tab));
+    } else if (st.items.isEmpty) {
       body = ListView(children: [
         const SizedBox(height: 120),
-        EmptyView(
-            icon: LucideIcons.users,
-            text: widget.followers ? l.followersEmpty : l.followingEmpty),
+        EmptyView(icon: LucideIcons.users, text: _tab == 0 ? l.followersEmpty : l.followingEmpty),
       ]);
     } else {
       body = RefreshIndicator(
-        onRefresh: () => _load(silent: true),
-        child: ListView.builder(
+        onRefresh: () => _load(_tab, silent: true),
+        child: ListView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(16, 4, 16, MediaQuery.of(context).padding.bottom + 24),
-          itemCount: _items.length + (_more ? 1 : 0),
-          itemBuilder: (c, i) {
-            if (i >= _items.length) {
-              return const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()));
-            }
-            return SocialUserTile(session: widget.session, user: _items[i]);
-          },
+          padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 24),
+          children: [
+            if (shown.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: Text(l.profilyardFollowNoMatch, style: BuType.body.copyWith(color: t.mut))),
+              )
+            else
+              ProfilCard(children: [for (final u in shown) _row(u, st)]),
+            if (st.more) const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
+          ],
         ),
       );
     }
@@ -137,11 +194,52 @@ class _FollowListPageState extends State<FollowListPage> {
       backgroundColor: t.bg,
       body: Column(children: [
         BuHeader(
-            title: title,
-            subtitle: (widget.name ?? '').isEmpty ? null : widget.name,
-            onBack: () => Navigator.pop(context)),
+          title: name.isEmpty ? (widget.followers ? l.followersTitle : l.followingTitle) : name,
+          onBack: () => Navigator.pop(context),
+        ),
+        const SizedBox(height: 8),
+        ProfilyTabs(labels: [_label(0), _label(1)], index: _tab, onChanged: _switch),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: ProfilySearchField(
+            controller: _search,
+            hint: l.commonSearchHint,
+            label: _tab == 0 ? l.profilyardFollowersSearch : l.profilyardFollowingSearch,
+            onChanged: (v) => setState(() => _query = v),
+          ),
+        ),
         Expanded(child: body),
       ]),
+    );
+  }
+
+  Widget _row(SocialUser u, _Tab st) {
+    final l = context.l10n;
+    final self = u.id == widget.session.userId;
+    final fm = st.followsMe[u.id];
+    final Widget? pill = fm == null
+        ? null
+        : (fm && u.followedByMe
+            ? ProfilyPill(l.profilyardFollowMutual, tone: ProfilyTone.green, small: true)
+            : (fm && !u.followedByMe ? ProfilyPill(l.profilyardFollowsYou, tone: ProfilyTone.red, small: true) : null));
+    return Semantics(
+      container: true,
+      label: u.displayName,
+      child: ProfilyRow(
+        minHeight: 72,
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
+        onTap: () => openUserProfile(context, widget.session, userId: u.id, name: u.displayName, avatarUrl: u.avatarUrl),
+        child: Row(children: [
+          BuAvatar(name: u.displayName, url: u.avatarUrl, size: 44, headers: postAuthHeaders(widget.session)),
+          const SizedBox(width: 12),
+          Expanded(child: ProfilyTitleBlock(title: u.displayName, sub: u.department, pill: pill)),
+          if (!self)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: ProfilyFollowButton(session: widget.session, userId: u.id, followed: u.followedByMe),
+            ),
+        ]),
+      ),
     );
   }
 }

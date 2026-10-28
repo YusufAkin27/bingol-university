@@ -75,6 +75,10 @@ class MainActivity : FlutterActivity() {
                 LocalReminderStore.cancelGroup(this, call.argument<String>("group") ?: return@safe)
             }
             "cancelAll" -> safe(result) { LocalReminderStore.cancelAll(this) }
+            "setChannelNames" -> safe(result) {
+                val m = call.argument<Map<String, String>>("names") ?: return@safe
+                Channels.setNames(this, m)
+            }
             "notificationsAllowed" -> {
                 val nm = getSystemService(NotificationManager::class.java)
                 val ok = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) nm?.areNotificationsEnabled() ?: true else true

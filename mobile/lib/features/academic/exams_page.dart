@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/academic_catalog.dart' show gradeLabelL;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -216,7 +217,7 @@ class _ExamsPageState extends State<ExamsPage> {
   Widget _officialCard(BuTokens t, OfficialExam e, DateTime now) {
     final l = context.l10n;
     final cd = countdownTextL(l, e.startsAt, now);
-    final who = [if (e.department != null) e.department!, if (e.grade != null) l.acadGradeN(e.grade!)].join(' · ');
+    final who = [if (e.department != null) e.department!, if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
     final typeText = examTypeLabelL(l, e.type);
     final dateText = fmtInstantL(l, e.startsAt);
     return _ExamTile(

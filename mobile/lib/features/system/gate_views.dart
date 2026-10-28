@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
 import '../../core/typography.dart';
+import '../../widgets/sistem_widgets.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 Future<void> openStore(String? url) async {
   final uri = url == null ? null : Uri.tryParse(url);
@@ -13,11 +15,17 @@ Future<void> openStore(String? url) async {
   } catch (_) {}
 }
 
-/// Kapatılamaz zorunlu güncelleme ekranı.
+/// Kapatılamaz zorunlu güncelleme ekranı (Sm5). [latest] verilirse sürüm satırı gösterilir.
 class UpdateRequiredScreen extends StatelessWidget {
-  const UpdateRequiredScreen({super.key, required this.storeUrl});
+  const UpdateRequiredScreen({super.key, required this.storeUrl, this.latest, this.current});
 
   final String? storeUrl;
+
+  /// Gerekli (en yeni) sürüm.
+  final String? latest;
+
+  /// Yüklü sürüm.
+  final String? current;
 
   @override
   Widget build(BuildContext context) {
@@ -28,33 +36,69 @@ class UpdateRequiredScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: t.bg,
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.system_update, size: 57.5, color: t.pr),
-                  const SizedBox(height: 20),
-                  Text(context.l10n.updateRequiredTitle,
-                      style: BuType.title.copyWith(color: t.ink)),
-                  const SizedBox(height: 10),
-                  Text(
-                    context.l10n.updateRequiredBody,
-                    textAlign: TextAlign.center,
-                    style: BuType.body.copyWith(color: t.mut, height: 1.4),
-                  ),
-                  const SizedBox(height: 24),
-                  if (canOpen)
-                    FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: t.pr, foregroundColor: t.onPr),
-                      onPressed: () => openStore(storeUrl),
-                      child: Text(context.l10n.commonOpenInStore),
-                    ),
-                ],
-              ),
-            ),
+          child: SistemStatusView(
+            icon: LucideIcons.download,
+            title: context.l10n.updateRequiredTitle,
+            body: context.l10n.updateRequiredBody,
+            extras: [
+              if (latest != null && current != null)
+                Text(context.l10n.sistemuiUpdateVersions(current!, latest!),
+                    textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.mut)),
+            ],
+            footer: [
+              if (canOpen) SistemButton(label: context.l10n.commonOpenInStore, onPressed: () => openStore(storeUrl)),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tam ekran bakım görünümü (Sm4): bakım modu açıkken kullanılabilir; [band] ek uyarı bandıdır.
+class MaintenanceScreen extends StatelessWidget {
+  const MaintenanceScreen({super.key, required this.onRetry, this.message});
+
+  final VoidCallback onRetry;
+
+  /// Yönetici mesajı; yoksa varsayılan açıklama.
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: SafeArea(
+        child: SistemStatusView(
+          icon: LucideIcons.wrench,
+          title: context.l10n.sistemuiMaintTitle,
+          body: message ?? context.l10n.sistemuiMaintBody,
+          extras: [MaintenanceBand(text: context.l10n.sistemuiMaintBand)],
+          footer: [SistemButton(label: context.l10n.commonRetry, onPressed: onRetry)],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tam ekran "bağlantı yok" görünümü (Sm3).
+class OfflineScreen extends StatelessWidget {
+  const OfflineScreen({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: SafeArea(
+        child: SistemStatusView(
+          icon: LucideIcons.wifiOff,
+          title: context.l10n.sistemuiOfflineTitle,
+          body: context.l10n.sistemuiOfflineBody,
+          footer: [SistemButton(label: context.l10n.commonRetry, onPressed: onRetry)],
         ),
       ),
     );
@@ -134,7 +178,7 @@ class UpdateNotice extends StatelessWidget {
   }
 }
 
-/// 403 ACCESS_BLOCKED: cihaz veya ağ erişimi kapatıldı. Oturum silinmiş olur; yeniden denemek giriş ekranına döner.
+/// 403 ACCESS_BLOCKED (Sm6): cihaz veya ağ erişimi kapatıldı. Oturum silinmiş olur; yeniden denemek giriş ekranına döner.
 class AccessBlockedScreen extends StatelessWidget {
   const AccessBlockedScreen({super.key, required this.onRetry});
 
@@ -148,26 +192,15 @@ class AccessBlockedScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: t.bg,
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.block, size: 57.5, color: t.pr),
-                  const SizedBox(height: 20),
-                  Text(context.l10n.accessBlockedTitle, style: BuType.title.copyWith(color: t.ink)),
-                  const SizedBox(height: 10),
-                  Text(
-                    context.l10n.accessBlockedBody,
-                    textAlign: TextAlign.center,
-                    style: BuType.body.copyWith(color: t.mut, height: 1.4),
-                  ),
-                  const SizedBox(height: 24),
-                  OutlinedButton(onPressed: onRetry, child: Text(context.l10n.commonRetryShort)),
-                ],
-              ),
-            ),
+          child: SistemStatusView(
+            icon: LucideIcons.shieldOff,
+            title: context.l10n.accessBlockedTitle,
+            body: context.l10n.accessBlockedBody,
+            extras: [
+              Text(context.l10n.sistemuiBlockedCode,
+                  textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.mut)),
+            ],
+            footer: [SistemButton(label: context.l10n.commonRetryShort, onPressed: onRetry)],
           ),
         ),
       ),

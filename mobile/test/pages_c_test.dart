@@ -85,7 +85,7 @@ final kPageCases = <PageCase>[
     ])),
     empty: (b) => b.on('/me/communities', _page([])),
     marker: 'Yazılım Kulübü',
-    emptyMarker: 'Henüz bir kulübe üye değilsiniz.',
+    emptyMarker: 'Henüz bir kulübün yok',
     failKeys: ['/me/communities'],
   ),
   PageCase(
@@ -103,7 +103,7 @@ final kPageCases = <PageCase>[
     ])),
     empty: (b) => b.on('/me/events', _page([])),
     marker: 'Yaklaşan Etkinlik',
-    emptyMarker: 'Katılacağın bir etkinlik yok.',
+    emptyMarker: 'Henüz etkinliğin yok',
     failKeys: ['/me/events'],
     checkLoading: false, // iskelet kartlar gosterilir
   ),
@@ -147,7 +147,7 @@ final kPageCases = <PageCase>[
     ]),
     empty: (b) => b.on('/users/me/blocks', <Object>[]),
     marker: 'Engellenen Kişi',
-    emptyMarker: 'Engellediğiniz kullanıcı yok.',
+    emptyMarker: 'Kimseyi engellemedin',
     failKeys: ['/users/me/blocks'],
   ),
   PageCase(
@@ -402,6 +402,8 @@ void main() {
             final retry = _retryFinder.evaluate().isNotEmpty ? _retryFinder : find.textContaining('Yeniden denemek için');
             expect(retry, findsWidgets, reason: 'yeniden dene eylemi bulunamadı');
             c.full(b); // sunucu düzeldi
+            await tester.ensureVisible(retry.first); // sabit alt çubuğun arkasında kalmasın
+            await tester.pump();
             await tester.tap(retry.first);
             await settle(tester, const Duration(seconds: 2));
             expect(find.textContaining(c.marker), findsWidgets);

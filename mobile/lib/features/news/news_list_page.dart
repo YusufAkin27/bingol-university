@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -105,6 +106,9 @@ class _NewsListPageState extends State<NewsListPage> {
     await _fetch(gen);
   }
 
+  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
+  DateTime? _staleAt;
+
   Future<void> _refresh() async {
     _loadStatus();
     _loadSavedIds();
@@ -125,7 +129,8 @@ class _NewsListPageState extends State<NewsListPage> {
       if (!replace) _error = null;
     });
     try {
-      final r = await widget.session.api.get('/news?type=$_type&page=$_page&size=$_pageSize') as Map<String, dynamic>;
+      final res = await widget.session.api.getResponse('/news?type=$_type&page=$_page&size=$_pageSize');
+      final r = res.body as Map<String, dynamic>;
       final fresh = <Map<String, dynamic>>[
         for (final e in (r['items'] as List? ?? [])) e as Map<String, dynamic>,
       ];
@@ -136,6 +141,7 @@ class _NewsListPageState extends State<NewsListPage> {
         if (replace) _items.clear();
         _items.addAll(fresh);
         _page = next;
+        _staleAt = res.fromCache ? res.cachedAt : null;
         _hasMore = next < total;
         _loaded = true;
         _loading = false;
@@ -255,6 +261,7 @@ class _NewsListPageState extends State<NewsListPage> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: _MaintenanceBanner(text: l.icerikMaintenance),
             ),
+          StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
           Expanded(child: _body(t)),
         ],
       ),

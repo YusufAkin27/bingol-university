@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../core/push/active_conversation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -8,6 +9,7 @@ import 'package:video_player/video_player.dart' show VideoPlayerController;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/outbox/outbox.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
@@ -259,18 +261,86 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (_conv['id'] is num) ActiveConversation.instance.enter(_cid); // bu sohbet açık: ön plan bildirimi/şeridi bastırılır
     _scroll.addListener(_onScroll);
     _input.addListener(_onInput);
+    _watchOutbox();
     _boot();
+  }
+
+  // ---------- Çevrimdışı kuyruk (Outbox) ----------
+
+  Outbox? get _outbox => _api.outbox;
+  StreamSubscription<OutboxDelivery>? _deliverySub;
+
+  /// Kuyruktan teslim edilen mesajı clientId ile eşleyip balonu sunucu mesajıyla değiştirir;
+  /// kalıcı hatalı kuyruk öğesini balonda kırmızıya çevirir.
+  void _watchOutbox() {
+    final ob = _outbox;
+    if (ob == null) return;
+    _deliverySub = ob.deliveries.listen((d) {
+      if (!mounted || d.item.conversationId != _cid) return;
+      final res = d.response;
+      if (res is! Map) return;
+      setState(() => _merge([Map<String, dynamic>.from(res)]));
+      _changed = true;
+    });
+    ob.addListener(_onOutboxChanged);
+  }
+
+  void _onOutboxChanged() {
+    final ob = _outbox;
+    if (ob == null || !mounted) return;
+    var dirty = false;
+    for (final m in _msgs) {
+      if (m['id'] != null || m['_queued'] != true) continue;
+      final it = ob.byClientId('${m['clientId']}');
+      if (it == null) {
+        // Teslim akışı gelmediyse (ör. engel nedeniyle sessizce atıldı) balon gönderilmiş görünür.
+        if (m['_state'] == 'pending') {
+          m['_state'] = null;
+          dirty = true;
+        }
+      } else if (it.status == OutboxStatus.failed && m['_state'] != 'failed') {
+        m['_state'] = 'failed';
+        m['_error'] = null;
+        dirty = true;
+      }
+    }
+    if (dirty) setState(() {});
+  }
+
+  /// Sohbet yeniden açıldığında kuyrukta bekleyen/hatalı mesajları balon olarak geri getirir.
+  void _restoreOutboxBubbles() {
+    final ob = _outbox;
+    if (ob == null) return;
+    for (final it in ob.items) {
+      if (it.conversationId != _cid) continue;
+      if (_msgs.any((m) => m['clientId'] == it.clientId)) continue;
+      _msgs.add(<String, dynamic>{
+        'id': null,
+        'clientId': it.clientId,
+        'senderId': _myId,
+        'text': it.text,
+        'createdAt': DateTime.fromMillisecondsSinceEpoch(it.createdAt, isUtc: true).toIso8601String(),
+        'replyToMessageId': it.replyToMessageId,
+        '_state': it.status == OutboxStatus.failed ? 'failed' : 'pending',
+        '_queued': true,
+        '_seq': _seq++,
+      });
+    }
   }
 
   @override
   void dispose() {
+    if (_conv['id'] is num) ActiveConversation.instance.leave(_cid);
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _deliveredTimer?.cancel();
     _typingOff?.cancel();
     _hiOff?.cancel();
+    _deliverySub?.cancel();
+    _outbox?.removeListener(_onOutboxChanged);
     _hi.dispose();
     _showDown.dispose();
     _newBelow.dispose();
@@ -327,6 +397,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _msgs
           ..clear()
           ..addAll(items);
+        _restoreOutboxBubbles();
+        _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
         _beforeCursor = (page['nextCursor'] as num?)?.toInt();
         _loading = false;
       });
@@ -783,6 +855,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       setState(() => local['_state'] = null);
       return;
     }
+    // Ağ yok ve mesaj çevrimdışı kuyruğa alındı: kırmızı hata değil, "bekliyor" (bağlantı gelince gider).
+    if (e is ApiError && e.isNetwork && (_outbox?.contains('${local['clientId']}') ?? false)) {
+      setState(() {
+        local['_state'] = 'pending';
+        local['_queued'] = true;
+        local['_error'] = null;
+      });
+      return;
+    }
     setState(() {
       local['_state'] = 'failed';
       local['_error'] = e is ApiError && !e.isNetwork ? errorText(e) : null;
@@ -794,13 +875,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       m['_state'] = 'pending';
       m['_error'] = null;
     });
+    final ob = _outbox;
+    final cid = '${m['clientId']}';
+    if (ob != null && ob.contains(cid)) {
+      // Kuyruktaki öğe: kuyruk yeniden dener (aynı clientId, çift mesaj olmaz).
+      m['_queued'] = true;
+      await ob.retry(cid);
+      return;
+    }
     await _transmit(m);
   }
 
   // ---------- Medya (galeri / kamera / önizleme) ----------
 
   /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir.
+  /// Medya kuyruğa alınmaz: çevrimdışıyken göndermeye kalkınca bilgi verilir.
+  bool _mediaBlockedOffline() {
+    if (_api.connectivity.online) return false;
+    _toast(context.l10n.cevrimdisiMedyaBaglanti);
+    return true;
+  }
+
   Future<void> _openGallery() async {
+    if (_mediaBlockedOffline()) return;
     final plan = await Navigator.push<MediaSendPlan>(
       context,
       MaterialPageRoute(
@@ -817,6 +914,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Yazı alanındaki kamera kısayolu: kamera -> önizleme -> gönder.
   Future<void> _openCameraShortcut() async {
+    if (_mediaBlockedOffline()) return;
     final pick = await (widget.openCamera ?? openMediaCamera)(context);
     if (pick == null || !mounted) return;
     final plan = await Navigator.push<MediaSendPlan>(
@@ -1347,7 +1445,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final actions = <MessageAction>[
       if (failed) ...[
         MessageAction('retry', l.chatDetailResend, LucideIcons.rotateCw),
-        MessageAction('drop', l.chatDetailNevermind, LucideIcons.x,
+        MessageAction('drop', l.chatDetailDelete, LucideIcons.trash2,
             danger: true),
       ] else ...[
         if (!deleted)
@@ -1416,7 +1514,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       case 'retry':
         await _retry(m);
       case 'drop':
-        setState(() => _msgs.remove(m));
+        final ob = _outbox;
+        if (ob != null) await ob.remove('${m['clientId']}');
+        if (mounted) setState(() => _msgs.remove(m));
     }
   }
 

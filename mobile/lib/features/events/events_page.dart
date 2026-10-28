@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -55,6 +56,9 @@ class _Feed {
   bool more = false;
   Object? error;
   int gen = 0;
+
+  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
+  DateTime? staleAt;
 }
 
 /// Etkinlikler: Keşfet (takvim) | Etkinliklerim | Oluşturduklarım. Katılım yalnızca burada geri alınır.
@@ -141,6 +145,11 @@ class _EventsPageState extends State<EventsPage> {
   Future<List<Map<String, dynamic>>> _fetchMonth(DateTime m) async {
     final res = await widget.session.api
         .getResponse('/events/calendar?month=${_ym(m)}');
+    if (res.fromCache) {
+      _calStale[_ym(m)] = res.cachedAt;
+    } else {
+      _calStale.remove(_ym(m));
+    }
     if (res.headers['x-truncated'] == 'true') {
       _truncated.add(_ym(m));
     } else {
@@ -211,6 +220,8 @@ class _EventsPageState extends State<EventsPage> {
     };
   }
 
+  final Map<String, DateTime?> _calStale = {};
+
   Future<void> _loadFeed(String key, {bool silent = false}) async {
     final f = _feeds[key]!;
     final gen = ++f.gen;
@@ -221,9 +232,11 @@ class _EventsPageState extends State<EventsPage> {
       });
     }
     try {
-      final res = await widget.session.api.get(_feedPath(key));
+      final r = await widget.session.api.getResponse(_feedPath(key));
+      final res = r.body;
       if (!mounted || gen != f.gen) return;
       setState(() {
+        f.staleAt = r.fromCache ? r.cachedAt : null;
         f.items = _filterFeed(key, _parse(res));
         f.next = (res is Map ? res['nextCursor'] : null) is num
             ? (res['nextCursor'] as num).toInt()
@@ -505,8 +518,23 @@ class _EventsPageState extends State<EventsPage> {
       }
       if (mounted) _loadFeed('created', silent: true);
     } catch (e) {
-      if (mounted) _snack(eventErrorTextL(context, e));
+      if (!mounted) return;
+      if (eventIsNotFound(e)) {
+        _dropEvent(id);
+        _snack(context.l10n.eventFormNotFound);
+      } else {
+        _snack(eventSaveErrorText(context, e));
+      }
     }
+  }
+
+  /// Admin gizlediği/silinen etkinlik (404): listelerden düşer.
+  void _dropEvent(int id) {
+    setState(() {
+      for (final f in _feeds.values) {
+        f.items = f.items.where((e) => e['id'] != id).toList();
+      }
+    });
   }
 
   Future<void> _open(Map<String, dynamic> ev) async {
@@ -671,6 +699,14 @@ class _EventsPageState extends State<EventsPage> {
                         context.l10n.eventListTabMine,
                         context.l10n.eventListTabCreated
                       ], index: _tab, onChanged: _setTab),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: StaleLabel(
+                      cachedAt: _tab == 0
+                          ? _calStale[_ym(_month)]
+                          : _feeds[_feedKey]?.staleAt,
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                     ),
                   ),
                   ..._tab == 0 ? _discoverSlivers() : _feedSlivers(),
@@ -1051,7 +1087,13 @@ class _EventsPageState extends State<EventsPage> {
       tag = cancelled
           ? EventStatusTag(context.l10n.eventListCancelled,
               tone: EventTone.danger)
-          : (closed
+          : eventIsPendingReview(ev)
+              ? EventStatusTag(context.l10n.evcStatusPending,
+                  tone: EventTone.warn)
+              : eventIsRejected(ev)
+                  ? EventStatusTag(context.l10n.evcStatusRejected,
+                      tone: EventTone.danger)
+                  : (closed
               ? EventStatusTag(context.l10n.eventListRegClosedTag,
                   tone: EventTone.warn)
               : EventStatusTag(context.l10n.eventListOpen));

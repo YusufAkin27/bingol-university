@@ -11,6 +11,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import 'sohbety_widgets.dart';
 
 bool isAdminRole(Map<String, dynamic> m) =>
     m['role'] == 'ADMIN' || m['role'] == 'OWNER';
@@ -36,48 +37,37 @@ class ChatMemberRow extends StatelessWidget {
     final t = context.bu;
     final me = (member['userId'] as num?)?.toInt() == selfId;
     final name = (member['displayName'] as String?) ?? context.l10n.chatInfoUser;
-    final sub =
+    final dept =
         (member['department'] ?? member['faculty'] ?? '').toString().trim();
-    return InkWell(
+    // Tasarım: "Yönetici · Bölüm" tek alt satır.
+    final sub = [
+      if (isAdminRole(member)) context.l10n.chatInfoAdmin,
+      if (dept.isNotEmpty) dept,
+    ].join(' · ');
+    return SohbetyRow(
       onTap: me ? null : onTap,
-      child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       child: Row(children: [
-        BuAvatar(name: name, url: member['avatarUrl'] as String?, size: 40),
+        SohbetyAvatar(name: name, url: member['avatarUrl'] as String?, size: 48),
         const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(color: t.ink)),
-                if (sub.isNotEmpty)
-                  Text(sub,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.caption.copyWith(color: t.mut)),
-              ]),
-        ),
+        Expanded(child: SohbetyTexts(title: name, sub: sub)),
         if (me) ...[
           const SizedBox(width: 8),
-          Text(context.l10n.chatInfoYou, style: BuType.label.copyWith(color: t.mut))
-        ],
-        if (isAdminRole(member)) ...[
-          const SizedBox(width: 8),
-          BuBadge(context.l10n.chatInfoAdmin, soft: true)
+          Text(context.l10n.chatInfoYou,
+              style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: t.mut))
         ],
         if (onRemove != null)
           IconButton(
             tooltip: context.l10n.chatInfoRemoveFromGroup,
             visualDensity: VisualDensity.compact,
             onPressed: onRemove,
-            icon: Icon(LucideIcons.userMinus, size: 16, color: t.mut),
+            icon: Icon(LucideIcons.userMinus, size: 18, color: t.mut),
           ),
       ]),
-    ));
+    );
   }
 }
 
@@ -112,44 +102,42 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
             .toList();
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(
-        backgroundColor: t.bg,
-        foregroundColor: t.ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(context.l10n.chatInfoMembersCount(_all.length.toString()),
-            style: BuType.heading.copyWith(color: t.ink)),
-      ),
       body: Column(children: [
+        SohbetyHeader(
+            title: context.l10n.chatInfoMembersCount(_all.length.toString()),
+            onBack: () => Navigator.maybePop(context)),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: BuSearchField(
-              hint: context.l10n.chatInfoSearchMember, onChanged: (v) => setState(() => _q = v)),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+          child: SohbetyField(
+              hint: context.l10n.chatInfoSearchMember,
+              height: 48,
+              onChanged: (v) => setState(() => _q = v)),
         ),
         Expanded(
           child: list.isEmpty
               ? Center(
                   child: Text(context.l10n.chatInfoNoResults,
                       style: BuType.body.copyWith(color: t.mut)))
-              : ListView.builder(
-                  itemCount: list.length,
-                  itemBuilder: (c, i) {
-                    final m = list[i];
-                    final removable = widget.onRemove != null &&
-                        (m['userId'] as num?)?.toInt() != widget.selfId &&
-                        !isAdminRole(m);
-                    return ChatMemberRow(
-                      member: m,
-                      selfId: widget.selfId,
-                      onRemove: removable
-                          ? () async {
-                              if (await widget.onRemove!(m) && mounted) {
-                                setState(() => _all.remove(m));
-                              }
-                            }
-                          : null,
-                    );
-                  },
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  children: [
+                    SohbetyCard(children: [
+                      for (final m in list)
+                        ChatMemberRow(
+                          member: m,
+                          selfId: widget.selfId,
+                          onRemove: widget.onRemove != null &&
+                                  (m['userId'] as num?)?.toInt() != widget.selfId &&
+                                  !isAdminRole(m)
+                              ? () async {
+                                  if (await widget.onRemove!(m) && mounted) {
+                                    setState(() => _all.remove(m));
+                                  }
+                                }
+                              : null,
+                        ),
+                    ]),
+                  ],
                 ),
         ),
       ]),

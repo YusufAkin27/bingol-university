@@ -1,0 +1,5 @@
+// iOS push acma anahtari. Odemeli Apple Developer hesabi + GoogleService-Info.plist hazir oldugunda
+// bu dosyayi "BuPush.xcconfig" adiyla kopyalayin (veya scripts/check-ios-push.ps1 -Enable calistirin).
+// Dosya yokken imzalama push yetkisi istemez (ucretsiz Apple ID ile derleme bozulmaz).
+BU_PUSH_ENTITLEMENTS = Runner/Runner.entitlements
+BU_PUSH_ENTITLEMENTS[config=Release] = Runner/RunnerRelease.entitlements

@@ -25,7 +25,7 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=latest')), isTrue);
+      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=top')), isTrue);
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
       expect(find.byType(DiscoverPostCard), findsWidgets);
       expect(find.text('Keşfet'), findsOneWidget);
@@ -167,6 +167,101 @@ void main() {
         }
       }
     }
+  });
+
+  group('kesfet scope=top imlec zinciri', () {
+    Map<String, dynamic> post(int id) => samplePost(id: id, text: 'Top $id');
+
+    FakeBackend topBackend(List<FakeResult? Function(Uri u)> script, List<Uri> seen) {
+      final b = FakeBackend();
+      b.handlers.add((req, path) {
+        if (path != '/feed') return null;
+        seen.add(req.url);
+        for (final f in script) {
+          final r = f(req.url);
+          if (r != null) return r;
+        }
+        return null;
+      });
+      return b;
+    }
+
+    testWidgets('size=12, nextCursor opak aynen geri gider, son sayfada durur', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final seen = <Uri>[];
+      final b = topBackend([
+        (u) => u.queryParameters['cursor'] == null
+            ? FakeResult.json({'items': [for (var i = 1; i <= 12; i++) post(i)], 'nextCursor': 'Ab-_c9==x', 'hint': null})
+            : null,
+        (u) => u.queryParameters['cursor'] == 'Ab-_c9==x'
+            ? FakeResult.json({'items': [post(13), post(14)], 'nextCursor': null, 'hint': null})
+            : null,
+      ], seen);
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(seen.first.queryParameters['scope'], 'top');
+      expect(seen.first.queryParameters['size'], '12');
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(seen.length, 2);
+      expect(seen[1].queryParameters['cursor'], 'Ab-_c9==x');
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(seen.length, 2); // nextCursor null: yeni istek yok
+      noErr(tester);
+    });
+
+    testWidgets('hint=RANK_REFRESHED: ayni id ikinci kez eklenmez', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final seen = <Uri>[];
+      final b = topBackend([
+        (u) => u.queryParameters['cursor'] == null
+            ? FakeResult.json({'items': [post(1), post(2)], 'nextCursor': 'c1', 'hint': null})
+            : FakeResult.json({'items': [post(2), post(3)], 'nextCursor': null, 'hint': 'RANK_REFRESHED'}),
+      ], seen);
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(seen.length, 2);
+      expect(find.byType(DiscoverPostCard), findsNWidgets(3));
+      noErr(tester);
+    });
+
+    testWidgets('400 POST_CURSOR_INVALID: akis imlecsiz bastan yuklenir', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final seen = <Uri>[];
+      final b = topBackend([
+        (u) => u.queryParameters['cursor'] == null
+            ? FakeResult.json({'items': [post(1), post(2)], 'nextCursor': 'bad', 'hint': null})
+            : const FakeResult.json({'code': 'POST_CURSOR_INVALID', 'message': 'x'}, status: 400),
+      ], seen);
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 800));
+      // 1) ilk sayfa, 2) bozuk imleç, 3) imlecsiz yeniden yukleme
+      expect(seen.length, greaterThanOrEqualTo(3));
+      expect(seen.last.queryParameters.containsKey('cursor'), isFalse);
+      expect(find.byType(DiscoverPostCard), findsNWidgets(2));
+      noErr(tester);
+    });
+
+    testWidgets('cekip yenileme imleci sifirlar', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final seen = <Uri>[];
+      final b = topBackend([
+        (u) => FakeResult.json({'items': [post(1), post(2)], 'nextCursor': u.queryParameters['cursor'] == null ? 'c1' : null, 'hint': null}),
+      ], seen);
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.fling(find.byType(SingleChildScrollView).last, const Offset(0, 600), 2000);
+      await settle(tester, const Duration(milliseconds: 1500));
+      expect(seen.where((u) => !u.queryParameters.containsKey('cursor')).length, greaterThanOrEqualTo(2));
+      noErr(tester);
+    });
   });
 
   group('kesfet kart yuksekligi', () {

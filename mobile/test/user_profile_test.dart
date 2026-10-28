@@ -329,7 +329,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('birebir sohbet bilgisinde "Profili görüntüle"', (tester) async {
+    testWidgets('birebir sohbet bilgisinde "Profil" hızlı eylemi', (tester) async {
       final be = FakeBackend()
         ..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null})
         ..on('/users/2', _profile);
@@ -348,8 +348,7 @@ void main() {
         size: kPhoneMedium,
       ));
       await settle(tester);
-      await tester.scrollUntilVisible(find.text('Profili görüntüle'), 300, scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.text('Profili görüntüle'));
+      await tester.tap(find.text('Profil'));
       await settle(tester);
       expect(find.byType(UserProfilePage), findsOneWidget);
       await unmount(tester);

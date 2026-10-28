@@ -124,18 +124,30 @@ object LocalReminderStore {
 }
 
 object Channels {
+    // Varsayilan (Turkce) adlar; Dart acilista setNames ile kullanicinin diline gunceller.
+    private val names = mutableMapOf(
+        "chat" to "Mesajlar", "event" to "Etkinlikler", "announcement" to "Duyurular ve haberler",
+        "social" to "Sosyal (begeni, takip)", "poll" to "Anketler", "academic" to "Ders ve sinav hatirlatmalari"
+    )
+    private val importance = mapOf(
+        "chat" to NotificationManager.IMPORTANCE_HIGH, "event" to NotificationManager.IMPORTANCE_DEFAULT,
+        "announcement" to NotificationManager.IMPORTANCE_DEFAULT, "social" to NotificationManager.IMPORTANCE_LOW,
+        "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH
+    )
+
+    fun setNames(c: Context, n: Map<String, String>) {
+        n.forEach { (k, v) -> if (names.containsKey(k) && v.isNotBlank()) names[k] = v }
+        ensure(c)
+    }
+
+    // Idempotent: var olan kanalin yalniz adi guncellenir, kullanicinin sistem ayari korunur.
     fun ensure(c: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             val nm = c.getSystemService(NotificationManager::class.java) ?: return
-            fun mk(id: String, name: String, imp: Int) =
-                nm.createNotificationChannel(NotificationChannel(id, name, imp))
-            mk("chat", "Mesajlar", NotificationManager.IMPORTANCE_HIGH)
-            mk("event", "Etkinlikler", NotificationManager.IMPORTANCE_DEFAULT)
-            mk("announcement", "Duyurular", NotificationManager.IMPORTANCE_DEFAULT)
-            mk("social", "Sosyal (etiket, takip, begeni)", NotificationManager.IMPORTANCE_DEFAULT)
-            mk("poll", "Anketler", NotificationManager.IMPORTANCE_DEFAULT)
-            mk("academic", "Ders ve sinav hatirlatmalari", NotificationManager.IMPORTANCE_HIGH)
+            names.forEach { (id, name) ->
+                nm.createNotificationChannel(NotificationChannel(id, name, importance[id] ?: NotificationManager.IMPORTANCE_DEFAULT))
+            }
         } catch (_: Exception) {
         }
     }

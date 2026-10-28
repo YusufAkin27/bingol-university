@@ -2,8 +2,9 @@
 <resources>
     <!-- Android 12+ sistem acilis ekrani: marka renginde zemin + logo. -->
     <style name="LaunchTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_empty_icon</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
         <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">

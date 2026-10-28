@@ -10,7 +10,7 @@ import '../../widgets/common.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
 import 'contacts_match_page.dart';
-import '../../core/typography.dart';
+import 'sohbety_widgets.dart';
 
 /// Yeni sohbet: kişi ara, bir kişi seç (birebir) ya da birden çok kişi seç (grup).
 class NewChatPage extends StatefulWidget {
@@ -163,12 +163,19 @@ class _NewChatPageState extends State<NewChatPage> {
     });
   }
 
-  bool get _isGroup => _selected.length > 1;
+  bool _groupMode = false;
+
+  bool get _isGroup =>
+      _selected.length > 1 || (_groupMode && _selected.isNotEmpty);
 
   Future<void> _create() async {
     if (_busy || _selected.isEmpty) return;
     Map<String, dynamic> body;
     if (_isGroup) {
+      if (_selected.length < 2) {
+        setState(() => _createError = context.l10n.sohbetyGroupMin);
+        return;
+      }
       final title = _title.text.trim();
       if (title.isEmpty) {
         setState(() => _createError = context.l10n.chatMiscGroupNameRequired);
@@ -213,20 +220,33 @@ class _NewChatPageState extends State<NewChatPage> {
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          BuHeader(title: context.l10n.chatMiscNewChat, onBack: () => Navigator.pop(context)),
+          SohbetyHeader(
+              title: context.l10n.chatMiscNewChat,
+              onBack: () => Navigator.pop(context)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: BuSearchField(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SohbetyField(
               hint: context.l10n.chatMiscUserSearchHint,
               controller: _search,
               onChanged: _onQuery,
               autofocus: true,
             ),
           ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _NewGroupRow(
+              active: _groupMode,
+              onTap: () => setState(() {
+                _groupMode = !_groupMode;
+                _createError = null;
+              }),
+            ),
+          ),
           ContactsEntryRow(session: widget.session),
           if (n > 0)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Wrap(
@@ -236,9 +256,9 @@ class _NewChatPageState extends State<NewChatPage> {
                 ),
               ),
             ),
-          if (_isGroup)
+          if (_isGroup || _groupMode)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: _groupCard(t, n),
             ),
           Expanded(child: _list(t)),
@@ -246,13 +266,14 @@ class _NewChatPageState extends State<NewChatPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
               child: Text(_createError!,
-                  style: BuType.caption.copyWith(color: t.danger)),
+                  style: TextStyle(
+                      fontFamily: 'Inter', fontSize: 13, color: t.danger)),
             ),
           if (n > 0)
             Padding(
               padding: EdgeInsets.fromLTRB(
-                  20, 10, 20, 12 + MediaQuery.of(context).padding.bottom),
-              child: BuButton(
+                  16, 10, 16, 12 + MediaQuery.of(context).padding.bottom),
+              child: SohbetyButton(
                 label: _isGroup
                     ? context.l10n.chatMiscCreateGroup
                     : context.l10n.chatMiscStartChat,
@@ -273,9 +294,9 @@ class _NewChatPageState extends State<NewChatPage> {
         customBorder: const StadiumBorder(),
         onTap: () => _toggle(u),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 6, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 8, 0),
           child: SizedBox(
-            height: 34,
+            height: 36,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -284,7 +305,11 @@ class _NewChatPageState extends State<NewChatPage> {
                   child: Text('${u['displayName'] ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: BuType.label.copyWith(color: t.onSoft)),
+                      style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: t.onSoft)),
                 ),
                 const SizedBox(width: 6),
                 Icon(LucideIcons.x, size: 14.5, color: t.onSoft),
@@ -297,69 +322,72 @@ class _NewChatPageState extends State<NewChatPage> {
   }
 
   Widget _groupCard(BuTokens t, int n) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: t.bd),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-                color: t.ink, borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.users, size: 20, color: t.bg),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(context.l10n.chatMiscGroupCardTitle,
-                    style: BuType.bodyStrong.copyWith(color: t.ink)),
-                const SizedBox(height: 2),
-                Text(context.l10n.chatMiscSelectedCount(n.toString()),
-                    style: BuType.caption.copyWith(color: t.mut)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _title,
-                  maxLength: 100,
-                  style: BuType.body.copyWith(color: t.ink),
-                  onChanged: (_) {
-                    if (_createError != null) {
-                      setState(() => _createError = null);
-                    }
-                  },
-                  decoration: InputDecoration(
-                    hintText: context.l10n.chatMiscGroupName,
-                    counterText: '',
-                    isDense: true,
-                    filled: true,
-                    fillColor: t.sf2,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none),
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: t.pr)),
+    return SohbetyCard(children: [
+      Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            const SohbetyTile(icon: LucideIcons.users, size: 40, filled: true),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(context.l10n.chatMiscGroupCardTitle,
+                      style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: t.ink)),
+                  const SizedBox(height: 2),
+                  Text(context.l10n.chatMiscSelectedCount(n.toString()),
+                      style: TextStyle(
+                          fontFamily: 'Inter', fontSize: 13, color: t.mut)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _title,
+                    maxLength: 100,
+                    cursorColor: t.pr,
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.ink),
+                    onChanged: (_) {
+                      if (_createError != null) {
+                        setState(() => _createError = null);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: context.l10n.chatMiscGroupName,
+                      hintStyle: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.mut),
+                      counterText: '',
+                      isDense: true,
+                      filled: true,
+                      fillColor: t.bg,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: t.bd)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: t.bd)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: t.pr)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(context.l10n.chatMiscMax50, style: BuType.label.copyWith(color: t.mut)),
-        ],
+            const SizedBox(width: 8),
+            Text(context.l10n.chatMiscMax50,
+                style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: t.mut)),
+          ],
+        ),
       ),
-    );
+    ]);
   }
 
   Widget _list(BuTokens t) {
@@ -378,32 +406,23 @@ class _NewChatPageState extends State<NewChatPage> {
     }
     return RefreshIndicator(
       onRefresh: () => _runSearch(_lastQuery),
-      child: ListView.builder(
+      child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-        itemCount: _results.length + 1 + (_loadingMore ? 1 : 0),
-        itemBuilder: (_, i) {
-          if (i == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 2),
-              child: Text(context.l10n.chatMiscPeopleHeader,
-                  style:
-                      BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
-            );
-          }
-          if (i > _results.length) {
-            return const Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        children: [
+          SohbetyLabel(sohbetyUpper(context, context.l10n.chatMiscPeopleHeader)),
+          SohbetyCard(children: [for (final u in _results) _row(t, u)]),
+          if (_loadingMore)
+            const Padding(
               padding: EdgeInsets.all(16),
               child: Center(
                   child: SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2.4))),
-            );
-          }
-          return _row(t, _results[i - 1]);
-        },
+            ),
+        ],
       ),
     );
   }
@@ -420,52 +439,61 @@ class _NewChatPageState extends State<NewChatPage> {
   Widget _row(BuTokens t, Map<String, dynamic> u) {
     final on = _isSelected(u['id']);
     final sub = (u['department'] ?? u['faculty'] ?? '').toString();
-    return InkWell(
+    return SohbetyRow(
       onTap: () => _toggle(u),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _profile(u),
-              child: BuAvatar(
-                  name: u['displayName']?.toString(),
-                  url: u['avatarUrl']?.toString(),
-                  size: 46),
-            ),
+      child: Row(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _profile(u),
+            child: SohbetyAvatar(
+                name: u['displayName']?.toString() ?? '',
+                url: u['avatarUrl']?.toString(),
+                size: 48),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: SohbetyTexts(title: '${u['displayName'] ?? ''}', sub: sub)),
+          if (on || _groupMode) ...[
+            const SizedBox(width: 8),
+            SohbetyCheck(on: on),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// "Yeni grup" kartı: kırmızı karo, başlık + "En fazla 50 kişi".
+class _NewGroupRow extends StatelessWidget {
+  const _NewGroupRow({required this.active, required this.onTap});
+
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      selected: active,
+      child: SohbetyCard(children: [
+        SohbetyRow(
+          key: const ValueKey('new-group'),
+          minHeight: 64,
+          onTap: onTap,
+          child: Row(children: [
+            const SohbetyTile(icon: LucideIcons.userPlus, size: 40, filled: true),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${u['displayName'] ?? ''}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(color: t.ink)),
-                  if (sub.isNotEmpty)
-                    Text(sub,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(color: t.mut)),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: on ? t.pr : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: on ? t.pr : t.bd, width: 2),
-              ),
-              child:
-                  on ? Icon(LucideIcons.check, size: 12.5, color: t.onPr) : null,
-            ),
-          ],
+                child: SohbetyTexts(
+                    title: context.l10n.sohbetyNewGroup,
+                    sub: context.l10n.sohbetyNewGroupSub)),
+            Icon(active ? LucideIcons.check : buDirIcon(context, LucideIcons.chevronRight),
+                size: 18, color: active ? t.pr : t.mut),
+          ]),
         ),
-      ),
+      ]),
     );
   }
 }

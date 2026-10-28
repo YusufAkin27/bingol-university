@@ -11460,6 +11460,1236 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Dönem seç'**
   String get akademik2SemesterTitle;
+
+  /// No description provided for @sistemuiPermStep.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adım {current} / {total}'**
+  String sistemuiPermStep(String current, String total);
+
+  /// No description provided for @sistemuiPermNotifText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.'**
+  String get sistemuiPermNotifText;
+
+  /// No description provided for @sistemuiPermContactsText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.'**
+  String get sistemuiPermContactsText;
+
+  /// No description provided for @sistemuiPermCameraTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kamera ve galeri'**
+  String get sistemuiPermCameraTitle;
+
+  /// No description provided for @sistemuiPermCameraText.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kod okutmak, fotoğraf çekmek ve paylaşmak için.'**
+  String get sistemuiPermCameraText;
+
+  /// No description provided for @sistemuiOfflineTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı yok'**
+  String get sistemuiOfflineTitle;
+
+  /// No description provided for @sistemuiOfflineBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.'**
+  String get sistemuiOfflineBody;
+
+  /// No description provided for @sistemuiErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir şeyler ters gitti'**
+  String get sistemuiErrorTitle;
+
+  /// No description provided for @sistemuiMaintTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem bakımda'**
+  String get sistemuiMaintTitle;
+
+  /// No description provided for @sistemuiMaintBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.'**
+  String get sistemuiMaintBody;
+
+  /// No description provided for @sistemuiMaintBand.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bazı özellikler geçici olarak kullanılamayabilir.'**
+  String get sistemuiMaintBand;
+
+  /// No description provided for @sistemuiUpdateVersions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklü sürüm {current} · Gerekli sürüm {required}'**
+  String sistemuiUpdateVersions(String current, String required);
+
+  /// No description provided for @sistemuiBlockedCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hata kodu: ACCESS_BLOCKED'**
+  String get sistemuiBlockedCode;
+
+  /// No description provided for @sistemuiQrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodunu çerçevenin içine getir'**
+  String get sistemuiQrHint;
+
+  /// No description provided for @sistemuiQrNotice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama etkinlik saatinde açılır. Organizatörün gösterdiği kodu okut.'**
+  String get sistemuiQrNotice;
+
+  /// No description provided for @sistemuiQrOr.
+  ///
+  /// In tr, this message translates to:
+  /// **'veya'**
+  String get sistemuiQrOr;
+
+  /// No description provided for @sistemuiQrManualHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. K7M4QX'**
+  String get sistemuiQrManualHint;
+
+  /// No description provided for @sistemuiQrSubmit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklamayı gönder'**
+  String get sistemuiQrSubmit;
+
+  /// No description provided for @profilyardBlockedNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğin kişiler profilini göremez, sana mesaj yazamaz ve seni takip edemez.'**
+  String get profilyardBlockedNote;
+
+  /// No description provided for @profilyardBlockedEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimseyi engellemedin'**
+  String get profilyardBlockedEmptyTitle;
+
+  /// No description provided for @profilyardBlockedEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rahatsız edici bir kullanıcıyı profilinden engelleyebilirsin.'**
+  String get profilyardBlockedEmptyBody;
+
+  /// No description provided for @profilyardUnblockOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} engelini kaldır'**
+  String profilyardUnblockOf(String name);
+
+  /// No description provided for @profilyardClubsManaged.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönettiklerim'**
+  String get profilyardClubsManaged;
+
+  /// No description provided for @profilyardClubsMember.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üyesi olduklarım'**
+  String get profilyardClubsMember;
+
+  /// No description provided for @profilyardClubsPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istekler'**
+  String get profilyardClubsPending;
+
+  /// No description provided for @profilyardRoleOwner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başkan'**
+  String get profilyardRoleOwner;
+
+  /// No description provided for @profilyardRoleFounder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kurucu'**
+  String get profilyardRoleFounder;
+
+  /// No description provided for @profilyardRoleAdmin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici'**
+  String get profilyardRoleAdmin;
+
+  /// No description provided for @profilyardRoleModerator.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatör'**
+  String get profilyardRoleModerator;
+
+  /// No description provided for @profilyardRoleMember.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye'**
+  String get profilyardRoleMember;
+
+  /// No description provided for @profilyardClubsEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir kulübün yok'**
+  String get profilyardClubsEmptyTitle;
+
+  /// No description provided for @profilyardClubsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.'**
+  String get profilyardClubsEmptyBody;
+
+  /// No description provided for @profilyardClubsDiscover.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpleri keşfet'**
+  String get profilyardClubsDiscover;
+
+  /// No description provided for @profilyardEventsAttended.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldıklarım'**
+  String get profilyardEventsAttended;
+
+  /// No description provided for @profilyardEventsCreated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oluşturduklarım'**
+  String get profilyardEventsCreated;
+
+  /// No description provided for @profilyardEventsUpcoming.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan'**
+  String get profilyardEventsUpcoming;
+
+  /// No description provided for @profilyardEventsPast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçmiş'**
+  String get profilyardEventsPast;
+
+  /// No description provided for @profilyardEventGoing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılıyorum'**
+  String get profilyardEventGoing;
+
+  /// No description provided for @profilyardEventRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get profilyardEventRequested;
+
+  /// No description provided for @profilyardEventInterested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlgileniyorum'**
+  String get profilyardEventInterested;
+
+  /// No description provided for @profilyardEventPendingCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} bekleyen istek'**
+  String profilyardEventPendingCount(String count);
+
+  /// No description provided for @profilyardEventsEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz etkinliğin yok'**
+  String get profilyardEventsEmptyTitle;
+
+  /// No description provided for @profilyardEventsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliklere göz at ya da kendi etkinliğini oluştur.'**
+  String get profilyardEventsEmptyBody;
+
+  /// No description provided for @profilyardFollowersTab.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takipçiler {count}'**
+  String profilyardFollowersTab(String count);
+
+  /// No description provided for @profilyardFollowingTab.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip edilenler {count}'**
+  String profilyardFollowingTab(String count);
+
+  /// No description provided for @profilyardFollowersSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takipçilerde ara'**
+  String get profilyardFollowersSearch;
+
+  /// No description provided for @profilyardFollowingSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip edilenlerde ara'**
+  String get profilyardFollowingSearch;
+
+  /// No description provided for @profilyardFollowMutual.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takipleşiyorsunuz'**
+  String get profilyardFollowMutual;
+
+  /// No description provided for @profilyardFollowsYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seni takip ediyor'**
+  String get profilyardFollowsYou;
+
+  /// No description provided for @profilyardFollowingYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takiptesin'**
+  String get profilyardFollowingYou;
+
+  /// No description provided for @profilyardFollowNoMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşen kişi yok.'**
+  String get profilyardFollowNoMatch;
+
+  /// No description provided for @profilyardFbIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulamayı geliştirmemize yardım et. Önerini, karşılaştığın hatayı ya da düşüncelerini yaz.'**
+  String get profilyardFbIntro;
+
+  /// No description provided for @profilyardFbType.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tür'**
+  String get profilyardFbType;
+
+  /// No description provided for @profilyardFbTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlık'**
+  String get profilyardFbTitle;
+
+  /// No description provided for @profilyardFbMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj'**
+  String get profilyardFbMessage;
+
+  /// No description provided for @profilyardFbTitleHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısaca özetle'**
+  String get profilyardFbTitleHint;
+
+  /// No description provided for @profilyardFbMessageHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrıntıları yaz'**
+  String get profilyardFbMessageHint;
+
+  /// No description provided for @profilyardFbCounter.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} / {max}'**
+  String profilyardFbCounter(String n, String max);
+
+  /// No description provided for @sohbetyAddMember.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye ekle'**
+  String get sohbetyAddMember;
+
+  /// No description provided for @sohbetyAddCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekle ({n})'**
+  String sohbetyAddCount(String n);
+
+  /// No description provided for @sohbetyProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil'**
+  String get sohbetyProfile;
+
+  /// No description provided for @sohbetyNewGroup.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni grup'**
+  String get sohbetyNewGroup;
+
+  /// No description provided for @sohbetyNewGroupSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'En fazla 50 kişi'**
+  String get sohbetyNewGroupSub;
+
+  /// No description provided for @sohbetyGroupMin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grup için en az 2 kişi seçin.'**
+  String get sohbetyGroupMin;
+
+  /// No description provided for @sohbetyTypePerson.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi'**
+  String get sohbetyTypePerson;
+
+  /// No description provided for @sohbetyFlash.
+  ///
+  /// In tr, this message translates to:
+  /// **'Flaş'**
+  String get sohbetyFlash;
+
+  /// No description provided for @sohbetyStopRec.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı durdur'**
+  String get sohbetyStopRec;
+
+  /// No description provided for @sohbetyTakePhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çek'**
+  String get sohbetyTakePhoto;
+
+  /// No description provided for @sohbetyAddDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üyeler eklendi'**
+  String get sohbetyAddDone;
+
+  /// No description provided for @etkinlik2PolicyOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkes katılabilir'**
+  String get etkinlik2PolicyOpen;
+
+  /// No description provided for @etkinlik2PolicyApproval.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek ile'**
+  String get etkinlik2PolicyApproval;
+
+  /// No description provided for @etkinlik2PolicyApprovalTag.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek ile katılım'**
+  String get etkinlik2PolicyApprovalTag;
+
+  /// No description provided for @etkinlik2Organizer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Organizatör'**
+  String get etkinlik2Organizer;
+
+  /// No description provided for @etkinlik2JoinPolicyLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım'**
+  String get etkinlik2JoinPolicyLabel;
+
+  /// No description provided for @etkinlik2PolicyApprovalHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek ile seçersen katılımcıları sen onaylarsın.'**
+  String get etkinlik2PolicyApprovalHint;
+
+  /// No description provided for @etkinlik2FormClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp adına (isteğe bağlı)'**
+  String get etkinlik2FormClub;
+
+  /// No description provided for @etkinlik2ClubNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilmedi'**
+  String get etkinlik2ClubNone;
+
+  /// No description provided for @etkinlik2ClubSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp seç'**
+  String get etkinlik2ClubSheetTitle;
+
+  /// No description provided for @etkinlik2ClubNoneOption.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp adına değil'**
+  String get etkinlik2ClubNoneOption;
+
+  /// No description provided for @etkinlik2ClubNoClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik açabileceğin kulüp yok.'**
+  String get etkinlik2ClubNoClubs;
+
+  /// No description provided for @etkinlik2ChatAutoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik sohbeti otomatik açılır'**
+  String get etkinlik2ChatAutoTitle;
+
+  /// No description provided for @etkinlik2ChatAutoBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılanlar ve sen sohbete girersiniz. İstek ile katılımda yalnızca onaylananlar girer.'**
+  String get etkinlik2ChatAutoBody;
+
+  /// No description provided for @etkinlik2CapacityOptional.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan (isteğe bağlı)'**
+  String get etkinlik2CapacityOptional;
+
+  /// No description provided for @etkinlik2Unlimited.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınırsız'**
+  String get etkinlik2Unlimited;
+
+  /// No description provided for @etkinlik2RegOpenSlots.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlar açık · {n} yer kaldı'**
+  String etkinlik2RegOpenSlots(String n);
+
+  /// No description provided for @etkinlik2RegOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlar açık'**
+  String get etkinlik2RegOpen;
+
+  /// No description provided for @etkinlik2ApprovalByOrganizer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımı organizatör onaylar'**
+  String get etkinlik2ApprovalByOrganizer;
+
+  /// No description provided for @etkinlik2SendRequest.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma isteği gönder'**
+  String get etkinlik2SendRequest;
+
+  /// No description provided for @etkinlik2RequestHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Organizatör onaylayınca etkinlik sohbetine girersin.'**
+  String get etkinlik2RequestHint;
+
+  /// No description provided for @etkinlik2RequestSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get etkinlik2RequestSent;
+
+  /// No description provided for @etkinlik2AwaitingReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt bekleniyor'**
+  String get etkinlik2AwaitingReply;
+
+  /// No description provided for @etkinlik2Withdraw.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri çek'**
+  String get etkinlik2Withdraw;
+
+  /// No description provided for @etkinlik2WithdrawTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği geri çek'**
+  String get etkinlik2WithdrawTitle;
+
+  /// No description provided for @etkinlik2WithdrawMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma isteğin geri çekilecek.'**
+  String get etkinlik2WithdrawMessage;
+
+  /// No description provided for @etkinlik2ChatLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik sohbeti · Onaylanınca açılır'**
+  String get etkinlik2ChatLocked;
+
+  /// No description provided for @etkinlik2RejectedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteğin reddedildi'**
+  String get etkinlik2RejectedTitle;
+
+  /// No description provided for @etkinlik2RejectedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Organizatör bu etkinlik için isteğini kabul etmedi.'**
+  String get etkinlik2RejectedBody;
+
+  /// No description provided for @etkinlik2RequestSentToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma isteğin gönderildi.'**
+  String get etkinlik2RequestSentToast;
+
+  /// No description provided for @etkinlik2WithdrawnToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek geri çekildi.'**
+  String get etkinlik2WithdrawnToast;
+
+  /// No description provided for @etkinlik2GoingInterested.
+  ///
+  /// In tr, this message translates to:
+  /// **'{going} kişi katılıyor · {interested} ilgileniyor'**
+  String etkinlik2GoingInterested(String going, String interested);
+
+  /// No description provided for @etkinlik2GoingOnly.
+  ///
+  /// In tr, this message translates to:
+  /// **'{going} kişi katılıyor'**
+  String etkinlik2GoingOnly(String going);
+
+  /// No description provided for @etkinlik2ManageRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım istekleri'**
+  String get etkinlik2ManageRequests;
+
+  /// No description provided for @etkinlik2ManagePending.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} bekleyen istek'**
+  String etkinlik2ManagePending(String n);
+
+  /// No description provided for @etkinlik2ManageNoPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istek yok'**
+  String get etkinlik2ManageNoPending;
+
+  /// No description provided for @etkinlik2ManageAttendance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılar ve yoklama'**
+  String get etkinlik2ManageAttendance;
+
+  /// No description provided for @etkinlik2ManageSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik ayarları'**
+  String get etkinlik2ManageSettings;
+
+  /// No description provided for @etkinlik2ManageSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetim'**
+  String get etkinlik2ManageSection;
+
+  /// No description provided for @etkinlik2ReqQuota.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan'**
+  String get etkinlik2ReqQuota;
+
+  /// No description provided for @etkinlik2ReqSlotsLeft.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yer kaldı'**
+  String etkinlik2ReqSlotsLeft(String n);
+
+  /// No description provided for @etkinlik2ReqNoLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan sınırı yok'**
+  String get etkinlik2ReqNoLimit;
+
+  /// No description provided for @etkinlik2ReqFullBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan doldu; yeni istekler onaylanamaz. Yer açmak için kontenjanı artır.'**
+  String get etkinlik2ReqFullBanner;
+
+  /// No description provided for @etkinlik2ReqPendingHeader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen · {n}'**
+  String etkinlik2ReqPendingHeader(String n);
+
+  /// No description provided for @etkinlik2ReqAnsweredHeader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtlananlar'**
+  String get etkinlik2ReqAnsweredHeader;
+
+  /// No description provided for @etkinlik2ReqNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istek yok.'**
+  String get etkinlik2ReqNone;
+
+  /// No description provided for @etkinlik2Approve.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get etkinlik2Approve;
+
+  /// No description provided for @etkinlik2Reject.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get etkinlik2Reject;
+
+  /// No description provided for @etkinlik2ApproveSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} isteğini onayla'**
+  String etkinlik2ApproveSem(String name);
+
+  /// No description provided for @etkinlik2RejectSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} isteğini reddet'**
+  String etkinlik2RejectSem(String name);
+
+  /// No description provided for @etkinlik2ApprovedTag.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onaylandı'**
+  String get etkinlik2ApprovedTag;
+
+  /// No description provided for @etkinlik2RejectedTag.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddedildi'**
+  String get etkinlik2RejectedTag;
+
+  /// No description provided for @etkinlik2ApprovedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek onaylandı.'**
+  String get etkinlik2ApprovedToast;
+
+  /// No description provided for @etkinlik2RejectedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek reddedildi.'**
+  String get etkinlik2RejectedToast;
+
+  /// No description provided for @etkinlik2SettingsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik ayarları'**
+  String get etkinlik2SettingsTitle;
+
+  /// No description provided for @etkinlik2SettingsPolicy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım türü'**
+  String get etkinlik2SettingsPolicy;
+
+  /// No description provided for @etkinlik2SettingsCapMin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an {n} kişi onaylı. Kontenjanı bundan aşağı çekemezsin.'**
+  String etkinlik2SettingsCapMin(String n);
+
+  /// No description provided for @etkinlik2SettingsCapTooLow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan onaylı kişi sayısından ({n}) az olamaz.'**
+  String etkinlik2SettingsCapTooLow(String n);
+
+  /// No description provided for @etkinlik2SettingsRegChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt ve sohbet'**
+  String get etkinlik2SettingsRegChat;
+
+  /// No description provided for @etkinlik2SettingsRegOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlar açık'**
+  String get etkinlik2SettingsRegOpen;
+
+  /// No description provided for @etkinlik2SettingsRegHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatırsan yeni istek ve katılım alınmaz.'**
+  String get etkinlik2SettingsRegHint;
+
+  /// No description provided for @etkinlik2SettingsChatOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik sohbeti açık'**
+  String get etkinlik2SettingsChatOpen;
+
+  /// No description provided for @etkinlik2SettingsChatHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatırsan mesajlar durur, geçmiş saklanır.'**
+  String get etkinlik2SettingsChatHint;
+
+  /// No description provided for @etkinlik2SettingsDanger.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tehlikeli bölge'**
+  String get etkinlik2SettingsDanger;
+
+  /// No description provided for @etkinlik2SettingsCancelBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılan {n} kişiye bildirim gider ve sohbet kapanır. Bu işlem geri alınamaz.'**
+  String etkinlik2SettingsCancelBody(String n);
+
+  /// No description provided for @etkinlik2SettingsSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarlar kaydedildi.'**
+  String get etkinlik2SettingsSaved;
+
+  /// No description provided for @etkinlik2QrManualCaption.
+  ///
+  /// In tr, this message translates to:
+  /// **'KODU ELLE GİRMEK İÇİN'**
+  String get etkinlik2QrManualCaption;
+
+  /// No description provided for @etkinlik2QrRenewsIn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod {n} sn sonra yenilenir'**
+  String etkinlik2QrRenewsIn(String n);
+
+  /// No description provided for @etkinlik2AttendanceLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama'**
+  String get etkinlik2AttendanceLabel;
+
+  /// No description provided for @etkinlik2PresentOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'{present} / {total} kişi geldi'**
+  String etkinlik2PresentOf(String present, String total);
+
+  /// No description provided for @etkinlik2FilterAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hepsi'**
+  String get etkinlik2FilterAll;
+
+  /// No description provided for @etkinlik2FilterPresent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geldi'**
+  String get etkinlik2FilterPresent;
+
+  /// No description provided for @etkinlik2FilterAbsent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelmedi'**
+  String get etkinlik2FilterAbsent;
+
+  /// No description provided for @etkinlik2MarkSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} geldi olarak işaretle'**
+  String etkinlik2MarkSem(String name);
+
+  /// No description provided for @etkinlik2MethodQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR'**
+  String get etkinlik2MethodQr;
+
+  /// No description provided for @etkinlik2MethodManual.
+  ///
+  /// In tr, this message translates to:
+  /// **'Elle'**
+  String get etkinlik2MethodManual;
+
+  /// No description provided for @etkinlik2ShowQrSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodunu göster'**
+  String get etkinlik2ShowQrSem;
+
+  /// No description provided for @etkinlik2AttendanceEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gösterilecek katılımcı yok.'**
+  String get etkinlik2AttendanceEmpty;
+
+  /// No description provided for @etkinlik2MarkFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama güncellenemedi.'**
+  String get etkinlik2MarkFailed;
+
+  /// No description provided for @etkinlik2ChatClosedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet kapatıldı.'**
+  String get etkinlik2ChatClosedToast;
+
+  /// No description provided for @etkinlik2ChatOpenedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet açıldı.'**
+  String get etkinlik2ChatOpenedToast;
+
+  /// No description provided for @etkinlik2NoteLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Organizatöre not (isteğe bağlı)'**
+  String get etkinlik2NoteLabel;
+
+  /// No description provided for @etkinlik2AnswerRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm soruları yanıtlamalısın.'**
+  String get etkinlik2AnswerRequired;
+
+  /// No description provided for @etkinlik2ClubSemPrefix.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get etkinlik2ClubSemPrefix;
+
+  /// No description provided for @cevrimdisiBekleyenMesaj.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} mesaj bağlantı gelince gönderilecek'**
+  String cevrimdisiBekleyenMesaj(String n);
+
+  /// No description provided for @cevrimdisiGonderiliyor.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} mesaj gönderiliyor…'**
+  String cevrimdisiGonderiliyor(String n);
+
+  /// No description provided for @cevrimdisiGonderilemedi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmedi'**
+  String get cevrimdisiGonderilemedi;
+
+  /// No description provided for @cevrimdisiSonGuncelleme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son güncelleme: {zaman}'**
+  String cevrimdisiSonGuncelleme(String zaman);
+
+  /// No description provided for @cevrimdisiKayitliVeri.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı veriler gösteriliyor'**
+  String get cevrimdisiKayitliVeri;
+
+  /// No description provided for @cevrimdisiBekliyor.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekliyor'**
+  String get cevrimdisiBekliyor;
+
+  /// No description provided for @cevrimdisiYenidenDene.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get cevrimdisiYenidenDene;
+
+  /// No description provided for @cevrimdisiMedyaBaglanti.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı gelince tekrar deneyin'**
+  String get cevrimdisiMedyaBaglanti;
+
+  /// No description provided for @cevrimdisiInternetYok.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantısı yok'**
+  String get cevrimdisiInternetYok;
+
+  /// No description provided for @bildirimmobilKanalChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlar'**
+  String get bildirimmobilKanalChat;
+
+  /// No description provided for @bildirimmobilKanalEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler'**
+  String get bildirimmobilKanalEvent;
+
+  /// No description provided for @bildirimmobilKanalAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular ve haberler'**
+  String get bildirimmobilKanalAnnouncement;
+
+  /// No description provided for @bildirimmobilKanalSocial.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal (beğeni, takip)'**
+  String get bildirimmobilKanalSocial;
+
+  /// No description provided for @bildirimmobilKanalPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketler'**
+  String get bildirimmobilKanalPoll;
+
+  /// No description provided for @bildirimmobilKanalAcademic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders ve sınav hatırlatmaları'**
+  String get bildirimmobilKanalAcademic;
+
+  /// No description provided for @evcLabelClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get evcLabelClub;
+
+  /// No description provided for @evcInfoInstant.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hemen yayınlanır.'**
+  String get evcInfoInstant;
+
+  /// No description provided for @evcInfoReview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Admin onayından sonra yayınlanır.'**
+  String get evcInfoReview;
+
+  /// No description provided for @evcClubRequiredHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce bir kulüp seç.'**
+  String get evcClubRequiredHint;
+
+  /// No description provided for @evcEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın'**
+  String get evcEmptyTitle;
+
+  /// No description provided for @evcEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler kulüpler adına açılır. Bir kulübün yöneticisi olduğunda burada etkinlik oluşturabilirsin.'**
+  String get evcEmptyBody;
+
+  /// No description provided for @evcBrowseClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüplere göz at'**
+  String get evcBrowseClubs;
+
+  /// No description provided for @evcSubmittedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onaya gönderildi'**
+  String get evcSubmittedTitle;
+
+  /// No description provided for @evcSubmittedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliğin admin onayından sonra yayınlanacak. Durumunu Oluşturduklarım sekmesinden takip edebilirsin.'**
+  String get evcSubmittedBody;
+
+  /// No description provided for @evcOk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamam'**
+  String get evcOk;
+
+  /// No description provided for @evcStatusPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onay bekliyor'**
+  String get evcStatusPending;
+
+  /// No description provided for @evcStatusRejected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddedildi'**
+  String get evcStatusRejected;
+
+  /// No description provided for @evcRejectReason.
+  ///
+  /// In tr, this message translates to:
+  /// **'Neden: {reason}'**
+  String evcRejectReason(String reason);
+
+  /// No description provided for @evcErrClubRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.'**
+  String get evcErrClubRequired;
+
+  /// No description provided for @evcErrForbidden.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulüp adına etkinlik oluşturma yetkin yok.'**
+  String get evcErrForbidden;
+
+  /// No description provided for @evcErrClubNotActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulüp şu anda etkin değil.'**
+  String get evcErrClubNotActive;
+
+  /// No description provided for @evcErrPast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik başlangıcı geçmişte olamaz.'**
+  String get evcErrPast;
+
+  /// No description provided for @evcErrDates.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş, başlangıçtan sonra olmalı.'**
+  String get evcErrDates;
+
+  /// No description provided for @evcErrProfanity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Metinde uygunsuz ifade var. Lütfen düzenle.'**
+  String get evcErrProfanity;
+
+  /// No description provided for @evdLabelDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih'**
+  String get evdLabelDate;
+
+  /// No description provided for @evdLabelTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç saati'**
+  String get evdLabelTime;
+
+  /// No description provided for @evdLabelDuration.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre'**
+  String get evdLabelDuration;
+
+  /// No description provided for @evdChipToday.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün'**
+  String get evdChipToday;
+
+  /// No description provided for @evdChipTomorrow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın'**
+  String get evdChipTomorrow;
+
+  /// No description provided for @evdChipWeekend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu hafta sonu'**
+  String get evdChipWeekend;
+
+  /// No description provided for @evdChipNextWeek.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelecek hafta'**
+  String get evdChipNextWeek;
+
+  /// No description provided for @evdChipPickDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih seç'**
+  String get evdChipPickDate;
+
+  /// No description provided for @evdChipCustomTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel saat'**
+  String get evdChipCustomTime;
+
+  /// No description provided for @evdDur1h.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 saat'**
+  String get evdDur1h;
+
+  /// No description provided for @evdDur2h.
+  ///
+  /// In tr, this message translates to:
+  /// **'2 saat'**
+  String get evdDur2h;
+
+  /// No description provided for @evdDurHalfDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarım gün'**
+  String get evdDurHalfDay;
+
+  /// No description provided for @evdChipCustomEnd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş tarihi seç'**
+  String get evdChipCustomEnd;
+
+  /// No description provided for @evdErrStartPast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç geçmişte olamaz.'**
+  String get evdErrStartPast;
+
+  /// No description provided for @evdErrEndBeforeStart.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş, başlangıçtan sonra olmalı.'**
+  String get evdErrEndBeforeStart;
+
+  /// No description provided for @evdEndAdjusted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş, başlangıçtan 1 saat sonrasına otomatik ayarlandı.'**
+  String get evdEndAdjusted;
+
+  /// No description provided for @evdDescCounter.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count}/{max}'**
+  String evdDescCounter(String count, String max);
+
+  /// No description provided for @evdErrDescTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıklama en fazla {max} karakter olabilir.'**
+  String evdErrDescTooLong(String max);
+
+  /// No description provided for @evdErrDescTooLongServer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıklama çok uzun. Lütfen kısalt.'**
+  String get evdErrDescTooLongServer;
 }
 
 class _AppLocalizationsDelegate

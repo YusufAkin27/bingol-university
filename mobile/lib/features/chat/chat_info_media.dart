@@ -7,6 +7,7 @@ import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import 'chat_media_viewer.dart';
 import 'message_bubble.dart' show chatMediaUrl;
+import 'sohbety_widgets.dart';
 
 /// Sohbet görsellerini mesaj geçmişini sayfalayarak süzer (backend'de ayrı medya listesi yok).
 /// Her yüklemede en çok [batch] görsel toplanır, istek sayısı [maxRequestsPerLoad] ile sınırlıdır.
@@ -159,7 +160,9 @@ class ChatInfoThumb extends StatelessWidget {
           : context.l10n.chatInfoOpenImage,
       child: GestureDetector(
         onTap: onTap,
-        child: ColoredBox(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: ColoredBox(
           color: t.sf2,
           child: Stack(fit: StackFit.expand, children: [
             Image.network(
@@ -191,6 +194,7 @@ class ChatInfoThumb extends StatelessWidget {
                 ),
             ],
           ]),
+        ),
         ),
       ),
     );
@@ -260,32 +264,33 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
     final t = context.bu;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(
-        backgroundColor: t.bg,
-        foregroundColor: t.ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(context.l10n.chatInfoMedia, style: BuType.heading.copyWith(color: t.ink)),
-      ),
-      body: ListenableBuilder(
+      body: Column(children: [
+        SohbetyHeader(
+            title: context.l10n.chatInfoMedia,
+            onBack: () => Navigator.maybePop(context)),
+        Expanded(
+          child: ListenableBuilder(
         listenable: _f,
         builder: (context, _) => CustomScrollView(
           controller: _scroll,
           slivers: [
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (c, i) => ChatInfoThumb(
-                    item: _f.items[i],
-                    video: _f.isVideo(_f.items[i]),
-                    durationMs: _f.videoMeta[_f.items[i].url],
-                    headers: widget.headers,
-                    onTap: () => widget.onOpen(i)),
-                childCount: _f.items.length,
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 6,
+                  crossAxisSpacing: 6,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (c, i) => ChatInfoThumb(
+                      item: _f.items[i],
+                      video: _f.isVideo(_f.items[i]),
+                      durationMs: _f.videoMeta[_f.items[i].url],
+                      headers: widget.headers,
+                      onTap: () => widget.onOpen(i)),
+                  childCount: _f.items.length,
+                ),
               ),
             ),
             SliverToBoxAdapter(
@@ -317,7 +322,9 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
                     height: MediaQuery.of(context).padding.bottom + 16)),
           ],
         ),
-      ),
+          ),
+        ),
+      ]),
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
+import '../events/event_form_page.dart';
 import 'club_actions.dart';
 import 'club_form_page.dart';
 import 'club_join_flow.dart';
@@ -535,6 +536,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         switch (v) {
           case 'edit':
             _edit();
+          case 'event':
+            Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
           case 'requests':
             _openRequests();
           case 'members':
@@ -553,6 +559,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         final l10n = context.l10n;
         return [
           if (_isManager) ...[
+            PopupMenuItem(value: 'event', height: 44, child: KulupMenuRow(l10n.eventListCreate)),
             PopupMenuItem(value: 'edit', height: 44, child: KulupMenuRow(l10n.clubEdit)),
             PopupMenuItem(
                 value: 'requests',

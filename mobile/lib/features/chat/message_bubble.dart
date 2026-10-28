@@ -356,6 +356,17 @@ class MessageBubble extends StatelessWidget {
                 ]),
               ),
             ),
+          if (state == 'pending' && m['_queued'] == true)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(LucideIcons.clock, size: 12, color: t.mut),
+                const SizedBox(width: 4),
+                Text(context.l10n.cevrimdisiBekliyor,
+                    key: const ValueKey('queued-label'),
+                    style: BuType.micro.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+              ]),
+            ),
           if (state == 'failed')
             Padding(
               padding: const EdgeInsets.only(top: 4),

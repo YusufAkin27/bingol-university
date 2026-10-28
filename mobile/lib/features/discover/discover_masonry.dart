@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -46,6 +47,7 @@ class DiscoverMasonryFeed extends StatefulWidget {
 }
 
 class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
+  // Sunucu varsayılanı 12 (en çok 30). Sıralama (scope=top) sunucudadır; istemci yeniden sıralamaz.
   static const _pageSize = 12;
   static const _gap = 12.0;
 
@@ -136,7 +138,9 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       if (!replace) _moreError = null;
     });
     try {
-      final page = await _api.feed(scope: 'latest', cursor: replace ? null : _cursor, size: _pageSize);
+      // nextCursor opaktır: aynen geri gönderilir. Puan yenilenince (hint=RANK_REFRESHED) kopya gelebilir;
+      // id ile tekilleştirme aşağıda zaten yapılır.
+      final page = await _api.feed(scope: 'top', cursor: replace ? null : _cursor, size: _pageSize);
       if (!mounted || gen != _gen) return;
       setState(() {
         if (replace) _items.clear();
@@ -149,8 +153,18 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _error = null;
         _moreError = null;
       });
+      // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
+      });
     } catch (e) {
       if (!mounted || gen != _gen) return;
+      // Bozuk/başka kapsamın imleci: akışı baştan (imleçsiz) yükle.
+      if (e is ApiError && e.code == 'POST_CURSOR_INVALID' && _cursor != null) {
+        _loading = false;
+        await _reload();
+        return;
+      }
       setState(() {
         _loading = false;
         if (!_loaded) {

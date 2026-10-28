@@ -7,6 +7,7 @@ import '../../core/permissions/permission_service.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../widgets/sistem_widgets.dart';
 
 /// "İlk giriş izinleri gösterildi" bayrağı. Cihaz başınadır (hesap değişse de tekrar etmez);
 /// Keychain/Keystore'da tutulur.
@@ -76,13 +77,14 @@ class _PostLoginGateState extends State<PostLoginGate> {
   }
 }
 
-const _firstRun = [AppPermission.notifications, AppPermission.contacts];
+const _firstRun = [AppPermission.notifications, AppPermission.contacts, AppPermission.camera];
 
-/// Tam ekran, sıcak bir "İzinler" sayfası: bildirim, rehber. Atlanabilir.
+/// Tam ekran, sıcak bir "İzinler" sayfası (Sm1): bildirim, rehber, kamera/galeri; 3 parçalı adım ilerlemesi.
+/// Her kart tek tek atlanabilir ("Şimdi değil"); "Devam" sayfayı kapatır.
 class PermissionsPage extends StatefulWidget {
   const PermissionsPage({super.key, required this.onFinished, this.onGranted, this.service});
 
-  /// "Devam" ya da "Şimdi değil" ile çıkış.
+  /// "Devam" ile çıkış.
   final VoidCallback onFinished;
   final ValueChanged<AppPermission>? onGranted;
   final PermissionService? service;
@@ -94,6 +96,7 @@ class PermissionsPage extends StatefulWidget {
 class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingObserver {
   final Map<AppPermission, PermState> _st = {};
   final Set<AppPermission> _asked = {};
+  final Set<AppPermission> _skipped = {};
   AppPermission? _busy;
 
   PermissionService get _svc => widget.service ?? PermissionService.instance;
@@ -142,11 +145,18 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
     await _svc.openSettings();
   }
 
+  bool _resolved(AppPermission p) => (_st[p]?.usable ?? false) || _skipped.contains(p);
+
   bool get _allGranted => _firstRun.every((p) => _st[p]?.usable ?? false);
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final resolved = _firstRun.where(_resolved).length;
+    final total = _firstRun.length;
+    final step = resolved >= total ? total : resolved + 1;
+    final active = _firstRun.cast<AppPermission?>().firstWhere((p) => !_resolved(p!), orElse: () => null);
+    final stepText = context.l10n.sistemuiPermStep(step.toString(), total.toString());
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
@@ -154,30 +164,64 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
           children: [
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.shieldCheck, size: 27, color: t.onSoft),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Semantics(
+                      container: true,
+                      label: stepText,
+                      excludeSemantics: true,
+                      child: Row(
+                        children: [
+                          for (var i = 0; i < total; i++) ...[
+                            if (i > 0) const SizedBox(width: 6),
+                            Expanded(
+                              child: AnimatedContainer(
+                                key: ValueKey('perm-step-$i'),
+                                duration: const Duration(milliseconds: 220),
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: i < step ? t.pr : t.bd,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                    child: ExcludeSemantics(
+                      child: Text(stepText, style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Semantics(
+                      header: true,
+                      child: Text(context.l10n.permPageTitle,
+                          style: BuType.display.copyWith(color: t.ink, letterSpacing: -.5)),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(context.l10n.permPageIntro, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
                   ),
                   const SizedBox(height: 18),
-                  Text(context.l10n.permPageTitle, style: BuType.display.copyWith(color: t.ink)),
-                  const SizedBox(height: 6),
-                  Text(
-                    context.l10n.permPageIntro,
-                    style: BuType.body.copyWith(color: t.mut),
-                  ),
-                  const SizedBox(height: 20),
                   for (final p in _firstRun) ...[
                     _PermRow(
                       permission: p,
                       state: _st[p],
                       busy: _busy == p,
                       asked: _asked.contains(p),
+                      active: p == active,
                       onAllow: () => _ask(p),
+                      onSkip: () => setState(() => _skipped.add(p)),
                       onSettings: _settings,
                     ),
                     const SizedBox(height: 12),
@@ -186,19 +230,10 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BuButton(label: _allGranted ? context.l10n.permStart : context.l10n.permContinue, onPressed: widget.onFinished),
-                  if (!_allGranted) ...[
-                    const SizedBox(height: 4),
-                    TextButton(
-                      onPressed: widget.onFinished,
-                      child: Text(context.l10n.permNotNow, style: BuType.bodyStrong.copyWith(color: t.mut)),
-                    ),
-                  ],
-                ],
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+              child: SistemButton(
+                label: _allGranted ? context.l10n.permStart : context.l10n.permContinue,
+                onPressed: widget.onFinished,
               ),
             ),
           ],
@@ -214,7 +249,9 @@ class _PermRow extends StatelessWidget {
     required this.state,
     required this.busy,
     required this.asked,
+    required this.active,
     required this.onAllow,
+    required this.onSkip,
     required this.onSettings,
   });
 
@@ -224,13 +261,28 @@ class _PermRow extends StatelessWidget {
 
   /// Bu sayfada istem gösterildi ve reddedildi.
   final bool asked;
+
+  /// Sıradaki (vurgulu) adım.
+  final bool active;
   final VoidCallback onAllow;
+  final VoidCallback onSkip;
   final VoidCallback onSettings;
+
+  (String, IconData, String) _content(BuildContext context) {
+    final l = context.l10n;
+    final info = permissionInfo(permission, context);
+    return switch (permission) {
+      AppPermission.notifications => (info.title, info.icon, l.sistemuiPermNotifText),
+      AppPermission.contacts => (info.title, info.icon, l.sistemuiPermContactsText),
+      AppPermission.camera => (l.sistemuiPermCameraTitle, info.icon, l.sistemuiPermCameraText),
+      _ => (info.title, info.icon, info.rationale),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final info = permissionInfo(permission, context);
+    final (title, icon, text) = _content(context);
     final st = state;
     final Widget action;
     if (st != null && st.usable) {
@@ -243,58 +295,91 @@ class _PermRow extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
-          BuButton(label: context.l10n.permOpenSettings, compact: true, kind: BuButtonKind.outline, onPressed: onSettings),
+          SistemButton(
+            label: context.l10n.permOpenSettings,
+            kind: SistemButtonKind.outline,
+            height: 44,
+            radius: 14,
+            onPressed: onSettings,
+          ),
         ],
       );
     } else {
-      action = Wrap(
+      action = Column(
         key: ValueKey('ask-${permission.name}-$asked'),
-        spacing: 8,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (asked) _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
-          BuButton(
-            label: asked ? context.l10n.permRetry : context.l10n.permAllow,
-            compact: true,
-            busy: busy,
-            onPressed: st == null ? null : onAllow,
+          if (asked) ...[
+            _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: SistemButton(
+                  label: asked ? context.l10n.permRetry : context.l10n.permAllow,
+                  height: 44,
+                  radius: 14,
+                  busy: busy,
+                  onPressed: st == null ? null : onAllow,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SistemButton(
+                  label: context.l10n.permNotNow,
+                  kind: SistemButtonKind.outline,
+                  height: 44,
+                  radius: 14,
+                  onPressed: onSkip,
+                ),
+              ),
+            ],
           ),
         ],
       );
     }
-    return BuCard(
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-            child: Icon(info.icon, size: 20, color: t.onSoft),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: t.sf,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: active ? t.pr : t.bd),
+          boxShadow: [BoxShadow(color: t.ink.withValues(alpha: .10), blurRadius: 18, offset: const Offset(0, 6), spreadRadius: -12)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(info.title, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                const SizedBox(height: 2),
-                Text(info.rationale, style: BuType.caption.copyWith(color: t.mut)),
-                const SizedBox(height: 10),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (c, a) => FadeTransition(
-                    opacity: a,
-                    child: ScaleTransition(scale: Tween(begin: .92, end: 1.0).animate(a), child: c),
+                SistemTile(icon: icon, size: 48, radius: 16, iconSize: 21),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: BuType.heading.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(text, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+                    ],
                   ),
-                  child: action,
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (c, a) => FadeTransition(
+                opacity: a,
+                child: ScaleTransition(scale: Tween(begin: .92, end: 1.0).animate(a), child: c),
+              ),
+              child: action,
+            ),
+          ],
+        ),
       ),
     );
   }

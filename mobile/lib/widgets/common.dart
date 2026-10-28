@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import '../core/locale_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../core/session.dart';
+import '../core/api.dart';
+import '../core/theme.dart';
 import '../core/typography.dart';
+import 'bu_widgets.dart' show LucideIcons;
+import 'sistem_widgets.dart';
 
 /// 2026-10-26 -> 26.10.2026
 String fmtDate(String? iso) {
@@ -74,7 +78,7 @@ class _FitCenter extends StatelessWidget {
       );
 }
 
-/// Hata durumu + yeniden dene. Ağ hatası da sunucu hatası da aynı kalıp.
+/// Hata durumu + yeniden dene (Sm3 / Sm8). Ağ hatası "Bağlantı yok", diğerleri "Bir şeyler ters gitti" başlığı alır.
 class ErrorView extends StatelessWidget {
   const ErrorView({super.key, required this.error, required this.onRetry});
 
@@ -83,22 +87,30 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final t = context.bu;
+    final net = error is ApiError && (error as ApiError).isNetwork;
     return _FitCenter(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(child: Icon(Icons.cloud_off_outlined, size: 43, color: cs.onSurfaceVariant)),
+            SistemTile(icon: net ? LucideIcons.wifiOff : LucideIcons.triangleAlert, size: 64, radius: 22, iconSize: 28),
             const SizedBox(height: 12),
-            Text(errorText(error), textAlign: TextAlign.center, style: BuType.body.copyWith(color: cs.onSurfaceVariant)),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(minimumSize: const Size(160, 48)),
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text(context.l10n.commonRetry),
+            Text(net ? context.l10n.sistemuiOfflineTitle : context.l10n.sistemuiErrorTitle,
+                textAlign: TextAlign.center, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Semantics(
+              liveRegion: true,
+              child: Text(errorText(error),
+                  textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.5)),
+            ),
+            const SizedBox(height: 14),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 180),
+              child: IntrinsicWidth(
+                child: SistemButton(label: context.l10n.commonRetry, height: 48, radius: 16, onPressed: onRetry),
+              ),
             ),
           ],
         ),
@@ -107,24 +119,45 @@ class ErrorView extends StatelessWidget {
   }
 }
 
+/// Boş durum (Sm7): ikon karosu + başlık. [title] verilirse [text] açıklama olur; [actionLabel] ile eylem düğmesi.
 class EmptyView extends StatelessWidget {
-  const EmptyView({super.key, required this.icon, required this.text});
+  const EmptyView({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.title,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final IconData icon;
   final String text;
+  final String? title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final t = context.bu;
     return _FitCenter(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(child: Icon(icon, size: 43, color: cs.onSurfaceVariant)),
+            SistemTile(icon: icon, size: 64, radius: 22, iconSize: 28),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: cs.onSurfaceVariant)),
+            if (title != null) ...[
+              Text(title!,
+                  textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+            ] else
+              Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 14),
+              SistemButton(label: actionLabel!, height: 44, radius: 14, onPressed: onAction),
+            ],
           ],
         ),
       ),
@@ -140,24 +173,7 @@ class StaleBanner extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: cs.primaryContainer,
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: cs.onPrimaryContainer),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(text,
-                style: BuType.caption.copyWith(color: cs.onPrimaryContainer, height: 1.3)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => MaintenanceBand(text: text, icon: icon);
 }
 
 /// Haber/duyuru/etkinlik rozeti: koyu zemin, açık yazı (web `--badge`).

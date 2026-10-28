@@ -90,14 +90,35 @@ class _ClubFormPageState extends State<ClubFormPage> {
     super.dispose();
   }
 
+  /// Kategori öğesi düz metin ya da {category|name|label|key} nesnesi olabilir; ad {tr,en,ar} haritası da olabilir.
+  static String? _categoryLabel(Object? e, String lang) {
+    String? pick(Object? v) {
+      if (v is String) return v.trim().isEmpty ? null : v.trim();
+      if (v is Map) return pick(v[lang]) ?? pick(v['tr']) ?? pick(v.values.isEmpty ? null : v.values.first);
+      return null;
+    }
+
+    if (e is Map) {
+      for (final k in const ['category', 'name', 'label', 'key']) {
+        final v = pick(e[k]);
+        if (v != null) return v;
+      }
+      return null;
+    }
+    return pick(e);
+  }
+
   Future<void> _loadCategories() async {
     try {
       final res = await widget.session.api.get('/communities/categories');
       if (!mounted || res is! List) return;
-      setState(() => _categories = [
-            for (final e in res)
-              if (e is Map && (e['category']?.toString().trim() ?? '').isNotEmpty) e['category'].toString().trim(),
-          ]);
+      final lang = Localizations.localeOf(context).languageCode;
+      final out = <String>[];
+      for (final e in res) {
+        final c = _categoryLabel(e, lang);
+        if (c != null && !out.contains(c)) out.add(c);
+      }
+      setState(() => _categories = out);
     } catch (_) {}
   }
 

@@ -13,11 +13,16 @@ import '../chat/chat_detail_page.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../platform/qr_scan_page.dart';
+import 'etkinlik2_apply_sheet.dart';
+import 'etkinlik2_attendance_page.dart';
+import 'etkinlik2_qr_page.dart';
+import 'etkinlik2_requests_page.dart';
+import 'etkinlik2_settings_page.dart';
+import 'etkinlik2_widgets.dart';
 import 'event_cover.dart';
 import 'event_form_page.dart';
 import 'event_parts.dart';
 import 'events_page.dart';
-import 'qr_painter.dart';
 import '../../core/typography.dart';
 
 /// Dile göre intl biçimi; yerel ayar verisi yoksa varsayılana düşer.
@@ -53,16 +58,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
   bool _loading = true;
 
   Map<String, dynamic>? _preview; // herkese açık: sayılar + en çok 8 avatar
-  List<Map<String, dynamic>> _attendees = []; // yalnızca organizatör, sayfalı
-  int? _attNext;
-  bool _attBusy = false;
   Map<String, dynamic>? _myAtt;
-  Map<String, dynamic>? _code;
-  List<Map<String, dynamic>> _attendance = [];
-  Timer? _codeTimer;
+  List<Map<String, dynamic>> _attendance = []; // yalnızca organizatör: özet sayısı için
 
   bool _rsvpBusy = false;
-  bool _codeBusy = false;
   bool _chatBusy = false;
   bool _checkBusy = false;
   bool _enterCode = false;
@@ -78,7 +77,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
   @override
   void dispose() {
-    _codeTimer?.cancel();
     _codeCtl.dispose();
     super.dispose();
   }
@@ -99,11 +97,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
       _loadExtras();
     } catch (e) {
       if (!mounted) return;
+      // Admin gizlediyse (404) etkinlik herkes için yok: "Etkinlik bulunamadı" ekranına düşer.
+      final gone = eventIsNotFound(e);
       setState(() {
-        if (_ev == null || !refresh) _error = e;
+        if (gone) _ev = null;
+        if (_ev == null || !refresh || gone) _error = e;
         _loading = false;
       });
-      if (refresh && _ev != null) _toast(errorText(e));
+      if (refresh && _ev != null && !gone) _toast(errorText(e));
     }
   }
 
@@ -127,19 +128,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     } catch (_) {}
     if (_manage) {
       try {
-        final r = await api.get('$_path/attendees?size=20');
-        if (mounted) {
-          setState(() {
-            _attendees = _list(r is Map ? r['items'] : null);
-            _attNext = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
-          });
-        }
-      } catch (_) {}
-      try {
         final r = await api.get('$_path/attendance');
         if (mounted) setState(() => _attendance = _list(r));
       } catch (_) {}
-      await _loadCode();
     }
     if (_rsvp == 'GOING') {
       try {
@@ -151,67 +142,35 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
-  Future<void> _moreAttendees() async {
-    if (_attBusy || _attNext == null) return;
-    setState(() => _attBusy = true);
-    try {
-      final r = await widget.session.api.get('$_path/attendees?size=20&cursor=$_attNext');
-      if (!mounted) return;
-      setState(() {
-        _attendees = [..._attendees, ..._list(r is Map ? r['items'] : null)];
-        _attNext = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
-      });
-    } catch (e) {
-      _toast(errorText(e));
-    } finally {
-      if (mounted) setState(() => _attBusy = false);
-    }
-  }
-
-  Future<void> _loadCode() async {
-    if (!mounted) return; // _loadExtras'ın await'lerinden sonra sayfa kapanmış olabilir
-    setState(() => _codeBusy = true);
-    try {
-      final r = await widget.session.api.get('$_path/checkin-code');
-      if (!mounted) return;
-      setState(() {
-        _code = Map<String, dynamic>.from(r as Map);
-      });
-      _codeTimer?.cancel();
-      // Kod kısa ömürlü: süresi dolmadan kendiliğinden yenilenir.
-      final secs = ((_code?['validForSeconds'] as num?)?.toInt() ?? 30).clamp(10, 120);
-      _codeTimer = Timer(Duration(seconds: secs > 5 ? secs - 3 : secs), () {
-        if (mounted) _loadCode();
-      });
-    } catch (e) {
-      if (mounted) _toast(errorText(e));
-    } finally {
-      if (mounted) setState(() => _codeBusy = false);
-    }
-  }
-
   void _toast(String m) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(m)));
   }
 
+  bool get _approval => _ev?['joinPolicy'] == 'APPROVAL';
+
   /// Katıl / İlgileniyorum: yalnızca ekler. Geri alma "Katılımı yönet" bağlantısından, onayla yapılır.
+  /// İstek ile etkinlikte `GOING` katılma isteği açar (yanıt `PENDING`).
   Future<void> _join(String status) async {
     if (_rsvpBusy) return;
     final ev = _ev!;
     final cap = (ev['capacity'] as num?)?.toInt();
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
-    if (status == 'GOING' && _rsvp != 'GOING' && cap != null && going >= cap) {
+    if (status == 'GOING' && !_approval && _rsvp != 'GOING' && cap != null && going >= cap) {
       _toast(context.l10n.eventFormJoinFull);
       return;
     }
     setState(() => _rsvpBusy = true);
     try {
-      await widget.session.api.put('$_path/rsvp', {'status': status});
+      final r = await widget.session.api.put('$_path/rsvp', {'status': status});
       if (!mounted) return;
       setState(() => _rsvpBusy = false);
-      showJoinedToast(context, _openMine);
+      if (r is Map && r['myRsvp'] == 'PENDING') {
+        _toast(context.l10n.etkinlik2RequestSentToast);
+      } else {
+        showJoinedToast(context, _openMine);
+      }
       await _load(refresh: true);
     } catch (e) {
       if (mounted) {
@@ -220,6 +179,43 @@ class _EventDetailPageState extends State<EventDetailPage> {
           if (e is ApiError && e.code == 'EVENT_REGISTRATION_CLOSED') _ev = {...ev, 'registrationClosed': true};
         });
       }
+      if (e is ApiError && e.code == 'ANSWERS_REQUIRED') {
+        await _applyWithAnswers();
+        return;
+      }
+      if (e is ApiError && (e.code == 'EVENT_FULL' || e.code == 'APPLICATION_REJECTED')) {
+        if (mounted) await _load(refresh: true);
+      }
+      _toast(eventErrorText(e));
+    }
+  }
+
+  /// Organizatör soru tanımladıysa: sorular alınır, cevaplarla `POST /applications` yapılır.
+  Future<void> _applyWithAnswers() async {
+    final api = widget.session.api;
+    var questions = <String>[];
+    try {
+      final r = await api.get('$_path/admission');
+      if (r is Map) questions = (r['questions'] as List? ?? const []).map((e) => '$e').toList();
+    } catch (e) {
+      _toast(errorText(e));
+      return;
+    }
+    if (!mounted) return;
+    final res = await showEtkinlik2ApplySheet(context, questions);
+    if (res == null || !mounted) return;
+    setState(() => _rsvpBusy = true);
+    try {
+      await api.post('$_path/applications', {
+        if (res.note != null) 'note': res.note,
+        'answers': res.answers,
+      });
+      if (!mounted) return;
+      setState(() => _rsvpBusy = false);
+      _toast(context.l10n.etkinlik2RequestSentToast);
+      await _load(refresh: true);
+    } catch (e) {
+      if (mounted) setState(() => _rsvpBusy = false);
       _toast(eventErrorText(e));
     }
   }
@@ -233,13 +229,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   /// İkincil "Katılımı yönet": onay diyaloğundan sonra RSVP silinir.
-  Future<void> _leave() async {
+  /// Bekleyen istek için "Geri çek" aynı ucu kullanır.
+  Future<void> _leave({bool withdraw = false}) async {
     if (_rsvpBusy) return;
+    final l = context.l10n;
     final ok = await confirmEventDialog(
       context,
-      title: context.l10n.eventFormLeaveTitle,
-      message: context.l10n.eventFormLeaveMessage,
-      confirmLabel: context.l10n.eventFormLeaveConfirm,
+      title: withdraw ? l.etkinlik2WithdrawTitle : l.eventFormLeaveTitle,
+      message: withdraw ? l.etkinlik2WithdrawMessage : l.eventFormLeaveMessage,
+      confirmLabel: withdraw ? l.etkinlik2Withdraw : l.eventFormLeaveConfirm,
       danger: true,
     );
     if (!ok || !mounted) return;
@@ -247,6 +245,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     try {
       await widget.session.api.delete('$_path/rsvp');
       if (mounted) setState(() => _rsvpBusy = false);
+      if (withdraw) _toast(l.etkinlik2WithdrawnToast);
       await _load(refresh: true);
     } catch (e) {
       if (mounted) setState(() => _rsvpBusy = false);
@@ -254,13 +253,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
-  /// Yönetici menüsü: düzenle / kayıtları kapat-aç / iptal et.
+  /// Yönetici menüsü: düzenle / ayarlar / kayıtları kapat-aç / iptal et.
   Future<void> _manageAction(String action) async {
     final api = widget.session.api;
     try {
       switch (action) {
         case 'edit':
           await _edit();
+          return;
+        case 'settings':
+          await _openSettings();
           return;
         case 'close':
           await api.post('$_path/close', {});
@@ -282,8 +284,44 @@ class _EventDetailPageState extends State<EventDetailPage> {
       }
       if (mounted) await _load(refresh: true);
     } catch (e) {
-      _toast(eventErrorText(e));
+      if (eventIsNotFound(e)) {
+        if (mounted) await _load(refresh: true); // gizlenmiş: "Etkinlik bulunamadı" ekranı
+      } else {
+        _toast(eventSaveErrorText(context, e));
+      }
     }
+  }
+
+  Future<void> _openSettings() async {
+    final r = await Navigator.push<Etkinlik2SettingsResult>(
+      context,
+      MaterialPageRoute(builder: (_) => Etkinlik2SettingsPage(session: widget.session, event: _ev!)),
+    );
+    if (r != null && mounted) _load(refresh: true);
+  }
+
+  Future<void> _openRequests() async {
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => Etkinlik2RequestsPage(session: widget.session, event: _ev!)),
+    );
+    if (mounted) _load(refresh: true);
+  }
+
+  Future<void> _openQr() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => Etkinlik2QrPage(session: widget.session, event: _ev!)),
+    );
+    if (mounted) _loadExtras();
+  }
+
+  Future<void> _openAttendance() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: _ev!)),
+    );
+    if (mounted) _loadExtras();
   }
 
   Future<void> _checkIn() async {
@@ -374,12 +412,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: body,
-      bottomNavigationBar: (!_loading && _ev != null && !eventIsCancelled(_ev!)) ? _actionBar() : null,
+      bottomNavigationBar: (!_loading &&
+              _ev != null &&
+              !eventIsCancelled(_ev!) &&
+              !eventIsPendingReview(_ev!) &&
+              !eventIsRejected(_ev!))
+          ? _actionBar()
+          : null,
     );
   }
 
-  /// Altta sabit eylem çubuğu: "Katıl" ya da "Etkinliklerimde" durumu.
-  Widget _actionBar() {
+  /// Altta sabit eylem çubuğu (yalnız herkese açık katılımda): "Katıl" ya da "Etkinliklerimde" + "İlgileniyorum".
+  /// İstek ile katılımda eylemler içerikteki kartta durur (bkz. [_requestCard]).
+  Widget? _actionBar() {
+    if (_approval) return null;
     final t = context.bu;
     final ev = _ev!;
     final closed = eventIsClosed(ev);
@@ -398,52 +444,120 @@ class _EventDetailPageState extends State<EventDetailPage> {
       );
     }
     final showInterest = rsvp != 'GOING' && !closed;
-    return Material(
-      color: t.bg,
-      elevation: 8,
-      shadowColor: Colors.black.withValues(alpha: .25),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-          child: Row(children: [
-            Expanded(child: main),
-            if (showInterest) ...[
-              const SizedBox(width: 10),
-              rsvp == 'INTERESTED'
-                  ? EventStatusTag(context.l10n.eventFormInterested, tone: EventTone.warn)
-                  : Tooltip(
-                      message: context.l10n.eventFormInterested,
-                      child: SizedBox(
-                        width: 54,
-                        height: 54,
-                        child: Material(
-                          color: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd)),
-                          child: InkWell(
-                            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
-                            child: Icon(LucideIcons.star, size: 20, color: t.ink),
-                          ),
-                        ),
+    final narrow = MediaQuery.of(context).size.width < 360;
+    return Et2BottomBar(
+      child: Row(children: [
+        Expanded(child: main),
+        if (showInterest) ...[
+          const SizedBox(width: 10),
+          rsvp == 'INTERESTED'
+              ? EventStatusTag(context.l10n.eventFormInterested, tone: EventTone.warn)
+              : Semantics(
+                  button: true,
+                  label: context.l10n.eventFormInterested,
+                  excludeSemantics: true,
+                  onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
+                  child: Material(
+                    color: t.sf,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18), side: BorderSide(color: t.bd, width: 1.5)),
+                    child: InkWell(
+                      customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
+                      child: Container(
+                        height: 56,
+                        constraints: const BoxConstraints(minWidth: 56),
+                        padding: EdgeInsets.symmetric(horizontal: narrow ? 0 : 16),
+                        child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(LucideIcons.star, size: 20, color: t.pr),
+                          if (!narrow) ...[
+                            const SizedBox(width: 8),
+                            Text(context.l10n.eventFormInterested,
+                                style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                          ],
+                        ]),
                       ),
                     ),
-            ],
-          ]),
-        ),
-      ),
+                  ),
+                ),
+        ],
+      ]),
     );
   }
 
+  /// İstek ile katılım kartı: istek yok / gönderildi / reddedildi / kayıt kapalı.
+  Widget _requestCard() {
+    final t = context.bu;
+    final l = context.l10n;
+    final rsvp = _rsvp;
+    if (rsvp == 'GOING') {
+      return EventJoinedChip(large: true, onTap: _openMine);
+    }
+    if (rsvp == 'PENDING') {
+      return BuCard(
+        padding: const EdgeInsets.all(12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+              child: Icon(LucideIcons.clock, size: 20, color: t.ink),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.etkinlik2RequestSent, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                Text(l.etkinlik2AwaitingReply, style: BuType.caption.copyWith(color: t.mut)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          Et2GhostButton(
+            key: const ValueKey('et2-withdraw'),
+            label: l.etkinlik2Withdraw,
+            busy: _rsvpBusy,
+            onPressed: _rsvpBusy ? null : () => _leave(withdraw: true),
+          ),
+        ]),
+      );
+    }
+    if (rsvp == 'REJECTED') {
+      return Et2Banner(icon: LucideIcons.circleX, title: l.etkinlik2RejectedTitle, text: l.etkinlik2RejectedBody);
+    }
+    if (eventIsClosed(_ev!)) {
+      return BuButton(label: l.eventFormRegsClosed, icon: LucideIcons.lock, kind: BuButtonKind.soft);
+    }
+    return BuCard(
+      padding: const EdgeInsets.all(12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        BuButton(
+          key: const ValueKey('et2-request-send'),
+          label: l.etkinlik2SendRequest,
+          busy: _rsvpBusy,
+          onPressed: _rsvpBusy ? null : () => _join('GOING'),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
+          child: Text(l.etkinlik2RequestHint, style: BuType.caption.copyWith(height: 1.4, color: t.mut)),
+        ),
+      ]),
+    );
+  }
+
+  Widget _circleBtn(IconData icon, String label, VoidCallback? onTap) =>
+      Et2CircleButton(icon: icon, label: label, onTap: onTap);
+
   List<Widget> _content(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final ev = _ev!;
     final starts = DateTime.tryParse('${ev['startsAt']}')?.toLocal();
     final ends = DateTime.tryParse('${ev['endsAt']}')?.toLocal();
     final cover = fileUrl(ev['coverUrl'] as String?);
     final club = ev['communityName'] as String?;
-    final organizer = (club != null && club.isNotEmpty) ? club : ev['organizerName'] as String?;
+    final org = ev['organizer'] is Map ? Map<String, dynamic>.from(ev['organizer'] as Map) : null;
+    final orgName = '${org?['displayName'] ?? ev['organizerName'] ?? ''}'.trim();
     final cid = (ev['communityId'] as num?)?.toInt();
     final location = ev['location'] as String?;
     final desc = ev['description'] as String?;
@@ -452,62 +566,53 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final cap = (ev['capacity'] as num?)?.toInt();
     final full = cap != null && going >= cap;
     final rsvp = _rsvp;
+    final closed = eventIsClosed(ev);
+    final cancelled = eventIsCancelled(ev);
     final pad = MediaQuery.of(context).padding;
+    final policyTag = _approval ? l.etkinlik2PolicyApprovalTag : l.etkinlik2PolicyOpen;
+    final capSub = _approval
+        ? (closed ? l.eventFormRegsClosed : l.etkinlik2ApprovalByOrganizer)
+        : (closed
+            ? l.eventFormRegsClosed
+            : (full ? null : l.etkinlik2RegOpenSlots('${cap == null ? 0 : cap - going}')));
 
     return [
       // Kapak / gradyan hero
       Container(
-        height: 210 + pad.top * .3,
-        decoration: BoxDecoration(
-          gradient: cover == null ? t.hero : null,
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-        ),
+        height: 250,
+        decoration: BoxDecoration(gradient: cover == null ? t.hero : null),
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
             if (cover != null) Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 1000)),
-            // Açık renkli kapakta geri/menü düğmeleri kaybolmasın: üstte hafif koyu geçiş.
+            // Geri/menü düğmeleri ve tarih kutusu her kapakta okunur: üstte ve altta koyu geçiş.
             if (cover != null)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: pad.top + 72,
+              Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.black.withValues(alpha: .4), Colors.black.withValues(alpha: 0)],
+                      colors: [
+                        const Color(0xFF171E33).withValues(alpha: .45),
+                        const Color(0xFF171E33).withValues(alpha: 0),
+                        const Color(0xFF171E33).withValues(alpha: .65),
+                      ],
+                      stops: const [0, .38, 1],
                     ),
                   ),
                 ),
               ),
             if (cover == null) ...[
-              Positioned(
-                  right: -40, top: -50, child: _circle(200, .15)),
+              PositionedDirectional(end: -40, top: -50, child: _circle(200, .15)),
               PositionedDirectional(start: 30, bottom: -70, child: _circle(160, .10)),
             ],
             PositionedDirectional(
               start: 20,
               top: pad.top + 12,
-              child: Semantics(
-                button: true,
-                label: context.l10n.eventFormBack,
-                excludeSemantics: true,
-                onTap: () => Navigator.pop(context),
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
-                    child: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 20, color: Colors.white),
-                  ),
-                ),
-              ),
+              child: _circleBtn(buDirIcon(context, LucideIcons.arrowLeft), l.eventFormBack, () => Navigator.pop(context)),
             ),
-            if (_manage && !eventIsCancelled(ev))
+            if (_manage && !cancelled)
               PositionedDirectional(
                 end: 20,
                 top: pad.top + 12,
@@ -515,24 +620,23 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   data: Theme.of(context).copyWith(
                       popupMenuTheme: PopupMenuThemeData(color: t.sf, surfaceTintColor: Colors.transparent)),
                   child: PopupMenuButton<String>(
-                    tooltip: context.l10n.eventFormManage,
+                    tooltip: l.eventFormManage,
                     onSelected: _manageAction,
                     itemBuilder: (_) => [
-                      PopupMenuItem(value: 'edit', child: Text(context.l10n.eventFormEdit)),
+                      PopupMenuItem(value: 'edit', child: Text(l.eventFormEdit)),
+                      PopupMenuItem(value: 'settings', child: Text(l.etkinlik2ManageSettings)),
                       PopupMenuItem(
-                          value: eventIsClosed(ev) ? 'reopen' : 'close',
-                          child: Text(eventIsClosed(ev)
-                              ? context.l10n.eventFormReopenRegs
-                              : context.l10n.eventFormCloseRegs)),
+                          value: closed ? 'reopen' : 'close',
+                          child: Text(closed ? l.eventFormReopenRegs : l.eventFormCloseRegs)),
                       PopupMenuItem(
-                          value: 'cancel',
-                          child: Text(context.l10n.eventFormCancelAction, style: TextStyle(color: t.danger))),
+                          value: 'cancel', child: Text(l.eventFormCancelAction, style: TextStyle(color: t.danger))),
                     ],
                     child: Container(
                       width: 44,
                       height: 44,
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.ellipsis, size: 20, color: Colors.white),
+                      decoration: BoxDecoration(
+                          color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                      child: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
                     ),
                   ),
                 ),
@@ -541,54 +645,70 @@ class _EventDetailPageState extends State<EventDetailPage> {
               PositionedDirectional(
                 end: 20,
                 top: pad.top + 12,
-                child: Semantics(
-                  button: true,
-                  label: context.l10n.eventFormReport,
-                  child: GestureDetector(
-                    onTap: () => ReportSheet.show(context, widget.session,
-                        targetType: 'EVENT', targetId: widget.eventId, title: context.l10n.eventFormReportEvent),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: .5), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.flag, size: 18, color: Colors.white),
-                    ),
-                  ),
+                child: _circleBtn(
+                  LucideIcons.flag,
+                  l.eventFormReport,
+                  () => ReportSheet.show(context, widget.session,
+                      targetType: 'EVENT', targetId: widget.eventId, title: l.eventFormReportEvent),
                 ),
               ),
             if (starts != null)
               PositionedDirectional(
                 start: 20,
-                bottom: 18,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 10, offset: const Offset(0, 2)),
-                  ]),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(_monthShortUpper(context, starts),
-                        style: BuType.micro.copyWith(color: const Color(0xFF8E1B13))),
-                    Text('${starts.day}',
-                        style: BuType.display.copyWith(height: 1.1, color: const Color(0xFF8E1B13))),
-                  ]),
-                ),
+                bottom: 6,
+                child: Et2DateChip(month: _monthShortUpper(context, starts), day: '${starts.day}'),
               ),
           ],
         ),
       ),
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Organizatör satırı + katılım türü etiketi
+          Container(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Row(children: [
+              BuAvatar(name: orgName, url: fileUrl(org?['avatarUrl'] as String?), size: 36),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  if (orgName.isNotEmpty)
+                    Text(orgName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  Text(l.etkinlik2Organizer,
+                      style: BuType.caption.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                ]),
+              ),
+              const SizedBox(width: 8),
+              Flexible(flex: 0, child: Et2Tag(policyTag)),
+            ]),
+          ),
+          const SizedBox(height: 6),
           Wrap(spacing: 6, runSpacing: 6, children: [
-            if (eventIsCancelled(ev)) _Pill(context.l10n.eventFormCancelledPill, warn: true),
-            if (!eventIsCancelled(ev) && eventIsClosed(ev)) _Pill(context.l10n.eventFormRegsClosed),
-            if (rsvp == 'GOING') _Pill(context.l10n.eventFormInMine, ok: true) else if (rsvp == 'INTERESTED') _Pill(context.l10n.eventFormInterested),
+            if (cancelled) _Pill(l.eventFormCancelledPill, warn: true),
+            if (eventIsPendingReview(ev)) _Pill(l.evcStatusPending),
+            if (eventIsRejected(ev)) _Pill(l.evcStatusRejected, warn: true),
+            if (!cancelled && closed) _Pill(l.eventFormRegsClosed),
+            if (rsvp == 'GOING')
+              _Pill(l.eventFormInMine, ok: true)
+            else if (rsvp == 'INTERESTED')
+              _Pill(l.eventFormInterested),
           ]),
-          if (rsvp != null || eventIsCancelled(ev) || eventIsClosed(ev)) const SizedBox(height: 8),
+          if (eventIsPendingReview(ev) || eventIsRejected(ev)) ...[
+            const SizedBox(height: 8),
+            Text(
+                eventIsPendingReview(ev)
+                    ? l.evcInfoReview
+                    : (eventRejectReason(ev) == null ? '' : l.evcRejectReason(eventRejectReason(ev)!)),
+                style: BuType.caption.copyWith(color: t.mut)),
+          ],
+          if (rsvp == 'GOING' || rsvp == 'INTERESTED' || cancelled || closed) const SizedBox(height: 8),
           Text('${ev['title'] ?? ''}',
               // Detayda başlık kesilmez (sayfa kayar); tam metin her zaman okunur.
-              style: BuType.title.copyWith(height: 1.25, color: t.ink)),
-          if (organizer != null && organizer.isNotEmpty)
+              style: BuType.title.copyWith(fontSize: 24, fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
+          if (club != null && club.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: GestureDetector(
@@ -599,9 +719,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         MaterialPageRoute(
                             builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
                 child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
-                  TextSpan(text: '${context.l10n.eventFormOrganizedBy} '),
+                  TextSpan(text: '${l.eventFormOrganizedBy} '),
                   TextSpan(
-                      text: organizer,
+                      text: club,
                       style: TextStyle(
                           fontWeight: cid == null ? FontWeight.w400 : FontWeight.w700,
                           color: cid == null ? t.mut : t.pr)),
@@ -613,29 +733,39 @@ class _EventDetailPageState extends State<EventDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: BuCard(
-          radius: 22,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          radius: 20,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           child: Column(children: [
             if (starts != null)
-              _InfoRow(
+              Et2InfoRow(
                 icon: LucideIcons.calendarDays,
                 title: _fmtDate(context, 'd MMMM y, EEEE', starts),
                 sub: ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}',
               ),
             if (location != null && location.isNotEmpty)
-              _InfoRow(icon: LucideIcons.mapPin, title: location, sub: null, top: starts != null),
+              Et2InfoRow(icon: LucideIcons.mapPin, title: location, top: starts != null),
             if (cap != null)
-              _InfoRow(
+              Et2InfoRow(
                 icon: LucideIcons.users,
-                title: full
-                    ? context.l10n.eventFormCapacityFull
-                    : context.l10n.eventFormCapacityCount(going.toString(), cap.toString()),
-                sub: null,
+                title: full ? l.eventFormCapacityFull : l.eventFormCapacityCount(going.toString(), cap.toString()),
+                sub: capSub,
+                top: true,
+              )
+            else if (_approval)
+              Et2InfoRow(
+                icon: LucideIcons.users,
+                title: l.etkinlik2PolicyApprovalTag,
+                sub: closed ? l.eventFormRegsClosed : l.etkinlik2ApprovalByOrganizer,
                 top: true,
               ),
           ]),
         ),
       ),
+      if (desc != null && desc.trim().isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+          child: Text(desc, style: BuType.body.copyWith(fontSize: 14.5, height: 1.55, color: t.ink)),
+        ),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: Row(children: [
@@ -644,47 +774,36 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(width: 12),
           ],
           Expanded(
-            child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
-              TextSpan(text: '$going', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-              TextSpan(text: ' ${context.l10n.eventFormGoingLabel}'),
-              if (interested != null) ...[
-                const TextSpan(text: ' · '),
-                TextSpan(text: '$interested', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-                TextSpan(text: ' ${context.l10n.eventFormInterestedLabel}'),
-              ],
-            ])),
+            child: Text(
+              interested != null
+                  ? l.etkinlik2GoingInterested('$going', '$interested')
+                  : l.etkinlik2GoingOnly('$going'),
+              style: BuType.caption.copyWith(fontWeight: FontWeight.w600, color: t.mut),
+            ),
           ),
         ]),
       ),
-      if (desc != null && desc.trim().isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          child: Text(desc, style: BuType.body.copyWith(height: 1.55, color: t.ink)),
-        ),
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (full && rsvp != 'GOING')
-            Text(context.l10n.eventFormFullHint,
-                style: BuType.caption.copyWith(color: t.danger)),
-          if (rsvp == 'GOING') ...[const SizedBox(height: 10), _attendanceBlock()],
-          if (rsvp != null) ...[
-            const SizedBox(height: 10),
-            BuButton(
-              label: context.l10n.eventFormChat,
-              icon: LucideIcons.messageCircle,
-              kind: BuButtonKind.outline,
-              busy: _chatBusy,
-              onPressed: _openChat,
+          if (full && rsvp != 'GOING' && !_approval)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(l.eventFormFullHint, style: BuType.caption.copyWith(color: t.danger)),
             ),
+          if (_approval && !_manage && !cancelled) ...[
+            _requestCard(),
+            const SizedBox(height: 10),
           ],
-          if (rsvp != null) ...[
+          if (rsvp == 'GOING') ...[_attendanceBlock(), const SizedBox(height: 10)],
+          if (!cancelled) _chatButton(),
+          if (rsvp == 'GOING' || rsvp == 'INTERESTED') ...[
             const SizedBox(height: 8),
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: _rsvpBusy ? null : _leave,
-                child: Text(context.l10n.eventFormManageJoin, style: BuType.label.copyWith(color: t.mut)),
+                child: Text(l.eventFormManageJoin, style: BuType.label.copyWith(color: t.mut)),
               ),
             ),
           ],
@@ -696,6 +815,26 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ]),
       ),
     ];
+  }
+
+  /// Etkinlik sohbeti: açık (herkese açıkta herkes; istek ile katılımda yalnız üye/organizatör) ya da kilitli.
+  Widget _chatButton() {
+    final l = context.l10n;
+    final member = _rsvp == 'GOING' || _manage;
+    if (_approval && !member) {
+      return Et2GhostButton(
+        key: const ValueKey('et2-chat-locked'),
+        label: l.etkinlik2ChatLocked,
+        icon: LucideIcons.lock,
+        locked: true,
+      );
+    }
+    return Et2GhostButton(
+      label: l.eventFormChat,
+      icon: LucideIcons.messageCircle,
+      busy: _chatBusy,
+      onPressed: _openChat,
+    );
   }
 
   Widget _circle(double s, double a) => Container(
@@ -797,97 +936,50 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
   Widget _manageBlock() {
     final t = context.bu;
-    final code = _code?['code'] as String?;
-    final qr = _code?['qrPayload'] as String?;
-    final exp = DateTime.tryParse('${_code?['expiresAt']}')?.toLocal();
+    final l = context.l10n;
     final present = _attendance.where((r) => r['present'] == true).length;
     final total = _attendance.length;
+    final pending = (_ev?['pendingCount'] as num?)?.toInt() ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(context.l10n.eventFormCheckInCode, style: BuType.heading.copyWith(color: t.ink)),
+      Text(l.etkinlik2ManageSection, style: BuType.heading.copyWith(color: t.ink)),
       const SizedBox(height: 10),
       BuCard(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.zero,
         child: Column(children: [
-          if (code == null)
-            Text(_codeBusy ? context.l10n.eventFormCodePreparing : context.l10n.eventFormCodeFailed, style: TextStyle(color: t.mut))
-          else ...[
-            QrView(
-              data: qr ?? code,
-              size: 220,
-              fallback: SelectableText(code,
-                  textAlign: TextAlign.center,
-                  style: BuType.bodyStrong.copyWith(color: t.pr)),
+          Et2NavRow(
+            icon: LucideIcons.qrCode,
+            title: l.eventFormCheckInCode,
+            sub: total == 0 ? l.eventFormNoAttendance : l.etkinlik2PresentOf('$present', '$total'),
+            onTap: _openQr,
+          ),
+          Et2NavRow(
+            top: true,
+            icon: LucideIcons.clipboardCheck,
+            title: l.etkinlik2ManageAttendance,
+            onTap: _openAttendance,
+          ),
+          if (_approval)
+            Et2NavRow(
+              top: true,
+              icon: LucideIcons.userCheck,
+              title: l.etkinlik2ManageRequests,
+              sub: pending == 0 ? l.etkinlik2ManageNoPending : l.etkinlik2ManagePending('$pending'),
+              badge: pending > 0 ? '$pending' : null,
+              onTap: _openRequests,
             ),
-            const SizedBox(height: 8),
-            Text(context.l10n.eventFormQrHelp,
-                textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
-            const SizedBox(height: 6),
-            Text(
-              exp == null
-                  ? context.l10n.eventFormCodeShortLived
-                  : context.l10n.eventFormCodeExpires(_hms(exp)),
-              style: BuType.caption.copyWith(color: t.mut),
-            ),
-          ],
-          const SizedBox(height: 12),
-          BuButton(
-            label: context.l10n.eventFormRefreshCode,
-            icon: LucideIcons.refreshCw,
-            kind: BuButtonKind.soft,
-            compact: true,
-            busy: _codeBusy,
-            onPressed: _loadCode,
+          Et2NavRow(
+            top: true,
+            icon: LucideIcons.settings,
+            title: l.etkinlik2ManageSettings,
+            onTap: _openSettings,
           ),
         ]),
       ),
-      const SizedBox(height: 10),
-      BuCard(
-        child: Row(children: [
-          Icon(LucideIcons.clipboardCheck, size: 18, color: t.onSoft),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              total == 0
-                  ? context.l10n.eventFormNoAttendance
-                  : context.l10n.eventFormAttendanceCount(present.toString(), total.toString()),
-              style: BuType.bodyStrong.copyWith(color: t.ink),
-            ),
-          ),
-        ]),
-      ),
-      if (_attendees.isNotEmpty) ...[
-        const SizedBox(height: 18),
-        Text(context.l10n.eventFormAttendees, style: BuType.heading.copyWith(color: t.ink)),
-        const SizedBox(height: 10),
-        for (final a in _attendees)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [
-              BuAvatar(name: a['displayName'] as String?, url: fileUrl(a['avatarUrl'] as String?), size: 36),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text('${a['displayName'] ?? ''}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(color: t.ink)),
-              ),
-              if (a['status'] == 'INTERESTED') Text(context.l10n.eventFormInterestedShort, style: BuType.caption.copyWith(color: t.mut)),
-            ]),
-          ),
-        if (_attNext != null)
-          BuButton(
-              label: context.l10n.eventFormShowMore,
-              kind: BuButtonKind.soft,
-              compact: true,
-              busy: _attBusy,
-              onPressed: _moreAttendees),
-      ],
     ]);
   }
 
   static String _two(int n) => n.toString().padLeft(2, '0');
   static String _hm(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
-  static String _hms(DateTime d) => '${_hm(d)}:${_two(d.second)}';
 }
 
 class _Pill extends StatelessWidget {
@@ -910,39 +1002,6 @@ class _Pill extends StatelessWidget {
         child: Text(text,
             style: BuType.micro.copyWith(color: ok ? t.ok : (warn ? t.danger : t.onSoft))),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.title, required this.sub, this.top = false});
-
-  final IconData icon;
-  final String title;
-  final String? sub;
-  final bool top;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Container(
-      decoration: BoxDecoration(border: top ? Border(top: BorderSide(color: t.bd)) : null),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-          child: Icon(icon, size: 18, color: t.onSoft),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: BuType.bodyStrong.copyWith(color: t.ink)),
-            if (sub != null) Text(sub!, style: BuType.caption.copyWith(color: t.mut)),
-          ]),
-        ),
-      ]),
     );
   }
 }

@@ -39,7 +39,7 @@ void main() {
       expect(find.text('Birkaç izin'), findsOneWidget);
       expect(find.text('KABUK'), findsNothing);
 
-      await tester.tap(find.text('Şimdi değil'));
+      await tester.tap(find.text('Devam'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('KABUK'), findsOneWidget);
       expect(svc.requested, isEmpty);
@@ -78,7 +78,7 @@ void main() {
         ..willAnswer(AppPermission.contacts, PermState.permanentlyDenied);
       final granted = <AppPermission>[];
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}, onGranted: granted.add));
-      expect(find.text('İzin ver'), findsNWidgets(2));
+      expect(find.text('İzin ver'), findsNWidgets(3));
 
       await tester.tap(find.text('İzin ver').at(0)); // bildirim -> verildi
       await settle(tester, const Duration(milliseconds: 400));
@@ -103,11 +103,45 @@ void main() {
       final svc = _fake(initial: {
         AppPermission.notifications: PermState.granted,
         AppPermission.contacts: PermState.granted,
+        AppPermission.camera: PermState.granted,
       });
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}));
-      expect(find.text('Verildi'), findsNWidgets(2));
+      expect(find.text('Verildi'), findsNWidgets(3));
+      expect(find.text('Adım 3 / 3'), findsOneWidget);
       expect(find.text('Başla'), findsOneWidget);
       expect(find.text('Şimdi değil'), findsNothing);
+    });
+
+    testWidgets('3 parcali adim ilerlemesi; Simdi degil karti atlar ve ilerletir', (tester) async {
+      final svc = _fake();
+      var finished = 0;
+      await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () => finished++));
+      expect(find.text('Adım 1 / 3'), findsOneWidget);
+      expect(find.byKey(const ValueKey('perm-step-2')), findsOneWidget);
+      expect(find.text('Kamera ve galeri'), findsOneWidget);
+
+      await tester.tap(find.text('Şimdi değil').first); // bildirim atlanir
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Adım 2 / 3'), findsOneWidget);
+      expect(svc.requested, isEmpty);
+      expect(finished, 0);
+
+      await tester.tap(find.text('Devam'));
+      await tester.pump();
+      expect(finished, 1);
+      _noErrors(tester);
+    });
+
+    testWidgets('kamera karti kamera iznini ister', (tester) async {
+      final svc = _fake();
+      final granted = <AppPermission>[];
+      await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}, onGranted: granted.add));
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pump();
+      await tester.tap(find.text('İzin ver').last);
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(granted, [AppPermission.camera]);
+      expect(find.text('Verildi'), findsOneWidget);
     });
 
     for (final b in Brightness.values) {
@@ -121,7 +155,7 @@ void main() {
           _noErrors(tester);
           await tester.drag(find.byType(ListView), const Offset(0, -300));
           await tester.pump();
-          await tester.tap(find.text('İzin ver'));
+          await tester.tap(find.text('İzin ver').first);
           await settle(tester, const Duration(milliseconds: 400));
           _noErrors(tester);
         });

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
-import '../../core/typography.dart';
+import 'sohbety_sheet.dart';
+import 'sohbety_widgets.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 
@@ -11,13 +12,8 @@ import '../../widgets/common.dart';
 /// Dönüş: seçilen sohbetlerin id listesi; vazgeçilirse null.
 Future<List<int>?> showForwardSheet(BuildContext context, ApiClient api,
     {int max = 5}) {
-  return showModalBottomSheet<List<int>>(
-    context: context,
-    backgroundColor: context.bu.sf,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (c) => ForwardSheet(api: api, max: max),
-  );
+  return showSohbetySheet<List<int>>(
+      context, (c) => ForwardSheet(api: api, max: max));
 }
 
 class ForwardSheet extends StatefulWidget {
@@ -111,116 +107,70 @@ class _ForwardSheetState extends State<ForwardSheet> {
     final shown = _items
         .where((c) => query.isEmpty || titleOf(context, c).toLowerCase().contains(query))
         .toList();
-    final kb = MediaQuery.viewInsetsOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: kb),
-      child: SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * .78),
-          child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                  child: Text(context.l10n.chatMiscForward,
-                      style: BuType.heading.copyWith(color: t.ink)),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: BuSearchField(
-                      hint: context.l10n.chatMiscSearchChat,
-                      controller: _q,
-                      onChanged: (_) => setState(() {})),
-                ),
-                if (_limit)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                    child: Text(
-                        context.l10n.chatMiscForwardMax(widget.max.toString()),
-                        style: BuType.caption.copyWith(color: t.danger)),
-                  ),
-                Flexible(child: _list(t, shown)),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: BuButton(
-                    label: _selected.isEmpty
-                        ? context.l10n.chatMiscSend
-                        : context.l10n
-                            .chatMiscSendCount(_selected.length.toString()),
-                    onPressed: _selected.isEmpty
-                        ? null
-                        : () =>
-                            Navigator.pop(context, List<int>.from(_selected)),
-                  ),
-                ),
-              ]),
-        ),
+    return SohbetySheetFrame(
+      title: context.l10n.chatMiscForward,
+      search: SohbetyField(
+          hint: context.l10n.chatMiscSearchChat,
+          controller: _q,
+          onChanged: (_) => setState(() {})),
+      note: _limit
+          ? Text(context.l10n.chatMiscForwardMax(widget.max.toString()),
+              style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: t.danger))
+          : null,
+      body: _list(t, shown),
+      footer: SohbetyButton(
+        label: _selected.isEmpty
+            ? context.l10n.chatMiscSend
+            : context.l10n.chatMiscSendCount(_selected.length.toString()),
+        onPressed: _selected.isEmpty
+            ? null
+            : () => Navigator.pop(context, List<int>.from(_selected)),
       ),
     );
   }
 
+  String _typeLabel(Map<String, dynamic> c) => switch (c['type'] as String?) {
+        'DIRECT' => context.l10n.sohbetyTypePerson,
+        'CLUB' => context.l10n.chatInfoClub,
+        'EVENT' => context.l10n.chatInfoEvent,
+        _ => context.l10n.chatInfoGroup,
+      };
+
   Widget _list(BuTokens t, List<Map<String, dynamic>> shown) {
-    if (_loading) return const SizedBox(height: 160, child: LoadingView());
-    if (_error != null) {
-      return SizedBox(
-          height: 220, child: ErrorView(error: _error!, onRetry: _load));
-    }
+    if (_loading) return const LoadingView();
+    if (_error != null) return ErrorView(error: _error!, onRetry: _load);
     if (shown.isEmpty) {
-      return SizedBox(
-          height: 160,
-          child: EmptyView(
-              icon: LucideIcons.messageCircle,
-              text: context.l10n.chatMiscChatNotFound));
+      return EmptyView(
+          icon: LucideIcons.messageCircle, text: context.l10n.chatMiscChatNotFound);
     }
-    return ListView.builder(
-      shrinkWrap: true,
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      itemCount: shown.length,
-      itemBuilder: (c, i) {
-        final conv = shown[i];
-        final on = _selected.contains(_id(conv));
-        final title = titleOf(context, conv);
-        final direct = (conv['type'] as String?) == 'DIRECT';
-        final peer = conv['peer'];
-        return InkWell(
-          key: ValueKey('fwd-${_id(conv)}'),
-          onTap: () => _toggle(conv),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Row(children: [
-              BuAvatar(
-                  name: title,
-                  url: direct && peer is Map
-                      ? peer['avatarUrl'] as String?
-                      : null,
-                  size: 40,
-                  square: !direct,
-                  group: !direct),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: Text(title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(color: t.ink))),
-              const SizedBox(width: 8),
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: on ? t.pr : Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: on ? t.pr : t.bd, width: 1.5),
-                ),
-                child: on
-                    ? Icon(LucideIcons.check, size: 12.5, color: t.onPr)
-                    : null,
-              ),
-            ]),
-          ),
-        );
-      },
+      children: [
+        SohbetyCard(children: [
+          for (final conv in shown)
+            SohbetyRow(
+              key: ValueKey('fwd-${_id(conv)}'),
+              minHeight: 64,
+              onTap: () => _toggle(conv),
+              child: Builder(builder: (context) {
+                final title = titleOf(context, conv);
+                final direct = (conv['type'] as String?) == 'DIRECT';
+                final peer = conv['peer'];
+                final avatar = direct && peer is Map
+                    ? peer['avatarUrl'] as String?
+                    : conv['avatarUrl'] as String?;
+                return Row(children: [
+                  SohbetyAvatar(name: title, url: avatar, size: 44),
+                  const SizedBox(width: 12),
+                  Expanded(child: SohbetyTexts(title: title, sub: _typeLabel(conv))),
+                  const SizedBox(width: 8),
+                  SohbetyCheck(on: _selected.contains(_id(conv))),
+                ]);
+              }),
+            ),
+        ]),
+      ],
     );
   }
 }

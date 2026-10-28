@@ -14,6 +14,8 @@ import 'chat_info_media.dart';
 import 'chat_info_members.dart';
 import 'chat_info_tabs.dart';
 import 'chat_media_viewer.dart';
+import 'sohbety_add_members.dart';
+import 'sohbety_widgets.dart';
 
 /// Sohbet bilgisi: avatar + başlık + hızlı eylemler, medya önizlemesi, üyeler, çıkış/engel/şikâyet.
 ///
@@ -65,14 +67,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   static const _searchThreshold = 12;
   final _scroll = ScrollController();
-  final _barKey = GlobalKey();
-  final _sectionKeys = {
-    for (final s in InfoSection.values) s: GlobalKey(),
-  };
   late InfoSection _active =
       _type == 'DIRECT' ? InfoSection.media : InfoSection.members;
-  bool _spyLock = false;
-  bool _spyQueued = false;
   String _query = '';
 
   ApiClient get _api => widget.session.api;
@@ -173,17 +169,30 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   }
 
   Future<bool> _confirm(String title, String body, String action) async {
+    final t = context.bu;
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
+        backgroundColor: t.sf,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title,
+            style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: t.ink)),
+        content: Text(body,
+            style: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.mut)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: Text(context.l10n.chatInfoCancel)),
+              child: Text(context.l10n.chatInfoCancel,
+                  style: TextStyle(color: t.mut))),
           TextButton(
-              onPressed: () => Navigator.pop(c, true), child: Text(action)),
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(action,
+                  style: TextStyle(color: t.pr, fontWeight: FontWeight.w700))),
         ],
       ),
     );
@@ -230,8 +239,10 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final t = context.bu;
     final pick = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: t.sf,
+      backgroundColor: t.bg,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
@@ -405,8 +416,10 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final has = _avatarUrl != null;
     final pick = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: t.sf,
+      backgroundColor: t.bg,
       showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (c) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
@@ -459,6 +472,29 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     }
   }
 
+  // ---- üye ekleme (yalnız kullanıcı grubu yöneticisi) ----
+
+  Future<void> _addMembers() async {
+    final have = {
+      for (final m in _members) (m['userId'] as num?)?.toInt() ?? -1,
+    };
+    final room = 50 - _members.length;
+    if (room <= 0) {
+      _toast(context.l10n.chatMiscGroupMax);
+      return;
+    }
+    final ids = await showAddMembersSheet(context, widget.session,
+        exclude: have, max: room > 49 ? 49 : room);
+    if (ids == null || ids.isEmpty || !mounted) return;
+    try {
+      await _api.post('/conversations/$_cid/members', {'userIds': ids});
+      await _loadMembers();
+      _toast(context.l10n.sohbetyAddDone);
+    } catch (e) {
+      _toast(errorText(e));
+    }
+  }
+
   // ---- arayüz ----
 
   List<InfoSection> get _sections => [
@@ -467,195 +503,139 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         InfoSection.settings,
       ];
 
-  GlobalKey _keyOf(InfoSection s) => _sectionKeys[s]!;
-
-  void _onSegment(InfoSection s) async {
-    if (_scroll.hasClients == false) return;
-    setState(() => _active = s);
-    _spyLock = true;
-    try {
-      Future<void> go() async {
-        final ctx = _keyOf(s).currentContext;
-        if (ctx == null) return;
-        final vh = _scroll.position.viewportDimension;
-        await Scrollable.ensureVisible(ctx,
-            duration: const Duration(milliseconds: 380),
-            curve: Curves.easeInOutCubic,
-            alignment: vh <= 0 ? 0 : (InfoSegmentBar.height + 4) / vh);
-      }
-
-      if (_keyOf(s).currentContext == null) {
-        // Tembel liste yüzünden hedef henüz üretilmedi: önce uca git, sonra yeniden dene.
-        await _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
-      }
-      await go();
-    } finally {
-      _spyLock = false;
-    }
-  }
-
-  bool _onScroll(ScrollNotification n) {
-    if (n.depth != 0 || _spyLock || n is! ScrollUpdateNotification) return false;
-    // Düzen güncellendikten sonra ölç (bildirim anında geometri eskidir).
-    if (!_spyQueued) {
-      _spyQueued = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _spyQueued = false;
-        if (mounted && !_spyLock) _spy();
-      });
-    }
-    return false;
-  }
-
-  /// Çubuğun altına ulaşmış son bölümü etkin yapar.
-  void _spy() {
-    final barBox = _barKey.currentContext?.findRenderObject();
-    if (barBox is! RenderBox || !barBox.attached) return;
-    final limit = barBox.localToGlobal(Offset.zero).dy + barBox.size.height + 12;
-    InfoSection? found;
-    for (final s in _sections) {
-      final box = _keyOf(s).currentContext?.findRenderObject();
-      if (box is! RenderBox || !box.attached) continue;
-      if (box.localToGlobal(Offset.zero).dy <= limit) found = s;
-    }
-    if (_scroll.hasClients &&
-        _scroll.position.maxScrollExtent > 0 &&
-        _scroll.position.pixels >= _scroll.position.maxScrollExtent - 1) {
-      found = _sections.last;
-    }
-    if (found != null && found != _active) setState(() => _active = found!);
+  void _onSegment(InfoSection s) {
+    if (s != _active) setState(() => _active = s);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final q = _query.trim().toLowerCase();
-    final shown = q.isEmpty
-        ? _members
-        : _members
-            .where((m) =>
-                ((m['displayName'] as String?) ?? '').toLowerCase().contains(q))
-            .toList();
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(
-        backgroundColor: t.bg,
-        foregroundColor: t.ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(context.l10n.chatInfoTitle,
-            style: BuType.heading.copyWith(color: t.ink)),
-      ),
-      body: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 220),
-        builder: (c, v, child) => Opacity(opacity: v, child: child),
-        child: NotificationListener<ScrollNotification>(
-          onNotification: _onScroll,
-          child: CustomScrollView(
-            controller: _scroll,
-            slivers: [
-              SliverToBoxAdapter(
-                  child: Column(children: [_header(t), _actions(t)])),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: InfoSegmentDelegate(
-                  barKey: _barKey,
-                  sections: _sections,
-                  active: _active,
-                  onSelect: _onSegment,
+      body: Column(children: [
+        SohbetyHeader(
+            title: context.l10n.chatInfoTitle,
+            onBack: () => Navigator.maybePop(context)),
+        Expanded(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: const Duration(milliseconds: 220),
+            builder: (c, v, child) => Opacity(opacity: v, child: child),
+            child: CustomScrollView(
+              controller: _scroll,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(children: [
+                    if (_active == InfoSection.settings)
+                      _compactHeader(t)
+                    else ...[_header(t), _actions(t)],
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: InfoSegmentBar(
+                          sections: _sections,
+                          active: _active,
+                          onSelect: _onSegment),
+                    ),
+                    const SizedBox(height: 16),
+                  ]),
                 ),
-              ),
-              if (!_direct) ...[
-                SliverToBoxAdapter(child: _membersHead(t)),
-                if (shown.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 8),
-                        child: Text(
-                            _members.isEmpty
-                                ? context.l10n.chatInfoNoMembers
-                                : context.l10n.chatInfoNoResults,
-                            style: BuType.body.copyWith(color: t.mut))),
-                  )
-                else
-                  SliverList.builder(
-                    itemCount: shown.length,
-                    itemBuilder: (c, i) {
-                      final m = shown[i];
-                      return ChatMemberRow(
-                        member: m,
-                        selfId: widget.session.userId,
-                        onTap: () => _openProfile(m),
-                        onRemove: _admin &&
-                                (m['userId'] as num?)?.toInt() !=
-                                    widget.session.userId &&
-                                !isAdminRole(m)
-                            ? () => _removeMember(m)
-                            : null,
-                      );
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: switch (_active) {
+                      InfoSection.members => _membersTab(t),
+                      InfoSection.media => _mediaTab(t),
+                      InfoSection.settings => _settingsTab(t),
                     },
                   ),
+                ),
+                SliverToBoxAdapter(
+                    child: SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 32)),
               ],
-              SliverToBoxAdapter(child: _mediaSection(t)),
-              SliverToBoxAdapter(child: _settingsSection(t)),
-              SliverToBoxAdapter(
-                  child: SizedBox(
-                      height: MediaQuery.of(context).padding.bottom + 32)),
-            ],
+            ),
           ),
         ),
-      ),
+      ]),
+    );
+  }
+
+  /// Başlık altı satırları: birebirde bölüm (+ durum), grupta "tür · n üye".
+  List<String> get _subLines {
+    final l = context.l10n;
+    if (_direct) {
+      final dept =
+          (_peer?['department'] ?? _peer?['faculty'] ?? '').toString().trim();
+      final s = widget.subtitle;
+      return [
+        if (dept.isNotEmpty) dept,
+        if (s != null && s.isNotEmpty) s,
+      ];
+    }
+    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
+    final kind = switch (_type) {
+      'CLUB' => l.chatInfoClubRoom,
+      'EVENT' => l.chatInfoEventRoom,
+      _ => l.chatInfoGroup,
+    };
+    return [if (n > 0) '$kind · ${l.chatInfoMemberCount(n.toString())}' else kind];
+  }
+
+  Widget _avatar(BuTokens t, double size, {bool ring = false}) {
+    final tok = _api.tokens?.access;
+    final au = _avatarUrl;
+    return SohbetyAvatar(
+      name: _title,
+      url: au,
+      size: size,
+      ring: ring,
+      headers: (tok != null && au != null && au.startsWith('/api/'))
+          ? {'Authorization': 'Bearer $tok'}
+          : null,
+    );
+  }
+
+  /// Ayarlar sekmesinde küçük başlık: 56 px avatar + ad + alt satır.
+  Widget _compactHeader(BuTokens t) {
+    final subs = _subLines;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(children: [
+        _avatar(t, 56),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: t.ink)),
+                if (subs.isNotEmpty)
+                  Text(subs.first,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontFamily: 'Inter', fontSize: 13, color: t.mut)),
+              ]),
+        ),
+      ]),
     );
   }
 
   Widget _header(BuTokens t) {
-    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
-    final kind = switch (_type) {
-      'CLUB' => context.l10n.chatInfoClubRoom,
-      'EVENT' => context.l10n.chatInfoEventRoom,
-      'DIRECT' => null,
-      _ => context.l10n.chatInfoGroup,
-    };
-    Widget? sub;
-    if (_direct) {
-      final s = widget.subtitle;
-      if (s != null && s.isNotEmpty) {
-        sub = Text(s,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: BuType.label.copyWith(color: t.mut));
-      }
-    } else {
-      sub = Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
-          children: [
-            if (kind != null) BuBadge(kind, soft: true),
-            if (n > 0)
-              Text(context.l10n.chatInfoMemberCount(n.toString()), style: BuType.label.copyWith(color: t.mut)),
-          ]);
-    }
-    final tok = _api.tokens?.access;
-    final au = _avatarUrl;
-    final avatar = BuAvatar(
-        name: _title,
-        url: au,
-        size: 96,
-        group: _conv['type'] != 'DIRECT',
-        headers: (tok != null && au != null && au.startsWith('/api/'))
-            ? {'Authorization': 'Bearer $tok'}
-            : null);
+    final subs = _subLines;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: Column(children: [
         Stack(clipBehavior: Clip.none, children: [
-          avatar,
+          _avatar(t, 96, ring: true),
           if (_admin)
             PositionedDirectional(
               end: -2,
@@ -677,29 +657,46 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               ),
             ),
         ]),
-        const SizedBox(height: 14),
+        SizedBox(height: _admin ? 4 : 12),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          if (_admin) const SizedBox(width: 44),
           Flexible(
               child: Text(_title,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: BuType.title.copyWith(color: t.ink))),
+                  style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
+                      color: t.ink))),
           if (_admin)
-            IconButton(
-              tooltip: context.l10n.chatInfoEditName,
-              visualDensity: VisualDensity.compact,
-              onPressed: _rename,
-              icon: Icon(LucideIcons.pencil, size: 14.5, color: t.mut),
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: IconButton(
+                tooltip: context.l10n.chatInfoEditName,
+                padding: EdgeInsets.zero,
+                onPressed: _rename,
+                icon: Icon(LucideIcons.pencil, size: 18, color: t.mut),
+              ),
             ),
         ]),
-        if (sub != null)
-          Padding(padding: const EdgeInsets.only(top: 6), child: sub),
+        for (final s in subs)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(s,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: t.mut)),
+          ),
       ]),
     );
   }
 
-  /// Başlıkta yalnızca "Ara" ve (oda ise) ilgili sayfa kısayolu; sessize alma Ayarlar'da.
+  /// Hızlı eylemler: Ara, (birebirde) Profil, (odada) Kulüp/Etkinlik sayfası.
   Widget _actions(BuTokens t) {
     final roomLabel = _type == 'CLUB'
         ? context.l10n.chatInfoClub
@@ -709,6 +706,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           icon: LucideIcons.search,
           label: context.l10n.chatInfoSearch,
           onTap: () => Navigator.pop(context, 'search')),
+      if (_direct && _peerId != null)
+        _QuickAction(
+            icon: LucideIcons.user,
+            label: context.l10n.sohbetyProfile,
+            onTap: () => _openProfile(_peer!)),
       if (widget.onOpenRoom != null)
         _QuickAction(
             icon: LucideIcons.arrowUpRight,
@@ -716,57 +718,86 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             onTap: widget.onOpenRoom!),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        for (var i = 0; i < items.length; i++) ...[
-          if (i > 0) const SizedBox(width: 20),
-          items[i],
-        ],
-      ]),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 20,
+          runSpacing: 12,
+          children: items),
     );
   }
 
-  Widget _sectionHead(BuTokens t, GlobalKey key, String title,
-      {String? action, VoidCallback? onAction}) {
-    return Padding(
-      key: key,
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-      child: Row(children: [
-        Expanded(
-          child: Text(title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: BuType.label.copyWith(color: t.mut, letterSpacing: .3)),
-        ),
-        if (action != null)
-          InkWell(
-            onTap: onAction,
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Text(action, style: BuType.label.copyWith(color: t.pr))),
-          ),
-      ]),
-    );
-  }
+  // ---- Üyeler ----
 
-  Widget _membersHead(BuTokens t) {
+  Widget _membersTab(BuTokens t) {
+    final q = _query.trim().toLowerCase();
+    final shown = q.isEmpty
+        ? _members
+        : _members
+            .where((m) =>
+                ((m['displayName'] as String?) ?? '').toLowerCase().contains(q))
+            .toList();
     final n = _members.length;
+    final rows = <Widget>[
+      if (_admin)
+        SohbetyRow(
+          key: const ValueKey('info-add-member'),
+          onTap: _addMembers,
+          child: Row(children: [
+            const SohbetyTile(icon: LucideIcons.plus),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text(context.l10n.sohbetyAddMember,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: t.pr))),
+          ]),
+        ),
+      for (final m in shown)
+        ChatMemberRow(
+          member: m,
+          selfId: widget.session.userId,
+          onTap: () => _openProfile(m),
+          onRemove: _admin &&
+                  (m['userId'] as num?)?.toInt() != widget.session.userId &&
+                  !isAdminRole(m)
+              ? () => _removeMember(m)
+              : null,
+        ),
+    ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _sectionHead(t, _keyOf(InfoSection.members),
+      SohbetyLabel(sohbetyUpper(
+          context,
           n == 0
               ? context.l10n.chatInfoMembers
-              : context.l10n.chatInfoMembersDot(n.toString())),
+              : context.l10n.chatInfoMembersDot(n.toString()))),
       if (n > _searchThreshold)
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: BuSearchField(
-              hint: context.l10n.chatInfoSearchMember, onChanged: (v) => setState(() => _query = v)),
+          padding: const EdgeInsets.only(bottom: 10),
+          child: SohbetyField(
+              hint: context.l10n.chatInfoSearchMember,
+              height: 48,
+              onChanged: (v) => setState(() => _query = v)),
         ),
+      if (shown.isEmpty)
+        Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Text(
+                _members.isEmpty
+                    ? context.l10n.chatInfoNoMembers
+                    : context.l10n.chatInfoNoResults,
+                style: BuType.body.copyWith(color: t.mut))),
+      if (rows.isNotEmpty) SohbetyCard(children: rows),
     ]);
   }
 
-  Widget _mediaSection(BuTokens t) {
+  // ---- Medya ----
+
+  Widget _mediaTab(BuTokens t) {
     final f = _feed;
     final has = f.items.isNotEmpty;
     Widget body;
@@ -781,62 +812,64 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               onRetry: () => f.load(first: true, want: _previewCount)));
     } else if (!has) {
       body = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
           child: Text(context.l10n.chatInfoNoMedia,
               style: BuType.body.copyWith(color: t.mut)));
     } else {
       final shown = f.items.take(_previewCount).toList();
       body = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              crossAxisCount: 3,
-              mainAxisSpacing: 2,
-              crossAxisSpacing: 2,
-              children: [
-                for (var i = 0; i < shown.length; i++)
-                  ChatInfoThumb(
-                      item: shown[i],
-                      video: f.isVideo(shown[i]),
-                      durationMs: f.videoMeta[shown[i].url],
-                      headers: _headers,
-                      onTap: () => _openViewer(i)),
-              ],
-            ),
-          ),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          crossAxisCount: 3,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+          children: [
+            for (var i = 0; i < shown.length; i++)
+              ChatInfoThumb(
+                  item: shown[i],
+                  video: f.isVideo(shown[i]),
+                  durationMs: f.videoMeta[shown[i].url],
+                  headers: _headers,
+                  onTap: () => _openViewer(i)),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: OutlinedButton(
-            onPressed: _openAllMedia,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: t.ink,
-              side: BorderSide(color: t.bd),
-              minimumSize: const Size.fromHeight(46),
-              shape: RoundedRectangleBorder(
+        const SizedBox(height: 12),
+        Semantics(
+          button: true,
+          child: Material(
+            color: t.sf,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: t.bd)),
+            child: InkWell(
+              customBorder: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
+              onTap: _openAllMedia,
+              child: SizedBox(
+                height: 44,
+                child: Center(
+                  child: Text(context.l10n.chatInfoSeeAllMedia,
+                      style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: t.pr)),
+                ),
+              ),
             ),
-            child: Text(context.l10n.chatInfoSeeAllMedia,
-                style: BuType.bodyStrong),
           ),
         ),
       ]);
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _sectionHead(
-          t,
-          _keyOf(InfoSection.media),
+      SohbetyLabel(sohbetyUpper(
+          context,
           has
-              ? context.l10n.chatInfoMediaDot(
-                  '${f.items.length}${f.more ? '+' : ''}')
-              : context.l10n.chatInfoMedia,
-          action: has ? context.l10n.chatInfoAll : null,
-          onAction: _openAllMedia),
+              ? context.l10n
+                  .chatInfoMediaDot('${f.items.length}${f.more ? '+' : ''}')
+              : context.l10n.chatInfoMedia)),
       body,
     ]);
   }
@@ -868,24 +901,17 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         fromConversationId: _cid);
   }
 
-  Widget _settingsSection(BuTokens t) {
+  // ---- Ayarlar ----
+
+  Widget _settingsTab(BuTokens t) {
     final archived = _conv['archived'] == true;
-    final roomPage = _type == 'CLUB'
-        ? context.l10n.chatInfoOpenClubPage
-        : context.l10n.chatInfoOpenEventPage;
     final main = <Widget>[
-      if (_direct && _peerId != null)
-        _SettingsRow(
-          icon: LucideIcons.user,
-          label: context.l10n.chatInfoViewProfile,
-          onTap: () => _openProfile(_peer!),
-        ),
       _SettingsRow(
         icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
         label: context.l10n.chatInfoMuteNotifications,
         sub: _muteStatus(),
+        toggled: _muted,
         onTap: _toggleMute,
-        trailing: Switch(value: _muted, onChanged: (_) => _toggleMute()),
       ),
       _SettingsRow(
         icon: LucideIcons.archive,
@@ -899,11 +925,6 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             icon: LucideIcons.lock,
             label: context.l10n.chatInfoClosed,
             sub: context.l10n.chatInfoClosedSub),
-      if (_room && widget.onOpenRoom != null)
-        _SettingsRow(
-            icon: LucideIcons.arrowUpRight,
-            label: roomPage,
-            onTap: widget.onOpenRoom),
     ];
     final danger = <Widget>[
       if (_userGroup)
@@ -918,49 +939,23 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             label: _blocked
                 ? context.l10n.chatInfoUnblock
                 : context.l10n.chatInfoBlock,
+            sub: _blocked ? null : context.l10n.chatInfoBlockBody,
             danger: true,
             onTap: _toggleBlock),
       if (_direct)
         _SettingsRow(
             icon: LucideIcons.flag,
-            label: context.l10n.chatInfoReport,
+            label: context.l10n.chatInfoReportUser,
             danger: true,
             onTap: _report),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _sectionHead(t, _keyOf(InfoSection.settings), context.l10n.chatInfoSettings),
-      _SettingsCard(rows: main),
+      SohbetyCard(children: main),
       if (danger.isNotEmpty) ...[
-        const SizedBox(height: 12),
-        _SettingsCard(rows: danger),
+        const SizedBox(height: 16),
+        SohbetyCard(children: danger),
       ],
     ]);
-  }
-}
-
-class _SettingsCard extends StatelessWidget {
-  const _SettingsCard({required this.rows});
-
-  final List<Widget> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.bd),
-      ),
-      child: Column(children: [
-        for (var i = 0; i < rows.length; i++) ...[
-          if (i > 0) Divider(height: 1, color: t.bd),
-          rows[i],
-        ],
-      ]),
-    );
   }
 }
 
@@ -970,42 +965,35 @@ class _SettingsRow extends StatelessWidget {
       required this.label,
       this.sub,
       this.onTap,
-      this.trailing,
+      this.toggled,
       this.danger = false});
 
   final IconData icon;
   final String label;
   final String? sub;
   final VoidCallback? onTap;
-  final Widget? trailing;
+  final bool? toggled;
   final bool danger;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final color = danger ? t.danger.withValues(alpha: .85) : t.ink;
-    return InkWell(
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 54),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(children: [
-            Icon(icon, size: 17, color: danger ? color : t.mut),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(label, style: BuType.body.copyWith(color: color)),
-                    if (sub != null)
-                      Text(sub!, style: BuType.caption.copyWith(color: t.mut)),
-                  ]),
-            ),
-            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-          ]),
-        ),
+    return Semantics(
+      button: onTap != null,
+      toggled: toggled,
+      child: SohbetyRow(
+        onTap: onTap,
+        child: Row(children: [
+          SohbetyTile(icon: icon, danger: danger),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SohbetyTexts(
+                title: label,
+                sub: sub,
+                weight: FontWeight.w600,
+                color: danger ? t.danger : t.ink),
+          ),
+        ]),
       ),
     );
   }
@@ -1013,9 +1001,7 @@ class _SettingsRow extends StatelessWidget {
 
 class _QuickAction extends StatelessWidget {
   const _QuickAction(
-      {required this.icon,
-      required this.label,
-      required this.onTap});
+      {required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
   final String label;
@@ -1027,27 +1013,33 @@ class _QuickAction extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
+      excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
-          width: 76,
+          width: 72,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: t.sf,
                 border: Border.all(color: t.bd),
+                boxShadow: sohbetyShadow,
               ),
-              child: Icon(icon, size: 19, color: t.ink),
+              child: Icon(icon, size: 20, color: t.ink),
             ),
             const SizedBox(height: 6),
             Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: BuType.caption.copyWith(color: t.mut)),
+                style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: t.ink)),
           ]),
         ),
       ),
@@ -1075,24 +1067,50 @@ class _RenameDialogState extends State<_RenameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final v = _ctl.text.trim();
     return AlertDialog(
-      title: Text(context.l10n.chatInfoGroupName),
+      backgroundColor: t.sf,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(context.l10n.chatInfoGroupName,
+          style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: t.ink)),
       content: TextField(
         controller: _ctl,
         autofocus: true,
         maxLength: 60,
         onChanged: (_) => setState(() {}),
-        decoration:
-            InputDecoration(hintText: context.l10n.chatInfoGroupName),
+        cursorColor: t.pr,
+        style: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.ink),
+        decoration: InputDecoration(
+          hintText: context.l10n.chatInfoGroupName,
+          filled: true,
+          fillColor: t.bg,
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: t.bd)),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: t.bd)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: t.pr)),
+        ),
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.chatInfoCancel)),
+            child: Text(context.l10n.chatInfoCancel,
+                style: TextStyle(color: t.mut))),
         TextButton(
             onPressed: v.isEmpty ? null : () => Navigator.pop(context, v),
-            child: Text(context.l10n.chatInfoSave)),
+            child: Text(context.l10n.chatInfoSave,
+                style: TextStyle(
+                    color: v.isEmpty ? t.mut : t.pr, fontWeight: FontWeight.w700))),
       ],
     );
   }

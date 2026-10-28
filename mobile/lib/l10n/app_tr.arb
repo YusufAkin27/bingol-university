@@ -3321,5 +3321,424 @@
   "akademik2Attachment": "Ek dosya",
   "akademik2RemindEach": "Her ders öncesinde",
   "akademik2BeforeClassShort": "Dersten önce",
-  "akademik2SemesterTitle": "Dönem seç"
+  "akademik2SemesterTitle": "Dönem seç",
+  "sistemuiPermStep": "Adım {current} / {total}",
+  "@sistemuiPermStep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "sistemuiPermNotifText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.",
+  "sistemuiPermContactsText": "Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.",
+  "sistemuiPermCameraTitle": "Kamera ve galeri",
+  "sistemuiPermCameraText": "QR kod okutmak, fotoğraf çekmek ve paylaşmak için.",
+  "sistemuiOfflineTitle": "Bağlantı yok",
+  "sistemuiOfflineBody": "İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.",
+  "sistemuiErrorTitle": "Bir şeyler ters gitti",
+  "sistemuiMaintTitle": "Sistem bakımda",
+  "sistemuiMaintBody": "Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.",
+  "sistemuiMaintBand": "Bazı özellikler geçici olarak kullanılamayabilir.",
+  "sistemuiUpdateVersions": "Yüklü sürüm {current} · Gerekli sürüm {required}",
+  "@sistemuiUpdateVersions": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
+    }
+  },
+  "sistemuiBlockedCode": "Hata kodu: ACCESS_BLOCKED",
+  "sistemuiQrHint": "QR kodunu çerçevenin içine getir",
+  "sistemuiQrNotice": "Yoklama etkinlik saatinde açılır. Organizatörün gösterdiği kodu okut.",
+  "sistemuiQrOr": "veya",
+  "sistemuiQrManualHint": "Örn. K7M4QX",
+  "sistemuiQrSubmit": "Yoklamayı gönder",
+  "profilyardBlockedNote": "Engellediğin kişiler profilini göremez, sana mesaj yazamaz ve seni takip edemez.",
+  "profilyardBlockedEmptyTitle": "Kimseyi engellemedin",
+  "profilyardBlockedEmptyBody": "Rahatsız edici bir kullanıcıyı profilinden engelleyebilirsin.",
+  "profilyardUnblockOf": "{name} engelini kaldır",
+  "@profilyardUnblockOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profilyardClubsManaged": "Yönettiklerim",
+  "profilyardClubsMember": "Üyesi olduklarım",
+  "profilyardClubsPending": "Bekleyen istekler",
+  "profilyardRoleOwner": "Başkan",
+  "profilyardRoleFounder": "Kurucu",
+  "profilyardRoleAdmin": "Yönetici",
+  "profilyardRoleModerator": "Moderatör",
+  "profilyardRoleMember": "Üye",
+  "profilyardClubsEmptyTitle": "Henüz bir kulübün yok",
+  "profilyardClubsEmptyBody": "Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.",
+  "profilyardClubsDiscover": "Kulüpleri keşfet",
+  "profilyardEventsAttended": "Katıldıklarım",
+  "profilyardEventsCreated": "Oluşturduklarım",
+  "profilyardEventsUpcoming": "Yaklaşan",
+  "profilyardEventsPast": "Geçmiş",
+  "profilyardEventGoing": "Katılıyorum",
+  "profilyardEventRequested": "İstek gönderildi",
+  "profilyardEventInterested": "İlgileniyorum",
+  "profilyardEventPendingCount": "{count} bekleyen istek",
+  "@profilyardEventPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profilyardEventsEmptyTitle": "Henüz etkinliğin yok",
+  "profilyardEventsEmptyBody": "Etkinliklere göz at ya da kendi etkinliğini oluştur.",
+  "profilyardFollowersTab": "Takipçiler {count}",
+  "@profilyardFollowersTab": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profilyardFollowingTab": "Takip edilenler {count}",
+  "@profilyardFollowingTab": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profilyardFollowersSearch": "Takipçilerde ara",
+  "profilyardFollowingSearch": "Takip edilenlerde ara",
+  "profilyardFollowMutual": "Takipleşiyorsunuz",
+  "profilyardFollowsYou": "Seni takip ediyor",
+  "profilyardFollowingYou": "Takiptesin",
+  "profilyardFollowNoMatch": "Eşleşen kişi yok.",
+  "profilyardFbIntro": "Uygulamayı geliştirmemize yardım et. Önerini, karşılaştığın hatayı ya da düşüncelerini yaz.",
+  "profilyardFbType": "Tür",
+  "profilyardFbTitle": "Başlık",
+  "profilyardFbMessage": "Mesaj",
+  "profilyardFbTitleHint": "Kısaca özetle",
+  "profilyardFbMessageHint": "Ayrıntıları yaz",
+  "profilyardFbCounter": "{n} / {max}",
+  "@profilyardFbCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "sohbetyAddMember": "Üye ekle",
+  "sohbetyAddCount": "Ekle ({n})",
+  "@sohbetyAddCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "sohbetyProfile": "Profil",
+  "sohbetyNewGroup": "Yeni grup",
+  "sohbetyNewGroupSub": "En fazla 50 kişi",
+  "sohbetyGroupMin": "Grup için en az 2 kişi seçin.",
+  "sohbetyTypePerson": "Kişi",
+  "sohbetyFlash": "Flaş",
+  "sohbetyStopRec": "Kaydı durdur",
+  "sohbetyTakePhoto": "Fotoğraf çek",
+  "sohbetyAddDone": "Üyeler eklendi",
+  "etkinlik2PolicyOpen": "Herkes katılabilir",
+  "etkinlik2PolicyApproval": "İstek ile",
+  "etkinlik2PolicyApprovalTag": "İstek ile katılım",
+  "etkinlik2Organizer": "Organizatör",
+  "etkinlik2JoinPolicyLabel": "Katılım",
+  "etkinlik2PolicyApprovalHint": "İstek ile seçersen katılımcıları sen onaylarsın.",
+  "etkinlik2FormClub": "Kulüp adına (isteğe bağlı)",
+  "etkinlik2ClubNone": "Seçilmedi",
+  "etkinlik2ClubSheetTitle": "Kulüp seç",
+  "etkinlik2ClubNoneOption": "Kulüp adına değil",
+  "etkinlik2ClubNoClubs": "Etkinlik açabileceğin kulüp yok.",
+  "etkinlik2ChatAutoTitle": "Etkinlik sohbeti otomatik açılır",
+  "etkinlik2ChatAutoBody": "Katılanlar ve sen sohbete girersiniz. İstek ile katılımda yalnızca onaylananlar girer.",
+  "etkinlik2CapacityOptional": "Kontenjan (isteğe bağlı)",
+  "etkinlik2Unlimited": "Sınırsız",
+  "etkinlik2RegOpenSlots": "Kayıtlar açık · {n} yer kaldı",
+  "@etkinlik2RegOpenSlots": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2RegOpen": "Kayıtlar açık",
+  "etkinlik2ApprovalByOrganizer": "Katılımı organizatör onaylar",
+  "etkinlik2SendRequest": "Katılma isteği gönder",
+  "etkinlik2RequestHint": "Organizatör onaylayınca etkinlik sohbetine girersin.",
+  "etkinlik2RequestSent": "İstek gönderildi",
+  "etkinlik2AwaitingReply": "Yanıt bekleniyor",
+  "etkinlik2Withdraw": "Geri çek",
+  "etkinlik2WithdrawTitle": "İsteği geri çek",
+  "etkinlik2WithdrawMessage": "Katılma isteğin geri çekilecek.",
+  "etkinlik2ChatLocked": "Etkinlik sohbeti · Onaylanınca açılır",
+  "etkinlik2RejectedTitle": "İsteğin reddedildi",
+  "etkinlik2RejectedBody": "Organizatör bu etkinlik için isteğini kabul etmedi.",
+  "etkinlik2RequestSentToast": "Katılma isteğin gönderildi.",
+  "etkinlik2WithdrawnToast": "İstek geri çekildi.",
+  "etkinlik2GoingInterested": "{going} kişi katılıyor · {interested} ilgileniyor",
+  "@etkinlik2GoingInterested": {
+    "placeholders": {
+      "going": {
+        "type": "String"
+      },
+      "interested": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2GoingOnly": "{going} kişi katılıyor",
+  "@etkinlik2GoingOnly": {
+    "placeholders": {
+      "going": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2ManageRequests": "Katılım istekleri",
+  "etkinlik2ManagePending": "{n} bekleyen istek",
+  "@etkinlik2ManagePending": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2ManageNoPending": "Bekleyen istek yok",
+  "etkinlik2ManageAttendance": "Katılımcılar ve yoklama",
+  "etkinlik2ManageSettings": "Etkinlik ayarları",
+  "etkinlik2ManageSection": "Yönetim",
+  "etkinlik2ReqQuota": "Kontenjan",
+  "etkinlik2ReqSlotsLeft": "{n} yer kaldı",
+  "@etkinlik2ReqSlotsLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2ReqNoLimit": "Kontenjan sınırı yok",
+  "etkinlik2ReqFullBanner": "Kontenjan doldu; yeni istekler onaylanamaz. Yer açmak için kontenjanı artır.",
+  "etkinlik2ReqPendingHeader": "Bekleyen · {n}",
+  "@etkinlik2ReqPendingHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2ReqAnsweredHeader": "Yanıtlananlar",
+  "etkinlik2ReqNone": "Bekleyen istek yok.",
+  "etkinlik2Approve": "Onayla",
+  "etkinlik2Reject": "Reddet",
+  "etkinlik2ApproveSem": "{name} isteğini onayla",
+  "@etkinlik2ApproveSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2RejectSem": "{name} isteğini reddet",
+  "@etkinlik2RejectSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2ApprovedTag": "Onaylandı",
+  "etkinlik2RejectedTag": "Reddedildi",
+  "etkinlik2ApprovedToast": "İstek onaylandı.",
+  "etkinlik2RejectedToast": "İstek reddedildi.",
+  "etkinlik2SettingsTitle": "Etkinlik ayarları",
+  "etkinlik2SettingsPolicy": "Katılım türü",
+  "etkinlik2SettingsCapMin": "Şu an {n} kişi onaylı. Kontenjanı bundan aşağı çekemezsin.",
+  "@etkinlik2SettingsCapMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2SettingsCapTooLow": "Kontenjan onaylı kişi sayısından ({n}) az olamaz.",
+  "@etkinlik2SettingsCapTooLow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2SettingsRegChat": "Kayıt ve sohbet",
+  "etkinlik2SettingsRegOpen": "Kayıtlar açık",
+  "etkinlik2SettingsRegHint": "Kapatırsan yeni istek ve katılım alınmaz.",
+  "etkinlik2SettingsChatOpen": "Etkinlik sohbeti açık",
+  "etkinlik2SettingsChatHint": "Kapatırsan mesajlar durur, geçmiş saklanır.",
+  "etkinlik2SettingsDanger": "Tehlikeli bölge",
+  "etkinlik2SettingsCancelBody": "Katılan {n} kişiye bildirim gider ve sohbet kapanır. Bu işlem geri alınamaz.",
+  "@etkinlik2SettingsCancelBody": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2SettingsSaved": "Ayarlar kaydedildi.",
+  "etkinlik2QrManualCaption": "KODU ELLE GİRMEK İÇİN",
+  "etkinlik2QrRenewsIn": "Kod {n} sn sonra yenilenir",
+  "@etkinlik2QrRenewsIn": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2AttendanceLabel": "Yoklama",
+  "etkinlik2PresentOf": "{present} / {total} kişi geldi",
+  "@etkinlik2PresentOf": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2FilterAll": "Hepsi",
+  "etkinlik2FilterPresent": "Geldi",
+  "etkinlik2FilterAbsent": "Gelmedi",
+  "etkinlik2MarkSem": "{name} geldi olarak işaretle",
+  "@etkinlik2MarkSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "etkinlik2MethodQr": "QR",
+  "etkinlik2MethodManual": "Elle",
+  "etkinlik2ShowQrSem": "QR kodunu göster",
+  "etkinlik2AttendanceEmpty": "Gösterilecek katılımcı yok.",
+  "etkinlik2MarkFailed": "Yoklama güncellenemedi.",
+  "etkinlik2ChatClosedToast": "Sohbet kapatıldı.",
+  "etkinlik2ChatOpenedToast": "Sohbet açıldı.",
+  "etkinlik2NoteLabel": "Organizatöre not (isteğe bağlı)",
+  "etkinlik2AnswerRequired": "Tüm soruları yanıtlamalısın.",
+  "etkinlik2ClubSemPrefix": "Kulüp",
+  "cevrimdisiBekleyenMesaj": "{n} mesaj bağlantı gelince gönderilecek",
+  "@cevrimdisiBekleyenMesaj": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "cevrimdisiGonderiliyor": "{n} mesaj gönderiliyor…",
+  "@cevrimdisiGonderiliyor": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "cevrimdisiGonderilemedi": "Gönderilmedi",
+  "cevrimdisiSonGuncelleme": "Son güncelleme: {zaman}",
+  "@cevrimdisiSonGuncelleme": {
+    "placeholders": {
+      "zaman": {
+        "type": "String"
+      }
+    }
+  },
+  "cevrimdisiKayitliVeri": "Kayıtlı veriler gösteriliyor",
+  "cevrimdisiBekliyor": "Bekliyor",
+  "cevrimdisiYenidenDene": "Yeniden dene",
+  "cevrimdisiMedyaBaglanti": "Bağlantı gelince tekrar deneyin",
+  "cevrimdisiInternetYok": "İnternet bağlantısı yok",
+  "bildirimmobilKanalChat": "Mesajlar",
+  "bildirimmobilKanalEvent": "Etkinlikler",
+  "bildirimmobilKanalAnnouncement": "Duyurular ve haberler",
+  "bildirimmobilKanalSocial": "Sosyal (beğeni, takip)",
+  "bildirimmobilKanalPoll": "Anketler",
+  "bildirimmobilKanalAcademic": "Ders ve sınav hatırlatmaları",
+  "evcLabelClub": "Kulüp",
+  "evcInfoInstant": "Hemen yayınlanır.",
+  "evcInfoReview": "Admin onayından sonra yayınlanır.",
+  "evcClubRequiredHint": "Önce bir kulüp seç.",
+  "evcEmptyTitle": "Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın",
+  "evcEmptyBody": "Etkinlikler kulüpler adına açılır. Bir kulübün yöneticisi olduğunda burada etkinlik oluşturabilirsin.",
+  "evcBrowseClubs": "Kulüplere göz at",
+  "evcSubmittedTitle": "Onaya gönderildi",
+  "evcSubmittedBody": "Etkinliğin admin onayından sonra yayınlanacak. Durumunu Oluşturduklarım sekmesinden takip edebilirsin.",
+  "evcOk": "Tamam",
+  "evcStatusPending": "Onay bekliyor",
+  "evcStatusRejected": "Reddedildi",
+  "evcRejectReason": "Neden: {reason}",
+  "@evcRejectReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "evcErrClubRequired": "Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.",
+  "evcErrForbidden": "Bu kulüp adına etkinlik oluşturma yetkin yok.",
+  "evcErrClubNotActive": "Bu kulüp şu anda etkin değil.",
+  "evcErrPast": "Etkinlik başlangıcı geçmişte olamaz.",
+  "evcErrDates": "Bitiş, başlangıçtan sonra olmalı.",
+  "evcErrProfanity": "Metinde uygunsuz ifade var. Lütfen düzenle.",
+  "evdLabelDate": "Tarih",
+  "evdLabelTime": "Başlangıç saati",
+  "evdLabelDuration": "Süre",
+  "evdChipToday": "Bugün",
+  "evdChipTomorrow": "Yarın",
+  "evdChipWeekend": "Bu hafta sonu",
+  "evdChipNextWeek": "Gelecek hafta",
+  "evdChipPickDate": "Tarih seç",
+  "evdChipCustomTime": "Özel saat",
+  "evdDur1h": "1 saat",
+  "evdDur2h": "2 saat",
+  "evdDurHalfDay": "Yarım gün",
+  "evdChipCustomEnd": "Bitiş tarihi seç",
+  "evdErrStartPast": "Başlangıç geçmişte olamaz.",
+  "evdErrEndBeforeStart": "Bitiş, başlangıçtan sonra olmalı.",
+  "evdEndAdjusted": "Bitiş, başlangıçtan 1 saat sonrasına otomatik ayarlandı.",
+  "evdDescCounter": "{count}/{max}",
+  "@evdDescCounter": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "evdErrDescTooLong": "Açıklama en fazla {max} karakter olabilir.",
+  "@evdErrDescTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "evdErrDescTooLongServer": "Açıklama çok uzun. Lütfen kısalt."
 }

@@ -6,6 +6,8 @@ import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../core/typography.dart';
+import 'profil_widgets.dart' show ProfilCard;
+import 'profily_widgets.dart';
 
 /// Engellenen kullanıcılar ve engeli kaldırma.
 class BlockedUsersPage extends StatefulWidget {
@@ -101,6 +103,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     Widget body;
     if (_error != null && _items == null) {
       body = ErrorView(error: _error!, onRetry: () {
@@ -112,72 +115,96 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     } else if (_items!.isEmpty) {
       body = RefreshIndicator(
         onRefresh: _load,
-        child: ListView(children: [
-          const SizedBox(height: 120),
-          EmptyView(icon: LucideIcons.ban, text: context.l10n.profilePrefsNoBlocked),
-        ]),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          children: [
+            ProfilyEmptyCard(
+              icon: LucideIcons.ban,
+              title: l.profilyardBlockedEmptyTitle,
+              body: l.profilyardBlockedEmptyBody,
+            ),
+          ],
+        ),
       );
     } else {
       body = RefreshIndicator(
         onRefresh: _load,
-        child: ListView.builder(
+        child: ListView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-          itemCount: _items!.length + (_more ? 1 : 0),
-          itemBuilder: (_, i) {
-            if (i >= _items!.length) {
-              return const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()));
-            }
-            final u = _items![i];
-            final id = ((u['id'] as num?)?.toInt() ?? -1);
-            // Büyük yazıda ad sıkışıp kaybolmasın: düğme adın altına iner.
-            final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
-            final nameText = Text((u['displayName'] as String?) ?? context.l10n.profilePrefsUser,
-                maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink));
-            final unblockBtn = BuButton(
-              label: context.l10n.profilePrefsUnblock,
-              compact: true,
-              kind: BuButtonKind.outline,
-              busy: _busy.contains(id),
-              onPressed: () => _unblock(u),
-            );
-            return Container(
-              decoration: BoxDecoration(
-                color: t.sf,
-                border: Border.all(color: t.bd),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: stacked
-                  ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 40),
-                        const SizedBox(width: 12),
-                        Expanded(child: nameText),
-                      ]),
-                      const SizedBox(height: 10),
-                      unblockBtn,
-                    ])
-                  : Row(children: [
-                      BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 40),
-                      const SizedBox(width: 12),
-                      Expanded(child: nameText),
-                      const SizedBox(width: 8),
-                      unblockBtn,
-                    ]),
-            );
-          },
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            ProfilyNote(text: l.profilyardBlockedNote),
+            const SizedBox(height: 14),
+            ProfilCard(children: [for (final u in _items!) _row(context, t, u)]),
+            if (_more)
+              const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
+          ],
         ),
       );
     }
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: context.l10n.profilePrefsBlockedTitle, onBack: () => Navigator.pop(context)),
+        BuHeader(title: l.profilePrefsBlockedTitle, onBack: () => Navigator.pop(context)),
         Expanded(child: body),
       ]),
+    );
+  }
+
+  Widget _row(BuildContext context, BuTokens t, Map<String, dynamic> u) {
+    final id = ((u['id'] as num?)?.toInt() ?? -1);
+    final name = (u['displayName'] as String?) ?? context.l10n.profilePrefsUser;
+    final dept = (u['department'] as String?)?.trim();
+    // Büyük yazıda ad sıkışıp kaybolmasın: düğme adın altına iner.
+    final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
+    final info = ProfilyTitleBlock(title: name, sub: (dept == null || dept.isEmpty) ? null : dept);
+    final busy = _busy.contains(id);
+    final unblockBtn = Semantics(
+      button: true,
+      label: context.l10n.profilyardUnblockOf(name),
+      excludeSemantics: true,
+      child: Material(
+        color: t.sf,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd, width: 1.5)),
+        child: InkWell(
+          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          onTap: busy ? null : () => _unblock(u),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 104),
+            child: Center(
+              widthFactor: 1,
+              heightFactor: 1,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: busy
+                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.pr))
+                    : Text(context.l10n.profilePrefsUnblock,
+                        textAlign: TextAlign.center,
+                        style: BuType.bodyStrong.copyWith(fontSize: 13.5, fontWeight: FontWeight.w700, color: t.pr)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final avatar = BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 44);
+    return ProfilyRow(
+      minHeight: 72,
+      child: stacked
+          ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [avatar, const SizedBox(width: 12), Expanded(child: info)]),
+              const SizedBox(height: 10),
+              unblockBtn,
+            ])
+          : Row(children: [
+              avatar,
+              const SizedBox(width: 12),
+              Expanded(child: info),
+              const SizedBox(width: 8),
+              unblockBtn,
+            ]),
     );
   }
 }

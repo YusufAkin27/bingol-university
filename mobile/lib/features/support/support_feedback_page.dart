@@ -5,6 +5,9 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import '../../l10n/app_localizations.dart';
+import '../profile/profily_widgets.dart';
+import 'destek_widgets.dart';
 import 'support_common.dart';
 import '../../core/typography.dart';
 
@@ -22,7 +25,7 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final _subject = TextEditingController();
   final _message = TextEditingController();
-  late String _category = widget.initialCategory;
+  late String _category = const ['SUGGESTION', 'BUG'].contains(widget.initialCategory) ? widget.initialCategory : 'OTHER';
   bool _busy = false;
   String? _formError;
 
@@ -108,39 +111,65 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: context.l10n.supportFeedbackTitle, onBack: () => Navigator.pop(context)),
+        BuHeader(title: l.supportFeedbackTitle, onBack: () => Navigator.pop(context)),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => _loadMine(reset: true),
-            child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 32), children: [
-              SupportLabel(context.l10n.supportLabelCategory, form: true),
-              SupportChoices(
-                  options: supportFeedbackCategories(context.l10n),
-                  value: _category,
-                  onChanged: (v) => setState(() => _category = v)),
-              SupportLabel(context.l10n.supportLabelSubject, form: true),
-              SupportField(controller: _subject, hint: context.l10n.supportHintSubject, maxLength: 120),
-              SupportLabel(context.l10n.supportLabelMessage, form: true),
-              SupportField(
-                  controller: _message, hint: context.l10n.supportHintFeedback, maxLength: 2000, minLines: 4, maxLines: 8),
+            child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 24), children: [
+              Text(l.profilyardFbIntro, style: BuType.body.copyWith(fontSize: 13.5, height: 1.45, color: t.mut)),
+              SupportLabel(l.profilyardFbType, form: true),
+              Row(children: [
+                for (final (i, o) in _types(l).indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(
+                    child: ProfilyTypeChip(
+                      label: o.$2,
+                      icon: o.$3,
+                      selected: _category == o.$1,
+                      onTap: () => setState(() => _category = o.$1),
+                    ),
+                  ),
+                ],
+              ]),
+              SupportLabel(l.profilyardFbTitle, form: true),
+              ProfilyField(controller: _subject, hint: l.profilyardFbTitleHint, label: l.profilyardFbTitle, maxLength: 80),
+              SupportLabel(l.profilyardFbMessage, form: true),
+              ProfilyField(
+                controller: _message,
+                hint: l.profilyardFbMessageHint,
+                label: l.profilyardFbMessage,
+                maxLength: 1000,
+                minLines: 5,
+                maxLines: 8,
+                counter: true,
+              ),
               if (_formError != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(_formError!, style: BuType.caption.copyWith(color: t.danger)),
                 ),
-              const SizedBox(height: 16),
-              BuButton(label: context.l10n.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
-              SupportLabel(context.l10n.supportLabelMine, form: true),
+              SupportLabel(l.supportLabelMine, form: true),
               ..._mineList(context, t),
             ]),
           ),
         ),
+        DestekBottomBar(
+          child: ProfilyPrimaryButton(label: l.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
+        ),
       ]),
     );
   }
+
+  /// Tasarımdaki üç tür çipi (Öneri / Hata / Diğer).
+  List<(String, String, IconData)> _types(AppLocalizations l) => [
+        ('SUGGESTION', l.supportFbSuggestion, LucideIcons.lightbulb),
+        ('BUG', l.supportFbBug, LucideIcons.triangleAlert),
+        ('OTHER', l.supportCatOther, LucideIcons.messageCircle),
+      ];
 
   List<Widget> _mineList(BuildContext context, BuTokens t) {
     if (_loadingMine) {

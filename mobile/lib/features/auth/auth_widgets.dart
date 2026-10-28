@@ -260,7 +260,7 @@ class PasswordField extends StatefulWidget {
   const PasswordField({
     super.key,
     required this.controller,
-    this.label = 'Şifre',
+    this.label,
     this.validator,
     this.textInputAction = TextInputAction.done,
     this.onSubmitted,
@@ -268,7 +268,7 @@ class PasswordField extends StatefulWidget {
   });
 
   final TextEditingController controller;
-  final String label;
+  final String? label;
   final String? Function(String?)? validator;
   final TextInputAction textInputAction;
   final VoidCallback? onSubmitted;
@@ -296,7 +296,7 @@ class _PasswordFieldState extends State<PasswordField> {
       onFieldSubmitted: (_) => widget.onSubmitted?.call(),
       decoration: authFieldDecoration(
         context,
-        hint: widget.label,
+        hint: widget.label ?? context.l10n.authPasswordLabel,
         icon: LucideIcons.lock,
         suffix: IconButton(
           tooltip: _hidden ? context.l10n.authShowPassword : context.l10n.authHidePassword,
