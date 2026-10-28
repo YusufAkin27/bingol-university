@@ -62,6 +62,17 @@ public class PushOutbox {
     @Column(length = 120)
     private String dedupeKey;
 
+    /** Yuktaki data.campaignId (yonetici kampanyasi); yoksa null. */
+    private Long campaignId;
+
+    /** Bildirim turu (PushMessage.category: ANNOUNCEMENT, MESSAGE...); yoksa null. */
+    @Column(length = 24)
+    private String msgType;
+
+    /** Son hata icin kisa kod (FCM hata kodu ya da dahili: EXPIRED, DEVICE_MISSING, ADMIN_CANCELLED); icerik tasimaz. */
+    @Column(length = 40)
+    private String errorCode;
+
     public void markSent(Instant now) {
         status = PushOutboxStatus.SENT;
         sentAt = now;
@@ -87,6 +98,14 @@ public class PushOutbox {
         status = PushOutboxStatus.DEAD;
         leaseUntil = null;
         lastError = clip(reason);
+    }
+
+    /** Yonetici iptali: yalniz gonderilmemis (PENDING/FAILED) kayit; kosulu cagiran denetler. */
+    public void markCancelled() {
+        status = PushOutboxStatus.CANCELLED;
+        leaseUntil = null;
+        errorCode = "ADMIN_CANCELLED";
+        lastError = "yonetici tarafindan iptal edildi";
     }
 
     public Duration age(Instant now) {

@@ -119,6 +119,7 @@ public class PushOutboxWorker {
             Instant now = Instant.now();
             int sent = repo.deleteByStatusBefore(PushOutboxStatus.SENT, now.minus(SENT_RETENTION));
             int dead = repo.deleteByStatusBefore(PushOutboxStatus.DEAD, now.minus(DEAD_RETENTION));
+            repo.deleteByStatusBefore(PushOutboxStatus.CANCELLED, now.minus(DEAD_RETENTION));
             int stuck = repo.deleteByStatusInBefore(
                     List.of(PushOutboxStatus.PENDING, PushOutboxStatus.FAILED, PushOutboxStatus.SENDING),
                     now.minus(DEAD_RETENTION));
@@ -162,9 +163,9 @@ public class PushOutboxWorker {
                 continue; // baska surec/yonetici durumunu degistirmis
             }
             if (r.age(now).compareTo(maxAge) > 0) {
-                dead(r, "suresi doldu, gonderilmedi");
+                dead(r, "suresi doldu, gonderilmedi", "EXPIRED");
             } else if (r.getDeviceId() == null || !byId.containsKey(r.getDeviceId())) {
-                dead(r, "cihaz kaydi yok (silinmis)");
+                dead(r, "cihaz kaydi yok (silinmis)", "DEVICE_MISSING");
             } else {
                 groups.computeIfAbsent(r.getPayloadJson(), k -> new ArrayList<>()).add(r);
             }
@@ -180,7 +181,7 @@ public class PushOutboxWorker {
         try {
             message = json.readValue(payload, PushMessage.class);
         } catch (RuntimeException e) {
-            group.forEach(r -> dead(r, "yuk okunamadi"));
+            group.forEach(r -> dead(r, "yuk okunamadi", "PAYLOAD_UNREADABLE"));
             return;
         }
         for (int i = 0; i < group.size(); i += 500) {
@@ -193,28 +194,31 @@ public class PushOutboxWorker {
                 SendResult res = fcm.deliver(byToken.keySet(), message);
                 Set<String> invalid = new HashSet<>(res.invalid() == null ? List.of() : res.invalid());
                 Set<String> retry = new HashSet<>(res.retryable() == null ? List.of() : res.retryable());
+                Map<String, String> codes = res.codes() == null ? Map.of() : res.codes();
                 if (!invalid.isEmpty()) {
                     devices.deleteByFcmTokenIn(invalid);
                 }
                 byToken.forEach((token, list) -> list.forEach(r -> {
                     if (invalid.contains(token)) {
-                        dead(r, "UNREGISTERED: cihaz kaydi silindi");
+                        dead(r, "UNREGISTERED: cihaz kaydi silindi", codes.getOrDefault(token, "UNREGISTERED"));
                     } else if (retry.contains(token)) {
-                        failed(r, "gecici FCM hatasi", now);
+                        failed(r, "gecici FCM hatasi", now, codes.getOrDefault(token, "UNAVAILABLE"));
                     } else {
                         r.markSent(now);
+                        r.setErrorCode(null);
                         metrics.counter("push.outbox.sent").increment();
                     }
                 }));
             } catch (RuntimeException e) {
                 // Mesaj/token icermez: yalniz hata turu
-                chunk.forEach(r -> failed(r, e.getClass().getSimpleName(), now));
+                chunk.forEach(r -> failed(r, e.getClass().getSimpleName(), now, "SEND_ERROR"));
             }
         }
     }
 
-    private void failed(PushOutbox r, String error, Instant now) {
+    private void failed(PushOutbox r, String error, Instant now, String errorCode) {
         r.markFailed(error, now, maxAttempts);
+        r.setErrorCode(errorCode);
         metrics.counter("push.outbox.failed").increment();
         if (r.getStatus() == PushOutboxStatus.DEAD) {
             metrics.counter("push.outbox.dead").increment();
@@ -222,8 +226,9 @@ public class PushOutboxWorker {
         }
     }
 
-    private void dead(PushOutbox r, String reason) {
+    private void dead(PushOutbox r, String reason, String errorCode) {
         r.markDead(reason);
+        r.setErrorCode(errorCode);
         metrics.counter("push.outbox.dead").increment();
     }
 

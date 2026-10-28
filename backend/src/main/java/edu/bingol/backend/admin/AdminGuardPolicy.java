@@ -73,6 +73,9 @@ public final class AdminGuardPolicy {
     private static final Pattern P15_POST = Pattern.compile(
             "^/api/admin/(menu/bulk-delete|pending-registrations/bulk-cancel|sources/sync)$");
 
+    /** P14 push kuyrugu: tek kaydi iptal (POST); toplu islemler BULK desenine girer. */
+    private static final Pattern PUSH_OUTBOX_CANCEL = Pattern.compile("^/api/admin/push/outbox/[^/]+/cancel$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -162,6 +165,9 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && P15_POST.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && PUSH_OUTBOX_CANCEL.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

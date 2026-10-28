@@ -10,6 +10,7 @@ import listStyles from '../community/review.module.css';
 import { useAdminNames, useAudienceSummary, useTargetSummary } from './format';
 import { campaignActions, isLive, LANGS } from './lib';
 import { adminErrorMessage, Callout } from './shared';
+import { CampaignFailures } from '../pushops/CampaignFailures';
 import styles from './campaigns.module.css';
 
 export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?: CampaignView; onClose: () => void }) {
@@ -150,6 +151,7 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
                 </section>
               ))}
             </div>
+            {(c.status === 'SENT' || c.status === 'SENDING' || c.status === 'FAILED') && <CampaignFailures campaignId={c.id} />}
           </div>
         )}
       </Drawer>

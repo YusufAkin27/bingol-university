@@ -74,6 +74,7 @@ export const paths = {
     sources: `${ADMIN_BASE}/sources`,
     mailTemplates: `${ADMIN_BASE}/mail/templates`,
     mailCampaigns: `${ADMIN_BASE}/mail/campaigns`,
+    pushOps: `${ADMIN_BASE}/push/ops`,
     mailSuppressions: `${ADMIN_BASE}/mail/suppressions`,
     mailQueue: `${ADMIN_BASE}/mail/queue`,
     pushOps: `${ADMIN_BASE}/push/ops`,

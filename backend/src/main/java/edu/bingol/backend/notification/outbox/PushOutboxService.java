@@ -135,6 +135,9 @@ public class PushOutboxService {
             o.setNextAttemptAt(now);
             o.setCreatedAt(now);
             o.setDedupeKey(key);
+            o.setCampaignId(campaignIdOf(message));
+            o.setMsgType(message.category() == null ? null
+                    : message.category().substring(0, Math.min(message.category().length(), 24)));
             rows.add(o);
         }
         if (rows.isEmpty()) {
@@ -144,6 +147,19 @@ public class PushOutboxService {
         metrics.counter("push.outbox.enqueued").increment(rows.size());
         events.publishEvent(new PushQueued(rows.size()));
         return rows.size();
+    }
+
+    /** Yuktaki data.campaignId (yonetici kampanyasi); sayi degilse null. */
+    static Long campaignIdOf(PushMessage message) {
+        String v = message.data() == null ? null : message.data().get("campaignId");
+        if (v == null || v.isBlank() || v.length() > 18) {
+            return null;
+        }
+        try {
+            return Long.valueOf(v.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public Stats stats() {

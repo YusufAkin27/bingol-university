@@ -77,30 +77,39 @@ public class FirebaseFcmSender implements FcmSender {
         List<String> all = new ArrayList<>(tokens);
         List<String> invalid = new ArrayList<>();
         List<String> retryable = new ArrayList<>();
+        Map<String, String> codes = new java.util.HashMap<>();
         for (int i = 0; i < all.size(); i += BATCH) {
             List<String> batch = all.subList(i, Math.min(i + BATCH, all.size()));
             try {
                 BatchResponse res = messaging.sendEachForMulticast(toMulticast(batch, m));
-                collect(batch, res.getResponses(), invalid, retryable);
+                collect(batch, res.getResponses(), invalid, retryable, codes);
             } catch (FirebaseMessagingException | RuntimeException e) {
                 log.warn("FCM toplu gonderimi basarisiz: {}", e.getClass().getSimpleName());
                 retryable.addAll(batch);
+                batch.forEach(t -> codes.put(t, "UNAVAILABLE"));
             }
         }
-        return new SendResult(invalid, retryable);
+        return new SendResult(invalid, retryable, codes);
     }
 
     private static void collect(List<String> batch, List<SendResponse> responses, List<String> invalid,
-                                List<String> retryable) {
+                                List<String> retryable, Map<String, String> codes) {
         for (int j = 0; j < responses.size(); j++) {
             SendResponse r = responses.get(j);
             if (r.isSuccessful() || r.getException() == null) {
                 continue;
             }
             FirebaseMessagingException ex = r.getException();
+            String code = ex.getMessagingErrorCode() == null ? "UNAVAILABLE" : ex.getMessagingErrorCode().name();
             switch (FcmErrors.classify(ex.getMessagingErrorCode(), ex.getMessage())) {
-                case INVALID_TOKEN -> invalid.add(batch.get(j));
-                case RETRYABLE -> retryable.add(batch.get(j));
+                case INVALID_TOKEN -> {
+                    invalid.add(batch.get(j));
+                    codes.put(batch.get(j), code);
+                }
+                case RETRYABLE -> {
+                    retryable.add(batch.get(j));
+                    codes.put(batch.get(j), code);
+                }
                 default -> log.warn("FCM kalici hata: {}", ex.getMessagingErrorCode());
             }
         }
