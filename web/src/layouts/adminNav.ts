@@ -73,6 +73,7 @@ export const adminNav: AdminNavGroup[] = [
       },
       { id: 'clubAudit', to: paths.admin.clubAudit, labelKey: 'admin.nav.clubAudit', icon: 'shield' },
       { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
+      { id: 'system', to: paths.admin.system, labelKey: 'admin.nav.system', icon: 'chart' },
     ],
   },
   {
@@ -105,7 +106,11 @@ export const adminNav: AdminNavGroup[] = [
   {
     id: 'notifications',
     labelKey: 'admin.nav.group.notifications',
-    items: [{ id: 'campaigns', to: paths.admin.campaigns, labelKey: 'admin.nav.campaigns', icon: 'bell' }],
+    items: [
+      { id: 'campaigns', to: paths.admin.campaigns, labelKey: 'admin.nav.campaigns', icon: 'bell' },
+      { id: 'mailTemplates', to: paths.admin.mailTemplates, labelKey: 'admin.nav.mailTemplates', icon: 'file' },
+      { id: 'mailCampaigns', to: paths.admin.mailCampaigns, labelKey: 'admin.nav.mailCampaigns', icon: 'mail' },
+    ],
   },
   {
     id: 'system',

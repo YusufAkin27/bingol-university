@@ -72,6 +72,18 @@ const m = {
   'admin.events.created': 'Oluşturulma',
   'admin.events.timing.past': 'Tarihi geçmiş',
   'admin.events.timing.soon': 'Yakında başlıyor ({when})',
+  'admin.events.scope.label': 'Kapsam',
+  'admin.events.scope.all': 'Tümü',
+  'admin.events.scope.club': 'Kulüplü',
+  'admin.events.scope.standalone': 'Kulüpsüz',
+  'admin.events.search': 'Başlık, yer, kulüp veya organizatör ara',
+  'admin.events.filterNote': 'Arama ve kapsam yalnızca yüklenen kayıtlar üzerinde çalışır.',
+  'admin.events.standalone': 'Kulüpsüz',
+  'admin.events.joinPolicy': 'Katılım türü',
+  'admin.events.join.OPEN': 'Açık katılım',
+  'admin.events.join.APPROVAL': 'İstekle katılım',
+  'admin.events.pendingRequests': '{n} bekleyen istek',
+  'admin.events.pendingRequestsLabel': 'Bekleyen katılım isteği',
 
   // ---- kampanyalar: liste ----
   'admin.campaigns.title': 'Kampanyalar',

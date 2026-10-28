@@ -76,12 +76,10 @@ function TargetPreview({ report }: { report: ReportView }) {
     report.targetType === 'COMMUNITY'
       ? paths.admin.communities
       : report.targetType === 'EVENT'
-        ? paths.admin.events
+        ? `${paths.admin.events}?open=${report.targetId}`
         : report.targetType === 'FEED_POST'
           ? `${paths.admin.posts}?open=${report.targetId}`
-          : report.targetType === 'FEED_COMMENT'
-            ? paths.admin.posts
-            : null;
+          : null;
 
   return (
     <div className={styles.preview}>
@@ -122,7 +120,11 @@ function TargetPreview({ report }: { report: ReportView }) {
         {isUser && (
           <Link to={paths.admin.user(report.targetId)}>{t('admin.reports.preview.openUser')}</Link>
         )}
-        {listLink && <Link to={listLink}>{t('admin.reports.preview.openList')}</Link>}
+        {listLink && (
+          <Link to={listLink}>
+            {t(report.targetType === 'EVENT' ? 'admin.events.openFromReport' : 'admin.reports.preview.openList')}
+          </Link>
+        )}
       </div>
     </div>
   );

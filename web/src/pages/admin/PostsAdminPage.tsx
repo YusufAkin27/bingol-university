@@ -1,6 +1,7 @@
 // SAYFA: Gönderiler (/admin/posts) — Keşfet akışındaki gönderilerin moderasyonu.
-// API: GET /api/admin/posts (+ /stats, /{id}, /{id}/comments), POST /{id}/hide|unhide, DELETE /{id} (api/adminPosts.ts).
-// Medya küçük resimleri yetkili uçtan (Bearer) blob olarak alınır; gizleme/silme denetim kaydına yazılır.
+// API: GET /api/admin/posts (süzgeçler: q, status, authorId, minReports, from/to; + /stats, /{id}), PATCH /{id} (metin düzenle),
+// POST /{id}/hide|unhide, DELETE /{id} (api/adminPosts.ts). Önceden onay yok: gönderiler yayınlanır, yönetici sonradan denetler.
+// Medya küçük resimleri yetkili uçtan (Bearer) blob olarak alınır; düzenleme/gizleme/silme denetim kaydına yazılır.
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -16,19 +17,21 @@ import {
   Input,
   LoadMore,
   PageHeader,
+  Select,
   Skeleton,
   StatCard,
-  Tabs,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
 import { Lightbox } from './chat/Lightbox';
 import { PostDetailDrawer } from './posts/PostDetail';
-import { StoriesTab, TagsTab } from './posts/SocialTabs';
 import { PostActionButtons, PostMediaThumb, StatusBadges, usePostActions } from './posts/PostParts';
 import { EMPTY_POST_FILTERS, excerpt, mediaToLightbox, type PostFilterState } from './posts/postsLogic';
+import type { AdminPostStatus } from '../../api/adminPosts';
 import styles from './posts/posts.module.css';
+
+const STATUS_OPTIONS: AdminPostStatus[] = ['ALL', 'VISIBLE', 'HIDDEN', 'DELETED'];
 
 function PostRowItem({
   post,
@@ -74,7 +77,6 @@ function PostRowItem({
       <div className={styles.rowHead}>
         <span className={styles.meta}>
           <span>{t('admin.posts.likes', { n: post.likeCount })}</span>
-          <span>{t('admin.posts.comments', { n: post.commentCount })}</span>
         </span>
         <span className={styles.spacer} />
         <Button size="sm" variant="ghost" onClick={onOpen}>
@@ -126,19 +128,44 @@ function PostsTab() {
       <div className={styles.statGrid} data-testid="post-stats">
         <StatCard title={t('admin.posts.stats.posts')} value={n(s?.postCount)} loading={stats.isLoading}
           hint={s ? t('admin.posts.stats.last24h', { n: formatNumber(s.last24h.postCount) }) : undefined} />
-        <StatCard title={t('admin.posts.stats.comments')} value={n(s?.commentCount)} loading={stats.isLoading} />
         <StatCard title={t('admin.posts.stats.likes')} value={n(s?.likeCount)} loading={stats.isLoading} />
         <StatCard title={t('admin.posts.stats.media')} value={n(s?.mediaCount)} loading={stats.isLoading} />
         <StatCard title={t('admin.posts.stats.hidden')} value={n(s?.hiddenCount)} loading={stats.isLoading} />
+        <StatCard title={t('admin.posts.stats.reported')} value={n(s?.openReportedCount)} loading={stats.isLoading} />
       </div>
 
       <div className={styles.filters} role="search" aria-label={t('admin.posts.filters')}>
+        <FormField label={t('admin.posts.filter.status')}>
+          <Select value={filters.status} onChange={(e) => set({ status: e.target.value as AdminPostStatus })}>
+            {STATUS_OPTIONS.map((st) => (
+              <option key={st} value={st}>
+                {t(`admin.posts.status.${st}` as const)}
+              </option>
+            ))}
+          </Select>
+        </FormField>
         <FormField label={t('admin.posts.filter.q')}>
           <Input
             type="search"
             value={filters.q}
             placeholder={t('admin.posts.filter.qPlaceholder')}
             onChange={(e) => set({ q: e.target.value })}
+          />
+        </FormField>
+        <FormField label={t('admin.posts.filter.authorId')}>
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={filters.authorId}
+            onChange={(e) => set({ authorId: e.target.value.replace(/\D/g, '') })}
+          />
+        </FormField>
+        <FormField label={t('admin.posts.filter.minReports')}>
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={filters.minReports}
+            onChange={(e) => set({ minReports: e.target.value.replace(/\D/g, '') })}
           />
         </FormField>
         <FormField label={t('admin.posts.filter.from')}>
@@ -148,8 +175,6 @@ function PostsTab() {
           <Input type="date" value={filters.to} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
         <div className={styles.checks}>
-          <Checkbox label={t('admin.posts.filter.hidden')} checked={filters.hidden} onChange={(e) => set({ hidden: e.target.checked })} />
-          <Checkbox label={t('admin.posts.filter.deleted')} checked={filters.deleted} onChange={(e) => set({ deleted: e.target.checked })} />
           <Checkbox label={t('admin.posts.filter.hasMedia')} checked={filters.hasMedia} onChange={(e) => set({ hasMedia: e.target.checked })} />
           <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY_POST_FILTERS)}>
             {t('admin.posts.filter.reset')}
@@ -194,27 +219,13 @@ function PostsTab() {
   );
 }
 
-type SocialTab = 'posts' | 'stories' | 'tags';
-
 export default function PostsAdminPage() {
   const { t } = useI18n();
   usePageTitle(t('admin.posts.title'));
-  const [tab, setTab] = useState<SocialTab>('posts');
   return (
     <>
       <PageHeader title={t('admin.posts.title')} description={t('admin.posts.subtitle')} />
-      <Tabs
-        label={t('admin.social.tabs')}
-        value={tab}
-        onChange={(id) => setTab(id as SocialTab)}
-        tabs={[
-          { id: 'posts', label: t('admin.social.tab.posts') },
-          { id: 'stories', label: t('admin.social.tab.stories') },
-          { id: 'tags', label: t('admin.social.tab.tags') },
-        ]}
-      >
-        {tab === 'posts' ? <PostsTab /> : tab === 'stories' ? <StoriesTab /> : <TagsTab />}
-      </Tabs>
+      <PostsTab />
     </>
   );
 }

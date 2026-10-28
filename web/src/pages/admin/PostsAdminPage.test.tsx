@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
 import PostsAdminPage from './PostsAdminPage';
-import { excerpt, mediaToLightbox, postStatus } from './posts/postsLogic';
+import { excerpt, mediaToLightbox, postStatus, postTextError } from './posts/postsLogic';
 
 const author = { id: 7, displayName: 'Ayse Yilmaz', email: 'ayse@bingol.edu.tr', avatarUrl: null };
 const post = (id: number, over: Record<string, unknown> = {}) => ({
@@ -13,7 +13,6 @@ const post = (id: number, over: Record<string, unknown> = {}) => ({
   text: `gonderi-${id}`,
   media: [],
   likeCount: 3,
-  commentCount: 2,
   mediaCount: 0,
   hidden: false,
   deleted: false,
@@ -23,6 +22,7 @@ const post = (id: number, over: Record<string, unknown> = {}) => ({
   hiddenAt: null,
   deletedAt: null,
   deletedBy: null,
+  openReportCount: 0,
   ...over,
 });
 const withMedia = {
@@ -31,23 +31,7 @@ const withMedia = {
   ],
   mediaCount: 1,
 };
-const comment = (id: number, over: Record<string, unknown> = {}) => ({
-  id,
-  postId: 1,
-  parentId: null,
-  rootId: id,
-  depth: 0,
-  author,
-  replyToUserId: null,
-  text: `yorum-${id}`,
-  replyCount: 0,
-  hidden: false,
-  deleted: false,
-  createdAt: '2026-02-01T11:00:00Z',
-  deletedAt: null,
-  ...over,
-});
-const counts = { postCount: 12, commentCount: 30, likeCount: 99, mediaCount: 8, hiddenCount: 2, deletedCount: 1 };
+const counts = { postCount: 12, likeCount: 99, mediaCount: 8, hiddenCount: 2, deletedCount: 1 };
 
 interface Call {
   method: string;
@@ -61,20 +45,22 @@ function setup(opts: { listError?: boolean } = {}) {
     const method = init.method ?? 'GET';
     calls.push({ method, url, body: init.body ? JSON.parse(String(init.body)) : undefined });
     if (url.includes('/admin/posts/media/')) return new Response(new Blob(['x']), { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
-    if (url.includes('/admin/posts/stats')) return jsonResponse(200, { ...counts, last24h: { ...counts, postCount: 4 } });
-    if (/\/admin\/posts\/1\/comments/.test(url)) return jsonResponse(200, { items: [comment(11), comment(12, { depth: 1, parentId: 11 })], nextCursor: null });
+    if (url.includes('/admin/posts/stats')) return jsonResponse(200, { ...counts, openReportedCount: 3, last24h: { ...counts, postCount: 4 } });
     if (/\/admin\/posts\/1\/(hide|unhide)/.test(url)) return jsonResponse(200, post(1, { hidden: url.endsWith('/hide') }));
-    if (/\/admin\/comments\/\d+\/(hide|unhide)/.test(url)) return jsonResponse(200, comment(11, { hidden: true }));
+    if (method === 'PATCH' && /\/admin\/posts\/1$/.test(url)) return jsonResponse(200, post(1, { text: 'yeni', editedAt: '2026-02-04T10:00:00Z' }));
     if (method === 'DELETE') return new Response(null, { status: 204 });
     if (/\/admin\/posts\/1$/.test(url)) {
-      return jsonResponse(200, { post: post(1, withMedia), comments: { items: [], nextCursor: null } });
+      return jsonResponse(200, {
+        post: post(1, { ...withMedia, openReportCount: 1 }),
+        reports: [{ id: 9, reason: 'SPAM', note: 'reklam', status: 'OPEN', createdAt: '2026-02-01T12:00:00Z' }],
+      });
     }
     if (url.includes('/admin/posts')) {
       if (opts.listError) return jsonResponse(500, { code: 'X', message: 'x' });
       if (url.includes('cursor=1')) return jsonResponse(200, { items: [post(0 + 9)], nextCursor: null });
       return jsonResponse(200, {
-        items: [post(1, withMedia), post(2, { hidden: true, hiddenReason: 'spam', hiddenAt: '2026-02-02T10:00:00Z' }), post(3, { deleted: true, deletedAt: '2026-02-03T10:00:00Z' })],
-        nextCursor: url.includes('hidden=true') ? null : 1,
+        items: [post(1, withMedia), post(2, { hidden: true, hiddenReason: 'spam', hiddenAt: '2026-02-02T10:00:00Z', openReportCount: 2 }), post(3, { deleted: true, deletedAt: '2026-02-03T10:00:00Z' })],
+        nextCursor: url.includes('status=HIDDEN') ? null : 1,
       });
     }
     return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
@@ -97,6 +83,14 @@ describe('postsLogic', () => {
     expect(postStatus({ hidden: true, deleted: true })).toBe('deleted');
     expect(postStatus({ hidden: true, deleted: false })).toBe('hidden');
     expect(postStatus({ hidden: false, deleted: false })).toBe('visible');
+  });
+  it('postTextError mirrors the server format rule', () => {
+    expect(postTextError('')).toBeNull();
+    expect(postTextError('  guzel bir gun  ')).toBeNull();
+    expect(postTextError('bir iki uc dort bes alti yedi')).toBeNull();
+    expect(postTextError('bir iki uc dort bes alti yedi sekiz')).toBe('tooLong');
+    expect(postTextError('x'.repeat(61))).toBe('tooLong');
+    expect(postTextError('iki\nsatir')).toBe('newline');
   });
   it('mediaToLightbox maps admin media urls', () => {
     const items = mediaToLightbox(post(1, withMedia) as never);
@@ -129,10 +123,14 @@ describe('PostsAdminPage', () => {
     const calls = setup();
     renderWithProviders(<PostsAdminPage />);
     await screen.findAllByTestId('post-row');
-    await userEvent.click(screen.getByLabelText('Yalnız gizli'));
-    await waitFor(() => expect(calls.some((c) => c.url.includes('hidden=true'))).toBe(true));
-    await userEvent.type(screen.getByLabelText('Yazar (ad veya e-posta)'), 'ayse');
+    await userEvent.selectOptions(screen.getByLabelText('Durum'), 'HIDDEN');
+    await waitFor(() => expect(calls.some((c) => c.url.includes('status=HIDDEN'))).toBe(true));
+    await userEvent.type(screen.getByLabelText('Metin veya yazar (ad / e-posta)'), 'ayse');
     await waitFor(() => expect(calls.some((c) => c.url.includes('q=ayse'))).toBe(true));
+    await userEvent.type(screen.getByLabelText('Yazar numarası'), '7');
+    await waitFor(() => expect(calls.some((c) => c.url.includes('authorId=7'))).toBe(true));
+    await userEvent.type(screen.getByLabelText('En az açık şikâyet'), '2');
+    await waitFor(() => expect(calls.some((c) => c.url.includes('minReports=2'))).toBe(true));
   });
 
   it('hides with a reason, unhides, and deletes after confirmation', async () => {
@@ -154,21 +152,44 @@ describe('PostsAdminPage', () => {
     await userEvent.click(within(rows[0]).getByRole('button', { name: 'Sil' }));
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false); // onaysız silinmez
     const dialog = await screen.findByRole('dialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Sil' }));
-    await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/admin/posts/1'))).toBe(true));
+    await userEvent.type(within(dialog).getByLabelText('Gerekçe (isteğe bağlı)'), 'reklam');
+    await userEvent.click(within(dialog).getByTestId('delete-confirm'));
+    await waitFor(() => {
+      const c = calls.find((x) => x.method === 'DELETE' && x.url.endsWith('/admin/posts/1'));
+      expect(c?.body).toEqual({ reason: 'reklam' });
+    });
   });
 
-  it('opens the detail panel with comments and moderates a comment', async () => {
+  it('edits the text of a post (PATCH) and validates the format rule', async () => {
     const calls = setup();
+    renderWithProviders(<PostsAdminPage />);
+    const rows = await screen.findAllByTestId('post-row');
+    await userEvent.click(within(rows[0]).getByRole('button', { name: 'Düzenle' }));
+    const input = await screen.findByLabelText('Gönderi metni');
+    expect(input).toHaveValue('gonderi-1');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'bir iki uc dort bes alti yedi sekiz');
+    expect(await screen.findByText('En çok 7 kelime ve 60 karakter.')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-confirm')).toBeDisabled();
+    await userEvent.clear(input);
+    await userEvent.type(input, 'yeni');
+    await userEvent.click(screen.getByTestId('edit-confirm'));
+    await waitFor(() => {
+      const c = calls.find((x) => x.method === 'PATCH' && x.url.endsWith('/admin/posts/1'));
+      expect(c?.body).toEqual({ text: 'yeni' });
+    });
+  });
+
+  it('opens the detail panel with the reports of the post', async () => {
+    setup();
     renderWithProviders(<PostsAdminPage />);
     const rows = await screen.findAllByTestId('post-row');
     await userEvent.click(within(rows[0]).getByRole('button', { name: 'Ayrıntı' }));
     expect(await screen.findByTestId('post-detail')).toBeInTheDocument();
     expect(screen.getByTestId('post-detail-text')).toHaveTextContent('gonderi-1');
-    const comments = await screen.findAllByTestId('post-comment');
-    expect(comments).toHaveLength(2);
-    await userEvent.click(within(comments[0]).getByRole('button', { name: 'Gizle' }));
-    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.includes('/admin/comments/11/hide'))).toBe(true));
+    const reports = await screen.findByTestId('post-reports');
+    expect(within(reports).getByText('reklam')).toBeInTheDocument();
+    expect(within(reports).getByText('Açık')).toBeInTheDocument();
   });
 
   it('shows an error state with retry when the list fails', async () => {

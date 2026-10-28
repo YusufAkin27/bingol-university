@@ -387,3 +387,50 @@
   overflow-wrap: anywhere;
   font-size: var(--text-sm);
 }
+
+/* alıcı önizleme paneli */
+.previewBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2, var(--surface));
+}
+.previewStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-3);
+}
+.previewStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.previewStat strong {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+}
+.previewList {
+  margin: 0;
+  padding-inline-start: var(--space-5, 1.25rem);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.textareaMono {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-sm);
+}
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.statusTabs {
+  margin-block-end: var(--space-3);
+}

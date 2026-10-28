@@ -5,7 +5,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicApi } from '../../api/client';
-import { countAudience, createCampaign } from '../../api/campaigns';
+import { getFaculties } from '../../api/appInfo';
+import { countAudience, createCampaign, sendTestCampaign } from '../../api/campaigns';
 import { qk } from '../../api/queryKeys';
 import type { AudienceType, Lang } from '../../api/types';
 import {
@@ -18,27 +19,33 @@ import {
   PageHeader,
   Select,
   Spinner,
+  Textarea,
   useToast,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
-import { usePageTitle } from '../../lib/hooks';
+import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { AudiencePreviewPanel } from './campaigns/AudiencePreviewPanel';
 import { ContentEditor } from './campaigns/ContentEditor';
 import { PhonePreview } from './campaigns/PhonePreview';
 import { SendDialog } from './campaigns/SendDialog';
 import { UserPicker } from './campaigns/UserPicker';
 import {
+  AUDIENCE_LANGS,
   AUDIENCE_TYPES,
+  MAX_EMAILS,
   MAX_SCHEDULE_DAYS,
   NOTIF_TYPES,
   TARGET_TYPES,
   audienceFromState,
+  buildQuickBody,
   buildRequest,
   clearDraft,
   emptyState,
   isDraftEmpty,
   loadDraft,
   localToIso,
+  parseEmailList,
   saveDraft,
   toLocalInput,
   type ComposeNotifType,
@@ -88,14 +95,22 @@ export default function CampaignComposePage() {
     queryFn: () => publicApi.get<string[]>('/departments'),
     staleTime: 5 * 60 * 1000,
   });
+  const faculties = useQuery({
+    queryKey: ['app', 'faculties'],
+    queryFn: getFaculties,
+    staleTime: 5 * 60 * 1000,
+  });
+  // yapıştırılan liste her tuşta sunucuya gitmesin
+  const debouncedEmails = useDebouncedValue(state.emails, 400);
+  const countAud = audienceFromState({ ...state, emails: debouncedEmails });
   const countQ = useQuery({
-    queryKey: qk.campaigns.audience(aud.audience?.type ?? 'NONE', aud.audience?.value),
-    queryFn: () => countAudience(aud.audience!),
-    enabled: !!aud.audience,
+    queryKey: qk.campaigns.audience(countAud.audience?.type ?? 'NONE', countAud.audience?.value),
+    queryFn: () => countAudience(countAud.audience!),
+    enabled: !!countAud.audience,
     placeholderData: keepPreviousData,
     staleTime: 15_000,
   });
-  const count = aud.audience && countQ.data ? countQ.data.count : null;
+  const count = aud.audience && countQ.data && debouncedEmails === state.emails ? countQ.data.count : null;
 
   const now = new Date();
   const built = buildRequest(state, now, count);
@@ -114,6 +129,13 @@ export default function CampaignComposePage() {
       setSendError(msg);
       toast.error(msg);
     },
+  });
+
+  const quick = buildQuickBody(state);
+  const selfTest = useMutation({
+    mutationFn: () => sendTestCampaign(quick.body!),
+    onSuccess: () => toast.success(t('admin.campaigns.selfTest.sent')),
+    onError: (e) => toast.error(adminErrorMessage(i18n, e)),
   });
 
   function reset() {
@@ -227,8 +249,61 @@ export default function CampaignComposePage() {
                   </Select>
                 </FormField>
               )}
+              {state.audienceType === 'FACULTY' &&
+                (faculties.data && faculties.data.length > 0 ? (
+                  <FormField label={t('admin.campaigns.audience.FACULTY')} required>
+                    <Select value={state.faculty} onChange={(e) => patch({ faculty: e.target.value })}>
+                      <option value="">{t('admin.campaigns.audience.pickFaculty')}</option>
+                      {faculties.data.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormField>
+                ) : (
+                  <FormField label={t('admin.campaigns.audience.FACULTY')} hint={t('admin.campaigns.audience.facultyHint')} required>
+                    <Input value={state.faculty} maxLength={120} onChange={(e) => patch({ faculty: e.target.value })} />
+                  </FormField>
+                ))}
+              {state.audienceType === 'LANGUAGE' && (
+                <FormField label={t('admin.campaigns.audience.LANGUAGE')} required>
+                  <Select value={state.language} onChange={(e) => patch({ language: e.target.value as Lang | '' })}>
+                    <option value="">{t('admin.campaigns.audience.pickLanguage')}</option>
+                    {AUDIENCE_LANGS.map((l) => (
+                      <option key={l} value={l}>
+                        {t(`admin.campaigns.lang.${l}`)}
+                      </option>
+                    ))}
+                  </Select>
+                </FormField>
+              )}
               {state.audienceType === 'USERS' && (
                 <UserPicker value={state.users} onChange={(users) => patch({ users })} />
+              )}
+              {state.audienceType === 'EMAILS' && (
+                <FormField
+                  label={t('admin.campaigns.audience.EMAILS')}
+                  hint={t('admin.campaigns.audience.emailsHint', { max: formatNumber(MAX_EMAILS) })}
+                  required
+                >
+                  <Textarea
+                    rows={5}
+                    className={`ltr ${styles.textareaMono}`}
+                    value={state.emails}
+                    placeholder={'ad.soyad@bingol.edu.tr\n1234, 1235'}
+                    onChange={(e) => patch({ emails: e.target.value })}
+                    data-testid="emails-input"
+                  />
+                </FormField>
+              )}
+              {state.audienceType === 'EMAILS' && (
+                <span className={styles.muted}>
+                  {t('admin.campaigns.audience.emailsCount', {
+                    n: formatNumber(parseEmailList(state.emails).length),
+                    max: formatNumber(MAX_EMAILS),
+                  })}
+                </span>
               )}
 
               <div
@@ -262,6 +337,10 @@ export default function CampaignComposePage() {
               {state.audienceType === 'ALL' && (
                 <Callout tone="warning">{t('admin.campaigns.audience.allWarning')}</Callout>
               )}
+              {state.audienceType === 'EMAILS' && (
+                <Callout tone="info">{t('admin.campaigns.audience.emailsPinned')}</Callout>
+              )}
+              <AudiencePreviewPanel audience={aud.audience} type={state.notifType} />
             </div>
           </Card>
 
@@ -345,6 +424,7 @@ export default function CampaignComposePage() {
                 ]}
                 onChange={(v) => patch({ scheduleMode: v })}
               />
+              <Callout tone="info">{t('admin.campaigns.schedule.quietNote')}</Callout>
               {state.scheduleMode === 'later' && (
                 <FormField
                   label={t('admin.campaigns.schedule.when')}
@@ -386,6 +466,19 @@ export default function CampaignComposePage() {
             </Card>
             <Card>
               <div className={styles.stack}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
+                  loading={selfTest.isPending}
+                  disabled={!quick.valid}
+                  leftIcon={<Icon name="bell" size={16} />}
+                  onClick={() => selfTest.mutate()}
+                  data-testid="self-test"
+                >
+                  {t('admin.campaigns.selfTest.button')}
+                </Button>
+                <p className={styles.muted}>{t('admin.campaigns.selfTest.hint')}</p>
                 <p className={styles.sumLine} aria-live="polite">
                   {count !== null && count > 0
                     ? t('admin.campaigns.summary.ready', { n: formatNumber(count) })

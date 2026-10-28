@@ -313,8 +313,7 @@ export type ReportTargetType =
   | 'USER_AVATAR'
   | 'COMMUNITY_COVER'
   | 'EVENT_COVER'
-  | 'FEED_POST'
-  | 'FEED_COMMENT';
+  | 'FEED_POST';
 export type ReportReasonCode =
   | 'SPAM'
   | 'HARASSMENT'
@@ -618,7 +617,7 @@ export interface ReportContentSummary {
   deleted: boolean;
   status: string | null;
   createdAt: string | null;
-  /** FEED_POST: kendi kimligi; FEED_COMMENT: ait oldugu gonderi. */
+  /** FEED_POST: kendi kimligi. */
   postId?: number | null;
   /** FEED_POST: yonetici medya onizleme baglantilari. */
   media?: { id: number; kind: string; url: string; thumbUrl: string }[] | null;
@@ -755,9 +754,18 @@ export interface UpdateFeedbackRequest {
 }
 
 // ---------- Kampanyalar ----------
-export type AudienceType = 'ALL' | 'DEPARTMENT' | 'CLASS_YEAR' | 'USERS' | 'ADMINS' | 'SELF';
-export type CampaignTargetType = 'NONE' | 'NEWS' | 'EVENT' | 'COMMUNITY' | 'TICKET' | 'URL';
-export type CampaignStatus = 'SCHEDULED' | 'SENDING' | 'SENT' | 'CANCELLED' | 'FAILED';
+export type AudienceType =
+  | 'ALL'
+  | 'DEPARTMENT'
+  | 'CLASS_YEAR'
+  | 'USERS'
+  | 'ADMINS'
+  | 'SELF'
+  | 'FACULTY'
+  | 'LANGUAGE'
+  | 'EMAILS';
+export type CampaignTargetType = 'NONE' | 'NEWS' | 'EVENT' | 'COMMUNITY' | 'POLL' | 'TICKET' | 'URL';
+export type CampaignStatus = 'SCHEDULED' | 'SENDING' | 'SENT' | 'CANCELLED' | 'FAILED' | 'PAUSED';
 export type NotificationType = 'NEWS' | 'ANNOUNCEMENT' | 'EVENT' | 'MESSAGE' | 'COMMUNITY' | 'SYSTEM';
 export interface CampaignAudience {
   type: AudienceType;
@@ -795,6 +803,10 @@ export interface CampaignView {
   startedAt: string | null;
   finishedAt: string | null;
   recipientCount: number | null;
+  /** Kitle büyüklüğü (gönderim anında); skippedCount = audienceSize - recipientCount (tercihle atlananlar). */
+  audienceSize?: number | null;
+  skippedCount?: number | null;
+  source?: 'CAMPAIGN' | 'QUICK' | 'TEST';
   error: string | null;
   createdAt: string;
 }
@@ -818,6 +830,7 @@ export interface CommunityView {
   memberCount: number;
   createdAt: string;
 }
+export type EventJoinPolicy = 'OPEN' | 'APPROVAL';
 export type EventStatus = 'PENDING_REVIEW' | 'ACTIVE' | 'REJECTED' | 'CANCELLED' | 'HIDDEN';
 export interface EventView {
   id: number;
@@ -836,6 +849,11 @@ export interface EventView {
   organizerName: string | null;
   status: EventStatus;
   createdAt: string;
+  /** OPEN | APPROVAL (istekle katılım). Eski yanıtlarda olmayabilir. */
+  joinPolicy?: EventJoinPolicy;
+  /** Bekleyen katılım isteği sayısı (yönetici görünümünde dolu olabilir). */
+  pendingCount?: number | null;
+  organizer?: { id: number; displayName: string | null; avatarUrl: string | null } | null;
 }
 
 // ---------- Haberler ----------

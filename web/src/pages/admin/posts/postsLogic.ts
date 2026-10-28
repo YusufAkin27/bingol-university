@@ -1,17 +1,41 @@
 // Gönderi yönetimi için saf yardımcılar (test edilebilir): Lightbox öğesi dönüşümü, süzgeç temizliği, metin özeti.
-import type { AdminPostMedia, AdminPostRow } from '../../../api/adminPosts';
+import type { AdminPostMedia, AdminPostRow, AdminPostStatus } from '../../../api/adminPosts';
 import type { LightboxItem } from '../chat/chatLogic';
 
 export interface PostFilterState {
   q: string;
-  hidden: boolean;
-  deleted: boolean;
+  status: AdminPostStatus;
+  authorId: string;
+  minReports: string;
   hasMedia: boolean;
   from: string;
   to: string;
 }
 
-export const EMPTY_POST_FILTERS: PostFilterState = { q: '', hidden: false, deleted: false, hasMedia: false, from: '', to: '' };
+export const EMPTY_POST_FILTERS: PostFilterState = {
+  q: '',
+  status: 'ALL',
+  authorId: '',
+  minReports: '',
+  hasMedia: false,
+  from: '',
+  to: '',
+};
+
+/** Gönderi bicim kurali (sunucuyla ayni): tek satir, en cok 7 kelime ve 60 karakter. */
+export const POST_MAX_WORDS = 7;
+export const POST_MAX_CHARS = 60;
+const NEWLINE_RE = /[\n\r\v\f\u0085\u2028\u2029]/;
+
+/** Düzenlenen metin için istemci tarafı ön doğrulama; geçerliyse null, değilse hata anahtarı. */
+export function postTextError(text: string): 'newline' | 'tooLong' | null {
+  const t = text.trim();
+  if (NEWLINE_RE.test(t)) return 'newline';
+  if (t === '') return null;
+  const words = t.split(/[\s\p{Z}]+/u).length;
+  if (words > POST_MAX_WORDS || Array.from(t).length > POST_MAX_CHARS) return 'tooLong';
+  return null;
+}
 
 /** Liste satırında gösterilecek metin özeti (uzunsa kırpılır, satır sonları boşluk olur). */
 export function excerpt(text: string | null | undefined, max = 160): string {

@@ -159,7 +159,7 @@ export function ReportContextCard({ reportId }: { reportId: number }) {
               )}
               {ctx.content.media && ctx.content.media.length > 0 && <FeedContentMedia media={ctx.content.media} createdAt={ctx.content.createdAt} />}
               {ctx.content.createdAt && <p className={styles.muted}>{formatDateTime(ctx.content.createdAt)}</p>}
-              {(ctx.content.kind === 'FEED_POST' || ctx.content.kind === 'FEED_COMMENT') && ctx.content.postId != null && (
+              {ctx.content.kind === 'FEED_POST' && ctx.content.postId != null && (
                 <p>
                   <Link to={`${paths.admin.posts}?open=${ctx.content.postId}`} data-testid="open-in-post">
                     {t('admin.reports.ctx.openPost')}

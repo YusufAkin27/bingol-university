@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
 import PollsAdminPage from './PollsAdminPage';
-import PostsAdminPage from './PostsAdminPage';
 import { EMPTY_POLL_FORM, toPollInput, validatePollForm } from './polls/pollsLogic';
 
 const poll = (id: number, over: Record<string, unknown> = {}) => ({
@@ -85,26 +84,5 @@ describe('PollsAdminPage', () => {
     await userEvent.click(screen.getByTestId('poll-save'));
     expect(await screen.findByText('Başlık zorunludur')).toBeInTheDocument();
     expect(fetchFn.mock.calls.some(([, i]) => (i as RequestInit)?.method === 'POST')).toBe(false);
-  });
-});
-
-describe('PostsAdminPage sosyal sekmeler', () => {
-  afterEach(() => vi.unstubAllGlobals());
-  it('hikayeler sekmesi listeler', async () => {
-    mockFetch((url) => {
-      if (url.includes('/admin/stories'))
-        return jsonResponse(200, {
-          items: [{ id: 5, author: { id: 1, displayName: 'Ali', email: 'a@bingol.edu.tr' }, kind: 'TEXT', caption: null, bodyText: 'merhaba', viewCount: 3, hidden: false, createdAt: '2026-02-01T10:00:00Z', expiresAt: '2026-02-02T10:00:00Z' }],
-          nextCursor: null,
-        });
-      if (url.includes('/admin/posts/stats')) {
-        const c = { postCount: 0, commentCount: 0, likeCount: 0, mediaCount: 0, hiddenCount: 0, deletedCount: 0 };
-        return jsonResponse(200, { ...c, last24h: c });
-      }
-      return jsonResponse(200, { items: [], nextCursor: null });
-    });
-    renderWithProviders(<PostsAdminPage />);
-    await userEvent.click(await screen.findByRole('tab', { name: 'Hikâyeler' }));
-    expect(await screen.findByTestId('story-row')).toHaveTextContent('merhaba');
   });
 });

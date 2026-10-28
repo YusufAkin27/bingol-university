@@ -69,11 +69,11 @@ export const qk = {
   },
   crypto: { status: () => ['crypto', 'status'] as const },
   ops: { part: (name: string) => ['ops', name] as const },
+  system: { all: ['system'] as const, overview: () => ['system', 'overview'] as const, dead: (kind: string) => ['system', 'dead', kind] as const },
   adminPosts: {
     list: (f: unknown) => ['adminPosts', 'list', f] as const,
     stats: () => ['adminPosts', 'stats'] as const,
     detail: (id: number) => ['adminPosts', 'detail', id] as const,
-    comments: (id: number) => ['adminPosts', 'comments', id] as const,
   },
   adminPolls: {
     list: (f: unknown) => ['adminPolls', 'list', f] as const,
@@ -82,11 +82,6 @@ export const qk = {
   },
   adminMenu: {
     month: (from: string, to: string) => ['adminMenu', 'month', from, to] as const,
-  },
-  adminSocial: {
-    stories: (hidden: boolean) => ['adminSocial', 'stories', hidden] as const,
-    trending: () => ['adminSocial', 'trending'] as const,
-    banned: () => ['adminSocial', 'banned'] as const,
   },
   adminChat: {
     conversations: (userId: number) => ['adminChat', 'conversations', userId] as const,

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { cancelCampaign, getCampaign } from '../../../api/campaigns';
+import { cancelCampaign, getCampaign, pauseCampaign, resumeCampaign } from '../../../api/campaigns';
 import { qk } from '../../../api/queryKeys';
 import type { CampaignView, Lang } from '../../../api/types';
 import { Badge, ConfirmDialog, Drawer, Button, Skeleton, StatusPill, toneFor, useToast } from '../../../components/ui';
@@ -8,7 +8,7 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { DetailList } from '../community/ReviewParts';
 import listStyles from '../community/review.module.css';
 import { useAdminNames, useAudienceSummary, useTargetSummary } from './format';
-import { isLive, LANGS } from './lib';
+import { campaignActions, isLive, LANGS } from './lib';
 import { adminErrorMessage, Callout } from './shared';
 import styles from './campaigns.module.css';
 
@@ -45,6 +45,19 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
     },
   });
 
+  const toggle = useMutation({
+    mutationFn: (kind: 'pause' | 'resume') => (kind === 'pause' ? pauseCampaign(id ?? 0) : resumeCampaign(id ?? 0)),
+    onSuccess: (_d, kind) => {
+      toast.success(t(kind === 'pause' ? 'admin.campaigns.toast.paused' : 'admin.campaigns.toast.resumed'));
+      void qc.invalidateQueries({ queryKey: qk.campaigns.all });
+    },
+    onError: (e) => {
+      toast.error(adminErrorMessage(i18n, e));
+      void qc.invalidateQueries({ queryKey: qk.campaigns.all });
+    },
+  });
+  const actions = c ? campaignActions(c.status) : { pause: false, resume: false, cancel: false };
+
   const contents: [Lang, { title: string; body: string } | null][] = c
     ? LANGS.map((l) => [l, c[l]] as [Lang, { title: string; body: string } | null])
     : [];
@@ -57,10 +70,24 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
         size="lg"
         title={c ? t('admin.campaigns.detail.title', { id: c.id }) : t('common.loading')}
         footer={
-          c?.status === 'SCHEDULED' ? (
-            <Button variant="danger" onClick={() => setConfirmCancel(true)}>
-              {t('admin.campaigns.cancel')}
-            </Button>
+          actions.pause || actions.resume || actions.cancel ? (
+            <>
+              {actions.pause && (
+                <Button variant="secondary" loading={toggle.isPending} onClick={() => toggle.mutate('pause')}>
+                  {t('admin.campaigns.pause')}
+                </Button>
+              )}
+              {actions.resume && (
+                <Button loading={toggle.isPending} onClick={() => toggle.mutate('resume')}>
+                  {t('admin.campaigns.resume')}
+                </Button>
+              )}
+              {actions.cancel && (
+                <Button variant="danger" onClick={() => setConfirmCancel(true)}>
+                  {t('admin.campaigns.cancel')}
+                </Button>
+              )}
+            </>
           ) : undefined
         }
       >
@@ -72,6 +99,9 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
               <StatusPill tone={toneFor(c.status)}>{t(`admin.campaigns.status.${c.status}`)}</StatusPill>
               <Badge tone={c.type === 'SYSTEM' ? 'danger' : 'neutral'}>{t(`admin.campaigns.type.${c.type}`)}</Badge>
             </div>
+            {(c.status === 'SCHEDULED' || c.status === 'PAUSED') && (
+              <Callout tone="info">{t('admin.campaigns.schedule.quietNote')}</Callout>
+            )}
             {c.error && (
               <Callout tone="danger" role="alert" title={t('admin.campaigns.detail.error')}>
                 <span className="ltr">{c.error}</span>
@@ -83,6 +113,18 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
                 {
                   label: t('admin.campaigns.col.recipients'),
                   value: c.recipientCount === null ? '—' : formatNumber(c.recipientCount),
+                },
+                {
+                  label: t('admin.campaigns.detail.audienceSize'),
+                  value: c.audienceSize == null ? '—' : formatNumber(c.audienceSize),
+                },
+                {
+                  label: t('admin.campaigns.detail.skipped'),
+                  value: c.skippedCount == null ? '—' : formatNumber(c.skippedCount),
+                },
+                {
+                  label: t('admin.campaigns.detail.source'),
+                  value: t(`admin.campaigns.source.${c.source ?? 'CAMPAIGN'}`),
                 },
                 { label: t('admin.campaigns.detail.target'), value: <span className="ltr">{targetSummary(c.target)}</span> },
                 { label: t('admin.campaigns.detail.scheduledAt'), value: formatDateTime(c.scheduledAt) },

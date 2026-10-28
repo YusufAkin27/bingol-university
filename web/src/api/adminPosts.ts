@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, apiFetch } from './client';
 
 /** Kesfet gonderileri yonetici moderasyonu (ADMIN). Yazma islemleri sunucuda denetim kaydina yazilir. */
 export interface AdminPostAuthor {
@@ -23,7 +23,6 @@ export interface AdminPostRow {
   text: string | null;
   media: AdminPostMedia[];
   likeCount: number;
-  commentCount: number;
   mediaCount: number;
   hidden: boolean;
   deleted: boolean;
@@ -33,49 +32,45 @@ export interface AdminPostRow {
   hiddenAt: string | null;
   deletedAt: string | null;
   deletedBy: number | null;
+  /** Bu gonderi icin acik (sonuclanmamis) sikayet sayisi. */
+  openReportCount: number;
 }
-export interface AdminPostCommentRow {
+export interface AdminPostReport {
   id: number;
-  postId: number;
-  parentId: number | null;
-  rootId: number | null;
-  depth: number;
-  author: AdminPostAuthor;
-  replyToUserId: number | null;
-  text: string | null;
-  replyCount: number;
-  hidden: boolean;
-  deleted: boolean;
+  reason: string;
+  note: string | null;
+  status: 'OPEN' | 'RESOLVED' | string;
   createdAt: string;
-  deletedAt: string | null;
 }
 export interface AdminPostPage {
   items: AdminPostRow[];
   nextCursor: number | null;
 }
-export interface AdminPostCommentPage {
-  items: AdminPostCommentRow[];
-  nextCursor: number | null;
-}
 export interface AdminPostDetail {
   post: AdminPostRow;
-  comments: AdminPostCommentPage;
+  reports: AdminPostReport[];
 }
 export interface AdminPostCounts {
   postCount: number;
-  commentCount: number;
   likeCount: number;
   mediaCount: number;
   hiddenCount: number;
   deletedCount: number;
 }
 export interface AdminPostStats extends AdminPostCounts {
+  /** Acik sikayeti olan farkli gonderi sayisi. */
+  openReportedCount: number;
   last24h: AdminPostCounts;
 }
+export type AdminPostStatus = 'ALL' | 'VISIBLE' | 'HIDDEN' | 'DELETED';
 export interface AdminPostFilters {
+  /** Gonderi metni, yazar adi veya e-postasi. */
   q?: string;
-  hidden?: boolean;
-  deleted?: boolean;
+  status?: AdminPostStatus;
+  /** Yazar kimligi (yalniz rakam). */
+  authorId?: string;
+  /** En az bu kadar acik sikayeti olanlar. */
+  minReports?: string;
   hasMedia?: boolean;
   from?: string;
   to?: string;
@@ -87,20 +82,20 @@ export const listPosts = (f: AdminPostFilters, cursor?: number | null, size = 20
     cursor,
     size,
     q: f.q?.trim() || undefined,
-    hidden: f.hidden ? true : undefined,
-    deleted: f.deleted ? true : undefined,
+    status: f.status && f.status !== 'ALL' ? f.status : undefined,
+    authorId: f.authorId && /^\d+$/.test(f.authorId.trim()) ? Number(f.authorId.trim()) : undefined,
+    minReports: f.minReports && /^\d+$/.test(f.minReports.trim()) ? Number(f.minReports.trim()) : undefined,
     hasMedia: f.hasMedia ? true : undefined,
     from: f.from || undefined,
     to: f.to || undefined,
   });
 export const postStats = () => api.get<AdminPostStats>('/admin/posts/stats');
 export const getPost = (id: number) => api.get<AdminPostDetail>(`/admin/posts/${id}`);
-export const listPostComments = (id: number, cursor?: number | null, size = 30) =>
-  api.get<AdminPostCommentPage>(`/admin/posts/${id}/comments`, { cursor, size });
 export const hidePost = (id: number, reason?: string) =>
   api.post<AdminPostRow>(`/admin/posts/${id}/hide`, { reason: reason?.trim() || null });
 export const unhidePost = (id: number) => api.post<AdminPostRow>(`/admin/posts/${id}/unhide`, {});
-export const deletePost = (id: number) => api.del(`/admin/posts/${id}`);
-export const hideComment = (id: number) => api.post<AdminPostCommentRow>(`/admin/comments/${id}/hide`, {});
-export const unhideComment = (id: number) => api.post<AdminPostCommentRow>(`/admin/comments/${id}/unhide`, {});
-export const deleteComment = (id: number) => api.del(`/admin/comments/${id}`);
+/** Metni duzenler (bos metin = temizle); yazara bildirim gider. */
+export const editPost = (id: number, text: string) => api.patch<AdminPostRow>(`/admin/posts/${id}`, { text });
+/** Siler; gerekce yazara bildirilir, acik sikayetler sonuclanir. */
+export const deletePost = (id: number, reason?: string) =>
+  apiFetch<void>(`/admin/posts/${id}`, { method: 'DELETE', body: { reason: reason?.trim() || null } });

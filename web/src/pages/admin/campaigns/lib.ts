@@ -5,10 +5,12 @@
 import type {
   AudienceType,
   CampaignAudience,
+  CampaignStatus,
   CampaignTargetType,
   CreateCampaignRequest,
   Lang,
 } from '../../../api/types';
+import type { QuickSendRequest } from '../../../api/campaigns';
 import { readStorage, removeStorage, writeStorage } from '../../../lib/storage';
 
 export const TITLE_MAX = 100;
@@ -18,11 +20,26 @@ export const MAX_SCHEDULE_DAYS = 30;
 export const DRAFT_KEY = 'bu.admin.campaignDraft';
 
 export const LANGS: Lang[] = ['tr', 'en', 'ar'];
-export const AUDIENCE_TYPES: AudienceType[] = ['ALL', 'DEPARTMENT', 'CLASS_YEAR', 'USERS', 'ADMINS', 'SELF'];
+export const AUDIENCE_TYPES: AudienceType[] = [
+  'ALL',
+  'FACULTY',
+  'DEPARTMENT',
+  'CLASS_YEAR',
+  'LANGUAGE',
+  'USERS',
+  'EMAILS',
+  'ADMINS',
+  'SELF',
+];
+export const AUDIENCE_LANGS: Lang[] = ['tr', 'en', 'ar'];
+export const MAX_EMAILS = 500;
 export type ComposeNotifType = 'ANNOUNCEMENT' | 'NEWS' | 'EVENT' | 'SYSTEM';
 export const NOTIF_TYPES: ComposeNotifType[] = ['ANNOUNCEMENT', 'NEWS', 'EVENT', 'SYSTEM'];
-export type ComposeTargetType = Extract<CampaignTargetType, 'NONE' | 'NEWS' | 'EVENT' | 'COMMUNITY' | 'URL'>;
-export const TARGET_TYPES: ComposeTargetType[] = ['NONE', 'NEWS', 'EVENT', 'COMMUNITY', 'URL'];
+export type ComposeTargetType = Extract<
+  CampaignTargetType,
+  'NONE' | 'NEWS' | 'EVENT' | 'COMMUNITY' | 'POLL' | 'TICKET' | 'URL'
+>;
+export const TARGET_TYPES: ComposeTargetType[] = ['NONE', 'NEWS', 'EVENT', 'COMMUNITY', 'POLL', 'TICKET', 'URL'];
 
 export interface PickedUser {
   id: number;
@@ -39,6 +56,10 @@ export interface ComposeState {
   audienceType: AudienceType;
   department: string;
   classYear: string;
+  faculty: string;
+  language: Lang | '';
+  /** E-posta ve/veya sayısal kimlik listesi (satır, virgül, boşluk veya noktalı virgülle ayrılmış). */
+  emails: string;
   users: PickedUser[];
   contents: Record<Lang, LangContent>;
   notifType: ComposeNotifType;
@@ -54,6 +75,9 @@ export function emptyState(): ComposeState {
     audienceType: 'SELF',
     department: '',
     classYear: '',
+    faculty: '',
+    language: '',
+    emails: '',
     users: [],
     contents: {
       tr: { title: '', body: '' },
@@ -70,11 +94,34 @@ export function emptyState(): ComposeState {
 
 // ---------- kitle ----------
 
-export type AudienceError = 'DEPARTMENT_REQUIRED' | 'CLASS_YEAR_INVALID' | 'USERS_EMPTY' | 'USERS_TOO_MANY';
+export type AudienceError =
+  | 'DEPARTMENT_REQUIRED'
+  | 'CLASS_YEAR_INVALID'
+  | 'USERS_EMPTY'
+  | 'USERS_TOO_MANY'
+  | 'FACULTY_REQUIRED'
+  | 'LANGUAGE_REQUIRED'
+  | 'EMAILS_EMPTY'
+  | 'EMAILS_TOO_MANY';
+
+/** Yapıştırılan metni girdilere böler (satır/virgül/noktalı virgül/boşluk), tekrarları atar. */
+export function parseEmailList(text: string): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of text.split(/[\s,;]+/)) {
+    const v = raw.trim();
+    const key = v.toLowerCase();
+    if (!v || seen.has(key)) continue;
+    seen.add(key);
+    out.push(v);
+  }
+  return out;
+}
 
 /** Seçime göre API kitlesi; eksik/geçersizse hata kodu. */
 export function audienceFromState(
-  s: Pick<ComposeState, 'audienceType' | 'department' | 'classYear' | 'users'>,
+  s: Pick<ComposeState, 'audienceType' | 'department' | 'classYear' | 'users'> &
+    Partial<Pick<ComposeState, 'faculty' | 'language' | 'emails'>>,
 ): { audience: CampaignAudience; error?: undefined } | { audience?: undefined; error: AudienceError } {
   switch (s.audienceType) {
     case 'DEPARTMENT': {
@@ -86,6 +133,21 @@ export function audienceFromState(
       const n = Number(s.classYear);
       if (!/^\d+$/.test(s.classYear.trim()) || n < 1 || n > 8) return { error: 'CLASS_YEAR_INVALID' };
       return { audience: { type: 'CLASS_YEAR', value: String(n) } };
+    }
+    case 'FACULTY': {
+      const v = (s.faculty ?? '').trim();
+      if (!v || v.length > 120) return { error: 'FACULTY_REQUIRED' };
+      return { audience: { type: 'FACULTY', value: v } };
+    }
+    case 'LANGUAGE': {
+      if (!s.language || !AUDIENCE_LANGS.includes(s.language)) return { error: 'LANGUAGE_REQUIRED' };
+      return { audience: { type: 'LANGUAGE', value: s.language } };
+    }
+    case 'EMAILS': {
+      const list = parseEmailList(s.emails ?? '');
+      if (list.length === 0) return { error: 'EMAILS_EMPTY' };
+      if (list.length > MAX_EMAILS) return { error: 'EMAILS_TOO_MANY' };
+      return { audience: { type: 'EMAILS', value: list.join('\n') } };
     }
     case 'USERS': {
       if (s.users.length === 0) return { error: 'USERS_EMPTY' };
@@ -171,6 +233,29 @@ export interface BuildResult {
   valid: boolean;
 }
 
+export interface QuickBody {
+  body?: QuickSendRequest;
+  contentErrors: Partial<Record<Lang, ContentError>>;
+  targetError: TargetError | null;
+  valid: boolean;
+}
+
+/** Test / tek kullanıcı gönderimi: yalnız içerik, tür ve hedef (kitle ve zamanlama sunucuda). */
+export function buildQuickBody(s: Pick<ComposeState, 'contents' | 'notifType' | 'targetType' | 'targetValue'>): QuickBody {
+  const cErr = contentErrors(s.contents);
+  const tErr = targetError(s.targetType, s.targetValue);
+  if (Object.keys(cErr).length > 0 || tErr) return { contentErrors: cErr, targetError: tErr, valid: false };
+  const trim = (c: LangContent) => ({ title: c.title.trim(), body: c.body.trim() });
+  const body: QuickSendRequest = {
+    type: s.notifType,
+    tr: trim(s.contents.tr),
+    target: { type: s.targetType, value: s.targetType === 'NONE' ? null : s.targetValue.trim() },
+  };
+  if (s.contents.en.title.trim() && s.contents.en.body.trim()) body.en = trim(s.contents.en);
+  if (s.contents.ar.title.trim() && s.contents.ar.body.trim()) body.ar = trim(s.contents.ar);
+  return { body, contentErrors: cErr, targetError: null, valid: true };
+}
+
 export function buildRequest(s: ComposeState, now: Date, audienceCount: number | null): BuildResult {
   const a = audienceFromState(s);
   const cErr = contentErrors(s.contents);
@@ -242,6 +327,9 @@ export function loadDraft(): ComposeState | null {
       audienceType: pick(o.audienceType, AUDIENCE_TYPES, base.audienceType),
       department: str(o.department),
       classYear: str(o.classYear),
+      faculty: str(o.faculty),
+      language: pick(o.language, ['', ...AUDIENCE_LANGS] as const, ''),
+      emails: str(o.emails),
       users,
       contents,
       notifType: pick(o.notifType, NOTIF_TYPES, base.notifType),
@@ -257,7 +345,7 @@ export function loadDraft(): ComposeState | null {
 
 /** Taslakta hiç içerik/seçim var mı ("devam et" bildirimi için). */
 export function isDraftEmpty(s: ComposeState): boolean {
-  return LANGS.every((l) => !s.contents[l].title && !s.contents[l].body) && s.users.length === 0 && !s.department;
+  return LANGS.every((l) => !s.contents[l].title && !s.contents[l].body) && s.users.length === 0 && !s.department && !s.faculty && !s.emails;
 }
 
 // ---------- kampanya listesi yardımcıları ----------
@@ -265,4 +353,15 @@ export function isDraftEmpty(s: ComposeState): boolean {
 /** Yenileme gerektiren durumlar */
 export function isLive(status: string): boolean {
   return status === 'SENDING' || status === 'SCHEDULED';
+}
+
+/** Kampanya durumuna göre yapılabilen işlemler (backend: yalnız SCHEDULED duraklatılır; SCHEDULED/PAUSED iptal edilir). */
+export const CAMPAIGN_STATUSES: CampaignStatus[] = ['SCHEDULED', 'SENDING', 'PAUSED', 'SENT', 'CANCELLED', 'FAILED'];
+
+export function campaignActions(status: string): { pause: boolean; resume: boolean; cancel: boolean } {
+  return {
+    pause: status === 'SCHEDULED',
+    resume: status === 'PAUSED',
+    cancel: status === 'SCHEDULED' || status === 'PAUSED',
+  };
 }

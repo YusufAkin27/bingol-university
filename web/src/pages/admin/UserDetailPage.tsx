@@ -2,6 +2,7 @@
 // API: GET /api/admin/users/{id} (düz AdminUserDetail), PATCH .../role, DELETE .../{id}, POST .../suspend|unsuspend (api/users.ts).
 // KVKK: yalnızca günlük açılış sayıları gösterilir; başka kullanım ayrıntısı yoktur.
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { qk } from '../../api/queryKeys';
 import { getUser } from '../../api/users';
@@ -9,6 +10,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import {
   Avatar,
   Badge,
+  Button,
   Card,
   ErrorState,
   PageHeader,
@@ -20,6 +22,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { QuickSendDialog } from './campaigns/QuickSendDialog';
 import { ActivityBars } from './users/ActivityBars';
 import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
@@ -47,6 +50,7 @@ export default function UserDetailPage() {
   const { user: me } = useAuth();
   const from = (location.state as { from?: string } | null)?.from ?? paths.admin.users;
 
+  const [notifyOpen, setNotifyOpen] = useState(false);
   const q = useQuery({
     queryKey: qk.users.detail(userId),
     queryFn: () => getUser(userId),
@@ -182,6 +186,18 @@ export default function UserDetailPage() {
 
         <div className={styles.stack}>
           <UserActions user={u} selfId={me?.id} onDeleted={() => navigate(from)} />
+
+          <Card title={t('admin.users.detail.notify')}>
+            <p className={styles.hint}>{t('admin.users.detail.notifyHint')}</p>
+            <div style={{ marginBlockStart: 'var(--space-3)' }}>
+              <Button variant="secondary" disabled={u.status === 'DELETED'} onClick={() => setNotifyOpen(true)}>
+                {t('admin.users.detail.notifySend')}
+              </Button>
+            </div>
+          </Card>
+          {notifyOpen && (
+            <QuickSendDialog open onClose={() => setNotifyOpen(false)} userId={u.id} userName={u.displayName || u.email} />
+          )}
 
           <Card title={t('admin.users.detail.devices')}>
             {u.deviceCount === 0 ? (

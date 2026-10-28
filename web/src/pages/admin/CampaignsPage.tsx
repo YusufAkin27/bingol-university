@@ -3,9 +3,10 @@
 //      SENDING/SCHEDULED kampanya varken liste 5 sn'de bir yenilenir.
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { listCampaigns } from '../../api/campaigns';
 import { qk } from '../../api/queryKeys';
-import type { CampaignView } from '../../api/types';
+import type { CampaignStatus, CampaignView } from '../../api/types';
 import {
   Badge,
   ButtonLink,
@@ -16,6 +17,7 @@ import {
   PageHeader,
   StatusPill,
   Table,
+  Tabs,
   toneFor,
   type Column,
 } from '../../components/ui';
@@ -24,7 +26,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { CampaignDrawer } from './campaigns/CampaignDrawer';
 import { useAdminNames, useAudienceSummary } from './campaigns/format';
-import { isLive } from './campaigns/lib';
+import { CAMPAIGN_STATUSES, isLive } from './campaigns/lib';
 import { adminErrorMessage } from './campaigns/shared';
 import styles from './campaigns/campaigns.module.css';
 
@@ -34,10 +36,13 @@ export default function CampaignsPage() {
   usePageTitle(t('admin.campaigns.title'));
   const audienceSummary = useAudienceSummary();
   const [openId, setOpenId] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
+  const sp = params.get('status') as CampaignStatus | null;
+  const status: CampaignStatus | undefined = sp && CAMPAIGN_STATUSES.includes(sp) ? sp : undefined;
 
   const query = useInfiniteQuery({
-    queryKey: [...qk.campaigns.list(), 'pages'],
-    queryFn: ({ pageParam }) => listCampaigns({ cursor: pageParam, size: 20 }),
+    queryKey: [...qk.campaigns.list(), status ?? 'ALL', 'pages'],
+    queryFn: ({ pageParam }) => listCampaigns({ cursor: pageParam, size: 20, status }),
     initialPageParam: null as number | null,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     refetchInterval: (q) =>
@@ -62,6 +67,7 @@ export default function CampaignsPage() {
           <span className={styles.cellTitle}>{c.tr.title}</span>
           <span className={styles.cellBody}>{c.tr.body}</span>
           {c.type === 'SYSTEM' && <Badge tone="danger">{t('admin.campaigns.type.SYSTEM')}</Badge>}
+          {c.source && c.source !== 'CAMPAIGN' && <Badge>{t(`admin.campaigns.source.${c.source}`)}</Badge>}
         </div>
       ),
     },
@@ -70,7 +76,20 @@ export default function CampaignsPage() {
       key: 'recipients',
       header: t('admin.campaigns.col.recipients'),
       align: 'end',
-      render: (c) => (c.recipientCount === null ? '—' : formatNumber(c.recipientCount)),
+      render: (c) =>
+        c.recipientCount === null ? (
+          '—'
+        ) : (
+          <span className={styles.cellContent}>
+            <span>
+              {formatNumber(c.recipientCount)}
+              {c.audienceSize != null && ` / ${formatNumber(c.audienceSize)}`}
+            </span>
+            {!!c.skippedCount && (
+              <span className={styles.cellBody}>{t('admin.campaigns.skipped', { n: formatNumber(c.skippedCount) })}</span>
+            )}
+          </span>
+        ),
     },
     {
       key: 'when',
@@ -99,6 +118,17 @@ export default function CampaignsPage() {
           </ButtonLink>
         }
       />
+      <div className={styles.statusTabs}>
+        <Tabs
+          label={t('admin.campaigns.filter.status')}
+          value={status ?? 'ALL'}
+          tabs={[
+            { id: 'ALL', label: t('admin.campaigns.filter.all') },
+            ...CAMPAIGN_STATUSES.map((s) => ({ id: s, label: t(`admin.campaigns.status.${s}`) })),
+          ]}
+          onChange={(id) => setParams(id === 'ALL' ? {} : { status: id }, { replace: true })}
+        />
+      </div>
       {live && (
         <p className={styles.liveNote} role="status">
           <span className={styles.liveDot} aria-hidden="true" />

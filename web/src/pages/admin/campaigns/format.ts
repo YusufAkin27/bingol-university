@@ -6,11 +6,16 @@ import { useI18n } from '../../../i18n/I18nProvider';
 
 /** Kitle özeti: "Bölüm: Bilgisayar Mühendisliği", "12 seçili kullanıcı"... */
 export function useAudienceSummary() {
-  const { t } = useI18n();
+  const { t, td } = useI18n();
   return (a: CampaignAudience): string => {
     switch (a.type) {
       case 'DEPARTMENT':
-        return `${t('admin.campaigns.audience.DEPARTMENT')}: ${a.value ?? ''}`;
+      case 'FACULTY':
+        return `${t(`admin.campaigns.audience.${a.type}`)}: ${a.value ?? ''}`;
+      case 'LANGUAGE':
+        return `${t('admin.campaigns.audience.LANGUAGE')}: ${td(`admin.campaigns.lang.${a.value ?? 'tr'}`, a.value ?? 'tr')}`;
+      case 'EMAILS':
+        return t('admin.campaigns.audience.emailsValue', { n: a.value ? a.value.split(/[\s,;]+/).filter(Boolean).length : 0 });
       case 'CLASS_YEAR':
         return t('admin.campaigns.audience.classYearValue', { year: a.value ?? '' });
       case 'USERS':
