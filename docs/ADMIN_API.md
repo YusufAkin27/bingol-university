@@ -827,3 +827,30 @@ Yönetici sohbet içeriğini yalnız okumakla kalmaz; mesaja/odaya müdahale ede
 **Yeni hata kodları (3 dilde `i18n/chatadmin*.properties`):** `MESSAGE_ALREADY_HIDDEN`, `MESSAGE_NOT_ADMIN_HIDDEN`, `MESSAGE_ALREADY_PURGED`, `CONVERSATION_CLOSED` (kullanıcı gönderimi), `CONVERSATION_ALREADY_CLOSED`, `CONVERSATION_NOT_CLOSED`, `CONVERSATION_ROOM_MANAGED`, `EXPORT_CONFIRM_REQUIRED`, `CHAT_BULK_LIMIT`. Bildirim anahtarları: `notif.chat.closed|reopened|removed.title|body`.
 
 **Migration V710:** `message.admin_hidden_at/admin_hidden_by/purged_at`, `conversation.closed_at/closed_by/closed_reason`, indeksler `p08_message_admin_hidden`, `p08_conversation_closed`. Duman: `scripts/smoke-admin-chat.sh`.
+
+## Toplu işlemler, dışa aktarma ve kaynak durumu (P15)
+
+Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem + CSV; kaynak (scraper) durumu ve elle senkron. Hepsi `/api/admin/**` (yalnız ADMIN), kod `admin/bulk/*` (`AdminBulkController`). Mevcut tekil uçlar (`PATCH /api/admin/news/{id}`, `/api/admin/academic/**`, `/api/admin/menu/{date}/image`, `/api/admin/pending-registrations/**`, `POST /api/admin/sync|sync-menu`) DEĞİŞMEDİ. Migration yok.
+
+**Yazma uçları (POST, sebep >= 5 karakter, yıkıcı sayılır: saatlik sıkı hız sınırı):** sebep gövdedeki `reason` ya da `X-Admin-Reason`; yoksa/kısaysa 400 `REASON_REQUIRED` (hiçbir şey değişmez). Sınır aşılırsa 400 `BULK_LIMIT_EXCEEDED`, boş liste 400 `BULK_EMPTY` (hiçbir şey işlenmez). Tekrarlayan kimlikler atılır. Her kayıt KENDİ işlemiyle çalışır (kısmi başarı), 200 döner:
+
+```
+{ "requested": 3, "done": 1, "skipped": 1, "failed": 1,
+  "results": [ { "id": "12", "status": "DONE|SKIPPED|FAILED", "code": null | "ALREADY_DONE" | "NOT_FOUND" | <hata kodu> } ] }
+```
+
+`SKIPPED` = yapılacak iş yoktu (zaten o durumda ya da kayıt yok/süresi dolmuş); `FAILED` = hata. Başarılı her kayıt için ayrı `admin_audit` satırı (`/api/admin/{alan}/{id}/{fiil}`) + isteğin kendi satırı.
+
+| Uç | Gövde / not |
+|---|---|
+| `POST /api/admin/news/bulk` | `{action: HIDE\|UNHIDE, ids (<=200), reason}` |
+| `POST /api/admin/academic/bulk` | `{entity: CALENDAR\|EXAM\|ANNOUNCEMENT, action: PUBLISH\|UNPUBLISH\|DELETE, ids (<=200), reason}`; mevcut servis metotları kullanılır; bildirimi açık duyuru yayınlanırsa servisin kendi kuralıyla (bir kez) hedef kitleye bildirim gider |
+| `POST /api/admin/menu/bulk-delete` | `{dates ("yyyy-MM-dd", <=62), reason}`; gün satırı silinir, fotoğraf `MediaService.release` ile temizlenir (başka kayıt kullanıyorsa dosya kalır); geçersiz tarih 400 `MENU_DATE_INVALID`. Kaynak site aylık senkronda silinen günü yeniden yazabilir |
+| `POST /api/admin/pending-registrations/bulk-cancel` | `{emails (e-posta ya da okul numarası, <=200), reason}`; Redis `reg:<e-posta>` TAM e-posta ile saklanır (hash değil), normalize edilir; yanıt ve denetim satırında kimlik MASKELİ (`226***@bingol.edu.tr`) |
+| `POST /api/admin/sources/sync` | `{source: NEWS\|MENU, reason}`; mevcut senkron servisini çağırır (kaynak siteye istek atar: scraper kuralı gereği normalde yalnız zamanlayıcı, bu elle tetikleme bir istisnadır). Kaynak başına saatte 3 (tüm yöneticiler ortak), aşılırsa 429 + `Retry-After`. Yanıt `{source, changed, detail}` |
+
+**CSV (GET; UTF-8 BOM, CRLF, formül kaçırma `'`; en çok 50.000 satır; dakikada 10):** `GET /api/admin/news/export.csv?q=&type=&hidden=` (liste süzgeçleriyle aynı; içerik metni yazılmaz), `GET /api/admin/academic/export.csv?entity=CALENDAR|EXAM|ANNOUNCEMENT&q=&kind=&published=&status=` (`entity` yoksa 400 `EXPORT_ENTITY_INVALID`; duyuru gövdesi yazılmaz), `GET /api/admin/menu/export.csv?from=&to=`, `GET /api/admin/pending-registrations/export.csv?q=` (e-posta ve ad maskeli; `@AuditRead`: okuma denetim kaydına yazılır).
+
+**`GET /api/admin/sources/status`:** `{news:{maintenance, lastSuccess, lastAttempt, message (en çok 200 karakter), itemsLast7d, total, hidden, byType}, menu:{maintenance, lastSuccess, lastAttempt, message, totalDays, upcomingDays, withImage}, syncPerHour}`. Yalnız mevcut `SyncStatus` ve tablo sayılarını toplulaştırır; kaynak siteye istek atmaz.
+
+**Yeni hata kodları (3 dilde `i18n/bulkadmin*.properties`):** `BULK_EMPTY`, `BULK_LIMIT_EXCEEDED`, `EXPORT_ENTITY_INVALID`. Web: `/admin/sources` sayfası, haber/akademik/menü/bekleyen kayıt sayfalarında seçim + toplu çubuk + CSV (`pages/admin/bulk/*`, `api/adminBulk.ts`). Duman: `scripts/smoke-admin-bulk.sh`.

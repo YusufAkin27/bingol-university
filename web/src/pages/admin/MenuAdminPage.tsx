@@ -18,10 +18,21 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
+import { MENU_BULK_MAX, exportMenuCsv } from '../../api/adminBulk';
+import { MenuBulkBar } from './bulk/BulkBars';
+import { BulkCsvButton, RowPick, SelectPage, useIdSelection, type IdSelection } from './bulk/BulkParts';
 import { currentMonth, isMonth, monthRange, validateMenuImage } from './menu/menuLogic';
 import styles from './menu/menu.module.css';
 
-function DayRow({ day, onChanged }: { day: AdminMenuDay; onChanged: () => void }) {
+function DayRow({
+  day,
+  onChanged,
+  selection,
+}: {
+  day: AdminMenuDay;
+  onChanged: () => void;
+  selection: IdSelection<string>;
+}) {
   const i18n = useI18n();
   const { t, formatDate } = i18n;
   const toast = useToast();
@@ -65,7 +76,10 @@ function DayRow({ day, onChanged }: { day: AdminMenuDay; onChanged: () => void }
   return (
     <li className={styles.row} data-testid="menu-row">
       <div className={styles.info}>
-        <h3 className={styles.date}>{label}</h3>
+        <h3 className={styles.date}>
+          <RowPick id={day.date} label={t('admin.p15.menu.select', { date: label })} selection={selection} />
+          {label}
+        </h3>
         {day.items.length > 0 ? (
           <ul className={styles.items}>
             {day.items.map((it, i) => (
@@ -156,10 +170,21 @@ export default function MenuAdminPage() {
     staleTime: 15_000,
   });
   const days = [...(q.data ?? [])].sort((a, b) => a.date.localeCompare(b.date));
+  // P15 toplu silme seçimi: ay değişince sıfırlanır
+  const selection = useIdSelection<string>(month, MENU_BULK_MAX);
 
   return (
     <>
-      <PageHeader title={t('admin.menu.title')} description={t('admin.menu.subtitle')} />
+      <PageHeader
+        title={t('admin.menu.title')}
+        description={t('admin.menu.subtitle')}
+        actions={
+          <BulkCsvButton
+            filename="yemek-menusu.csv"
+            fetchCsv={() => exportMenuCsv(range ? { from: range.from, to: range.to } : {})}
+          />
+        }
+      />
       <div className={styles.filters} role="search" aria-label={t('admin.menu.filters')}>
         <FormField label={t('admin.menu.month')}>
           <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
@@ -176,12 +201,21 @@ export default function MenuAdminPage() {
       ) : days.length === 0 ? (
         <EmptyState icon="calendar" title={t('admin.menu.empty')} description=" " />
       ) : (
-        <ul className={styles.list} data-testid="menu-list">
-          {days.map((d) => (
-            <DayRow key={d.date} day={d} onChanged={() => void qc.invalidateQueries({ queryKey: ['adminMenu'] })} />
-          ))}
-        </ul>
+        <>
+          <SelectPage ids={days.map((d) => d.date)} selection={selection} label={t('admin.p15.menu.selectAll')} />
+          <ul className={styles.list} data-testid="menu-list">
+            {days.map((d) => (
+              <DayRow
+                key={d.date}
+                day={d}
+                selection={selection}
+                onChanged={() => void qc.invalidateQueries({ queryKey: ['adminMenu'] })}
+              />
+            ))}
+          </ul>
+        </>
       )}
+      <MenuBulkBar dates={[...selection.selected]} onClear={selection.clear} />
     </>
   );
 }

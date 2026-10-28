@@ -30,6 +30,9 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { exportPendingCsv } from '../../api/adminBulk';
+import { PendingBulkCancel } from './bulk/BulkBars';
+import { BulkCsvButton } from './bulk/BulkParts';
 import styles from './pending/pending.module.css';
 
 const PAGE_SIZE = 20;
@@ -337,10 +340,18 @@ export default function PendingUsersPage() {
         <div className={styles.search}>
           <SearchInput placeholder={t('admin.pend.search')} onSearch={(v) => setQ(v.trim())} />
         </div>
+        <BulkCsvButton filename="bekleyen-kayitlar.csv" fetchCsv={() => exportPendingCsv({ q })} />
         {selectedCount > 0 && (
           <div className={styles.bulk}>
             <span className={styles.muted}>{t('admin.pend.selected', { n: formatNumber(selectedCount) })}</span>
             <Button onClick={() => setDialog({ kind: 'bulk' })}>{t('admin.pend.bulk.verify')}</Button>
+            <PendingBulkCancel
+              emails={rows.filter((u) => selected.has(u.email)).map((u) => u.email)}
+              onDone={() => {
+                setSelected(new Set());
+                void qc.invalidateQueries({ queryKey: pendingKeys.all });
+              }}
+            />
           </div>
         )}
       </div>

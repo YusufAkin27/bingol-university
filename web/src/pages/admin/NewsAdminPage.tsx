@@ -27,6 +27,9 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
+import { BULK_MAX, exportNewsCsv } from '../../api/adminBulk';
+import { NewsBulkBar } from './bulk/BulkBars';
+import { BulkCsvButton, useIdSelection } from './bulk/BulkParts';
 import styles from './content/News.module.css';
 
 const TYPES: NewsType[] = ['HABER', 'DUYURU', 'ETKINLIK'];
@@ -56,6 +59,8 @@ export default function NewsAdminPage() {
   const [syncing, setSyncing] = useState<Source | null>(null);
   // Gizleme/gösterme onayı: hedef satır ve yeni durum
   const [toggling, setToggling] = useState<{ row: AdminNewsRow; hidden: boolean } | null>(null);
+  // P15 toplu işlem seçimi: süzgeç/sayfa değişince sıfırlanır (görünmeyen kayıt işlenmesin)
+  const selection = useIdSelection<number>(`${q}|${type}|${vis}|${page}`, BULK_MAX);
 
   const params = {
     q: q || undefined,
@@ -137,7 +142,17 @@ export default function NewsAdminPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.news.title')} />
+      <PageHeader
+        title={t('admin.news.title')}
+        actions={
+          <BulkCsvButton
+            filename="haberler.csv"
+            fetchCsv={() =>
+              exportNewsCsv({ q, type, hidden: vis === '' ? undefined : vis === 'hidden' })
+            }
+          />
+        }
+      />
       <Card title={t('admin.news.sync.title')} className={styles.syncCard}>
         {status.isError ? (
           <p className={styles.muted}>{t('admin.news.sync.unavailable')}</p>
@@ -232,6 +247,8 @@ export default function NewsAdminPage() {
             columns={columns}
             rows={list.data?.items}
             rowKey={(r) => r.id}
+            selectedKeys={selection.selected}
+            onSelectionChange={(s) => selection.setAll([...s] as number[], true)}
             loading={list.isLoading}
             empty={
               <EmptyState
@@ -252,6 +269,8 @@ export default function NewsAdminPage() {
           )}
         </>
       )}
+
+      <NewsBulkBar ids={[...selection.selected]} onClear={selection.clear} />
 
       <GuardedDialog
         open={toggling !== null}

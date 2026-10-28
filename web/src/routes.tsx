@@ -78,10 +78,12 @@ const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
 const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const SystemStatusPage = lazy(() => import('./pages/admin/SystemStatusPage'));
+const SourcesPage = lazy(() => import('./pages/admin/SourcesPage'));
 const MailTemplatesPage = lazy(() => import('./pages/admin/MailTemplatesPage'));
 const MailCampaignsPage = lazy(() => import('./pages/admin/MailCampaignsPage'));
 const MailSuppressionPage = lazy(() => import('./pages/admin/MailSuppressionPage'));
 const MailQueuePage = lazy(() => import('./pages/admin/MailQueuePage'));
+const PushOpsPage = lazy(() => import('./pages/admin/PushOpsPage'));
 const EventApplicationsPage = lazy(() => import('./pages/admin/EventApplicationsPage'));
 const ClubAuditPage = lazy(() => import('./pages/admin/ClubAuditPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
@@ -182,12 +184,14 @@ export function AppRoutes() {
             <Route path="crypto" element={<CryptoPage />} />
             <Route path="ops" element={<OpsPage />} />
             <Route path="system" element={<SystemStatusPage />} />
+            <Route path="sources" element={<SourcesPage />} />
             <Route path="mail/templates" element={<MailTemplatesPage />} />
             <Route path="mail/templates/:id" element={<MailTemplatesPage />} />
             <Route path="mail/campaigns" element={<MailCampaignsPage />} />
             <Route path="mail/campaigns/:id" element={<MailCampaignsPage />} />
             <Route path="mail/suppressions" element={<MailSuppressionPage />} />
             <Route path="mail/queue" element={<MailQueuePage />} />
+            <Route path="push/ops" element={<PushOpsPage />} />
             <Route path="events/applications" element={<EventApplicationsPage />} />
             <Route path="communities/audit" element={<ClubAuditPage />} />
             <Route path="settings" element={<SettingsPage />} />

@@ -126,6 +126,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'mailCampaigns', to: paths.admin.mailCampaigns, labelKey: 'admin.nav.mailCampaigns', icon: 'mail' },
       { id: 'mailQueue', to: paths.admin.mailQueue, labelKey: 'admin.p13.nav.queue', icon: 'list' },
       { id: 'mailSuppressions', to: paths.admin.mailSuppressions, labelKey: 'admin.p13.nav.suppressions', icon: 'shield' },
+      { id: 'pushOps', to: paths.admin.pushOps, labelKey: 'admin.p14.nav', icon: 'bell' },
     ],
   },
   {
@@ -133,6 +134,7 @@ export const adminNav: AdminNavGroup[] = [
     labelKey: 'admin.nav.group.system',
     items: [
       { id: 'system', to: paths.admin.system, labelKey: 'admin.nav.system', icon: 'chart' },
+      { id: 'sources', to: paths.admin.sources, labelKey: 'admin.p15.nav.sources', icon: 'news' },
       { id: 'ops', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'settings', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'audit', to: paths.admin.audit, labelKey: 'admin.nav.audit', icon: 'list' },

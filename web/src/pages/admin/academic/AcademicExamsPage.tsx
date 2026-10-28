@@ -36,6 +36,9 @@ import {
 } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
+import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
+import { AcademicBulkBar } from '../bulk/BulkBars';
+import { BulkCsvButton, RowPick, SelectPage, useIdSelection } from '../bulk/BulkParts';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
 import { emptyToNull, endAfterStart, toDateTimeInput, totalPages } from './logic';
@@ -60,6 +63,8 @@ export default function AcademicExamsPage() {
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<ExamSchedule | 'new' | null>(null);
   const [removing, setRemoving] = useState<ExamSchedule | null>(null);
+  // P15 toplu işlem seçimi: süzgeç/sayfa değişince sıfırlanır
+  const selection = useIdSelection<number>(`${type}|${grade}|${status}|${department}|${q}|${page}`, BULK_MAX);
 
   const published = status === '' ? undefined : status === 'true';
   const params = { page, size: PAGE_SIZE, q, type, grade, department, published };
@@ -113,7 +118,15 @@ export default function AcademicExamsPage() {
       <PageHeader
         title={t('admin.acd.ex.title')}
         description={t('admin.acd.ex.intro')}
-        actions={<Button onClick={() => setEditing('new')}>{t('admin.acd.ex.add')}</Button>}
+        actions={
+          <>
+            <BulkCsvButton
+              filename="sinav-programi.csv"
+              fetchCsv={() => exportAcademicCsv({ entity: 'EXAM', q })}
+            />
+            <Button onClick={() => setEditing('new')}>{t('admin.acd.ex.add')}</Button>
+          </>
+        }
       />
       <div className={styles.stack}>
         <div className={styles.toolbar}>
@@ -198,10 +211,12 @@ export default function AcademicExamsPage() {
           />
         ) : (
           <>
+            <SelectPage ids={items.map((x) => x.id)} selection={selection} label={t('admin.p15.select.page')} />
             <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
               {items.map((x) => (
                 <li key={x.id} className={styles.item}>
                   <div className={styles.itemHead}>
+                    <RowPick id={x.id} label={t('admin.p15.select.row', { title: x.title })} selection={selection} />
                     <Badge tone="info">{t(`admin.acd.ex.type.${x.type}` as const)}</Badge>
                     <StatusPill tone={x.published ? 'success' : 'neutral'}>
                       {t(x.published ? 'admin.acd.published' : 'admin.acd.draft')}
@@ -261,6 +276,7 @@ export default function AcademicExamsPage() {
         )}
       </div>
 
+      <AcademicBulkBar entity="EXAM" ids={[...selection.selected]} onClear={selection.clear} />
       {editing && (
         <ExamFormModal
           key={editing === 'new' ? 'new' : editing.id}

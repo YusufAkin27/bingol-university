@@ -18,7 +18,7 @@ export function parseEntries(src) {
 
 const ph = (s) => (s.match(/\{\w+\}/g) ?? []).sort().join(',');
 // Yönetim paneli yalnız Türkçedir: bu ad alanları en/ar eşitliğinden muaftır (index.ts en/ar'a tr metnini katar).
-const TR_ONLY = new Set(['admin-guard.ts', 'admin-shell.ts', 'admin-p05.ts', 'admin-p03.ts', 'admin-wp02.ts', 'admin-p06.ts', 'admin-p07.ts', 'admin-p08.ts', 'admin-p09.ts', 'admin-p11.ts', 'admin-p13.ts']);
+const TR_ONLY = new Set(['admin-guard.ts', 'admin-shell.ts', 'admin-p05.ts', 'admin-p03.ts', 'admin-wp02.ts', 'admin-p06.ts', 'admin-p07.ts', 'admin-p08.ts', 'admin-p09.ts', 'admin-p11.ts', 'admin-p15.ts', 'admin-p13.ts']);
 const problems = [];
 
 for (const f of readdirSync(join(root, 'tr')).filter((x) => x.endsWith('.ts') && !TR_ONLY.has(x))) {

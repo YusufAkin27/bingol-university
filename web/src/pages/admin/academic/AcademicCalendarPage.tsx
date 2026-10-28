@@ -38,6 +38,9 @@ import {
 } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
+import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
+import { AcademicBulkBar } from '../bulk/BulkBars';
+import { BulkCsvButton, RowPick, SelectPage, useIdSelection } from '../bulk/BulkParts';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
 import {
@@ -77,6 +80,8 @@ export default function AcademicCalendarPage() {
   const [editing, setEditing] = useState<AcademicEvent | 'new' | null>(null);
   const [removing, setRemoving] = useState<AcademicEvent | null>(null);
   const [importing, setImporting] = useState(false);
+  // P15 toplu işlem seçimi (liste görünümü): süzgeç/sayfa/görünüm değişince sıfırlanır
+  const selection = useIdSelection<number>(`${view}|${kind}|${status}|${q}|${page}`, BULK_MAX);
 
   const published = status === '' ? undefined : status === 'true';
   const listParams = { page, size: PAGE_SIZE, kind, q, published };
@@ -176,6 +181,10 @@ export default function AcademicCalendarPage() {
         description={t('admin.acd.cal.intro')}
         actions={
           <>
+            <BulkCsvButton
+              filename="akademik-takvim.csv"
+              fetchCsv={() => exportAcademicCsv({ entity: 'CALENDAR', q, kind, published })}
+            />
             <Button variant="secondary" onClick={() => setImporting(true)}>
               {t('admin.acd.cal.import')}
             </Button>
@@ -255,10 +264,16 @@ export default function AcademicCalendarPage() {
             />
           ) : (
             <>
+              <SelectPage
+                ids={list.data!.items.map((x) => x.id)}
+                selection={selection}
+                label={t('admin.p15.select.page')}
+              />
               <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
                 {list.data!.items.map((ev) => (
                   <li key={ev.id} className={styles.item}>
                     <div className={styles.itemHead}>
+                      <RowPick id={ev.id} label={t('admin.p15.select.row', { title: ev.title })} selection={selection} />
                       <Badge tone="info">{kindLabel(ev.kind)}</Badge>
                       <StatusPill tone={ev.published ? 'success' : 'neutral'}>
                         {t(ev.published ? 'admin.acd.published' : 'admin.acd.draft')}
@@ -371,6 +386,7 @@ export default function AcademicCalendarPage() {
         )}
       </div>
 
+      <AcademicBulkBar entity="CALENDAR" ids={[...selection.selected]} onClear={selection.clear} />
       {editing && (
         <EventFormModal
           key={editing === 'new' ? 'new' : editing.id}

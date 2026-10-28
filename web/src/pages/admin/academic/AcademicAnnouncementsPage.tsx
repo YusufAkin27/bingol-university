@@ -36,6 +36,9 @@ import {
 } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
+import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
+import { AcademicBulkBar } from '../bulk/BulkBars';
+import { BulkCsvButton, RowPick, SelectPage, useIdSelection } from '../bulk/BulkParts';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
 import {
@@ -75,6 +78,8 @@ export default function AcademicAnnouncementsPage() {
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<AdminAnnouncement | 'new' | null>(null);
   const [removing, setRemoving] = useState<AdminAnnouncement | null>(null);
+  // P15 toplu işlem seçimi: süzgeç/sayfa değişince sıfırlanır
+  const selection = useIdSelection<number>(`${status}|${q}|${page}`, BULK_MAX);
 
   const params = { page, size: PAGE_SIZE, status, q };
   const list = useQuery({
@@ -134,7 +139,15 @@ export default function AcademicAnnouncementsPage() {
       <PageHeader
         title={t('admin.acd.an.title')}
         description={t('admin.acd.an.intro')}
-        actions={<Button onClick={() => setEditing('new')}>{t('admin.acd.an.add')}</Button>}
+        actions={
+          <>
+            <BulkCsvButton
+              filename="duyurular.csv"
+              fetchCsv={() => exportAcademicCsv({ entity: 'ANNOUNCEMENT', q, status })}
+            />
+            <Button onClick={() => setEditing('new')}>{t('admin.acd.an.add')}</Button>
+          </>
+        }
       />
       <div className={styles.stack}>
         <div className={styles.toolbar}>
@@ -178,12 +191,18 @@ export default function AcademicAnnouncementsPage() {
           />
         ) : (
           <>
+            <SelectPage
+              ids={list.data!.items.map((x) => x.id)}
+              selection={selection}
+              label={t('admin.p15.select.page')}
+            />
             <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
               {list.data!.items.map((a) => {
                 const st = announcementState(a);
                 return (
                   <li key={a.id} className={styles.item}>
                     <div className={styles.itemHead}>
+                      <RowPick id={a.id} label={t('admin.p15.select.row', { title: a.title })} selection={selection} />
                       <StatusPill
                         tone={
                           st === 'active'
@@ -259,6 +278,7 @@ export default function AcademicAnnouncementsPage() {
         )}
       </div>
 
+      <AcademicBulkBar entity="ANNOUNCEMENT" ids={[...selection.selected]} onClear={selection.clear} />
       {editing && (
         <AnnouncementFormModal
           key={editing === 'new' ? 'new' : editing.id}

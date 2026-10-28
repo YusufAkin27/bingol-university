@@ -69,6 +69,10 @@ public final class AdminGuardPolicy {
     private static final Pattern CHAT_DELETE =
             Pattern.compile("^/api/admin/(messages/[^/]+|conversations/[^/]+/members/[^/]+)$");
 
+    /** P15: menu toplu silme, bekleyen kayit toplu iptali, kaynak elle senkronu (POST; /news|academic/bulk zaten BULK ile kapsanir). */
+    private static final Pattern P15_POST = Pattern.compile(
+            "^/api/admin/(menu/bulk-delete|pending-registrations/bulk-cancel|sources/sync)$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -155,6 +159,9 @@ public final class AdminGuardPolicy {
         }
         if (("PATCH".equals(method) && USER_PROFILE.matcher(path).matches())
                 || ("DELETE".equals(method) && USER_EXTRA_DELETE.matcher(path).matches())) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && P15_POST.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

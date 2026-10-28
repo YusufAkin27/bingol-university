@@ -111,3 +111,8 @@ Ayrıntı ve tablo envanteri: [DATABASE.md](../DATABASE.md). Kısaca:
 
 ## Video donusturme kuyrugu sayaclari (P03)
 - `GET /api/admin/ops/transcode/stats` (yalniz ADMIN, dakikada 60; `media.transcode.AdminTranscodeController`) -> `{enabled, pending, processing, failed, doneLast24h}`. Sayaclar `post_media.transcode_status` (PENDING/PROCESSING/FAILED/DONE) satirlarindan; `doneLast24h` `transcode_at` >= simdi-24sa. `enabled=false` (`app.media.transcode.enabled`) ise web paneli "donusturme kapali" uyarisi gosterir. Yonetim paneli Operasyon > Kuyruklar sekmesi okur; kuyrugu degistirmez.
+
+## Yonetici toplu islemler ve kaynak durumu (P15)
+- Yeni `admin/bulk/*` (`AdminBulkController`): `POST /api/admin/news/bulk`, `/academic/bulk`, `/menu/bulk-delete`, `/pending-registrations/bulk-cancel` (sebep >= 5, kismi basari raporu `{requested, done, skipped, failed, results[]}`, en cok 200 kayit / 62 gun), CSV (`news|academic|menu|pending-registrations/export.csv`, formul kacirma, <= 50.000 satir; bekleyen kayitta e-posta/ad maskeli), `GET /api/admin/sources/status` ve `POST /api/admin/sources/sync` (kaynak basina saatte 3, sebep zorunlu; scraper kurali: elle tetikleme istisnadir). Mevcut tekil uclar degismedi; migration yok.
+- `AdminGuardPolicy`: `menu/bulk-delete`, `pending-registrations/bulk-cancel`, `sources/sync` sebep ister ve yikici sayilir (`news|academic/bulk` zaten `.../bulk` kuraliyla kapsanir).
+- Yeni hata kodlari (tr/en/ar `i18n/bulkadmin*.properties`): `BULK_EMPTY`, `BULK_LIMIT_EXCEEDED`, `EXPORT_ENTITY_INVALID`. Ayrinti: docs/ADMIN_API.md "Toplu islemler, disa aktarma ve kaynak durumu (P15)".
