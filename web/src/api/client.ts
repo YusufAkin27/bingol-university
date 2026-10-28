@@ -29,6 +29,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** false: Bearer eklenmez ve 401'de refresh denenmez (giriş, herkese açık uçlar). Varsayılan true. */
   auth?: boolean;
+  /** Ek istek başlıkları (örn. `Idempotency-Key`); Accept/Accept-Language/Authorization bunlarla ezilmez. */
+  headers?: Record<string, string>;
 }
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '/api').replace(/\/+$/, '');
@@ -64,6 +66,7 @@ function expireSession(): void {
 // ---------- düşük seviye ----------
 async function send(path: string, opts: RequestOptions, token: string | null): Promise<Response> {
   const headers: Record<string, string> = {
+    ...opts.headers,
     Accept: 'application/json',
     'Accept-Language': getCurrentLang(),
   };
@@ -144,6 +147,9 @@ async function execute(path: string, opts: RequestOptions): Promise<Response> {
 }
 
 // ---------- genel API ----------
+/** api.post/put/patch/del için dar ek seçenek: yalnız başlık (örn. Idempotency-Key). */
+export type ExtraOptions = Pick<RequestOptions, 'headers'>;
+
 export async function apiFetch<T = void>(path: string, opts: RequestOptions = {}): Promise<T> {
   const res = await execute(path, opts);
   if (res.status === 204) return undefined as T;
@@ -164,15 +170,15 @@ export async function apiBlob(path: string, opts: RequestOptions = {}): Promise<
 
 export const api = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) => apiFetch<T>(path, { query, signal }),
-  post: <T = void>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: 'POST', body: body ?? undefined }),
-  put: <T = void>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: 'PUT', body: body ?? undefined }),
+  post: <T = void>(path: string, body?: unknown, extra?: ExtraOptions) =>
+    apiFetch<T>(path, { ...extra, method: 'POST', body: body ?? undefined }),
+  put: <T = void>(path: string, body?: unknown, extra?: ExtraOptions) =>
+    apiFetch<T>(path, { ...extra, method: 'PUT', body: body ?? undefined }),
   /** multipart/form-data yükleme (gövde FormData; başlık tarayıcıda kurulur). */
   putForm: <T = void>(path: string, form: FormData) => apiFetch<T>(path, { method: 'PUT', body: form }),
-  patch: <T = void>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: 'PATCH', body: body ?? undefined }),
-  del: <T = void>(path: string) => apiFetch<T>(path, { method: 'DELETE' }),
+  patch: <T = void>(path: string, body?: unknown, extra?: ExtraOptions) =>
+    apiFetch<T>(path, { ...extra, method: 'PATCH', body: body ?? undefined }),
+  del: <T = void>(path: string, extra?: ExtraOptions) => apiFetch<T>(path, { ...extra, method: 'DELETE' }),
 };
 
 /** Herkese açık uçlar: Bearer yok, refresh yok. */

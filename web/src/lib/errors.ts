@@ -15,3 +15,18 @@ export function errorMessage(i18n: Pick<I18n, 't' | 'td'>, e: unknown): string {
   }
   return i18n.t('common.error.UNKNOWN');
 }
+
+/**
+ * Yönetim paneli için tek hata yardımcısı: önce verilen kapsamlarda (varsayılan `admin.err`) `<kapsam>.<KOD>`
+ * çevirisi aranır, yoksa `errorMessage` (ortak `common.error.*` + sunucu mesajı) kullanılır.
+ * Eski `adminErrorMessage` (campaigns/shared) bunun ince bir takma adıdır.
+ */
+export function adminError(i18n: Pick<I18n, 't' | 'td'>, e: unknown, ...scopes: string[]): string {
+  if (isApiError(e)) {
+    for (const scope of scopes.length ? scopes : ['admin.err']) {
+      const own = i18n.td(`${scope}.${e.code}`, '');
+      if (own) return own;
+    }
+  }
+  return errorMessage(i18n, e);
+}

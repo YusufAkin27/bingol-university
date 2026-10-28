@@ -30,6 +30,7 @@ import trAdminOps from './tr/admin-ops';
 import trAdminSystem from './tr/admin-system';
 import trAdminPending from './tr/admin-pending';
 import trAdminAcademic from './tr/admin-academic';
+import trAdminGuard from './tr/admin-guard'; // yalnız tr: en/ar sözlüklerine de aynı Türkçe metin katılır
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -121,6 +122,7 @@ const tr = {
   ...trAdminSystem,
   ...trAdminPending,
   ...trAdminAcademic,
+  ...trAdminGuard,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -157,6 +159,7 @@ const en: Dictionary = {
   ...enAdminSystem,
   ...enAdminPending,
   ...enAdminAcademic,
+  ...trAdminGuard,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -189,6 +192,7 @@ const ar: Dictionary = {
   ...arAdminSystem,
   ...arAdminPending,
   ...arAdminAcademic,
+  ...trAdminGuard,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

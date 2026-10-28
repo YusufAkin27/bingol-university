@@ -1,0 +1,179 @@
+.field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.fields {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.req {
+  color: var(--danger);
+}
+.prompt {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.target {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 0.1rem 0.35rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.hint,
+.counter {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.counter {
+  font-variant-numeric: tabular-nums;
+}
+.ok {
+  min-height: 1.2em;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--success);
+}
+.mismatch {
+  min-height: 1.2em;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--danger);
+}
+.reasonMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chip {
+  all: unset;
+  box-sizing: border-box;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.chip:hover {
+  background: var(--primary-soft);
+}
+.chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Sonuç notu */
+.consequence {
+  margin-block-start: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.consequenceDanger {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.consequenceText {
+  color: var(--text);
+}
+.irreversible {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--danger);
+}
+.reversible {
+  color: var(--text-muted);
+}
+
+/* Toplu etki şeridi */
+.bulk {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.bulkHigh {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.bulkLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+/* Denetim kaydı */
+.audit {
+  display: grid;
+  gap: var(--space-3);
+}
+.auditTitle {
+  font-size: var(--text-base);
+}
+.auditEmpty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.auditList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.auditItem {
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--border-strong);
+  display: grid;
+  gap: 0.15rem;
+  font-size: var(--text-sm);
+}
+.auditHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.auditTime {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.auditAction {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.auditReason {
+  color: var(--text);
+}

@@ -1,19 +1,11 @@
 /** Kampanya, ayar ve onay sayfalarının ortak küçük bileşenleri: Callout, RadioCards, hata çevirisi. */
 import type { ReactNode } from 'react';
-import { isApiError } from '../../../api/client';
-import type { I18n } from '../../../i18n/I18nProvider';
-import { errorMessage } from '../../../lib/errors';
+import { adminError } from '../../../lib/errors';
 import { Icon } from '../../../components/ui';
 import styles from './shared.module.css';
 
 /** Hata kodunu önce bu sayfaların `admin.err.<KOD>` çevirisinden, yoksa genel hata çevirisinden üretir. */
-export function adminErrorMessage(i18n: Pick<I18n, 't' | 'td'>, e: unknown): string {
-  if (isApiError(e)) {
-    const own = i18n.td(`admin.err.${e.code}`, '');
-    if (own) return own;
-  }
-  return errorMessage(i18n, e);
-}
+export const adminErrorMessage = adminError;
 
 export function Callout({
   tone = 'info',

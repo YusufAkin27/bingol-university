@@ -19,3 +19,4 @@ export * from './MarkdownText';
 export * from './DataToolbar';
 export * from './Icon';
 export * from './ContourBackdrop';
+export * from '../admin/guard';

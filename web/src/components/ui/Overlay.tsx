@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Button, IconButton } from './Button';
 import { Icon } from './Icon';
+import { ConsequenceNote } from '../admin/guard/ConsequenceNote';
 import styles from './Overlay.module.css';
 
 const FOCUSABLE =
@@ -60,6 +61,10 @@ interface BaseProps {
   title: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  /** Yıkıcı onaylarda 'alertdialog' (ekran okuyucu içeriği hemen okur). Varsayılan 'dialog'. */
+  role?: 'dialog' | 'alertdialog';
+  /** aria-describedby: açıklayıcı metin öğelerinin kimlikleri (boşlukla ayrılmış). */
+  describedBy?: string;
 }
 
 function Panel({
@@ -70,6 +75,8 @@ function Panel({
   footer,
   variant,
   size = 'md',
+  role = 'dialog',
+  describedBy,
 }: BaseProps & { variant: 'modal' | 'drawer'; size?: 'sm' | 'md' | 'lg' }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -80,9 +87,10 @@ function Panel({
     <div className={styles.scrim} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={ref}
-        role="dialog"
+        role={role}
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={describedBy}
         tabIndex={-1}
         className={`${styles.panel} ${styles[variant]} ${styles[size]}`}
       >
@@ -121,6 +129,17 @@ interface ConfirmProps {
   cancelLabel?: string;
   danger?: boolean;
   loading?: boolean;
+  /** Ne olacak / geri alınabilir mi metni. `irreversible` true ise kırmızı 'geri alınamaz' satırı eklenir. */
+  consequence?: ReactNode;
+  irreversible?: boolean;
+  /** Mesajın altına konan ek alanlar (sebep, yazarak onay...). */
+  children?: ReactNode;
+  /** Onay düğmesini kapatır (alanlar geçerli değilken). */
+  confirmDisabled?: boolean;
+  /** Yıkıcı eylemlerde 'alertdialog'. Varsayılan 'dialog' (geriye uyumlu). */
+  role?: 'dialog' | 'alertdialog';
+  /** İlk odak: onay düğmesi (varsayılan), vazgeç düğmesi ya da içerikteki [data-autofocus] alanı. */
+  initialFocus?: 'confirm' | 'cancel' | 'content';
 }
 
 export function ConfirmDialog({
@@ -133,31 +152,51 @@ export function ConfirmDialog({
   cancelLabel,
   danger,
   loading,
+  consequence,
+  irreversible,
+  children,
+  confirmDisabled,
+  role,
+  initialFocus = 'confirm',
 }: ConfirmProps) {
   const { t } = useI18n();
+  const uid = useId();
+  const messageId = `${uid}-msg`;
+  const consequenceId = `${uid}-cons`;
+  const hasConsequence = consequence !== undefined || irreversible !== undefined;
+  const describedBy = [message ? messageId : null, hasConsequence ? consequenceId : null].filter(Boolean).join(' ');
   return (
     <Modal
       open={open}
       onClose={onClose}
       title={title}
       size="sm"
+      role={role}
+      describedBy={describedBy || undefined}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose} data-autofocus={initialFocus === 'cancel' ? true : undefined}>
             {cancelLabel ?? t('common.cancel')}
           </Button>
           <Button
             variant={danger ? 'danger' : 'primary'}
             loading={loading}
+            disabled={confirmDisabled}
             onClick={onConfirm}
-            data-autofocus
+            data-autofocus={initialFocus === 'confirm' ? true : undefined}
           >
             {confirmLabel ?? t('common.confirm')}
           </Button>
         </>
       }
     >
-      {message && <p>{message}</p>}
+      {message && <p id={messageId}>{message}</p>}
+      {hasConsequence && (
+        <ConsequenceNote id={consequenceId} irreversible={irreversible}>
+          {consequence}
+        </ConsequenceNote>
+      )}
+      {children}
     </Modal>
   );
 }
