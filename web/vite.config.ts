@@ -47,6 +47,11 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       css: { modules: { classNameStrategy: 'non-scoped' as const } },
       include: ['src/**/*.test.{ts,tsx}'],
+      // jsdom + lazy sayfalar yük altında yavaşlar: süre ve paralellik sınırlı
+      testTimeout: 30000,
+      hookTimeout: 30000,
+      pool: 'forks' as const,
+      poolOptions: { forks: { maxForks: 4, minForks: 1 } },
       coverage: {
         provider: 'v8' as const,
         reporter: ['text-summary', 'lcov', 'html'],

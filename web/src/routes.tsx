@@ -64,6 +64,7 @@ const SuspendRecommendationsPage = lazy(() => import('./pages/admin/SuspendRecom
 const BlocklistPage = lazy(() => import('./pages/admin/BlocklistPage'));
 const AccessBansPage = lazy(() => import('./pages/admin/AccessBansPage'));
 const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
+const CommunityCategoriesPage = lazy(() => import('./pages/admin/CommunityCategoriesPage'));
 const AcademicCalendarPage = lazy(() => import('./pages/admin/academic/AcademicCalendarPage'));
 const AcademicExamsPage = lazy(() => import('./pages/admin/academic/AcademicExamsPage'));
 const AcademicAnnouncementsPage = lazy(() => import('./pages/admin/academic/AcademicAnnouncementsPage'));
@@ -156,6 +157,7 @@ export function AppRoutes() {
           <Route path="moderation/blocklist" element={<BlocklistPage />} />
           <Route path="security/access-bans" element={<AccessBansPage />} />
           <Route path="profanity" element={<ProfanityPage />} />
+          <Route path="community-categories" element={<CommunityCategoriesPage />} />
           <Route path="academic/calendar" element={<AcademicCalendarPage />} />
           <Route path="academic/exams" element={<AcademicExamsPage />} />
           <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />

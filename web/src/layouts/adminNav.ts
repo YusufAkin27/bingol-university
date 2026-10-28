@@ -66,6 +66,12 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'accessBans', to: paths.admin.accessBans, labelKey: 'admin.nav.accessBans', icon: 'shield' },
       { id: 'profanity', to: paths.admin.profanity, labelKey: 'admin.nav.profanity', icon: 'eyeOff' },
       {
+        id: 'communityCategories',
+        to: paths.admin.communityCategories,
+        labelKey: 'admin.nav.communityCategories',
+        icon: 'community',
+      },
+      {
         id: 'eventApplications',
         to: paths.admin.eventApplications,
         labelKey: 'admin.nav.eventApplications',

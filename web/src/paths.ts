@@ -60,6 +60,7 @@ export const paths = {
     blocklist: `${ADMIN_BASE}/moderation/blocklist`,
     accessBans: `${ADMIN_BASE}/security/access-bans`,
     profanity: `${ADMIN_BASE}/profanity`,
+    communityCategories: `${ADMIN_BASE}/community-categories`,
     acdCalendar: `${ADMIN_BASE}/academic/calendar`,
     acdExams: `${ADMIN_BASE}/academic/exams`,
     acdAnnouncements: `${ADMIN_BASE}/academic/announcements`,

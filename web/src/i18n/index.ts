@@ -25,6 +25,7 @@ import trAdminMail from './tr/admin-mail';
 import trAdminMenu from './tr/admin-menu';
 import trAdminAccessBans from './tr/admin-accessbans';
 import trAdminProfanity from './tr/admin-profanity';
+import trAdminCommunityCategories from './tr/admin-community-categories';
 import trAdminOps from './tr/admin-ops';
 import trAdminSystem from './tr/admin-system';
 import trAdminPending from './tr/admin-pending';
@@ -54,6 +55,7 @@ import enAdminMail from './en/admin-mail';
 import enAdminMenu from './en/admin-menu';
 import enAdminAccessBans from './en/admin-accessbans';
 import enAdminProfanity from './en/admin-profanity';
+import enAdminCommunityCategories from './en/admin-community-categories';
 import enAdminOps from './en/admin-ops';
 import enAdminSystem from './en/admin-system';
 import enAdminPending from './en/admin-pending';
@@ -83,6 +85,7 @@ import arAdminMail from './ar/admin-mail';
 import arAdminMenu from './ar/admin-menu';
 import arAdminAccessBans from './ar/admin-accessbans';
 import arAdminProfanity from './ar/admin-profanity';
+import arAdminCommunityCategories from './ar/admin-community-categories';
 import arAdminOps from './ar/admin-ops';
 import arAdminSystem from './ar/admin-system';
 import arAdminPending from './ar/admin-pending';
@@ -113,6 +116,7 @@ const tr = {
   ...trAdminMenu,
   ...trAdminAccessBans,
   ...trAdminProfanity,
+  ...trAdminCommunityCategories,
   ...trAdminOps,
   ...trAdminSystem,
   ...trAdminPending,
@@ -148,6 +152,7 @@ const en: Dictionary = {
   ...enAdminMenu,
   ...enAdminAccessBans,
   ...enAdminProfanity,
+  ...enAdminCommunityCategories,
   ...enAdminOps,
   ...enAdminSystem,
   ...enAdminPending,
@@ -179,6 +184,7 @@ const ar: Dictionary = {
   ...arAdminMenu,
   ...arAdminAccessBans,
   ...arAdminProfanity,
+  ...arAdminCommunityCategories,
   ...arAdminOps,
   ...arAdminSystem,
   ...arAdminPending,
