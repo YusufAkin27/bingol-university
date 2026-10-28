@@ -663,6 +663,42 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Zaten hesabınız var mı?'**
   String get authHaveAccount;
+
+  /// No description provided for @authRegisterSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birkaç adımda kampüse katılın.'**
+  String get authRegisterSubtitle;
+
+  /// No description provided for @authSectionAcademic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik bilgiler'**
+  String get authSectionAcademic;
+
+  /// No description provided for @authSectionAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap bilgileri'**
+  String get authSectionAccount;
+
+  /// No description provided for @authPwWeak.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zayıf'**
+  String get authPwWeak;
+
+  /// No description provided for @authPwFair.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orta'**
+  String get authPwFair;
+
+  /// No description provided for @authPwStrong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güçlü'**
+  String get authPwStrong;
 }
 
 class _AppLocalizationsDelegate

@@ -104,16 +104,20 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return AuthScaffold(
+      minimal: true,
       showBack: true,
       title: context.l10n.authCreateAccount,
+      subtitle: context.l10n.authRegisterSubtitle,
       children: [
         Form(
           key: _form,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: AutofillGroup(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_error != null) Notice(_error!),
+                AuthSectionLabel(context.l10n.authSectionAcademic),
                 AcademicFields(
                   catalog: _catalog,
                   faculty: _faculty,
@@ -128,7 +132,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     _grade = g;
                   }),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 28),
+                AuthSectionLabel(context.l10n.authSectionAccount),
                 TextFormField(
                   controller: _name,
                   textInputAction: TextInputAction.next,
@@ -151,41 +156,52 @@ class _RegisterPageState extends State<RegisterPage> {
                   autofillHints: const [AutofillHints.newPassword],
                   onSubmitted: _submit,
                 ),
-                const SizedBox(height: 8),
-                CheckboxListTile(
-                  value: _terms,
-                  onChanged: _busy ? null : (v) => setState(() {
-                        _terms = v ?? false;
-                        _termsError = false;
-                      }),
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  activeColor: t.pr,
-                  title: Text.rich(
-                    TextSpan(
-                      style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
-                      children: [
-                        TextSpan(text: context.l10n.authTermsPrefix),
-                        TextSpan(
-                          text: context.l10n.authTermsLink,
-                          recognizer: _termsLink,
-                          style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
-                        ),
-                        TextSpan(text: context.l10n.authTermsSep),
-                        TextSpan(
-                          text: context.l10n.authPrivacyLink,
-                          recognizer: _privacyLink,
-                          style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
-                        ),
-                        TextSpan(text: context.l10n.authTermsSuffix),
-                      ],
-                    ),
-                  ),
-                  subtitle: _termsError
-                      ? Text(context.l10n.authMustAccept,
-                          style: BuType.caption.copyWith(color: t.danger))
-                      : null,
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _password,
+                  builder: (_, v, __) => PasswordStrength(password: v.text),
                 ),
+                const SizedBox(height: 24),
+                Material(
+                  color: _termsError ? Theme.of(context).colorScheme.errorContainer : t.soft.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  clipBehavior: Clip.antiAlias,
+                  child: CheckboxListTile(
+                    value: _terms,
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() {
+                              _terms = v ?? false;
+                              _termsError = false;
+                            }),
+                    contentPadding: const EdgeInsetsDirectional.fromSTEB(4, 4, 12, 4),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    activeColor: t.pr,
+                    title: Text.rich(
+                      TextSpan(
+                        style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
+                        children: [
+                          TextSpan(text: context.l10n.authTermsPrefix),
+                          TextSpan(
+                            text: context.l10n.authTermsLink,
+                            recognizer: _termsLink,
+                            style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
+                          ),
+                          TextSpan(text: context.l10n.authTermsSep),
+                          TextSpan(
+                            text: context.l10n.authPrivacyLink,
+                            recognizer: _privacyLink,
+                            style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
+                          ),
+                          TextSpan(text: context.l10n.authTermsSuffix),
+                        ],
+                      ),
+                    ),
+                    subtitle: _termsError
+                        ? Text(context.l10n.authMustAccept, style: BuType.caption.copyWith(color: t.danger))
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: _busy ? null : _submit,
@@ -195,7 +211,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,

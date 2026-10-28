@@ -310,4 +310,22 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authHaveAccount => 'Zaten hesabınız var mı?';
+
+  @override
+  String get authRegisterSubtitle => 'Birkaç adımda kampüse katılın.';
+
+  @override
+  String get authSectionAcademic => 'Akademik bilgiler';
+
+  @override
+  String get authSectionAccount => 'Hesap bilgileri';
+
+  @override
+  String get authPwWeak => 'Zayıf';
+
+  @override
+  String get authPwFair => 'Orta';
+
+  @override
+  String get authPwStrong => 'Güçlü';
 }

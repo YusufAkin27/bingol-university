@@ -53,26 +53,48 @@ class AuthScaffold extends StatelessWidget {
         body: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.fromLTRB(28, top + 48, 28, 32),
+            padding: EdgeInsets.fromLTRB(28, top + (showBack ? 12 : 48), 28, 32),
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: c.maxHeight - top - 80),
+              constraints: BoxConstraints(minHeight: c.maxHeight - top - (showBack ? 44 : 80)),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Container(
-                          width: 52,
-                          height: 52,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: kBrandRed, borderRadius: BorderRadius.circular(16)),
-                          child: const BuMark(height: 32),
+                      if (showBack)
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Semantics(
+                            button: true,
+                            label: context.l10n.authBack,
+                            child: Material(
+                              color: t.soft,
+                              shape: const CircleBorder(),
+                              child: InkWell(
+                                customBorder: const CircleBorder(),
+                                onTap: () => Navigator.maybePop(context),
+                                child: SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.onSoft, size: 20),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Container(
+                            width: 52,
+                            height: 52,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: kBrandRed, borderRadius: BorderRadius.circular(16)),
+                            child: const BuMark(height: 32),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
+                      SizedBox(height: showBack ? 28 : 40),
                       Text(title, style: BuType.display.copyWith(color: t.ink, height: 1.15)),
                       if (subtitle != null) ...[
                         const SizedBox(height: 8),
@@ -267,6 +289,80 @@ class IdentifierField extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Form bölümü başlığı (küçük, büyük harfsiz etiket + ince ayraç).
+class AuthSectionLabel extends StatelessWidget {
+  const AuthSectionLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          Text(text, style: BuType.label.copyWith(color: t.mut)),
+          const SizedBox(width: 12),
+          Expanded(child: Divider(height: 1, color: t.bd)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Şifre gücü: 3 parçalı çubuk + metin (renge ek olarak metin, erişilebilirlik için).
+class PasswordStrength extends StatelessWidget {
+  const PasswordStrength({super.key, required this.password});
+
+  final String password;
+
+  int get _score {
+    if (password.isEmpty) return 0;
+    var s = 0;
+    if (password.length >= 8) s++;
+    if (password.length >= 12 || (RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'\d').hasMatch(password))) s++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(password) && password.length >= 8 ||
+        (password.length >= 12 && RegExp(r'[A-Z]').hasMatch(password) && RegExp(r'\d').hasMatch(password))) {
+      s++;
+    }
+    return s == 0 ? 1 : s;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (password.isEmpty) return const SizedBox.shrink();
+    final t = context.bu;
+    final score = _score;
+    final color = score == 1 ? t.danger : (score == 2 ? Colors.orange.shade700 : Colors.green.shade600);
+    final label = score == 1
+        ? context.l10n.authPwWeak
+        : (score == 2 ? context.l10n.authPwFair : context.l10n.authPwStrong);
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, left: 2, right: 2),
+      child: Row(
+        children: [
+          for (var i = 0; i < 3; i++) ...[
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 4,
+                decoration: BoxDecoration(
+                  color: i < score ? color : t.bd,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            if (i < 2) const SizedBox(width: 4),
+          ],
+          const SizedBox(width: 12),
+          Text(label, style: BuType.caption.copyWith(color: color)),
+        ],
+      ),
     );
   }
 }

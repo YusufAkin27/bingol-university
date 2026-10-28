@@ -93,5 +93,11 @@
   "authPrivacyLink": "سياسة الخصوصية",
   "authTermsSuffix": "",
   "authMustAccept": "يجب الموافقة للمتابعة.",
-  "authHaveAccount": "لديك حساب بالفعل؟"
+  "authHaveAccount": "لديك حساب بالفعل؟",
+  "authRegisterSubtitle": "انضم إلى الحرم الجامعي في بضع خطوات.",
+  "authSectionAcademic": "المعلومات الأكاديمية",
+  "authSectionAccount": "معلومات الحساب",
+  "authPwWeak": "ضعيفة",
+  "authPwFair": "متوسطة",
+  "authPwStrong": "قوية"
 }

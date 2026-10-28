@@ -93,5 +93,11 @@
   "authPrivacyLink": "Privacy Policy",
   "authTermsSuffix": "",
   "authMustAccept": "You must accept to continue.",
-  "authHaveAccount": "Already have an account?"
+  "authHaveAccount": "Already have an account?",
+  "authRegisterSubtitle": "Join the campus in a few steps.",
+  "authSectionAcademic": "Academic details",
+  "authSectionAccount": "Account details",
+  "authPwWeak": "Weak",
+  "authPwFair": "Fair",
+  "authPwStrong": "Strong"
 }

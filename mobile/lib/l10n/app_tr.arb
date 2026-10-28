@@ -142,5 +142,11 @@
   "authPrivacyLink": "gizlilik politikasını",
   "authTermsSuffix": " kabul ediyorum",
   "authMustAccept": "Devam etmek için kabul etmelisiniz.",
-  "authHaveAccount": "Zaten hesabınız var mı?"
+  "authHaveAccount": "Zaten hesabınız var mı?",
+  "authRegisterSubtitle": "Birkaç adımda kampüse katılın.",
+  "authSectionAcademic": "Akademik bilgiler",
+  "authSectionAccount": "Hesap bilgileri",
+  "authPwWeak": "Zayıf",
+  "authPwFair": "Orta",
+  "authPwStrong": "Güçlü"
 }

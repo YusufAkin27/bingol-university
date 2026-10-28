@@ -310,4 +310,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authHaveAccount => 'Already have an account?';
+
+  @override
+  String get authRegisterSubtitle => 'Join the campus in a few steps.';
+
+  @override
+  String get authSectionAcademic => 'Academic details';
+
+  @override
+  String get authSectionAccount => 'Account details';
+
+  @override
+  String get authPwWeak => 'Weak';
+
+  @override
+  String get authPwFair => 'Fair';
+
+  @override
+  String get authPwStrong => 'Strong';
 }

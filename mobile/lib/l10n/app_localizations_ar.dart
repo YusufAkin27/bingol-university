@@ -311,4 +311,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authHaveAccount => 'لديك حساب بالفعل؟';
+
+  @override
+  String get authRegisterSubtitle => 'انضم إلى الحرم الجامعي في بضع خطوات.';
+
+  @override
+  String get authSectionAcademic => 'المعلومات الأكاديمية';
+
+  @override
+  String get authSectionAccount => 'معلومات الحساب';
+
+  @override
+  String get authPwWeak => 'ضعيفة';
+
+  @override
+  String get authPwFair => 'متوسطة';
+
+  @override
+  String get authPwStrong => 'قوية';
 }
