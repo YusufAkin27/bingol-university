@@ -26,6 +26,7 @@ public class AdminChatFeedController {
     }
 
     /** GET /api/admin/chat-media: tum sohbet ekleri (imlec = ek id, size <= 60). */
+    @edu.bingol.backend.admin.AuditRead
     @GetMapping("/chat-media")
     public AdminChatFeedService.MediaPage media(@RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "30") int size, @RequestParam(required = false) String kind,
@@ -48,6 +49,7 @@ public class AdminChatFeedController {
     }
 
     /** GET /api/admin/chat-messages: tum sohbetlerden mesaj akisi (en yeni once, imlec = mesaj id, size <= 50). */
+    @edu.bingol.backend.admin.AuditRead
     @GetMapping("/chat-messages")
     public AdminChatFeedService.FeedPage messages(@RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "30") int size, @RequestParam(required = false) Long userId,

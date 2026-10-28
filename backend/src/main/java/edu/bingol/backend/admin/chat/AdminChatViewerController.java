@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Yonetici sohbet goruntuleyici (`/api/admin/**` yalnizca ADMIN; kimlik JWT'den, Basic auth kabul edilmez).
  * Her sayfa istegi otomatik denetim kaydi uretir; hiz siniri yonetici basina dakikada 120 sayfa.
  */
+@edu.bingol.backend.admin.AuditRead
 @RestController
 @RequestMapping("/api/admin/users/{userId}/conversations")
 public class AdminChatViewerController {

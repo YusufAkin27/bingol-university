@@ -61,6 +61,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 ### Denetim kaydı
 `/api/admin/**` altındaki **GET dışı** tüm istekler (HandlerInterceptor, gövde kaydedilmez) `admin_audit` tablosuna yazılır:
 `GET /api/admin/audit?page=&size=&adminId=&method=&q=` → `{items:[{id,adminId,adminEmail,method,path,status,at,ip}], …}` (en yeni önce).
+**v2 (V630): hedef/sebep/özet/istek kimliği, yeni süzgeçler, CSV ve GET denetimi için bkz. "Denetim kaydı v2 ve yönetici yazma güvenliği" bölümü (sayfa sonu).**
 
 ### Sözleşme yönetimi eksikleri
 `GET /api/admin/legal/{type}/versions` → `[{version, lang, title, content, requireReaccept, active, publishedAt}]` (tüm diller, en yeni önce).
@@ -111,7 +112,7 @@ Sözleşme alanları değişmedi; aşağıdakiler belirsiz kalan noktaların kes
 
 ## T24 — Kullanıcı bazlı sohbet görüntüleyici
 
-Yalnızca JWT'li ADMIN (Basic auth 401). Her sayfa isteği otomatik değiştirilemez denetim kaydı yazar (`message_access_audit`; gerekçe girişi yok, sistem gerekçesi `yonetici sohbet goruntuleme`); kayıt yazılamazsa içerik dönmez (`503 CRYPTO_UNAVAILABLE`). Hız sınırı: yönetici başına dakikada 120 sayfa. Ayrıntı ve güvenlik kararları: [ENCRYPTION.md](ENCRYPTION.md) §4.
+Yalnızca JWT'li ADMIN (Basic auth 401). Her sayfa isteği otomatik değiştirilemez denetim kaydı yazar (`message_access_audit`; **gerçek sebep zorunlu**: `X-Admin-Reason` / `reason` ≥ 10 karakter, bkz. sayfa sonu; zorunluluk kapalıyken sistem gerekçesi `yonetici sohbet goruntuleme`); kayıt yazılamazsa içerik dönmez (`503 CRYPTO_UNAVAILABLE`). Hız sınırı: yönetici başına dakikada 120 sayfa. Ayrıntı ve güvenlik kararları: [ENCRYPTION.md](ENCRYPTION.md) §4.
 
 | Uç | Açıklama |
 |---|---|
@@ -685,3 +686,62 @@ Eşikler (`app.observability.*`, varsayılanlar): `dead-warn=1` (≥1 WARN), `de
 ### Korelasyon kimliği
 
 Her yanıt `X-Request-Id` başlığı taşır (istemci değeri `[A-Za-z0-9._-]{8,64}` ise korunur, değilse UUID üretilir); log satırlarında `[requestId]` olarak görünür; `{code,message}` hata gövdelerine `traceId` olarak eklenir (destek talebinde bu değer istenir).
+
+## Denetim kaydı v2 ve yönetici yazma güvenliği (P02/P04, V630)
+
+Kapsam: tüm `/api/admin/**` uçları. Migration `V630__admin_audit_v2.sql` (yeni kolonlar NULL'a izinli; eski satırlar değişmez; saklama 365 gün, V520 ayarı aynı).
+
+### Sebep (reason) nasıl gönderilir
+Üç yoldan biri (öncelik sırasıyla): (1) başlık `X-Admin-Reason: <metin>` (Türkçe/Arapça karakter için yüzde-kodlu gönderilebilir: `encodeURIComponent`), (2) **GET**'te sorgu parametresi `?reason=`, (3) JSON gövdede üst düzey `reason` alanı (yalnız bu alan okunur; gövde **saklanmaz**, Content-Length bilinen ve ≤ 64 KB gövdelerde çalışır; büyük/parçalı gövdede başlık kullanın). En çok 300 karakter saklanır; kontrol karakterleri boşluğa çevrilir.
+Ayar: `app.admin.require-reason` (varsayılan `true`; testlerde `false`). Kapalıyken sebep zorunlu değildir ama verilirse yine kaydedilir.
+
+**Sebep ZORUNLU (yoksa/çok kısaysa `400 REASON_REQUIRED`, mesaj tr/en/ar, `{0}` = en az uzunluk):**
+
+| İstek | En az |
+|---|---|
+| `PATCH /api/admin/users/{id}/role` | 5 |
+| `DELETE /api/admin/users/{id}` | 5 |
+| `POST /api/admin/legal/{type}` (sözleşme yayınlama) | 5 |
+| `PUT /api/admin/settings/{key}`, yalnız kritik anahtarlar: `maintenance_mode`, `min_version_*`, `store_url_*`, `legal.*`/`legal_*`, `support_email` | 5 |
+| `POST .../bulk` (örn. `/access-bans/bulk`) | 5 |
+| Sohbet içeriği açan GET'ler: `GET /api/admin/users/{id}/conversations[/{cid}/messages]`, `GET /api/admin/chat-media`, `GET /api/admin/chat-messages`, sohbet bağlamı dönen `GET /api/admin/reports/{id}` | **10** (`message_access_audit.reason` kısıtı) |
+
+Sohbet uçlarında girilen gerçek sebep `message_access_audit.reason`'a yazılır (sistem gerekçesinin yerine). Sohbet **istatistik** ucu (`/chat-media/stats`) ve medya önizleme (`<img>`) sebep istemez. Web notu: sayfalama isteklerinde aynı sebep her isteğe eklenmelidir (durumsuz). Şikâyet detayında yalnız sohbet mesajı bağlamı açılıyorsa sebep aranır (kullanıcı/kulüp şikâyetlerinde aranmaz).
+
+### Hız sınırı (yönetici başına; 429 `RATE_LIMITED` + `Retry-After`)
+Tüm yazma istekleri (POST/PUT/PATCH/DELETE `/api/admin/**`): **60/dk**. Yıkıcı/geri alınması zor işlemler ek olarak **20/saat**: kullanıcı silme, rol değiştirme, `verify-email`, `send-reset`, `revoke-sessions`, sözleşme yayını, kritik ayar, toplu işlemler, bekleyen kayıt silme, blocklist ekle/sil, askı önerisi kabul. Basic auth yöneticileri ortak kovayı paylaşır. Okuma ve sohbet görüntüleyici kendi sınırlarını korur (120/dk). Ayarlar: `app.admin.write-per-minute`, `app.admin.destructive-per-hour`. Kural tek yerde (`AdminGuardInterceptor`) olduğu için yeni yönetici yazma ucu otomatik kapsanır.
+
+### `Idempotency-Key` (yazma uçları)
+`POST|PUT|PATCH|DELETE /api/admin/**` isteğine `Idempotency-Key: <8-100 karakter [A-Za-z0-9._:-]>` eklenirse (web `useGuardedMutation` zaten gönderir): ilk istek işlenir; aynı anahtarla gelen ikinci istek ilkini **beklemez**: ilk bitene dek `409 REQUEST_IN_PROGRESS` (+ `Retry-After: 1`), bitince saklanan sonuç (durum kodu + ≤ 16 KB gövde) `Idempotency-Replayed: true` başlığıyla döner (gövde 16 KB'ı aşarsa yalnız durum). **2xx dışı sonuç anahtarı serbest bırakır** (düzeltip aynı anahtarla yeniden denenebilir). Aynı anahtar başka yol/yöntemle gelirse `422 IDEMPOTENCY_KEY_REUSED`. Anahtar yönetici başınadır (Redis `idem:<adminId>:<key>`, 60 sn; `app.admin.idempotency-ttl-seconds`). Redis yoksa fail-open. Başlık yoksa/bozuksa istek normal işlenir.
+
+### `GET /api/admin/audit` (genişletildi)
+Süzgeçler: `adminId`, `method`, `q` (yol, e-posta, sebep, özet, hedef kimliği), `from`/`to` (`yyyy-MM-dd` Europe/Istanbul günü, `to` o günü dahil; ya da ISO-8601 an), `targetType` (örn. `USER`), `targetId`, `status` (tam kod `403` ya da sınıf `4xx`); `page`, `size` (≤ 100). Geçersiz tarih `400 VALIDATION_ERROR`.
+```json
+{ "items": [ { "id": 981, "adminId": 5, "adminEmail": "root@bingol.edu.tr", "method": "PATCH",
+    "path": "/api/admin/users/3/role", "status": 204, "at": "2026-10-28T09:12:44Z", "ip": "10.0.0.7",
+    "targetType": "USER", "targetId": "3", "reason": "yetki düzeltme talebi", "summary": "rol -> USER",
+    "requestId": "9c1f0a7e-..." } ],
+  "page": 0, "totalPages": 1, "totalItems": 1 }
+```
+`targetType/targetId/reason/summary/requestId` eski satırlarda `null`. Basic auth yöneticisinde `adminId = null`, `adminEmail = "basic-admin"`. Hedef, servis `AuditContext.target(...)` ile bildirmediyse yoldan çıkarılır (`/users/3/role` → `USER`/`3`, `/settings/maintenance_mode` → `SETTING`/anahtar, `/support/tickets/8/reply` → `TICKET`/`8`). `requestId` = `X-Request-Id` yanıt başlığı / hata gövdesindeki `traceId`.
+
+### `GET /api/admin/audit/export.csv`
+Aynı süzgeçler. UTF-8 BOM, CRLF, hücre başında `= + - @` formül kaçışı (`'` öneki), en çok 50.000 satır (en yeni önce), akış halinde. Başlık: `id,at,adminId,adminEmail,method,path,status,targetType,targetId,reason,summary,requestId,ip`. **Bu istek de denetlenir** (`targetType=AUDIT`, `summary="csv satir=N"`).
+
+### `GET /api/admin/audit/message-access`
+Yönetici sohbet içeriği erişim kayıtları (içerik dönmez). Süzgeçler: `adminId`, `targetUserId`, `conversationId`, `kind` (`LIST_PREVIEW|VIEW_MESSAGES|MEDIA|FEED|REPORT_CONTEXT`), `q` (sebep içinde), `from`, `to`, `page`, `size`. Bu okuma da denetlenir.
+```json
+{ "items": [ { "id": 77, "adminId": 5, "adminEmail": "root@bingol.edu.tr", "conversationId": 10, "targetUserId": 1,
+    "kind": "VIEW_MESSAGES", "messageCount": 3, "fromMessageId": 120, "toMessageId": 122,
+    "reason": "şikayet no 4521 incelemesi", "ip": "10.0.0.7", "at": "2026-10-28T09:10:00Z" } ],
+  "page": 0, "totalPages": 1, "totalItems": 1 }
+```
+
+### GET denetimi (`@AuditRead`)
+Kişisel veri okuyan uçlar kayda girer (sebep zorunlu değil; kayıt zorunlu): kullanıcı detayı `GET /users/{id}`, kullanıcı CSV, destek talebi yazışması `GET /support/tickets/{id}`, şikâyet bağlamı `GET /reports/{id}`, sohbet görüntüleyici/akış uçları, `GET /audit/message-access`, cihaz/IP geçmişi ve erişim engeli listeleri (önceden). Yeni uç için `@AuditRead` (admin paketi) eklenir; genel liste uçlarına eklenmez.
+
+### ADMIN_EMAILS tuzağı
+`ADMIN_EMAILS` içindeki hesabın rolü panelden düşürülemez, hesap silinemez: `409 ADMIN_EMAIL_PINNED` (aksi halde sonraki girişte `promoteIfAdmin` rolü geri verir). Kalıcı çıkarma için önce ortam değişkeninden kaldırın. Yükseltmek serbesttir.
+
+### Yeni hata kodları (3 dilde `i18n/obs*.properties`)
+`REASON_REQUIRED` (400, `{0}` en az uzunluk), `ADMIN_EMAIL_PINNED` (409), `REQUEST_IN_PROGRESS` (409), `IDEMPOTENCY_KEY_REUSED` (422).

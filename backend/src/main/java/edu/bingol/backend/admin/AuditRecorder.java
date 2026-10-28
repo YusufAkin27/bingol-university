@@ -4,10 +4,11 @@ import edu.bingol.backend.common.ClientIp;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-/** Denetim kaydi yazar; hata asla istegi bozmaz (yalnizca log'lanir). Govde ve sorgu dizgesi kaydedilmez. */
+/** Denetim kaydi yazar; hata asla istegi bozmaz (yalnizca log'lanir). Govde ve sorgu dizgesi kaydedilmez (yalniz sebep + ozet). */
 @Component
 public class AuditRecorder {
 
@@ -23,7 +24,7 @@ public class AuditRecorder {
     }
 
     /** Denetlenecek mi: GET/HEAD/OPTIONS disindaki tum yonetici istekleri + kisisel veri iceren CSV disa aktarimi. */
-    static boolean shouldAudit(String method, String path) {
+    public static boolean shouldAudit(String method, String path) {
         boolean write = !method.equals("GET") && !method.equals("HEAD") && !method.equals("OPTIONS");
         // T8: yonetici sohbet gorseli onizlemesi (GET) de kisisel icerik gosterir -> denetlenir
         // Erisim engeli listesi/istatistigi ve kullanici cihaz/IP gecmisi (kisisel veri) goruntulemesi de denetlenir
@@ -43,9 +44,25 @@ public class AuditRecorder {
                     ? (auth.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails
                             ? "basic-admin" : auth.getName())
                     : null;
-            repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, clientIp.of(req));
+            repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, clientIp.of(req), details(req));
         } catch (RuntimeException e) {
             log.warn("Denetim kaydi yazilamadi: {}", e.toString());
         }
+    }
+
+    /** Acik bildirilen hedef/sebep/ozet; hedef bildirilmediyse yoldan cikarilir. Istek kimligi MDC'den. */
+    static AuditRepository.Details details(HttpServletRequest req) {
+        AuditContext.Data d = AuditContext.peek(req);
+        String type = d == null ? null : d.targetType();
+        String id = d == null ? null : d.targetId();
+        if (type == null) {
+            AuditTargets.Target t = AuditTargets.infer(req.getRequestURI());
+            type = t.type();
+            if (id == null) {
+                id = t.id();
+            }
+        }
+        return new AuditRepository.Details(type, id, d == null ? null : d.reason(), d == null ? null : d.summary(),
+                MDC.get("requestId"));
     }
 }

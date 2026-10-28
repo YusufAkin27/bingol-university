@@ -115,6 +115,7 @@ public class AdminChatViewerService {
 
     public ConversationPage conversations(long adminId, long userId, Long cursor, int size, String ip) {
         crypto.requireEnabled();
+        crypto.requireReason();
         PersonView user = person(userId);
         if (user == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -156,7 +157,7 @@ public class AdminChatViewerService {
                 Plain p = crypto.open(cid, MessageCodec.context(l.senderId(), l.clientId()), l.sealed());
                 preview = new LastMessage(l.id(), l.senderId(), l.senderId() == userId, truncate(p.text()), p.error(),
                         l.deletedAt() != null, l.hidden(), l.suppressed(), l.createdAt().toString());
-                audit.add(new Entry(adminId, userId, cid, 1, l.id(), l.id(), AdminDecryptService.SYSTEM_REASON, ip,
+                audit.add(new Entry(adminId, userId, cid, 1, l.id(), l.id(), AdminDecryptService.currentReason(), ip,
                         "LIST_PREVIEW"));
             }
             Timestamp at = (Timestamp) r[2];
@@ -172,6 +173,7 @@ public class AdminChatViewerService {
 
     public MessagePage messages(long adminId, long userId, long conversationId, Long before, int size, String ip) {
         crypto.requireEnabled();
+        crypto.requireReason();
         PersonView user = person(userId);
         if (user == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -204,7 +206,7 @@ public class AdminChatViewerService {
         Long from = ids.isEmpty() ? null : ids.get(0);
         Long to = ids.isEmpty() ? null : ids.get(ids.size() - 1);
         crypto.record(List.of(new Entry(adminId, userId, conversationId, built.decrypted(), from, to,
-                AdminDecryptService.SYSTEM_REASON, ip, "VIEW_MESSAGES")), ip); // once denetim, sonra icerik
+                AdminDecryptService.currentReason(), ip, "VIEW_MESSAGES")), ip); // once denetim, sonra icerik
 
         Brief brief = briefs(List.of(conversationId)).get(conversationId);
         PersonView peer = m.group() ? null : peers(List.of(conversationId), userId).get(conversationId);

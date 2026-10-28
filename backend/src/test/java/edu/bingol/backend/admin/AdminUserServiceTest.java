@@ -187,4 +187,52 @@ class AdminUserServiceTest {
         verify(profiles).anonymizeAccount(5L);
         verify(ops).set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + 5L, "1");
     }
+    // --- ADMIN_EMAILS tuzagi: pinli hesap panelden dusurulemez/silinemez ---
+
+    private void pin(String email) {
+        service.setAdminProperties(new edu.bingol.backend.config.AdminProperties(java.util.List.of(email)));
+    }
+
+    @Test
+    void pinnedAdminEmailCannotBeDemoted() {
+        User target = user(2L, Role.ADMIN);
+        target.setEmail("Root@bingol.edu.tr");
+        pin("root@bingol.edu.tr");
+        when(users.countByRoleAndStatus(Role.ADMIN, UserStatus.ACTIVE)).thenReturn(3L);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.changeRole(1L, 2L, Role.USER));
+
+        assertEquals("ADMIN_EMAIL_PINNED", e.code());
+        assertEquals(409, e.status().value());
+        assertEquals(Role.ADMIN, target.getRole());
+        verify(users, never()).save(any());
+    }
+
+    @Test
+    void pinnedAdminEmailCannotBeDeleted() {
+        User target = user(2L, Role.ADMIN);
+        target.setEmail("root@bingol.edu.tr");
+        pin("root@bingol.edu.tr");
+
+        ApiException e = assertThrows(ApiException.class, () -> service.delete(1L, 2L));
+
+        assertEquals("ADMIN_EMAIL_PINNED", e.code());
+        assertEquals(409, e.status().value());
+        verify(profiles, never()).anonymizeAccount(any());
+    }
+
+    @Test
+    void unpinnedAdminAndPinnedPromotionStillWork() {
+        User other = user(3L, Role.ADMIN);
+        other.setEmail("other@bingol.edu.tr");
+        pin("root@bingol.edu.tr");
+        when(users.countByRoleAndStatus(Role.ADMIN, UserStatus.ACTIVE)).thenReturn(2L);
+        service.changeRole(1L, 3L, Role.USER);
+        assertEquals(Role.USER, other.getRole());
+
+        User pinnedUser = user(4L, Role.USER);
+        pinnedUser.setEmail("root@bingol.edu.tr");
+        service.changeRole(1L, 4L, Role.ADMIN); // yukseltmek serbest
+        assertEquals(Role.ADMIN, pinnedUser.getRole());
+    }
 }

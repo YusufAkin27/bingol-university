@@ -63,8 +63,15 @@ public final class AdminDtos {
 
     public record RoleRequest(@NotNull Role role) {}
 
+    /** Denetim satiri (v2): hedef varlik, sebep, ozet ve istek kimligi eski satirlarda null olabilir. */
     public record AuditRow(Long id, Long adminId, String adminEmail, String method, String path, int status,
-                           String at, String ip) {}
+                           String at, String ip, String targetType, String targetId, String reason, String summary,
+                           String requestId) {}
+
+    /** Yonetici sohbet icerigi erisim kaydi (message_access_audit); mesaj icerigi ASLA dahil degildir. */
+    public record MessageAccessRow(Long id, Long adminId, String adminEmail, Long conversationId, Long targetUserId,
+                                   String kind, int messageCount, Long fromMessageId, Long toMessageId, String reason,
+                                   String ip, String at) {}
 
     public record AdminNewsRow(Long id, String type, String title, String summary, String url, String imageUrl,
                                String publishedDate, String fetchedAt, boolean hidden) {}

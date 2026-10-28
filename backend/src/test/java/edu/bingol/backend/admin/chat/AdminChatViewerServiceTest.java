@@ -357,6 +357,43 @@ class AdminChatViewerServiceTest {
     }
 
     @Test
+    void httpRequestReasonIsWrittenInsteadOfSystemReason() {
+        msg(CONV, ALICE, "bir");
+        var req = new org.springframework.mock.web.MockHttpServletRequest();
+        edu.bingol.backend.admin.AuditContext.of(req).reason("sikayet no 4521 incelemesi");
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(req));
+        try {
+            svc.messages(ADMIN, ALICE, CONV, null, 50, "10.1.1.1");
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+
+        assertEquals("sikayet no 4521 incelemesi",
+                t.jdbc.queryForObject("SELECT reason FROM message_access_audit", String.class));
+    }
+
+    @Test
+    void httpRequestWithoutRealReasonIs400AndWritesNothing() {
+        msg(CONV, ALICE, "gorunmemeli");
+        var req = new org.springframework.mock.web.MockHttpServletRequest();
+        edu.bingol.backend.admin.AuditContext.of(req).reason("kisa"); // < 10 karakter
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(req));
+        try {
+            ApiException e = assertThrows(ApiException.class, () -> svc.messages(ADMIN, ALICE, CONV, null, 50, "ip"));
+            assertEquals("REASON_REQUIRED", e.code());
+            assertEquals(400, e.status().value());
+            assertEquals("10", e.args()[0]);
+            assertEquals(0, audits());
+            ApiException e2 = assertThrows(ApiException.class, () -> svc.conversations(ADMIN, ALICE, null, 20, "ip"));
+            assertEquals("REASON_REQUIRED", e2.code());
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
+    @Test
     void listWritesOneAuditRowPerPreviewedConversation() {
         msg(CONV, BOB, "a");
         msg(GROUP, CAROL, "b");

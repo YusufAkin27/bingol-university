@@ -74,6 +74,7 @@ public class AdminChatFeedService {
     public MediaPage media(long adminId, Long cursor, int size, String kind, Boolean viewOnce, Boolean deleted,
                            Long userId, Long conversationId, String from, String to, String order, String ip) {
         crypto.requireEnabled();
+        crypto.requireReason();
         int s = Math.min(Math.max(size, 1), MAX_MEDIA);
         boolean asc = isAsc(order);
         String k = kind == null ? "ALL" : kind.trim().toUpperCase(java.util.Locale.ROOT);
@@ -160,7 +161,7 @@ public class AdminChatFeedService {
         }
         List<Entry> audit = new ArrayList<>();
         perConv.forEach((cid, c) -> audit.add(new Entry(adminId, userId, cid, (int) c[0], c[1], c[2],
-                AdminDecryptService.SYSTEM_REASON, ip, "MEDIA")));
+                AdminDecryptService.currentReason(), ip, "MEDIA")));
         crypto.record(audit, ip); // once denetim, sonra icerik
         return new MediaPage(items, next);
     }
@@ -170,6 +171,7 @@ public class AdminChatFeedService {
     public FeedPage messages(long adminId, Long cursor, int size, Long userId, Long senderId, Long conversationId,
                              Boolean deleted, Boolean suppressed, Boolean hasMedia, String from, String to, String ip) {
         crypto.requireEnabled();
+        crypto.requireReason();
         int s = Math.min(Math.max(size, 1), MAX_MESSAGES);
         MapSqlParameterSource p = new MapSqlParameterSource();
         StringBuilder w = new StringBuilder(" WHERE 1 = 1");
@@ -227,7 +229,7 @@ public class AdminChatFeedService {
         }
         List<Entry> audit = new ArrayList<>();
         perConv.forEach((cid, c) -> audit.add(new Entry(adminId, userId, cid, (int) c[0], c[1], c[2],
-                AdminDecryptService.SYSTEM_REASON, ip, "FEED")));
+                AdminDecryptService.currentReason(), ip, "FEED")));
         crypto.record(audit, ip); // once denetim, sonra icerik
         return new FeedPage(items, next);
     }

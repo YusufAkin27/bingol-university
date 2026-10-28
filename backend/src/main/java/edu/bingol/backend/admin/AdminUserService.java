@@ -35,6 +35,7 @@ public class AdminUserService {
     private final JwtService jwt;
     private final Clock clock;
     private edu.bingol.backend.auth.token.SessionService sessions;
+    private edu.bingol.backend.config.AdminProperties adminProperties;
 
     public AdminUserService(AdminUserRepository repo, UserRepository users, ProfileService profiles,
                             StringRedisTemplate redis, JwtService jwt, Clock clock) {
@@ -50,6 +51,23 @@ public class AdminUserService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setSessions(edu.bingol.backend.auth.token.SessionService sessions) {
         this.sessions = sessions;
+    }
+
+    /** ADMIN_EMAILS (`app.admin.emails`) listesi: istege bagli (birim testlerinde yok). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAdminProperties(edu.bingol.backend.config.AdminProperties adminProperties) {
+        this.adminProperties = adminProperties;
+    }
+
+    /**
+     * ADMIN_EMAILS'teki hesap panelden dusurulemez/silinemez: bir sonraki giriste `promoteIfAdmin` rolu zaten geri
+     * yukseltirdi (sessiz geri alma + yaniltici denetim kaydi). Kalici cikarma icin once ADMIN_EMAILS'ten kaldirilmali.
+     */
+    private void requireNotPinned(User u) {
+        if (adminProperties != null && u.getEmail() != null && adminProperties.isAdminEmail(u.getEmail())) {
+            throw new ApiException(HttpStatus.CONFLICT, "ADMIN_EMAIL_PINNED",
+                    "Bu hesap ADMIN_EMAILS listesinde; panelden düşürülemez veya silinemez.");
+        }
     }
 
     public PageResponse<AdminUserRow> list(UserFilter f, String sort, int page, int size) {
@@ -99,6 +117,9 @@ public class AdminUserService {
         if (u.getRole() == role) {
             return;
         }
+        if (role != Role.ADMIN) {
+            requireNotPinned(u);
+        }
         if (u.getRole() == Role.ADMIN) {
             requireAnotherAdmin();
         }
@@ -114,6 +135,7 @@ public class AdminUserService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "CANNOT_MODIFY_SELF", "Kendi hesabınızı silemezsiniz.");
         }
         User u = find(targetId);
+        requireNotPinned(u);
         if (u.getRole() == Role.ADMIN) {
             requireAnotherAdmin();
         }

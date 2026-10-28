@@ -96,6 +96,8 @@ public class AdminUserController {
         }
     }
 
+    /** Kisisel veri gosterir: okuma da denetim kaydina yazilir. */
+    @AuditRead
     @GetMapping("/users/{id}")
     public AdminUserDetail detail(@PathVariable Long id) {
         return service.detail(id);
@@ -104,12 +106,14 @@ public class AdminUserController {
     @PatchMapping("/users/{id}/role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void role(@PathVariable Long id, @Valid @RequestBody RoleRequest r, Authentication auth) {
+        AuditContext.target("USER", id).summary("rol -> " + r.role());
         service.changeRole(actorId(auth), id, r.role());
     }
 
     @DeleteMapping("/users/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, Authentication auth) {
+        AuditContext.target("USER", id).summary("hesap anonimlestirildi");
         service.delete(actorId(auth), id);
     }
 

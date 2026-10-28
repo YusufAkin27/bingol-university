@@ -1,6 +1,7 @@
 package edu.bingol.backend.config;
 
 import edu.bingol.backend.accessban.DeviceSeenInterceptor;
+import edu.bingol.backend.admin.AdminGuardInterceptor;
 import edu.bingol.backend.admin.AuditInterceptor;
 import edu.bingol.backend.analytics.ActivityInterceptor;
 import org.springframework.context.annotation.Configuration;
@@ -12,11 +13,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ApiWebMvcConfig implements WebMvcConfigurer {
 
     private final AuditInterceptor audit;
+    private final AdminGuardInterceptor adminGuard;
     private final ActivityInterceptor activity;
     private final DeviceSeenInterceptor deviceSeen;
 
-    public ApiWebMvcConfig(AuditInterceptor audit, ActivityInterceptor activity, DeviceSeenInterceptor deviceSeen) {
+    public ApiWebMvcConfig(AuditInterceptor audit, AdminGuardInterceptor adminGuard, ActivityInterceptor activity,
+                           DeviceSeenInterceptor deviceSeen) {
         this.audit = audit;
+        this.adminGuard = adminGuard;
         this.activity = activity;
         this.deviceSeen = deviceSeen;
     }
@@ -24,6 +28,8 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(audit).addPathPatterns("/api/admin/**");
+        // Yazma hiz siniri + kritik islemlerde sebep zorunlulugu (denetimden SONRA: reddedilen istek de kayda girer)
+        registry.addInterceptor(adminGuard).addPathPatterns("/api/admin/**");
         registry.addInterceptor(activity).addPathPatterns("/api/**");
         // Kullanici engeli (ikinci savunma) + cihaz/IP gecmisi; yonetici uclari haric
         registry.addInterceptor(deviceSeen).addPathPatterns("/api/**").excludePathPatterns("/api/admin/**");

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Sikayet detayi + baglami (`/api/admin/**` yalnizca ADMIN; kimlik JWT'den). Her cagri denetim kaydi uretir. */
+@edu.bingol.backend.admin.AuditRead
 @RestController
 @RequestMapping("/api/admin/reports")
 public class AdminReportContextController {

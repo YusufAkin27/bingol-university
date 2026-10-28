@@ -199,6 +199,7 @@ public class AdminReportContextService {
             return new Context(type, false, null, t.messageId, t.attachmentId, List.of(), null, stats(t.ownerId));
         }
         crypto.requireEnabled();
+        crypto.requireReason();
         Built built = viewer.build(rows, t.ownerId);
         long cid = t.conversationId;
         Brief b = viewer.briefs(List.of(cid)).get(cid);
@@ -209,7 +210,7 @@ public class AdminReportContextService {
         Long from = rows.get(0).id();
         Long to = rows.get(rows.size() - 1).id();
         crypto.record(List.of(new Entry(adminId, t.ownerId, cid, built.decrypted(), from, to,
-                AdminDecryptService.SYSTEM_REASON, ip, "REPORT_CONTEXT")), ip); // once denetim, sonra icerik
+                AdminDecryptService.currentReason(), ip, "REPORT_CONTEXT")), ip); // once denetim, sonra icerik
         ChatInfo info = b == null ? null : new ChatInfo(b.id(), b.type(), b.title(), b.memberCount(), b.members());
         boolean exists = t.messageId == null || rows.stream().anyMatch(x -> x.id() == t.messageId);
         return new Context(type, exists, info, t.messageId, t.attachmentId, msgs, null, stats(t.ownerId));

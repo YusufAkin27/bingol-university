@@ -12,15 +12,31 @@ import org.springframework.stereotype.Service;
 /**
  * Yonetici sohbet goruntuleyicisinin sifre cozme + denetim cekirdegi (T24). Kurallar: ayar acik; duz metin
  * istemciye DONMEDEN ONCE degistirilemez denetim kaydi yazilir (kayit yazilamazsa 503 ve hicbir icerik donmez).
- * Gerekce girisi yoktur; sistem sabit gerekce yazar (veritabani kisiti >= 10 karakter ister).
+ * Gerekce: istekteki gercek sebep ({@link #currentReason()}); yoksa sistem sabit gerekce yazar (veritabani kisiti >= 10 karakter ister).
  */
 @Service
 public class AdminDecryptService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDecryptService.class);
 
+    /** Sohbet icerigi icin en kisa gercek sebep uzunlugu (veritabani kisiti ile ayni). */
+    public static final int MIN_REASON = 10;
+
+    /** `app.admin.require-reason` (varsayilan acik; testlerde kapali). */
+    @org.springframework.beans.factory.annotation.Value("${app.admin.require-reason:true}")
+    private boolean requireReason = true;
+
     /** Denetim kaydina yazilan sabit gerekce (>= 10 karakter). */
     public static final String SYSTEM_REASON = "yonetici sohbet goruntuleme";
+
+    /**
+     * Denetim kaydina yazilacak gerekce: istekte verilen GERCEK sebep (X-Admin-Reason / reason; yonetici sohbet uclari
+     * bunu zorunlu tutar, en az 10 karakter), yoksa (istek disi/birim testi ya da zorunluluk kapali) sabit sistem gerekcesi.
+     */
+    public static String currentReason() {
+        String r = edu.bingol.backend.admin.AuditContext.currentReason();
+        return r != null && r.strip().length() >= MIN_REASON ? r.strip() : SYSTEM_REASON;
+    }
 
     /** Cozme sonucu: text bos ise cozme basarisizdir (error dolu, CryptoException nedeni). */
     public record Plain(String text, String error) {}
@@ -39,6 +55,23 @@ public class AdminDecryptService {
     public void requireEnabled() {
         if (!props.adminDecryptEnabled()) {
             throw new ApiException(HttpStatus.FORBIDDEN, "ADMIN_DECRYPT_DISABLED", "Yönetici mesaj çözme kapalı.");
+        }
+    }
+
+    /**
+     * Istek baglaminda (HTTP) icerik acmadan once GERCEK sebep ister: `X-Admin-Reason` / `reason` en az
+     * {@value #MIN_REASON} karakter, yoksa 400 REASON_REQUIRED. `app.admin.require-reason=false` ya da istek disi
+     * cagrida (birim testi, zamanlayici) zorlanmaz; sebep yoksa sistem gerekcesi yazilir.
+     */
+    public void requireReason() {
+        if (!requireReason || !(org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+                instanceof org.springframework.web.context.request.ServletRequestAttributes)) {
+            return;
+        }
+        String r = edu.bingol.backend.admin.AuditContext.currentReason();
+        if (r == null || r.strip().length() < MIN_REASON) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "REASON_REQUIRED",
+                    "Bu işlem için gerekçe zorunludur (en az " + MIN_REASON + " karakter).", String.valueOf(MIN_REASON));
         }
     }
 

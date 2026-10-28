@@ -49,7 +49,9 @@ class AuditRecorderTest {
 
         recorder.record(req, auth, 204);
 
-        verify(repo).insert(5L, null, "PATCH", "/api/admin/users/3/role", 204, "10.1.2.3");
+        verify(repo).insert(org.mockito.ArgumentMatchers.eq(5L), isNull(), org.mockito.ArgumentMatchers.eq("PATCH"),
+                org.mockito.ArgumentMatchers.eq("/api/admin/users/3/role"), org.mockito.ArgumentMatchers.eq(204),
+                org.mockito.ArgumentMatchers.eq("10.1.2.3"), any(AuditRepository.Details.class));
     }
 
     @Test
@@ -60,12 +62,13 @@ class AuditRecorderTest {
         recorder.record(req, auth, 204);
 
         verify(repo).insert(isNull(), org.mockito.ArgumentMatchers.eq("admin"), org.mockito.ArgumentMatchers.eq("DELETE"),
-                org.mockito.ArgumentMatchers.eq("/api/admin/faq/1"), anyInt(), any());
+                org.mockito.ArgumentMatchers.eq("/api/admin/faq/1"), anyInt(), any(), any(AuditRepository.Details.class));
     }
 
     @Test
     void databaseFailureNeverBreaksTheRequest() {
-        doThrow(new RuntimeException("db down")).when(repo).insert(any(), any(), any(), any(), anyInt(), any());
+        doThrow(new RuntimeException("db down")).when(repo).insert(any(), any(), any(), any(), anyInt(), any(),
+                any(AuditRepository.Details.class));
         recorder.record(new MockHttpServletRequest("POST", "/api/admin/x"), null, 200);
         // exception firlatmadan donmesi yeterli
     }
@@ -77,7 +80,7 @@ class AuditRecorderTest {
 
         interceptor.afterCompletion(new MockHttpServletRequest("GET", "/api/admin/users"), new MockHttpServletResponse(), null, null);
 
-        verify(repo, never()).insert(any(), any(), any(), any(), anyInt(), any());
+        verify(repo, never()).insert(any(), any(), any(), any(), anyInt(), any(), any(AuditRepository.Details.class));
     }
 
     @Test
@@ -89,7 +92,8 @@ class AuditRecorderTest {
         interceptor.afterCompletion(new MockHttpServletRequest("POST", "/api/admin/sync"), res, null, new RuntimeException("x"));
 
         verify(repo).insert(isNull(), isNull(), org.mockito.ArgumentMatchers.eq("POST"),
-                org.mockito.ArgumentMatchers.eq("/api/admin/sync"), org.mockito.ArgumentMatchers.eq(500), any());
+                org.mockito.ArgumentMatchers.eq("/api/admin/sync"), org.mockito.ArgumentMatchers.eq(500), any(),
+                any(AuditRepository.Details.class));
         assertEquals(200, res.getStatus());
     }
 
@@ -105,6 +109,61 @@ class AuditRecorderTest {
 
         verify(repo).insert(isNull(), org.mockito.ArgumentMatchers.eq("basic-admin"),
                 org.mockito.ArgumentMatchers.eq("DELETE"), org.mockito.ArgumentMatchers.eq("/api/admin/faq/1"),
-                anyInt(), any());
+                anyInt(), any(), any(AuditRepository.Details.class));
+    }
+
+    @Test
+    void detailsCarryInferredTargetReasonAndSummary() {
+        MockHttpServletRequest req = new MockHttpServletRequest("PATCH", "/api/admin/users/3/role");
+        AuditContext.of(req).reason("  yetki duzeltme  ").summary("rol -> USER");
+        var auth = new UsernamePasswordAuthenticationToken(5L, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        recorder.record(req, auth, 204);
+
+        var cap = org.mockito.ArgumentCaptor.forClass(AuditRepository.Details.class);
+        verify(repo).insert(any(), any(), any(), any(), anyInt(), any(), cap.capture());
+        assertEquals("USER", cap.getValue().targetType());
+        assertEquals("3", cap.getValue().targetId());
+        assertEquals("yetki duzeltme", cap.getValue().reason());
+        assertEquals("rol -> USER", cap.getValue().summary());
+    }
+
+    @Test
+    void explicitTargetOverridesPathInference() {
+        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/admin/legal/terms");
+        AuditContext.of(req).target("LEGAL_DOC", "terms-v7");
+
+        recorder.record(req, null, 200);
+
+        var cap = org.mockito.ArgumentCaptor.forClass(AuditRepository.Details.class);
+        verify(repo).insert(any(), any(), any(), any(), anyInt(), any(), cap.capture());
+        assertEquals("LEGAL_DOC", cap.getValue().targetType());
+        assertEquals("terms-v7", cap.getValue().targetId());
+    }
+
+    @Test
+    void annotatedReadIsAuditedOtherReadsAreNot() throws Exception {
+        AuditInterceptor interceptor = new AuditInterceptor(recorder);
+        SecurityContextHolder.clearContext();
+        var annotated = new org.springframework.web.method.HandlerMethod(new Reads(), Reads.class.getMethod("detail"));
+        var plain = new org.springframework.web.method.HandlerMethod(new Reads(), Reads.class.getMethod("list"));
+
+        interceptor.afterCompletion(new MockHttpServletRequest("GET", "/api/admin/users/3"), new MockHttpServletResponse(),
+                plain, null);
+        verify(repo, never()).insert(any(), any(), any(), any(), anyInt(), any(), any(AuditRepository.Details.class));
+
+        interceptor.afterCompletion(new MockHttpServletRequest("GET", "/api/admin/users/3"), new MockHttpServletResponse(),
+                annotated, null);
+        var cap = org.mockito.ArgumentCaptor.forClass(AuditRepository.Details.class);
+        verify(repo).insert(any(), any(), org.mockito.ArgumentMatchers.eq("GET"), any(), anyInt(), any(), cap.capture());
+        assertEquals("USER", cap.getValue().targetType());
+        assertEquals("3", cap.getValue().targetId());
+    }
+
+    static class Reads {
+        @AuditRead
+        public void detail() {}
+
+        public void list() {}
     }
 }

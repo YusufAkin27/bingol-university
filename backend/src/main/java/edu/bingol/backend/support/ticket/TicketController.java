@@ -76,6 +76,8 @@ public class TicketController {
         return tickets.adminQueue(status, publicOnly, cursor, size);
     }
 
+    /** Destek yazışması kişisel veri içerir: okuma denetim kaydına yazılır. */
+    @edu.bingol.backend.admin.AuditRead
     @GetMapping("/admin/support/tickets/{id}")
     public TicketDtos.AdminTicketDetail adminDetail(@PathVariable Long id) {
         return tickets.adminDetail(id);
