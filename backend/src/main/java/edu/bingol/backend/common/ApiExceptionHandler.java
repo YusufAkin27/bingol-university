@@ -55,6 +55,11 @@ public class ApiExceptionHandler {
             MethodArgumentTypeMismatchException.class, MultipartException.class,
             MissingServletRequestPartException.class})
     ResponseEntity<Map<String, String>> malformed(Exception e) {
+        if (edu.bingol.backend.common.web.RequestBodyTooLargeException.in(e)) {
+            // Akis sayaci (RequestBodyLimitFilter) siniri astiysa bozuk istek degil, cok buyuk istek
+            return body(HttpStatus.PAYLOAD_TOO_LARGE, "PAYLOAD_TOO_LARGE",
+                    i18n.error("PAYLOAD_TOO_LARGE", "İstek gövdesi çok büyük.", locale(), new Object[0]));
+        }
         return body(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST",
                 i18n.error("MALFORMED_REQUEST", "İstek biçimi geçersiz.", locale(), new Object[0]));
     }

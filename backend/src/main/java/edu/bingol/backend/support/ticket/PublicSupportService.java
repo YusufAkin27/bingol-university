@@ -74,6 +74,10 @@ public class PublicSupportService {
             log.info("Herkese acik destek talebi elendi (honeypot/hiz)");
             return generic;
         }
+        // Kota harcayan kimliksiz istek: once IP gunluk + kimliksiz kod butcesi + genel saatlik tavan
+        limiter.check("pubsup:ipd:" + ip, 15, Duration.ofDays(1));
+        limiter.check("pubsup:global", 100, Duration.ofHours(1));
+        mailer.requireQuota();
         SupportTicket t = new SupportTicket();
         t.setPublicTicket(true);
         t.setEmailVerified(false);

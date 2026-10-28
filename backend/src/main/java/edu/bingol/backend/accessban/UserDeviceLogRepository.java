@@ -17,6 +17,16 @@ public interface UserDeviceLogRepository extends JpaRepository<UserDeviceLog, Lo
 
     List<UserDeviceLog> findByUserIdOrderByLastSeenAtDesc(Long userId);
 
+    /** Kullanici basina satir ust siniri icin: toplam satir, farkli cihaz ozeti, en eski kayit. */
+    long countByUserId(Long userId);
+
+    boolean existsByUserIdAndDeviceHash(Long userId, String deviceHash);
+
+    @Query("SELECT COUNT(DISTINCT l.deviceHash) FROM UserDeviceLog l WHERE l.userId = :uid")
+    long countDistinctDevices(@Param("uid") Long userId);
+
+    Optional<UserDeviceLog> findFirstByUserIdOrderByLastSeenAtAsc(Long userId);
+
     @Query("SELECT l FROM UserDeviceLog l WHERE l.userId = :uid AND l.lastSeenAt >= :since ORDER BY l.lastSeenAt DESC")
     List<UserDeviceLog> findSince(@Param("uid") Long userId, @Param("since") Instant since);
 

@@ -115,11 +115,12 @@ public class ImageProcessor {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "IMAGE_TOO_MANY_PIXELS",
                         "Görsel çok büyük (en fazla " + mp + " megapiksel).", mp);
             }
-            // Cok buyuk goruntuyu cozerken bellek harcamamak icin kaynak ornekleme (hedefin en az 2 kati kalir)
+            // Goruntu bombasi korumasi: HER okumada kaynak ornekleme (hedef uzun kenar maxDim'in altina inmez, en fazla
+            // 2 kati kalir); boylece 25 MP'lik bir kaynak bile tam boyutlu cozulmez (heap ~ (2*maxDim)^2)
             MediaProperties.Limits lim = props.limits(kind);
             int maxDim = dimCap > 0 ? Math.min(dimCap, lim.maxDimension()) : lim.maxDimension();
             ImageReadParam param = reader.getDefaultReadParam();
-            int sub = Math.max(1, Math.max(w, h) / (maxDim * 2));
+            int sub = Math.max(1, Math.max(w, h) / maxDim);
             if (sub > 1) {
                 param.setSourceSubsampling(sub, sub, 0, 0);
             }

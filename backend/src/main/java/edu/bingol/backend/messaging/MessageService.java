@@ -48,6 +48,9 @@ public class MessageService {
 
     public static final int MAX_LENGTH = 2000;
     public static final int RATE_PER_MINUTE = 30;
+    /** DB sorgularindan ONCE uygulanan kaba kullanici siniri (tekrarli clientId dahil tum gonderim denemeleri). */
+    static final int COARSE_SEND_PER_MINUTE = 120;
+    static final int COARSE_READ_PER_MINUTE = 180;
     private static final int PUSH_PREVIEW = 100;
     static final int READ_PER_WINDOW = 20;
     static final Duration READ_WINDOW = Duration.ofSeconds(10);
@@ -172,6 +175,8 @@ public class MessageService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
         }
         String body = validatedBody(text, hasMedia);
+        // Ucuz (yalniz Redis) kullanici basi kaba sinir: DB sorgularindan ONCE ve tekrarli clientId yolunu da kapsar
+        limiter.check("msg:all:" + senderId, COARSE_SEND_PER_MINUTE, Duration.ofMinutes(1));
         ConversationMember sender = requireMember(conversationId, senderId);
         // Hesabi silinen/askiya alinan gonderenin (suresi dolmamis) eski token'i ile yazmasi engellenir.
         if (users.findById(senderId).filter(User::isActive).isEmpty()) {
@@ -406,6 +411,12 @@ public class MessageService {
 
     /** Okundu imleci: yalnizca ileri gider, konusmadaki son mesaji gecemez. Imlec ilerlediyse diger uyelere bildirilir. */
     public void markRead(Long userId, Long conversationId, Long lastMessageId) {
+        // Ucuz kaba sinir DB'den once: asiri okundu istekleri sessizce atilir (sonraki istek imleci ilerletir)
+        try {
+            limiter.check("read:all:" + userId, COARSE_READ_PER_MINUTE, Duration.ofMinutes(1));
+        } catch (ApiException e) {
+            return;
+        }
         ConversationMember me = requireMember(conversationId, userId);
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
         if (conv.getLastMessageId() == null) {
@@ -434,6 +445,12 @@ public class MessageService {
 
     /** "Yaziyor" bilgisi kalici degildir; asiri sik istekler (2 sn'de 1) sessizce atilir. */
     public void typing(Long userId, Long conversationId) {
+        // Ucuz kaba sinir DB'den once (rastgele konusma kimligiyle anahtar uretmeyi de onler)
+        try {
+            limiter.check("typing:all:" + userId, 5, Duration.ofSeconds(2));
+        } catch (ApiException e) {
+            return;
+        }
         requireMember(conversationId, userId);
         try {
             limiter.check("typing:" + userId + ":" + conversationId, 1, Duration.ofSeconds(2));

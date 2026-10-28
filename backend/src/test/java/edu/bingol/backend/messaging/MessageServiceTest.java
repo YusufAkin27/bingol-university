@@ -111,7 +111,10 @@ class MessageServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, e.status());
         verify(messages, never()).saveAndFlush(any());
-        verifyNoInteractions(limiter, bus);
+        // yalniz ucuz kaba sinir (DB'den once) calisir; mesaj basina sinir ve yayin yok
+        verify(limiter).check(startsWith("msg:all:"), anyInt(), any());
+        verify(limiter, never()).check(startsWith("msg:user:"), anyInt(), any());
+        verifyNoInteractions(bus);
     }
 
     @Test
@@ -200,7 +203,10 @@ class MessageServiceTest {
 
         assertFalse(r.created());
         assertEquals(77L, r.message().id());
-        verifyNoInteractions(limiter, bus);
+        // tekrarli clientId yolu da kaba siniri harcar (eskiden hic sinirlanmiyordu); mesaj basina sinir uygulanmaz
+        verify(limiter).check(startsWith("msg:all:"), anyInt(), any());
+        verify(limiter, never()).check(startsWith("msg:user:"), anyInt(), any());
+        verifyNoInteractions(bus);
         verify(messages, never()).saveAndFlush(any());
     }
 

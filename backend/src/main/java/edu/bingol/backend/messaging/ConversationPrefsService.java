@@ -73,6 +73,30 @@ public class ConversationPrefsService {
         return new UnreadSummary(total, mutedTotal, items);
     }
 
+    /** Rozet toplami bu degerden buyukse "99+" gosterilir: sayim da burada kesilir (istemciler n > 99 icin 99+ yazar). */
+    public static final long BADGE_CAP = 100;
+
+    /**
+     * Ana sayfa rozeti icin hafif sayim: SESSIZ konusmalar sorguya hic girmez (yalniz `total` kullanildigindan
+     * sessizlerin sayilmasi bosuna), her konusmanin katkisi ve toplam {@link #BADGE_CAP} ile sinirlanir.
+     */
+    public long unreadBadge(Long userId) {
+        List<Long> ids = members.findByUserIdAndLeftAtIsNull(userId).stream()
+                .filter(m -> !m.isMuted()).map(ConversationMember::getConversationId).toList();
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        long total = 0;
+        for (Object[] row : messages.unreadCounts(userId, ids,
+                MessageRepository.excludedSenders(blocks.hiddenFrom(userId)))) {
+            total += Math.min(BADGE_CAP, ((Number) row[1]).longValue());
+            if (total >= BADGE_CAP) {
+                return BADGE_CAP;
+            }
+        }
+        return total;
+    }
+
     public ConversationView mute(Long userId, Long conversationId, Integer durationMinutes, Boolean forever) {
         boolean always = Boolean.TRUE.equals(forever);
         if (always == (durationMinutes != null)

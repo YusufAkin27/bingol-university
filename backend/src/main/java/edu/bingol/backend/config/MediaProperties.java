@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * degiskeniyle ezilebilir: MEDIA_AVATAR_MAX_STORED_BYTES vb.).
  *
  * @param maxPixels             kabul edilen en buyuk genislik*yukseklik (varsayilan 25 000 000)
- * @param concurrency           ayni anda islenen gorsel sayisi (bellek korumasi, varsayilan 4)
+ * @param concurrency           ayni anda islenen gorsel sayisi (bellek korumasi, varsayilan 2)
  * @param graceSeconds          yeni yazilan/dokunulan dosya bu sure dolmadan release ile silinmez (varsayilan 10)
  * @param orphanMinAgeHours     yetim temizligi bu yastan kucuk dosyalara dokunmaz (varsayilan 24)
  * @param thumbDimension        kucuk resmin uzun kenari (varsayilan 320)
@@ -42,7 +42,7 @@ public record MediaProperties(long maxPixels, int concurrency, int graceSeconds,
 
     public MediaProperties {
         maxPixels = maxPixels <= 0 ? 25_000_000L : maxPixels;
-        concurrency = concurrency <= 0 ? 4 : concurrency;
+        concurrency = concurrency <= 0 ? 2 : concurrency;
         graceSeconds = graceSeconds <= 0 ? 10 : graceSeconds;
         orphanMinAgeHours = orphanMinAgeHours <= 0 ? 24 : orphanMinAgeHours;
         thumbDimension = thumbDimension <= 0 ? 320 : thumbDimension;

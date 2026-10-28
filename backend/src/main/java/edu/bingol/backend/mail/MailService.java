@@ -56,9 +56,28 @@ public class MailService {
      * Kod (kayit/sifre) gondermeden once cagrilir: gunluk kota tamamen dolduysa 503 MAIL_QUOTA_EXHAUSTED.
      * Karar GLOBALDIR (e-postadan bagimsiz), bu yuzden hesabin varligini sizdirmaz; cagiran, hesap sorgusundan
      * ONCE cagirmalidir. Kota korumasi kapaliyken (limit 0) veya e-posta kapaliyken hicbir sey yapmaz.
+     * Tur, gecerli istek yolundan cikarilir (sifre sifirlama uclari = PASSWORD_RESET): bkz. {@link #requireCodeQuota(MailDailyQuota.CodeKind)}.
      */
     public void requireCodeQuota() {
-        if (quota != null && props.enabled() && quota.exhausted()) {
+        requireCodeQuota(quota == null ? MailDailyQuota.CodeKind.REGISTRATION : quota.currentRequestKind());
+    }
+
+    /**
+     * Kimliksiz kod istegi korumasi (hepsi hesap sorgusundan ONCE ve e-postadan bagimsiz, yani varlik sizdirmaz):
+     * (1) istemci IP'si basina gunluk kod istegi sayaci (IPv6 /64) -> 429; (2) kimliksiz kod butcesi:
+     * kayit/destek gunluk kotanin {@code app.mail.public-code-share} (0.6) payina, sifre sifirlama
+     * {@code reset-code-share} (0.85) payina kadar; kalan pay gercek kullanici/guvenlik postalarina rezervdir -> 503;
+     * (3) saglayici kotasi tamamen doldu -> 503 MAIL_QUOTA_EXHAUSTED.
+     */
+    public void requireCodeQuota(MailDailyQuota.CodeKind kind) {
+        if (quota == null || !props.enabled()) {
+            return;
+        }
+        String ip = quota.currentRequestIp();
+        if (ip != null) {
+            quota.checkRequestIp(ip);
+        }
+        if (quota.exhausted() || quota.publicExhausted(kind)) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
                     "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
         }
@@ -88,11 +107,37 @@ public class MailService {
     }
 
     public void sendVerificationCode(String to, String code, int minutes, Lang lang) {
+        if (!allowPublicCode(to)) {
+            return;
+        }
         enqueue(to, MailTemplate.VERIFICATION_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
+        recordPublicCode();
     }
 
     public void sendPasswordResetCode(String to, String code, int minutes, Lang lang) {
+        if (!allowPublicCode(to)) {
+            return;
+        }
         enqueue(to, MailTemplate.PASSWORD_RESET_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
+        recordPublicCode();
+    }
+
+    /**
+     * Alici basina gunluk kod postasi siniri (app.mail.max-codes-per-email-per-day). Asilirsa posta SESSIZCE
+     * gonderilmez (genel cevap korunur: hesap varligi sizmaz; kod zaten e-postaya ulasmamis olur) ve log'lanir.
+     */
+    private boolean allowPublicCode(String to) {
+        if (quota == null || !props.enabled() || quota.allowRecipientCode(to)) {
+            return true;
+        }
+        log.warn("Alici basina gunluk kod postasi siniri asildi, posta gonderilmedi: {}", MailAddresses.mask(to));
+        return false;
+    }
+
+    private void recordPublicCode() {
+        if (quota != null && props.enabled()) {
+            quota.recordPublicCode();
+        }
     }
 
     public void sendAccountDeleted(String to, Lang lang) {
@@ -122,11 +167,35 @@ public class MailService {
                 return true;
             }
             transport.send(to, subject, plain, html, replyTo);
+            if (quota != null) {
+                quota.recordSent(); // kuyruk disi gonderimler de saglayici kotasindan sayilir
+            }
             return true;
         } catch (Exception e) {
             log.error("E-posta gonderilemedi ({}): {}", MailAddresses.mask(to), e.toString());
             return false;
         }
+    }
+
+    /**
+     * Kimliksiz (hesapsiz) akislardaki ANLIK kod postasi (herkese acik destek dogrulama kodu): saglayici kotasi ve
+     * kimliksiz kod butcesi (SUPPORT) kontrol edilir, alici basina gunluk sinir uygulanir, basarili gonderim hem
+     * genel sayaca hem kimliksiz sayaca yazilir. Kota/limit durumunda ApiException/RateLimitedException firlatir.
+     */
+    public boolean sendPublicCode(String to, String subject, String plain, String html, String replyTo) {
+        if (quota != null && props.enabled()
+                && (quota.exhausted() || quota.publicExhausted(MailDailyQuota.CodeKind.SUPPORT))) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                    "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+        }
+        if (quota != null && props.enabled() && !quota.allowRecipientCode(to)) {
+            throw new edu.bingol.backend.common.RateLimitedException(3600);
+        }
+        boolean ok = sendRich(to, subject, plain, html, replyTo);
+        if (ok) {
+            recordPublicCode();
+        }
+        return ok;
     }
 
     /** Kuyruktaki e-postalarin duruma gore sayilari. */

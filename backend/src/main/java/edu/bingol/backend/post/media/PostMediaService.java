@@ -8,6 +8,7 @@ import edu.bingol.backend.media.MediaUploads;
 import edu.bingol.backend.media.Mp4Info;
 import edu.bingol.backend.media.PrivateMedia;
 import edu.bingol.backend.media.PrivateMediaStore;
+import edu.bingol.backend.media.UploadGuard;
 import edu.bingol.backend.media.transcode.MediaCdnLinks;
 import edu.bingol.backend.media.transcode.VideoTranscoder;
 import edu.bingol.backend.moderation.BlockService;
@@ -99,6 +100,13 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         this.transcoder = transcoder;
     }
 
+    private UploadGuard uploadGuard;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setUploadGuard(UploadGuard uploadGuard) {
+        this.uploadGuard = uploadGuard;
+    }
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setCdn(MediaCdnLinks cdn) {
         this.cdn = cdn;
@@ -123,15 +131,30 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     /** `file` video/mp4 ise video (istege bagli `poster`), degilse gorsel hattidir. */
     public Uploaded upload(Long userId, MultipartFile file, MultipartFile poster) {
         limiter.check("postmedia:hour:" + userId, uploadsPerHour, Duration.ofHours(1));
+        boolean video = isVideoUpload(file);
+        try (UploadGuard.Permit ignored = uploadGuard == null ? null : uploadGuard.acquire(userId, video)) {
+            return video ? uploadVideo(userId, file, poster) : uploadImage(userId, file);
+        }
+    }
+
+    private void chargeUpload(Long userId, long bytes) {
+        if (uploadGuard != null) {
+            uploadGuard.charge(userId, bytes);
+        }
+    }
+
+    /** Bekleyen medya sinirini kullanici kilidi ICINDE denetler (kontrol ile kayit arasindaki yaris kapanir). */
+    private void requirePendingRoom(Long userId) {
         if (repo.countByOwnerIdAndPostIdIsNull(userId) >= pendingMax) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "POST_MEDIA_PENDING_LIMIT",
                     "Gönderiye eklenmemiş çok fazla medya var. Önce gönderinizi paylaşın.", String.valueOf(pendingMax));
         }
-        return isVideoUpload(file) ? uploadVideo(userId, file, poster) : uploadImage(userId, file);
     }
 
     private Uploaded uploadImage(Long userId, MultipartFile file) {
+        requirePendingRoom(userId);
         byte[] raw = MediaUploads.read(file, mediaProps.limits(ImageKind.FEED).maxUploadBytes());
+        chargeUpload(userId, raw.length);
         // Hem yuklenen ham bayt hem yeniden kodlanmis cikti ozeti denetlenir
         rejectIfBlocked(raw);
         PrivateMedia pm = store.store(BUCKET, raw, ImageKind.FEED, img -> rejectIfBlocked(img.data()));
@@ -154,7 +177,9 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     }
 
     private Uploaded uploadVideo(Long userId, MultipartFile file, MultipartFile poster) {
+        requirePendingRoom(userId);
         byte[] raw = readVideo(file);
+        chargeUpload(userId, raw.length);
         Mp4Info.Info info;
         try {
             info = Mp4Info.parse(raw);

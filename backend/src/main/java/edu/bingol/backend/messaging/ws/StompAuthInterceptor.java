@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -54,6 +55,38 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     private AccessGuard accessGuard;
     private ClientContexts contexts;
 
+    /** Kullanici basina saniyede en cok SEND cercevesi (asan cerceveler sessizce atilir; 5 kati asilirsa baglanti kapanir). */
+    @Value("${app.ws.max-frames-per-second:20}")
+    private int maxFramesPerSecond = 20;
+    private final java.util.concurrent.ConcurrentHashMap<Long, long[]> frameWindows = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private java.util.function.LongSupplier nowMillis = System::currentTimeMillis;
+
+    void setMaxFramesPerSecond(int n) {
+        this.maxFramesPerSecond = n;
+    }
+
+    /** Test icin saat. */
+    void setNowMillis(java.util.function.LongSupplier nowMillis) {
+        this.nowMillis = nowMillis;
+    }
+
+    /** Bu saniyede bu kullanicinin kacinci cercevesi; bellek ici (Redis gidis-donusu yok), ornek basina. */
+    private long frameCount(Long uid) {
+        long sec = nowMillis.getAsLong() / 1000;
+        if (frameWindows.size() > 50_000) {
+            frameWindows.clear();
+        }
+        long[] w = frameWindows.compute(uid, (k, cur) -> {
+            if (cur == null || cur[0] != sec) {
+                return new long[] {sec, 1};
+            }
+            cur[1]++;
+            return cur;
+        });
+        return w[1];
+    }
+
     public StompAuthInterceptor(JwtService jwt, StringRedisTemplate redis) {
         this.jwt = jwt;
         this.redis = redis;
@@ -84,6 +117,16 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 Long exp = acc.getSessionAttributes() == null ? null : (Long) acc.getSessionAttributes().get(TOKEN_EXP_ATTR);
                 if (exp == null || Instant.now().getEpochSecond() > exp + EXP_GRACE_SECONDS) {
                     throw new Rejected("TOKEN_EXPIRED");
+                }
+                // Cerceve hiz siniri Redis/DB'den ONCE: sinir asilirsa cerceve atilir, asiri ise baglanti kapatilir
+                if (maxFramesPerSecond > 0) {
+                    long n = frameCount(uid);
+                    if (n > (long) maxFramesPerSecond * 5) {
+                        throw new Rejected("RATE_LIMITED");
+                    }
+                    if (n > maxFramesPerSecond) {
+                        return null;
+                    }
                 }
                 if (Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid))) {
                     throw new Rejected("SUSPENDED");

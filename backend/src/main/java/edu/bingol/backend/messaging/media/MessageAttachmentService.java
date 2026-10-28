@@ -8,6 +8,7 @@ import edu.bingol.backend.media.MediaUploads;
 import edu.bingol.backend.media.MediaUrlSigner;
 import edu.bingol.backend.media.PrivateMedia;
 import edu.bingol.backend.media.PrivateMediaStore;
+import edu.bingol.backend.media.UploadGuard;
 import edu.bingol.backend.messaging.Conversation;
 import edu.bingol.backend.messaging.ConversationMember;
 import edu.bingol.backend.messaging.ConversationMemberRepository;
@@ -144,6 +145,13 @@ public class MessageAttachmentService {
         this.viewsRepo = viewsRepo;
     }
 
+    private UploadGuard uploadGuard;
+
+    @Autowired(required = false)
+    void setUploadGuard(UploadGuard uploadGuard) {
+        this.uploadGuard = uploadGuard;
+    }
+
     @Autowired(required = false)
     void setBus(ChatEventBus bus) {
         this.bus = bus;
@@ -157,9 +165,14 @@ public class MessageAttachmentService {
 
     /** `file` video/mp4 ise video (istege bagli `poster` ile), degilse gorsel hattidir. */
     public AttachmentView upload(Long userId, Long conversationId, MultipartFile file, MultipartFile poster) {
-        if (isVideoUpload(file)) {
-            return uploadVideo(userId, conversationId, file, poster);
+        boolean video = isVideoUpload(file);
+        // Kullanici basina tek yukleme + (video icin) genel eszamanlilik siniri; bekleyen-sayi yarisini da kapatir
+        try (UploadGuard.Permit ignored = uploadGuard == null ? null : uploadGuard.acquire(userId, video)) {
+            return video ? uploadVideo(userId, conversationId, file, poster) : uploadImage(userId, conversationId, file);
         }
+    }
+
+    private AttachmentView uploadImage(Long userId, Long conversationId, MultipartFile file) {
         limiter.check("chatmedia:min:" + userId, perMinute, Duration.ofMinutes(1));
         limiter.check("chatmedia:day:" + userId, perDay, Duration.ofDays(1));
         requireCanSend(userId, conversationId);
@@ -168,6 +181,7 @@ public class MessageAttachmentService {
                     "Gönderilmemiş çok fazla görsel var. Önce mevcut görselleri gönderin.", String.valueOf(pendingMax));
         }
         byte[] raw = MediaUploads.read(file, mediaProps.limits(ImageKind.CHAT).maxUploadBytes());
+        chargeUpload(userId, raw.length);
         // Yasakli icerik: hem yuklenen ham bayt hem yeniden kodlanmis cikti ozeti (yonetici hangisini eklediyse yakalanir)
         rejectIfBlocked(raw);
         PrivateMedia pm = store.store(BUCKET, raw, ImageKind.CHAT, img -> rejectIfBlocked(img.data()));
@@ -185,6 +199,12 @@ public class MessageAttachmentService {
         } catch (RuntimeException e) {
             store.delete(BUCKET, pm.key());
             throw e;
+        }
+    }
+
+    private void chargeUpload(Long userId, long bytes) {
+        if (uploadGuard != null) {
+            uploadGuard.charge(userId, bytes);
         }
     }
 
@@ -207,6 +227,7 @@ public class MessageAttachmentService {
                     "Gönderilmemiş çok fazla görsel var. Önce mevcut görselleri gönderin.", String.valueOf(pendingMax));
         }
         byte[] raw = readVideo(file);
+        chargeUpload(userId, raw.length);
         Mp4Info.Info info;
         try {
             info = Mp4Info.parse(raw);

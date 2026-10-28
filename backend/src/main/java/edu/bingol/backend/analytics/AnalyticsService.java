@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,9 +46,49 @@ public class AnalyticsService {
     private final ActivityRepository repo;
     private final Clock clock;
 
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsService.class);
+
+    /** Kullanici basina gunluk olay ust siniri (veritabani sisirme korumasi); asan olaylar sessizce atilir. */
+    @Value("${app.analytics.max-events-per-day:2000}")
+    private int maxEventsPerDay = 2000;
+    private StringRedisTemplate redis;
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong> localDaily =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     public AnalyticsService(ActivityRepository repo, Clock clock) {
         this.repo = repo;
         this.clock = clock;
+    }
+
+    @Autowired(required = false)
+    void setRedis(StringRedisTemplate redis) {
+        this.redis = redis;
+    }
+
+    void setMaxEventsPerDay(int n) {
+        this.maxEventsPerDay = n;
+    }
+
+    /** Bugunku olay sayacini `n` kadar artirir ve yeni toplami doner (Redis INCRBY; yoksa bellek ici). */
+    private long addDaily(Long userId, int n) {
+        String key = "an:day:" + userId + ":" + DateRange.today(clock);
+        if (redis != null) {
+            try {
+                Long total = redis.opsForValue().increment(key, n);
+                if (total != null) {
+                    if (total == n) {
+                        redis.expire(key, Duration.ofDays(2));
+                    }
+                    return total;
+                }
+            } catch (RuntimeException e) {
+                log.debug("Analitik gunluk sayac Redis'e yazilamadi, bellek ici yedek: {}", e.toString());
+            }
+        }
+        if (localDaily.size() > 20_000) {
+            localDaily.clear();
+        }
+        return localDaily.computeIfAbsent(key, k -> new java.util.concurrent.atomic.AtomicLong()).addAndGet(n);
     }
 
     @Transactional
@@ -52,6 +97,17 @@ public class AnalyticsService {
         List<ValidEvent> valid = validate(events, now);
         if (valid.isEmpty()) {
             return;
+        }
+        if (maxEventsPerDay > 0) {
+            long total = addDaily(userId, valid.size());
+            long remaining = maxEventsPerDay - (total - valid.size());
+            if (remaining <= 0) {
+                log.debug("Analitik gunluk olay siniri asildi (user {}), olaylar atildi", userId);
+                return;
+            }
+            if (remaining < valid.size()) {
+                valid = valid.subList(0, (int) remaining);
+            }
         }
         repo.insertEvents(userId, valid);
         long opens = valid.stream().filter(e -> e.name().equals(OPEN_EVENT)).count();

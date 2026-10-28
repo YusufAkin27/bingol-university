@@ -4,6 +4,8 @@ import edu.bingol.backend.appinfo.AppSettingRepository;
 import edu.bingol.backend.config.SupportProperties;
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.mail.MailDailyQuota;
 import edu.bingol.backend.mail.MailService;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
@@ -30,11 +32,31 @@ public class PublicSupportMailer {
         this.settings = settings;
     }
 
+    /**
+     * Talep acilirken kota ve IP korumasi: kimliksiz kod butcesi (SUPPORT) dolduysa 503, IP gunluk siniri asildiysa 429.
+     * Talep kaydedilmeden ONCE cagrilir (kota harcayan her kimliksiz istek once buradan gecer).
+     */
+    public void requireQuota() {
+        mail.requireCodeQuota(MailDailyQuota.CodeKind.SUPPORT);
+    }
+
+    /**
+     * Dogrulama kodu postasi: DOGRULANMAMIS adrese gittigi icin konu ve govde SABITTIR; kullanici adi bu postaya
+     * girmez (saldirgan kontrollu metinle kurumsal gondericiden oltalama onlenir). Kota/limit ihlali ApiException
+     * olarak cagirana yayilir; diger hatalarda false doner.
+     */
     public boolean sendCode(SupportTicket t, String code, int minutes) {
         Lang lang = Lang.of(t.getLang());
         String subject = i18n.msg("mail.support.code.subject", lang);
-        String body = i18n.msg("mail.support.code.body", lang, safeName(t), code, String.valueOf(minutes));
-        return send(t, lang, subject, body);
+        String body = i18n.msg("mail.support.code.body", lang, code, String.valueOf(minutes));
+        try {
+            String replyTo = settings.findById("support_email").map(s -> s.getValue().trim()).orElse("");
+            return mail.sendPublicCode(t.getContactEmail(), subject, body, html(body, lang), replyTo);
+        } catch (ApiException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     public boolean sendReceived(SupportTicket t, String firstMessage, String token) {
@@ -83,9 +105,14 @@ public class PublicSupportMailer {
                 + linked.replace("\r\n", "\n").replace("\n", "<br>") + "</div>";
     }
 
-    private static String safeName(SupportTicket t) {
+    /**
+     * Ad yalnız harf/rakam/boşluk/nokta/kesme/tire ile sınırlanır; '@', '/', ':' gibi URL ve adres karakterleri
+     * düşürülür (ad HTML'de bağlantılaşmasın, oltalama metni taşımasın). En fazla 60 karakter.
+     */
+    static String safeName(SupportTicket t) {
         String n = t.getContactName() == null ? "" : t.getContactName();
-        return n.replaceAll("[\\r\\n\\p{Cntrl}]", " ").trim();
+        n = n.replaceAll("[^\\p{L}\\p{M}\\p{N} .'\\-]", " ").replaceAll("\\s+", " ").trim();
+        return n.length() > 60 ? n.substring(0, 60).trim() : n;
     }
 
     private static String clip(String s, int max) {
