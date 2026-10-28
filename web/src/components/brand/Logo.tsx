@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '../LocalizedLink';
 import { lockupAssets, markAsset } from '../../assets/brand';
 import { useI18n } from '../../i18n/I18nProvider';
 import styles from './Logo.module.css';

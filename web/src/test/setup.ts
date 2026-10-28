@@ -38,3 +38,7 @@ if (!window.matchMedia) {
   })) as unknown as typeof window.matchMedia;
 }
 window.scrollTo = (() => {}) as typeof window.scrollTo;
+
+// Kök yönlendirmesi tarayıcı diline bakar (detectPreferredLang); testlerde varsayılan Türkçe olsun
+Object.defineProperty(window.navigator, 'language', { value: 'tr-TR', configurable: true });
+Object.defineProperty(window.navigator, 'languages', { value: ['tr-TR', 'tr'], configurable: true });

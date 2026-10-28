@@ -8,6 +8,7 @@ import { mobileAppLd } from './components/jsonLd';
 import { PageHero } from './components/PageHero';
 import { Phone } from './components/Phone';
 import { StoreButton } from './components/StoreButton';
+import { siteOrigin } from '../../seo/siteUrl';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './DownloadPage.module.css';
@@ -16,10 +17,9 @@ export default function DownloadPage() {
   const { t } = useI18n();
   const stores = useStoreLinks();
   const info = useAppInfo();
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = siteOrigin();
   usePageMeta({
-    title: t('site.download.title'),
-    description: t('site.meta.download'),
+    route: 'download',
     jsonLd: mobileAppLd(info.data, stores, origin),
   });
   return (

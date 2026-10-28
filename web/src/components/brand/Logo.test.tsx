@@ -41,6 +41,6 @@ describe('Logo', () => {
 
   it('to verilince bağlantı olur', () => {
     renderWithProviders(<Logo to="/" tone="light" />);
-    expect(screen.getByRole('link', { name: 'BÜ Kampüs logosu' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'BÜ Kampüs logosu' })).toHaveAttribute('href', '/tr');
   });
 });

@@ -3,7 +3,8 @@
 // Metin düz metin olarak, HTML enjekte edilmeden. Paylaş: Web Share API, yoksa bağlantıyı kopyalar. Orijinal habere bağlantı korunur.
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { isApiError } from '../../api/client';
 import { getPublicNews, getPublicNewsItem } from '../../api/publicContent';
 import { Button, ButtonLink, EmptyState, ErrorState, Icon, Skeleton } from '../../components/ui';

@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
-import { Link, type LinkProps } from 'react-router-dom';
+import type { LinkProps } from 'react-router-dom';
+import { Link } from '../LocalizedLink';
 import styles from './Button.module.css';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';

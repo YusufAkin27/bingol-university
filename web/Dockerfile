@@ -6,6 +6,10 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 # Üretimde API aynı kökenden nginx proxy'si ile sunulur
 ENV VITE_API_BASE=/api
+# Herkese acik kok adres: canonical, hreflang, sitemap, robots, OG (scripts/prerender.mjs). Bos birakilirsa https://bukampus.net
+ARG PUBLIC_WEB_URL=
+ENV PUBLIC_WEB_URL=$PUBLIC_WEB_URL
+ENV VITE_PUBLIC_URL=$PUBLIC_WEB_URL
 RUN npm run build
 
 # Aşama 2: statik sunum + ters vekil

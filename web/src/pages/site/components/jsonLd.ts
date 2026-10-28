@@ -16,6 +16,7 @@ export function organizationLd(info: AppInfo | undefined, origin: string): Recor
     '@type': 'EducationalOrganization',
     name: info?.appName ?? 'BÜ Kampüs',
     url: info?.website ?? origin,
+    logo: `${origin}/icon-512.png`,
     email: info?.contactEmail,
     telephone: info?.phone,
     address: info?.address ? { '@type': 'PostalAddress', streetAddress: info.address } : null,
@@ -39,4 +40,26 @@ export function mobileAppLd(
     installUrl: installs[0],
     publisher: { '@type': 'EducationalOrganization', name: 'Bingöl Üniversitesi' },
   });
+}
+
+/** BreadcrumbList: ilk öğe ana sayfa, sonuncusu geçerli sayfa. */
+export function breadcrumbLd(items: { name: string; url: string }[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, item: it.url })),
+  };
+}
+
+/** FAQPage: soru/yanıt çiftleri (yanıtlar düz metin). */
+export function faqLd(entries: { question: string; answer: string }[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: entries.map((e) => ({
+      '@type': 'Question',
+      name: e.question,
+      acceptedAnswer: { '@type': 'Answer', text: e.answer },
+    })),
+  };
 }

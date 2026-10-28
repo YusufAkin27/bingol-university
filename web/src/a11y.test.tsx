@@ -46,7 +46,7 @@ describe('erisilebilirlik (axe)', () => {
           <AuthProvider>
             <AppRoutes />
           </AuthProvider>,
-          { route, lang },
+          { route: `/${lang}${route === '/' ? '' : route}`, lang },
         );
         await waitFor(() => expect(container.querySelector('h1')).not.toBeNull(), { timeout: 5000 });
         expect(await violations(container)).toEqual([]);

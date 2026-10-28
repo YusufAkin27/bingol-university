@@ -14,7 +14,7 @@ import styles from './FeaturesPage.module.css';
 export default function FeaturesPage() {
   const { t } = useI18n();
   const stores = useStoreLinks();
-  usePageMeta({ title: t('site.features.title'), description: t('site.meta.features') });
+  usePageMeta({ route: 'features' });
   return (
     <>
       <PageHero title={t('site.features.title')} lead={t('site.features.lead')} />

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../../i18n';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { PageHero } from './PageHero';
+import { infoRouteId } from '../../../seo/routeMeta';
 import { usePageMeta } from './usePageMeta';
 import shared from './site.module.css';
 import styles from './InfoPage.module.css';
@@ -43,10 +44,10 @@ interface Props {
 }
 
 /** Çeviri anahtarlarından üretilen, bölüm tabanlı bilgi sayfası (çerez, güvenlik, erişilebilirlik vb.). */
-export function InfoPage({ slug, path, sections, children, after, intro }: Props) {
+export function InfoPage({ slug, sections, children, after, intro }: Props) {
   const { t } = useI18n();
   const title = t(k(`pg.${slug}.title`));
-  usePageMeta({ title, description: t(k(`pg.${slug}.meta`)), path });
+  usePageMeta({ route: infoRouteId(slug) });
   return (
     <>
       <PageHero title={title} lead={t(k(`pg.${slug}.lead`))} crumbs={[{ label: title }]} />

@@ -1,6 +1,6 @@
 // SAYFA: İletişim (/contact)
 // API: GET /api/app/info (contactEmail, supportEmail, phone, address, social); herkese açık 'Bize ulaşın' formu (POST /api/public/support/*, T27).
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { useAppInfo } from '../../api/hooks';
 import { ErrorState, Icon } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -10,6 +10,7 @@ import { ContactList, contactItems } from './components/ContactList';
 import { organizationLd } from './components/jsonLd';
 import { PageHero } from './components/PageHero';
 import { PublicSupportForm } from './components/PublicSupportForm';
+import { siteOrigin } from '../../seo/siteUrl';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './ContactPage.module.css';
@@ -18,10 +19,9 @@ export default function ContactPage() {
   const i18n = useI18n();
   const { t } = i18n;
   const info = useAppInfo();
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = siteOrigin();
   usePageMeta({
-    title: t('site.contact.title'),
-    description: t('site.meta.contact'),
+    route: 'contact',
     jsonLd: organizationLd(info.data, origin),
   });
   const items = contactItems(info.data);

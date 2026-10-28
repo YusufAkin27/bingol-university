@@ -61,3 +61,18 @@ export function applyDocumentLang(lang: Lang): void {
   document.documentElement.lang = l;
   document.documentElement.dir = dirOf(l);
 }
+
+/**
+ * Ziyaretçinin tercih ettiği dil (kök `/` yönlendirmesi için): kayıtlı `bu.lang`, yoksa tarayıcı dili, yoksa Türkçe.
+ * `getStoredLang`tan farkı: kayıt yokken tarayıcı diline bakar.
+ */
+export function detectPreferredLang(): Lang {
+  const stored = readStorage('local', KEY);
+  if (isLang(stored)) return stored;
+  const nav = typeof navigator !== 'undefined' ? [...(navigator.languages ?? []), navigator.language] : [];
+  for (const raw of nav) {
+    const code = (raw ?? '').slice(0, 2).toLowerCase();
+    if (isLang(code)) return code;
+  }
+  return DEFAULT_LANG;
+}

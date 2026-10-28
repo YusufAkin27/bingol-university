@@ -1,7 +1,8 @@
 import { useEffect, useId, useState, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo, useStoreLinks } from '../api/hooks';
 import { CookieBanner } from '../components/CookieBanner';
+import { Link, NavLink } from '../components/LocalizedLink';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { Logo } from '../components/brand/Logo';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../../components/LocalizedLink';
 import type { NewsSummary } from '../../../api/publicContent';
 import { Badge, Icon } from '../../../components/ui';
 import type { TranslationKey } from '../../../i18n';

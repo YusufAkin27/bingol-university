@@ -1,6 +1,6 @@
 // SAYFA: Site haritası (/sitemap) — herkese açık tüm sayfalar (public/sitemap.xml ile aynı küme).
 // API: yok. Bağlantılar layouts/siteLinks.ts'ten gelir.
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { SITE_GROUPS } from '../../layouts/siteLinks';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
@@ -12,7 +12,7 @@ import styles from './SitemapPage.module.css';
 export default function SitemapPage() {
   const { t } = useI18n();
   const title = t('pg.sitemap.title');
-  usePageMeta({ title, description: t('pg.sitemap.meta'), path: paths.site.sitemap });
+  usePageMeta({ route: 'sitemap' });
   return (
     <>
       <PageHero title={title} lead={t('pg.sitemap.lead')} crumbs={[{ label: title }]} />

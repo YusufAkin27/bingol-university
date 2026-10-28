@@ -2,7 +2,6 @@
 // API: yok. docs/CHANGELOG.md bulunmadığından içerik çeviri dosyalarındaki statik girdilerden gelir (pg.changelog.eN.*).
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
-import { paths } from '../../paths';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -17,7 +16,7 @@ export const CHANGELOG: { id: string; items: number }[] = [
 export default function ChangelogPage() {
   const { t } = useI18n();
   const title = t('pg.changelog.title');
-  usePageMeta({ title, description: t('pg.changelog.meta'), path: paths.site.changelog });
+  usePageMeta({ route: 'changelog' });
   return (
     <>
       <PageHero title={title} lead={t('pg.changelog.lead')} crumbs={[{ label: title }]} />

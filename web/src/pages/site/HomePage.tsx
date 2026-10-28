@@ -1,7 +1,7 @@
 // SAYFA: Ana sayfa (/)
 // API: GET /api/app/info (useAppInfo: bakım/iletişim), mağaza bağlantıları için useStoreLinks (GET /api/app/version?platform=ANDROID|IOS).
 // Mobil öncelikli: 360 px tabanından kurulur; telefon çizimleri mobil uygulamanın ekranlarını HTML/CSS ile yeniden çizer.
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { useAppInfo, useStoreLinks } from '../../api/hooks';
 import { ButtonLink, ContourBackdrop, Icon, type IconName } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -13,6 +13,7 @@ import { Phone } from './components/Phone';
 import { useHeadingFocus } from './components/PageHero';
 import { Ridge } from './components/Ridge';
 import { StoreButton } from './components/StoreButton';
+import { siteOrigin } from '../../seo/siteUrl';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './HomePage.module.css';
@@ -25,11 +26,9 @@ export default function HomePage() {
   const stores = useStoreLinks();
   const info = useAppInfo();
   const h1 = useHeadingFocus<HTMLHeadingElement>();
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = siteOrigin();
   usePageMeta({
-    title: '',
-    description: t('site.meta.home'),
-    path: '/',
+    route: 'home',
     jsonLd: [organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
   });
 

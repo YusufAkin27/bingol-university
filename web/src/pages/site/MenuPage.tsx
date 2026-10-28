@@ -8,7 +8,6 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
-import { paths } from '../../paths';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -68,7 +67,7 @@ export default function MenuPage() {
   const [view, setView] = useState<View>('day');
   const [date, setDate] = useState(today);
   const title = t('pg.menu.title');
-  usePageMeta({ title, description: t('pg.menu.meta'), path: paths.site.menu });
+  usePageMeta({ route: 'menu' });
 
   const month = monthOf(date);
   const week = useMemo(() => weekDates(date), [date]);
@@ -161,7 +160,7 @@ export default function MenuPage() {
                 <Icon name={prevIcon} size={18} />
               </IconButton>
               <strong className={styles.label} aria-live="polite">
-                {label}
+                <bdi>{label}</bdi>
               </strong>
               <IconButton
                 label={t(`pg.menu.next${unit}` as TranslationKey)}

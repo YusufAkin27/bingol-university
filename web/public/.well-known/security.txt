@@ -1,7 +1,7 @@
-# Güvenlik açığı bildirimi (RFC 9116). Yayına alırken ALAN-ADI'nı gerçek alan adıyla değiştirin
-# ve iletişim satırını gerçek, izlenen bir adresle güncelleyin; "Expires" tarihini her yıl yenileyin.
-Contact: https://ALAN-ADI/security
+# Güvenlik açığı bildirimi (RFC 9116). Alan adı derlemede (scripts/prerender.mjs) PUBLIC_WEB_URL ile doldurulur.
+# İletişim satırını gerçek, izlenen bir adresle güncelleyin; "Expires" tarihini her yıl yenileyin.
+Contact: {{ORIGIN}}/tr/security
 Expires: 2027-10-26T00:00:00.000Z
 Preferred-Languages: tr, en, ar
-Canonical: https://ALAN-ADI/.well-known/security.txt
-Policy: https://ALAN-ADI/security
+Canonical: {{ORIGIN}}/.well-known/security.txt
+Policy: {{ORIGIN}}/tr/security

@@ -2,7 +2,7 @@
 // API: POST /api/public/support/tickets, POST /api/public/support/tickets/verify (api/publicSupport.ts).
 import { useMutation } from '@tanstack/react-query';
 import { useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../../components/LocalizedLink';
 import {
   MESSAGE_MAX,
   MESSAGE_MIN,

@@ -20,7 +20,7 @@ export default function FaqPage() {
   const i18n = useI18n();
   const { t, lang } = i18n;
   const [query, setQuery] = useState('');
-  usePageMeta({ title: t('site.faq.title'), description: t('site.meta.faq') });
+  usePageMeta({ route: 'faq' });
   const faq = useQuery({ queryKey: qk.faq.public(lang), queryFn: listFaq });
   const groups = useMemo(() => filterFaq(faq.data ?? [], query), [faq.data, query]);
   const total = countFaq(faq.data ?? []);

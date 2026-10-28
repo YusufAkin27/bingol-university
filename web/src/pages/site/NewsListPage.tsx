@@ -9,7 +9,6 @@ import { Button, EmptyState, ErrorState, SearchInput } from '../../components/ui
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
-import { paths } from '../../paths';
 import { NewsCard, NewsCardSkeleton } from './components/NewsCard';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
@@ -31,7 +30,7 @@ export default function NewsListPage() {
   const rawQ = (params.get('q') ?? '').trim();
   const q = rawQ.length >= MIN_QUERY ? rawQ : '';
   const title = t('pg.news.title');
-  usePageMeta({ title, description: t('pg.news.meta'), path: paths.site.news });
+  usePageMeta({ route: 'news' });
 
   const query = useInfiniteQuery({
     queryKey: ['public', 'news', 'list', type ?? 'ALL', q],

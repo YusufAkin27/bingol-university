@@ -130,7 +130,7 @@ describe('herkese açık destek formu', () => {
     fireEvent.change(screen.getByLabelText(/Doğrulama kodu/), { target: { value: '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Doğrula ve gönder' }));
     const link = await screen.findByRole('link', { name: 'Talebimi görüntüle' });
-    expect(link).toHaveAttribute('href', '/support/track?token=tok-abc');
+    expect(link).toHaveAttribute('href', '/tr/support/track?token=tok-abc');
     expect(calls[1].body).toEqual({ email: 'ali@example.com', code: '123456' });
   });
 
@@ -172,7 +172,7 @@ describe('talep durum sayfası', () => {
       }
       return jsonResponse(200, info);
     });
-    renderAt('/support/track?token=tok-abc');
+    renderAt('/tr/support/track?token=tok-abc');
     expect(await screen.findByText('Güncelleyin lütfen')).toBeInTheDocument();
     expect(screen.getByText('Yanıtlandı')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Yeni mesaj'), { target: { value: 'Teşekkürler' } });

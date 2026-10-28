@@ -1,6 +1,6 @@
 // SAYFA: Yardım merkezi (/help) — kategori kartları, SSS ve iletişim/destek yönlendirmesi.
 // API: yok (statik bağlantılar). SSS içeriği /faq sayfasında GET /api/faq ile gelir.
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { ButtonLink, Icon, type IconName } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -21,7 +21,7 @@ export const HELP_CATEGORIES: { id: string; icon: IconName; to: string }[] = [
 export default function HelpPage() {
   const { t } = useI18n();
   const title = t('pg.help.title');
-  usePageMeta({ title, description: t('pg.help.meta'), path: paths.site.help });
+  usePageMeta({ route: 'help' });
   return (
     <>
       <PageHero title={title} lead={t('pg.help.lead')} crumbs={[{ label: title }]} />

@@ -9,6 +9,7 @@ import { RequireAdmin } from './auth/RequireAdmin';
 import { Spinner } from './components/ui/Feedback';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminScope } from './layouts/AdminScope';
+import { LangScope, RootRedirect } from './layouts/LangScope';
 import { SiteLayout } from './layouts/SiteLayout';
 import { ADMIN_BASE } from './adminBase';
 
@@ -93,33 +94,36 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<PageFallback />}>
       <Routes>
-        {/* Herkese açık site */}
-        <Route element={<SiteLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="features" element={<FeaturesPage />} />
-          <Route path="download" element={<DownloadPage />} />
-          <Route path="faq" element={<FaqPage />} />
-          <Route path="contact" element={<ContactPage />} />
-          <Route path="support/track" element={<SupportTrackPage />} />
-          <Route path="legal" element={<LegalListPage />} />
-          <Route path="legal/:type" element={<LegalPage />} />
-          <Route path="data-request" element={<DataRequestPage />} />
-          <Route path="privacy" element={<LegalPage fixedType="PRIVACY" />} />
-          <Route path="terms" element={<LegalPage fixedType="TERMS" />} />
-          <Route path="cookies" element={<CookiesPage />} />
-          <Route path="delete-account" element={<DeleteAccountPage />} />
-          <Route path="accessibility" element={<AccessibilityPage />} />
-          <Route path="sitemap" element={<SitemapPage />} />
-          <Route path="security" element={<SecurityPage />} />
-          <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
-          <Route path="help" element={<HelpPage />} />
-          <Route path="news" element={<NewsListPage />} />
-          <Route path="news/:id" element={<NewsDetailPage />} />
-          <Route path="menu" element={<MenuPage />} />
-          <Route path="brand" element={<BrandPage />} />
-          <Route path="changelog" element={<ChangelogPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+        {/* Herkese açık site: /tr /en /ar önekli (dil URL'den okunur); kök ve eski adresler yönlendirilir */}
+        <Route index element={<RootRedirect />} />
+        <Route path=":lang" element={<LangScope />}>
+          <Route element={<SiteLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="features" element={<FeaturesPage />} />
+            <Route path="download" element={<DownloadPage />} />
+            <Route path="faq" element={<FaqPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="support/track" element={<SupportTrackPage />} />
+            <Route path="legal" element={<LegalListPage />} />
+            <Route path="legal/:type" element={<LegalPage />} />
+            <Route path="data-request" element={<DataRequestPage />} />
+            <Route path="privacy" element={<LegalPage fixedType="PRIVACY" />} />
+            <Route path="terms" element={<LegalPage fixedType="TERMS" />} />
+            <Route path="cookies" element={<CookiesPage />} />
+            <Route path="delete-account" element={<DeleteAccountPage />} />
+            <Route path="accessibility" element={<AccessibilityPage />} />
+            <Route path="sitemap" element={<SitemapPage />} />
+            <Route path="security" element={<SecurityPage />} />
+            <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
+            <Route path="help" element={<HelpPage />} />
+            <Route path="news" element={<NewsListPage />} />
+            <Route path="news/:id" element={<NewsDetailPage />} />
+            <Route path="menu" element={<MenuPage />} />
+            <Route path="brand" element={<BrandPage />} />
+            <Route path="changelog" element={<ChangelogPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
         </Route>
 
         {/* Yönetim: YALNIZ Türkçe (AdminScope dili sabitler); giriş sayfası korumasızdır */}

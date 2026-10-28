@@ -1,7 +1,7 @@
 // SAYFA: Yasal belgeler listesi (/legal) — routes.tsx'te ayrı rota olmadığından NotFoundPage '/legal' için bunu çizer.
 // API: GET /api/legal (herkese açık; her tür için güncel sürüm, başlık, yayın tarihi).
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { listLegal } from '../../api/legal';
 import { qk } from '../../api/queryKeys';
 import { ErrorState, Icon, Skeleton } from '../../components/ui';
@@ -17,7 +17,7 @@ import styles from './LegalListPage.module.css';
 export default function LegalListPage() {
   const i18n = useI18n();
   const { t, lang, formatDate } = i18n;
-  usePageMeta({ title: t('legal.list.title'), description: t('site.meta.legal'), path: '/legal' });
+  usePageMeta({ route: 'legal' });
   const list = useQuery({ queryKey: [...qk.legal.list(), lang], queryFn: listLegal });
   return (
     <>

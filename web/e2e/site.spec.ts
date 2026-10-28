@@ -83,7 +83,7 @@ test.describe('tanitim sitesi', () => {
       await expect(h1).toContainText(expected);
       await expect(page).toHaveTitle(/BÜ Kampüs/);
       // Rota degisiminde odak sayfa basligina tasinir
-      await page.locator('header nav a[href="/features"]').click();
+      await page.locator(`header nav a[href="/${lang}/features"]`).click();
       await expect(page).toHaveURL(/\/features$/);
       await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
 
@@ -99,7 +99,7 @@ test.describe('tanitim sitesi', () => {
     await page.goto('/');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Bingöl/);
     await expect(page.locator('meta[property="og:title"]')).toHaveCount(1);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/$/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/(tr|en|ar)$/);
     const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
     expect(ld.join('')).toContain('MobileApplication');
     expect(ld.join('')).toContain('EducationalOrganization');

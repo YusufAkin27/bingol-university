@@ -1,6 +1,6 @@
 // SAYFA: Hakkımızda (/about)
 // API: GET /api/app/info (appName, website, contactEmail, phone, address, social) → yalnızca dolu alanlar gösterilir.
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { useAppInfo } from '../../api/hooks';
 import { ContourBackdrop, Icon, type IconName } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
@@ -9,6 +9,7 @@ import { paths } from '../../paths';
 import { ContactList, contactItems } from './components/ContactList';
 import { organizationLd } from './components/jsonLd';
 import { PageHero } from './components/PageHero';
+import { siteOrigin } from '../../seo/siteUrl';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './AboutPage.module.css';
@@ -23,10 +24,9 @@ const VALUES: { id: string; icon: IconName }[] = [
 export default function AboutPage() {
   const { t } = useI18n();
   const info = useAppInfo();
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = siteOrigin();
   usePageMeta({
-    title: t('site.about.title'),
-    description: t('site.meta.about'),
+    route: 'about',
     jsonLd: organizationLd(info.data, origin),
   });
   const hasContact = contactItems(info.data).length > 0;

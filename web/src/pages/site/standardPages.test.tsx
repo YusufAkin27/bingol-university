@@ -110,7 +110,8 @@ function renderAt(route: string, lang: 'tr' | 'en' | 'ar' = 'tr') {
     <AuthProvider>
       <AppRoutes />
     </AuthProvider>,
-    { route, lang },
+    // Site rotaları dil önekli (/tr, /en, /ar); verilmediyse testin diliyle öneklenir
+    { route: /^\/(tr|en|ar)(\/|$)/.test(route) ? route : `/${lang}${route === '/' ? '' : route}`, lang },
   );
 }
 
@@ -174,7 +175,8 @@ describe('rota eşleşmesi ve sayfalar', () => {
     const h1 = await screen.findByRole('heading', { level: 1, name });
     expect(h1).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(document.title).toContain('BÜ Kampüs');
+    // Başlık useEffect ile sonradan yazılır; h1 görünür görünmez okumak yarışa açıktır.
+    await waitFor(() => expect(document.title).toContain('BÜ Kampüs'));
   });
 
   it('/privacy ve /terms sürümlü sözleşme bileşenini aynı adreste gösterir', async () => {
@@ -203,7 +205,7 @@ describe('rota eşleşmesi ve sayfalar', () => {
     expect(screen.getAllByRole('listitem').some((li) => /Hesabımı sil/.test(li.textContent ?? ''))).toBe(
       true,
     );
-    const link = screen.getAllByRole('link').find((a) => a.getAttribute('href') === '/data-request');
+    const link = screen.getAllByRole('link').find((a) => a.getAttribute('href') === '/tr/data-request');
     expect(link).toBeTruthy();
   });
 
@@ -220,7 +222,7 @@ describe('rota eşleşmesi ve sayfalar', () => {
   it('haber listesi kaynak atfı ve detay bağlantısı gösterir; detay orijinal bağlantıyı https yapar', async () => {
     renderAt('/news');
     const link = await screen.findByRole('link', { name: 'Kayıt yenileme duyurusu' });
-    expect(link).toHaveAttribute('href', '/news/7');
+    expect(link).toHaveAttribute('href', '/tr/news/7');
     expect(screen.queryByText(/aittir/)).toBeNull();
     expect(screen.getByText('Öne çıkan')).toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Haberlerde ara' })).toBeInTheDocument();

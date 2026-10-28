@@ -1,6 +1,6 @@
 // SAYFA: Veri talebi / KVKK hakları (/data-request)
 // API: GET /api/app/info (contactEmail/supportEmail: başvuru e-postası; yoksa gizlenir). Metinler statiktir.
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { useAppInfo } from '../../api/hooks';
 import { Icon } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
@@ -14,7 +14,7 @@ import styles from './DataRequestPage.module.css';
 export default function DataRequestPage() {
   const { t } = useI18n();
   const info = useAppInfo();
-  usePageMeta({ title: t('site.dataRequest.title'), description: t('site.meta.dataRequest') });
+  usePageMeta({ route: 'dataRequest' });
   const mail = info.data?.contactEmail ?? info.data?.supportEmail ?? null;
   return (
     <>

@@ -11,11 +11,13 @@ const LANGS: Lang[] = ['tr', 'en', 'ar'];
 const THEMES = ['light', 'dark'] as const;
 const WIDTHS = [360, 768, 1280] as const;
 
+// Site rotalari dil onekli: her sayfa test dilinde /<lang><yol> olarak acilir (kok '/' tarayici/kayitli dile yonlenir)
 const ALL_PAGES = [
   '/', '/about', '/features', '/download', '/faq', '/contact', '/data-request', '/legal', '/privacy', '/terms',
   '/cookies', '/delete-account', '/accessibility', '/sitemap', '/security', '/community-guidelines', '/help',
   '/news', '/menu', '/support/track', '/brand', '/changelog', '/legal/KVKK', '/legal/RETENTION', '/news/1',
 ];
+const inLang = (lang: Lang, route: string) => `/${lang}${route === '/' ? '' : route}`;
 const CORE_PAGES = ['/', '/features', '/download', '/faq', '/contact', '/menu'];
 
 async function prepare(page: Page, lang: Lang, theme: 'light' | 'dark', cookiesAcked: boolean) {
@@ -75,7 +77,7 @@ for (const width of WIDTHS) {
         const pages = width === 360 ? ALL_PAGES : CORE_PAGES;
         const failures: string[] = [];
         for (const route of pages) {
-          await page.goto(route, { waitUntil: 'domcontentloaded' });
+          await page.goto(inLang(lang, route), { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('main h1, main h2, main p', { timeout: 15_000 }).catch(() => undefined);
           await page.waitForTimeout(250);
           const m = await page.evaluate(() => ({
@@ -107,7 +109,7 @@ for (const lang of LANGS) {
   test(`çerez bandı kompakt ve hero düğmelerini örtmüyor: 360px ${lang}`, async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     await prepare(page, lang, 'light', false);
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto(inLang(lang, '/'), { waitUntil: 'domcontentloaded' });
     const banner = page.locator('section[aria-label][class*="banner"]').last();
     await banner.waitFor({ state: 'visible', timeout: 15_000 });
     await page.waitForTimeout(300);
@@ -141,7 +143,7 @@ test('Inter 400-800 yüklenir ve CLS < 0,1', async ({ page }) => {
       }
     }).observe({ type: 'layout-shift', buffered: true });
   });
-  await page.goto('/', { waitUntil: 'load' });
+  await page.goto('/tr', { waitUntil: 'load' });
   await page.waitForTimeout(1500);
   const res = await page.evaluate(async () => {
     await document.fonts.ready;
@@ -165,7 +167,7 @@ for (const lang of LANGS) {
   test(`ana sayfa ilk ekran (360x740): CTA görünür, tek h1, başlık en çok 2 satır: ${lang}`, async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     await prepare(page, lang, 'light', true);
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto(inLang(lang, '/'), { waitUntil: 'domcontentloaded' });
     const h1 = page.locator('main h1');
     await h1.waitFor({ state: 'visible', timeout: 15_000 });
     await page.waitForTimeout(400);

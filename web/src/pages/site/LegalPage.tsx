@@ -3,7 +3,8 @@
 //      GET /api/legal/{type}/versions (sürüm geçmişi). Metin <MarkdownText> ile gösterilir (HTML enjekte edilmez).
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Link } from '../../components/LocalizedLink';
 import { isApiError } from '../../api/client';
 import { LEGAL_TYPES, getLegal, parseLegalType } from '../../api/legal';
 import { qk } from '../../api/queryKeys';
@@ -16,6 +17,7 @@ import { AdminAccessNotice } from './components/AdminAccessNotice';
 import { LegalDocument } from './components/LegalDocument';
 import { listPublicLegalVersions } from './components/legalApi';
 import { PageHero } from './components/PageHero';
+import { legalRouteId } from '../../seo/routeMeta';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './LegalPage.module.css';
@@ -42,11 +44,7 @@ function LegalDocPage({ type }: { type: LegalType }) {
     queryFn: () => listPublicLegalVersions(type),
   });
   const title = doc.data?.title ?? t(`legal.title.${type}`);
-  usePageMeta({
-    title,
-    description: t('site.meta.legal'),
-    path: type === 'PRIVACY' ? paths.site.privacy : type === 'TERMS' ? paths.site.terms : paths.site.legal(type),
-  });
+  usePageMeta({ route: legalRouteId(type), title });
 
   // Yazdırma görünümü: site üst/alt bilgisi gizlenir (LegalPage.module.css)
   useEffect(() => {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../LocalizedLink';
 import styles from './PageHeader.module.css';
 
 export interface Crumb {

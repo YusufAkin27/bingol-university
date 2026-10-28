@@ -166,7 +166,7 @@ export default function BrandPage() {
   const info = useAppInfo();
   const email = info.data?.contactEmail || info.data?.supportEmail || null;
   const title = t('pg.brand.title');
-  usePageMeta({ title, description: t('pg.brand.meta'), path: paths.site.brand });
+  usePageMeta({ route: 'brand' });
   return (
     <>
       <PageHero title={title} lead={t('pg.brand.lead')} crumbs={[{ label: title }]} />
