@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Akademik modül veri modelleri ve saf mantık (çakışma, günün dersleri, ICS).
 /// Tüm saatler Europe/Istanbul (+03:00, yaz saati yok): sunucu ofsetli ISO verir, burada duvar saatine çevrilir.
 
@@ -53,18 +55,56 @@ const monthNames = [
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
 ];
 
+/// Dile göre ay adı (1..12).
+String monthNameL(AppLocalizations l, int month) => switch (month) {
+      1 => l.acadMonth1,
+      2 => l.acadMonth2,
+      3 => l.acadMonth3,
+      4 => l.acadMonth4,
+      5 => l.acadMonth5,
+      6 => l.acadMonth6,
+      7 => l.acadMonth7,
+      8 => l.acadMonth8,
+      9 => l.acadMonth9,
+      10 => l.acadMonth10,
+      11 => l.acadMonth11,
+      _ => l.acadMonth12,
+    };
+
+/// Dile göre gün adı (1=Pazartesi..7=Pazar).
+String dayNameL(AppLocalizations l, int weekday) => switch (weekday) {
+      1 => l.acadDay1,
+      2 => l.acadDay2,
+      3 => l.acadDay3,
+      4 => l.acadDay4,
+      5 => l.acadDay5,
+      6 => l.acadDay6,
+      _ => l.acadDay7,
+    };
+
+/// Dile göre kısa gün adı (1=Pzt..7=Paz).
+String dayShortL(AppLocalizations l, int weekday) => switch (weekday) {
+      1 => l.acadDayShort1,
+      2 => l.acadDayShort2,
+      3 => l.acadDayShort3,
+      4 => l.acadDayShort4,
+      5 => l.acadDayShort5,
+      6 => l.acadDayShort6,
+      _ => l.acadDayShort7,
+    };
+
 /// Ders rengi anahtarları (sunucu ile aynı).
 const courseColorKeys = ['red', 'orange', 'amber', 'green', 'teal', 'blue', 'indigo', 'purple', 'pink', 'gray'];
 
 Color courseColor(String? key) => switch (key) {
-      'red' => const Color(0xFFE5484D),
-      'orange' => const Color(0xFFF76B15),
+      'red' => const Color(0xFFC62A20),
+      'orange' => const Color(0xFF8A5200),
       'amber' => const Color(0xFFE5A400),
-      'green' => const Color(0xFF30A46C),
-      'teal' => const Color(0xFF12A594),
-      'blue' => const Color(0xFF3E63DD),
+      'green' => const Color(0xFF1F7A4A),
+      'teal' => const Color(0xFF0F6B66),
+      'blue' => const Color(0xFF2F4FA8),
       'indigo' => const Color(0xFF5B5BD6),
-      'purple' => const Color(0xFF8E4EC6),
+      'purple' => const Color(0xFF5B3FA0),
       'pink' => const Color(0xFFD6409F),
       _ => const Color(0xFF7C8591),
     };
@@ -80,6 +120,20 @@ String colorLabel(String key) => switch (key) {
       'purple' => 'Mor',
       'pink' => 'Pembe',
       _ => 'Gri',
+    };
+
+/// Dile göre renk adı.
+String colorLabelL(AppLocalizations l, String key) => switch (key) {
+      'red' => l.acadColorRed,
+      'orange' => l.acadColorOrange,
+      'amber' => l.acadColorAmber,
+      'green' => l.acadColorGreen,
+      'teal' => l.acadColorTeal,
+      'blue' => l.acadColorBlue,
+      'indigo' => l.acadColorIndigo,
+      'purple' => l.acadColorPurple,
+      'pink' => l.acadColorPink,
+      _ => l.acadColorGray,
     };
 
 class CourseSession {
@@ -350,7 +404,26 @@ String examTypeLabel(String t) => switch (t) {
       _ => 'Diğer',
     };
 
+/// Dile göre sınav türü adı.
+String examTypeLabelL(AppLocalizations l, String t) => switch (t) {
+      'VIZE' => l.acadExamTypeVize,
+      'FINAL' => l.acadExamTypeFinal,
+      'BUT' => l.acadExamTypeBut,
+      'QUIZ' => l.acadExamTypeQuiz,
+      'ODEV' => l.acadExamTypeOdev,
+      _ => l.acadExamTypeDiger,
+    };
+
 const examTypes = ['VIZE', 'FINAL', 'BUT', 'QUIZ', 'ODEV', 'DIGER'];
+
+/// Dile göre geri sayım metni; geçmişse null.
+String? countdownTextL(AppLocalizations l, DateTime startsAt, DateTime nowInstant) {
+  final diff = startsAt.difference(nowInstant);
+  if (diff.isNegative) return null;
+  if (diff.inDays >= 1) return l.acadCountdownDays(diff.inDays.toString());
+  if (diff.inHours >= 1) return l.acadCountdownHours(diff.inHours.toString());
+  return l.acadCountdownMinutes((diff.inMinutes < 1 ? 1 : diff.inMinutes).toString());
+}
 
 /// Sınava kalan süre: "2 gün", "5 saat", "40 dk"; geçmişse null.
 String? countdownText(DateTime startsAt, DateTime nowInstant) {
@@ -422,14 +495,26 @@ String eventKindLabel(String k) => switch (k) {
       _ => 'Diğer',
     };
 
+/// Dile göre takvim kaydı türü adı.
+String eventKindLabelL(AppLocalizations l, String k) => switch (k) {
+      'DONEM_BASLANGIC' => l.acadEventKindSemesterStart,
+      'DERS_KAYIT' => l.acadEventKindRegistration,
+      'VIZE' => l.acadExamTypeVize,
+      'FINAL' => l.acadExamTypeFinal,
+      'BUT' => l.acadExamTypeBut,
+      'TATIL' => l.acadEventKindHoliday,
+      'RESMI_TATIL' => l.acadEventKindPublicHoliday,
+      _ => l.acadExamTypeDiger,
+    };
+
 Color eventKindColor(String k) => switch (k) {
-      'DONEM_BASLANGIC' => courseColor('green'),
-      'DERS_KAYIT' => courseColor('teal'),
-      'VIZE' => courseColor('orange'),
-      'FINAL' => courseColor('red'),
+      'DONEM_BASLANGIC' => courseColor('blue'),
+      'DERS_KAYIT' => courseColor('green'),
+      'VIZE' => courseColor('red'),
+      'FINAL' => courseColor('blue'),
       'BUT' => courseColor('purple'),
-      'TATIL' => courseColor('blue'),
-      'RESMI_TATIL' => courseColor('pink'),
+      'TATIL' => courseColor('orange'),
+      'RESMI_TATIL' => courseColor('teal'),
       _ => courseColor('gray'),
     };
 
@@ -492,6 +577,15 @@ String fmtInstant(DateTime i, {bool time = true}) {
 }
 
 String fmtWallDate(DateTime d) => '${d.day} ${monthNames[d.month - 1]} ${d.year}';
+
+/// Dile göre "10 Kasım 2026 · 10:00" (İstanbul).
+String fmtInstantL(AppLocalizations l, DateTime i, {bool time = true}) {
+  final w = istanbulWall(i);
+  final d = '${w.day} ${monthNameL(l, w.month)} ${w.year}';
+  return time ? '$d · ${two(w.hour)}:${two(w.minute)}' : d;
+}
+
+String fmtWallDateL(AppLocalizations l, DateTime d) => '${d.day} ${monthNameL(l, d.month)} ${d.year}';
 
 // ---------------------------------------------------------------- ICS
 

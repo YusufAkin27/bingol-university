@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -7,6 +8,7 @@ import '../../widgets/bu_widgets.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
+import 'akad_widgets.dart';
 
 /// Kişisel sınav ekle / düzenle. Başarıda `true` ile kapanır.
 class ExamFormPage extends StatefulWidget {
@@ -73,9 +75,10 @@ class _ExamFormPageState extends State<ExamFormPage> {
   }
 
   Future<void> _save() async {
-    if (_title.text.trim().isEmpty) return setState(() => _error = 'Sınav başlığı gerekli.');
-    if (_day == null) return setState(() => _error = 'Sınav tarihini seç.');
-    if (_end != null && _end! <= _start) return setState(() => _error = 'Bitiş saati başlangıçtan sonra olmalı.');
+    final l = context.l10n;
+    if (_title.text.trim().isEmpty) return setState(() => _error = l.acadFormErrTitle);
+    if (_day == null) return setState(() => _error = l.acadFormErrDate);
+    if (_end != null && _end! <= _start) return setState(() => _error = l.acadFormErrEnd);
     final body = {
       'title': _title.text.trim(),
       'type': _type,
@@ -107,7 +110,8 @@ class _ExamFormPageState extends State<ExamFormPage> {
   }
 
   Future<void> _delete() async {
-    final ok = await confirmDialog(context, title: 'Sınavı sil', text: '"${widget.exam!.title}" silinecek.', action: 'Sil', danger: true);
+    final l = context.l10n;
+    final ok = await confirmDialog(context, title: l.acadFormDeleteTitle, text: l.acadFormDeleteText(widget.exam!.title), action: l.acadDelete, danger: true);
     if (!ok || !mounted) return;
     setState(() => _busy = true);
     try {
@@ -126,41 +130,42 @@ class _ExamFormPageState extends State<ExamFormPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     return AcademicScaffold(
-      title: _editing ? 'Sınavı düzenle' : 'Yeni sınav',
-      actions: [if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: 'Sınavı sil', onTap: _busy ? null : _delete)],
+      title: _editing ? l.acadFormEdit : l.acadExamsAdd,
+      actions: [if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete)],
+      bottomBar: AkadBottomBar(children: [
+        AkadButton(label: _editing ? l.acadSave : l.acadFormAdd, busy: _busy, onPressed: _busy ? null : _save),
+      ]),
       child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, AkadBottomBar.reserve),
         children: [
-          const FormLabel('Başlık'),
-          TextField(
+          AkadTextField(
+            label: l.akademik2ExamTitle,
             controller: _title,
             maxLength: 120,
-            textCapitalization: TextCapitalization.sentences,
-            style: BuType.body.copyWith(color: t.ink),
-            decoration: const InputDecoration(hintText: 'Örn. Veri Yapıları Vize 1', counterText: ''),
+            capitalization: TextCapitalization.sentences,
+            hint: l.acadFormTitleHint,
           ),
-          const SizedBox(height: 12),
-          const FormLabel('Tür'),
+          const SizedBox(height: 14),
+          AkadLabel(l.acadFormType),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final k in examTypes) BuChip(label: examTypeLabel(k), selected: _type == k, onTap: () => setState(() => _type = k)),
+            for (final k in examTypes) AkadChip(label: examTypeLabelL(l, k), selected: _type == k, onTap: () => setState(() => _type = k)),
           ]),
           if (widget.courses.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const FormLabel('Ders (isteğe bağlı)'),
+            const SizedBox(height: 14),
+            AkadLabel(l.akademik2Course),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              BuChip(label: 'Yok', selected: _courseId == null, onTap: () => setState(() => _courseId = null)),
-              for (final c in widget.courses)
-                BuChip(label: c.name, selected: _courseId == c.id, onTap: () => setState(() => _courseId = c.id)),
+              AkadChip(label: l.acadFormNone, selected: _courseId == null, onTap: () => setState(() => _courseId = null)),
+              for (final c in widget.courses) AkadChip(label: c.name, selected: _courseId == c.id, onTap: () => setState(() => _courseId = c.id)),
             ]),
           ],
-          const SizedBox(height: 12),
-          const FormLabel('Tarih ve saat'),
-          PickerField(
+          const SizedBox(height: 14),
+          AkadPicker(
             icon: LucideIcons.calendar,
-            label: 'Sınav tarihi',
-            hint: 'Tarih seç',
-            value: _day == null ? null : fmtWallDate(_day!),
+            label: l.acadFormExamDate,
+            hint: l.acadFormPickDate,
+            value: _day == null ? null : fmtWallDateL(l, _day!),
             onTap: () async {
               final now = istanbulWall(academicClock());
               final d = await showDatePicker(
@@ -172,12 +177,12 @@ class _ExamFormPageState extends State<ExamFormPage> {
               if (d != null && mounted) setState(() => _day = DateTime.utc(d.year, d.month, d.day));
             },
           ),
-          const SizedBox(height: 8),
-          Row(children: [
+          const SizedBox(height: 14),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
-              child: PickerField(
+              child: AkadPicker(
                 icon: LucideIcons.clock,
-                label: 'Başlangıç saati',
+                label: l.akademik2Start,
                 value: hhmm(_start),
                 onTap: () async {
                   final m = await _pickTime(_start);
@@ -185,12 +190,12 @@ class _ExamFormPageState extends State<ExamFormPage> {
                 },
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
-              child: PickerField(
+              child: AkadPicker(
                 icon: LucideIcons.clock,
-                label: 'Bitiş saati',
-                hint: 'Bitiş (ops.)',
+                label: l.akademik2EndOptional,
+                hint: l.acadFormEndHint,
                 value: _end == null ? null : hhmm(_end!),
                 onTap: () async {
                   final m = await _pickTime(_end ?? _start + 90);
@@ -199,25 +204,11 @@ class _ExamFormPageState extends State<ExamFormPage> {
               ),
             ),
           ]),
-          const SizedBox(height: 12),
-          const FormLabel('Derslik'),
-          TextField(
-              controller: _room,
-              maxLength: 60,
-              style: BuType.body.copyWith(color: t.ink),
-              decoration: const InputDecoration(hintText: 'Örn. B-204', counterText: '')),
-          const SizedBox(height: 12),
-          const FormLabel('Not'),
-          TextField(
-              controller: _note,
-              maxLength: 500,
-              minLines: 2,
-              maxLines: 4,
-              style: BuType.body.copyWith(color: t.ink),
-              decoration: const InputDecoration(hintText: 'İsteğe bağlı', counterText: '')),
+          const SizedBox(height: 14),
+          AkadTextField(label: l.akademik2Place, controller: _room, maxLength: 60, hint: l.acadFormRoomHint),
+          const SizedBox(height: 14),
+          AkadTextField(label: l.acadFormNote, controller: _note, maxLength: 500, minLines: 2, maxLines: 4, hint: l.acadFormNoteHint),
           if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: BuType.caption.copyWith(color: t.danger))),
-          const SizedBox(height: 16),
-          BuButton(label: _editing ? 'Kaydet' : 'Sınavı ekle', busy: _busy, onPressed: _busy ? null : _save),
         ],
       ),
     );

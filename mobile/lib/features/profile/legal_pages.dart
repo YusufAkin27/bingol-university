@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/simple_markdown.dart';
 import '../../core/typography.dart';
+import '../support/destek_widgets.dart';
 
 /// Sözleşme listesi (kullanım koşulları, gizlilik, KVKK, topluluk kuralları).
 class LegalListPage extends StatefulWidget {
@@ -39,7 +41,7 @@ class _LegalListPageState extends State<LegalListPage> {
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: 'Sözleşmeler', onBack: () => Navigator.pop(context)),
+          BuHeader(title: context.l10n.profileLegalTitle, onBack: () => Navigator.pop(context)),
           Expanded(
             child: FutureBuilder(
               future: _future,
@@ -52,7 +54,7 @@ class _LegalListPageState extends State<LegalListPage> {
                 }
                 final docs = snap.data!;
                 if (docs.isEmpty) {
-                  return const EmptyView(icon: LucideIcons.fileText, text: 'Yayımlanmış sözleşme yok.');
+                  return EmptyView(icon: LucideIcons.fileText, text: context.l10n.profileLegalEmpty);
                 }
                 return RefreshIndicator(
                   onRefresh: _refresh,
@@ -78,7 +80,7 @@ class _LegalListPageState extends State<LegalListPage> {
                                     Text((d['title'] as String?) ?? (d['type'] as String? ?? ''),
                                         style: BuType.bodyStrong.copyWith(color: t.ink)),
                                     const SizedBox(height: 2),
-                                    Text(_versionLine(d),
+                                    Text(_versionLine(context, d),
                                         style: BuType.caption.copyWith(color: t.mut)),
                                   ]),
                                 ),
@@ -100,9 +102,10 @@ class _LegalListPageState extends State<LegalListPage> {
 }
 
 /// "Sürüm 2 · 1 Ocak 2026"; yayın tarihi yoksa yalnız "Sürüm 2" (sondaki " ·" kalmaz).
-String _versionLine(Map<String, dynamic> d) {
+String _versionLine(BuildContext context, Map<String, dynamic> d) {
   final date = niceDate(d['publishedAt'] as String?);
-  return date.isEmpty ? 'Sürüm ${d['version']}' : 'Sürüm ${d['version']} · $date';
+  final v = '${d['version']}';
+  return date.isEmpty ? context.l10n.profileVersion(v) : context.l10n.profileVersionDate(v, date);
 }
 
 class LegalDocPage extends StatefulWidget {
@@ -116,10 +119,35 @@ class LegalDocPage extends StatefulWidget {
 }
 
 class _LegalDocPageState extends State<LegalDocPage> {
+  late String _type = widget.type;
   late Future<Map<String, dynamic>> _future = _fetch();
+  // Sekmeler için belge listesi; alınamazsa sekme çubuğu gizlenir (sayfa yine çalışır).
+  List<Map<String, dynamic>> _tabs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTabs();
+  }
+
+  Future<void> _loadTabs() async {
+    try {
+      final r = await widget.session.api.get('/legal');
+      if (!mounted || r is! List) return;
+      setState(() => _tabs = r.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList());
+    } catch (_) {}
+  }
 
   Future<Map<String, dynamic>> _fetch() async =>
-      await widget.session.api.get('/legal/${widget.type}') as Map<String, dynamic>;
+      await widget.session.api.get('/legal/$_type') as Map<String, dynamic>;
+
+  void _select(String type) {
+    if (type == _type) return;
+    setState(() {
+      _type = type;
+      _future = _fetch();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +160,18 @@ class _LegalDocPageState extends State<LegalDocPage> {
           final d = snap.data;
           return Column(
             children: [
-              BuHeader(title: (d?['title'] as String?) ?? 'Sözleşme', onBack: () => Navigator.pop(context)),
+              BuHeader(title: context.l10n.profileLegalTitle, onBack: () => Navigator.pop(context)),
+              if (_tabs.length > 1) ...[
+                DestekChipRow(children: [
+                  for (final d in _tabs)
+                    DestekChip(
+                      label: (d['title'] as String?) ?? (d['type'] as String? ?? ''),
+                      selected: d['type'] == _type,
+                      onTap: () => _select(d['type'] as String),
+                    ),
+                ]),
+                const SizedBox(height: 12),
+              ],
               Expanded(
                 child: snap.connectionState != ConnectionState.done
                     ? const LoadingView()
@@ -141,16 +180,16 @@ class _LegalDocPageState extends State<LegalDocPage> {
                     _future = _fetch();
                   }))
                         : ListView(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
                             children: [
-                              Text(_versionLine(d!),
-                                  style: BuType.caption.copyWith(color: t.mut)),
-                              const SizedBox(height: 14),
-                              BuCard(
-                                padding: const EdgeInsets.all(18),
-                                // Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
-                                child: SimpleMarkdown((d['content'] as String?) ?? ''),
+                              _meta(context, d!),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 14, bottom: 6),
+                                child: Text((d['title'] as String?) ?? context.l10n.profileLegalDocFallback,
+                                    style: BuType.title.copyWith(color: t.ink, fontSize: 22, letterSpacing: -.4)),
                               ),
+                              // Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
+                              SimpleMarkdown((d['content'] as String?) ?? ''),
                             ],
                           ),
               ),
@@ -159,5 +198,29 @@ class _LegalDocPageState extends State<LegalDocPage> {
         },
       ),
     );
+  }
+
+  /// Sürüm rozeti + yürürlük tarihi.
+  Widget _meta(BuildContext context, Map<String, dynamic> d) {
+    final t = context.bu;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final date = niceDate((d['effectiveAt'] ?? d['publishedAt']) as String?);
+    return Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+      Container(
+        constraints: const BoxConstraints(minHeight: 24),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          // Tasarımdaki mavi sürüm rozeti (.p-blue).
+          color: dark ? const Color(0xFF1F2B4D) : const Color(0xFFE6ECFA),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(context.l10n.profileVersion('${d['version']}'),
+            style: BuType.micro.copyWith(
+                color: dark ? const Color(0xFF9DB4F0) : const Color(0xFF2F4FA8), fontWeight: FontWeight.w700)),
+      ),
+      if (date.isNotEmpty)
+        Text(context.l10n.destekEffective(date), style: BuType.caption.copyWith(color: t.mut)),
+    ]);
   }
 }

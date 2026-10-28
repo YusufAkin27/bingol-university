@@ -101,7 +101,7 @@ void main() {
       expect(cam.top, first.top);
       expect(first.left, lessThan(second.left)); // sonra en yeni (v1), sonra p1
       expect(find.descendant(of: _tile('v1'), matching: find.text('0:12')), findsOneWidget);
-      expect(find.text('Önizle (1)'), findsNothing);
+      expect(find.text('1 / 10 seçildi'), findsNothing);
       _ok(tester);
     });
 
@@ -128,10 +128,10 @@ void main() {
       expect(_badge('p1', '1'), findsOneWidget);
       expect(_badge('p2', '2'), findsOneWidget);
       expect(_badge('p3', '3'), findsOneWidget);
-      expect(find.text('Önizle (3)'), findsOneWidget);
+      expect(find.text('3 / 10 seçildi'), findsOneWidget);
       await _tap(tester, _tile('p2'));
       expect(_badge('p3', '2'), findsOneWidget);
-      expect(find.text('Önizle (2)'), findsOneWidget);
+      expect(find.text('2 / 10 seçildi'), findsOneWidget);
       _ok(tester);
     });
 
@@ -141,10 +141,10 @@ void main() {
       for (var i = 1; i <= 10; i++) {
         await _tap(tester, _tile('p$i'));
       }
-      expect(find.text('Önizle (10)'), findsOneWidget);
+      expect(find.text('10 / 10 seçildi'), findsOneWidget);
       await _tap(tester, _tile('p11'));
       expect(find.text('En fazla 10 öğe seçebilirsin'), findsOneWidget);
-      expect(find.text('Önizle (10)'), findsOneWidget);
+      expect(find.text('10 / 10 seçildi'), findsOneWidget);
       _ok(tester);
     });
 
@@ -154,7 +154,7 @@ void main() {
       await _tap(tester, _tile('v1'));
       await _tap(tester, _tile('v2'));
       await _tap(tester, _tile('p1'));
-      expect(find.text('Önizle (3)'), findsOneWidget);
+      expect(find.text('3 / 10 seçildi'), findsOneWidget);
       _ok(tester);
     });
 
@@ -178,7 +178,7 @@ void main() {
       // Önizlemeyi kapat: seçici açık kalır, kamera öğesi seçili.
       await _tap(tester, find.byKey(const ValueKey('previewClose')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('Önizle (1)'), findsOneWidget);
+      expect(find.text('1 / 10 seçildi'), findsOneWidget);
       _ok(tester);
     });
 
@@ -230,6 +230,24 @@ void main() {
     }
   });
 
+  group('RTL (ar)', () {
+    Widget rtl(Widget w) => Directionality(textDirection: TextDirection.rtl, child: w);
+
+    testWidgets('secici ve onizleme RTL 320 dp tasma yok', (tester) async {
+      final lib = FakeMediaLibrary.photos(8, videos: [FakeMediaLibrary.video('v1')]);
+      await _openHost(tester, () => rtl(_picker(lib)), [], size: const Size(320, 640));
+      await _tap(tester, _tile('v1'));
+      await _tap(tester, _tile('p1'));
+      expect(find.byKey(const ValueKey('pickerPreview')), findsOneWidget);
+      _ok(tester);
+      await unmount(tester);
+      await _openHost(tester, () => rtl(MediaPreviewPage(picks: [fakePhotoPick('a'), fakeVideoPick('v')])), [],
+          b: Brightness.dark, size: const Size(320, 640));
+      expect(find.byKey(const ValueKey('previewAdd')), findsOneWidget);
+      _ok(tester);
+    });
+  });
+
   group('Onizleme', () {
     MediaPreviewPage preview(List<MediaPick> picks, {ValueChanged<List<MediaPick>>? onChanged}) =>
         MediaPreviewPage(picks: picks, onChanged: onChanged);
@@ -266,9 +284,9 @@ void main() {
       expect(find.byKey(const ValueKey('onceButton_0')), findsOneWidget);
       final onceRect = tester.getRect(find.byKey(const ValueKey('onceButton_0')));
       final pageRect = tester.getRect(find.byKey(const ValueKey('previewPages')));
-      expect(onceRect.right, lessThanOrEqualTo(pageRect.right)); // görselin sağ alt köşesi
+      expect(onceRect.left, greaterThanOrEqualTo(pageRect.left)); // görselin sol alt köşesi (tasarım)
       expect(onceRect.bottom, lessThanOrEqualTo(pageRect.bottom));
-      expect(onceRect.center.dx, greaterThan(pageRect.center.dx));
+      expect(onceRect.center.dx, lessThan(pageRect.center.dx));
       expect(onceRect.center.dy, greaterThan(pageRect.center.dy));
       await _tap(tester, find.byKey(const ValueKey('onceButton_0')));
       expect(find.text('Tek gönderimlik: alıcı yalnızca bir kez görebilir'), findsOneWidget);

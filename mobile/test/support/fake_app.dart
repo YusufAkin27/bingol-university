@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/pending_verification.dart';
+import 'package:bu_kampus/core/pending_verification.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
@@ -411,13 +412,33 @@ Future<void> pickFromSearch(WidgetTester tester, String query, String rowText) a
   await tester.pump(const Duration(milliseconds: 400));
   await tester.pump(const Duration(milliseconds: 400));
 }
-/// Kayıt formunda bölümü (fakülte otomatik gelir) ve sınıfı arayüzden seçer.
+/// Bölümü (fakülte otomatik gelir) ve sınıfı arayüzden seçer (iki seçici de tam ekran liste).
 Future<void> fillAcademic(WidgetTester tester) async {
   await tester.ensureVisible(find.text('Bölüm seçin'));
   await tester.tap(find.text('Bölüm seçin'));
   await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
-  await tester.ensureVisible(find.text('3. sınıf'));
-  await tester.tap(find.text('3. sınıf'));
+  await tester.ensureVisible(find.text('Sınıf seçin'));
+  await tester.tap(find.text('Sınıf seçin'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.tap(find.text('3. sınıf').last);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+/// Kayıt akışını 3 adımda doldurur; son adımda (şifre) "Kayıt ol" düğmesi basılmadan kalır.
+Future<void> fillRegister(WidgetTester tester,
+    {String name = 'Ayşe Yılmaz', String email = 'ayse@bingol.edu.tr', String password = 'Sifre1234'}) async {
+  await fillAcademic(tester);
+  await tester.tap(find.text('Devam'));
+  await tester.pump(const Duration(milliseconds: 400));
+  final fields = find.byType(TextFormField);
+  await tester.enterText(fields.at(0), name);
+  await tester.enterText(fields.at(1), email);
+  await tester.pump();
+  await tester.tap(find.text('Devam'));
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.enterText(find.byType(TextFormField).first, password);
   await tester.pump();
 }
 /// Varsayılan avatar/grup görselleri hariç, içerik görselleri (ağ/bellek) için bulucu.

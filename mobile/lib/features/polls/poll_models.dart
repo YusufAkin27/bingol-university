@@ -1,9 +1,23 @@
+import 'package:flutter/widgets.dart' show Locale;
+
+import '../../l10n/app_localizations.dart';
+
 // Anket ve oylama modelleri (docs/API_CONTRACTS_V2.md "Anket ve oylama"). Alanlar eksik/null gelse de çökmez.
 
 int _int(Object? v, [int d = 0]) => v is num ? v.toInt() : int.tryParse('${v ?? ''}') ?? d;
 int? _intN(Object? v) => v == null ? null : (v is num ? v.toInt() : int.tryParse('$v'));
 double? _dbl(Object? v) => v is num ? v.toDouble() : double.tryParse('${v ?? ''}');
 bool _bool(Object? v, [bool d = false]) => v is bool ? v : d;
+
+/// Bağlam verilmezse (testler, bağlamsız çağrılar) Türkçe metin kullanılır.
+AppLocalizations pollL10n(AppLocalizations? l) => l ?? lookupAppLocalizations(const Locale('tr'));
+
+String pollTypeLabel(AppLocalizations l, PollType t) => switch (t) {
+      PollType.single => l.pollTypeSingle,
+      PollType.multi => l.pollTypeMulti,
+      PollType.rating => l.pollTypeRating,
+      PollType.ranked => l.pollTypeRanked,
+    };
 
 enum PollType { single, multi, rating, ranked }
 
@@ -186,14 +200,15 @@ class Poll {
 }
 
 /// "3 gün kaldı", "5 sa kaldı", "12 dk kaldı", "Sona erdi"; bitiş yoksa null.
-String? pollRemaining(String? closesAt, [DateTime? now]) {
+String? pollRemaining(String? closesAt, [DateTime? now, AppLocalizations? l10n]) {
+  final l = pollL10n(l10n);
   final c = closesAt == null ? null : DateTime.tryParse(closesAt)?.toLocal();
   if (c == null) return null;
   final diff = c.difference(now ?? DateTime.now());
-  if (diff.inSeconds <= 0) return 'Sona erdi';
-  if (diff.inDays >= 1) return '${diff.inDays} gün kaldı';
-  if (diff.inHours >= 1) return '${diff.inHours} sa kaldı';
-  return '${diff.inMinutes < 1 ? 1 : diff.inMinutes} dk kaldı';
+  if (diff.inSeconds <= 0) return l.pollEnded;
+  if (diff.inDays >= 1) return l.pollDaysLeft(diff.inDays.toString());
+  if (diff.inHours >= 1) return l.pollHoursLeft(diff.inHours.toString());
+  return l.pollMinutesLeft((diff.inMinutes < 1 ? 1 : diff.inMinutes).toString());
 }
 
 /// Oy seçimi mantığı (arayüzden bağımsız, test edilebilir). RANKED'de [ids] seçim SIRASINI korur (tercih sırası).
@@ -246,16 +261,18 @@ String? validatePollDraft({
   required List<String> options,
   required DateTime? closesAt,
   DateTime? now,
+  AppLocalizations? l10n,
 }) {
-  if (title.trim().isEmpty) return 'Başlık gerekli.';
+  final l = pollL10n(l10n);
+  if (title.trim().isEmpty) return l.pollValTitle;
   if (type != PollType.rating) {
     final filled = options.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    if (filled.length < 2) return 'En az 2 seçenek girin.';
-    if (filled.length > 12) return 'En fazla 12 seçenek olabilir.';
-    if (filled.map((e) => e.toLowerCase()).toSet().length != filled.length) return 'Seçenekler birbirinden farklı olmalı.';
+    if (filled.length < 2) return l.pollValMin2;
+    if (filled.length > 12) return l.pollValMax12;
+    if (filled.map((e) => e.toLowerCase()).toSet().length != filled.length) return l.pollValDistinct;
   }
-  if (closesAt == null) return 'Bitiş zamanını seçin.';
-  if (!closesAt.isAfter(now ?? DateTime.now())) return 'Bitiş zamanı gelecekte olmalı.';
+  if (closesAt == null) return l.pollValEnd;
+  if (!closesAt.isAfter(now ?? DateTime.now())) return l.pollValFuture;
   return null;
 }
 
@@ -267,10 +284,13 @@ String pollIstanbulIso(DateTime local) {
 }
 
 /// `voteBlockedReason` için kullanıcı metni.
-String pollBlockedText(String? reason) => switch (reason) {
-      'NOT_ELIGIBLE' => 'Bu ankete katılma yetkiniz yok.',
-      'CLOSED' => 'Bu anket kapandı. Oy verilemez.',
-      'NOT_OPEN' => 'Bu anket henüz açılmadı.',
-      'ALREADY_VOTED' => 'Oyunuz kaydedildi; bu ankette oy değiştirilemez.',
-      _ => 'Bu ankette oy veremezsiniz.',
-    };
+String pollBlockedText(String? reason, [AppLocalizations? l10n]) {
+  final l = pollL10n(l10n);
+  return switch (reason) {
+    'NOT_ELIGIBLE' => l.pollBlockedNotEligible,
+    'CLOSED' => l.pollBlockedClosed,
+    'NOT_OPEN' => l.pollBlockedNotOpen,
+    'ALREADY_VOTED' => l.pollBlockedAlreadyVoted,
+    _ => l.pollBlockedDefault,
+  };
+}

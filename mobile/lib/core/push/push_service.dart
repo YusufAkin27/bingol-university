@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/permissions_page.dart';
+import '../locale_controller.dart';
 import '../nav.dart';
 import '../notify/local_reminders.dart';
 import '../session.dart';
@@ -32,7 +33,7 @@ bool showPushBanner(
   required String title,
   required String body,
   required VoidCallback onOpen,
-  String actionLabel = 'Aç',
+  String? actionLabel,
 }) {
   if (ctx == null || (title.isEmpty && body.isEmpty)) return false;
   final messenger = ScaffoldMessenger.maybeOf(ctx);
@@ -50,7 +51,7 @@ bool showPushBanner(
           if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),
-      action: SnackBarAction(label: actionLabel, onPressed: onOpen),
+      action: SnackBarAction(label: actionLabel ?? ctx.l10n.coreOpen, onPressed: onOpen),
     ));
   return true;
 }

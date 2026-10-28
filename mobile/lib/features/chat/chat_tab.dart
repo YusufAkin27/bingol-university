@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -10,6 +11,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'chat_detail_page.dart';
 import 'chat_media.dart';
+import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'new_chat_page.dart';
@@ -33,7 +35,15 @@ class ChatTab extends StatefulWidget {
 }
 
 class _ChatTabState extends State<ChatTab> {
-  static const _filters = ['Tümü', 'Kişiler', 'Kulüpler', 'Etkinlikler'];
+  List<String> _filterLabels(BuildContext context) {
+    final l = context.l10n;
+    return [
+      l.chatMiscFilterAll,
+      l.chatMiscFilterPeople,
+      l.chatMiscFilterClubs,
+      l.chatMiscFilterEvents
+    ];
+  }
 
   final _scroll = ScrollController();
   final _items = <Map<String, dynamic>>[];
@@ -328,7 +338,9 @@ class _ChatTabState extends State<ChatTab> {
         await widget.session.api.delete('/conversations/${c['id']}/archive');
       }
       _scheduleBadge();
-      _toast(archive ? 'Sohbet arşivlendi' : 'Sohbet arşivden çıkarıldı');
+      _toast(archive
+          ? context.l10n.chatMiscArchived
+          : context.l10n.chatMiscUnarchived);
     } catch (e) {
       if (mounted) {
         setState(() => _items.insert(i.clamp(0, _items.length), row));
@@ -374,7 +386,7 @@ class _ChatTabState extends State<ChatTab> {
       preview: ColoredBox(
         color: t.bg,
         child: _ConversationRow(
-            title: _title(c),
+            title: _title(context, c),
             conversation: c,
             onTap: () {},
             onLongPress: () {}),
@@ -405,7 +417,7 @@ class _ChatTabState extends State<ChatTab> {
   static String _type(Map<String, dynamic> c) =>
       (c['type'] as String?)?.toUpperCase() ?? 'DIRECT';
 
-  static String _title(Map<String, dynamic> c) {
+  static String _title(BuildContext context, Map<String, dynamic> c) {
     final type = _type(c);
     final peer = c['peer'];
     if (type == 'DIRECT' &&
@@ -414,7 +426,7 @@ class _ChatTabState extends State<ChatTab> {
       return peer['displayName'] as String;
     }
     final t = c['title'] as String?;
-    return (t != null && t.isNotEmpty) ? t : 'Sohbet';
+    return (t != null && t.isNotEmpty) ? t : context.l10n.chatMiscChat;
   }
 
   // Sunucuda tür süzgeci belgelenmemiş: çipler yerel süzer.
@@ -428,7 +440,7 @@ class _ChatTabState extends State<ChatTab> {
         3 => type == 'EVENT',
         _ => true,
       };
-      return ok && (q.isEmpty || _title(c).toLowerCase().contains(q));
+      return ok && (q.isEmpty || _title(context, c).toLowerCase().contains(q));
     }).toList();
   }
 
@@ -448,22 +460,36 @@ class _ChatTabState extends State<ChatTab> {
             SliverToBoxAdapter(
               child: _archived
                   ? BuHeader(
-                      title: 'Arşiv', onBack: () => _setArchiveView(false))
-                  : BuHeader(
-                      title: 'Sohbet',
-                      actions: [
-                        BuIconButton(
-                            icon: LucideIcons.plus,
-                            filled: true,
-                            tooltip: 'Yeni sohbet',
-                            onTap: _openNew)
-                      ],
+                      title: context.l10n.chatMiscArchive,
+                      onBack: () => _setArchiveView(false))
+                  : Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Semantics(
+                              header: true,
+                              child: Text(context.l10n.chatMiscChat,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: BuType.display.copyWith(
+                                      color: t.ink,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -.5)),
+                            ),
+                          ),
+                          ChatlistNewButton(
+                              tooltip: context.l10n.chatMiscNewChat,
+                              onTap: _openNew),
+                        ],
+                      ),
                     ),
             ),
             SliverPersistentHeader(
               pinned: true,
               delegate: _PinnedFilterDelegate(
-                filters: _filters,
+                filters: _filterLabels(context),
                 selected: _filter,
                 onQuery: (v) => setState(() => _query = v),
                 onSelect: (i) => setState(() => _filter = i),
@@ -504,7 +530,7 @@ class _ChatTabState extends State<ChatTab> {
             Icon(LucideIcons.archive, size: 16, color: t.mut),
             const SizedBox(width: 12),
             Expanded(
-              child: Text('Arşiv',
+              child: Text(context.l10n.chatMiscArchive,
                   style: BuType.bodyStrong.copyWith(color: t.mut)),
             ),
             Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
@@ -517,10 +543,10 @@ class _ChatTabState extends State<ChatTab> {
   Widget _empty(BuTokens t) {
     final searching = _query.trim().isNotEmpty || _filter != 0;
     final text = _archived
-        ? 'Arşivde sohbet yok'
+        ? context.l10n.chatMiscEmptyArchive
         : (_items.isNotEmpty && searching)
-            ? 'Eşleşen sohbet bulunamadı'
-            : 'Henüz sohbetiniz yok';
+            ? context.l10n.chatMiscEmptyNoMatch
+            : context.l10n.chatMiscEmptyNone;
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
       sliver: SliverToBoxAdapter(
@@ -532,7 +558,7 @@ class _ChatTabState extends State<ChatTab> {
             if (_items.isEmpty && !_archived)
               Center(
                 child: BuButton(
-                    label: 'Yeni sohbet',
+                    label: context.l10n.chatMiscNewChat,
                     icon: LucideIcons.plus,
                     compact: true,
                     onPressed: _openNew),
@@ -579,14 +605,17 @@ class _ChatTabState extends State<ChatTab> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(LucideIcons.archive, color: t.onPr),
-                  Text(_archived ? 'Çıkar' : 'Arşivle',
+                  Text(
+                      _archived
+                          ? context.l10n.chatMiscUnarchiveAction
+                          : context.l10n.chatMiscArchiveAction,
                       style: BuType.micro.copyWith(color: t.onPr)),
                 ],
               ),
             ),
             child: Builder(
               builder: (rowCtx) => _ConversationRow(
-                title: _title(c),
+                title: _title(context, c),
                 conversation: c,
                 onTap: () => _openChat(c),
                 onLongPress: () {
@@ -616,7 +645,7 @@ class _ChatTabState extends State<ChatTab> {
   }
 }
 
-/// Sabit (pinned) arama alanı + 4 parçalı eşit genişlikli segment.
+/// Sabit (pinned) segment + arama alanı.
 class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
   _PinnedFilterDelegate({
     required this.filters,
@@ -630,7 +659,7 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<String> onQuery;
   final ValueChanged<int> onSelect;
 
-  static const double _height = 126;
+  static const double _height = 128;
 
   @override
   double get minExtent => _height;
@@ -648,53 +677,14 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
     final t = context.bu;
     return Container(
       height: _height,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-      decoration: BoxDecoration(
-        color: t.bg,
-        border: Border(bottom: BorderSide(color: t.bd)),
-      ),
+      color: t.bg,
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
       child: Column(
         children: [
-          BuSearchField(hint: 'Kişi veya grup ara', onChanged: onQuery),
-          const SizedBox(height: 10),
-          Container(
-            key: const ValueKey('chat-segment'),
-            height: 40,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-                color: t.sf2, borderRadius: BorderRadius.circular(20)),
-            // Sabit yükseklikli denetim: yazı ölçeği sınırlanır, etiketler aynı boyutta kalır.
-            child: MediaQuery.withClampedTextScaling(
-              maxScaleFactor: 1.1,
-              child: Row(
-                children: [
-                  for (var i = 0; i < filters.length; i++)
-                    Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => onSelect(i),
-                        child: Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          decoration: BoxDecoration(
-                            color: i == selected ? t.ink : Colors.transparent,
-                            borderRadius: BorderRadius.circular(17),
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(filters[i],
-                                maxLines: 1,
-                                softWrap: false,
-                                style: BuType.label.copyWith(
-                                    color: i == selected ? t.bg : t.mut)),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          ChatlistSegment(
+              labels: filters, selected: selected, onSelect: onSelect),
+          const SizedBox(height: 12),
+          ChatlistSearch(hint: context.l10n.chatlistSearchHint, onChanged: onQuery),
         ],
       ),
     );
@@ -761,22 +751,26 @@ class _ConversationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final type = (conversation['type'] as String?)?.toUpperCase() ?? 'DIRECT';
     final peer = conversation['peer'];
     final last = conversation['lastMessage'];
     final unread = (conversation['unreadCount'] as num?)?.toInt() ?? 0;
     final muted = conversation['muted'] == true;
+    final hot = unread > 0 && !muted;
 
-    final tag =
-        switch (type) { 'CLUB' => 'Kulüp', 'EVENT' => 'Etkinlik', _ => null };
+    final tag = switch (type) {
+      'CLUB' => l.chatMiscTagClub,
+      'EVENT' => l.chatMiscTagEvent,
+      _ => null
+    };
     final isDirect = type == 'DIRECT';
-    final avatarUrl =
-        isDirect && peer is Map ? peer['avatarUrl'] as String? : null;
-
-    final Widget avatar =
-        BuAvatar(name: title, url: avatarUrl, size: 52, group: !isDirect);
+    final avatarUrl = isDirect
+        ? (peer is Map ? peer['avatarUrl'] as String? : null)
+        : conversation['avatarUrl'] as String?;
 
     String preview = '';
+    IconData? kindIcon;
     var once = false;
     String? when;
     String? status;
@@ -784,30 +778,35 @@ class _ConversationRow extends StatelessWidget {
       final s = last['status'];
       if (s is String) status = s.toUpperCase();
       final removed = last['removed'] == true || last['deleted'] == true;
-      preview = removed ? 'Mesaj silindi' : _preview(last);
-      once = !removed && preview == _onceText;
+      if (removed) {
+        preview = l.chatMiscMessageDeleted;
+      } else {
+        final p = _preview(context, last);
+        preview = p.$1;
+        kindIcon = p.$2;
+        once = p.$3;
+      }
       when = last['createdAt'] as String?;
     }
 
     final tick = switch (status) {
       'SENT' => (LucideIcons.check, t.mut),
       'DELIVERED' => (LucideIcons.checkCheck, t.mut),
-      'READ' => (LucideIcons.checkCheck, t.pr),
+      'READ' => (LucideIcons.checkCheck, t.ok),
       _ => null,
     };
+    final bodyColor = hot ? t.ink : t.mut;
 
     return Material(
       color: t.bg,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Container(
-          decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: t.bd, width: 0.5))),
+        child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
-              avatar,
+              ChatlistAvatar(name: title, url: avatarUrl, group: !isDirect),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -819,7 +818,11 @@ class _ConversationRow extends StatelessWidget {
                           child: Text(title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: BuType.bodyStrong.copyWith(color: t.ink)),
+                              style: BuType.bodyStrong.copyWith(
+                                  color: t.ink,
+                                  fontSize: 15,
+                                  fontWeight:
+                                      hot ? FontWeight.w800 : FontWeight.w700)),
                         ),
                         if (tag != null) ...[
                           const SizedBox(width: 6),
@@ -827,54 +830,62 @@ class _ConversationRow extends StatelessWidget {
                         ],
                         if (muted) ...[
                           const SizedBox(width: 6),
-                          Icon(LucideIcons.bellOff, size: 11.5, color: t.mut),
+                          Icon(LucideIcons.bellOff, size: 12, color: t.mut),
                         ],
+                        const Spacer(),
+                        const SizedBox(width: 8),
+                        Text(_stamp(context, when),
+                            style: BuType.micro.copyWith(
+                                fontSize: 12,
+                                fontWeight:
+                                    hot ? FontWeight.w600 : FontWeight.w400,
+                                color: hot ? t.pr : t.mut)),
                       ],
                     ),
                     const SizedBox(height: 3),
                     Row(children: [
-                      if (tick != null) ...[
-                        Icon(tick.$1, size: 13.5, color: tick.$2),
-                        const SizedBox(width: 4),
-                      ],
-                      if (once) ...[
-                        OnceBadge(
-                            color: unread > 0 && !muted ? t.ink : t.mut,
-                            size: 16),
-                        const SizedBox(width: 6),
-                      ],
                       Expanded(
-                        child: Text(preview,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: BuType.caption.copyWith(
-                                color: unread > 0 && !muted ? t.ink : t.mut)),
+                        child: Row(children: [
+                          if (tick != null) ...[
+                            Icon(tick.$1, size: 16, color: tick.$2),
+                            const SizedBox(width: 6),
+                          ],
+                          if (once) ...[
+                            OnceBadge(color: bodyColor, size: 16),
+                            const SizedBox(width: 6),
+                          ] else if (kindIcon != null) ...[
+                            Icon(kindIcon, size: 16, color: bodyColor),
+                            const SizedBox(width: 6),
+                          ],
+                          Expanded(
+                            child: Text(preview,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: BuType.body
+                                    .copyWith(fontSize: 14, color: bodyColor)),
+                          ),
+                        ]),
                       ),
+                      if (unread > 0) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 22),
+                          height: 22,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: muted ? t.mut : t.pr,
+                              borderRadius: BorderRadius.circular(11)),
+                          child: Text(unread > 99 ? '99+' : '$unread',
+                              style: BuType.micro.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: muted ? t.bg : t.onPr)),
+                        ),
+                      ],
                     ]),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(_stamp(when),
-                      style: BuType.micro.copyWith(color: t.mut)),
-                  if (unread > 0)
-                    Container(
-                      margin: const EdgeInsets.only(top: 6),
-                      constraints: const BoxConstraints(minWidth: 20),
-                      height: 20,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                          color: muted ? t.mut : t.pr,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Text(unread > 99 ? '99+' : '$unread',
-                          style: BuType.micro
-                              .copyWith(color: muted ? t.bg : t.onPr)),
-                    ),
-                ],
               ),
             ],
           ),
@@ -883,21 +894,42 @@ class _ConversationRow extends StatelessWidget {
     );
   }
 
-  static const _onceText = 'Fotoğraf (tek gösterimlik)';
-
-  static String _preview(Map last) {
+  /// (metin, ikon, tek gösterimlik mi): metin yoksa ekten türetilir (fotoğraf/video + süre).
+  static (String, IconData?, bool) _preview(BuildContext context, Map last) {
+    final l = context.l10n;
     final text = (last['text'] as String?)?.trim() ?? '';
-    if (text.isNotEmpty) return text.replaceAll(RegExp(r'\s+'), ' ');
+    if (text.isNotEmpty) {
+      return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);
+    }
     final att = last['attachments'];
     if (att is List && att.isNotEmpty) {
-      return viewOnceAttachment(last) != null ? _onceText : 'Görsel';
+      if (viewOnceAttachment(last) != null) {
+        return (l.chatMiscOnceText, null, true);
+      }
+      final first = att.whereType<Map>().first;
+      if (isVideoAttachment(first)) {
+        final ms = first['durationMs'];
+        final label = ms is num && ms > 0
+            ? '${l.chatMiscVideo} ${formatMediaDuration(ms.toInt())}'
+            : l.chatMiscVideo;
+        return (label, LucideIcons.video, false);
+      }
+      return (l.chatMiscPhoto, LucideIcons.image, false);
     }
-    return '';
+    return ('', null, false);
   }
 
-  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-
-  static String _stamp(String? iso) {
+  static String _stamp(BuildContext context, String? iso) {
+    final l = context.l10n;
+    final days = [
+      l.chatMiscDayMon,
+      l.chatMiscDayTue,
+      l.chatMiscDayWed,
+      l.chatMiscDayThu,
+      l.chatMiscDayFri,
+      l.chatMiscDaySat,
+      l.chatMiscDaySun
+    ];
     final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
     if (d == null) return '';
     final now = DateTime.now();
@@ -906,8 +938,8 @@ class _ConversationRow extends StatelessWidget {
     final diff = today.difference(day).inDays;
     String two(int n) => n.toString().padLeft(2, '0');
     if (diff <= 0) return '${two(d.hour)}:${two(d.minute)}';
-    if (diff == 1) return 'Dün';
-    if (diff < 7) return _days[d.weekday - 1];
+    if (diff == 1) return l.chatMiscYesterday;
+    if (diff < 7) return days[d.weekday - 1];
     return '${two(d.day)}.${two(d.month)}';
   }
 }

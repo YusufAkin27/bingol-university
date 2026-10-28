@@ -247,7 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     // Akademik: ders/sınav yerel hatırlatmaları (docs: lib/features/academic).
                     BuMenuRow(
                       icon: LucideIcons.alarmClock,
-                      label: 'Ders ve sınav hatırlatmaları',
+                      label: l10n.profileReminders,
                       onTap: () => _push(ReminderSettingsPage(session: widget.session)),
                     ),
                   ]),

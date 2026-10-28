@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -70,8 +71,8 @@ class _FollowSummaryState extends State<FollowSummary> {
       padding: const EdgeInsets.only(top: 14),
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _count(t, s.followers, 'Takipçi', true),
-          _count(t, s.following, 'Takip', false),
+          _count(t, s.followers, context.l10n.followersCount, true),
+          _count(t, s.following, context.l10n.followingCount, false),
         ]),
         if (!_self)
           Padding(

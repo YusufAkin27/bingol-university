@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 
@@ -35,7 +36,7 @@ Future<String?> showMessageActions(
   return showGeneralDialog<String>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: 'Kapat',
+    barrierLabel: context.l10n.chatDetailClose,
     barrierColor:
         Colors.transparent, // karartmayı kendimiz çiziyoruz (animasyonlu)
     transitionDuration: const Duration(milliseconds: 180),
@@ -281,7 +282,7 @@ class _EmojiChip extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Tepki $emoji',
+      label: context.l10n.chatDetailReactionLabel(emoji),
       excludeSemantics: true,
       child: GestureDetector(
         key: ValueKey('react-$emoji${selected ? '-on' : ''}'),

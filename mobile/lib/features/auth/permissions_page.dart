@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/permissions/permission_service.dart';
 import '../../core/theme.dart';
@@ -163,11 +164,10 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
                     child: Icon(LucideIcons.shieldCheck, size: 27, color: t.onSoft),
                   ),
                   const SizedBox(height: 18),
-                  Text('Birkaç izin', style: BuType.display.copyWith(color: t.ink)),
+                  Text(context.l10n.permPageTitle, style: BuType.display.copyWith(color: t.ink)),
                   const SizedBox(height: 6),
                   Text(
-                    'Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. '
-                    'Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar\'dan da değiştirebilirsiniz.',
+                    context.l10n.permPageIntro,
                     style: BuType.body.copyWith(color: t.mut),
                   ),
                   const SizedBox(height: 20),
@@ -190,12 +190,12 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  BuButton(label: _allGranted ? 'Başla' : 'Devam', onPressed: widget.onFinished),
+                  BuButton(label: _allGranted ? context.l10n.permStart : context.l10n.permContinue, onPressed: widget.onFinished),
                   if (!_allGranted) ...[
                     const SizedBox(height: 4),
                     TextButton(
                       onPressed: widget.onFinished,
-                      child: Text('Şimdi değil', style: BuType.bodyStrong.copyWith(color: t.mut)),
+                      child: Text(context.l10n.permNotNow, style: BuType.bodyStrong.copyWith(color: t.mut)),
                     ),
                   ],
                 ],
@@ -230,11 +230,11 @@ class _PermRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final info = permissionInfo(permission);
+    final info = permissionInfo(permission, context);
     final st = state;
     final Widget action;
     if (st != null && st.usable) {
-      action = _Mark(key: ValueKey('ok-${permission.name}'), color: t.ok, bg: t.okSoft, icon: LucideIcons.check, text: 'Verildi');
+      action = _Mark(key: ValueKey('ok-${permission.name}'), color: t.ok, bg: t.okSoft, icon: LucideIcons.check, text: context.l10n.permGranted);
     } else if (st != null && st.needsSettings) {
       action = Wrap(
         key: ValueKey('perm-${permission.name}'),
@@ -242,8 +242,8 @@ class _PermRow extends StatelessWidget {
         runSpacing: 6,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: 'Reddedildi'),
-          BuButton(label: 'Ayarlardan aç', compact: true, kind: BuButtonKind.outline, onPressed: onSettings),
+          _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
+          BuButton(label: context.l10n.permOpenSettings, compact: true, kind: BuButtonKind.outline, onPressed: onSettings),
         ],
       );
     } else {
@@ -253,9 +253,9 @@ class _PermRow extends StatelessWidget {
         runSpacing: 6,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          if (asked) _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: 'Reddedildi'),
+          if (asked) _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
           BuButton(
-            label: asked ? 'Tekrar dene' : 'İzin ver',
+            label: asked ? context.l10n.permRetry : context.l10n.permAllow,
             compact: true,
             busy: busy,
             onPressed: st == null ? null : onAllow,

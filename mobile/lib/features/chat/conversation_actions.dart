@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
@@ -23,15 +24,15 @@ Future<String?> showConversationMenu(
     mine: false,
     actions: [
       if (muted)
-        const MessageAction('unmute', 'Sesi aç', LucideIcons.bell)
+        MessageAction('unmute', context.l10n.chatInfoUnmute, LucideIcons.bell)
       else
-        const MessageAction('mute', 'Sessize al', LucideIcons.bellOff),
+        MessageAction('mute', context.l10n.chatInfoMute, LucideIcons.bellOff),
       if (archived)
-        const MessageAction('unarchive', 'Arşivden çıkar', LucideIcons.archive)
+        MessageAction('unarchive', context.l10n.chatInfoUnarchive, LucideIcons.archive)
       else
-        const MessageAction('archive', 'Arşivle', LucideIcons.archive),
+        MessageAction('archive', context.l10n.chatInfoArchive, LucideIcons.archive),
       if (canDelete)
-        const MessageAction('delete', 'Sil', LucideIcons.trash2, danger: true),
+        MessageAction('delete', context.l10n.chatInfoDelete, LucideIcons.trash2, danger: true),
     ],
   );
 }
@@ -47,17 +48,17 @@ Future<String?> pickMuteDuration(BuildContext context) {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         BuMenuRow(
             icon: LucideIcons.bellOff,
-            label: '8 saat',
+            label: context.l10n.chatInfoMute8h,
             showChevron: false,
             onTap: () => Navigator.pop(c, '480')),
         BuMenuRow(
             icon: LucideIcons.bellOff,
-            label: '1 hafta',
+            label: context.l10n.chatInfoMute1w,
             showChevron: false,
             onTap: () => Navigator.pop(c, '10080')),
         BuMenuRow(
             icon: LucideIcons.bellOff,
-            label: 'Her zaman',
+            label: context.l10n.chatInfoMuteForever,
             showChevron: false,
             onTap: () => Navigator.pop(c, 'forever')),
         const SizedBox(height: 8),
@@ -74,21 +75,21 @@ Future<bool> confirmDeleteConversation(BuildContext context,
     context: context,
     builder: (c) => AlertDialog(
       backgroundColor: t.sf,
-      title: Text('Sohbet silinsin mi?',
+      title: Text(context.l10n.chatInfoDeleteConvTitle,
           style: BuType.heading.copyWith(color: t.ink)),
       content: Text(
           group
-              ? 'Gruptan çıkıp bu sohbeti sileceksin.'
-              : 'Bu sohbet yalnızca senin için silinecek. Karşı taraf etkilenmez.',
+              ? context.l10n.chatInfoDeleteConvGroup
+              : context.l10n.chatInfoDeleteConvDirect,
           style: BuType.body.copyWith(color: t.mut)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(c, false),
-          child: Text('Vazgeç', style: BuType.bodyStrong.copyWith(color: t.ink)),
+          child: Text(context.l10n.chatInfoCancel, style: BuType.bodyStrong.copyWith(color: t.ink)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(c, true),
-          child: Text('Sil', style: BuType.bodyStrong.copyWith(color: t.danger)),
+          child: Text(context.l10n.chatInfoDelete, style: BuType.bodyStrong.copyWith(color: t.danger)),
         ),
       ],
     ),

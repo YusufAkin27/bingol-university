@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 
@@ -37,7 +38,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Semantics(
-      label: '6 haneli doğrulama kodu',
+      label: context.l10n.authRestCodeLabel,
       textField: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -68,7 +69,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: t.sf,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: borderColor, width: active ? 2 : 1),
                               ),
                               child: ch.isNotEmpty

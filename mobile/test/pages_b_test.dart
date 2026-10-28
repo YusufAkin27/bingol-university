@@ -6,6 +6,7 @@ import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart' show LucideIcons;
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
 import 'package:bu_kampus/features/clubs/club_detail_page.dart';
 import 'package:bu_kampus/features/clubs/clubs_tab.dart';
@@ -356,14 +357,13 @@ void main() {
       expect(find.byIcon(LucideIcons.checkCheck), findsNWidgets(2));
       final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
       expect(read.color, isNot(equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color)));
-      // Tüm 52 dp avatarlar tam daire.
-      final avatars = tester.widgetList<BuAvatar>(find.byType(BuAvatar)).where((w) => w.size == 52 && !w.square);
+      // Tüm sohbet avatarları 52 dp; fotoğrafsızlar baş harfli daire, fotoğraflılar tam daire BuAvatar.
+      final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);
       for (final a in avatars) {
-        final clip = tester.widget<ClipRRect>(
-            find.descendant(of: find.byWidget(a), matching: find.byType(ClipRRect)).first);
-        expect(clip.borderRadius, BorderRadius.circular(52));
+        expect(a.size, 52);
       }
+      expect(tester.getSize(find.byType(ChatlistAvatar).first), const Size(52, 52));
       _noErrors(tester);
       await unmount(tester);
     });
@@ -957,11 +957,9 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('Kulupler sekmesi bos + arama alani', (tester) async {
+    testWidgets('Kulupler: serit basligi + arama alani', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);
-      await tester.tap(find.text('Kulüplerim'));
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Henüz hiçbir kulübe üye değilsin.'), findsOneWidget);
+      expect(find.text('Kulüplerim'), findsOneWidget); // şerit başlığı
       await tester.tap(find.byTooltip('Ara'));
       await tester.pump();
       expect(find.byType(TextField), findsOneWidget);
@@ -976,7 +974,7 @@ void main() {
       await tester.tap(find.text('Katıl').first);
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.requests, contains('POST /communities/1/join'));
-      expect(find.text('Üyesin'), findsWidgets);
+      expect(be.requests, contains('GET /me/communities?size=50')); // şerit yenilenir
       _noErrors(tester);
       await unmount(tester);
     });

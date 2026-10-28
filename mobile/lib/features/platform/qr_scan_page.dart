@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -9,9 +10,10 @@ import '../../core/typography.dart';
 /// QR tarar; ilk okunan değeri `Navigator.pop(context, code)` ile döndürür.
 /// Kamera izni reddedilir/yoksa elle kod girişi sunulur.
 class QrScanPage extends StatefulWidget {
-  const QrScanPage({super.key, this.title = 'QR kodu tara'});
+  const QrScanPage({super.key, this.title});
 
-  final String title;
+  /// Verilmezse dile göre varsayılan başlık (QR kodu tara) kullanılır.
+  final String? title;
 
   @override
   State<QrScanPage> createState() => _QrScanPageState();
@@ -38,7 +40,7 @@ class _QrScanPageState extends State<QrScanPage> {
     final ok = await ensurePermission(
       context,
       AppPermission.camera,
-      rationale: 'QR kodu okutabilmek için kameraya erişmemiz gerekir.',
+      rationale: context.l10n.qrCameraRationale,
     );
     if (mounted) setState(() => _cam = ok);
   }
@@ -83,10 +85,10 @@ class _QrScanPageState extends State<QrScanPage> {
             controller: _manual,
             textInputAction: TextInputAction.done,
             onSubmitted: _finish,
-            decoration: const InputDecoration(labelText: 'Kodu elle gir'),
+            decoration: InputDecoration(labelText: context.l10n.qrManualLabel),
           ),
           const SizedBox(height: 12),
-          BuButton(label: 'Onayla', onPressed: () => _finish(_manual.text)),
+          BuButton(label: context.l10n.qrConfirm, onPressed: () => _finish(_manual.text)),
         ],
       ),
     );
@@ -100,7 +102,7 @@ class _QrScanPageState extends State<QrScanPage> {
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          BuHeader(title: widget.title, onBack: () => Navigator.of(context).maybePop()),
+          BuHeader(title: widget.title ?? context.l10n.qrScanTitle, onBack: () => Navigator.of(context).maybePop()),
           const SizedBox(height: 12),
           Expanded(
             child: Padding(
@@ -121,12 +123,11 @@ class _QrScanPageState extends State<QrScanPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _manualEntry(context,
-                                  note: 'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı '
-                                      'yeniden deneyebilirsiniz.'),
+                                  note: context.l10n.qrCameraDenied),
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                                 child: BuButton(
-                                    label: 'Kamera izni ver', kind: BuButtonKind.outline, onPressed: _ensureCamera),
+                                    label: context.l10n.qrGrantCamera, kind: BuButtonKind.outline, onPressed: _ensureCamera),
                               ),
                             ],
                           ),
@@ -144,10 +145,7 @@ class _QrScanPageState extends State<QrScanPage> {
                           child: SingleChildScrollView(
                             child: _manualEntry(
                               ctx,
-                              note: denied
-                                  ? 'Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir '
-                                      'ya da kodu elle girebilirsiniz.'
-                                  : 'Kamera açılamadı. Kodu elle girebilirsiniz.',
+                              note: denied ? ctx.l10n.qrDeniedSettings : ctx.l10n.qrCameraFailed,
                             ),
                           ),
                         );
@@ -158,7 +156,7 @@ class _QrScanPageState extends State<QrScanPage> {
                       end: 12,
                       child: BuIconButton(
                         icon: _torch ? LucideIcons.zapOff : LucideIcons.zap,
-                        tooltip: 'El feneri',
+                        tooltip: context.l10n.qrTorch,
                         onTap: () async {
                           try {
                             await _controller.toggleTorch();
@@ -177,7 +175,7 @@ class _QrScanPageState extends State<QrScanPage> {
             child: Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               child: ExpansionTile(
-                title: const Text('Kodu elle gir'),
+                title: Text(context.l10n.qrManualLabel),
                 shape: const Border(),
                 collapsedShape: const Border(),
                 children: [_manualEntry(context)],

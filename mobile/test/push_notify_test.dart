@@ -76,7 +76,7 @@ void main() {
       expect(r({'targetType': 'POLL', 'pollId': '6'}), const PushTarget(PushDest.poll, id: 6));
       expect(r({'targetType': 'ANNOUNCEMENT_DEPT', 'targetId': '21'}),
           const PushTarget(PushDest.deptAnnouncement, id: 21));
-      expect(r({'targetType': 'STORY', 'targetId': '3'}), const PushTarget(PushDest.story, id: 3));
+      expect(r({'targetType': 'STORY', 'targetId': '3'}), const PushTarget(PushDest.user, id: 3));
       expect(r({'targetType': 'EXAM'}), const PushTarget(PushDest.exams));
       expect(r({'targetType': 'TIMETABLE'}), const PushTarget(PushDest.timetable));
       expect(r({'type': 'SESSION_REPLACED'}), const PushTarget(PushDest.signOut));
@@ -237,6 +237,10 @@ void main() {
           'subtypes': {'POST_MENTION': true, 'USER_FOLLOW': false},
         });
       await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b))));
+      await tester.pumpAndSettle();
+      expect(find.text('Etiketlenmeler'), findsNothing); // ayrıntılı tercihler kapalı başlar
+      await tester.ensureVisible(find.text('Ayrıntılı tercihler'));
+      await tester.tap(find.text('Ayrıntılı tercihler'));
       await tester.pumpAndSettle();
       expect(find.text('Etiketlenmeler'), findsOneWidget);
       expect(find.text('Yeni takipçiler'), findsOneWidget);

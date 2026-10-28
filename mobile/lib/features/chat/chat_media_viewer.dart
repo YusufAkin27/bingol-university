@@ -6,7 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/typography.dart';
+import '../../l10n/app_localizations.dart';
 import 'chat_media.dart';
 import 'chat_video_player.dart';
 import 'message_bubble.dart' show chatMediaUrl, PlayBadge, DurationPill;
@@ -76,16 +78,18 @@ Future<void> saveChatVideoToGallery(
 }
 
 /// Galeri/oynatıcı için hata metni (video).
-String chatVideoSaveErrorText(Object e) {
-  if (e is UnsupportedError) return 'Bu cihazda desteklenmiyor.';
+/// [l10n] verilmezse Türkçe kullanılır (eski çağıranlar için).
+String chatVideoSaveErrorText(Object e, [AppLocalizations? l10n]) {
+  final l = l10n ?? lookupAppLocalizations(const Locale('tr'));
+  if (e is UnsupportedError) return l.chatMiscSaveUnsupported;
   if (e is GalException) {
     return switch (e.type) {
-      GalExceptionType.accessDenied => 'Galeri izni verilmedi.',
-      GalExceptionType.notEnoughSpace => 'Cihazda yeterli alan yok.',
-      _ => 'Video kaydedilemedi.',
+      GalExceptionType.accessDenied => l.chatMiscSaveDenied,
+      GalExceptionType.notEnoughSpace => l.chatMiscSaveNoSpace,
+      _ => l.chatMiscVideoSaveFailed,
     };
   }
-  return 'Video kaydedilemedi.';
+  return l.chatMiscVideoSaveFailed;
 }
 
 /// Görseli yetkili GET ile alıp galeriye kaydeder; başarısızlıkta [Exception] fırlatır.
@@ -106,16 +110,16 @@ Future<void> saveChatImageToGallery(
       name: 'bu_kampus_${DateTime.now().millisecondsSinceEpoch}');
 }
 
-String _saveErrorText(Object e) {
-  if (e is UnsupportedError) return 'Bu cihazda desteklenmiyor.';
+String _saveErrorText(Object e, AppLocalizations l) {
+  if (e is UnsupportedError) return l.chatMiscSaveUnsupported;
   if (e is GalException) {
     return switch (e.type) {
-      GalExceptionType.accessDenied => 'Galeri izni verilmedi.',
-      GalExceptionType.notEnoughSpace => 'Cihazda yeterli alan yok.',
-      _ => 'Görsel kaydedilemedi.',
+      GalExceptionType.accessDenied => l.chatMiscSaveDenied,
+      GalExceptionType.notEnoughSpace => l.chatMiscSaveNoSpace,
+      _ => l.chatMiscImageSaveFailed,
     };
   }
-  return 'Görsel kaydedilemedi.';
+  return l.chatMiscImageSaveFailed;
 }
 
 /// Tam ekran görüntüleyici: sohbetin görselleri arasında yatay gezinme, yakınlaştırma, galeriye kaydetme.
@@ -175,15 +179,16 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
   Future<void> _save() async {
     if (_saving) return;
     final messenger = ScaffoldMessenger.of(context);
+    final l = context.l10n;
     setState(() => _saving = true);
     String msg;
     final item = widget.items[_index];
     try {
       await (item.isVideo ? widget.saveVideo : widget.saveImage)(
           item.url, widget.headers);
-      msg = 'Galeriye kaydedildi';
+      msg = l.chatMiscSavedToGallery;
     } catch (e) {
-      msg = item.isVideo ? chatVideoSaveErrorText(e) : _saveErrorText(e);
+      msg = item.isVideo ? chatVideoSaveErrorText(e, l) : _saveErrorText(e, l);
     }
     if (mounted) setState(() => _saving = false);
     messenger
@@ -257,7 +262,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                 ),
                 child: Row(children: [
                   IconButton(
-                    tooltip: 'Kapat',
+                    tooltip: context.l10n.chatMiscClose,
                     color: Colors.white,
                     icon: const Icon(LucideIcons.x),
                     onPressed: () => Navigator.pop(context),
@@ -281,7 +286,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                         ]),
                   ),
                   IconButton(
-                    tooltip: 'İndir',
+                    tooltip: context.l10n.chatMiscDownload,
                     color: Colors.white,
                     icon: _saving
                         ? const SizedBox(
@@ -345,7 +350,7 @@ class _VideoPosterPage extends StatelessWidget {
         Center(
           child: Semantics(
             button: true,
-            label: 'Videoyu oynat',
+            label: context.l10n.chatMiscPlayVideo,
             child: const PlayBadge(size: 64),
           ),
         ),
@@ -407,7 +412,7 @@ class _ZoomPageState extends State<_ZoomPage> {
                   child: CircularProgressIndicator(color: Colors.white)),
           errorBuilder: (c, e, s) => Padding(
             padding: const EdgeInsets.all(32),
-            child: Text('Görsel yüklenemedi.',
+            child: Text(context.l10n.chatMiscImageLoadFailed,
                 style: BuType.body.copyWith(color: Colors.white70)),
           ),
         ),

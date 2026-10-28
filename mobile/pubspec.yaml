@@ -33,6 +33,7 @@ dependencies:
   crypto: ^3.0.8
   photo_manager: ^3.9.0
   camera: ^0.12.0
+  flutter_svg: ^2.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -48,6 +49,8 @@ flutter:
     - assets/branding/logo_horizontal_dark.png
     - assets/branding/logo.png
     - assets/branding/mark.png
+    - assets/branding/mark.svg
+    - assets/branding/mark_white.svg
     - assets/branding/mark_white.png
     - assets/branding/default_avatar.png
     - assets/branding/default_group.png

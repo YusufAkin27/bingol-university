@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -82,13 +83,15 @@ class _MyClubsPageState extends State<MyClubsPage> {
     );
     if (left && mounted) {
       setState(() => _items.remove(c));
-      _snack('Kulüpten ayrıldın.');
+      _snack(context.l10n.profilePrefsClubLeft);
     }
   }
 
   Future<void> _withdraw(Map<String, dynamic> c) async {
     final ok = await confirmDialog(context,
-        title: 'İsteği geri çek', message: 'Katılma isteğiniz geri çekilsin mi?', confirmLabel: 'Geri çek');
+        title: context.l10n.profilePrefsWithdrawTitle,
+        message: context.l10n.profilePrefsWithdrawBody,
+        confirmLabel: context.l10n.profilePrefsWithdrawConfirm);
     if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('/communities/${_id(c)}/membership');
@@ -145,7 +148,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     } else if (_error != null && _items.isEmpty) {
       body = ErrorView(error: _error!, onRetry: _load);
     } else if (_items.isEmpty) {
-      body = const EmptyView(icon: LucideIcons.users, text: 'Henüz bir kulübe üye değilsiniz.');
+      body = EmptyView(icon: LucideIcons.users, text: context.l10n.profilePrefsNoClubs);
     } else {
       body = RefreshIndicator(
         color: t.pr,
@@ -154,9 +157,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            if (owned.isNotEmpty) ..._section(t, 'Kurduklarım', owned, owner: true),
-            if (member.isNotEmpty) ..._section(t, 'Üye olduklarım', member),
-            if (pending.isNotEmpty) ..._section(t, 'Bekleyen başvurular', pending, pending: true),
+            if (owned.isNotEmpty) ..._section(t, context.l10n.profilePrefsClubsOwned, owned, owner: true),
+            if (member.isNotEmpty) ..._section(t, context.l10n.profilePrefsClubsMember, member),
+            if (pending.isNotEmpty) ..._section(t, context.l10n.profilePrefsClubsPending, pending, pending: true),
           ],
         ),
       );
@@ -166,12 +169,12 @@ class _MyClubsPageState extends State<MyClubsPage> {
       body: Column(
         children: [
           BuHeader(
-            title: 'Kulüplerim',
+            title: context.l10n.profilePrefsMyClubs,
             onBack: () => Navigator.pop(context),
             actions: [
               BuIconButton(
                 icon: LucideIcons.plus,
-                tooltip: 'Kulüp kur',
+                tooltip: context.l10n.profilePrefsCreateClub,
                 filled: true,
                 onTap: () async {
                   if (await openCreateClub(context, widget.session) && mounted) _load(silent: true);
@@ -203,7 +206,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final members = (c['memberCount'] as num?)?.toInt();
     final sub = [
       if ((c['category'] as String?)?.isNotEmpty == true) c['category'] as String,
-      if (members != null) '$members üye',
+      if (members != null) context.l10n.profilePrefsMembersCount('$members'),
     ].join(' · ');
     final inReview = owner && (c['status'] == 'PENDING_REVIEW' || c['status'] == 'PENDING');
     final manager = isClubManagerRole(c['myRole']?.toString()) && !pending;
@@ -229,13 +232,15 @@ class _MyClubsPageState extends State<MyClubsPage> {
                 if (pending || inReview)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: BuBadge(pending ? 'Onay bekliyor' : 'Yayın onayı bekleniyor', soft: true),
+                    child: BuBadge(
+                        pending ? context.l10n.profilePrefsAwaitingApproval : context.l10n.profilePrefsAwaitingPublish,
+                        soft: true),
                   ),
               ],
             ),
           ),
           PopupMenuButton<String>(
-            tooltip: manager ? 'Yönet' : 'Seçenekler',
+            tooltip: manager ? context.l10n.profilePrefsManage : context.l10n.profilePrefsOptions,
             icon: Icon(LucideIcons.ellipsis, size: 18, color: t.mut),
             onSelected: (v) {
               switch (v) {
@@ -254,16 +259,16 @@ class _MyClubsPageState extends State<MyClubsPage> {
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'open', child: Text('Aç')),
+              PopupMenuItem(value: 'open', child: Text(context.l10n.profilePrefsOpen)),
               if (manager) ...[
-                const PopupMenuItem(value: 'edit', child: Text('Yönet: düzenle')),
-                const PopupMenuItem(value: 'requests', child: Text('Yönet: başvurular')),
-                const PopupMenuItem(value: 'members', child: Text('Yönet: üyeler')),
+                PopupMenuItem(value: 'edit', child: Text(context.l10n.profilePrefsManageEdit)),
+                PopupMenuItem(value: 'requests', child: Text(context.l10n.profilePrefsManageRequests)),
+                PopupMenuItem(value: 'members', child: Text(context.l10n.profilePrefsManageMembers)),
               ],
               if (pending)
-                PopupMenuItem(value: 'withdraw', child: Text('İsteği geri çek', style: dangerItemStyle(context)))
+                PopupMenuItem(value: 'withdraw', child: Text(context.l10n.profilePrefsWithdrawTitle, style: dangerItemStyle(context)))
               else if (!owner)
-                PopupMenuItem(value: 'leave', child: Text('Kulüpten ayrıl', style: dangerItemStyle(context))),
+                PopupMenuItem(value: 'leave', child: Text(context.l10n.profilePrefsLeaveClub, style: dangerItemStyle(context))),
             ],
           ),
         ],

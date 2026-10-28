@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import 'like_button.dart';
-import 'post_actions.dart';
 import 'post_api.dart';
 import 'post_card.dart';
 import 'post_models.dart';
@@ -101,7 +100,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final title = widget.isMine ? 'Gönderilerim' : ((widget.name ?? '').isEmpty ? 'Gönderiler' : widget.name!);
+    final title = widget.isMine ? context.l10n.postViewMyPosts : ((widget.name ?? '').isEmpty ? context.l10n.postViewPosts : widget.name!);
     Widget body;
     if (_loading) {
       body = const LoadingView();
@@ -110,9 +109,9 @@ class _UserPostsPageState extends State<UserPostsPage> {
     } else if (_items.isEmpty) {
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
-        child: ListView(children: const [
-          SizedBox(height: 120),
-          EmptyView(icon: LucideIcons.newspaper, text: 'Henüz gönderi yok'),
+        child: ListView(children: [
+          const SizedBox(height: 120),
+          EmptyView(icon: LucideIcons.newspaper, text: context.l10n.postViewNoPosts),
         ]),
       );
     } else {
@@ -135,9 +134,6 @@ class _UserPostsPageState extends State<UserPostsPage> {
               post: p,
               onChanged: _changed,
               onDeleted: _deleted,
-              likeBuilder: (c, p, ch) => LikeButton(session: widget.session, post: p, onChanged: ch),
-              menuBuilder: (c, p, ch, del) =>
-                  PostMenuButton(session: widget.session, post: p, onChanged: ch, onDeleted: del),
             );
           },
         ),

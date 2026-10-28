@@ -1,6 +1,7 @@
 import '../../core/api.dart';
 import '../../core/session.dart';
 import '../posts/post_models.dart' show PostPage;
+import '../../l10n/app_localizations.dart';
 import 'poll_models.dart';
 
 /// Anket uçları (docs/API_CONTRACTS_V2.md). Tek HTTP katmanı `session.api`; hatalar `ApiError`
@@ -51,6 +52,8 @@ class PollApi {
     List<String> options = const [],
     int? maxChoices,
     bool allowChangeVote = true,
+    String showResults = 'ALWAYS',
+    bool notify = true,
   }) async {
     final r = await session.api.post('/polls', {
       'title': title.trim(),
@@ -62,8 +65,8 @@ class PollApi {
       if (maxChoices != null && (type == PollType.multi || type == PollType.ranked)) 'maxChoices': maxChoices,
       'anonymous': anonymous,
       'allowChangeVote': allowChangeVote,
-      'showResults': 'ALWAYS',
-      'notify': true,
+      'showResults': showResults,
+      'notify': notify,
       'closesAt': pollIstanbulIso(closesAt),
     });
     return Poll.fromJson(r as Map<String, dynamic>?);
@@ -71,23 +74,24 @@ class PollApi {
 }
 
 /// Anket hata kodları için yerel yedek metin (sunucu mesajı boşsa); aksi halde sunucu metni.
-String pollErrorText(Object e) {
+String pollErrorText(Object e, [AppLocalizations? l10n]) {
+  final l = pollL10n(l10n);
   if (e is ApiError && e.message.isEmpty) {
     switch (e.code) {
       case 'POLL_CLOSED':
-        return 'Bu anket kapandı.';
+        return l.pollErrClosed;
       case 'POLL_NOT_OPEN':
-        return 'Bu anket henüz açılmadı.';
+        return l.pollBlockedNotOpen;
       case 'POLL_ALREADY_VOTED':
-        return 'Bu ankete zaten oy verdiniz.';
+        return l.pollErrAlreadyVoted;
       case 'POLL_NOT_ELIGIBLE':
-        return 'Bu ankete katılma yetkiniz yok.';
+        return l.pollBlockedNotEligible;
       case 'POLL_FORBIDDEN':
-        return 'Bu işlem için yetkiniz yok.';
+        return l.pollErrForbidden;
       case 'POLL_NOT_FOUND':
-        return 'Anket bulunamadı.';
+        return l.pollErrNotFound;
       case 'POLL_INVALID_VOTE':
-        return 'Geçersiz seçim.';
+        return l.pollErrInvalidVote;
     }
   }
   return errorText(e);

@@ -1,4 +1,8 @@
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart' show DateFormat;
+
 import '../../core/api.dart' show apiOrigin;
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 
 /// Gönderi modelleri: docs/POSTS_DESIGN.md sözleşmesi. Tüm `fromJson`lar null-güvenlidir.
@@ -13,6 +17,23 @@ String? postMediaUrlOrNull(String? path) => (path == null || path.isEmpty) ? nul
 Map<String, String> postAuthHeaders(Session s) {
   final t = s.api.tokens;
   return t == null ? const {} : {'Authorization': 'Bearer ${t.access}'};
+}
+
+/// Gönderi zamanı: "şimdi", "5 dk önce", "3 gün önce", sonra yerel tarih (dile göre).
+String postRelativeTime(BuildContext context, String? iso) {
+  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+  if (d == null) return '';
+  final l = context.l10n;
+  final diff = DateTime.now().difference(d);
+  if (diff.inMinutes < 1) return l.postViewAgoNow;
+  if (diff.inMinutes < 60) return l.postViewAgoMinFull(diff.inMinutes.toString());
+  if (diff.inHours < 24) return l.postViewAgoHourFull(diff.inHours.toString());
+  if (diff.inDays < 7) return l.postViewAgoDayFull(diff.inDays.toString());
+  try {
+    return DateFormat('d MMMM y', Localizations.localeOf(context).toString()).format(d);
+  } catch (_) {
+    return DateFormat('d MMMM y').format(d);
+  }
 }
 
 int _int(Object? v, [int def = 0]) => v is num ? v.toInt() : (v is String ? int.tryParse(v) ?? def : def);
@@ -84,22 +105,6 @@ class PostMedia {
   }
 }
 
-class PostLiker {
-  const PostLiker({required this.id, required this.displayName, this.avatarUrl, this.likedAt});
-
-  factory PostLiker.fromJson(Map<String, dynamic>? j) => PostLiker(
-        id: _int(j?['id']),
-        displayName: _str(j?['displayName']) ?? '',
-        avatarUrl: _str(j?['avatarUrl']),
-        likedAt: _str(j?['likedAt']),
-      );
-
-  final int id;
-  final String displayName;
-  final String? avatarUrl;
-  final String? likedAt;
-}
-
 class LikeResult {
   const LikeResult({required this.liked, required this.likeCount});
 
@@ -117,9 +122,7 @@ class Post {
     this.text,
     this.media = const [],
     this.likeCount = 0,
-    this.commentCount = 0,
     this.likedByMe = false,
-    this.savedByMe = false,
     this.mine = false,
     this.canEdit = false,
     this.canDelete = false,
@@ -133,9 +136,7 @@ class Post {
         text: _str(j?['text']),
         media: [for (final m in _maps(j?['media'])) PostMedia.fromJson(m)],
         likeCount: _int(j?['likeCount']),
-        commentCount: _int(j?['commentCount']),
         likedByMe: j?['likedByMe'] == true,
-        savedByMe: j?['savedByMe'] == true,
         mine: j?['mine'] == true,
         canEdit: j?['canEdit'] == true,
         canDelete: j?['canDelete'] == true,
@@ -148,9 +149,7 @@ class Post {
   final String? text;
   final List<PostMedia> media;
   final int likeCount;
-  final int commentCount;
   final bool likedByMe;
-  final bool savedByMe;
   final bool mine;
   final bool canEdit;
   final bool canDelete;
@@ -159,12 +158,21 @@ class Post {
 
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
+  /// Gösterilecek tek fotoğraf: çoklu görselli eski gönderilerde yalnız ilk fotoğraf; video yok sayılır.
+  PostMedia? get photo {
+    for (final m in media) {
+      if (!m.isVideo) return m;
+    }
+    return null;
+  }
+
+  /// Eski video-only gönderiler (yalnız video, fotoğraf yok) akışta gösterilmez.
+  bool get hiddenInFeed => media.isNotEmpty && photo == null;
+
   /// [editedAt] ve [text] için null verilemez; `clearText` metni siler.
   Post copyWith({
     bool? likedByMe,
-    bool? savedByMe,
     int? likeCount,
-    int? commentCount,
     String? text,
     String? editedAt,
     List<PostMedia>? media,
@@ -175,9 +183,7 @@ class Post {
         text: text ?? this.text,
         media: media ?? this.media,
         likeCount: likeCount ?? this.likeCount,
-        commentCount: commentCount ?? this.commentCount,
         likedByMe: likedByMe ?? this.likedByMe,
-        savedByMe: savedByMe ?? this.savedByMe,
         mine: mine,
         canEdit: canEdit,
         canDelete: canDelete,
@@ -186,105 +192,7 @@ class Post {
       );
 }
 
-class CommentUser {
-  const CommentUser({required this.id, required this.displayName, this.avatarUrl});
-
-  factory CommentUser.fromJson(Map<String, dynamic>? j) => CommentUser(
-        id: _int(j?['id']),
-        displayName: _str(j?['displayName']) ?? '',
-        avatarUrl: _str(j?['avatarUrl']),
-      );
-
-  final int id;
-  final String displayName;
-  final String? avatarUrl;
-}
-
-class PostComment {
-  PostComment({
-    required this.id,
-    required this.postId,
-    this.parentId,
-    this.rootId,
-    this.depth = 0,
-    required this.author,
-    this.replyToUser,
-    this.text,
-    this.deleted = false,
-    this.replyCount = 0,
-    this.mine = false,
-    this.canEdit = false,
-    this.canDelete = false,
-    this.createdAt,
-    this.editedAt,
-    this.previewReplies = const [],
-    List<PostComment>? children,
-  }) : children = children ?? [];
-
-  factory PostComment.fromJson(Map<String, dynamic>? j) => PostComment(
-        id: _int(j?['id']),
-        postId: _int(j?['postId']),
-        parentId: _intOrNull(j?['parentId']),
-        rootId: _intOrNull(j?['rootId']),
-        depth: _int(j?['depth']),
-        author: CommentUser.fromJson(_map(j?['author'])),
-        replyToUser: _map(j?['replyToUser']) == null ? null : CommentUser.fromJson(_map(j?['replyToUser'])),
-        text: _str(j?['text']),
-        deleted: j?['deleted'] == true,
-        replyCount: _int(j?['replyCount']),
-        mine: j?['mine'] == true,
-        canEdit: j?['canEdit'] == true,
-        canDelete: j?['canDelete'] == true,
-        createdAt: _str(j?['createdAt']),
-        editedAt: _str(j?['editedAt']),
-        previewReplies: [for (final m in _maps(j?['previewReplies'])) PostComment.fromJson(m)],
-      );
-
-  final int id;
-  final int postId;
-  final int? parentId;
-  final int? rootId;
-  final int depth;
-  final CommentUser author;
-  final CommentUser? replyToUser;
-  String? text;
-  bool deleted;
-  int replyCount;
-  final bool mine;
-  final bool canEdit;
-  final bool canDelete;
-  final String? createdAt;
-  String? editedAt;
-
-  /// Sunucunun gönderdiği ilk (en eski) 2 yanıt önizlemesi.
-  final List<PostComment> previewReplies;
-
-  /// Arayüzün yüklediği/eklediği yanıtlar (değişebilir liste; detay sayfası yönetir).
-  final List<PostComment> children;
-
-  PostComment copyWith({String? text, bool? deleted, int? replyCount, String? editedAt, List<PostComment>? children}) =>
-      PostComment(
-        id: id,
-        postId: postId,
-        parentId: parentId,
-        rootId: rootId,
-        depth: depth,
-        author: author,
-        replyToUser: replyToUser,
-        text: text ?? this.text,
-        deleted: deleted ?? this.deleted,
-        replyCount: replyCount ?? this.replyCount,
-        mine: mine,
-        canEdit: canEdit,
-        canDelete: canDelete,
-        createdAt: createdAt,
-        editedAt: editedAt ?? this.editedAt,
-        previewReplies: previewReplies,
-        children: children ?? this.children,
-      );
-}
-
-/// İmleçli sayfa. [total] yalnız beğeniler/yorumlar uçlarında gelir.
+/// İmleçli sayfa.
 class PostPage<T> {
   const PostPage({required this.items, this.nextCursor, this.total});
 

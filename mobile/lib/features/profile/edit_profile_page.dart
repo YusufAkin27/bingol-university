@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../widgets/academic_picker.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../auth/auth_widgets.dart';
+import 'profil_widgets.dart';
 import '../../core/typography.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -88,7 +90,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _save() async {
     if (_busy || !_form.currentState!.validate()) return;
     if (_academicChanged && ((_faculty ?? '').isEmpty || (_department ?? '').isEmpty)) {
-      setState(() => _departmentError = 'Bölümü seçin.');
+      setState(() => _departmentError = context.l10n.profileDeptRequired);
       return;
     }
     setState(() {
@@ -122,11 +124,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final r = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Değişiklikler kaydedilmedi'),
-        content: const Text('Çıkarsanız yaptığınız değişiklikler kaybolacak.'),
+        title: Text(ctx.l10n.profileDiscardTitle),
+        content: Text(ctx.l10n.profileDiscardBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Düzenlemeye devam et')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Vazgeç ve çık')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.profileKeepEditing)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.profileDiscardExit)),
         ],
       ),
     );
@@ -136,7 +138,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   InputDecoration _deco(BuildContext context, {String? hint}) {
     final bu = context.bu;
     OutlineInputBorder b(Color c) =>
-        OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: c));
+        OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: 1.5));
     return InputDecoration(
       hintText: hint,
       hintStyle: BuType.body.copyWith(color: bu.mut),
@@ -147,6 +149,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       border: b(bu.bd),
       enabledBorder: b(bu.bd),
       focusedBorder: b(bu.pr),
+      disabledBorder: b(bu.bd),
       errorBorder: b(bu.danger),
       focusedErrorBorder: b(bu.danger),
     );
@@ -155,97 +158,122 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _label(String t) {
     final bu = context.bu;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 5),
+      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
       child: Text(t,
-          style: BuType.label.copyWith(color: bu.mut)),
+          style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: bu.ink)),
     );
   }
 
   Widget _avatar() {
     final bu = context.bu;
     final url = fileUrl(_avatarUrl);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final initials = Container(
-      width: 96,
-      height: 96,
+      width: 70,
+      height: 70,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [bu.h1, bu.h2],
-        ),
-      ),
+      color: bu.soft,
       child: Text(
         initialsOf(_name.text),
-        style: BuType.display.copyWith(color: Colors.white),
+        style: BuType.display.copyWith(fontSize: 24, color: dark ? bu.onSoft : bu.pr),
       ),
     );
-    return Column(
+    final hasPhoto = _avatarUrl != null && _avatarUrl!.isNotEmpty;
+    return Row(
       children: [
-        Semantics(
-          button: true,
-          label: 'Profil fotoğrafını değiştir',
-          child: GestureDetector(
-          onTap: _pickAvatar,
-          child: SizedBox(
-            width: 98,
-            height: 98,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                if (url == null)
-                  initials
-                else
-                  ClipOval(
-                    child: Image.network(url,
-                        width: 96, height: 96, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
-                  ),
-                if (_uploading)
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black45),
-                    child: const Center(
-                      child: SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
-                      ),
+        SizedBox(
+          width: 76,
+          height: 76,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: bu.sf, width: 3),
+                  boxShadow: dark
+                      ? null
+                      : const [
+                          BoxShadow(color: Color(0x59171E33), blurRadius: 24, offset: Offset(0, 10), spreadRadius: -12)
+                        ],
+                ),
+                child: ClipOval(
+                  child: url == null
+                      ? initials
+                      : Image.network(url,
+                          width: 70, height: 70, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
+                ),
+              ),
+              if (_uploading)
+                Container(
+                  width: 76,
+                  height: 76,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black45),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
                     ),
-                  ),
-                PositionedDirectional(
-                  end: -2,
-                  bottom: -2,
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: bu.ink,
-                      border: Border.all(color: bu.bg, width: 3),
-                    ),
-                    child: Icon(LucideIcons.camera, size: 14.5, color: bu.bg),
                   ),
                 ),
-              ],
-            ),
-          ),
-        )),
-        const SizedBox(height: 4),
-        InkWell(
-          onTap: _pickAvatar,
-          borderRadius: BorderRadius.circular(8),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Center(
-              widthFactor: 1,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(_uploading ? 'Yükleniyor…' : 'Fotoğrafı değiştir',
-                    style: BuType.bodyStrong.copyWith(color: bu.pr)),
+              PositionedDirectional(
+                end: -8,
+                bottom: -8,
+                child: Semantics(
+                  button: true,
+                  label: context.l10n.profileChangePhotoSemantic,
+                  child: GestureDetector(
+                    onTap: _pickAvatar,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: bu.pr,
+                        border: Border.all(color: bu.bg, width: 3),
+                      ),
+                      child: Icon(LucideIcons.camera, size: 18, color: bu.onPr),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: _pickAvatar,
+                borderRadius: BorderRadius.circular(8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(_uploading ? context.l10n.profileUploading : context.l10n.profileChangePhoto,
+                        style: BuType.bodyStrong.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: bu.pr)),
+                  ),
+                ),
+              ),
+              if (hasPhoto)
+                InkWell(
+                  onTap: (_uploading || _busy) ? null : _removeAvatar,
+                  borderRadius: BorderRadius.circular(8),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(context.l10n.profil1Remove,
+                          style: BuType.bodyStrong.copyWith(fontSize: 13, color: bu.mut)),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -277,10 +305,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 decoration: BoxDecoration(color: bu.bd, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(height: 8),
-              row(LucideIcons.image, 'Galeriden seç', 'gallery'),
-              row(LucideIcons.camera, 'Fotoğraf çek', 'camera'),
+              row(LucideIcons.image, ctx.l10n.profilePickGallery, 'gallery'),
+              row(LucideIcons.camera, ctx.l10n.profileTakePhoto, 'camera'),
               if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                row(LucideIcons.trash2, 'Fotoğrafı kaldır', 'remove', danger: true),
+                row(LucideIcons.trash2, ctx.l10n.profileRemovePhoto, 'remove', danger: true),
               const SizedBox(height: 8),
             ],
           ),
@@ -345,14 +373,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (e is ImageException) {
       switch (e.code) {
         case 'TOO_LARGE':
-          return 'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.';
+          return context.l10n.profilePhotoTooLargeHint;
         case 'UNSUPPORTED_TYPE':
-          return 'Yalnızca JPG, PNG veya WebP fotoğraflar yüklenebilir.';
+          return context.l10n.profilePhotoUnsupported;
         default:
-          return 'Seçilen dosya okunamadı.';
+          return context.l10n.profilePhotoUnreadable;
       }
     }
-    if (e is ApiError && e.status == 413) return 'Fotoğraf en fazla 2 MB olabilir.';
+    if (e is ApiError && e.status == 413) return context.l10n.profilePhotoTooLarge;
     return errorText(e);
   }
 
@@ -375,7 +403,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         backgroundColor: bu.bg,
         body: Column(
           children: [
-            BuHeader(title: 'Profili düzenle', onBack: () => Navigator.maybePop(context)),
+            BuHeader(title: context.l10n.profileEditTitle, onBack: () => Navigator.maybePop(context)),
             Expanded(
               child: Form(
                 key: _form,
@@ -384,9 +412,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
                     if (_error != null) Notice(_error!),
-                    Center(child: _avatar()),
-                    const SizedBox(height: 18),
-                    _label('Ad soyad'),
+                    _avatar(),
+                    const SizedBox(height: 22),
+                    _label(context.l10n.profileFullName),
                     TextFormField(
                       controller: _name,
                       maxLength: 80,
@@ -394,10 +422,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onChanged: (_) => setState(() {}),
                       style: BuType.bodyStrong.copyWith(color: bu.ink),
                       validator: (v) =>
-                          (v == null || v.trim().length < 2) ? 'Ad en az 2 karakter olmalı.' : null,
+                          (v == null || v.trim().length < 2) ? context.l10n.profileNameMin : null,
                       decoration: _deco(context),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     AcademicFields(
                       catalog: _catalog,
                       faculty: _faculty,
@@ -415,11 +443,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: _label('Hakkımda')),
+                        Expanded(child: _label(context.l10n.profileAbout)),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 5),
-                          child: Text('${_bio.text.characters.length}/300',
-                              style: BuType.label.copyWith(color: bu.mut)),
+                          padding: const EdgeInsetsDirectional.only(end: 4, bottom: 6),
+                          child: Text('${_bio.text.characters.length} / 300',
+                              style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: bu.mut)),
                         ),
                       ],
                     ),
@@ -430,35 +458,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       minLines: 3,
                       onChanged: (_) => setState(() {}),
                       style: BuType.body.copyWith(height: 1.4, color: bu.ink),
-                      decoration: _deco(context, hint: 'Kendinizden kısaca bahsedin'),
+                      decoration: _deco(context, hint: context.l10n.profileBioHint),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 52),
-                      padding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-                      decoration: BoxDecoration(
-                        color: bu.sf,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: bu.bd),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text('E-postamı diğer kullanıcılara göster',
-                                style: BuType.bodyStrong.copyWith(color: bu.ink)),
-                          ),
-                          Switch(
-                            value: _showEmail,
-                            onChanged: (v) => setState(() => _showEmail = v),
-                            activeThumbColor: Colors.white,
-                            activeTrackColor: bu.pr,
-                            inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: bu.sf2,
-                            trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
-                          ),
-                        ],
+                    _label(context.l10n.profil1CorpEmail),
+                    TextFormField(
+                      initialValue: (widget.profile['email'] as String?) ?? '',
+                      readOnly: true,
+                      style: BuType.body.copyWith(fontSize: 15, color: bu.mut),
+                      decoration: _deco(context).copyWith(
+                        fillColor: bu.sf2,
+                        suffixIcon: Icon(LucideIcons.lock, size: 18, color: bu.mut),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    ProfilCard(children: [
+                      ProfilToggleRow(
+                        label: context.l10n.profileShowEmail,
+                        value: _showEmail,
+                        onChanged: (v) => setState(() => _showEmail = v),
+                      ),
+                    ]),
                   ],
                 ),
               ),
@@ -470,24 +490,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 54,
-                  child: FilledButton(
-                    onPressed: _busy ? null : _save,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: bu.pr,
-                      foregroundColor: bu.onPr,
-                      disabledBackgroundColor: bu.pr,
-                      disabledForegroundColor: bu.onPr,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      textStyle: BuType.heading,
+                  height: 56,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: Theme.of(context).brightness == Brightness.dark
+                          ? null
+                          : const [
+                              BoxShadow(
+                                  color: Color(0x99C62A20), blurRadius: 26, offset: Offset(0, 14), spreadRadius: -12)
+                            ],
                     ),
-                    child: _busy
-                        ? SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2.4, color: bu.onPr),
-                          )
-                        : const Text('Kaydet'),
+                    child: FilledButton(
+                      onPressed: _busy ? null : _save,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: bu.pr,
+                        foregroundColor: bu.onPr,
+                        disabledBackgroundColor: bu.pr,
+                        disabledForegroundColor: bu.onPr,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        textStyle: BuType.heading.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      child: _busy
+                          ? SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2.4, color: bu.onPr),
+                            )
+                          : Text(context.l10n.profileSave),
+                    ),
                   ),
                 ),
               ),

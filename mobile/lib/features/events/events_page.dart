@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -8,26 +9,10 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../news/news_detail_page.dart';
 import '../platform/qr_scan_page.dart';
-import 'event_cover.dart';
 import 'event_detail_page.dart';
 import 'event_form_page.dart';
+import 'etkinlik_parts.dart';
 import 'event_parts.dart';
-
-const _monthNames = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-];
-const _dayShort = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
 String _ymd(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -429,7 +414,7 @@ class _EventsPageState extends State<EventsPage> {
     final oldGoing = _going(ev);
     final cap = (ev['capacity'] as num?)?.toInt();
     if (status == 'GOING' && cap != null && (oldGoing ?? 0) >= cap) {
-      _snack('Kontenjan doldu. "İlgileniyorum" ile takipte kalabilirsin.');
+      _snack(context.l10n.eventListFull);
       return;
     }
     setState(() => _rsvpBusy.add(id));
@@ -452,7 +437,7 @@ class _EventsPageState extends State<EventsPage> {
         if (e is ApiError && e.code == 'EVENT_REGISTRATION_CLOSED') {
           setState(() => _closedIds.add(id));
         }
-        _snack(eventErrorText(e));
+        _snack(eventErrorTextL(context, e));
       }
     } finally {
       _rsvpBusy.remove(id);
@@ -465,9 +450,9 @@ class _EventsPageState extends State<EventsPage> {
     final id = (ev['id'] as num).toInt();
     final ok = await confirmEventDialog(
       context,
-      title: 'Katılımdan ayrıl',
-      message: 'Bu etkinlik Etkinliklerim listenden çıkarılacak.',
-      confirmLabel: 'Ayrıl',
+      title: context.l10n.eventListLeaveTitle,
+      message: context.l10n.eventListLeaveMsg,
+      confirmLabel: context.l10n.eventListLeave,
       danger: true,
     );
     if (!ok || !mounted) return;
@@ -480,9 +465,9 @@ class _EventsPageState extends State<EventsPage> {
         }
         _rsvpState[id] = {'myRsvp': null, 'goingCount': null};
       });
-      _snack('Katılımdan ayrıldın.');
+      _snack(context.l10n.eventListLeft);
     } catch (e) {
-      _snack(eventErrorText(e));
+      if (mounted) _snack(eventErrorTextL(context, e));
     }
   }
 
@@ -502,25 +487,25 @@ class _EventsPageState extends State<EventsPage> {
           return;
         case 'close':
           await api.post('/events/$id/close', {});
-          _snack('Kayıtlar kapatıldı.');
+          if (mounted) _snack(context.l10n.eventListClosedDone);
         case 'reopen':
           await api.post('/events/$id/reopen', {});
-          _snack('Kayıtlar yeniden açıldı.');
+          if (mounted) _snack(context.l10n.eventListReopenedDone);
         case 'cancel':
           final ok = await confirmEventDialog(
             context,
-            title: 'Etkinliği iptal et',
-            message: 'Bu etkinlik tüm katılımcılar için iptal edilecek.',
-            confirmLabel: 'İptal et',
+            title: context.l10n.eventListCancelTitle,
+            message: context.l10n.eventListCancelMsg,
+            confirmLabel: context.l10n.eventListCancelConfirm,
             danger: true,
           );
           if (!ok || !mounted) return;
           await api.delete('/events/$id');
-          _snack('Etkinlik iptal edildi.');
+          if (mounted) _snack(context.l10n.eventListCancelledDone);
       }
       if (mounted) _loadFeed('created', silent: true);
     } catch (e) {
-      _snack(eventErrorText(e));
+      if (mounted) _snack(eventErrorTextL(context, e));
     }
   }
 
@@ -573,7 +558,7 @@ class _EventsPageState extends State<EventsPage> {
     final raw = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-          builder: (_) => const QrScanPage(title: 'Yoklama QR kodunu tara')),
+          builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle)),
     );
     if (raw == null || !mounted) return;
     const prefix = 'bingol-checkin:';
@@ -582,13 +567,13 @@ class _EventsPageState extends State<EventsPage> {
         : raw.trim();
     final id = int.tryParse(code.split('.').first);
     if (id == null) {
-      _snack('Bu bir yoklama kodu değil.');
+      _snack(context.l10n.eventListNotCode);
       return;
     }
     setState(() => _checkinBusy = true);
     try {
       await widget.session.api.post('/events/$id/check-in', {'code': code});
-      _snack('Yoklaman alındı.');
+      if (mounted) _snack(context.l10n.eventListCheckedIn);
     } catch (e) {
       _snack(errorText(e));
     } finally {
@@ -613,42 +598,57 @@ class _EventsPageState extends State<EventsPage> {
       body: Column(
         children: [
           BuHeader(
-            title: 'Etkinlikler',
+            title: context.l10n.eventListTitle,
             onBack: () => Navigator.pop(context),
             actions: [
               BuIconButton(
                   icon: LucideIcons.plus,
-                  tooltip: 'Etkinlik oluştur',
+                  tooltip: context.l10n.eventListCreate,
                   filled: true,
                   onTap: _create),
               // Dar ekranda (ve büyük yazıda) yalnız simge: başlık harf ortasından kırılmasın.
               if (MediaQuery.sizeOf(context).width < 380 || MediaQuery.textScalerOf(context).scale(10) > 11.5)
                 BuIconButton(
                     icon: LucideIcons.scanLine,
-                    tooltip: 'Yoklama',
+                    tooltip: context.l10n.eventListCheckin,
                     onTap: _checkinBusy ? null : _scanCheckin)
               else
-              Material(
-                color: t.sf,
-                shape: StadiumBorder(side: BorderSide(color: t.bd)),
-                child: InkWell(
-                  customBorder: const StadiumBorder(),
-                  onTap: _checkinBusy ? null : _scanCheckin,
-                  child: Container(
-                    height: 44,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      _checkinBusy
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2))
-                          : Icon(LucideIcons.scanLine,
-                              size: 14.5, color: t.ink),
-                      const SizedBox(width: 6),
-                      Text('Yoklama',
-                          style: BuType.label.copyWith(color: t.ink)),
-                    ]),
+              Container(
+                decoration: BoxDecoration(
+                  color: t.pr,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                        color: t.pr.withValues(alpha: .35),
+                        blurRadius: 20,
+                        spreadRadius: -10,
+                        offset: const Offset(0, 10)),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const StadiumBorder(),
+                  child: InkWell(
+                    customBorder: const StadiumBorder(),
+                    onTap: _checkinBusy ? null : _scanCheckin,
+                    child: Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        _checkinBusy
+                            ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: t.onPr))
+                            : Icon(LucideIcons.scanLine,
+                                size: 18, color: t.onPr),
+                        const SizedBox(width: 8),
+                        Text(context.l10n.eventListCheckin,
+                            style: BuType.label.copyWith(
+                                color: t.onPr, fontWeight: FontWeight.w700)),
+                      ]),
+                    ),
                   ),
                 ),
               ),
@@ -666,10 +666,10 @@ class _EventsPageState extends State<EventsPage> {
                     pinned: true,
                     delegate: _PinnedBar(
                       color: t.bg,
-                      child: _Seg(items: const [
-                        'Keşfet',
-                        'Etkinliklerim',
-                        'Oluşturduklarım'
+                      child: _Seg(items: [
+                        context.l10n.eventListTabDiscover,
+                        context.l10n.eventListTabMine,
+                        context.l10n.eventListTabCreated
                       ], index: _tab, onChanged: _setTab),
                     ),
                   ),
@@ -700,7 +700,7 @@ class _EventsPageState extends State<EventsPage> {
         itemCount: 3,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (_, __) => Semantics(
-          label: 'Yükleniyor',
+          label: context.l10n.eventListLoading,
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -734,11 +734,14 @@ class _EventsPageState extends State<EventsPage> {
           child: Row(
             children: [
               Expanded(
-                child: Text('${_monthNames[_month.month - 1]} ${_month.year}',
+                child: Text(
+                    context.l10n.eventListMonthYear(
+                        eventMonthNameOf(context, _month.month),
+                        '${_month.year}'),
                     style: BuType.bodyStrong.copyWith(color: t.mut)),
               ),
               IconButton(
-                tooltip: 'Önceki ay',
+                tooltip: context.l10n.eventListPrevMonth,
                 visualDensity: VisualDensity.compact,
                 icon: Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 18, color: t.ink),
                 onPressed:
@@ -747,7 +750,7 @@ class _EventsPageState extends State<EventsPage> {
                         : () => _goMonth(-1),
               ),
               IconButton(
-                tooltip: 'Sonraki ay',
+                tooltip: context.l10n.eventListNextMonth,
                 visualDensity: VisualDensity.compact,
                 icon: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.ink),
                 onPressed: () => _goMonth(1),
@@ -792,12 +795,12 @@ class _EventsPageState extends State<EventsPage> {
       rows.add(e);
     }
     final emptyText = _selected != null
-        ? 'Bu gün için etkinlik yok.'
-        : 'Bu ay için etkinlik yok.';
+        ? context.l10n.eventListEmptyDay
+        : context.l10n.eventListEmptyMonth;
     final note = _isPastMonth
-        ? 'Geçmiş ay: yalnızca görüntüleme.'
+        ? context.l10n.eventListPastMonth
         : (_truncated.contains(_ym(_month))
-            ? 'Bu ayın tamamı gösterilemiyor; bazı etkinlikler listede yok.'
+            ? context.l10n.eventListTruncated
             : null);
     if (note != null) rows.insert(0, note);
     if (items.isEmpty) {
@@ -821,7 +824,7 @@ class _EventsPageState extends State<EventsPage> {
             if (r is DateTime) {
               return Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(2, 10, 0, 8),
-                child: Text(longDate(r),
+                child: Text(eventLongDateOf(context, r),
                     style: BuType.label.copyWith(color: t.mut)),
               );
             }
@@ -859,11 +862,11 @@ class _EventsPageState extends State<EventsPage> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
               child: Wrap(spacing: 8, runSpacing: 8, children: [
                 BuChip(
-                    label: 'Yaklaşan',
+                    label: context.l10n.eventListUpcoming,
                     selected: _sub == 0,
                     onTap: () => _setSub(0)),
                 BuChip(
-                    label: 'Geçmiş',
+                    label: context.l10n.eventListPast,
                     selected: _sub == 1,
                     onTap: () => _setSub(1)),
               ]),
@@ -872,7 +875,7 @@ class _EventsPageState extends State<EventsPage> {
         : SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Text('Oluşturduğun etkinlikleri buradan yönetebilirsin.',
+              child: Text(context.l10n.eventListCreatedHint,
                   style: BuType.caption.copyWith(color: context.bu.mut)),
             ),
           );
@@ -886,9 +889,9 @@ class _EventsPageState extends State<EventsPage> {
     }
     if (f.items.isEmpty) {
       final text = switch (mode) {
-        _Mode.upcoming => 'Katılacağın bir etkinlik yok.',
-        _Mode.past => 'Geçmiş etkinliğin yok.',
-        _ => 'Henüz bir etkinlik oluşturmadın.',
+        _Mode.upcoming => context.l10n.eventListEmptyUpcoming,
+        _Mode.past => context.l10n.eventListEmptyPast,
+        _ => context.l10n.eventListEmptyCreated,
       };
       return [
         subs,
@@ -898,8 +901,8 @@ class _EventsPageState extends State<EventsPage> {
           if (mode != _Mode.past)
             BuButton(
               label: mode == _Mode.created
-                  ? 'Etkinlik oluştur'
-                  : 'Etkinlikleri keşfet',
+                  ? context.l10n.eventListCreate
+                  : context.l10n.eventListDiscover,
               icon: mode == _Mode.created
                   ? LucideIcons.plus
                   : LucideIcons.compass,
@@ -940,10 +943,10 @@ class _EventsPageState extends State<EventsPage> {
     return GestureDetector(
       onTap: () => _pickDay(d),
       child: Container(
-        height: 70,
+        height: 68,
         decoration: BoxDecoration(
           color: on ? t.pr : t.sf,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: on ? t.pr : (today ? t.pr.withValues(alpha: .6) : t.bd),
               width: today && !on ? 1.5 : 1),
@@ -956,7 +959,7 @@ class _EventsPageState extends State<EventsPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_dayShort[d.weekday - 1],
+                Text(eventDayShortOf(context, d.weekday),
                     maxLines: 1,
                     softWrap: false,
                     style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
@@ -988,15 +991,18 @@ class _EventsPageState extends State<EventsPage> {
     final t = context.bu;
     final day = _effDay(ev);
     return BuCard(
-      radius: 18,
+      radius: 20,
       onTap: () => _open(ev),
       child: Row(children: [
-        EventDateBadge(day),
-        const SizedBox(width: 12),
+        EtkinlikDateTile(
+            month: eventMonthShortOf(context, day.month),
+            day: '${day.day}',
+            tone: etkinlikToneOf((ev['id'] as num).toInt())),
+        const SizedBox(width: 14),
         Expanded(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const BuBadge('Resmi', soft: true),
+            BuBadge(context.l10n.eventListOfficial, soft: true),
             const SizedBox(height: 6),
             Text('${ev['title'] ?? ''}',
                 maxLines: 2,
@@ -1032,109 +1038,96 @@ class _EventsPageState extends State<EventsPage> {
         : (end != null
             ? '${eventHm(start)} – ${eventHm(end)}'
             : eventHm(start));
+    final sub = [
+      if (time.isNotEmpty) time,
+      if (place != null && place.isNotEmpty) place,
+    ].join(' · ');
     final cancelled = eventIsCancelled(ev);
     final closed = eventIsClosed(ev) || _closedIds.contains(id);
-    final cover = fileUrl((ev['coverUrl'] ?? ev['imageUrl']) as String?);
     final past = mode == _Mode.past || (mode == _Mode.discover && _isPastMonth);
-
-    Widget meta(IconData icon, String text) => Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Row(children: [
-            Icon(icon, size: 12.5, color: t.mut),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.caption.copyWith(color: t.mut)),
-            ),
-          ]),
-        );
 
     Widget? tag;
     if (mode == _Mode.created) {
       tag = cancelled
-          ? const EventStatusTag('İptal', tone: EventTone.danger)
+          ? EventStatusTag(context.l10n.eventListCancelled,
+              tone: EventTone.danger)
           : (closed
-              ? const EventStatusTag('Kayıt kapalı', tone: EventTone.warn)
-              : const EventStatusTag('Açık'));
+              ? EventStatusTag(context.l10n.eventListRegClosedTag,
+                  tone: EventTone.warn)
+              : EventStatusTag(context.l10n.eventListOpen));
     } else if (cancelled) {
-      tag = const EventStatusTag('İptal', tone: EventTone.danger);
+      tag = EventStatusTag(context.l10n.eventListCancelled,
+          tone: EventTone.danger);
     }
 
     final bottom = switch (mode) {
       _Mode.discover =>
         _discoverActions(ev, my, going, closed, cancelled, past, id),
-      _Mode.created => _createdBar(ev, going, cancelled, closed),
-      _ => _mineBar(ev, going),
+      _Mode.created => Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: _createdBar(ev, going, cancelled, closed)),
+      _ => Padding(
+          padding: const EdgeInsets.only(top: 10), child: _mineBar(ev, going)),
     };
 
     return BuCard(
-      radius: 22,
-      padding: EdgeInsets.zero,
+      radius: 20,
+      padding: const EdgeInsets.all(14),
       onTap: () => _open(ev),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        AspectRatio(
-          aspectRatio: 16 / 7,
-          child: Stack(fit: StackFit.expand, children: [
-            if (cover != null)
-              EventCoverImage(url: cover, cacheWidth: 700)
-            else
-              const EventCoverFallback(),
-            PositionedDirectional(
-                start: 12, top: 12, child: EventDateBadge(day, onCover: true)),
-            if (tag != null)
-              PositionedDirectional(
-                end: 12,
-                top: 12,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                      color: t.sf, borderRadius: BorderRadius.circular(999)),
-                  child: tag,
-                ),
-              ),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (org != null && org.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 3),
-                      decoration: BoxDecoration(
-                          color: t.soft,
-                          borderRadius: BorderRadius.circular(999)),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(LucideIcons.users, size: 10, color: t.onSoft),
-                        const SizedBox(width: 5),
-                        Flexible(
-                          child: Text(org,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.micro.copyWith(color: t.onSoft)),
-                        ),
-                      ]),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          EtkinlikDateTile(
+              month: day == null ? '' : eventMonthShortOf(context, day.month),
+              day: day == null ? '' : '${day.day}',
+              tone: etkinlikToneOf(id)),
+          const SizedBox(width: 14),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (org != null && org.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 3),
+                        decoration: BoxDecoration(
+                            color: t.soft,
+                            borderRadius: BorderRadius.circular(999)),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(LucideIcons.users, size: 10, color: t.onSoft),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(org,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: BuType.micro.copyWith(color: t.onSoft)),
+                          ),
+                        ]),
+                      ),
                     ),
-                  ),
-                ]),
-              ),
-            Text('${ev['title'] ?? ''}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: BuType.heading.copyWith(color: t.ink)),
-            if (time.isNotEmpty) meta(LucideIcons.clock, time),
-            if (place != null && place.isNotEmpty)
-              meta(LucideIcons.mapPin, place),
-            const SizedBox(height: 10),
-            bottom,
-          ]),
-        ),
+                  ]),
+                ),
+              Text('${ev['title'] ?? ''}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.heading.copyWith(
+                      color: t.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+              if (sub.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(sub,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: BuType.caption.copyWith(color: t.mut, fontSize: 13)),
+                ),
+              if (tag != null)
+                Padding(padding: const EdgeInsets.only(top: 8), child: tag),
+            ]),
+          ),
+        ]),
+        bottom,
       ]),
     );
   }
@@ -1143,42 +1136,55 @@ class _EventsPageState extends State<EventsPage> {
       bool closed, bool cancelled, bool past, int id) {
     final t = context.bu;
     final busy = _rsvpBusy.contains(id);
-    final stack = EventAvatarStack(avatars: _avatarsOf(ev), total: going);
     Widget? action;
     if (!past && !cancelled) {
       if (my == 'GOING') {
-        action = EventJoinedChip(onTap: _openMine);
+        action = EtkinlikPill(
+            label: context.l10n.eventListInMine,
+            icon: LucideIcons.calendarCheck,
+            bg: t.okSoft,
+            fg: t.ok,
+            onTap: _openMine);
       } else if (closed) {
-        action =
-            Text('Kayıtlar kapalı', style: BuType.label.copyWith(color: t.mut));
+        action = Text(context.l10n.eventListRegsClosed,
+            style: BuType.label.copyWith(color: t.mut));
       } else {
-        action = Wrap(spacing: 8, runSpacing: 8, children: [
-          BuButton(
-              label: 'Katıl',
-              compact: true,
-              busy: busy,
-              onPressed: busy ? null : () => _join(ev, 'GOING')),
-          if (my == 'INTERESTED')
-            const EventStatusTag('İlgileniyorum', tone: EventTone.warn)
-          else
-            BuButton(
-                label: 'İlgileniyorum',
-                compact: true,
-                kind: BuButtonKind.outline,
-                onPressed: busy ? null : () => _join(ev, 'INTERESTED')),
-        ]);
+        action = Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              EtkinlikPill(
+                  label: context.l10n.eventListJoin,
+                  bg: t.pr,
+                  fg: t.onPr,
+                  busy: busy,
+                  onTap: busy ? null : () => _join(ev, 'GOING')),
+              if (my == 'INTERESTED')
+                EventStatusTag(context.l10n.eventListInterested,
+                    tone: EventTone.warn)
+              else
+                EtkinlikPill(
+                    label: context.l10n.eventListInterested,
+                    bg: t.sf2,
+                    fg: t.ink,
+                    onTap: busy ? null : () => _join(ev, 'INTERESTED')),
+            ]);
       }
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        stack,
-        const SizedBox(width: 6),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(children: [
         Expanded(
-            child: Text('katılıyor',
-                style: BuType.caption.copyWith(color: t.mut))),
+            child: action == null
+                ? const SizedBox.shrink()
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: action)),
+        const SizedBox(width: 8),
+        EventAvatarStack(avatars: _avatarsOf(ev), total: going),
       ]),
-      if (action != null) ...[const SizedBox(height: 10), action],
-    ]);
+    );
   }
 
   /// Etkinliklerim: katılımcı sayısı + ⋯ (Katılımdan ayrıl).
@@ -1189,13 +1195,15 @@ class _EventsPageState extends State<EventsPage> {
       const SizedBox(width: 6),
       Expanded(
           child:
-              Text('katılıyor', style: BuType.caption.copyWith(color: t.mut))),
+              Text(context.l10n.eventListGoing,
+                  style: BuType.caption.copyWith(color: t.mut))),
       PopupMenuButton<String>(
-        tooltip: 'Seçenekler',
+        tooltip: context.l10n.eventListOptions,
         icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
         onSelected: (_) => _leave(ev),
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: 'leave', child: Text('Katılımdan ayrıl'))
+        itemBuilder: (_) => [
+          PopupMenuItem(
+              value: 'leave', child: Text(context.l10n.eventListLeaveTitle))
         ],
       ),
     ]);
@@ -1215,29 +1223,32 @@ class _EventsPageState extends State<EventsPage> {
             runSpacing: 2,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('$going katılımcı',
+              Text(context.l10n.eventListAttendeeCount('$going'),
                   style: BuType.label.copyWith(color: t.ink)),
               GestureDetector(
                 onTap: () => _open(ev),
-                child: Text('Katılımcılar',
+                child: Text(context.l10n.eventListAttendees,
                     style: BuType.label.copyWith(color: t.pr)),
               ),
             ]),
       ),
       if (!cancelled)
         PopupMenuButton<String>(
-          tooltip: 'Seçenekler',
+          tooltip: context.l10n.eventListOptions,
           icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
           onSelected: (a) => _manage(ev, a),
           itemBuilder: (_) => [
-            const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+            PopupMenuItem(
+                value: 'edit', child: Text(context.l10n.eventListEdit)),
             PopupMenuItem(
                 value: closed ? 'reopen' : 'close',
-                child:
-                    Text(closed ? 'Kayıtları yeniden aç' : 'Kayıtları kapat')),
+                child: Text(closed
+                    ? context.l10n.eventListReopen
+                    : context.l10n.eventListClose)),
             PopupMenuItem(
                 value: 'cancel',
-                child: Text('İptal et', style: TextStyle(color: t.danger))),
+                child: Text(context.l10n.eventListCancelConfirm,
+                    style: TextStyle(color: t.danger))),
           ],
         ),
     ]);

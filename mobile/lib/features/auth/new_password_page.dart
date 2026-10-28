@@ -71,6 +71,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     return AuthScaffold(
       showBack: true,
       title: context.l10n.authNewPasswordTitle,
+      subtitle: context.l10n.authNewPwSub,
       children: [
         if (_error != null) Notice(_error!),
         Form(
@@ -81,15 +82,28 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               PasswordField(
                 controller: _password,
                 label: context.l10n.authNewPasswordLabel,
-                validator: validateNewPassword,
+                validator: newPasswordValidator(context),
                 autofillHints: const [AutofillHints.newPassword],
                 onSubmitted: _save,
               ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: _busy ? null : _save,
-                child: BusyLabel(busy: _busy, label: context.l10n.authUpdatePassword),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _password,
+                builder: (_, v, __) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PasswordStrength(password: v.text),
+                    const SizedBox(height: 18),
+                    PasswordRule(ok: v.text.length >= 8, label: context.l10n.authRuleLen),
+                    const SizedBox(height: 10),
+                    PasswordRule(
+                      ok: RegExp(r'[A-Za-z]').hasMatch(v.text) && RegExp(r'\d').hasMatch(v.text),
+                      label: context.l10n.authRuleMix,
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 28),
+              AuthButton(onPressed: _busy ? null : _save, busy: _busy, label: context.l10n.authUpdatePassword),
             ],
           ),
         ),

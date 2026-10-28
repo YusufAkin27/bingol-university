@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/identifier.dart';
 import '../../core/session.dart';
+import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
 import 'auth_widgets.dart';
 import 'reset_code_page.dart';
 
@@ -55,7 +57,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       showBack: true,
+      icon: LucideIcons.keyRound,
       title: context.l10n.authResetTitle,
+      subtitle: context.l10n.authForgotSub,
       children: [
         if (_error != null) Notice(_error!),
         Form(
@@ -64,10 +68,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               IdentifierField(controller: _email, onSubmitted: _sendCode),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: _busy ? null : _sendCode,
-                child: BusyLabel(busy: _busy, label: context.l10n.authSendCode),
+              const SizedBox(height: 24),
+              AuthButton(onPressed: _busy ? null : _sendCode, busy: _busy, label: context.l10n.authSendCode),
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: _busy ? null : () => Navigator.maybePop(context),
+                  child: Text(context.l10n.authBackToLogin, style: BuType.bodyStrong),
+                ),
               ),
             ],
           ),

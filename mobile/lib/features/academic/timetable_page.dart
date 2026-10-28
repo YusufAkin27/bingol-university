@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -11,11 +12,12 @@ import '../../widgets/common.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
+import 'akad_widgets.dart';
 import 'course_form_page.dart';
 import 'reminders.dart';
 import 'semester_sheet.dart';
 
-/// Ders programı: bugün/sıradaki ders, gün sekmeleri + zaman çizelgesi, tüm dersler, dönem seçimi, .ics paylaşımı.
+/// Ders programı (Ak1): dönem düğmesi, gün şeridi, renkli ders blokları, alt eylem çubuğu.
 class TimetablePage extends StatefulWidget {
   const TimetablePage({super.key, required this.session});
 
@@ -88,8 +90,9 @@ class _TimetablePageState extends State<TimetablePage> {
     final r = await showModalBottomSheet<SemesterAction>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: context.bu.sf,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: context.bu.bg,
+      barrierColor: const Color(0x73171E33),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (_) => SemesterSheet(api: _api, activeId: _semesterId ?? _data?.semester?.id),
     );
     if (r == null || !mounted) return;
@@ -103,7 +106,7 @@ class _TimetablePageState extends State<TimetablePage> {
   Future<void> _export() async {
     final d = _data;
     if (d == null || d.courses.isEmpty) {
-      academicToast(context, 'Dışa aktarılacak ders yok.');
+      academicToast(context, context.l10n.acadTimeExportNone);
       return;
     }
     var exams = <Exam>[];
@@ -114,19 +117,31 @@ class _TimetablePageState extends State<TimetablePage> {
     final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
     if (!shared) {
       await Clipboard.setData(ClipboardData(text: ics));
-      if (mounted) academicToast(context, 'Takvim (.ics) metni panoya kopyalandı.');
+      if (mounted) academicToast(context, context.l10n.acadTimeExportCopied);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final data = _data;
+    final l = context.l10n;
     return AcademicScaffold(
-      title: 'Ders programı',
+      title: l.acadTimeTitle,
       actions: [
-        BuIconButton(icon: LucideIcons.share, tooltip: 'Takvime aktar (.ics)', onTap: data == null ? null : _export),
-        BuIconButton(icon: LucideIcons.plus, tooltip: 'Ders ekle', filled: true, onTap: data == null ? null : () => _openForm(day: _day)),
+        BuIconButton(icon: LucideIcons.share, tooltip: l.acadTimeExportTooltip, onTap: data == null ? null : _export),
       ],
+      bottomBar: data == null
+          ? null
+          : AkadBottomBar(children: [
+              if (data.courses.isNotEmpty)
+                AkadButton(label: l.akademik2ExportLabel, icon: LucideIcons.calendarDays, outlined: true, onPressed: _export),
+              AkadButton(
+                label: data.courses.isEmpty ? l.acadTimeAddFirst : l.acadTimeAddCourse,
+                icon: LucideIcons.plus,
+                tooltip: l.acadTimeAddCourse,
+                onPressed: () => _openForm(day: _day),
+              ),
+            ]),
       child: _body(data),
     );
   }
@@ -140,21 +155,40 @@ class _TimetablePageState extends State<TimetablePage> {
     return RefreshIndicator(
       onRefresh: () => _load(quiet: true),
       child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, AkadBottomBar.reserve),
         children: [
           if (_error != null)
-            const Padding(padding: EdgeInsets.only(bottom: 8), child: StaleBanner(text: 'Güncellenemedi, son veriler gösteriliyor.')),
+            Padding(padding: const EdgeInsets.only(bottom: 8), child: StaleBanner(text: context.l10n.acadTimeStale)),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: Semantics(
               button: true,
-              label: 'Dönem seç',
-              child: ActionChip(
-                avatar: Icon(LucideIcons.graduationCap, size: 15, color: t.pr),
-                label: Text(sem?.name ?? 'Dönem seç', style: BuType.label.copyWith(color: t.ink)),
-                backgroundColor: t.sf,
-                side: BorderSide(color: t.bd),
-                onPressed: _pickSemester,
+              label: context.l10n.acadTimePickSemester,
+              excludeSemantics: true,
+              onTap: _pickSemester,
+              child: Material(
+                color: t.sf,
+                shape: StadiumBorder(side: BorderSide(color: t.bd, width: 1.5)),
+                child: InkWell(
+                  customBorder: const StadiumBorder(),
+                  onTap: _pickSemester,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Flexible(
+                          child: Text(sem?.name ?? context.l10n.acadTimePickSemester,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
+                      ]),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -162,13 +196,15 @@ class _TimetablePageState extends State<TimetablePage> {
           if (data.courses.isEmpty)
             _emptyState(t)
           else ...[
-            _todayCard(t, data, nowWall),
-            const SizedBox(height: 16),
+            _nextCard(t, data, nowWall),
+            const SizedBox(height: 14),
             _dayTabs(t, nowWall),
+            _dayHeading(t, data, nowWall),
             const SizedBox(height: 12),
             _timeline(t, data, nowWall),
             const SizedBox(height: 22),
-            Text('Derslerim (${data.courses.length})', style: BuType.heading.copyWith(color: t.ink)),
+            Text(context.l10n.acadTimeMyCourses(data.courses.length.toString()),
+                style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
             const SizedBox(height: 10),
             for (final c in data.courses) Padding(padding: const EdgeInsets.only(bottom: 8), child: _courseTile(t, c)),
           ],
@@ -179,85 +215,134 @@ class _TimetablePageState extends State<TimetablePage> {
 
   Widget _emptyState(BuTokens t) => Padding(
         padding: const EdgeInsets.only(top: 24),
-        child: Column(children: [
-          const EmptyView(icon: LucideIcons.calendarDays, text: 'Henüz ders eklemedin.\nHaftalık programını oluşturmak için derslerini ekle.'),
-          BuButton(label: 'İlk dersini ekle', icon: LucideIcons.plus, onPressed: () => _openForm(day: _day)),
-        ]),
+        child: EmptyView(icon: LucideIcons.calendarDays, text: context.l10n.acadTimeEmptyText),
       );
 
-  Widget _todayCard(BuTokens t, TimetableData data, DateTime nowWall) {
+  /// Sıradaki / süren ders özeti (kompakt).
+  Widget _nextCard(BuTokens t, TimetableData data, DateTime nowWall) {
     final today = slotsForDay(data.courses, data.semester, nowWall, nowWall: nowWall);
     DaySlot? ongoing;
     for (final s in today) {
       if (s.status == SlotStatus.ongoing) ongoing = s;
     }
     final next = nextSlot(data.courses, data.semester, nowWall);
-    final todayLeft = today.where((s) => s.status != SlotStatus.past).length;
 
+    final l = context.l10n;
     String head;
     String line;
     Color? accent;
     if (ongoing != null) {
       final left = ongoing.session.endMin - (nowWall.hour * 60 + nowWall.minute);
-      head = 'Şu an derste';
-      line = '${ongoing.course.name} · $left dk kaldı';
+      head = l.acadTimeNowInClass;
+      line = l.acadTimeMinLeft(ongoing.course.name, left.toString());
       accent = courseColor(ongoing.course.color);
     } else if (next != null) {
       final s = next.slot;
       final isToday = s.date.day == nowWall.day && s.date.month == nowWall.month;
       final when = next.minutesUntil < 60
-          ? '${next.minutesUntil} dk sonra'
+          ? l.acadTimeWhenMin(next.minutesUntil.toString())
           : isToday
-              ? '${next.minutesUntil ~/ 60} sa${next.minutesUntil % 60 == 0 ? '' : ' ${next.minutesUntil % 60} dk'} sonra'
-              : '${dayNames[s.date.weekday - 1]} ${s.session.start}';
-      head = 'Sıradaki ders';
+              ? (next.minutesUntil % 60 == 0
+                  ? l.acadTimeWhenHours((next.minutesUntil ~/ 60).toString())
+                  : l.acadTimeWhenHoursMin((next.minutesUntil ~/ 60).toString(), (next.minutesUntil % 60).toString()))
+              : l.acadTimeWhenDay(acadDayName(l, s.date.weekday), s.session.start);
+      head = l.acadTimeNextClass;
       line = '${s.course.name} · $when';
       accent = courseColor(s.course.color);
     } else {
-      head = 'Bugün';
-      line = 'Bu hafta başka dersin yok.';
+      head = l.acadTimeToday;
+      line = l.acadTimeNoMoreWeek;
     }
     return Semantics(
       container: true,
       label: '$head. $line',
-      child: BuHeroCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            if (accent != null) ...[
-              Container(width: 10, height: 10, decoration: BoxDecoration(color: accent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5))),
-              const SizedBox(width: 8),
-            ],
-            Expanded(child: Text(head, style: BuType.label.copyWith(color: Colors.white.withValues(alpha: .85)))),
-            Text(longDate(nowWall), style: BuType.caption.copyWith(color: Colors.white.withValues(alpha: .85))),
-          ]),
-          const SizedBox(height: 8),
-          Text(line, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(color: Colors.white)),
-          const SizedBox(height: 6),
-          Text(todayLeft == 0 ? 'Bugün kalan ders yok' : 'Bugün $todayLeft ders kaldı',
-              style: BuType.caption.copyWith(color: Colors.white.withValues(alpha: .85))),
+      excludeSemantics: true,
+      child: AkadCard(
+        shadow: false,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(children: [
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: accent ?? t.mut, shape: BoxShape.circle)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(head, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut)),
+              const SizedBox(height: 2),
+              Text(line, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+            ]),
+          ),
         ]),
       ),
     );
   }
 
-  Widget _dayTabs(BuTokens t, DateTime nowWall) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(children: [
-          for (var d = 1; d <= 7; d++)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: Semantics(
-                label: d == nowWall.weekday ? '${dayNames[d - 1]}, bugün' : dayNames[d - 1],
-                child: BuChip(label: dayShort[d - 1], selected: _day == d, onTap: () => setState(() => _day = d)),
+  /// Haftanın [weekday] gününün tarihi (bu hafta içinde).
+  DateTime _dateOf(int weekday, DateTime nowWall) {
+    final base = DateTime.utc(nowWall.year, nowWall.month, nowWall.day);
+    return base.add(Duration(days: weekday - nowWall.weekday));
+  }
+
+  Widget _dayTabs(BuTokens t, DateTime nowWall) => Row(children: [
+        for (var d = 1; d <= 7; d++) ...[
+          if (d > 1) const SizedBox(width: 6),
+          Expanded(child: _dayCell(t, d, nowWall)),
+        ],
+      ]);
+
+  Widget _dayCell(BuTokens t, int d, DateTime nowWall) {
+    final l = context.l10n;
+    final sel = _day == d;
+    final date = _dateOf(d, nowWall);
+    final name = acadDayName(l, d);
+    return Semantics(
+      button: true,
+      selected: sel,
+      label: '${d == nowWall.weekday ? l.acadTimeDayToday(name) : name} ${date.day}',
+      excludeSemantics: true,
+      onTap: () => setState(() => _day = d),
+      child: Material(
+        color: sel ? t.pr : t.sf,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: sel ? t.pr : t.bd, width: 1.5)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => setState(() => _day = d),
+          child: SizedBox(
+            height: 60,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(acadDayShort(l, d), style: BuType.label.copyWith(fontSize: 11, fontWeight: FontWeight.w700, color: sel ? t.onPr : t.mut)),
               ),
-            ),
+              const SizedBox(height: 2),
+              Text('${date.day}', style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: sel ? t.onPr : t.ink)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dayHeading(BuTokens t, TimetableData data, DateTime nowWall) {
+    final l = context.l10n;
+    final date = _dateOf(_day, nowWall);
+    var count = slotsForDay(data.courses, data.semester, date, nowWall: nowWall).length;
+    if (count == 0) count = slotsForDay(data.courses, null, date, nowWall: nowWall).length;
+    final name = acadDayName(l, _day);
+    final title = _day == nowWall.weekday ? l.akademik2DayHeadingToday(name) : name;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 4, top: 16),
+      child: Text.rich(
+        TextSpan(children: [
+          TextSpan(text: title, style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
+          if (count > 0)
+            TextSpan(text: ' · ${l.akademik2CourseCount(count.toString())}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
         ]),
-      );
+      ),
+    );
+  }
 
   Widget _timeline(BuTokens t, TimetableData data, DateTime nowWall) {
     // Seçili haftanın günü: dönem kısıtı için bu hafta içindeki tarihi al.
-    final base = DateTime.utc(nowWall.year, nowWall.month, nowWall.day);
-    final date = base.add(Duration(days: _day - nowWall.weekday));
+    final date = _dateOf(_day, nowWall);
     final slots = slotsForDay(data.courses, data.semester, date, nowWall: nowWall);
     final plain = <DaySlot>[];
     if (slots.isEmpty) {
@@ -265,37 +350,42 @@ class _TimetablePageState extends State<TimetablePage> {
       plain.addAll(slotsForDay(data.courses, null, date, nowWall: nowWall));
     }
     if (slots.isEmpty && plain.isEmpty) {
-      return BuCard(
+      return AkadCard(
         child: Row(children: [
           Icon(LucideIcons.coffee, size: 18, color: t.mut),
           const SizedBox(width: 10),
-          Expanded(child: Text('${dayNames[_day - 1]} günü dersin yok.', style: BuType.body.copyWith(color: t.mut))),
+          Expanded(child: Text(context.l10n.acadTimeNoClassDay(acadDayName(context.l10n, _day)), style: BuType.body.copyWith(color: t.mut))),
         ]),
       );
     }
     final list = slots.isNotEmpty ? slots : plain;
     return Column(children: [
       if (slots.isEmpty && plain.isNotEmpty)
-        const Padding(padding: EdgeInsets.only(bottom: 8), child: StaleBanner(text: 'Bu tarih dönem aralığı dışında.')),
-      for (final s in list) Padding(padding: const EdgeInsets.only(bottom: 10), child: _slotRow(t, s)),
+        Padding(padding: const EdgeInsets.only(bottom: 8), child: StaleBanner(text: context.l10n.acadTimeOutOfRange)),
+      for (final s in list) Padding(padding: const EdgeInsets.only(bottom: 12), child: _slotRow(t, s)),
     ]);
   }
 
   Widget _slotRow(BuTokens t, DaySlot s) {
     final c = s.course;
     final color = courseColor(c.color);
+    final onTint = akadOnTint(context, color);
     final status = switch (s.status) {
-      SlotStatus.ongoing => 'Şu an',
-      SlotStatus.past => 'Bitti',
+      SlotStatus.ongoing => context.l10n.acadTimeStatusNow,
+      SlotStatus.past => context.l10n.acadTimeStatusDone,
       SlotStatus.upcoming => null,
     };
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SizedBox(
-        width: 48,
-        child: Column(children: [
-          Text(s.session.start, style: BuType.bodyStrong.copyWith(color: t.ink)),
-          Text(s.session.end, style: BuType.caption.copyWith(color: t.mut)),
-        ]),
+        width: 44,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            FittedBox(fit: BoxFit.scaleDown, child: Text(s.session.start, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut))),
+            const SizedBox(height: 2),
+            FittedBox(fit: BoxFit.scaleDown, child: Text(s.session.end, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w500, color: t.mut))),
+          ]),
+        ),
       ),
       const SizedBox(width: 8),
       Expanded(
@@ -305,15 +395,23 @@ class _TimetablePageState extends State<TimetablePage> {
             color: color,
             onTap: () => _openForm(course: c),
             semanticLabel:
-                '${c.name}, ${dayNames[s.session.dayOfWeek - 1]} ${s.session.start} ile ${s.session.end} arası${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}',
+                '${context.l10n.acadTimeSlotSemantic(c.name, acadDayName(context.l10n, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}',
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Expanded(child: Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink))),
+                Expanded(child: Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink))),
                 if (status != null) BuBadge(status, color: s.status == SlotStatus.ongoing ? t.ok : t.sf2, onColor: s.status == SlotStatus.ongoing ? Colors.white : t.mut),
               ]),
-              if (c.code != null) MetaLine(LucideIcons.hash, c.code!),
-              if (c.instructor != null) MetaLine(LucideIcons.user, c.instructor!),
-              if (s.session.room != null) MetaLine(LucideIcons.mapPin, s.session.room!),
+              if (s.session.room != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(children: [
+                    ExcludeSemantics(child: Icon(LucideIcons.mapPin, size: 14, color: onTint)),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(s.session.room!, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontSize: 12.5, fontWeight: FontWeight.w600, color: t.ink))),
+                  ]),
+                ),
+              if (c.code != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(c.code!, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut))),
+              if (c.instructor != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(c.instructor!, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut))),
             ]),
           ),
         ),
@@ -322,17 +420,17 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Widget _courseTile(BuTokens t, Course c) {
-    final days = {for (final s in c.sessions) '${dayShort[(s.dayOfWeek - 1).clamp(0, 6)]} ${s.start}-${s.end}'}.join(' · ');
+    final days = {for (final s in c.sessions) '${acadDayShort(context.l10n, s.dayOfWeek.clamp(1, 7))} ${s.start}-${s.end}'}.join(' · ');
     return ColorCard(
       color: courseColor(c.color),
       onTap: () => _openForm(course: c),
-      semanticLabel: '${c.name}. $days. Düzenlemek için dokun.',
+      semanticLabel: context.l10n.acadTimeCourseSemantic(c.name, days),
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+            Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
             if (c.instructor != null) MetaLine(LucideIcons.user, c.instructor!),
-            MetaLine(LucideIcons.clock, days.isEmpty ? 'Oturum yok' : days),
+            MetaLine(LucideIcons.clock, days.isEmpty ? context.l10n.acadTimeNoSessions : days),
           ]),
         ),
         Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),

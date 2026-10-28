@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
@@ -153,7 +154,9 @@ class ChatInfoThumb extends StatelessWidget {
     final t = context.bu;
     return Semantics(
       button: true,
-      label: video ? 'Videoyu aç' : 'Görseli aç',
+      label: video
+          ? context.l10n.chatInfoOpenVideo
+          : context.l10n.chatInfoOpenImage,
       child: GestureDetector(
         onTap: onTap,
         child: ColoredBox(
@@ -262,7 +265,7 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
         foregroundColor: t.ink,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('Medya', style: BuType.heading.copyWith(color: t.ink)),
+        title: Text(context.l10n.chatInfoMedia, style: BuType.heading.copyWith(color: t.ink)),
       ),
       body: ListenableBuilder(
         listenable: _f,
@@ -293,7 +296,7 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
                         child: OutlinedButton.icon(
                           onPressed: () => _f.load(),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Yeniden dene'),
+                          label: Text(context.l10n.chatInfoRetry),
                         ),
                       ),
                     )

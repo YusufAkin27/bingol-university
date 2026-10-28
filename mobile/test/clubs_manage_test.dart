@@ -218,7 +218,8 @@ void main() {
       await _pump(tester, ClubDetailPage(session: makeSession(_detailBackend()), communityId: 7));
       await _menu(tester, 'Kulüp seçenekleri');
       expect(find.text('Kulübü düzenle'), findsOneWidget);
-      expect(find.text('Başvurular (1)'), findsOneWidget);
+      expect(find.text('Katılma istekleri'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget); // sayı hapı
       expect(find.text('Üyeleri yönet'), findsOneWidget);
       expect(find.text('Kulübü sil'), findsOneWidget);
       expect(find.text('Kulüpten ayrıl'), findsOneWidget);
@@ -372,8 +373,7 @@ void main() {
 
     testWidgets('kulup sayfasinda bekleyen sayisi rozeti', (tester) async {
       await _pump(tester, ClubDetailPage(session: makeSession(_detailBackend()), communityId: 7));
-      expect(find.text('Bekleyen başvurular'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget);
+      expect(find.text('1 bekleyen katılma isteği'), findsOneWidget);
       await unmount(tester);
     });
 

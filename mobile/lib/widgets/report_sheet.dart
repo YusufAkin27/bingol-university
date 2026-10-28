@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/locale_controller.dart';
 import '../core/session.dart';
+import '../l10n/app_localizations.dart';
 import '../core/theme.dart';
 import 'bu_widgets.dart';
 import '../core/typography.dart';
@@ -17,20 +19,30 @@ abstract final class ReportSheet {
     ('OTHER', 'Diğer'),
   ];
 
+  /// Sebep kodunun dile göre adı.
+  static String reasonLabel(AppLocalizations l, String code) => switch (code) {
+        'SPAM' => l.reportReasonSpam,
+        'HARASSMENT' => l.reportReasonHarassment,
+        'INAPPROPRIATE' => l.reportReasonInappropriate,
+        'IMPERSONATION' => l.reportReasonImpersonation,
+        'OTHER' => l.reportReasonOther,
+        _ => code,
+      };
+
   static Future<void> show(
     BuildContext context,
     Session session, {
     required String targetType,
     required int targetId,
-    String title = 'Şikâyet et',
+    String? title,
   }) =>
-      _open(context, session, title, (reason, details) => session.api.post(
+      _open(context, session, title, false, (reason, details) => session.api.post(
             '/reports',
             {'targetType': targetType, 'targetId': targetId, 'reason': reason, if (details.isNotEmpty) 'note': details},
           ));
 
   static Future<void> showForMessage(BuildContext context, Session session, {required int messageId}) =>
-      _open(context, session, 'Mesajı şikâyet et', (reason, details) => session.api.post(
+      _open(context, session, null, true, (reason, details) => session.api.post(
             '/messages/$messageId/report',
             {'reason': reason, if (details.isNotEmpty) 'note': details},
           ));
@@ -38,7 +50,8 @@ abstract final class ReportSheet {
   static Future<void> _open(
     BuildContext context,
     Session session,
-    String title,
+    String? title,
+    bool forMessage,
     Future<dynamic> Function(String reason, String details) send,
   ) async {
     final done = await showModalBottomSheet<bool>(
@@ -46,20 +59,21 @@ abstract final class ReportSheet {
       isScrollControlled: true,
       backgroundColor: context.bu.sf,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (_) => _SheetBody(title: title, send: send),
+      builder: (_) => _SheetBody(title: title, forMessage: forMessage, send: send),
     );
     if (done == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Şikâyetiniz alındı. Teşekkürler.')),
+        SnackBar(content: Text(context.l10n.reportThanks)),
       );
     }
   }
 }
 
 class _SheetBody extends StatefulWidget {
-  const _SheetBody({required this.title, required this.send});
+  const _SheetBody({required this.title, required this.forMessage, required this.send});
 
-  final String title;
+  final String? title;
+  final bool forMessage;
   final Future<dynamic> Function(String reason, String details) send;
 
   @override
@@ -111,9 +125,9 @@ class _SheetBodyState extends State<_SheetBody> {
                   width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2))),
             ),
             const SizedBox(height: 16),
-            Text(widget.title, style: BuType.title.copyWith(color: t.ink)),
+            Text(widget.title ?? (widget.forMessage ? context.l10n.reportMessageTitle : context.l10n.reportTitle), style: BuType.title.copyWith(color: t.ink)),
             const SizedBox(height: 4),
-            Text('Sebep seçin. Şikâyetiniz yöneticilere iletilir.', style: BuType.body.copyWith(color: t.mut)),
+            Text(context.l10n.reportPrompt, style: BuType.body.copyWith(color: t.mut)),
             const SizedBox(height: 12),
             for (final r in ReportSheet.reasons)
               Semantics(
@@ -125,7 +139,7 @@ class _SheetBodyState extends State<_SheetBody> {
                 dense: true,
                 enabled: !_busy,
                 onTap: () => setState(() => _reason = r.$1),
-                title: Text(r.$2, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                title: Text(ReportSheet.reasonLabel(context.l10n, r.$1), style: BuType.bodyStrong.copyWith(color: t.ink)),
                 trailing: Icon(
                   _reason == r.$1 ? LucideIcons.circleCheck : LucideIcons.circle,
                   color: _reason == r.$1 ? t.pr : t.mut,
@@ -137,14 +151,14 @@ class _SheetBodyState extends State<_SheetBody> {
               maxLength: 500,
               maxLines: 3,
               enabled: !_busy,
-              decoration: const InputDecoration(hintText: 'Ek açıklama (isteğe bağlı)'),
+              decoration: InputDecoration(hintText: context.l10n.reportDetailsHint),
             ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
               ),
-            BuButton(label: 'Gönder', busy: _busy, onPressed: _submit),
+            BuButton(label: context.l10n.reportSend, busy: _busy, onPressed: _submit),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/video_service.dart';
 import '../../core/typography.dart';
@@ -57,7 +58,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
 
   Future<void> _boot() async {
     final cam = await ensurePermission(context, AppPermission.camera,
-        rationale: 'Fotoğraf ve video çekebilmeniz için kameraya erişmemiz gerekir.');
+        rationale: context.l10n.chatMiscCameraRationale);
     if (!mounted) return;
     if (!cam) {
       setState(() => _denied = true);
@@ -65,7 +66,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     }
     // Mikrofon reddedilirse yalnız sessiz video çekilemez; fotoğraf yine çalışır.
     _audio = await ensurePermission(context, AppPermission.microphone,
-        rationale: 'Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.');
+        rationale: context.l10n.chatMiscMicRationale);
     if (!mounted) return;
     try {
       _cams = await availableCameras();
@@ -116,7 +117,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
       );
     } catch (_) {
       _busy = false;
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fotoğraf çekilemedi.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.chatMiscPhotoFailed)));
     }
   }
 
@@ -167,7 +168,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
       _busy = false;
       if (mounted) {
         setState(() => _recording = false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Video kaydedilemedi.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.chatMiscVideoSaveFailed)));
       }
     }
   }
@@ -182,7 +183,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
           Positioned.fill(
             child: _denied
                 ? Center(
-                    child: Text('Kamera kullanılamıyor.', style: BuType.body.copyWith(color: Colors.white70)),
+                    child: Text(context.l10n.chatMiscCameraUnavailable, style: BuType.body.copyWith(color: Colors.white70)),
                   )
                 : (_ready && c != null)
                     ? Center(
@@ -194,7 +195,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
             top: 8,
             start: 8,
             child: IconButton(
-              tooltip: 'Kapat',
+              tooltip: context.l10n.chatMiscClose,
               icon: const Icon(LucideIcons.x, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
@@ -218,7 +219,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
             start: 0,
             end: 0,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text('Dokun: fotoğraf · Basılı tut: video',
+              Text(context.l10n.chatMiscCameraHint,
                   style: BuType.caption.copyWith(color: Colors.white70)),
               const SizedBox(height: 14),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -246,7 +247,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
                 SizedBox(
                   width: 56,
                   child: IconButton(
-                    tooltip: 'Kamerayı çevir',
+                    tooltip: context.l10n.chatMiscFlipCamera,
                     icon: const Icon(LucideIcons.refreshCw, color: Colors.white),
                     onPressed: _flip,
                   ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'anket_style.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 import 'poll_parts.dart';
@@ -11,11 +13,11 @@ import 'poll_routes.dart';
 
 /// Anket listesi: Açık | Katıldıklarım | Kapanan, imleçli sayfalama. [communityId] verilirse tek kulüp.
 class PollListPage extends StatefulWidget {
-  const PollListPage({super.key, required this.session, this.communityId, this.title = 'Anketler'});
+  const PollListPage({super.key, required this.session, this.communityId, this.title});
 
   final Session session;
   final int? communityId;
-  final String title;
+  final String? title;
 
   @override
   State<PollListPage> createState() => _PollListPageState();
@@ -23,7 +25,6 @@ class PollListPage extends StatefulWidget {
 
 class _PollListPageState extends State<PollListPage> {
   static const _scopes = ['open', 'mine', 'closed'];
-  static const _labels = ['Açık', 'Katıldıklarım', 'Kapanan'];
 
   late final PollApi _api = PollApi(widget.session);
   final _scroll = ScrollController();
@@ -98,24 +99,18 @@ class _PollListPageState extends State<PollListPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final labels = [context.l10n.pollTabOpen, context.l10n.pollTabMine, context.l10n.pollTabClosed];
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: widget.title, onBack: () => Navigator.pop(context)),
+          BuHeader(title: widget.title ?? context.l10n.pollListTitle, onBack: () => Navigator.pop(context)),
           const SizedBox(height: 12),
           if (widget.communityId == null)
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _labels.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) =>
-                  Center(child: BuChip(label: _labels[i], selected: i == _tab, onTap: () => _select(i))),
+              child: _Seg(labels: labels, index: _tab, onSelect: _select),
             ),
-          ),
           const SizedBox(height: 8),
           Expanded(child: _body()),
         ],
@@ -128,9 +123,9 @@ class _PollListPageState extends State<PollListPage> {
     if (!_loaded) return const LoadingView();
     if (_items.isEmpty) {
       final text = switch (_tab) {
-        0 => 'Şu an açık anket yok.',
-        1 => 'Henüz bir ankete katılmadınız.',
-        _ => 'Kapanan anket yok.',
+        0 => context.l10n.pollEmptyOpen,
+        1 => context.l10n.pollEmptyMine,
+        _ => context.l10n.pollEmptyClosed,
       };
       return RefreshIndicator(
         onRefresh: () => _load(reset: true),
@@ -152,7 +147,7 @@ class _PollListPageState extends State<PollListPage> {
           if (i == _items.length) {
             if (_loading) return const Padding(padding: EdgeInsets.all(12), child: LoadingView());
             if (_error != null) {
-              return Center(child: TextButton(onPressed: _load, child: const Text('Yüklenemedi, tekrar dene')));
+              return Center(child: TextButton(onPressed: _load, child: Text(context.l10n.pollLoadFailedRetry)));
             }
             return const SizedBox.shrink();
           }
@@ -160,6 +155,54 @@ class _PollListPageState extends State<PollListPage> {
           return PollCard(poll: p, onTap: () => _open(p));
         },
       ),
+    );
+  }
+}
+
+/// Segment (An1): beyaz çerçeveli kap, seçili sekme yumuşak kırmızı.
+class _Seg extends StatelessWidget {
+  const _Seg({required this.labels, required this.index, required this.onSelect});
+
+  final List<String> labels;
+  final int index;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+          color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
+      child: Row(children: [
+        for (var i = 0; i < labels.length; i++) ...[
+          if (i > 0) const SizedBox(width: 4),
+          Expanded(
+            child: Semantics(
+              button: true,
+              selected: i == index,
+              excludeSemantics: true,
+              label: labels[i],
+              onTap: () => onSelect(i),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onSelect(i),
+                child: Container(
+                  height: 44,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                      color: i == index ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(12)),
+                  child: Text(labels[i],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: anketText(13, FontWeight.w700, i == index ? t.pr : t.mut)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ]),
     );
   }
 }

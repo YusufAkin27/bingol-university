@@ -12,7 +12,7 @@ export 'poll_club_section.dart' show PollClubSection;
 /// Anket ekranlarına ince yönlendirme (tek giriş noktası).
 
 /// Anket listesi (Keşfet girişi ya da tek kulüp).
-Future<void> openPollList(BuildContext context, Session session, {int? communityId, String title = 'Anketler'}) =>
+Future<void> openPollList(BuildContext context, Session session, {int? communityId, String? title}) =>
     Navigator.push<void>(
         context,
         MaterialPageRoute<void>(

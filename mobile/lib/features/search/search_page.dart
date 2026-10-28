@@ -5,13 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../news/news_detail_page.dart';
+import '../news/icerik_parts.dart';
+import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_routes.dart';
 import '../profile/user_profile_page.dart';
 import '../../core/typography.dart';
@@ -40,14 +44,17 @@ class _Hit {
 
 enum _Tab { all, news, club, event, post, person }
 
-const _tabLabels = {
-  _Tab.all: 'Tümü',
-  _Tab.news: 'Haber',
-  _Tab.club: 'Kulüp',
-  _Tab.event: 'Etkinlik',
-  _Tab.post: 'Gönderi',
-  _Tab.person: 'Kişi',
-};
+/// Sekme çiplerinin görünüm sırası (Ic1: Tümü, Haber, Etkinlik, Kulüp, Kişi; Gönderi sona eklendi).
+const _tabOrder = [_Tab.all, _Tab.news, _Tab.event, _Tab.club, _Tab.person, _Tab.post];
+
+String _tabLabel(AppLocalizations l, _Tab tab) => switch (tab) {
+      _Tab.all => l.searchAll,
+      _Tab.news => l.newsTypeNews,
+      _Tab.club => l.searchClub,
+      _Tab.event => l.newsTypeEvent,
+      _Tab.post => l.searchPost,
+      _Tab.person => l.searchPerson,
+    };
 
 _Tab _tabOf(String type) {
   switch (type) {
@@ -67,22 +74,22 @@ _Tab _tabOf(String type) {
   }
 }
 
-String _badgeOf(String type) {
+String _badgeOf(AppLocalizations l, String type) {
   switch (type) {
     case 'NEWS':
-      return 'Haber';
+      return l.newsTypeNews;
     case 'ANNOUNCEMENT':
-      return 'Duyuru';
+      return l.newsTypeAnnouncement;
     case 'COMMUNITY':
-      return 'Kulüp';
+      return l.searchClub;
     case 'EVENT':
     case 'EVENT_OFFICIAL':
-      return 'Etkinlik';
+      return l.newsTypeEvent;
     case 'POSTS':
     case 'POST':
-      return 'Gönderi';
+      return l.searchPost;
     default:
-      return 'Kişi';
+      return l.searchPerson;
   }
 }
 
@@ -131,14 +138,14 @@ _Hit _hitFromSearch(Map h) => _Hit(
       imageUrl: h['imageUrl'] as String?,
     );
 
-_Hit _hitFromUser(Map u) {
-  final sub = [u['faculty'], u['department'], if (u['classYear'] != null) '${u['classYear']}. sınıf']
+_Hit _hitFromUser(Map u, AppLocalizations l) {
+  final sub = [u['faculty'], u['department'], if (u['classYear'] != null) l.searchClassYear('${u['classYear']}')]
       .where((e) => e != null && '$e'.isNotEmpty)
       .join(' · ');
   return _Hit(
     type: 'USER',
     id: (u['id'] as num).toInt(),
-    title: '${u['displayName'] ?? 'Kullanıcı'}',
+    title: '${u['displayName'] ?? l.searchUserDefault}',
     snippet: sub.isEmpty ? null : sub,
     imageUrl: u['avatarUrl'] as String?,
   );
@@ -253,6 +260,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _run(String q) async {
     if (q.length < 2) return;
     final seq = ++_seq;
+    final l = context.l10n;
     setState(() {
       // Sorgu hemen kaydedilir: hata olursa "Yeniden dene" aynı sorguyu tekrarlayabilsin.
       _query = q;
@@ -291,7 +299,7 @@ class _SearchPageState extends State<SearchPage> {
       final users = (res[1] is Map ? res[1]['items'] : null) as List? ?? [];
       for (final u in users) {
         if (u is! Map || u['id'] == null) continue;
-        hits.add(_hitFromUser(u));
+        hits.add(_hitFromUser(u, l));
       }
       setState(() {
         _query = q;
@@ -316,6 +324,7 @@ class _SearchPageState extends State<SearchPage> {
     if (cool != null && DateTime.now().isBefore(cool)) return;
     final seq = _seq;
     final q = _query;
+    final l = context.l10n;
     setState(() {
       d.loading = true;
       d.error = null;
@@ -333,7 +342,7 @@ class _SearchPageState extends State<SearchPage> {
           final r = await api.get('/users/search?q=$enc&size=$_pageSize$c');
           if (!mounted || seq != _seq) return;
           for (final u in (r is Map ? r['items'] : null) as List? ?? []) {
-            if (u is Map && u['id'] != null) fresh.add(_hitFromUser(u));
+            if (u is Map && u['id'] != null) fresh.add(_hitFromUser(u, l));
           }
           next = (r is Map ? r['nextCursor'] as num? : null)?.toInt();
           if (next == null || next > 200) {
@@ -417,34 +426,44 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final active = _query.isNotEmpty || _loading || _error != null;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
+            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
             child: Row(children: [
-              BuIconButton(icon: LucideIcons.arrowLeft, onTap: () => Navigator.pop(context), tooltip: 'Geri'),
+              IcerikIconButton(
+                  icon: buDirIcon(context, LucideIcons.arrowLeft),
+                  label: l.authBack,
+                  shadow: true,
+                  onTap: () => Navigator.pop(context)),
               const SizedBox(width: 12),
               Expanded(child: _field(t)),
             ]),
           ),
           if (active)
             Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    for (final tab in _Tab.values)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 8),
-                        child: _chip(t, _tabLabels[tab]!, _tab == tab, () => _selectTab(tab)),
-                      ),
-                  ],
+              padding: const EdgeInsets.only(top: 6),
+              child: Semantics(
+                container: true,
+                label: l.icerikSearchTabs,
+                child: SizedBox(
+                  height: 44,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    cacheExtent: 800, // 6 çip: hepsi oluşturulsun (erişilebilirlik ağacında görünür)
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      for (final tab in _tabOrder)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: _chip(t, _tabLabel(l, tab), _tab == tab, () => _selectTab(tab)),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -457,14 +476,15 @@ class _SearchPageState extends State<SearchPage> {
   Widget _field(BuTokens t) {
     return Container(
       height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 6),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: t.pr, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: t.pr, width: 1.5),
+        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .12), spreadRadius: 4, blurRadius: 0)],
       ),
       child: Row(children: [
-        Icon(LucideIcons.search, size: 18, color: t.pr),
+        Icon(LucideIcons.search, size: 18, color: t.mut),
         const SizedBox(width: 10),
         Expanded(
           child: TextField(
@@ -476,11 +496,11 @@ class _SearchPageState extends State<SearchPage> {
             },
             onSubmitted: _submit,
             textInputAction: TextInputAction.search,
-            style: BuType.bodyStrong.copyWith(color: t.ink),
+            style: BuType.body.copyWith(fontSize: 16, height: 1.25, color: t.ink),
             cursorColor: t.pr,
             decoration: InputDecoration(
-              hintText: 'Haber, kulüp, etkinlik, gönderi, kişi ara',
-              hintStyle: BuType.body.copyWith(color: t.mut),
+              hintText: context.l10n.searchHint,
+              hintStyle: BuType.body.copyWith(fontSize: 16, height: 1.25, color: t.mut),
               isCollapsed: true,
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -493,25 +513,23 @@ class _SearchPageState extends State<SearchPage> {
         if (_ctrl.text.isNotEmpty)
           Semantics(
             button: true,
-            label: 'Aramayı temizle',
+            label: context.l10n.searchClear,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 _ctrl.clear();
                 _onChanged('');
               },
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(start: 8, top: 12, bottom: 12, end: 4),
-                child: Icon(LucideIcons.x, size: 18, color: t.mut),
-              ),
+              child: SizedBox(width: 44, height: 44, child: Icon(LucideIcons.x, size: 18, color: t.mut)),
             ),
-          ),
+          )
+        else
+          const SizedBox(width: 10),
       ]),
     );
   }
 
   Widget _chip(BuTokens t, String label, bool on, VoidCallback onTap) {
-    // Dokunma alanı 44 dp; görünen hap 36 dp.
     return Semantics(
       button: true,
       selected: on,
@@ -520,18 +538,14 @@ class _SearchPageState extends State<SearchPage> {
         onTap: onTap,
         child: Container(
           height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
-          child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: on ? t.ink : t.sf,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: on ? t.ink : t.bd),
-            ),
-            child: Text(label, style: BuType.label.copyWith(color: on ? t.bg : t.mut)),
+          decoration: BoxDecoration(
+            color: on ? t.ink : t.sf,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: on ? t.ink : t.bd),
           ),
+          child: Text(label, style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: on ? t.bg : t.mut)),
         ),
       ),
     );
@@ -539,18 +553,20 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _suggestions(BuTokens t) {
     if (_recent.isEmpty) {
-      return const EmptyView(
+      return EmptyView(
         icon: LucideIcons.search,
-        text: 'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.',
+        text: context.l10n.searchPrompt,
       );
     }
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
       children: [
         Row(children: [
           Expanded(
-            child: Text('SON ARAMALAR',
-                style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 6),
+              child: Text(context.l10n.searchRecent, style: icerikSectionStyle(t)),
+            ),
           ),
           InkWell(
             onTap: _clearRecent,
@@ -560,31 +576,67 @@ class _SearchPageState extends State<SearchPage> {
               child: Align(
                 alignment: AlignmentDirectional.centerEnd,
                 widthFactor: 1,
-                child: Text('Temizle', style: BuType.label.copyWith(color: t.pr)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(context.l10n.searchClearRecent,
+                      style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
+                ),
               ),
             ),
           ),
         ]),
-        const SizedBox(height: 4),
-        for (final q in _recent)
-          InkWell(
-            onTap: () => _useRecent(q),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Row(children: [
-                Icon(LucideIcons.history, size: 16, color: t.mut),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(q,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(color: t.ink)),
+        IcerikCard(
+          child: Column(children: [
+            for (var i = 0; i < _recent.length; i++)
+              InkWell(
+                onTap: () => _useRecent(_recent[i]),
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: i == 0 ? null : BoxDecoration(border: Border(top: BorderSide(color: _divider(t)))),
+                  child: Row(children: [
+                    Icon(LucideIcons.clock, size: 18, color: t.mut),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(_recent[i],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.bodyStrong.copyWith(fontSize: 15, color: t.ink)),
+                    ),
+                  ]),
                 ),
-              ]),
-            ),
-          ),
+              ),
+          ]),
+        ),
       ],
     );
+  }
+
+  Color _divider(BuTokens t) => t.bd.withValues(alpha: .6);
+
+  /// Tümü sekmesindeki grup başlığı ve etiketi.
+  String _groupLabel(AppLocalizations l, _Tab tab) => switch (tab) {
+        _Tab.news => l.icerikGroupNews,
+        _Tab.club => l.icerikGroupClub,
+        _Tab.event => l.icerikGroupEvent,
+        _Tab.post => l.icerikGroupPost,
+        _ => l.icerikGroupPerson,
+      };
+
+  Widget _section(BuTokens t, String label, int count, bool more, List<_Hit> hits) {
+    final l = context.l10n;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 6, bottom: 8, top: 12),
+        child: Text('$label · ${l.searchResultCount('${hits.length}${more ? '+' : ''}')}',
+            style: icerikSectionStyle(t)),
+      ),
+      IcerikCard(
+        child: Column(children: [
+          for (var i = 0; i < hits.length; i++) _row(t, hits[i], first: i == 0),
+        ]),
+      ),
+    ]);
   }
 
   Widget _results(BuTokens t) {
@@ -595,29 +647,30 @@ class _SearchPageState extends State<SearchPage> {
     final visible = paged ? (d?.hits ?? const <_Hit>[]) : _hits;
     if (paged ? (d == null || !d.loaded) : (_loading && _hits.isEmpty)) return const LoadingView();
     if (visible.isEmpty) {
-      return const EmptyView(icon: LucideIcons.searchX, text: 'Sonuç bulunamadı.');
+      return EmptyView(icon: LucideIcons.searchX, text: context.l10n.searchNoResults);
     }
+    final l = context.l10n;
     final more = paged && !(d?.done ?? true);
-    final count = '${visible.length}${more ? '+' : ''} SONUÇ';
+    final children = <Widget>[];
+    if (paged) {
+      children.add(_section(t, _groupLabel(l, _tab), visible.length, more, visible));
+      children.add(_footer(t, d!));
+    } else {
+      for (final tab in _tabOrder) {
+        if (tab == _Tab.all) continue;
+        final group = [for (final h in visible) if (_tabOf(h.type) == tab) h];
+        if (group.isEmpty) continue;
+        children.add(_section(t, _groupLabel(l, tab), group.length, false, group));
+      }
+    }
     return RefreshIndicator(
+      color: t.pr,
       onRefresh: () => paged ? _retryTab(_tab) : _run(_query),
-      child: ListView.separated(
+      child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        itemCount: visible.length + 2,
-        separatorBuilder: (_, i) => i == 0 ? const SizedBox.shrink() : Divider(height: 1, color: t.bd),
-        itemBuilder: (_, i) {
-          if (i == 0) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
-              child: Text(count,
-                  style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
-            );
-          }
-          if (i == visible.length + 1) return paged ? _footer(t, d!) : const SizedBox.shrink();
-          return _row(t, visible[i - 1]);
-        },
+        padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 24),
+        children: children,
       ),
     );
   }
@@ -638,11 +691,11 @@ class _SearchPageState extends State<SearchPage> {
           if (limited)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Text('Çok fazla istek gönderildi, birkaç saniye bekleyin.',
+              child: Text(context.l10n.searchTooMany,
                   textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
             ),
           BuButton(
-            label: 'Yeniden dene',
+            label: context.l10n.commonRetry,
             compact: true,
             kind: BuButtonKind.outline,
             onPressed: () {
@@ -662,50 +715,103 @@ class _SearchPageState extends State<SearchPage> {
     return const SizedBox(height: 4);
   }
 
-  Widget _row(BuTokens t, _Hit h) {
+  /// Tarih "12 Ekim" (bu yıl) ya da "12 Ekim 2025".
+  String _shortDate(String? iso) {
+    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+    if (d == null) return newsLocalDate(context, iso);
+    final base = '${d.day} ${newsMonthName(context, d.month)}';
+    return d.year == DateTime.now().year ? base : '$base ${d.year}';
+  }
+
+  Widget _row(BuTokens t, _Hit h, {required bool first}) {
     final person = h.type == 'USER';
-    final date = h.date == null ? '' : niceDate(h.date);
+    final isNews = _tabOf(h.type) == _Tab.news;
     final snip = (h.snippet ?? '').trim();
+    final badge = _badgeOf(context.l10n, h.type);
+    String sub;
+    if (person) {
+      sub = snip;
+    } else if (isNews) {
+      sub = h.date == null ? badge : '$badge · ${_shortDate(h.date)}';
+    } else {
+      final parts = [badge, if (h.date != null) _shortDate(h.date), if (snip.isNotEmpty) snip];
+      sub = parts.join(' · ');
+    }
     return InkWell(
+      key: ValueKey('search-hit-${h.type}-${h.id}'),
       onTap: () => _open(h),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 64),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: first ? null : BoxDecoration(border: Border(top: BorderSide(color: _divider(t)))),
+        child: Row(children: [
           if (person)
             BuAvatar(name: h.title, url: h.imageUrl, size: 48)
           else
             Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-              child: Icon(_iconOf(h.type), size: 20, color: t.pr),
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
+              child: Icon(_iconOf(h.type), size: 22, color: t.pr),
             ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                BuBadge(_badgeOf(h.type), soft: _tabOf(h.type) != _Tab.news),
-                if (date.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text(date, style: BuType.micro.copyWith(color: t.mut)),
-                ],
-              ]),
-              const SizedBox(height: 6),
-              Text(h.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
-              if (snip.isNotEmpty) ...[
-                const SizedBox(height: 3),
-                Text(snip,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.caption.copyWith(height: 1.4, color: t.mut)),
-              ],
+              Text.rich(
+                _highlight(h.title, _query, BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink),
+                    BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.onSoft, backgroundColor: t.soft)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (sub.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(sub,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BuType.caption.copyWith(fontSize: 12.5, color: t.mut)),
+                ),
             ]),
           ),
         ]),
       ),
     );
   }
+}
+
+/// Büyük/küçük harf ve Türkçe i/İ/ı/I farkını yok sayan, uzunluğu koruyan sadeleştirme.
+String _fold(String s) {
+  final b = StringBuffer();
+  for (final u in s.runes) {
+    final c = String.fromCharCode(u);
+    b.write(switch (c) {
+      'İ' => 'i',
+      'I' => 'ı',
+      'ı' => 'ı',
+      _ => c.toLowerCase().length == c.length ? c.toLowerCase() : c,
+    });
+  }
+  return b.toString();
+}
+
+/// [text] içinde [query] geçen yerleri [mark] stiliyle vurgular.
+TextSpan _highlight(String text, String query, TextStyle base, TextStyle mark) {
+  final q = query.trim();
+  if (q.length < 2) return TextSpan(text: text, style: base);
+  final ft = _fold(text);
+  final fq = _fold(q);
+  if (ft.length != text.length) return TextSpan(text: text, style: base);
+  final spans = <TextSpan>[];
+  var i = 0;
+  while (i < text.length) {
+    final at = ft.indexOf(fq, i);
+    if (at < 0) {
+      spans.add(TextSpan(text: text.substring(i)));
+      break;
+    }
+    if (at > i) spans.add(TextSpan(text: text.substring(i, at)));
+    spans.add(TextSpan(text: text.substring(at, at + fq.length), style: mark));
+    i = at + fq.length;
+  }
+  return TextSpan(style: base, children: spans);
 }

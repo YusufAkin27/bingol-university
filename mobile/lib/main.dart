@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'core/analytics.dart';
 import 'core/api.dart';
@@ -19,9 +20,12 @@ import 'core/session.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
 import 'features/auth/login_page.dart';
+import 'features/auth/register_page.dart';
+import 'features/auth/welcome_page.dart';
 import 'features/auth/permissions_page.dart';
 import 'features/shell/app_shell.dart';
 import 'features/system/gate_views.dart';
+import 'features/system/splash_screen.dart';
 
 /// Yakalanmamış hatayı yalnızca tür adıyla (kişisel veri/mesaj içermeden) analitiğe yazar.
 void _reportError(Object error, StackTrace? stack) {
@@ -187,8 +191,8 @@ class BingolApp extends StatelessWidget {
           builder: (context, _) => session.accessBlocked.value
               ? AccessBlockedScreen(onRetry: session.dismissAccessBlocked)
               : switch (session.state) {
-                  SessionState.loading => const _Splash(),
-                  SessionState.signedOut => LoginPage(session: session),
+                  SessionState.loading => const SplashScreen(),
+                  SessionState.signedOut => _SignedOutRoot(session: session),
                   // İlk girişte (cihaz başına bir kez) izin sayfası; sonra kabuk.
                   SessionState.signedIn => PostLoginGate(
                       onNotificationsGranted: push == null ? null : () => push!.onSignedIn(),
@@ -201,11 +205,56 @@ class BingolApp extends StatelessWidget {
   }
 }
 
-class _Splash extends StatelessWidget {
-  const _Splash();
+/// Çıkış yapmış kullanıcı: cihazda ilk kez açılıyorsa karşılama ekranı, sonrasında doğrudan giriş.
+class _SignedOutRoot extends StatefulWidget {
+  const _SignedOutRoot({required this.session});
+
+  final Session session;
+
+  @override
+  State<_SignedOutRoot> createState() => _SignedOutRootState();
+}
+
+class _SignedOutRootState extends State<_SignedOutRoot> {
+  static const _key = 'welcome_seen';
+  final _storage = const FlutterSecureStorage();
+  bool? _seen;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    var seen = true; // okunamazsa karşılama ile engelleme
+    try {
+      seen = (await _storage.read(key: _key)) == '1';
+    } catch (_) {}
+    if (mounted) setState(() => _seen = seen);
+  }
+
+  Future<void> _finish({required bool register}) async {
+    try {
+      await _storage.write(key: _key, value: '1');
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _seen = true);
+    if (register) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session)));
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final seen = _seen;
+    if (seen == null) return const SplashScreen();
+    if (!seen) {
+      return WelcomePage(onLogin: () => _finish(register: false), onRegister: () => _finish(register: true));
+    }
+    return LoginPage(session: widget.session);
   }
 }

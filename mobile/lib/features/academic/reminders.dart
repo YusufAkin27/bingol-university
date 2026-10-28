@@ -2,11 +2,66 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/notify/local_reminders.dart';
+import '../../l10n/app_localizations.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
+
+/// Ders programı ekranlarının dile duyarlı yardımcıları (1=Pazartesi..7=Pazar).
+String acadDayName(AppLocalizations l, int d) => switch (d) {
+      1 => l.acadTimeDay1,
+      2 => l.acadTimeDay2,
+      3 => l.acadTimeDay3,
+      4 => l.acadTimeDay4,
+      5 => l.acadTimeDay5,
+      6 => l.acadTimeDay6,
+      _ => l.acadTimeDay7,
+    };
+
+String acadDayShort(AppLocalizations l, int d) => switch (d) {
+      1 => l.acadTimeDayShort1,
+      2 => l.acadTimeDayShort2,
+      3 => l.acadTimeDayShort3,
+      4 => l.acadTimeDayShort4,
+      5 => l.acadTimeDayShort5,
+      6 => l.acadTimeDayShort6,
+      _ => l.acadTimeDayShort7,
+    };
+
+String acadColorName(AppLocalizations l, String key) => switch (key) {
+      'red' => l.acadTimeColorRed,
+      'orange' => l.acadTimeColorOrange,
+      'amber' => l.acadTimeColorAmber,
+      'green' => l.acadTimeColorGreen,
+      'teal' => l.acadTimeColorTeal,
+      'blue' => l.acadTimeColorBlue,
+      'indigo' => l.acadTimeColorIndigo,
+      'purple' => l.acadTimeColorPurple,
+      'pink' => l.acadTimeColorPink,
+      _ => l.acadTimeColorGray,
+    };
+
+String acadExamTypeName(AppLocalizations l, String t) => switch (t) {
+      'VIZE' => l.acadTimeExamVize,
+      'FINAL' => l.acadTimeExamFinal,
+      'BUT' => l.acadTimeExamBut,
+      'QUIZ' => l.acadTimeExamQuiz,
+      'ODEV' => l.acadTimeExamOdev,
+      _ => l.acadTimeExamOther,
+    };
+
+/// "28 Ekim 2026" (dile göre ay adı); [d] duvar saati (UTC işaretli) olabilir.
+String acadDate(BuildContext context, DateTime d) =>
+    DateFormat('d MMMM y', Localizations.localeOf(context).toString()).format(d);
+
+/// "28 Ekim, Çarşamba" (dile göre).
+String acadLongDate(BuildContext context, DateTime d) =>
+    DateFormat('d MMMM, EEEE', Localizations.localeOf(context).toString()).format(d);
 
 /// Yerel hatırlatmalar (sunucu ders/sınav bildirimi göndermez). Plan saf Dart'ta hesaplanır,
 /// zamanlama platform kanalıyla (Android: AlarmManager, yaklaşık zaman) yapılır.
@@ -81,7 +136,9 @@ List<PlannedReminder> planReminders({
   required DateTime now,
   int horizonDays = 14,
   int maxCount = 60,
+  AppLocalizations? l10n,
 }) {
+  final l = l10n ?? lookupAppLocalizations(const Locale('tr'));
   final out = <PlannedReminder>[];
   final nowWall = istanbulWall(now);
   final today = DateTime.utc(nowWall.year, nowWall.month, nowWall.day);
@@ -97,24 +154,24 @@ List<PlannedReminder> planReminders({
           _hash('c${s.course.id}:${s.session.id ?? s.session.startMin}:${isoDate(day)}'),
           at,
           s.course.name,
-          '${settings.classLeadMin} dk sonra başlıyor (${s.session.start}$room)',
+          l.acadTimeRemClass(settings.classLeadMin.toString(), s.session.start, room),
         ));
       }
     }
   }
   for (final e in exams) {
     final room = e.room != null ? ' · ${e.room}' : '';
-    final label = '${examTypeLabel(e.type)}: ${e.title}';
+    final label = l.acadTimeRemExamLabel(acadExamTypeName(l, e.type), e.title);
     if (settings.examDayBefore) {
       final at = e.startsAt.subtract(const Duration(days: 1));
       if (at.isAfter(now)) {
-        out.add(PlannedReminder(_hash('e${e.id}:d'), at, label, 'Yarın ${two(istanbulWall(e.startsAt).hour)}:${two(istanbulWall(e.startsAt).minute)}$room'));
+        out.add(PlannedReminder(_hash('e${e.id}:d'), at, label, l.acadTimeRemExamTomorrow('${two(istanbulWall(e.startsAt).hour)}:${two(istanbulWall(e.startsAt).minute)}', room)));
       }
     }
     if (settings.examHourBefore) {
       final at = e.startsAt.subtract(const Duration(hours: 1));
       if (at.isAfter(now)) {
-        out.add(PlannedReminder(_hash('e${e.id}:h'), at, label, '1 saat sonra başlıyor$room'));
+        out.add(PlannedReminder(_hash('e${e.id}:h'), at, label, l.acadTimeRemExamHour(room)));
       }
     }
   }
@@ -216,7 +273,9 @@ class ReminderService {
     final s = settings ?? await store.load();
     final tt = await api.timetable();
     final exams = await api.upcomingExams(days: 30);
-    return planReminders(courses: tt.courses, semester: tt.semester, exams: exams, settings: s, now: academicClock());
+    // Bağlam yok: kayıtlı uygulama dilinde (yoksa Türkçe) bildirim metni üretilir.
+    final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
+    return planReminders(courses: tt.courses, semester: tt.semester, exams: exams, settings: s, now: academicClock(), l10n: l);
   }
 
   static Future<void> sync(AcademicApi api, {ReminderSettings? settings}) async {

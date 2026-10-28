@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../l10n/app_localizations.dart';
 import 'analytics.dart';
 import 'api.dart';
 import 'badges.dart';
 import 'identifier.dart';
+import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
 import 'realtime/chat_realtime.dart';
@@ -289,10 +292,12 @@ class Session extends ChangeNotifier {
 
 /// Hata kodlarına kullanıcı metni: sunucu zaten istek dilinde `message` döner; yalnızca ağ hatası yerelde.
 String errorText(Object e) {
+  // Bağlamsız çağrılar için etkin uygulama dili (yoksa Türkçe).
+  final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
   if (e is ApiError) {
-    if (e.isNetwork) return 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.';
+    if (e.isNetwork) return l.coreErrNetwork;
     if (e.message.isNotEmpty) return e.message;
-    if (e.status == 429) return 'Çok fazla deneme. Lütfen biraz bekleyin.';
+    if (e.status == 429) return l.coreErrTooMany;
   }
-  return 'Bir sorun oluştu. Lütfen tekrar deneyin.';
+  return l.coreErrGeneric;
 }

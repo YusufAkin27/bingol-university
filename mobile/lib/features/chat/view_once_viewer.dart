@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
@@ -74,10 +75,9 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
         _loading = false;
         _network = e.isNetwork;
         _error = switch (e.status) {
-          410 => 'Bu fotoğraf artık görüntülenemez.',
-          403 => 'Kendi gönderdiğiniz tek gösterimlik fotoğrafı açamazsınız.',
-          0 =>
-            'Fotoğraf yüklenemedi. Bağlantınızı kontrol edin. Tek gösterimlik olduğu için yeniden açılamayabilir.',
+          410 => context.l10n.chatMiscOnceGone,
+          403 => context.l10n.chatMiscOnceOwn,
+          0 => context.l10n.chatMiscOnceNetwork,
           _ => errorText(e),
         };
       });
@@ -85,8 +85,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error =
-            'Fotoğraf gösterilemedi. Tek gösterimlik olduğu için yeniden açılamayabilir.';
+        _error = context.l10n.chatMiscOnceShowFailed;
       });
     }
   }
@@ -139,7 +138,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
             ),
             child: Row(children: [
               IconButton(
-                tooltip: 'Kapat',
+                tooltip: context.l10n.chatMiscClose,
                 color: Colors.white,
                 icon: const Icon(LucideIcons.x),
                 onPressed: () => Navigator.of(context).maybePop(),
@@ -148,7 +147,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
               const OnceBadge(color: Colors.white, size: 24),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Tek gösterimlik',
+                child: Text(context.l10n.chatMiscOnceTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: BuType.label.copyWith(color: Colors.white)),
@@ -178,7 +177,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _load,
-                child: Text('Yeniden dene',
+                child: Text(context.l10n.chatMiscRetry,
                     style: BuType.bodyStrong.copyWith(color: Colors.white)),
               ),
             ],
@@ -194,8 +193,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
         fit: BoxFit.contain,
         errorBuilder: (c, e, s) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Text(
-              'Fotoğraf gösterilemedi. Tek gösterimlik olduğu için yeniden açılamayabilir.',
+          child: Text(context.l10n.chatMiscOnceShowFailed,
               textAlign: TextAlign.center,
               style: BuType.body.copyWith(color: Colors.white70)),
         ),

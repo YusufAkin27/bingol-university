@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/identifier.dart';
@@ -22,7 +23,19 @@ String? validateNewPassword(String? v) {
   return null;
 }
 
-/// Kırmızı "hero" başlıklı, kaydırılabilir kimlik ekranı iskeleti (tasarım: Main / A-Register).
+/// Dile göre hata metni veren yeni şifre doğrulayıcı (kuralları [validateNewPassword] ile aynı).
+String? Function(String?) newPasswordValidator(BuildContext context) {
+  final l = context.l10n;
+  return (v) {
+    final s = v ?? '';
+    if (s.length < 8) return l.authPwMinErr;
+    if (s.length > 72) return l.authPwMaxErr;
+    return null;
+  };
+}
+
+/// Kimlik ekranları iskeleti: düz zemin, sağ üstte soluk dekor daire, sola hizalı başlık. Üstte geri düğmesi
+/// (ve isteğe bağlı sağda [trailing] + altında [progress]) ya da küçük logo; klavye açılınca logo gizlenir.
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
     super.key,
@@ -31,6 +44,9 @@ class AuthScaffold extends StatelessWidget {
     required this.children,
     this.showBack = false,
     this.minimal = false,
+    this.trailing,
+    this.progress,
+    this.icon,
   });
 
   final String title;
@@ -38,24 +54,42 @@ class AuthScaffold extends StatelessWidget {
   final List<Widget> children;
   final bool showBack;
 
-  /// Gradyan başlık yerine düz zemin: küçük logo, sola hizalı başlık, geniş boşluk (giriş sayfası).
+  /// Eski imza uyumu için korunur; tüm kimlik ekranları aynı (sade) düzeni kullanır.
   final bool minimal;
+
+  /// Geri düğmesinin karşısında (sağda) görünen küçük metin/parça (ör. "Adım 1/3").
+  final Widget? trailing;
+
+  /// Üst satırın altındaki ilerleme çubuğu.
+  final Widget? progress;
+
+  /// Başlığın üstünde görünen ikon karosu (şifre sıfırlama / kod ekranları).
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final top = MediaQuery.of(context).padding.top;
-    final side = showBack ? 24.0 : 28.0;
-
-    if (minimal) {
-      return Scaffold(
-        backgroundColor: t.bg,
-        body: LayoutBuilder(
-          builder: (context, c) => SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.fromLTRB(28, top + (showBack ? 12 : 48), 28, 32),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: c.maxHeight - top - (showBack ? 44 : 80)),
+    final keyboard = MediaQuery.of(context).viewInsets.bottom > 0;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Stack(
+        children: [
+          PositionedDirectional(
+            top: -120,
+            end: -120,
+            child: ExcludeSemantics(
+              child: Container(
+                width: 320,
+                height: 320,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(28, top + (showBack ? 12 : (keyboard ? 16 : 36)), 28, 28),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
@@ -63,44 +97,66 @@ class AuthScaffold extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (showBack)
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Semantics(
-                            button: true,
-                            label: context.l10n.authBack,
-                            child: Material(
-                              color: t.soft,
-                              shape: const CircleBorder(),
-                              child: InkWell(
-                                customBorder: const CircleBorder(),
-                                onTap: () => Navigator.maybePop(context),
-                                child: SizedBox(
-                                  width: 44,
-                                  height: 44,
-                                  child: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.onSoft, size: 20),
+                        Row(
+                          children: [
+                            Semantics(
+                              button: true,
+                              label: context.l10n.authBack,
+                              child: Material(
+                                color: t.sf,
+                                shape: CircleBorder(side: BorderSide(color: t.bd)),
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: () => Navigator.maybePop(context),
+                                  child: SizedBox(
+                                    width: 44,
+                                    height: 44,
+                                    child: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink, size: 20),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                            const Spacer(),
+                            if (trailing != null) trailing!,
+                          ],
                         )
-                      else
+                      else if (!keyboard)
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: SvgPicture.asset('assets/branding/mark.svg',
+                              width: 48, height: 48, semanticsLabel: 'BÜ Kampüs'),
+                        ),
+                      if (progress != null) ...[const SizedBox(height: 20), progress!],
+                      SizedBox(height: showBack ? 28 : (keyboard ? 12 : 32)),
+                      if (icon != null) ...[
                         Align(
                           alignment: AlignmentDirectional.centerStart,
                           child: Container(
-                            width: 52,
-                            height: 52,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(color: kBrandRed, borderRadius: BorderRadius.circular(16)),
-                            child: const BuMark(height: 32),
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: t.sf,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: t.bd),
+                              boxShadow: [
+                                BoxShadow(color: t.ink.withValues(alpha: 0.12), blurRadius: 20, offset: const Offset(0, 8), spreadRadius: -12),
+                              ],
+                            ),
+                            child: Icon(icon, color: t.pr, size: 26),
                           ),
                         ),
-                      SizedBox(height: showBack ? 28 : 40),
-                      Text(title, style: BuType.display.copyWith(color: t.ink, height: 1.15)),
+                        const SizedBox(height: 24),
+                      ],
+                      Text(
+                        title,
+                        style: BuType.display.copyWith(
+                            color: t.ink, fontSize: keyboard ? 28 : 30, height: 1.12, letterSpacing: -0.5, fontWeight: FontWeight.w800),
+                      ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 8),
-                        Text(subtitle!, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+                        Text(subtitle!, style: BuType.body.copyWith(color: t.mut, fontSize: 15, height: 1.5)),
                       ],
-                      const SizedBox(height: 36),
+                      SizedBox(height: keyboard ? 20 : 28),
                       ...children,
                     ],
                   ),
@@ -108,81 +164,13 @@ class AuthScaffold extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: LayoutBuilder(
-        builder: (context, c) => SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: c.maxHeight),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: EdgeInsets.fromLTRB(side, top + (showBack ? 12 : 24), side, 28),
-                  decoration: BoxDecoration(
-                    gradient: t.hero,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (showBack)
-                        Semantics(
-                          button: true,
-                          label: context.l10n.authBack,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => Navigator.maybePop(context),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: Colors.white, size: 20),
-                            ),
-                          ),
-                        )
-                      else
-                        const BuMark(height: 56),
-                      SizedBox(height: showBack ? 22 : 28),
-                      Text(
-                        title,
-                        style: BuType.display.copyWith(color: Colors.white, height: 1.15),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          subtitle!,
-                          style: (showBack ? BuType.label : BuType.body).copyWith(color: Colors.white.withValues(alpha: 0.95), height: 1.45),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(side, 24, side, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: children,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
 }
 
-/// Tasarımdaki 54 px yüksek, yuvarlak alan görünümü (soluk ipucu metni + öncü simge).
+/// 56 px yüksek, 16 px yuvarlak alan görünümü (soluk ipucu metni + öncü simge); odakta kırmızı çerçeve.
 InputDecoration authFieldDecoration(
   BuildContext context, {
   required String hint,
@@ -190,14 +178,81 @@ InputDecoration authFieldDecoration(
   Widget? suffix,
 }) {
   final t = context.bu;
+  OutlineInputBorder b(Color c, [double w = 1]) =>
+      OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: w));
   return InputDecoration(
     hintText: hint,
-    hintStyle: BuType.body.copyWith(color: t.mut),
-    prefixIcon: Icon(icon, size: 18, color: t.mut),
+    hintStyle: BuType.body.copyWith(color: t.mut, fontSize: 15),
+    prefixIcon: Icon(icon, size: 20, color: t.mut),
     suffixIcon: suffix,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-    constraints: const BoxConstraints(minHeight: 54),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+    constraints: const BoxConstraints(minHeight: 56),
+    border: b(t.bd),
+    enabledBorder: b(t.bd),
+    focusedBorder: b(t.pr, 2),
+    errorBorder: b(t.danger),
+    focusedErrorBorder: b(t.danger, 2),
   );
+}
+
+/// Ana eylem düğmesi: 56 px, 18 px yuvarlak, altında yumuşak kırmızı gölge. İçte gerçek [FilledButton].
+class AuthButton extends StatelessWidget {
+  const AuthButton({super.key, required this.onPressed, required this.label, this.busy = false});
+
+  final VoidCallback? onPressed;
+  final String label;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: 0.45), blurRadius: 22, offset: const Offset(0, 10), spreadRadius: -10)],
+      ),
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        ),
+        onPressed: onPressed,
+        child: BusyLabel(busy: busy, label: label),
+      ),
+    );
+  }
+}
+
+/// Parçalı ilerleme çubuğu (kayıt adımları).
+class AuthProgress extends StatelessWidget {
+  const AuthProgress({super.key, required this.step, required this.total});
+
+  final int step;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return ExcludeSemantics(
+      child: Row(
+        children: [
+          for (var i = 0; i < total; i++) ...[
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                height: 5,
+                decoration: BoxDecoration(
+                  color: i <= step ? t.pr : t.bd,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            if (i < total - 1) const SizedBox(width: 6),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 /// Şifre alanı: göster/gizle düğmeli.
@@ -281,9 +336,6 @@ class IdentifierField extends StatelessWidget {
           style: BuType.body.copyWith(color: t.ink),
           onFieldSubmitted: (_) => onSubmitted?.call(),
           decoration: deco.copyWith(
-            helperText: '226051015 ya da ad.soyad@bingol.edu.tr',
-            helperMaxLines: 2,
-            helperStyle: BuType.caption.copyWith(color: t.mut),
             suffixText: isStudentNumberInput(value.text) ? '@bingol.edu.tr' : null,
             suffixStyle: BuType.body.copyWith(color: t.mut),
           ),
@@ -363,6 +415,36 @@ class PasswordStrength extends StatelessWidget {
           Text(label, style: BuType.caption.copyWith(color: color)),
         ],
       ),
+    );
+  }
+}
+
+/// Şifre kuralı satırı: sağlanınca yeşil onay, aksi halde boş halka (renge ek olarak metin).
+class PasswordRule extends StatelessWidget {
+  const PasswordRule({super.key, required this.ok, required this.label});
+
+  final bool ok;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final c = ok ? Colors.green.shade700 : t.mut;
+    return Row(
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ok ? Colors.green.withValues(alpha: 0.15) : null,
+            border: ok ? null : Border.all(color: t.bd, width: 1.5),
+          ),
+          child: ok ? Icon(LucideIcons.check, size: 12, color: c) : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Text(label, style: BuType.body.copyWith(color: c, fontSize: 14))),
+      ],
     );
   }
 }

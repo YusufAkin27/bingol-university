@@ -10,9 +10,7 @@ import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/polls/poll_routes.dart';
 import '../../features/posts/post_routes.dart';
-import '../../features/posts/social_api.dart';
 import '../../features/profile/user_profile_page.dart';
-import '../../features/stories/story_viewer_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
 import '../api.dart';
@@ -71,7 +69,7 @@ class PushRouter {
         push(NewsDetailPage(session: s, item: <String, dynamic>{'id': id}));
         return true;
       case PushDest.post:
-        await openPostDetail(ctx, s, id!, focusCommentId: t.commentId);
+        await openPostDetail(ctx, s, id!);
         return true;
       case PushDest.poll:
         await openPollDetail(ctx, s, id!);
@@ -79,8 +77,6 @@ class PushRouter {
       case PushDest.user:
         await openUserProfile(ctx, s, userId: id!);
         return true;
-      case PushDest.story:
-        return _openStory(nav, s, id!);
       case PushDest.deptAnnouncement:
         push(AnnouncementDetailPage(session: s, id: id!));
         return true;
@@ -100,21 +96,5 @@ class PushRouter {
       case PushDest.notifications:
         return false;
     }
-  }
-
-  /// Hikâye sahibinin halkasını bulup oynatıcıyı açar; halka yoksa (süresi doldu) profiline düşer.
-  static Future<bool> _openStory(NavigatorState nav, Session s, int userId) async {
-    try {
-      final groups = await SocialApi(s).tray();
-      final i = groups.indexWhere((g) => g.userId == userId);
-      if (i >= 0) {
-        await nav.push<void>(MaterialPageRoute<void>(
-            builder: (_) => StoryViewerPage(session: s, groups: groups, initialGroup: i)));
-        return true;
-      }
-    } catch (_) {}
-    if (!nav.mounted) return false;
-    await openUserProfile(nav.context, s, userId: userId);
-    return true;
   }
 }

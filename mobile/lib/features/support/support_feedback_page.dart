@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -75,7 +76,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final s = _subject.text.trim();
     final m = _message.text.trim();
     if (s.isEmpty || m.isEmpty) {
-      setState(() => _formError = 'Konu ve mesaj alanlarını doldurun.');
+      setState(() => _formError = context.l10n.supportFillFields);
       return;
     }
     setState(() {
@@ -92,14 +93,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       _subject.clear();
       _message.clear();
-      supportSnack(context, 'Geri bildiriminiz için teşekkürler.');
+      supportSnack(context, context.l10n.supportFeedbackThanks);
       setState(() => _busy = false);
       _loadMine(reset: true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _formError = supportError(e);
+        _formError = supportError(context, e);
       });
     }
   }
@@ -110,30 +111,30 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: 'Geri bildirim', onBack: () => Navigator.pop(context)),
+        BuHeader(title: context.l10n.supportFeedbackTitle, onBack: () => Navigator.pop(context)),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => _loadMine(reset: true),
             child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 32), children: [
-              const SupportLabel('KATEGORİ', form: true),
+              SupportLabel(context.l10n.supportLabelCategory, form: true),
               SupportChoices(
-                  options: supportFeedbackCategories,
+                  options: supportFeedbackCategories(context.l10n),
                   value: _category,
                   onChanged: (v) => setState(() => _category = v)),
-              const SupportLabel('KONU', form: true),
-              SupportField(controller: _subject, hint: 'Kısaca konu', maxLength: 120),
-              const SupportLabel('MESAJ', form: true),
+              SupportLabel(context.l10n.supportLabelSubject, form: true),
+              SupportField(controller: _subject, hint: context.l10n.supportHintSubject, maxLength: 120),
+              SupportLabel(context.l10n.supportLabelMessage, form: true),
               SupportField(
-                  controller: _message, hint: 'Görüşünüzü yazın', maxLength: 2000, minLines: 4, maxLines: 8),
+                  controller: _message, hint: context.l10n.supportHintFeedback, maxLength: 2000, minLines: 4, maxLines: 8),
               if (_formError != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(_formError!, style: BuType.caption.copyWith(color: t.danger)),
                 ),
               const SizedBox(height: 16),
-              BuButton(label: 'Gönder', icon: LucideIcons.send, busy: _busy, onPressed: _submit),
-              const SupportLabel('GÖNDERDİKLERİM', form: true),
-              ..._mineList(t),
+              BuButton(label: context.l10n.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
+              SupportLabel(context.l10n.supportLabelMine, form: true),
+              ..._mineList(context, t),
             ]),
           ),
         ),
@@ -141,7 +142,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
 
-  List<Widget> _mineList(BuTokens t) {
+  List<Widget> _mineList(BuildContext context, BuTokens t) {
     if (_loadingMine) {
       return [const Padding(padding: EdgeInsets.all(24), child: LoadingView())];
     }
@@ -156,9 +157,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
     }
     if (_mine.isEmpty) {
       return [
-        const SizedBox(
+        SizedBox(
             height: 160,
-            child: EmptyView(icon: LucideIcons.messageCircle, text: 'Henüz geri bildirim göndermediniz.'))
+            child: EmptyView(icon: LucideIcons.messageCircle, text: context.l10n.supportNoFeedback))
       ];
     }
     return [
@@ -177,7 +178,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 SupportFeedbackPill(f['status'] as String?),
               ]),
               const SizedBox(height: 2),
-              Text('${supportFeedbackCategories[f['category']] ?? 'Diğer'} · ${niceDate(f['createdAt'] as String?)}',
+              Text('${supportFeedbackCategories(context.l10n)[f['category']] ?? context.l10n.supportCatOther} · ${niceDate(f['createdAt'] as String?)}',
                   style: BuType.caption.copyWith(color: t.mut)),
               const SizedBox(height: 6),
               Text('${f['message'] ?? ''}', style: BuType.caption.copyWith(height: 1.4, color: t.ink)),
@@ -196,7 +197,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (_next != null)
         Center(
           child: BuButton(
-              label: 'Daha fazla', kind: BuButtonKind.outline, compact: true, busy: _more, onPressed: _loadMine),
+              label: context.l10n.supportMore, kind: BuButtonKind.outline, compact: true, busy: _more, onPressed: _loadMine),
         ),
     ];
   }

@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'club_actions.dart';
+import 'kulup_widgets.dart';
 
 /// Kulüp üyelerini yönetme: arama, rol değiştirme (yalnız sahip), çıkarma, yasaklama.
 /// Pop sonucu: değişiklik olduysa true.
 class ClubMembersPage extends StatefulWidget {
-  const ClubMembersPage({super.key, required this.session, required this.communityId, required this.myRole});
+  const ClubMembersPage({
+    super.key,
+    required this.session,
+    required this.communityId,
+    required this.myRole,
+    this.clubName,
+    this.memberCount,
+  });
 
   final Session session;
   final int communityId;
   final String? myRole;
+
+  /// Başlık altı satırı için (isteğe bağlı): "Kulüp adı · N üye".
+  final String? clubName;
+  final int? memberCount;
 
   @override
   State<ClubMembersPage> createState() => _ClubMembersPageState();
@@ -72,14 +85,13 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
   void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   Future<void> _remove(Map<String, dynamic> m, {required bool ban}) async {
-    final name = (m['displayName'] ?? 'Kullanıcı').toString();
+    final l = context.l10n;
+    final name = (m['displayName'] ?? l.clubMgmtUser).toString();
     final ok = await confirmDialog(
       context,
-      title: ban ? 'Yasakla' : 'Kulüpten çıkar',
-      message: ban
-          ? '$name kulüpten çıkarılsın ve bir daha katılamasın mı?'
-          : '$name kulüpten çıkarılsın mı? Kulüp sohbetinden de düşer.',
-      confirmLabel: ban ? 'Yasakla' : 'Çıkar',
+      title: ban ? l.clubMgmtBan : l.clubMgmtRemoveFromClub,
+      message: ban ? l.clubMgmtBanMessage(name) : l.clubMgmtRemoveMessage(name),
+      confirmLabel: ban ? l.clubMgmtBan : l.clubMgmtRemoveConfirm,
       danger: true,
     );
     if (!ok || !mounted) return;
@@ -124,7 +136,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     } else if (_error != null && _items.isEmpty) {
       body = ErrorView(error: _error!, onRetry: () => _load(reset: true));
     } else if (list.isEmpty) {
-      body = const EmptyView(icon: LucideIcons.users, text: 'Üye bulunamadı.');
+      body = EmptyView(icon: LucideIcons.users, text: context.l10n.clubMgmtNoMembers);
     } else {
       body = ListView.separated(
         controller: _scroll,
@@ -148,10 +160,16 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
         backgroundColor: t.bg,
         body: Column(
           children: [
-            BuHeader(title: 'Üyeler', onBack: () => Navigator.pop(context, _changed)),
+            BuHeader(
+              title: context.l10n.clubMgmtMembersTitle,
+              subtitle: (widget.clubName ?? '').isEmpty
+                  ? null
+                  : context.l10n.kulupdetayMembersSubtitle(widget.clubName!, '${widget.memberCount ?? _items.length}'),
+              onBack: () => Navigator.pop(context, _changed),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: BuSearchField(hint: 'Üye ara', onChanged: (v) => setState(() => _query = v.trim())),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+              child: BuSearchField(hint: context.l10n.clubMgmtSearchMember, onChanged: (v) => setState(() => _query = v.trim())),
             ),
             Expanded(child: body),
           ],
@@ -166,29 +184,38 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     final target = role == 'OWNER';
     final canAct = !self && !target && (_isOwner || role == 'MEMBER');
     return BuCard(
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 6, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
       child: Row(
         children: [
-          BuAvatar(name: m['displayName']?.toString(), url: m['avatarUrl']?.toString(), size: 38),
-          const SizedBox(width: 10),
+          KulupAvatar(name: m['displayName']?.toString(), url: m['avatarUrl']?.toString(), size: 42),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text((m['displayName'] ?? 'Kullanıcı').toString(),
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                Text((m['displayName'] ?? context.l10n.clubMgmtUser).toString(),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                 if (role == 'OWNER' || role == 'ADMIN' || role == 'MODERATOR')
                   Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: BuBadge(role == 'OWNER' ? 'Yönetici' : role == 'ADMIN' ? 'Yönetici' : 'Moderatör', soft: true),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: KulupRoleBadge(role == 'OWNER' || role == 'ADMIN'
+                          ? context.l10n.clubMgmtRoleManager
+                          : context.l10n.clubMgmtRoleModerator),
+                    ),
                   ),
               ],
             ),
           ),
           if (canAct)
             PopupMenuButton<String>(
-              tooltip: 'Üye işlemleri',
-              icon: Icon(LucideIcons.ellipsis, size: 18, color: t.mut),
+              tooltip: context.l10n.clubMgmtMemberActions,
+              color: t.sf,
+              elevation: 8,
+              shape: kulupMenuShape(context),
+              constraints: const BoxConstraints(minWidth: 200, maxWidth: 280),
+              icon: const KulupDots(),
               onSelected: (v) {
                 switch (v) {
                   case 'mod':
@@ -202,10 +229,13 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
                 }
               },
               itemBuilder: (_) => [
-                if (_isOwner && role == 'MEMBER') const PopupMenuItem(value: 'mod', child: Text('Moderatör yap')),
-                if (_isOwner && role != 'MEMBER') const PopupMenuItem(value: 'member', child: Text('Üye yap')),
-                PopupMenuItem(value: 'remove', child: Text('Kulüpten çıkar', style: dangerItemStyle(context))),
-                PopupMenuItem(value: 'ban', child: Text('Yasakla', style: dangerItemStyle(context))),
+                if (_isOwner && role == 'MEMBER')
+                  PopupMenuItem(value: 'mod', height: 44, child: KulupMenuRow(context.l10n.clubMgmtMakeModerator)),
+                if (_isOwner && role != 'MEMBER')
+                  PopupMenuItem(value: 'member', height: 44, child: KulupMenuRow(context.l10n.clubMgmtMakeMember)),
+                if (_isOwner) const PopupMenuDivider(height: 9),
+                PopupMenuItem(value: 'remove', height: 44, child: KulupMenuRow(context.l10n.clubMgmtRemoveFromClub, danger: true)),
+                PopupMenuItem(value: 'ban', height: 44, child: KulupMenuRow(context.l10n.clubMgmtBan, danger: true)),
               ],
             )
           else

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/locale_controller.dart';
+import '../l10n/app_localizations.dart';
 import '../core/session.dart';
 import '../core/typography.dart';
 
@@ -12,30 +13,40 @@ String fmtDate(String? iso) {
   return p.length == 3 ? '${p[2]}.${p[1]}.${p[0]}' : iso;
 }
 
-const _months = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
-];
-const _weekdays = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+AppLocalizations _loc(BuildContext? c) => c?.l10n ?? lookupAppLocalizations(const Locale('tr'));
 
-/// "26 Ekim, Pazartesi"
-String longDate(DateTime d) => '${d.day} ${_months[d.month - 1]}, ${_weekdays[d.weekday - 1]}';
+List<String> _monthNames(AppLocalizations l) => [
+      l.commonMonth1, l.commonMonth2, l.commonMonth3, l.commonMonth4, l.commonMonth5, l.commonMonth6,
+      l.commonMonth7, l.commonMonth8, l.commonMonth9, l.commonMonth10, l.commonMonth11, l.commonMonth12,
+    ];
 
-/// "26 Ekim 2026" (ISO tarih ya da zaman damgasından)
-String niceDate(String? iso) {
-  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
-  return d == null ? fmtDate(iso) : '${d.day} ${_months[d.month - 1]} ${d.year}';
+List<String> _weekdayNames(AppLocalizations l) => [
+      l.commonWeekday1, l.commonWeekday2, l.commonWeekday3, l.commonWeekday4,
+      l.commonWeekday5, l.commonWeekday6, l.commonWeekday7,
+    ];
+
+/// "26 Ekim, Pazartesi" ([context] verilirse dile göre; yoksa Türkçe)
+String longDate(DateTime d, {BuildContext? context}) {
+  final l = _loc(context);
+  return l.commonLongDate(d.day.toString(), _monthNames(l)[d.month - 1], _weekdayNames(l)[d.weekday - 1]);
 }
 
-String relativeTime(String? iso) {
+/// "26 Ekim 2026" (ISO tarih ya da zaman damgasından)
+String niceDate(String? iso, {BuildContext? context}) {
+  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+  return d == null ? fmtDate(iso) : '${d.day} ${_monthNames(_loc(context))[d.month - 1]} ${d.year}';
+}
+
+String relativeTime(String? iso, {BuildContext? context}) {
   final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
   if (d == null) return '';
+  final l = _loc(context);
   final diff = DateTime.now().difference(d);
-  if (diff.inMinutes < 1) return 'şimdi';
-  if (diff.inMinutes < 60) return '${diff.inMinutes} dk önce';
-  if (diff.inHours < 24) return '${diff.inHours} sa önce';
-  if (diff.inDays < 7) return '${diff.inDays} gün önce';
-  return niceDate(iso);
+  if (diff.inMinutes < 1) return l.commonJustNow;
+  if (diff.inMinutes < 60) return l.commonMinutesAgo(diff.inMinutes.toString());
+  if (diff.inHours < 24) return l.commonHoursAgo(diff.inHours.toString());
+  if (diff.inDays < 7) return l.commonDaysAgo(diff.inDays.toString());
+  return niceDate(iso, context: context);
 }
 
 class LoadingView extends StatelessWidget {
@@ -155,10 +166,10 @@ class TypeBadge extends StatelessWidget {
 
   final String? type;
 
-  static String label(String? t) => switch (t) {
-        'HABER' => 'Haber',
-        'DUYURU' => 'Duyuru',
-        'ETKINLIK' => 'Etkinlik',
+  static String label(String? t, [BuildContext? context]) => switch (t) {
+        'HABER' => _loc(context).commonTypeNews,
+        'DUYURU' => _loc(context).commonTypeAnnouncement,
+        'ETKINLIK' => _loc(context).commonTypeEvent,
         _ => t ?? '',
       };
 
@@ -173,7 +184,7 @@ class TypeBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        label(type),
+        label(type, context),
         style: BuType.micro.copyWith(color: isEvent ? cs.onPrimaryContainer : cs.onSecondary),
       ),
     );

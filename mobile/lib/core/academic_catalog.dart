@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../l10n/app_localizations.dart';
 import 'session.dart';
 
 class AcademicDepartment {
@@ -73,6 +74,18 @@ String gradeLabel(String? id) {
     if (g.id == id) return g.name;
   }
   return id;
+}
+
+/// Sınıf kimliğinin dile göre adı (PREP, 1..6, MASTER, PHD); bilinmeyen kimlik olduğu gibi döner.
+String gradeLabelL(AppLocalizations l, String? id) {
+  if (id == null || id.isEmpty) return '';
+  return switch (id) {
+    'PREP' => l.acadGradePrep,
+    'MASTER' => l.acadGradeMaster,
+    'PHD' => l.acadGradePhd,
+    '1' || '2' || '3' || '4' || '5' || '6' => l.acadGradeN(id),
+    _ => id,
+  };
 }
 
 /// Fakülte/bölüm/sınıf kataloğu: oturum başına bir kez yüklenir, bellekte tutulur.
@@ -178,5 +191,15 @@ class AcademicCatalog extends ChangeNotifier {
       if (g.id == id) return g.name;
     }
     return gradeLabel(id);
+  }
+
+  /// [gradeName] ile aynı, ama adı dile göre verir (sunucu adı yerine sabit çeviri).
+  String gradeNameL(AppLocalizations l, String? id) {
+    final label = gradeLabelL(l, id);
+    if (label != (id ?? '')) return label;
+    for (final g in grades) {
+      if (g.id == id) return g.name;
+    }
+    return label;
   }
 }

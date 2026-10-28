@@ -451,6 +451,7 @@ void main() {
     });
 
     Future<void> openDelete(WidgetTester tester, FakeBackend b) async {
+      b.on('/users/me/privacy', {});
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(
           buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
@@ -462,11 +463,18 @@ void main() {
       await tester.pump(); // kaydırma çerçevesi uygulansın (liste uzadıkça öğe ekran dışında kalıyordu)
       await tester.tap(find.text('Gizlilik ve veriler'));
       await settle(tester, const Duration(milliseconds: 500));
+      // Gizlilik > Verilerim ve hesap > Hesabımı sil > onay kutusu > Devam et > şifre alt sayfası.
+      await tester.tap(find.text('Verilerim ve hesap'));
+      await settle(tester, const Duration(milliseconds: 500));
       await tester.scrollUntilVisible(find.text('Hesabımı sil'), 200, scrollable: find.byType(Scrollable).first);
       await tester.ensureVisible(find.text('Hesabımı sil'));
       await tester.pump();
       await tester.tap(find.text('Hesabımı sil'));
       await settle(tester, const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('delete-ack')));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('delete-continue')));
+      await settle(tester, const Duration(milliseconds: 600));
     }
 
     testWidgets('hesap silme: yanlış şifrede sunucu mesajı gösterilir', (tester) async {
@@ -474,10 +482,10 @@ void main() {
       await openDelete(tester, b);
       b.fail('/users/me', status: 403, code: 'WRONG_PASSWORD', message: 'Şifre yanlış (sunucu).');
       await tester.enterText(find.byType(TextField), 'yanlis');
-      await tester.tap(find.widgetWithText(TextButton, 'Hesabı sil'));
+      await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Şifre yanlış (sunucu).'), findsOneWidget);
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byKey(const ValueKey('delete-password')), findsOneWidget);
       noErr(tester);
       await unmount(tester);
     });
@@ -487,7 +495,7 @@ void main() {
       await openDelete(tester, b);
       b.fail('/users/me', status: 403, code: 'WRONG_PASSWORD');
       await tester.enterText(find.byType(TextField), 'yanlis');
-      await tester.tap(find.widgetWithText(TextButton, 'Hesabı sil'));
+      await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Şifre hatalı.'), findsOneWidget);
       await unmount(tester);
@@ -496,7 +504,7 @@ void main() {
     testWidgets('hesap silme: boş şifre doğrulanır, istek atılmaz', (tester) async {
       final b = backend();
       await openDelete(tester, b);
-      await tester.tap(find.widgetWithText(TextButton, 'Hesabı sil'));
+      await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await tester.pump();
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
       expect(b.requests.where((r) => r.startsWith('DELETE')), isEmpty);

@@ -231,27 +231,32 @@ void main() {
   });
 
   group('RegisterPage akademik', () {
-    testWidgets('zorunlu alan hataları; istek atılmaz', (tester) async {
+    testWidgets('adım adım: boş adım ilerletmez, hatalar gösterilir; istek atılmaz', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      await tester.ensureVisible(find.text('Kayıt ol').last);
-      await tester.tap(find.text('Kayıt ol').last);
+      expect(find.text('Adım 1/3'), findsOneWidget);
+      await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Bölümünüzü seçin.'), findsOneWidget);
       expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
+      expect(find.text('Adım 1/3'), findsOneWidget);
+      await fillAcademic(tester);
+      await tester.tap(find.text('Devam'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Adım 2/3'), findsOneWidget);
+      await tester.tap(find.text('Devam'));
+      await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
       expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
-      expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
-      expect(find.text('Devam etmek için kabul etmelisiniz.'), findsOneWidget);
-      expect(find.text('Fakülteyi seçin.'), findsNothing);
+      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
 
-    testWidgets('fakülte seçici ve şifre tekrar alanı yok; sınıf varsayılan seçili değil', (tester) async {
+    testWidgets('sınıf seçici bölüm seçici gibi liste; fakülte seçici ve şifre tekrar alanı yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
@@ -259,39 +264,34 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Fakülte seçin'), findsNothing);
       expect(find.text('Şifre (tekrar)'), findsNothing);
-      // ad, e-posta, şifre: üç metin alanı.
-      expect(find.byType(TextFormField), findsNWidgets(3));
+      expect(find.byType(TextFormField), findsNothing);
       await tester.tap(find.text('Bölüm seçin'));
       await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
       expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
-      // Otomatik sınıf önerilmez: gönderim sınıf hatası verir.
-      await tester.ensureVisible(find.text('Kayıt ol').last);
-      await tester.tap(find.text('Kayıt ol').last);
+      // Otomatik sınıf önerilmez: sınıf seçilmeden ilerlenemez.
+      await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
       expect(find.text('Bölümünüzü seçin.'), findsNothing);
       await unmount(tester);
     });
 
-    testWidgets('gövdeye faculty/department/grade eklenir', (tester) async {
+    testWidgets('son adımda onay kutusu yok, bilgi satırı var; gövdeye faculty/department/grade/acceptTerms eklenir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
-      await tester.enterText(fields.at(1), 'ayse@bingol.edu.tr');
-      await tester.enterText(fields.at(2), 'Sifre1234');
-      await fillAcademic(tester);
-      await tester.tap(find.byType(CheckboxListTile));
-      await tester.pump();
+      await fillRegister(tester);
+      expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.textContaining('kabul etmiş sayılırsınız', findRichText: true), findsOneWidget);
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['POST /auth/register'] as Map;
       expect(body['faculty'], 'Mühendislik Fakültesi');
       expect(body['department'], 'Bilgisayar Mühendisliği');
       expect(body['grade'], '3');
+      expect(body['acceptTerms'], true);
       await unmount(tester);
     });
 
@@ -301,8 +301,7 @@ void main() {
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Yeniden dene'), findsOneWidget);
-      await tester.ensureVisible(find.text('Kayıt ol').last);
-      await tester.tap(find.text('Kayıt ol').last);
+      await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.textContaining('yüklenemedi'), findsWidgets);
       expect(b.count('/auth/register'), 0);
@@ -434,12 +433,12 @@ void main() {
       for (final size in kPhoneSizes) {
         testWidgets('PrivacyDataPage ${br.name} ${size.width.toInt()} taşma yok', (tester) async {
           useScreen(tester, size);
-          final b = FakeBackend();
+          final b = FakeBackend()..on('/users/me/privacy', {'bio': 'SHARED_CONTEXT'});
           await tester.pumpWidget(
               buildApp(PrivacyDataPage(session: makeSession(b)), brightness: br, size: size));
           await settle(tester);
-          expect(find.text('Hesap yönetimi'), findsOneWidget);
-          expect(find.text('Hesabımı sil'), findsOneWidget);
+          expect(find.text('Profil görünürlüğü'), findsOneWidget);
+          expect(find.text('Verilerim ve hesap', skipOffstage: false), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);
         });

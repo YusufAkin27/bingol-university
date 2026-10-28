@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show gradeLabel;
 import '../../core/api.dart' show ApiError;
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -9,9 +10,12 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
-import '../follow/follow_summary.dart';
-import '../posts/profile_posts_section.dart';
+import '../follow/follow_list_page.dart';
+import '../news/icerik_parts.dart';
+import '../posts/social_api.dart';
+import '../posts/social_models.dart';
 import 'edit_profile_page.dart';
+import 'icerik_user_posts_grid.dart';
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
 /// sohbetidir; "Mesaj" aynı birebir sohbete çıkarsa yeni sayfa yığılmaz, geri dönülür.
@@ -64,6 +68,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _blocked = false;
   bool _busyMsg = false;
   bool _busyBlock = false;
+  bool _busyFollow = false;
+  bool _menuOpen = false;
+  FollowStats? _stats;
+  String? _postCount;
 
   bool get _self => widget.userId == widget.session.userId;
 
@@ -73,8 +81,35 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _load();
   }
 
+  Future<void> _loadStats() async {
+    try {
+      final st = await SocialApi(widget.session).followStats(widget.userId);
+      if (mounted) setState(() => _stats = st);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_busyFollow) return;
+    final s = _stats ?? const FollowStats();
+    final want = !s.followedByMe;
+    final api = SocialApi(widget.session);
+    setState(() {
+      _busyFollow = true;
+      _stats = s.copyWith(followedByMe: want, followers: (s.followers + (want ? 1 : -1)).clamp(0, 1 << 30));
+    });
+    try {
+      await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
+    } catch (e) {
+      if (mounted) setState(() => _stats = s);
+      _toast(errorText(e));
+    } finally {
+      if (mounted) setState(() => _busyFollow = false);
+    }
+  }
+
   Future<void> _load() async {
     setState(() => _error = null);
+    _loadStats();
     final api = widget.session.api;
     try {
       final r = await api.get(_self ? '/users/me' : '/users/${widget.userId}');
@@ -108,7 +143,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Map<String, String>? _headersFor(String? url) =>
       (url != null && url.startsWith('/api/')) ? _headers : null;
 
-  String get _name => ((_p?['displayName'] as String?) ?? widget.initialName ?? 'Kullanıcı');
+  String get _name => ((_p?['displayName'] as String?) ?? widget.initialName ?? context.l10n.profileUserDefault);
   String? get _avatar => (_p?['avatarUrl'] as String?) ?? widget.initialAvatarUrl;
 
   String _s(String key) => ((_p?[key]) ?? '').toString().trim();
@@ -117,7 +152,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final g = _s('grade');
     if (g.isNotEmpty) return gradeLabel(g);
     final y = (_p?['classYear'] as num?)?.toInt();
-    return (y != null && y > 0) ? '$y. sınıf' : '';
+    return (y != null && y > 0) ? context.l10n.profileGradeYear('$y') : '';
   }
 
   Future<void> _message() async {
@@ -152,11 +187,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final ok = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('Kullanıcı engellensin mi?'),
-          content: const Text('Engellediğiniz kişiyle mesajlaşamazsınız.'),
+          title: Text(c.l10n.profileBlockTitle),
+          content: Text(c.l10n.profileBlockBody),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
-            TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Engelle')),
+            TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.profileCancel)),
+            TextButton(onPressed: () => Navigator.pop(c, true), child: Text(c.l10n.profileBlock)),
           ],
         ),
       );
@@ -174,7 +209,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _blocked = !unblock;
         _busyBlock = false;
       });
-      _toast(unblock ? 'Engel kaldırıldı' : 'Kullanıcı engellendi');
+      _toast(unblock ? context.l10n.profileUnblocked : context.l10n.profileBlocked);
     } catch (e) {
       if (!mounted) return;
       setState(() => _busyBlock = false);
@@ -183,7 +218,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _report() => ReportSheet.show(context, widget.session,
-      targetType: 'USER', targetId: widget.userId, title: 'Kullanıcıyı şikâyet et');
+      targetType: 'USER', targetId: widget.userId, title: context.l10n.profileReportUser);
 
   Future<void> _edit() async {
     final p = _p;
@@ -220,229 +255,445 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String? _presenceText() {
     final p = _presence;
     if (p == null) return null;
-    if (p['online'] == true) return 'Çevrimiçi';
+    final l10n = context.l10n;
+    if (p['online'] == true) return l10n.profileOnline;
     final d = DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
     if (d == null) return null;
     final now = DateTime.now();
     final hm = '${_two(d.hour)}:${_two(d.minute)}';
     if (d.year == now.year && d.month == now.month && d.day == now.day) {
-      return 'Son görülme bugün $hm';
+      return l10n.profileLastSeenToday(hm);
     }
     final y = now.subtract(const Duration(days: 1));
     if (d.year == y.year && d.month == y.month && d.day == y.day) {
-      return 'Son görülme dün $hm';
+      return l10n.profileLastSeenYesterday(hm);
     }
-    return 'Son görülme ${_two(d.day)}.${_two(d.month)}.${d.year} $hm';
+    return l10n.profileLastSeenDate('${_two(d.day)}.${_two(d.month)}.${d.year}', hm);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
+    final top = MediaQuery.of(context).padding.top;
+    final showMenu = _p != null && !_self;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(
-        backgroundColor: t.bg,
-        foregroundColor: t.ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text('Profil', style: BuType.heading.copyWith(color: t.ink)),
+      body: Stack(
+        children: [
+          Positioned.fill(child: _body(t)),
+          Positioned(
+            left: 20,
+            right: 20,
+            top: top + 8,
+            child: Row(children: [
+              IcerikIconButton(
+                  icon: buDirIcon(context, LucideIcons.arrowLeft),
+                  label: l.commonBack,
+                  shadow: true,
+                  onTap: () => Navigator.maybePop(context)),
+              const Spacer(),
+              if (showMenu)
+                IcerikIconButton(
+                  key: const ValueKey('profile-more'),
+                  icon: LucideIcons.ellipsis,
+                  label: l.icerikMoreActions,
+                  on: _menuOpen,
+                  onTap: () => setState(() => _menuOpen = !_menuOpen),
+                ),
+            ]),
+          ),
+          if (showMenu && _menuOpen) ...[
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => setState(() => _menuOpen = false),
+                child: const SizedBox.expand(),
+              ),
+            ),
+            PositionedDirectional(
+              end: 20,
+              top: top + 60,
+              width: 208,
+              child: _menu(t),
+            ),
+          ],
+        ],
       ),
-      body: _body(t),
+    );
+  }
+
+  Widget _menu(BuTokens t) {
+    final l = context.l10n;
+    Widget item(Key key, IconData icon, String label, VoidCallback onTap, {bool danger = false, bool first = false}) {
+      final fg = danger ? t.danger : t.ink;
+      return InkWell(
+        key: key,
+        onTap: () {
+          setState(() => _menuOpen = false);
+          onTap();
+        },
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: first ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd.withValues(alpha: .6)))),
+          child: Row(children: [
+            Icon(icon, size: 18, color: fg),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.bodyStrong.copyWith(fontSize: 15, color: fg)),
+            ),
+          ]),
+        ),
+      );
+    }
+
+    return Semantics(
+      container: true,
+      label: l.icerikUserMenu,
+      explicitChildNodes: true,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: t.sf,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: t.bd),
+          boxShadow: [
+            BoxShadow(
+                color: const Color(0xFF171E33).withValues(alpha: icerikDark(context) ? .5 : .3),
+                blurRadius: 40,
+                offset: const Offset(0, 18),
+                spreadRadius: -16),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Material(
+            color: t.sf,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              item(const ValueKey('profile-menu-report'), LucideIcons.flag, l.icerikReport, _report, first: true),
+              item(const ValueKey('profile-menu-block'), LucideIcons.ban, _blocked ? l.profileUnblock : l.profileBlock,
+                  _toggleBlock,
+                  danger: !_blocked),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _body(BuTokens t) {
+    final top = MediaQuery.of(context).padding.top;
     if (_error != null && _p == null) {
       final nf = _error is ApiError && (_error as ApiError).status == 404;
-      return nf
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.userX, size: 36, color: t.mut),
-                  const SizedBox(height: 12),
-                  Text('Kullanıcı bulunamadı',
-                      textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
-                ]),
-              ),
-            )
-          : ErrorView(error: _error!, onRetry: _load);
+      return Padding(
+        padding: EdgeInsets.only(top: top + 56),
+        child: nf
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(LucideIcons.userX, size: 36, color: t.mut),
+                    const SizedBox(height: 12),
+                    Text(context.l10n.profileNotFound,
+                        textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
+                  ]),
+                ),
+              )
+            : ErrorView(error: _error!, onRetry: _load),
+      );
     }
     if (_p == null) return _skeleton(t);
 
-    final sub = [
-      _s('department'),
-      _gradeText(),
-    ].where((e) => e.isNotEmpty).join(' · ');
+    final l = context.l10n;
+    final dept = _s('department');
     final presence = _self ? null : _presenceText();
     final bio = _s('bio');
-    final rows = <(IconData, String, String)>[
-      if (_s('faculty').isNotEmpty) (LucideIcons.building2, 'Fakülte', _s('faculty')),
-      if (_s('department').isNotEmpty) (LucideIcons.graduationCap, 'Bölüm', _s('department')),
-      if (_gradeText().isNotEmpty) (LucideIcons.bookOpen, 'Sınıf', _gradeText()),
-      if (_s('email').isNotEmpty) (LucideIcons.mail, 'E-posta', _s('email')),
+    final faculty = _s('faculty');
+    final grade = _gradeText();
+    final email = _s('email');
+    final s = _stats;
+    // Başkasının profilinde dolu olmayan (gizlilik ya da boş) alanlar kilit ikonlu "Gizli" görünür.
+    final rows = <_InfoRow>[
+      if (faculty.isNotEmpty || !_self) _InfoRow(l.profileFaculty, faculty),
+      if (grade.isNotEmpty || !_self) _InfoRow(l.profileGrade, grade),
+      if (bio.isNotEmpty || !_self) _InfoRow(l.profileAboutShort, bio, block: true),
+      if (email.isNotEmpty) _InfoRow(l.profileEmail, email),
     ];
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: EdgeInsets.fromLTRB(0, top + 60, 0, MediaQuery.of(context).padding.bottom + 32),
       children: [
-        Center(
-          child: GestureDetector(
-            key: const Key('profile-avatar'),
-            onTap: _viewAvatar,
-            child: BuAvatar(name: _name, url: _avatar, size: 112, headers: _headersFor(_avatar)),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(_name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: BuType.title.copyWith(color: t.ink)),
-        if (sub.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(sub,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: BuType.body.copyWith(color: t.mut)),
-        ],
-        if (presence != null) ...[
-          const SizedBox(height: 6),
-          Text(presence,
-              textAlign: TextAlign.center,
-              style: BuType.label.copyWith(
-                  color: _presence?['online'] == true ? t.ok : t.mut)),
-        ],
-        FollowSummary(
-            key: ValueKey('follow-${widget.userId}'), session: widget.session, userId: widget.userId, name: _name),
-        const SizedBox(height: 20),
-        if (_self)
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            _action(t, LucideIcons.squarePen, 'Profili düzenle', _edit),
-          ])
-        else
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
-                child: _action(t, LucideIcons.messageCircle, 'Mesaj', _message, busy: _busyMsg)),
-            Expanded(
-                child: _action(t, LucideIcons.ban, _blocked ? 'Engeli kaldır' : 'Engelle',
-                    _toggleBlock,
-                    busy: _busyBlock, danger: !_blocked)),
-            Expanded(child: _action(t, LucideIcons.flag, 'Şikâyet et', _report, danger: true)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(children: [
+            GestureDetector(
+              key: const Key('profile-avatar'),
+              onTap: _viewAvatar,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: t.sf, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                        color: const Color(0xFF171E33).withValues(alpha: .35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
+                        spreadRadius: -12),
+                  ],
+                ),
+                child: BuAvatar(name: _name, url: _avatar, size: 82, headers: _headersFor(_avatar)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Semantics(
+              header: true,
+              child: Text(_name,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.display.copyWith(fontSize: 22, letterSpacing: -.3, height: 1.25, color: t.ink)),
+            ),
+            if (dept.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(dept,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.body.copyWith(fontSize: 14, color: t.mut)),
+            ],
+            if (presence != null) ...[
+              const SizedBox(height: 4),
+              Text(presence,
+                  textAlign: TextAlign.center,
+                  style: BuType.label.copyWith(color: _presence?['online'] == true ? t.ok : t.mut)),
+            ],
+            const SizedBox(height: 14),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 28,
+              runSpacing: 4,
+              children: [
+                if (_postCount != null) _stat(t, _postCount!, l.icerikStatPosts),
+                if (s != null) _stat(t, '${s.followers}', l.icerikStatFollowers, followers: true),
+                if (s != null) _stat(t, '${s.following}', l.icerikStatFollowing, followers: false),
+              ],
+            ),
           ]),
-        if (bio.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          BuCard(
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Hakkında', style: BuType.label.copyWith(color: t.mut)),
-                const SizedBox(height: 6),
-                Text(bio, style: BuType.body.copyWith(color: t.ink)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+          child: _self
+              ? Row(children: [
+                  Expanded(child: _pill(t, LucideIcons.squarePen, l.profileEditTitle, _edit, primary: true)),
+                ])
+              : Row(children: [
+                  Expanded(
+                    child: _pill(
+                      t,
+                      (s?.followedByMe ?? false) ? LucideIcons.userCheck : LucideIcons.plus,
+                      (s?.followedByMe ?? false) ? l.followButtonFollowing : l.followButtonFollow,
+                      _toggleFollow,
+                      primary: !(s?.followedByMe ?? false),
+                      busy: _busyFollow,
+                      key: const ValueKey('followButton'),
+                      toggled: s?.followedByMe ?? false,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _pill(t, LucideIcons.messageCircle, l.icerikMessageSend, _message,
+                        busy: _busyMsg, key: const ValueKey('profile-message')),
+                  ),
+                ]),
+        ),
+        if (rows.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            child: IcerikCard(
+              child: Column(children: [
+                for (var i = 0; i < rows.length; i++) _infoRow(t, rows[i], first: i == 0),
               ]),
             ),
           ),
-        ],
-        if (rows.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          BuCard(
-            child: Column(children: [
-              for (var i = 0; i < rows.length; i++) ...[
-                if (i > 0) Divider(height: 18, color: t.bd),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(rows[i].$1, size: 16, color: t.mut),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(rows[i].$2, style: BuType.caption.copyWith(color: t.mut)),
-                      Text(rows[i].$3, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                    ]),
-                  ),
-                ]),
-              ],
-            ]),
+        if (!_blocked)
+          IcerikUserPostsGrid(
+            session: widget.session,
+            userId: widget.userId,
+            name: _name,
+            onCount: (c) {
+              if (mounted) setState(() => _postCount = c);
+            },
           ),
-        ],
-        if (!_blocked) ProfilePostsSection(session: widget.session, userId: widget.userId, name: _name),
       ],
     );
   }
 
-  Widget _action(BuTokens t, IconData icon, String label, VoidCallback onTap,
-      {bool busy = false, bool danger = false}) {
-    final fg = danger ? t.danger : t.onSoft;
+  Widget _stat(BuTokens t, String n, String label, {bool? followers}) {
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Text.rich(TextSpan(children: [
+        TextSpan(text: n, style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
+        TextSpan(text: ' $label', style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
+      ]), key: followers == null ? null : ValueKey(followers ? 'followerCount' : 'followingCount')),
+    );
+    if (followers == null) return child;
     return Semantics(
       button: true,
+      label: '$n $label',
+      excludeSemantics: true,
+      onTap: () => _openFollowList(followers),
+      child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => _openFollowList(followers), child: child),
+    );
+  }
+
+  Future<void> _openFollowList(bool followers) async {
+    await openFollowList(context, widget.session, userId: widget.userId, followers: followers, name: _name);
+    if (mounted) _loadStats();
+  }
+
+  Widget _pill(BuTokens t, IconData icon, String label, VoidCallback onTap,
+      {bool primary = false, bool busy = false, Key? key, bool? toggled}) {
+    final fg = primary ? t.onPr : t.ink;
+    return Semantics(
+      button: true,
+      toggled: toggled,
       label: label,
-      child: InkWell(
-        onTap: busy ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              alignment: Alignment.center,
-              child: busy
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
-                  : Icon(icon, size: 20, color: fg),
+      excludeSemantics: true,
+      enabled: !busy,
+      onTap: busy ? null : onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: primary ? t.pr : t.sf,
+          borderRadius: BorderRadius.circular(16),
+          border: primary ? null : Border.all(color: t.bd, width: 1.5),
+          boxShadow: primary
+              ? [BoxShadow(color: t.pr.withValues(alpha: .6), blurRadius: 22, offset: const Offset(0, 12), spreadRadius: -12)]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            key: key,
+            borderRadius: BorderRadius.circular(16),
+            onTap: busy ? null : onTap,
+            child: SizedBox(
+              height: 48,
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (busy)
+                  SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
+                else
+                  Icon(icon, size: 18, color: fg),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 4),
+                    child: Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: fg)),
+                  ),
+                ),
+              ]),
             ),
-            const SizedBox(height: 6),
-            Text(label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: BuType.label.copyWith(color: t.ink)),
-          ]),
+          ),
         ),
       ),
     );
   }
 
+  Widget _infoRow(BuTokens t, _InfoRow r, {required bool first}) {
+    final hidden = r.value.isEmpty;
+    final valueStyle = BuType.bodyStrong.copyWith(fontSize: 14, color: hidden ? t.mut : t.ink);
+    final label = Text(r.label, style: BuType.body.copyWith(fontSize: 14, color: t.mut));
+    final value = hidden
+        ? Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(LucideIcons.lock, size: 15, color: t.mut),
+            const SizedBox(width: 6),
+            Text(context.l10n.icerikHidden, style: valueStyle),
+          ])
+        : null;
+    final decoration = first ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd.withValues(alpha: .6))));
+    if (r.block && !hidden) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: decoration,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          label,
+          const SizedBox(height: 4),
+          Text(r.value, style: valueStyle.copyWith(fontWeight: FontWeight.w500, height: 1.4)),
+        ]),
+      );
+    }
+    return Container(
+      constraints: const BoxConstraints(minHeight: 44),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: decoration,
+      child: Row(children: [
+        Expanded(child: label),
+        const SizedBox(width: 10),
+        if (value != null)
+          value
+        else
+          Flexible(
+            flex: 2,
+            child: Text(r.value, textAlign: TextAlign.end, maxLines: 3, overflow: TextOverflow.ellipsis, style: valueStyle),
+          ),
+      ]),
+    );
+  }
+
   Widget _skeleton(BuTokens t) {
+    final top = MediaQuery.of(context).padding.top;
     Widget bar(double w, double h) => Container(
         width: w,
         height: h,
         decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(8)));
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: EdgeInsets.fromLTRB(20, top + 60, 20, 32),
       children: [
         Center(
           child: _avatar == null && widget.initialName == null
-              ? Container(width: 112, height: 112, decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle))
+              ? Container(width: 88, height: 88, decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle))
               : BuAvatar(
                   name: widget.initialName,
                   url: widget.initialAvatarUrl,
-                  size: 112,
+                  size: 88,
                   headers: _headersFor(widget.initialAvatarUrl)),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         Center(
             child: widget.initialName != null
                 ? Text(widget.initialName!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: BuType.title.copyWith(color: t.ink))
+                    style: BuType.display.copyWith(fontSize: 22, letterSpacing: -.3, color: t.ink))
                 : bar(160, 20)),
         const SizedBox(height: 10),
         Center(child: bar(200, 14)),
         const SizedBox(height: 28),
-        bar(double.infinity, 72),
-        const SizedBox(height: 12),
-        bar(double.infinity, 120),
+        bar(double.infinity, 48),
+        const SizedBox(height: 14),
+        bar(double.infinity, 132),
       ],
     );
   }
 }
 
-/// Basit tam ekran avatar görüntüleyici (yakınlaştırılabilir).
+class _InfoRow {
+  const _InfoRow(this.label, this.value, {this.block = false});
+
+  final String label;
+  final String value;
+  final bool block;
+}
+
+// Basit tam ekran avatar görüntüleyici (yakınlaştırılabilir).
 class _AvatarViewer extends StatelessWidget {
   const _AvatarViewer({required this.url, required this.headers, required this.title});
 

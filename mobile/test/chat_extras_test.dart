@@ -213,7 +213,7 @@ void main() {
     testWidgets('alicida onizleme yok; dokununca goruntuleyici, kapaninca Acildi', (tester) async {
       final be = _backend([_onceIn(7)])..onBytes('/conversations/1/media/50', _png, once: true);
       await _pump(tester, _detail(makeSession(be)));
-      expect(find.text('Fotoğraf · Açmak için dokun'), findsOneWidget);
+      expect(find.text('Tek gösterimlik fotoğraf'), findsOneWidget);
       expect(contentImages(), findsNothing);
       await tester.tap(find.byKey(const ValueKey('viewOnceCard')));
       await settle(tester, const Duration(milliseconds: 600));
@@ -224,7 +224,7 @@ void main() {
       expect(find.byType(InteractiveViewer), findsNothing);
       await tester.tap(find.byTooltip('Kapat'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Açıldı'), findsOneWidget);
+      expect(find.text('Fotoğraf · Açıldı'), findsOneWidget);
       expect(find.byKey(const ValueKey('viewOnceCard')), findsNothing);
       expect(contentImages(), findsNothing);
       await unmount(tester);
@@ -272,7 +272,7 @@ void main() {
       expect(find.byKey(const ValueKey('viewOnceCard')), findsNothing);
       rt.debugEmitMessageEvent({'type': 'viewed', 'conversationId': 1, 'messageId': 8, 'attachmentId': 51, 'userId': 11, 'at': 'x'});
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Açıldı'), findsOneWidget);
+      expect(find.text('Fotoğraf · Açıldı'), findsOneWidget);
       expect(find.text('Fotoğraf · Gönderildi'), findsNothing);
       await unmount(tester);
       _ok(tester);
@@ -280,7 +280,7 @@ void main() {
 
     testWidgets('acilmis ve suresi dolmus (url yok) alici mesaji Acildi gosterir', (tester) async {
       await _pump(tester, _detail(makeSession(_backend([_onceIn(7, viewed: true, withUrl: false), _onceIn(6, withUrl: false)]))));
-      expect(find.text('Açıldı'), findsNWidgets(2));
+      expect(find.text('Fotoğraf · Açıldı'), findsNWidgets(2));
       await unmount(tester);
     });
 
@@ -421,7 +421,7 @@ void main() {
 
     testWidgets('gorsel/tek gosterimlik mesajda Ilet gizli', (tester) async {
       await _pump(tester, _detail(makeSession(fwd())));
-      await tester.longPress(find.text('Fotoğraf · Açmak için dokun'));
+      await tester.longPress(find.text('Tek gösterimlik fotoğraf'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byKey(_card), findsOneWidget);
       expect(find.text('İlet'), findsNothing);

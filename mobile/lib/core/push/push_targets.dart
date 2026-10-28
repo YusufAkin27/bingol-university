@@ -10,7 +10,6 @@ enum PushDest {
   post,
   poll,
   user,
-  story,
   deptAnnouncement,
   timetable,
   exams,
@@ -68,7 +67,8 @@ PushDest? _destOf(String t) {
     case 'FOLLOW':
       return PushDest.user;
     case 'STORY':
-      return PushDest.story;
+      // Hikâyeler kaldırıldı: eski bildirim sahibinin profiline gider.
+      return PushDest.user;
     case 'TICKET':
       return PushDest.ticket;
     case 'FEEDBACK':

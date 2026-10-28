@@ -269,12 +269,12 @@ void main() {
           _msg(1, 11, 'karsi mesaj'),
         ]);
         await _pump(tester, _detail(makeSession(be)), b: b);
-        expect(_iconColor(tester, _bubbleOf('gonderildi mesaj'), LucideIcons.check), tk.mut);
-        expect(_iconColor(tester, _bubbleOf('iletildi mesaj'), LucideIcons.checkCheck), tk.mut);
-        expect(_iconColor(tester, _bubbleOf('okundu mesaj'), LucideIcons.checkCheck), tk.pr);
+        expect(_iconColor(tester, _bubbleOf('gonderildi mesaj'), LucideIcons.check), tk.onPr.withValues(alpha: .75));
+        expect(_iconColor(tester, _bubbleOf('iletildi mesaj'), LucideIcons.checkCheck), tk.onPr.withValues(alpha: .75));
+        expect(_iconColor(tester, _bubbleOf('okundu mesaj'), LucideIcons.checkCheck), tk.onPr);
         // Karşı tarafın mesajında tik yok.
         expect(find.descendant(of: _bubbleOf('karsi mesaj'), matching: find.byType(Icon)), findsNothing);
-        // Giden baloncuk zemini açık kırmızımsı yüzey (t.soft); gelen t.sf.
+        // Giden baloncuk zemini marka kırmızısı (t.pr); gelen t.sf.
         bool hasBg(Finder bubble, Color c) => find
             .descendant(
                 of: bubble,
@@ -282,7 +282,7 @@ void main() {
                     (w) => w is Container && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).color == c))
             .evaluate()
             .isNotEmpty;
-        expect(hasBg(_bubbleOf('okundu mesaj'), tk.soft), isTrue);
+        expect(hasBg(_bubbleOf('okundu mesaj'), tk.pr), isTrue);
         expect(hasBg(_bubbleOf('karsi mesaj'), tk.sf), isTrue);
         // Yazılı durum metni yok.
         expect(find.textContaining('görüldü', findRichText: true), findsNothing);
@@ -325,20 +325,20 @@ void main() {
 
       rt.debugEmitMessageEvent(ev('delivered', 4));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_iconColor(tester, _bubbleOf('dort'), LucideIcons.checkCheck), BuTokens.light.mut);
+      expect(_iconColor(tester, _bubbleOf('dort'), LucideIcons.checkCheck), BuTokens.light.onPr.withValues(alpha: .75));
       expect(find.descendant(of: _bubbleOf('bes'), matching: find.byIcon(LucideIcons.check)), findsOneWidget);
 
       rt.debugEmitMessageEvent(ev('read', 5));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_iconColor(tester, _bubbleOf('dort'), LucideIcons.checkCheck), BuTokens.light.pr);
-      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.pr);
+      expect(_iconColor(tester, _bubbleOf('dort'), LucideIcons.checkCheck), BuTokens.light.onPr);
+      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.onPr);
 
       // Geri gitmez: eski/aşağı durum ve başka sohbet yok sayılır.
       rt.debugEmitMessageEvent(ev('delivered', 5));
       rt.debugEmitMessageEvent({...ev('read', 5), 'conversationId': 2, 'status': 'SENT'});
       rt.debugEmitMessageEvent({...ev('delivered', 5), 'status': 'SENT'});
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.pr);
+      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.onPr);
       expect(find.byIcon(LucideIcons.check), findsNothing);
       _ok(tester);
       await unmount(tester);
@@ -356,7 +356,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       // 20 sn'lik yoklama aynı eski (SENT) sayfayı döndürür.
       await settle(tester, const Duration(seconds: 22));
-      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.pr);
+      expect(_iconColor(tester, _bubbleOf('bes'), LucideIcons.checkCheck), BuTokens.light.onPr);
       await unmount(tester);
     });
 
@@ -741,11 +741,11 @@ void main() {
       ]);
       await _pump(tester, _detail(makeSession(be)));
       expect(find.byType(PlayBadge), findsOneWidget);
-      expect(find.byIcon(LucideIcons.play), findsOneWidget);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
       expect(find.text('0:42'), findsOneWidget);
-      // Saat/tik görselin sağ altında: okundu tiki açık kırmızı.
+      // Saat/tik görselin sağ altında: okundu tiki beyaz.
       final tick = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck));
-      expect(tick.color, BuTokens.dark.pr);
+      expect(tick.color, Colors.white);
       final pill = tester.getRect(find.byType(PlayBadge));
       final tickRect = tester.getRect(find.byIcon(LucideIcons.checkCheck));
       final dur = tester.getRect(find.text('0:42'));

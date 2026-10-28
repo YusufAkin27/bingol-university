@@ -10,6 +10,7 @@ import 'auth_widgets.dart';
 import 'otp_code_boxes.dart';
 import 'new_password_page.dart';
 import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
 
 /// Şifremi unuttum, 2. adım: kodu doğrula. Doğruysa yeni şifre ekranına geçilir.
 class ResetCodePage extends StatefulWidget {
@@ -56,7 +57,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
   Future<void> _verify() async {
     if (_busy) return;
     if (_code.text.length != 6) {
-      setState(() => _error = '6 haneli kodu girin.');
+      setState(() => _error = context.l10n.authRestEnterCode);
       return;
     }
     setState(() {
@@ -107,6 +108,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
     final t = context.bu;
     return AuthScaffold(
       showBack: true,
+      icon: LucideIcons.mail,
       title: context.l10n.authEnterCode,
       subtitle: context.l10n.authCodeSentTo(fullEmail(widget.email)),
       children: [
@@ -118,16 +120,23 @@ class _ResetCodePageState extends State<ResetCodePage> {
           hasError: _error != null,
           onCompleted: _verify,
         ),
-        const SizedBox(height: 20),
-        FilledButton(
-          onPressed: _busy ? null : _verify,
-          child: BusyLabel(busy: _busy, label: context.l10n.authVerify),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 14),
         Center(
           child: _cooldown > 0
-              ? Text(context.l10n.authResendIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut))
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  child: Text(context.l10n.authResendIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut)),
+                )
               : TextButton(onPressed: _busy ? null : _resend, child: Text(context.l10n.authResendCode)),
+        ),
+        const SizedBox(height: 4),
+        AuthButton(onPressed: _busy ? null : _verify, busy: _busy, label: context.l10n.authVerify),
+        const SizedBox(height: 10),
+        Center(
+          child: TextButton(
+            onPressed: _busy ? null : () => Navigator.maybePop(context),
+            child: Text(context.l10n.authChangeEmail, style: BuType.bodyStrong),
+          ),
         ),
       ],
     );

@@ -4,11 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart' show LucideIcons;
-import 'likers_sheet.dart';
 import 'post_models.dart';
 
 /// Dışarıdan (çift dokunuş gibi) beğeni tetiklemek için: yalnız beğenilmemişse beğenir.
@@ -23,7 +23,6 @@ class LikeController {
 
 /// Kalp + sayı. Dokununca İYİMSER günceller, 250 ms içindeki art arda dokunuşları birleştirip yalnız son durumu
 /// sunucuya yollar (PUT/DELETE `/posts/{id}/like`); hata olursa son onaylı duruma döner.
-/// Sayıya dokunmak beğenenler listesini açar.
 class LikeButton extends StatefulWidget {
   const LikeButton({
     super.key,
@@ -147,7 +146,7 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
       });
       widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
       ScaffoldMessenger.maybeOf(context)
-          ?.showSnackBar(SnackBar(content: Text(errorText(e).isEmpty ? 'Beğeni kaydedilemedi' : errorText(e))));
+          ?.showSnackBar(SnackBar(content: Text(errorText(e).isEmpty ? context.l10n.postViewLikeFailed : errorText(e))));
     }
   }
 
@@ -164,7 +163,7 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
 
     final heart = Semantics(
       button: true,
-      label: _liked ? 'Beğenmekten vazgeç' : 'Beğen',
+      label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
       child: InkResponse(
         key: const ValueKey('like-heart'),
         onTap: _toggle,
@@ -198,15 +197,9 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
     return Row(mainAxisSize: MainAxisSize.min, children: [
       heart,
       if (_count > 0)
-        InkWell(
-          onTap: () => showLikersSheet(context, widget.session, _post.id, total: _count),
-          borderRadius: BorderRadius.circular(8),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-            child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Align(alignment: AlignmentDirectional.centerStart, widthFactor: 1, child: countText)),
-          ),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 4),
+          child: countText,
         ),
     ]);
   }

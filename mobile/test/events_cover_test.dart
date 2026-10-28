@@ -7,6 +7,7 @@ import 'package:bu_kampus/features/events/event_form_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:bu_kampus/features/events/etkinlik_parts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -253,7 +254,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()
         ..fail('/events/featured')
-        ..on('/menu/today', {'date': '2026-10-26', 'items': ['Pilav'], 'meals': ['Pilav']});
+        ..on('/menu/today', {'date': '2026-10-26', 'items': ['Pilav']});
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Etkinlik yüklenemedi'), findsOneWidget);
@@ -268,13 +269,14 @@ void main() {
   });
 
   group('etkinlik karti kapagi', () {
-    testWidgets('liste karti coverUrl gosterir', (tester) async {
+    testWidgets('liste karti (yeni tasarim): kapak yok, tarih karosu var', (tester) async {
       useScreen(tester, kPhoneMedium);
       final ev = featured();
       final b = FakeBackend()..on('/events/calendar*', [ev]);
       await tester.pumpWidget(buildApp(EventsPage(session: makeSession(b))));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.byType(EventCoverImage), findsOneWidget);
+      expect(find.byType(EventCoverImage), findsNothing);
+      expect(find.byType(EtkinlikDateTile), findsOneWidget);
       await unmount(tester);
     });
 

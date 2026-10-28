@@ -1,17 +1,20 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import '../../widgets/common.dart';
 import 'blocked_users_page.dart';
-import 'legal_pages.dart';
+import 'profil2_my_data_page.dart';
+import 'profil2_widgets.dart';
 
-/// Ayarlar > Gizlilik ve veriler. Hesap silme bilerek burada, en altta ve sönük tutulur.
+/// Gizlilik değerleri (sunucu sözleşmesi: EVERYONE | SHARED_CONTEXT | ONLY_ME).
+const kPrivacyValues = ['EVERYONE', 'SHARED_CONTEXT', 'ONLY_ME'];
+
+/// Ayarlar > Gizlilik: alan bazlı profil görünürlüğü, e-posta anahtarı, engellenenler.
+/// Veri indirme ve hesap silme [MyDataPage] altındadır.
 class PrivacyDataPage extends StatefulWidget {
   const PrivacyDataPage({super.key, required this.session});
 
@@ -22,185 +25,300 @@ class PrivacyDataPage extends StatefulWidget {
 }
 
 class _PrivacyDataPageState extends State<PrivacyDataPage> {
-  bool _exporting = false;
+  static const _fields = ['avatar', 'bio', 'faculty', 'department', 'classYear'];
+
+  final Map<String, String> _vis = {for (final f in _fields) f: 'EVERYONE'};
+  final Set<String> _saving = {};
+  bool _showEmail = false;
+  bool _avatarHidden = false;
+  bool _loaded = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   void _toast(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
-  Future<void> _export() async {
-    if (_exporting) return;
-    setState(() => _exporting = true);
+  Future<void> _load() async {
+    setState(() => _error = null);
     try {
-      final data = await widget.session.api.get('/users/me/export');
-      const enc = JsonEncoder.withIndent('  ');
-      await Clipboard.setData(ClipboardData(text: enc.convert(data)));
-      if (mounted) _toast('Verileriniz panoya kopyalandı');
-    } catch (e) {
-      if (mounted) {
-        _toast(e is ApiError && e.status == 429
-            ? (e.message.isNotEmpty ? e.message : 'Günde en fazla 3 kez veri indirebilirsiniz.')
-            : errorText(e));
+      final r = await widget.session.api.get('/users/me/privacy');
+      if (r is Map) {
+        for (final f in _fields) {
+          final v = r[f];
+          if (v is String && kPrivacyValues.contains(v)) _vis[f] = v;
+        }
+        _avatarHidden = r['avatarHiddenByModeration'] == true;
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
+      try {
+        final me = await widget.session.api.get('/users/me');
+        if (me is Map) _showEmail = me['showEmail'] == true;
+      } catch (_) {
+        // E-posta tercihi okunamazsa varsayılanla devam edilir.
+      }
+      if (mounted) setState(() => _loaded = true);
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
     }
   }
 
-  Future<void> _deleteAccount() async {
-    final done = await showDialog<bool>(
-      context: context,
-      builder: (_) => _DeleteAccountDialog(session: widget.session),
-    );
-    if (done == true) {
-      await widget.session.signOut(remote: false);
-      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+  /// Seçim anında kaydedilir; hata olursa eski değere dönülür.
+  Future<void> _setVis(String field, String value) async {
+    final old = _vis[field]!;
+    if (old == value) return;
+    setState(() {
+      _vis[field] = value;
+      _saving.add(field);
+    });
+    try {
+      await widget.session.api.patch('/users/me/privacy', {field: value});
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _vis[field] = old);
+      _toast(errorText(e));
+    } finally {
+      if (mounted) setState(() => _saving.remove(field));
     }
+  }
+
+  Future<void> _setEmail(bool v) async {
+    final old = _showEmail;
+    setState(() => _showEmail = v);
+    try {
+      await widget.session.api.patch('/users/me', {'showEmail': v});
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _showEmail = old);
+      _toast(errorText(e));
+    }
+  }
+
+  String _visLabel(String v) {
+    final l = context.l10n;
+    return switch (v) {
+      'SHARED_CONTEXT' => l.profil2VisShared,
+      'ONLY_ME' => l.profil2VisOnlyMe,
+      _ => l.profil2VisEveryone,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
+    final l = context.l10n;
+    Widget body;
+    if (_error != null) {
+      body = ErrorView(error: _error!, onRetry: _load);
+    } else if (!_loaded) {
+      body = const LoadingView();
+    } else {
+      final labels = {
+        'avatar': l.profil2FieldAvatar,
+        'bio': l.profil2FieldBio,
+        'faculty': l.profil2FieldFaculty,
+        'department': l.profil2FieldDepartment,
+        'classYear': l.profil2FieldClassYear,
+      };
+      body = ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          BuHeader(title: 'Gizlilik ve veriler', onBack: () => Navigator.pop(context)),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              children: [
-                BuGroup(children: [
-                  BuMenuRow(
-                      icon: LucideIcons.ban,
-                      label: 'Engellenen kullanıcılar',
-                      onTap: () => _push(BlockedUsersPage(session: widget.session))),
-                  BuMenuRow(
-                      icon: LucideIcons.fileText,
-                      label: 'Sözleşmeler ve gizlilik',
-                      onTap: () => _push(LegalListPage(session: widget.session))),
-                  BuMenuRow(
-                    icon: LucideIcons.download,
-                    label: 'Verilerimi indir',
-                    onTap: _export,
-                    trailing: _exporting
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : null,
+          Text(l.profil2PrivacyIntro, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+          const SizedBox(height: 12),
+          P2SectionLabel(l.profil2VisibilitySection),
+          BuGroup(children: [
+            for (final f in _fields)
+              _VisibilityRow(
+                key: ValueKey('privacy-row-$f'),
+                fieldKey: f,
+                label: labels[f]!,
+                value: _vis[f]!,
+                options: [for (final v in kPrivacyValues) (v, _visLabel(v))],
+                busy: _saving.contains(f),
+                onChanged: (v) => _setVis(f, v),
+              ),
+          ]),
+          if (_avatarHidden)
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Icon(LucideIcons.triangleAlert, size: 16, color: P2Tones.of(context).dng),
                   ),
-                ]),
-                const SizedBox(height: 56),
-                Divider(color: t.bd, height: 1),
-                const SizedBox(height: 14),
-                Text('Hesap yönetimi', style: BuType.caption.copyWith(color: t.mut)),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    onPressed: _deleteAccount,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      minimumSize: const Size(44, 44),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      alignment: AlignmentDirectional.centerStart,
-                    ),
-                    child: Text('Hesabımı sil',
-                        style: BuType.caption.copyWith(color: t.mut)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(l.profil2AvatarModerated,
+                        key: const ValueKey('privacy-avatar-moderated'),
+                        style: BuType.label.copyWith(color: P2Tones.of(context).dng, fontWeight: FontWeight.w500, height: 1.45)),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(children: [
+                      TextSpan(text: '${l.profil2SharedHintLead} ', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
+                      TextSpan(text: l.profil2SharedHintBody),
+                    ]),
+                    style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w500, height: 1.45),
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          BuGroup(children: [
+            MergeSemantics(
+              child: P2Row(
+                icon: LucideIcons.mail,
+                title: l.profil2ShowEmail,
+                subtitle: l.profil2ShowEmailSub,
+                onTap: () => _setEmail(!_showEmail),
+                trailing: ExcludeSemantics(
+                  child: P2Switch(key: const ValueKey('privacy-email-switch'), value: _showEmail, onChanged: _setEmail),
+                ),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 18),
+          P2SectionLabel(l.profil2BlockedSection),
+          BuGroup(children: [
+            P2Row(
+              icon: LucideIcons.ban,
+              title: l.profilePrefsBlockedUsers,
+              chevron: true,
+              onTap: () => _push(BlockedUsersPage(session: widget.session)),
+            ),
+          ]),
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+            child: Text(l.profil2BlockedHint, style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
+          ),
+          const SizedBox(height: 18),
+          BuGroup(children: [
+            P2Row(
+              icon: LucideIcons.download,
+              title: l.profil2MyDataRow,
+              chevron: true,
+              onTap: () => _push(MyDataPage(session: widget.session)),
+            ),
+          ]),
+        ],
+      );
+    }
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(
+        children: [
+          BuHeader(title: l.profil2PrivacyTitle, onBack: () => Navigator.pop(context)),
+          Expanded(child: body),
         ],
       ),
     );
   }
 }
-/// Şifre isteyen hesap silme onayı. Başarıda true döner.
-class _DeleteAccountDialog extends StatefulWidget {
-  const _DeleteAccountDialog({required this.session});
 
-  final Session session;
+/// Etiket + açılır seçici (150 px); büyük yazıda seçici etiketin altına iner.
+class _VisibilityRow extends StatelessWidget {
+  const _VisibilityRow({
+    super.key,
+    required this.fieldKey,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+    this.busy = false,
+  });
 
-  @override
-  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
-}
-
-class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
-  final _pw = TextEditingController();
-  bool _busy = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _pw.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_pw.text.isEmpty) {
-      setState(() => _error = 'Şifrenizi girin.');
-      return;
-    }
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await widget.session.api.delete('/users/me', {'password': _pw.text});
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = (e is ApiError && e.code == 'WRONG_PASSWORD' && e.message.isEmpty) ? 'Şifre hatalı.' : errorText(e);
-      });
-    }
-  }
+  final String fieldKey;
+  final String label;
+  final String value;
+  final List<(String, String)> options;
+  final ValueChanged<String> onChanged;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return AlertDialog(
-      backgroundColor: t.sf,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      title: Text('Hesabı sil', style: BuType.title.copyWith(color: t.ink)),
-      content: SingleChildScrollView(
-       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Hesabınız ve kişisel verileriniz silinecek. Bu işlem geri alınamaz. Onaylamak için şifrenizi girin.',
-            style: BuType.body.copyWith(height: 1.4, color: t.mut),
+    final current = options.firstWhere((o) => o.$1 == value, orElse: () => options.first).$2;
+    final selector = PopupMenuButton<String>(
+      key: ValueKey('privacy-select-$fieldKey'),
+      tooltip: label,
+      onSelected: onChanged,
+      color: t.sf,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd)),
+      itemBuilder: (_) => [
+        for (final o in options)
+          PopupMenuItem<String>(
+            value: o.$1,
+            child: Row(
+              children: [
+                Expanded(child: Text(o.$2, style: BuType.bodyStrong.copyWith(color: t.ink))),
+                if (o.$1 == value) Icon(LucideIcons.check, size: 16, color: t.pr),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _pw,
-            obscureText: true,
-            enabled: !_busy,
-            autofocus: true,
-            onSubmitted: (_) => _submit(),
-            style: BuType.body.copyWith(color: t.ink),
-            decoration: const InputDecoration(labelText: 'Şifre'),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: BuType.label.copyWith(color: t.danger)),
-          ],
-        ],
-       ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.pop(context, false),
-          child: Text('Vazgeç', style: BuType.bodyStrong.copyWith(color: t.mut)),
-        ),
-        TextButton(
-          onPressed: _busy ? null : _submit,
-          child: _busy
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text('Hesabı sil', style: BuType.bodyStrong.copyWith(color: t.danger)),
-        ),
       ],
+      child: Semantics(
+        button: true,
+        label: label,
+        value: current,
+        child: ExcludeSemantics(
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 110, maxWidth: 150),
+            padding: const EdgeInsetsDirectional.only(start: 12, end: 10),
+            decoration: BoxDecoration(
+              color: t.sf,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: t.bd, width: 1.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(current,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                ),
+                const SizedBox(width: 6),
+                busy
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Icon(LucideIcons.chevronDown, size: 18, color: t.mut),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final labelText = Text(label, style: BuType.bodyStrong.copyWith(color: t.ink));
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: p2BigText(context)
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [labelText, const SizedBox(height: 6), selector],
+              )
+            : Row(children: [Expanded(child: labelText), const SizedBox(width: 12), selector]),
+      ),
     );
   }
 }

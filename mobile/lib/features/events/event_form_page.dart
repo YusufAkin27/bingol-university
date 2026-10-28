@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -26,6 +28,7 @@ Future<bool> uploadEventCover({
 }) async {
   final up = uploader ??
       (path, img) => MultipartUploader(session).upload(path, img, method: 'PUT');
+  final l10n = messenger.context.l10n; // await'ten önce al: sayfa kapanmış olabilir
   try {
     await up('/events/$eventId/cover', image);
     return true;
@@ -36,10 +39,10 @@ Future<bool> uploadEventCover({
       ..showSnackBar(SnackBar(
         duration: const Duration(seconds: 8),
         content: Text(eventAlreadyCreated
-            ? 'Etkinlik oluşturuldu, kapak yüklenemedi.$reason'
-            : 'Kapak yüklenemedi.$reason'),
+            ? l10n.eventFormCoverCreatedFail(reason)
+            : l10n.eventFormCoverFail(reason)),
         action: SnackBarAction(
-          label: 'Tekrar dene',
+          label: l10n.eventFormRetry,
           onPressed: () => uploadEventCover(
             messenger: messenger,
             session: session,
@@ -142,12 +145,12 @@ class _EventFormPageState extends State<EventFormPage> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
               icon: LucideIcons.image,
-              label: 'Galeriden seç',
+              label: c.l10n.eventFormPickGallery,
               showChevron: false,
               onTap: () => Navigator.pop(c, ImageSource.gallery)),
           BuMenuRow(
               icon: LucideIcons.camera,
-              label: 'Fotoğraf çek',
+              label: c.l10n.eventFormTakePhoto,
               showChevron: false,
               onTap: () => Navigator.pop(c, ImageSource.camera)),
           const SizedBox(height: 8),
@@ -164,13 +167,14 @@ class _EventFormPageState extends State<EventFormPage> {
         });
       }
     } on ImageException catch (e) {
+      final l = context.l10n;
       _toast(e.code == 'TOO_LARGE'
-          ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
+          ? l.eventFormImgTooLarge
           : e.code == 'UNSUPPORTED_TYPE'
-              ? 'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.'
-              : 'Görsel okunamadı.');
+              ? l.eventFormImgUnsupported
+              : l.eventFormImgUnreadable);
     } catch (_) {
-      _toast('Görsel seçilemedi. İzinleri kontrol edin.');
+      _toast(context.l10n.eventFormImgPickFail);
     }
   }
 
@@ -207,8 +211,15 @@ class _EventFormPageState extends State<EventFormPage> {
     });
   }
 
-  String _fmt(DateTime d) =>
-      '${d.day} ${_months[d.month - 1]} ${d.year} · ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  String _fmt(DateTime d) {
+    String date;
+    try {
+      date = DateFormat('d MMMM y', Localizations.localeOf(context).toString()).format(d);
+    } catch (_) {
+      date = DateFormat('d MMMM y').format(d);
+    }
+    return '$date · ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
 
   // ---- kaydet ----
 
@@ -216,23 +227,24 @@ class _EventFormPageState extends State<EventFormPage> {
     if (_busy) return;
     final title = _title.text.trim();
     if (title.length < 3) {
-      setState(() => _error = 'Başlık en az 3 karakter olmalı.');
+      setState(() => _error = context.l10n.eventFormTitleTooShort);
       return;
     }
     if (!_end.isAfter(_start)) {
-      setState(() => _error = 'Bitiş, başlangıçtan sonra olmalı.');
+      setState(() => _error = context.l10n.eventFormEndBeforeStart);
       return;
     }
     final capText = _cap.text.trim();
     final cap = capText.isEmpty ? null : int.tryParse(capText);
     if (capText.isNotEmpty && (cap == null || cap < 1)) {
-      setState(() => _error = 'Kontenjan 1 veya daha büyük bir sayı olmalı.');
+      setState(() => _error = context.l10n.eventFormCapInvalid);
       return;
     }
     setState(() {
       _busy = true;
       _error = null;
     });
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final nav = Navigator.of(context);
     final api = widget.session.api;
@@ -277,7 +289,7 @@ class _EventFormPageState extends State<EventFormPage> {
           } catch (e) {
             messenger
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text('Kapak kaldırılamadı. ${errorText(e)}')));
+              ..showSnackBar(SnackBar(content: Text(l10n.eventFormCoverRemoveFail(errorText(e)))));
           }
         }
       }
@@ -286,7 +298,7 @@ class _EventFormPageState extends State<EventFormPage> {
       if (!_editing && coverOk) {
         messenger
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Etkinlik oluşturuldu.')));
+          ..showSnackBar(SnackBar(content: Text(l10n.eventFormCreated)));
       }
       nav.pop(true);
     } catch (e) {
@@ -306,7 +318,7 @@ class _EventFormPageState extends State<EventFormPage> {
       body: Column(
         children: [
           BuHeader(
-            title: _editing ? 'Etkinliği düzenle' : 'Yeni etkinlik',
+            title: _editing ? context.l10n.eventFormEditTitle : context.l10n.eventFormNewTitle,
             onBack: () => Navigator.pop(context),
           ),
           Expanded(
@@ -315,16 +327,16 @@ class _EventFormPageState extends State<EventFormPage> {
               children: [
                 _coverBox(t),
                 const SizedBox(height: 18),
-                _label(t, 'Başlık'),
+                _label(t, context.l10n.eventFormFieldTitle),
                 TextField(
                   controller: _title,
                   maxLength: 150,
                   textCapitalization: TextCapitalization.sentences,
                   style: BuType.body.copyWith(color: t.ink),
-                  decoration: const InputDecoration(hintText: 'Etkinlik başlığı', counterText: ''),
+                  decoration: InputDecoration(hintText: context.l10n.eventFormTitleHint, counterText: ''),
                 ),
                 const SizedBox(height: 14),
-                _label(t, 'Açıklama'),
+                _label(t, context.l10n.eventFormFieldDesc),
                 TextField(
                   controller: _desc,
                   maxLength: 2000,
@@ -332,37 +344,37 @@ class _EventFormPageState extends State<EventFormPage> {
                   maxLines: 6,
                   textCapitalization: TextCapitalization.sentences,
                   style: BuType.body.copyWith(color: t.ink),
-                  decoration: const InputDecoration(hintText: 'Etkinlik hakkında kısaca', counterText: ''),
+                  decoration: InputDecoration(hintText: context.l10n.eventFormDescHint, counterText: ''),
                 ),
                 const SizedBox(height: 14),
-                _label(t, 'Başlangıç'),
-                _dateRow(t, _fmt(_start), () => _pickDate(true), 'Başlangıç zamanı'),
+                _label(t, context.l10n.eventFormStart),
+                _dateRow(t, _fmt(_start), () => _pickDate(true), context.l10n.eventFormStartSem),
                 const SizedBox(height: 10),
-                _label(t, 'Bitiş'),
-                _dateRow(t, _fmt(_end), () => _pickDate(false), 'Bitiş zamanı'),
+                _label(t, context.l10n.eventFormEnd),
+                _dateRow(t, _fmt(_end), () => _pickDate(false), context.l10n.eventFormEndSem),
                 const SizedBox(height: 14),
-                _label(t, 'Mekân'),
+                _label(t, context.l10n.eventFormPlace),
                 TextField(
                   controller: _place,
                   maxLength: 200,
                   style: BuType.body.copyWith(color: t.ink),
-                  decoration: const InputDecoration(hintText: 'Örn. Konferans Salonu', counterText: ''),
+                  decoration: InputDecoration(hintText: context.l10n.eventFormPlaceHint, counterText: ''),
                 ),
                 const SizedBox(height: 14),
-                _label(t, 'Kontenjan'),
+                _label(t, context.l10n.eventFormCapacityLabel),
                 TextField(
                   controller: _cap,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   style: BuType.body.copyWith(color: t.ink),
-                  decoration: const InputDecoration(hintText: 'Boş bırakırsan sınırsız'),
+                  decoration: InputDecoration(hintText: context.l10n.eventFormCapHint),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   Text(_error!, style: BuType.label.copyWith(color: t.danger)),
                 ],
                 const SizedBox(height: 20),
-                BuButton(label: _editing ? 'Kaydet' : 'Etkinliği oluştur', busy: _busy, onPressed: _save),
+                BuButton(label: _editing ? context.l10n.eventFormSave : context.l10n.eventFormCreate, busy: _busy, onPressed: _save),
               ],
             ),
           ),
@@ -409,7 +421,7 @@ class _EventFormPageState extends State<EventFormPage> {
             if (!has)
               Semantics(
                 button: true,
-                label: 'Kapak fotoğrafı ekle',
+                label: context.l10n.eventFormAddCover,
                 child: Material(
                   color: t.soft,
                   child: InkWell(
@@ -425,7 +437,7 @@ class _EventFormPageState extends State<EventFormPage> {
                             Icon(LucideIcons.image, size: 20, color: t.onSoft),
                           ]),
                           const SizedBox(height: 8),
-                          Text('Kapak fotoğrafı ekle', style: BuType.label.copyWith(color: t.onSoft)),
+                          Text(context.l10n.eventFormAddCover, style: BuType.label.copyWith(color: t.onSoft)),
                         ],
                       ),
                     ),
@@ -444,9 +456,9 @@ class _EventFormPageState extends State<EventFormPage> {
                 top: 8,
                 end: 8,
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  _glass(LucideIcons.pencil, 'Kapağı değiştir', _busy ? null : _chooseCover),
+                  _glass(LucideIcons.pencil, context.l10n.eventFormChangeCover, _busy ? null : _chooseCover),
                   const SizedBox(width: 8),
-                  _glass(LucideIcons.trash2, 'Kapağı kaldır', _busy ? null : _clearCover),
+                  _glass(LucideIcons.trash2, context.l10n.eventFormRemoveCover, _busy ? null : _clearCover),
                 ]),
               ),
           ],
@@ -468,8 +480,3 @@ class _EventFormPageState extends State<EventFormPage> {
         ),
       );
 }
-
-const _months = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
-];

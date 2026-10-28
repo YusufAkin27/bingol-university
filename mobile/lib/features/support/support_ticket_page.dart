@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'destek_widgets.dart';
 import 'support_common.dart';
 import '../../core/typography.dart';
 
@@ -72,7 +74,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       _changed = true;
       await _load(silent: true);
     } catch (e) {
-      if (mounted) supportSnack(context, supportError(e));
+      if (mounted) supportSnack(context, supportError(context, e));
     }
     if (mounted) setState(() => _sending = false);
   }
@@ -81,11 +83,11 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Talebi kapat'),
-        content: const Text('Bu talep kapatılacak ve yeni yanıt yazamayacaksınız. Devam edilsin mi?'),
+        title: Text(context.l10n.supportCloseTicketTitle),
+        content: Text(context.l10n.supportCloseTicketBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
-          TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Kapat')),
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(context.l10n.supportCancel)),
+          TextButton(onPressed: () => Navigator.pop(c, true), child: Text(context.l10n.supportClose)),
         ],
       ),
     );
@@ -96,7 +98,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       _changed = true;
       await _load(silent: true);
     } catch (e) {
-      if (mounted) supportSnack(context, supportError(e));
+      if (mounted) supportSnack(context, supportError(context, e));
     }
     if (mounted) setState(() => _closing = false);
   }
@@ -113,7 +115,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       child: Scaffold(
         backgroundColor: t.bg,
         body: Column(children: [
-          BuHeader(title: 'Talep', onBack: () => Navigator.pop(context, _changed)),
+          BuHeader(title: context.l10n.supportTicketTitle, onBack: () => Navigator.pop(context, _changed)),
           Expanded(child: _body(t)),
           if (_ticket != null && !closed) _composer(t),
         ]),
@@ -129,19 +131,19 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return RefreshIndicator(
       onRefresh: () => _load(silent: true),
       child: ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [
-        BuCard(
-          padding: const EdgeInsets.all(16),
+        DestekCard(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(
                 child: Text('${tk['subject'] ?? ''}',
-                    style: BuType.heading.copyWith(color: t.ink)),
+                    style: BuType.heading.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
               ),
               const SizedBox(width: 8),
               SupportStatusPill(tk['status'] as String?),
             ]),
             const SizedBox(height: 6),
-            Text('${supportTicketCategories[tk['category']] ?? 'Diğer'} · ${niceDate(tk['createdAt'] as String?)}',
+            Text('${supportTicketCategories(context.l10n)[tk['category']] ?? context.l10n.supportCatOther} · ${niceDate(tk['createdAt'] as String?)}',
                 style: BuType.caption.copyWith(color: t.mut)),
           ]),
         ),
@@ -150,14 +152,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         if (closed)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Center(child: Text('Bu talep kapatıldı.', style: BuType.caption.copyWith(color: t.mut))),
+            child: Center(child: Text(context.l10n.supportTicketClosedNote, style: BuType.caption.copyWith(color: t.mut))),
           )
         else ...[
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
             child: BuButton(
-                label: 'Talebi kapat',
+                label: context.l10n.supportCloseTicketTitle,
                 kind: BuButtonKind.outline,
                 compact: true,
                 busy: _closing,
@@ -170,23 +172,36 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
 
   Widget _bubble(BuTokens t, Map<String, dynamic> m) {
     final staff = m['fromStaff'] == true;
+    const big = Radius.circular(20), small = Radius.circular(6);
     return Align(
-      alignment: staff ? Alignment.centerLeft : Alignment.centerRight,
+      alignment: staff ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 12),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * .78),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: staff ? t.sf : t.pr,
-          border: staff ? Border.all(color: t.bd) : null,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (staff) Text('Destek ekibi', style: BuType.micro.copyWith(color: t.pr)),
-          Text('${m['text'] ?? ''}', style: BuType.body.copyWith(height: 1.4, color: staff ? t.ink : t.onPr)),
-          const SizedBox(height: 4),
-          Text(relativeTime(m['createdAt'] as String?),
-              style: BuType.micro.copyWith(color: staff ? t.mut : t.onPr.withValues(alpha: .8))),
+        child: Column(crossAxisAlignment: staff ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: [
+          if (staff)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 6, bottom: 3),
+              child: Text(context.l10n.supportStaff, style: BuType.micro.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              color: staff ? t.sf : t.pr,
+              border: staff ? Border.all(color: t.bd) : null,
+              borderRadius: BorderRadiusDirectional.only(
+                topStart: big,
+                topEnd: big,
+                bottomStart: staff ? small : big,
+                bottomEnd: staff ? big : small,
+              ),
+            ),
+            child: Text('${m['text'] ?? ''}', style: BuType.body.copyWith(height: 1.45, color: staff ? t.ink : t.onPr)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 3, 6, 0),
+            child: Text(relativeTime(m['createdAt'] as String?), style: BuType.micro.copyWith(color: t.mut)),
+          ),
         ]),
       ),
     );
@@ -195,8 +210,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   Widget _composer(BuTokens t) {
     return Container(
       padding: EdgeInsets.fromLTRB(16, 10, 16, 10 + MediaQuery.of(context).padding.bottom),
-      decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Expanded(
           child: TextField(
             controller: _reply,
@@ -206,18 +221,20 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             textCapitalization: TextCapitalization.sentences,
             style: BuType.body.copyWith(color: t.ink),
             decoration: InputDecoration(
-              hintText: 'Yanıt yazın',
+              hintText: context.l10n.supportHintReply,
               hintStyle: BuType.body.copyWith(color: t.mut),
               counterText: '',
               filled: true,
-              fillColor: t.sf2,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
+              fillColor: t.sf,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide(color: t.bd, width: 1.5)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide(color: t.pr, width: 1.5)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide(color: t.bd, width: 1.5)),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        BuIconButton(icon: LucideIcons.send, filled: true, onTap: _sending ? null : _send, tooltip: 'Gönder'),
+        BuIconButton(icon: LucideIcons.send, filled: true, size: 56, onTap: _sending ? null : _send, tooltip: context.l10n.supportSend),
       ]),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
+import '../../core/locale_controller.dart';
 
 import '../../core/session.dart';
 import '../../widgets/bu_widgets.dart';
@@ -117,7 +118,7 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
                   padding: const EdgeInsets.all(8),
                   child: Center(
                     child: BuButton(
-                      label: 'Yeniden dene',
+                      label: context.l10n.profileRetry,
                       compact: true,
                       kind: BuButtonKind.outline,
                       onPressed: () {

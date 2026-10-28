@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
+import 'destek_widgets.dart';
 import 'support_common.dart';
 import '../../core/typography.dart';
 
@@ -34,7 +36,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
     final s = _subject.text.trim();
     final m = _message.text.trim();
     if (s.isEmpty || m.isEmpty) {
-      setState(() => _error = 'Konu ve mesaj alanlarını doldurun.');
+      setState(() => _error = context.l10n.supportFillFields);
       return;
     }
     setState(() {
@@ -44,13 +46,13 @@ class _NewTicketPageState extends State<NewTicketPage> {
     try {
       await widget.session.api.post('/support/tickets', {'category': _category, 'subject': s, 'message': m});
       if (!mounted) return;
-      supportSnack(context, 'Destek talebiniz alındı.');
+      supportSnack(context, context.l10n.supportTicketReceived);
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = supportError(e);
+        _error = supportError(context, e);
       });
     }
   }
@@ -61,24 +63,25 @@ class _NewTicketPageState extends State<NewTicketPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: 'Yeni talep', onBack: () => Navigator.pop(context)),
+        BuHeader(title: context.l10n.supportNewTicketTitle, onBack: () => Navigator.pop(context)),
         Expanded(
-          child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 32), children: [
-            const SupportLabel('KATEGORİ', form: true),
+          child: ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
+            SupportLabel(context.l10n.supportLabelCategory, form: true),
             SupportChoices(
-                options: supportTicketCategories, value: _category, onChanged: (v) => setState(() => _category = v)),
-            const SupportLabel('KONU', form: true),
-            SupportField(controller: _subject, hint: 'Kısaca konu', maxLength: 120),
-            const SupportLabel('MESAJ', form: true),
-            SupportField(controller: _message, hint: 'Sorununuzu anlatın', maxLength: 2000, minLines: 5, maxLines: 10),
+                options: supportTicketCategories(context.l10n), value: _category, onChanged: (v) => setState(() => _category = v)),
+            SupportLabel(context.l10n.supportLabelSubject, form: true),
+            SupportField(controller: _subject, hint: context.l10n.supportHintSubject, maxLength: 120),
+            SupportLabel(context.l10n.supportLabelMessage, form: true),
+            SupportField(controller: _message, hint: context.l10n.supportHintIssue, maxLength: 2000, minLines: 5, maxLines: 10),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
               ),
-            const SizedBox(height: 16),
-            BuButton(label: 'Gönder', icon: LucideIcons.send, busy: _busy, onPressed: _submit),
           ]),
+        ),
+        DestekBottomBar(
+          child: BuButton(label: context.l10n.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
         ),
       ]),
     );

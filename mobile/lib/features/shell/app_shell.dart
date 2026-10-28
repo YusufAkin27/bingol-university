@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../news/news_list_page.dart';
 import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +85,12 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   void _go(int i, {String? newsType}) {
-    if (newsType != null) _discoverType.value = newsType;
+    if (newsType != null) {
+      // Keşfet artık yalnız gönderiler: haber/duyuru/etkinlik listesi ayrı sayfada açılır.
+      Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(builder: (_) => NewsListPage(session: s, initialType: newsType)));
+      return;
+    }
     setState(() => _tab = i);
   }
 

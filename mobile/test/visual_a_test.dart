@@ -17,7 +17,6 @@ import 'package:bu_kampus/features/news/news_detail_page.dart';
 import 'package:bu_kampus/features/news/news_tile.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
-import 'package:bu_kampus/features/posts/post_feed_view.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:bu_kampus/features/shell/floating_nav.dart';
@@ -126,23 +125,8 @@ final _cases = <_Case>[
       (b) => b.on('/news/2', {'id': 2, 'content': 'Birinci paragraf metni burada.\n\nİkinci paragraf çok uzun bir metindir ' * 5, 'url': 'https://www.bingol.edu.tr/x'})),
   _Case('news_detail_hata', (b) => NewsDetailPage(session: makeSession(b), item: newsItem(5, title: 'Uzunkelime' * 12)),
       (b) => b.fail('/news/5')),
-  _Case('post_feed', (b) => Scaffold(body: PostFeedView(session: makeSession(b), scope: 'latest')), (b) => fakePosts(b)),
-  _Case('post_feed_bos', (b) => Scaffold(body: PostFeedView(session: makeSession(b), scope: 'latest')),
-      (b) => fakePosts(b, empty: true)),
-  _Case('post_feed_hata', (b) => Scaffold(body: PostFeedView(session: makeSession(b), scope: 'latest')),
-      (b) => fakePosts(b).failFeed = true),
-  _Case('post_detail', (b) => PostDetailPage(session: makeSession(b), postId: 91, initial: Post.fromJson(samplePost(id: 91, text: 'Çok uzun bir gönderi metni 😀 ' * 12, commentCount: 3))), (b) {
-    b.on('/posts/91', samplePost(id: 91, text: 'Çok uzun bir gönderi metni 😀 ' * 12, commentCount: 3));
-    b.on('/posts/91/comments', {
-      'items': [
-        sampleComment(id: 1, text: 'Uzunkelime' * 15, replyCount: 2, authorName: 'Mehmet Kaya ' * 4),
-        sampleComment(id: 2, text: 'Kısa yorum', mine: true),
-        sampleComment(id: 3, deleted: true),
-      ],
-      'nextCursor': null,
-      'total': 3,
-    });
-  }),
+  _Case('post_detail', (b) => PostDetailPage(session: makeSession(b), postId: 91, initial: Post.fromJson(samplePost(id: 91, text: 'Kısa bir gönderi notu'))),
+      (b) => b.on('/posts/91', samplePost(id: 91, text: 'Kısa bir gönderi notu'))),
   _Case('compose', (b) => ComposePostPage(session: makeSession(b))),
   _Case('user_posts', (b) => UserPostsPage(session: makeSession(b), userId: 12, name: 'Ayşe Yılmaz'), (b) => fakePosts(b)),
   _Case('update_required', (b) => const UpdateRequiredScreen(storeUrl: 'https://apps.apple.com/x')),

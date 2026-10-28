@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu_widgets.dart';
+import '../locale_controller.dart';
 import '../theme.dart';
 import '../typography.dart';
 import 'permission_service.dart';
@@ -15,23 +17,18 @@ class PermissionInfo {
   final String rationale;
 }
 
-PermissionInfo permissionInfo(AppPermission p) => switch (p) {
-      AppPermission.notifications => const PermissionInfo(
-          'Bildirimler',
-          LucideIcons.bell,
-          'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.'),
-      AppPermission.contacts => const PermissionInfo(
-          'Rehber',
-          LucideIcons.contact,
-          'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. '
-              'Rehberiniz sunucuya gönderilmez.'),
-      AppPermission.camera => const PermissionInfo(
-          'Kamera', LucideIcons.camera, 'QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.'),
-      AppPermission.microphone => const PermissionInfo(
-          'Mikrofon', LucideIcons.mic, 'Ses ve görüntü kaydı yapabilmeniz için mikrofona erişmemiz gerekir.'),
-      AppPermission.photos => const PermissionInfo(
-          'Fotoğraflar', LucideIcons.image, 'Fotoğraf seçip paylaşabilmeniz için galerinize erişmemiz gerekir.'),
-    };
+/// [context] verilirse metinler uygulama diline göre gelir (verilmezse Türkçe).
+PermissionInfo permissionInfo(AppPermission p, [BuildContext? context]) {
+  final l = context?.l10n ?? lookupAppLocalizations(const Locale('tr'));
+  return switch (p) {
+    AppPermission.notifications =>
+      PermissionInfo(l.permNotificationsTitle, LucideIcons.bell, l.permNotificationsText),
+    AppPermission.contacts => PermissionInfo(l.permContactsTitle, LucideIcons.contact, l.permContactsText),
+    AppPermission.camera => PermissionInfo(l.permCameraTitle, LucideIcons.camera, l.permCameraText),
+    AppPermission.microphone => PermissionInfo(l.permMicrophoneTitle, LucideIcons.mic, l.permMicrophoneText),
+    AppPermission.photos => PermissionInfo(l.permPhotosTitle, LucideIcons.image, l.permPhotosText),
+  };
+}
 
 /// Bir özelliğe girerken izni garanti eder: yoksa önce Türkçe gerekçe, sonra sistem istemi;
 /// reddedilirse açık mesaj + "Ayarlardan aç". İzin kullanılabilirse true.
@@ -43,7 +40,7 @@ Future<bool> ensurePermission(
   PermissionService? service,
 }) async {
   final svc = service ?? PermissionService.instance;
-  final info = permissionInfo(permission);
+  final info = permissionInfo(permission, context);
   final st = await svc.status(permission);
   if (st.usable) return true;
   if (!context.mounted) return false;
@@ -55,8 +52,8 @@ Future<bool> ensurePermission(
     context,
     info: info,
     text: rationale ?? info.rationale,
-    primary: 'Devam',
-    secondary: 'Şimdi değil',
+    primary: context.l10n.permContinue,
+    secondary: context.l10n.permNotNow,
   );
   if (go != true) return false;
   final res = await svc.request(permission);
@@ -69,10 +66,9 @@ Future<void> _showSettingsSheet(BuildContext context, PermissionService svc, Per
   final open = await _showSheet(
     context,
     info: info,
-    text: '${info.title} izni verilmedi, bu yüzden bu özellik kullanılamıyor. '
-        'İzni Ayarlar > BÜ Kampüs bölümünden açabilirsiniz.',
-    primary: 'Ayarlardan aç',
-    secondary: 'Kapat',
+    text: context.l10n.permDeniedText(info.title),
+    primary: context.l10n.permOpenSettings,
+    secondary: context.l10n.permClose,
   );
   if (open == true) await svc.openSettings();
 }

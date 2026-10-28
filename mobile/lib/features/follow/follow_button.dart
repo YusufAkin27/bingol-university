@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu_widgets.dart';
 import '../posts/social_api.dart';
@@ -62,11 +63,11 @@ class _FollowButtonState extends State<FollowButton> {
     return Semantics(
       button: true,
       toggled: _followed,
-      label: _followed ? 'Takipten çık' : 'Takip et',
+      label: _followed ? context.l10n.followButtonUnfollow : context.l10n.followButtonFollow,
       excludeSemantics: true,
       child: BuButton(
         key: const ValueKey('followButton'),
-        label: _followed ? 'Takipte' : 'Takip et',
+        label: _followed ? context.l10n.followButtonFollowing : context.l10n.followButtonFollow,
         icon: _followed ? LucideIcons.userCheck : LucideIcons.userPlus,
         kind: _followed ? BuButtonKind.outline : BuButtonKind.primary,
         compact: widget.compact,

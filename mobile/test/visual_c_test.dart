@@ -13,6 +13,7 @@ import 'package:bu_kampus/widgets/bu_widgets.dart' show trUpper;
 import 'package:bu_kampus/widgets/simple_markdown.dart';
 import 'package:bu_kampus/features/profile/legal_pages.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
+import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -124,8 +125,11 @@ final _extra = <PageCase>[
   PageCase(
     'PrivacyDataPage',
     (b, tc) => PrivacyDataPage(session: makeSession(b)),
-    full: (b) => b.on('/users/me', {'id': 1, 'showEmail': true, 'language': 'tr'}),
-    marker: 'Hesabımı sil',
+    full: (b) {
+      b.on('/users/me', {'id': 1, 'showEmail': true, 'language': 'tr'});
+      b.on('/users/me/privacy', {'avatar': 'EVERYONE', 'bio': 'SHARED_CONTEXT'});
+    },
+    marker: 'Verilerim ve hesap',
     failKeys: const [],
     checkLoading: false,
   ),
@@ -273,16 +277,22 @@ void main() {
       testWidgets('hesap silme diyaloğu 320 x2.0 klavye ${dark ? 'koyu' : 'acik'}', (tester) async {
         _trace();
         useScreen(tester, kPhoneSmall);
-        tester.view.viewInsets = const FakeViewPadding(bottom: 260);
         addTearDown(tester.view.resetViewInsets);
         tester.platformDispatcher.textScaleFactorTestValue = 2.0;
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         final b = FakeBackend()..on('/users/me', {'id': 1, 'showEmail': true, 'language': 'tr'});
-        await tester.pumpWidget(_wrap(PrivacyDataPage(session: makeSession(b)), kPhoneSmall, dark, outer: true));
+        await tester.pumpWidget(_wrap(DeleteAccountPage(session: makeSession(b)), kPhoneSmall, dark, outer: true));
         await settle(tester, const Duration(milliseconds: 500));
-        await tester.scrollUntilVisible(find.text('Hesabımı sil'), 100, scrollable: find.byType(Scrollable).first);
-        await tester.tap(find.text('Hesabımı sil'));
+        await tester.scrollUntilVisible(find.byKey(const ValueKey('delete-ack')), 100,
+            scrollable: find.byType(Scrollable).first);
+        await tester.ensureVisible(find.byKey(const ValueKey('delete-ack')));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('delete-ack')));
+        await settle(tester, const Duration(milliseconds: 300));
+        await tester.tap(find.byKey(const ValueKey('delete-continue')));
         await settle(tester, const Duration(milliseconds: 600));
+        tester.view.viewInsets = const FakeViewPadding(bottom: 260); // klavye açılır
+        await settle(tester, const Duration(milliseconds: 400));
         if (_shots) await _shot(tester, 'Dialog_hesapsil_${dark ? 'koyu' : 'acik'}');
         noErr(tester);
         await unmount(tester);
@@ -344,7 +354,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       await settle(tester);
       expect(find.bySemanticsLabel('Aramayı temizle'), findsOneWidget);
-      expect(find.text('Gönderi'), findsWidgets);
+      expect(find.text('Gönderi', skipOffstage: false), findsWidgets);
       final all = tester.getSemantics(find.text('Tümü'));
       expect(all.getSemanticsData().flagsCollection.isSelected, ui.Tristate.isTrue);
       await unmount(tester);
@@ -372,7 +382,7 @@ void main() {
       kPageCases.firstWhere((c) => c.name == 'ProfileTab').full(b);
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      expect(find.bySemanticsLabel('Ayarlar'), findsWidgets);
+      expect(find.bySemanticsLabel('Profili düzenle'), findsWidgets);
       await unmount(tester);
       final b2 = FakeBackend();
       kPageCases.firstWhere((c) => c.name == 'MenuPage').full(b2);

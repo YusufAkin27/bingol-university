@@ -1,5 +1,9 @@
 // Sohbet ekleri için ortak yardımcılar (galeri süzmesi, tek gösterimlik ek tanıma, video).
 
+import 'dart:ui' show Locale;
+
+import '../../l10n/app_localizations.dart';
+
 /// Ek tek gösterimlik mi.
 bool isViewOnceAttachment(Map a) => a['viewOnce'] == true;
 
@@ -42,10 +46,12 @@ Map<String, dynamic>? viewOnceAttachment(Map message) {
 
 /// Sohbet listesi önizleme metni (ek varsa): tek gösterimlik -> "Fotoğraf (tek gösterimlik)",
 /// video -> "Video", diğer -> "Fotoğraf". Ek yoksa boş metin.
-String attachmentPreviewLabel(Map message) {
+/// [l10n] verilmezse Türkçe kullanılır (eski çağıranlar için).
+String attachmentPreviewLabel(Map message, [AppLocalizations? l10n]) {
   final atts = (message['attachments'] as List? ?? const []).whereType<Map>().toList();
   if (atts.isEmpty) return '';
-  if (atts.any(isViewOnceAttachment)) return 'Fotoğraf (tek gösterimlik)';
-  if (atts.any(isVideoAttachment)) return 'Video';
-  return 'Fotoğraf';
+  final l = l10n ?? lookupAppLocalizations(const Locale('tr'));
+  if (atts.any(isViewOnceAttachment)) return l.chatMiscOnceText;
+  if (atts.any(isVideoAttachment)) return l.chatMiscVideo;
+  return l.chatMiscPhoto;
 }

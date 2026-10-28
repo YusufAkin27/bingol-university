@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/contacts/contacts_service.dart';
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -38,7 +39,7 @@ class ContactsEntryRow extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('Rehberden kişi bul',
+                child: Text(context.l10n.chatMiscContactsFind,
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
               ),
               Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
@@ -101,8 +102,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       context,
       AppPermission.contacts,
       service: widget.permissions,
-      rationale: 'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. '
-          'Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.',
+      rationale: context.l10n.chatMiscContactsRationale,
     );
     if (!mounted) return;
     if (!ok) {
@@ -167,8 +167,8 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       body: Column(
         children: [
           BuHeader(
-            title: 'Rehberden kişi bul',
-            subtitle: 'Bingöl Üniversitesi kişileri',
+            title: context.l10n.chatMiscContactsFind,
+            subtitle: context.l10n.chatMiscContactsSubtitle,
             onBack: () => Navigator.pop(context),
           ),
           Expanded(child: _body(t)),
@@ -187,20 +187,19 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       case _Phase.needPermission:
         return _StateCard(
           icon: LucideIcons.contact,
-          title: 'Rehber izni gerekli',
-          text: 'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.',
-          action: 'İzin ver',
+          title: context.l10n.chatMiscContactsPermTitle,
+          text: context.l10n.chatMiscContactsPermText,
+          action: context.l10n.chatMiscContactsPermAction,
           onAction: _load,
         );
       case _Phase.ready:
         break;
     }
     if (_all.isEmpty) {
-      return const _StateCard(
+      return _StateCard(
         icon: LucideIcons.userSearch,
-        title: 'Eşleşen kişi yok',
-        text: 'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. '
-            'Arkadaşların katıldıkça burada görünür.',
+        title: context.l10n.chatMiscContactsNoneTitle,
+        text: context.l10n.chatMiscContactsNoneText,
       );
     }
     final list = _visible;
@@ -209,7 +208,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
           child: BuSearchField(
-            hint: 'Kişilerde ara',
+            hint: context.l10n.chatMiscContactsSearchHint,
             controller: _search,
             onChanged: (v) => setState(() => _q = v),
           ),
@@ -217,7 +216,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         if (_truncated)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: Text('Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.',
+            child: Text(context.l10n.chatMiscContactsTruncated,
                 style: BuType.caption.copyWith(color: t.mut)),
           ),
         if (_openError != null)
@@ -227,7 +226,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
           ),
         Expanded(
           child: list.isEmpty
-              ? const EmptyView(icon: LucideIcons.userX, text: 'Aramanla eşleşen kişi yok.')
+              ? EmptyView(icon: LucideIcons.userX, text: context.l10n.chatMiscContactsNoSearchMatch)
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                   itemCount: list.length + 1,
@@ -235,7 +234,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
                     if (i == 0) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8, bottom: 2),
-                        child: Text('${list.length} KİŞİ',
+                        child: Text(context.l10n.chatMiscContactsCount(list.length.toString()),
                             style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
                       );
                     }
@@ -276,7 +275,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
           ),
           const SizedBox(width: 8),
           BuButton(
-            label: 'Mesaj',
+            label: context.l10n.chatMiscMessage,
             icon: LucideIcons.messageCircle,
             compact: true,
             busy: _opening == m.userId,
@@ -303,7 +302,7 @@ class _PrivacyNote extends StatelessWidget {
           Icon(LucideIcons.lock, size: 12.5, color: color),
           const SizedBox(width: 8),
           Expanded(
-            child: Text('Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.',
+            child: Text(context.l10n.chatMiscContactsPrivacy,
                 style: BuType.caption.copyWith(color: color)),
           ),
         ],

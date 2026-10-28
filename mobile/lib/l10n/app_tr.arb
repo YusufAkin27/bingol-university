@@ -69,7 +69,7 @@
     }
   },
   "loginWelcome": "Hoş geldiniz",
-  "loginSubtitle": "Bingöl Üniversitesi hesabınızla giriş yapın.",
+  "loginSubtitle": "Okul e-postanızla giriş yapın.",
   "loginReplacedNotice": "Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.",
   "loginPasswordRequired": "Şifrenizi girin.",
   "loginForgotPassword": "Şifremi unuttum",
@@ -81,7 +81,7 @@
   "authShowPassword": "Şifreyi göster",
   "authHidePassword": "Şifreyi gizle",
   "authPasswordLabel": "Şifre",
-  "authIdHint": "Okul numarası veya e-posta",
+  "authIdHint": "Okul e-postanız",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
   "authResendIn": "Yeniden gönder ({seconds} sn)",
@@ -103,7 +103,7 @@
   "authCodeSent": "Kod gönderildi.",
   "authNewCodeSent": "Yeni kod gönderildi.",
   "authEnterCode": "Kodu girin",
-  "authCodeSentTo": "{email} adresine kod gönderildi.",
+  "authCodeSentTo": "{email} adresine gönderdiğimiz 6 haneli kodu girin.",
   "@authCodeSentTo": {
     "placeholders": {
       "email": {
@@ -122,10 +122,10 @@
   },
   "authUnverifiedNotice": "E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.",
   "authUseOtherAccount": "Başka hesapla giriş yap",
-  "authResetTitle": "Şifreni sıfırla",
+  "authResetTitle": "Şifrenizi mi unuttunuz?",
   "authSendCode": "Kod gönder",
-  "authNewPasswordTitle": "Yeni şifre",
-  "authNewPasswordLabel": "Yeni şifre (en az 8 karakter)",
+  "authNewPasswordTitle": "Yeni şifre belirleyin",
+  "authNewPasswordLabel": "Yeni şifre",
   "authUpdatePassword": "Şifreyi güncelle",
   "authPasswordUpdated": "Şifre güncellendi.",
   "authSessionExpired": "Süre doldu. Baştan başlayın.",
@@ -148,5 +148,3178 @@
   "authSectionAccount": "Hesap bilgileri",
   "authPwWeak": "Zayıf",
   "authPwFair": "Orta",
-  "authPwStrong": "Güçlü"
+  "authPwStrong": "Güçlü",
+  "acadMonth1": "Ocak",
+  "acadMonth2": "Şubat",
+  "acadMonth3": "Mart",
+  "acadMonth4": "Nisan",
+  "acadMonth5": "Mayıs",
+  "acadMonth6": "Haziran",
+  "acadMonth7": "Temmuz",
+  "acadMonth8": "Ağustos",
+  "acadMonth9": "Eylül",
+  "acadMonth10": "Ekim",
+  "acadMonth11": "Kasım",
+  "acadMonth12": "Aralık",
+  "acadDay1": "Pazartesi",
+  "acadDay2": "Salı",
+  "acadDay3": "Çarşamba",
+  "acadDay4": "Perşembe",
+  "acadDay5": "Cuma",
+  "acadDay6": "Cumartesi",
+  "acadDay7": "Pazar",
+  "acadDayShort1": "Pzt",
+  "acadDayShort2": "Sal",
+  "acadDayShort3": "Çar",
+  "acadDayShort4": "Per",
+  "acadDayShort5": "Cum",
+  "acadDayShort6": "Cmt",
+  "acadDayShort7": "Paz",
+  "acadColorRed": "Kırmızı",
+  "acadColorOrange": "Turuncu",
+  "acadColorAmber": "Sarı",
+  "acadColorGreen": "Yeşil",
+  "acadColorTeal": "Turkuaz",
+  "acadColorBlue": "Mavi",
+  "acadColorIndigo": "Çivit",
+  "acadColorPurple": "Mor",
+  "acadColorPink": "Pembe",
+  "acadColorGray": "Gri",
+  "acadExamTypeVize": "Vize",
+  "acadExamTypeFinal": "Final",
+  "acadExamTypeBut": "Bütünleme",
+  "acadExamTypeQuiz": "Quiz",
+  "acadExamTypeOdev": "Ödev",
+  "acadExamTypeDiger": "Diğer",
+  "acadEventKindSemesterStart": "Dönem başlangıcı",
+  "acadEventKindRegistration": "Ders kaydı",
+  "acadEventKindHoliday": "Tatil",
+  "acadEventKindPublicHoliday": "Resmi tatil",
+  "acadCountdownDays": "{n} gün kaldı",
+  "@acadCountdownDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadCountdownHours": "{n} saat kaldı",
+  "@acadCountdownHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadCountdownMinutes": "{n} dk kaldı",
+  "@acadCountdownMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadGradePrep": "Hazırlık",
+  "acadGradeMaster": "Yüksek lisans",
+  "acadGradePhd": "Doktora",
+  "acadGradeN": "{n}. sınıf",
+  "@acadGradeN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadSave": "Kaydet",
+  "acadDelete": "Sil",
+  "acadCancel": "Vazgeç",
+  "acadRetry": "Yeniden dene",
+  "acadSelect": "Seç",
+  "acadMaintenance": "Akademik hizmetler bakımda. Daha sonra tekrar deneyin.",
+  "acadMyDept": "Bölümüm",
+  "acadAll": "Tümü",
+  "acadHubTitle": "Akademik",
+  "acadHubReminders": "Hatırlatmalar",
+  "acadHubAddCourses": "Derslerini ekle",
+  "acadHubNoClassWeek": "Bu hafta ders yok",
+  "acadHubNext": "Sıradaki: {course} {time}",
+  "@acadHubNext": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "acadHubNoExam": "Yaklaşan sınav yok",
+  "acadHubExamCount": "{n} yaklaşan sınav",
+  "@acadHubExamCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadHubTimetable": "Ders programı",
+  "acadHubTimetableSub": "Haftalık ders programın",
+  "acadHubExamsSub": "Sınav takvimin ve resmi program",
+  "acadHubCalendarSub": "Dönem, kayıt ve sınav tarihleri",
+  "acadHubAnnouncementsSub": "Bölümüne özel duyurular",
+  "acadHubUnread": "{n} okunmamış",
+  "@acadHubUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadExamsTitle": "Sınavlar",
+  "acadExamsAdd": "Sınav ekle",
+  "acadExamsTabMine": "Sınavlarım",
+  "acadExamsTabOfficial": "Resmi program",
+  "acadExamsEmptyMine": "Kişisel sınav eklemedin.\nVize, final ya da quiz tarihlerini buradan takip et.",
+  "acadExamsUpcoming": "Yaklaşan",
+  "acadExamsNoUpcoming": "Yaklaşan sınavın yok.",
+  "acadExamsPast": "Geçmiş",
+  "acadExamsSemantic": "{type}: {title}. {date}. Düzenlemek için dokun.",
+  "@acadExamsSemantic": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "acadExamsSemanticCd": "{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.",
+  "@acadExamsSemanticCd": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "countdown": {
+        "type": "String"
+      }
+    }
+  },
+  "acadOfficialSemantic": "{type}: {title}. {date}",
+  "@acadOfficialSemantic": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "acadOfficialSemanticRoom": "{type}: {title}. {date}, {room}",
+  "@acadOfficialSemanticRoom": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "acadExamsProfileIncomplete": "Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.",
+  "acadExamsEmptyOfficial": "Henüz yayınlanmış resmi sınav programı yok.",
+  "acadFormErrTitle": "Sınav başlığı gerekli.",
+  "acadFormErrDate": "Sınav tarihini seç.",
+  "acadFormErrEnd": "Bitiş saati başlangıçtan sonra olmalı.",
+  "acadFormDeleteTitle": "Sınavı sil",
+  "acadFormDeleteText": "\"{title}\" silinecek.",
+  "@acadFormDeleteText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "acadFormEdit": "Sınavı düzenle",
+  "acadFormNew": "Yeni sınav",
+  "acadFormTitleLabel": "Başlık",
+  "acadFormTitleHint": "Örn. Veri Yapıları Vize 1",
+  "acadFormType": "Tür",
+  "acadFormCourseOpt": "Ders (isteğe bağlı)",
+  "acadFormNone": "Yok",
+  "acadFormDateTime": "Tarih ve saat",
+  "acadFormExamDate": "Sınav tarihi",
+  "acadFormPickDate": "Tarih seç",
+  "acadFormStartTime": "Başlangıç saati",
+  "acadFormEndTime": "Bitiş saati",
+  "acadFormEndHint": "Bitiş (ops.)",
+  "acadFormRoom": "Derslik",
+  "acadFormRoomHint": "Örn. B-204",
+  "acadFormNote": "Not",
+  "acadFormNoteHint": "İsteğe bağlı",
+  "acadFormAdd": "Sınavı ekle",
+  "acadAnnTitle": "Bölüm duyuruları",
+  "acadAnnDetailTitle": "Duyuru",
+  "acadAnnReadAll": "Tümünü okundu işaretle",
+  "acadAnnEmptyMine": "Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.",
+  "acadAnnEmptyAll": "Henüz duyuru yok.",
+  "acadAnnAudienceAll": "Tüm üniversite",
+  "acadAnnUnread": "Okunmamış",
+  "acadAnnPinned": "Sabitlenmiş",
+  "acadAnnLinkError": "Bağlantı açılamadı.",
+  "acadAnnOpenAttachment": "Eki aç",
+  "acadCalTitle": "Akademik takvim",
+  "acadCalPrev": "Önceki ay",
+  "acadCalNext": "Sonraki ay",
+  "acadCalToday": "bugün",
+  "acadCalEventCount": "{n} önemli tarih",
+  "@acadCalEventCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadCalMonthHeading": "{month} ayı önemli tarihleri",
+  "@acadCalMonthHeading": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "acadCalNoMonth": "Bu ay için kayıtlı önemli tarih yok.",
+  "acadCalNoDay": "Bu günde önemli tarih yok.",
+  "acadCalNextHeading": "Sıradaki önemli tarihler",
+  "acadTimeDay1": "Pazartesi",
+  "acadTimeDay2": "Salı",
+  "acadTimeDay3": "Çarşamba",
+  "acadTimeDay4": "Perşembe",
+  "acadTimeDay5": "Cuma",
+  "acadTimeDay6": "Cumartesi",
+  "acadTimeDay7": "Pazar",
+  "acadTimeDayShort1": "Pzt",
+  "acadTimeDayShort2": "Sal",
+  "acadTimeDayShort3": "Çar",
+  "acadTimeDayShort4": "Per",
+  "acadTimeDayShort5": "Cum",
+  "acadTimeDayShort6": "Cmt",
+  "acadTimeDayShort7": "Paz",
+  "acadTimeColorRed": "Kırmızı",
+  "acadTimeColorOrange": "Turuncu",
+  "acadTimeColorAmber": "Sarı",
+  "acadTimeColorGreen": "Yeşil",
+  "acadTimeColorTeal": "Turkuaz",
+  "acadTimeColorBlue": "Mavi",
+  "acadTimeColorIndigo": "Çivit",
+  "acadTimeColorPurple": "Mor",
+  "acadTimeColorPink": "Pembe",
+  "acadTimeColorGray": "Gri",
+  "acadTimeExamVize": "Vize",
+  "acadTimeExamFinal": "Final",
+  "acadTimeExamBut": "Bütünleme",
+  "acadTimeExamQuiz": "Quiz",
+  "acadTimeExamOdev": "Ödev",
+  "acadTimeExamOther": "Diğer",
+  "acadTimeRemClass": "{min} dk sonra başlıyor ({time}{room})",
+  "@acadTimeRemClass": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeRemExamLabel": "{type}: {title}",
+  "@acadTimeRemExamLabel": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeRemExamTomorrow": "Yarın {time}{room}",
+  "@acadTimeRemExamTomorrow": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeRemExamHour": "1 saat sonra başlıyor{room}",
+  "@acadTimeRemExamHour": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeExportNone": "Dışa aktarılacak ders yok.",
+  "acadTimeExportCopied": "Takvim (.ics) metni panoya kopyalandı.",
+  "acadTimeTitle": "Ders programı",
+  "acadTimeExportTooltip": "Takvime aktar (.ics)",
+  "acadTimeAddCourse": "Ders ekle",
+  "acadTimeStale": "Güncellenemedi, son veriler gösteriliyor.",
+  "acadTimePickSemester": "Dönem seç",
+  "acadTimeMyCourses": "Derslerim ({count})",
+  "@acadTimeMyCourses": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeEmptyText": "Henüz ders eklemedin.\nHaftalık programını oluşturmak için derslerini ekle.",
+  "acadTimeAddFirst": "İlk dersini ekle",
+  "acadTimeNowInClass": "Şu an derste",
+  "acadTimeMinLeft": "{name} · {min} dk kaldı",
+  "@acadTimeMinLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeNextClass": "Sıradaki ders",
+  "acadTimeWhenMin": "{min} dk sonra",
+  "@acadTimeWhenMin": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeWhenHours": "{h} sa sonra",
+  "@acadTimeWhenHours": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeWhenHoursMin": "{h} sa {min} dk sonra",
+  "@acadTimeWhenHoursMin": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeWhenDay": "{day} {time}",
+  "@acadTimeWhenDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeToday": "Bugün",
+  "acadTimeNoMoreWeek": "Bu hafta başka dersin yok.",
+  "acadTimeTodayNone": "Bugün kalan ders yok",
+  "acadTimeTodayLeft": "Bugün {count} ders kaldı",
+  "@acadTimeTodayLeft": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeDayToday": "{day}, bugün",
+  "@acadTimeDayToday": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeNoClassDay": "{day} günü dersin yok.",
+  "@acadTimeNoClassDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeOutOfRange": "Bu tarih dönem aralığı dışında.",
+  "acadTimeStatusNow": "Şu an",
+  "acadTimeStatusDone": "Bitti",
+  "acadTimeSlotSemantic": "{name}, {day} {start} ile {end} arası",
+  "@acadTimeSlotSemantic": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeCourseSemantic": "{name}. {days}. Düzenlemek için dokun.",
+  "@acadTimeCourseSemantic": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeNoSessions": "Oturum yok",
+  "acadTimeNameRequired": "Ders adı gerekli",
+  "acadTimeEndAfterStart": "Bitiş saati başlangıçtan sonra olmalı.",
+  "acadTimeOwnConflict": "Bu dersin kendi oturumları çakışıyor",
+  "acadTimeConflictTitle": "Ders çakışması",
+  "acadTimeConflictText": "Şu derslerle saatler çakışıyor:\n{lines}\n\nYine de kaydedilsin mi?",
+  "@acadTimeConflictText": {
+    "placeholders": {
+      "lines": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeConflictServerText": "{message}\n\nYine de kaydedilsin mi?",
+  "@acadTimeConflictServerText": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeSaveAnyway": "Yine de kaydet",
+  "acadTimeDeleteCourse": "Dersi sil",
+  "acadTimeDeleteCourseText": "\"{name}\" dersi ve tüm oturumları silinecek.",
+  "@acadTimeDeleteCourseText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeDelete": "Sil",
+  "acadTimeEditCourse": "Dersi düzenle",
+  "acadTimeNewCourse": "Yeni ders",
+  "acadTimeCourseName": "Ders adı",
+  "acadTimeNameHint": "Örn. Veri Yapıları",
+  "acadTimeCourseCode": "Ders kodu",
+  "acadTimeInstructor": "Öğretim üyesi",
+  "acadTimeInstructorHint": "Dr. Ayşe Yılmaz",
+  "acadTimeColor": "Renk",
+  "acadTimeColorSemantic": "Renk {color}",
+  "@acadTimeColorSemantic": {
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeColorAuto": "Seçmezseniz otomatik atanır.",
+  "acadTimeDaysAndTimes": "Gün ve saatler",
+  "acadTimeAddSession": "Başka gün/saat ekle",
+  "acadTimeNote": "Not",
+  "acadTimeNoteHint": "İsteğe bağlı (örn. laptop getir)",
+  "acadTimeSave": "Kaydet",
+  "acadTimeAddCourseBtn": "Dersi ekle",
+  "acadTimeSessionN": "{n}. oturum",
+  "@acadTimeSessionN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeRemoveSession": "Oturumu kaldır",
+  "acadTimeStartTime": "Başlangıç saati",
+  "acadTimeEndTime": "Bitiş saati",
+  "acadTimeRoomHint": "Derslik (örn. B-204)",
+  "acadTimeSemester": "Dönem",
+  "acadTimeNoSemester": "Henüz dönem yok. Bir dönem ekleyerek derslerini düzenleyebilirsin.",
+  "acadTimeAddSemester": "Yeni dönem ekle",
+  "acadTimeOfficial": "{name} (akademik takvimden)",
+  "@acadTimeOfficial": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeOfficialDefault": "Resmi dönem",
+  "acadTimeClose": "Kapat",
+  "acadTimeCurrent": "Güncel",
+  "acadTimeMakeCurrent": "Güncel dönem yap",
+  "acadTimeDeleteSemester": "Dönemi sil",
+  "acadTimeDeleteSemesterText": "\"{name}\" silinecek. Dersler dönemsiz kalır.",
+  "@acadTimeDeleteSemesterText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeNewSemester": "Yeni dönem",
+  "acadTimeSemesterHint": "2026-2027 Güz",
+  "acadTimeStartDate": "Başlangıç tarihi",
+  "acadTimeEndDate": "Bitiş tarihi",
+  "acadTimeCancel": "Vazgeç",
+  "acadTimeSemesterNeedAll": "Ad ve iki tarih de gerekli.",
+  "acadTimeSemesterEndAfter": "Bitiş tarihi başlangıçtan sonra olmalı.",
+  "acadTimeAdd": "Ekle",
+  "acadTimeRemindersTitle": "Hatırlatmalar",
+  "acadTimeRemindersIntro": "Bildirimler cihazında zamanlanır; internet gerekmez. Ders programın veya sınavların değişince yenilenir.",
+  "acadTimeClassReminder": "Ders hatırlatması",
+  "acadTimeBeforeClass": "Ders başlamadan önce",
+  "acadTimeOneHour": "1 saat",
+  "acadTimeMinutes": "{m} dk",
+  "@acadTimeMinutes": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "acadTimeExamReminders": "Sınav hatırlatmaları",
+  "acadTimeDayBefore": "1 gün önce",
+  "acadTimeHourBefore": "1 saat önce",
+  "authRestEnterCode": "6 haneli kodu girin.",
+  "authRestCodeLabel": "6 haneli doğrulama kodu",
+  "chatDetailVideoPreparing": "Video hazırlanıyor… %{pct}",
+  "@chatDetailVideoPreparing": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailCancel": "İptal",
+  "chatDetailUserFallback": "Kullanıcı",
+  "chatDetailYou": "Sen",
+  "chatDetailChatFallback": "Sohbet",
+  "chatDetailGroupFallback": "Grup",
+  "chatDetailVideoTooLong": "Video en fazla 60 saniye olabilir",
+  "chatDetailVideoTooLarge": "Video çok büyük, daha kısa bir video seçin",
+  "chatDetailVideoUnsupported": "Bu cihazda video gönderilemiyor.",
+  "chatDetailVideoFailed": "Video hazırlanamadı.",
+  "chatDetailVideosSplit": "Videolar büyük olduğu için birden fazla mesaj olarak gönderilecek",
+  "chatDetailImageTooLarge": "Görsel çok büyük, daha küçük bir görsel seçin.",
+  "chatDetailImageTypes": "Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.",
+  "chatDetailImageUnreadable": "Görsel okunamadı.",
+  "chatDetailVideoUnreadable": "Video okunamadı.",
+  "chatDetailSavedToGallery": "Galeriye kaydedildi",
+  "chatDetailDeleteTitle": "Mesaj silinsin mi?",
+  "chatDetailDeleteBody": "Bu mesaj herkes için silinir.",
+  "chatDetailDelete": "Sil",
+  "chatDetailMsgDeleted": "Bu mesaj silindi",
+  "chatDetailNevermind": "Vazgeç",
+  "chatDetailToday": "Bugün",
+  "chatDetailYesterday": "Dün",
+  "chatDetailMonth1": "Ocak",
+  "chatDetailMonth2": "Şubat",
+  "chatDetailMonth3": "Mart",
+  "chatDetailMonth4": "Nisan",
+  "chatDetailMonth5": "Mayıs",
+  "chatDetailMonth6": "Haziran",
+  "chatDetailMonth7": "Temmuz",
+  "chatDetailMonth8": "Ağustos",
+  "chatDetailMonth9": "Eylül",
+  "chatDetailMonth10": "Ekim",
+  "chatDetailMonth11": "Kasım",
+  "chatDetailMonth12": "Aralık",
+  "chatDetailOnline": "Çevrimiçi",
+  "chatDetailLastSeenToday": "Son görülme: bugün {time}",
+  "@chatDetailLastSeenToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailLastSeenYesterday": "Son görülme: dün {time}",
+  "@chatDetailLastSeenYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailLastSeenOn": "Son görülme: {date}",
+  "@chatDetailLastSeenOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailClubRoomMembers": "Kulüp odası · {count} üye",
+  "@chatDetailClubRoomMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailEventRoomMembers": "Etkinlik odası · {count} üye",
+  "@chatDetailEventRoomMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailMembersCount": "{count} üye",
+  "@chatDetailMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailClubEventRoom": "Kulüp/etkinlik odası",
+  "chatDetailResend": "Yeniden gönder",
+  "chatDetailReply": "Yanıtla",
+  "chatDetailCopy": "Kopyala",
+  "chatDetailForward": "İlet",
+  "chatDetailEdit": "Düzenle",
+  "chatDetailDeleteForAll": "Herkesten sil",
+  "chatDetailDeleteMessage": "Mesajı sil",
+  "chatDetailReport": "Şikâyet et",
+  "chatDetailCopied": "Kopyalandı",
+  "chatDetailForwarded": "İletildi",
+  "chatDetailForwardFailedAll": "İletilemedi",
+  "chatDetailForwardFailedSome": "{count} sohbete iletilemedi",
+  "@chatDetailForwardFailedSome": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailSearchInChat": "Sohbette ara",
+  "chatDetailClubPage": "Kulüp sayfası",
+  "chatDetailEventPage": "Etkinlik sayfası",
+  "chatDetailMembers": "Üyeler",
+  "chatDetailMedia": "Medya",
+  "chatDetailSettings": "Ayarlar",
+  "chatDetailLeaveChat": "Sohbetten ayrıl",
+  "chatDetailBlock": "Engelle",
+  "chatDetailUnblock": "Engeli kaldır",
+  "chatDetailReportUser": "Kullanıcıyı şikâyet et",
+  "chatDetailLeaveTitle": "Sohbetten ayrılınsın mı?",
+  "chatDetailLeaveBody": "Bu sohbetten ayrılırsınız.",
+  "chatDetailLeave": "Ayrıl",
+  "chatDetailBlockTitle": "Kullanıcı engellensin mi?",
+  "chatDetailBlockBody": "Engellediğiniz kişiyle mesajlaşamazsınız.",
+  "chatDetailUserBlocked": "Kullanıcı engellendi",
+  "chatDetailUserUnblocked": "Engel kaldırıldı",
+  "chatDetailMembersTitle": "Üyeler ({count})",
+  "@chatDetailMembersTitle": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailMembersLoadFailed": "Üye listesi alınamadı.",
+  "chatDetailAdmin": "Yönetici",
+  "chatDetailBack": "Geri",
+  "chatDetailOpenProfile": "Profili aç",
+  "chatDetailChatInfo": "Sohbet bilgisi",
+  "chatDetailTyping": "yazıyor…",
+  "chatDetailMenu": "Menü",
+  "chatDetailCloseSearch": "Aramayı kapat",
+  "chatDetailTypeToSearch": "Aramak için yazın",
+  "chatDetailNoMatch": "Eşleşme yok",
+  "chatDetailPrevMatch": "Önceki eşleşme",
+  "chatDetailNextMatch": "Sonraki eşleşme",
+  "chatDetailSearching": "Aranıyor…",
+  "chatDetailSearchOlder": "Daha eski mesajlarda ara",
+  "chatDetailEmpty": "Henüz mesaj yok. İlk mesajı sen yaz.",
+  "chatDetailScrollDown": "En alta in",
+  "chatDetailScrollDownNew": "En alta in, {count} yeni mesaj",
+  "@chatDetailScrollDownNew": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDetailEditing": "Mesaj düzenleniyor",
+  "chatDetailAdd": "Ekle",
+  "chatDetailWriteMessage": "Mesaj yaz",
+  "chatDetailCamera": "Kamera",
+  "chatDetailSave": "Kaydet",
+  "chatDetailSend": "Gönder",
+  "chatDetailClose": "Kapat",
+  "chatDetailReactionLabel": "Tepki {emoji}",
+  "@chatDetailReactionLabel": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoUnmute": "Sesi aç",
+  "chatInfoMute": "Sessize al",
+  "chatInfoUnarchive": "Arşivden çıkar",
+  "chatInfoArchive": "Arşivle",
+  "chatInfoDelete": "Sil",
+  "chatInfoCancel": "Vazgeç",
+  "chatInfoSave": "Kaydet",
+  "chatInfoMute8h": "8 saat",
+  "chatInfoMute1w": "1 hafta",
+  "chatInfoMuteForever": "Her zaman",
+  "chatInfoDeleteConvTitle": "Sohbet silinsin mi?",
+  "chatInfoDeleteConvGroup": "Gruptan çıkıp bu sohbeti sileceksin.",
+  "chatInfoDeleteConvDirect": "Bu sohbet yalnızca senin için silinecek. Karşı taraf etkilenmez.",
+  "chatInfoUser": "Kullanıcı",
+  "chatInfoYou": "Sen",
+  "chatInfoAdmin": "Yönetici",
+  "chatInfoRemoveFromGroup": "Gruptan çıkar",
+  "chatInfoMembersCount": "Üyeler ({n})",
+  "@chatInfoMembersCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoSearchMember": "Üye ara",
+  "chatInfoNoResults": "Sonuç yok.",
+  "chatInfoOpenVideo": "Videoyu aç",
+  "chatInfoOpenImage": "Görseli aç",
+  "chatInfoMedia": "Medya",
+  "chatInfoRetry": "Yeniden dene",
+  "chatInfoChat": "Sohbet",
+  "chatInfoGroup": "Grup",
+  "chatInfoUnmuted": "Bildirimlerin sesi açıldı",
+  "chatInfoMuted": "Sohbet sessize alındı",
+  "chatInfoUnarchived": "Sohbet arşivden çıkarıldı",
+  "chatInfoArchived": "Sohbet arşivlendi",
+  "chatInfoLeaveTitle": "Sohbetten ayrılınsın mı?",
+  "chatInfoLeaveBody": "Bu sohbetten ayrılırsınız.",
+  "chatInfoLeave": "Ayrıl",
+  "chatInfoUnblocked": "Engel kaldırıldı",
+  "chatInfoBlockTitle": "Kullanıcı engellensin mi?",
+  "chatInfoBlockBody": "Engellediğiniz kişiyle mesajlaşamazsınız.",
+  "chatInfoBlock": "Engelle",
+  "chatInfoBlocked": "Kullanıcı engellendi",
+  "chatInfoUnblock": "Engeli kaldır",
+  "chatInfoReportUser": "Kullanıcıyı şikâyet et",
+  "chatInfoReport": "Şikâyet et",
+  "chatInfoRemoveMemberTitle": "Üye çıkarılsın mı?",
+  "chatInfoRemoveMemberBody": "{name} gruptan çıkarılır.",
+  "@chatInfoRemoveMemberBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoRemove": "Çıkar",
+  "chatInfoPickGallery": "Galeriden seç",
+  "chatInfoRemovePhoto": "Fotoğrafı kaldır",
+  "chatInfoImageTooLarge": "Görsel çok büyük, daha küçük bir görsel seçin.",
+  "chatInfoImageTypeOnly": "Yalnızca JPEG, PNG veya WebP görseller kullanılabilir.",
+  "chatInfoTitle": "Sohbet bilgisi",
+  "chatInfoNoMembers": "Üye listesi yok.",
+  "chatInfoClubRoom": "Kulüp odası",
+  "chatInfoEventRoom": "Etkinlik odası",
+  "chatInfoMemberCount": "{n} üye",
+  "@chatInfoMemberCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoChangePhoto": "Fotoğrafı değiştir",
+  "chatInfoEditName": "Adı düzenle",
+  "chatInfoClub": "Kulüp",
+  "chatInfoEvent": "Etkinlik",
+  "chatInfoSearch": "Ara",
+  "chatInfoMembers": "Üyeler",
+  "chatInfoMembersDot": "Üyeler · {n}",
+  "@chatInfoMembersDot": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoNoMedia": "Bu sohbette henüz görsel yok.",
+  "chatInfoSeeAllMedia": "Tüm medyayı gör",
+  "chatInfoMediaDot": "Medya · {count}",
+  "@chatInfoMediaDot": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoAll": "Tümü",
+  "chatInfoMuteOn": "Açık",
+  "chatInfoMutedAlways": "Sessiz · her zaman",
+  "chatInfoMutedDays": "Sessiz · {n} gün sonra açılır",
+  "@chatInfoMutedDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoMutedHours": "Sessiz · {n} saat sonra açılır",
+  "@chatInfoMutedHours": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInfoMutedSoon": "Sessiz · birazdan açılır",
+  "chatInfoMutedLabel": "Sessiz",
+  "chatInfoOpenClubPage": "Kulüp sayfasını aç",
+  "chatInfoOpenEventPage": "Etkinlik sayfasını aç",
+  "chatInfoViewProfile": "Profili görüntüle",
+  "chatInfoMuteNotifications": "Bildirimleri sessize al",
+  "chatInfoClosed": "Bu sohbet kapalı",
+  "chatInfoClosedSub": "Yeni mesaj gönderilemez",
+  "chatInfoLeaveChat": "Sohbetten çık",
+  "chatInfoSettings": "Ayarlar",
+  "chatInfoGroupName": "Grup adı",
+  "chatMiscFilterAll": "Tümü",
+  "chatMiscFilterPeople": "Kişiler",
+  "chatMiscFilterClubs": "Kulüpler",
+  "chatMiscFilterEvents": "Etkinlikler",
+  "chatMiscArchived": "Sohbet arşivlendi",
+  "chatMiscUnarchived": "Sohbet arşivden çıkarıldı",
+  "chatMiscChat": "Sohbet",
+  "chatMiscArchive": "Arşiv",
+  "chatMiscNewChat": "Yeni sohbet",
+  "chatMiscEmptyArchive": "Arşivde sohbet yok",
+  "chatMiscEmptyNoMatch": "Eşleşen sohbet bulunamadı",
+  "chatMiscEmptyNone": "Henüz sohbetiniz yok",
+  "chatMiscUnarchiveAction": "Çıkar",
+  "chatMiscArchiveAction": "Arşivle",
+  "chatMiscSearchHint": "Kişi veya grup ara",
+  "chatMiscTagClub": "Kulüp",
+  "chatMiscTagEvent": "Etkinlik",
+  "chatMiscMessageDeleted": "Mesaj silindi",
+  "chatMiscOnceText": "Fotoğraf (tek gösterimlik)",
+  "chatMiscImage": "Görsel",
+  "chatMiscDayMon": "Pzt",
+  "chatMiscDayTue": "Sal",
+  "chatMiscDayWed": "Çar",
+  "chatMiscDayThu": "Per",
+  "chatMiscDayFri": "Cum",
+  "chatMiscDaySat": "Cmt",
+  "chatMiscDaySun": "Paz",
+  "chatMiscYesterday": "Dün",
+  "chatMiscSendFailedRetry": "{error} · Yeniden dene",
+  "@chatMiscSendFailedRetry": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscSendFailed": "Gönderilemedi",
+  "chatMiscThisMessageDeleted": "Bu mesaj silindi",
+  "chatMiscVideo": "Video",
+  "chatMiscPhoto": "Fotoğraf",
+  "chatMiscUser": "Kullanıcı",
+  "chatMiscStatusSending": "Gönderiliyor",
+  "chatMiscStatusSent": "Gönderildi",
+  "chatMiscStatusDelivered": "İletildi",
+  "chatMiscStatusRead": "Okundu",
+  "chatMiscImageUnavailable": "Görsel kullanılamıyor",
+  "chatMiscVideoWithDuration": "Video, {duration}",
+  "@chatMiscVideoWithDuration": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscClose": "Kapat",
+  "chatMiscImageLoadFailed": "Görsel yüklenemedi.",
+  "chatMiscOnceOpened": "Açıldı",
+  "chatMiscOnceSending": "Fotoğraf · Gönderiliyor",
+  "chatMiscOnceSent": "Fotoğraf · Gönderildi",
+  "chatMiscOnceTapToOpen": "Fotoğraf · Açmak için dokun",
+  "chatMiscOnceSemantics": "Tek gösterimlik fotoğraf. {label}",
+  "@chatMiscOnceSemantics": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscEdited": "düzenlendi",
+  "chatMiscContactsFind": "Rehberden kişi bul",
+  "chatMiscContactsRationale": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
+  "chatMiscContactsSubtitle": "Bingöl Üniversitesi kişileri",
+  "chatMiscContactsPermTitle": "Rehber izni gerekli",
+  "chatMiscContactsPermText": "Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.",
+  "chatMiscContactsPermAction": "İzin ver",
+  "chatMiscContactsNoneTitle": "Eşleşen kişi yok",
+  "chatMiscContactsNoneText": "Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.",
+  "chatMiscContactsSearchHint": "Kişilerde ara",
+  "chatMiscContactsTruncated": "Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.",
+  "chatMiscContactsNoSearchMatch": "Aramanla eşleşen kişi yok.",
+  "chatMiscContactsCount": "{n} KİŞİ",
+  "@chatMiscContactsCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscMessage": "Mesaj",
+  "chatMiscContactsPrivacy": "Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
+  "chatMiscGroupMax": "Gruba en çok 50 kişi eklenebilir.",
+  "chatMiscGroupNameRequired": "Grup adı girin.",
+  "chatMiscUserSearchHint": "Ad veya e-posta ile ara",
+  "chatMiscCreateGroup": "Grubu oluştur",
+  "chatMiscStartChat": "Sohbet başlat",
+  "chatMiscGroupCardTitle": "Grup oluştur",
+  "chatMiscSelectedCount": "{n} kişi seçildi",
+  "@chatMiscSelectedCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscGroupName": "Grup adı",
+  "chatMiscMax50": "en çok 50",
+  "chatMiscSearchMin": "Kişi aramak için en az 2 karakter yazın.",
+  "chatMiscNoMatchPeople": "Eşleşen kişi bulunamadı.",
+  "chatMiscPeopleHeader": "KİŞİLER",
+  "chatMiscForward": "İlet",
+  "chatMiscSearchChat": "Sohbet ara",
+  "chatMiscForwardMax": "En fazla {max} sohbet seçilebilir.",
+  "@chatMiscForwardMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscSend": "Gönder",
+  "chatMiscSendCount": "Gönder ({n})",
+  "@chatMiscSendCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscChatNotFound": "Sohbet bulunamadı.",
+  "chatMiscGalleryRationale": "Galerindeki fotoğraf ve videoları gösterebilmemiz için erişim izni gerekir.",
+  "chatMiscVideoMax60": "Video en fazla 60 saniye olabilir",
+  "chatMiscPickMax": "En fazla {max} öğe seçebilirsin",
+  "@chatMiscPickMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscAll": "Tümü",
+  "chatMiscGallery": "Galeri",
+  "chatMiscLimitedNote": "Yalnızca izin verdiğin öğeler görünüyor.",
+  "chatMiscSelectMore": "Daha fazla seç",
+  "chatMiscSettings": "Ayarlar",
+  "chatMiscGalleryDenied": "Galeriye erişim izni verilmedi.",
+  "chatMiscOpenSettings": "Ayarlardan aç",
+  "chatMiscCamera": "Kamera",
+  "chatMiscPreviewCount": "Önizle ({n})",
+  "@chatMiscPreviewCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscCameraRationale": "Fotoğraf ve video çekebilmeniz için kameraya erişmemiz gerekir.",
+  "chatMiscMicRationale": "Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.",
+  "chatMiscPhotoFailed": "Fotoğraf çekilemedi.",
+  "chatMiscVideoSaveFailed": "Video kaydedilemedi.",
+  "chatMiscCameraUnavailable": "Kamera kullanılamıyor.",
+  "chatMiscCameraHint": "Dokun: fotoğraf · Basılı tut: video",
+  "chatMiscFlipCamera": "Kamerayı çevir",
+  "chatMiscOnceToast": "Tek gönderimlik: alıcı yalnızca bir kez görebilir",
+  "chatMiscAddCaption": "Açıklama ekle…",
+  "chatMiscOnceSendLabel": "Tek gönderimlik",
+  "chatMiscOnceGone": "Bu fotoğraf artık görüntülenemez.",
+  "chatMiscOnceOwn": "Kendi gönderdiğiniz tek gösterimlik fotoğrafı açamazsınız.",
+  "chatMiscOnceNetwork": "Fotoğraf yüklenemedi. Bağlantınızı kontrol edin. Tek gösterimlik olduğu için yeniden açılamayabilir.",
+  "chatMiscOnceShowFailed": "Fotoğraf gösterilemedi. Tek gösterimlik olduğu için yeniden açılamayabilir.",
+  "chatMiscOnceTitle": "Tek gösterimlik",
+  "chatMiscRetry": "Yeniden dene",
+  "chatMiscSaveUnsupported": "Bu cihazda desteklenmiyor.",
+  "chatMiscSaveDenied": "Galeri izni verilmedi.",
+  "chatMiscSaveNoSpace": "Cihazda yeterli alan yok.",
+  "chatMiscImageSaveFailed": "Görsel kaydedilemedi.",
+  "chatMiscSavedToGallery": "Galeriye kaydedildi",
+  "chatMiscDownload": "İndir",
+  "chatMiscPlayVideo": "Videoyu oynat",
+  "chatMiscVideoPlayFailed": "Video oynatılamadı",
+  "clubWithdrawTitle": "İsteği geri çek",
+  "clubWithdrawMessage": "Katılma isteğiniz geri çekilsin mi?",
+  "clubWithdrawConfirm": "Geri çek",
+  "clubImageTooLarge": "Görsel çok büyük.",
+  "clubImageUnsupported": "Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.",
+  "clubImageUnreadable": "Görsel okunamadı.",
+  "clubImagePickFailed": "Görsel seçilemedi.",
+  "clubImageUploadFailed": "Görsel yüklenemedi.",
+  "clubDeleted": "Kulüp silindi.",
+  "clubChatClosed": "Kulüp sohbeti şu an kapalı.",
+  "clubChatPreparing": "Kulüp sohbeti hazırlanıyor, biraz sonra tekrar dene.",
+  "clubChat": "Kulüp sohbeti",
+  "clubDeletePostTitle": "Gönderiyi sil",
+  "clubDeletePostMessage": "Bu gönderi kalıcı olarak silinsin mi?",
+  "clubCancel": "Vazgeç",
+  "clubDelete": "Sil",
+  "clubReportClub": "Kulübü şikâyet et",
+  "clubReportPost": "Gönderiyi şikâyet et",
+  "clubMemberCount": "{count} üye",
+  "@clubMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "clubPrivate": "Özel",
+  "clubPublic": "Herkese açık",
+  "clubTitle": "Kulüp",
+  "clubBack": "Geri",
+  "clubOptions": "Kulüp seçenekleri",
+  "clubEdit": "Kulübü düzenle",
+  "clubRequestsWithCount": "Başvurular ({count})",
+  "@clubRequestsWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "clubRequests": "Başvurular",
+  "clubManageMembers": "Üyeleri yönet",
+  "clubChangeCover": "Kapağı değiştir",
+  "clubDeleteClub": "Kulübü sil",
+  "clubLeave": "Kulüpten ayrıl",
+  "clubIsMember": "Üyesin",
+  "clubRequestSent": "İstek gönderildi",
+  "clubCannotJoin": "Katılamazsın",
+  "clubSendJoinRequest": "Katılma isteği gönder",
+  "clubJoin": "Katıl",
+  "clubTabPosts": "Gönderiler",
+  "clubTabEvents": "Etkinlikler",
+  "clubTabMembers": "Üyeler",
+  "clubTabPolls": "Anketler",
+  "clubNoPosts": "Henüz gönderi yok.",
+  "clubNoEvents": "Bu kulübün yaklaşan etkinliği yok.",
+  "clubNoMembers": "Üye bulunamadı.",
+  "clubLoadFailedRetry": "Yüklenemedi, tekrar dene",
+  "clubWriteHint": "Kulübe bir şeyler yaz",
+  "clubAddImage": "Görsel ekle",
+  "clubShare": "Paylaş",
+  "clubRemoveImage": "Görseli kaldır",
+  "clubPendingRequests": "Bekleyen başvurular",
+  "clubPostActions": "Gönderi işlemleri",
+  "clubUnpin": "Sabitlemeyi kaldır",
+  "clubPin": "Sabitle",
+  "clubReport": "Şikâyet et",
+  "clubPinned": "Sabit",
+  "clubUser": "Kullanıcı",
+  "clubRoleOwner": "Yönetici",
+  "clubRoleModerator": "Moderatör",
+  "clubDeleteBody": "Üyeler, etkinlikler ve sohbet silinir. Bu işlem geri alınamaz.",
+  "clubDeleteTypeName": "Onaylamak için kulüp adını yaz: {name}",
+  "@clubDeleteTypeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubNameHint": "Kulüp adı",
+  "clubOwnerCannotLeave": "Kulüp sahibi ayrılamaz. Önce sahipliği devret ya da kulübü sil.",
+  "clubCannotLeaveTitle": "Kulüpten ayrılamazsın",
+  "clubOk": "Tamam",
+  "clubThisClub": "Bu kulüp",
+  "clubLeaveMessage": "{name} kulübünden ayrılmak istiyor musun? Kulüp sohbetinden de çıkarılacaksın ve sohbet listenden silinecek.",
+  "@clubLeaveMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubLeaveConfirm": "Ayrıl",
+  "clubMgmtJoinTitle": "Katılma isteği",
+  "clubMgmtJoinAdminsSee": "{club} yöneticileri cevaplarını görecek.",
+  "@clubMgmtJoinAdminsSee": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtAnswerHint": "Cevabın",
+  "clubMgmtQuestionRequired": "Bu soru zorunlu",
+  "clubMgmtCancel": "Vazgeç",
+  "clubMgmtSendRequest": "İstek gönder",
+  "clubMgmtNoPending": "Bekleyen başvuru yok.",
+  "clubMgmtMoreRequests": "Daha fazla başvuru",
+  "clubMgmtRequestsTitle": "Başvurular",
+  "clubMgmtWaitingCount": "{count} bekliyor",
+  "@clubMgmtWaitingCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtUser": "Kullanıcı",
+  "clubMgmtReject": "Reddet",
+  "clubMgmtApprove": "Onayla",
+  "clubMgmtBan": "Yasakla",
+  "clubMgmtRemoveFromClub": "Kulüpten çıkar",
+  "clubMgmtBanMessage": "{name} kulüpten çıkarılsın ve bir daha katılamasın mı?",
+  "@clubMgmtBanMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtRemoveMessage": "{name} kulüpten çıkarılsın mı? Kulüp sohbetinden de düşer.",
+  "@clubMgmtRemoveMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtRemoveConfirm": "Çıkar",
+  "clubMgmtNoMembers": "Üye bulunamadı.",
+  "clubMgmtMembersTitle": "Üyeler",
+  "clubMgmtSearchMember": "Üye ara",
+  "clubMgmtRoleManager": "Yönetici",
+  "clubMgmtRoleModerator": "Moderatör",
+  "clubMgmtMemberActions": "Üye işlemleri",
+  "clubMgmtMakeModerator": "Moderatör yap",
+  "clubMgmtMakeMember": "Üye yap",
+  "clubMgmtPendingTitle": "Kulübün onaya gönderildi",
+  "clubMgmtPendingBody": "Yöneticiler incelediğinde kulüp yayına girecek. Durumu Kulüplerim bölümünden izleyebilirsin.",
+  "clubMgmtOk": "Tamam",
+  "clubMgmtImageTooLarge": "Görsel çok büyük.",
+  "clubMgmtImageUnsupported": "Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.",
+  "clubMgmtImageUnreadable": "Görsel okunamadı.",
+  "clubMgmtImagePickFailed": "Görsel seçilemedi.",
+  "clubMgmtNameMin": "Kulüp adı en az 3 karakter olmalı.",
+  "clubMgmtNameMax": "Kulüp adı en fazla 80 karakter olabilir.",
+  "clubMgmtDescMax": "Açıklama en fazla 1000 karakter olabilir.",
+  "clubMgmtCategoryMax": "Kategori en fazla 40 karakter olabilir.",
+  "clubMgmtSavedWithWarning": "Kulüp kaydedildi ancak kapak ya da katılım soruları kaydedilemedi.",
+  "clubMgmtEditTitle": "Kulübü düzenle",
+  "clubMgmtCreateTitle": "Kulüp kur",
+  "clubMgmtNameLabel": "Kulüp adı",
+  "clubMgmtNameHint": "Örn. Robotik Kulübü",
+  "clubMgmtDescLabel": "Kısa açıklama",
+  "clubMgmtDescHint": "Kulüp ne yapıyor?",
+  "clubMgmtCategoryLabel": "Kategori",
+  "clubMgmtCategoryHint": "Listeden seç ya da yaz (isteğe bağlı)",
+  "clubMgmtVisibility": "Görünürlük",
+  "clubMgmtPublic": "Herkese açık",
+  "clubMgmtPrivate": "Gizli",
+  "clubMgmtPrivateHint": "Kulüp içeriğini yalnızca üyeler görür; katılım onayla olur.",
+  "clubMgmtPublicHint": "Kulüp Keşfet listesinde görünür.",
+  "clubMgmtJoinLabel": "Katılım",
+  "clubMgmtOpenPolicy": "Serbest",
+  "clubMgmtApprovalPolicy": "Onaylı",
+  "clubMgmtApprovalHint": "Katılmak isteyenler başvuru gönderir, sen onaylarsın.",
+  "clubMgmtOpenHint": "Herkes doğrudan katılabilir.",
+  "clubMgmtQuestionsLabel": "Katılım soruları (en çok {max})",
+  "@clubMgmtQuestionsLabel": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtQuestionHint": "Soru {n}",
+  "@clubMgmtQuestionHint": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtRemoveQuestion": "Soruyu kaldır",
+  "clubMgmtAddQuestion": "Soru ekle",
+  "clubMgmtSave": "Kaydet",
+  "clubMgmtCreateButton": "Kulübü oluştur",
+  "clubMgmtChangeCover": "Kapağı değiştir",
+  "clubMgmtAddCover": "Kapak ekle (isteğe bağlı)",
+  "clubMgmtClubsTitle": "Kulüpler",
+  "clubMgmtSearch": "Ara",
+  "clubMgmtSearchClub": "Kulüp ara",
+  "clubMgmtTabDiscover": "Keşfet",
+  "clubMgmtTabMine": "Kulüplerim",
+  "clubMgmtAll": "Tümü",
+  "clubMgmtEmptyMine": "Henüz hiçbir kulübe üye değilsin.",
+  "clubMgmtNotFound": "Kulüp bulunamadı.",
+  "clubMgmtMemberCount": "{count} üye",
+  "@clubMgmtMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "clubMgmtYouAreMember": "Üyesin",
+  "clubMgmtRequestSent": "İstek gönderildi",
+  "clubMgmtBanned": "Engelli",
+  "clubMgmtJoin": "Katıl",
+  "commonBack": "Geri",
+  "commonSearchHint": "Ara",
+  "commonJustNow": "şimdi",
+  "commonMinutesAgo": "{n} dk önce",
+  "@commonMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "commonHoursAgo": "{n} sa önce",
+  "@commonHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "commonDaysAgo": "{n} gün önce",
+  "@commonDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "commonLongDate": "{day} {month}, {weekday}",
+  "@commonLongDate": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "commonTypeNews": "Haber",
+  "commonTypeAnnouncement": "Duyuru",
+  "commonTypeEvent": "Etkinlik",
+  "commonMonth1": "Ocak",
+  "commonMonth2": "Şubat",
+  "commonMonth3": "Mart",
+  "commonMonth4": "Nisan",
+  "commonMonth5": "Mayıs",
+  "commonMonth6": "Haziran",
+  "commonMonth7": "Temmuz",
+  "commonMonth8": "Ağustos",
+  "commonMonth9": "Eylül",
+  "commonMonth10": "Ekim",
+  "commonMonth11": "Kasım",
+  "commonMonth12": "Aralık",
+  "commonWeekday1": "Pazartesi",
+  "commonWeekday2": "Salı",
+  "commonWeekday3": "Çarşamba",
+  "commonWeekday4": "Perşembe",
+  "commonWeekday5": "Cuma",
+  "commonWeekday6": "Cumartesi",
+  "commonWeekday7": "Pazar",
+  "reportReasonSpam": "Spam veya reklam",
+  "reportReasonHarassment": "Taciz veya zorbalık",
+  "reportReasonInappropriate": "Uygunsuz içerik",
+  "reportReasonImpersonation": "Başkasını taklit",
+  "reportReasonOther": "Diğer",
+  "reportTitle": "Şikâyet et",
+  "reportMessageTitle": "Mesajı şikâyet et",
+  "reportThanks": "Şikâyetiniz alındı. Teşekkürler.",
+  "reportPrompt": "Sebep seçin. Şikâyetiniz yöneticilere iletilir.",
+  "reportDetailsHint": "Ek açıklama (isteğe bağlı)",
+  "reportSend": "Gönder",
+  "permNotificationsTitle": "Bildirimler",
+  "permNotificationsText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.",
+  "permContactsTitle": "Rehber",
+  "permContactsText": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.",
+  "permCameraTitle": "Kamera",
+  "permCameraText": "QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.",
+  "permMicrophoneTitle": "Mikrofon",
+  "permMicrophoneText": "Ses ve görüntü kaydı yapabilmeniz için mikrofona erişmemiz gerekir.",
+  "permPhotosTitle": "Fotoğraflar",
+  "permPhotosText": "Fotoğraf seçip paylaşabilmeniz için galerinize erişmemiz gerekir.",
+  "permContinue": "Devam",
+  "permNotNow": "Şimdi değil",
+  "permDeniedText": "{title} izni verilmedi, bu yüzden bu özellik kullanılamıyor. İzni Ayarlar > BÜ Kampüs bölümünden açabilirsiniz.",
+  "@permDeniedText": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "permOpenSettings": "Ayarlardan aç",
+  "permClose": "Kapat",
+  "permPageTitle": "Birkaç izin",
+  "permPageIntro": "Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar’dan da değiştirebilirsiniz.",
+  "permStart": "Başla",
+  "permGranted": "Verildi",
+  "permDenied": "Reddedildi",
+  "permRetry": "Tekrar dene",
+  "permAllow": "İzin ver",
+  "coreErrNetwork": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
+  "coreErrTooMany": "Çok fazla deneme. Lütfen biraz bekleyin.",
+  "coreErrGeneric": "Bir sorun oluştu. Lütfen tekrar deneyin.",
+  "coreIdEmpty": "Okul numaranızı veya e-posta adresinizi girin.",
+  "coreIdDomain": "Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.",
+  "coreIdNumber": "Okul numarasını kontrol edin.",
+  "coreOffline": "Çevrimdışı",
+  "coreMaintenance": "Sistem bakımda.",
+  "coreOpen": "Aç",
+  "eventFormJoinFull": "Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.",
+  "eventFormLeaveTitle": "Katılımdan ayrıl",
+  "eventFormLeaveMessage": "Bu etkinlik Etkinliklerim listenden çıkarılacak.",
+  "eventFormLeaveConfirm": "Ayrıl",
+  "eventFormRegsClosedToast": "Kayıtlar kapatıldı.",
+  "eventFormRegsReopenedToast": "Kayıtlar yeniden açıldı.",
+  "eventFormCancelTitle": "Etkinliği iptal et",
+  "eventFormCancelMessage": "Bu etkinlik tüm katılımcılar için iptal edilecek.",
+  "eventFormCancelAction": "İptal et",
+  "eventFormCancelledToast": "Etkinlik iptal edildi.",
+  "eventFormScanTitle": "Yoklama QR kodunu tara",
+  "eventFormWrongEventCode": "Bu kod başka bir etkinliğe ait.",
+  "eventFormCheckedIn": "Yoklaman alındı",
+  "eventFormChatSoon": "Etkinlik sohbeti yakında",
+  "eventFormEventTitle": "Etkinlik",
+  "eventFormNotFound": "Etkinlik bulunamadı",
+  "eventFormRegsClosed": "Kayıtlar kapalı",
+  "eventFormJoin": "Katıl",
+  "eventFormInterested": "İlgileniyorum",
+  "eventFormBack": "Geri",
+  "eventFormManage": "Yönet",
+  "eventFormEdit": "Düzenle",
+  "eventFormReopenRegs": "Kayıtları yeniden aç",
+  "eventFormCloseRegs": "Kayıtları kapat",
+  "eventFormReport": "Şikâyet et",
+  "eventFormReportEvent": "Etkinliği şikâyet et",
+  "eventFormCancelledPill": "İptal edildi",
+  "eventFormInMine": "Etkinliklerimde",
+  "eventFormOrganizedBy": "Düzenleyen:",
+  "eventFormCapacityFull": "Kontenjan doldu",
+  "eventFormCapacityCount": "Kontenjan: {going} / {cap}",
+  "@eventFormCapacityCount": {
+    "placeholders": {
+      "going": {
+        "type": "String"
+      },
+      "cap": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormGoingLabel": "katılıyor",
+  "eventFormInterestedLabel": "ilgileniyor",
+  "eventFormInterestedShort": "İlgileniyor",
+  "eventFormFullHint": "Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.",
+  "eventFormChat": "Etkinlik sohbeti",
+  "eventFormManageJoin": "Katılımı yönet",
+  "eventFormCheckInLater": "Yoklama etkinlik saatinde açılır.",
+  "eventFormScanQr": "QR kodu tara",
+  "eventFormEnterCode": "Kodu elle gir",
+  "eventFormEnterOrganizerCode": "Organizatörün gösterdiği kodu gir",
+  "eventFormCheckInCode": "Yoklama kodu",
+  "eventFormSendCheckIn": "Yoklamayı gönder",
+  "eventFormCodePreparing": "Kod hazırlanıyor…",
+  "eventFormCodeFailed": "Kod alınamadı.",
+  "eventFormQrHelp": "Katılımcılar bu QR kodunu uygulamadan taratır.",
+  "eventFormCodeShortLived": "Kod kısa süre geçerlidir.",
+  "eventFormCodeExpires": "Son kullanma: {time} · kod otomatik yenilenir",
+  "@eventFormCodeExpires": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormRefreshCode": "Kodu yenile",
+  "eventFormNoAttendance": "Henüz yoklama kaydı yok",
+  "eventFormAttendanceCount": "Yoklama: {present} / {total} kişi geldi",
+  "@eventFormAttendanceCount": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormAttendees": "Katılımcılar",
+  "eventFormShowMore": "Daha fazla göster",
+  "eventFormCoverCreatedFail": "Etkinlik oluşturuldu, kapak yüklenemedi.{reason}",
+  "@eventFormCoverCreatedFail": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormCoverFail": "Kapak yüklenemedi.{reason}",
+  "@eventFormCoverFail": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormRetry": "Tekrar dene",
+  "eventFormPickGallery": "Galeriden seç",
+  "eventFormTakePhoto": "Fotoğraf çek",
+  "eventFormImgTooLarge": "Görsel çok büyük, daha küçük bir görsel seçin.",
+  "eventFormImgUnsupported": "Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.",
+  "eventFormImgUnreadable": "Görsel okunamadı.",
+  "eventFormImgPickFail": "Görsel seçilemedi. İzinleri kontrol edin.",
+  "eventFormTitleTooShort": "Başlık en az 3 karakter olmalı.",
+  "eventFormEndBeforeStart": "Bitiş, başlangıçtan sonra olmalı.",
+  "eventFormCapInvalid": "Kontenjan 1 veya daha büyük bir sayı olmalı.",
+  "eventFormCoverRemoveFail": "Kapak kaldırılamadı. {reason}",
+  "@eventFormCoverRemoveFail": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "eventFormCreated": "Etkinlik oluşturuldu.",
+  "eventFormEditTitle": "Etkinliği düzenle",
+  "eventFormNewTitle": "Yeni etkinlik",
+  "eventFormFieldTitle": "Başlık",
+  "eventFormTitleHint": "Etkinlik başlığı",
+  "eventFormFieldDesc": "Açıklama",
+  "eventFormDescHint": "Etkinlik hakkında kısaca",
+  "eventFormStart": "Başlangıç",
+  "eventFormStartSem": "Başlangıç zamanı",
+  "eventFormEnd": "Bitiş",
+  "eventFormEndSem": "Bitiş zamanı",
+  "eventFormPlace": "Mekân",
+  "eventFormPlaceHint": "Örn. Konferans Salonu",
+  "eventFormCapacityLabel": "Kontenjan",
+  "eventFormCapHint": "Boş bırakırsan sınırsız",
+  "eventFormSave": "Kaydet",
+  "eventFormCreate": "Etkinliği oluştur",
+  "eventFormAddCover": "Kapak fotoğrafı ekle",
+  "eventFormChangeCover": "Kapağı değiştir",
+  "eventFormRemoveCover": "Kapağı kaldır",
+  "eventListTitle": "Etkinlikler",
+  "eventListCreate": "Etkinlik oluştur",
+  "eventListCheckin": "Yoklama",
+  "eventListTabDiscover": "Keşfet",
+  "eventListTabMine": "Etkinliklerim",
+  "eventListTabCreated": "Oluşturduklarım",
+  "eventListLoading": "Yükleniyor",
+  "eventListPrevMonth": "Önceki ay",
+  "eventListNextMonth": "Sonraki ay",
+  "eventListMonthYear": "{month} {year}",
+  "@eventListMonthYear": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "eventListLongDate": "{day} {month}, {weekday}",
+  "@eventListLongDate": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "eventListFull": "Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.",
+  "eventListLeaveTitle": "Katılımdan ayrıl",
+  "eventListLeaveMsg": "Bu etkinlik Etkinliklerim listenden çıkarılacak.",
+  "eventListLeave": "Ayrıl",
+  "eventListLeft": "Katılımdan ayrıldın.",
+  "eventListClosedDone": "Kayıtlar kapatıldı.",
+  "eventListReopenedDone": "Kayıtlar yeniden açıldı.",
+  "eventListCancelTitle": "Etkinliği iptal et",
+  "eventListCancelMsg": "Bu etkinlik tüm katılımcılar için iptal edilecek.",
+  "eventListCancelConfirm": "İptal et",
+  "eventListCancelledDone": "Etkinlik iptal edildi.",
+  "eventListScanTitle": "Yoklama QR kodunu tara",
+  "eventListNotCode": "Bu bir yoklama kodu değil.",
+  "eventListCheckedIn": "Yoklaman alındı.",
+  "eventListEmptyDay": "Bu gün için etkinlik yok.",
+  "eventListEmptyMonth": "Bu ay için etkinlik yok.",
+  "eventListPastMonth": "Geçmiş ay: yalnızca görüntüleme.",
+  "eventListTruncated": "Bu ayın tamamı gösterilemiyor; bazı etkinlikler listede yok.",
+  "eventListUpcoming": "Yaklaşan",
+  "eventListPast": "Geçmiş",
+  "eventListCreatedHint": "Oluşturduğun etkinlikleri buradan yönetebilirsin.",
+  "eventListEmptyUpcoming": "Katılacağın bir etkinlik yok.",
+  "eventListEmptyPast": "Geçmiş etkinliğin yok.",
+  "eventListEmptyCreated": "Henüz bir etkinlik oluşturmadın.",
+  "eventListDiscover": "Etkinlikleri keşfet",
+  "eventListOfficial": "Resmi",
+  "eventListCancelled": "İptal",
+  "eventListRegClosedTag": "Kayıt kapalı",
+  "eventListOpen": "Açık",
+  "eventListRegsClosed": "Kayıtlar kapalı",
+  "eventListJoin": "Katıl",
+  "eventListInterested": "İlgileniyorum",
+  "eventListGoing": "katılıyor",
+  "eventListOptions": "Seçenekler",
+  "eventListAttendeeCount": "{count} katılımcı",
+  "@eventListAttendeeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "eventListAttendees": "Katılımcılar",
+  "eventListEdit": "Düzenle",
+  "eventListReopen": "Kayıtları yeniden aç",
+  "eventListClose": "Kayıtları kapat",
+  "eventListRegClosedError": "Bu etkinliğin kayıtları kapalı.",
+  "eventListAddedMine": "Etkinliklerime eklendi",
+  "eventListDismiss": "Vazgeç",
+  "eventListInMine": "Etkinliklerimde",
+  "eventListQrLabel": "Yoklama QR kodu",
+  "eventListMonth1": "Ocak",
+  "eventListMonth2": "Şubat",
+  "eventListMonth3": "Mart",
+  "eventListMonth4": "Nisan",
+  "eventListMonth5": "Mayıs",
+  "eventListMonth6": "Haziran",
+  "eventListMonth7": "Temmuz",
+  "eventListMonth8": "Ağustos",
+  "eventListMonth9": "Eylül",
+  "eventListMonth10": "Ekim",
+  "eventListMonth11": "Kasım",
+  "eventListMonth12": "Aralık",
+  "eventListMon1": "OCA",
+  "eventListMon2": "ŞUB",
+  "eventListMon3": "MAR",
+  "eventListMon4": "NİS",
+  "eventListMon5": "MAY",
+  "eventListMon6": "HAZ",
+  "eventListMon7": "TEM",
+  "eventListMon8": "AĞU",
+  "eventListMon9": "EYL",
+  "eventListMon10": "EKİ",
+  "eventListMon11": "KAS",
+  "eventListMon12": "ARA",
+  "eventListDayShort1": "Pzt",
+  "eventListDayShort2": "Sal",
+  "eventListDayShort3": "Çar",
+  "eventListDayShort4": "Per",
+  "eventListDayShort5": "Cum",
+  "eventListDayShort6": "Cmt",
+  "eventListDayShort7": "Paz",
+  "eventListDayLong1": "Pazartesi",
+  "eventListDayLong2": "Salı",
+  "eventListDayLong3": "Çarşamba",
+  "eventListDayLong4": "Perşembe",
+  "eventListDayLong5": "Cuma",
+  "eventListDayLong6": "Cumartesi",
+  "eventListDayLong7": "Pazar",
+  "homeGreetNight": "İyi geceler",
+  "homeGreetMorning": "Günaydın",
+  "homeGreetDay": "İyi günler",
+  "homeGreetEvening": "İyi akşamlar",
+  "homeEventLoadFailedToast": "Etkinlik yüklenemedi.",
+  "homeEventLoadFailedTitle": "Etkinlik yüklenemedi",
+  "homeQuotaFull": "Kontenjan doldu.",
+  "homeMaintenanceDefault": "Sistem bakımda.",
+  "homeSourceUnreachable": "Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.",
+  "homeSearchHint": "Haber, kulüp, etkinlik ara",
+  "homeMyClubs": "Kulüplerimden",
+  "homeAll": "Tümü",
+  "homeAgenda": "Gündem",
+  "homeContentLoadFailed": "İçerik yüklenemedi.",
+  "homeNoContent": "Henüz içerik yok.",
+  "homeMyProfile": "Profilim",
+  "homeFeaturedEvent": "Öne çıkan etkinlik",
+  "homeNextEvent": "Sıradaki etkinlik",
+  "homeNoUpcoming": "Yaklaşan etkinlik yok",
+  "homeBrowseEvents": "Etkinliklere göz at",
+  "homeOfficialEvent": "Resmi etkinlik",
+  "homeMostAttended": "En çok katılım",
+  "homeGoingCount": "{count} kişi katılıyor",
+  "@homeGoingCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "homeBeFirst": "İlk katılan sen ol",
+  "homeInMyEvents": "Etkinliklerimde",
+  "homeFull": "Dolu",
+  "homeRegClosed": "Kayıt kapalı",
+  "homeJoin": "Katıl",
+  "homeQuickEvent": "Etkinlik",
+  "homeQuickFood": "Yemek",
+  "homeQuickSupport": "Destek",
+  "homeTodayMeal": "Bugünün yemeği",
+  "homeNoMenuToday": "Bugün için liste yok",
+  "homeNewMessages": "yeni mesaj",
+  "homeClubMemberships": "kulüp üyeliği",
+  "homeMemberCount": "{count} üye",
+  "@homeMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "newsTypeNews": "Haber",
+  "newsTypeAnnouncement": "Duyuru",
+  "newsTypeEvent": "Etkinlik",
+  "newsEventDateShort": "Etkinlik: {date}",
+  "@newsEventDateShort": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "newsEventDate": "Etkinlik tarihi: {date}",
+  "@newsEventDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "newsSaveRemove": "Favorilerden çıkar",
+  "newsSaveAdd": "Favorilere ekle",
+  "newsLinkOpenFailed": "Bağlantı açılamadı.",
+  "newsFullContent": "İçeriğin tamamı için kaynak sayfayı açın.",
+  "newsOpenSource": "Kaynak sayfada aç",
+  "newsMonth1": "Ocak",
+  "newsMonth2": "Şubat",
+  "newsMonth3": "Mart",
+  "newsMonth4": "Nisan",
+  "newsMonth5": "Mayıs",
+  "newsMonth6": "Haziran",
+  "newsMonth7": "Temmuz",
+  "newsMonth8": "Ağustos",
+  "newsMonth9": "Eylül",
+  "newsMonth10": "Ekim",
+  "newsMonth11": "Kasım",
+  "newsMonth12": "Aralık",
+  "newsDayLong1": "Pazartesi",
+  "newsDayLong2": "Salı",
+  "newsDayLong3": "Çarşamba",
+  "newsDayLong4": "Perşembe",
+  "newsDayLong5": "Cuma",
+  "newsDayLong6": "Cumartesi",
+  "newsDayLong7": "Pazar",
+  "newsDayShort1": "Pzt",
+  "newsDayShort2": "Sal",
+  "newsDayShort3": "Çar",
+  "newsDayShort4": "Per",
+  "newsDayShort5": "Cum",
+  "newsDayShort6": "Cmt",
+  "newsDayShort7": "Paz",
+  "discoverSaved": "Kaydedilenler",
+  "discoverScopeLatest": "Yeni",
+  "discoverScopePopular": "Popüler",
+  "discoverScopeFollowing": "Takip",
+  "discoverScopeDepartment": "Bölümüm",
+  "discoverNoSaved": "Henüz kaydettiğiniz bir haber yok.",
+  "discoverNoCategory": "Bu kategoride henüz içerik yok.",
+  "discoverDeptHint": "Bölümünü profilinden seçersen bölümündeki gönderileri burada görürsün.",
+  "discoverDeptEmpty": "Bölümünden henüz gönderi yok.",
+  "discoverProfilePath": "Profil > Profili düzenle",
+  "discoverPolls": "Anketler",
+  "discoverSearch": "Ara",
+  "discoverCompose": "Gönderi oluştur",
+  "discoverPosts": "Gönderiler",
+  "discoverNews": "Haberler",
+  "discoverSourceMaint": "Kaynak site şu an bakımda. Veriler güncel olmayabilir.",
+  "menuTitle": "Yemek listesi",
+  "menuStale": "Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.",
+  "menuPrevMonth": "Önceki ay",
+  "menuNextMonth": "Sonraki ay",
+  "menuTodayLabel": "BUGÜN · {date}",
+  "@menuTodayLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "menuNoMenuDay": "Bu gün için yemek listesi yok.",
+  "menuNoMenuMonth": "Bu ay için yemek listesi henüz yayınlanmadı.",
+  "menuNoList": "Yemek listesi yok.",
+  "menuPhotoLabel": "Günün menüsü fotoğrafı",
+  "notifTitle": "Bildirimler",
+  "notifMarkAll": "Tümünü okundu yap",
+  "notifEmpty": "Henüz bildiriminiz yok",
+  "notifUnread": "Okunmamış bildirim",
+  "notifGroupToday": "BUGÜN",
+  "notifGroupYesterday": "DÜN",
+  "notifGroupOlder": "DAHA ESKİ",
+  "notifNow": "şimdi",
+  "notifMinAgo": "{n} dk önce",
+  "@notifMinAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifHourAgo": "{n} sa önce",
+  "@notifHourAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDayAgo": "{n} gün önce",
+  "@notifDayAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "searchAll": "Tümü",
+  "searchClub": "Kulüp",
+  "searchPost": "Gönderi",
+  "searchPerson": "Kişi",
+  "searchClassYear": "{n}. sınıf",
+  "@searchClassYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "searchUserDefault": "Kullanıcı",
+  "searchHint": "Haber, kulüp, etkinlik, gönderi, kişi ara",
+  "searchClear": "Aramayı temizle",
+  "searchPrompt": "Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.",
+  "searchRecent": "SON ARAMALAR",
+  "searchClearRecent": "Temizle",
+  "searchNoResults": "Sonuç bulunamadı.",
+  "searchResultCount": "{count} SONUÇ",
+  "@searchResultCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTooMany": "Çok fazla istek gönderildi, birkaç saniye bekleyin.",
+  "followButtonUnfollow": "Takipten çık",
+  "followButtonFollow": "Takip et",
+  "followButtonFollowing": "Takipte",
+  "followersTitle": "Takipçiler",
+  "followingTitle": "Takip edilenler",
+  "followersEmpty": "Henüz takipçi yok.",
+  "followingEmpty": "Henüz kimse takip edilmiyor.",
+  "followSuggestionsEmpty": "Şimdilik önerilecek kişi yok.",
+  "followSuggestionsTitle": "Önerilen kişiler",
+  "followFeedHint": "Takip ettiklerinin gönderileri burada görünür.",
+  "followersCount": "Takipçi",
+  "followingCount": "Takip",
+  "qrScanTitle": "QR kodu tara",
+  "qrCameraRationale": "QR kodu okutabilmek için kameraya erişmemiz gerekir.",
+  "qrManualLabel": "Kodu elle gir",
+  "qrConfirm": "Onayla",
+  "qrCameraDenied": "Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.",
+  "qrGrantCamera": "Kamera izni ver",
+  "qrDeniedSettings": "Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir ya da kodu elle girebilirsiniz.",
+  "qrCameraFailed": "Kamera açılamadı. Kodu elle girebilirsiniz.",
+  "qrTorch": "El feneri",
+  "pollListTitle": "Anketler",
+  "pollClubPolls": "Kulüp anketleri",
+  "pollTabOpen": "Açık",
+  "pollTabMine": "Katıldıklarım",
+  "pollTabClosed": "Kapanan",
+  "pollEmptyOpen": "Şu an açık anket yok.",
+  "pollEmptyMine": "Henüz bir ankete katılmadınız.",
+  "pollEmptyClosed": "Kapanan anket yok.",
+  "pollLoadFailedRetry": "Yüklenemedi, tekrar dene",
+  "pollCreate": "Anket oluştur",
+  "pollClubEmpty": "Bu kulübün anketi yok.",
+  "pollSeeAll": "Tüm anketleri gör",
+  "pollMenuRateToday": "Bugünün menüsünü puanla",
+  "pollYourRating": "Puanınız: {rating}",
+  "@pollYourRating": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      }
+    }
+  },
+  "pollYourRatingAvg": "Puanınız: {rating} · Ortalama {avg}",
+  "@pollYourRatingAvg": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "pollTapStar": "Yıldıza dokunarak puanla",
+  "pollNoVoteRight": "Bu anket için oy hakkınız yok",
+  "pollStars": "{n} yıldız",
+  "@pollStars": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollSemPercent": "{text}, yüzde {pct}",
+  "@pollSemPercent": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "pollVotes": "{votes} oy",
+  "@pollVotes": {
+    "placeholders": {
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "pollVotesWithScore": "{votes} oy · {score} puan",
+  "@pollVotesWithScore": {
+    "placeholders": {
+      "votes": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "pollSemMine": "seçiminiz",
+  "pollTypeSingle": "Tek seçim",
+  "pollTypeMulti": "Çoklu seçim",
+  "pollTypeRating": "Puanlama",
+  "pollTypeRanked": "Sıralı seçim",
+  "pollAnonymous": "Gizli oy",
+  "pollVotedBadge": "Oy verdiniz",
+  "pollClosedBadge": "Kapandı",
+  "pollParticipants": "{n} katılım",
+  "@pollParticipants": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollParticipationOf": "{v} / {e} katılım",
+  "@pollParticipationOf": {
+    "placeholders": {
+      "v": {
+        "type": "String"
+      },
+      "e": {
+        "type": "String"
+      }
+    }
+  },
+  "pollSemPoll": "Anket: {title}",
+  "@pollSemPoll": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pollEnded": "Sona erdi",
+  "pollDaysLeft": "{n} gün kaldı",
+  "@pollDaysLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollHoursLeft": "{n} sa kaldı",
+  "@pollHoursLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollMinutesLeft": "{n} dk kaldı",
+  "@pollMinutesLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollBlockedNotEligible": "Bu ankete katılma yetkiniz yok.",
+  "pollBlockedClosed": "Bu anket kapandı. Oy verilemez.",
+  "pollBlockedNotOpen": "Bu anket henüz açılmadı.",
+  "pollBlockedAlreadyVoted": "Oyunuz kaydedildi; bu ankette oy değiştirilemez.",
+  "pollBlockedDefault": "Bu ankette oy veremezsiniz.",
+  "pollValTitle": "Başlık gerekli.",
+  "pollValMin2": "En az 2 seçenek girin.",
+  "pollValMax12": "En fazla 12 seçenek olabilir.",
+  "pollValDistinct": "Seçenekler birbirinden farklı olmalı.",
+  "pollValEnd": "Bitiş zamanını seçin.",
+  "pollValFuture": "Bitiş zamanı gelecekte olmalı.",
+  "pollErrClosed": "Bu anket kapandı.",
+  "pollErrAlreadyVoted": "Bu ankete zaten oy verdiniz.",
+  "pollErrForbidden": "Bu işlem için yetkiniz yok.",
+  "pollErrNotFound": "Anket bulunamadı.",
+  "pollErrInvalidVote": "Geçersiz seçim.",
+  "pollHeader": "Anket",
+  "pollStale": "Güncellenemedi; son bilinen veri gösteriliyor.",
+  "pollVoteSaved": "Oyunuz kaydedildi.",
+  "pollVoteRetracted": "Oyunuz geri çekildi.",
+  "pollRetractTitle": "Oyu geri çek",
+  "pollRetractBody": "Oyunuz silinecek. Devam edilsin mi?",
+  "pollCancel": "Vazgeç",
+  "pollRetractAction": "Geri çek",
+  "pollMaxChoicesSnack": "En fazla {n} seçenek işaretleyebilirsiniz.",
+  "@pollMaxChoicesSnack": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollSecretVote": "Oyunuz gizlidir",
+  "pollResultsAfterClose": "Sonuçlar anket kapanınca görünecek.",
+  "pollHintRanked": "Tercih sırasına göre dokunun: ilk dokunduğunuz en çok tercih ettiğinizdir.",
+  "pollHintMax": "En fazla {n} seçenek işaretleyin.",
+  "@pollHintMax": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollHintMulti": "Birden fazla seçenek işaretleyebilirsiniz.",
+  "pollVoteUpdate": "Oyu güncelle",
+  "pollVote": "Oy ver",
+  "pollChangeVote": "Oyu değiştir",
+  "pollRatingCount": "{n} puan",
+  "@pollRatingCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollFieldTitle": "Başlık",
+  "pollTitleHint": "Örn. Yeni dönem başkanı seçimi",
+  "pollFieldDesc": "Açıklama (isteğe bağlı)",
+  "pollDescHint": "Kısa bir açıklama",
+  "pollFieldType": "Tür",
+  "pollFieldOptions": "Seçenekler (2-{max})",
+  "@pollFieldOptions": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "pollOptionHint": "Seçenek {n}",
+  "@pollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollRemoveOption": "Seçeneği sil",
+  "pollAddOption": "Seçenek ekle",
+  "pollAnonymousSub": "Kimin ne oy verdiği kimseye gösterilmez.",
+  "pollFieldEnd": "Bitiş zamanı",
+  "pollDurDays": "{n} gün",
+  "@pollDurDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "pollPickDateTime": "Tarih ve saat seç",
+  "pollChange": "Değiştir",
+  "pollPublish": "Yayınla",
+  "postComposeErrBadResponse": "Sunucudan beklenmeyen yanıt.",
+  "postComposeErrPrepare": "Medya hazırlanamadı.",
+  "postComposeErrImageTooLarge": "Görsel çok büyük.",
+  "postComposeErrImageUnsupported": "Bu görsel biçimi desteklenmiyor.",
+  "postComposeErrImageUnreadable": "Görsel okunamadı.",
+  "postComposeErrNetwork": "Bağlantı yok, tekrar dene.",
+  "postComposeErrVideoTooLarge": "Video çok büyük (en fazla 40 MB).",
+  "postComposeErrVideoTooLong": "Video en fazla 60 saniye olabilir.",
+  "postComposeErrVideoInvalid": "Video biçimi desteklenmiyor.",
+  "postComposeErrBlocked": "Bu içerik paylaşılamaz.",
+  "postComposeErrMediaInvalid": "Medya geçersiz, yeniden yükle.",
+  "postComposeErrProfanity": "Bu alanda uygunsuz ifade kullanılamaz. Lütfen metni düzenleyin.",
+  "postComposeErrRate": "Çok hızlı paylaşım yapıyorsun, biraz bekle.",
+  "postComposeErrFileTooLarge": "Dosya çok büyük.",
+  "postComposeErrGeneric": "Bir sorun oluştu, tekrar dene.",
+  "postComposeErrVideoUnsupported": "Bu cihazda video hazırlanamıyor.",
+  "postComposeErrCancelled": "İptal edildi.",
+  "postComposeErrVideoFailed": "Video hazırlanamadı.",
+  "postComposeEdit": "Düzenle",
+  "postComposeDelete": "Sil",
+  "postComposeViewProfile": "Profili gör",
+  "postComposeReport": "Şikâyet et",
+  "postComposeBlockUser": "Bu kullanıcıyı engelle",
+  "postComposeClose": "Kapat",
+  "postComposeReportTitle": "Gönderiyi şikâyet et",
+  "postComposeDeleteTitle": "Gönderi silinsin mi?",
+  "postComposeDeleteBody": "Bu işlem geri alınamaz.",
+  "postComposeCancel": "Vazgeç",
+  "postComposeDeleted": "Gönderi silindi",
+  "postComposeBlockTitle": "Kullanıcı engellensin mi?",
+  "postComposeBlockBody": "Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.",
+  "postComposeBlock": "Engelle",
+  "postComposeBlocked": "Kullanıcı engellendi",
+  "postComposeEditTitle": "Gönderiyi düzenle",
+  "postComposeTextEmpty": "Metin boş olamaz.",
+  "postComposeProfanityFallback": "Metin uygunsuz ifadeler içeriyor.",
+  "postComposeHint": "Ne düşünüyorsun?",
+  "postComposeSave": "Kaydet",
+  "postComposeMore": "Daha fazla",
+  "postComposeMaxMedia": "En fazla {max} medya ekleyebilirsin",
+  "@postComposeMaxMedia": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeFailedCount": "{count} medya yüklenemedi. Yeniden deneyebilir ya da çıkarabilirsin.",
+  "@postComposeFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeInvalidRetry": "Medya geçersiz, yeniden yüklenecek. Paylaş düğmesine tekrar dokun.",
+  "postComposeNetworkDraftKept": "Bağlantı yok. Taslağın korundu, tekrar dene.",
+  "postComposeShared": "Paylaşıldı",
+  "postComposeDiscardTitle": "Taslağı silmek istiyor musun?",
+  "postComposeDiscardBody": "Yazdıkların ve seçtiğin medya silinecek.",
+  "postComposeContinue": "Devam",
+  "postComposeDiscardDraft": "Taslağı sil",
+  "postComposeNewPost": "Yeni gönderi",
+  "postComposeShare": "Paylaş",
+  "postComposeDraftBanner": "Kayıtlı bir taslağın var.",
+  "postComposeRestoreDraft": "Taslağı geri yükle",
+  "postComposeRetry": "Yeniden dene",
+  "postComposeRemoveFailed": "Başarısızları çıkar",
+  "postComposeRemove": "Çıkar",
+  "postComposeGallery": "Galeri",
+  "postComposeCamera": "Kamera",
+  "postComposeSaveUnsupported": "Bu cihazda desteklenmiyor.",
+  "postComposeSaveDenied": "Galeri izni verilmedi.",
+  "postComposeSaveNoSpace": "Cihazda yeterli alan yok.",
+  "postComposeImageSaveFailed": "Görsel kaydedilemedi.",
+  "postComposeSavedToGallery": "Galeriye kaydedildi",
+  "postComposeDownload": "İndir",
+  "postComposeImageLoadFailed": "Görsel yüklenemedi.",
+  "postComposeVideoPlayFailed": "Video oynatılamadı",
+  "postComposeVideoOf": "Video {n} / {total}",
+  "@postComposeVideoOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposePhotoOf": "Fotoğraf {n} / {total}",
+  "@postComposePhotoOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeVideoOfMore": "Video {n} / {total}, +{more} daha",
+  "@postComposeVideoOfMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "more": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposePhotoOfMore": "Fotoğraf {n} / {total}, +{more} daha",
+  "@postComposePhotoOfMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "more": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeVideo": "Video",
+  "postComposePhoto": "Fotoğraf",
+  "postComposePlayVideo": "Videoyu oynat",
+  "postComposeUnmute": "Sesi aç",
+  "postComposeMute": "Sesi kapat",
+  "postComposeMentionAdd": "Anma ekle {name}",
+  "@postComposeMentionAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeTagAdd": "Etiket ekle {tag}",
+  "@postComposeTagAdd": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposePostCount": "{count} gönderi",
+  "@postComposePostCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeUserLabel": "Kullanıcı {name}",
+  "@postComposeUserLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeTagLabel": "Etiket {tag}",
+  "@postComposeTagLabel": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeTagLabelCount": "Etiket {tag}, {count} gönderi",
+  "@postComposeTagLabelCount": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewReplyingTo": "Yanıtlıyor: @{name}",
+  "@postViewReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewCancelReply": "Yanıtı iptal et",
+  "postViewWriteReplyHint": "Yanıtını yaz…",
+  "postViewWriteCommentHint": "Yorum yaz…",
+  "postViewSend": "Gönder",
+  "postViewAgoNow": "şimdi",
+  "postViewAgoMin": "{n} dk",
+  "@postViewAgoMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoHour": "{n} sa",
+  "@postViewAgoHour": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoDay": "{n} g",
+  "@postViewAgoDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoWeek": "{n} hf",
+  "@postViewAgoWeek": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoYear": "{n} y",
+  "@postViewAgoYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoMinFull": "{n} dk önce",
+  "@postViewAgoMinFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoHourFull": "{n} sa önce",
+  "@postViewAgoHourFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewAgoDayFull": "{n} gün önce",
+  "@postViewAgoDayFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewRepliesLoadFailed": "Yanıtlar yüklenemedi · Yeniden dene",
+  "postViewShowReplies": "{n} yanıtı göster",
+  "@postViewShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewShowMoreReplies": "Daha fazla yanıt göster",
+  "postViewHideReplies": "Yanıtları gizle",
+  "postViewCommentsLoadFailed": "Yorumlar yüklenemedi · Yeniden dene",
+  "postViewCommentsLoading": "Yorumlar yükleniyor",
+  "postViewEdit": "Düzenle",
+  "postViewDelete": "Sil",
+  "postViewReport": "Şikâyet et",
+  "postViewReportComment": "Yorumu şikâyet et",
+  "postViewDeleteCommentTitle": "Yorum silinsin mi?",
+  "postViewCannotUndo": "Bu işlem geri alınamaz.",
+  "postViewCancelAction": "Vazgeç",
+  "postViewCommentDeleted": "Bu yorum silindi",
+  "postViewEdited": "düzenlendi",
+  "postViewProfileOf": "{name} profili",
+  "@postViewProfileOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewSendFailedRetryA11y": "Gönderilemedi, yeniden dene",
+  "postViewSendFailedRetry": "Gönderilemedi · Yeniden dene",
+  "postViewRemove": "Kaldır",
+  "postViewSending": "Gönderiliyor…",
+  "postViewReplyToA11y": "{name} kişisine yanıt ver",
+  "@postViewReplyToA11y": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewReply": "Yanıtla",
+  "postViewCommentOptions": "Yorum seçenekleri",
+  "postViewEditCommentHint": "Yorumu düzenle",
+  "postViewCancel": "İptal",
+  "postViewSave": "Kaydet",
+  "postViewLikersWithCount": "Beğenenler ({n})",
+  "@postViewLikersWithCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewLikers": "Beğenenler",
+  "postViewRetry": "Yeniden dene",
+  "postViewNoLikers": "Henüz beğenen yok",
+  "postViewUser": "Kullanıcı",
+  "postViewLikeFailed": "Beğeni kaydedilemedi",
+  "postViewUnlike": "Beğenmekten vazgeç",
+  "postViewLike": "Beğen",
+  "postViewSavedAdded": "Kaydedilenlere eklendi",
+  "postViewSavedRemoved": "Kaydedilenlerden çıkarıldı",
+  "postViewUnsave": "Kaydedilenlerden çıkar",
+  "postViewNoTagPosts": "#{tag} etiketli gönderi yok.",
+  "@postViewNoTagPosts": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewSavedPostsTitle": "Kaydedilen gönderiler",
+  "postViewNoSavedPosts": "Henüz kaydettiğin bir gönderi yok.",
+  "postViewPosts": "Gönderiler",
+  "postViewSeeAll": "Tümünü gör",
+  "postViewPost": "Gönderi",
+  "postViewMyPosts": "Gönderilerim",
+  "postViewNoPosts": "Henüz gönderi yok",
+  "postViewReadMore": "devamını oku",
+  "postViewReportSent": "Şikâyetiniz iletildi.",
+  "postViewMore": "Daha fazla",
+  "postViewFeedEmpty": "Henüz gönderi yok. İlk gönderiyi sen paylaş!",
+  "postViewCommentsWithCount": "Yorumlar ({n})",
+  "@postViewCommentsWithCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "postViewComments": "Yorumlar",
+  "postViewSortNew": "Yeni",
+  "postViewSortTop": "Üst",
+  "postViewFirstComment": "İlk yorumu sen yaz",
+  "profileDeptRequired": "Bölümü seçin.",
+  "profileDiscardTitle": "Değişiklikler kaydedilmedi",
+  "profileDiscardBody": "Çıkarsanız yaptığınız değişiklikler kaybolacak.",
+  "profileKeepEditing": "Düzenlemeye devam et",
+  "profileDiscardExit": "Vazgeç ve çık",
+  "profileChangePhotoSemantic": "Profil fotoğrafını değiştir",
+  "profileUploading": "Yükleniyor…",
+  "profileChangePhoto": "Fotoğrafı değiştir",
+  "profilePickGallery": "Galeriden seç",
+  "profileTakePhoto": "Fotoğraf çek",
+  "profileRemovePhoto": "Fotoğrafı kaldır",
+  "profilePhotoTooLargeHint": "Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.",
+  "profilePhotoUnsupported": "Yalnızca JPG, PNG veya WebP fotoğraflar yüklenebilir.",
+  "profilePhotoUnreadable": "Seçilen dosya okunamadı.",
+  "profilePhotoTooLarge": "Fotoğraf en fazla 2 MB olabilir.",
+  "profileEditTitle": "Profili düzenle",
+  "profileFullName": "Ad soyad",
+  "profileNameMin": "Ad en az 2 karakter olmalı.",
+  "profileAbout": "Hakkımda",
+  "profileBioHint": "Kendinizden kısaca bahsedin",
+  "profileShowEmail": "E-postamı diğer kullanıcılara göster",
+  "profileSave": "Kaydet",
+  "profileUserDefault": "Kullanıcı",
+  "profileGradeYear": "{year}. sınıf",
+  "@profileGradeYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBlockTitle": "Kullanıcı engellensin mi?",
+  "profileBlockBody": "Engellediğiniz kişiyle mesajlaşamazsınız.",
+  "profileCancel": "Vazgeç",
+  "profileBlock": "Engelle",
+  "profileUnblock": "Engeli kaldır",
+  "profileUnblocked": "Engel kaldırıldı",
+  "profileBlocked": "Kullanıcı engellendi",
+  "profileReportUser": "Kullanıcıyı şikâyet et",
+  "profileOnline": "Çevrimiçi",
+  "profileLastSeenToday": "Son görülme bugün {time}",
+  "@profileLastSeenToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLastSeenYesterday": "Son görülme dün {time}",
+  "@profileLastSeenYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLastSeenDate": "Son görülme {date} {time}",
+  "@profileLastSeenDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTitle": "Profil",
+  "profileNotFound": "Kullanıcı bulunamadı",
+  "profileFaculty": "Fakülte",
+  "profileDepartment": "Bölüm",
+  "profileGrade": "Sınıf",
+  "profileEmail": "E-posta",
+  "profileMessage": "Mesaj",
+  "profileReport": "Şikâyet et",
+  "profileAboutShort": "Hakkında",
+  "profileSignOutTitle": "Çıkış yapılsın mı?",
+  "profileSignOutBody": "Bu cihazdaki oturumunuz kapatılacak.",
+  "profileSignOut": "Çıkış yap",
+  "profileSettings": "Ayarlar",
+  "profileStatClubs": "Kulüp",
+  "profileStatEvents": "Etkinlik",
+  "profileStatSavedNews": "Kayıtlı haber",
+  "profileMyPosts": "Gönderilerim",
+  "profileSavedPosts": "Kaydedilen gönderiler",
+  "profileSuggested": "Önerilen kişiler",
+  "profileSaved": "Kaydedilenler",
+  "profileAcademic": "Akademik",
+  "profileMyEvents": "Etkinliklerim",
+  "profileMyClubs": "Kulüplerim",
+  "profileReminders": "Ders ve sınav hatırlatmaları",
+  "profileSavedEmpty": "Henüz kaydettiğiniz bir haber yok. Haberlerdeki yer imi simgesine dokunun.",
+  "profileRetry": "Yeniden dene",
+  "profileNewsCount": "{count} haber",
+  "@profileNewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNewsCountMore": "{count}+ haber",
+  "@profileNewsCountMore": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profileLegalTitle": "Sözleşmeler",
+  "profileLegalEmpty": "Yayımlanmış sözleşme yok.",
+  "profileLegalDocFallback": "Sözleşme",
+  "profileVersion": "Sürüm {version}",
+  "@profileVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "profileVersionDate": "Sürüm {version} · {date}",
+  "@profileVersionDate": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profilePrefsDataCopied": "Verileriniz panoya kopyalandı",
+  "profilePrefsExportLimit": "Günde en fazla 3 kez veri indirebilirsiniz.",
+  "profilePrefsBlockedUsers": "Engellenen kullanıcılar",
+  "profilePrefsLegalPrivacy": "Sözleşmeler ve gizlilik",
+  "profilePrefsDownloadData": "Verilerimi indir",
+  "profilePrefsAccountMgmt": "Hesap yönetimi",
+  "profilePrefsDeleteMyAccount": "Hesabımı sil",
+  "profilePrefsEnterPassword": "Şifrenizi girin.",
+  "profilePrefsWrongPassword": "Şifre hatalı.",
+  "profilePrefsDeleteAccountTitle": "Hesabı sil",
+  "profilePrefsDeleteAccountBody": "Hesabınız ve kişisel verileriniz silinecek. Bu işlem geri alınamaz. Onaylamak için şifrenizi girin.",
+  "profilePrefsPassword": "Şifre",
+  "profilePrefsClubLeft": "Kulüpten ayrıldın.",
+  "profilePrefsWithdrawTitle": "İsteği geri çek",
+  "profilePrefsWithdrawBody": "Katılma isteğiniz geri çekilsin mi?",
+  "profilePrefsWithdrawConfirm": "Geri çek",
+  "profilePrefsNoClubs": "Henüz bir kulübe üye değilsiniz.",
+  "profilePrefsClubsOwned": "Kurduklarım",
+  "profilePrefsClubsMember": "Üye olduklarım",
+  "profilePrefsClubsPending": "Bekleyen başvurular",
+  "profilePrefsMyClubs": "Kulüplerim",
+  "profilePrefsCreateClub": "Kulüp kur",
+  "profilePrefsMembersCount": "{count} üye",
+  "@profilePrefsMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profilePrefsAwaitingApproval": "Onay bekliyor",
+  "profilePrefsAwaitingPublish": "Yayın onayı bekleniyor",
+  "profilePrefsManage": "Yönet",
+  "profilePrefsOptions": "Seçenekler",
+  "profilePrefsOpen": "Aç",
+  "profilePrefsManageEdit": "Yönet: düzenle",
+  "profilePrefsManageRequests": "Yönet: başvurular",
+  "profilePrefsManageMembers": "Yönet: üyeler",
+  "profilePrefsLeaveClub": "Kulüpten ayrıl",
+  "profilePrefsReminders": "Ders ve sınav hatırlatmaları",
+  "profilePrefsNotifNews": "Haberler",
+  "profilePrefsNotifAnnouncements": "Duyurular",
+  "profilePrefsNotifEvents": "Etkinlikler",
+  "profilePrefsNotifCommunities": "Topluluklar",
+  "profilePrefsNotifMessages": "Mesajlar",
+  "profilePrefsNotifPolls": "Anketler",
+  "profilePrefsNotifAcademic": "Akademik duyurular",
+  "profilePrefsNotifStories": "Hikâyeler",
+  "profilePrefsNotifMention": "Etiketlenmeler",
+  "profilePrefsNotifFollow": "Yeni takipçiler",
+  "profilePrefsNotifLike": "Gönderi beğenileri",
+  "profilePrefsNotifComment": "Gönderi yorumları",
+  "profilePrefsNotifReply": "Yorum yanıtları",
+  "profilePrefsSocial": "Sosyal",
+  "profilePrefsOnThisDevice": "Bu cihazda",
+  "profilePrefsTapToRetry": "{error} Yeniden denemek için dokunun.",
+  "@profilePrefsTapToRetry": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "profilePrefsNotifTitle": "Bildirimler",
+  "profilePrefsNoBlocked": "Engellediğiniz kullanıcı yok.",
+  "profilePrefsUser": "Kullanıcı",
+  "profilePrefsUnblock": "Engeli kaldır",
+  "profilePrefsBlockedTitle": "Engellenenler",
+  "pickDepartment": "Bölüm",
+  "pickSelectDepartment": "Bölüm seçin",
+  "pickLoading": "Yükleniyor…",
+  "pickListFailed": "Bölüm listesi yüklenemedi.",
+  "pickRetry": "Yeniden dene",
+  "pickGrade": "Sınıf",
+  "pickSelectGrade": "Sınıf seçin",
+  "pickSearch": "Ara",
+  "pickNoResults": "Sonuç bulunamadı.",
+  "authStepOf": "Adım {n}/{total}",
+  "@authStepOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "authSectionPersonal": "Kişisel bilgiler",
+  "authSectionPassword": "Şifre belirleyin",
+  "authHintAcademic": "Bölümünüzü ve sınıfınızı seçin.",
+  "authHintPersonal": "Adınızı ve okul e-postanızı girin.",
+  "authHintPassword": "En az 8 karakterli bir şifre seçin.",
+  "authNext": "Devam",
+  "authTermsAutoPrefix": "Kayıt olarak ",
+  "authTermsAutoSuffix": " metinlerini kabul etmiş sayılırsınız.",
+  "authPwMinErr": "Şifre en az 8 karakter olmalı.",
+  "authPwMaxErr": "Şifre en çok 72 karakter olabilir.",
+  "authIdHelper": "226051015 ya da ad.soyad@bingol.edu.tr",
+  "supportCatAccount": "Hesap",
+  "supportCatTechnical": "Teknik",
+  "supportCatContent": "İçerik",
+  "supportCatOther": "Diğer",
+  "supportFbBug": "Hata",
+  "supportFbSuggestion": "Öneri",
+  "supportFbComplaint": "Şikâyet",
+  "supportFbPraise": "Teşekkür",
+  "supportStNew": "Yeni",
+  "supportStInReview": "İnceleniyor",
+  "supportStPlanned": "Planlandı",
+  "supportStDone": "Tamamlandı",
+  "supportStRejected": "Reddedildi",
+  "supportStatusAnswered": "Yanıtlandı",
+  "supportStatusClosed": "Kapalı",
+  "supportStatusOpen": "Açık",
+  "supportTooManyRequests": "Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.",
+  "supportLabelCategory": "KATEGORİ",
+  "supportLabelSubject": "KONU",
+  "supportLabelMessage": "MESAJ",
+  "supportLabelMine": "GÖNDERDİKLERİM",
+  "supportHintSubject": "Kısaca konu",
+  "supportHintFeedback": "Görüşünüzü yazın",
+  "supportHintIssue": "Sorununuzu anlatın",
+  "supportHintReply": "Yanıt yazın",
+  "supportFillFields": "Konu ve mesaj alanlarını doldurun.",
+  "supportFeedbackThanks": "Geri bildiriminiz için teşekkürler.",
+  "supportFeedbackTitle": "Geri bildirim",
+  "supportSend": "Gönder",
+  "supportNoFeedback": "Henüz geri bildirim göndermediniz.",
+  "supportMore": "Daha fazla",
+  "supportTicketReceived": "Destek talebiniz alındı.",
+  "supportNewTicketTitle": "Yeni talep",
+  "supportTitle": "Destek",
+  "supportFaqLabel": "SIK SORULAN SORULAR",
+  "supportMyTickets": "TALEPLERİM",
+  "supportShareLabel": "GÖRÜŞÜNÜZÜ PAYLAŞIN",
+  "supportBoard": "Öneri panosu",
+  "supportCreateTicket": "Destek talebi oluştur",
+  "supportNoFaq": "Henüz sık sorulan soru yok.",
+  "supportRetry": "Yeniden dene",
+  "supportNoTickets": "Henüz destek talebiniz yok.",
+  "supportSortTop": "En çok oy",
+  "supportSortNew": "En yeni",
+  "supportAddSuggestion": "Öneri ekle",
+  "supportNoSuggestions": "Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.",
+  "supportCloseTicketTitle": "Talebi kapat",
+  "supportCloseTicketBody": "Bu talep kapatılacak ve yeni yanıt yazamayacaksınız. Devam edilsin mi?",
+  "supportCancel": "Vazgeç",
+  "supportClose": "Kapat",
+  "supportTicketTitle": "Talep",
+  "supportTicketClosedNote": "Bu talep kapatıldı.",
+  "supportStaff": "Destek ekibi",
+  "storyVideoTooLong": "Hikâye videosu en fazla 30 saniye olabilir.",
+  "storyCreateTitle": "Hikâye oluştur",
+  "storyShare": "Paylaş",
+  "storyModeMedia": "Fotoğraf / Video",
+  "storyModeText": "Metin",
+  "storyVisible24": "Hikâyen 24 saat görünür",
+  "storyGallery": "Galeri",
+  "storyCamera": "Kamera",
+  "storyCaptionHint": "Açıklama ekle…",
+  "storyTextHint": "Bir şeyler yaz…",
+  "storyBgColor": "Arka plan rengi {n}",
+  "@storyBgColor": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "storyYours": "Hikâyen",
+  "storyNewSemantics": "{name}, yeni hikâye",
+  "@storyNewSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storySemantics": "{name}, hikâye",
+  "@storySemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyDeleteTitle": "Hikâye silinsin mi?",
+  "storyDeleteBody": "Bu işlem geri alınamaz.",
+  "storyCancel": "Vazgeç",
+  "storyDelete": "Sil",
+  "storyRetry": "Yeniden dene",
+  "storyClose": "Kapat",
+  "storyViewsSemantics": "{count} görüntülenme, izleyenleri göster",
+  "@storyViewsSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "storyDeleteTooltip": "Hikâyeyi sil",
+  "storyBarSemantics": "Hikâye {index} / {total}",
+  "@storyBarSemantics": {
+    "placeholders": {
+      "index": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "storyNoViewers": "Henüz kimse görüntülemedi.",
+  "storyViewersTitle": "Görüntüleyenler ({count})",
+  "@storyViewersTitle": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "authForgotSub": "Okul e-postanızı girin, size 6 haneli bir kod gönderelim.",
+  "authBackToLogin": "Girişe dön",
+  "authChangeEmail": "E-postayı değiştir",
+  "authNewPwSub": "Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.",
+  "authRuleLen": "En az 8 karakter",
+  "authRuleMix": "Harf ve rakam içerir",
+  "authStep1Title": "Hangi bölümdesiniz?",
+  "authStep2Title": "Sizi tanıyalım",
+  "welcomeHeadline": "Kampüs artık\ncebinizde",
+  "welcomeSub": "Duyurular, yemek listesi, kulüpler ve etkinlikler tek uygulamada.",
+  "welcomeNews": "Haberler ve duyurular",
+  "welcomeMenu": "Günün yemek listesi",
+  "welcomeClubs": "Kulüpler ve etkinlikler",
+  "welcomeNote": "Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir.",
+  "welcomeLanguage": "Dil",
+  "chatlistSearchHint": "Sohbetlerde ara",
+  "bildirimFilterAll": "Tümü",
+  "bildirimFilterUnread": "Okunmamış",
+  "bildirimEmptyUnread": "Okunmamış bildirimin yok",
+  "bildirimAllCaughtUp": "Hepsi bu kadar",
+  "bildirimSwipeHint": "Silmek için bildirimi sola kaydır",
+  "bildirimDelete": "Sil",
+  "bildirimShortMin": "{n} dk",
+  "@bildirimShortMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimShortHour": "{n} sa",
+  "@bildirimShortHour": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimShortDay": "{n} g",
+  "@bildirimShortDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimYesterday": "Dün",
+  "bildirimTypeNews": "Haber",
+  "bildirimTypeAnnouncement": "Duyuru",
+  "bildirimTypeEvent": "Etkinlik",
+  "bildirimTypeMessage": "Sohbet",
+  "bildirimTypeCommunity": "Kulüp",
+  "bildirimTypePoll": "Anket",
+  "bildirimTypePost": "Gönderi",
+  "bildirimTypeOther": "Bildirim",
+  "acadhubNextExam": "Sıradaki sınav",
+  "acadhubUpcoming": "Yaklaşan tarihler",
+  "acadhubCalendarLink": "Takvim",
+  "acadhubNoUpcoming": "Yaklaşan tarih yok",
+  "kuluplerAllClubs": "Tüm kulüpler",
+  "kesfetSubtitle": "Öğrencilerden gönderiler",
+  "kesfetSearchHint": "Gönderi veya kişi ara",
+  "profil2PrivacyTitle": "Gizlilik ve engellenenler",
+  "profil2PrivacyIntro": "Profilini kimlerin görebileceğini alan alan seç. Kendi profilini her zaman tam görürsün.",
+  "profil2VisibilitySection": "Profil görünürlüğü",
+  "profil2FieldAvatar": "Profil fotoğrafı",
+  "profil2FieldBio": "Hakkımda",
+  "profil2FieldFaculty": "Fakülte",
+  "profil2FieldDepartment": "Bölüm",
+  "profil2FieldClassYear": "Sınıf",
+  "profil2VisEveryone": "Herkes",
+  "profil2VisShared": "Ortak bağlam",
+  "profil2VisOnlyMe": "Yalnızca ben",
+  "profil2SharedHintLead": "Ortak bağlam:",
+  "profil2SharedHintBody": "ortak kulüp, sohbet veya etkinliğin olduğu kişiler.",
+  "profil2ShowEmail": "E-postamı profilimde göster",
+  "profil2ShowEmailSub": "Kapalıyken yalnızca sen görürsün",
+  "profil2BlockedSection": "Engellenenler",
+  "profil2BlockedHint": "Engellediğin kişiler seni göremez, sana yazamaz.",
+  "profil2AvatarModerated": "Profil fotoğrafın moderasyon nedeniyle gizlendi.",
+  "profil2SaveFailed": "Değişiklik kaydedilemedi.",
+  "profil2MyDataRow": "Verilerim ve hesap",
+  "profil2DataTitle": "Verilerim",
+  "profil2DataIntro": "KVKK kapsamında uygulamada sakladığımız kişisel verilerinin bir kopyasını indirebilirsin.",
+  "profil2DataFileSub": "JSON dosyası olarak hazırlanır",
+  "profil2DataContents": "Dosyada neler var",
+  "profil2DataItemProfile": "Profil bilgilerin",
+  "profil2DataItemPrefs": "Gizlilik ve bildirim tercihlerin",
+  "profil2DataItemClubs": "Kulüp ve etkinlik kayıtların",
+  "profil2DataItemSaved": "Kayıtlı haberler ve bildirimlerin",
+  "profil2DataItemSupport": "Destek ve geri bildirim kayıtların",
+  "profil2DataLimit": "Günde en fazla 3 kez indirebilirsin. Dosyayı güvenli sakla, içinde kişisel bilgiler var.",
+  "profil2DataOther": "Diğer",
+  "profil2DataKvkk": "KVKK aydınlatma metni",
+  "profil2DelWarnLead": "Bu işlem geri alınamaz.",
+  "profil2DelWarnBody": "Hesabın anonimleştirilir ve bir daha giriş yapamazsın.",
+  "profil2DelWhatHappens": "Neler olur",
+  "profil2DelItem1": "Adın, e-postan, fotoğrafın ve profil bilgilerin silinir. Hesap Silinmiş kullanıcı olarak kalır.",
+  "profil2DelItem2": "Bildirimlerin, kayıtlı haberlerin, cihaz kayıtların ve tercihlerin silinir.",
+  "profil2DelItem3": "Kulüp üyeliklerin ve etkinlik katılımların kaldırılır.",
+  "profil2DelItem4": "Tüm cihazlardaki oturumların kapanır.",
+  "profil2DelBackupHint": "Dilersen silmeden önce verilerini indirebilirsin.",
+  "profil2DelAck": "Hesabımın kalıcı olarak silineceğini ve geri alınamayacağını anladım.",
+  "profil2Continue": "Devam et",
+  "profil2DelConfirmTitle": "Silmeyi onayla",
+  "profil2DelConfirmBody": "Devam etmek için şifreni gir. Hesabın hemen anonimleştirilir ve tüm cihazlardan çıkış yapılır.",
+  "profil2SecTitle": "Hesap ve güvenlik",
+  "profil2SecEmailFixed": "Değiştirilemez",
+  "profil2SecVerified": "Doğrulandı",
+  "profil2SecPwSection": "Şifreyi güncelle",
+  "profil2SecCurrentLabel": "Mevcut şifre",
+  "profil2SecCurrentHint": "Mevcut şifreniz",
+  "profil2SecNewLabel": "Yeni şifre",
+  "profil2SecNewHint": "En az 8 karakter",
+  "profil2SecRepeatLabel": "Yeni şifre (tekrar)",
+  "profil2SecRepeatHint": "Yeni şifreyi tekrarlayın",
+  "profil2SecPwRule": "8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.",
+  "profil2SecPwButton": "Şifreyi güncelle",
+  "profil2SecMismatch": "Şifreler eşleşmiyor.",
+  "profil2SecSame": "Yeni şifre mevcut şifreyle aynı olamaz.",
+  "profil2SecWrongCurrent": "Mevcut şifre hatalı.",
+  "profil2SecFailed": "Şifre güncellenemedi. Lütfen daha sonra tekrar deneyin.",
+  "profil2SecUpdated": "Şifren güncellendi.",
+  "profil2SecSessions": "Oturumlar",
+  "profil1SecContent": "İçeriklerim",
+  "profil1SecAccount": "Hesap",
+  "profil1SecApp": "Uygulama",
+  "profil1SecSupport": "Destek ve hukuki",
+  "profil1AccountSecurity": "Hesap ve güvenlik",
+  "profil1PrivacyBlocked": "Gizlilik ve engellenenler",
+  "profil1MyData": "Verilerim",
+  "profil1Notifications": "Bildirim tercihleri",
+  "profil1Theme": "Tema",
+  "profil1Support": "Destek",
+  "profil1Legal": "Sözleşmeler ve politikalar",
+  "profil1CorpEmail": "Kurumsal e-posta",
+  "profil1Remove": "Kaldır",
+  "profil1PushTitle": "Anlık bildirimler",
+  "profil1PushGranted": "Bu cihazda izin verildi",
+  "profil1PillOff": "Kapalı",
+  "profil1WhatSection": "Neler bildirilsin",
+  "profil1NotifClubs": "Kulüpler",
+  "profil1NewsSub": "Üniversiteden yeni haberler",
+  "profil1AnnSub": "Önemli duyurular",
+  "profil1EventsSub": "Hatırlatma, değişiklik, kabul",
+  "profil1MsgSub": "Kişi ve grup sohbetleri",
+  "profil1ClubsSub": "Gönderiler, rol ve katılım",
+  "profil1Detailed": "Ayrıntılı tercihler",
+  "profil1SubMsgDirect": "Kişisel mesajlar",
+  "profil1SubMsgGroup": "Grup mesajları",
+  "profil1SubEventReminder": "Etkinlik hatırlatmaları",
+  "profil1SubEventUpdate": "Etkinlik değişiklikleri",
+  "profil1SubEventAdmission": "Etkinlik kabulleri",
+  "profil1SubClubPost": "Kulüp gönderileri",
+  "profil1SubClubRole": "Kulüp rol değişiklikleri",
+  "profil1SubClubJoin": "Kulüp katılım istekleri",
+  "profil1QuietTitle": "Sessiz saatler",
+  "profil1QuietToggle": "Sessiz saatleri aç",
+  "profil1QuietSub": "Bu saatlerde bildirim sesi çalmaz",
+  "profil1QuietStart": "Başlangıç",
+  "profil1QuietEnd": "Bitiş",
+  "sohbetmedyaNext": "İleri",
+  "sohbetmedyaSelectedOf": "{n} / {max} seçildi",
+  "@sohbetmedyaSelectedOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "sohbetmedyaRecent": "Son eklenenler",
+  "sohbetmedyaPhotoVideo": "Fotoğraf ve video",
+  "sohbetmedyaLimitNote": "En fazla {max} öğe seçebilirsiniz. Video en fazla 60 saniye olabilir.",
+  "@sohbetmedyaLimitNote": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "sohbetmedyaAddMore": "Daha fazla ekle",
+  "sohbetmedyaSendItems": "{n} öğeyi gönder",
+  "@sohbetmedyaSendItems": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatdSendingMedia": "Gönderiliyor…",
+  "chatdPhotoLoading": "Fotoğraf yükleniyor…",
+  "chatdOnceLocked": "Tek gösterimlik fotoğraf",
+  "chatdOnceView": "Görüntüle",
+  "chatdOnceOpenedFull": "Fotoğraf · Açıldı",
+  "anasayfaHello": "Merhaba, {name}",
+  "@anasayfaHello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "anasayfaHelloNoName": "Merhaba",
+  "anasayfaMealLunch": "Bugünün yemeği · Öğle",
+  "anasayfaAnnouncements": "Duyurular",
+  "anasayfaQuickAcademic": "Akademik",
+  "gonderiTextHint": "Kısa bir not ekle (isteğe bağlı)",
+  "gonderiWordCount": "{n}/{max} kelime",
+  "@gonderiWordCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "gonderiWordLimit": "En çok {max} kelime yazabilirsin.",
+  "@gonderiWordLimit": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "gonderiPickPhoto": "Galeriden seç",
+  "gonderiTakePhoto": "Fotoğraf çek",
+  "gonderiPhotoRequired": "Paylaşmak için bir fotoğraf seç.",
+  "gonderiPhotoHint": "Gönderi tek bir fotoğraftan oluşur.",
+  "gonderiChangePhoto": "Fotoğrafı değiştir",
+  "gonderiDiscardTitle": "Gönderiden vazgeçilsin mi?",
+  "gonderiDiscardBody": "Seçtiğin fotoğraf ve yazdıkların silinecek.",
+  "gonderiDiscardYes": "Vazgeç",
+  "yemekLunch": "Öğle yemeği",
+  "yemekTodaysMenu": "Bugünün menüsü",
+  "yemekToday": "Bugün",
+  "yemekPrevDay": "Önceki gün",
+  "yemekNextDay": "Sonraki gün",
+  "destekFaqHeading": "Sıkça sorulan sorular",
+  "destekFaqSearchHint": "Sorunuzu arayın",
+  "destekFaqAll": "Tümü",
+  "destekFaqNoMatch": "Eşleşen soru bulunamadı.",
+  "destekSortMine": "Benim",
+  "destekSortPopular": "Popüler",
+  "destekShareSuggestion": "Öneri paylaş",
+  "destekEffective": "Yürürlük: {date}",
+  "@destekEffective": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "destekVoteLabel": "Oy ver, şu an {count} oy",
+  "@destekVoteLabel": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "anketScopeGlobal": "Genel",
+  "anketScopeClub": "Kulüp",
+  "anketScopeMenu": "Yemek",
+  "anketSecretNote": "Oyunuz gizli. Seçiminizi yalnızca siz görürsünüz; yöneticiler dahil kimse kimin ne seçtiğini göremez.",
+  "anketSecretVoteNote": "Oyunuz gizli kalır, kimse kimin ne seçtiğini göremez.",
+  "anketMineBadge": "Seçiminiz",
+  "anketRatingSummary": "Puanlama özeti",
+  "anketResultsTitle": "Sonuçlar",
+  "anketFieldQuestion": "Soru",
+  "anketVisTitle": "Sonuçlar ne zaman görünsün?",
+  "anketVisAlways": "Her zaman",
+  "anketVisAfterVote": "Oy verince",
+  "anketVisAfterClose": "Anket kapanınca",
+  "anketNotifyTitle": "Bildirim gönder",
+  "anketNotifySub": "Hedef kitleye anket açıldı bildirimi",
+  "icerikHidden": "Gizli",
+  "icerikStatPosts": "gönderi",
+  "icerikStatFollowers": "takipçi",
+  "icerikStatFollowing": "takip",
+  "icerikMessageSend": "Mesaj gönder",
+  "icerikReport": "Raporla",
+  "icerikMoreActions": "Diğer işlemler",
+  "icerikUserMenu": "Kullanıcı işlemleri",
+  "icerikPostsHeading": "GÖNDERİLER",
+  "icerikOpenPost": "Gönderiyi aç",
+  "icerikPostPhoto": "Gönderi fotoğrafı",
+  "icerikNewsTitle": "Haberler",
+  "icerikNewsTypeTabs": "Tür",
+  "icerikNewsList": "Haber listesi",
+  "icerikNewsEmpty": "Bu kategoride henüz içerik yok.",
+  "icerikFavorites": "Favori haberler",
+  "icerikMaintenance": "Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.",
+  "icerikOpenSource": "Kaynak sitede aç",
+  "icerikShare": "Paylaş",
+  "icerikLinkCopied": "Haber bağlantısı kopyalandı.",
+  "icerikSavedCount": "{count} kayıtlı haber",
+  "@icerikSavedCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "icerikSavedMoreTitle": "Daha fazla haberi kaydet",
+  "icerikSavedMoreBody": "Haber detayındaki işaretle haberleri buraya ekleyebilirsin.",
+  "icerikSavedList": "Favoriler",
+  "icerikSearchTabs": "Sonuç türü",
+  "icerikGroupNews": "HABER",
+  "icerikGroupAnnouncement": "DUYURU",
+  "icerikGroupEvent": "ETKİNLİK",
+  "icerikGroupClub": "KULÜP",
+  "icerikGroupPerson": "KİŞİ",
+  "icerikGroupPost": "GÖNDERİ",
+  "kulupdetayRequestsTitle": "Katılma istekleri",
+  "kulupdetayPendingBanner": "{count} bekleyen katılma isteği",
+  "@kulupdetayPendingBanner": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "kulupdetaySendRequest": "İsteği gönder",
+  "kulupdetayAnswerHint": "Cevabını yaz",
+  "kulupdetayRequired": "Bu soru zorunlu.",
+  "kulupdetayApproving": "Onaylanıyor...",
+  "kulupdetayCreateTitle": "Kulüp oluştur",
+  "kulupdetayMembersSubtitle": "{club} · {count} üye",
+  "@kulupdetayMembersSubtitle": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "akademik2DayHeadingToday": "{day}, bugün",
+  "@akademik2DayHeadingToday": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "akademik2CourseCount": "{count} ders",
+  "@akademik2CourseCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "akademik2ExportLabel": "Takvime aktar",
+  "akademik2CourseHours": "Ders saati",
+  "akademik2Instructor": "Öğretim elemanı",
+  "akademik2Start": "Başlangıç",
+  "akademik2End": "Bitiş",
+  "akademik2EndOptional": "Bitiş (isteğe bağlı)",
+  "akademik2RoomShort": "Sınıf",
+  "akademik2AddDay": "Başka gün ekle",
+  "akademik2OfficialTag": "Resmi",
+  "akademik2Passed": "Geçti",
+  "akademik2ExamTitle": "Sınav başlığı",
+  "akademik2Course": "Ders",
+  "akademik2Place": "Yer",
+  "akademik2NewTag": "Yeni",
+  "akademik2Attachment": "Ek dosya",
+  "akademik2RemindEach": "Her ders öncesinde",
+  "akademik2BeforeClassShort": "Dersten önce",
+  "akademik2SemesterTitle": "Dönem seç"
 }

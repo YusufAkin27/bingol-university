@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -18,7 +20,21 @@ import 'events_page.dart';
 import 'qr_painter.dart';
 import '../../core/typography.dart';
 
-const _monthsShort = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
+/// Dile göre intl biçimi; yerel ayar verisi yoksa varsayılana düşer.
+String _fmtDate(BuildContext context, String pattern, DateTime d) {
+  try {
+    return DateFormat(pattern, Localizations.localeOf(context).toString()).format(d);
+  } catch (_) {
+    return DateFormat(pattern).format(d);
+  }
+}
+
+/// Kısa ay adı, büyük harf (Türkçede noktalı İ korunur).
+String _monthShortUpper(BuildContext context, DateTime d) {
+  final s = _fmtDate(context, 'MMM', d).replaceAll('.', '');
+  final isTr = Localizations.localeOf(context).languageCode == 'tr';
+  return (isTr ? s.replaceAll('i', 'İ') : s).toUpperCase();
+}
 
 /// Etkinlik detayı: bilgi, RSVP, yoklama, organizatör araçları ve etkinlik sohbeti.
 class EventDetailPage extends StatefulWidget {
@@ -187,7 +203,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final cap = (ev['capacity'] as num?)?.toInt();
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
     if (status == 'GOING' && _rsvp != 'GOING' && cap != null && going >= cap) {
-      _toast('Kontenjan doldu. "İlgileniyorum" ile takipte kalabilirsin.');
+      _toast(context.l10n.eventFormJoinFull);
       return;
     }
     setState(() => _rsvpBusy = true);
@@ -221,9 +237,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (_rsvpBusy) return;
     final ok = await confirmEventDialog(
       context,
-      title: 'Katılımdan ayrıl',
-      message: 'Bu etkinlik Etkinliklerim listenden çıkarılacak.',
-      confirmLabel: 'Ayrıl',
+      title: context.l10n.eventFormLeaveTitle,
+      message: context.l10n.eventFormLeaveMessage,
+      confirmLabel: context.l10n.eventFormLeaveConfirm,
       danger: true,
     );
     if (!ok || !mounted) return;
@@ -248,21 +264,21 @@ class _EventDetailPageState extends State<EventDetailPage> {
           return;
         case 'close':
           await api.post('$_path/close', {});
-          _toast('Kayıtlar kapatıldı.');
+          _toast(context.l10n.eventFormRegsClosedToast);
         case 'reopen':
           await api.post('$_path/reopen', {});
-          _toast('Kayıtlar yeniden açıldı.');
+          _toast(context.l10n.eventFormRegsReopenedToast);
         case 'cancel':
           final ok = await confirmEventDialog(
             context,
-            title: 'Etkinliği iptal et',
-            message: 'Bu etkinlik tüm katılımcılar için iptal edilecek.',
-            confirmLabel: 'İptal et',
+            title: context.l10n.eventFormCancelTitle,
+            message: context.l10n.eventFormCancelMessage,
+            confirmLabel: context.l10n.eventFormCancelAction,
             danger: true,
           );
           if (!ok || !mounted) return;
           await api.delete(_path);
-          _toast('Etkinlik iptal edildi.');
+          _toast(context.l10n.eventFormCancelledToast);
       }
       if (mounted) await _load(refresh: true);
     } catch (e) {
@@ -278,7 +294,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _scan() async {
     final raw = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const QrScanPage(title: 'Yoklama QR kodunu tara')),
+      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle)),
     );
     if (raw != null && mounted) await _submitCode(raw);
   }
@@ -291,7 +307,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (code.isEmpty || _checkBusy) return;
     final id = int.tryParse(code.split('.').first);
     if (id != null && id != widget.eventId) {
-      _toast('Bu kod başka bir etkinliğe ait.');
+      _toast(context.l10n.eventFormWrongEventCode);
       return;
     }
     setState(() => _checkBusy = true);
@@ -303,7 +319,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         _enterCode = false;
         _codeCtl.clear();
       });
-      _toast('Yoklaman alındı');
+      _toast(context.l10n.eventFormCheckedIn);
     } catch (e) {
       _toast(errorText(e));
     } finally {
@@ -325,7 +341,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       );
     } on ApiError catch (e) {
       if (e.status == 404 || e.status == 405) {
-        _toast('Etkinlik sohbeti yakında');
+        _toast(context.l10n.eventFormChatSoon);
       } else {
         _toast(errorText(e));
       }
@@ -344,8 +360,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       body = const LoadingView();
     } else if (_ev == null && _error is ApiError && (_error as ApiError).status == 404) {
       body = Column(children: [
-        BuHeader(title: 'Etkinlik', onBack: () => Navigator.pop(context)),
-        const Expanded(child: EmptyView(icon: LucideIcons.calendarX, text: 'Etkinlik bulunamadı')),
+        BuHeader(title: context.l10n.eventFormEventTitle, onBack: () => Navigator.pop(context)),
+        Expanded(child: EmptyView(icon: LucideIcons.calendarX, text: context.l10n.eventFormNotFound)),
       ]);
     } else if (_ev == null) {
       body = ErrorView(error: _error ?? 'hata', onRetry: _load);
@@ -372,10 +388,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (rsvp == 'GOING') {
       main = EventJoinedChip(large: true, onTap: _openMine);
     } else if (closed) {
-      main = const BuButton(label: 'Kayıtlar kapalı', icon: LucideIcons.lock, kind: BuButtonKind.soft);
+      main = BuButton(label: context.l10n.eventFormRegsClosed, icon: LucideIcons.lock, kind: BuButtonKind.soft);
     } else {
       main = BuButton(
-        label: 'Katıl',
+        label: context.l10n.eventFormJoin,
         icon: LucideIcons.check,
         busy: _rsvpBusy,
         onPressed: _rsvpBusy ? null : () => _join('GOING'),
@@ -395,9 +411,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
             if (showInterest) ...[
               const SizedBox(width: 10),
               rsvp == 'INTERESTED'
-                  ? const EventStatusTag('İlgileniyorum', tone: EventTone.warn)
+                  ? EventStatusTag(context.l10n.eventFormInterested, tone: EventTone.warn)
                   : Tooltip(
-                      message: 'İlgileniyorum',
+                      message: context.l10n.eventFormInterested,
                       child: SizedBox(
                         width: 54,
                         height: 54,
@@ -477,7 +493,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               top: pad.top + 12,
               child: Semantics(
                 button: true,
-                label: 'Geri',
+                label: context.l10n.eventFormBack,
                 excludeSemantics: true,
                 onTap: () => Navigator.pop(context),
                 child: GestureDetector(
@@ -499,14 +515,18 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   data: Theme.of(context).copyWith(
                       popupMenuTheme: PopupMenuThemeData(color: t.sf, surfaceTintColor: Colors.transparent)),
                   child: PopupMenuButton<String>(
-                    tooltip: 'Yönet',
+                    tooltip: context.l10n.eventFormManage,
                     onSelected: _manageAction,
                     itemBuilder: (_) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Düzenle')),
+                      PopupMenuItem(value: 'edit', child: Text(context.l10n.eventFormEdit)),
                       PopupMenuItem(
                           value: eventIsClosed(ev) ? 'reopen' : 'close',
-                          child: Text(eventIsClosed(ev) ? 'Kayıtları yeniden aç' : 'Kayıtları kapat')),
-                      PopupMenuItem(value: 'cancel', child: Text('İptal et', style: TextStyle(color: t.danger))),
+                          child: Text(eventIsClosed(ev)
+                              ? context.l10n.eventFormReopenRegs
+                              : context.l10n.eventFormCloseRegs)),
+                      PopupMenuItem(
+                          value: 'cancel',
+                          child: Text(context.l10n.eventFormCancelAction, style: TextStyle(color: t.danger))),
                     ],
                     child: Container(
                       width: 44,
@@ -523,10 +543,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 top: pad.top + 12,
                 child: Semantics(
                   button: true,
-                  label: 'Şikâyet et',
+                  label: context.l10n.eventFormReport,
                   child: GestureDetector(
                     onTap: () => ReportSheet.show(context, widget.session,
-                        targetType: 'EVENT', targetId: widget.eventId, title: 'Etkinliği şikâyet et'),
+                        targetType: 'EVENT', targetId: widget.eventId, title: context.l10n.eventFormReportEvent),
                     child: Container(
                       width: 44,
                       height: 44,
@@ -546,7 +566,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 10, offset: const Offset(0, 2)),
                   ]),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(_monthsShort[starts.month - 1],
+                    Text(_monthShortUpper(context, starts),
                         style: BuType.micro.copyWith(color: const Color(0xFF8E1B13))),
                     Text('${starts.day}',
                         style: BuType.display.copyWith(height: 1.1, color: const Color(0xFF8E1B13))),
@@ -560,9 +580,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Wrap(spacing: 6, runSpacing: 6, children: [
-            if (eventIsCancelled(ev)) const _Pill('İptal edildi', warn: true),
-            if (!eventIsCancelled(ev) && eventIsClosed(ev)) const _Pill('Kayıtlar kapalı'),
-            if (rsvp == 'GOING') const _Pill('Etkinliklerimde', ok: true) else if (rsvp == 'INTERESTED') const _Pill('İlgileniyorum'),
+            if (eventIsCancelled(ev)) _Pill(context.l10n.eventFormCancelledPill, warn: true),
+            if (!eventIsCancelled(ev) && eventIsClosed(ev)) _Pill(context.l10n.eventFormRegsClosed),
+            if (rsvp == 'GOING') _Pill(context.l10n.eventFormInMine, ok: true) else if (rsvp == 'INTERESTED') _Pill(context.l10n.eventFormInterested),
           ]),
           if (rsvp != null || eventIsCancelled(ev) || eventIsClosed(ev)) const SizedBox(height: 8),
           Text('${ev['title'] ?? ''}',
@@ -579,7 +599,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         MaterialPageRoute(
                             builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
                 child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
-                  const TextSpan(text: 'Düzenleyen: '),
+                  TextSpan(text: '${context.l10n.eventFormOrganizedBy} '),
                   TextSpan(
                       text: organizer,
                       style: TextStyle(
@@ -599,7 +619,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             if (starts != null)
               _InfoRow(
                 icon: LucideIcons.calendarDays,
-                title: '${starts.day} ${_monthName(starts.month)} ${starts.year}, ${_weekday(starts.weekday)}',
+                title: _fmtDate(context, 'd MMMM y, EEEE', starts),
                 sub: ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}',
               ),
             if (location != null && location.isNotEmpty)
@@ -607,7 +627,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
             if (cap != null)
               _InfoRow(
                 icon: LucideIcons.users,
-                title: full ? 'Kontenjan doldu' : 'Kontenjan: $going / $cap',
+                title: full
+                    ? context.l10n.eventFormCapacityFull
+                    : context.l10n.eventFormCapacityCount(going.toString(), cap.toString()),
                 sub: null,
                 top: true,
               ),
@@ -624,11 +646,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
           Expanded(
             child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
               TextSpan(text: '$going', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-              const TextSpan(text: ' katılıyor'),
+              TextSpan(text: ' ${context.l10n.eventFormGoingLabel}'),
               if (interested != null) ...[
                 const TextSpan(text: ' · '),
                 TextSpan(text: '$interested', style: TextStyle(fontWeight: FontWeight.w800, color: t.ink)),
-                const TextSpan(text: ' ilgileniyor'),
+                TextSpan(text: ' ${context.l10n.eventFormInterestedLabel}'),
               ],
             ])),
           ),
@@ -643,13 +665,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (full && rsvp != 'GOING')
-            Text('Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.',
+            Text(context.l10n.eventFormFullHint,
                 style: BuType.caption.copyWith(color: t.danger)),
           if (rsvp == 'GOING') ...[const SizedBox(height: 10), _attendanceBlock()],
           if (rsvp != null) ...[
             const SizedBox(height: 10),
             BuButton(
-              label: 'Etkinlik sohbeti',
+              label: context.l10n.eventFormChat,
               icon: LucideIcons.messageCircle,
               kind: BuButtonKind.outline,
               busy: _chatBusy,
@@ -662,7 +684,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               alignment: AlignmentDirectional.centerStart,
               child: TextButton(
                 onPressed: _rsvpBusy ? null : _leave,
-                child: Text('Katılımı yönet', style: BuType.label.copyWith(color: t.mut)),
+                child: Text(context.l10n.eventFormManageJoin, style: BuType.label.copyWith(color: t.mut)),
               ),
             ),
           ],
@@ -727,19 +749,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.circleCheck, size: 16, color: t.ok),
           const SizedBox(width: 8),
-          Text('Yoklaman alındı', style: BuType.bodyStrong.copyWith(color: t.ok)),
+          Text(context.l10n.eventFormCheckedIn, style: BuType.bodyStrong.copyWith(color: t.ok)),
         ]),
       );
     }
     if (att['checkInOpen'] != true) {
-      return Text('Yoklama etkinlik saatinde açılır.', style: BuType.caption.copyWith(color: t.mut));
+      return Text(context.l10n.eventFormCheckInLater, style: BuType.caption.copyWith(color: t.mut));
     }
     if (!_enterCode) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        BuButton(label: 'QR kodu tara', icon: LucideIcons.scanLine, busy: _checkBusy, onPressed: _scan),
+        BuButton(label: context.l10n.eventFormScanQr, icon: LucideIcons.scanLine, busy: _checkBusy, onPressed: _scan),
         const SizedBox(height: 8),
         BuButton(
-            label: 'Kodu elle gir',
+            label: context.l10n.eventFormEnterCode,
             icon: LucideIcons.qrCode,
             kind: BuButtonKind.outline,
             onPressed: () => setState(() => _enterCode = true)),
@@ -747,7 +769,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
     return BuCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('Organizatörün gösterdiği kodu gir',
+        Text(context.l10n.eventFormEnterOrganizerCode,
             style: BuType.label.copyWith(color: t.ink)),
         const SizedBox(height: 10),
         TextField(
@@ -760,7 +782,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           onSubmitted: (_) => _checkIn(),
           style: BuType.bodyStrong.copyWith(color: t.ink),
           decoration: InputDecoration(
-            hintText: 'Yoklama kodu',
+            hintText: context.l10n.eventFormCheckInCode,
             hintStyle: TextStyle(color: t.mut),
             filled: true,
             fillColor: t.sf2,
@@ -768,7 +790,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
         ),
         const SizedBox(height: 10),
-        BuButton(label: 'Yoklamayı gönder', busy: _checkBusy, onPressed: _checkIn),
+        BuButton(label: context.l10n.eventFormSendCheckIn, busy: _checkBusy, onPressed: _checkIn),
       ]),
     );
   }
@@ -781,13 +803,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final present = _attendance.where((r) => r['present'] == true).length;
     final total = _attendance.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Yoklama kodu', style: BuType.heading.copyWith(color: t.ink)),
+      Text(context.l10n.eventFormCheckInCode, style: BuType.heading.copyWith(color: t.ink)),
       const SizedBox(height: 10),
       BuCard(
         padding: const EdgeInsets.all(18),
         child: Column(children: [
           if (code == null)
-            Text(_codeBusy ? 'Kod hazırlanıyor…' : 'Kod alınamadı.', style: TextStyle(color: t.mut))
+            Text(_codeBusy ? context.l10n.eventFormCodePreparing : context.l10n.eventFormCodeFailed, style: TextStyle(color: t.mut))
           else ...[
             QrView(
               data: qr ?? code,
@@ -797,19 +819,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   style: BuType.bodyStrong.copyWith(color: t.pr)),
             ),
             const SizedBox(height: 8),
-            Text('Katılımcılar bu QR kodunu uygulamadan taratır.',
+            Text(context.l10n.eventFormQrHelp,
                 textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
             const SizedBox(height: 6),
             Text(
               exp == null
-                  ? 'Kod kısa süre geçerlidir.'
-                  : 'Son kullanma: ${_hms(exp)} · kod otomatik yenilenir',
+                  ? context.l10n.eventFormCodeShortLived
+                  : context.l10n.eventFormCodeExpires(_hms(exp)),
               style: BuType.caption.copyWith(color: t.mut),
             ),
           ],
           const SizedBox(height: 12),
           BuButton(
-            label: 'Kodu yenile',
+            label: context.l10n.eventFormRefreshCode,
             icon: LucideIcons.refreshCw,
             kind: BuButtonKind.soft,
             compact: true,
@@ -825,7 +847,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              total == 0 ? 'Henüz yoklama kaydı yok' : 'Yoklama: $present / $total kişi geldi',
+              total == 0
+                  ? context.l10n.eventFormNoAttendance
+                  : context.l10n.eventFormAttendanceCount(present.toString(), total.toString()),
               style: BuType.bodyStrong.copyWith(color: t.ink),
             ),
           ),
@@ -833,7 +857,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       ),
       if (_attendees.isNotEmpty) ...[
         const SizedBox(height: 18),
-        Text('Katılımcılar', style: BuType.heading.copyWith(color: t.ink)),
+        Text(context.l10n.eventFormAttendees, style: BuType.heading.copyWith(color: t.ink)),
         const SizedBox(height: 10),
         for (final a in _attendees)
           Padding(
@@ -847,12 +871,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     overflow: TextOverflow.ellipsis,
                     style: BuType.bodyStrong.copyWith(color: t.ink)),
               ),
-              if (a['status'] == 'INTERESTED') Text('İlgileniyor', style: BuType.caption.copyWith(color: t.mut)),
+              if (a['status'] == 'INTERESTED') Text(context.l10n.eventFormInterestedShort, style: BuType.caption.copyWith(color: t.mut)),
             ]),
           ),
         if (_attNext != null)
           BuButton(
-              label: 'Daha fazla göster',
+              label: context.l10n.eventFormShowMore,
               kind: BuButtonKind.soft,
               compact: true,
               busy: _attBusy,
@@ -864,8 +888,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
   static String _two(int n) => n.toString().padLeft(2, '0');
   static String _hm(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
   static String _hms(DateTime d) => '${_hm(d)}:${_two(d.second)}';
-  static String _monthName(int m) => longDate(DateTime(2000, m, 1)).split(',').first.split(' ').last;
-  static String _weekday(int w) => longDate(DateTime(2024, 1, w)).split(', ').last;
 }
 
 class _Pill extends StatelessWidget {

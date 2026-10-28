@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -101,7 +102,8 @@ class _FollowListPageState extends State<FollowListPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final title = widget.followers ? 'Takipçiler' : 'Takip edilenler';
+    final l = context.l10n;
+    final title = widget.followers ? l.followersTitle : l.followingTitle;
     Widget body;
     if (_loading) {
       body = const LoadingView();
@@ -112,7 +114,7 @@ class _FollowListPageState extends State<FollowListPage> {
         const SizedBox(height: 120),
         EmptyView(
             icon: LucideIcons.users,
-            text: widget.followers ? 'Henüz takipçi yok.' : 'Henüz kimse takip edilmiyor.'),
+            text: widget.followers ? l.followersEmpty : l.followingEmpty),
       ]);
     } else {
       body = RefreshIndicator(

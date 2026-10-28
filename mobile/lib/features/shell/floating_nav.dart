@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,8 +6,7 @@ import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart' show LucideIcons;
 
-/// Yüzen hap gezinme: yalnızca ikonlar; seçili sekmenin arkasında kayan marka renkli vurgu.
-/// Etiket metni görünmez; erişilebilirlik için Semantics + Tooltip korunur.
+/// Yüzen gezinme kartı: ikon + etiket; seçili sekmenin arkasında kayan yumuşak kırmızı hap.
 class FloatingNav extends StatelessWidget {
   const FloatingNav({super.key, required this.index, required this.onChanged, required this.chatBadge});
 
@@ -17,7 +14,7 @@ class FloatingNav extends StatelessWidget {
   final ValueChanged<int> onChanged;
   final ValueNotifier<int> chatBadge;
 
-  static const double height = 62;
+  static const double height = 68;
 
   static List<String> _labels(BuildContext context) {
     final l = context.l10n;
@@ -35,54 +32,33 @@ class FloatingNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final bottom = MediaQuery.of(context).padding.bottom;
-    final narrow = MediaQuery.sizeOf(context).width < 360;
-    final side = narrow ? 14.0 : 20.0;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final dark = t.bg == BuTokens.dark.bg;
     final n = _items.length;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(side, 0, side, bottom > 0 ? bottom : 16),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottom > 0 ? bottom : 16),
       child: RepaintBoundary(
-        // "Sıvı cam": arkadaki içerik bulanıklaşır, yüzey yarı saydam gradyan, kenarda ışık yansıması çizgisi.
+        // Düz, yüzen kart: yüzey rengi, 1 px kenarlık, 24 px köşe, yumuşak gölge.
         child: Container(
           height: height,
-          padding: const EdgeInsets.all(1),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(height / 2),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: dark ? .38 : .95),
-                Colors.white.withValues(alpha: dark ? .06 : .25),
-                Colors.white.withValues(alpha: dark ? .22 : .70),
-              ],
-            ),
+            color: t.sf,
+            border: Border.all(color: t.bd),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: dark ? .35 : .14), blurRadius: 28, offset: const Offset(0, 10)),
+              BoxShadow(
+                color: (dark ? Colors.black : const Color(0xFF171E33)).withValues(alpha: dark ? .45 : .35),
+                blurRadius: 30,
+                spreadRadius: -14,
+                offset: const Offset(0, 12),
+              ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(height / 2 - 1),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: dark ? .16 : .62),
-                      Colors.white.withValues(alpha: dark ? .05 : .34),
-                    ],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: LayoutBuilder(builder: (context, c) {
+          child: LayoutBuilder(builder: (context, c) {
             final slot = c.maxWidth / n;
-            final pillW = (slot - 6).clamp(44.0, 56.0);
+            final pillW = (slot - 2).clamp(44.0, 64.0);
             final visual = rtl ? n - 1 - index : index;
             return Stack(
               alignment: Alignment.center,
@@ -91,22 +67,12 @@ class FloatingNav extends StatelessWidget {
                   duration: const Duration(milliseconds: 280),
                   curve: Curves.easeOutCubic,
                   left: visual * slot + (slot - pillW) / 2,
-                  top: (height - 2 - 44) / 2,
+                  top: (height - 2 - 52) / 2,
                   width: pillW,
-                  height: 44,
+                  height: 52,
                   child: DecoratedBox(
                     key: const ValueKey('nav-pill'),
-                    // Cam damla: marka renginde yarı saydam dolgu + üstte ışık parlaması + ince parlak kenar.
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [t.pr.withValues(alpha: .92), t.pr.withValues(alpha: .74)],
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: Colors.white.withValues(alpha: dark ? .35 : .55), width: 1),
-                      boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .35), blurRadius: 14, offset: const Offset(0, 4))],
-                    ),
+                    decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
                 Row(
@@ -129,10 +95,6 @@ class FloatingNav extends StatelessWidget {
               ],
             );
           }),
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );
@@ -176,13 +138,13 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final color = widget.selected ? t.onPr : t.ink.withValues(alpha: .72);
+    final color = widget.selected ? t.onSoft : t.mut;
     Widget icon = ScaleTransition(
       scale: _scale,
       child: TweenAnimationBuilder<Color?>(
         tween: ColorTween(end: color),
         duration: const Duration(milliseconds: 220),
-        builder: (_, v, __) => Icon(widget.icon, size: 21.5, color: v ?? color),
+        builder: (_, v, __) => Icon(widget.icon, size: 22, color: v ?? color),
       ),
     );
     final badge = widget.badge;
@@ -212,7 +174,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                           decoration: BoxDecoration(
                             color: t.pr,
                             borderRadius: BorderRadius.circular(9),
-                            border: Border.all(color: t.nav, width: 1.5),
+                            border: Border.all(color: t.sf, width: 1.5),
                           ),
                           // Rozet sabit boyutlu: yazı ölçeği büyüyünce simgeyi örtmesin.
                           child: MediaQuery.withClampedTextScaling(
@@ -241,7 +203,30 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
-          child: SizedBox(height: FloatingNav.height, child: Center(child: icon)),
+          child: SizedBox(
+            height: FloatingNav.height,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  icon,
+                  const SizedBox(height: 3),
+                  MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: 1.1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(widget.label,
+                            maxLines: 1,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.2, color: color)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

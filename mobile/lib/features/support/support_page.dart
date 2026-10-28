@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'destek_widgets.dart';
 import 'support_common.dart';
 import 'support_feedback_page.dart';
 import 'support_new_ticket_page.dart';
@@ -30,6 +32,9 @@ class _SupportPageState extends State<SupportPage> {
   Object? _error;
   String? _ticketsError;
   final Set<int> _open = {};
+  final _search = TextEditingController();
+  String _q = '';
+  String? _cat; // seçili SSS kategorisi (null = tümü)
   final _scroll = ScrollController();
 
   @override
@@ -44,6 +49,7 @@ class _SupportPageState extends State<SupportPage> {
   @override
   void dispose() {
     _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -64,7 +70,8 @@ class _SupportPageState extends State<SupportPage> {
         ..addAll(((r['items'] as List?) ?? []).whereType<Map>().map((e) => e.cast<String, dynamic>()));
       _next = (r['nextCursor'] as num?)?.toInt();
     } catch (e) {
-      tErr = supportError(e);
+      if (!mounted) return;
+      tErr = supportError(context, e);
     }
     if (!mounted) return;
     setState(() {
@@ -83,7 +90,7 @@ class _SupportPageState extends State<SupportPage> {
       _tickets.addAll(((r['items'] as List?) ?? []).whereType<Map>().map((e) => e.cast<String, dynamic>()));
       _next = (r['nextCursor'] as num?)?.toInt();
     } catch (e) {
-      if (mounted) supportSnack(context, supportError(e));
+      if (mounted) supportSnack(context, supportError(context, e));
     }
     if (mounted) setState(() => _more = false);
   }
@@ -99,7 +106,7 @@ class _SupportPageState extends State<SupportPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: 'Destek', onBack: () => Navigator.pop(context)),
+        BuHeader(title: context.l10n.supportTitle, onBack: () => Navigator.pop(context)),
         Expanded(child: _body(t)),
       ]),
     );
@@ -123,21 +130,31 @@ class _SupportPageState extends State<SupportPage> {
           padding: const EdgeInsets.only(top: 14, bottom: 32),
           children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: _cta(t)),
-        const SupportLabel('SIK SORULAN SORULAR'),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: SupportLabel(context.l10n.destekFaqHeading, form: true)),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: _searchField(t)),
+        const SizedBox(height: 10),
+        if (_categories.length > 1) ...[
+          DestekChipRow(children: [
+            DestekChip(label: context.l10n.destekFaqAll, selected: _cat == null, onTap: () => setState(() => _cat = null)),
+            for (final c in _categories)
+              DestekChip(label: c, selected: _cat == c, onTap: () => setState(() => _cat = c)),
+          ]),
+          const SizedBox(height: 10),
+        ],
         _faqCard(t),
-        const SupportLabel('TALEPLERİM'),
+        SupportLabel(context.l10n.supportMyTickets),
         _ticketsCard(t),
-        const SupportLabel('GÖRÜŞÜNÜZÜ PAYLAŞIN'),
+        SupportLabel(context.l10n.supportShareLabel),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(children: [
             Expanded(
-              child: _shareBtn(t, LucideIcons.messageCircle, 'Geri bildirim',
+              child: _shareBtn(t, LucideIcons.messageCircle, context.l10n.supportFeedbackTitle,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedbackPage(session: widget.session)))),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _shareBtn(t, LucideIcons.lightbulb, 'Öneri panosu',
+              child: _shareBtn(t, LucideIcons.lightbulb, context.l10n.supportBoard,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => SuggestionsPage(session: widget.session)))),
             ),
           ]),
@@ -146,8 +163,35 @@ class _SupportPageState extends State<SupportPage> {
     );
   }
 
+  List<String> get _categories => [
+        for (final g in _faq)
+          if (((g['category'] as String?) ?? '').isNotEmpty) g['category'] as String,
+      ];
+
+  Widget _searchField(BuTokens t) {
+    OutlineInputBorder b(Color c) =>
+        OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: 1.5));
+    return TextField(
+      controller: _search,
+      onChanged: (v) => setState(() => _q = v.trim().toLowerCase()),
+      textInputAction: TextInputAction.search,
+      style: BuType.body.copyWith(color: t.ink),
+      decoration: InputDecoration(
+        hintText: context.l10n.destekFaqSearchHint,
+        hintStyle: BuType.body.copyWith(color: t.mut),
+        prefixIcon: Icon(LucideIcons.search, size: 18, color: t.mut),
+        filled: true,
+        fillColor: t.sf,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+        enabledBorder: b(t.bd),
+        focusedBorder: b(t.pr),
+        border: b(t.bd),
+      ),
+    );
+  }
+
   Widget _cta(BuTokens t) => BuButton(
-        label: 'Destek talebi oluştur',
+        label: context.l10n.supportCreateTicket,
         icon: LucideIcons.plus,
         onPressed: () => _push(NewTicketPage(session: widget.session)),
       );
@@ -157,7 +201,15 @@ class _SupportPageState extends State<SupportPage> {
     var idx = 0;
     for (final g in _faq) {
       final cat = g['category'] as String?;
-      final items = ((g['items'] as List?) ?? []).whereType<Map>().toList();
+      if (_cat != null && cat != _cat) continue;
+      final items = ((g['items'] as List?) ?? [])
+          .whereType<Map>()
+          .where((it) =>
+              _q.isEmpty ||
+              '${it['question'] ?? ''}'.toLowerCase().contains(_q) ||
+              '${it['answer'] ?? ''}'.toLowerCase().contains(_q))
+          .toList();
+      if (items.isEmpty) continue;
       if (cat != null && cat.isNotEmpty && _faq.length > 1) {
         rows.add(Container(
           width: double.infinity,
@@ -202,9 +254,11 @@ class _SupportPageState extends State<SupportPage> {
     return _card(
       t,
       rows.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: EmptyView(icon: LucideIcons.circleHelp, text: 'Henüz sık sorulan soru yok.'),
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: EmptyView(
+                  icon: LucideIcons.circleHelp,
+                  text: _faq.isNotEmpty ? context.l10n.destekFaqNoMatch : context.l10n.supportNoFaq),
             )
           : Column(children: rows),
     );
@@ -218,7 +272,7 @@ class _SupportPageState extends State<SupportPage> {
           padding: const EdgeInsets.all(16),
           child: Row(children: [
             Expanded(child: Text(_ticketsError!, style: BuType.caption.copyWith(color: t.danger))),
-            BuButton(label: 'Yeniden dene', compact: true, kind: BuButtonKind.soft, onPressed: _load),
+            BuButton(label: context.l10n.supportRetry, compact: true, kind: BuButtonKind.soft, onPressed: _load),
           ]),
         ),
       );
@@ -226,9 +280,9 @@ class _SupportPageState extends State<SupportPage> {
     if (_tickets.isEmpty) {
       return _card(
         t,
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: EmptyView(icon: LucideIcons.inbox, text: 'Henüz destek talebiniz yok.'),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: EmptyView(icon: LucideIcons.inbox, text: context.l10n.supportNoTickets),
         ),
       );
     }
@@ -249,7 +303,7 @@ class _SupportPageState extends State<SupportPage> {
                         overflow: TextOverflow.ellipsis,
                         style: BuType.bodyStrong.copyWith(color: t.ink)),
                     const SizedBox(height: 2),
-                    Text(niceDate(_tickets[i]['createdAt'] as String?), style: BuType.caption.copyWith(color: t.mut)),
+                    Text('${supportTicketCategories(context.l10n)[_tickets[i]['category']] ?? ''}${_tickets[i]['category'] == null ? '' : ' · '}${niceDate(_tickets[i]['createdAt'] as String?)}', style: BuType.caption.copyWith(color: t.mut)),
                   ]),
                 ),
                 const SizedBox(width: 8),
@@ -266,31 +320,27 @@ class _SupportPageState extends State<SupportPage> {
     );
   }
 
-  Widget _card(BuTokens t, Widget child) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: t.sf,
-          border: Border.all(color: t.bd),
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: child,
+  Widget _card(BuTokens t, Widget child) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: DestekCard(clip: true, child: child),
       );
 
-  Widget _shareBtn(BuTokens t, IconData icon, String label, VoidCallback onTap) => Material(
-        color: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: t.bd)),
+  Widget _shareBtn(BuTokens t, IconData icon, String label, VoidCallback onTap) => Semantics(
+        button: true,
         child: InkWell(
-          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          borderRadius: BorderRadius.circular(20),
+          excludeFromSemantics: true,
           onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 50),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 16, color: t.pr),
-              const SizedBox(width: 8),
-              Flexible(child: Text(label, textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.ink))),
-            ]),
+          child: DestekCard(
+            padding: const EdgeInsets.all(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, size: 20, color: t.pr),
+                const SizedBox(height: 6),
+                Text(label, style: BuType.label.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              ]),
+            ),
           ),
         ),
       );

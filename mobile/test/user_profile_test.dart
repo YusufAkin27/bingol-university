@@ -30,6 +30,11 @@ Future<void> _open(WidgetTester tester, FakeBackend be,
   await settle(tester, const Duration(milliseconds: 600));
 }
 
+Future<void> _menu(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('profile-more')));
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
 void _ok(WidgetTester tester) {
   final e = tester.takeException();
   if (e != null) fail('$e');
@@ -48,27 +53,32 @@ void main() {
     expect(find.text('Hakkında'), findsNothing);
     await settle(tester);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
-    expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+    expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+    expect(find.text('3. sınıf'), findsOneWidget);
     expect(find.text('Hakkında'), findsOneWidget);
     expect(find.text('Merhaba, ben Mehmet.'), findsOneWidget);
     expect(find.text('Fakülte'), findsOneWidget);
     expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
     expect(find.text('E-posta'), findsOneWidget);
     expect(find.text('mehmet@bingol.edu.tr'), findsOneWidget);
-    expect(find.text('Mesaj'), findsOneWidget);
+    expect(find.text('Mesaj gönder'), findsOneWidget);
+    expect(find.text('Takip et'), findsOneWidget);
+    expect(find.text('Engelle'), findsNothing);
+    await _menu(tester);
     expect(find.text('Engelle'), findsOneWidget);
-    expect(find.text('Şikâyet et'), findsOneWidget);
+    expect(find.text('Raporla'), findsOneWidget);
     await unmount(tester);
   });
 
-  testWidgets('gizlenmiş (null) alanlar gösterilmez', (tester) async {
+  testWidgets('gizlenmiş (null) alanlar Gizli görünür', (tester) async {
     final be = _be(profile: {'id': 2, 'displayName': 'Mehmet Kaya'});
     await _open(tester, be);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
-    expect(find.text('Hakkında'), findsNothing);
-    expect(find.text('Fakülte'), findsNothing);
-    expect(find.text('Bölüm'), findsNothing);
-    expect(find.text('Sınıf'), findsNothing);
+    // Gizlenmiş (null) alanlar kilit ikonlu "Gizli" olarak görünür; değer sızmaz.
+    expect(find.text('Hakkında'), findsOneWidget);
+    expect(find.text('Fakülte'), findsOneWidget);
+    expect(find.text('Sınıf'), findsOneWidget);
+    expect(find.text('Gizli'), findsNWidgets(3));
     expect(find.text('E-posta'), findsNothing);
     _ok(tester);
     await unmount(tester);
@@ -101,7 +111,7 @@ void main() {
         'peer': {'id': 2, 'displayName': 'Mehmet Kaya'},
       });
     await _open(tester, be);
-    await tester.tap(find.text('Mesaj'));
+    await tester.tap(find.text('Mesaj gönder'));
     await settle(tester);
     expect(be.bodies['POST /conversations'], {'userId': 2});
     expect(find.byType(ChatDetailPage), findsOneWidget);
@@ -124,7 +134,7 @@ void main() {
     await tester.tap(find.text('ac'));
     await settle(tester);
     expect(find.byType(UserProfilePage), findsOneWidget);
-    await tester.tap(find.text('Mesaj'));
+    await tester.tap(find.text('Mesaj gönder'));
     await settle(tester);
     expect(find.byType(UserProfilePage), findsNothing);
     expect(find.byType(ChatDetailPage), findsNothing);
@@ -135,6 +145,7 @@ void main() {
   testWidgets('Engelle onaylı POST, Engeli kaldır DELETE', (tester) async {
     final be = _be();
     await _open(tester, be);
+    await _menu(tester);
     await tester.tap(find.text('Engelle'));
     await settle(tester);
     expect(find.text('Kullanıcı engellensin mi?'), findsOneWidget);
@@ -142,10 +153,12 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Engelle'));
     await settle(tester);
     expect(be.count('POST /users/2/block'), 1);
+    await _menu(tester);
     expect(find.text('Engeli kaldır'), findsOneWidget);
     await tester.tap(find.text('Engeli kaldır'));
     await settle(tester);
     expect(be.count('DELETE /users/2/block'), 1);
+    await _menu(tester);
     expect(find.text('Engelle'), findsOneWidget);
     await unmount(tester);
   });
@@ -156,14 +169,16 @@ void main() {
         {'id': 2, 'displayName': 'Mehmet Kaya'}
       ]);
     await _open(tester, be);
+    await _menu(tester);
     expect(find.text('Engeli kaldır'), findsOneWidget);
     await unmount(tester);
   });
 
-  testWidgets('Şikâyet et rapor sayfasını açar', (tester) async {
+  testWidgets('Raporla rapor sayfasını açar', (tester) async {
     final be = _be();
     await _open(tester, be);
-    await tester.tap(find.text('Şikâyet et'));
+    await _menu(tester);
+    await tester.tap(find.text('Raporla'));
     await settle(tester);
     expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
     await unmount(tester);
@@ -172,9 +187,9 @@ void main() {
   testWidgets('kendi profilinde eylem yok, Profili düzenle var', (tester) async {
     final be = FakeBackend()..on('/users/me', {'id': 1, 'displayName': 'Ayşe Yılmaz', 'email': 'ayse@bingol.edu.tr'});
     await _open(tester, be, userId: 1);
-    expect(find.text('Mesaj'), findsNothing);
-    expect(find.text('Engelle'), findsNothing);
-    expect(find.text('Şikâyet et'), findsNothing);
+    expect(find.text('Mesaj gönder'), findsNothing);
+    expect(find.byKey(const ValueKey('profile-more')), findsNothing);
+    expect(find.text('Gizli'), findsNothing);
     expect(find.text('Profili düzenle'), findsOneWidget);
     expect(be.count('/presence'), 0);
     await unmount(tester);
@@ -278,7 +293,7 @@ void main() {
       await settle(tester);
       expect(find.byType(UserProfilePage), findsOneWidget);
       expect(find.text('Hakkında'), findsOneWidget);
-      await tester.pageBack();
+      await tester.tap(find.byTooltip('Geri'));
       await settle(tester);
       expect(find.byType(UserProfilePage), findsNothing);
       await tester.tap(find.text('Mehmet Kaya'));

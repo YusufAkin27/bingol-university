@@ -10,6 +10,7 @@ import '../../core/theme.dart';
 import 'auth_widgets.dart';
 import 'otp_code_boxes.dart';
 import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
 
 /// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi.
 class VerifyCodePage extends StatefulWidget {
@@ -70,7 +71,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   Future<void> _verify() async {
     if (_busy) return;
     if (_code.text.length != 6) {
-      setState(() => _error = '6 haneli kodu girin.');
+      setState(() => _error = context.l10n.authRestEnterCode);
       return;
     }
     setState(() {
@@ -113,6 +114,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     final t = context.bu;
     return AuthScaffold(
       showBack: true,
+      icon: LucideIcons.mail,
       title: context.l10n.authVerifyEmailTitle,
       subtitle: context.l10n.authVerifySubtitle(widget.displayEmail ?? fullEmail(widget.email)),
       children: [
@@ -125,17 +127,17 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
           hasError: _error != null,
           onCompleted: _verify,
         ),
-        const SizedBox(height: 20),
-        FilledButton(
-          onPressed: _busy ? null : _verify,
-          child: BusyLabel(busy: _busy, label: context.l10n.authVerify),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Center(
           child: _cooldown > 0
-              ? Text(context.l10n.authNewCodeIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut))
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  child: Text(context.l10n.authNewCodeIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut)),
+                )
               : TextButton(onPressed: _busy ? null : _resend, child: Text(context.l10n.authResendCode)),
         ),
+        const SizedBox(height: 4),
+        AuthButton(onPressed: _busy ? null : _verify, busy: _busy, label: context.l10n.authVerify),
         if (widget.unverified)
           Center(
             child: TextButton(

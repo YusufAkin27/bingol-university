@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/api.dart' show ApiError;
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -10,6 +11,7 @@ import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
 import 'post_api.dart';
 import 'post_models.dart';
+import 'post_text_rules.dart';
 
 /// Gönderi ⋯ menüsü (mesaj menüsüyle aynı tasarım dili: karartılmış modal + eylem kartı).
 /// Yazara Düzenle/Sil, başkalarına Profili gör / Şikâyet et / Bu kullanıcıyı engelle.
@@ -22,13 +24,14 @@ Future<void> showPostActions(
   VoidCallback? onDeleted,
 }) async {
   final mine = post.mine || post.author.id == session.userId;
+  final l = context.l10n;
   final actions = <PostMenuAction>[
-    if (post.canEdit) const PostMenuAction('edit', 'Düzenle', LucideIcons.squarePen),
-    if (post.canDelete) const PostMenuAction('delete', 'Sil', LucideIcons.trash2, danger: true),
-    if (!mine) ...const [
-      PostMenuAction('profile', 'Profili gör', LucideIcons.user),
-      PostMenuAction('report', 'Şikâyet et', LucideIcons.flag, danger: true),
-      PostMenuAction('block', 'Bu kullanıcıyı engelle', LucideIcons.ban, danger: true),
+    if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, LucideIcons.squarePen),
+    if (post.canDelete) PostMenuAction('delete', l.postComposeDelete, LucideIcons.trash2, danger: true),
+    if (!mine) ...[
+      PostMenuAction('profile', l.postComposeViewProfile, LucideIcons.user),
+      PostMenuAction('report', l.postComposeReport, LucideIcons.flag, danger: true),
+      PostMenuAction('block', l.postComposeBlockUser, LucideIcons.ban, danger: true),
     ],
   ];
   if (actions.isEmpty) return;
@@ -36,7 +39,7 @@ Future<void> showPostActions(
   final id = await showGeneralDialog<String>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: 'Kapat',
+    barrierLabel: l.postComposeClose,
     barrierColor: Colors.transparent,
     transitionDuration: const Duration(milliseconds: 180),
     transitionBuilder: (c, a, s, child) => child,
@@ -54,7 +57,7 @@ Future<void> showPostActions(
       await _confirmDelete(context, session, post, onDeleted);
     case 'report':
       await ReportSheet.show(context, session,
-          targetType: 'FEED_POST', targetId: post.id, title: 'Gönderiyi şikâyet et');
+          targetType: 'FEED_POST', targetId: post.id, title: l.postComposeReportTitle);
     case 'profile':
       await openUserProfile(context, session,
           userId: post.author.id, name: post.author.displayName, avatarUrl: post.author.avatarUrl);
@@ -65,16 +68,17 @@ Future<void> showPostActions(
 
 Future<void> _confirmDelete(BuildContext context, Session session, Post post, VoidCallback? onDeleted) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l = context.l10n;
   final ok = await showDialog<bool>(
     context: context,
     builder: (c) => AlertDialog(
-      title: const Text('Gönderi silinsin mi?'),
-      content: const Text('Bu işlem geri alınamaz.'),
+      title: Text(l.postComposeDeleteTitle),
+      content: Text(l.postComposeDeleteBody),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l.postComposeCancel)),
         TextButton(
             onPressed: () => Navigator.pop(c, true),
-            child: Text('Sil', style: TextStyle(color: c.bu.danger))),
+            child: Text(l.postComposeDelete, style: TextStyle(color: c.bu.danger))),
       ],
     ),
   );
@@ -82,7 +86,7 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
   try {
     await PostApi(session).delete(post.id);
     onDeleted?.call();
-    messenger.showSnackBar(const SnackBar(content: Text('Gönderi silindi')));
+    messenger.showSnackBar(SnackBar(content: Text(l.postComposeDeleted)));
   } catch (e) {
     messenger.showSnackBar(SnackBar(content: Text(errorText(e))));
   }
@@ -90,14 +94,15 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
 
 Future<void> _confirmBlock(BuildContext context, Session session, Post post, VoidCallback? onDeleted) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l = context.l10n;
   final ok = await showDialog<bool>(
     context: context,
     builder: (c) => AlertDialog(
-      title: const Text('Kullanıcı engellensin mi?'),
-      content: const Text('Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.'),
+      title: Text(l.postComposeBlockTitle),
+      content: Text(l.postComposeBlockBody),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
-        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Engelle')),
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l.postComposeCancel)),
+        TextButton(onPressed: () => Navigator.pop(c, true), child: Text(l.postComposeBlock)),
       ],
     ),
   );
@@ -105,13 +110,13 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
   try {
     await session.api.post('/users/${post.author.id}/block');
     onDeleted?.call();
-    messenger.showSnackBar(const SnackBar(content: Text('Kullanıcı engellendi')));
+    messenger.showSnackBar(SnackBar(content: Text(l.postComposeBlocked)));
   } catch (e) {
     messenger.showSnackBar(SnackBar(content: Text(errorText(e))));
   }
 }
 
-/// Metin düzenleme: en çok 2000 karakter; küfür filtresi (422) iletisi diyalogda gösterilir.
+/// Metin düzenleme: en çok 7 kelime (~60 karakter), satır sonu yok; küfür filtresi (422) iletisi diyalogda gösterilir.
 class _EditDialog extends StatefulWidget {
   const _EditDialog({required this.session, required this.post});
 
@@ -135,10 +140,7 @@ class _EditDialogState extends State<_EditDialog> {
 
   Future<void> _save() async {
     final text = _c.text.trim();
-    if (text.isEmpty && widget.post.media.isEmpty) {
-      setState(() => _error = 'Metin boş olamaz.');
-      return;
-    }
+    if (!postTextOk(text)) return;
     if (text == (widget.post.text ?? '').trim()) {
       Navigator.pop(context);
       return;
@@ -154,7 +156,7 @@ class _EditDialogState extends State<_EditDialog> {
       if (!mounted) return;
       var msg = errorText(e);
       if (e is ApiError && e.code == 'CONTENT_PROFANITY' && e.message.isEmpty) {
-        msg = 'Metin uygunsuz ifadeler içeriyor.';
+        msg = context.l10n.postComposeProfanityFallback;
       }
       setState(() {
         _busy = false;
@@ -167,7 +169,7 @@ class _EditDialogState extends State<_EditDialog> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return AlertDialog(
-      title: const Text('Gönderiyi düzenle'),
+      title: Text(context.l10n.postComposeEditTitle),
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(
@@ -177,10 +179,17 @@ class _EditDialogState extends State<_EditDialog> {
               controller: _c,
               enabled: !_busy,
               autofocus: true,
-              maxLength: 2000,
-              maxLines: 6,
-              minLines: 3,
-              decoration: const InputDecoration(hintText: 'Ne düşünüyorsun?'),
+              maxLines: 2,
+              minLines: 1,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
+                LengthLimitingTextInputFormatter(kPostMaxChars),
+              ],
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: context.l10n.gonderiTextHint,
+                counterText: context.l10n.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
+              ),
             ),
             if (_error != null)
               Padding(
@@ -191,13 +200,13 @@ class _EditDialogState extends State<_EditDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: const Text('Vazgeç')),
+        TextButton(onPressed: _busy ? null : () => Navigator.pop(context), child: Text(context.l10n.postComposeCancel)),
         TextButton(
           key: const ValueKey('edit-post-save'),
-          onPressed: _busy ? null : _save,
+          onPressed: (_busy || !postTextOk(_c.text)) ? null : _save,
           child: _busy
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Kaydet'),
+              : Text(context.l10n.postComposeSave),
         ),
       ],
     );
@@ -225,7 +234,7 @@ class PostMenuButton extends StatelessWidget {
     if (mine && !post.canEdit && !post.canDelete) return const SizedBox(width: 10);
     return IconButton(
       key: const ValueKey('post-menu-button'),
-      tooltip: 'Daha fazla',
+      tooltip: context.l10n.postComposeMore,
       icon: Icon(LucideIcons.ellipsis, size: 20, color: context.bu.mut),
       onPressed: () => showPostActions(context,
           session: session, post: post, onEdited: onChanged, onDeleted: () => onDeleted(post.id)),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -9,6 +10,8 @@ import '../../widgets/common.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
 import '../../core/typography.dart';
+import '../news/news_tile.dart' show newsLocalDate;
+import 'notif_row.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
 class NotificationsPage extends StatefulWidget {
@@ -26,6 +29,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   int? _cursor;
   bool _loading = true;
   bool _more = false;
+  bool _unreadOnly = false;
   Object? _error;
 
   Session get _s => widget.session;
@@ -168,88 +172,246 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   String _group(String? iso) {
+    final l = context.l10n;
     final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
-    if (d == null) return 'DAHA ESKİ';
+    if (d == null) return l.notifGroupOlder;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(d.year, d.month, d.day);
     final diff = today.difference(day).inDays;
-    if (diff <= 0) return 'BUGÜN';
-    if (diff == 1) return 'DÜN';
-    return 'DAHA ESKİ';
+    if (diff <= 0) return l.notifGroupToday;
+    if (diff == 1) return l.notifGroupYesterday;
+    return l.notifGroupOlder;
+  }
+
+  NotifTone _tone(String? type) {
+    switch (type) {
+      case 'NEWS':
+      case 'EVENT':
+        return NotifTone.blue;
+      case 'ANNOUNCEMENT':
+      case 'MESSAGE':
+      case 'POST_LIKE':
+        return NotifTone.red;
+      case 'COMMUNITY':
+      case 'POST_COMMENT':
+      case 'COMMENT_REPLY':
+        return NotifTone.green;
+      default:
+        return NotifTone.amber;
+    }
+  }
+
+  String _typeLabel(String? type) {
+    final l = context.l10n;
+    switch (type) {
+      case 'NEWS':
+        return l.bildirimTypeNews;
+      case 'ANNOUNCEMENT':
+        return l.bildirimTypeAnnouncement;
+      case 'EVENT':
+        return l.bildirimTypeEvent;
+      case 'MESSAGE':
+        return l.bildirimTypeMessage;
+      case 'COMMUNITY':
+        return l.bildirimTypeCommunity;
+      case 'POLL':
+      case 'POLL_CLOSED':
+      case 'POLL_NEW':
+        return l.bildirimTypePoll;
+      case 'POST_LIKE':
+      case 'POST_COMMENT':
+      case 'COMMENT_REPLY':
+        return l.bildirimTypePost;
+      default:
+        return l.bildirimTypeOther;
+    }
+  }
+
+  /// Sağ hizalı kısa zaman: şimdi / 5 dk / 2 sa / Dün / 3 g; bir haftadan eskide tarih.
+  String _ago(String? iso) {
+    final l = context.l10n;
+    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+    if (d == null) return '';
+    final now = DateTime.now();
+    final diff = now.difference(d);
+    if (diff.inMinutes < 1) return l.notifNow;
+    if (diff.inMinutes < 60) return l.bildirimShortMin(diff.inMinutes.toString());
+    final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
+    if (days == 1) return l.bildirimYesterday;
+    if (days < 7) return l.bildirimShortDay(days.toString());
+    return newsLocalDate(context, iso);
+  }
+
+  Future<void> _delete(Map<String, dynamic> n) async {
+    final wasUnread = n['read'] != true;
+    setState(() => _items.remove(n));
+    if (wasUnread) {
+      final cur = _s.badges.notifications.value;
+      _s.badges.notifications.value = cur > 0 ? cur - 1 : 0;
+    }
+    try {
+      await _s.api.delete('/notifications/${n['id']}');
+    } catch (e) {
+      if (!mounted) return;
+      _snack(errorText(e));
+      _load(silent: true);
+    }
+  }
+
+  Widget _segment(BuTokens t) {
+    final l = context.l10n;
+    final unread = _unread > 0 ? _unread : _s.badges.notifications.value;
+    Widget seg(Key k, String label, bool on, VoidCallback tap, {int badge = 0}) => Expanded(
+          child: Semantics(
+            button: true,
+            selected: on,
+            child: Material(
+              color: on ? t.sf : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              elevation: on ? 1 : 0,
+              shadowColor: const Color(0x33171E33),
+              child: InkWell(
+                key: k,
+                borderRadius: BorderRadius.circular(12),
+                onTap: tap,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Flexible(
+                      child: Text(label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: BuType.bodyStrong.copyWith(
+                              fontSize: 14, color: on ? t.ink : t.mut, fontWeight: on ? FontWeight.w700 : FontWeight.w600)),
+                    ),
+                    if (badge > 0) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(10)),
+                        child: Text(badge > 99 ? '99+' : '$badge',
+                            style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.onPr)),
+                      ),
+                    ],
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        );
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+      child: Row(children: [
+        seg(const ValueKey('notif-seg-all'), l.bildirimFilterAll, !_unreadOnly, () => setState(() => _unreadOnly = false)),
+        const SizedBox(width: 4),
+        seg(const ValueKey('notif-seg-unread'), l.bildirimFilterUnread, _unreadOnly, () => setState(() => _unreadOnly = true),
+            badge: unread),
+      ]),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     // Büyük yazı ölçeğinde başlığı ezmesin diye düğme başlığın altına iner.
     final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 340;
     final pill = _unread > 0 || _s.badges.notifications.value > 0
         ? ConstrainedBox(
-            // Dar ekran/büyük yazıda başlığı ezmesin: en çok genişliğin %45'i, metin kısalır.
-              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .45)),
-              child: Material(
-                color: t.soft,
-                borderRadius: BorderRadius.circular(22),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(22),
-                  onTap: _markAll,
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.checkCheck, size: 14.5, color: t.onSoft),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text('Tümünü okundu yap',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: BuType.label.copyWith(color: t.onSoft)),
-                      ),
-                    ]),
-                  ),
-                ),
+            // Dar ekran/büyük yazıda başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .4)),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _markAll,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 44),
+                alignment: AlignmentDirectional.centerEnd,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(l.notifMarkAll,
+                    maxLines: 2,
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                    style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
               ),
+            ),
           )
         : null;
+
+    final shown = _unreadOnly ? _items.where((n) => n['read'] != true).toList() : _items;
 
     Widget body;
     if (_loading) {
       body = const LoadingView();
     } else if (_error != null && _items.isEmpty) {
       body = ErrorView(error: _error!, onRetry: _load);
-    } else if (_items.isEmpty) {
+    } else if (shown.isEmpty) {
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
-        child: ListView(children: const [
-          SizedBox(height: 120),
-          EmptyView(icon: LucideIcons.bellOff, text: 'Henüz bildiriminiz yok'),
+        child: ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
+          const SizedBox(height: 120),
+          EmptyView(icon: LucideIcons.bellOff, text: _unreadOnly && _items.isNotEmpty ? l.bildirimEmptyUnread : l.notifEmpty),
         ]),
       );
     } else {
       final children = <Widget>[];
       String? last;
-      for (final n in _items) {
+      for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
           last = g;
           children.add(Padding(
-            padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
-            child: Text(g,
-                style: BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
+            padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 8),
+            child: Semantics(
+              header: true,
+              child: Text(g, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
+            ),
           ));
         }
-        children.add(Padding(padding: const EdgeInsets.only(bottom: 8), child: _tile(t, n)));
+        children.add(Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 8), child: _tile(t, n)));
       }
       if (_more) {
         children.add(const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())));
+      } else if (_cursor == null) {
+        children.add(Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(width: 28, height: 1, color: t.bd),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(l.bildirimAllCaughtUp,
+                    textAlign: TextAlign.center,
+                    style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: t.mut)),
+              ),
+              const SizedBox(width: 8),
+              Container(width: 28, height: 1, color: t.bd),
+            ]),
+            const SizedBox(height: 8),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 14, color: t.mut),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(l.bildirimSwipeHint,
+                    textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
+              ),
+            ]),
+          ]),
+        ));
       }
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
         child: ListView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 24),
+          padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom + 24),
           children: children,
         ),
       );
@@ -259,15 +421,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
       backgroundColor: t.bg,
       body: Column(children: [
         BuHeader(
-          title: 'Bildirimler',
+          title: l.notifTitle,
           onBack: () => Navigator.pop(context),
           actions: [if (pill != null && !bigText) pill],
         ),
         if (pill != null && bigText)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
+        if (!_loading && !(_error != null && _items.isEmpty)) _segment(t),
         Expanded(child: body),
       ]),
     );
@@ -275,62 +438,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
     final un = n['read'] != true;
-    final body = (n['body'] as String?) ?? '';
-    return Semantics(
-      button: true,
-      label: un ? 'Okunmamış bildirim' : null,
-      child: Material(
-      color: un ? t.soft : t.sf,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _open(n),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: un ? Colors.transparent : t.bd),
-          ),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(color: un ? t.pr : t.sf2, borderRadius: BorderRadius.circular(14)),
-              child: Icon(_icon(n['type'] as String?), size: 18, color: un ? t.onPr : t.ink),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(end: un ? 14 : 0),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text((n['title'] as String?) ?? '',
-                      style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
-                  if (body.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Text(body,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.caption.copyWith(height: 1.4, color: un ? t.onSoft : t.mut)),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(relativeTime(n['createdAt'] as String?),
-                        style: BuType.micro.copyWith(color: t.mut)),
-                  ),
-                ]),
-              ),
-            ),
-            if (un)
-              Container(
-                width: 9,
-                height: 9,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-              ),
-          ]),
-        ),
+    final type = n['type'] as String?;
+    return Dismissible(
+      key: ValueKey('notif-${n['id']}'),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => _delete(n),
+      background: Container(
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 22),
+        decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(20)),
+        child: Semantics(label: context.l10n.bildirimDelete, child: const Icon(LucideIcons.trash2, size: 20, color: Colors.white)),
       ),
-    ));
+      child: NotifRow(
+        icon: _icon(type),
+        tone: _tone(type),
+        title: (n['title'] as String?) ?? '',
+        typeLabel: _typeLabel(type),
+        body: (n['body'] as String?) ?? '',
+        time: _ago(n['createdAt'] as String?),
+        unread: un,
+        unreadLabel: context.l10n.notifUnread,
+        onTap: () => _open(n),
+      ),
+    );
   }
 }

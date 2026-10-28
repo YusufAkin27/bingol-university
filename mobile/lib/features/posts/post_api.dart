@@ -1,9 +1,10 @@
 import '../../core/session.dart';
 import 'post_models.dart';
 
-/// Gönderi uçları (docs/POSTS_DESIGN.md). Tek HTTP katmanı `session.api`; GET'ler her istekte sunucuya
-/// doğrulatılır (ETag/If-None-Match), yani bayat veri sunulmaz. Hatalar `ApiError` olarak fırlar.
-/// Medya yükleme (`POST /posts/media`) `post_media_uploader.dart` içindedir.
+/// Gönderi uçları (tek fotoğraf + kısa metin + beğeni). Tek HTTP katmanı `session.api`; GET'ler her istekte
+/// sunucuya doğrulatılır (ETag/If-None-Match). Hatalar `ApiError` olarak fırlar.
+/// Fotoğraf yükleme (`POST /posts/media`) `post_media_uploader.dart` içindedir.
+/// Kaldırılan uçlar (yorum, kaydetme, etiket, hikâye) sunucuda 410 `FEATURE_REMOVED` döner; çağrılmaz.
 Map<String, dynamic>? _m(Object? v) => v is Map ? Map<String, dynamic>.from(v) : null;
 
 class PostApi {
@@ -19,9 +20,15 @@ class PostApi {
     return parts.isEmpty ? '' : '?${parts.join('&')}';
   }
 
+  /// Video-only eski gönderiler akıştan ayıklanır (`nextCursor` sunucudan olduğu gibi kalır).
   Future<PostPage<Post>> _posts(String path, Map<String, Object?> q) async {
     final r = await session.api.get('$path${_q(q)}');
-    return PostPage.parse(r, Post.fromJson);
+    final page = PostPage.parse(r, Post.fromJson);
+    return PostPage<Post>(
+      items: [for (final p in page.items) if (!p.hiddenInFeed) p],
+      nextCursor: page.nextCursor,
+      total: page.total,
+    );
   }
 
   /// `scope`: `latest` | `popular`.
@@ -30,10 +37,11 @@ class PostApi {
 
   Future<Post> get(int id) async => Post.fromJson(_m(await session.api.get('/posts/$id')));
 
-  Future<Post> create({String? text, List<int> mediaIds = const []}) async {
+  /// Tek fotoğraf ([mediaId], önce `POST /posts/media` ile yüklenir) + isteğe bağlı kısa metin.
+  Future<Post> create({String? text, required int mediaId}) async {
     final r = await session.api.post('/posts', {
       if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
-      if (mediaIds.isNotEmpty) 'mediaIds': mediaIds,
+      'mediaIds': [mediaId],
     });
     return Post.fromJson(_m(r));
   }
@@ -49,42 +57,13 @@ class PostApi {
   Future<LikeResult> unlike(int id) async =>
       LikeResult.fromJson(_m(await session.api.delete('/posts/$id/like')));
 
-  Future<PostPage<PostLiker>> likers(int id, {String? cursor, int size = 30}) async {
-    final r = await session.api.get('/posts/$id/likes${_q({'cursor': cursor, 'size': size})}');
-    return PostPage.parse(r, PostLiker.fromJson);
-  }
-
-  /// Yalnız kök yorumlar. `sort`: `new` | `top`.
-  Future<PostPage<PostComment>> comments(int postId, {String sort = 'new', String? cursor, int size = 20}) async {
-    final r = await session.api.get('/posts/$postId/comments${_q({'sort': sort, 'cursor': cursor, 'size': size})}');
-    return PostPage.parse(r, PostComment.fromJson);
-  }
-
-  Future<PostPage<PostComment>> replies(int commentId, {String? cursor, int size = 20}) async {
-    final r = await session.api.get('/comments/$commentId/replies${_q({'cursor': cursor, 'size': size})}');
-    return PostPage.parse(r, PostComment.fromJson);
-  }
-
-  Future<PostComment> addComment(int postId, String text, {int? parentId}) async {
-    final r = await session.api.post('/posts/$postId/comments', {
-      'text': text,
-      if (parentId != null) 'parentId': parentId,
-    });
-    return PostComment.fromJson(_m(r));
-  }
-
-  Future<PostComment> editComment(int id, String text) async =>
-      PostComment.fromJson(_m(await session.api.patch('/comments/$id', {'text': text})));
-
-  Future<void> deleteComment(int id) => session.api.delete('/comments/$id');
-
   Future<PostPage<Post>> userPosts(int userId, {String? cursor, int size = 10}) =>
       _posts('/users/$userId/posts', {'cursor': cursor, 'size': size});
 
   Future<PostPage<Post>> minePosts({String? cursor, int size = 10}) =>
       _posts('/posts/mine', {'cursor': cursor, 'size': size});
 
-  /// `targetType`: `FEED_POST` | `FEED_COMMENT`; `reason`: SPAM, HARASSMENT, INAPPROPRIATE, IMPERSONATION, OTHER.
+  /// `targetType`: `FEED_POST`; `reason`: SPAM, HARASSMENT, INAPPROPRIATE, IMPERSONATION, OTHER.
   Future<void> report(String targetType, int targetId, String reason, {String? note}) =>
       session.api.post('/reports', {
         'targetType': targetType,

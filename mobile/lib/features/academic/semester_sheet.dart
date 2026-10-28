@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -8,6 +9,8 @@ import '../../widgets/common.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
+import 'akad_widgets.dart';
+import 'reminders.dart';
 
 class SemesterAction {
   const SemesterAction({this.semesterId, this.changed = false});
@@ -83,13 +86,30 @@ class _SemesterSheetState extends State<SemesterSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .8),
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * .86),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 16),
-          Text('Dönem', style: BuType.heading.copyWith(color: t.ink)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          Container(width: 44, height: 5, decoration: BoxDecoration(color: const Color(0xFFD9CFC8), borderRadius: BorderRadius.circular(3))),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 0),
+            child: Row(children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(l.akademik2SemesterTitle, style: BuType.title.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink)),
+                ),
+              ),
+              BuIconButton(
+                icon: LucideIcons.x,
+                tooltip: l.acadTimeClose,
+                onTap: () => Navigator.pop(context, _changed ? const SemesterAction(changed: true) : null),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 10),
           Flexible(
             child: _loading
                 ? const Padding(padding: EdgeInsets.all(32), child: LoadingView())
@@ -97,89 +117,119 @@ class _SemesterSheetState extends State<SemesterSheet> {
                     ? Padding(padding: const EdgeInsets.all(8), child: ErrorView(error: _error!, onRetry: _load))
                     : ListView(
                         shrinkWrap: true,
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
                         children: [
                           if (_items.isEmpty)
                             Padding(
                               padding: const EdgeInsets.all(16),
-                              child: Text('Henüz dönem yok. Bir dönem ekleyerek derslerini düzenleyebilirsin.',
-                                  textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
+                              child: Text(l.acadTimeNoSemester, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
+                            )
+                          else
+                            AkadCard(
+                              padding: EdgeInsets.zero,
+                              child: Column(children: [
+                                for (var i = 0; i < _items.length; i++) ...[
+                                  if (i > 0) const AkadDivider(),
+                                  _row(t, _items[i]),
+                                ],
+                              ]),
                             ),
-                          for (final s in _items) _row(t, s),
-                          const SizedBox(height: 8),
-                          BuButton(label: 'Yeni dönem ekle', icon: LucideIcons.plus, kind: BuButtonKind.soft, busy: _busy, onPressed: _create),
+                          const SizedBox(height: 14),
+                          AkadButton(
+                            label: l.acadTimeAddSemester,
+                            icon: LucideIcons.plus,
+                            outlined: true,
+                            accentOutline: true,
+                            busy: _busy,
+                            onPressed: _create,
+                          ),
                           if (_official != null) ...[
-                            const SizedBox(height: 8),
-                            BuButton(
-                              label: '${_official!['name'] ?? 'Resmi dönem'} (akademik takvimden)',
+                            const SizedBox(height: 10),
+                            AkadButton(
+                              label: l.acadTimeOfficial('${_official!['name'] ?? l.acadTimeOfficialDefault}'),
                               icon: LucideIcons.landmark,
-                              kind: BuButtonKind.outline,
+                              outlined: true,
                               onPressed: _busy ? null : () => _run(widget.api.semesterFromOfficial),
                             ),
                           ],
                         ],
                       ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: BuButton(
-              label: 'Kapat',
-              kind: BuButtonKind.outline,
-              onPressed: () => Navigator.pop(context, _changed ? const SemesterAction(changed: true) : null),
-            ),
-          ),
+          const SizedBox(height: 12),
         ]),
       ),
     );
   }
 
   Widget _row(BuTokens t, Semester s) {
+    final l = context.l10n;
     final active = s.id == widget.activeId;
-    final range = s.startDate != null && s.endDate != null ? '${fmtWallDate(s.startDate!)} - ${fmtWallDate(s.endDate!)}' : null;
-    return Semantics(
-      button: true,
-      selected: active,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        color: active ? t.soft : t.sf,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: active ? t.pr : t.bd)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => Navigator.pop(context, SemesterAction(semesterId: s.id, changed: _changed)),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 4, 8),
-            child: Row(children: [
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Flexible(child: Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink))),
-                    if (s.current) ...[const SizedBox(width: 6), const BuBadge('Güncel', soft: true)],
+    final range = s.startDate != null && s.endDate != null ? '${acadDate(context, s.startDate!)} - ${acadDate(context, s.endDate!)}' : null;
+    final official = _official != null && '${_official!['name'] ?? ''}'.isNotEmpty && '${_official!['name']}' == s.name;
+    void pick() => Navigator.pop(context, SemesterAction(semesterId: s.id, changed: _changed));
+    return Container(
+      color: active ? t.soft : null,
+      child: Row(children: [
+        Expanded(
+          child: Semantics(
+            button: true,
+            selected: active,
+            child: InkWell(
+              onTap: pick,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 64),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 16, top: 8, bottom: 8),
+                  child: Row(children: [
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(s.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
+                        if (range != null) Text(range, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut)),
+                        if (s.current) Padding(padding: const EdgeInsets.only(top: 4), child: BuBadge(l.acadTimeCurrent, soft: true)),
+                      ]),
+                    ),
+                    if (official) ...[
+                      const SizedBox(width: 6),
+                      AkadPill(l.akademik2OfficialTag, bg: akadTint(context, const Color(0xFF14633A)), fg: akadOnTint(context, const Color(0xFF14633A))),
+                    ],
+                    const SizedBox(width: 8),
+                    active
+                        ? Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+                            child: Icon(LucideIcons.check, size: 16, color: t.onPr),
+                          )
+                        : Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFD9CFC8), width: 2))),
                   ]),
-                  if (range != null) Text(range, style: BuType.caption.copyWith(color: t.mut)),
-                ]),
-              ),
-              if (!s.current)
-                IconButton(
-                  tooltip: 'Güncel dönem yap',
-                  icon: Icon(LucideIcons.badgeCheck, size: 19, color: t.mut),
-                  onPressed: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id)),
                 ),
-              IconButton(
-                tooltip: 'Dönemi sil',
-                icon: Icon(LucideIcons.trash2, size: 18, color: t.mut),
-                onPressed: _busy
-                    ? null
-                    : () async {
-                        final ok = await confirmDialog(context,
-                            title: 'Dönemi sil', text: '"${s.name}" silinecek. Dersler dönemsiz kalır.', action: 'Sil', danger: true);
-                        if (ok) await _run(() => widget.api.deleteSemester(s.id));
-                      },
               ),
-            ]),
+            ),
           ),
         ),
-      ),
+        if (!s.current)
+          IconButton(
+            tooltip: l.acadTimeMakeCurrent,
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            icon: Icon(LucideIcons.badgeCheck, size: 19, color: t.mut),
+            onPressed: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id)),
+          ),
+        IconButton(
+          tooltip: l.acadTimeDeleteSemester,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          icon: Icon(LucideIcons.trash2, size: 18, color: t.mut),
+          onPressed: _busy
+              ? null
+              : () async {
+                  final ok = await confirmDialog(context,
+                      title: l.acadTimeDeleteSemester, text: l.acadTimeDeleteSemesterText(s.name), action: l.acadTimeDelete, danger: true);
+                  if (ok) await _run(() => widget.api.deleteSemester(s.id));
+                },
+        ),
+        const SizedBox(width: 4),
+      ]),
     );
   }
 }
@@ -216,29 +266,34 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return AlertDialog(
-      backgroundColor: t.sf,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      title: Text('Yeni dönem', style: BuType.title.copyWith(color: t.ink)),
+      backgroundColor: t.bg,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Text(context.l10n.acadTimeNewSemester, style: BuType.title.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink)),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          TextField(controller: _name, maxLength: 60, decoration: const InputDecoration(hintText: '2026-2027 Güz', counterText: '')),
+          TextField(
+            controller: _name,
+            maxLength: 60,
+            style: BuType.body.copyWith(fontSize: 16, color: t.ink),
+            decoration: akadInput(context, hint: context.l10n.acadTimeSemesterHint),
+          ),
           const SizedBox(height: 10),
-          PickerField(
+          AkadPicker(
             icon: LucideIcons.calendar,
-            label: 'Başlangıç tarihi',
-            hint: 'Başlangıç tarihi',
-            value: _start == null ? null : fmtWallDate(_start!),
+            label: context.l10n.acadTimeStartDate,
+            hint: context.l10n.acadTimeStartDate,
+            value: _start == null ? null : acadDate(context, _start!),
             onTap: () async {
               final d = await _pick(_start);
               if (d != null && mounted) setState(() => _start = DateTime.utc(d.year, d.month, d.day));
             },
           ),
-          const SizedBox(height: 8),
-          PickerField(
+          const SizedBox(height: 10),
+          AkadPicker(
             icon: LucideIcons.calendar,
-            label: 'Bitiş tarihi',
-            hint: 'Bitiş tarihi',
-            value: _end == null ? null : fmtWallDate(_end!),
+            label: context.l10n.acadTimeEndDate,
+            hint: context.l10n.acadTimeEndDate,
+            value: _end == null ? null : acadDate(context, _end!),
             onTap: () async {
               final d = await _pick(_end ?? _start);
               if (d != null && mounted) setState(() => _end = DateTime.utc(d.year, d.month, d.day));
@@ -248,19 +303,19 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text('Vazgeç', style: BuType.bodyStrong.copyWith(color: t.mut))),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.acadTimeCancel, style: BuType.bodyStrong.copyWith(color: t.mut))),
         TextButton(
           onPressed: () {
             final n = _name.text.trim();
             if (n.isEmpty || _start == null || _end == null) {
-              setState(() => _error = 'Ad ve iki tarih de gerekli.');
+              setState(() => _error = context.l10n.acadTimeSemesterNeedAll);
             } else if (!_end!.isAfter(_start!)) {
-              setState(() => _error = 'Bitiş tarihi başlangıçtan sonra olmalı.');
+              setState(() => _error = context.l10n.acadTimeSemesterEndAfter);
             } else {
               Navigator.pop(context, (name: n, start: _start!, end: _end!));
             }
           },
-          child: Text('Ekle', style: BuType.bodyStrong.copyWith(color: t.pr)),
+          child: Text(context.l10n.acadTimeAdd, style: BuType.bodyStrong.copyWith(color: t.pr)),
         ),
       ],
     );

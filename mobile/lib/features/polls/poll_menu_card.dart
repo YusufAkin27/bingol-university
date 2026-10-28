@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -50,7 +51,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
       final r = await _api.vote(p.id, PollSelection(PollType.rating)..setRating(v));
       if (mounted) setState(() => _poll = r);
     } catch (e) {
-      if (mounted) setState(() => _msg = pollErrorText(e));
+      if (mounted) setState(() => _msg = pollErrorText(e, context.l10n));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -71,10 +72,10 @@ class _PollMenuCardState extends State<PollMenuCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Icon(LucideIcons.star, size: 16, color: t.pr),
+                const Icon(LucideIcons.star, size: 16, color: Color(0xFFE8A317)),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: Text('Bugünün menüsünü puanla', style: BuType.heading.copyWith(color: t.ink))),
+                    child: Text(context.l10n.pollMenuRateToday, style: BuType.heading.copyWith(color: t.ink))),
               ]),
               const SizedBox(height: 10),
               if (p.menuItems.isNotEmpty) ...[
@@ -88,8 +89,10 @@ class _PollMenuCardState extends State<PollMenuCard> {
                 child: Text(
                   _msg ??
                       (p.voted
-                          ? 'Puanınız: ${p.myRating}${p.average != null ? ' · Ortalama ${p.average!.toStringAsFixed(1)}' : ''}'
-                          : (p.canVote ? 'Yıldıza dokunarak puanla' : 'Bu anket için oy hakkınız yok')),
+                          ? (p.average != null
+                              ? context.l10n.pollYourRatingAvg('${p.myRating}', p.average!.toStringAsFixed(1))
+                              : context.l10n.pollYourRating('${p.myRating}'))
+                          : (p.canVote ? context.l10n.pollTapStar : context.l10n.pollNoVoteRight)),
                   textAlign: TextAlign.center,
                   style: BuType.caption.copyWith(color: _msg != null ? t.danger : t.mut),
                 ),

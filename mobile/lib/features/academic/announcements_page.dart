@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
+import 'akad_widgets.dart';
 
-String _audience(Announcement a) {
-  final p = [if (a.department != null) a.department!, if (a.faculty != null) a.faculty!, if (a.grade != null) '${a.grade}. sınıf'];
-  return p.isEmpty ? 'Tüm üniversite' : p.join(' · ');
+String _audience(AppLocalizations l, Announcement a) {
+  final p = [if (a.department != null) a.department!, if (a.faculty != null) a.faculty!, if (a.grade != null) l.acadGradeN(a.grade!)];
+  return p.isEmpty ? l.acadAnnAudienceAll : p.join(' · ');
 }
 
 /// Bölüm duyuruları: imleçli akış, okunmamış rozeti, sabitlenmişler, "Bölümüm | Tümü".
@@ -133,21 +136,34 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   @override
   Widget build(BuildContext context) {
     final unread = _items.where((a) => !a.read).length;
+    final l = context.l10n;
     return AcademicScaffold(
-      title: 'Bölüm duyuruları',
-      actions: [BuIconButton(icon: LucideIcons.checkCheck, tooltip: 'Tümünü okundu işaretle', onTap: unread == 0 ? null : _readAll)],
+      title: l.acadAnnTitle,
+      actions: [BuIconButton(icon: LucideIcons.checkCheck, tooltip: l.acadAnnReadAll, onTap: unread == 0 ? null : _readAll)],
       child: Column(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-          child: BuSegmented(
-            items: const ['Bölümüm', 'Tümü'],
-            index: _mine ? 0 : 1,
-            onChanged: (i) {
-              if ((i == 0) == _mine) return;
-              setState(() => _mine = i == 0);
-              _reload();
-            },
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 2),
+          child: Row(children: [
+            AkadChip(
+              label: l.acadMyDept,
+              selected: _mine,
+              onTap: () {
+                if (_mine) return;
+                setState(() => _mine = true);
+                _reload();
+              },
+            ),
+            const SizedBox(width: 8),
+            AkadChip(
+              label: l.acadAll,
+              selected: !_mine,
+              onTap: () {
+                if (!_mine) return;
+                setState(() => _mine = false);
+                _reload();
+              },
+            ),
+          ]),
         ),
         Expanded(child: _body()),
       ]),
@@ -157,6 +173,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   Widget _body() {
     if (_loading && _items.isEmpty) return const LoadingView();
     if (_error != null && _items.isEmpty) return AcademicErrorView(error: _error!, onRetry: _reload);
+    final l = context.l10n;
     if (_items.isEmpty) {
       return RefreshIndicator(
         onRefresh: _reload,
@@ -164,7 +181,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           SizedBox(
             height: 300,
             child: EmptyView(
-                icon: LucideIcons.megaphone, text: _mine ? 'Bölümünle ilgili duyuru yok.\nTüm duyurulara "Tümü" sekmesinden bakabilirsin.' : 'Henüz duyuru yok.'),
+                icon: LucideIcons.megaphone, text: _mine ? l.acadAnnEmptyMine : l.acadAnnEmptyAll),
           ),
         ]),
       );
@@ -175,50 +192,62 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       child: ListView.builder(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 32),
         itemCount: _items.length + (_more ? 1 : 0),
         itemBuilder: (_, i) {
           if (i >= _items.length) return const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()));
           final a = _items[i];
-          return Padding(padding: const EdgeInsets.only(bottom: 10), child: _tile(t, a));
+          return Padding(padding: const EdgeInsets.only(bottom: 12), child: _tile(t, a));
         },
       ),
     );
   }
 
-  Widget _tile(BuTokens t, Announcement a) => Semantics(
-        container: true,
-        button: true,
-        label: '${a.read ? '' : 'Okunmamış. '}${a.pinned ? 'Sabitlenmiş. ' : ''}${a.title}. ${_audience(a)}',
-        excludeSemantics: true,
+  Widget _tile(BuTokens t, Announcement a) {
+    final l = context.l10n;
+    final audience = _audience(l, a);
+    const amber = Color(0xFF8A5200);
+    return Semantics(
+      container: true,
+      button: true,
+      label: [if (!a.read) l.acadAnnUnread, if (a.pinned) l.acadAnnPinned, a.title, audience].join('. '),
+      excludeSemantics: true,
+      onTap: () => _open(a),
+      child: AkadCard(
         onTap: () => _open(a),
-        child: BuCard(
-          onTap: () => _open(a),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              if (!a.read) Container(width: 9, height: 9, margin: const EdgeInsetsDirectional.only(end: 8), decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-              if (a.pinned) Padding(padding: const EdgeInsetsDirectional.only(end: 6), child: Icon(LucideIcons.pin, size: 14, color: t.pr)),
-              Expanded(
-                child: Text(a.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: (a.read ? BuType.bodyStrong : BuType.heading).copyWith(color: t.ink)),
-              ),
-            ]),
-            if (a.body.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(a.body, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(color: t.mut)),
-            ],
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        borderColor: !a.read || a.pinned ? t.pr.withValues(alpha: .3) : null,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _pills(t, a, audience, amber),
+          const SizedBox(height: 8),
+          Text(a.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+          if (a.body.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(a.body, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 13, height: 1.45, color: t.mut)),
+          ],
+          if (a.attachmentUrl != null) ...[
             const SizedBox(height: 8),
             Row(children: [
-              Expanded(child: Text(_audience(a), maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut))),
-              if (a.attachmentUrl != null) Icon(LucideIcons.paperclip, size: 13, color: t.mut),
+              Icon(LucideIcons.paperclip, size: 14, color: t.pr),
               const SizedBox(width: 6),
-              Text(relativeTime(a.publishAt?.toIso8601String()), style: BuType.caption.copyWith(color: t.mut)),
+              Flexible(child: Text(l.akademik2Attachment, style: BuType.label.copyWith(fontSize: 12.5, fontWeight: FontWeight.w700, color: t.pr))),
             ]),
-          ]),
-        ),
-      );
+          ],
+          const SizedBox(height: 8),
+          Text(relativeTime(a.publishAt?.toIso8601String()), style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _pills(BuTokens t, Announcement a, String audience, Color amber) {
+    final l = context.l10n;
+    return Wrap(spacing: 6, runSpacing: 6, children: [
+      if (a.pinned) AkadPill(l.acadAnnPinned, bg: akadTint(context, amber), fg: akadOnTint(context, amber), icon: LucideIcons.pin),
+      if (!a.read) AkadPill(l.akademik2NewTag, bg: t.soft, fg: t.danger),
+      AkadPill(audience, bg: t.sf2, fg: t.mut),
+    ]);
+  }
 }
 
 /// Duyuru ayrıntısı: açılınca sunucu okundu işaretler.
@@ -261,13 +290,14 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     try {
       await launchUrl(u, mode: LaunchMode.externalApplication);
     } catch (_) {
-      if (mounted) academicToast(context, 'Bağlantı açılamadı.');
+      if (mounted) academicToast(context, context.l10n.acadAnnLinkError);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final a = _a;
     Widget body;
     if (a == null && _error != null) {
@@ -275,23 +305,24 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     } else if (a == null) {
       body = const LoadingView();
     } else {
+      const amber = Color(0xFF8A5200);
       body = ListView(padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 32), children: [
-        Row(children: [
-          if (a.pinned) ...[const BuBadge('Sabitlenmiş', soft: true), const SizedBox(width: 6)],
-          Expanded(child: Text(_audience(a), style: BuType.label.copyWith(color: t.mut))),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          if (a.pinned) AkadPill(l.acadAnnPinned, bg: akadTint(context, amber), fg: akadOnTint(context, amber), icon: LucideIcons.pin),
+          AkadPill(_audience(l, a), bg: t.sf2, fg: t.mut),
         ]),
         const SizedBox(height: 10),
-        Semantics(header: true, child: Text(a.title, style: BuType.title.copyWith(color: t.ink))),
+        Semantics(header: true, child: Text(a.title, style: BuType.title.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink))),
         const SizedBox(height: 4),
-        Text(a.publishAt == null ? '' : fmtInstant(a.publishAt!), style: BuType.caption.copyWith(color: t.mut)),
+        Text(a.publishAt == null ? '' : fmtInstantL(l, a.publishAt!), style: BuType.caption.copyWith(fontSize: 12.5, color: t.mut)),
         const SizedBox(height: 14),
-        SelectableText(a.body, style: BuType.body.copyWith(color: t.ink, height: 1.5)),
+        SelectableText(a.body, style: BuType.body.copyWith(fontSize: 14, color: t.ink, height: 1.5)),
         if (a.attachmentUrl != null) ...[
           const SizedBox(height: 18),
-          BuButton(label: 'Eki aç', icon: LucideIcons.paperclip, kind: BuButtonKind.outline, onPressed: () => _openLink(a.attachmentUrl!)),
+          AkadButton(label: l.acadAnnOpenAttachment, icon: LucideIcons.paperclip, outlined: true, onPressed: () => _openLink(a.attachmentUrl!)),
         ],
       ]);
     }
-    return AcademicScaffold(title: 'Duyuru', child: body);
+    return AcademicScaffold(title: l.acadAnnDetailTitle, child: body);
   }
 }

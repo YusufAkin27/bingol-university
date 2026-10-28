@@ -13,7 +13,7 @@ Widget _nav(int idx, void Function(int) on, ValueNotifier<int> badge, Size size,
     );
 
 void main() {
-  testWidgets('5 ikon, etiket metni yok, Semantics etiketleri var', (tester) async {
+  testWidgets('5 ikon, gorunur etiketler, Semantics etiketleri var', (tester) async {
     final h = tester.ensureSemantics();
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
@@ -21,7 +21,7 @@ void main() {
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
     expect(find.byType(Icon), findsNWidgets(5));
     for (final l in _labels) {
-      expect(find.text(l), findsNothing);
+      expect(find.text(l), findsOneWidget);
       expect(find.bySemanticsLabel(l), findsOneWidget);
     }
     h.dispose();
@@ -90,6 +90,28 @@ void main() {
         expect(tester.takeException(), isNull);
         // dokunma hedefi >= 44 dp
         expect(tester.getSize(find.byType(GestureDetector).first).width >= 44, isTrue);
+      });
+    }
+  }
+
+  for (final br in [Brightness.light, Brightness.dark]) {
+    for (final rtl in [false, true]) {
+      testWidgets('320 dp ${br.name} ${rtl ? "rtl" : "ltr"}: tasma yok, 68 dp yukseklik', (tester) async {
+        const small = Size(320, 640);
+        useScreen(tester, small);
+        final badge = ValueNotifier<int>(120);
+        addTearDown(badge.dispose);
+        await tester.pumpWidget(buildApp(
+          Directionality(
+            textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+            child: Scaffold(bottomNavigationBar: FloatingNav(index: 3, onChanged: (_) {}, chatBadge: badge)),
+          ),
+          brightness: br,
+          size: small,
+        ));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(tester.takeException(), isNull);
+        expect(tester.getSize(find.byType(FloatingNav)).height, 84);
       });
     }
   }

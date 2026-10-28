@@ -1,458 +1,139 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
+import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
-import '../chat/media_camera_page.dart';
-import '../chat/media_library.dart';
-import '../chat/media_pick.dart';
-import '../chat/media_picker_page.dart';
-import 'mention_assist.dart';
 import 'post_api.dart';
-import 'post_draft_store.dart';
 import 'post_media_uploader.dart';
 import 'post_models.dart';
+import 'post_text_rules.dart';
 
-const kPostMaxText = 2000;
-const kPostCounterFrom = 1800;
-const kPostMaxMedia = 10;
-const kPostParallelUploads = 3;
+/// Galeriden ya da kameradan tek fotoğraf baytı döndürür (iptalde null); testlerde sahtesi verilir.
+typedef PostPhotoPicker = Future<Uint8List?> Function(ImageSource source);
+
+Future<Uint8List?> _defaultPicker(ImageSource source) async {
+  final f = await ImageService().pick(source);
+  return f?.readAsBytes();
+}
 
 /// Oluşturucuyu tam ekran açar; paylaşılırsa oluşan [Post] döner, kapatılırsa null.
 Future<Post?> openComposePost(BuildContext context, Session session) => Navigator.of(context).push<Post>(
       MaterialPageRoute(fullscreenDialog: true, builder: (_) => ComposePostPage(session: session)),
     );
 
-enum _St { idle, uploading, done, failed }
-
-class _Item {
-  _Item(this.pick) : thumbFuture = pick.thumb(240);
-  final MediaPick pick;
-  final Future<Uint8List?> thumbFuture;
-  _St st = _St.idle;
-  double progress = 0;
-  PostMedia? media;
-  String? error;
-  bool retryable = true;
-  PostUploadCancel? cancel;
-
-  String get key => pick.key;
-}
-
-/// Gönderi oluşturucu: metin (<=2000) + en çok 10 medya (foto/video karışık), sıralama, yükleme ilerlemesi,
-/// öğe başına yeniden deneme ve 24 saatlik taslak koruması.
+/// Sade gönderi oluşturucu: tam 1 fotoğraf (zorunlu) + isteğe bağlı kısa metin (en çok 7 kelime, canlı sayaç).
+/// Fotoğraf `POST /posts/media` ile yüklenir, sonra gönderi `mediaIds: [id]` ile oluşturulur.
 class ComposePostPage extends StatefulWidget {
-  const ComposePostPage({
-    super.key,
-    required this.session,
-    this.initialText,
-    this.initialMedia = const [],
-    this.library,
-    this.ensureAccess,
-    this.openCamera,
-    this.uploader,
-    this.api,
-    this.draftStore,
-  });
+  const ComposePostPage({super.key, required this.session, this.pickPhoto, this.uploader, this.api});
 
   final Session session;
-  final String? initialText;
-  final List<MediaPick> initialMedia;
 
-  /// Testler için: galeri/izin/kamera/yükleyici/API/taslak deposu enjeksiyonu.
-  final MediaLibrary? library;
-  final EnsureAccess? ensureAccess;
-  final MediaCameraLauncher? openCamera;
+  /// Testler için: seçici/yükleyici/API enjeksiyonu.
+  final PostPhotoPicker? pickPhoto;
   final PostMediaUploader? uploader;
   final PostApi? api;
-  final PostDraftStore? draftStore;
 
   @override
   State<ComposePostPage> createState() => _ComposePostPageState();
 }
 
-class _ComposePostPageState extends State<ComposePostPage> with WidgetsBindingObserver {
-  late final TextEditingController _text = TextEditingController(text: widget.initialText ?? '');
+class _ComposePostPageState extends State<ComposePostPage> {
+  final _text = TextEditingController();
   final _focus = FocusNode();
-  final _items = <_Item>[];
   late final PostMediaUploader _uploader = widget.uploader ?? PostMediaUploader(widget.session);
   late final PostApi _api = widget.api ?? PostApi(widget.session);
-  late final PostDraftStore _drafts = widget.draftStore ?? PostDraftStore();
 
+  Uint8List? _photo;
+  PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
-  bool _done = false; // paylaşıldı ya da vazgeçildi: taslak artık yazılmaz
-  String? _textError;
-  String? _notice; // üst bilgi/hata şeridi (yükleme özeti)
-  PostDraft? _draft;
-  Timer? _saveTimer;
-
-  int? get _uid => widget.session.userId;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    for (final p in widget.initialMedia.take(kPostMaxMedia)) {
-      _items.add(_Item(p));
-    }
-    _lastText = _text.text;
-    _text.addListener(_onTextChanged);
-    if ((widget.initialText ?? '').isEmpty && widget.initialMedia.isEmpty) _loadDraft();
-  }
+  String? _error;
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _saveTimer?.cancel();
-    for (final i in _items) {
-      i.cancel?.cancel();
-    }
     _text.dispose();
     _focus.dispose();
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) _saveNow();
-  }
+  int get _words => postWordCount(_text.text);
+  bool get _textOk => postTextOk(_text.text);
+  bool get _dirty => _photo != null || _text.text.trim().isNotEmpty;
+  bool get _canShare => !_publishing && _photo != null && _textOk;
 
-  // ---------- Taslak ----------
-
-  Future<void> _loadDraft() async {
-    final d = await _drafts.load(_uid);
-    if (!mounted || d == null) return;
-    setState(() => _draft = d);
-  }
-
-  Future<void> _restoreDraft() async {
-    final d = _draft;
-    if (d == null) return;
-    final picks = <MediaPick>[];
-    for (final m in d.items) {
-      final p = m.toPick();
-      if (p != null) picks.add(p);
-    }
-    setState(() {
-      _draft = null;
-      _text.text = d.text;
-      _text.selection = TextSelection.collapsed(offset: d.text.length);
-      _items
-        ..clear()
-        ..addAll(picks.take(kPostMaxMedia).map(_Item.new));
-    });
-  }
-
-  Future<void> _dropDraft() async {
-    setState(() => _draft = null);
-    await _drafts.clear(_uid);
-  }
-
-  void _scheduleSave() {
-    if (_done) return;
-    _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(milliseconds: 800), _saveNow);
-  }
-
-  Future<void> _saveNow() async {
-    if (_done) return;
-    _saveTimer?.cancel();
-    final text = _text.text;
-    final picks = [for (final i in _items) i.pick];
-    final saved = <DraftMedia>[];
-    for (final p in picks) {
-      final m = await _drafts.materialize(p);
-      if (m != null) saved.add(m);
-    }
-    if (_done) return;
-    await _drafts.save(_uid, PostDraft(text: text, items: saved, savedAt: DateTime.now()));
-  }
-
-  // ---------- Durum ----------
-
-  bool get _dirty => _text.text.trim().isNotEmpty || _items.isNotEmpty;
-  bool get _canShare => !_publishing && _dirty;
-
-  String _lastText = '';
-
-  void _onTextChanged() {
-    // Seçim/odak değişimi de dinleyiciyi tetikler: yalnız metin değiştiyse hata temizlenir.
-    if (_text.text == _lastText) return;
-    _lastText = _text.text;
-    if (_textError != null) _textError = null;
-    setState(() {});
-    _scheduleSave();
-  }
-
-  void _toast(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 3)));
-  }
-
-  // ---------- Medya ekleme ----------
-
-  void _addPicks(Iterable<MediaPick> picks) {
-    var skipped = false;
-    setState(() {
-      for (final p in picks) {
-        if (_items.any((i) => i.key == p.key)) continue;
-        if (_items.length >= kPostMaxMedia) {
-          skipped = true;
-          break;
-        }
-        _items.add(_Item(p));
-      }
-      _notice = null;
-    });
-    if (skipped) _toast('En fazla $kPostMaxMedia medya ekleyebilirsin');
-    _scheduleSave();
-  }
-
-  Future<void> _openGallery() async {
+  Future<void> _pick(ImageSource source) async {
     if (_publishing) return;
-    final room = kPostMaxMedia - _items.length;
-    if (room <= 0) {
-      _toast('En fazla $kPostMaxMedia medya ekleyebilirsin');
-      return;
-    }
     FocusScope.of(context).unfocus();
-    final plan = await Navigator.push<MediaSendPlan>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MediaPickerPage(
-          library: widget.library ?? PhotoManagerLibrary(),
-          ensureAccess: widget.ensureAccess,
-          openCamera: widget.openCamera,
-          maxItems: room,
-        ),
-      ),
-    );
-    if (plan == null || !mounted) return;
-    _addPicks(plan.items.map((e) => e.pick));
-  }
-
-  Future<void> _openCamera() async {
-    if (_publishing) return;
-    if (_items.length >= kPostMaxMedia) {
-      _toast('En fazla $kPostMaxMedia medya ekleyebilirsin');
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    final pick = await (widget.openCamera ?? openMediaCamera)(context);
-    if (pick == null || !mounted) return;
-    _addPicks([pick]);
-  }
-
-  void _remove(_Item it) {
-    if (_publishing) return;
-    it.cancel?.cancel();
-    setState(() => _items.remove(it));
-    _scheduleSave();
-  }
-
-  void _reorder(int from, int to) {
-    if (_publishing) return;
-    setState(() {
-      final it = _items.removeAt(from);
-      _items.insert(to, it);
-    });
-    _scheduleSave();
-  }
-
-  // ---------- Paylaş ----------
-
-  Future<void> _uploadOne(_Item it) async {
-    final cancel = PostUploadCancel();
-    it.cancel = cancel;
-    if (mounted) {
-      setState(() {
-        it.st = _St.uploading;
-        it.progress = 0;
-        it.error = null;
-      });
-    }
     try {
-      final m = await _uploader.upload(it.pick, cancel: cancel, onProgress: (p) {
-        if (!mounted) return;
-        setState(() => it.progress = p);
+      final bytes = await (widget.pickPhoto ?? _defaultPicker)(source);
+      if (bytes == null || !mounted) return;
+      setState(() {
+        _photo = bytes;
+        _uploaded = null;
+        _error = null;
       });
-      it.media = m;
-      it.st = _St.done;
-      it.progress = 1;
     } catch (e) {
-      it.st = _St.failed;
-      it.error = postErrorText(e);
-      it.retryable = e is! PostUploadException || e.retryable;
-    } finally {
-      it.cancel = null;
+      if (mounted) setState(() => _error = postErrorText(e, context.l10n));
     }
-    if (mounted) setState(() {});
-  }
-
-  /// Bekleyen öğeleri en çok [kPostParallelUploads] paralel, sırayla yükler.
-  Future<void> _uploadAll() async {
-    final queue = [for (final i in _items) if (i.st != _St.done) i];
-    var next = 0;
-    Future<void> worker() async {
-      while (mounted && next < queue.length) {
-        final it = queue[next++];
-        await _uploadOne(it);
-      }
-    }
-
-    await Future.wait([for (var i = 0; i < kPostParallelUploads && i < queue.length; i++) worker()]);
   }
 
   Future<void> _publish() async {
-    if (!_canShare) return;
+    final bytes = _photo;
+    if (!_canShare || bytes == null) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _publishing = true;
-      _textError = null;
-      _notice = null;
+      _error = null;
     });
-    await _uploadAll();
-    if (!mounted) return;
-
-    final failed = _items.where((i) => i.st != _St.done).toList();
-    if (failed.isNotEmpty) {
-      setState(() {
-        _publishing = false;
-        _notice = '${failed.length} medya yüklenemedi. Yeniden deneyebilir ya da çıkarabilirsin.';
-      });
-      _saveNow();
-      return;
-    }
-
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
-      final post = await _api.create(text: _text.text, mediaIds: [for (final i in _items) i.media!.id]);
+      final media = _uploaded ??= await _uploader.upload(bytes);
+      final post = await _api.create(text: _text.text, mediaId: media.id);
       if (!mounted) return;
-      _done = true;
-      _saveTimer?.cancel();
-      unawaited(_drafts.clear(_uid));
-      messenger?.showSnackBar(const SnackBar(content: Text('Paylaşıldı'), duration: Duration(seconds: 2)));
+      messenger?.showSnackBar(SnackBar(content: Text(context.l10n.postComposeShared), duration: const Duration(seconds: 2)));
       Navigator.pop(context, post);
     } catch (e) {
       if (!mounted) return;
-      _onCreateError(e);
+      if (e is ApiError && e.code == 'POST_MEDIA_INVALID') _uploaded = null;
+      setState(() {
+        _publishing = false;
+        _error = postErrorText(e, context.l10n);
+      });
     }
-  }
-
-  void _onCreateError(Object e) {
-    setState(() => _publishing = false);
-    if (e is ApiError) {
-      if (e.code == 'CONTENT_PROFANITY') {
-        setState(() => _textError = postErrorText(e));
-        _focus.requestFocus();
-        _saveNow();
-        return;
-      }
-      if (e.code == 'POST_MEDIA_INVALID') {
-        // Sunucu bağlantıyı reddetti: yüklenenler geçersiz sayılır, yeniden yüklenir.
-        setState(() {
-          for (final i in _items) {
-            i.st = _St.idle;
-            i.media = null;
-          }
-          _notice = 'Medya geçersiz, yeniden yüklenecek. Paylaş\'a tekrar dokun.';
-        });
-        return;
-      }
-      if (e.isNetwork) {
-        _toast('Bağlantı yok. Taslağın korundu, tekrar dene.');
-        _saveNow();
-        return;
-      }
-    }
-    _toast(postErrorText(e));
-    _saveNow();
-  }
-
-  Future<void> _retryItem(_Item it) async {
-    if (_publishing) return;
-    setState(() => _publishing = true);
-    await _uploadOne(it);
-    if (!mounted) return;
-    setState(() {
-      _publishing = false;
-      if (_items.every((i) => i.st != _St.failed)) _notice = null;
-    });
-  }
-
-  Future<void> _retryFailed() async {
-    if (_publishing) return;
-    setState(() {
-      _publishing = true;
-      _notice = null;
-    });
-    final failed = [for (final i in _items) if (i.st == _St.failed) i];
-    await Future.wait([for (final i in failed) _uploadOne(i)]);
-    if (!mounted) return;
-    final left = _items.where((i) => i.st == _St.failed).length;
-    setState(() {
-      _publishing = false;
-      _notice = left > 0 ? '$left medya yüklenemedi. Yeniden deneyebilir ya da çıkarabilirsin.' : null;
-    });
-  }
-
-  void _removeFailed() {
-    setState(() {
-      _items.removeWhere((i) => i.st == _St.failed);
-      _notice = null;
-    });
-    _scheduleSave();
-  }
-
-  // ---------- Kapatma ----------
-
-  Future<bool> _confirmDiscard() async {
-    final r = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Taslağı silmek istiyor musun?'),
-        content: const Text('Yazdıkların ve seçtiğin medya silinecek.'),
-        actions: [
-          TextButton(key: const ValueKey('composeKeep'), onPressed: () => Navigator.pop(c, false), child: const Text('Devam')),
-          TextButton(
-            key: const ValueKey('composeDiscard'),
-            onPressed: () => Navigator.pop(c, true),
-            child: Text('Taslağı sil', style: TextStyle(color: c.bu.danger)),
-          ),
-        ],
-      ),
-    );
-    return r == true;
   }
 
   Future<void> _close() async {
     if (_dirty) {
-      if (!await _confirmDiscard() || !mounted) return;
-      _done = true;
-      _saveTimer?.cancel();
-      for (final i in _items) {
-        i.cancel?.cancel();
-      }
-      unawaited(_drafts.clear(_uid));
+      final l = context.l10n;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: Text(l.gonderiDiscardTitle),
+          content: Text(l.gonderiDiscardBody),
+          actions: [
+            TextButton(key: const ValueKey('composeKeep'), onPressed: () => Navigator.pop(c, false), child: Text(l.postComposeContinue)),
+            TextButton(
+              key: const ValueKey('composeDiscard'),
+              onPressed: () => Navigator.pop(c, true),
+              child: Text(l.gonderiDiscardYes, style: TextStyle(color: c.bu.danger)),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
     }
     if (mounted) Navigator.pop(context);
   }
 
-  // ---------- Arayüz ----------
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final len = _text.text.characters.length;
     return PopScope(
-      canPop: !_dirty,
+      canPop: !_dirty || _publishing,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _close();
       },
@@ -466,18 +147,20 @@ class _ComposePostPageState extends State<ComposePostPage> with WidgetsBindingOb
               Expanded(
                 child: ListView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   children: [
-                    if (_draft != null) _draftBanner(t),
-                    if (_notice != null) _noticeBar(t),
-                    _authorRow(t),
-                    const SizedBox(height: 10),
-                    _field(t, len),
-                    if (_items.isNotEmpty) ...[const SizedBox(height: 12), _strip(t)],
+                    _photoArea(t),
+                    const SizedBox(height: 16),
+                    _textField(t),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(_error!, key: const ValueKey('composeError'), style: BuType.label.copyWith(color: t.danger)),
+                      ),
                   ],
                 ),
               ),
-              _toolbar(t, len),
+              _bottomBar(t),
             ],
           ),
         ),
@@ -491,96 +174,149 @@ class _ComposePostPageState extends State<ComposePostPage> with WidgetsBindingOb
           children: [
             IconButton(
               key: const ValueKey('composeClose'),
-              tooltip: 'Kapat',
+              tooltip: context.l10n.postComposeClose,
               icon: Icon(LucideIcons.x, color: t.ink),
-              onPressed: _close,
+              onPressed: _publishing ? null : _close,
             ),
-            Expanded(child: Text('Yeni gönderi', style: BuType.heading.copyWith(color: t.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
-            BuButton(
-              key: const ValueKey('composeShare'),
-              label: 'Paylaş',
-              compact: true,
-              busy: _publishing,
-              onPressed: _canShare ? _publish : null,
+            Expanded(
+              child: Text(context.l10n.postComposeNewPost,
+                  style: BuType.heading.copyWith(color: t.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           ],
         ),
       );
 
-  Widget _draftBanner(BuTokens t) => Container(
-        key: const ValueKey('composeDraftBanner'),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-        decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-        child: Row(
-          children: [
-            Icon(LucideIcons.fileClock, size: 16, color: t.onSoft),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Kayıtlı bir taslağın var.', style: BuType.label.copyWith(color: t.onSoft))),
-            TextButton(key: const ValueKey('composeDraftRestore'), onPressed: _restoreDraft, child: const Text('Taslağı geri yükle')),
-            IconButton(
-              key: const ValueKey('composeDraftDrop'),
-              tooltip: 'Taslağı sil',
-              visualDensity: VisualDensity.compact,
-              icon: Icon(LucideIcons.x, size: 16, color: t.onSoft),
-              onPressed: _dropDraft,
+  Widget _photoArea(BuTokens t) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final shadow = [
+      BoxShadow(color: Colors.black.withValues(alpha: dark ? .22 : .07), blurRadius: 16, offset: const Offset(0, 5)),
+    ];
+    final bytes = _photo;
+    if (bytes != null) {
+      return Container(
+        key: const ValueKey('composePreview'),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: shadow),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: AspectRatio(
+            aspectRatio: 4 / 5,
+            child: Stack(fit: StackFit.expand, children: [
+              ColoredBox(color: t.sf2),
+              Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut))),
+              if (!_publishing)
+                PositionedDirectional(
+                  top: 10,
+                  end: 10,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    _roundBtn(const ValueKey('composeChange'), LucideIcons.image, context.l10n.gonderiChangePhoto, () => _pick(ImageSource.gallery)),
+                    const SizedBox(width: 8),
+                    _roundBtn(const ValueKey('composeRemove'), LucideIcons.x, context.l10n.postComposeRemove,
+                        () => setState(() {
+                              _photo = null;
+                              _uploaded = null;
+                            })),
+                  ]),
+                ),
+              if (_publishing)
+                const Positioned.fill(
+                    child: ColoredBox(color: Colors.black38, child: Center(child: CircularProgressIndicator(color: Colors.white)))),
+            ]),
+          ),
+        ),
+      );
+    }
+    return Container(
+      key: const ValueKey('composePicker'),
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 20),
+      decoration: BoxDecoration(
+        color: t.sf,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: t.bd),
+        boxShadow: shadow,
+      ),
+      child: Column(children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+          child: Icon(LucideIcons.image, size: 28, color: t.onSoft),
+        ),
+        const SizedBox(height: 14),
+        Text(context.l10n.gonderiPhotoRequired,
+            textAlign: TextAlign.center, style: BuType.bodyStrong.copyWith(color: t.ink)),
+        const SizedBox(height: 4),
+        Text(context.l10n.gonderiPhotoHint, textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
+        const SizedBox(height: 18),
+        Row(children: [
+          Expanded(
+            child: BuButton(
+              key: const ValueKey('composeGallery'),
+              label: context.l10n.gonderiPickPhoto,
+              icon: LucideIcons.image,
+              kind: BuButtonKind.soft,
+              onPressed: () => _pick(ImageSource.gallery),
             ),
-          ],
-        ),
-      );
-
-  Widget _noticeBar(BuTokens t) => Container(
-        key: const ValueKey('composeNotice'),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_notice!, style: BuType.label.copyWith(color: t.onSoft)),
-            if (_items.any((i) => i.st == _St.failed)) ...[
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 4,
-                children: [
-                  TextButton(key: const ValueKey('composeRetryFailed'), onPressed: _retryFailed, child: const Text('Yeniden dene')),
-                  TextButton(key: const ValueKey('composeRemoveFailed'), onPressed: _removeFailed, child: const Text('Başarısızları çıkar')),
-                ],
-              ),
-            ],
-          ],
-        ),
-      );
-
-  Widget _authorRow(BuTokens t) => Row(
-        children: [
-          BuAvatar(name: widget.session.displayName, size: 40),
+          ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(widget.session.displayName ?? '',
-                style: BuType.bodyStrong.copyWith(color: t.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: BuButton(
+              key: const ValueKey('composeCamera'),
+              label: context.l10n.gonderiTakePhoto,
+              icon: LucideIcons.camera,
+              kind: BuButtonKind.outline,
+              onPressed: () => _pick(ImageSource.camera),
+            ),
           ),
-        ],
+        ]),
+      ]),
+    );
+  }
+
+  Widget _roundBtn(Key key, IconData icon, String tooltip, VoidCallback onTap) => Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          key: key,
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+            child: Icon(icon, size: 18, color: Colors.white),
+          ),
+        ),
       );
 
-  Widget _field(BuTokens t, int len) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
+  Widget _textField(BuTokens t) {
+    final over = !_textOk;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+          decoration: BoxDecoration(
+            color: t.sf,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: over ? t.danger : t.bd),
+          ),
+          child: TextField(
             key: const ValueKey('composeText'),
             controller: _text,
             focusNode: _focus,
             enabled: !_publishing,
-            minLines: 5,
-            maxLines: null,
-            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 2,
+            textInputAction: TextInputAction.done,
             textCapitalization: TextCapitalization.sentences,
-            inputFormatters: [LengthLimitingTextInputFormatter(kPostMaxText)],
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
+              LengthLimitingTextInputFormatter(kPostMaxChars),
+            ],
+            onChanged: (_) => setState(() {}),
             style: BuType.body.copyWith(color: t.ink),
             decoration: InputDecoration(
-              hintText: 'Ne düşünüyorsun?',
+              hintText: context.l10n.gonderiTextHint,
               hintStyle: BuType.body.copyWith(color: t.mut),
-              // Tema dolgu + çerçeve verir; burada çerçevesiz, geniş yazı alanı istenir (aksi halde ipucu kenara yapışır).
               filled: false,
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -589,181 +325,50 @@ class _ComposePostPageState extends State<ComposePostPage> with WidgetsBindingOb
               errorBorder: InputBorder.none,
               focusedErrorBorder: InputBorder.none,
               isDense: true,
-              contentPadding: EdgeInsets.zero,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
-          MentionAssist(session: widget.session, controller: _text, maxLength: kPostMaxText),
-          if (_textError != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(_textError!, key: const ValueKey('composeTextError'), style: BuType.label.copyWith(color: t.danger)),
-            ),
-        ],
-      );
-
-  Widget _strip(BuTokens t) => SizedBox(
-        key: const ValueKey('composeStrip'),
-        height: 92,
-        child: ReorderableListView.builder(
-          scrollDirection: Axis.horizontal,
-          buildDefaultDragHandles: false,
-          itemCount: _items.length,
-          onReorderItem: _reorder,
-          proxyDecorator: (child, i, a) => Material(color: Colors.transparent, child: child),
-          itemBuilder: (c, i) {
-            final it = _items[i];
-            return ReorderableDelayedDragStartListener(
-              key: ValueKey('composeItem_${it.key}'),
-              index: i,
-              enabled: !_publishing,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _tile(t, it),
-              ),
-            );
-          },
         ),
-      );
-
-  Widget _tile(BuTokens t, _Item it) {
-    const s = 84.0;
-    final failed = it.st == _St.failed;
-    return SizedBox(
-      width: s,
-      height: s,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: FutureBuilder<Uint8List?>(
-              future: it.thumbFuture,
-              builder: (c, snap) {
-                final b = snap.data;
-                if (b == null) {
-                  return ColoredBox(
-                      color: t.sf2,
-                      child: Icon(it.pick.isVideo ? LucideIcons.video : LucideIcons.image, color: t.mut));
-                }
-                return Image.memory(b, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => ColoredBox(color: t.sf2));
-              },
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Row(children: [
+            Expanded(
+              child: over
+                  ? Text(context.l10n.gonderiWordLimit(kPostMaxWords.toString()),
+                      key: const ValueKey('composeLimitWarn'), style: BuType.label.copyWith(color: t.danger))
+                  : const SizedBox.shrink(),
             ),
-          ),
-          if (it.pick.isVideo)
-            Positioned(
-              left: 4,
-              bottom: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(LucideIcons.play, size: 9, color: Colors.white),
-                  const SizedBox(width: 3),
-                  Text(_dur(it.pick.durationMs), style: BuType.micro.copyWith(color: Colors.white)),
-                ]),
-              ),
-            ),
-          if (it.st == _St.uploading)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: ColoredBox(
-                  color: Colors.black45,
-                  child: Center(
-                    child: SizedBox(
-                      key: ValueKey('composeProgress_${it.key}'),
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(value: it.progress.clamp(0.02, 1.0), strokeWidth: 3, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (it.st == _St.done)
-            Positioned(
-              right: 4,
-              bottom: 4,
-              child: Container(
-                key: ValueKey('composeDone_${it.key}'),
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle),
-                child: const Icon(LucideIcons.check, size: 11, color: Colors.white),
-              ),
-            ),
-          if (failed)
-            Positioned.fill(
-              child: GestureDetector(
-                key: ValueKey('composeRetry_${it.key}'),
-                onTap: it.retryable ? () => _retryItem(it) : null,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: ColoredBox(
-                    color: t.danger.withValues(alpha: .78),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(LucideIcons.triangleAlert, size: 18, color: Colors.white),
-                        const SizedBox(height: 2),
-                        Text(it.retryable ? 'Yeniden dene' : 'Çıkar',
-                            textAlign: TextAlign.center, style: BuType.micro.copyWith(color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (!_publishing)
-            Positioned(
-              right: 2,
-              top: 2,
-              child: GestureDetector(
-                key: ValueKey('composeRemove_${it.key}'),
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _remove(it),
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.x, size: 13, color: Colors.white),
-                ),
-              ),
-            ),
-        ],
-      ),
+            Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
+                key: const ValueKey('composeCounter'), style: BuType.label.copyWith(color: over ? t.danger : t.mut)),
+          ]),
+        ),
+      ],
     );
   }
 
-  static String _dur(int ms) {
-    final s = (ms / 1000).round();
-    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
-  }
-
-  Widget _toolbar(BuTokens t, int len) => Container(
-        decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-        padding: const EdgeInsets.fromLTRB(8, 4, 16, 4),
-        child: Row(
-          children: [
-            IconButton(
-              key: const ValueKey('composeGallery'),
-              tooltip: 'Galeri',
-              icon: Icon(LucideIcons.image, color: t.pr),
-              onPressed: _publishing ? null : _openGallery,
+  Widget _bottomBar(BuTokens t) {
+    final enabled = _canShare;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+      child: Material(
+        key: const ValueKey('composeShare'),
+        color: enabled ? t.pr : t.pr.withValues(alpha: .45),
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: enabled ? _publish : null,
+          child: SizedBox(
+            height: 56,
+            width: double.infinity,
+            child: Center(
+              child: _publishing
+                  ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.onPr))
+                  : Text(context.l10n.postComposeShare, style: BuType.heading.copyWith(color: t.onPr)),
             ),
-            IconButton(
-              key: const ValueKey('composeCamera'),
-              tooltip: 'Kamera',
-              icon: Icon(LucideIcons.camera, color: t.pr),
-              onPressed: _publishing ? null : _openCamera,
-            ),
-            if (_items.isNotEmpty)
-              Text('${_items.length}/$kPostMaxMedia', key: const ValueKey('composeMediaCount'), style: BuType.label.copyWith(color: t.mut)),
-            const Spacer(),
-            if (len >= kPostCounterFrom)
-              Text('$len/$kPostMaxText',
-                  key: const ValueKey('composeCounter'),
-                  style: BuType.label.copyWith(color: len >= kPostMaxText ? t.danger : t.mut)),
-          ],
+          ),
         ),
-      );
+      ),
+    );
+  }
 }

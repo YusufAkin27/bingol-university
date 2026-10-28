@@ -6,7 +6,6 @@ import 'package:bu_kampus/features/auth/otp_code_boxes.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/reset_code_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
-import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/news/news_detail_page.dart';
 import 'package:bu_kampus/features/news/news_tile.dart';
@@ -21,7 +20,7 @@ SemanticsHandle sem(WidgetTester t) => t.ensureSemantics();
 
 /// Tembel (görünür olunca yüklenen) Gündem bölümüne kadar kaydırır.
 Future<void> toNews(WidgetTester tester) async {
-  await tester.scrollUntilVisible(find.text('Gündem'), 300, scrollable: find.byType(Scrollable).first);
+  await tester.scrollUntilVisible(find.text('Duyurular'), 300, scrollable: find.byType(Scrollable).first);
   await settle(tester, const Duration(seconds: 1));
 }
 
@@ -146,15 +145,15 @@ void main() {
   });
 
   group('register', () {
-    testWidgets('sozlesme kabul edilmeden gonderilmez; hatali e-posta reddedilir', (tester) async {
+    testWidgets('akademik bilgi girilmeden ilerlenmez; istek atilmaz', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = newB();
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
-      await tester.ensureVisible(find.text('Kayıt ol').last);
-      await tester.tap(find.text('Kayıt ol').last);
+      await tester.ensureVisible(find.text('Devam'));
+      await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(b.count('/auth/register'), 0);
-      expect(find.text('Devam etmek için kabul etmelisiniz.'), findsOneWidget);
+      expect(find.text('Adım 1/3'), findsOneWidget);
       noErr(tester);
     });
 
@@ -164,13 +163,7 @@ void main() {
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
-      await tester.enterText(fields.at(1), 'ayse@bingol.edu.tr');
-      await tester.enterText(fields.at(2), 'Sifre1234');
-      await fillAcademic(tester);
-      await tester.tap(find.byType(CheckboxListTile));
-      await tester.pump();
+      await fillRegister(tester);
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('/auth/register'), 1);
@@ -200,13 +193,13 @@ void main() {
       final b = newB()..on('/auth/verify-reset-code', {'resetToken': 'tok'});
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: s)));
-      expect(find.text('Şifreni sıfırla'), findsOneWidget);
+      expect(find.text('Şifrenizi mi unuttunuz?'), findsOneWidget);
       noOld();
       await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
       await tester.tap(find.text('Kod gönder'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(ResetCodePage), findsOneWidget);
-      expect(find.text('ayse@bingol.edu.tr adresine kod gönderildi.'), findsOneWidget);
+      expect(find.text('ayse@bingol.edu.tr adresine gönderdiğimiz 6 haneli kodu girin.'), findsOneWidget);
       expect(find.textContaining('Yeniden gönder (60 sn)'), findsOneWidget);
       noOld();
       await tester.enterText(find.byType(EditableText).first, '123456');
@@ -394,7 +387,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Gövde metni.'), findsOneWidget);
-      expect(find.text('Kaynak sayfada aç'), findsOneWidget);
+      expect(find.text('Kaynak sitede aç'), findsOneWidget);
       noErr(tester);
     });
 
@@ -442,126 +435,6 @@ void main() {
     });
   });
 
-  // ---------------- DISCOVER ----------------
-  group('discover', () {
-    List<Map<String, dynamic>> many(int n, {String type = 'HABER'}) =>
-        [for (var i = 1; i <= n; i++) newsItem(i, type: type)];
-
-    // Keşfet varsayılan olarak Gönderiler segmentindedir; 'HABER' isteği Haberler segmentini açar
-    // (ana sayfadaki "Haberler Tümü" yolu). Segment geçişi test/posts_feed_test.dart'ta.
-    ValueNotifier<String?> req() {
-      final v = ValueNotifier<String?>('HABER');
-      addTearDown(v.dispose);
-      return v;
-    }
-
-    matrix('dolu', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
-        setup: (b) => b.on('/news*', newsPage(many(5))));
-    matrix('bos', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')));
-    matrix('hata', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
-        setup: (b) => b.fail('/news*'));
-    matrix('bakim', () => DiscoverTab(session: makeSession(_b), typeRequest: ValueNotifier('HABER')),
-        setup: (b) {
-          b.on('/news*', newsPage(many(2)));
-          b.on('/status', {'NEWS': {'maintenance': true, 'maintenanceMessage': 'Kaynak site bakımda ' * 6}});
-        });
-
-    testWidgets('yukleniyor -> dolu', (tester) async {
-      final b = newB()
-        ..delay = const Duration(milliseconds: 200)
-        ..on('/news*', newsPage(many(3)));
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Haber başlığı 1'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      noErr(tester);
-    });
-
-    testWidgets('bos durum metni; kaydedilenler bos metni', (tester) async {
-      final b = newB();
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Bu kategoride henüz içerik yok.'), findsOneWidget);
-      await tester.tap(find.text('Kaydedilenler'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Henüz kaydettiğiniz bir haber yok.'), findsOneWidget);
-      noErr(tester);
-    });
-
-    testWidgets('500 -> hata + yeniden dene veriyi getirir', (tester) async {
-      final b = newB()..fail('/news*');
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Yeniden dene'), findsOneWidget);
-      b.on('/news*', newsPage(many(2)));
-      await tester.tap(find.text('Yeniden dene'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Haber başlığı 1'), findsOneWidget);
-      noErr(tester);
-    });
-
-    testWidgets('ag hatasi -> yeniden dene gorunur', (tester) async {
-      final b = newB()..offline = true;
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await settle(tester, const Duration(milliseconds: 800));
-      expect(find.text('Yeniden dene'), findsOneWidget);
-      noErr(tester);
-    });
-
-    testWidgets('typeRequest ilk degerde sekmeyi secer ve null yapar', (tester) async {
-      final b = newB()..on('/news*', newsPage(many(1, type: 'DUYURU')));
-      final r = ValueNotifier<String?>('DUYURU');
-      addTearDown(r.dispose);
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: r)));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(r.value, isNull);
-      expect(b.requests.any((q) => q.contains('type=DUYURU')), isTrue);
-      expect(b.requests.any((q) => q.contains('type=HABER')), isFalse);
-      // calisirken istek: ETKINLIK
-      r.value = 'ETKINLIK';
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.requests.any((q) => q.contains('type=ETKINLIK')), isTrue);
-      noErr(tester);
-    });
-
-    testWidgets('sayfalama: sonuna kaydirinca 2. sayfa istenir', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = newB()
-        ..on('/news?type=HABER&page=0&size=20', newsPage(many(20), totalPages: 2))
-        ..on('/news?type=HABER&page=1&size=20',
-            newsPage([for (var i = 21; i <= 22; i++) newsItem(i)], totalPages: 2));
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await settle(tester, const Duration(milliseconds: 500));
-      await tester.drag(find.byType(Scrollable).last, const Offset(0, -20000));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((q) => q.contains('page=1')), isTrue);
-      noErr(tester);
-    });
-
-    testWidgets('favori ekle: PUT atilir; hata olursa geri alinir', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = newB()
-        ..on('/news*', newsPage(many(2)))
-        ..fail('/bookmarks/news/2');
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(NewsTile), findsWidgets);
-      noErr(tester);
-    });
-
-    testWidgets('sayfa kaldirilinca istisna yok (gec gelen yanit)', (tester) async {
-      final b = newB()
-        ..delay = const Duration(seconds: 2)
-        ..on('/news*', newsPage(many(2)));
-      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: req())));
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pump(const Duration(seconds: 3));
-      noErr(tester);
-    });
-  });
 
   // ---------------- HOME ----------------
   group('home', () {
@@ -580,7 +453,6 @@ void main() {
       b.on('/menu/today', {
         'date': '2026-10-26',
         'items': ['Mercimek çorbası', 'Pilav', 'Ayran'],
-        'meals': ['Mercimek çorbası', 'Pilav'],
       });
       b.on('/me/communities*', {
         'items': [
@@ -616,7 +488,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await settle(tester, const Duration(seconds: 2));
       await toNews(tester);
-      expect(find.text('Gündem'), findsOneWidget);
+      expect(find.text('Duyurular'), findsOneWidget);
       noErr(tester);
     });
 
@@ -637,7 +509,7 @@ void main() {
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Yeniden dene'), findsNothing);
       await toNews(tester);
-      expect(find.text('Gündem'), findsOneWidget);
+      expect(find.text('Duyurular'), findsOneWidget);
       noErr(tester);
     });
 

@@ -1,3 +1,8 @@
+import 'package:flutter/widgets.dart' show Locale;
+
+import '../l10n/app_localizations.dart';
+import 'locale_controller.dart';
+
 /// Kimlik alanı: okul numarası (6-12 rakam) ya da tam e-posta.
 const kEmailDomain = 'bingol.edu.tr';
 
@@ -29,10 +34,11 @@ String fullEmail(String identifier) {
 
 String? validateIdentifier(String? v) {
   final s = normalizeIdentifier(v);
-  if (s.isEmpty) return 'Okul numaranızı veya e-posta adresinizi girin.';
+  final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
+  if (s.isEmpty) return l.coreIdEmpty;
   if (s.contains('@')) {
-    return _emailRe.hasMatch(s) ? null : 'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.';
+    return _emailRe.hasMatch(s) ? null : l.coreIdDomain;
   }
   if (_digitsRe.hasMatch(s) && s.length >= 6 && s.length <= 12) return null;
-  return 'Okul numarasını kontrol edin.';
+  return l.coreIdNumber;
 }

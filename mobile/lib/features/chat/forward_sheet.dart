@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
@@ -77,14 +78,14 @@ class _ForwardSheetState extends State<ForwardSheet> {
     }
   }
 
-  static String titleOf(Map<String, dynamic> c) {
+  static String titleOf(BuildContext context, Map<String, dynamic> c) {
     final peer = c['peer'];
     if ((c['type'] as String?) == 'DIRECT' &&
         peer is Map &&
         peer['displayName'] != null) {
       return '${peer['displayName']}';
     }
-    return (c['title'] as String?) ?? 'Sohbet';
+    return (c['title'] as String?) ?? context.l10n.chatMiscChat;
   }
 
   int _id(Map<String, dynamic> c) => (c['id'] as num).toInt();
@@ -108,7 +109,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
     final t = context.bu;
     final query = _q.text.trim().toLowerCase();
     final shown = _items
-        .where((c) => query.isEmpty || titleOf(c).toLowerCase().contains(query))
+        .where((c) => query.isEmpty || titleOf(context, c).toLowerCase().contains(query))
         .toList();
     final kb = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
@@ -123,20 +124,21 @@ class _ForwardSheetState extends State<ForwardSheet> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                  child: Text('İlet',
+                  child: Text(context.l10n.chatMiscForward,
                       style: BuType.heading.copyWith(color: t.ink)),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: BuSearchField(
-                      hint: 'Sohbet ara',
+                      hint: context.l10n.chatMiscSearchChat,
                       controller: _q,
                       onChanged: (_) => setState(() {})),
                 ),
                 if (_limit)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                    child: Text('En fazla ${widget.max} sohbet seçilebilir.',
+                    child: Text(
+                        context.l10n.chatMiscForwardMax(widget.max.toString()),
                         style: BuType.caption.copyWith(color: t.danger)),
                   ),
                 Flexible(child: _list(t, shown)),
@@ -144,8 +146,9 @@ class _ForwardSheetState extends State<ForwardSheet> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   child: BuButton(
                     label: _selected.isEmpty
-                        ? 'Gönder'
-                        : 'Gönder (${_selected.length})',
+                        ? context.l10n.chatMiscSend
+                        : context.l10n
+                            .chatMiscSendCount(_selected.length.toString()),
                     onPressed: _selected.isEmpty
                         ? null
                         : () =>
@@ -165,10 +168,11 @@ class _ForwardSheetState extends State<ForwardSheet> {
           height: 220, child: ErrorView(error: _error!, onRetry: _load));
     }
     if (shown.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
           height: 160,
           child: EmptyView(
-              icon: LucideIcons.messageCircle, text: 'Sohbet bulunamadı.'));
+              icon: LucideIcons.messageCircle,
+              text: context.l10n.chatMiscChatNotFound));
     }
     return ListView.builder(
       shrinkWrap: true,
@@ -177,7 +181,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
       itemBuilder: (c, i) {
         final conv = shown[i];
         final on = _selected.contains(_id(conv));
-        final title = titleOf(conv);
+        final title = titleOf(context, conv);
         final direct = (conv['type'] as String?) == 'DIRECT';
         final peer = conv['peer'];
         return InkWell(

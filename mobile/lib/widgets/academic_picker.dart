@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/academic_catalog.dart';
+import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/typography.dart';
 import 'bu_widgets.dart';
@@ -35,6 +36,14 @@ class AcademicFields extends StatelessWidget {
   final String? gradeError;
   final bool enabled;
 
+  String? _gradeName(List<AcademicGrade> options) {
+    if ((grade ?? '').isEmpty) return null;
+    for (final g in options) {
+      if (g.id == grade) return g.name;
+    }
+    return grade;
+  }
+
   Future<void> _pickDepartment(BuildContext context) async {
     if (!_openable(context)) return;
     final r = await Navigator.push<AcademicDepartment>(
@@ -51,6 +60,19 @@ class AcademicFields extends StatelessWidget {
     if (r == null) return;
     // Bölüm seçilince fakülte otomatik dolar.
     onChanged(r.faculty.name, r.name, grade);
+  }
+
+  Future<void> _pickGrade(BuildContext context) async {
+    if (!_openable(context)) return;
+    final r = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _GradePicker(grades: catalog.grades, selected: grade),
+      ),
+    );
+    if (r == null) return;
+    onChanged(faculty, department, r);
   }
 
   bool _openable(BuildContext context) {
@@ -74,10 +96,10 @@ class AcademicFields extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _FieldLabel('Bölüm'),
+            _FieldLabel(context.l10n.pickDepartment),
             _SelectBox(
               text: department,
-              placeholder: loading ? 'Yükleniyor…' : 'Bölüm seçin',
+              placeholder: loading ? context.l10n.pickLoading : context.l10n.pickSelectDepartment,
               error: departmentError != null,
               onTap: enabled ? () => _pickDepartment(context) : null,
             ),
@@ -89,26 +111,20 @@ class AcademicFields extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Bölüm listesi yüklenemedi.',
+                    child: Text(context.l10n.pickListFailed,
                         style: BuType.caption.copyWith(color: t.danger)),
                   ),
-                  TextButton(onPressed: catalog.retry, child: const Text('Yeniden dene')),
+                  TextButton(onPressed: catalog.retry, child: Text(context.l10n.pickRetry)),
                 ],
               ),
             ],
             const SizedBox(height: 14),
-            const _FieldLabel('Sınıf'),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final g in gradeOptions)
-                  BuChip(
-                    label: g.name,
-                    selected: g.id == grade,
-                    onTap: enabled ? () => onChanged(faculty, department, g.id) : null,
-                  ),
-              ],
+            _FieldLabel(context.l10n.pickGrade),
+            _SelectBox(
+              text: _gradeName(gradeOptions),
+              placeholder: context.l10n.pickSelectGrade,
+              error: gradeError != null,
+              onTap: enabled ? () => _pickGrade(context) : null,
             ),
             if (gradeError != null) _FieldError(gradeError!),
           ],
@@ -216,11 +232,11 @@ class _SearchScaffold extends StatelessWidget {
           BuHeader(title: title, onBack: () => Navigator.maybePop(context)),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: BuSearchField(hint: 'Ara', controller: controller, onChanged: onChanged),
+            child: BuSearchField(hint: context.l10n.pickSearch, controller: controller, onChanged: onChanged),
           ),
           Expanded(
             child: itemCount == 0
-                ? Center(child: Text('Sonuç bulunamadı.', style: BuType.body.copyWith(color: t.mut)))
+                ? Center(child: Text(context.l10n.pickNoResults, style: BuType.body.copyWith(color: t.mut)))
                 : ListView.builder(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     itemCount: itemCount,
@@ -321,7 +337,7 @@ class _DepartmentPickerState extends State<_DepartmentPicker> {
     final sel = widget.selected == null ? null : foldTr(widget.selected!);
     final selF = widget.selectedFaculty == null ? null : foldTr(widget.selectedFaculty!);
     return _SearchScaffold(
-      title: 'Bölüm',
+      title: context.l10n.pickDepartment,
       controller: _q,
       onChanged: (_) => setState(() {}),
       itemCount: items.length,
@@ -334,6 +350,37 @@ class _DepartmentPickerState extends State<_DepartmentPicker> {
           onTap: () => Navigator.pop(context, d),
         );
       },
+    );
+  }
+}
+
+/// Sınıf seçimi: kısa liste (arama yok), bölüm seçicisiyle aynı satır görünümü.
+class _GradePicker extends StatelessWidget {
+  const _GradePicker({required this.grades, required this.selected});
+
+  final List<AcademicGrade> grades;
+  final String? selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(
+        children: [
+          BuHeader(title: context.l10n.pickGrade, onBack: () => Navigator.maybePop(context)),
+          Expanded(
+            child: ListView.builder(
+              itemCount: grades.length,
+              itemBuilder: (_, i) => _PickRow(
+                title: grades[i].name,
+                selected: grades[i].id == selected,
+                onTap: () => Navigator.pop(context, grades[i].id),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

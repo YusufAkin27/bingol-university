@@ -91,7 +91,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      minimal: true,
       title: context.l10n.loginWelcome,
       subtitle: context.l10n.loginSubtitle,
       children: [
@@ -157,19 +156,20 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                     child: Text(context.l10n.loginForgotPassword,
-                        style: BuType.bodyStrong),
+                        style: BuType.bodyStrong.copyWith(color: context.bu.pr)),
                   ),
                 ),
-                const SizedBox(height: 16),
-                FilledButton(
+                const SizedBox(height: 4),
+                AuthButton(
                   onPressed: _busy ? null : _submit,
-                  child: BusyLabel(busy: _busy, label: context.l10n.loginSubmit),
+                  busy: _busy,
+                  label: context.l10n.loginSubmit,
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 20),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,

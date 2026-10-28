@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -111,9 +112,9 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     } else if (_items!.isEmpty) {
       body = RefreshIndicator(
         onRefresh: _load,
-        child: ListView(children: const [
-          SizedBox(height: 120),
-          EmptyView(icon: LucideIcons.ban, text: 'Engellediğiniz kullanıcı yok.'),
+        child: ListView(children: [
+          const SizedBox(height: 120),
+          EmptyView(icon: LucideIcons.ban, text: context.l10n.profilePrefsNoBlocked),
         ]),
       );
     } else {
@@ -132,10 +133,10 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
             final id = ((u['id'] as num?)?.toInt() ?? -1);
             // Büyük yazıda ad sıkışıp kaybolmasın: düğme adın altına iner.
             final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
-            final nameText = Text((u['displayName'] as String?) ?? 'Kullanıcı',
+            final nameText = Text((u['displayName'] as String?) ?? context.l10n.profilePrefsUser,
                 maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink));
             final unblockBtn = BuButton(
-              label: 'Engeli kaldır',
+              label: context.l10n.profilePrefsUnblock,
               compact: true,
               kind: BuButtonKind.outline,
               busy: _busy.contains(id),
@@ -174,7 +175,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: 'Engellenenler', onBack: () => Navigator.pop(context)),
+        BuHeader(title: context.l10n.profilePrefsBlockedTitle, onBack: () => Navigator.pop(context)),
         Expanded(child: body),
       ]),
     );

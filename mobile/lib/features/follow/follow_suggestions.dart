@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -55,7 +56,7 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
           padding: const EdgeInsets.all(24), child: Center(child: widget.shrink ? const CircularProgressIndicator() : const LoadingView()));
     }
     if (items.isEmpty) {
-      return const EmptyView(icon: LucideIcons.users, text: 'Şimdilik önerilecek kişi yok.');
+      return EmptyView(icon: LucideIcons.users, text: context.l10n.followSuggestionsEmpty);
     }
     return ListView.builder(
       shrinkWrap: widget.shrink,
@@ -77,7 +78,7 @@ class FollowSuggestionsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.bu.bg,
       body: Column(children: [
-        BuHeader(title: 'Önerilen kişiler', onBack: () => Navigator.pop(context)),
+        BuHeader(title: context.l10n.followSuggestionsTitle, onBack: () => Navigator.pop(context)),
         Expanded(child: FollowSuggestionsList(session: session)),
       ]),
     );
@@ -100,13 +101,13 @@ class FollowingEmptyPanel extends StatelessWidget {
           child: Column(children: [
             Icon(LucideIcons.users, size: 32, color: t.mut),
             const SizedBox(height: 10),
-            Text('Takip ettiklerinin gönderileri burada görünür.',
+            Text(context.l10n.followFeedHint,
                 textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
           ]),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Text('Önerilen kişiler', style: BuType.heading.copyWith(color: t.ink)),
+          child: Text(context.l10n.followSuggestionsTitle, style: BuType.heading.copyWith(color: t.ink)),
         ),
         FollowSuggestionsList(session: session, shrink: true, limit: 8),
       ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -53,7 +54,7 @@ class _ProfilePostsSectionState extends State<ProfilePostsSection> {
       padding: const EdgeInsets.only(top: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text('Gönderiler', style: BuType.heading.copyWith(color: t.ink))),
+          Expanded(child: Text(context.l10n.postViewPosts, style: BuType.heading.copyWith(color: t.ink))),
           TextButton(
             key: const ValueKey('profile-posts-all'),
             onPressed: () => Navigator.push<void>(
@@ -61,7 +62,7 @@ class _ProfilePostsSectionState extends State<ProfilePostsSection> {
               MaterialPageRoute<void>(
                   builder: (_) => UserPostsPage(session: widget.session, userId: widget.userId, name: widget.name)),
             ),
-            child: const Text('Tümünü gör'),
+            child: Text(context.l10n.postViewSeeAll),
           ),
         ]),
         const SizedBox(height: 6),
@@ -87,11 +88,10 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final m = post.media.isEmpty ? null : post.media.first;
-    const shadow = [Shadow(blurRadius: 6, color: Colors.black54)];
+    final m = post.photo;
     return Semantics(
       button: true,
-      label: 'Gönderi',
+      label: context.l10n.postViewPost,
       child: GestureDetector(
         key: ValueKey('profile-post-${post.id}'),
         onTap: () => openPostDetail(context, session, post.id, initial: post),
@@ -113,12 +113,6 @@ class _Tile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: BuType.caption.copyWith(color: t.ink, height: 1.3)),
               ),
-            if (m != null && m.isVideo)
-              const Positioned(
-                  top: 6, right: 6, child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20, shadows: shadow))
-            else if (post.media.length > 1)
-              const Positioned(
-                  top: 6, right: 6, child: Icon(LucideIcons.images, color: Colors.white, size: 16, shadows: shadow)),
           ]),
         ),
       ),

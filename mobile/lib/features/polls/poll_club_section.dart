@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
@@ -68,7 +69,7 @@ class _PollClubSectionState extends State<PollClubSection> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: SizedBox(
               width: double.infinity,
-              child: BuButton(label: 'Anket oluştur', icon: LucideIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: _create),
+              child: BuButton(label: context.l10n.pollCreate, icon: LucideIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: _create),
             ),
           ),
         if (_error != null && items == null)
@@ -76,7 +77,7 @@ class _PollClubSectionState extends State<PollClubSection> {
         else if (items == null)
           const SizedBox(height: 200, child: LoadingView())
         else if (items.isEmpty)
-          const SizedBox(height: 220, child: EmptyView(icon: LucideIcons.vote, text: 'Bu kulübün anketi yok.'))
+          SizedBox(height: 220, child: EmptyView(icon: LucideIcons.vote, text: context.l10n.pollClubEmpty))
         else ...[
           for (final p in items)
             Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: PollCard(poll: p, onTap: () => _open(p))),
@@ -85,8 +86,8 @@ class _PollClubSectionState extends State<PollClubSection> {
               padding: const EdgeInsets.only(bottom: 12),
               child: TextButton(
                 onPressed: () => openPollList(context, widget.session,
-                    communityId: widget.communityId, title: 'Kulüp anketleri'),
-                child: const Text('Tüm anketleri gör'),
+                    communityId: widget.communityId, title: context.l10n.pollClubPolls),
+                child: Text(context.l10n.pollSeeAll),
               ),
             ),
         ],

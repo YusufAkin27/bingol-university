@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 
 /// Sohbet bilgisi bölümleri.
 enum InfoSection { members, media, settings }
 
-String infoSectionLabel(InfoSection s) => switch (s) {
-      InfoSection.members => 'Üyeler',
-      InfoSection.media => 'Medya',
-      InfoSection.settings => 'Ayarlar',
+String infoSectionLabel(BuildContext context, InfoSection s) => switch (s) {
+      InfoSection.members => context.l10n.chatDetailMembers,
+      InfoSection.media => context.l10n.chatDetailMedia,
+      InfoSection.settings => context.l10n.chatDetailSettings,
     };
 
 /// Eşit genişlikli, animasyonlu göstergeli segment çubuğu.
@@ -66,7 +67,7 @@ class InfoSegmentBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => onSelect(s),
                     child: Center(
-                      child: Text(infoSectionLabel(s),
+                      child: Text(infoSectionLabel(context, s),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: BuType.label

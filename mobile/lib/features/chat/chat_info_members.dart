@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -34,7 +35,7 @@ class ChatMemberRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final me = (member['userId'] as num?)?.toInt() == selfId;
-    final name = (member['displayName'] as String?) ?? 'Kullanıcı';
+    final name = (member['displayName'] as String?) ?? context.l10n.chatInfoUser;
     final sub =
         (member['department'] ?? member['faculty'] ?? '').toString().trim();
     return InkWell(
@@ -62,15 +63,15 @@ class ChatMemberRow extends StatelessWidget {
         ),
         if (me) ...[
           const SizedBox(width: 8),
-          Text('Sen', style: BuType.label.copyWith(color: t.mut))
+          Text(context.l10n.chatInfoYou, style: BuType.label.copyWith(color: t.mut))
         ],
         if (isAdminRole(member)) ...[
           const SizedBox(width: 8),
-          const BuBadge('Yönetici', soft: true)
+          BuBadge(context.l10n.chatInfoAdmin, soft: true)
         ],
         if (onRemove != null)
           IconButton(
-            tooltip: 'Gruptan çıkar',
+            tooltip: context.l10n.chatInfoRemoveFromGroup,
             visualDensity: VisualDensity.compact,
             onPressed: onRemove,
             icon: Icon(LucideIcons.userMinus, size: 16, color: t.mut),
@@ -116,19 +117,19 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
         foregroundColor: t.ink,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('Üyeler (${_all.length})',
+        title: Text(context.l10n.chatInfoMembersCount(_all.length.toString()),
             style: BuType.heading.copyWith(color: t.ink)),
       ),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           child: BuSearchField(
-              hint: 'Üye ara', onChanged: (v) => setState(() => _q = v)),
+              hint: context.l10n.chatInfoSearchMember, onChanged: (v) => setState(() => _q = v)),
         ),
         Expanded(
           child: list.isEmpty
               ? Center(
-                  child: Text('Sonuç yok.',
+                  child: Text(context.l10n.chatInfoNoResults,
                       style: BuType.body.copyWith(color: t.mut)))
               : ListView.builder(
                   itemCount: list.length,

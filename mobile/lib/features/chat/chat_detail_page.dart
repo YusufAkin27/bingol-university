@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart' show VideoPlayerController;
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
@@ -14,6 +15,7 @@ import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
@@ -54,7 +56,7 @@ class _VideoPrepareDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Video hazırlanıyor… %${(v * 100).round()}',
+                Text(c.l10n.chatDetailVideoPreparing('${(v * 100).round()}'),
                     style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 14),
                 LinearProgressIndicator(
@@ -64,7 +66,7 @@ class _VideoPrepareDialog extends StatelessWidget {
               ]),
         ),
         actions: [
-          TextButton(onPressed: cancel.cancel, child: const Text('İptal')),
+          TextButton(onPressed: cancel.cancel, child: Text(context.l10n.chatDetailCancel)),
         ],
       ),
     );
@@ -354,7 +356,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       for (final m in ms) {
         final id = (m['userId'] as num?)?.toInt();
         if (id == null) continue;
-        _names[id] = (m['displayName'] as String?) ?? 'Kullanıcı';
+        final dn = m['displayName'] as String?;
+        if (dn != null) _names[id] = dn; // yoksa _nameOf yerelleştirilmiş yedeği verir
         _avatars[id] = m['avatarUrl'] as String?;
       }
       if (mounted) setState(() {});
@@ -824,15 +827,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     await _sendPlan(plan);
   }
 
-  static String _videoErrorText(String code) => switch (code) {
-        'TOO_LONG' => 'Video en fazla 60 saniye olabilir',
-        'TOO_LARGE' => 'Video çok büyük, daha kısa bir video seçin',
-        'UNSUPPORTED' => 'Bu cihazda video gönderilemiyor.',
-        _ => 'Video hazırlanamadı.',
+  static String _videoErrorText(AppLocalizations l, String code) =>
+      switch (code) {
+        'TOO_LONG' => l.chatDetailVideoTooLong,
+        'TOO_LARGE' => l.chatDetailVideoTooLarge,
+        'UNSUPPORTED' => l.chatDetailVideoUnsupported,
+        _ => l.chatDetailVideoFailed,
       };
 
   /// Planı mesajlara böler (bkz. [planMessages]), öğeleri hazırlar, yerel baloncukları sırayla ekler ve yükler.
   Future<void> _sendPlan(MediaSendPlan plan) async {
+    final lc = context.l10n;
     final locals = <Map<String, dynamic>>[];
     var splitNotified = false;
     for (final mp in planMessages(plan)) {
@@ -848,7 +853,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           prepared, (u) => (u['video'] as PreparedVideo?)?.sizeBytes ?? 0);
       if (parts.length > 1 && !splitNotified) {
         splitNotified = true;
-        _toast('Videolar büyük olduğu için birden fazla mesaj olarak gönderilecek');
+        _toast(lc.chatDetailVideosSplit);
       }
       for (var pi = 0; pi < parts.length; pi++) {
         final uploads = parts[pi];
@@ -905,6 +910,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Tek öğeyi yüklemeye hazırlar (fotoğraf doğrulama/sıkıştırma, video sıkıştırma). Hata olursa toast + null.
   Future<Map<String, dynamic>?> _prepareUpload(MediaPick p) async {
+    final l = context.l10n;
     if (!p.isVideo) {
       try {
         final bytes = await p.imageBytes?.call();
@@ -912,10 +918,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         return {'image': await _image.prepare(bytes)};
       } on ImageException catch (e) {
         _toast(e.code == 'TOO_LARGE'
-            ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
-            : 'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.');
+            ? l.chatDetailImageTooLarge
+            : l.chatDetailImageTypes);
       } catch (_) {
-        _toast('Görsel okunamadı.');
+        _toast(l.chatDetailImageUnreadable);
       }
       return null;
     }
@@ -924,7 +930,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       path = await p.videoPath?.call();
     } catch (_) {}
     if (path == null) {
-      _toast('Video okunamadı.');
+      _toast(l.chatDetailVideoUnreadable);
       return null;
     }
     if (!mounted) return null;
@@ -942,9 +948,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       prepared = await _video.prepare(PickedVideo(path),
           onProgress: (v) => progress.value = v, cancel: cancel);
     } on VideoException catch (e) {
-      if (e.code != 'CANCELLED') error = _videoErrorText(e.code);
+      if (e.code != 'CANCELLED') error = _videoErrorText(l, e.code);
     } catch (_) {
-      error = _videoErrorText('FAILED');
+      error = _videoErrorText(l, 'FAILED');
     }
     if (mounted) Navigator.of(context, rootNavigator: true).pop();
     progress.dispose();
@@ -958,10 +964,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   Future<void> _saveVideo(String url) async {
+    final l = context.l10n;
     String msg;
     try {
       await saveChatVideoToGallery(url, _authHeaders);
-      msg = 'Galeriye kaydedildi';
+      msg = l.chatDetailSavedToGallery;
     } catch (e) {
       msg = chatVideoSaveErrorText(e);
     }
@@ -1157,15 +1164,16 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   Future<void> _deleteMessage(Map<String, dynamic> m) async {
+    final l = context.l10n;
     final ok = await _confirm(
-        'Mesaj silinsin mi?', 'Bu mesaj herkes için silinir.', 'Sil');
+        l.chatDetailDeleteTitle, l.chatDetailDeleteBody, l.chatDetailDelete);
     if (ok != true) return;
     try {
       await _api.delete('/messages/${(m['id'] as num).toInt()}');
       if (!mounted) return;
       setState(() {
         m['deleted'] = true;
-        m['text'] = 'Bu mesaj silindi';
+        m['text'] = l.chatDetailMsgDeleted;
         m['removed'] = true;
         m['replyTo'] = null;
       });
@@ -1201,7 +1209,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('Vazgeç')),
+              child: Text(c.l10n.chatDetailNevermind)),
           TextButton(
             onPressed: () => Navigator.pop(c, true),
             child: Text(action, style: TextStyle(color: c.bu.danger)),
@@ -1212,22 +1220,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   String _nameOf(int? id) {
-    if (id != null && id == _myId) return 'Sen';
+    if (id != null && id == _myId) return context.l10n.chatDetailYou;
     if (id != null && _names[id] != null) return _names[id]!;
     final p = _peer;
     if (_direct && p != null && (p['id'] as num?)?.toInt() == id) {
-      return (p['displayName'] as String?) ?? 'Kullanıcı';
+      return (p['displayName'] as String?) ?? context.l10n.chatDetailUserFallback;
     }
-    return 'Kullanıcı';
+    return context.l10n.chatDetailUserFallback;
   }
 
   String get _title {
     if (_direct) {
       return (_peer?['displayName'] as String?) ??
           (_conv['title'] as String?) ??
-          'Sohbet';
+          context.l10n.chatDetailChatFallback;
     }
-    return (_conv['title'] as String?) ?? 'Grup';
+    return (_conv['title'] as String?) ?? context.l10n.chatDetailGroupFallback;
   }
 
   String? get _avatarUrl => _direct
@@ -1249,29 +1257,40 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   DateTime? _time(Map<String, dynamic> m) =>
       DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
 
-  String _dayLabel(DateTime d) {
+  /// Bugünden gün farkı (0 bugün, 1 dün).
+  int _dayDiff(DateTime d) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(d.year, d.month, d.day);
-    final diff = today.difference(day).inDays;
-    if (diff == 0) return 'Bugün';
-    if (diff == 1) return 'Dün';
-    const months = [
-      'Ocak',
-      'Şubat',
-      'Mart',
-      'Nisan',
-      'Mayıs',
-      'Haziran',
-      'Temmuz',
-      'Ağustos',
-      'Eylül',
-      'Ekim',
-      'Kasım',
-      'Aralık'
+    return today.difference(day).inDays;
+  }
+
+  /// "5 Mart" / "5 Mart 2025" biçimi (ay adı dile göre).
+  String _dateLabel(DateTime d) {
+    final l = context.l10n;
+    final months = [
+      l.chatDetailMonth1,
+      l.chatDetailMonth2,
+      l.chatDetailMonth3,
+      l.chatDetailMonth4,
+      l.chatDetailMonth5,
+      l.chatDetailMonth6,
+      l.chatDetailMonth7,
+      l.chatDetailMonth8,
+      l.chatDetailMonth9,
+      l.chatDetailMonth10,
+      l.chatDetailMonth11,
+      l.chatDetailMonth12,
     ];
     final base = '${d.day} ${months[d.month - 1]}';
-    return d.year == now.year ? base : '$base ${d.year}';
+    return d.year == DateTime.now().year ? base : '$base ${d.year}';
+  }
+
+  String _dayLabel(DateTime d) {
+    final diff = _dayDiff(d);
+    if (diff == 0) return context.l10n.chatDetailToday;
+    if (diff == 1) return context.l10n.chatDetailYesterday;
+    return _dateLabel(d);
   }
 
   bool _sameDay(DateTime? a, DateTime? b) =>
@@ -1282,27 +1301,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       a.day == b.day;
 
   String? _statusText() {
+    final l = context.l10n;
     if (_direct) {
       final p = _presence;
       if (p == null) return null;
-      if (p['online'] == true) return 'Çevrimiçi';
+      if (p['online'] == true) return l.chatDetailOnline;
       final seen =
           DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
       if (seen == null) return null;
-      final label = _dayLabel(seen);
-      return label == 'Bugün' || label == 'Dün'
-          ? 'Son görülme: ${label.toLowerCase()} ${_hm(seen)}'
-          : 'Son görülme: $label';
+      final diff = _dayDiff(seen);
+      if (diff == 0) return l.chatDetailLastSeenToday(_hm(seen));
+      if (diff == 1) return l.chatDetailLastSeenYesterday(_hm(seen));
+      return l.chatDetailLastSeenOn(_dateLabel(seen));
     }
     final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
-    final kind = _type == 'CLUB'
-        ? 'Kulüp odası · '
-        : _type == 'EVENT'
-            ? 'Etkinlik odası · '
-            : '';
-    return n > 0
-        ? '$kind$n üye'
-        : (kind.isEmpty ? null : 'Kulüp/etkinlik odası');
+    final isRoom = _type == 'CLUB' || _type == 'EVENT';
+    if (n > 0) {
+      return _type == 'CLUB'
+          ? l.chatDetailClubRoomMembers(n.toString())
+          : _type == 'EVENT'
+              ? l.chatDetailEventRoomMembers(n.toString())
+              : l.chatDetailMembersCount(n.toString());
+    }
+    return isRoom ? l.chatDetailClubEventRoom : null;
   }
 
   // ---------- Menüler ----------
@@ -1322,25 +1343,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final canDelete =
         !failed && !deleted && (mine || (!_direct && _conv['admin'] == true));
 
+    final l = context.l10n;
     final actions = <MessageAction>[
-      if (failed) ...const [
-        MessageAction('retry', 'Yeniden gönder', LucideIcons.rotateCw),
-        MessageAction('drop', 'Vazgeç', LucideIcons.x, danger: true),
+      if (failed) ...[
+        MessageAction('retry', l.chatDetailResend, LucideIcons.rotateCw),
+        MessageAction('drop', l.chatDetailNevermind, LucideIcons.x,
+            danger: true),
       ] else ...[
         if (!deleted)
-          const MessageAction('reply', 'Yanıtla', LucideIcons.reply),
+          MessageAction('reply', l.chatDetailReply, LucideIcons.reply),
         if (!deleted && hasText)
-          const MessageAction('copy', 'Kopyala', LucideIcons.copy),
+          MessageAction('copy', l.chatDetailCopy, LucideIcons.copy),
         if (!deleted && hasText && !hasAtt)
-          const MessageAction('forward', 'İlet', LucideIcons.forward),
+          MessageAction('forward', l.chatDetailForward, LucideIcons.forward),
         if (!deleted && mine && hasText)
-          const MessageAction('edit', 'Düzenle', LucideIcons.pencil),
+          MessageAction('edit', l.chatDetailEdit, LucideIcons.pencil),
         if (canDelete)
-          MessageAction('delete', mine ? 'Herkesten sil' : 'Mesajı sil',
+          MessageAction(
+              'delete',
+              mine ? l.chatDetailDeleteForAll : l.chatDetailDeleteMessage,
               LucideIcons.trash2,
               danger: true),
         if (!deleted && !mine)
-          const MessageAction('report', 'Şikâyet et', LucideIcons.flag,
+          MessageAction('report', l.chatDetailReport, LucideIcons.flag,
               danger: true),
       ],
     ];
@@ -1371,7 +1396,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       case 'copy':
         await Clipboard.setData(
             ClipboardData(text: (m['text'] as String?) ?? ''));
-        _toast('Kopyalandı');
+        _toast(l.chatDetailCopied);
       case 'forward':
         await _forward(m);
       case 'edit':
@@ -1397,6 +1422,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Metin mesajını seçilen sohbetlere (en çok 5) aynen gönderir.
   Future<void> _forward(Map<String, dynamic> m) async {
+    final l = context.l10n;
     final text = (m['text'] as String?) ?? '';
     if (text.trim().isEmpty) return;
     final ids = await showForwardSheet(context, _api);
@@ -1416,10 +1442,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     _changed = true;
     _toast(failed == 0
-        ? 'İletildi'
+        ? l.chatDetailForwarded
         : (failed == ids.length
-            ? 'İletilemedi'
-            : '$failed sohbete iletilemedi'));
+            ? l.chatDetailForwardFailedAll
+            : l.chatDetailForwardFailedSome(failed.toString())));
   }
 
   // ---------- Sohbet içi arama ----------
@@ -1502,6 +1528,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   Future<void> _openChatMenu() async {
+    final l = context.l10n;
     final action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: context.bu.sf,
@@ -1510,45 +1537,47 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
               icon: LucideIcons.search,
-              label: 'Sohbette ara',
+              label: l.chatDetailSearchInChat,
               showChevron: false,
               onTap: () => Navigator.pop(c, 'search')),
           if (_roomPage)
             BuMenuRow(
                 icon: LucideIcons.arrowUpRight,
-                label: _type == 'CLUB' ? 'Kulüp sayfası' : 'Etkinlik sayfası',
+                label: _type == 'CLUB'
+                    ? l.chatDetailClubPage
+                    : l.chatDetailEventPage,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'room')),
           if (!_direct)
             BuMenuRow(
                 icon: LucideIcons.users,
-                label: 'Üyeler',
+                label: l.chatDetailMembers,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'members')),
           if (!_direct && !_room)
             BuMenuRow(
                 icon: LucideIcons.logOut,
-                label: 'Sohbetten ayrıl',
+                label: l.chatDetailLeaveChat,
                 danger: true,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'leave')),
           if (_direct && !_blocked)
             BuMenuRow(
                 icon: LucideIcons.ban,
-                label: 'Engelle',
+                label: l.chatDetailBlock,
                 danger: true,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'block')),
           if (_direct && _blocked)
             BuMenuRow(
                 icon: LucideIcons.ban,
-                label: 'Engeli kaldır',
+                label: l.chatDetailUnblock,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'unblock')),
           if (_direct)
             BuMenuRow(
                 icon: LucideIcons.flag,
-                label: 'Kullanıcıyı şikâyet et',
+                label: l.chatDetailReportUser,
                 danger: true,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'report')),
@@ -1567,32 +1596,32 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         case 'members':
           await _showMembers();
         case 'leave':
-          final ok = await _confirm('Sohbetten ayrılınsın mı?',
-              'Bu sohbetten ayrılırsınız.', 'Ayrıl');
+          final ok = await _confirm(l.chatDetailLeaveTitle,
+              l.chatDetailLeaveBody, l.chatDetailLeave);
           if (ok != true) return;
           await _api.post('/conversations/$_cid/leave');
           if (mounted) Navigator.pop(context, true);
         case 'block':
           if (pid == null) return;
-          final ok = await _confirm('Kullanıcı engellensin mi?',
-              'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle');
+          final ok = await _confirm(l.chatDetailBlockTitle,
+              l.chatDetailBlockBody, l.chatDetailBlock);
           if (ok != true) return;
           await _api.post('/users/$pid/block');
           _changed = true;
           if (mounted) setState(() => _conv['blocked'] = true);
-          _toast('Kullanıcı engellendi');
+          _toast(l.chatDetailUserBlocked);
         case 'unblock':
           if (pid == null) return;
           await _api.delete('/users/$pid/block');
           _changed = true;
           if (mounted) setState(() => _conv['blocked'] = false);
-          _toast('Engel kaldırıldı');
+          _toast(l.chatDetailUserUnblocked);
         case 'report':
           if (pid == null) return;
           await ReportSheet.show(context, widget.session,
               targetType: 'USER',
               targetId: pid,
-              title: 'Kullanıcıyı şikâyet et');
+              title: l.chatDetailReportUser);
       }
     } catch (e) {
       _toast(errorText(e));
@@ -1617,11 +1646,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 shrinkWrap: true,
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                 children: [
-                  Text('Üyeler (${_members.length})',
+                  Text(c.l10n.chatDetailMembersTitle(_members.length.toString()),
                       style: BuType.heading.copyWith(color: t.ink)),
                   const SizedBox(height: 10),
                   if (_members.isEmpty)
-                    Text('Üye listesi alınamadı.',
+                    Text(c.l10n.chatDetailMembersLoadFailed,
                         style: BuType.body.copyWith(color: t.mut)),
                   for (final m in _members)
                     Padding(
@@ -1634,14 +1663,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                              (m['displayName'] as String?) ?? 'Kullanıcı',
+                              (m['displayName'] as String?) ??
+                                  c.l10n.chatDetailUserFallback,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: BuType.bodyStrong.copyWith(color: t.ink)),
                         ),
                         if ((m['role'] as String?) == 'ADMIN' ||
                             (m['role'] as String?) == 'OWNER')
-                          const BuBadge('Yönetici'),
+                          BuBadge(c.l10n.chatDetailAdmin),
                       ]),
                     ),
                 ]),
@@ -1689,13 +1719,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       child: Row(children: [
         BuIconButton(
             icon: LucideIcons.arrowLeft,
-            tooltip: 'Geri',
-            filled: true,
+            tooltip: context.l10n.chatDetailBack,
             onTap: () => Navigator.pop(context, _changed)),
         const SizedBox(width: 12),
         Semantics(
           button: true,
-          label: _direct ? 'Profili aç' : 'Sohbet bilgisi',
+          label: _direct
+              ? context.l10n.chatDetailOpenProfile
+              : context.l10n.chatDetailChatInfo,
           excludeSemantics: true,
           onTap: _direct
               ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
@@ -1704,12 +1735,28 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             onTap: _direct
                 ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
                 : _openInfo,
-            child: BuAvatar(
-                name: _title,
-                url: _avatarUrl,
-                size: 42,
-                group: !_direct,
-                headers: _avatarHeaders(_avatarUrl))),
+            child: Stack(clipBehavior: Clip.none, children: [
+              BuAvatar(
+                  name: _title,
+                  url: _avatarUrl,
+                  size: 44,
+                  group: !_direct,
+                  headers: _avatarHeaders(_avatarUrl)),
+              if (online)
+                PositionedDirectional(
+                  end: -1,
+                  bottom: -1,
+                  child: Container(
+                    key: const ValueKey('onlineDot'),
+                    width: 13,
+                    height: 13,
+                    decoration: BoxDecoration(
+                        color: t.ok,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: t.sf, width: 2)),
+                  ),
+                ),
+            ])),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1720,11 +1767,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               Text(_title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: BuType.heading.copyWith(color: t.ink)),
+                  style: BuType.heading.copyWith(
+                      color: t.ink, fontSize: 16, fontWeight: FontWeight.w800)),
               ValueListenableBuilder<bool>(
                 valueListenable: _typingNow,
                 builder: (c, typing, _) {
-                  final text = typing ? 'yazıyor…' : status;
+                  final text = typing ? c.l10n.chatDetailTyping : status;
                   if (text == null) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(top: 2),
@@ -1733,6 +1781,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         overflow: TextOverflow.ellipsis,
                         style: BuType.caption.copyWith(
                             color: (online || typing) ? t.ok : t.mut,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600)),
                   );
                 },
@@ -1741,20 +1790,32 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
         ),
         const SizedBox(width: 12),
-        BuIconButton(
-            icon: LucideIcons.ellipsisVertical,
-            tooltip: 'Menü',
-            filled: true,
-            onTap: _openChatMenu),
+        Tooltip(
+          message: context.l10n.chatDetailMenu,
+          child: Semantics(
+          button: true,
+          label: context.l10n.chatDetailMenu,
+          excludeSemantics: true,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: _openChatMenu,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(LucideIcons.ellipsisVertical, size: 20, color: t.ink),
+            ),
+          ),
+        )),
       ]),
     );
   }
 
   Widget _searchBar(BuTokens t) {
+    final l = context.l10n;
     final count = _query.isEmpty
-        ? 'Aramak için yazın'
+        ? l.chatDetailTypeToSearch
         : (_matches.isEmpty
-            ? 'Eşleşme yok'
+            ? l.chatDetailNoMatch
             : '${_matchPos + 1} / ${_matches.length}');
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -1765,7 +1826,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         Row(children: [
           BuIconButton(
               icon: LucideIcons.x,
-              tooltip: 'Aramayı kapat',
+              tooltip: l.chatDetailCloseSearch,
               onTap: _stopSearch),
           const SizedBox(width: 10),
           Expanded(
@@ -1789,7 +1850,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   filled: false,
-                  hintText: 'Sohbette ara',
+                  hintText: l.chatDetailSearchInChat,
                   hintStyle: BuType.body.copyWith(color: t.mut),
                 ),
               ),
@@ -1804,14 +1865,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   overflow: TextOverflow.ellipsis,
                   style: BuType.label.copyWith(color: t.mut))),
           IconButton(
-            tooltip: 'Önceki eşleşme',
+            tooltip: l.chatDetailPrevMatch,
             visualDensity: VisualDensity.compact,
             icon: Icon(LucideIcons.chevronUp,
                 color: _matches.isEmpty ? t.bd : t.ink),
             onPressed: _matches.isEmpty ? null : () => _stepMatch(1),
           ),
           IconButton(
-            tooltip: 'Sonraki eşleşme',
+            tooltip: l.chatDetailNextMatch,
             visualDensity: VisualDensity.compact,
             icon: Icon(LucideIcons.chevronDown,
                 color: _matches.isEmpty ? t.bd : t.ink),
@@ -1824,7 +1885,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             child: TextButton(
               onPressed: _searchOlderBusy ? null : _searchOlder,
               child: Text(
-                  _searchOlderBusy ? 'Aranıyor…' : 'Daha eski mesajlarda ara',
+                  _searchOlderBusy
+                      ? l.chatDetailSearching
+                      : l.chatDetailSearchOlder,
                   style: BuType.label.copyWith(color: t.pr)),
             ),
           ),
@@ -1836,9 +1899,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_loading) return const LoadingView();
     if (_error != null) return ErrorView(error: _error!, onRetry: _boot);
     if (_msgs.isEmpty) {
-      return const EmptyView(
-          icon: LucideIcons.messageCircle,
-          text: 'Henüz mesaj yok. İlk mesajı sen yaz.');
+      return EmptyView(
+          icon: LucideIcons.messageCircle, text: context.l10n.chatDetailEmpty);
     }
     return Stack(children: [
       Positioned.fill(
@@ -1860,7 +1922,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           valueListenable: _newBelow,
           builder: (c, n, _) => Semantics(
             button: true,
-            label: n > 0 ? 'En alta in, $n yeni mesaj' : 'En alta in',
+            label: n > 0
+                ? c.l10n.chatDetailScrollDownNew(n.toString())
+                : c.l10n.chatDetailScrollDown,
             child: GestureDetector(
               key: const ValueKey('scrollDown'),
               onTap: () {
@@ -1990,30 +2054,35 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           decoration: BoxDecoration(
               color: t.sf2, borderRadius: BorderRadius.circular(999)),
           child: Text(label,
-              style: BuType.micro
-                  .copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+              style: BuType.micro.copyWith(
+                  color: t.mut, fontSize: 12, fontWeight: FontWeight.w600)),
         ),
       );
 
-  /// Satır: grup sohbetinde gelen mesajlarda solda avatar sütunu (yalnız serinin ilk mesajında avatar görünür).
+  /// Satır: gelen mesajlarda solda 28 px avatar sütunu (yalnız serinin son mesajında avatar görünür,
+  /// baloncuğun altına hizalı); giden mesajlarda yalnız baloncuk.
   Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i, int peerRead) {
     final bubble =
         _bubble(m, peerRead, first: _firstOfRun(i), last: _lastOfRun(i));
     final mine = _isMine(m) || m['_state'] != null;
-    if (_direct || mine) return bubble;
-    final sid = (m['senderId'] as num?)?.toInt();
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    if (mine) return bubble;
+    final sid = _direct
+        ? (_peer?['id'] as num?)?.toInt()
+        : (m['senderId'] as num?)?.toInt();
+    final name = _direct ? _title : _nameOf(sid);
+    final url = _direct ? _avatarUrl : (sid == null ? null : _avatars[sid]);
+    return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       SizedBox(
         width: 28,
-        child: _firstOfRun(i)
+        child: _lastOfRun(i)
             ? GestureDetector(
                 key: ValueKey('sender-avatar-${m['id']}'),
                 onTap: () => _openProfileOf(sid),
                 child: BuAvatar(
-                    name: _nameOf(sid),
-                    url: sid == null ? null : _avatars[sid],
+                    name: name,
+                    url: url,
                     size: 28,
-                    headers: _avatarHeaders(sid == null ? null : _avatars[sid])))
+                    headers: _avatarHeaders(url)))
             : null,
       ),
       const SizedBox(width: 8),
@@ -2108,7 +2177,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     children: [
                       Text(
                           _editing != null
-                              ? 'Mesaj düzenleniyor'
+                              ? context.l10n.chatDetailEditing
                               : _nameOf((banner['senderId'] as num?)?.toInt()),
                           style: BuType.micro.copyWith(
                               color: t.ink, fontWeight: FontWeight.w700)),
@@ -2120,7 +2189,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Vazgeç',
+                tooltip: context.l10n.chatDetailNevermind,
                 icon: Icon(LucideIcons.x, size: 16, color: t.mut),
                 onPressed: () => setState(() {
                   if (_editing != null) _input.clear();
@@ -2145,27 +2214,32 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           if (_editing == null) ...[
             Semantics(
               button: true,
-              label: 'Ekle',
+              label: context.l10n.chatDetailAdd,
               child: GestureDetector(
                 key: const ValueKey('attachButton'),
                 onTap: _openGallery,
                 child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                  child: Icon(LucideIcons.plus, size: 21.5, color: t.ink),
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                      color: t.bg,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: t.bd)),
+                  child: Icon(LucideIcons.plus, size: 20, color: t.mut),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
           ],
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(minHeight: 46),
+              constraints: const BoxConstraints(minHeight: 48),
               padding: EdgeInsetsDirectional.only(
                   start: 18, end: _editing == null ? 4 : 18),
               decoration: BoxDecoration(
-                  color: t.sf2, borderRadius: BorderRadius.circular(23)),
+                  color: t.bg,
+                  border: Border.all(color: t.bd),
+                  borderRadius: BorderRadius.circular(24)),
               child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Expanded(
                   child: TextField(
@@ -2176,7 +2250,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
                     keyboardType: TextInputType.multiline,
-                    style: BuType.body.copyWith(color: t.ink),
+                    style: BuType.body.copyWith(color: t.ink, fontSize: 15),
                     cursorColor: t.pr,
                     decoration: InputDecoration(
                       isCollapsed: true,
@@ -2185,18 +2259,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       focusedBorder: InputBorder.none,
                       filled: false,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                      hintText: 'Mesaj yaz',
-                      hintStyle: BuType.body.copyWith(color: t.mut),
+                      hintText: context.l10n.chatDetailWriteMessage,
+                      hintStyle: BuType.body.copyWith(color: t.mut, fontSize: 15),
                     ),
                   ),
                 ),
                 if (_editing == null)
                   SizedBox(
                     width: 44,
-                    height: 46,
+                    height: 48,
                     child: IconButton(
                       key: const ValueKey('cameraShortcut'),
-                      tooltip: 'Kamera',
+                      tooltip: context.l10n.chatDetailCamera,
                       padding: EdgeInsets.zero,
                       onPressed: _openCameraShortcut,
                       icon: Icon(LucideIcons.camera, size: 18, color: t.mut),
@@ -2205,22 +2279,35 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               ]),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Semantics(
             button: true,
             enabled: canSend,
-            label: _editing != null ? 'Kaydet' : 'Gönder',
+            label: _editing != null
+                ? context.l10n.chatDetailSave
+                : context.l10n.chatDetailSend,
             child: GestureDetector(
               key: const ValueKey('sendButton'),
               onTap: canSend ? _submit : null,
               child: Container(
-                width: 46,
-                height: 46,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                     color: canSend ? t.pr : t.pr.withValues(alpha: .4),
-                    shape: BoxShape.circle),
+                    shape: BoxShape.circle,
+                    boxShadow: canSend
+                        ? [
+                            BoxShadow(
+                                color: t.pr.withValues(alpha: .35),
+                                blurRadius: 20,
+                                spreadRadius: -10,
+                                offset: const Offset(0, 10))
+                          ]
+                        : null),
                 child: Icon(
-                    _editing != null ? LucideIcons.check : LucideIcons.send,
+                    _editing != null
+                        ? LucideIcons.check
+                        : buDirIcon(context, LucideIcons.arrowRight),
                     size: 20,
                     color: t.onPr),
               ),

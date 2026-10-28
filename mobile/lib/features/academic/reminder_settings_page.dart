@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
 import 'academic_api.dart';
 import 'academic_widgets.dart';
+import 'akad_widgets.dart';
 import 'reminders.dart';
 
 /// Ayarlar > Hatırlatmalar: ders ve sınav yerel bildirimleri.
@@ -46,51 +47,52 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     return AcademicScaffold(
-      title: 'Hatırlatmalar',
+      title: l.acadTimeRemindersTitle,
       child: !_loaded
           ? const SizedBox.shrink()
           : ListView(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 32),
               children: [
-                Text('Bildirimler cihazında zamanlanır; internet gerekmez. Ders programın veya sınavların değişince yenilenir.',
-                    style: BuType.caption.copyWith(color: t.mut)),
-                const SizedBox(height: 14),
-                BuGroup(children: [
-                  _switch('Ders hatırlatması', _s.classEnabled, (v) => _update(_s.copyWith(classEnabled: v))),
-                ]),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 6, end: 6),
+                  child: Text(l.acadTimeRemindersIntro, style: BuType.body.copyWith(fontSize: 13, height: 1.5, color: t.mut)),
+                ),
+                const SizedBox(height: 16),
+                AkadCard(
+                  padding: EdgeInsets.zero,
+                  child: AkadSwitchRow(
+                    title: l.acadTimeClassReminder,
+                    subtitle: l.akademik2RemindEach,
+                    value: _s.classEnabled,
+                    onChanged: (v) => _update(_s.copyWith(classEnabled: v)),
+                  ),
+                ),
                 if (_s.classEnabled) ...[
-                  const SizedBox(height: 14),
-                  Text('Ders başlamadan önce', style: BuType.heading.copyWith(color: t.ink)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+                  AkadSection(l.akademik2BeforeClassShort),
                   Wrap(spacing: 8, runSpacing: 8, children: [
                     for (final m in ReminderSettings.leadOptions)
-                      BuChip(label: m == 60 ? '1 saat' : '$m dk', selected: _s.classLeadMin == m, onTap: () => _update(_s.copyWith(classLeadMin: m))),
+                      AkadChip(
+                        label: m == 60 ? l.acadTimeOneHour : l.acadTimeMinutes(m.toString()),
+                        selected: _s.classLeadMin == m,
+                        onTap: () => _update(_s.copyWith(classLeadMin: m)),
+                      ),
                   ]),
                 ],
-                const SizedBox(height: 18),
-                Text('Sınav hatırlatmaları', style: BuType.heading.copyWith(color: t.ink)),
-                const SizedBox(height: 8),
-                BuGroup(children: [
-                  _switch('1 gün önce', _s.examDayBefore, (v) => _update(_s.copyWith(examDayBefore: v))),
-                  _switch('1 saat önce', _s.examHourBefore, (v) => _update(_s.copyWith(examHourBefore: v))),
-                ]),
+                const SizedBox(height: 16),
+                AkadSection(l.acadTimeExamReminders),
+                AkadCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(children: [
+                    AkadSwitchRow(title: l.acadTimeDayBefore, value: _s.examDayBefore, onChanged: (v) => _update(_s.copyWith(examDayBefore: v))),
+                    const AkadDivider(),
+                    AkadSwitchRow(title: l.acadTimeHourBefore, value: _s.examHourBefore, onChanged: (v) => _update(_s.copyWith(examHourBefore: v))),
+                  ]),
+                ),
               ],
             ),
-    );
-  }
-
-  Widget _switch(String label, bool value, ValueChanged<bool> onChanged) {
-    final t = context.bu;
-    return MergeSemantics(
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 54),
-        padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-        child: Row(children: [
-          Expanded(child: Text(label, style: BuType.bodyStrong.copyWith(color: t.ink))),
-          Switch(value: value, onChanged: onChanged),
-        ]),
-      ),
     );
   }
 }

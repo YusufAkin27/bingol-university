@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -18,6 +19,9 @@ typedef EnsureAccess = Future<bool> Function(BuildContext context, AppPermission
 /// Mesaja en çok seçilebilecek öğe sayısı (foto ve video karışık; sunucu kuralı).
 const kMaxPicks = 10;
 const kMaxVideoMs = 60 * 1000;
+
+// Tasarımdaki sabit koyu kamera karosu (iki temada aynı).
+const _kCamTile = Color(0xFF171E33);
 
 /// Tam ekran galeri seçici: en yeni önce, sayfalı kare ızgara, ilk karo kamera, çoklu seçim.
 /// "Önizle" ya da "Gönder" ile [MediaSendPlan] döner; kapatılırsa null.
@@ -53,6 +57,16 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+  }
+
+  bool _booted = false;
+
+  // Yerelleştirilmiş gerekçe metni için bağlam gerekir: ilk bağımlılık çözümünde başlat.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_booted) return;
+    _booted = true;
     _boot();
   }
 
@@ -67,7 +81,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     try {
       final ensure = widget.ensureAccess ?? ensurePermission;
       final ok = await ensure(context, AppPermission.photos,
-          rationale: 'Galerindeki fotoğraf ve videoları gösterebilmemiz için erişim izni gerekir.');
+          rationale: context.l10n.chatMiscGalleryRationale);
       if (!mounted) return;
       if (!ok) {
         setState(() {
@@ -150,11 +164,11 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   /// Sınırları denetleyip seçime ekler; olmazsa toast gösterir.
   bool _tryAdd(MediaPick p) {
     if (p.isVideo && p.durationMs > kMaxVideoMs + 500) {
-      _toast('Video en fazla 60 saniye olabilir');
+      _toast(context.l10n.chatMiscVideoMax60);
       return false;
     }
     if (_picked.length >= widget.maxItems) {
-      _toast('En fazla ${widget.maxItems} öğe seçebilirsin');
+      _toast(context.l10n.chatMiscPickMax(widget.maxItems.toString()));
       return false;
     }
     setState(() => _picked.add(p));
@@ -223,7 +237,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             for (final al in _albums)
               BuMenuRow(
                 icon: LucideIcons.image,
-                label: '${al.isAll ? 'Tümü' : al.name} (${al.count})',
+                label: '${al.isAll ? context.l10n.chatMiscAll : al.name} (${al.count})',
                 showChevron: false,
                 onTap: () => Navigator.pop(c, al),
               ),
@@ -246,39 +260,90 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final title = _album == null || _album!.isAll ? 'Tümü' : _album!.name;
+    final l = context.l10n;
+    final title = _album == null || _album!.isAll ? l.sohbetmedyaRecent : _album!.name;
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
         child: Column(children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
             child: Row(children: [
-              IconButton(
-                key: const ValueKey('pickerClose'),
-                tooltip: 'Kapat',
-                icon: Icon(LucideIcons.x, color: t.ink),
-                onPressed: () => Navigator.pop(context),
+              Semantics(
+                button: true,
+                label: l.chatMiscClose,
+                child: GestureDetector(
+                  key: const ValueKey('pickerClose'),
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                    child: Icon(LucideIcons.x, size: 20, color: t.ink),
+                  ),
+                ),
               ),
-              Text('Galeri', style: BuType.heading.copyWith(color: t.ink)),
               const SizedBox(width: 12),
-              if (_albums.length > 1)
-                Flexible(
-                  child: InkWell(
-                    key: const ValueKey('albumButton'),
-                    borderRadius: BorderRadius.circular(999),
-                    onTap: _chooseAlbum,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(l.chatMiscGallery,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
+                  Text(l.sohbetmedyaSelectedOf(_picked.length.toString(), widget.maxItems.toString()),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: t.mut)),
+                ]),
+              ),
+              if (_picked.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  key: const ValueKey('pickerPreview'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _preview,
+                  child: Semantics(
+                    button: true,
+                    label: l.sohbetmedyaNext,
+                    excludeSemantics: true,
+                    child: Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: t.pr,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .35), blurRadius: 20, offset: const Offset(0, 10), spreadRadius: -10)],
+                      ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Flexible(
-                          child: Text(title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.bodyStrong.copyWith(color: t.pr)),
-                        ),
-                        Icon(LucideIcons.chevronDown, size: 14.5, color: t.pr),
+                        Text(l.sohbetmedyaNext, style: BuType.bodyStrong.copyWith(color: t.onPr, fontWeight: FontWeight.w700)),
+                        const SizedBox(width: 8),
+                        Icon(Directionality.of(context) == TextDirection.rtl ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+                            size: 16, color: t.onPr),
                       ]),
+                    ),
+                  ),
+                ),
+              ],
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            child: Row(children: [
+              Flexible(child: _albumPill(t, title)),
+              const SizedBox(width: 8),
+              if (_picked.isEmpty)
+                Text(l.sohbetmedyaPhotoVideo, style: BuType.label.copyWith(color: t.mut))
+              else
+                GestureDetector(
+                  key: const ValueKey('pickerSend'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _sendNow,
+                  child: Semantics(
+                    button: true,
+                    label: l.chatMiscSend,
+                    excludeSemantics: true,
+                    child: Container(
+                      height: 36,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(18), border: Border.all(color: t.pr)),
+                      child: Text(l.chatMiscSend, style: BuType.bodyStrong.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ),
@@ -286,10 +351,35 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
           ),
           if (_access == LibraryAccess.limited) _limitedBanner(t),
           Expanded(child: _body(t)),
-          if (_picked.isNotEmpty) _bar(t),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Text(l.sohbetmedyaLimitNote(widget.maxItems.toString()),
+                textAlign: TextAlign.center, style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+          ),
         ]),
       ),
     );
+  }
+
+  Widget _albumPill(BuTokens t, String title) {
+    final multi = _albums.length > 1;
+    final pill = Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Flexible(
+          child: Text(title,
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+        ),
+        if (multi) ...[
+          const SizedBox(width: 8),
+          Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
+        ],
+      ]),
+    );
+    if (!multi) return pill;
+    return GestureDetector(key: const ValueKey('albumButton'), behavior: HitTestBehavior.opaque, onTap: _chooseAlbum, child: pill);
   }
 
   Widget _limitedBanner(BuTokens t) => Container(
@@ -299,15 +389,15 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
         child: Row(children: [
           Expanded(
-            child: Text('Yalnızca izin verdiğin öğeler görünüyor.', style: BuType.caption.copyWith(color: t.mut)),
+            child: Text(context.l10n.chatMiscLimitedNote, style: BuType.caption.copyWith(color: t.mut)),
           ),
           TextButton(
             onPressed: _manageLimited,
-            child: Text('Daha fazla seç', style: BuType.label.copyWith(color: t.pr)),
+            child: Text(context.l10n.chatMiscSelectMore, style: BuType.label.copyWith(color: t.pr)),
           ),
           TextButton(
             onPressed: () => widget.library.openSettings(),
-            child: Text('Ayarlar', style: BuType.label.copyWith(color: t.pr)),
+            child: Text(context.l10n.chatMiscSettings, style: BuType.label.copyWith(color: t.pr)),
           ),
         ]),
       );
@@ -320,11 +410,11 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(LucideIcons.image, size: 32.5, color: t.mut),
             const SizedBox(height: 12),
-            Text('Galeriye erişim izni verilmedi.', textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
+            Text(context.l10n.chatMiscGalleryDenied, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => widget.library.openSettings(),
-              child: Text('Ayarlardan aç', style: BuType.bodyStrong.copyWith(color: t.pr)),
+              child: Text(context.l10n.chatMiscOpenSettings, style: BuType.bodyStrong.copyWith(color: t.pr)),
             ),
           ]),
         ),
@@ -336,7 +426,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
       controller: _scroll,
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
+          crossAxisCount: 3, mainAxisSpacing: 3, crossAxisSpacing: 3),
       itemCount: _items.length + 1,
       itemBuilder: (c, i) {
         if (i == 0) return _cameraTile(t);
@@ -355,35 +445,23 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
 
   Widget _cameraTile(BuTokens t) => Semantics(
         button: true,
-        label: 'Kamera',
+        label: context.l10n.chatMiscCamera,
         child: GestureDetector(
           key: const ValueKey('cameraTile'),
           onTap: _camera,
           child: Container(
-            color: t.sf2,
+            color: _kCamTile,
             alignment: Alignment.center,
-            child: Icon(LucideIcons.camera, size: 27, color: t.mut),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(LucideIcons.camera, size: 30, color: Colors.white),
+              const SizedBox(height: 8),
+              Text(context.l10n.chatMiscCamera,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.label.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+            ]),
           ),
         ),
-      );
-
-  Widget _bar(BuTokens t) => Container(
-        decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-        child: Row(children: [
-          Expanded(
-            child: BuButton(
-              key: const ValueKey('pickerPreview'),
-              label: 'Önizle (${_picked.length})',
-              kind: BuButtonKind.outline,
-              onPressed: _preview,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: BuButton(key: const ValueKey('pickerSend'), label: 'Gönder', onPressed: _sendNow),
-          ),
-        ]),
       );
 }
 
@@ -417,34 +495,37 @@ class _GalleryTileState extends State<_GalleryTile> {
               ? const SizedBox.shrink()
               : Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 200),
         ),
-        if (order != null) Container(color: Colors.black.withValues(alpha: .25)),
+        if (order != null) ...[
+          ColoredBox(color: const Color(0xFF171E33).withValues(alpha: .18)),
+          IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: t.pr, width: 3)))),
+        ],
         if (g.isVideo)
           PositionedDirectional(
-            start: 4,
-            bottom: 4,
+            start: 7,
+            bottom: 7,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(color: Colors.black.withValues(alpha: .55), borderRadius: BorderRadius.circular(999)),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(color: const Color(0xFF171E33).withValues(alpha: .66), borderRadius: BorderRadius.circular(10)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(LucideIcons.video, size: 10, color: Colors.white),
-                const SizedBox(width: 3),
-                Text(formatMediaDuration(g.durationMs), style: BuType.micro.copyWith(color: Colors.white)),
+                const Icon(LucideIcons.video, size: 12, color: Colors.white),
+                const SizedBox(width: 4),
+                Text(formatMediaDuration(g.durationMs), style: BuType.micro.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
               ]),
             ),
           ),
         PositionedDirectional(
-          top: 6,
-          end: 6,
+          top: 7,
+          end: 7,
           child: Container(
-            width: 22,
-            height: 22,
+            width: 26,
+            height: 26,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: order != null ? t.pr : Colors.black.withValues(alpha: .15),
-              border: Border.all(color: Colors.white, width: 1.5),
+              color: order != null ? t.pr : const Color(0xFF171E33).withValues(alpha: .3),
+              border: Border.all(color: Colors.white, width: 2),
             ),
-            child: order != null ? Text('$order', style: BuType.micro.copyWith(color: t.onPr, fontWeight: FontWeight.w700)) : null,
+            child: order != null ? Text('$order', style: BuType.label.copyWith(color: t.onPr, fontWeight: FontWeight.w800)) : null,
           ),
         ),
       ]),

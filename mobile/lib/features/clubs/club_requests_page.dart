@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'kulup_widgets.dart';
 
 /// Kulübe gelen katılma istekleri: avatar + ad + cevaplar, Onayla / Reddet.
 /// Pop sonucu: en az bir istek karara bağlandıysa true (kulüp sayfası sayıları yeniler).
@@ -83,21 +85,21 @@ class _ClubRequestsPageState extends State<ClubRequestsPage> {
     } else if (_error != null && _items.isEmpty) {
       body = ErrorView(error: _error!, onRetry: () => _load(reset: true));
     } else if (_items.isEmpty) {
-      body = const EmptyView(icon: LucideIcons.inbox, text: 'Bekleyen başvuru yok.');
+      body = EmptyView(icon: LucideIcons.inbox, text: context.l10n.clubMgmtNoPending);
     } else {
       body = RefreshIndicator(
         onRefresh: () => _load(reset: true),
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           physics: const AlwaysScrollableScrollPhysics(),
           itemCount: _items.length + (_next != null ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (_, i) {
             if (i >= _items.length) {
               return Center(
                 child: TextButton(
                   onPressed: _loading ? null : () => _load(),
-                  child: const Text('Daha fazla başvuru'),
+                  child: Text(context.l10n.clubMgmtMoreRequests),
                 ),
               );
             }
@@ -116,8 +118,8 @@ class _ClubRequestsPageState extends State<ClubRequestsPage> {
         body: Column(
           children: [
             BuHeader(
-              title: 'Başvurular',
-              subtitle: _items.isEmpty ? null : '${_items.length}${_next != null ? '+' : ''} bekliyor',
+              title: context.l10n.kulupdetayRequestsTitle,
+              subtitle: _items.isEmpty ? null : context.l10n.clubMgmtWaitingCount('${_items.length}${_next != null ? '+' : ''}'),
               onBack: () => Navigator.pop(context, _changed),
             ),
             Expanded(child: body),
@@ -137,46 +139,54 @@ class _ClubRequestsPageState extends State<ClubRequestsPage> {
         children: [
           Row(
             children: [
-              BuAvatar(name: r['displayName']?.toString(), url: r['avatarUrl']?.toString(), size: 40),
-              const SizedBox(width: 10),
+              KulupAvatar(name: r['displayName']?.toString(), url: r['avatarUrl']?.toString(), size: 44),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text((r['displayName'] ?? 'Kullanıcı').toString(),
-                    maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
+                child: Text((r['displayName'] ?? context.l10n.clubMgmtUser).toString(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
               ),
             ],
           ),
           if (answers.isNotEmpty)
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.only(top: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(color: t.bg, borderRadius: BorderRadius.circular(14)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   for (final a in answers)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text((a['question'] ?? '').toString(), style: BuType.label.copyWith(color: t.mut)),
-                          Text((a['answer'] ?? '').toString(), style: BuType.caption.copyWith(color: t.ink)),
+                          const SizedBox(height: 2),
+                          Text((a['answer'] ?? '').toString(), style: BuType.body.copyWith(height: 1.4, color: t.ink)),
                         ],
                       ),
                     ),
                 ],
               ),
             ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
-                child: BuButton(
-                    label: 'Reddet', kind: BuButtonKind.outline, compact: true, onPressed: busy ? null : () => _decide(r, false)),
+                child: KulupActionButton(
+                    label: context.l10n.clubMgmtReject, onPressed: busy ? null : () => _decide(r, false)),
               ),
               const SizedBox(width: 10),
-              Expanded(child: BuButton(label: 'Onayla', compact: true, busy: busy, onPressed: () => _decide(r, true))),
+              Expanded(
+                child: KulupActionButton(
+                    primary: true,
+                    label: busy ? context.l10n.kulupdetayApproving : context.l10n.clubMgmtApprove,
+                    onPressed: busy ? null : () => _decide(r, true)),
+              ),
             ],
           ),
         ],

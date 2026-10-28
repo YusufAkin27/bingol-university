@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../core/typography.dart';
+import 'kulup_widgets.dart';
 
 /// Kulübe katılım akışı: onaylı kulüplerde önce katılım soruları sorulur.
 /// Dönüş: sunucunun verdiği durum ('ACTIVE' | 'PENDING'); kullanıcı vazgeçtiyse null.
@@ -33,8 +35,8 @@ Future<String?> joinClubFlow(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: context.bu.sf,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: context.bu.bg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (_) => _JoinQuestionsSheet(clubName: clubName, questions: questions),
     );
     if (answers == null) return null;
@@ -85,47 +87,63 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l10n = context.l10n;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Katılma isteği',
-                style: BuType.title.copyWith(color: t.ink)),
+            // Tutamaç
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            Semantics(
+              header: true,
+              child: Text(l10n.clubMgmtJoinTitle, style: BuType.title.copyWith(fontSize: 19.5, color: t.ink)),
+            ),
             const SizedBox(height: 4),
-            Text('${widget.clubName} yöneticileri cevaplarını görecek.',
-                style: BuType.caption.copyWith(color: t.mut)),
-            const SizedBox(height: 16),
+            Text(l10n.clubMgmtJoinAdminsSee(widget.clubName), style: BuType.caption.copyWith(fontSize: 12.5, color: t.mut)),
+            const SizedBox(height: 14),
             for (var i = 0; i < widget.questions.length; i++) ...[
               Text((widget.questions[i]['question'] ?? '').toString(),
-                  style: BuType.bodyStrong.copyWith(color: t.ink)),
+                  style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
               const SizedBox(height: 6),
               TextField(
                 controller: _ctrls[i],
                 maxLength: 500,
-                minLines: 1,
+                minLines: 2,
                 maxLines: 4,
                 textInputAction: TextInputAction.next,
-                style: BuType.body.copyWith(color: t.ink),
-                decoration: InputDecoration(
-                  hintText: 'Cevabın',
-                  errorText: _showErrors && _ctrls[i].text.trim().isEmpty ? 'Bu soru zorunlu' : null,
+                onChanged: (_) {
+                  if (_showErrors) setState(() {});
+                },
+                style: BuType.body.copyWith(fontSize: 14.5, color: t.ink),
+                decoration: kulupField(
+                  context,
+                  hint: l10n.kulupdetayAnswerHint,
+                  error: _showErrors && _ctrls[i].text.trim().isEmpty ? l10n.kulupdetayRequired : null,
+                  pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
             const SizedBox(height: 4),
             Row(
               children: [
                 Expanded(
-                  child: BuButton(
-                      label: 'Vazgeç', kind: BuButtonKind.outline, onPressed: () => Navigator.pop(context)),
+                  flex: 10,
+                  child: BuButton(label: l10n.clubMgmtCancel, kind: BuButtonKind.outline, onPressed: () => Navigator.pop(context)),
                 ),
                 const SizedBox(width: 10),
-                Expanded(child: BuButton(label: 'İstek gönder', onPressed: _submit)),
+                Expanded(flex: 14, child: BuButton(label: l10n.kulupdetaySendRequest, onPressed: _submit)),
               ],
             ),
           ],

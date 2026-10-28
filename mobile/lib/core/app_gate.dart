@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/system/gate_views.dart';
+import 'locale_controller.dart';
 import 'analytics.dart';
 import 'api.dart';
 import 'device_identity.dart';
@@ -218,9 +219,9 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
       return UpdateRequiredScreen(storeUrl: _d.storeUrl);
     }
     final strips = <Widget>[
-      if (_offline) const TopStrip(icon: Icons.cloud_off, text: 'Çevrimdışı', danger: true),
+      if (_offline) TopStrip(icon: Icons.cloud_off, text: context.l10n.coreOffline, danger: true),
       if (_d.maintenance)
-        TopStrip(icon: Icons.construction, text: _d.maintenanceMessage ?? 'Sistem bakımda.'),
+        TopStrip(icon: Icons.construction, text: _d.maintenanceMessage ?? context.l10n.coreMaintenance),
       if (_d.banner != null) TopStrip(icon: Icons.campaign, text: _d.banner!),
     ];
     return Stack(

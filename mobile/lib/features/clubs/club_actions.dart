@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
@@ -23,7 +24,7 @@ Future<bool> confirmDialog(
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.clubCancel)),
         TextButton(
           onPressed: () => Navigator.pop(c, true),
           child: Text(confirmLabel, style: danger ? TextStyle(color: t.pr) : null),
@@ -44,24 +45,24 @@ Future<bool> leaveClubFlow(
   required String clubName,
   bool isOwner = false,
 }) async {
-  const ownerInfo = 'Kulüp sahibi ayrılamaz. Önce sahipliği devret ya da kulübü sil.';
+  final l10n = context.l10n;
+  final ownerInfo = l10n.clubOwnerCannotLeave;
   if (isOwner) {
     await showDialog<void>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Kulüpten ayrılamazsın'),
-        content: const Text(ownerInfo),
-        actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('Tamam'))],
+        title: Text(l10n.clubCannotLeaveTitle),
+        content: Text(ownerInfo),
+        actions: [TextButton(onPressed: () => Navigator.pop(c), child: Text(l10n.clubOk))],
       ),
     );
     return false;
   }
   final ok = await confirmDialog(
     context,
-    title: 'Kulüpten ayrıl',
-    message: '${clubName.isEmpty ? 'Bu kulüp' : clubName} kulübünden ayrılmak istiyor musun? '
-        'Kulüp sohbetinden de çıkarılacaksın ve sohbet listenden silinecek.',
-    confirmLabel: 'Ayrıl',
+    title: l10n.clubLeave,
+    message: l10n.clubLeaveMessage(clubName.isEmpty ? l10n.clubThisClub : clubName),
+    confirmLabel: l10n.clubLeaveConfirm,
     danger: true,
   );
   if (!ok || !context.mounted) return false;

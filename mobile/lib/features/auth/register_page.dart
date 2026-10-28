@@ -23,13 +23,16 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+/// Kayıt 3 adımda istenir: akademik bilgi → kişisel bilgi → şifre. Sözleşme onayı kayıtla birlikte
+/// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bilgi satırı gösterilir.
 class _RegisterPageState extends State<RegisterPage> {
+  static const _steps = 3;
+
   final _form = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  bool _terms = false;
-  bool _termsError = false;
+  int _step = 0;
   bool _busy = false;
   String? _error;
   late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
@@ -60,17 +63,34 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  bool get _academicOk => (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
+
+  void _goTo(int step) => setState(() {
+        _step = step;
+        _error = null;
+      });
+
+  Future<void> _next() async {
+    if (_busy) return;
+    if (_step == 0) {
+      setState(() {
+        _tried = true;
+        if (!_academicOk && _catalog.state == CatalogState.error) {
+          _error = context.l10n.authDepartmentsLoadFailed;
+        }
+      });
+      if (_academicOk) _goTo(1);
+      return;
+    }
+    if (!(_form.currentState?.validate() ?? false)) return;
+    if (_step < _steps - 1) {
+      _goTo(_step + 1);
+    } else {
+      await _submit();
+    }
+  }
+
   Future<void> _submit() async {
-    final valid = _form.currentState!.validate();
-    final academic = (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
-    setState(() {
-      _termsError = !_terms;
-      _tried = true;
-      if (!academic && _catalog.state == CatalogState.error) {
-        _error = context.l10n.authDepartmentsLoadFailed;
-      }
-    });
-    if (_busy || !valid || !academic || !_terms) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -100,87 +120,118 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  String _title(BuildContext c) => switch (_step) {
+        0 => c.l10n.authStep1Title,
+        1 => c.l10n.authStep2Title,
+        _ => c.l10n.authSectionPassword,
+      };
+
+  String _hint(BuildContext c) => switch (_step) {
+        0 => c.l10n.authHintAcademic,
+        1 => c.l10n.authHintPersonal,
+        _ => c.l10n.authHintPassword,
+      };
+
+  Widget _stepBody(BuildContext context) {
+    final t = context.bu;
+    switch (_step) {
+      case 0:
+        return AcademicFields(
+          catalog: _catalog,
+          faculty: _faculty,
+          department: _department,
+          grade: _grade,
+          enabled: !_busy,
+          departmentError: _departmentErr,
+          gradeError: _gradeErr,
+          onChanged: (f, d, g) => setState(() {
+            _faculty = f;
+            _department = d;
+            _grade = g;
+            _error = null;
+          }),
+        );
+      case 1:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _name,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.words,
+              autofillHints: const [AutofillHints.name],
+              maxLength: 80,
+              validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.authNameRequired : null,
+              style: BuType.body.copyWith(color: t.ink),
+              decoration: authFieldDecoration(context, hint: context.l10n.authNameHint, icon: LucideIcons.user)
+                  .copyWith(counterText: ''),
+            ),
+            const SizedBox(height: 14),
+            IdentifierField(controller: _email, onSubmitted: _next),
+          ],
+        );
+      default:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PasswordField(
+              controller: _password,
+              label: context.l10n.authPasswordMin8,
+              validator: newPasswordValidator(context),
+              autofillHints: const [AutofillHints.newPassword],
+              onSubmitted: _next,
+            ),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _password,
+              builder: (_, v, __) => PasswordStrength(password: v.text),
+            ),
+          ],
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return AuthScaffold(
-      minimal: true,
-      showBack: true,
-      title: context.l10n.authCreateAccount,
-      subtitle: context.l10n.authRegisterSubtitle,
-      children: [
-        Form(
-          key: _form,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: AutofillGroup(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_error != null) Notice(_error!),
-                AuthSectionLabel(context.l10n.authSectionAcademic),
-                AcademicFields(
-                  catalog: _catalog,
-                  faculty: _faculty,
-                  department: _department,
-                  grade: _grade,
-                  enabled: !_busy,
-                  departmentError: _departmentErr,
-                  gradeError: _gradeErr,
-                  onChanged: (f, d, g) => setState(() {
-                    _faculty = f;
-                    _department = d;
-                    _grade = g;
-                  }),
-                ),
-                const SizedBox(height: 28),
-                AuthSectionLabel(context.l10n.authSectionAccount),
-                TextFormField(
-                  controller: _name,
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.words,
-                  autofillHints: const [AutofillHints.name],
-                  maxLength: 80,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? context.l10n.authNameRequired : null,
-                  style: BuType.body.copyWith(color: t.ink),
-                  decoration: authFieldDecoration(context, hint: context.l10n.authNameHint, icon: LucideIcons.user)
-                      .copyWith(counterText: ''),
-                ),
-                const SizedBox(height: 14),
-                IdentifierField(controller: _email),
-                const SizedBox(height: 14),
-                PasswordField(
-                  controller: _password,
-                  label: context.l10n.authPasswordMin8,
-                  validator: validateNewPassword,
-                  autofillHints: const [AutofillHints.newPassword],
-                  onSubmitted: _submit,
-                ),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _password,
-                  builder: (_, v, __) => PasswordStrength(password: v.text),
-                ),
-                const SizedBox(height: 24),
-                Material(
-                  color: _termsError ? Theme.of(context).colorScheme.errorContainer : t.soft.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(14),
-                  clipBehavior: Clip.antiAlias,
-                  child: CheckboxListTile(
-                    value: _terms,
-                    onChanged: _busy
-                        ? null
-                        : (v) => setState(() {
-                              _terms = v ?? false;
-                              _termsError = false;
-                            }),
-                    contentPadding: const EdgeInsetsDirectional.fromSTEB(4, 4, 12, 4),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    activeColor: t.pr,
-                    title: Text.rich(
+    final last = _step == _steps - 1;
+    return PopScope(
+      canPop: _step == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !_busy) _goTo(_step - 1);
+      },
+      child: AuthScaffold(
+        showBack: true,
+        trailing: Text(context.l10n.authStepOf('${_step + 1}', '$_steps'),
+            style: BuType.label.copyWith(color: t.mut, fontSize: 13)),
+        progress: AuthProgress(step: _step, total: _steps),
+        title: _title(context),
+        subtitle: _hint(context),
+        children: [
+          Form(
+            key: _form,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_error != null) Notice(_error!),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
+                  ),
+                  const SizedBox(height: 28),
+                  AuthButton(
+                    onPressed: _busy ? null : _next,
+                    busy: _busy,
+                    label: last ? context.l10n.loginRegister : context.l10n.authNext,
+                  ),
+                  if (last) ...[
+                    const SizedBox(height: 14),
+                    Text.rich(
                       TextSpan(
-                        style: BuType.caption.copyWith(height: 1.45, color: _termsError ? t.danger : t.mut),
+                        style: BuType.caption.copyWith(height: 1.5, color: t.mut),
                         children: [
-                          TextSpan(text: context.l10n.authTermsPrefix),
+                          TextSpan(text: context.l10n.authTermsAutoPrefix),
                           TextSpan(
                             text: context.l10n.authTermsLink,
                             recognizer: _termsLink,
@@ -192,38 +243,30 @@ class _RegisterPageState extends State<RegisterPage> {
                             recognizer: _privacyLink,
                             style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
                           ),
-                          TextSpan(text: context.l10n.authTermsSuffix),
+                          TextSpan(text: context.l10n.authTermsAutoSuffix),
                         ],
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    subtitle: _termsError
-                        ? Text(context.l10n.authMustAccept, style: BuType.caption.copyWith(color: t.danger))
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: _busy ? null : _submit,
-                  child: BusyLabel(busy: _busy, label: context.l10n.loginRegister),
-                ),
-              ],
+                  ],
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(context.l10n.authHaveAccount, style: BuType.body.copyWith(color: t.mut)),
-            TextButton(
-              onPressed: _busy ? null : () => Navigator.maybePop(context),
-              child: Text(context.l10n.loginSubmit),
-            ),
-          ],
-        ),
-      ],
+          const SizedBox(height: 20),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(context.l10n.authHaveAccount, style: BuType.body.copyWith(color: t.mut)),
+              TextButton(
+                onPressed: _busy ? null : () => Navigator.maybePop(context),
+                child: Text(context.l10n.loginSubmit),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

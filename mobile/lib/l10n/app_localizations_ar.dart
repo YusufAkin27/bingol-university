@@ -164,7 +164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginWelcome => 'مرحبًا بك';
 
   @override
-  String get loginSubtitle => 'سجّل الدخول بحساب جامعة بينغول.';
+  String get loginSubtitle => 'سجّل الدخول ببريدك الجامعي.';
 
   @override
   String get loginReplacedNotice =>
@@ -201,7 +201,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPasswordLabel => 'كلمة المرور';
 
   @override
-  String get authIdHint => 'الرقم الجامعي أو البريد الإلكتروني';
+  String get authIdHint => 'بريدك الجامعي';
 
   @override
   String get authVerify => 'تحقق';
@@ -230,7 +230,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String authCodeSentTo(String email) {
-    return 'تم إرسال رمز إلى $email.';
+    return 'أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى $email.';
   }
 
   @override
@@ -249,16 +249,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authUseOtherAccount => 'سجّل الدخول بحساب آخر';
 
   @override
-  String get authResetTitle => 'إعادة تعيين كلمة المرور';
+  String get authResetTitle => 'هل نسيت كلمة المرور؟';
 
   @override
   String get authSendCode => 'إرسال الرمز';
 
   @override
-  String get authNewPasswordTitle => 'كلمة مرور جديدة';
+  String get authNewPasswordTitle => 'عيّن كلمة مرور جديدة';
 
   @override
-  String get authNewPasswordLabel => 'كلمة المرور الجديدة (8 أحرف على الأقل)';
+  String get authNewPasswordLabel => 'كلمة مرور جديدة';
 
   @override
   String get authUpdatePassword => 'تحديث كلمة المرور';
@@ -329,4 +329,5824 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authPwStrong => 'قوية';
+
+  @override
+  String get acadMonth1 => 'يناير';
+
+  @override
+  String get acadMonth2 => 'فبراير';
+
+  @override
+  String get acadMonth3 => 'مارس';
+
+  @override
+  String get acadMonth4 => 'أبريل';
+
+  @override
+  String get acadMonth5 => 'مايو';
+
+  @override
+  String get acadMonth6 => 'يونيو';
+
+  @override
+  String get acadMonth7 => 'يوليو';
+
+  @override
+  String get acadMonth8 => 'أغسطس';
+
+  @override
+  String get acadMonth9 => 'سبتمبر';
+
+  @override
+  String get acadMonth10 => 'أكتوبر';
+
+  @override
+  String get acadMonth11 => 'نوفمبر';
+
+  @override
+  String get acadMonth12 => 'ديسمبر';
+
+  @override
+  String get acadDay1 => 'الاثنين';
+
+  @override
+  String get acadDay2 => 'الثلاثاء';
+
+  @override
+  String get acadDay3 => 'الأربعاء';
+
+  @override
+  String get acadDay4 => 'الخميس';
+
+  @override
+  String get acadDay5 => 'الجمعة';
+
+  @override
+  String get acadDay6 => 'السبت';
+
+  @override
+  String get acadDay7 => 'الأحد';
+
+  @override
+  String get acadDayShort1 => 'اث';
+
+  @override
+  String get acadDayShort2 => 'ثل';
+
+  @override
+  String get acadDayShort3 => 'أر';
+
+  @override
+  String get acadDayShort4 => 'خم';
+
+  @override
+  String get acadDayShort5 => 'جم';
+
+  @override
+  String get acadDayShort6 => 'سب';
+
+  @override
+  String get acadDayShort7 => 'أح';
+
+  @override
+  String get acadColorRed => 'أحمر';
+
+  @override
+  String get acadColorOrange => 'برتقالي';
+
+  @override
+  String get acadColorAmber => 'أصفر';
+
+  @override
+  String get acadColorGreen => 'أخضر';
+
+  @override
+  String get acadColorTeal => 'تركوازي';
+
+  @override
+  String get acadColorBlue => 'أزرق';
+
+  @override
+  String get acadColorIndigo => 'نيلي';
+
+  @override
+  String get acadColorPurple => 'بنفسجي';
+
+  @override
+  String get acadColorPink => 'وردي';
+
+  @override
+  String get acadColorGray => 'رمادي';
+
+  @override
+  String get acadExamTypeVize => 'امتحان نصفي';
+
+  @override
+  String get acadExamTypeFinal => 'امتحان نهائي';
+
+  @override
+  String get acadExamTypeBut => 'امتحان تكميلي';
+
+  @override
+  String get acadExamTypeQuiz => 'اختبار قصير';
+
+  @override
+  String get acadExamTypeOdev => 'واجب';
+
+  @override
+  String get acadExamTypeDiger => 'أخرى';
+
+  @override
+  String get acadEventKindSemesterStart => 'بداية الفصل';
+
+  @override
+  String get acadEventKindRegistration => 'تسجيل المقررات';
+
+  @override
+  String get acadEventKindHoliday => 'عطلة';
+
+  @override
+  String get acadEventKindPublicHoliday => 'عطلة رسمية';
+
+  @override
+  String acadCountdownDays(String n) {
+    return 'متبقي $n يوم';
+  }
+
+  @override
+  String acadCountdownHours(String n) {
+    return 'متبقي $n ساعة';
+  }
+
+  @override
+  String acadCountdownMinutes(String n) {
+    return 'متبقي $n دقيقة';
+  }
+
+  @override
+  String get acadGradePrep => 'السنة التحضيرية';
+
+  @override
+  String get acadGradeMaster => 'ماجستير';
+
+  @override
+  String get acadGradePhd => 'دكتوراه';
+
+  @override
+  String acadGradeN(String n) {
+    return 'السنة $n';
+  }
+
+  @override
+  String get acadSave => 'حفظ';
+
+  @override
+  String get acadDelete => 'حذف';
+
+  @override
+  String get acadCancel => 'إلغاء';
+
+  @override
+  String get acadRetry => 'إعادة المحاولة';
+
+  @override
+  String get acadSelect => 'اختيار';
+
+  @override
+  String get acadMaintenance =>
+      'الخدمات الأكاديمية قيد الصيانة. يرجى المحاولة لاحقًا.';
+
+  @override
+  String get acadMyDept => 'قسمي';
+
+  @override
+  String get acadAll => 'الكل';
+
+  @override
+  String get acadHubTitle => 'الأكاديمي';
+
+  @override
+  String get acadHubReminders => 'التذكيرات';
+
+  @override
+  String get acadHubAddCourses => 'أضف مقرراتك';
+
+  @override
+  String get acadHubNoClassWeek => 'لا توجد محاضرات هذا الأسبوع';
+
+  @override
+  String acadHubNext(String course, String time) {
+    return 'التالي: $course $time';
+  }
+
+  @override
+  String get acadHubNoExam => 'لا توجد امتحانات قادمة';
+
+  @override
+  String acadHubExamCount(String n) {
+    return '$n امتحانات قادمة';
+  }
+
+  @override
+  String get acadHubTimetable => 'الجدول الدراسي';
+
+  @override
+  String get acadHubTimetableSub => 'جدولك الدراسي الأسبوعي';
+
+  @override
+  String get acadHubExamsSub => 'جدول امتحاناتك والبرنامج الرسمي';
+
+  @override
+  String get acadHubCalendarSub => 'تواريخ الفصل والتسجيل والامتحانات';
+
+  @override
+  String get acadHubAnnouncementsSub => 'إعلانات خاصة بقسمك';
+
+  @override
+  String acadHubUnread(String n) {
+    return '$n غير مقروءة';
+  }
+
+  @override
+  String get acadExamsTitle => 'الامتحانات';
+
+  @override
+  String get acadExamsAdd => 'إضافة امتحان';
+
+  @override
+  String get acadExamsTabMine => 'امتحاناتي';
+
+  @override
+  String get acadExamsTabOfficial => 'البرنامج الرسمي';
+
+  @override
+  String get acadExamsEmptyMine =>
+      'لم تضف أي امتحان شخصي.\nتابع مواعيد الامتحانات النصفية والنهائية والاختبارات القصيرة من هنا.';
+
+  @override
+  String get acadExamsUpcoming => 'القادمة';
+
+  @override
+  String get acadExamsNoUpcoming => 'لا توجد امتحانات قادمة.';
+
+  @override
+  String get acadExamsPast => 'السابقة';
+
+  @override
+  String acadExamsSemantic(String type, String title, String date) {
+    return '$type: $title. $date. المس للتعديل.';
+  }
+
+  @override
+  String acadExamsSemanticCd(
+      String type, String title, String date, String countdown) {
+    return '$type: $title. $date. $countdown. المس للتعديل.';
+  }
+
+  @override
+  String acadOfficialSemantic(String type, String title, String date) {
+    return '$type: $title. $date';
+  }
+
+  @override
+  String acadOfficialSemanticRoom(
+      String type, String title, String date, String room) {
+    return '$type: $title. $date، $room';
+  }
+
+  @override
+  String get acadExamsProfileIncomplete =>
+      'لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر تعديل الملف الشخصي.';
+
+  @override
+  String get acadExamsEmptyOfficial => 'لم يُنشر أي برنامج امتحانات رسمي بعد.';
+
+  @override
+  String get acadFormErrTitle => 'عنوان الامتحان مطلوب.';
+
+  @override
+  String get acadFormErrDate => 'اختر تاريخ الامتحان.';
+
+  @override
+  String get acadFormErrEnd => 'يجب أن يكون وقت الانتهاء بعد وقت البدء.';
+
+  @override
+  String get acadFormDeleteTitle => 'حذف الامتحان';
+
+  @override
+  String acadFormDeleteText(String title) {
+    return 'سيتم حذف \"$title\".';
+  }
+
+  @override
+  String get acadFormEdit => 'تعديل الامتحان';
+
+  @override
+  String get acadFormNew => 'امتحان جديد';
+
+  @override
+  String get acadFormTitleLabel => 'العنوان';
+
+  @override
+  String get acadFormTitleHint => 'مثال: هياكل البيانات - النصفي الأول';
+
+  @override
+  String get acadFormType => 'النوع';
+
+  @override
+  String get acadFormCourseOpt => 'المقرر (اختياري)';
+
+  @override
+  String get acadFormNone => 'بدون';
+
+  @override
+  String get acadFormDateTime => 'التاريخ والوقت';
+
+  @override
+  String get acadFormExamDate => 'تاريخ الامتحان';
+
+  @override
+  String get acadFormPickDate => 'اختر التاريخ';
+
+  @override
+  String get acadFormStartTime => 'وقت البدء';
+
+  @override
+  String get acadFormEndTime => 'وقت الانتهاء';
+
+  @override
+  String get acadFormEndHint => 'الانتهاء (اختياري)';
+
+  @override
+  String get acadFormRoom => 'القاعة';
+
+  @override
+  String get acadFormRoomHint => 'مثال: B-204';
+
+  @override
+  String get acadFormNote => 'ملاحظة';
+
+  @override
+  String get acadFormNoteHint => 'اختياري';
+
+  @override
+  String get acadFormAdd => 'إضافة الامتحان';
+
+  @override
+  String get acadAnnTitle => 'إعلانات القسم';
+
+  @override
+  String get acadAnnDetailTitle => 'إعلان';
+
+  @override
+  String get acadAnnReadAll => 'تحديد الكل كمقروء';
+
+  @override
+  String get acadAnnEmptyMine =>
+      'لا توجد إعلانات خاصة بقسمك.\nيمكنك رؤية كل الإعلانات من تبويب \"الكل\".';
+
+  @override
+  String get acadAnnEmptyAll => 'لا توجد إعلانات بعد.';
+
+  @override
+  String get acadAnnAudienceAll => 'الجامعة كاملة';
+
+  @override
+  String get acadAnnUnread => 'غير مقروء';
+
+  @override
+  String get acadAnnPinned => 'مثبّت';
+
+  @override
+  String get acadAnnLinkError => 'تعذر فتح الرابط.';
+
+  @override
+  String get acadAnnOpenAttachment => 'فتح المرفق';
+
+  @override
+  String get acadCalTitle => 'التقويم الأكاديمي';
+
+  @override
+  String get acadCalPrev => 'الشهر السابق';
+
+  @override
+  String get acadCalNext => 'الشهر التالي';
+
+  @override
+  String get acadCalToday => 'اليوم';
+
+  @override
+  String acadCalEventCount(String n) {
+    return '$n تواريخ مهمة';
+  }
+
+  @override
+  String acadCalMonthHeading(String month) {
+    return 'التواريخ المهمة لشهر $month';
+  }
+
+  @override
+  String get acadCalNoMonth => 'لا توجد تواريخ مهمة مسجلة لهذا الشهر.';
+
+  @override
+  String get acadCalNoDay => 'لا توجد تواريخ مهمة في هذا اليوم.';
+
+  @override
+  String get acadCalNextHeading => 'التواريخ المهمة القادمة';
+
+  @override
+  String get acadTimeDay1 => 'الإثنين';
+
+  @override
+  String get acadTimeDay2 => 'الثلاثاء';
+
+  @override
+  String get acadTimeDay3 => 'الأربعاء';
+
+  @override
+  String get acadTimeDay4 => 'الخميس';
+
+  @override
+  String get acadTimeDay5 => 'الجمعة';
+
+  @override
+  String get acadTimeDay6 => 'السبت';
+
+  @override
+  String get acadTimeDay7 => 'الأحد';
+
+  @override
+  String get acadTimeDayShort1 => 'إثن';
+
+  @override
+  String get acadTimeDayShort2 => 'ثلا';
+
+  @override
+  String get acadTimeDayShort3 => 'أرب';
+
+  @override
+  String get acadTimeDayShort4 => 'خمي';
+
+  @override
+  String get acadTimeDayShort5 => 'جمع';
+
+  @override
+  String get acadTimeDayShort6 => 'سبت';
+
+  @override
+  String get acadTimeDayShort7 => 'أحد';
+
+  @override
+  String get acadTimeColorRed => 'أحمر';
+
+  @override
+  String get acadTimeColorOrange => 'برتقالي';
+
+  @override
+  String get acadTimeColorAmber => 'أصفر';
+
+  @override
+  String get acadTimeColorGreen => 'أخضر';
+
+  @override
+  String get acadTimeColorTeal => 'تركوازي';
+
+  @override
+  String get acadTimeColorBlue => 'أزرق';
+
+  @override
+  String get acadTimeColorIndigo => 'نيلي';
+
+  @override
+  String get acadTimeColorPurple => 'بنفسجي';
+
+  @override
+  String get acadTimeColorPink => 'وردي';
+
+  @override
+  String get acadTimeColorGray => 'رمادي';
+
+  @override
+  String get acadTimeExamVize => 'امتحان نصفي';
+
+  @override
+  String get acadTimeExamFinal => 'امتحان نهائي';
+
+  @override
+  String get acadTimeExamBut => 'امتحان تكميلي';
+
+  @override
+  String get acadTimeExamQuiz => 'اختبار قصير';
+
+  @override
+  String get acadTimeExamOdev => 'واجب';
+
+  @override
+  String get acadTimeExamOther => 'أخرى';
+
+  @override
+  String acadTimeRemClass(String min, String time, String room) {
+    return 'يبدأ بعد $min دقيقة ($time$room)';
+  }
+
+  @override
+  String acadTimeRemExamLabel(String type, String title) {
+    return '$type: $title';
+  }
+
+  @override
+  String acadTimeRemExamTomorrow(String time, String room) {
+    return 'غدا $time$room';
+  }
+
+  @override
+  String acadTimeRemExamHour(String room) {
+    return 'يبدأ بعد ساعة$room';
+  }
+
+  @override
+  String get acadTimeExportNone => 'لا توجد مواد للتصدير.';
+
+  @override
+  String get acadTimeExportCopied => 'تم نسخ نص التقويم (.ics) إلى الحافظة.';
+
+  @override
+  String get acadTimeTitle => 'الجدول الدراسي';
+
+  @override
+  String get acadTimeExportTooltip => 'تصدير إلى التقويم (.ics)';
+
+  @override
+  String get acadTimeAddCourse => 'إضافة مادة';
+
+  @override
+  String get acadTimeStale => 'تعذر التحديث، تُعرض آخر البيانات.';
+
+  @override
+  String get acadTimePickSemester => 'اختر الفصل';
+
+  @override
+  String acadTimeMyCourses(String count) {
+    return 'موادي ($count)';
+  }
+
+  @override
+  String get acadTimeEmptyText =>
+      'لم تضف أي مادة بعد.\nأضف موادك لإنشاء جدولك الأسبوعي.';
+
+  @override
+  String get acadTimeAddFirst => 'أضف أول مادة';
+
+  @override
+  String get acadTimeNowInClass => 'في المحاضرة الآن';
+
+  @override
+  String acadTimeMinLeft(String name, String min) {
+    return '$name · متبقي $min دقيقة';
+  }
+
+  @override
+  String get acadTimeNextClass => 'المحاضرة التالية';
+
+  @override
+  String acadTimeWhenMin(String min) {
+    return 'بعد $min دقيقة';
+  }
+
+  @override
+  String acadTimeWhenHours(String h) {
+    return 'بعد $h ساعة';
+  }
+
+  @override
+  String acadTimeWhenHoursMin(String h, String min) {
+    return 'بعد $h ساعة و$min دقيقة';
+  }
+
+  @override
+  String acadTimeWhenDay(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get acadTimeToday => 'اليوم';
+
+  @override
+  String get acadTimeNoMoreWeek => 'لا توجد محاضرات أخرى هذا الأسبوع.';
+
+  @override
+  String get acadTimeTodayNone => 'لا توجد محاضرات متبقية اليوم';
+
+  @override
+  String acadTimeTodayLeft(String count) {
+    return 'متبقي $count محاضرات اليوم';
+  }
+
+  @override
+  String acadTimeDayToday(String day) {
+    return '$day، اليوم';
+  }
+
+  @override
+  String acadTimeNoClassDay(String day) {
+    return 'لا توجد محاضرات يوم $day.';
+  }
+
+  @override
+  String get acadTimeOutOfRange => 'هذا التاريخ خارج نطاق الفصل.';
+
+  @override
+  String get acadTimeStatusNow => 'الآن';
+
+  @override
+  String get acadTimeStatusDone => 'انتهت';
+
+  @override
+  String acadTimeSlotSemantic(
+      String name, String day, String start, String end) {
+    return '$name، $day من $start إلى $end';
+  }
+
+  @override
+  String acadTimeCourseSemantic(String name, String days) {
+    return '$name. $days. اضغط للتعديل.';
+  }
+
+  @override
+  String get acadTimeNoSessions => 'لا توجد جلسات';
+
+  @override
+  String get acadTimeNameRequired => 'اسم المادة مطلوب';
+
+  @override
+  String get acadTimeEndAfterStart => 'يجب أن يكون وقت الانتهاء بعد وقت البدء.';
+
+  @override
+  String get acadTimeOwnConflict => 'جلسات هذه المادة متداخلة';
+
+  @override
+  String get acadTimeConflictTitle => 'تعارض في المواعيد';
+
+  @override
+  String acadTimeConflictText(String lines) {
+    return 'تتعارض المواعيد مع هذه المواد:\n$lines\n\nهل تريد الحفظ على أي حال؟';
+  }
+
+  @override
+  String acadTimeConflictServerText(String message) {
+    return '$message\n\nهل تريد الحفظ على أي حال؟';
+  }
+
+  @override
+  String get acadTimeSaveAnyway => 'احفظ على أي حال';
+
+  @override
+  String get acadTimeDeleteCourse => 'حذف المادة';
+
+  @override
+  String acadTimeDeleteCourseText(String name) {
+    return 'سيتم حذف المادة \"$name\" وجميع جلساتها.';
+  }
+
+  @override
+  String get acadTimeDelete => 'حذف';
+
+  @override
+  String get acadTimeEditCourse => 'تعديل المادة';
+
+  @override
+  String get acadTimeNewCourse => 'مادة جديدة';
+
+  @override
+  String get acadTimeCourseName => 'اسم المادة';
+
+  @override
+  String get acadTimeNameHint => 'مثال: هياكل البيانات';
+
+  @override
+  String get acadTimeCourseCode => 'رمز المادة';
+
+  @override
+  String get acadTimeInstructor => 'المحاضر';
+
+  @override
+  String get acadTimeInstructorHint => 'د. أحمد علي';
+
+  @override
+  String get acadTimeColor => 'اللون';
+
+  @override
+  String acadTimeColorSemantic(String color) {
+    return 'اللون $color';
+  }
+
+  @override
+  String get acadTimeColorAuto => 'إذا لم تختر، سيتم تعيين لون تلقائيا.';
+
+  @override
+  String get acadTimeDaysAndTimes => 'الأيام والأوقات';
+
+  @override
+  String get acadTimeAddSession => 'إضافة يوم/وقت آخر';
+
+  @override
+  String get acadTimeNote => 'ملاحظة';
+
+  @override
+  String get acadTimeNoteHint => 'اختياري (مثال: أحضر حاسوبا محمولا)';
+
+  @override
+  String get acadTimeSave => 'حفظ';
+
+  @override
+  String get acadTimeAddCourseBtn => 'إضافة المادة';
+
+  @override
+  String acadTimeSessionN(String n) {
+    return 'الجلسة $n';
+  }
+
+  @override
+  String get acadTimeRemoveSession => 'إزالة الجلسة';
+
+  @override
+  String get acadTimeStartTime => 'وقت البدء';
+
+  @override
+  String get acadTimeEndTime => 'وقت الانتهاء';
+
+  @override
+  String get acadTimeRoomHint => 'القاعة (مثال: B-204)';
+
+  @override
+  String get acadTimeSemester => 'الفصل';
+
+  @override
+  String get acadTimeNoSemester => 'لا توجد فصول بعد. أضف فصلا لتنظيم موادك.';
+
+  @override
+  String get acadTimeAddSemester => 'إضافة فصل جديد';
+
+  @override
+  String acadTimeOfficial(String name) {
+    return '$name (من التقويم الأكاديمي)';
+  }
+
+  @override
+  String get acadTimeOfficialDefault => 'الفصل الرسمي';
+
+  @override
+  String get acadTimeClose => 'إغلاق';
+
+  @override
+  String get acadTimeCurrent => 'الحالي';
+
+  @override
+  String get acadTimeMakeCurrent => 'تعيين كفصل حالي';
+
+  @override
+  String get acadTimeDeleteSemester => 'حذف الفصل';
+
+  @override
+  String acadTimeDeleteSemesterText(String name) {
+    return 'سيتم حذف \"$name\". ستبقى المواد بدون فصل.';
+  }
+
+  @override
+  String get acadTimeNewSemester => 'فصل جديد';
+
+  @override
+  String get acadTimeSemesterHint => 'خريف 2026-2027';
+
+  @override
+  String get acadTimeStartDate => 'تاريخ البدء';
+
+  @override
+  String get acadTimeEndDate => 'تاريخ الانتهاء';
+
+  @override
+  String get acadTimeCancel => 'إلغاء';
+
+  @override
+  String get acadTimeSemesterNeedAll => 'الاسم والتاريخان مطلوبة.';
+
+  @override
+  String get acadTimeSemesterEndAfter =>
+      'يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.';
+
+  @override
+  String get acadTimeAdd => 'إضافة';
+
+  @override
+  String get acadTimeRemindersTitle => 'التذكيرات';
+
+  @override
+  String get acadTimeRemindersIntro =>
+      'تتم جدولة الإشعارات على جهازك دون الحاجة إلى الإنترنت. وتُحدَّث عند تغيير جدولك أو امتحاناتك.';
+
+  @override
+  String get acadTimeClassReminder => 'تذكير المحاضرة';
+
+  @override
+  String get acadTimeBeforeClass => 'قبل بدء المحاضرة';
+
+  @override
+  String get acadTimeOneHour => 'ساعة';
+
+  @override
+  String acadTimeMinutes(String m) {
+    return '$m د';
+  }
+
+  @override
+  String get acadTimeExamReminders => 'تذكيرات الامتحانات';
+
+  @override
+  String get acadTimeDayBefore => 'قبل يوم';
+
+  @override
+  String get acadTimeHourBefore => 'قبل ساعة';
+
+  @override
+  String get authRestEnterCode => 'أدخل الرمز المكون من 6 أرقام.';
+
+  @override
+  String get authRestCodeLabel => 'رمز التحقق المكون من 6 أرقام';
+
+  @override
+  String chatDetailVideoPreparing(String pct) {
+    return 'جارٍ تجهيز الفيديو… $pct%';
+  }
+
+  @override
+  String get chatDetailCancel => 'إلغاء';
+
+  @override
+  String get chatDetailUserFallback => 'مستخدم';
+
+  @override
+  String get chatDetailYou => 'أنت';
+
+  @override
+  String get chatDetailChatFallback => 'محادثة';
+
+  @override
+  String get chatDetailGroupFallback => 'مجموعة';
+
+  @override
+  String get chatDetailVideoTooLong => 'يجب ألا تتجاوز مدة الفيديو 60 ثانية';
+
+  @override
+  String get chatDetailVideoTooLarge => 'الفيديو كبير جدًا، اختر فيديو أقصر';
+
+  @override
+  String get chatDetailVideoUnsupported =>
+      'لا يمكن إرسال الفيديو على هذا الجهاز.';
+
+  @override
+  String get chatDetailVideoFailed => 'تعذر تجهيز الفيديو.';
+
+  @override
+  String get chatDetailVideosSplit =>
+      'الفيديوهات كبيرة، لذا ستُرسل في عدة رسائل';
+
+  @override
+  String get chatDetailImageTooLarge => 'الصورة كبيرة جدًا، اختر صورة أصغر.';
+
+  @override
+  String get chatDetailImageTypes => 'يمكن إرسال صور JPEG أو PNG أو WebP فقط.';
+
+  @override
+  String get chatDetailImageUnreadable => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get chatDetailVideoUnreadable => 'تعذرت قراءة الفيديو.';
+
+  @override
+  String get chatDetailSavedToGallery => 'تم الحفظ في المعرض';
+
+  @override
+  String get chatDetailDeleteTitle => 'هل تريد حذف الرسالة؟';
+
+  @override
+  String get chatDetailDeleteBody => 'ستُحذف هذه الرسالة للجميع.';
+
+  @override
+  String get chatDetailDelete => 'حذف';
+
+  @override
+  String get chatDetailMsgDeleted => 'تم حذف هذه الرسالة';
+
+  @override
+  String get chatDetailNevermind => 'تراجع';
+
+  @override
+  String get chatDetailToday => 'اليوم';
+
+  @override
+  String get chatDetailYesterday => 'أمس';
+
+  @override
+  String get chatDetailMonth1 => 'يناير';
+
+  @override
+  String get chatDetailMonth2 => 'فبراير';
+
+  @override
+  String get chatDetailMonth3 => 'مارس';
+
+  @override
+  String get chatDetailMonth4 => 'أبريل';
+
+  @override
+  String get chatDetailMonth5 => 'مايو';
+
+  @override
+  String get chatDetailMonth6 => 'يونيو';
+
+  @override
+  String get chatDetailMonth7 => 'يوليو';
+
+  @override
+  String get chatDetailMonth8 => 'أغسطس';
+
+  @override
+  String get chatDetailMonth9 => 'سبتمبر';
+
+  @override
+  String get chatDetailMonth10 => 'أكتوبر';
+
+  @override
+  String get chatDetailMonth11 => 'نوفمبر';
+
+  @override
+  String get chatDetailMonth12 => 'ديسمبر';
+
+  @override
+  String get chatDetailOnline => 'متصل';
+
+  @override
+  String chatDetailLastSeenToday(String time) {
+    return 'آخر ظهور: اليوم $time';
+  }
+
+  @override
+  String chatDetailLastSeenYesterday(String time) {
+    return 'آخر ظهور: أمس $time';
+  }
+
+  @override
+  String chatDetailLastSeenOn(String date) {
+    return 'آخر ظهور: $date';
+  }
+
+  @override
+  String chatDetailClubRoomMembers(String count) {
+    return 'غرفة النادي · $count عضو';
+  }
+
+  @override
+  String chatDetailEventRoomMembers(String count) {
+    return 'غرفة الفعالية · $count عضو';
+  }
+
+  @override
+  String chatDetailMembersCount(String count) {
+    return '$count عضو';
+  }
+
+  @override
+  String get chatDetailClubEventRoom => 'غرفة النادي/الفعالية';
+
+  @override
+  String get chatDetailResend => 'إعادة الإرسال';
+
+  @override
+  String get chatDetailReply => 'رد';
+
+  @override
+  String get chatDetailCopy => 'نسخ';
+
+  @override
+  String get chatDetailForward => 'إعادة توجيه';
+
+  @override
+  String get chatDetailEdit => 'تعديل';
+
+  @override
+  String get chatDetailDeleteForAll => 'حذف للجميع';
+
+  @override
+  String get chatDetailDeleteMessage => 'حذف الرسالة';
+
+  @override
+  String get chatDetailReport => 'إبلاغ';
+
+  @override
+  String get chatDetailCopied => 'تم النسخ';
+
+  @override
+  String get chatDetailForwarded => 'تمت إعادة التوجيه';
+
+  @override
+  String get chatDetailForwardFailedAll => 'تعذرت إعادة التوجيه';
+
+  @override
+  String chatDetailForwardFailedSome(String count) {
+    return 'تعذرت إعادة التوجيه إلى $count محادثات';
+  }
+
+  @override
+  String get chatDetailSearchInChat => 'البحث في المحادثة';
+
+  @override
+  String get chatDetailClubPage => 'صفحة النادي';
+
+  @override
+  String get chatDetailEventPage => 'صفحة الفعالية';
+
+  @override
+  String get chatDetailMembers => 'الأعضاء';
+
+  @override
+  String get chatDetailMedia => 'الوسائط';
+
+  @override
+  String get chatDetailSettings => 'الإعدادات';
+
+  @override
+  String get chatDetailLeaveChat => 'مغادرة المحادثة';
+
+  @override
+  String get chatDetailBlock => 'حظر';
+
+  @override
+  String get chatDetailUnblock => 'إلغاء الحظر';
+
+  @override
+  String get chatDetailReportUser => 'الإبلاغ عن المستخدم';
+
+  @override
+  String get chatDetailLeaveTitle => 'هل تريد مغادرة المحادثة؟';
+
+  @override
+  String get chatDetailLeaveBody => 'ستغادر هذه المحادثة.';
+
+  @override
+  String get chatDetailLeave => 'مغادرة';
+
+  @override
+  String get chatDetailBlockTitle => 'هل تريد حظر المستخدم؟';
+
+  @override
+  String get chatDetailBlockBody => 'لا يمكنك مراسلة شخص قمت بحظره.';
+
+  @override
+  String get chatDetailUserBlocked => 'تم حظر المستخدم';
+
+  @override
+  String get chatDetailUserUnblocked => 'تم إلغاء الحظر';
+
+  @override
+  String chatDetailMembersTitle(String count) {
+    return 'الأعضاء ($count)';
+  }
+
+  @override
+  String get chatDetailMembersLoadFailed => 'تعذر تحميل قائمة الأعضاء.';
+
+  @override
+  String get chatDetailAdmin => 'مشرف';
+
+  @override
+  String get chatDetailBack => 'رجوع';
+
+  @override
+  String get chatDetailOpenProfile => 'فتح الملف الشخصي';
+
+  @override
+  String get chatDetailChatInfo => 'معلومات المحادثة';
+
+  @override
+  String get chatDetailTyping => 'يكتب…';
+
+  @override
+  String get chatDetailMenu => 'القائمة';
+
+  @override
+  String get chatDetailCloseSearch => 'إغلاق البحث';
+
+  @override
+  String get chatDetailTypeToSearch => 'اكتب للبحث';
+
+  @override
+  String get chatDetailNoMatch => 'لا توجد نتائج';
+
+  @override
+  String get chatDetailPrevMatch => 'النتيجة السابقة';
+
+  @override
+  String get chatDetailNextMatch => 'النتيجة التالية';
+
+  @override
+  String get chatDetailSearching => 'جارٍ البحث…';
+
+  @override
+  String get chatDetailSearchOlder => 'البحث في الرسائل الأقدم';
+
+  @override
+  String get chatDetailEmpty => 'لا توجد رسائل بعد. اكتب أول رسالة.';
+
+  @override
+  String get chatDetailScrollDown => 'الانتقال إلى الأسفل';
+
+  @override
+  String chatDetailScrollDownNew(String count) {
+    return 'الانتقال إلى الأسفل، $count رسائل جديدة';
+  }
+
+  @override
+  String get chatDetailEditing => 'تعديل الرسالة';
+
+  @override
+  String get chatDetailAdd => 'إضافة';
+
+  @override
+  String get chatDetailWriteMessage => 'اكتب رسالة';
+
+  @override
+  String get chatDetailCamera => 'الكاميرا';
+
+  @override
+  String get chatDetailSave => 'حفظ';
+
+  @override
+  String get chatDetailSend => 'إرسال';
+
+  @override
+  String get chatDetailClose => 'إغلاق';
+
+  @override
+  String chatDetailReactionLabel(String emoji) {
+    return 'تفاعل $emoji';
+  }
+
+  @override
+  String get chatInfoUnmute => 'إلغاء الكتم';
+
+  @override
+  String get chatInfoMute => 'كتم';
+
+  @override
+  String get chatInfoUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get chatInfoArchive => 'أرشفة';
+
+  @override
+  String get chatInfoDelete => 'حذف';
+
+  @override
+  String get chatInfoCancel => 'إلغاء';
+
+  @override
+  String get chatInfoSave => 'حفظ';
+
+  @override
+  String get chatInfoMute8h => '8 ساعات';
+
+  @override
+  String get chatInfoMute1w => 'أسبوع واحد';
+
+  @override
+  String get chatInfoMuteForever => 'دائمًا';
+
+  @override
+  String get chatInfoDeleteConvTitle => 'هل تريد حذف المحادثة؟';
+
+  @override
+  String get chatInfoDeleteConvGroup => 'ستغادر المجموعة وتحذف هذه المحادثة.';
+
+  @override
+  String get chatInfoDeleteConvDirect =>
+      'ستُحذف هذه المحادثة لديك فقط ولن يتأثر الطرف الآخر.';
+
+  @override
+  String get chatInfoUser => 'مستخدم';
+
+  @override
+  String get chatInfoYou => 'أنت';
+
+  @override
+  String get chatInfoAdmin => 'مشرف';
+
+  @override
+  String get chatInfoRemoveFromGroup => 'إزالة من المجموعة';
+
+  @override
+  String chatInfoMembersCount(String n) {
+    return 'الأعضاء ($n)';
+  }
+
+  @override
+  String get chatInfoSearchMember => 'ابحث عن عضو';
+
+  @override
+  String get chatInfoNoResults => 'لا توجد نتائج.';
+
+  @override
+  String get chatInfoOpenVideo => 'فتح الفيديو';
+
+  @override
+  String get chatInfoOpenImage => 'فتح الصورة';
+
+  @override
+  String get chatInfoMedia => 'الوسائط';
+
+  @override
+  String get chatInfoRetry => 'إعادة المحاولة';
+
+  @override
+  String get chatInfoChat => 'محادثة';
+
+  @override
+  String get chatInfoGroup => 'مجموعة';
+
+  @override
+  String get chatInfoUnmuted => 'تم إلغاء كتم الإشعارات';
+
+  @override
+  String get chatInfoMuted => 'تم كتم المحادثة';
+
+  @override
+  String get chatInfoUnarchived => 'تم إلغاء أرشفة المحادثة';
+
+  @override
+  String get chatInfoArchived => 'تمت أرشفة المحادثة';
+
+  @override
+  String get chatInfoLeaveTitle => 'هل تريد مغادرة المحادثة؟';
+
+  @override
+  String get chatInfoLeaveBody => 'ستغادر هذه المحادثة.';
+
+  @override
+  String get chatInfoLeave => 'مغادرة';
+
+  @override
+  String get chatInfoUnblocked => 'تم رفع الحظر';
+
+  @override
+  String get chatInfoBlockTitle => 'هل تريد حظر المستخدم؟';
+
+  @override
+  String get chatInfoBlockBody => 'لا يمكنك مراسلة شخص قمت بحظره.';
+
+  @override
+  String get chatInfoBlock => 'حظر';
+
+  @override
+  String get chatInfoBlocked => 'تم حظر المستخدم';
+
+  @override
+  String get chatInfoUnblock => 'رفع الحظر';
+
+  @override
+  String get chatInfoReportUser => 'الإبلاغ عن المستخدم';
+
+  @override
+  String get chatInfoReport => 'إبلاغ';
+
+  @override
+  String get chatInfoRemoveMemberTitle => 'هل تريد إزالة العضو؟';
+
+  @override
+  String chatInfoRemoveMemberBody(String name) {
+    return 'ستتم إزالة $name من المجموعة.';
+  }
+
+  @override
+  String get chatInfoRemove => 'إزالة';
+
+  @override
+  String get chatInfoPickGallery => 'اختيار من المعرض';
+
+  @override
+  String get chatInfoRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get chatInfoImageTooLarge => 'الصورة كبيرة جدًا، اختر صورة أصغر.';
+
+  @override
+  String get chatInfoImageTypeOnly => 'يُسمح فقط بصور JPEG أو PNG أو WebP.';
+
+  @override
+  String get chatInfoTitle => 'معلومات المحادثة';
+
+  @override
+  String get chatInfoNoMembers => 'لا توجد قائمة أعضاء.';
+
+  @override
+  String get chatInfoClubRoom => 'غرفة النادي';
+
+  @override
+  String get chatInfoEventRoom => 'غرفة الفعالية';
+
+  @override
+  String chatInfoMemberCount(String n) {
+    return '$n عضو';
+  }
+
+  @override
+  String get chatInfoChangePhoto => 'تغيير الصورة';
+
+  @override
+  String get chatInfoEditName => 'تعديل الاسم';
+
+  @override
+  String get chatInfoClub => 'النادي';
+
+  @override
+  String get chatInfoEvent => 'الفعالية';
+
+  @override
+  String get chatInfoSearch => 'بحث';
+
+  @override
+  String get chatInfoMembers => 'الأعضاء';
+
+  @override
+  String chatInfoMembersDot(String n) {
+    return 'الأعضاء · $n';
+  }
+
+  @override
+  String get chatInfoNoMedia => 'لا توجد صور في هذه المحادثة بعد.';
+
+  @override
+  String get chatInfoSeeAllMedia => 'عرض كل الوسائط';
+
+  @override
+  String chatInfoMediaDot(String count) {
+    return 'الوسائط · $count';
+  }
+
+  @override
+  String get chatInfoAll => 'الكل';
+
+  @override
+  String get chatInfoMuteOn => 'مفعّلة';
+
+  @override
+  String get chatInfoMutedAlways => 'مكتومة · دائمًا';
+
+  @override
+  String chatInfoMutedDays(String n) {
+    return 'مكتومة · يُلغى الكتم بعد $n يوم';
+  }
+
+  @override
+  String chatInfoMutedHours(String n) {
+    return 'مكتومة · يُلغى الكتم بعد $n ساعة';
+  }
+
+  @override
+  String get chatInfoMutedSoon => 'مكتومة · سيُلغى الكتم قريبًا';
+
+  @override
+  String get chatInfoMutedLabel => 'مكتومة';
+
+  @override
+  String get chatInfoOpenClubPage => 'فتح صفحة النادي';
+
+  @override
+  String get chatInfoOpenEventPage => 'فتح صفحة الفعالية';
+
+  @override
+  String get chatInfoViewProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get chatInfoMuteNotifications => 'كتم الإشعارات';
+
+  @override
+  String get chatInfoClosed => 'هذه المحادثة مغلقة';
+
+  @override
+  String get chatInfoClosedSub => 'لا يمكن إرسال رسائل جديدة';
+
+  @override
+  String get chatInfoLeaveChat => 'مغادرة المحادثة';
+
+  @override
+  String get chatInfoSettings => 'الإعدادات';
+
+  @override
+  String get chatInfoGroupName => 'اسم المجموعة';
+
+  @override
+  String get chatMiscFilterAll => 'الكل';
+
+  @override
+  String get chatMiscFilterPeople => 'الأشخاص';
+
+  @override
+  String get chatMiscFilterClubs => 'الأندية';
+
+  @override
+  String get chatMiscFilterEvents => 'الفعاليات';
+
+  @override
+  String get chatMiscArchived => 'تمت أرشفة المحادثة';
+
+  @override
+  String get chatMiscUnarchived => 'تمت إزالة المحادثة من الأرشيف';
+
+  @override
+  String get chatMiscChat => 'محادثة';
+
+  @override
+  String get chatMiscArchive => 'الأرشيف';
+
+  @override
+  String get chatMiscNewChat => 'محادثة جديدة';
+
+  @override
+  String get chatMiscEmptyArchive => 'لا توجد محادثات في الأرشيف';
+
+  @override
+  String get chatMiscEmptyNoMatch => 'لم يتم العثور على محادثات مطابقة';
+
+  @override
+  String get chatMiscEmptyNone => 'ليست لديك محادثات بعد';
+
+  @override
+  String get chatMiscUnarchiveAction => 'إزالة';
+
+  @override
+  String get chatMiscArchiveAction => 'أرشفة';
+
+  @override
+  String get chatMiscSearchHint => 'ابحث عن شخص أو مجموعة';
+
+  @override
+  String get chatMiscTagClub => 'نادٍ';
+
+  @override
+  String get chatMiscTagEvent => 'فعالية';
+
+  @override
+  String get chatMiscMessageDeleted => 'تم حذف الرسالة';
+
+  @override
+  String get chatMiscOnceText => 'صورة (عرض لمرة واحدة)';
+
+  @override
+  String get chatMiscImage => 'صورة';
+
+  @override
+  String get chatMiscDayMon => 'الإثنين';
+
+  @override
+  String get chatMiscDayTue => 'الثلاثاء';
+
+  @override
+  String get chatMiscDayWed => 'الأربعاء';
+
+  @override
+  String get chatMiscDayThu => 'الخميس';
+
+  @override
+  String get chatMiscDayFri => 'الجمعة';
+
+  @override
+  String get chatMiscDaySat => 'السبت';
+
+  @override
+  String get chatMiscDaySun => 'الأحد';
+
+  @override
+  String get chatMiscYesterday => 'أمس';
+
+  @override
+  String chatMiscSendFailedRetry(String error) {
+    return '$error · أعد المحاولة';
+  }
+
+  @override
+  String get chatMiscSendFailed => 'تعذر الإرسال';
+
+  @override
+  String get chatMiscThisMessageDeleted => 'تم حذف هذه الرسالة';
+
+  @override
+  String get chatMiscVideo => 'فيديو';
+
+  @override
+  String get chatMiscPhoto => 'صورة';
+
+  @override
+  String get chatMiscUser => 'مستخدم';
+
+  @override
+  String get chatMiscStatusSending => 'جارٍ الإرسال';
+
+  @override
+  String get chatMiscStatusSent => 'تم الإرسال';
+
+  @override
+  String get chatMiscStatusDelivered => 'تم التسليم';
+
+  @override
+  String get chatMiscStatusRead => 'تمت القراءة';
+
+  @override
+  String get chatMiscImageUnavailable => 'الصورة غير متاحة';
+
+  @override
+  String chatMiscVideoWithDuration(String duration) {
+    return 'فيديو، $duration';
+  }
+
+  @override
+  String get chatMiscClose => 'إغلاق';
+
+  @override
+  String get chatMiscImageLoadFailed => 'تعذر تحميل الصورة.';
+
+  @override
+  String get chatMiscOnceOpened => 'تم الفتح';
+
+  @override
+  String get chatMiscOnceSending => 'صورة · جارٍ الإرسال';
+
+  @override
+  String get chatMiscOnceSent => 'صورة · تم الإرسال';
+
+  @override
+  String get chatMiscOnceTapToOpen => 'صورة · المس للفتح';
+
+  @override
+  String chatMiscOnceSemantics(String label) {
+    return 'صورة لمرة واحدة. $label';
+  }
+
+  @override
+  String get chatMiscEdited => 'تم التعديل';
+
+  @override
+  String get chatMiscContactsFind => 'ابحث عن أشخاص من جهات الاتصال';
+
+  @override
+  String get chatMiscContactsRationale =>
+      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص جامعة بينغول بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+
+  @override
+  String get chatMiscContactsSubtitle => 'أشخاص جامعة بينغول';
+
+  @override
+  String get chatMiscContactsPermTitle => 'إذن جهات الاتصال مطلوب';
+
+  @override
+  String get chatMiscContactsPermText =>
+      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
+
+  @override
+  String get chatMiscContactsPermAction => 'السماح';
+
+  @override
+  String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
+
+  @override
+  String get chatMiscContactsNoneText =>
+      'لم يتم العثور على أي من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول. سيظهر أصدقاؤك هنا عند انضمامهم.';
+
+  @override
+  String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
+
+  @override
+  String get chatMiscContactsTruncated =>
+      'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
+
+  @override
+  String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
+
+  @override
+  String chatMiscContactsCount(String n) {
+    return '$n شخص';
+  }
+
+  @override
+  String get chatMiscMessage => 'رسالة';
+
+  @override
+  String get chatMiscContactsPrivacy =>
+      'لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+
+  @override
+  String get chatMiscGroupMax => 'يمكن إضافة 50 شخصًا كحد أقصى إلى المجموعة.';
+
+  @override
+  String get chatMiscGroupNameRequired => 'أدخل اسم المجموعة.';
+
+  @override
+  String get chatMiscUserSearchHint => 'ابحث بالاسم أو البريد الإلكتروني';
+
+  @override
+  String get chatMiscCreateGroup => 'إنشاء المجموعة';
+
+  @override
+  String get chatMiscStartChat => 'بدء المحادثة';
+
+  @override
+  String get chatMiscGroupCardTitle => 'إنشاء مجموعة';
+
+  @override
+  String chatMiscSelectedCount(String n) {
+    return 'تم اختيار $n';
+  }
+
+  @override
+  String get chatMiscGroupName => 'اسم المجموعة';
+
+  @override
+  String get chatMiscMax50 => 'الحد الأقصى 50';
+
+  @override
+  String get chatMiscSearchMin => 'اكتب حرفين على الأقل للبحث عن الأشخاص.';
+
+  @override
+  String get chatMiscNoMatchPeople => 'لم يتم العثور على أشخاص مطابقين.';
+
+  @override
+  String get chatMiscPeopleHeader => 'الأشخاص';
+
+  @override
+  String get chatMiscForward => 'إعادة توجيه';
+
+  @override
+  String get chatMiscSearchChat => 'ابحث في المحادثات';
+
+  @override
+  String chatMiscForwardMax(String max) {
+    return 'يمكن اختيار $max محادثات كحد أقصى.';
+  }
+
+  @override
+  String get chatMiscSend => 'إرسال';
+
+  @override
+  String chatMiscSendCount(String n) {
+    return 'إرسال ($n)';
+  }
+
+  @override
+  String get chatMiscChatNotFound => 'لم يتم العثور على محادثات.';
+
+  @override
+  String get chatMiscGalleryRationale =>
+      'نحتاج إلى إذن الوصول لعرض الصور ومقاطع الفيديو في معرضك.';
+
+  @override
+  String get chatMiscVideoMax60 => 'يجب ألا يتجاوز الفيديو 60 ثانية';
+
+  @override
+  String chatMiscPickMax(String max) {
+    return 'يمكنك اختيار $max عناصر كحد أقصى';
+  }
+
+  @override
+  String get chatMiscAll => 'الكل';
+
+  @override
+  String get chatMiscGallery => 'المعرض';
+
+  @override
+  String get chatMiscLimitedNote => 'تظهر فقط العناصر التي سمحت بها.';
+
+  @override
+  String get chatMiscSelectMore => 'اختر المزيد';
+
+  @override
+  String get chatMiscSettings => 'الإعدادات';
+
+  @override
+  String get chatMiscGalleryDenied => 'لم يتم منح إذن الوصول إلى المعرض.';
+
+  @override
+  String get chatMiscOpenSettings => 'افتح من الإعدادات';
+
+  @override
+  String get chatMiscCamera => 'الكاميرا';
+
+  @override
+  String chatMiscPreviewCount(String n) {
+    return 'معاينة ($n)';
+  }
+
+  @override
+  String get chatMiscCameraRationale =>
+      'نحتاج إلى الوصول إلى الكاميرا لتتمكن من التقاط الصور والفيديو.';
+
+  @override
+  String get chatMiscMicRationale =>
+      'نحتاج إلى الوصول إلى الميكروفون لتسجيل الصوت مع الفيديو.';
+
+  @override
+  String get chatMiscPhotoFailed => 'تعذر التقاط الصورة.';
+
+  @override
+  String get chatMiscVideoSaveFailed => 'تعذر حفظ الفيديو.';
+
+  @override
+  String get chatMiscCameraUnavailable => 'الكاميرا غير متاحة.';
+
+  @override
+  String get chatMiscCameraHint => 'المس: صورة · اضغط مطولًا: فيديو';
+
+  @override
+  String get chatMiscFlipCamera => 'تبديل الكاميرا';
+
+  @override
+  String get chatMiscOnceToast =>
+      'عرض لمرة واحدة: يمكن للمستلم مشاهدتها مرة واحدة فقط';
+
+  @override
+  String get chatMiscAddCaption => 'أضف تعليقًا…';
+
+  @override
+  String get chatMiscOnceSendLabel => 'عرض لمرة واحدة';
+
+  @override
+  String get chatMiscOnceGone => 'لم يعد بالإمكان عرض هذه الصورة.';
+
+  @override
+  String get chatMiscOnceOwn =>
+      'لا يمكنك فتح صورة العرض لمرة واحدة التي أرسلتها.';
+
+  @override
+  String get chatMiscOnceNetwork =>
+      'تعذر تحميل الصورة. تحقق من اتصالك. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
+
+  @override
+  String get chatMiscOnceShowFailed =>
+      'تعذر عرض الصورة. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
+
+  @override
+  String get chatMiscOnceTitle => 'عرض لمرة واحدة';
+
+  @override
+  String get chatMiscRetry => 'أعد المحاولة';
+
+  @override
+  String get chatMiscSaveUnsupported => 'غير مدعوم على هذا الجهاز.';
+
+  @override
+  String get chatMiscSaveDenied => 'لم يتم منح إذن المعرض.';
+
+  @override
+  String get chatMiscSaveNoSpace => 'لا توجد مساحة كافية على الجهاز.';
+
+  @override
+  String get chatMiscImageSaveFailed => 'تعذر حفظ الصورة.';
+
+  @override
+  String get chatMiscSavedToGallery => 'تم الحفظ في المعرض';
+
+  @override
+  String get chatMiscDownload => 'تنزيل';
+
+  @override
+  String get chatMiscPlayVideo => 'تشغيل الفيديو';
+
+  @override
+  String get chatMiscVideoPlayFailed => 'تعذر تشغيل الفيديو';
+
+  @override
+  String get clubWithdrawTitle => 'سحب الطلب';
+
+  @override
+  String get clubWithdrawMessage => 'هل تريد سحب طلب الانضمام؟';
+
+  @override
+  String get clubWithdrawConfirm => 'سحب';
+
+  @override
+  String get clubImageTooLarge => 'الصورة كبيرة جدًا.';
+
+  @override
+  String get clubImageUnsupported => 'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
+
+  @override
+  String get clubImageUnreadable => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get clubImagePickFailed => 'تعذر اختيار الصورة.';
+
+  @override
+  String get clubImageUploadFailed => 'تعذر رفع الصورة.';
+
+  @override
+  String get clubDeleted => 'تم حذف النادي.';
+
+  @override
+  String get clubChatClosed => 'دردشة النادي مغلقة حاليًا.';
+
+  @override
+  String get clubChatPreparing =>
+      'دردشة النادي قيد التجهيز، حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get clubChat => 'دردشة النادي';
+
+  @override
+  String get clubDeletePostTitle => 'حذف المنشور';
+
+  @override
+  String get clubDeletePostMessage => 'هل تريد حذف هذا المنشور نهائيًا؟';
+
+  @override
+  String get clubCancel => 'إلغاء';
+
+  @override
+  String get clubDelete => 'حذف';
+
+  @override
+  String get clubReportClub => 'الإبلاغ عن النادي';
+
+  @override
+  String get clubReportPost => 'الإبلاغ عن المنشور';
+
+  @override
+  String clubMemberCount(String count) {
+    return '$count عضو';
+  }
+
+  @override
+  String get clubPrivate => 'خاص';
+
+  @override
+  String get clubPublic => 'عام';
+
+  @override
+  String get clubTitle => 'النادي';
+
+  @override
+  String get clubBack => 'رجوع';
+
+  @override
+  String get clubOptions => 'خيارات النادي';
+
+  @override
+  String get clubEdit => 'تعديل النادي';
+
+  @override
+  String clubRequestsWithCount(String count) {
+    return 'الطلبات ($count)';
+  }
+
+  @override
+  String get clubRequests => 'الطلبات';
+
+  @override
+  String get clubManageMembers => 'إدارة الأعضاء';
+
+  @override
+  String get clubChangeCover => 'تغيير الغلاف';
+
+  @override
+  String get clubDeleteClub => 'حذف النادي';
+
+  @override
+  String get clubLeave => 'مغادرة النادي';
+
+  @override
+  String get clubIsMember => 'أنت عضو';
+
+  @override
+  String get clubRequestSent => 'تم إرسال الطلب';
+
+  @override
+  String get clubCannotJoin => 'لا يمكنك الانضمام';
+
+  @override
+  String get clubSendJoinRequest => 'إرسال طلب انضمام';
+
+  @override
+  String get clubJoin => 'انضمام';
+
+  @override
+  String get clubTabPosts => 'المنشورات';
+
+  @override
+  String get clubTabEvents => 'الفعاليات';
+
+  @override
+  String get clubTabMembers => 'الأعضاء';
+
+  @override
+  String get clubTabPolls => 'الاستطلاعات';
+
+  @override
+  String get clubNoPosts => 'لا توجد منشورات بعد.';
+
+  @override
+  String get clubNoEvents => 'لا توجد فعاليات قادمة لهذا النادي.';
+
+  @override
+  String get clubNoMembers => 'لم يتم العثور على أعضاء.';
+
+  @override
+  String get clubLoadFailedRetry => 'تعذر التحميل، حاول مرة أخرى';
+
+  @override
+  String get clubWriteHint => 'اكتب شيئًا للنادي';
+
+  @override
+  String get clubAddImage => 'إضافة صورة';
+
+  @override
+  String get clubShare => 'مشاركة';
+
+  @override
+  String get clubRemoveImage => 'إزالة الصورة';
+
+  @override
+  String get clubPendingRequests => 'الطلبات المعلقة';
+
+  @override
+  String get clubPostActions => 'إجراءات المنشور';
+
+  @override
+  String get clubUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get clubPin => 'تثبيت';
+
+  @override
+  String get clubReport => 'إبلاغ';
+
+  @override
+  String get clubPinned => 'مثبت';
+
+  @override
+  String get clubUser => 'مستخدم';
+
+  @override
+  String get clubRoleOwner => 'المدير';
+
+  @override
+  String get clubRoleModerator => 'مشرف';
+
+  @override
+  String get clubDeleteBody =>
+      'سيتم حذف الأعضاء والفعاليات والدردشة. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String clubDeleteTypeName(String name) {
+    return 'اكتب اسم النادي للتأكيد: $name';
+  }
+
+  @override
+  String get clubNameHint => 'اسم النادي';
+
+  @override
+  String get clubOwnerCannotLeave =>
+      'لا يمكن لمالك النادي المغادرة. انقل الملكية أولًا أو احذف النادي.';
+
+  @override
+  String get clubCannotLeaveTitle => 'لا يمكنك مغادرة النادي';
+
+  @override
+  String get clubOk => 'حسنًا';
+
+  @override
+  String get clubThisClub => 'هذا النادي';
+
+  @override
+  String clubLeaveMessage(String name) {
+    return 'هل تريد مغادرة $name؟ ستتم إزالتك من دردشة النادي أيضًا وستختفي من قائمة دردشاتك.';
+  }
+
+  @override
+  String get clubLeaveConfirm => 'مغادرة';
+
+  @override
+  String get clubMgmtJoinTitle => 'طلب الانضمام';
+
+  @override
+  String clubMgmtJoinAdminsSee(String club) {
+    return 'سيرى مشرفو $club إجاباتك.';
+  }
+
+  @override
+  String get clubMgmtAnswerHint => 'إجابتك';
+
+  @override
+  String get clubMgmtQuestionRequired => 'هذا السؤال إلزامي';
+
+  @override
+  String get clubMgmtCancel => 'إلغاء';
+
+  @override
+  String get clubMgmtSendRequest => 'إرسال الطلب';
+
+  @override
+  String get clubMgmtNoPending => 'لا توجد طلبات معلقة.';
+
+  @override
+  String get clubMgmtMoreRequests => 'المزيد من الطلبات';
+
+  @override
+  String get clubMgmtRequestsTitle => 'الطلبات';
+
+  @override
+  String clubMgmtWaitingCount(String count) {
+    return '$count في الانتظار';
+  }
+
+  @override
+  String get clubMgmtUser => 'مستخدم';
+
+  @override
+  String get clubMgmtReject => 'رفض';
+
+  @override
+  String get clubMgmtApprove => 'قبول';
+
+  @override
+  String get clubMgmtBan => 'حظر';
+
+  @override
+  String get clubMgmtRemoveFromClub => 'إزالة من النادي';
+
+  @override
+  String clubMgmtBanMessage(String name) {
+    return 'هل تريد إزالة $name من النادي ومنعه من الانضمام مجددا؟';
+  }
+
+  @override
+  String clubMgmtRemoveMessage(String name) {
+    return 'هل تريد إزالة $name من النادي؟ سيغادر أيضا محادثة النادي.';
+  }
+
+  @override
+  String get clubMgmtRemoveConfirm => 'إزالة';
+
+  @override
+  String get clubMgmtNoMembers => 'لم يتم العثور على أعضاء.';
+
+  @override
+  String get clubMgmtMembersTitle => 'الأعضاء';
+
+  @override
+  String get clubMgmtSearchMember => 'ابحث عن عضو';
+
+  @override
+  String get clubMgmtRoleManager => 'مشرف';
+
+  @override
+  String get clubMgmtRoleModerator => 'مراقب';
+
+  @override
+  String get clubMgmtMemberActions => 'إجراءات العضو';
+
+  @override
+  String get clubMgmtMakeModerator => 'تعيين كمراقب';
+
+  @override
+  String get clubMgmtMakeMember => 'تعيين كعضو';
+
+  @override
+  String get clubMgmtPendingTitle => 'تم إرسال ناديك للموافقة';
+
+  @override
+  String get clubMgmtPendingBody =>
+      'سيتم نشر النادي بعد مراجعة المشرفين. يمكنك متابعة الحالة من قسم أنديتي.';
+
+  @override
+  String get clubMgmtOk => 'حسنا';
+
+  @override
+  String get clubMgmtImageTooLarge => 'الصورة كبيرة جدا.';
+
+  @override
+  String get clubMgmtImageUnsupported =>
+      'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
+
+  @override
+  String get clubMgmtImageUnreadable => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get clubMgmtImagePickFailed => 'تعذر اختيار الصورة.';
+
+  @override
+  String get clubMgmtNameMin => 'يجب ألا يقل اسم النادي عن 3 أحرف.';
+
+  @override
+  String get clubMgmtNameMax => 'يجب ألا يتجاوز اسم النادي 80 حرفا.';
+
+  @override
+  String get clubMgmtDescMax => 'يجب ألا يتجاوز الوصف 1000 حرف.';
+
+  @override
+  String get clubMgmtCategoryMax => 'يجب ألا يتجاوز التصنيف 40 حرفا.';
+
+  @override
+  String get clubMgmtSavedWithWarning =>
+      'تم حفظ النادي لكن تعذر حفظ الغلاف أو أسئلة الانضمام.';
+
+  @override
+  String get clubMgmtEditTitle => 'تعديل النادي';
+
+  @override
+  String get clubMgmtCreateTitle => 'إنشاء نادٍ';
+
+  @override
+  String get clubMgmtNameLabel => 'اسم النادي';
+
+  @override
+  String get clubMgmtNameHint => 'مثال: نادي الروبوتات';
+
+  @override
+  String get clubMgmtDescLabel => 'وصف قصير';
+
+  @override
+  String get clubMgmtDescHint => 'ماذا يفعل النادي؟';
+
+  @override
+  String get clubMgmtCategoryLabel => 'التصنيف';
+
+  @override
+  String get clubMgmtCategoryHint => 'اختر من القائمة أو اكتب (اختياري)';
+
+  @override
+  String get clubMgmtVisibility => 'الظهور';
+
+  @override
+  String get clubMgmtPublic => 'عام';
+
+  @override
+  String get clubMgmtPrivate => 'خاص';
+
+  @override
+  String get clubMgmtPrivateHint =>
+      'يرى المحتوى الأعضاء فقط، والانضمام بموافقة.';
+
+  @override
+  String get clubMgmtPublicHint => 'يظهر النادي في قائمة استكشاف.';
+
+  @override
+  String get clubMgmtJoinLabel => 'الانضمام';
+
+  @override
+  String get clubMgmtOpenPolicy => 'مفتوح';
+
+  @override
+  String get clubMgmtApprovalPolicy => 'بموافقة';
+
+  @override
+  String get clubMgmtApprovalHint =>
+      'يرسل الراغبون في الانضمام طلبا وتقوم بالموافقة عليه.';
+
+  @override
+  String get clubMgmtOpenHint => 'يمكن للجميع الانضمام مباشرة.';
+
+  @override
+  String clubMgmtQuestionsLabel(String max) {
+    return 'أسئلة الانضمام (حتى $max)';
+  }
+
+  @override
+  String clubMgmtQuestionHint(String n) {
+    return 'السؤال $n';
+  }
+
+  @override
+  String get clubMgmtRemoveQuestion => 'إزالة السؤال';
+
+  @override
+  String get clubMgmtAddQuestion => 'إضافة سؤال';
+
+  @override
+  String get clubMgmtSave => 'حفظ';
+
+  @override
+  String get clubMgmtCreateButton => 'إنشاء النادي';
+
+  @override
+  String get clubMgmtChangeCover => 'تغيير الغلاف';
+
+  @override
+  String get clubMgmtAddCover => 'إضافة غلاف (اختياري)';
+
+  @override
+  String get clubMgmtClubsTitle => 'الأندية';
+
+  @override
+  String get clubMgmtSearch => 'بحث';
+
+  @override
+  String get clubMgmtSearchClub => 'ابحث عن نادٍ';
+
+  @override
+  String get clubMgmtTabDiscover => 'استكشف';
+
+  @override
+  String get clubMgmtTabMine => 'أنديتي';
+
+  @override
+  String get clubMgmtAll => 'الكل';
+
+  @override
+  String get clubMgmtEmptyMine => 'لست عضوا في أي نادٍ بعد.';
+
+  @override
+  String get clubMgmtNotFound => 'لم يتم العثور على أندية.';
+
+  @override
+  String clubMgmtMemberCount(String count) {
+    return '$count عضو';
+  }
+
+  @override
+  String get clubMgmtYouAreMember => 'عضو';
+
+  @override
+  String get clubMgmtRequestSent => 'تم إرسال الطلب';
+
+  @override
+  String get clubMgmtBanned => 'محظور';
+
+  @override
+  String get clubMgmtJoin => 'انضم';
+
+  @override
+  String get commonBack => 'رجوع';
+
+  @override
+  String get commonSearchHint => 'بحث';
+
+  @override
+  String get commonJustNow => 'الآن';
+
+  @override
+  String commonMinutesAgo(String n) {
+    return 'منذ $n د';
+  }
+
+  @override
+  String commonHoursAgo(String n) {
+    return 'منذ $n س';
+  }
+
+  @override
+  String commonDaysAgo(String n) {
+    return 'منذ $n يوم';
+  }
+
+  @override
+  String commonLongDate(String day, String month, String weekday) {
+    return '$weekday، $day $month';
+  }
+
+  @override
+  String get commonTypeNews => 'خبر';
+
+  @override
+  String get commonTypeAnnouncement => 'إعلان';
+
+  @override
+  String get commonTypeEvent => 'فعالية';
+
+  @override
+  String get commonMonth1 => 'يناير';
+
+  @override
+  String get commonMonth2 => 'فبراير';
+
+  @override
+  String get commonMonth3 => 'مارس';
+
+  @override
+  String get commonMonth4 => 'أبريل';
+
+  @override
+  String get commonMonth5 => 'مايو';
+
+  @override
+  String get commonMonth6 => 'يونيو';
+
+  @override
+  String get commonMonth7 => 'يوليو';
+
+  @override
+  String get commonMonth8 => 'أغسطس';
+
+  @override
+  String get commonMonth9 => 'سبتمبر';
+
+  @override
+  String get commonMonth10 => 'أكتوبر';
+
+  @override
+  String get commonMonth11 => 'نوفمبر';
+
+  @override
+  String get commonMonth12 => 'ديسمبر';
+
+  @override
+  String get commonWeekday1 => 'الاثنين';
+
+  @override
+  String get commonWeekday2 => 'الثلاثاء';
+
+  @override
+  String get commonWeekday3 => 'الأربعاء';
+
+  @override
+  String get commonWeekday4 => 'الخميس';
+
+  @override
+  String get commonWeekday5 => 'الجمعة';
+
+  @override
+  String get commonWeekday6 => 'السبت';
+
+  @override
+  String get commonWeekday7 => 'الأحد';
+
+  @override
+  String get reportReasonSpam => 'بريد مزعج أو إعلان';
+
+  @override
+  String get reportReasonHarassment => 'تحرش أو تنمر';
+
+  @override
+  String get reportReasonInappropriate => 'محتوى غير لائق';
+
+  @override
+  String get reportReasonImpersonation => 'انتحال شخصية';
+
+  @override
+  String get reportReasonOther => 'أخرى';
+
+  @override
+  String get reportTitle => 'إبلاغ';
+
+  @override
+  String get reportMessageTitle => 'الإبلاغ عن الرسالة';
+
+  @override
+  String get reportThanks => 'تم استلام بلاغك. شكرا لك.';
+
+  @override
+  String get reportPrompt => 'اختر السبب. سيتم إرسال بلاغك إلى المشرفين.';
+
+  @override
+  String get reportDetailsHint => 'تفاصيل إضافية (اختياري)';
+
+  @override
+  String get reportSend => 'إرسال';
+
+  @override
+  String get permNotificationsTitle => 'الإشعارات';
+
+  @override
+  String get permNotificationsText =>
+      'اسمح لنا بإرسال الإشعارات لتعرف فورا بالرسائل والفعاليات والإعلانات.';
+
+  @override
+  String get permContactsTitle => 'جهات الاتصال';
+
+  @override
+  String get permContactsText =>
+      'مطلوب للعثور على أشخاص جامعة بينغول في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+
+  @override
+  String get permCameraTitle => 'الكاميرا';
+
+  @override
+  String get permCameraText =>
+      'نحتاج إلى الوصول إلى الكاميرا لمسح رموز QR والتقاط الصور.';
+
+  @override
+  String get permMicrophoneTitle => 'الميكروفون';
+
+  @override
+  String get permMicrophoneText =>
+      'نحتاج إلى الوصول إلى الميكروفون لتتمكن من تسجيل الصوت والفيديو.';
+
+  @override
+  String get permPhotosTitle => 'الصور';
+
+  @override
+  String get permPhotosText =>
+      'نحتاج إلى الوصول إلى معرض الصور لتتمكن من اختيار الصور ومشاركتها.';
+
+  @override
+  String get permContinue => 'متابعة';
+
+  @override
+  String get permNotNow => 'ليس الآن';
+
+  @override
+  String permDeniedText(String title) {
+    return 'لم يتم منح إذن $title، لذلك هذه الميزة غير متاحة. يمكنك تفعيله من الإعدادات > BÜ Kampüs.';
+  }
+
+  @override
+  String get permOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get permClose => 'إغلاق';
+
+  @override
+  String get permPageTitle => 'بعض الأذونات';
+
+  @override
+  String get permPageIntro =>
+      'نطلب الأذونات التالية لتستفيد من التطبيق بأفضل شكل. لست مضطرا لمنح أي منها الآن، ويمكنك تغييرها لاحقا من الإعدادات.';
+
+  @override
+  String get permStart => 'ابدأ';
+
+  @override
+  String get permGranted => 'تم المنح';
+
+  @override
+  String get permDenied => 'مرفوض';
+
+  @override
+  String get permRetry => 'حاول مرة أخرى';
+
+  @override
+  String get permAllow => 'السماح';
+
+  @override
+  String get coreErrNetwork => 'تعذر الوصول إلى الخادم. تحقق من اتصالك.';
+
+  @override
+  String get coreErrTooMany => 'محاولات كثيرة. يرجى الانتظار قليلاً.';
+
+  @override
+  String get coreErrGeneric => 'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get coreIdEmpty => 'أدخل رقمك الجامعي أو بريدك الإلكتروني.';
+
+  @override
+  String get coreIdDomain => 'يمكن استخدام عناوين bingol.edu.tr فقط.';
+
+  @override
+  String get coreIdNumber => 'تحقق من رقمك الجامعي.';
+
+  @override
+  String get coreOffline => 'غير متصل';
+
+  @override
+  String get coreMaintenance => 'النظام قيد الصيانة.';
+
+  @override
+  String get coreOpen => 'فتح';
+
+  @override
+  String get eventFormJoinFull => 'اكتمل العدد. يمكنك المتابعة عبر \"مهتم\".';
+
+  @override
+  String get eventFormLeaveTitle => 'إلغاء المشاركة';
+
+  @override
+  String get eventFormLeaveMessage =>
+      'ستتم إزالة هذه الفعالية من قائمة فعالياتي.';
+
+  @override
+  String get eventFormLeaveConfirm => 'إلغاء';
+
+  @override
+  String get eventFormRegsClosedToast => 'تم إغلاق التسجيل.';
+
+  @override
+  String get eventFormRegsReopenedToast => 'تمت إعادة فتح التسجيل.';
+
+  @override
+  String get eventFormCancelTitle => 'إلغاء الفعالية';
+
+  @override
+  String get eventFormCancelMessage =>
+      'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
+
+  @override
+  String get eventFormCancelAction => 'إلغاء';
+
+  @override
+  String get eventFormCancelledToast => 'تم إلغاء الفعالية.';
+
+  @override
+  String get eventFormScanTitle => 'امسح رمز QR للحضور';
+
+  @override
+  String get eventFormWrongEventCode => 'هذا الرمز يخص فعالية أخرى.';
+
+  @override
+  String get eventFormCheckedIn => 'تم تسجيل حضورك';
+
+  @override
+  String get eventFormChatSoon => 'دردشة الفعالية قريبا';
+
+  @override
+  String get eventFormEventTitle => 'الفعالية';
+
+  @override
+  String get eventFormNotFound => 'الفعالية غير موجودة';
+
+  @override
+  String get eventFormRegsClosed => 'التسجيل مغلق';
+
+  @override
+  String get eventFormJoin => 'انضم';
+
+  @override
+  String get eventFormInterested => 'مهتم';
+
+  @override
+  String get eventFormBack => 'رجوع';
+
+  @override
+  String get eventFormManage => 'إدارة';
+
+  @override
+  String get eventFormEdit => 'تعديل';
+
+  @override
+  String get eventFormReopenRegs => 'إعادة فتح التسجيل';
+
+  @override
+  String get eventFormCloseRegs => 'إغلاق التسجيل';
+
+  @override
+  String get eventFormReport => 'إبلاغ';
+
+  @override
+  String get eventFormReportEvent => 'الإبلاغ عن الفعالية';
+
+  @override
+  String get eventFormCancelledPill => 'ملغاة';
+
+  @override
+  String get eventFormInMine => 'ضمن فعالياتي';
+
+  @override
+  String get eventFormOrganizedBy => 'المنظم:';
+
+  @override
+  String get eventFormCapacityFull => 'اكتمل العدد';
+
+  @override
+  String eventFormCapacityCount(String going, String cap) {
+    return 'السعة: $going / $cap';
+  }
+
+  @override
+  String get eventFormGoingLabel => 'مشارك';
+
+  @override
+  String get eventFormInterestedLabel => 'مهتم';
+
+  @override
+  String get eventFormInterestedShort => 'مهتم';
+
+  @override
+  String get eventFormFullHint => 'اكتمل العدد، لكن يمكنك الإشارة إلى اهتمامك.';
+
+  @override
+  String get eventFormChat => 'دردشة الفعالية';
+
+  @override
+  String get eventFormManageJoin => 'إدارة المشاركة';
+
+  @override
+  String get eventFormCheckInLater => 'يفتح تسجيل الحضور في وقت الفعالية.';
+
+  @override
+  String get eventFormScanQr => 'مسح رمز QR';
+
+  @override
+  String get eventFormEnterCode => 'أدخل الرمز يدويا';
+
+  @override
+  String get eventFormEnterOrganizerCode => 'أدخل الرمز الذي يعرضه المنظم';
+
+  @override
+  String get eventFormCheckInCode => 'رمز الحضور';
+
+  @override
+  String get eventFormSendCheckIn => 'إرسال الحضور';
+
+  @override
+  String get eventFormCodePreparing => 'جار تجهيز الرمز…';
+
+  @override
+  String get eventFormCodeFailed => 'تعذر الحصول على الرمز.';
+
+  @override
+  String get eventFormQrHelp => 'يمسح المشاركون رمز QR هذا من التطبيق.';
+
+  @override
+  String get eventFormCodeShortLived => 'الرمز صالح لفترة قصيرة.';
+
+  @override
+  String eventFormCodeExpires(String time) {
+    return 'ينتهي: $time · يتجدد الرمز تلقائيا';
+  }
+
+  @override
+  String get eventFormRefreshCode => 'تحديث الرمز';
+
+  @override
+  String get eventFormNoAttendance => 'لا توجد سجلات حضور بعد';
+
+  @override
+  String eventFormAttendanceCount(String present, String total) {
+    return 'الحضور: $present / $total شخص';
+  }
+
+  @override
+  String get eventFormAttendees => 'المشاركون';
+
+  @override
+  String get eventFormShowMore => 'عرض المزيد';
+
+  @override
+  String eventFormCoverCreatedFail(String reason) {
+    return 'تم إنشاء الفعالية لكن تعذر رفع الغلاف.$reason';
+  }
+
+  @override
+  String eventFormCoverFail(String reason) {
+    return 'تعذر رفع الغلاف.$reason';
+  }
+
+  @override
+  String get eventFormRetry => 'حاول مرة أخرى';
+
+  @override
+  String get eventFormPickGallery => 'اختيار من المعرض';
+
+  @override
+  String get eventFormTakePhoto => 'التقاط صورة';
+
+  @override
+  String get eventFormImgTooLarge => 'الصورة كبيرة جدا، اختر صورة أصغر.';
+
+  @override
+  String get eventFormImgUnsupported => 'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
+
+  @override
+  String get eventFormImgUnreadable => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get eventFormImgPickFail => 'تعذر اختيار الصورة. تحقق من الأذونات.';
+
+  @override
+  String get eventFormTitleTooShort => 'يجب ألا يقل العنوان عن 3 أحرف.';
+
+  @override
+  String get eventFormEndBeforeStart => 'يجب أن يكون الانتهاء بعد البداية.';
+
+  @override
+  String get eventFormCapInvalid => 'يجب أن تكون السعة رقما 1 أو أكبر.';
+
+  @override
+  String eventFormCoverRemoveFail(String reason) {
+    return 'تعذرت إزالة الغلاف. $reason';
+  }
+
+  @override
+  String get eventFormCreated => 'تم إنشاء الفعالية.';
+
+  @override
+  String get eventFormEditTitle => 'تعديل الفعالية';
+
+  @override
+  String get eventFormNewTitle => 'فعالية جديدة';
+
+  @override
+  String get eventFormFieldTitle => 'العنوان';
+
+  @override
+  String get eventFormTitleHint => 'عنوان الفعالية';
+
+  @override
+  String get eventFormFieldDesc => 'الوصف';
+
+  @override
+  String get eventFormDescHint => 'نبذة قصيرة عن الفعالية';
+
+  @override
+  String get eventFormStart => 'البداية';
+
+  @override
+  String get eventFormStartSem => 'وقت البداية';
+
+  @override
+  String get eventFormEnd => 'الانتهاء';
+
+  @override
+  String get eventFormEndSem => 'وقت الانتهاء';
+
+  @override
+  String get eventFormPlace => 'المكان';
+
+  @override
+  String get eventFormPlaceHint => 'مثال: قاعة المؤتمرات';
+
+  @override
+  String get eventFormCapacityLabel => 'السعة';
+
+  @override
+  String get eventFormCapHint => 'اتركه فارغا لعدد غير محدود';
+
+  @override
+  String get eventFormSave => 'حفظ';
+
+  @override
+  String get eventFormCreate => 'إنشاء الفعالية';
+
+  @override
+  String get eventFormAddCover => 'إضافة صورة غلاف';
+
+  @override
+  String get eventFormChangeCover => 'تغيير الغلاف';
+
+  @override
+  String get eventFormRemoveCover => 'إزالة الغلاف';
+
+  @override
+  String get eventListTitle => 'الفعاليات';
+
+  @override
+  String get eventListCreate => 'إنشاء فعالية';
+
+  @override
+  String get eventListCheckin => 'تسجيل الحضور';
+
+  @override
+  String get eventListTabDiscover => 'استكشاف';
+
+  @override
+  String get eventListTabMine => 'فعالياتي';
+
+  @override
+  String get eventListTabCreated => 'ما أنشأته';
+
+  @override
+  String get eventListLoading => 'جارٍ التحميل';
+
+  @override
+  String get eventListPrevMonth => 'الشهر السابق';
+
+  @override
+  String get eventListNextMonth => 'الشهر التالي';
+
+  @override
+  String eventListMonthYear(String month, String year) {
+    return '$month $year';
+  }
+
+  @override
+  String eventListLongDate(String day, String month, String weekday) {
+    return '$weekday، $day $month';
+  }
+
+  @override
+  String get eventListFull => 'اكتمل العدد. يمكنك المتابعة عبر \"مهتم\".';
+
+  @override
+  String get eventListLeaveTitle => 'مغادرة الفعالية';
+
+  @override
+  String get eventListLeaveMsg => 'ستتم إزالة هذه الفعالية من قائمة فعالياتي.';
+
+  @override
+  String get eventListLeave => 'مغادرة';
+
+  @override
+  String get eventListLeft => 'غادرت الفعالية.';
+
+  @override
+  String get eventListClosedDone => 'تم إغلاق التسجيل.';
+
+  @override
+  String get eventListReopenedDone => 'تمت إعادة فتح التسجيل.';
+
+  @override
+  String get eventListCancelTitle => 'إلغاء الفعالية';
+
+  @override
+  String get eventListCancelMsg => 'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
+
+  @override
+  String get eventListCancelConfirm => 'إلغاء';
+
+  @override
+  String get eventListCancelledDone => 'تم إلغاء الفعالية.';
+
+  @override
+  String get eventListScanTitle => 'امسح رمز QR للحضور';
+
+  @override
+  String get eventListNotCode => 'هذا ليس رمز حضور.';
+
+  @override
+  String get eventListCheckedIn => 'تم تسجيل حضورك.';
+
+  @override
+  String get eventListEmptyDay => 'لا توجد فعاليات لهذا اليوم.';
+
+  @override
+  String get eventListEmptyMonth => 'لا توجد فعاليات هذا الشهر.';
+
+  @override
+  String get eventListPastMonth => 'شهر سابق: للعرض فقط.';
+
+  @override
+  String get eventListTruncated =>
+      'لا يمكن عرض الشهر كاملاً؛ بعض الفعاليات غير موجودة في القائمة.';
+
+  @override
+  String get eventListUpcoming => 'القادمة';
+
+  @override
+  String get eventListPast => 'السابقة';
+
+  @override
+  String get eventListCreatedHint =>
+      'يمكنك إدارة الفعاليات التي أنشأتها من هنا.';
+
+  @override
+  String get eventListEmptyUpcoming => 'ليس لديك فعاليات للمشاركة فيها.';
+
+  @override
+  String get eventListEmptyPast => 'ليس لديك فعاليات سابقة.';
+
+  @override
+  String get eventListEmptyCreated => 'لم تنشئ أي فعالية بعد.';
+
+  @override
+  String get eventListDiscover => 'استكشف الفعاليات';
+
+  @override
+  String get eventListOfficial => 'رسمي';
+
+  @override
+  String get eventListCancelled => 'ملغاة';
+
+  @override
+  String get eventListRegClosedTag => 'التسجيل مغلق';
+
+  @override
+  String get eventListOpen => 'مفتوحة';
+
+  @override
+  String get eventListRegsClosed => 'التسجيل مغلق';
+
+  @override
+  String get eventListJoin => 'انضم';
+
+  @override
+  String get eventListInterested => 'مهتم';
+
+  @override
+  String get eventListGoing => 'مشارك';
+
+  @override
+  String get eventListOptions => 'خيارات';
+
+  @override
+  String eventListAttendeeCount(String count) {
+    return '$count مشارك';
+  }
+
+  @override
+  String get eventListAttendees => 'المشاركون';
+
+  @override
+  String get eventListEdit => 'تعديل';
+
+  @override
+  String get eventListReopen => 'إعادة فتح التسجيل';
+
+  @override
+  String get eventListClose => 'إغلاق التسجيل';
+
+  @override
+  String get eventListRegClosedError => 'التسجيل في هذه الفعالية مغلق.';
+
+  @override
+  String get eventListAddedMine => 'تمت الإضافة إلى فعالياتي';
+
+  @override
+  String get eventListDismiss => 'تراجع';
+
+  @override
+  String get eventListInMine => 'في فعالياتي';
+
+  @override
+  String get eventListQrLabel => 'رمز QR للحضور';
+
+  @override
+  String get eventListMonth1 => 'يناير';
+
+  @override
+  String get eventListMonth2 => 'فبراير';
+
+  @override
+  String get eventListMonth3 => 'مارس';
+
+  @override
+  String get eventListMonth4 => 'أبريل';
+
+  @override
+  String get eventListMonth5 => 'مايو';
+
+  @override
+  String get eventListMonth6 => 'يونيو';
+
+  @override
+  String get eventListMonth7 => 'يوليو';
+
+  @override
+  String get eventListMonth8 => 'أغسطس';
+
+  @override
+  String get eventListMonth9 => 'سبتمبر';
+
+  @override
+  String get eventListMonth10 => 'أكتوبر';
+
+  @override
+  String get eventListMonth11 => 'نوفمبر';
+
+  @override
+  String get eventListMonth12 => 'ديسمبر';
+
+  @override
+  String get eventListMon1 => 'يناير';
+
+  @override
+  String get eventListMon2 => 'فبراير';
+
+  @override
+  String get eventListMon3 => 'مارس';
+
+  @override
+  String get eventListMon4 => 'أبريل';
+
+  @override
+  String get eventListMon5 => 'مايو';
+
+  @override
+  String get eventListMon6 => 'يونيو';
+
+  @override
+  String get eventListMon7 => 'يوليو';
+
+  @override
+  String get eventListMon8 => 'أغسطس';
+
+  @override
+  String get eventListMon9 => 'سبتمبر';
+
+  @override
+  String get eventListMon10 => 'أكتوبر';
+
+  @override
+  String get eventListMon11 => 'نوفمبر';
+
+  @override
+  String get eventListMon12 => 'ديسمبر';
+
+  @override
+  String get eventListDayShort1 => 'الاثنين';
+
+  @override
+  String get eventListDayShort2 => 'الثلاثاء';
+
+  @override
+  String get eventListDayShort3 => 'الأربعاء';
+
+  @override
+  String get eventListDayShort4 => 'الخميس';
+
+  @override
+  String get eventListDayShort5 => 'الجمعة';
+
+  @override
+  String get eventListDayShort6 => 'السبت';
+
+  @override
+  String get eventListDayShort7 => 'الأحد';
+
+  @override
+  String get eventListDayLong1 => 'الاثنين';
+
+  @override
+  String get eventListDayLong2 => 'الثلاثاء';
+
+  @override
+  String get eventListDayLong3 => 'الأربعاء';
+
+  @override
+  String get eventListDayLong4 => 'الخميس';
+
+  @override
+  String get eventListDayLong5 => 'الجمعة';
+
+  @override
+  String get eventListDayLong6 => 'السبت';
+
+  @override
+  String get eventListDayLong7 => 'الأحد';
+
+  @override
+  String get homeGreetNight => 'طاب مساؤك';
+
+  @override
+  String get homeGreetMorning => 'صباح الخير';
+
+  @override
+  String get homeGreetDay => 'نهارك سعيد';
+
+  @override
+  String get homeGreetEvening => 'مساء الخير';
+
+  @override
+  String get homeEventLoadFailedToast => 'تعذر تحميل الفعالية.';
+
+  @override
+  String get homeEventLoadFailedTitle => 'تعذر تحميل الفعالية';
+
+  @override
+  String get homeQuotaFull => 'اكتمل العدد.';
+
+  @override
+  String get homeMaintenanceDefault => 'النظام قيد الصيانة.';
+
+  @override
+  String get homeSourceUnreachable =>
+      'الموقع المصدر غير متاح حاليا، وقد تكون البيانات غير محدثة.';
+
+  @override
+  String get homeSearchHint => 'ابحث عن أخبار أو أندية أو فعاليات';
+
+  @override
+  String get homeMyClubs => 'من أنديتي';
+
+  @override
+  String get homeAll => 'الكل';
+
+  @override
+  String get homeAgenda => 'المستجدات';
+
+  @override
+  String get homeContentLoadFailed => 'تعذر تحميل المحتوى.';
+
+  @override
+  String get homeNoContent => 'لا يوجد محتوى بعد.';
+
+  @override
+  String get homeMyProfile => 'ملفي الشخصي';
+
+  @override
+  String get homeFeaturedEvent => 'فعالية مميزة';
+
+  @override
+  String get homeNextEvent => 'الفعالية القادمة';
+
+  @override
+  String get homeNoUpcoming => 'لا توجد فعاليات قادمة';
+
+  @override
+  String get homeBrowseEvents => 'تصفح الفعاليات';
+
+  @override
+  String get homeOfficialEvent => 'فعالية رسمية';
+
+  @override
+  String get homeMostAttended => 'الأكثر حضورا';
+
+  @override
+  String homeGoingCount(String count) {
+    return '$count مشارك';
+  }
+
+  @override
+  String get homeBeFirst => 'كن أول المشاركين';
+
+  @override
+  String get homeInMyEvents => 'ضمن فعالياتي';
+
+  @override
+  String get homeFull => 'مكتمل';
+
+  @override
+  String get homeRegClosed => 'التسجيل مغلق';
+
+  @override
+  String get homeJoin => 'شارك';
+
+  @override
+  String get homeQuickEvent => 'الفعاليات';
+
+  @override
+  String get homeQuickFood => 'الوجبات';
+
+  @override
+  String get homeQuickSupport => 'الدعم';
+
+  @override
+  String get homeTodayMeal => 'وجبة اليوم';
+
+  @override
+  String get homeNoMenuToday => 'لا توجد قائمة لليوم';
+
+  @override
+  String get homeNewMessages => 'رسائل جديدة';
+
+  @override
+  String get homeClubMemberships => 'عضويات الأندية';
+
+  @override
+  String homeMemberCount(String count) {
+    return '$count عضو';
+  }
+
+  @override
+  String get newsTypeNews => 'خبر';
+
+  @override
+  String get newsTypeAnnouncement => 'إعلان';
+
+  @override
+  String get newsTypeEvent => 'فعالية';
+
+  @override
+  String newsEventDateShort(String date) {
+    return 'الفعالية: $date';
+  }
+
+  @override
+  String newsEventDate(String date) {
+    return 'تاريخ الفعالية: $date';
+  }
+
+  @override
+  String get newsSaveRemove => 'إزالة من المفضلة';
+
+  @override
+  String get newsSaveAdd => 'إضافة إلى المفضلة';
+
+  @override
+  String get newsLinkOpenFailed => 'تعذر فتح الرابط.';
+
+  @override
+  String get newsFullContent => 'افتح الصفحة المصدر للاطلاع على المحتوى كاملا.';
+
+  @override
+  String get newsOpenSource => 'فتح في الصفحة المصدر';
+
+  @override
+  String get newsMonth1 => 'يناير';
+
+  @override
+  String get newsMonth2 => 'فبراير';
+
+  @override
+  String get newsMonth3 => 'مارس';
+
+  @override
+  String get newsMonth4 => 'أبريل';
+
+  @override
+  String get newsMonth5 => 'مايو';
+
+  @override
+  String get newsMonth6 => 'يونيو';
+
+  @override
+  String get newsMonth7 => 'يوليو';
+
+  @override
+  String get newsMonth8 => 'أغسطس';
+
+  @override
+  String get newsMonth9 => 'سبتمبر';
+
+  @override
+  String get newsMonth10 => 'أكتوبر';
+
+  @override
+  String get newsMonth11 => 'نوفمبر';
+
+  @override
+  String get newsMonth12 => 'ديسمبر';
+
+  @override
+  String get newsDayLong1 => 'الاثنين';
+
+  @override
+  String get newsDayLong2 => 'الثلاثاء';
+
+  @override
+  String get newsDayLong3 => 'الأربعاء';
+
+  @override
+  String get newsDayLong4 => 'الخميس';
+
+  @override
+  String get newsDayLong5 => 'الجمعة';
+
+  @override
+  String get newsDayLong6 => 'السبت';
+
+  @override
+  String get newsDayLong7 => 'الأحد';
+
+  @override
+  String get newsDayShort1 => 'اثن';
+
+  @override
+  String get newsDayShort2 => 'ثلا';
+
+  @override
+  String get newsDayShort3 => 'أرب';
+
+  @override
+  String get newsDayShort4 => 'خمي';
+
+  @override
+  String get newsDayShort5 => 'جمع';
+
+  @override
+  String get newsDayShort6 => 'سبت';
+
+  @override
+  String get newsDayShort7 => 'أحد';
+
+  @override
+  String get discoverSaved => 'المحفوظات';
+
+  @override
+  String get discoverScopeLatest => 'الأحدث';
+
+  @override
+  String get discoverScopePopular => 'الرائج';
+
+  @override
+  String get discoverScopeFollowing => 'المتابَعون';
+
+  @override
+  String get discoverScopeDepartment => 'قسمي';
+
+  @override
+  String get discoverNoSaved => 'لم تحفظ أي خبر بعد.';
+
+  @override
+  String get discoverNoCategory => 'لا يوجد محتوى في هذه الفئة بعد.';
+
+  @override
+  String get discoverDeptHint =>
+      'اختر قسمك من ملفك الشخصي لترى منشورات قسمك هنا.';
+
+  @override
+  String get discoverDeptEmpty => 'لا توجد منشورات من قسمك بعد.';
+
+  @override
+  String get discoverProfilePath => 'الملف الشخصي > تعديل الملف الشخصي';
+
+  @override
+  String get discoverPolls => 'الاستطلاعات';
+
+  @override
+  String get discoverSearch => 'بحث';
+
+  @override
+  String get discoverCompose => 'إنشاء منشور';
+
+  @override
+  String get discoverPosts => 'المنشورات';
+
+  @override
+  String get discoverNews => 'الأخبار';
+
+  @override
+  String get discoverSourceMaint =>
+      'الموقع المصدر قيد الصيانة حاليا. قد تكون البيانات غير محدثة.';
+
+  @override
+  String get menuTitle => 'قائمة الطعام';
+
+  @override
+  String get menuStale => 'تعذر تحديث قائمة الطعام، وتُعرض آخر قائمة معروفة.';
+
+  @override
+  String get menuPrevMonth => 'الشهر السابق';
+
+  @override
+  String get menuNextMonth => 'الشهر التالي';
+
+  @override
+  String menuTodayLabel(String date) {
+    return 'اليوم · $date';
+  }
+
+  @override
+  String get menuNoMenuDay => 'لا توجد قائمة طعام لهذا اليوم.';
+
+  @override
+  String get menuNoMenuMonth => 'لم تُنشر قائمة الطعام لهذا الشهر بعد.';
+
+  @override
+  String get menuNoList => 'لا توجد قائمة طعام.';
+
+  @override
+  String get menuPhotoLabel => 'صورة قائمة طعام اليوم';
+
+  @override
+  String get notifTitle => 'الإشعارات';
+
+  @override
+  String get notifMarkAll => 'تحديد الكل كمقروء';
+
+  @override
+  String get notifEmpty => 'لا توجد إشعارات بعد';
+
+  @override
+  String get notifUnread => 'إشعار غير مقروء';
+
+  @override
+  String get notifGroupToday => 'اليوم';
+
+  @override
+  String get notifGroupYesterday => 'أمس';
+
+  @override
+  String get notifGroupOlder => 'أقدم';
+
+  @override
+  String get notifNow => 'الآن';
+
+  @override
+  String notifMinAgo(String n) {
+    return 'قبل $n دقيقة';
+  }
+
+  @override
+  String notifHourAgo(String n) {
+    return 'قبل $n ساعة';
+  }
+
+  @override
+  String notifDayAgo(String n) {
+    return 'قبل $n يوم';
+  }
+
+  @override
+  String get searchAll => 'الكل';
+
+  @override
+  String get searchClub => 'نادي';
+
+  @override
+  String get searchPost => 'منشور';
+
+  @override
+  String get searchPerson => 'شخص';
+
+  @override
+  String searchClassYear(String n) {
+    return 'السنة $n';
+  }
+
+  @override
+  String get searchUserDefault => 'مستخدم';
+
+  @override
+  String get searchHint =>
+      'ابحث عن أخبار أو أندية أو فعاليات أو منشورات أو أشخاص';
+
+  @override
+  String get searchClear => 'مسح البحث';
+
+  @override
+  String get searchPrompt =>
+      'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
+
+  @override
+  String get searchRecent => 'عمليات البحث الأخيرة';
+
+  @override
+  String get searchClearRecent => 'مسح';
+
+  @override
+  String get searchNoResults => 'لم يتم العثور على نتائج.';
+
+  @override
+  String searchResultCount(String count) {
+    return '$count نتيجة';
+  }
+
+  @override
+  String get searchTooMany => 'تم إرسال طلبات كثيرة، يرجى الانتظار بضع ثوان.';
+
+  @override
+  String get followButtonUnfollow => 'إلغاء المتابعة';
+
+  @override
+  String get followButtonFollow => 'متابعة';
+
+  @override
+  String get followButtonFollowing => 'تتابعه';
+
+  @override
+  String get followersTitle => 'المتابعون';
+
+  @override
+  String get followingTitle => 'المتابَعون';
+
+  @override
+  String get followersEmpty => 'لا يوجد متابعون بعد.';
+
+  @override
+  String get followingEmpty => 'لا تتابع أحدا بعد.';
+
+  @override
+  String get followSuggestionsEmpty => 'لا توجد اقتراحات حاليا.';
+
+  @override
+  String get followSuggestionsTitle => 'أشخاص مقترحون';
+
+  @override
+  String get followFeedHint => 'تظهر هنا منشورات من تتابعهم.';
+
+  @override
+  String get followersCount => 'متابِع';
+
+  @override
+  String get followingCount => 'يتابع';
+
+  @override
+  String get qrScanTitle => 'مسح رمز QR';
+
+  @override
+  String get qrCameraRationale => 'نحتاج إلى الوصول إلى الكاميرا لمسح رمز QR.';
+
+  @override
+  String get qrManualLabel => 'أدخل الرمز يدويا';
+
+  @override
+  String get qrConfirm => 'تأكيد';
+
+  @override
+  String get qrCameraDenied =>
+      'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويا أو منح الإذن ومحاولة المسح مرة أخرى.';
+
+  @override
+  String get qrGrantCamera => 'منح إذن الكاميرا';
+
+  @override
+  String get qrDeniedSettings =>
+      'لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويا.';
+
+  @override
+  String get qrCameraFailed => 'تعذر فتح الكاميرا. يمكنك إدخال الرمز يدويا.';
+
+  @override
+  String get qrTorch => 'المصباح';
+
+  @override
+  String get pollListTitle => 'الاستطلاعات';
+
+  @override
+  String get pollClubPolls => 'استطلاعات النادي';
+
+  @override
+  String get pollTabOpen => 'مفتوحة';
+
+  @override
+  String get pollTabMine => 'شاركت فيها';
+
+  @override
+  String get pollTabClosed => 'المغلقة';
+
+  @override
+  String get pollEmptyOpen => 'لا توجد استطلاعات مفتوحة حاليا.';
+
+  @override
+  String get pollEmptyMine => 'لم تشارك في أي استطلاع بعد.';
+
+  @override
+  String get pollEmptyClosed => 'لا توجد استطلاعات مغلقة.';
+
+  @override
+  String get pollLoadFailedRetry => 'تعذر التحميل، حاول مرة أخرى';
+
+  @override
+  String get pollCreate => 'إنشاء استطلاع';
+
+  @override
+  String get pollClubEmpty => 'لا توجد استطلاعات لهذا النادي.';
+
+  @override
+  String get pollSeeAll => 'عرض كل الاستطلاعات';
+
+  @override
+  String get pollMenuRateToday => 'قيّم قائمة اليوم';
+
+  @override
+  String pollYourRating(String rating) {
+    return 'تقييمك: $rating';
+  }
+
+  @override
+  String pollYourRatingAvg(String rating, String avg) {
+    return 'تقييمك: $rating · المتوسط $avg';
+  }
+
+  @override
+  String get pollTapStar => 'المس نجمة للتقييم';
+
+  @override
+  String get pollNoVoteRight => 'لا يحق لك التصويت في هذا الاستطلاع';
+
+  @override
+  String pollStars(String n) {
+    return '$n نجوم';
+  }
+
+  @override
+  String pollSemPercent(String text, String pct) {
+    return '$text، $pct بالمئة';
+  }
+
+  @override
+  String pollVotes(String votes) {
+    return '$votes صوت';
+  }
+
+  @override
+  String pollVotesWithScore(String votes, String score) {
+    return '$votes صوت · $score نقطة';
+  }
+
+  @override
+  String get pollSemMine => 'اختيارك';
+
+  @override
+  String get pollTypeSingle => 'اختيار واحد';
+
+  @override
+  String get pollTypeMulti => 'اختيار متعدد';
+
+  @override
+  String get pollTypeRating => 'تقييم';
+
+  @override
+  String get pollTypeRanked => 'اختيار مرتب';
+
+  @override
+  String get pollAnonymous => 'تصويت سري';
+
+  @override
+  String get pollVotedBadge => 'لقد صوّتَّ';
+
+  @override
+  String get pollClosedBadge => 'مغلق';
+
+  @override
+  String pollParticipants(String n) {
+    return '$n مشاركة';
+  }
+
+  @override
+  String pollParticipationOf(String v, String e) {
+    return 'شارك $v من $e';
+  }
+
+  @override
+  String pollSemPoll(String title) {
+    return 'استطلاع: $title';
+  }
+
+  @override
+  String get pollEnded => 'انتهى';
+
+  @override
+  String pollDaysLeft(String n) {
+    return 'متبقي $n يوم';
+  }
+
+  @override
+  String pollHoursLeft(String n) {
+    return 'متبقي $n س';
+  }
+
+  @override
+  String pollMinutesLeft(String n) {
+    return 'متبقي $n د';
+  }
+
+  @override
+  String get pollBlockedNotEligible =>
+      'ليس لديك صلاحية المشاركة في هذا الاستطلاع.';
+
+  @override
+  String get pollBlockedClosed => 'هذا الاستطلاع مغلق. لا يمكن التصويت.';
+
+  @override
+  String get pollBlockedNotOpen => 'لم يُفتح هذا الاستطلاع بعد.';
+
+  @override
+  String get pollBlockedAlreadyVoted =>
+      'تم حفظ صوتك؛ لا يمكن تغيير الصوت في هذا الاستطلاع.';
+
+  @override
+  String get pollBlockedDefault => 'لا يمكنك التصويت في هذا الاستطلاع.';
+
+  @override
+  String get pollValTitle => 'العنوان مطلوب.';
+
+  @override
+  String get pollValMin2 => 'أدخل خيارين على الأقل.';
+
+  @override
+  String get pollValMax12 => 'الحد الأقصى 12 خيارا.';
+
+  @override
+  String get pollValDistinct => 'يجب أن تكون الخيارات مختلفة.';
+
+  @override
+  String get pollValEnd => 'اختر وقت الانتهاء.';
+
+  @override
+  String get pollValFuture => 'يجب أن يكون وقت الانتهاء في المستقبل.';
+
+  @override
+  String get pollErrClosed => 'هذا الاستطلاع مغلق.';
+
+  @override
+  String get pollErrAlreadyVoted => 'لقد صوّتَّ في هذا الاستطلاع بالفعل.';
+
+  @override
+  String get pollErrForbidden => 'ليس لديك صلاحية لهذا الإجراء.';
+
+  @override
+  String get pollErrNotFound => 'لم يتم العثور على الاستطلاع.';
+
+  @override
+  String get pollErrInvalidVote => 'اختيار غير صالح.';
+
+  @override
+  String get pollHeader => 'استطلاع';
+
+  @override
+  String get pollStale => 'تعذر التحديث؛ يتم عرض آخر بيانات معروفة.';
+
+  @override
+  String get pollVoteSaved => 'تم حفظ صوتك.';
+
+  @override
+  String get pollVoteRetracted => 'تم سحب صوتك.';
+
+  @override
+  String get pollRetractTitle => 'سحب الصوت';
+
+  @override
+  String get pollRetractBody => 'سيتم حذف صوتك. هل تريد المتابعة؟';
+
+  @override
+  String get pollCancel => 'إلغاء';
+
+  @override
+  String get pollRetractAction => 'سحب';
+
+  @override
+  String pollMaxChoicesSnack(String n) {
+    return 'يمكنك اختيار $n خيارات كحد أقصى.';
+  }
+
+  @override
+  String get pollSecretVote => 'صوتك سري';
+
+  @override
+  String get pollResultsAfterClose => 'ستظهر النتائج عند إغلاق الاستطلاع.';
+
+  @override
+  String get pollHintRanked =>
+      'المس حسب الأفضلية: أول ما تلمسه هو خيارك الأول.';
+
+  @override
+  String pollHintMax(String n) {
+    return 'اختر $n خيارات كحد أقصى.';
+  }
+
+  @override
+  String get pollHintMulti => 'يمكنك اختيار أكثر من خيار.';
+
+  @override
+  String get pollVoteUpdate => 'تحديث الصوت';
+
+  @override
+  String get pollVote => 'صوّت';
+
+  @override
+  String get pollChangeVote => 'تغيير الصوت';
+
+  @override
+  String pollRatingCount(String n) {
+    return '$n تقييم';
+  }
+
+  @override
+  String get pollFieldTitle => 'العنوان';
+
+  @override
+  String get pollTitleHint => 'مثال: انتخاب رئيس الفترة الجديدة';
+
+  @override
+  String get pollFieldDesc => 'الوصف (اختياري)';
+
+  @override
+  String get pollDescHint => 'وصف قصير';
+
+  @override
+  String get pollFieldType => 'النوع';
+
+  @override
+  String pollFieldOptions(String max) {
+    return 'الخيارات (2-$max)';
+  }
+
+  @override
+  String pollOptionHint(String n) {
+    return 'الخيار $n';
+  }
+
+  @override
+  String get pollRemoveOption => 'حذف الخيار';
+
+  @override
+  String get pollAddOption => 'إضافة خيار';
+
+  @override
+  String get pollAnonymousSub => 'لا يظهر لأحد من صوّت لماذا.';
+
+  @override
+  String get pollFieldEnd => 'وقت الانتهاء';
+
+  @override
+  String pollDurDays(String n) {
+    return '$n أيام';
+  }
+
+  @override
+  String get pollPickDateTime => 'اختر التاريخ والوقت';
+
+  @override
+  String get pollChange => 'تغيير';
+
+  @override
+  String get pollPublish => 'نشر';
+
+  @override
+  String get postComposeErrBadResponse => 'استجابة غير متوقعة من الخادم.';
+
+  @override
+  String get postComposeErrPrepare => 'تعذر تجهيز الوسائط.';
+
+  @override
+  String get postComposeErrImageTooLarge => 'الصورة كبيرة جدًا.';
+
+  @override
+  String get postComposeErrImageUnsupported => 'صيغة هذه الصورة غير مدعومة.';
+
+  @override
+  String get postComposeErrImageUnreadable => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get postComposeErrNetwork => 'لا يوجد اتصال، حاول مرة أخرى.';
+
+  @override
+  String get postComposeErrVideoTooLarge =>
+      'الفيديو كبير جدًا (الحد الأقصى 40 ميغابايت).';
+
+  @override
+  String get postComposeErrVideoTooLong => 'يجب ألا يتجاوز الفيديو 60 ثانية.';
+
+  @override
+  String get postComposeErrVideoInvalid => 'صيغة الفيديو غير مدعومة.';
+
+  @override
+  String get postComposeErrBlocked => 'لا يمكن مشاركة هذا المحتوى.';
+
+  @override
+  String get postComposeErrMediaInvalid => 'الوسائط غير صالحة، أعد رفعها.';
+
+  @override
+  String get postComposeErrProfanity =>
+      'لا يُسمح بالألفاظ غير اللائقة هنا. يرجى تعديل النص.';
+
+  @override
+  String get postComposeErrRate => 'أنت تنشر بسرعة كبيرة، انتظر قليلًا.';
+
+  @override
+  String get postComposeErrFileTooLarge => 'الملف كبير جدًا.';
+
+  @override
+  String get postComposeErrGeneric => 'حدث خطأ، حاول مرة أخرى.';
+
+  @override
+  String get postComposeErrVideoUnsupported =>
+      'لا يمكن تجهيز الفيديو على هذا الجهاز.';
+
+  @override
+  String get postComposeErrCancelled => 'تم الإلغاء.';
+
+  @override
+  String get postComposeErrVideoFailed => 'تعذر تجهيز الفيديو.';
+
+  @override
+  String get postComposeEdit => 'تعديل';
+
+  @override
+  String get postComposeDelete => 'حذف';
+
+  @override
+  String get postComposeViewProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get postComposeReport => 'إبلاغ';
+
+  @override
+  String get postComposeBlockUser => 'حظر هذا المستخدم';
+
+  @override
+  String get postComposeClose => 'إغلاق';
+
+  @override
+  String get postComposeReportTitle => 'الإبلاغ عن المنشور';
+
+  @override
+  String get postComposeDeleteTitle => 'هل تريد حذف المنشور؟';
+
+  @override
+  String get postComposeDeleteBody => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get postComposeCancel => 'إلغاء';
+
+  @override
+  String get postComposeDeleted => 'تم حذف المنشور';
+
+  @override
+  String get postComposeBlockTitle => 'هل تريد حظر المستخدم؟';
+
+  @override
+  String get postComposeBlockBody =>
+      'لن ترى منشورات من تحظره ولن تتمكن من مراسلته.';
+
+  @override
+  String get postComposeBlock => 'حظر';
+
+  @override
+  String get postComposeBlocked => 'تم حظر المستخدم';
+
+  @override
+  String get postComposeEditTitle => 'تعديل المنشور';
+
+  @override
+  String get postComposeTextEmpty => 'لا يمكن أن يكون النص فارغًا.';
+
+  @override
+  String get postComposeProfanityFallback => 'يحتوي النص على ألفاظ غير لائقة.';
+
+  @override
+  String get postComposeHint => 'بماذا تفكر؟';
+
+  @override
+  String get postComposeSave => 'حفظ';
+
+  @override
+  String get postComposeMore => 'المزيد';
+
+  @override
+  String postComposeMaxMedia(String max) {
+    return 'يمكنك إضافة $max وسائط كحد أقصى';
+  }
+
+  @override
+  String postComposeFailedCount(String count) {
+    return 'تعذر رفع $count من الوسائط. يمكنك إعادة المحاولة أو إزالتها.';
+  }
+
+  @override
+  String get postComposeInvalidRetry =>
+      'الوسائط غير صالحة وسيعاد رفعها. اضغط على مشاركة مرة أخرى.';
+
+  @override
+  String get postComposeNetworkDraftKept =>
+      'لا يوجد اتصال. تم حفظ مسودتك، حاول مرة أخرى.';
+
+  @override
+  String get postComposeShared => 'تمت المشاركة';
+
+  @override
+  String get postComposeDiscardTitle => 'هل تريد حذف المسودة؟';
+
+  @override
+  String get postComposeDiscardBody =>
+      'سيتم حذف ما كتبته والوسائط التي اخترتها.';
+
+  @override
+  String get postComposeContinue => 'متابعة';
+
+  @override
+  String get postComposeDiscardDraft => 'حذف المسودة';
+
+  @override
+  String get postComposeNewPost => 'منشور جديد';
+
+  @override
+  String get postComposeShare => 'مشاركة';
+
+  @override
+  String get postComposeDraftBanner => 'لديك مسودة محفوظة.';
+
+  @override
+  String get postComposeRestoreDraft => 'استعادة المسودة';
+
+  @override
+  String get postComposeRetry => 'إعادة المحاولة';
+
+  @override
+  String get postComposeRemoveFailed => 'إزالة الفاشلة';
+
+  @override
+  String get postComposeRemove => 'إزالة';
+
+  @override
+  String get postComposeGallery => 'المعرض';
+
+  @override
+  String get postComposeCamera => 'الكاميرا';
+
+  @override
+  String get postComposeSaveUnsupported => 'غير مدعوم على هذا الجهاز.';
+
+  @override
+  String get postComposeSaveDenied => 'لم يتم منح إذن المعرض.';
+
+  @override
+  String get postComposeSaveNoSpace => 'لا توجد مساحة كافية على الجهاز.';
+
+  @override
+  String get postComposeImageSaveFailed => 'تعذر حفظ الصورة.';
+
+  @override
+  String get postComposeSavedToGallery => 'تم الحفظ في المعرض';
+
+  @override
+  String get postComposeDownload => 'تنزيل';
+
+  @override
+  String get postComposeImageLoadFailed => 'تعذر تحميل الصورة.';
+
+  @override
+  String get postComposeVideoPlayFailed => 'تعذر تشغيل الفيديو';
+
+  @override
+  String postComposeVideoOf(String n, String total) {
+    return 'فيديو $n / $total';
+  }
+
+  @override
+  String postComposePhotoOf(String n, String total) {
+    return 'صورة $n / $total';
+  }
+
+  @override
+  String postComposeVideoOfMore(String n, String total, String more) {
+    return 'فيديو $n / $total، +$more أخرى';
+  }
+
+  @override
+  String postComposePhotoOfMore(String n, String total, String more) {
+    return 'صورة $n / $total، +$more أخرى';
+  }
+
+  @override
+  String get postComposeVideo => 'فيديو';
+
+  @override
+  String get postComposePhoto => 'صورة';
+
+  @override
+  String get postComposePlayVideo => 'تشغيل الفيديو';
+
+  @override
+  String get postComposeUnmute => 'تشغيل الصوت';
+
+  @override
+  String get postComposeMute => 'كتم الصوت';
+
+  @override
+  String postComposeMentionAdd(String name) {
+    return 'إضافة إشارة $name';
+  }
+
+  @override
+  String postComposeTagAdd(String tag) {
+    return 'إضافة وسم $tag';
+  }
+
+  @override
+  String postComposePostCount(String count) {
+    return '$count منشور';
+  }
+
+  @override
+  String postComposeUserLabel(String name) {
+    return 'المستخدم $name';
+  }
+
+  @override
+  String postComposeTagLabel(String tag) {
+    return 'وسم $tag';
+  }
+
+  @override
+  String postComposeTagLabelCount(String tag, String count) {
+    return 'وسم $tag، $count منشور';
+  }
+
+  @override
+  String postViewReplyingTo(String name) {
+    return 'رد على @$name';
+  }
+
+  @override
+  String get postViewCancelReply => 'إلغاء الرد';
+
+  @override
+  String get postViewWriteReplyHint => 'اكتب ردك…';
+
+  @override
+  String get postViewWriteCommentHint => 'اكتب تعليقًا…';
+
+  @override
+  String get postViewSend => 'إرسال';
+
+  @override
+  String get postViewAgoNow => 'الآن';
+
+  @override
+  String postViewAgoMin(String n) {
+    return '$n د';
+  }
+
+  @override
+  String postViewAgoHour(String n) {
+    return '$n س';
+  }
+
+  @override
+  String postViewAgoDay(String n) {
+    return '$n ي';
+  }
+
+  @override
+  String postViewAgoWeek(String n) {
+    return '$n أ';
+  }
+
+  @override
+  String postViewAgoYear(String n) {
+    return '$n س';
+  }
+
+  @override
+  String postViewAgoMinFull(String n) {
+    return 'منذ $n دقيقة';
+  }
+
+  @override
+  String postViewAgoHourFull(String n) {
+    return 'منذ $n ساعة';
+  }
+
+  @override
+  String postViewAgoDayFull(String n) {
+    return 'منذ $n يوم';
+  }
+
+  @override
+  String get postViewRepliesLoadFailed => 'تعذر تحميل الردود · أعد المحاولة';
+
+  @override
+  String postViewShowReplies(String n) {
+    return 'عرض $n من الردود';
+  }
+
+  @override
+  String get postViewShowMoreReplies => 'عرض المزيد من الردود';
+
+  @override
+  String get postViewHideReplies => 'إخفاء الردود';
+
+  @override
+  String get postViewCommentsLoadFailed =>
+      'تعذر تحميل التعليقات · أعد المحاولة';
+
+  @override
+  String get postViewCommentsLoading => 'جارٍ تحميل التعليقات';
+
+  @override
+  String get postViewEdit => 'تعديل';
+
+  @override
+  String get postViewDelete => 'حذف';
+
+  @override
+  String get postViewReport => 'إبلاغ';
+
+  @override
+  String get postViewReportComment => 'الإبلاغ عن التعليق';
+
+  @override
+  String get postViewDeleteCommentTitle => 'هل تريد حذف التعليق؟';
+
+  @override
+  String get postViewCannotUndo => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get postViewCancelAction => 'تراجع';
+
+  @override
+  String get postViewCommentDeleted => 'تم حذف هذا التعليق';
+
+  @override
+  String get postViewEdited => 'معدّل';
+
+  @override
+  String postViewProfileOf(String name) {
+    return 'ملف $name';
+  }
+
+  @override
+  String get postViewSendFailedRetryA11y => 'تعذر الإرسال، أعد المحاولة';
+
+  @override
+  String get postViewSendFailedRetry => 'تعذر الإرسال · أعد المحاولة';
+
+  @override
+  String get postViewRemove => 'إزالة';
+
+  @override
+  String get postViewSending => 'جارٍ الإرسال…';
+
+  @override
+  String postViewReplyToA11y(String name) {
+    return 'الرد على $name';
+  }
+
+  @override
+  String get postViewReply => 'رد';
+
+  @override
+  String get postViewCommentOptions => 'خيارات التعليق';
+
+  @override
+  String get postViewEditCommentHint => 'عدّل التعليق';
+
+  @override
+  String get postViewCancel => 'إلغاء';
+
+  @override
+  String get postViewSave => 'حفظ';
+
+  @override
+  String postViewLikersWithCount(String n) {
+    return 'الإعجابات ($n)';
+  }
+
+  @override
+  String get postViewLikers => 'الإعجابات';
+
+  @override
+  String get postViewRetry => 'أعد المحاولة';
+
+  @override
+  String get postViewNoLikers => 'لا توجد إعجابات بعد';
+
+  @override
+  String get postViewUser => 'مستخدم';
+
+  @override
+  String get postViewLikeFailed => 'تعذر حفظ الإعجاب';
+
+  @override
+  String get postViewUnlike => 'إلغاء الإعجاب';
+
+  @override
+  String get postViewLike => 'إعجاب';
+
+  @override
+  String get postViewSavedAdded => 'تمت الإضافة إلى المحفوظات';
+
+  @override
+  String get postViewSavedRemoved => 'تمت الإزالة من المحفوظات';
+
+  @override
+  String get postViewUnsave => 'إزالة من المحفوظات';
+
+  @override
+  String postViewNoTagPosts(String tag) {
+    return 'لا توجد منشورات بالوسم #$tag.';
+  }
+
+  @override
+  String get postViewSavedPostsTitle => 'المنشورات المحفوظة';
+
+  @override
+  String get postViewNoSavedPosts => 'لم تحفظ أي منشور بعد.';
+
+  @override
+  String get postViewPosts => 'المنشورات';
+
+  @override
+  String get postViewSeeAll => 'عرض الكل';
+
+  @override
+  String get postViewPost => 'منشور';
+
+  @override
+  String get postViewMyPosts => 'منشوراتي';
+
+  @override
+  String get postViewNoPosts => 'لا توجد منشورات بعد';
+
+  @override
+  String get postViewReadMore => 'اقرأ المزيد';
+
+  @override
+  String get postViewReportSent => 'تم إرسال بلاغك.';
+
+  @override
+  String get postViewMore => 'المزيد';
+
+  @override
+  String get postViewFeedEmpty => 'لا توجد منشورات بعد. كن أول من يشارك!';
+
+  @override
+  String postViewCommentsWithCount(String n) {
+    return 'التعليقات ($n)';
+  }
+
+  @override
+  String get postViewComments => 'التعليقات';
+
+  @override
+  String get postViewSortNew => 'الأحدث';
+
+  @override
+  String get postViewSortTop => 'الأعلى';
+
+  @override
+  String get postViewFirstComment => 'كن أول من يعلق';
+
+  @override
+  String get profileDeptRequired => 'اختر القسم.';
+
+  @override
+  String get profileDiscardTitle => 'لم يتم حفظ التغييرات';
+
+  @override
+  String get profileDiscardBody => 'إذا خرجت فستفقد التغييرات التي أجريتها.';
+
+  @override
+  String get profileKeepEditing => 'متابعة التعديل';
+
+  @override
+  String get profileDiscardExit => 'تجاهل والخروج';
+
+  @override
+  String get profileChangePhotoSemantic => 'تغيير صورة الملف الشخصي';
+
+  @override
+  String get profileUploading => 'جارٍ الرفع…';
+
+  @override
+  String get profileChangePhoto => 'تغيير الصورة';
+
+  @override
+  String get profilePickGallery => 'اختيار من المعرض';
+
+  @override
+  String get profileTakePhoto => 'التقاط صورة';
+
+  @override
+  String get profileRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get profilePhotoTooLargeHint =>
+      'الحد الأقصى لحجم الصورة 2 ميغابايت. اختر صورة أصغر.';
+
+  @override
+  String get profilePhotoUnsupported => 'يمكن رفع صور JPG أو PNG أو WebP فقط.';
+
+  @override
+  String get profilePhotoUnreadable => 'تعذرت قراءة الملف المحدد.';
+
+  @override
+  String get profilePhotoTooLarge => 'الحد الأقصى لحجم الصورة 2 ميغابايت.';
+
+  @override
+  String get profileEditTitle => 'تعديل الملف الشخصي';
+
+  @override
+  String get profileFullName => 'الاسم الكامل';
+
+  @override
+  String get profileNameMin => 'يجب أن يتكون الاسم من حرفين على الأقل.';
+
+  @override
+  String get profileAbout => 'نبذة عني';
+
+  @override
+  String get profileBioHint => 'عرّف بنفسك باختصار';
+
+  @override
+  String get profileShowEmail => 'إظهار بريدي الإلكتروني للمستخدمين الآخرين';
+
+  @override
+  String get profileSave => 'حفظ';
+
+  @override
+  String get profileUserDefault => 'مستخدم';
+
+  @override
+  String profileGradeYear(String year) {
+    return 'السنة $year';
+  }
+
+  @override
+  String get profileBlockTitle => 'هل تريد حظر هذا المستخدم؟';
+
+  @override
+  String get profileBlockBody => 'لن تتمكن من مراسلة الأشخاص الذين تحظرهم.';
+
+  @override
+  String get profileCancel => 'إلغاء';
+
+  @override
+  String get profileBlock => 'حظر';
+
+  @override
+  String get profileUnblock => 'إلغاء الحظر';
+
+  @override
+  String get profileUnblocked => 'تم إلغاء الحظر';
+
+  @override
+  String get profileBlocked => 'تم حظر المستخدم';
+
+  @override
+  String get profileReportUser => 'الإبلاغ عن المستخدم';
+
+  @override
+  String get profileOnline => 'متصل';
+
+  @override
+  String profileLastSeenToday(String time) {
+    return 'آخر ظهور اليوم $time';
+  }
+
+  @override
+  String profileLastSeenYesterday(String time) {
+    return 'آخر ظهور أمس $time';
+  }
+
+  @override
+  String profileLastSeenDate(String date, String time) {
+    return 'آخر ظهور $date $time';
+  }
+
+  @override
+  String get profileTitle => 'الملف الشخصي';
+
+  @override
+  String get profileNotFound => 'المستخدم غير موجود';
+
+  @override
+  String get profileFaculty => 'الكلية';
+
+  @override
+  String get profileDepartment => 'القسم';
+
+  @override
+  String get profileGrade => 'السنة الدراسية';
+
+  @override
+  String get profileEmail => 'البريد الإلكتروني';
+
+  @override
+  String get profileMessage => 'رسالة';
+
+  @override
+  String get profileReport => 'إبلاغ';
+
+  @override
+  String get profileAboutShort => 'نبذة';
+
+  @override
+  String get profileSignOutTitle => 'هل تريد تسجيل الخروج؟';
+
+  @override
+  String get profileSignOutBody => 'سيتم إنهاء جلستك على هذا الجهاز.';
+
+  @override
+  String get profileSignOut => 'تسجيل الخروج';
+
+  @override
+  String get profileSettings => 'الإعدادات';
+
+  @override
+  String get profileStatClubs => 'النوادي';
+
+  @override
+  String get profileStatEvents => 'الفعاليات';
+
+  @override
+  String get profileStatSavedNews => 'الأخبار المحفوظة';
+
+  @override
+  String get profileMyPosts => 'منشوراتي';
+
+  @override
+  String get profileSavedPosts => 'المنشورات المحفوظة';
+
+  @override
+  String get profileSuggested => 'أشخاص مقترحون';
+
+  @override
+  String get profileSaved => 'المحفوظات';
+
+  @override
+  String get profileAcademic => 'الأكاديمي';
+
+  @override
+  String get profileMyEvents => 'فعالياتي';
+
+  @override
+  String get profileMyClubs => 'نواديّ';
+
+  @override
+  String get profileReminders => 'تذكيرات المحاضرات والامتحانات';
+
+  @override
+  String get profileSavedEmpty =>
+      'لم تحفظ أي خبر بعد. اضغط على أيقونة الإشارة المرجعية في الأخبار.';
+
+  @override
+  String get profileRetry => 'أعد المحاولة';
+
+  @override
+  String profileNewsCount(String count) {
+    return '$count خبر';
+  }
+
+  @override
+  String profileNewsCountMore(String count) {
+    return '$count+ خبر';
+  }
+
+  @override
+  String get profileLegalTitle => 'الاتفاقيات';
+
+  @override
+  String get profileLegalEmpty => 'لا توجد اتفاقيات منشورة.';
+
+  @override
+  String get profileLegalDocFallback => 'الاتفاقية';
+
+  @override
+  String profileVersion(String version) {
+    return 'الإصدار $version';
+  }
+
+  @override
+  String profileVersionDate(String version, String date) {
+    return 'الإصدار $version · $date';
+  }
+
+  @override
+  String get profilePrefsDataCopied => 'تم نسخ بياناتك إلى الحافظة';
+
+  @override
+  String get profilePrefsExportLimit =>
+      'يمكنك تنزيل بياناتك 3 مرات كحد أقصى في اليوم.';
+
+  @override
+  String get profilePrefsBlockedUsers => 'المستخدمون المحظورون';
+
+  @override
+  String get profilePrefsLegalPrivacy => 'الاتفاقيات والخصوصية';
+
+  @override
+  String get profilePrefsDownloadData => 'تنزيل بياناتي';
+
+  @override
+  String get profilePrefsAccountMgmt => 'إدارة الحساب';
+
+  @override
+  String get profilePrefsDeleteMyAccount => 'حذف حسابي';
+
+  @override
+  String get profilePrefsEnterPassword => 'أدخل كلمة المرور.';
+
+  @override
+  String get profilePrefsWrongPassword => 'كلمة المرور غير صحيحة.';
+
+  @override
+  String get profilePrefsDeleteAccountTitle => 'حذف الحساب';
+
+  @override
+  String get profilePrefsDeleteAccountBody =>
+      'سيتم حذف حسابك وبياناتك الشخصية. لا يمكن التراجع عن هذا الإجراء. أدخل كلمة المرور للتأكيد.';
+
+  @override
+  String get profilePrefsPassword => 'كلمة المرور';
+
+  @override
+  String get profilePrefsClubLeft => 'لقد غادرت النادي.';
+
+  @override
+  String get profilePrefsWithdrawTitle => 'سحب الطلب';
+
+  @override
+  String get profilePrefsWithdrawBody => 'هل تريد سحب طلب الانضمام؟';
+
+  @override
+  String get profilePrefsWithdrawConfirm => 'سحب';
+
+  @override
+  String get profilePrefsNoClubs => 'لست عضوا في أي نادٍ بعد.';
+
+  @override
+  String get profilePrefsClubsOwned => 'التي أسستها';
+
+  @override
+  String get profilePrefsClubsMember => 'عضويتي';
+
+  @override
+  String get profilePrefsClubsPending => 'الطلبات المعلقة';
+
+  @override
+  String get profilePrefsMyClubs => 'أنديتي';
+
+  @override
+  String get profilePrefsCreateClub => 'تأسيس نادٍ';
+
+  @override
+  String profilePrefsMembersCount(String count) {
+    return '$count عضو';
+  }
+
+  @override
+  String get profilePrefsAwaitingApproval => 'بانتظار الموافقة';
+
+  @override
+  String get profilePrefsAwaitingPublish => 'بانتظار موافقة النشر';
+
+  @override
+  String get profilePrefsManage => 'إدارة';
+
+  @override
+  String get profilePrefsOptions => 'خيارات';
+
+  @override
+  String get profilePrefsOpen => 'فتح';
+
+  @override
+  String get profilePrefsManageEdit => 'إدارة: تعديل';
+
+  @override
+  String get profilePrefsManageRequests => 'إدارة: الطلبات';
+
+  @override
+  String get profilePrefsManageMembers => 'إدارة: الأعضاء';
+
+  @override
+  String get profilePrefsLeaveClub => 'مغادرة النادي';
+
+  @override
+  String get profilePrefsReminders => 'تذكيرات الدروس والامتحانات';
+
+  @override
+  String get profilePrefsNotifNews => 'الأخبار';
+
+  @override
+  String get profilePrefsNotifAnnouncements => 'الإعلانات';
+
+  @override
+  String get profilePrefsNotifEvents => 'الفعاليات';
+
+  @override
+  String get profilePrefsNotifCommunities => 'المجتمعات';
+
+  @override
+  String get profilePrefsNotifMessages => 'الرسائل';
+
+  @override
+  String get profilePrefsNotifPolls => 'الاستطلاعات';
+
+  @override
+  String get profilePrefsNotifAcademic => 'الإعلانات الأكاديمية';
+
+  @override
+  String get profilePrefsNotifStories => 'القصص';
+
+  @override
+  String get profilePrefsNotifMention => 'الإشارات';
+
+  @override
+  String get profilePrefsNotifFollow => 'متابعون جدد';
+
+  @override
+  String get profilePrefsNotifLike => 'الإعجابات بالمنشورات';
+
+  @override
+  String get profilePrefsNotifComment => 'التعليقات على المنشورات';
+
+  @override
+  String get profilePrefsNotifReply => 'الردود على التعليقات';
+
+  @override
+  String get profilePrefsSocial => 'اجتماعي';
+
+  @override
+  String get profilePrefsOnThisDevice => 'على هذا الجهاز';
+
+  @override
+  String profilePrefsTapToRetry(String error) {
+    return '$error اضغط للمحاولة مرة أخرى.';
+  }
+
+  @override
+  String get profilePrefsNotifTitle => 'الإشعارات';
+
+  @override
+  String get profilePrefsNoBlocked => 'لم تحظر أي مستخدم.';
+
+  @override
+  String get profilePrefsUser => 'مستخدم';
+
+  @override
+  String get profilePrefsUnblock => 'إلغاء الحظر';
+
+  @override
+  String get profilePrefsBlockedTitle => 'المحظورون';
+
+  @override
+  String get pickDepartment => 'القسم';
+
+  @override
+  String get pickSelectDepartment => 'اختر القسم';
+
+  @override
+  String get pickLoading => 'جارٍ التحميل…';
+
+  @override
+  String get pickListFailed => 'تعذر تحميل قائمة الأقسام.';
+
+  @override
+  String get pickRetry => 'إعادة المحاولة';
+
+  @override
+  String get pickGrade => 'السنة الدراسية';
+
+  @override
+  String get pickSelectGrade => 'اختر السنة الدراسية';
+
+  @override
+  String get pickSearch => 'بحث';
+
+  @override
+  String get pickNoResults => 'لا توجد نتائج.';
+
+  @override
+  String authStepOf(String n, String total) {
+    return 'الخطوة $n من $total';
+  }
+
+  @override
+  String get authSectionPersonal => 'المعلومات الشخصية';
+
+  @override
+  String get authSectionPassword => 'عيّن كلمة مرور';
+
+  @override
+  String get authHintAcademic => 'اختر قسمك وسنتك الدراسية.';
+
+  @override
+  String get authHintPersonal => 'أدخل اسمك وبريدك الجامعي.';
+
+  @override
+  String get authHintPassword => 'اختر كلمة مرور من 8 أحرف على الأقل.';
+
+  @override
+  String get authNext => 'متابعة';
+
+  @override
+  String get authTermsAutoPrefix => 'بالتسجيل، فإنك توافق على ';
+
+  @override
+  String get authTermsAutoSuffix => '.';
+
+  @override
+  String get authPwMinErr => 'يجب ألا تقل كلمة المرور عن 8 أحرف.';
+
+  @override
+  String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
+
+  @override
+  String get authIdHelper => '226051015 أو الاسم.اللقب@bingol.edu.tr';
+
+  @override
+  String get supportCatAccount => 'الحساب';
+
+  @override
+  String get supportCatTechnical => 'تقني';
+
+  @override
+  String get supportCatContent => 'المحتوى';
+
+  @override
+  String get supportCatOther => 'أخرى';
+
+  @override
+  String get supportFbBug => 'خطأ';
+
+  @override
+  String get supportFbSuggestion => 'اقتراح';
+
+  @override
+  String get supportFbComplaint => 'شكوى';
+
+  @override
+  String get supportFbPraise => 'شكر';
+
+  @override
+  String get supportStNew => 'جديد';
+
+  @override
+  String get supportStInReview => 'قيد المراجعة';
+
+  @override
+  String get supportStPlanned => 'مخطط';
+
+  @override
+  String get supportStDone => 'مكتمل';
+
+  @override
+  String get supportStRejected => 'مرفوض';
+
+  @override
+  String get supportStatusAnswered => 'تم الرد';
+
+  @override
+  String get supportStatusClosed => 'مغلق';
+
+  @override
+  String get supportStatusOpen => 'مفتوح';
+
+  @override
+  String get supportTooManyRequests =>
+      'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلا ثم المحاولة مرة أخرى.';
+
+  @override
+  String get supportLabelCategory => 'الفئة';
+
+  @override
+  String get supportLabelSubject => 'الموضوع';
+
+  @override
+  String get supportLabelMessage => 'الرسالة';
+
+  @override
+  String get supportLabelMine => 'ما أرسلته';
+
+  @override
+  String get supportHintSubject => 'الموضوع باختصار';
+
+  @override
+  String get supportHintFeedback => 'اكتب رأيك';
+
+  @override
+  String get supportHintIssue => 'اشرح مشكلتك';
+
+  @override
+  String get supportHintReply => 'اكتب ردا';
+
+  @override
+  String get supportFillFields => 'يرجى ملء حقلي الموضوع والرسالة.';
+
+  @override
+  String get supportFeedbackThanks => 'شكرا على ملاحظاتك.';
+
+  @override
+  String get supportFeedbackTitle => 'ملاحظات';
+
+  @override
+  String get supportSend => 'إرسال';
+
+  @override
+  String get supportNoFeedback => 'لم ترسل أي ملاحظات بعد.';
+
+  @override
+  String get supportMore => 'المزيد';
+
+  @override
+  String get supportTicketReceived => 'تم استلام طلب الدعم الخاص بك.';
+
+  @override
+  String get supportNewTicketTitle => 'طلب جديد';
+
+  @override
+  String get supportTitle => 'الدعم';
+
+  @override
+  String get supportFaqLabel => 'الأسئلة الشائعة';
+
+  @override
+  String get supportMyTickets => 'طلباتي';
+
+  @override
+  String get supportShareLabel => 'شاركنا رأيك';
+
+  @override
+  String get supportBoard => 'لوحة الاقتراحات';
+
+  @override
+  String get supportCreateTicket => 'إنشاء طلب دعم';
+
+  @override
+  String get supportNoFaq => 'لا توجد أسئلة شائعة بعد.';
+
+  @override
+  String get supportRetry => 'إعادة المحاولة';
+
+  @override
+  String get supportNoTickets => 'ليس لديك طلبات دعم بعد.';
+
+  @override
+  String get supportSortTop => 'الأكثر تصويتا';
+
+  @override
+  String get supportSortNew => 'الأحدث';
+
+  @override
+  String get supportAddSuggestion => 'إضافة اقتراح';
+
+  @override
+  String get supportNoSuggestions =>
+      'لا توجد اقتراحات منشورة بعد. كن أول من يضيف اقتراحا.';
+
+  @override
+  String get supportCloseTicketTitle => 'إغلاق الطلب';
+
+  @override
+  String get supportCloseTicketBody =>
+      'سيتم إغلاق هذا الطلب ولن تتمكن من كتابة ردود جديدة. هل تريد المتابعة؟';
+
+  @override
+  String get supportCancel => 'إلغاء';
+
+  @override
+  String get supportClose => 'إغلاق';
+
+  @override
+  String get supportTicketTitle => 'الطلب';
+
+  @override
+  String get supportTicketClosedNote => 'تم إغلاق هذا الطلب.';
+
+  @override
+  String get supportStaff => 'فريق الدعم';
+
+  @override
+  String get storyVideoTooLong => 'يجب ألا يزيد فيديو القصة عن 30 ثانية.';
+
+  @override
+  String get storyCreateTitle => 'إنشاء قصة';
+
+  @override
+  String get storyShare => 'مشاركة';
+
+  @override
+  String get storyModeMedia => 'صورة / فيديو';
+
+  @override
+  String get storyModeText => 'نص';
+
+  @override
+  String get storyVisible24 => 'تظهر قصتك لمدة 24 ساعة';
+
+  @override
+  String get storyGallery => 'المعرض';
+
+  @override
+  String get storyCamera => 'الكاميرا';
+
+  @override
+  String get storyCaptionHint => 'أضف وصفا…';
+
+  @override
+  String get storyTextHint => 'اكتب شيئا…';
+
+  @override
+  String storyBgColor(String n) {
+    return 'لون الخلفية $n';
+  }
+
+  @override
+  String get storyYours => 'قصتك';
+
+  @override
+  String storyNewSemantics(String name) {
+    return '$name، قصة جديدة';
+  }
+
+  @override
+  String storySemantics(String name) {
+    return '$name، قصة';
+  }
+
+  @override
+  String get storyDeleteTitle => 'هل تريد حذف القصة؟';
+
+  @override
+  String get storyDeleteBody => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get storyCancel => 'إلغاء';
+
+  @override
+  String get storyDelete => 'حذف';
+
+  @override
+  String get storyRetry => 'إعادة المحاولة';
+
+  @override
+  String get storyClose => 'إغلاق';
+
+  @override
+  String storyViewsSemantics(String count) {
+    return '$count مشاهدة، عرض المشاهدين';
+  }
+
+  @override
+  String get storyDeleteTooltip => 'حذف القصة';
+
+  @override
+  String storyBarSemantics(String index, String total) {
+    return 'القصة $index / $total';
+  }
+
+  @override
+  String get storyNoViewers => 'لم يشاهدها أحد بعد.';
+
+  @override
+  String storyViewersTitle(String count) {
+    return 'المشاهدون ($count)';
+  }
+
+  @override
+  String get authForgotSub => 'أدخل بريدك الجامعي وسنرسل لك رمزًا من 6 أرقام.';
+
+  @override
+  String get authBackToLogin => 'العودة لتسجيل الدخول';
+
+  @override
+  String get authChangeEmail => 'تغيير البريد الإلكتروني';
+
+  @override
+  String get authNewPwSub =>
+      'ستحل محل كلمة المرور القديمة. سيتم إنهاء الجلسات على جميع الأجهزة.';
+
+  @override
+  String get authRuleLen => '8 أحرف على الأقل';
+
+  @override
+  String get authRuleMix => 'تحتوي على أحرف وأرقام';
+
+  @override
+  String get authStep1Title => 'في أي قسم أنت؟';
+
+  @override
+  String get authStep2Title => 'لنتعرف عليك';
+
+  @override
+  String get welcomeHeadline => 'الحرم الجامعي\nفي جيبك';
+
+  @override
+  String get welcomeSub =>
+      'الإعلانات وقائمة الطعام والأندية والفعاليات في تطبيق واحد.';
+
+  @override
+  String get welcomeNews => 'الأخبار والإعلانات';
+
+  @override
+  String get welcomeMenu => 'قائمة طعام اليوم';
+
+  @override
+  String get welcomeClubs => 'الأندية والفعاليات';
+
+  @override
+  String get welcomeNote => 'التسجيل متاح فقط بالبريد الجامعي (bingol.edu.tr).';
+
+  @override
+  String get welcomeLanguage => 'اللغة';
+
+  @override
+  String get chatlistSearchHint => 'ابحث في المحادثات';
+
+  @override
+  String get bildirimFilterAll => 'الكل';
+
+  @override
+  String get bildirimFilterUnread => 'غير المقروءة';
+
+  @override
+  String get bildirimEmptyUnread => 'لا توجد إشعارات غير مقروءة';
+
+  @override
+  String get bildirimAllCaughtUp => 'هذا كل شيء';
+
+  @override
+  String get bildirimSwipeHint => 'اسحب الإشعار لحذفه';
+
+  @override
+  String get bildirimDelete => 'حذف';
+
+  @override
+  String bildirimShortMin(String n) {
+    return '$n د';
+  }
+
+  @override
+  String bildirimShortHour(String n) {
+    return '$n س';
+  }
+
+  @override
+  String bildirimShortDay(String n) {
+    return '$n ي';
+  }
+
+  @override
+  String get bildirimYesterday => 'أمس';
+
+  @override
+  String get bildirimTypeNews => 'خبر';
+
+  @override
+  String get bildirimTypeAnnouncement => 'إعلان';
+
+  @override
+  String get bildirimTypeEvent => 'فعالية';
+
+  @override
+  String get bildirimTypeMessage => 'محادثة';
+
+  @override
+  String get bildirimTypeCommunity => 'نادٍ';
+
+  @override
+  String get bildirimTypePoll => 'استطلاع';
+
+  @override
+  String get bildirimTypePost => 'منشور';
+
+  @override
+  String get bildirimTypeOther => 'إشعار';
+
+  @override
+  String get acadhubNextExam => 'الامتحان القادم';
+
+  @override
+  String get acadhubUpcoming => 'التواريخ القادمة';
+
+  @override
+  String get acadhubCalendarLink => 'التقويم';
+
+  @override
+  String get acadhubNoUpcoming => 'لا توجد تواريخ قادمة';
+
+  @override
+  String get kuluplerAllClubs => 'جميع الأندية';
+
+  @override
+  String get kesfetSubtitle => 'منشورات من الطلاب';
+
+  @override
+  String get kesfetSearchHint => 'ابحث عن منشورات أو أشخاص';
+
+  @override
+  String get profil2PrivacyTitle => 'الخصوصية والمحظورون';
+
+  @override
+  String get profil2PrivacyIntro =>
+      'اختر من يمكنه رؤية كل جزء من ملفك الشخصي. أنت ترى ملفك الشخصي كاملاً دائماً.';
+
+  @override
+  String get profil2VisibilitySection => 'ظهور الملف الشخصي';
+
+  @override
+  String get profil2FieldAvatar => 'الصورة الشخصية';
+
+  @override
+  String get profil2FieldBio => 'نبذة عني';
+
+  @override
+  String get profil2FieldFaculty => 'الكلية';
+
+  @override
+  String get profil2FieldDepartment => 'القسم';
+
+  @override
+  String get profil2FieldClassYear => 'السنة الدراسية';
+
+  @override
+  String get profil2VisEveryone => 'الجميع';
+
+  @override
+  String get profil2VisShared => 'سياق مشترك';
+
+  @override
+  String get profil2VisOnlyMe => 'أنا فقط';
+
+  @override
+  String get profil2SharedHintLead => 'السياق المشترك:';
+
+  @override
+  String get profil2SharedHintBody =>
+      'الأشخاص الذين تشترك معهم في نادٍ أو محادثة أو فعالية.';
+
+  @override
+  String get profil2ShowEmail => 'إظهار بريدي الإلكتروني في ملفي';
+
+  @override
+  String get profil2ShowEmailSub => 'عند الإيقاف، أنت فقط من يراه';
+
+  @override
+  String get profil2BlockedSection => 'المحظورون';
+
+  @override
+  String get profil2BlockedHint => 'لا يستطيع من تحظرهم رؤيتك أو مراسلتك.';
+
+  @override
+  String get profil2AvatarModerated => 'تم إخفاء صورتك الشخصية بسبب الإشراف.';
+
+  @override
+  String get profil2SaveFailed => 'تعذر حفظ التغيير.';
+
+  @override
+  String get profil2MyDataRow => 'بياناتي وحسابي';
+
+  @override
+  String get profil2DataTitle => 'بياناتي';
+
+  @override
+  String get profil2DataIntro =>
+      'يمكنك تنزيل نسخة من بياناتك الشخصية التي نحتفظ بها في التطبيق وفق قانون حماية البيانات.';
+
+  @override
+  String get profil2DataFileSub => 'يتم إعدادها كملف JSON';
+
+  @override
+  String get profil2DataContents => 'محتويات الملف';
+
+  @override
+  String get profil2DataItemProfile => 'معلومات ملفك الشخصي';
+
+  @override
+  String get profil2DataItemPrefs => 'تفضيلات الخصوصية والإشعارات';
+
+  @override
+  String get profil2DataItemClubs => 'سجلات النوادي والفعاليات';
+
+  @override
+  String get profil2DataItemSaved => 'الأخبار المحفوظة والإشعارات';
+
+  @override
+  String get profil2DataItemSupport => 'سجلات الدعم والملاحظات';
+
+  @override
+  String get profil2DataLimit =>
+      'يمكنك التنزيل حتى 3 مرات يومياً. احتفظ بالملف بأمان فهو يحتوي على معلومات شخصية.';
+
+  @override
+  String get profil2DataOther => 'أخرى';
+
+  @override
+  String get profil2DataKvkk => 'إشعار حماية البيانات';
+
+  @override
+  String get profil2DelWarnLead => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get profil2DelWarnBody =>
+      'سيتم إخفاء هوية حسابك ولن تتمكن من تسجيل الدخول مجدداً.';
+
+  @override
+  String get profil2DelWhatHappens => 'ماذا سيحدث';
+
+  @override
+  String get profil2DelItem1 =>
+      'يتم حذف اسمك وبريدك وصورتك ومعلومات ملفك. يبقى الحساب باسم مستخدم محذوف.';
+
+  @override
+  String get profil2DelItem2 =>
+      'يتم حذف إشعاراتك وأخبارك المحفوظة وسجلات أجهزتك وتفضيلاتك.';
+
+  @override
+  String get profil2DelItem3 =>
+      'تتم إزالة عضوياتك في النوادي ومشاركاتك في الفعاليات.';
+
+  @override
+  String get profil2DelItem4 => 'يتم إغلاق جلساتك على جميع الأجهزة.';
+
+  @override
+  String get profil2DelBackupHint => 'إن أردت، يمكنك تنزيل بياناتك قبل الحذف.';
+
+  @override
+  String get profil2DelAck =>
+      'أفهم أنه سيتم حذف حسابي نهائياً ولا يمكن التراجع عن ذلك.';
+
+  @override
+  String get profil2Continue => 'متابعة';
+
+  @override
+  String get profil2DelConfirmTitle => 'تأكيد الحذف';
+
+  @override
+  String get profil2DelConfirmBody =>
+      'أدخل كلمة المرور للمتابعة. سيتم إخفاء هوية حسابك فوراً وتسجيل خروجك من جميع الأجهزة.';
+
+  @override
+  String get profil2SecTitle => 'الحساب والأمان';
+
+  @override
+  String get profil2SecEmailFixed => 'لا يمكن تغييره';
+
+  @override
+  String get profil2SecVerified => 'تم التحقق';
+
+  @override
+  String get profil2SecPwSection => 'تحديث كلمة المرور';
+
+  @override
+  String get profil2SecCurrentLabel => 'كلمة المرور الحالية';
+
+  @override
+  String get profil2SecCurrentHint => 'كلمة مرورك الحالية';
+
+  @override
+  String get profil2SecNewLabel => 'كلمة المرور الجديدة';
+
+  @override
+  String get profil2SecNewHint => '8 أحرف على الأقل';
+
+  @override
+  String get profil2SecRepeatLabel => 'كلمة المرور الجديدة (تكرار)';
+
+  @override
+  String get profil2SecRepeatHint => 'أعد كتابة كلمة المرور الجديدة';
+
+  @override
+  String get profil2SecPwRule =>
+      'من 8 إلى 72 حرفاً. خلط الحروف والأرقام يجعلها أقوى.';
+
+  @override
+  String get profil2SecPwButton => 'تحديث كلمة المرور';
+
+  @override
+  String get profil2SecMismatch => 'كلمتا المرور غير متطابقتين.';
+
+  @override
+  String get profil2SecSame =>
+      'لا يمكن أن تكون كلمة المرور الجديدة مثل الحالية.';
+
+  @override
+  String get profil2SecWrongCurrent => 'كلمة المرور الحالية غير صحيحة.';
+
+  @override
+  String get profil2SecFailed =>
+      'تعذر تحديث كلمة المرور. يرجى المحاولة لاحقاً.';
+
+  @override
+  String get profil2SecUpdated => 'تم تحديث كلمة المرور.';
+
+  @override
+  String get profil2SecSessions => 'الجلسات';
+
+  @override
+  String get profil1SecContent => 'محتواي';
+
+  @override
+  String get profil1SecAccount => 'الحساب';
+
+  @override
+  String get profil1SecApp => 'التطبيق';
+
+  @override
+  String get profil1SecSupport => 'الدعم والشؤون القانونية';
+
+  @override
+  String get profil1AccountSecurity => 'الحساب والأمان';
+
+  @override
+  String get profil1PrivacyBlocked => 'الخصوصية والمحظورون';
+
+  @override
+  String get profil1MyData => 'بياناتي';
+
+  @override
+  String get profil1Notifications => 'تفضيلات الإشعارات';
+
+  @override
+  String get profil1Theme => 'المظهر';
+
+  @override
+  String get profil1Support => 'الدعم';
+
+  @override
+  String get profil1Legal => 'الاتفاقيات والسياسات';
+
+  @override
+  String get profil1CorpEmail => 'البريد الجامعي';
+
+  @override
+  String get profil1Remove => 'إزالة';
+
+  @override
+  String get profil1PushTitle => 'الإشعارات الفورية';
+
+  @override
+  String get profil1PushGranted => 'مسموح على هذا الجهاز';
+
+  @override
+  String get profil1PillOff => 'متوقف';
+
+  @override
+  String get profil1WhatSection => 'ما الذي يتم إشعارك به';
+
+  @override
+  String get profil1NotifClubs => 'الأندية';
+
+  @override
+  String get profil1NewsSub => 'أخبار جديدة من الجامعة';
+
+  @override
+  String get profil1AnnSub => 'إعلانات مهمة';
+
+  @override
+  String get profil1EventsSub => 'تذكيرات وتغييرات وقبول';
+
+  @override
+  String get profil1MsgSub => 'المحادثات الفردية والجماعية';
+
+  @override
+  String get profil1ClubsSub => 'المنشورات والأدوار والانضمام';
+
+  @override
+  String get profil1Detailed => 'تفضيلات مفصلة';
+
+  @override
+  String get profil1SubMsgDirect => 'الرسائل الفردية';
+
+  @override
+  String get profil1SubMsgGroup => 'رسائل المجموعات';
+
+  @override
+  String get profil1SubEventReminder => 'تذكيرات الفعاليات';
+
+  @override
+  String get profil1SubEventUpdate => 'تغييرات الفعاليات';
+
+  @override
+  String get profil1SubEventAdmission => 'قبول الفعاليات';
+
+  @override
+  String get profil1SubClubPost => 'منشورات الأندية';
+
+  @override
+  String get profil1SubClubRole => 'تغييرات أدوار النادي';
+
+  @override
+  String get profil1SubClubJoin => 'طلبات الانضمام للنادي';
+
+  @override
+  String get profil1QuietTitle => 'ساعات الهدوء';
+
+  @override
+  String get profil1QuietToggle => 'تفعيل ساعات الهدوء';
+
+  @override
+  String get profil1QuietSub => 'لا صوت للإشعارات في هذه الساعات';
+
+  @override
+  String get profil1QuietStart => 'البداية';
+
+  @override
+  String get profil1QuietEnd => 'النهاية';
+
+  @override
+  String get sohbetmedyaNext => 'التالي';
+
+  @override
+  String sohbetmedyaSelectedOf(String n, String max) {
+    return 'تم تحديد $n / $max';
+  }
+
+  @override
+  String get sohbetmedyaRecent => 'الأحدث';
+
+  @override
+  String get sohbetmedyaPhotoVideo => 'الصور والفيديو';
+
+  @override
+  String sohbetmedyaLimitNote(String max) {
+    return 'يمكنك تحديد $max عناصر كحد أقصى. مدة الفيديو 60 ثانية كحد أقصى.';
+  }
+
+  @override
+  String get sohbetmedyaAddMore => 'إضافة المزيد';
+
+  @override
+  String sohbetmedyaSendItems(String n) {
+    return 'إرسال $n عناصر';
+  }
+
+  @override
+  String get chatdSendingMedia => 'جارٍ الإرسال…';
+
+  @override
+  String get chatdPhotoLoading => 'جارٍ تحميل الصورة…';
+
+  @override
+  String get chatdOnceLocked => 'صورة تُعرض مرة واحدة';
+
+  @override
+  String get chatdOnceView => 'عرض';
+
+  @override
+  String get chatdOnceOpenedFull => 'صورة · تم الفتح';
+
+  @override
+  String anasayfaHello(String name) {
+    return 'مرحباً، $name';
+  }
+
+  @override
+  String get anasayfaHelloNoName => 'مرحباً';
+
+  @override
+  String get anasayfaMealLunch => 'وجبة اليوم · الغداء';
+
+  @override
+  String get anasayfaAnnouncements => 'الإعلانات';
+
+  @override
+  String get anasayfaQuickAcademic => 'الأكاديمي';
+
+  @override
+  String get gonderiTextHint => 'أضف ملاحظة قصيرة (اختياري)';
+
+  @override
+  String gonderiWordCount(String n, String max) {
+    return '$n/$max كلمات';
+  }
+
+  @override
+  String gonderiWordLimit(String max) {
+    return 'يمكنك كتابة $max كلمات كحد أقصى.';
+  }
+
+  @override
+  String get gonderiPickPhoto => 'اختر من المعرض';
+
+  @override
+  String get gonderiTakePhoto => 'التقط صورة';
+
+  @override
+  String get gonderiPhotoRequired => 'اختر صورة للمشاركة.';
+
+  @override
+  String get gonderiPhotoHint => 'تتكون المشاركة من صورة واحدة.';
+
+  @override
+  String get gonderiChangePhoto => 'تغيير الصورة';
+
+  @override
+  String get gonderiDiscardTitle => 'هل تريد التخلي عن المشاركة؟';
+
+  @override
+  String get gonderiDiscardBody =>
+      'سيتم حذف الصورة التي اخترتها والنص الذي كتبته.';
+
+  @override
+  String get gonderiDiscardYes => 'تخلَّ';
+
+  @override
+  String get yemekLunch => 'وجبة الغداء';
+
+  @override
+  String get yemekTodaysMenu => 'قائمة اليوم';
+
+  @override
+  String get yemekToday => 'اليوم';
+
+  @override
+  String get yemekPrevDay => 'اليوم السابق';
+
+  @override
+  String get yemekNextDay => 'اليوم التالي';
+
+  @override
+  String get destekFaqHeading => 'الأسئلة الشائعة';
+
+  @override
+  String get destekFaqSearchHint => 'ابحث عن سؤالك';
+
+  @override
+  String get destekFaqAll => 'الكل';
+
+  @override
+  String get destekFaqNoMatch => 'لم يتم العثور على سؤال مطابق.';
+
+  @override
+  String get destekSortMine => 'اقتراحاتي';
+
+  @override
+  String get destekSortPopular => 'الأكثر شعبية';
+
+  @override
+  String get destekShareSuggestion => 'شارك اقتراحا';
+
+  @override
+  String destekEffective(String date) {
+    return 'ساري المفعول: $date';
+  }
+
+  @override
+  String destekVoteLabel(String count) {
+    return 'صوّت، الأصوات الحالية $count';
+  }
+
+  @override
+  String get anketScopeGlobal => 'عام';
+
+  @override
+  String get anketScopeClub => 'نادي';
+
+  @override
+  String get anketScopeMenu => 'الوجبة';
+
+  @override
+  String get anketSecretNote =>
+      'صوتك سري. أنت وحدك ترى اختيارك، ولا أحد بمن فيهم المشرفون يستطيع معرفة من اختار ماذا.';
+
+  @override
+  String get anketSecretVoteNote =>
+      'يبقى صوتك سريا ولا أحد يستطيع معرفة من اختار ماذا.';
+
+  @override
+  String get anketMineBadge => 'اختيارك';
+
+  @override
+  String get anketRatingSummary => 'ملخص التقييم';
+
+  @override
+  String get anketResultsTitle => 'النتائج';
+
+  @override
+  String get anketFieldQuestion => 'السؤال';
+
+  @override
+  String get anketVisTitle => 'متى تظهر النتائج؟';
+
+  @override
+  String get anketVisAlways => 'دائما';
+
+  @override
+  String get anketVisAfterVote => 'بعد التصويت';
+
+  @override
+  String get anketVisAfterClose => 'عند إغلاق الاستطلاع';
+
+  @override
+  String get anketNotifyTitle => 'إرسال إشعار';
+
+  @override
+  String get anketNotifySub => 'إشعار الجمهور المستهدف بفتح الاستطلاع';
+
+  @override
+  String get icerikHidden => 'مخفي';
+
+  @override
+  String get icerikStatPosts => 'منشور';
+
+  @override
+  String get icerikStatFollowers => 'متابع';
+
+  @override
+  String get icerikStatFollowing => 'يتابع';
+
+  @override
+  String get icerikMessageSend => 'إرسال رسالة';
+
+  @override
+  String get icerikReport => 'إبلاغ';
+
+  @override
+  String get icerikMoreActions => 'إجراءات أخرى';
+
+  @override
+  String get icerikUserMenu => 'إجراءات المستخدم';
+
+  @override
+  String get icerikPostsHeading => 'المنشورات';
+
+  @override
+  String get icerikOpenPost => 'فتح المنشور';
+
+  @override
+  String get icerikPostPhoto => 'صورة المنشور';
+
+  @override
+  String get icerikNewsTitle => 'الأخبار';
+
+  @override
+  String get icerikNewsTypeTabs => 'النوع';
+
+  @override
+  String get icerikNewsList => 'قائمة الأخبار';
+
+  @override
+  String get icerikNewsEmpty => 'لا يوجد محتوى في هذه الفئة بعد.';
+
+  @override
+  String get icerikFavorites => 'الأخبار المفضلة';
+
+  @override
+  String get icerikMaintenance =>
+      'تعذر الوصول إلى مصدر الأخبار حاليا. يتم عرض آخر الأخبار المحفوظة.';
+
+  @override
+  String get icerikOpenSource => 'فتح في الموقع المصدر';
+
+  @override
+  String get icerikShare => 'مشاركة';
+
+  @override
+  String get icerikLinkCopied => 'تم نسخ رابط الخبر.';
+
+  @override
+  String icerikSavedCount(String count) {
+    return '$count خبر محفوظ';
+  }
+
+  @override
+  String get icerikSavedMoreTitle => 'احفظ المزيد من الأخبار';
+
+  @override
+  String get icerikSavedMoreBody => 'استخدم العلامة في صفحة الخبر لإضافته هنا.';
+
+  @override
+  String get icerikSavedList => 'المفضلة';
+
+  @override
+  String get icerikSearchTabs => 'نوع النتيجة';
+
+  @override
+  String get icerikGroupNews => 'الأخبار';
+
+  @override
+  String get icerikGroupAnnouncement => 'الإعلانات';
+
+  @override
+  String get icerikGroupEvent => 'الفعاليات';
+
+  @override
+  String get icerikGroupClub => 'النوادي';
+
+  @override
+  String get icerikGroupPerson => 'الأشخاص';
+
+  @override
+  String get icerikGroupPost => 'المنشورات';
+
+  @override
+  String get kulupdetayRequestsTitle => 'طلبات الانضمام';
+
+  @override
+  String kulupdetayPendingBanner(String count) {
+    return '$count طلبات انضمام معلقة';
+  }
+
+  @override
+  String get kulupdetaySendRequest => 'إرسال الطلب';
+
+  @override
+  String get kulupdetayAnswerHint => 'اكتب إجابتك';
+
+  @override
+  String get kulupdetayRequired => 'هذا السؤال إلزامي.';
+
+  @override
+  String get kulupdetayApproving => 'جارٍ القبول...';
+
+  @override
+  String get kulupdetayCreateTitle => 'إنشاء نادٍ';
+
+  @override
+  String kulupdetayMembersSubtitle(String club, String count) {
+    return '$club · $count عضو';
+  }
+
+  @override
+  String akademik2DayHeadingToday(String day) {
+    return '$day، اليوم';
+  }
+
+  @override
+  String akademik2CourseCount(String count) {
+    return '$count محاضرات';
+  }
+
+  @override
+  String get akademik2ExportLabel => 'تصدير إلى التقويم';
+
+  @override
+  String get akademik2CourseHours => 'موعد المحاضرة';
+
+  @override
+  String get akademik2Instructor => 'المحاضر';
+
+  @override
+  String get akademik2Start => 'البداية';
+
+  @override
+  String get akademik2End => 'النهاية';
+
+  @override
+  String get akademik2EndOptional => 'النهاية (اختياري)';
+
+  @override
+  String get akademik2RoomShort => 'القاعة';
+
+  @override
+  String get akademik2AddDay => 'إضافة يوم آخر';
+
+  @override
+  String get akademik2OfficialTag => 'رسمي';
+
+  @override
+  String get akademik2Passed => 'انتهى';
+
+  @override
+  String get akademik2ExamTitle => 'عنوان الامتحان';
+
+  @override
+  String get akademik2Course => 'المقرر';
+
+  @override
+  String get akademik2Place => 'المكان';
+
+  @override
+  String get akademik2NewTag => 'جديد';
+
+  @override
+  String get akademik2Attachment => 'مرفق';
+
+  @override
+  String get akademik2RemindEach => 'قبل كل محاضرة';
+
+  @override
+  String get akademik2BeforeClassShort => 'قبل المحاضرة';
+
+  @override
+  String get akademik2SemesterTitle => 'اختر الفصل';
 }

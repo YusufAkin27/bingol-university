@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api.dart';
+import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/typography.dart';
 
@@ -41,7 +43,7 @@ class BuHeader extends StatelessWidget {
       child: Row(
         children: [
           if (onBack != null) ...[
-            BuIconButton(icon: LucideIcons.arrowLeft, onTap: onBack, tooltip: 'Geri'),
+            BuIconButton(icon: LucideIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
             const SizedBox(width: 12),
           ],
           Expanded(
@@ -442,7 +444,7 @@ class BuSegmented extends StatelessWidget {
 class BuSearchField extends StatelessWidget {
   const BuSearchField({
     super.key,
-    this.hint = 'Ara',
+    this.hint,
     this.controller,
     this.onChanged,
     this.onSubmitted,
@@ -451,7 +453,7 @@ class BuSearchField extends StatelessWidget {
     this.autofocus = false,
   });
 
-  final String hint;
+  final String? hint;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -485,7 +487,7 @@ class BuSearchField extends StatelessWidget {
               textInputAction: TextInputAction.search,
               style: BuType.body.copyWith(color: t.ink),
               decoration: InputDecoration(
-                hintText: hint,
+                hintText: hint ?? context.l10n.commonSearchHint,
                 isCollapsed: true,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -647,7 +649,7 @@ class BuMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Image.asset('assets/branding/mark_white.png', height: height, semanticLabel: 'BÜ Kampüs');
+      SvgPicture.asset('assets/branding/mark_white.svg', height: height, width: height, semanticsLabel: 'BÜ Kampüs');
 }
 
 /// Kaydırılabilir sayfa gövdesi altına yüzen gezinme payı (88 px) bırakmak için.

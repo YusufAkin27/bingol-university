@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
@@ -153,7 +154,7 @@ class _NewChatPageState extends State<NewChatPage> {
     }
     if (_selected.length >= _maxMembers) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gruba en çok 50 kişi eklenebilir.')));
+          SnackBar(content: Text(context.l10n.chatMiscGroupMax)));
       return;
     }
     setState(() {
@@ -170,7 +171,7 @@ class _NewChatPageState extends State<NewChatPage> {
     if (_isGroup) {
       final title = _title.text.trim();
       if (title.isEmpty) {
-        setState(() => _createError = 'Grup adı girin.');
+        setState(() => _createError = context.l10n.chatMiscGroupNameRequired);
         return;
       }
       body = {
@@ -212,11 +213,11 @@ class _NewChatPageState extends State<NewChatPage> {
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          BuHeader(title: 'Yeni sohbet', onBack: () => Navigator.pop(context)),
+          BuHeader(title: context.l10n.chatMiscNewChat, onBack: () => Navigator.pop(context)),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: BuSearchField(
-              hint: 'Ad veya e-posta ile ara',
+              hint: context.l10n.chatMiscUserSearchHint,
               controller: _search,
               onChanged: _onQuery,
               autofocus: true,
@@ -252,7 +253,9 @@ class _NewChatPageState extends State<NewChatPage> {
               padding: EdgeInsets.fromLTRB(
                   20, 10, 20, 12 + MediaQuery.of(context).padding.bottom),
               child: BuButton(
-                label: _isGroup ? 'Grubu oluştur' : 'Sohbet başlat',
+                label: _isGroup
+                    ? context.l10n.chatMiscCreateGroup
+                    : context.l10n.chatMiscStartChat,
                 busy: _busy,
                 onPressed: _create,
               ),
@@ -315,10 +318,10 @@ class _NewChatPageState extends State<NewChatPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Grup oluştur',
+                Text(context.l10n.chatMiscGroupCardTitle,
                     style: BuType.bodyStrong.copyWith(color: t.ink)),
                 const SizedBox(height: 2),
-                Text('$n kişi seçildi',
+                Text(context.l10n.chatMiscSelectedCount(n.toString()),
                     style: BuType.caption.copyWith(color: t.mut)),
                 const SizedBox(height: 6),
                 TextField(
@@ -331,7 +334,7 @@ class _NewChatPageState extends State<NewChatPage> {
                     }
                   },
                   decoration: InputDecoration(
-                    hintText: 'Grup adı',
+                    hintText: context.l10n.chatMiscGroupName,
                     counterText: '',
                     isDense: true,
                     filled: true,
@@ -353,7 +356,7 @@ class _NewChatPageState extends State<NewChatPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Text('en çok 50', style: BuType.label.copyWith(color: t.mut)),
+          Text(context.l10n.chatMiscMax50, style: BuType.label.copyWith(color: t.mut)),
         ],
       ),
     );
@@ -361,9 +364,8 @@ class _NewChatPageState extends State<NewChatPage> {
 
   Widget _list(BuTokens t) {
     if (_search.text.trim().length < 2) {
-      return const EmptyView(
-          icon: LucideIcons.search,
-          text: 'Kişi aramak için en az 2 karakter yazın.');
+      return EmptyView(
+          icon: LucideIcons.search, text: context.l10n.chatMiscSearchMin);
     }
     if (_searching && _results.isEmpty) return const LoadingView();
     if (_searchError != null) {
@@ -371,8 +373,8 @@ class _NewChatPageState extends State<NewChatPage> {
           error: _searchError!, onRetry: () => _runSearch(_lastQuery));
     }
     if (_results.isEmpty) {
-      return const EmptyView(
-          icon: LucideIcons.userX, text: 'Eşleşen kişi bulunamadı.');
+      return EmptyView(
+          icon: LucideIcons.userX, text: context.l10n.chatMiscNoMatchPeople);
     }
     return RefreshIndicator(
       onRefresh: () => _runSearch(_lastQuery),
@@ -385,7 +387,7 @@ class _NewChatPageState extends State<NewChatPage> {
           if (i == 0) {
             return Padding(
               padding: const EdgeInsets.only(top: 8, bottom: 2),
-              child: Text('KİŞİLER',
+              child: Text(context.l10n.chatMiscPeopleHeader,
                   style:
                       BuType.label.copyWith(letterSpacing: .5, color: t.mut)),
             );

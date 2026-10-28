@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/typography.dart';
 import 'chat_media.dart';
 import 'message_bubble.dart' show chatMediaUrl;
@@ -138,7 +139,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
             ),
             child: Row(children: [
               IconButton(
-                tooltip: 'Kapat',
+                tooltip: context.l10n.chatMiscClose,
                 color: Colors.white,
                 icon: const Icon(LucideIcons.x),
                 onPressed: () => Navigator.pop(context),
@@ -146,7 +147,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
               const Spacer(),
               if (widget.onSave != null)
                 IconButton(
-                  tooltip: 'İndir',
+                  tooltip: context.l10n.chatMiscDownload,
                   color: Colors.white,
                   icon: _saving
                       ? const SizedBox(
@@ -194,7 +195,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Video oynatılamadı',
+            Text(context.l10n.chatMiscVideoPlayFailed,
                 textAlign: TextAlign.center,
                 style: BuType.bodyStrong.copyWith(color: Colors.white)),
             const SizedBox(height: 12),
@@ -205,7 +206,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                 side: const BorderSide(color: Colors.white54),
                 minimumSize: const Size(140, 44),
               ),
-              child: const Text('Yeniden dene'),
+              child: Text(context.l10n.chatMiscRetry),
             ),
           ]),
         ),

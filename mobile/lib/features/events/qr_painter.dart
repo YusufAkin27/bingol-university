@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
+
 /// Saf Dart QR üretici: bayt kipi, hata düzeltme düzeyi M, sürüm 1-10 (en çok 213 bayt).
 /// Yoklama kodları kısa olduğu için yeterlidir; sığmazsa [QrCode.tryEncode] null döner.
 class QrCode {
@@ -417,7 +419,7 @@ class _QrViewState extends State<QrView> {
     final qr = _qr;
     if (qr == null) return widget.fallback ?? const SizedBox.shrink();
     return Semantics(
-      label: 'Yoklama QR kodu',
+      label: context.l10n.eventListQrLabel,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: RepaintBoundary(

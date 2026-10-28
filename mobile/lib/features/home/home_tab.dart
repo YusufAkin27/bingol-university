@@ -1,28 +1,32 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import '../clubs/club_detail_page.dart';
+import '../academic/academic_hub_page.dart';
 import '../events/event_cover.dart';
 import '../events/event_detail_page.dart';
 import '../events/event_parts.dart';
 import '../events/events_page.dart';
+import '../menu/menu_models.dart';
 import '../menu/menu_page.dart';
+import '../menu/menu_photo.dart';
 import '../news/news_detail_page.dart';
+import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsTypeLabel;
 import '../notifications/notifications_page.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
 import '../support/support_page.dart';
 import '../../core/typography.dart';
+import 'home_parts.dart';
 
-/// Ana sayfa: selamlama, arama, sıradaki etkinlik, hızlı erişim, bento kutular, kulüpler, gündem.
+/// Ana sayfa: selamlama, arama, hızlı erişim, bugünün yemeği, (varsa) öne çıkan etkinlik, duyurular.
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key, required this.session, required this.onOpenTab});
 
@@ -35,46 +39,31 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-const _newsTypes = [('HABER', 'Haber'), ('DUYURU', 'Duyuru'), ('ETKINLIK', 'Etkinlik')];
-const _monthNames = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-];
+/// Ana sayfada gösterilen liste türü (tasarım: yalnız "Duyurular").
+const _homeNewsType = 'DUYURU';
+
+/// Öğle yemeği saatleri (yalnız öğle yemeği vardır; dilden bağımsız).
+const _lunchHours = '11:30 – 14:00';
 
 class _HomeTabState extends State<HomeTab> {
   // Bölümler bağımsız yüklenir; null = henüz gelmedi ya da düştü.
   Map<String, dynamic>? _info;
   Map<String, dynamic>? _today;
-  Map<String, dynamic>? _summary;
   Map<String, dynamic>? _event;
   bool _eventFailed = false; // öne çıkan etkinlik yüklenemedi: bölüm içi "Tekrar dene"
   bool _eventRetrying = false;
   List<Map<String, dynamic>> _avatars = const [];
 
-  // İlk boyama için gerekmeyen bölümler görünür olunca yüklenir.
-  List<Map<String, dynamic>>? _clubs;
-  bool _clubsRequested = false;
-  bool _clubsLoading = false;
-  final Map<String, List<Map<String, dynamic>>> _news = {};
-  final Set<String> _newsLoading = {};
-  final Set<String> _newsFailed = {};
+  // İlk boyama için gerekmeyen bölüm görünür olunca yüklenir.
+  List<Map<String, dynamic>>? _news;
+  bool _newsLoading = false;
+  bool _newsFailed = false;
   bool _newsRequested = false;
   bool _newsStale = false;
 
   bool _loading = true;
   Object? _error;
   int _gen = 0;
-  String _newsType = 'DUYURU';
   bool _rsvpBusy = false;
 
   Session get _s => widget.session;
@@ -119,7 +108,6 @@ class _HomeTabState extends State<HomeTab> {
         // Çan ve alt gezinme rozetlerini tek kaynaktan eşitle.
         _s.badges.notifications.value = (r['unreadNotifications'] as num?)?.toInt() ?? 0;
         _s.badges.chat.value = (r['unreadMessages'] as num?)?.toInt() ?? 0;
-        _apply(gen, () => _summary = r);
       }),
       step(() async {
         try {
@@ -163,7 +151,7 @@ class _HomeTabState extends State<HomeTab> {
     try {
       await _loadFeatured(gen);
     } catch (_) {
-      if (mounted) _toast('Etkinlik yüklenemedi.');
+      if (mounted) _toast(context.l10n.homeEventLoadFailedToast);
     } finally {
       if (mounted) setState(() => _eventRetrying = false);
     }
@@ -187,50 +175,30 @@ class _HomeTabState extends State<HomeTab> {
     } catch (_) {}
   }
 
-  // --- tembel bölümler ---
-
-  void _ensureClubs() {
-    if (_clubsRequested) return;
-    _clubsRequested = true;
-    _loadClubs();
-  }
-
-  Future<void> _loadClubs() async {
-    final gen = _gen;
-    if (mounted) setState(() => _clubsLoading = true);
-    try {
-      final r = await _s.api.get('/me/communities?size=10') as Map<String, dynamic>;
-      final l = List<Map<String, dynamic>>.from(r['items'] as List);
-      _apply(gen, () => _clubs = l);
-    } catch (_) {
-      // Bölüm isteğe bağlı; düşerse gizli kalır.
-    } finally {
-      if (mounted) setState(() => _clubsLoading = false);
-    }
-  }
+  // --- tembel bölüm ---
 
   void _ensureNews() {
     if (_newsRequested) return;
     _newsRequested = true;
-    _loadNews(_newsType);
+    _loadNews();
     unawaited(_loadStatus());
   }
 
-  Future<void> _loadNews(String type) async {
+  Future<void> _loadNews() async {
     final gen = _gen;
     if (!mounted) return;
     setState(() {
-      _newsLoading.add(type);
-      _newsFailed.remove(type);
+      _newsLoading = true;
+      _newsFailed = false;
     });
     try {
-      final r = await _s.api.get('/news?type=$type&page=0&size=3') as Map<String, dynamic>;
+      final r = await _s.api.get('/news?type=$_homeNewsType&page=0&size=3') as Map<String, dynamic>;
       final l = List<Map<String, dynamic>>.from(r['items'] as List);
-      _apply(gen, () => _news[type] = l);
+      _apply(gen, () => _news = l);
     } catch (_) {
-      if (mounted) setState(() => _newsFailed.add(type));
+      if (mounted) setState(() => _newsFailed = true);
     } finally {
-      if (mounted) setState(() => _newsLoading.remove(type));
+      if (mounted) setState(() => _newsLoading = false);
     }
   }
 
@@ -243,30 +211,22 @@ class _HomeTabState extends State<HomeTab> {
     } catch (_) {}
   }
 
-  void _selectNewsType(String type) {
-    setState(() => _newsType = type);
-    if (_news[type] == null && !_newsLoading.contains(type)) _loadNews(type);
-  }
-
   Future<void> _reload() async {
-    // Görünür olmuş tembel bölümler de tazelenir; yenileme hepsini bekler.
+    // Görünür olmuş tembel bölüm de tazelenir; yenileme hepsini bekler.
     await _load();
     if (!mounted) return;
-    _news.removeWhere((k, _) => k != _newsType);
-    await Future.wait([
-      if (_clubsRequested) _loadClubs(),
-      if (_newsRequested) ...[_loadNews(_newsType), _loadStatus()],
-    ]);
+    if (_newsRequested) await Future.wait([_loadNews(), _loadStatus()]);
   }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
-  String get _greeting {
+  String _greeting(BuildContext context) {
+    final l = context.l10n;
     final h = DateTime.now().hour;
-    if (h < 6) return 'İyi geceler';
-    if (h < 12) return 'Günaydın';
-    if (h < 18) return 'İyi günler';
-    return 'İyi akşamlar';
+    if (h < 6) return l.homeGreetNight;
+    if (h < 12) return l.homeGreetMorning;
+    if (h < 18) return l.homeGreetDay;
+    return l.homeGreetEvening;
   }
 
   Future<void> _openUrl(String? url) async {
@@ -290,7 +250,7 @@ class _HomeTabState extends State<HomeTab> {
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
     final cap = (ev['capacity'] as num?)?.toInt();
     if (cap != null && going >= cap) {
-      _toast('Kontenjan doldu.');
+      _toast(context.l10n.homeQuotaFull);
       return;
     }
     final gen = _gen;
@@ -354,7 +314,7 @@ class _HomeTabState extends State<HomeTab> {
       if (maintenance?['enabled'] == true)
         Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: StaleBanner(text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ?? 'Sistem bakımda.'),
+          child: StaleBanner(text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ?? context.l10n.homeMaintenanceDefault),
         ),
       if (banner != null && (banner['text'] ?? banner['message']) is String && ((banner['text'] ?? banner['message']) as String).isNotEmpty)
         Padding(
@@ -365,59 +325,26 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ),
       if (_newsStale)
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-          child: StaleBanner(text: 'Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.'),
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: StaleBanner(text: context.l10n.homeSourceUnreachable),
         ),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        child: BuSearchField(
-          hint: 'Haber, kulüp, etkinlik ara',
-          readOnly: true,
-          onTap: () => _push(SearchPage(session: _s)),
-        ),
+        child: HomeSearchBox(hint: context.l10n.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
       ),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: _eventCard(context)),
       Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _quickAccess(context)),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _bento(context)),
-      // Üyelik yoksa bölüm hiç istenmez; varsa görünür olunca yüklenir.
-      if (_summary == null || ((_summary!['communities'] as num?) ?? 1) > 0)
-        _LazyOnce(onFirstBuild: _ensureClubs, child: _clubsSection(context)),
+      Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 0), child: _mealCard(context)),
+      Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: _eventCard(context)),
       _LazyOnce(onFirstBuild: _ensureNews, child: _newsSection(context)),
     ];
   }
 
-  Widget _clubsSection(BuildContext context) {
-    final clubs = _clubs;
-    if (clubs != null && clubs.isEmpty) return const SizedBox.shrink();
-    if (clubs == null && !_clubsLoading) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BuSectionTitle('Kulüplerimden',
-            action: 'Tümü', onAction: () => widget.onOpenTab(3), padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
-        SizedBox(
-          height: 120,
-          child: clubs == null
-              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.pr))
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: clubs.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (_, i) => _clubCard(clubs[i], i),
-                ),
-        ),
-      ],
-    );
-  }
-
   Widget _newsSection(BuildContext context) {
     final t = context.bu;
-    final news = _news[_newsType];
-    final loading = _newsLoading.contains(_newsType);
+    final news = _news;
     Widget list;
-    if (news == null && (loading || !_newsFailed.contains(_newsType))) {
+    if (news == null && (_newsLoading || !_newsFailed)) {
       list = const Padding(
         padding: EdgeInsets.symmetric(vertical: 28),
         child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
@@ -426,14 +353,14 @@ class _HomeTabState extends State<HomeTab> {
       list = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(children: [
-          Text('İçerik yüklenemedi.', style: TextStyle(color: t.mut)),
-          TextButton(onPressed: () => _loadNews(_newsType), child: const Text('Tekrar dene')),
+          Text(context.l10n.homeContentLoadFailed, style: TextStyle(color: t.mut)),
+          TextButton(onPressed: _loadNews, child: Text(context.l10n.commonRetryShort)),
         ]),
       );
     } else if (news.isEmpty) {
       list = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Center(child: Text('Henüz içerik yok.', style: TextStyle(color: t.mut))),
+        child: Center(child: Text(context.l10n.homeNoContent, style: TextStyle(color: t.mut))),
       );
     } else {
       list = Column(children: [
@@ -447,21 +374,14 @@ class _HomeTabState extends State<HomeTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BuSectionTitle('Gündem',
-            action: 'Tümü',
-            onAction: () => widget.onOpenTab(1, newsType: _newsType),
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10)),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(children: [
-            for (final nt in _newsTypes) ...[
-              BuChip(label: nt.$2, selected: _newsType == nt.$1, onTap: () => _selectNewsType(nt.$1)),
-              const SizedBox(width: 8),
-            ],
-          ]),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          child: HomeSectionHeader(
+            title: context.l10n.anasayfaAnnouncements,
+            action: context.l10n.homeAll,
+            onAction: () => widget.onOpenTab(1, newsType: _homeNewsType),
+          ),
         ),
-        const SizedBox(height: 12),
         list,
       ],
     );
@@ -469,6 +389,7 @@ class _HomeTabState extends State<HomeTab> {
 
   Widget _header(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final name = (_s.displayName ?? '').trim();
     return Padding(
       padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
@@ -477,24 +398,18 @@ class _HomeTabState extends State<HomeTab> {
           Expanded(
             child: Semantics(
               button: true,
-              label: 'Profilim',
+              label: l.homeMyProfile,
               child: InkWell(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => widget.onOpenTab(AppTab.profile),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    BuAvatar(name: name, size: 44, dark: false),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_greeting, style: BuType.caption.copyWith(color: t.mut)),
-                          Text(name.isEmpty ? 'BÜ Kampüs' : name,
-                              maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
-                        ],
-                      ),
-                    ),
+                    Text(_greeting(context), style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
+                    Text(name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
                   ],
                 ),
               ),
@@ -506,7 +421,7 @@ class _HomeTabState extends State<HomeTab> {
             builder: (_, n, __) => BuIconButton(
               icon: LucideIcons.bell,
               badge: n > 0,
-              tooltip: 'Bildirimler',
+              tooltip: l.notifTitle,
               onTap: () => _push(NotificationsPage(session: _s)),
             ),
           ),
@@ -515,26 +430,27 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  String _eventWhen(Map<String, dynamic> e) {
+  String _eventWhen(BuildContext context, Map<String, dynamic> e) {
     final d = DateTime.tryParse((e['startsAt'] as String?) ?? '')?.toLocal();
     if (d == null) return '';
     final hh = d.hour.toString().padLeft(2, '0');
     final mm = d.minute.toString().padLeft(2, '0');
-    return '${d.day} ${_monthNames[d.month - 1]} · $hh:$mm';
+    return '${d.day} ${newsMonthName(context, d.month)} · $hh:$mm';
   }
 
   Widget _eventCard(BuildContext context) {
+    final l = context.l10n;
     final e = _event;
     if (e == null && _eventFailed) {
       return BuHeroCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _heroPill(LucideIcons.calendar, 'Öne çıkan etkinlik'),
+            _heroPill(LucideIcons.calendar, l.homeFeaturedEvent),
             const SizedBox(height: 12),
-            Text('Etkinlik yüklenemedi', style: BuType.title.copyWith(height: 1.2)),
+            Text(l.homeEventLoadFailedTitle, style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 14),
-            _whitePill('Tekrar dene', _retryFeatured, busy: _eventRetrying),
+            _whitePill(l.commonRetryShort, _retryFeatured, busy: _eventRetrying),
           ],
         ),
       );
@@ -544,11 +460,11 @@ class _HomeTabState extends State<HomeTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _heroPill(LucideIcons.calendar, 'Sıradaki etkinlik'),
+            _heroPill(LucideIcons.calendar, l.homeNextEvent),
             const SizedBox(height: 12),
-            Text('Yaklaşan etkinlik yok', style: BuType.title.copyWith(height: 1.2)),
+            Text(l.homeNoUpcoming, style: BuType.title.copyWith(height: 1.2)),
             const SizedBox(height: 14),
-            _whitePill('Etkinliklere göz at', () => _push(EventsPage(session: _s))),
+            _whitePill(l.homeBrowseEvents, () => _push(EventsPage(session: _s))),
           ],
         ),
       );
@@ -560,7 +476,7 @@ class _HomeTabState extends State<HomeTab> {
     final cap = (e['capacity'] as num?)?.toInt();
     final full = cap != null && going >= cap;
     final loc = (e['location'] as String?) ?? '';
-    final when = official ? niceDate(e['date'] as String?) : _eventWhen(e);
+    final when = official ? newsLocalDate(context, e['date'] as String?) : _eventWhen(context, e);
     final cover = official ? null : fileUrl(e['coverUrl'] as String?);
     return GestureDetector(
       onTap: id == null
@@ -581,8 +497,8 @@ class _HomeTabState extends State<HomeTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Wrap(spacing: 8, runSpacing: 6, children: [
-              _heroPill(LucideIcons.calendar, official ? 'Resmi etkinlik' : 'Öne çıkan etkinlik'),
-              if (!official) _heroPill(LucideIcons.trendingUp, 'En çok katılım'),
+              _heroPill(LucideIcons.calendar, official ? l.homeOfficialEvent : l.homeFeaturedEvent),
+              if (!official) _heroPill(LucideIcons.trendingUp, l.homeMostAttended),
             ]),
             const SizedBox(height: 10),
             Text((e['title'] as String?) ?? '',
@@ -605,18 +521,18 @@ class _HomeTabState extends State<HomeTab> {
                   const Icon(LucideIcons.users, size: 14.5, color: Colors.white),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(going > 0 ? '$going kişi katılıyor' : 'İlk katılan sen ol',
+                  child: Text(going > 0 ? l.homeGoingCount(going.toString()) : l.homeBeFirst,
                       maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label),
                 ),
                 const SizedBox(width: 8),
                 if (mine)
-                  _whitePill('Etkinliklerimde', _openMyEvents, check: true)
+                  _whitePill(l.homeInMyEvents, _openMyEvents, check: true)
                 else if (full)
-                  _whitePill('Dolu', null)
+                  _whitePill(l.homeFull, null)
                 else if (e['registrationClosed'] == true)
-                  _whitePill('Kayıt kapalı', null)
+                  _whitePill(l.homeRegClosed, null)
                 else
-                  _whitePill('Katıl', id == null ? null : _join, busy: _rsvpBusy),
+                  _whitePill(l.homeJoin, id == null ? null : _join, busy: _rsvpBusy),
               ]),
           ],
         ),
@@ -692,288 +608,52 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
+  /// Akademik / Yemek / Etkinlik / Destek.
   Widget _quickAccess(BuildContext context) {
-    final items = <(IconData, String, ValueListenable<int>?, VoidCallback)>[
-      (LucideIcons.messageCircle, 'Sohbet', _s.badges.chat, () => widget.onOpenTab(2)),
-      (LucideIcons.users, 'Kulüpler', null, () => widget.onOpenTab(3)),
-      (LucideIcons.calendar, 'Etkinlik', null, () => _push(EventsPage(session: _s))),
-      (LucideIcons.utensils, 'Yemek', null, () => _push(MenuPage(session: _s))),
-      (LucideIcons.lifeBuoy, 'Destek', null, () => _push(SupportPage(session: _s))),
+    final l = context.l10n;
+    final items = <(IconData, String, HomeTone, VoidCallback)>[
+      (LucideIcons.graduationCap, l.anasayfaQuickAcademic, HomeTone.red, () => _push(AcademicHubPage(session: _s))),
+      (LucideIcons.utensils, l.homeQuickFood, HomeTone.green, () => _push(MenuPage(session: _s))),
+      (LucideIcons.calendar, l.homeQuickEvent, HomeTone.blue, () => _push(EventsPage(session: _s))),
+      (LucideIcons.circleHelp, l.homeQuickSupport, HomeTone.amber, () => _push(SupportPage(session: _s))),
     ];
     return Row(
       children: [
-        for (final it in items) Expanded(child: _QuickItem(icon: it.$1, label: it.$2, badge: it.$3, onTap: it.$4)),
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: HomeQuickTile(icon: items[i].$1, label: items[i].$2, tone: items[i].$3, onTap: items[i].$4)),
+        ],
       ],
     );
   }
 
-  Widget _bento(BuildContext context) {
-    final t = context.bu;
-    final todayItems = _today?['items'];
-    final items = [for (final x in (todayItems is List ? todayItems : const [])) '$x'.trim()];
-    final clubCount = (_summary?['communities'] as num?)?.toInt();
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 115,
-            child: Material(
-              color: t.soft,
-              borderRadius: BorderRadius.circular(24),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => _push(MenuPage(session: _s)),
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 150),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Icon(LucideIcons.utensils, size: 18, color: t.onSoft),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text('Bugünün yemeği',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.label.copyWith(color: t.onSoft)),
-                        ),
-                      ]),
-                      const SizedBox(height: 12),
-                      Text(
-                        items.isEmpty ? 'Bugün için liste yok' : items.take(4).join('\n'),
-                        maxLines: 5,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.bodyStrong.copyWith(height: 1.5, color: t.onSoft),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 100,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _s.badges.chat,
-                    builder: (_, n, __) => _statBox(
-                      color: t.ink,
-                      value: '$n',
-                      label: 'yeni mesaj',
-                      fg: t.bg,
-                      sub: t.bg.withValues(alpha: .85),
-                      arrow: t.bg,
-                      border: false,
-                      onTap: () => widget.onOpenTab(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: _statBox(
-                    color: t.sf,
-                    value: clubCount == null ? '–' : '$clubCount',
-                    label: 'kulüp üyeliği',
-                    fg: t.ink,
-                    sub: t.mut,
-                    arrow: t.pr,
-                    border: true,
-                    onTap: () => widget.onOpenTab(3),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statBox({
-    required Color color,
-    required String value,
-    required String label,
-    required Color fg,
-    required Color sub,
-    required Color arrow,
-    required bool border,
-    required VoidCallback onTap,
-  }) {
-    final t = context.bu;
-    return Material(
-      color: color,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: border ? BorderSide(color: t.bd) : BorderSide.none,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(value, style: BuType.title.copyWith(color: fg, height: 1.2)),
-                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: sub)),
-                ],
-              ),
-            ),
-            Icon(buDirIcon(context, LucideIcons.arrowRight), size: 20, color: arrow),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _clubCard(Map<String, dynamic> c, int i) {
-    final t = context.bu;
-    final id = (c['id'] as num?)?.toInt();
-    final members = (c['memberCount'] as num?)?.toInt();
-    return SizedBox(
-      width: 168,
-      child: BuCard(
-        padding: const EdgeInsets.all(14),
-        onTap: id == null ? null : () => _push(ClubDetailPage(session: _s, communityId: id)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BuAvatar(name: c['name'] as String?, url: c['coverUrl'] as String?, size: 36, square: true, dark: i.isOdd),
-            const SizedBox(height: 10),
-            Text((c['name'] as String?) ?? '',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-            const SizedBox(height: 2),
-            Text(members == null ? '' : '$members üye',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-          ],
-        ),
+  /// Bugünün (öğle) yemeği: fotoğrafsız kırmızı kart; fotoğraf varsa arka plan + koyu degrade.
+  Widget _mealCard(BuildContext context) {
+    final today = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
+    final items = today.items;
+    return MenuPhotoGate(
+      url: today.imageUrl,
+      builder: (context, photo) => HomeMealCard(
+        title: context.l10n.anasayfaMealLunch,
+        time: _lunchHours,
+        text: items.isEmpty ? context.l10n.homeNoMenuToday : items.join(', '),
+        photo: photo,
+        photoLabel: context.l10n.menuPhotoLabel,
+        onTap: () => _push(MenuPage(session: _s)),
       ),
     );
   }
 
   Widget _newsRow(BuildContext context, Map<String, dynamic> n) {
-    final t = context.bu;
-    final img = n['imageUrl'] as String?;
     final type = n['type'] as String?;
     final eventDate = type == 'ETKINLIK' ? n['eventDate'] as String? : null;
     final dateText =
         (eventDate != null && eventDate.isNotEmpty) ? fmtDate(eventDate) : fmtDate(n['publishedDate'] as String?);
-    return BuCard(
-      padding: const EdgeInsets.all(12),
-      radius: 18,
+    final label = newsTypeLabel(context, type);
+    return HomeAnnouncementCard(
+      meta: dateText.isEmpty ? label : '$label · $dateText',
+      title: (n['title'] as String?) ?? '',
       onTap: () => _push(NewsDetailPage(session: _s, item: n)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          NewsThumb(img, width: 72, height: 72, radius: 14),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  BuBadge(TypeBadge.label(type), soft: type == 'ETKINLIK'),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(dateText,
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-                  ),
-                ]),
-                const SizedBox(height: 6),
-                Text((n['title'] as String?) ?? '',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(height: 1.3, color: t.ink)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickItem extends StatelessWidget {
-  const _QuickItem({required this.icon, required this.label, required this.onTap, this.badge});
-
-  final IconData icon;
-  final String label;
-  final ValueListenable<int>? badge;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    // Sabit boyutlu kutular (rozet, kısa etiket) çok büyük yazı ölçeğinde taşmasın: ölçek 1.3 ile sınırlı.
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.3,
-      child: Semantics(
-        button: true,
-        label: label,
-        excludeSemantics: true,
-        onTap: onTap,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 62,
-                height: 62,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: t.sf,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: t.bd),
-                      ),
-                      child: Icon(icon, size: 21.5, color: t.pr),
-                    ),
-                    if (badge != null)
-                      ValueListenableBuilder<int>(
-                        valueListenable: badge!,
-                        builder: (_, n, __) => n <= 0
-                            ? const SizedBox.shrink()
-                            : Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Container(
-                                  constraints: const BoxConstraints(minWidth: 18),
-                                  height: 18,
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: t.pr,
-                                    borderRadius: BorderRadius.circular(9),
-                                    border: Border.all(color: t.bg, width: 2),
-                                  ),
-                                  child: Text(n > 99 ? '99+' : '$n', style: BuType.micro.copyWith(color: t.onPr)),
-                                ),
-                              ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: t.ink)),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -1024,8 +704,8 @@ class _AvatarStack extends StatelessWidget {
       child: Stack(
         children: [
           for (var i = 0; i < shown.length; i++)
-            Positioned(
-              left: i * _step,
+            PositionedDirectional(
+              start: i * _step,
               child: Container(
                 width: _d,
                 height: _d,
@@ -1036,8 +716,8 @@ class _AvatarStack extends StatelessWidget {
               ),
             ),
           if (extra > 0)
-            Positioned(
-              left: shown.length * _step,
+            PositionedDirectional(
+              start: shown.length * _step,
               child: Container(
                 width: _d,
                 height: _d,

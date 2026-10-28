@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -91,8 +92,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   String get _title => _direct
       ? ((_peer?['displayName'] as String?) ??
           (_conv['title'] as String?) ??
-          'Sohbet')
-      : ((_conv['title'] as String?) ?? 'Grup');
+          context.l10n.chatInfoChat)
+      : ((_conv['title'] as String?) ?? context.l10n.chatInfoGroup);
 
   String? get _avatarUrl {
     final String? raw = _direct
@@ -130,14 +131,14 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   String? _senderName(Map<String, dynamic> m) {
     final id = (m['senderId'] as num?)?.toInt();
     if (id == null) return null;
-    if (id == widget.session.userId) return 'Sen';
+    if (id == widget.session.userId) return context.l10n.chatInfoYou;
     for (final mem in _members) {
       if ((mem['userId'] as num?)?.toInt() == id) {
         return mem['displayName'] as String?;
       }
     }
     if (_direct) return _peer?['displayName'] as String?;
-    return (m['senderName'] as String?) ?? 'Kullanıcı';
+    return (m['senderName'] as String?) ?? context.l10n.chatInfoUser;
   }
 
   Future<void> _loadMembers() async {
@@ -180,7 +181,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('Vazgeç')),
+              child: Text(context.l10n.chatInfoCancel)),
           TextButton(
               onPressed: () => Navigator.pop(c, true), child: Text(action)),
         ],
@@ -235,17 +236,17 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
               icon: LucideIcons.bellOff,
-              label: '8 saat',
+              label: context.l10n.chatInfoMute8h,
               showChevron: false,
               onTap: () => Navigator.pop(c, '480')),
           BuMenuRow(
               icon: LucideIcons.bellOff,
-              label: '1 hafta',
+              label: context.l10n.chatInfoMute1w,
               showChevron: false,
               onTap: () => Navigator.pop(c, '10080')),
           BuMenuRow(
               icon: LucideIcons.bellOff,
-              label: 'Her zaman',
+              label: context.l10n.chatInfoMuteForever,
               showChevron: false,
               onTap: () => Navigator.pop(c, 'forever')),
           const SizedBox(height: 8),
@@ -290,8 +291,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         setState(() => _merge(Map<String, dynamic>.from(res as Map)));
       }
       _toast(pick == 'off'
-          ? 'Bildirimlerin sesi açıldı'
-          : 'Sohbet sessize alındı');
+          ? context.l10n.chatInfoUnmuted
+          : context.l10n.chatInfoMuted);
     } catch (e) {
       _toast(errorText(e));
     }
@@ -306,15 +307,17 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         await _api.put('/conversations/$_cid/archive', {'keepArchived': false});
       }
       if (mounted) setState(() => _merge({'archived': !archived}));
-      _toast(archived ? 'Sohbet arşivden çıkarıldı' : 'Sohbet arşivlendi');
+      _toast(archived
+          ? context.l10n.chatInfoUnarchived
+          : context.l10n.chatInfoArchived);
     } catch (e) {
       _toast(errorText(e));
     }
   }
 
   Future<void> _leave() async {
-    if (!await _confirm(
-        'Sohbetten ayrılınsın mı?', 'Bu sohbetten ayrılırsınız.', 'Ayrıl')) {
+    if (!await _confirm(context.l10n.chatInfoLeaveTitle,
+        context.l10n.chatInfoLeaveBody, context.l10n.chatInfoLeave)) {
       return;
     }
     try {
@@ -332,15 +335,15 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       if (_blocked) {
         await _api.delete('/users/$pid/block');
         if (mounted) setState(() => _merge({'blocked': false}));
-        _toast('Engel kaldırıldı');
+        _toast(context.l10n.chatInfoUnblocked);
       } else {
-        if (!await _confirm('Kullanıcı engellensin mi?',
-            'Engellediğiniz kişiyle mesajlaşamazsınız.', 'Engelle')) {
+        if (!await _confirm(context.l10n.chatInfoBlockTitle,
+            context.l10n.chatInfoBlockBody, context.l10n.chatInfoBlock)) {
           return;
         }
         await _api.post('/users/$pid/block');
         if (mounted) setState(() => _merge({'blocked': true}));
-        _toast('Kullanıcı engellendi');
+        _toast(context.l10n.chatInfoBlocked);
       }
     } catch (e) {
       _toast(errorText(e));
@@ -351,13 +354,15 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final pid = _peerId;
     if (pid == null) return;
     await ReportSheet.show(context, widget.session,
-        targetType: 'USER', targetId: pid, title: 'Kullanıcıyı şikâyet et');
+        targetType: 'USER', targetId: pid, title: context.l10n.chatInfoReportUser);
   }
 
   Future<bool> _removeMember(Map<String, dynamic> m) async {
-    final name = (m['displayName'] as String?) ?? 'Kullanıcı';
+    final name = (m['displayName'] as String?) ?? context.l10n.chatInfoUser;
     if (!await _confirm(
-        'Üye çıkarılsın mı?', '$name gruptan çıkarılır.', 'Çıkar')) {
+        context.l10n.chatInfoRemoveMemberTitle,
+        context.l10n.chatInfoRemoveMemberBody(name),
+        context.l10n.chatInfoRemove)) {
       return false;
     }
     try {
@@ -406,13 +411,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           BuMenuRow(
               icon: LucideIcons.image,
-              label: 'Galeriden seç',
+              label: context.l10n.chatInfoPickGallery,
               showChevron: false,
               onTap: () => Navigator.pop(c, 'pick')),
           if (has)
             BuMenuRow(
                 icon: LucideIcons.trash2,
-                label: 'Fotoğrafı kaldır',
+                label: context.l10n.chatInfoRemovePhoto,
                 danger: true,
                 showChevron: false,
                 onTap: () => Navigator.pop(c, 'remove')),
@@ -434,8 +439,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 .pickPrepared(ImageSource.gallery, avatar: true))();
       } on ImageException catch (e) {
         _toast(e.code == 'TOO_LARGE'
-            ? 'Görsel çok büyük, daha küçük bir görsel seçin.'
-            : 'Yalnızca JPEG, PNG veya WebP görseller kullanılabilir.');
+            ? context.l10n.chatInfoImageTooLarge
+            : context.l10n.chatInfoImageTypeOnly);
         return;
       }
       if (img == null || !mounted) return;
@@ -539,7 +544,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         foregroundColor: t.ink,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('Sohbet bilgisi',
+        title: Text(context.l10n.chatInfoTitle,
             style: BuType.heading.copyWith(color: t.ink)),
       ),
       body: TweenAnimationBuilder<double>(
@@ -570,7 +575,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 8),
                         child: Text(
-                            _members.isEmpty ? 'Üye listesi yok.' : 'Sonuç yok.',
+                            _members.isEmpty
+                                ? context.l10n.chatInfoNoMembers
+                                : context.l10n.chatInfoNoResults,
                             style: BuType.body.copyWith(color: t.mut))),
                   )
                 else
@@ -607,10 +614,10 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Widget _header(BuTokens t) {
     final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
     final kind = switch (_type) {
-      'CLUB' => 'Kulüp odası',
-      'EVENT' => 'Etkinlik odası',
+      'CLUB' => context.l10n.chatInfoClubRoom,
+      'EVENT' => context.l10n.chatInfoEventRoom,
       'DIRECT' => null,
-      _ => 'Grup',
+      _ => context.l10n.chatInfoGroup,
     };
     Widget? sub;
     if (_direct) {
@@ -631,7 +638,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           children: [
             if (kind != null) BuBadge(kind, soft: true),
             if (n > 0)
-              Text('$n üye', style: BuType.label.copyWith(color: t.mut)),
+              Text(context.l10n.chatInfoMemberCount(n.toString()), style: BuType.label.copyWith(color: t.mut)),
           ]);
     }
     final tok = _api.tokens?.access;
@@ -654,7 +661,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               end: -2,
               bottom: -2,
               child: Tooltip(
-                message: 'Fotoğrafı değiştir',
+                message: context.l10n.chatInfoChangePhoto,
                 child: Material(
                   color: t.pr,
                   shape: CircleBorder(side: BorderSide(color: t.bg, width: 3)),
@@ -680,7 +687,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                   style: BuType.title.copyWith(color: t.ink))),
           if (_admin)
             IconButton(
-              tooltip: 'Adı düzenle',
+              tooltip: context.l10n.chatInfoEditName,
               visualDensity: VisualDensity.compact,
               onPressed: _rename,
               icon: Icon(LucideIcons.pencil, size: 14.5, color: t.mut),
@@ -694,11 +701,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   /// Başlıkta yalnızca "Ara" ve (oda ise) ilgili sayfa kısayolu; sessize alma Ayarlar'da.
   Widget _actions(BuTokens t) {
-    final roomLabel = _type == 'CLUB' ? 'Kulüp' : 'Etkinlik';
+    final roomLabel = _type == 'CLUB'
+        ? context.l10n.chatInfoClub
+        : context.l10n.chatInfoEvent;
     final items = <Widget>[
       _QuickAction(
           icon: LucideIcons.search,
-          label: 'Ara',
+          label: context.l10n.chatInfoSearch,
           onTap: () => Navigator.pop(context, 'search')),
       if (widget.onOpenRoom != null)
         _QuickAction(
@@ -745,12 +754,14 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final n = _members.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _sectionHead(t, _keyOf(InfoSection.members),
-          n == 0 ? 'Üyeler' : 'Üyeler · $n'),
+          n == 0
+              ? context.l10n.chatInfoMembers
+              : context.l10n.chatInfoMembersDot(n.toString())),
       if (n > _searchThreshold)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: BuSearchField(
-              hint: 'Üye ara', onChanged: (v) => setState(() => _query = v)),
+              hint: context.l10n.chatInfoSearchMember, onChanged: (v) => setState(() => _query = v)),
         ),
     ]);
   }
@@ -771,7 +782,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     } else if (!has) {
       body = Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Text('Bu sohbette henüz görsel yok.',
+          child: Text(context.l10n.chatInfoNoMedia,
               style: BuType.body.copyWith(color: t.mut)));
     } else {
       final shown = f.items.take(_previewCount).toList();
@@ -810,7 +821,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
             ),
-            child: const Text('Tüm medyayı gör', style: BuType.bodyStrong),
+            child: Text(context.l10n.chatInfoSeeAllMedia,
+                style: BuType.bodyStrong),
           ),
         ),
       ]);
@@ -819,27 +831,31 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       _sectionHead(
           t,
           _keyOf(InfoSection.media),
-          has ? 'Medya · ${f.items.length}${f.more ? '+' : ''}' : 'Medya',
-          action: has ? 'Tümü' : null,
+          has
+              ? context.l10n.chatInfoMediaDot(
+                  '${f.items.length}${f.more ? '+' : ''}')
+              : context.l10n.chatInfoMedia,
+          action: has ? context.l10n.chatInfoAll : null,
           onAction: _openAllMedia),
       body,
     ]);
   }
 
   String _muteStatus() {
-    if (!_muted) return 'Açık';
-    if (_conv['mutedForever'] == true) return 'Sessiz · her zaman';
+    final l = context.l10n;
+    if (!_muted) return l.chatInfoMuteOn;
+    if (_conv['mutedForever'] == true) return l.chatInfoMutedAlways;
     final u = DateTime.tryParse((_conv['mutedUntil'] as String?) ?? '')?.toLocal();
     if (u != null) {
       final d = u.difference(DateTime.now());
       if (!d.isNegative) {
         final h = (d.inMinutes / 60).ceil();
-        if (h >= 24) return 'Sessiz · ${(h / 24).ceil()} gün sonra açılır';
-        if (h >= 1) return 'Sessiz · $h saat sonra açılır';
-        return 'Sessiz · birazdan açılır';
+        if (h >= 24) return l.chatInfoMutedDays((h / 24).ceil().toString());
+        if (h >= 1) return l.chatInfoMutedHours(h.toString());
+        return l.chatInfoMutedSoon;
       }
     }
-    return 'Sessiz';
+    return l.chatInfoMutedLabel;
   }
 
   void _openProfile(Map<String, dynamic> m) {
@@ -854,29 +870,35 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   Widget _settingsSection(BuTokens t) {
     final archived = _conv['archived'] == true;
-    final roomPage = _type == 'CLUB' ? 'Kulüp sayfasını aç' : 'Etkinlik sayfasını aç';
+    final roomPage = _type == 'CLUB'
+        ? context.l10n.chatInfoOpenClubPage
+        : context.l10n.chatInfoOpenEventPage;
     final main = <Widget>[
       if (_direct && _peerId != null)
         _SettingsRow(
           icon: LucideIcons.user,
-          label: 'Profili görüntüle',
+          label: context.l10n.chatInfoViewProfile,
           onTap: () => _openProfile(_peer!),
         ),
       _SettingsRow(
         icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
-        label: 'Bildirimleri sessize al',
+        label: context.l10n.chatInfoMuteNotifications,
         sub: _muteStatus(),
         onTap: _toggleMute,
         trailing: Switch(value: _muted, onChanged: (_) => _toggleMute()),
       ),
       _SettingsRow(
         icon: LucideIcons.archive,
-        label: archived ? 'Arşivden çıkar' : 'Arşivle',
+        label: archived
+            ? context.l10n.chatInfoUnarchive
+            : context.l10n.chatInfoArchive,
         onTap: _toggleArchive,
       ),
       if (_conv['closed'] == true)
-        const _SettingsRow(
-            icon: LucideIcons.lock, label: 'Bu sohbet kapalı', sub: 'Yeni mesaj gönderilemez'),
+        _SettingsRow(
+            icon: LucideIcons.lock,
+            label: context.l10n.chatInfoClosed,
+            sub: context.l10n.chatInfoClosedSub),
       if (_room && widget.onOpenRoom != null)
         _SettingsRow(
             icon: LucideIcons.arrowUpRight,
@@ -887,24 +909,26 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       if (_userGroup)
         _SettingsRow(
             icon: LucideIcons.logOut,
-            label: 'Sohbetten çık',
+            label: context.l10n.chatInfoLeaveChat,
             danger: true,
             onTap: _leave),
       if (_direct)
         _SettingsRow(
             icon: LucideIcons.ban,
-            label: _blocked ? 'Engeli kaldır' : 'Engelle',
+            label: _blocked
+                ? context.l10n.chatInfoUnblock
+                : context.l10n.chatInfoBlock,
             danger: true,
             onTap: _toggleBlock),
       if (_direct)
         _SettingsRow(
             icon: LucideIcons.flag,
-            label: 'Şikâyet et',
+            label: context.l10n.chatInfoReport,
             danger: true,
             onTap: _report),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _sectionHead(t, _keyOf(InfoSection.settings), 'Ayarlar'),
+      _sectionHead(t, _keyOf(InfoSection.settings), context.l10n.chatInfoSettings),
       _SettingsCard(rows: main),
       if (danger.isNotEmpty) ...[
         const SizedBox(height: 12),
@@ -1053,21 +1077,22 @@ class _RenameDialogState extends State<_RenameDialog> {
   Widget build(BuildContext context) {
     final v = _ctl.text.trim();
     return AlertDialog(
-      title: const Text('Grup adı'),
+      title: Text(context.l10n.chatInfoGroupName),
       content: TextField(
         controller: _ctl,
         autofocus: true,
         maxLength: 60,
         onChanged: (_) => setState(() {}),
-        decoration: const InputDecoration(hintText: 'Grup adı'),
+        decoration:
+            InputDecoration(hintText: context.l10n.chatInfoGroupName),
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Vazgeç')),
+            child: Text(context.l10n.chatInfoCancel)),
         TextButton(
             onPressed: v.isEmpty ? null : () => Navigator.pop(context, v),
-            child: const Text('Kaydet')),
+            child: Text(context.l10n.chatInfoSave)),
       ],
     );
   }

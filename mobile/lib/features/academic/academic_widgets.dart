@@ -1,31 +1,81 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
+import 'akad_widgets.dart';
 
 /// Akademik sayfaların ortak iskeleti: başlık + gövde.
 class AcademicScaffold extends StatelessWidget {
-  const AcademicScaffold({super.key, required this.title, required this.child, this.actions = const [], this.subtitle});
+  const AcademicScaffold({super.key, required this.title, required this.child, this.actions = const [], this.subtitle, this.bottomBar});
 
   final String title;
   final String? subtitle;
   final List<Widget> actions;
   final Widget child;
 
+  /// Alta sabitlenen, sayfa rengine solan eylem çubuğu (içerik altına [AkadBottomBar.reserve] boşluk bırakır).
+  final Widget? bottomBar;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: context.bu.bg,
-        body: Column(
-          children: [
-            BuHeader(title: title, subtitle: subtitle, onBack: () => Navigator.maybePop(context), actions: actions),
-            const SizedBox(height: 8),
-            Expanded(child: child),
-          ],
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              _AkadHeader(title: title, subtitle: subtitle, actions: actions),
+              const SizedBox(height: 8),
+              Expanded(child: child),
+            ],
+          ),
+          if (bottomBar != null) Positioned(left: 0, right: 0, bottom: 0, child: bottomBar!),
+        ],
+      ),
+    );
+  }
+}
+
+/// Üst başlık (Ak tasarımı): 44 dp yuvarlak geri düğmesi + 20/800 başlık + sağda eylemler.
+class _AkadHeader extends StatelessWidget {
+  const _AkadHeader({required this.title, required this.actions, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
+      child: Row(children: [
+        BuIconButton(icon: LucideIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.35,
+              child: Semantics(
+                header: true,
+                child: Text(title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: BuType.title.copyWith(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -.3, color: t.ink)),
+              ),
+            ),
+            if (subtitle != null) Text(subtitle!, style: BuType.caption.copyWith(color: t.mut)),
+          ]),
         ),
-      );
+        for (final a in actions) ...[const SizedBox(width: 8), a],
+      ]),
+    );
+  }
 }
 
 /// 503 (bakım) için kısa metin; diğer hatalarda ErrorView.
@@ -43,9 +93,9 @@ class AcademicErrorView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
-            child: StaleBanner(text: e.message.isNotEmpty ? e.message : 'Akademik hizmetler bakımda. Daha sonra tekrar deneyin.'),
+            child: StaleBanner(text: e.message.isNotEmpty ? e.message : context.l10n.acadMaintenance),
           ),
-          Center(child: TextButton(onPressed: onRetry, child: const Text('Yeniden dene'))),
+          Center(child: TextButton(onPressed: onRetry, child: Text(context.l10n.acadRetry))),
         ],
       );
     }
@@ -64,14 +114,13 @@ class ColorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     return Semantics(
       container: true,
       button: onTap != null,
       label: semanticLabel,
       child: Material(
-        color: Color.alphaBlend(color.withValues(alpha: .12), t.sf),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd)),
+        color: akadTint(context, color),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -79,8 +128,8 @@ class ColorCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(width: 5, color: color),
-                Expanded(child: Padding(padding: const EdgeInsets.all(12), child: child)),
+                Container(width: 6, color: color),
+                Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), child: child)),
               ],
             ),
           ),
@@ -121,7 +170,7 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
       title: Text(title, style: BuType.title.copyWith(color: t.ink)),
       content: Text(text, style: BuType.body.copyWith(color: t.mut)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: Text('Vazgeç', style: BuType.bodyStrong.copyWith(color: t.mut))),
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(context.l10n.acadCancel, style: BuType.bodyStrong.copyWith(color: t.mut))),
         TextButton(
             onPressed: () => Navigator.pop(c, true),
             child: Text(action, style: BuType.bodyStrong.copyWith(color: danger ? t.danger : t.pr))),
@@ -149,21 +198,22 @@ class FormLabel extends StatelessWidget {
 
 /// Dokununca seçici açan alan (tarih/saat).
 class PickerField extends StatelessWidget {
-  const PickerField({super.key, required this.icon, required this.value, required this.onTap, this.hint = 'Seç', this.label});
+  const PickerField({super.key, required this.icon, required this.value, required this.onTap, this.hint, this.label});
 
   final IconData icon;
   final String? value;
-  final String hint;
+  final String? hint;
   final String? label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final shown = value ?? hint ?? context.l10n.acadSelect;
     return Semantics(
       button: true,
       label: label,
-      value: value ?? hint,
+      value: shown,
       excludeSemantics: true,
       onTap: onTap,
       child: InkWell(
@@ -177,7 +227,7 @@ class PickerField extends StatelessWidget {
             Icon(icon, size: 17, color: t.mut),
             const SizedBox(width: 10),
             Expanded(
-                child: Text(value ?? hint,
+                child: Text(shown,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: BuType.body.copyWith(color: value == null ? t.mut : t.ink))),
