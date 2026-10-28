@@ -1,8 +1,9 @@
 // SAYFA: Ana sayfa (/)
 // API: GET /api/app/info (useAppInfo: bakım/iletişim), mağaza bağlantıları için useStoreLinks (GET /api/app/version?platform=ANDROID|IOS).
+// Mobil öncelikli: 360 px tabanından kurulur; telefon çizimleri mobil uygulamanın ekranlarını HTML/CSS ile yeniden çizer.
 import { Link } from 'react-router-dom';
 import { useAppInfo, useStoreLinks } from '../../api/hooks';
-import { ButtonLink, ContourBackdrop, Icon } from '../../components/ui';
+import { ButtonLink, ContourBackdrop, Icon, type IconName } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { FEATURES } from './components/features';
@@ -17,6 +18,7 @@ import shared from './components/site.module.css';
 import styles from './HomePage.module.css';
 
 const HIGHLIGHTS = FEATURES.filter((f) => ['news', 'menu', 'events', 'chat'].includes(f.id));
+const PROMISE_ICONS: IconName[] = ['shield', 'download', 'eyeOff', 'message'];
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -42,7 +44,7 @@ export default function HomePage() {
               {t('site.home.heroTitle')}
             </h1>
             <p className={styles.lead}>{t('site.home.heroLead')}</p>
-            <div className={shared.actions}>
+            <div className={styles.actions}>
               <ButtonLink
                 to={paths.site.download}
                 size="lg"
@@ -62,21 +64,21 @@ export default function HomePage() {
             </p>
           </div>
           <div className={styles.stage}>
-            <Phone screen="menu" tilt={7} className={`${styles.phoneBack} ${styles.phone}`} />
-            <Phone screen="home" tilt={-3} className={`${styles.phoneFront} ${styles.phone}`} />
+            <Phone screen="menu" peek tilt={5} className={styles.phoneBack} />
+            <Phone screen="home" peek tilt={-2} className={styles.phoneFront} />
           </div>
         </div>
         <Ridge />
       </section>
 
-      <section className={`${shared.section} ${shared.sectionTop}`}>
-        <div className={`container ${shared.split}`}>
-          <div>
+      <section className={`${styles.sec} ${styles.secFirst}`}>
+        <div className={`container ${styles.flow}`}>
+          <div className={styles.flowCopy}>
             <div className={shared.head}>
               <h2 className={shared.h2}>{t('site.home.highlightsTitle')}</h2>
               <p className={shared.lead}>{t('site.home.highlightsLead')}</p>
             </div>
-            <ul className={shared.ruled}>
+            <ul className={styles.features}>
               {HIGHLIGHTS.map((f) => (
                 <li key={f.id}>
                   <span className={shared.ico}>
@@ -100,7 +102,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={`${shared.section} ${styles.stepsSection}`}>
+      <section className={`${styles.sec} ${styles.stepsSection}`}>
         <div className="container">
           <h2 className={shared.h2}>{t('site.home.stepsTitle')}</h2>
           <ol className={styles.steps}>
@@ -119,30 +121,36 @@ export default function HomePage() {
 
       <section className={shared.band}>
         <ContourBackdrop className={shared.bandArt} />
-        <div className={`container ${shared.bandInner}`}>
-          <h2 className={shared.h2} style={{ color: '#fff' }}>
-            {t('site.home.privacyTitle')}
-          </h2>
+        <div className={`container ${shared.bandInner} ${styles.privacy}`}>
+          <div className={styles.privacyCopy}>
+            <h2 className={shared.h2}>{t('site.home.privacyTitle')}</h2>
+            <Link to={paths.site.legal('PRIVACY')} className={styles.bandLink}>
+              {t('site.home.privacyLink')}
+              <Icon name="chevronRight" size={18} className={styles.bandLinkIcon} />
+            </Link>
+          </div>
           <ul className={styles.promises}>
             {([1, 2, 3, 4] as const).map((n) => (
-              <li key={n}>{t(`site.home.privacy${n}` as 'site.home.privacy1')}</li>
+              <li key={n}>
+                <Icon name={PROMISE_ICONS[n - 1]} size={22} />
+                <span>{t(`site.home.privacy${n}` as 'site.home.privacy1')}</span>
+              </li>
             ))}
           </ul>
-          <Link to={paths.site.legal('PRIVACY')} className={styles.bandLink}>
-            {t('site.home.privacyLink')}
-          </Link>
         </div>
       </section>
 
-      <section className={shared.section}>
-        <div className={`container ${styles.cta}`}>
-          <div>
-            <h2 className={shared.h2}>{t('site.home.ctaTitle')}</h2>
-            <p className={shared.lead}>{t('site.home.ctaText')}</p>
-          </div>
-          <div className={styles.ctaButtons}>
-            <StoreButton store="android" href={stores.android} />
-            <StoreButton store="ios" href={stores.ios} />
+      <section className={styles.sec}>
+        <div className="container">
+          <div className={styles.cta}>
+            <div className={styles.ctaCopy}>
+              <h2 className={shared.h2}>{t('site.home.ctaTitle')}</h2>
+              <p className={shared.lead}>{t('site.home.ctaText')}</p>
+            </div>
+            <div className={styles.ctaButtons}>
+              <StoreButton store="android" href={stores.android} note={false} />
+              <StoreButton store="ios" href={stores.ios} note={false} />
+            </div>
           </div>
         </div>
       </section>

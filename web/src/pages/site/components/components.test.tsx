@@ -6,7 +6,7 @@ import { usePageMeta } from './usePageMeta';
 describe('StoreButton', () => {
   it('bağlantı yoksa "Yakında" ve devre dışı', () => {
     renderWithProviders(<StoreButton store="android" href={null} />);
-    const btn = screen.getByRole('button', { name: /Google Play’den edinin/ });
+    const btn = screen.getByRole('button', { name: /Yakında.*Google Play/ });
     expect(btn).toHaveAttribute('aria-disabled', 'true');
     expect(btn).toHaveTextContent('Yakında');
     expect(screen.queryByRole('link')).toBeNull();
@@ -15,7 +15,7 @@ describe('StoreButton', () => {
 
   it('bağlantı varsa yeni sekmede açılan gerçek bağlantı', () => {
     renderWithProviders(<StoreButton store="ios" href="https://apps.apple.com/app/id1" />);
-    const link = screen.getByRole('link', { name: /App Store’dan indirin/ });
+    const link = screen.getByRole('link', { name: /Şuradan indirin.*App Store/ });
     expect(link).toHaveAttribute('href', 'https://apps.apple.com/app/id1');
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
     expect(screen.queryByText('Yakında')).toBeNull();

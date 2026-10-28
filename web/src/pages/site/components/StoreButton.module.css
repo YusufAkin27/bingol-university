@@ -2,50 +2,50 @@
   display: grid;
   gap: var(--space-2);
   justify-items: start;
-  max-width: 300px;
+  max-width: 100%;
 }
 .btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
-  min-width: 220px;
-  padding: 10px 20px;
+  min-width: 200px;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
-  border: 2px solid var(--red-700);
-  background: var(--red-700);
+  border: 1px solid var(--border-strong);
+  background: var(--chrome);
   color: #fff;
   text-decoration: none;
   font: inherit;
   text-align: start;
   cursor: pointer;
   transition:
-    background 0.15s var(--ease),
-    transform 0.15s var(--ease);
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
 }
 a.btn:hover {
-  background: var(--chrome);
+  background: var(--chrome-2);
   color: #fff;
-  transform: translateY(-1px);
+  border-color: #fff;
 }
+/* Koyu zeminde açık düğme */
 .onDark {
   background: #fff;
   border-color: #fff;
-  color: var(--chrome);
+  color: var(--ink);
 }
 a.onDark:hover {
   background: var(--red-100);
-  color: var(--chrome);
+  color: var(--ink);
+  border-color: var(--red-100);
 }
+/* "Yakında": tıklanamaz ama yer tutucu gibi görünmez; aynı rozet biçimi, hafif soluk */
 .soon {
-  cursor: not-allowed;
-  background: transparent;
-  color: var(--text-muted);
-  border: 2px dashed var(--border-strong);
+  cursor: default;
 }
 .soon.onDark {
-  background: transparent;
-  color: #d9dce8;
-  border-color: var(--hero-line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
 }
 .glyph {
   flex: none;
@@ -59,14 +59,14 @@ a.onDark:hover {
   opacity: 0.85;
 }
 .main {
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: 700;
 }
 .note {
   font-size: var(--text-xs);
   color: var(--text-muted);
+  max-width: 34ch;
 }
-.onDark ~ .note,
-.dark .note {
+.noteOnDark {
   color: #d9dce8;
 }

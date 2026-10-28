@@ -1,0 +1,1018 @@
+/*
+ * Telefon ekranı çizimleri: mobil uygulamanın tasarım şablonlarının (mobile/design/*.dc.html) sadık HTML/CSS yeniden çizimi.
+ * Ekran 390x844 tasarım pikselinde çizilir; Phone bileşeni onu `--s` oranıyla ölçekler. Bu yüzden buradaki
+ * ölçüler tasarım pikselidir (site arayüzü ölçüsü değil). Renkler site belirteçlerinden gelir; açık/koyu tema
+ * uygulamadakiyle aynı eşlenir. Yarıçaplar yerel değişkenlerdedir (uygulamanın BuTokens değerleri).
+ */
+.screen {
+  --r-card: 22px;
+  --r-tile: 18px;
+  --r-pill: 999px;
+  --r-btn: 17px;
+  --r-hero: 26px;
+  --r-block: 16px;
+  --r-thumb: 14px;
+  --r-mark: 12px;
+  --r-nav: 33px;
+  --r-ni: 23px;
+  --r-search: 25px;
+  --r-count: 9px;
+  --r-meal: 24px;
+  --r-stat: 20px;
+  --r-badge: 10px;
+  position: relative;
+  width: 390px;
+  height: 844px;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: start;
+  user-select: none;
+  pointer-events: none;
+}
+.screen *,
+.screen *::before,
+.screen *::after {
+  box-sizing: border-box;
+}
+/* Dinamik ada: gerçek cihaz görünümü */
+.screen::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: 112px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  background: #05070d;
+  z-index: 3;
+}
+
+.i {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+:global(:root[dir='rtl']) .flip {
+  transform: scaleX(-1);
+}
+.mirror {
+  transform: scaleX(-1);
+}
+:global(:root[dir='rtl']) .mirror {
+  transform: none;
+}
+.small {
+  width: 16px;
+  height: 16px;
+}
+.tiny {
+  width: 12px;
+  height: 12px;
+}
+.grow {
+  flex-grow: 1;
+  min-width: 0;
+}
+.mut {
+  color: var(--text-muted);
+}
+.mut12 {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-block-start: 3px;
+}
+.mut13 {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.prText {
+  color: var(--primary);
+}
+.danger {
+  color: var(--danger);
+}
+.saved {
+  color: var(--primary);
+  fill: var(--primary);
+}
+.prLink {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.date12 {
+  margin-block-start: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* dekoratif daireler (kahraman kartları) */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+.blobA {
+  inset-inline-end: -40px;
+  inset-block-start: -50px;
+  width: 170px;
+  height: 170px;
+}
+.blobB {
+  inset-inline-end: 46px;
+  inset-block-end: -60px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.blobC {
+  inset-inline-end: -30px;
+  inset-block-start: -40px;
+  width: 150px;
+  height: 150px;
+}
+
+/* ortak başlık */
+.hd {
+  padding: 60px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hdTitle {
+  flex-grow: 1;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+.ib {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ibRel {
+  position: relative;
+}
+.ibSmall {
+  width: 36px;
+  height: 36px;
+}
+.ibSmall .i {
+  width: 18px;
+  height: 18px;
+}
+.ibWide {
+  width: auto;
+  padding-inline: 14px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 800;
+  gap: 6px;
+}
+.dot {
+  position: absolute;
+  inset-block-start: 9px;
+  inset-inline-end: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red-600);
+  border: 2px solid var(--surface);
+}
+
+.chips {
+  margin: 16px 0 0;
+  padding-inline: 20px;
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+.chip {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--r-tile);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.chipOn {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--text);
+  color: var(--bg);
+}
+.badgeSoft {
+  background: var(--primary-soft);
+  color: var(--on-soft);
+}
+.badgeLight {
+  position: absolute;
+  inset-inline-start: 14px;
+  inset-block-start: 14px;
+  background: #fff;
+  color: var(--red-800);
+}
+
+/* yüzen alt gezinme */
+.nav {
+  position: absolute;
+  inset-inline: 20px;
+  inset-block-end: 22px;
+  height: 66px;
+  padding: 0 10px;
+  border-radius: var(--r-nav);
+  background: var(--chrome);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 14px 30px rgba(23, 30, 51, 0.28);
+}
+.ni {
+  min-width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0.75;
+  border-radius: var(--r-ni);
+}
+.niOn {
+  opacity: 1;
+  padding-inline: 16px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 13px;
+  font-weight: 800;
+}
+.niOn .i {
+  stroke-width: 2.1;
+}
+
+/* ---- Ana Sayfa ---- */
+.homeTop {
+  padding: 60px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatarMark {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+.who {
+  font-size: 18px;
+  font-weight: 800;
+}
+.searchBar {
+  margin: 16px 20px 0;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: var(--r-search);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.searchBar .i {
+  width: 20px;
+  height: 20px;
+}
+.searchBarTight {
+  height: 48px;
+}
+.heroCard {
+  position: relative;
+  margin: 16px 20px 0;
+  height: 172px;
+  padding: 18px;
+  border-radius: var(--r-hero);
+  background: linear-gradient(135deg, var(--red-600), var(--red-700));
+  color: #fff;
+  overflow: hidden;
+}
+.heroPill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+}
+.heroPill .i {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.2;
+}
+.heroTitle {
+  position: relative;
+  margin-block-start: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.heroMeta {
+  position: relative;
+  margin-block-start: 6px;
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+.heroFoot {
+  position: absolute;
+  inset-inline: 18px;
+  inset-block-end: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.heroBtn {
+  background: #fff;
+  color: var(--red-800);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+}
+.quick {
+  margin: 18px 20px 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+.tile {
+  position: relative;
+  margin: 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-tile);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile .i {
+  stroke-width: 1.8;
+}
+.tileBadge {
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-end: -5px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: var(--r-count);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg);
+}
+.tileLabel {
+  margin-block-start: 6px;
+}
+.homeGrid {
+  margin: 18px 20px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.mealCard {
+  height: 150px;
+  padding: 16px;
+  border-radius: var(--r-meal);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+}
+.mealHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.mealHead .i {
+  width: 20px;
+  height: 20px;
+}
+.mealLines {
+  margin-block-start: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.statCol {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  height: 150px;
+}
+.stat {
+  padding: 12px 14px;
+  border-radius: var(--r-stat);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.statDark {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.stat .i {
+  width: 22px;
+  height: 22px;
+}
+.statNum {
+  font-size: 20px;
+  font-weight: 800;
+}
+.statLabel {
+  font-size: 12px;
+  line-height: 1.2;
+}
+.sectionHead {
+  margin: 20px 20px 0;
+  display: flex;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 800;
+}
+.rail {
+  margin: 10px 0 0;
+  padding-inline: 20px;
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+}
+.clubCard {
+  flex: 0 0 168px;
+  padding: 14px;
+  border-radius: var(--r-stat);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.clubMark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-mark);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clubMarkDark {
+  background: var(--text);
+  color: var(--bg);
+}
+.clubMarkRed {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.clubName {
+  margin-block-start: 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.clubMeta {
+  margin-block-start: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- Keşfet ---- */
+.featured {
+  margin: 16px 20px 0;
+  overflow: hidden;
+}
+.featuredArt {
+  position: relative;
+  height: 150px;
+  background: linear-gradient(135deg, var(--red-600), var(--red-700));
+  overflow: hidden;
+}
+.featuredBody {
+  padding: 14px 16px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.featuredTitle {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.newsList {
+  margin: 14px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.newsRow {
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+}
+.thumb {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border-radius: var(--r-thumb);
+  background: var(--surface-2);
+}
+.newsTitle {
+  margin-block-start: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* ---- Sohbet ---- */
+.chatList {
+  margin: 8px 20px 0;
+}
+.chatRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.av {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: var(--r-tile);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+.avDark {
+  background: var(--text);
+  color: var(--bg);
+}
+.avRed {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.chatMid {
+  flex-grow: 1;
+  min-width: 0;
+}
+.chatName {
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tg {
+  margin-inline-start: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  vertical-align: middle;
+}
+.chatLast {
+  margin-block-start: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chatEnd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 36px;
+}
+.chatTime {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.unread {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-badge);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- gün şeridi (Etkinlikler, Yemek) ---- */
+.days {
+  margin: 12px 20px 0;
+  display: flex;
+  gap: 8px;
+}
+.day {
+  flex: 1;
+  height: 66px;
+  border-radius: var(--r-tile);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.dayTall {
+  height: 70px;
+  gap: 4px;
+}
+.day b {
+  font-size: 17px;
+  color: var(--text);
+}
+.dayOn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+.dayOn b {
+  color: var(--primary-contrast);
+}
+
+/* ---- Etkinlikler ---- */
+.monthLabel {
+  margin: 18px 20px 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.monthLabel + .days {
+  margin-block-start: 10px;
+}
+.eventList {
+  margin: 18px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.eventCard {
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+}
+.dt {
+  width: 56px;
+  height: 64px;
+  flex: none;
+  border-radius: var(--r-block);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.dt b {
+  font-size: 22px;
+  line-height: 1;
+}
+.eventTitle {
+  margin-block-start: 6px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.tag + .eventTitle {
+  margin-block-start: 6px;
+}
+.eventCard > .grow > .eventTitle:first-child {
+  margin-block-start: 0;
+}
+.meta {
+  margin-block-start: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.meta .i {
+  width: 14px;
+  height: 14px;
+}
+.eventActions {
+  margin-block-start: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.eventActions .mut12 {
+  margin: 0;
+}
+.btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--r-btn);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.btn .i {
+  width: 14px;
+  height: 14px;
+}
+.btnOutline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btnTile {
+  margin-block-start: 12px;
+  justify-content: center;
+  padding: 0;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* ---- Yemek ---- */
+.menuMonth {
+  margin: 16px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.monthName {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+.menuMonth + .days {
+  margin-block-start: 12px;
+}
+.todayCard {
+  position: relative;
+  margin: 16px 20px 0;
+  overflow: hidden;
+  border-radius: var(--r-hero);
+  padding: 18px;
+  background: linear-gradient(135deg, var(--red-600), var(--red-700));
+  color: #fff;
+}
+.todayHead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+.todayHead .i {
+  width: 18px;
+  height: 18px;
+}
+.todayLines {
+  position: relative;
+  margin-block-start: 12px;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.menuDays {
+  margin: 12px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.menuCard {
+  padding: 14px 16px;
+}
+.menuDate {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-block-end: 6px;
+}
+.li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 3px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.li::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-block-start: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* ---- Kulüpler ---- */
+.clubGrid {
+  margin: 16px 20px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.clubTile {
+  padding: 14px;
+}
+
+/* ---- Destek ---- */
+.ticketList {
+  margin: 18px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ticket {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ticketTitle {
+  font-size: 15px;
+  font-weight: 800;
+}
+.pill {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 800;
+}
+.pillOpen {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.pillWait {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.pillDone {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.fab {
+  position: absolute;
+  inset-inline-end: 20px;
+  inset-block-end: 106px;
+  height: 52px;
+  padding: 0 20px;
+  border-radius: var(--r-pill);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- Ayar grupları (bildirim, dil, gizlilik) ---- */
+.group {
+  margin: 18px 20px 0;
+  padding: 4px 16px;
+}
+.setRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  font-size: 15px;
+  font-weight: 600;
+  border-block-end: 1px solid var(--border);
+}
+.setRow:last-child {
+  border-block-end: 0;
+}
+.switch {
+  width: 46px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  padding: 3px;
+  display: flex;
+}
+.switch b {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.switchOn {
+  background: var(--primary);
+  justify-content: flex-end;
+}
+.switchOn b {
+  background: var(--primary-contrast);
+}
+.radio {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+}
+.radioOn {
+  border-color: var(--primary);
+  background: radial-gradient(circle, var(--primary) 45%, transparent 50%);
+}

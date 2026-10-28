@@ -1,4 +1,11 @@
+/*
+ * Ana sayfa: mobil öncelikli (360 px tabanı), büyük ekranlar min-width ile eklenir.
+ * Aralıklar yalnızca --space-* belirteçlerinden; kartlar --radius-lg (20 px). Telefon boyutu --phone-s ile verilir.
+ */
+
+/* ---- Hero ---- */
 .hero {
+  --ridge-h: 48px;
   position: relative;
   overflow: hidden;
   background: linear-gradient(160deg, var(--hero), var(--hero-end) 72%);
@@ -19,33 +26,46 @@
 .inner {
   position: relative;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: var(--space-6);
-  align-items: center;
-  padding-block: clamp(2.5rem, 6vw, 5rem) clamp(6rem, 11vw, 9rem);
+  gap: var(--space-5);
+  padding-block: var(--space-5) calc(var(--ridge-h) + var(--space-3));
 }
 .copy {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   justify-items: start;
+  min-width: 0;
 }
 .title {
-  font-size: clamp(2.6rem, 1.2rem + 5.4vw, 5rem);
-  line-height: 1.02;
+  font-size: clamp(2.125rem, 1.5rem + 2.6vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.08;
   letter-spacing: -0.02em;
-  max-width: 11ch;
+  max-width: 15ch;
+  text-wrap: balance;
   color: #fff;
   outline: none;
 }
 :global(:lang(ar)) .title {
-  line-height: 1.25;
-  max-width: 13ch;
+  line-height: 1.3;
+  letter-spacing: 0;
+  max-width: 22ch;
 }
 .lead {
   font-size: var(--text-lg);
-  max-width: 48ch;
+  line-height: 1.5;
+  max-width: 46ch;
   color: var(--hero-contrast);
   font-weight: 600;
+}
+.actions {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 24rem;
+}
+.heroCta,
+.ghost {
+  width: 100%;
 }
 .ghost {
   background: transparent;
@@ -56,157 +76,6 @@
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
-.trust {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--hero-contrast);
-}
-.stage {
-  position: relative;
-  height: 470px;
-  min-width: 0;
-}
-.phone {
-  position: absolute;
-  inset-block-start: 0;
-}
-.phoneBack {
-  inset-inline-start: 4%;
-  inset-block-start: 36px;
-  opacity: 0.92;
-}
-.phoneFront {
-  inset-inline-end: 4%;
-}
-@media (max-width: 960px) {
-  .inner {
-    grid-template-columns: 1fr;
-  }
-  .stage {
-    height: 400px;
-    max-width: 440px;
-    width: 100%;
-    margin-inline: auto;
-  }
-  .phoneBack {
-    inset-inline-start: 0;
-  }
-  .phoneFront {
-    inset-inline-end: 0;
-  }
-}
-@media (max-width: 480px) {
-  .stage {
-    height: 330px;
-  }
-  .stage > .phone {
-    font-size: 7.4px !important;
-  }
-}
-
-.more {
-  margin-block-start: var(--space-4);
-  font-weight: 700;
-}
-.peeks {
-  position: relative;
-  height: 340px;
-  min-width: 0;
-}
-.peeks > div {
-  position: absolute;
-  inset-block-start: 0;
-}
-.peekA {
-  inset-inline-start: 0;
-}
-.peekB {
-  inset-inline-end: 0;
-  inset-block-start: 40px !important;
-}
-@media (max-width: 480px) {
-  .peeks {
-    height: 270px;
-  }
-  .peeks > div {
-    font-size: 7.6px !important;
-  }
-}
-
-.stepsSection {
-  background: var(--surface);
-  border-block: 1px solid var(--border);
-}
-.steps {
-  list-style: none;
-  margin: var(--space-6) 0 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-6);
-  grid-template-columns: repeat(3, 1fr);
-}
-@media (max-width: 760px) {
-  .steps {
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
-  }
-}
-.steps li {
-  display: grid;
-  gap: var(--space-2);
-  align-content: start;
-  padding-block-start: var(--space-4);
-  border-block-start: 3px solid var(--primary);
-}
-.steps li:first-child {
-  border-block-start-color: var(--accent);
-}
-.num {
-  font-family: var(--font-display);
-  font-size: 3.5rem;
-  line-height: 1;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.promises {
-  list-style: none;
-  margin: var(--space-6) 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-4);
-  max-width: 46ch;
-}
-.promises li {
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 1rem + 1.2vw, 1.9rem);
-  line-height: 1.25;
-  padding-inline-start: var(--space-4);
-  border-inline-start: 3px solid var(--red-600);
-}
-.bandLink {
-  font-weight: 700;
-}
-
-.cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  justify-content: space-between;
-  align-items: center;
-}
-.cta > div:first-child {
-  display: grid;
-  gap: var(--space-3);
-  max-width: 48ch;
-}
-.ctaButtons {
-  display: grid;
-  gap: var(--space-4);
-}
-
 /* Kırmızı hero üzerinde ana düğme: beyaz zemin, koyu kırmızı yazı (9:1) */
 .heroCta,
 .heroCta:hover:not(:disabled) {
@@ -215,4 +84,293 @@
 }
 .heroCta:hover:not(:disabled) {
   background: var(--red-100);
+}
+.trust {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--hero-contrast);
+}
+
+/* Telefonlar: mobilde tek telefon, büyük ekranda arka arkaya iki telefon. Solarak kaybolan alt kenar sıradağın üstünde biter. */
+.stage {
+  --phone-s: 0.56;
+  --phone-crop: 0.6;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+}
+.phoneBack {
+  display: none;
+}
+@media (min-width: 400px) {
+  .stage {
+    --phone-s: 0.62;
+  }
+}
+@media (min-width: 960px) {
+  .hero {
+    --ridge-h: 96px;
+  }
+  .inner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-7) calc(var(--ridge-h) + var(--space-4));
+  }
+  .actions {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    max-width: none;
+  }
+  .heroCta,
+  .ghost {
+    width: auto;
+  }
+  .stage {
+    --phone-s: 0.62;
+    --phone-crop: 0.66;
+  }
+  .phoneBack {
+    display: block;
+    margin-block-start: var(--space-6);
+    margin-inline-end: calc(var(--space-7) * -1);
+    opacity: 0.95;
+  }
+  .phoneFront {
+    position: relative;
+    z-index: 1;
+  }
+}
+@media (min-width: 1200px) {
+  .stage {
+    --phone-s: 0.7;
+  }
+}
+
+/* ---- Bölümler ---- */
+.sec {
+  padding-block: var(--space-7);
+}
+.secFirst {
+  padding-block-start: var(--space-6);
+}
+@media (min-width: 860px) {
+  .sec {
+    padding-block: var(--space-8);
+  }
+  .secFirst {
+    padding-block-start: var(--space-7);
+  }
+}
+
+/* Günün akışı */
+.flow {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+}
+.flowCopy {
+  min-width: 0;
+}
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.features li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.features h3 {
+  font-size: var(--text-lg);
+  margin-block-end: var(--space-1);
+}
+.features p {
+  color: var(--text-muted);
+  max-width: 52ch;
+}
+.more {
+  margin-block-start: var(--space-5);
+  font-weight: 700;
+}
+.peeks {
+  --phone-s: 0.62;
+  --phone-crop: 0.62;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.peekB {
+  display: none;
+  margin-block-start: var(--space-6);
+}
+/* dar ekranda tek telefon (iki telefon yan yana sığmaz) */
+@media (min-width: 560px) {
+  .peeks {
+    --phone-s: 0.5;
+  }
+  .peekB {
+    display: block;
+  }
+}
+@media (min-width: 860px) {
+  .flow {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--space-7);
+  }
+  .peeks {
+    --phone-s: 0.52;
+    --phone-crop: 0.7;
+  }
+}
+@media (min-width: 1100px) {
+  .peeks {
+    --phone-s: 0.6;
+    gap: var(--space-5);
+  }
+}
+
+/* Üç adım */
+.stepsSection {
+  background: var(--surface-2);
+  border-block: 1px solid var(--border);
+}
+.steps {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+.steps li {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.num {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1;
+}
+@media (min-width: 760px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+}
+
+/* Verileriniz size ait: iki sütun (sol başlık + bağlantı, sağ 2x2 kart) */
+.privacy {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+}
+.privacyCopy {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+.bandLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+:global(:root[dir='rtl']) .bandLinkIcon {
+  transform: scaleX(-1);
+}
+.promises {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.promises li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.07);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.promises li svg {
+  margin-block-start: 2px;
+  color: #fff;
+}
+@media (min-width: 600px) {
+  .promises {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .promises li {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 960px) {
+  .privacy {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+}
+
+/* Son çağrı */
+.cta {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.ctaCopy {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 48ch;
+}
+.ctaButtons {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+@media (min-width: 720px) {
+  .cta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-7);
+  }
 }

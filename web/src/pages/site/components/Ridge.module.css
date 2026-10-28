@@ -1,7 +1,8 @@
 .ridge {
   display: block;
   width: 100%;
-  height: clamp(48px, 8vw, 110px);
+  /* --ridge-h: üst bölüm, içeriğini sıradağın üstünde tutmak için aynı yüksekliği kullanabilir */
+  height: var(--ridge-h, clamp(48px, 8vw, 110px));
   position: absolute;
   inset-inline: 0;
   inset-block-end: -1px;

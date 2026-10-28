@@ -14,7 +14,7 @@ const WIDTHS = [360, 768, 1280] as const;
 const ALL_PAGES = [
   '/', '/about', '/features', '/download', '/faq', '/contact', '/data-request', '/legal', '/privacy', '/terms',
   '/cookies', '/delete-account', '/accessibility', '/sitemap', '/security', '/community-guidelines', '/help',
-  '/news', '/menu', '/support/track', '/brand', '/changelog',
+  '/news', '/menu', '/support/track', '/brand', '/changelog', '/legal/KVKK', '/legal/RETENTION', '/news/1',
 ];
 const CORE_PAGES = ['/', '/features', '/download', '/faq', '/contact', '/menu'];
 
@@ -160,3 +160,45 @@ test('Inter 400-800 yüklenir ve CLS < 0,1', async ({ page }) => {
   expect(res.ok.every(Boolean)).toBe(true);
   expect(res.cls).toBeLessThan(0.1);
 });
+
+for (const lang of LANGS) {
+  test(`ana sayfa ilk ekran (360x740): CTA görünür, tek h1, başlık en çok 2 satır: ${lang}`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await prepare(page, lang, 'light', true);
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const h1 = page.locator('main h1');
+    await h1.waitFor({ state: 'visible', timeout: 15_000 });
+    await page.waitForTimeout(400);
+    expect(await page.locator('h1').count()).toBe(1);
+    // ana CTA ilk ekranda
+    const cta = page.locator('main section').first().locator('a').first();
+    const b = (await cta.boundingBox())!;
+    expect(b.y + b.height, 'ana CTA ilk ekranın içinde').toBeLessThanOrEqual(740);
+    // başlık: 3 satıra bölünmez (Arapçada da 2-3 satır sınırı yok; yalnız tr/en denetlenir)
+    if (lang !== 'ar') {
+      const lines = await h1.evaluate((el) => {
+        const lh = parseFloat(getComputedStyle(el).lineHeight);
+        return Math.round(el.getBoundingClientRect().height / lh);
+      });
+      expect(lines, `başlık satır sayısı ${lines}`).toBeLessThanOrEqual(2);
+    }
+    // ilk ekranda en çok bir (görünen) telefon: gizli (display:none) telefonlar sayılmaz
+    const visiblePhones = await page.evaluate(() => {
+      const vh = 740;
+      return Array.from(document.querySelectorAll('main [aria-hidden="true"][class*="phone"]')).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.top < vh && r.bottom > 0;
+      }).length;
+    });
+    expect(visiblePhones).toBeLessThanOrEqual(1);
+    // telefonlar sıradağ silueti tarafından kesilmez: hero içindeki telefonun alt kenarı sıradağın üstünde
+    const gap = await page.evaluate(() => {
+      const phone = Array.from(document.querySelectorAll('main section:first-of-type [aria-hidden="true"][class*="phone"]')).filter(
+        (el) => el.getBoundingClientRect().width > 0,
+      )[0] as HTMLElement;
+      const ridge = document.querySelector('main section svg[class*="ridge"]') as SVGElement;
+      return ridge.getBoundingClientRect().top - phone.getBoundingClientRect().bottom;
+    });
+    expect(gap, `telefon-sıradağ boşluğu ${gap}`).toBeGreaterThanOrEqual(-1);
+  });
+}

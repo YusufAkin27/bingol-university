@@ -76,6 +76,8 @@ grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe 
 `tr` (varsayılan), `en`, `ar` (`<html dir="rtl" lang="ar">`). Harici kütüphane yok; `useI18n()`:
 `t('key', {param})`, `td(dinamikAnahtar, fallback)`, `formatDate/formatDateTime/formatNumber` (Latin rakamlı `ar`).
 
+**Yönetim paneli (`/admin`, giriş dahil) YALNIZ Türkçedir:** `layouts/AdminScope.tsx` dili `tr`ye sabitler (`I18nProvider forcedLang`), dil seçici yoktur, sitenin `bu.lang` tercihi korunur ve panelden çıkınca geri gelir. Yeni panel metinleri yalnız `tr/` altına yazılır; en/ar karşılığı gerekmeyen ad alanları (`tr/admin-guard.ts`, `tr/admin-shell.ts`) `scripts/check-i18n.mjs` içinde `TR_ONLY` listesindedir ve `i18n/index.ts` en/ar sözlüklerine aynı Türkçe metni katar.
+
 ## API sözleşmesi
 
 [docs/ADMIN_API.md](../docs/ADMIN_API.md) — tüm uçlar için tip (`api/types.ts`) ve fonksiyon yazılmıştır; henüz uygulanmamış yeni uçlar da sözleşmeye göredir.
@@ -105,3 +107,8 @@ modüller `src/api/typed/*` (bkz. `docs/MOBILE_CODEGEN.md`).
 Notlar: giriş hız sınırı (e-posta başına 15 dk'da 10, IP başına 30) nedeniyle testler belirteçleri yeniden kullanır;
 çok çalıştırdıysanız `docker compose exec -T redis redis-cli flushall` ile sınırlar sıfırlanır. `E2E_SHOTS=1` ekran
 görüntülerini `e2e/.results/` altına yazar (commit'lenmez).
+
+## Telefon çizimleri ve mağaza rozetleri (tanıtım sitesi)
+
+- `pages/site/components/Phone.tsx` yalnızca çerçevedir; içindeki ekranlar `components/screens/*.tsx` altında mobil uygulamanın tasarım şablonlarının (`mobile/design/*.dc.html`) HTML/CSS ile yeniden çizimidir (görsel dosya yok, gerçek ekran görüntüsü değil). Örnek metinler `screens/text.ts` içinde tr/en/ar; kişi adı/fotoğraf yoktur. Boyut `--phone-s` (390 px tasarım genişliği çarpanı), kırpma `--phone-crop` ile verilir.
+- `StoreButton` sitenin tek mağaza düğmesidir (`components/StoreBadge` yalnızca alt bilgi ön ayarıdır). Resmî Google Play / App Store rozet SVG'leri marka kuralları gereği değiştirilmeden kendi sayfalarından alınmalıdır; bu ortamda indirilemediği için nötr, rozet benzeri düğme kullanılır. **Mağazalarda yayına çıkınca `StoreButton` gövdesi resmî rozetlerle değiştirilmelidir** (props aynı kalır).
