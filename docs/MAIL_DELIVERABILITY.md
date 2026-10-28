@@ -76,6 +76,9 @@ Seçerken: DKIM + özel gönderim alanı desteği, bounce/şikâyet bildirimi (w
 | `MAIL_MAX_PER_MINUTE` | `30` | Duyuru dakikalık üst sınır (0 = sınırsız) |
 | `MAIL_RECIPIENT_GAP_SECONDS` | `300` | Aynı adrese iki duyuru arası (sn; 0 = kapalı) |
 | `PUBLIC_WEB_URL` | `http://localhost:8090` | Abonelik bağlantısı kökü; **prod'da https ve herkese açık**, `/api` backend'e vekillenmeli |
+| `MAIL_DAILY_LIMIT` | `0` | Sağlayıcı günlük kotası (0 = koruma kapalı). Brevo ücretsiz için `300` (kayıtta doğrulayın) |
+| `MAIL_DAILY_RESERVE` | `60` | Kotanın işlemsel postalara (kod/güvenlik) ayrılan kısmı; duyuru/CUSTOM yalnız `limit - reserve` altında gider |
+| `MAIL_DAILY_RESET_HOUR_UTC` | `21` | Sağlayıcının kota gününü sıfırladığı UTC saati (21 = 00:00 İstanbul). Belirsizse panelden/destekten doğrulayıp değiştirin |
 | `MAIL_UNSUBSCRIBE_KEY` | boş | Abonelik jetonu HMAC anahtarı (boş = JWT sırrından türetilir); anahtar değişirse eski bağlantılar geçersiz olur |
 
 ## 6. Test kontrol listesi (mail-tester.com tarzı)
@@ -100,3 +103,79 @@ Seçerken: DKIM + özel gönderim alanı desteği, bounce/şikâyet bildirimi (w
 - DKIM imzalama uygulama içinde yapılmaz (sağlayıcı/MTA yapar).
 - FBL/şikâyet ve sağlayıcı bounce webhook'ları için uç yok; yalnız SMTP anındaki kalıcı hata (senkron bounce) işlenir. Asenkron bounce (DSN e-postası) okunmaz.
 - Kuyruk dakikalık bütçesi aynı örnekte eşzamanlı iki turla bir iki e-posta aşabilir (hafif).
+
+## 9. Brevo ücretsiz SMTP ile üretim kurulumu (`bukampus.net`)
+
+Karar: e-posta Brevo ücretsiz SMTP ile gider; gönderici `noreply@bukampus.net`, Reply-To `destek@bukampus.net`. Kullanım yalnız kayıt doğrulama kodu, şifre sıfırlama kodu ve güvenlik bildirimleridir; toplu duyuru kullanılmaz. Ücretsiz plan yaklaşık günde 300 posta içindir.
+
+> **Kayıt sırasında doğrulayın:** Brevo'nun host adı (`smtp-relay.brevo.com`), port (587), günlük limit (~300), kota sıfırlama saati, SMTP giriş adı biçimi ve DNS kayıt adları zamanla değişebilir. Aşağıdaki servis ayrıntıları bu belge yazılırken bilinenlerdir; Brevo panelindeki ve belgesindeki güncel değer geçerlidir. DKIM/doğrulama kayıtlarının değerini asla uydurmayın: Brevo panelinden aynen kopyalayın.
+
+### 9.1 Brevo tarafı
+
+1. brevo.com'da hesap açın (ücretsiz plan).
+2. **Senders, Domains & Dedicated IPs > Domains > Add a domain**: `bukampus.net` ekleyin. Brevo size şu kayıtları gösterir (tam kayıtları panelden kopyalayın):
+   - `brevo-code:...` değerli **TXT** doğrulama kaydı (alan adı sahipliği),
+   - **DKIM**: `brevo1._domainkey` ve `brevo2._domainkey` adlı kayıtlar (CNAME biçiminde ya da TXT biçiminde sunulabilir; panelde hangisi yazıyorsa onu girin),
+   - (varsa) DMARC önerisi.
+3. **Senders > Add a sender**: `noreply@bukampus.net` gönderici adresini ekleyin (alan adı doğrulandıktan sonra).
+4. **SMTP & API > SMTP** sayfasında **SMTP giriş adını** (genelde `bukampus.net` DEĞİL, Brevo'nun verdiği bir kullanıcı adıdır) ve **SMTP anahtarı** üretin. Anahtar bir sırdır: yalnız sunucudaki `.env.prod` dosyasına yazın; repoya/belgeye/sohbete koymayın.
+5. Güvenlik: Brevo'da hesap için 2 adımlı doğrulamayı açın; sunucu IP'si için "Authorized IPs" kısıtı varsa sunucunun çıkış IP'sini ekleyin (Brevo'nun IP kısıtı ayarı hesabınızda açıksa).
+
+### 9.2 DNS kayıtları (Cloudflare DNS)
+
+| Tür | Ad | Değer |
+|---|---|---|
+| TXT | `@` | Brevo'nun verdiği `brevo-code:...` (panelden kopyalayın) |
+| CNAME/TXT | `brevo1._domainkey` | Panelde gösterilen tam değer (kopyalayın) |
+| CNAME/TXT | `brevo2._domainkey` | Panelde gösterilen tam değer (kopyalayın) |
+| TXT | `@` (SPF) | `v=spf1 include:spf.brevo.com ~all` |
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:destek@bukampus.net` |
+
+- Cloudflare'de DKIM CNAME kayıtlarını **DNS only (gri bulut)** bırakın; proxy açık olursa doğrulama başarısız olur.
+- **SPF tek kayıt olmalıdır.** Alan adında zaten bir SPF TXT varsa ikinci bir `v=spf1` kaydı eklemeyin (iki SPF kaydı SPF'i bozar); mevcut kayda `include:spf.brevo.com` ekleyerek birleştirin.
+- **Cloudflare Email Routing** (aşağıda) kullanılıyorsa SPF'te Cloudflare'in include'u da olmalıdır. Birleşik örnek: `v=spf1 include:spf.brevo.com include:_spf.mx.cloudflare.net ~all`. Email Routing'i etkinleştirirken Cloudflare bu kayıtları (MX ve SPF) kendisi önerir; **güncel include adlarının doğruluğunu Brevo ve Cloudflare belgelerinden kontrol edin**.
+- DMARC'a `p=none` ile başlayın; birkaç hafta `rua` raporlarında SPF/DKIM hizalamasının geçtiğini gördükten sonra `p=quarantine`'e çıkabilirsiniz.
+- Brevo panelinde alan adı "Verified/Authenticated" olana dek bekleyin (DNS yayılımı dakikalar–saatler sürebilir).
+
+### 9.3 Uygulama ayarları (`.env.prod`)
+
+```
+MAIL_ENABLED=true
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USERNAME=<Brevo SMTP giriş adı>
+MAIL_PASSWORD=<Brevo SMTP anahtarı>      # SIR
+MAIL_FROM=noreply@bukampus.net
+MAIL_REPLY_TO=destek@bukampus.net
+MAIL_REQUIRE_TLS=true
+PUBLIC_WEB_URL=https://bukampus.net
+MAIL_MAX_PER_MINUTE=20
+MAIL_DAILY_LIMIT=300
+MAIL_DAILY_RESERVE=60
+MAIL_DAILY_RESET_HOUR_UTC=21
+```
+
+`docker-compose.yml` ve `docker-compose.prod.yml` bu değişkenlerin hepsini konteynere geçirir (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_SSL`, `MAIL_MAX_PER_MINUTE`, `MAIL_RECIPIENT_GAP_SECONDS`, `MAIL_DAILY_*`, `MAIL_UNSUBSCRIBE_KEY` dahil).
+
+`ProdSettingsValidator` bu yapılandırmayla açılışı **reddetmez**: `From` alan adı (`bukampus.net`) ile SMTP kullanıcı alan adı farklı olduğunda yalnızca **uyarı** üretir (hata değil). **Brevo'da bu uyarı beklenir**: SMTP kullanıcı adı `bukampus.net` değildir; hizalama DKIM/SPF'in `bukampus.net` için doğrulanmış olmasıyla sağlanır, Brevo panelinde alan adının "doğrulanmış" görünmesi yeterlidir.
+
+### 9.4 Günlük kota koruması
+
+- Sayaç Redis `mail:daily:<gün>` (INCR, TTL 2 gün; Redis yoksa bellek içi yedek) ve yalnız **başarılı** gerçek gönderimde artar. Gün, `MAIL_DAILY_RESET_HOUR_UTC` saatinde başlar (varsayılan 21:00 UTC = 00:00 İstanbul; Brevo'nun sıfırlama saati UTC mi yerel mi belirsiz: kayıtta doğrulayıp ayarlayın).
+- İşlemsel postalar (kod, güvenlik) günlük limite **kadar** gider. Duyuru/CUSTOM postalar yalnız `limit - reserve` (300-60=240) altında gider; kalan kota kodlara ayrılır.
+- Limit dolunca kayıt **DEAD olmaz**, `next_attempt_at` ertesi kota gününe (+5 dk) ertelenir ve beklemede kalır. Doğrulama/sıfırlama kodu postaları 10 dk sonra zaten geçersiz olduğundan, ertelenen kod postası o zaman gönderilmeden kapanır (mevcut davranış; beklenen).
+- Kota tamamen dolmuşken kayıt (`register`), `resend-code` ve `forgot-password` uçları, e-postadan bağımsız ve hesap sorgusundan ÖNCE, **503 `MAIL_QUOTA_EXHAUSTED`** ("Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin", tr/en/ar) döner. Karar yalnız küresel kota durumuna bağlı olduğundan hesabın varlığını sızdırmaz (`MAIL_UNAVAILABLE`, kuyruğa yazılamayan tekil hata içindir). Mobil/web bu kodu genel hata olarak gösterebilir.
+- Gözlemlenebilirlik: `GET /api/admin/system/overview` içinde `mail.dailyQuota` (kullanım %'si; %80 WARN, %95 CRIT; `MAIL_DAILY_LIMIT=0` ise UNKNOWN). Metrik: `mail.queue.quota_deferred`.
+
+### 9.5 Cloudflare Email Routing ve Gmail ile cevap
+
+1. Cloudflare > `bukampus.net` > **Email > Email Routing** etkinleştirin (MX/SPF kayıtlarını Cloudflare ekler; yukarıdaki SPF birleştirmesini uygulayın).
+2. **Routing rules**: `destek@bukampus.net` ve `kvkk@bukampus.net` adreslerini kendi Gmail adresinize yönlendirin; Cloudflare'in gönderdiği doğrulama e-postasındaki bağlantıyı onaylayın.
+3. Gmail'den `destek@bukampus.net` adıyla cevap yazmak: Gmail > Ayarlar > **Hesaplar ve İçe Aktarma > Başka bir adresten e-posta gönder (Send mail as) > Başka bir e-posta adresi ekle**: `destek@bukampus.net`, "Takma ad olarak ele al" işaretli. SMTP sunucusu `smtp-relay.brevo.com`, port 587, TLS; kullanıcı adı ve parola Brevo SMTP giriş adı/anahtarı. Gmail adrese bir doğrulama kodu yollar (Email Routing ile Gmail'inize düşer). Not: bu gönderimler de Brevo günlük kotasından yer; destek yazışması az olduğundan sorun değildir. `destek@` Brevo'da gönderici olarak ayrıca tanımlanmalı/doğrulanmalıdır.
+
+### 9.6 Kurulum sonrası kontrol
+
+1. Brevo alan adı durumu "doğrulanmış"; `dig TXT bukampus.net`, `dig TXT _dmarc.bukampus.net`, DKIM kayıtları dönüyor.
+2. Backend açılışında `ProdSettingsValidator` hata vermiyor (yalnız "farklı alan adı" uyarısı olabilir).
+3. Gerçek bir kayıt denemesi: kod gelir; "orijinali göster" ile SPF/DKIM/DMARC = pass.
+4. `GET /api/admin/system/overview` > `mail.dailyQuota` değeri artıyor.

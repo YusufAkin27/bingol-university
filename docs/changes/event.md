@@ -121,3 +121,22 @@ Ayrıntılı sözleşme ve örnek yanıt: `docs/ADMIN_API.md` "Etkinlik moderasy
 **Kulüp yetkilileri** (mevcut mantık, değişmedi, test edildi): etkinliği oluşturan, ortak organizatörler ve kulüpte `MANAGE_EVENTS` yetkisi olanlar (MODERATOR+) `PATCH /api/events/{id}` ile düzenler, `DELETE /api/events/{id}` ile iptal (= yumuşak silme + bildirim) eder; yetkisiz `403`. `HIDDEN` etkinlik organizatöre de 404'tür.
 
 Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). `event_moderation_log.action` değerleri: `HIDE, UNHIDE, CANCEL, DELETE, EDIT, REPORT_HIDE, REPORT_UNHIDE`.
+
+
+## Etkinlik yazma doğrulaması (V550 dönemi)
+
+`EventService.create` ve `update` (kulüp yöneticisi `PATCH /api/events/{id}` ile admin `PATCH /api/admin/events/{id}` aynı yolu kullanır) aynı kuralları uygular. Metinler önce kırpılır; uzunluk kırpılmış metinle ölçülür. Hepsi `400`:
+
+| Alan / kural | Sınır (ayar) | Hata kodu |
+|---|---|---|
+| Başlık | en çok **100** (`app.event.max-title-length`); kırpılmış en az 3 (`VALIDATION_ERROR`) | `EVENT_TITLE_TOO_LONG` |
+| Açıklama | en çok **1000** (`app.event.max-description-length`) | `EVENT_DESCRIPTION_TOO_LONG` |
+| Yer | en çok **120** (`app.event.max-location-length`) | `EVENT_LOCATION_TOO_LONG` |
+| Bitiş > başlangıç (eşitlik geçersiz) | — | `INVALID_DATES` |
+| Süre (bitiş - başlangıç) | en çok **30 gün** (`app.event.max-duration-days`) | `EVENT_TOO_LONG` |
+| Başlangıç geçmişte olamaz | `startsAt > şimdi` (**tolerans yok**; eşitlik/geçmiş reddedilir) | `PAST_EVENT` |
+
+- Güncellemede metin sınırları yalnızca **değişen** alana uygulanır (sınırdan uzun eski kayıt, aynı metin yeniden gönderilince bozulmaz); süre sınırı yalnızca `startsAt`/`endsAt` gönderilince denetlenir. `PAST_EVENT` yalnızca başlangıç değişirse (başlamış etkinliğin başlangıcı zaten `409 EVENT_STARTED`).
+- DTO `@Size` üst sınırları eskisi gibi geniş kaldı (150/2000/200; yalnızca sütun güvenliği); asıl sınır servistedir ki özel hata kodu dönsün. Bu sınırları aşan istek (örn. 2001 karakterlik açıklama) `VALIDATION_ERROR` alır.
+- Etkinlik moderasyonu (V460) kuralları aynen korunur: kulüp zorunlu, `ACTIVE`/`PENDING_REVIEW`, admin uçları.
+- Yeni hata kodları (tr/en/ar `i18n/event*.properties`, `{0}` = sınır): `EVENT_TITLE_TOO_LONG`, `EVENT_DESCRIPTION_TOO_LONG`, `EVENT_LOCATION_TOO_LONG`, `EVENT_TOO_LONG`.

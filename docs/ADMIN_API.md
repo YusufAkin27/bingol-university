@@ -347,6 +347,21 @@ Herkese açık metin alanlarında (kulüp/etkinlik/profil/grup başlığı vb.) 
 
 Ayarlar (salt okunur): `app.moderation.profanity.enabled` (varsayılan true), `mode` = `BLOCK` (varsayılan; 422 ile reddeder) | `FLAG` (engellemez, yalnızca istatistiğe `FLAG` yazar), `cache-ttl-seconds` (30). Web: `/admin/profanity`.
 
+## Kulüp kategorileri (`/api/admin/community-categories`) — V550
+
+Kulüp oluştururken seçilebilen **sınırlı** kategori listesi (`community_category`; en çok `app.community.max-categories` = 20 **aktif**). Yalnız ADMIN; yazmalar `AuditInterceptor` ile denetlenir; yazma hız sınırı 120/dk. `community.category` sütunu serbest metin olarak kalır ve kategorinin **`key`** değerini taşır (FK yok; eski değerler V550 ile aynen tabloya tohumlanır).
+
+| Uç | Açıklama |
+|---|---|
+| `GET /` | `{items:[{id,key,nameTr,nameEn,nameAr,icon,sortOrder,active,usageCount,createdAt,updatedAt}], activeCount, maxActive}`; tümü (pasifler dahil), `sortOrder` sırasıyla; `usageCount` = silinmemiş kulüp sayısı |
+| `POST /` (201) | `{key?, nameTr, nameEn?, nameAr?, icon?, active?}`; `key` boşsa Türkçe addan üretilir (`^[a-z0-9][a-z0-9-]{0,39}$`), en/ar boşsa tr; sona eklenir. `409 COMMUNITY_CATEGORY_KEY_TAKEN`, aktif sınır doluysa `409 COMMUNITY_CATEGORY_LIMIT` |
+| `PUT /{id}` | adlar/simge/aktif güncellenir; **`key` değişmez** (gövdedeki yok sayılır). `404 COMMUNITY_CATEGORY_NOT_FOUND` |
+| `PATCH /{id}/active` | `{active}`; pasiften aktife geçişte sınır denetlenir (`409 COMMUNITY_CATEGORY_LIMIT`) |
+| `DELETE /{id}` (204) | kullanımda ise `409 COMMUNITY_CATEGORY_IN_USE` (mesajda kulüp sayısı; pasife alınmalı), değilse silinir |
+| `PUT /order` | `{ids:[...]}` tüm kategorileri tekrarsız içermeli, aksi `400 COMMUNITY_CATEGORY_ORDER_INVALID`; yanıt `GET /` şekli |
+
+Herkese açık okuma: `GET /api/communities/categories` (giriş gerekir) — ayrıntı `docs/changes/community.md`.
+
 ## Keşfet gönderileri moderasyonu (`/api/admin/posts`)
 
 `ADMIN` (JWT) + denetim kaydı (yazma uçları ve `GET /api/admin/posts/media/{id}` önizlemesi `AuditInterceptor` ile yazılır). Hız sınırı: yönetici başına dakikada 120. Silinmiş/gizli içerik dahil hepsi görünür. Tasarım: [POSTS_DESIGN.md](POSTS_DESIGN.md), ayrıntı: [changes/post.md](changes/post.md).

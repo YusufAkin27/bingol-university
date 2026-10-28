@@ -87,3 +87,13 @@ Yonetici kullaniciyi, kayitsiz kisiyi (IP/CIDR) ya da mobil cihazi engeller; eng
 - Yeni log deseni: `logging.pattern.level=%5p [%X{requestId:-}]`. `X-Request-Id` yanıt başlığı + hata gövdesinde `traceId`. Sentry'deki PII temizliği (`ObservabilitySentry`) aynen geçerli; `LogMasking.scrub` yönetici panelinde gösterilen hata metinlerini maskeler.
 - i18n: `i18n/obs*.properties` (tr/en/ar), `spring.messages.basename`'e `i18n/obs` eklendi.
 - Web: `/admin/system` ("Sistem durumu", `SystemStatusPage`).
+
+## Veritabanı ölçek/saklama düzenlemesi (V520, `dbmaint`)
+
+Ayrıntı ve tablo envanteri: [DATABASE.md](../DATABASE.md). Kısaca:
+- **Migration `V520__dbscale_indexes_retention.sql`:** `analytics_event_daily` (günlük özet + geri doldurma), BRIN indeksler (`dbs520_*`), yinelenen `idx_message_created` ve `idx_analytics_event_name/created` düşürüldü, kısmi indeksler (okunmamış bildirim, mail SENT/DEAD), `event_attendance(user_id)`, tablo bazlı autovacuum/fillfactor, `pg_stat_statements` (yetki yoksa atlanır).
+- **`edu.bingol.backend.dbmaint`:** `DbMaintenanceJob` (03:00, `SchedulerLock`, parçalı silme: `ChunkedDeleter`), `AnalyticsRollup`. Yeni saklama: bildirim okunmuş 30 / okunmamış 90 gün + kullanıcı başına 200, mail SENT 7 / DEAD 30 gün, `admin_audit` 365, `message_access_audit`/`club_audit` 730, `activity_daily` 400, ham analitik olay **45 gün** (önce 180; kalıcı özet tabloda). Ayarlar `app.dbmaint.*` / `app.notification.*`.
+- **Analitik raporları:** `topEvents`, `screenViews`, `searchesPerDay` tamamlanmış günleri özetten okur; `topEvents.uniq` gün-tekil toplamıdır (anlam notu DATABASE.md bölüm 3). KVKK dışa aktarımı `retentionDays=45`. `ActivityTracker` son-görülme aralığı 5 → 15 dk.
+- **Güvenlik ağı:** Hikari havuzu 30 (`DB_POOL_MAX`), `statement_timeout 8s`, `lock_timeout 3s`, `idle_in_transaction_session_timeout 30s`, Flyway ayrı bağlantı; zaman aşımı/havuz tükenmesi **503 `DB_TIMEOUT`** (`Retry-After: 5`, tr/en/ar). Hibernate `order_inserts/updates`, `default_batch_fetch_size=50`.
+- **PostgreSQL ayarı:** `docker-compose.yml` ve `docker-compose.prod.yml` postgres `command:` (parametreli `PG_*`), yavaş sorgu logu, `pg_stat_statements`.
+- **Sorgu koruması:** `QueryRulesTest` (izin listesi dışında `findAll()` yok). 20k sentetik veri: `scripts/perf/seed-20k.sql`.
