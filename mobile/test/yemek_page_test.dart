@@ -7,7 +7,7 @@ import 'support/fake_app.dart';
 List<Map<String, dynamic>> _month() {
   final n = DateTime.now();
   return [
-    for (var d = 1; d <= 28; d++)
+    for (var d = 1; d <= DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day; d++)
       {
         'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}',
         'items': ['Mercimek corbasi', 'Orman kebabi cok uzun bir yemek adi burada', 'Pilav', 'Sutlac'],

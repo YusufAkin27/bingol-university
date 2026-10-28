@@ -154,6 +154,7 @@ docker compose up -d backend web     # Flyway migration'ları açılışta otoma
 - Güncellemeden önce `pg_dump` alın. Graceful shutdown: SIGTERM'de 30 sn'ye kadar istekler tamamlanır (`stop_grace_period: 40s`).
 - **Geri alma:** önceki imaj/etikete dönün (`git checkout <etiket>` + `docker compose up -d --build`). Flyway migration'ları **geri sarılmaz**; şema değişikliği içeren sürümü geri alacaksanız yedekten geri yükleme gerekir. Bu yüzden migration'lar geriye uyumlu (önce ekle, sonra kullan, en son kaldır) yazılır.
 - Sıfır kesinti gerekiyorsa iki backend örneği + proxy'de sıralı yeniden başlatma kullanın (bkz. 6. bölüm kilit notu).
+- **Flyway `out-of-order`:** geliştirme (`application.properties`) paralel kolların migration'ları araya girebilsin diye `true`; **`prod` profilinde `false`** (`application-prod.properties`). Temiz kurulum etkilenmez (tüm sürümler sırayla uygulanır). Aralıkta kalmış (uygulanmış en yüksek sürümden düşük, uygulanmamış) bir migration içeren **mevcut bir dev veritabanını** `prod` ayarıyla açarsanız Flyway "detected resolved migration not applied" hatasıyla başlamaz: önce dev ayarıyla (`SPRING_PROFILES_ACTIVE=dev`) bir kez açıp migration'ı uygulayın ya da veritabanını `scripts/reset-dev-db.sh` ile sıfırlayın.
 
 ## 8.1 Erişim engelleri (IP / cihaz): proxy ve yapılandırma
 

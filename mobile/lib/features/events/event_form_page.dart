@@ -88,6 +88,7 @@ class EventFormPage extends StatefulWidget {
     this.communityId,
     this.pickCover,
     this.uploadCover,
+    this.now,
   });
 
   final Session session;
@@ -95,6 +96,9 @@ class EventFormPage extends StatefulWidget {
   final int? communityId;
   final CoverPicker? pickCover;
   final CoverUploader? uploadCover;
+
+  /// Yalnız test amaçlı: "şimdi" kaynağı (varsayılan DateTime.now); zamana bağlı varsayılanları sabitler.
+  final DateTime Function()? now;
 
   @override
   State<EventFormPage> createState() => _EventFormPageState();
@@ -226,8 +230,10 @@ class _EventFormPageState extends State<EventFormPage> {
 
   // ---- tarih ----
 
-  static DateTime _nextRoundHour() {
-    final n = DateTime.now();
+  DateTime _now() => (widget.now ?? DateTime.now)();
+
+  DateTime _nextRoundHour() {
+    final n = _now();
     return DateTime(n.year, n.month, n.day, n.hour + 1);
   }
 
@@ -237,7 +243,7 @@ class _EventFormPageState extends State<EventFormPage> {
   String? get _dateError {
     final l = context.l10n;
     final changed = !_editing || _origStart != _start;
-    if (changed && _start.isBefore(DateTime.now().subtract(const Duration(minutes: 1)))) {
+    if (changed && _start.isBefore(_now().subtract(const Duration(minutes: 1)))) {
       return l.evdErrStartPast;
     }
     if (!_end.isAfter(_start)) return l.evdErrEndBeforeStart;
@@ -260,7 +266,7 @@ class _EventFormPageState extends State<EventFormPage> {
   void _setStartDate(DateTime d) {
     var v = DateTime(d.year, d.month, d.day, _start.hour, _start.minute);
     // Bugünün geçmiş saatine düşerse sıradaki yuvarlak saate al.
-    if (v.isBefore(DateTime.now())) {
+    if (v.isBefore(_now())) {
       final r = _nextRoundHour();
       v = _day(r) == _day(v) ? r : DateTime(d.year, d.month, d.day, 9);
     }
@@ -276,13 +282,13 @@ class _EventFormPageState extends State<EventFormPage> {
       });
 
   Future<void> _pickStartDate() async {
-    final today = _day(DateTime.now());
+    final today = _day(_now());
     final first = _start.isBefore(today) ? _day(_start) : today;
     final d = await showDatePicker(
       context: context,
       initialDate: _start.isBefore(first) ? first : _start,
       firstDate: first,
-      lastDate: DateTime(DateTime.now().year + 3),
+      lastDate: DateTime(_now().year + 3),
     );
     if (d == null || !mounted) return;
     _setStartDate(d);
@@ -309,7 +315,7 @@ class _EventFormPageState extends State<EventFormPage> {
       context: context,
       initialDate: _end.isBefore(_start) ? _start : _end,
       firstDate: _day(_start),
-      lastDate: DateTime(DateTime.now().year + 3),
+      lastDate: DateTime(_now().year + 3),
     );
     if (d == null || !mounted) return;
     final t = await _pickTime(TimeOfDay.fromDateTime(_end));
@@ -370,7 +376,7 @@ class _EventFormPageState extends State<EventFormPage> {
   }
 
   Widget _dateSection(BuTokens t, AppLocalizations l) {
-    final today = _day(DateTime.now());
+    final today = _day(_now());
     final tomorrow = today.add(const Duration(days: 1));
     final wd = today.weekday; // Pzt=1 .. Paz=7
     final weekend = today.add(Duration(days: wd >= 6 ? 0 : 6 - wd));
@@ -404,7 +410,7 @@ class _EventFormPageState extends State<EventFormPage> {
             '${h.$1.toString().padLeft(2, '0')}:${h.$2.toString().padLeft(2, '0')}',
             _start.hour == h.$1 && _start.minute == h.$2,
             // Bugünse geçmiş saat seçilemez.
-            (locked || DateTime(sd.year, sd.month, sd.day, h.$1, h.$2).isBefore(DateTime.now()))
+            (locked || DateTime(sd.year, sd.month, sd.day, h.$1, h.$2).isBefore(_now()))
                 ? null
                 : () => _setStartTime(h.$1, h.$2),
           ),

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Yonetici dogrulama duman testi: kayit -> yonetici bekleyen kaydi kodsuz dogrular -> kullanici giris yapar.
 # Kullanim: BASE=http://localhost:8080 ADMIN_EMAIL=boss@bingol.edu.tr ADMIN_PASSWORD=... ./scripts/smoke-admin-verify.sh
-# Onkosul: compose'ta MAIL_ENABLED=false, ADMIN_EMAILS=$ADMIN_EMAIL, hesap ADMIN_EMAIL daha once dogrulanmis olmali.
+# Onkosul: compose'ta MAIL_ENABLED=false, ADMIN_EMAILS=$ADMIN_EMAIL, hesap ADMIN_EMAIL daha once dogrulanmis olmali
+# (sifresi ADMIN_ACCOUNT_PASSWORD / ADMIN_PASSWORD / Sifre1234 degerlerinden biri).
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
@@ -23,8 +24,16 @@ NUM="9$(printf '%05d' $SFX)001"
 EMAIL="$NUM@bingol.edu.tr"
 
 echo "== yonetici girisi"
-printf '{"email":"%s","password":"%s"}' "$ADMIN_EMAIL" "$ADMIN_PASSWORD" > "$TMP/login.json"
-check "admin login" 200 "$(post /auth/login "$TMP/login.json")"
+# Yonetici HESABININ sifresi (ADMIN_ACCOUNT_PASSWORD) ile Basic "admin" sifresi (ADMIN_PASSWORD) farkli olabilir; diger
+# duman betikleri yonetici hesabini "Sifre1234" ile acar. Sirayla denenir; ilk 200 gecerlidir.
+LOGIN_CODE=000
+for PW in "${ADMIN_ACCOUNT_PASSWORD:-}" "$ADMIN_PASSWORD" "Sifre1234"; do
+  [ -n "$PW" ] || continue
+  printf '{"email":"%s","password":"%s"}' "$ADMIN_EMAIL" "$PW" > "$TMP/login.json"
+  LOGIN_CODE=$(post /auth/login "$TMP/login.json")
+  [ "$LOGIN_CODE" = "200" ] && break
+done
+check "admin login" 200 "$LOGIN_CODE"
 TA=$(grep -o '"accessToken":"[^"]*' "$TMP/out" | cut -d'"' -f4)
 [ -n "$TA" ] || { echo "admin token yok"; exit 1; }
 AAD="Authorization: Bearer $TA"
@@ -39,7 +48,7 @@ echo "== yonetici listesi (q) ve dogrulama"
 check "liste q" 200 "$(curl -s -o "$TMP/out" -w '%{http_code}' -H "$AAD" "$A/admin/pending-registrations?q=$NUM")"
 grep -qF "$EMAIL" "$TMP/out" && echo "  ok   listede" || { echo "  FAIL listede yok"; FAIL=1; }
 echo '{}' > "$TMP/empty.json"
-check "anonim istek 401" 401"$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" "$A/admin/pending-registrations/$NUM/verify" --data-binary @"$TMP/empty.json")"
+check "anonim istek 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" "$A/admin/pending-registrations/$NUM/verify" --data-binary @"$TMP/empty.json")"
 check "verify 201" 201 "$(post "/admin/pending-registrations/$NUM/verify" "$TMP/empty.json" "$AAD")"
 grep -qF "$EMAIL" "$TMP/out" && echo "  ok   govde e-posta" || { echo "  FAIL govde"; FAIL=1; }
 check "verify tekrar 404" 404 "$(post "/admin/pending-registrations/$NUM/verify" "$TMP/empty.json" "$AAD")"

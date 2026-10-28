@@ -190,8 +190,9 @@ public class RefreshTokenService {
                 redis.opsForSet().remove(userKey(userId), h); // suresi dolmus
                 continue;
             }
-            int i = v.indexOf(':');
-            String c = i < 0 ? WEB : normalizeClient(v.substring(i + 1));
+            // Deger "uid:client:authTimeMs" (eski kayitlar "uid:client" ya da "uid"): istemci ikinci parcadir.
+            String[] parts = v.split(":", 3);
+            String c = parts.length < 2 ? WEB : normalizeClient(parts[1]);
             if (c.equals(want)) {
                 redis.delete(TOKEN_PREFIX + h);
                 redis.opsForSet().remove(userKey(userId), h);

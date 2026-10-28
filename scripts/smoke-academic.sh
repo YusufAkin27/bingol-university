@@ -85,7 +85,14 @@ EVID=$(echo "$EV" | jid)
 [ -n "$EVID" ] || { echo "  FAIL takvim olusmadi: $EV"; FAIL=1; }
 check "takvim kullanici yazamaz 403" 403 "$(code -X POST -H "$AA" -H "$H" $A/admin/academic/events -d '{}')"
 has "takvim ay" 'Vize haftasi' "$(curl -s -H "$AA" "$A/academic/calendar?month=2099-11")"
-has "takvim sirada" 'Vize haftasi' "$(curl -s -H "$AA" "$A/academic/calendar/next?limit=20")"
+# "sirada" listesi starts_at sirasiyla en fazla 20 kayit doner: tohum takvim kayitlari 2099'u ilk 20'ye sokmaz.
+# Bu yuzden veriden bagimsiz dogrulama: bugun baslayan kendi kaydimizi olusturup listede ariyoruz.
+TODAY=$(date -u +%F); TOMORROW=$(date -u -d '+1 day' +%F)
+NEXTEV=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/academic/events -d "{\"kind\":\"VIZE\",\"title\":\"Sirada duman $SFX\",\"startsAt\":\"$TODAY\",\"endsAt\":\"$TOMORROW\",\"allDay\":true,\"published\":true}")
+NEXTID=$(echo "$NEXTEV" | jid)
+[ -n "$NEXTID" ] || { echo "  FAIL sirada kaydi olusmadi: $NEXTEV"; FAIL=1; }
+has "takvim sirada (kendi kaydimiz)" "Sirada duman $SFX" "$(curl -s -H "$AA" "$A/academic/calendar/next?limit=20")"
+[ -n "$NEXTID" ] && check "sirada kaydi sil" 204 "$(code -u "$ADM" -X DELETE $A/admin/academic/events/$NEXTID)"
 check "takvim aralik 422" 422 "$(code -H "$AA" "$A/academic/calendar?from=2020-01-01&to=2030-01-01")"
 check "yayindan kaldir" 200 "$(code -u "$ADM" -X POST $A/admin/academic/events/$EVID/unpublish)"
 check "kaldirilan gorunmez" 0 "$(curl -s -H "$AA" "$A/academic/calendar?month=2099-11" | grep -c 'Vize haftasi')"

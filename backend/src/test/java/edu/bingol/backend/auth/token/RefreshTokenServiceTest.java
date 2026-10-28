@@ -103,6 +103,21 @@ class RefreshTokenServiceTest {
                 any(Duration.class));
     }
 
+    /** Gercek kayit bicimi "uid:client:authTimeMs" (authTime eklendikten sonra): istemci dogru ayristirilmali. */
+    @Test
+    void revokeClientParsesClientFromThreePartValue() {
+        when(sets.members("rtu:7")).thenReturn(Set.of("m1", "w1"));
+        when(values.get("rt:m1")).thenReturn("7:mobile:1761700000000");
+        when(values.get("rt:w1")).thenReturn("7:web:1761700000000");
+
+        assertEquals(1, service.revokeClient(7L, "mobile"));
+
+        verify(redis).delete("rt:m1");
+        verify(redis, org.mockito.Mockito.never()).delete("rt:w1");
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtx:m1"), org.mockito.ArgumentMatchers.eq("7"),
+                any(Duration.class));
+    }
+
     @Test
     void wasRevokedChecksTombstone() {
         when(redis.hasKey("rtx:" + Hashing.sha256("t"))).thenReturn(true);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Calisan yigina (docker compose) karsi topluluk + etkinlik + yoklama uctan uca duman testi.
-# Kullanim: BASE=http://localhost:8081 ./scripts/smoke-communities-events.sh
+# Kullanim: BASE=http://localhost:8080 ./scripts/smoke-communities-events.sh
 # Onkosul: compose'ta MAIL_ENABLED=false (kod log'dan okunur) ve ADMIN_EMAILS=$ADMIN_EMAIL
 # Not: hatirlatma testi ~3 dk surer; atlamak icin SKIP_REMINDER=1.
 set -u
@@ -60,41 +60,37 @@ T1=$(register "sahip$SFX@bingol.edu.tr" "Sahip Kisi")
 T2=$(register "uye$SFX@bingol.edu.tr" "Uye Kisi")
 T3=$(register "yabanci$SFX@bingol.edu.tr" "Yabanci Kisi")
 T4=$(register "dorduncu$SFX@bingol.edu.tr" "Dorduncu Kisi")
+T5=$(register "etkinlik$SFX@bingol.edu.tr" "Etkinlik Sorumlusu")
 TA=$(register "$ADMIN_EMAIL" "Yonetici")
-[ -n "$T1" ] && [ -n "$T2" ] && [ -n "$T3" ] && [ -n "$T4" ] || { echo "kayit basarisiz"; exit 1; }
+[ -n "$T1" ] && [ -n "$T2" ] && [ -n "$T3" ] && [ -n "$T4" ] && [ -n "$T5" ] || { echo "kayit basarisiz"; exit 1; }
 [ -n "$TA" ] || { echo "admin token yok (ADMIN_EMAILS ayarli mi?)"; exit 1; }
 ID1=$(curl -s -H "Authorization: Bearer $T1" $A/users/me | idof)
 ID2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | idof)
 ID3=$(curl -s -H "Authorization: Bearer $T3" $A/users/me | idof)
 ID4=$(curl -s -H "Authorization: Bearer $T4" $A/users/me | idof)
+ID5=$(curl -s -H "Authorization: Bearer $T5" $A/users/me | idof)
 
-echo "== topluluk olusturma ve admin onayi"
+echo "== topluluk olusturma (app.community.auto-approve=true: dogrudan ACTIVE; sahip OWNER)"
 NAME="Yazilim Kulubu $SFX"
-step "olustur (202)" 202 POST /communities "$T1" "{\"name\":\"$NAME\",\"description\":\"Kod yazanlar\",\"category\":\"teknoloji\"}"
+step "olustur (201)" 201 POST /communities "$T1" "{\"name\":\"$NAME\",\"description\":\"Kod yazanlar\",\"category\":\"teknoloji\"}"
 C1=$(printf '%s' "$BODY" | idof)
-contains "durum PENDING_REVIEW" '"status":"PENDING_REVIEW"' "$BODY"
+contains "durum ACTIVE" '"status":"ACTIVE"' "$BODY"
 contains "slug uretildi" "\"slug\":\"yazilim-kulubu-$SFX\"" "$BODY"
 step "gecersiz ad 400" 400 POST /communities "$T1" '{"name":"ab"}'
 call GET "/communities?q=$SFX" "$T2"
-lacks "onaysiz kesfette gorunmez" "yazilim-kulubu-$SFX" "$BODY"
-step "onaysiz detay baskasina 404" 404 GET /communities/$C1 "$T2"
-step "onaysiz topluluga katilamaz" 404 POST /communities/$C1/join "$T2"
+contains "yayindaki kulup kesfette gorunur" "yazilim-kulubu-$SFX" "$BODY"
 step "normal kullanici admin ucu 403" 403 GET /admin/communities "$T1"
-step "admin bekleyenler" 200 GET /admin/communities "$TA"
-contains "bekleyen listede" "yazilim-kulubu-$SFX" "$BODY"
-step "admin onayla" 204 POST /admin/communities/$C1/approve "$TA"
-step "ikinci onay 409" 409 POST /admin/communities/$C1/approve "$TA"
-step "kesfet" 200 GET "/communities?q=$SFX&category=teknoloji" "$T2"
-contains "onayli kesfette gorunur" "yazilim-kulubu-$SFX" "$BODY"
-step "baslik slug cakisma -> yeni slug" 202 POST /communities "$T1" "{\"name\":\"$NAME\",\"joinPolicy\":\"APPROVAL\"}"
+step "admin liste" 200 GET /admin/communities "$TA"
+step "ACTIVE kulup icin onay 409" 409 POST /admin/communities/$C1/approve "$TA"
+step "kesfet (kategori)" 200 GET "/communities?q=$SFX&category=teknoloji" "$T2"
+contains "kategoride gorunur" "yazilim-kulubu-$SFX" "$BODY"
+step "baslik slug cakisma -> yeni slug" 201 POST /communities "$T1" "{\"name\":\"$NAME\",\"joinPolicy\":\"APPROVAL\"}"
 C2=$(printf '%s' "$BODY" | idof)
 contains "slug -2" "yazilim-kulubu-$SFX-2" "$BODY"
-step "ozel topluluk" 202 POST /communities "$T1" "{\"name\":\"Gizli Kulup $SFX\",\"visibility\":\"PRIVATE\"}"
+step "ozel topluluk" 201 POST /communities "$T1" "{\"name\":\"Gizli Kulup $SFX\",\"visibility\":\"PRIVATE\"}"
 C3=$(printf '%s' "$BODY" | idof)
 step "4. topluluk limiti 409" 409 POST /communities "$T1" '{"name":"Dorduncu Kulup"}'
 contains "limit kodu" "COMMUNITY_LIMIT" "$BODY"
-step "onay C2" 204 POST /admin/communities/$C2/approve "$TA"
-step "onay C3" 204 POST /admin/communities/$C3/approve "$TA"
 call GET "/communities?q=Gizli" "$T2"
 lacks "PRIVATE kesfette yok" "Gizli Kulup $SFX" "$BODY"
 
@@ -172,25 +168,30 @@ step "uye ayrilir" 204 DELETE /communities/$C1/membership "$T2"
 step "tekrar katil" 200 POST /communities/$C1/join "$T2"
 step "yeniden moderator" 204 PUT /communities/$C1/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
 
-echo "== etkinlik dogrulamalari ve onay akisi"
+echo "== etkinlik dogrulamalari ve onay akisi (etkinlik yalniz kulup adina; izinli uye -> PENDING_REVIEW)"
 START=$(iso "+10 minutes"); END=$(iso "+2 hours")
 PAST=$(iso "-3 hours"); PAST_END=$(iso "-2 hours")
-step "gecmis etkinlik 400" 400 POST /events "$T1" "{\"title\":\"Eski\",\"startsAt\":\"$PAST\",\"endsAt\":\"$PAST_END\"}"
+step "gecmis etkinlik 400" 400 POST /events "$T1" "{\"title\":\"Eski\",\"startsAt\":\"$PAST\",\"endsAt\":\"$PAST_END\",\"communityId\":$C1}"
 contains "PAST_EVENT" "PAST_EVENT" "$BODY"
-step "bitis<=baslangic 400" 400 POST /events "$T1" "{\"title\":\"Ters\",\"startsAt\":\"$END\",\"endsAt\":\"$START\"}"
+step "bitis<=baslangic 400" 400 POST /events "$T1" "{\"title\":\"Ters\",\"startsAt\":\"$END\",\"endsAt\":\"$START\",\"communityId\":$C1}"
 contains "INVALID_DATES" "INVALID_DATES" "$BODY"
+step "kulupsuz (bagimsiz) etkinlik 400" 400 POST /events "$T1" "{\"title\":\"Bagimsiz Soylesi\",\"startsAt\":\"$START\",\"endsAt\":\"$END\"}"
+contains "EVENT_CLUB_REQUIRED" "EVENT_CLUB_REQUIRED" "$BODY"
 step "uye olmayan topluluk etkinligi 403" 403 POST /events "$T3" "{\"title\":\"Izinsiz\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
-step "bagimsiz etkinlik -> 202" 202 POST /events "$T3" "{\"title\":\"Bagimsiz Soylesi $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":10}"
+step "T5 katilir" 200 POST /communities/$C1/join "$T5"
+step "izinsiz sade uye etkinlik acamaz 403" 403 POST /events "$T5" "{\"title\":\"Yetkisiz\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
+step "etkinlik sorumlusu yetkisi ver (T5)" 200 PUT /communities/$C1/members/$ID5/permissions "$T1" '{"template":"EVENT_MANAGER"}'
+step "izinli sade uye etkinligi -> 202" 202 POST /events "$T5" "{\"title\":\"Onayli Soylesi $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":10,\"communityId\":$C1}"
 EV_IND=$(printf '%s' "$BODY" | idof)
 contains "PENDING_REVIEW" '"status":"PENDING_REVIEW"' "$BODY"
 step "onaysiz etkinlik baskasina 404" 404 GET /events/$EV_IND "$T4"
 step "onaysiz etkinlige RSVP olmaz" 404 PUT /events/$EV_IND/rsvp "$T4" '{"status":"GOING"}'
 step "admin bekleyen etkinlikler" 200 GET /admin/events "$TA"
-contains "bekleyen etkinlik listede" "Bagimsiz Soylesi $SFX" "$BODY"
+contains "bekleyen etkinlik listede" "Onayli Soylesi $SFX" "$BODY"
 step "admin onayla" 204 POST /admin/events/$EV_IND/approve "$TA"
 step "etkinlik gorunur" 200 GET /events/$EV_IND "$T4"
 contains "ACTIVE" '"status":"ACTIVE"' "$BODY"
-step "reddedilecek etkinlik" 202 POST /events "$T3" "{\"title\":\"Reddedilecek $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\"}"
+step "reddedilecek etkinlik" 202 POST /events "$T5" "{\"title\":\"Reddedilecek $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
 EV_REJ=$(printf '%s' "$BODY" | idof)
 step "admin reddet" 204 POST /admin/events/$EV_REJ/reject "$TA" '{"reason":"uygun degil"}'
 step "tekrar reddet 409" 409 POST /admin/events/$EV_REJ/reject "$TA"
@@ -229,7 +230,7 @@ step "yabanci guncelleyemez 403" 403 PATCH /events/$EV "$T3" '{"title":"Hack"}'
 step "organizator gunceller" 200 PATCH /events/$EV "$T2" '{"description":"36 saat"}'
 
 echo "== kapasite yarisi (4 es zamanli istek, kapasite 1)"
-step "dar kapasiteli etkinlik" 201 POST /events "$TA" "{\"title\":\"Yaris $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":1}"
+step "dar kapasiteli etkinlik" 201 POST /events "$TA" "{\"title\":\"Yaris $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":1,\"communityId\":$C1}"
 EV_RACE=$(printf '%s' "$BODY" | idof)
 RACE=$(mktemp)
 # Her istek kendi dosyasina yazar (ortak dosyaya es zamanli ekleme Windows'ta satir kaybettirebilir)
@@ -268,7 +269,7 @@ contains "my present" '"present":true' "$BODY"
 step "my-attendance (T3 kayitsiz)" 200 GET /events/$EV/my-attendance "$T3"
 lacks "T3 present degil" '"present":true' "$BODY"
 FUT=$(iso "+7 days"); FUT_END=$(iso "+7 days +2 hours")
-step "gelecek etkinlik" 201 POST /events "$TA" "{\"title\":\"Haftaya $SFX\",\"startsAt\":\"$FUT\",\"endsAt\":\"$FUT_END\"}"
+step "gelecek etkinlik" 201 POST /events "$TA" "{\"title\":\"Haftaya $SFX\",\"startsAt\":\"$FUT\",\"endsAt\":\"$FUT_END\",\"communityId\":$C1}"
 EV_FUT=$(printf '%s' "$BODY" | idof)
 step "pencere kapali: kod 409" 409 GET /events/$EV_FUT/checkin-code "$TA"
 contains "CHECKIN_CLOSED" "CHECKIN_CLOSED" "$BODY"
@@ -298,12 +299,12 @@ contains "csv baslik" "userId,name,department" "$CSV"
 contains "csv content-type" "text/csv" "$(cat "$TMP.h")"
 rm -f "$TMP.h"
 check "csv yabanci 403" 403 "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T3" "$A/events/$EV/attendance.csv")"
-# CSV enjeksiyonu: formul gibi baslayan ad kacirilir
-step "ad degistir (formul)" 200 PATCH /users/me "$T3" '{"displayName":"=1+1"}'
+# CSV enjeksiyonu: formul gibi baslayan ad kacirilir (DisplayNamePolicy '=', '+', '@' ile baslayan adi reddeder; '-' izinli ve CSV'de de tetikleyicidir)
+step "ad degistir (formul)" 200 PATCH /users/me "$T3" '{"displayName":"-Formul Ali"}'
 step "formul adli kisi elle ekle" 204 PUT /events/$EV/attendance/$ID3 "$T2" '{"present":true}'
 CSV=$(curl -s -H "Authorization: Bearer $T2" "$A/events/$EV/attendance.csv")
-contains "formul kacirildi" "\"'=1+1\"" "$CSV"
-lacks "kacirilmamis formul yok" ",\"=1+1\"" "$CSV"
+contains "formul kacirildi" "\"'-Formul Ali\"" "$CSV"
+lacks "kacirilmamis formul yok" ",\"-Formul Ali\"" "$CSV"
 
 echo "== takvim, benim etkinliklerim"
 MONTH=$(date -u -d "+10 minutes" +%Y-%m)
@@ -326,19 +327,20 @@ lacks "silinen etkinlik listede yok" "Hackathon $SFX" "$BODY"
 
 if [ "${SKIP_REMINDER:-0}" != "1" ]; then
   echo "== hatirlatma (zamanlayici ~1 dk'da bir calisir)"
-  step "yakin etkinlik" 201 POST /events "$TA" "{\"title\":\"Yakin Etkinlik $SFX\",\"startsAt\":\"$(iso '+20 minutes')\",\"endsAt\":\"$(iso '+3 hours')\"}"
+  step "yakin etkinlik" 201 POST /events "$TA" "{\"title\":\"Yakin Etkinlik $SFX\",\"startsAt\":\"$(iso '+20 minutes')\",\"endsAt\":\"$(iso '+3 hours')\",\"communityId\":$C1}"
   EV_R=$(printf '%s' "$BODY" | idof)
   step "RSVP GOING" 200 PUT /events/$EV_R/rsvp "$T4" '{"status":"GOING"}'
   FOUND=0
   for i in $(seq 1 24); do
     call GET /notifications "$T4"
-    if printf '%s' "$BODY" | grep -q 'saat'; then FOUND=1; break; fi
+    if printf '%s' "$BODY" | grep -q "Yakin Etkinlik $SFX"; then FOUND=1; break; fi
     sleep 5
   done
   check "1 saat kala hatirlatma geldi" 1 "$FOUND"
   sleep 70
   call GET /notifications "$T4"
-  check "hatirlatma tekrar gitmedi" 1 "$(printf '%s' "$BODY" | grep -o 'saat' | wc -l | tr -d ' ')"
+  # Yalniz bu etkinligin bildirimi sayilir (T4'un diger etkinliklerinin hatirlatmalari 'saat' icerebilir)
+  check "hatirlatma tekrar gitmedi" 1 "$(printf '%s' "$BODY" | grep -o '"body":"Yakin Etkinlik '"$SFX"'"' | wc -l | tr -d ' ')"
 fi
 
 echo

@@ -170,7 +170,7 @@ public class CommunityPostService {
 
     private CommunityPost find(Long cid, Long postId) {
         return posts.findByIdAndCommunityIdAndDeletedFalse(postId, cid)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Yazı bulunamadı."));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Gönderi bulunamadı."));
     }
 
     private List<PostView> views(List<CommunityPost> list, Actor a, boolean mod) {

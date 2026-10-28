@@ -21,7 +21,7 @@ String _todayStr() {
 List<Map<String, dynamic>> _month({String? image}) {
   final n = DateTime.now();
   return [
-    for (var d = 1; d <= 28; d++)
+    for (var d = 1; d <= DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day; d++)
       {
         'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}',
         'items': ['Mercimek çorbası', 'Tavuk sote ve çok uzun bir yemek adı bu', 'Pilav'],

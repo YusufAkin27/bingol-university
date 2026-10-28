@@ -56,7 +56,7 @@ Yeni ekran yalnızca kendi `features/<alan>/` klasöründe yazılır; ortak bile
 
 ## 6. Testler
 
-`mobile/test/`: `auth_test.dart`, `theme_test.dart`, `bu_widgets_test.dart`, `api_test.dart`, `api_cache_test.dart`, `app_gate_test.dart`, `stomp_frame_test.dart`, `format_test.dart`. Çalıştırma (yalnızca ilgili dosyalar): `flutter test test/api_test.dart` vb.; hepsi için `flutter test`. Ağ gerektiren testler `MockClient` kullanır; gerçek sunucuya karşı ölçüm için `scripts/perf/perf-api.js` ([PERFORMANCE.md](PERFORMANCE.md)).
+`mobile/test/`: `auth_test.dart`, `theme_test.dart`, `bu_widgets_test.dart`, `api_test.dart`, `api_cache_test.dart`, `app_gate_test.dart`, `stomp_frame_test.dart`, `format_test.dart`. Çalıştırma (yalnızca ilgili dosyalar): `flutter test test/api_test.dart` vb.; hepsi için `flutter test`. **Statik analiz:** `flutter analyze --no-fatal-infos` (CI `dart analyze` kullanır ve bilgi düzeyi bulguları hata saymaz; `flutter analyze` varsayılanı ise info'ları da başarısız sayar). Hedef: 0 hata, 0 uyarı; mevcut info'lar (`prefer_const_*`, test dosyalarında `__` adlı parametreler) bilinçli olarak kabul edilmiştir. **Zamana bağlı testler:** `DateTime.now()` ile varsayılan değer üreten ekranlar test için `now` (`DateTime Function()`) parametresi alır (örn. `EventFormPage.now`); testlerde sabit saat verin, gerçek saate (örn. 21:00 sonrası gece yarısı taşması, ayın 29-31. günü) bağlı beklenti yazmayın. Ağ gerektiren testler `MockClient` kullanır; gerçek sunucuya karşı ölçüm için `scripts/perf/perf-api.js` ([PERFORMANCE.md](PERFORMANCE.md)).
 
 ## 7. Derleme ve çalıştırma (Windows)
 

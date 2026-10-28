@@ -36,9 +36,15 @@ T1=$(register "kapak$SFX@bingol.edu.tr" "Kapak Bir")
 T2=$(register "kapak2$SFX@bingol.edu.tr" "Kapak Iki")
 [ -n "$TA" ] && [ -n "$T1" ] && [ -n "$T2" ] || { echo "kayit basarisiz"; exit 1; }
 
-mk() { # baslik gun -> id (admin olusturur, ACTIVE)
+# Etkinlik yalniz kulup adina acilir: yonetici once bir kulup kurar (auto-approve kapaliysa onaylar).
+CRES=$(curl -s -X POST -H "$H" -H "Authorization: Bearer $TA" $A/communities -d "{\"name\":\"Kapak Kulubu $SFX\",\"description\":\"kapak\"}")
+CID=$(printf '%s' "$CRES" | idof)
+[ -n "$CID" ] || { echo "kulup olusmadi: $CRES"; exit 1; }
+printf '%s' "$CRES" | grep -q '"status":"ACTIVE"' || curl -s -o /dev/null -X POST -H "Authorization: Bearer $TA" $A/admin/communities/$CID/approve
+
+mk() { # baslik gun -> id (kulup adina, yonetici olusturur, ACTIVE)
   curl -s -X POST -H "$H" -H "Authorization: Bearer $TA" $A/events \
-    -d "{\"title\":\"$1\",\"startsAt\":\"$(iso "+$2 days")\",\"endsAt\":\"$(iso "+$2 days 2 hours")\",\"location\":\"Salon\"}" | idof
+    -d "{\"title\":\"$1\",\"startsAt\":\"$(iso "+$2 days")\",\"endsAt\":\"$(iso "+$2 days 2 hours")\",\"location\":\"Salon\",\"communityId\":$CID}" | idof
 }
 E1=$(mk "Kapak testi A $SFX" 20)
 E2=$(mk "Kapak testi B $SFX" 21)

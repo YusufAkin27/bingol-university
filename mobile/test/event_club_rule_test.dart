@@ -15,7 +15,7 @@ FakeBackend _be(List<Map<String, dynamic>> clubs, {Object? created}) => FakeBack
   ..on('/me/communities*', {'items': clubs})
   ..on('/events', created ?? {'id': 77});
 
-Widget _launcher(FakeBackend b, {int? communityId}) {
+Widget _launcher(FakeBackend b, {int? communityId, DateTime Function()? now}) {
   final s = makeSession(b);
   return Builder(
     builder: (c) => Scaffold(
@@ -23,7 +23,7 @@ Widget _launcher(FakeBackend b, {int? communityId}) {
         child: TextButton(
           onPressed: () => Navigator.push(
             c,
-            MaterialPageRoute(builder: (_) => EventFormPage(session: s, communityId: communityId)),
+            MaterialPageRoute(builder: (_) => EventFormPage(session: s, communityId: communityId, now: now)),
           ),
           child: const Text('ac'),
         ),
@@ -32,9 +32,9 @@ Widget _launcher(FakeBackend b, {int? communityId}) {
   );
 }
 
-Future<void> _open(WidgetTester tester, FakeBackend b, {int? communityId}) async {
+Future<void> _open(WidgetTester tester, FakeBackend b, {int? communityId, DateTime Function()? now}) async {
   useScreen(tester, const Size(390, 1600));
-  await tester.pumpWidget(buildApp(_launcher(b, communityId: communityId)));
+  await tester.pumpWidget(buildApp(_launcher(b, communityId: communityId, now: now)));
   await tester.tap(find.text('ac'));
   await settle(tester, const Duration(milliseconds: 600));
 }
@@ -45,6 +45,10 @@ Future<void> _submit(WidgetTester tester, {String title = 'Boğaz yürüyüşü'
   await tester.tap(find.text('Etkinliği oluştur'));
   await settle(tester, const Duration(milliseconds: 800));
 }
+
+/// Zamana bagli varsayilanlar icin sabit "simdi" (gercek saatten bagimsiz, gece yarisi tasmasi dahil).
+DateTime Function() _at(int h, int m) => () => DateTime(2026, 10, 28, h, m);
+final _fixedNow = _at(10, 20);
 
 void main() {
   setUpAll(loadTestFonts);
@@ -209,26 +213,45 @@ void main() {
   });
 
   group('tarih/saat ve aciklama kurallari', () {
-    String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     String summaryText(WidgetTester t) =>
         t.widget<Text>(find.descendant(of: find.byKey(const ValueKey('evd-summary')), matching: find.byType(Text))).data ?? '';
 
-    testWidgets('varsayilan: siradaki yuvarlak saat, bitis +2 saat', (tester) async {
+    testWidgets('varsayilan: siradaki yuvarlak saat, bitis +2 saat (10:20 -> 11:00-13:00)', (tester) async {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
-      await _open(tester, b);
-      final n = DateTime.now();
-      final start = DateTime(n.year, n.month, n.day, n.hour + 1);
-      final txt = summaryText(tester);
-      expect(txt, contains('${hm(start)} – ${hm(start.add(const Duration(hours: 2)))}'));
+      await _open(tester, b, now: _fixedNow);
+      expect(summaryText(tester), contains('11:00 – 13:00'));
+      expect(find.byKey(const ValueKey('evd-error')), findsNothing);
       expect(find.text('Bugün'), findsOneWidget);
       expect(find.text('Gelecek hafta'), findsOneWidget);
       expect(find.text('Özel saat'), findsOneWidget);
       await unmount(tester);
     });
 
+    testWidgets('gece yarisi: 21:40 -> 22:00 baslar, bitis ertesi gun 00:00 (cok gunlu ozet, gecerli)', (tester) async {
+      final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
+      await _open(tester, b, now: _at(21, 40));
+      final txt = summaryText(tester);
+      expect(txt, isNot(contains('·'))); // tek gunluk bicim degil
+      expect(txt, contains('22:00 –'));
+      expect(txt, endsWith('00:00'));
+      expect(txt, contains('28'));
+      expect(txt, contains('29'));
+      expect(find.byKey(const ValueKey('evd-error')), findsNothing); // bitis baslangictan sonra: hata yok
+      await unmount(tester);
+    });
+
+    testWidgets('gece yarisi: 23:30 -> baslangic ertesi gun 00:00, bitis 02:00 (gecerli)', (tester) async {
+      final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
+      await _open(tester, b, now: _at(23, 30));
+      expect(summaryText(tester), contains('29'));
+      expect(summaryText(tester), contains('00:00 – 02:00'));
+      expect(find.byKey(const ValueKey('evd-error')), findsNothing);
+      await unmount(tester);
+    });
+
     testWidgets('hizli tarih + saat + sure cipleri istek govdesine yansir', (tester) async {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
-      await _open(tester, b);
+      await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Yarın'));
       await tester.tap(find.text('Yarın'));
       await tester.pump();
@@ -244,7 +267,7 @@ void main() {
       final body = b.bodies['POST /events'] as Map;
       final st = DateTime.parse(body['startsAt'] as String).toLocal();
       final en = DateTime.parse(body['endsAt'] as String).toLocal();
-      final tmr = DateTime.now().add(const Duration(days: 1));
+      final tmr = _fixedNow().add(const Duration(days: 1));
       expect([st.year, st.month, st.day, st.hour], [tmr.year, tmr.month, tmr.day, 14]);
       expect(en.difference(st), const Duration(hours: 1));
       await unmount(tester);
@@ -252,17 +275,14 @@ void main() {
 
     testWidgets('bugun icin gecmis saat cipi kapali, baslangic gecmise dusmez', (tester) async {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
-      await _open(tester, b);
+      await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Bugün'));
       await tester.tap(find.text('Bugün'));
       await tester.pump();
       final before = summaryText(tester);
-      final n = DateTime.now();
-      if (n.hour >= 10) {
-        await tester.tap(find.text('09:00'));
-        await tester.pump();
-        expect(summaryText(tester), before); // kapalı çip: değişmez
-      }
+      await tester.tap(find.text('09:00')); // 10:20'de gecmis saat
+      await tester.pump();
+      expect(summaryText(tester), before); // kapalı çip: değişmez
       expect(find.byKey(const ValueKey('evd-error')), findsNothing);
       await unmount(tester);
     });
@@ -288,7 +308,7 @@ void main() {
 
     testWidgets('bitis tarihi ayri secilebilir (cok gunlu)', (tester) async {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
-      await _open(tester, b);
+      await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Bitiş tarihi seç'));
       await tester.tap(find.text('Bitiş tarihi seç'));
       await settle(tester, const Duration(milliseconds: 500));

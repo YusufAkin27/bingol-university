@@ -76,8 +76,8 @@ echo "== etkinlik sohbeti"
 NOW=$(date -u +%s)
 S=$(date -u -d "@$((NOW + 172800))" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r $((NOW + 172800)) +%Y-%m-%dT%H:%M:%SZ)
 E=$(date -u -d "@$((NOW + 180000))" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r $((NOW + 180000)) +%Y-%m-%dT%H:%M:%SZ)
-# events_require_approval kapaliysa 201 (ACTIVE), aciksa 202 (PENDING_REVIEW) doner; ikisi de gecerli.
-call POST /events "$T1" "{\"title\":\"Sohbet Etkinligi $SFX\",\"description\":\"chat\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"location\":\"Salon\"}"
+# Etkinlik yalniz kulup adina acilir (EVENT_CLUB_REQUIRED); kulup sahibi (yonetici rol) -> dogrudan ACTIVE (201).
+call POST /events "$T1" "{\"title\":\"Sohbet Etkinligi $SFX\",\"description\":\"chat\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"location\":\"Salon\",\"communityId\":$C}"
 if [ "$CODE" = "202" ]; then check "etkinlik olustur (onay bekler)" 202 "$CODE"; else check "etkinlik olustur" 201 "$CODE"; fi
 EV=$(printf '%s' "$BODY" | idof)
 if [ "$CODE" = "202" ]; then step "admin onayla" 204 POST /admin/events/$EV/approve "$TA"; fi

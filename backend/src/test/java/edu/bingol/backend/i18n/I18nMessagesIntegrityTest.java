@@ -82,6 +82,28 @@ class I18nMessagesIntegrityTest {
         assertThat(problems).isEmpty();
     }
 
+    /**
+     * Dosyalar arasi cift anahtar yok: spring.messages.basename sirasi ilk dosyayi kazandirir; ikinci
+     * tanim sessizce golgelenir (ornek: POST_NOT_FOUND hem messages hem post'ta, metinler ayri).
+     */
+    @Test
+    void noDuplicateKeysAcrossFiles() throws IOException {
+        List<String> problems = new ArrayList<>();
+        for (String suffix : new String[] {"", "_en", "_ar"}) {
+            Map<String, String> owner = new java.util.HashMap<>();
+            for (Path tr : baseFiles()) {
+                String base = tr.getFileName().toString().replace(".properties", "");
+                Path p = DIR.resolve(base + suffix + ".properties");
+                if (!Files.exists(p)) continue;
+                for (String k : load(p).stringPropertyNames()) {
+                    String prev = owner.putIfAbsent(k, p.getFileName().toString());
+                    if (prev != null) problems.add(k + " -> " + prev + " ve " + p.getFileName());
+                }
+            }
+        }
+        assertThat(problems).as("cift anahtar (basename golgelemesi)").isEmpty();
+    }
+
     @Test
     void everyMessageParsesAsMessageFormat() throws IOException {
         List<String> problems = new ArrayList<>();

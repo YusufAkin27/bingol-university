@@ -297,7 +297,7 @@ public class ClubContentAdminService {
     }
 
     private static ApiException notFound() {
-        return new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Yazı bulunamadı.");
+        return new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Gönderi bulunamadı.");
     }
 
     private static String clip(String s, int max) {

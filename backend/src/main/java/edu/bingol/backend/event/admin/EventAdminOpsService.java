@@ -348,7 +348,7 @@ public class EventAdminOpsService {
     public void deleteAnnouncement(Long eventId, Long announcementId) {
         events.load(eventId);
         EventAnnouncement a = announcements.findByIdAndEventId(announcementId, eventId).orElseThrow(() ->
-                new ApiException(HttpStatus.NOT_FOUND, "ANNOUNCEMENT_NOT_FOUND", "Duyuru kaydı bulunamadı."));
+                new ApiException(HttpStatus.NOT_FOUND, "ANNOUNCEMENT_NOT_FOUND", "Duyuru bulunamadı."));
         announcements.delete(a);
         AuditContext.target("EVENT", eventId).summary("duyuru kaydi #" + announcementId + " silindi (alici " + a.getRecipients() + ")");
     }

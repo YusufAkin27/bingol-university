@@ -330,7 +330,7 @@ final kPageCases = <PageCase>[
     'MenuPage',
     (b, tc) => MenuPage(session: makeSession(b)),
     full: (b) => b.on('/menu', [
-      for (var d = 1; d <= 28; d++)
+      for (var d = 1; d <= DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day; d++)
         {
           'date': '${_today().substring(0, 8)}${d.toString().padLeft(2, '0')}',
           'items': ['Mercimek çorbası', 'Tavuk sote ve çok uzun bir yemek adı bu', 'Pilav', 'Ayran'],

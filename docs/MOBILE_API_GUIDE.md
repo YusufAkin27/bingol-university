@@ -538,7 +538,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `OWNER_CANNOT_LEAVE` | 409 | Topluluk sahibi ayrılamaz. | The community owner cannot leave. | لا يمكن لمالك المجتمع المغادرة. |
 | `PAST_EVENT` | 400 | Geçmişe etkinlik açılamaz. | An event cannot be created in the past. | لا يمكن إنشاء فعالية في الماضي. |
 | `PIN_LIMIT` | 409 | En fazla {0} yazı sabitlenebilir. | At most {0} posts can be pinned. | يمكن تثبيت {0} منشورات كحد أقصى. |
-| `POST_NOT_FOUND` | 404 | Yazı bulunamadı. | Post not found. | المنشور غير موجود. |
+| `POST_NOT_FOUND` | 404 | Gönderi bulunamadı. | Post not found. | المنشور غير موجود. |
 | `QUERY_TOO_SHORT` | 400 | En az 2 karakter girin. | Enter at least 2 characters. | أدخل حرفين على الأقل. |
 | `RATE_LIMITED` | 429 | Çok fazla deneme. Lütfen daha sonra tekrar deneyin. | Too many attempts. Please try again later. | محاولات كثيرة جدًا. يرجى المحاولة لاحقًا. |
 | `REPORT_NOT_FOUND` | 404 | Rapor bulunamadı. | Report not found. | البلاغ غير موجود. |

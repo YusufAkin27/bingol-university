@@ -143,7 +143,7 @@ void main() {
     useScreen(tester, kPhoneMedium);
     final n = DateTime.now();
     final month = [
-      for (var d = 1; d <= 28; d++)
+      for (var d = 1; d <= DateTime(DateTime.now().year, DateTime.now().month + 1, 0).day; d++)
         {'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}', 'items': ['Pilav']},
     ];
     final be = FakeBackend()..on('/menu', month, headers: {'etag': '"m1"'});
