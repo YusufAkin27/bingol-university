@@ -59,7 +59,7 @@ void main() {
 
   const expected = {
     'tr': ['Ana Sayfa', 'Hoş geldiniz', 'Giriş yap'],
-    'en': ['Home', 'Welcome', 'Sign in'],
+    'en': ['Home', 'Welcome', 'Log in'],
     'ar': ['الرئيسية', 'مرحبًا بك', 'تسجيل الدخول'],
   };
 

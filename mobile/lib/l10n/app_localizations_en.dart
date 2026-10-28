@@ -34,7 +34,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get configError =>
-      'Configuration error: the server address (API_BASE) is not secure (https). Rebuild the app with the correct address.';
+      'Configuration error: the server address (API_BASE) is not secure (HTTPS). Rebuild the app with the correct address.';
 
   @override
   String get exitAgainHint => 'Press back again to exit';
@@ -59,7 +59,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateRequiredBody =>
-      'You need to update to the latest version to keep using the app.';
+      'Update to the latest version to keep using the app.';
 
   @override
   String get updateAvailable => 'A new version is available.';
@@ -107,7 +107,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSystem => 'System';
 
   @override
-  String get pushPermission => 'Notification permission (push)';
+  String get pushPermission => 'Notification permission';
 
   @override
   String get pushNotConfigured => 'Not configured yet';
@@ -116,7 +116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pushOn => 'On';
 
   @override
-  String get pushOff => 'Off (enable in system settings)';
+  String get pushOff => 'Off (turn on in system settings)';
 
   @override
   String get pushNotGranted => 'Permission not granted';
@@ -142,17 +142,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSupport => 'Support and FAQ';
 
   @override
-  String get settingsLogoutAll => 'Sign out of all devices';
+  String get settingsLogoutAll => 'Log out of all devices';
 
   @override
-  String get settingsLogoutAllTitle => 'Sign out of all devices';
+  String get settingsLogoutAllTitle => 'Log out of all devices';
 
   @override
   String get settingsLogoutAllBody =>
-      'Your account will be signed out on all devices and you will need to sign in again.';
+      'You will be logged out on all devices and will need to log in again.';
 
   @override
-  String get settingsLogoutAllConfirm => 'Sign out';
+  String get settingsLogoutAllConfirm => 'Log out';
 
   @override
   String settingsVersion(String version) {
@@ -163,23 +163,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginWelcome => 'Welcome';
 
   @override
-  String get loginSubtitle => 'Sign in with your school email.';
+  String get loginSubtitle => 'Log in with your school email.';
 
   @override
   String get loginReplacedNotice =>
-      'Your account was signed in on another device. For your security, the session on this device was closed.';
+      'Your account was logged in on another device, so this session was closed for your security.';
 
   @override
   String get loginPasswordRequired => 'Enter your password.';
 
   @override
-  String get loginForgotPassword => 'Forgot password';
+  String get loginForgotPassword => 'Forgot password?';
 
   @override
-  String get loginSubmit => 'Sign in';
+  String get loginSubmit => 'Log in';
 
   @override
-  String get loginNoAccount => 'Do not have an account?';
+  String get loginNoAccount => 'No account yet?';
 
   @override
   String get loginRegister => 'Sign up';
@@ -210,12 +210,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String authResendIn(String seconds) {
-    return 'Resend ($seconds s)';
+    return 'Resend in ${seconds}s';
   }
 
   @override
   String authNewCodeIn(String seconds) {
-    return 'Wait $seconds s for a new code';
+    return 'You can request a new code in ${seconds}s';
   }
 
   @override
@@ -242,10 +242,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authUnverifiedNotice =>
-      'Verify your email. Your account must be verified before you can sign in.';
+      'Verify your email to log in. Your account must be verified first.';
 
   @override
-  String get authUseOtherAccount => 'Sign in with another account';
+  String get authUseOtherAccount => 'Log in with another account';
 
   @override
   String get authResetTitle => 'Forgot your password?';
@@ -266,7 +266,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordUpdated => 'Password updated.';
 
   @override
-  String get authSessionExpired => 'Time expired. Please start over.';
+  String get authSessionExpired => 'Your session expired. Please start over.';
 
   @override
   String get authCreateAccount => 'Create account';
@@ -275,11 +275,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSelectDepartment => 'Select your department.';
 
   @override
-  String get authSelectGrade => 'Select your year.';
+  String get authSelectGrade => 'Select your year of study.';
 
   @override
   String get authDepartmentsLoadFailed =>
-      'Could not load the department list. Try again.';
+      'Could not load the department list. Please try again.';
 
   @override
   String get authNameRequired => 'Enter your first and last name.';
@@ -469,7 +469,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadCountdownDays(String n) {
-    return '$n days left';
+    return '$n d left';
   }
 
   @override
@@ -483,7 +483,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get acadGradePrep => 'Preparatory';
+  String get acadGradePrep => 'Prep year';
 
   @override
   String get acadGradeMaster => 'Master’s';
@@ -543,7 +543,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadHubExamCount(String n) {
-    return '$n upcoming exams';
+    return 'Upcoming exams: $n';
   }
 
   @override
@@ -553,7 +553,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadHubTimetableSub => 'Your weekly timetable';
 
   @override
-  String get acadHubExamsSub => 'Your exam schedule and the official program';
+  String get acadHubExamsSub => 'Your exam schedule and the official schedule';
 
   @override
   String get acadHubCalendarSub => 'Semester, registration and exam dates';
@@ -615,7 +615,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acadExamsProfileIncomplete =>
-      'Your profile has no department; only public exams are shown. You can add your department by editing your profile.';
+      'Only public exams are shown because your profile has no department. Add one by editing your profile.';
 
   @override
   String get acadExamsEmptyOfficial =>
@@ -666,7 +666,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadFormExamDate => 'Exam date';
 
   @override
-  String get acadFormPickDate => 'Select date';
+  String get acadFormPickDate => 'Select a date';
 
   @override
   String get acadFormStartTime => 'Start time';
@@ -675,7 +675,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadFormEndTime => 'End time';
 
   @override
-  String get acadFormEndHint => 'End (opt.)';
+  String get acadFormEndHint => 'End (optional)';
 
   @override
   String get acadFormRoom => 'Room';
@@ -737,7 +737,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadCalEventCount(String n) {
-    return '$n important dates';
+    return 'Important dates: $n';
   }
 
   @override
@@ -881,7 +881,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeAddCourse => 'Add course';
 
   @override
-  String get acadTimeStale => 'Could not refresh, showing the latest data.';
+  String get acadTimeStale => 'Could not refresh. Showing the latest data.';
 
   @override
   String get acadTimePickSemester => 'Select semester';
@@ -940,7 +940,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeTodayLeft(String count) {
-    return '$count classes left today';
+    return 'Classes left today: $count';
   }
 
   @override
@@ -977,13 +977,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeNoSessions => 'No sessions';
 
   @override
-  String get acadTimeNameRequired => 'Course name is required';
+  String get acadTimeNameRequired => 'Course name is required.';
 
   @override
   String get acadTimeEndAfterStart => 'End time must be after the start time.';
 
   @override
-  String get acadTimeOwnConflict => 'This course has overlapping sessions';
+  String get acadTimeOwnConflict => 'This course has overlapping sessions.';
 
   @override
   String get acadTimeConflictTitle => 'Course conflict';
@@ -1043,7 +1043,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acadTimeColorAuto =>
-      'If you do not choose, one is assigned automatically.';
+      'A color is assigned automatically if you do not choose one.';
 
   @override
   String get acadTimeDaysAndTimes => 'Days and times';
@@ -1088,7 +1088,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'No semesters yet. Add a semester to organize your courses.';
 
   @override
-  String get acadTimeAddSemester => 'Add new semester';
+  String get acadTimeAddSemester => 'Add semester';
 
   @override
   String acadTimeOfficial(String name) {
@@ -1105,14 +1105,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeCurrent => 'Current';
 
   @override
-  String get acadTimeMakeCurrent => 'Make current semester';
+  String get acadTimeMakeCurrent => 'Set as current semester';
 
   @override
   String get acadTimeDeleteSemester => 'Delete semester';
 
   @override
   String acadTimeDeleteSemesterText(String name) {
-    return '\"$name\" will be deleted. Courses will have no semester.';
+    return '\"$name\" will be deleted. Its courses will no longer belong to a semester.';
   }
 
   @override
@@ -1197,11 +1197,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailGroupFallback => 'Group';
 
   @override
-  String get chatDetailVideoTooLong => 'Videos can be 60 seconds at most';
+  String get chatDetailVideoTooLong => 'Videos can be up to 60 seconds long.';
 
   @override
   String get chatDetailVideoTooLarge =>
-      'The video is too large, choose a shorter one';
+      'The video is too large. Choose a shorter one.';
 
   @override
   String get chatDetailVideoUnsupported =>
@@ -1212,11 +1212,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatDetailVideosSplit =>
-      'The videos are large, so they will be sent as multiple messages';
+      'The videos are large, so they will be sent as multiple messages.';
 
   @override
   String get chatDetailImageTooLarge =>
-      'The image is too large, choose a smaller one.';
+      'The image is too large. Choose a smaller one.';
 
   @override
   String get chatDetailImageTypes =>
@@ -1304,22 +1304,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatDetailLastSeenOn(String date) {
-    return 'Last seen: $date';
+    return 'Last seen $date';
   }
 
   @override
   String chatDetailClubRoomMembers(String count) {
-    return 'Club room · $count members';
+    return 'Club room · Members: $count';
   }
 
   @override
   String chatDetailEventRoomMembers(String count) {
-    return 'Event room · $count members';
+    return 'Event room · Members: $count';
   }
 
   @override
   String chatDetailMembersCount(String count) {
-    return '$count members';
+    return 'Members: $count';
   }
 
   @override
@@ -1356,11 +1356,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailForwarded => 'Forwarded';
 
   @override
-  String get chatDetailForwardFailedAll => 'Could not be forwarded';
+  String get chatDetailForwardFailedAll => 'Could not forward the message';
 
   @override
   String chatDetailForwardFailedSome(String count) {
-    return 'Could not forward to $count chats';
+    return 'Could not forward to some chats ($count)';
   }
 
   @override
@@ -1397,7 +1397,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailLeaveTitle => 'Leave this chat?';
 
   @override
-  String get chatDetailLeaveBody => 'You will leave this chat.';
+  String get chatDetailLeaveBody =>
+      'You will no longer receive messages from this chat.';
 
   @override
   String get chatDetailLeave => 'Leave';
@@ -1407,7 +1408,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatDetailBlockBody =>
-      'You cannot message someone you have blocked.';
+      'You will not be able to message people you block.';
 
   @override
   String get chatDetailUserBlocked => 'User blocked';
@@ -1464,14 +1465,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailSearchOlder => 'Search older messages';
 
   @override
-  String get chatDetailEmpty => 'No messages yet. Write the first one.';
+  String get chatDetailEmpty => 'No messages yet. Send the first one.';
 
   @override
   String get chatDetailScrollDown => 'Scroll to bottom';
 
   @override
   String chatDetailScrollDownNew(String count) {
-    return 'Scroll to bottom, $count new messages';
+    return 'Scroll to bottom. New messages: $count';
   }
 
   @override
@@ -1481,7 +1482,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailAdd => 'Add';
 
   @override
-  String get chatDetailWriteMessage => 'Write a message';
+  String get chatDetailWriteMessage => 'Type a message';
 
   @override
   String get chatDetailCamera => 'Camera';
@@ -1598,7 +1599,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoLeaveTitle => 'Leave this chat?';
 
   @override
-  String get chatInfoLeaveBody => 'You will leave this chat.';
+  String get chatInfoLeaveBody =>
+      'You will no longer receive messages from this chat.';
 
   @override
   String get chatInfoLeave => 'Leave';
@@ -1611,7 +1613,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatInfoBlockBody =>
-      'You cannot message someone you have blocked.';
+      'You will not be able to message people you block.';
 
   @override
   String get chatInfoBlock => 'Block';
@@ -1647,7 +1649,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatInfoImageTooLarge =>
-      'Image is too large, choose a smaller one.';
+      'The image is too large. Choose a smaller one.';
 
   @override
   String get chatInfoImageTypeOnly =>
@@ -1657,7 +1659,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoTitle => 'Chat info';
 
   @override
-  String get chatInfoNoMembers => 'No member list.';
+  String get chatInfoNoMembers => 'Member list unavailable.';
 
   @override
   String get chatInfoClubRoom => 'Club room';
@@ -1667,7 +1669,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatInfoMemberCount(String n) {
-    return '$n members';
+    return 'Members: $n';
   }
 
   @override
@@ -1715,12 +1717,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatInfoMutedDays(String n) {
-    return 'Muted · unmutes in $n days';
+    return 'Muted · unmutes in $n d';
   }
 
   @override
   String chatInfoMutedHours(String n) {
-    return 'Muted · unmutes in $n hours';
+    return 'Muted · unmutes in $n h';
   }
 
   @override
@@ -1772,7 +1774,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscArchived => 'Chat archived';
 
   @override
-  String get chatMiscUnarchived => 'Chat removed from archive';
+  String get chatMiscUnarchived => 'Chat unarchived';
 
   @override
   String get chatMiscChat => 'Chat';
@@ -1911,17 +1913,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsRationale =>
-      'We need access to your contacts to find Bingöl University people among them. Your contacts are not sent to the server; only email hashes are matched.';
+      'We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.';
 
   @override
-  String get chatMiscContactsSubtitle => 'Bingöl University people';
+  String get chatMiscContactsSubtitle => 'People from Bingöl University';
 
   @override
   String get chatMiscContactsPermTitle => 'Contacts permission required';
 
   @override
   String get chatMiscContactsPermText =>
-      'You need to allow access to your contacts so we can find campus people among them.';
+      'Allow access to your contacts so we can find campus people among them.';
 
   @override
   String get chatMiscContactsPermAction => 'Allow';
@@ -1931,7 +1933,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsNoneText =>
-      'None of your contacts use the app with a Bingöl University email. Your friends will appear here as they join.';
+      'None of your contacts use the app with a Bingöl University email yet. Your friends will appear here as they join.';
 
   @override
   String get chatMiscContactsSearchHint => 'Search contacts';
@@ -1945,7 +1947,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatMiscContactsCount(String n) {
-    return '$n PEOPLE';
+    return 'PEOPLE · $n';
   }
 
   @override
@@ -1953,7 +1955,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsPrivacy =>
-      'Your contacts are not sent to the server; only email hashes are matched.';
+      'Your contacts are never sent to the server; only hashed email addresses are matched.';
 
   @override
   String get chatMiscGroupMax => 'A group can have at most 50 people.';
@@ -1982,7 +1984,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscGroupName => 'Group name';
 
   @override
-  String get chatMiscMax50 => 'max 50';
+  String get chatMiscMax50 => 'Max 50';
 
   @override
   String get chatMiscSearchMin =>
@@ -2018,10 +2020,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscGalleryRationale =>
-      'We need access permission to show the photos and videos in your gallery.';
+      'We need access to your gallery to show your photos and videos.';
 
   @override
-  String get chatMiscVideoMax60 => 'Videos can be at most 60 seconds';
+  String get chatMiscVideoMax60 => 'Videos can be up to 60 seconds long';
 
   @override
   String chatMiscPickMax(String max) {
@@ -2047,7 +2049,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscGalleryDenied => 'Gallery access was not granted.';
 
   @override
-  String get chatMiscOpenSettings => 'Open in Settings';
+  String get chatMiscOpenSettings => 'Open Settings';
 
   @override
   String get chatMiscCamera => 'Camera';
@@ -2082,7 +2084,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscOnceToast =>
-      'View once: the recipient can see it only one time';
+      'View once: the recipient can open it only once';
 
   @override
   String get chatMiscAddCaption => 'Add a caption…';
@@ -2099,11 +2101,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscOnceNetwork =>
-      'The photo could not be loaded. Check your connection. Because it is view-once, it may not be possible to open it again.';
+      'The photo could not be loaded. Check your connection. As a view-once photo, it may not be possible to open it again.';
 
   @override
   String get chatMiscOnceShowFailed =>
-      'The photo could not be displayed. Because it is view-once, it may not be possible to open it again.';
+      'The photo could not be displayed. As a view-once photo, it may not be possible to open it again.';
 
   @override
   String get chatMiscOnceTitle => 'View once';
@@ -2112,13 +2114,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscRetry => 'Try again';
 
   @override
-  String get chatMiscSaveUnsupported => 'Not supported on this device.';
+  String get chatMiscSaveUnsupported =>
+      'Saving is not supported on this device.';
 
   @override
   String get chatMiscSaveDenied => 'Gallery permission was not granted.';
 
   @override
-  String get chatMiscSaveNoSpace => 'Not enough space on the device.';
+  String get chatMiscSaveNoSpace => 'Not enough storage space on this device.';
 
   @override
   String get chatMiscImageSaveFailed => 'The image could not be saved.';
@@ -2168,7 +2171,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubChatPreparing =>
-      'The club chat is being prepared, try again shortly.';
+      'The club chat is being set up. Try again shortly.';
 
   @override
   String get clubChat => 'Club chat';
@@ -2193,7 +2196,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String clubMemberCount(String count) {
-    return '$count members';
+    return 'Members: $count';
   }
 
   @override
@@ -2216,11 +2219,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String clubRequestsWithCount(String count) {
-    return 'Applications ($count)';
+    return 'Join requests ($count)';
   }
 
   @override
-  String get clubRequests => 'Applications';
+  String get clubRequests => 'Join requests';
 
   @override
   String get clubManageMembers => 'Manage members';
@@ -2271,10 +2274,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubNoMembers => 'No members found.';
 
   @override
-  String get clubLoadFailedRetry => 'Failed to load, try again';
+  String get clubLoadFailedRetry => 'Could not load. Try again';
 
   @override
-  String get clubWriteHint => 'Write something to the club';
+  String get clubWriteHint => 'Write something for the club';
 
   @override
   String get clubAddImage => 'Add image';
@@ -2286,7 +2289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubRemoveImage => 'Remove image';
 
   @override
-  String get clubPendingRequests => 'Pending applications';
+  String get clubPendingRequests => 'Pending join requests';
 
   @override
   String get clubPostActions => 'Post actions';
@@ -2339,7 +2342,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String clubLeaveMessage(String name) {
-    return 'Do you want to leave $name? You will also be removed from the club chat and it will disappear from your chat list.';
+    return 'Leave $name? You will also be removed from the club chat.';
   }
 
   @override
@@ -2366,13 +2369,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtSendRequest => 'Send request';
 
   @override
-  String get clubMgmtNoPending => 'No pending applications.';
+  String get clubMgmtNoPending => 'No pending join requests.';
 
   @override
-  String get clubMgmtMoreRequests => 'More applications';
+  String get clubMgmtMoreRequests => 'More requests';
 
   @override
-  String get clubMgmtRequestsTitle => 'Applications';
+  String get clubMgmtRequestsTitle => 'Join requests';
 
   @override
   String clubMgmtWaitingCount(String count) {
@@ -2432,11 +2435,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtMakeMember => 'Make member';
 
   @override
-  String get clubMgmtPendingTitle => 'Your club was sent for approval';
+  String get clubMgmtPendingTitle => 'Club submitted for approval';
 
   @override
   String get clubMgmtPendingBody =>
-      'The club will go live once admins review it. You can follow its status in My Clubs.';
+      'The club will be published once an admin approves it. Track its status under My clubs.';
 
   @override
   String get clubMgmtOk => 'OK';
@@ -2470,7 +2473,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubMgmtSavedWithWarning =>
-      'The club was saved but the cover or join questions could not be saved.';
+      'The club was saved, but the cover or join questions could not be saved.';
 
   @override
   String get clubMgmtEditTitle => 'Edit club';
@@ -2494,7 +2497,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtCategoryLabel => 'Category';
 
   @override
-  String get clubMgmtCategoryHint => 'Pick from the list or type (optional)';
+  String get clubMgmtCategoryHint =>
+      'Choose from the list or type your own (optional)';
 
   @override
   String get clubMgmtVisibility => 'Visibility';
@@ -2523,7 +2527,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubMgmtApprovalHint =>
-      'People who want to join send an application and you approve it.';
+      'People send a join request and you approve it.';
 
   @override
   String get clubMgmtOpenHint => 'Anyone can join directly.';
@@ -2569,7 +2573,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtTabDiscover => 'Discover';
 
   @override
-  String get clubMgmtTabMine => 'My Clubs';
+  String get clubMgmtTabMine => 'My clubs';
 
   @override
   String get clubMgmtAll => 'All';
@@ -2582,7 +2586,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String clubMgmtMemberCount(String count) {
-    return '$count members';
+    return 'Members: $count';
   }
 
   @override
@@ -2714,11 +2718,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportMessageTitle => 'Report message';
 
   @override
-  String get reportThanks => 'Your report has been received. Thank you.';
+  String get reportThanks => 'Thank you. We have received your report.';
 
   @override
-  String get reportPrompt =>
-      'Choose a reason. Your report is sent to the administrators.';
+  String get reportPrompt => 'Choose a reason. Your report goes to the admins.';
 
   @override
   String get reportDetailsHint => 'Additional details (optional)';
@@ -2731,7 +2734,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'Allow us to send notifications so you hear instantly about messages, events and announcements.';
+      'Get instant alerts about messages, events and announcements.';
 
   @override
   String get permContactsTitle => 'Contacts';
@@ -2769,7 +2772,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String permDeniedText(String title) {
-    return '$title permission was not granted, so this feature is unavailable. You can enable it under Settings > BÜ Kampüs.';
+    return '$title access is off, so this feature is unavailable. You can turn it on in Settings > BÜ Kampüs.';
   }
 
   @override
@@ -2783,7 +2786,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'We ask for the permissions below so you can get the most out of the app. You do not have to grant any of them now; you can change them later in Settings.';
+      'We ask for the permissions below to give you the best experience. You can skip them now and change them later in Settings.';
 
   @override
   String get permStart => 'Get started';
@@ -2830,7 +2833,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventFormJoinFull =>
-      'The event is full. You can stay in the loop with \"Interested\".';
+      'The event is full. You can still mark yourself as Interested.';
 
   @override
   String get eventFormLeaveTitle => 'Leave event';
@@ -2843,10 +2846,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormLeaveConfirm => 'Leave';
 
   @override
-  String get eventFormRegsClosedToast => 'Registrations closed.';
+  String get eventFormRegsClosedToast => 'Registration closed.';
 
   @override
-  String get eventFormRegsReopenedToast => 'Registrations reopened.';
+  String get eventFormRegsReopenedToast => 'Registration reopened.';
 
   @override
   String get eventFormCancelTitle => 'Cancel event';
@@ -2881,7 +2884,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormNotFound => 'Event not found';
 
   @override
-  String get eventFormRegsClosed => 'Registrations closed';
+  String get eventFormRegsClosed => 'Registration closed';
 
   @override
   String get eventFormJoin => 'Join';
@@ -2899,10 +2902,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormEdit => 'Edit';
 
   @override
-  String get eventFormReopenRegs => 'Reopen registrations';
+  String get eventFormReopenRegs => 'Reopen registration';
 
   @override
-  String get eventFormCloseRegs => 'Close registrations';
+  String get eventFormCloseRegs => 'Close registration';
 
   @override
   String get eventFormReport => 'Report';
@@ -2944,7 +2947,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormChat => 'Event chat';
 
   @override
-  String get eventFormManageJoin => 'Manage attendance';
+  String get eventFormManageJoin => 'Manage participants';
 
   @override
   String get eventFormCheckInLater => 'Check-in opens at the event time.';
@@ -2990,7 +2993,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String eventFormAttendanceCount(String present, String total) {
-    return 'Check-in: $present / $total attended';
+    return '$present of $total checked in';
   }
 
   @override
@@ -3020,7 +3023,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventFormImgTooLarge =>
-      'The image is too large, choose a smaller one.';
+      'The image is too large. Choose a smaller one.';
 
   @override
   String get eventFormImgUnsupported =>
@@ -3031,7 +3034,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventFormImgPickFail =>
-      'Could not pick the image. Check permissions.';
+      'Could not select the image. Check permissions.';
 
   @override
   String get eventFormTitleTooShort => 'Title must be at least 3 characters.';
@@ -3040,7 +3043,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormEndBeforeStart => 'End must be after the start.';
 
   @override
-  String get eventFormCapInvalid => 'Capacity must be a number of 1 or more.';
+  String get eventFormCapInvalid => 'Capacity must be 1 or more.';
 
   @override
   String eventFormCoverRemoveFail(String reason) {
@@ -3146,7 +3149,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventListFull =>
-      'The event is full. You can stay in the loop with \"Interested\".';
+      'The event is full. You can still mark yourself as Interested.';
 
   @override
   String get eventListLeaveTitle => 'Leave event';
@@ -3200,7 +3203,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventListTruncated =>
-      'The whole month cannot be shown; some events are missing from the list.';
+      'Not all events for this month could be loaded.';
 
   @override
   String get eventListUpcoming => 'Upcoming';
@@ -3213,7 +3216,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can manage the events you created here.';
 
   @override
-  String get eventListEmptyUpcoming => 'You have no events to attend.';
+  String get eventListEmptyUpcoming => 'You have no upcoming events.';
 
   @override
   String get eventListEmptyPast => 'You have no past events.';
@@ -3253,7 +3256,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String eventListAttendeeCount(String count) {
-    return '$count attendees';
+    return 'Attendees: $count';
   }
 
   @override
@@ -3405,7 +3408,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreetMorning => 'Good morning';
 
   @override
-  String get homeGreetDay => 'Good day';
+  String get homeGreetDay => 'Good afternoon';
 
   @override
   String get homeGreetEvening => 'Good evening';
@@ -3467,7 +3470,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeGoingCount(String count) {
-    return '$count people going';
+    return 'Going: $count';
   }
 
   @override
@@ -3495,7 +3498,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeQuickSupport => 'Support';
 
   @override
-  String get homeTodayMeal => 'Meal of the day';
+  String get homeTodayMeal => 'Today’s meal';
 
   @override
   String get homeNoMenuToday => 'No menu for today';
@@ -3540,10 +3543,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLinkOpenFailed => 'Could not open the link.';
 
   @override
-  String get newsFullContent => 'Open the source page for the full content.';
+  String get newsFullContent => 'Open the source page to read the full text.';
 
   @override
-  String get newsOpenSource => 'Open on source page';
+  String get newsOpenSource => 'Open on source site';
 
   @override
   String get newsMonth1 => 'January';
@@ -3699,7 +3702,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The menu for this month has not been published yet.';
 
   @override
-  String get menuNoList => 'No menu.';
+  String get menuNoList => 'No menu available.';
 
   @override
   String get menuPhotoLabel => 'Photo of the day menu';
@@ -3740,7 +3743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notifDayAgo(String n) {
-    return '$n days ago';
+    return '$n d ago';
   }
 
   @override
@@ -3866,7 +3869,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollTabOpen => 'Open';
 
   @override
-  String get pollTabMine => 'Joined';
+  String get pollTabMine => 'Voted';
 
   @override
   String get pollTabClosed => 'Closed';
@@ -3875,13 +3878,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollEmptyOpen => 'There are no open polls right now.';
 
   @override
-  String get pollEmptyMine => 'You have not joined any poll yet.';
+  String get pollEmptyMine => 'You have not voted in any polls yet.';
 
   @override
   String get pollEmptyClosed => 'There are no closed polls.';
 
   @override
-  String get pollLoadFailedRetry => 'Could not load, try again';
+  String get pollLoadFailedRetry => 'Could not load. Try again';
 
   @override
   String get pollCreate => 'Create poll';
@@ -3893,7 +3896,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollSeeAll => 'See all polls';
 
   @override
-  String get pollMenuRateToday => 'Rate todays menu';
+  String get pollMenuRateToday => 'Rate today’s menu';
 
   @override
   String pollYourRating(String rating) {
@@ -3909,11 +3912,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollTapStar => 'Tap a star to rate';
 
   @override
-  String get pollNoVoteRight => 'You cannot vote in this poll';
+  String get pollNoVoteRight => 'You cannot vote in this poll.';
 
   @override
   String pollStars(String n) {
-    return '$n stars';
+    return 'Rating: $n';
   }
 
   @override
@@ -3923,12 +3926,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollVotes(String votes) {
-    return '$votes votes';
+    return 'Votes: $votes';
   }
 
   @override
   String pollVotesWithScore(String votes, String score) {
-    return '$votes votes · $score points';
+    return 'Votes: $votes · Points: $score';
   }
 
   @override
@@ -3957,7 +3960,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollParticipants(String n) {
-    return '$n participants';
+    return 'Participants: $n';
   }
 
   @override
@@ -3975,7 +3978,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollDaysLeft(String n) {
-    return '$n days left';
+    return '$n d left';
   }
 
   @override
@@ -4055,7 +4058,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollRetractTitle => 'Withdraw vote';
 
   @override
-  String get pollRetractBody => 'Your vote will be deleted. Continue?';
+  String get pollRetractBody => 'Your vote will be removed. Continue?';
 
   @override
   String get pollCancel => 'Cancel';
@@ -4098,7 +4101,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollRatingCount(String n) {
-    return '$n ratings';
+    return 'Ratings: $n';
   }
 
   @override
@@ -4140,11 +4143,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pollDurDays(String n) {
-    return '$n days';
+    return '$n d';
   }
 
   @override
-  String get pollPickDateTime => 'Pick date and time';
+  String get pollPickDateTime => 'Select date and time';
 
   @override
   String get pollChange => 'Change';
@@ -4170,7 +4173,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrImageUnreadable => 'The image could not be read.';
 
   @override
-  String get postComposeErrNetwork => 'No connection, try again.';
+  String get postComposeErrNetwork => 'No connection. Try again.';
 
   @override
   String get postComposeErrVideoTooLarge =>
@@ -4187,20 +4190,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrBlocked => 'This content cannot be shared.';
 
   @override
-  String get postComposeErrMediaInvalid => 'Invalid media, upload it again.';
+  String get postComposeErrMediaInvalid => 'Invalid media. Upload it again.';
 
   @override
   String get postComposeErrProfanity =>
       'Inappropriate language is not allowed here. Please edit the text.';
 
   @override
-  String get postComposeErrRate => 'You are posting too fast, wait a moment.';
+  String get postComposeErrRate =>
+      'You are posting too quickly. Please wait a moment.';
 
   @override
   String get postComposeErrFileTooLarge => 'The file is too large.';
 
   @override
-  String get postComposeErrGeneric => 'Something went wrong, try again.';
+  String get postComposeErrGeneric => 'Something went wrong. Try again.';
 
   @override
   String get postComposeErrVideoUnsupported =>
@@ -4250,7 +4254,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postComposeBlockBody =>
-      'You will not see posts from people you block and you cannot message them.';
+      'You will not see their posts or be able to message them.';
 
   @override
   String get postComposeBlock => 'Block';
@@ -4284,16 +4288,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postComposeFailedCount(String count) {
-    return '$count media items failed to upload. You can retry or remove them.';
+    return 'Some media failed to upload ($count). You can retry or remove them.';
   }
 
   @override
   String get postComposeInvalidRetry =>
-      'Invalid media, it will be uploaded again. Tap Share once more.';
+      'Some media was invalid and will be uploaded again. Tap Share again.';
 
   @override
   String get postComposeNetworkDraftKept =>
-      'No connection. Your draft is saved, try again.';
+      'No connection. Your draft is saved. Try again.';
 
   @override
   String get postComposeShared => 'Shared';
@@ -4327,7 +4331,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeRetry => 'Retry';
 
   @override
-  String get postComposeRemoveFailed => 'Remove failed';
+  String get postComposeRemoveFailed => 'Could not remove';
 
   @override
   String get postComposeRemove => 'Remove';
@@ -4339,13 +4343,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeCamera => 'Camera';
 
   @override
-  String get postComposeSaveUnsupported => 'Not supported on this device.';
+  String get postComposeSaveUnsupported =>
+      'Saving is not supported on this device.';
 
   @override
   String get postComposeSaveDenied => 'Gallery permission was not granted.';
 
   @override
-  String get postComposeSaveNoSpace => 'Not enough space on the device.';
+  String get postComposeSaveNoSpace =>
+      'Not enough storage space on this device.';
 
   @override
   String get postComposeImageSaveFailed => 'The image could not be saved.';
@@ -4399,7 +4405,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postComposeMentionAdd(String name) {
-    return 'Add mention $name';
+    return 'Mention $name';
   }
 
   @override
@@ -4409,7 +4415,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postComposePostCount(String count) {
-    return '$count posts';
+    return 'Posts: $count';
   }
 
   @override
@@ -4424,7 +4430,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postComposeTagLabelCount(String tag, String count) {
-    return 'Tag $tag, $count posts';
+    return 'Tag $tag, posts: $count';
   }
 
   @override
@@ -4484,7 +4490,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postViewAgoDayFull(String n) {
-    return '$n days ago';
+    return '$n d ago';
   }
 
   @override
@@ -4492,7 +4498,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postViewShowReplies(String n) {
-    return 'Show $n replies';
+    return 'Show replies ($n)';
   }
 
   @override
@@ -4536,7 +4542,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String postViewProfileOf(String name) {
-    return '$name profile';
+    return '$name’s profile';
   }
 
   @override
@@ -4598,10 +4604,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postViewLike => 'Like';
 
   @override
-  String get postViewSavedAdded => 'Added to saved';
+  String get postViewSavedAdded => 'Post saved';
 
   @override
-  String get postViewSavedRemoved => 'Removed from saved';
+  String get postViewSavedRemoved => 'Post removed from saved';
 
   @override
   String get postViewUnsave => 'Remove from saved';
@@ -4665,7 +4671,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDeptRequired => 'Select your department.';
 
   @override
-  String get profileDiscardTitle => 'Changes not saved';
+  String get profileDiscardTitle => 'Unsaved changes';
 
   @override
   String get profileDiscardBody => 'If you leave, your changes will be lost.';
@@ -4700,7 +4706,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePhotoUnsupported =>
-      'Only JPG, PNG or WebP photos can be uploaded.';
+      'Only JPEG, PNG or WebP photos can be uploaded.';
 
   @override
   String get profilePhotoUnreadable => 'The selected file could not be read.';
@@ -4777,7 +4783,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String profileLastSeenDate(String date, String time) {
-    return 'Last seen $date $time';
+    return 'Last seen $date at $time';
   }
 
   @override
@@ -4793,7 +4799,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDepartment => 'Department';
 
   @override
-  String get profileGrade => 'Year';
+  String get profileGrade => 'Year of study';
 
   @override
   String get profileEmail => 'Email';
@@ -4808,14 +4814,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAboutShort => 'About';
 
   @override
-  String get profileSignOutTitle => 'Sign out?';
+  String get profileSignOutTitle => 'Log out?';
 
   @override
   String get profileSignOutBody =>
       'Your session on this device will be closed.';
 
   @override
-  String get profileSignOut => 'Sign out';
+  String get profileSignOut => 'Log out';
 
   @override
   String get profileSettings => 'Settings';
@@ -4862,12 +4868,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String profileNewsCount(String count) {
-    return '$count news';
+    return 'News: $count';
   }
 
   @override
   String profileNewsCountMore(String count) {
-    return '$count+ news';
+    return 'News: $count+';
   }
 
   @override
@@ -4950,7 +4956,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsClubsMember => 'My memberships';
 
   @override
-  String get profilePrefsClubsPending => 'Pending applications';
+  String get profilePrefsClubsPending => 'Pending requests';
 
   @override
   String get profilePrefsMyClubs => 'My clubs';
@@ -4960,14 +4966,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String profilePrefsMembersCount(String count) {
-    return '$count members';
+    return 'Members: $count';
   }
 
   @override
   String get profilePrefsAwaitingApproval => 'Awaiting approval';
 
   @override
-  String get profilePrefsAwaitingPublish => 'Awaiting publish approval';
+  String get profilePrefsAwaitingPublish => 'Awaiting approval to publish';
 
   @override
   String get profilePrefsManage => 'Manage';
@@ -4982,7 +4988,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsManageEdit => 'Manage: edit';
 
   @override
-  String get profilePrefsManageRequests => 'Manage: applications';
+  String get profilePrefsManageRequests => 'Manage: join requests';
 
   @override
   String get profilePrefsManageMembers => 'Manage: members';
@@ -5003,7 +5009,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsNotifEvents => 'Events';
 
   @override
-  String get profilePrefsNotifCommunities => 'Communities';
+  String get profilePrefsNotifCommunities => 'Clubs';
 
   @override
   String get profilePrefsNotifMessages => 'Messages';
@@ -5074,10 +5080,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickRetry => 'Retry';
 
   @override
-  String get pickGrade => 'Year';
+  String get pickGrade => 'Year of study';
 
   @override
-  String get pickSelectGrade => 'Select year';
+  String get pickSelectGrade => 'Select year of study';
 
   @override
   String get pickSearch => 'Search';
@@ -5097,7 +5103,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSectionPassword => 'Set a password';
 
   @override
-  String get authHintAcademic => 'Select your department and year.';
+  String get authHintAcademic => 'Select your department and year of study.';
 
   @override
   String get authHintPersonal => 'Enter your name and school email.';
@@ -5201,7 +5207,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportHintReply => 'Write a reply';
 
   @override
-  String get supportFillFields => 'Fill in the subject and message fields.';
+  String get supportFillFields => 'Enter a subject and a message.';
 
   @override
   String get supportFeedbackThanks => 'Thank you for your feedback.';
@@ -5355,7 +5361,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String storyViewsSemantics(String count) {
-    return '$count views, show viewers';
+    return 'Views: $count. Show viewers';
   }
 
   @override
@@ -5379,14 +5385,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter your school email and we will send you a 6-digit code.';
 
   @override
-  String get authBackToLogin => 'Back to sign in';
+  String get authBackToLogin => 'Back to log in';
 
   @override
   String get authChangeEmail => 'Change email';
 
   @override
   String get authNewPwSub =>
-      'This replaces your old password. You will be signed out on all devices.';
+      'This replaces your old password. You will be logged out on all devices.';
 
   @override
   String get authRuleLen => 'At least 8 characters';
@@ -5411,14 +5417,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeNews => 'News and announcements';
 
   @override
-  String get welcomeMenu => 'The menu of the day';
+  String get welcomeMenu => 'Today’s menu';
 
   @override
   String get welcomeClubs => 'Clubs and events';
 
   @override
-  String get welcomeNote =>
-      'Sign-up is only available with a school email (bingol.edu.tr).';
+  String get welcomeNote => 'Sign-up requires a school email (bingol.edu.tr).';
 
   @override
   String get welcomeLanguage => 'Language';
@@ -5530,7 +5535,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2FieldDepartment => 'Department';
 
   @override
-  String get profil2FieldClassYear => 'Class year';
+  String get profil2FieldClassYear => 'Year of study';
 
   @override
   String get profil2VisEveryone => 'Everyone';
@@ -5576,7 +5581,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2DataIntro =>
-      'You can download a copy of the personal data we keep in the app, as provided by data protection law.';
+      'You can download a copy of your personal data stored in the app, as provided by data protection law.';
 
   @override
   String get profil2DataFileSub => 'Prepared as a JSON file';
@@ -5602,7 +5607,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2DataLimit =>
-      'You can download up to 3 times a day. Keep the file safe, it contains personal information.';
+      'You can download up to 3 times a day. Keep the file safe; it contains personal information.';
 
   @override
   String get profil2DataOther => 'Other';
@@ -5615,14 +5620,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2DelWarnBody =>
-      'Your account is anonymized and you can no longer sign in.';
+      'Your account will be anonymized and you will no longer be able to log in.';
 
   @override
   String get profil2DelWhatHappens => 'What happens';
 
   @override
   String get profil2DelItem1 =>
-      'Your name, email, photo and profile details are deleted. The account stays as Deleted user.';
+      'Your name, email, photo and profile details are deleted. The account remains as \"Deleted user\".';
 
   @override
   String get profil2DelItem2 =>
@@ -5637,7 +5642,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2DelBackupHint =>
-      'If you like, you can download your data before deleting.';
+      'You can download your data before deleting your account.';
 
   @override
   String get profil2DelAck =>
@@ -5651,7 +5656,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2DelConfirmBody =>
-      'Enter your password to continue. Your account is anonymized right away and you are signed out on all devices.';
+      'Enter your password to continue. Your account is anonymized right away and you are logged out on all devices.';
 
   @override
   String get profil2SecTitle => 'Account and security';
@@ -5765,13 +5770,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil1NotifClubs => 'Clubs';
 
   @override
-  String get profil1NewsSub => 'New stories from the university';
+  String get profil1NewsSub => 'Latest news from the university';
 
   @override
   String get profil1AnnSub => 'Important announcements';
 
   @override
-  String get profil1EventsSub => 'Reminders, changes, admission';
+  String get profil1EventsSub => 'Reminders, changes and approvals';
 
   @override
   String get profil1MsgSub => 'Direct and group chats';
@@ -5813,7 +5818,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil1QuietToggle => 'Turn on quiet hours';
 
   @override
-  String get profil1QuietSub => 'No notification sound during these hours';
+  String get profil1QuietSub => 'Notifications stay silent during these hours';
 
   @override
   String get profil1QuietStart => 'Start';
@@ -5845,7 +5850,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sohbetmedyaSendItems(String n) {
-    return 'Send $n items';
+    return 'Send ($n)';
   }
 
   @override
@@ -5872,7 +5877,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anasayfaHelloNoName => 'Hello';
 
   @override
-  String get anasayfaMealLunch => 'Todays meal · Lunch';
+  String get anasayfaMealLunch => 'Today’s meal · Lunch';
 
   @override
   String get anasayfaAnnouncements => 'Announcements';
@@ -5922,7 +5927,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yemekLunch => 'Lunch';
 
   @override
-  String get yemekTodaysMenu => 'Todays menu';
+  String get yemekTodaysMenu => 'Today’s menu';
 
   @override
   String get yemekToday => 'Today';
@@ -5956,12 +5961,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String destekEffective(String date) {
-    return 'Effective: $date';
+    return 'Effective $date';
   }
 
   @override
   String destekVoteLabel(String count) {
-    return 'Vote, currently $count votes';
+    return 'Vote. Current votes: $count';
   }
 
   @override
@@ -6074,7 +6079,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String icerikSavedCount(String count) {
-    return '$count saved news';
+    return 'Saved news: $count';
   }
 
   @override
@@ -6113,7 +6118,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String kulupdetayPendingBanner(String count) {
-    return '$count pending join requests';
+    return 'Pending join requests: $count';
   }
 
   @override
@@ -6126,14 +6131,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kulupdetayRequired => 'This question is required.';
 
   @override
-  String get kulupdetayApproving => 'Approving...';
+  String get kulupdetayApproving => 'Approving…';
 
   @override
   String get kulupdetayCreateTitle => 'Create club';
 
   @override
   String kulupdetayMembersSubtitle(String club, String count) {
-    return '$club · $count members';
+    return '$club · Members: $count';
   }
 
   @override
@@ -6143,7 +6148,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String akademik2CourseCount(String count) {
-    return '$count classes';
+    return 'Classes: $count';
   }
 
   @override
@@ -6183,7 +6188,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get akademik2Course => 'Course';
 
   @override
-  String get akademik2Place => 'Place';
+  String get akademik2Place => 'Location';
 
   @override
   String get akademik2NewTag => 'New';
@@ -6198,11 +6203,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get akademik2BeforeClassShort => 'Before class';
 
   @override
-  String get akademik2SemesterTitle => 'Choose term';
+  String get akademik2SemesterTitle => 'Select semester';
 
   @override
   String sistemuiPermStep(String current, String total) {
-    return 'Step $current / $total';
+    return 'Step $current of $total';
   }
 
   @override
@@ -6235,7 +6240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sistemuiMaintBody =>
-      'We are making things better for you. Please try again shortly. Your data is safe.';
+      'We are making improvements. Please try again shortly. Your data is safe.';
 
   @override
   String get sistemuiMaintBand =>
@@ -6250,11 +6255,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sistemuiBlockedCode => 'Error code: ACCESS_BLOCKED';
 
   @override
-  String get sistemuiQrHint => 'Bring the QR code inside the frame';
+  String get sistemuiQrHint => 'Align the QR code within the frame';
 
   @override
   String get sistemuiQrNotice =>
-      'Attendance opens at the event time. Scan the code shown by the organizer.';
+      'Check-in opens at the event time. Scan the code shown by the organizer.';
 
   @override
   String get sistemuiQrOr => 'or';
@@ -6263,7 +6268,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sistemuiQrManualHint => 'E.g. K7M4QX';
 
   @override
-  String get sistemuiQrSubmit => 'Submit attendance';
+  String get sistemuiQrSubmit => 'Submit check-in';
 
   @override
   String get profilyardBlockedNote =>
@@ -6274,7 +6279,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilyardBlockedEmptyBody =>
-      'You can block a disruptive user from their profile.';
+      'You can block someone from their profile.';
 
   @override
   String profilyardUnblockOf(String name) {
@@ -6451,7 +6456,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get etkinlik2PolicyApprovalHint =>
-      'With By request, you approve each participant.';
+      'With \"By request\", you approve each participant.';
 
   @override
   String get etkinlik2FormClub => 'On behalf of a club (optional)';
@@ -6473,7 +6478,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get etkinlik2ChatAutoBody =>
-      'Participants and you join the chat. With join by request, only approved people get in.';
+      'You and the participants are added to the chat automatically. With join by request, only approved people get in.';
 
   @override
   String get etkinlik2CapacityOptional => 'Capacity (optional)';
@@ -6483,7 +6488,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String etkinlik2RegOpenSlots(String n) {
-    return 'Registration open · $n spots left';
+    return 'Registration open · Spots left: $n';
   }
 
   @override
@@ -6553,7 +6558,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2ManageNoPending => 'No pending requests';
 
   @override
-  String get etkinlik2ManageAttendance => 'Participants and attendance';
+  String get etkinlik2ManageAttendance => 'Participants and check-in';
 
   @override
   String get etkinlik2ManageSettings => 'Event settings';
@@ -6566,7 +6571,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String etkinlik2ReqSlotsLeft(String n) {
-    return '$n spots left';
+    return 'Spots left: $n';
   }
 
   @override
@@ -6595,12 +6600,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String etkinlik2ApproveSem(String name) {
-    return 'Approve $name request';
+    return 'Approve $name’s request';
   }
 
   @override
   String etkinlik2RejectSem(String name) {
-    return 'Decline $name request';
+    return 'Decline $name’s request';
   }
 
   @override
@@ -6623,7 +6628,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String etkinlik2SettingsCapMin(String n) {
-    return '$n people are confirmed. You cannot set capacity below that.';
+    return 'Confirmed participants: $n. You cannot set the capacity below that.';
   }
 
   @override
@@ -6653,7 +6658,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String etkinlik2SettingsCancelBody(String n) {
-    return '$n participants are notified and the chat closes. This cannot be undone.';
+    return 'All participants ($n) are notified and the chat closes. This cannot be undone.';
   }
 
   @override
@@ -6668,25 +6673,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get etkinlik2AttendanceLabel => 'Attendance';
+  String get etkinlik2AttendanceLabel => 'Check-in';
 
   @override
   String etkinlik2PresentOf(String present, String total) {
-    return '$present / $total arrived';
+    return '$present / $total checked in';
   }
 
   @override
   String get etkinlik2FilterAll => 'All';
 
   @override
-  String get etkinlik2FilterPresent => 'Arrived';
+  String get etkinlik2FilterPresent => 'Checked in';
 
   @override
-  String get etkinlik2FilterAbsent => 'Not arrived';
+  String get etkinlik2FilterAbsent => 'Not checked in';
 
   @override
   String etkinlik2MarkSem(String name) {
-    return 'Mark $name as arrived';
+    return 'Mark $name as checked in';
   }
 
   @override
@@ -6702,7 +6707,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2AttendanceEmpty => 'No participants to show.';
 
   @override
-  String get etkinlik2MarkFailed => 'Could not update attendance.';
+  String get etkinlik2MarkFailed => 'Could not update check-in.';
 
   @override
   String get etkinlik2ChatClosedToast => 'Chat closed.';
@@ -6721,12 +6726,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cevrimdisiBekleyenMesaj(String n) {
-    return '$n message(s) will be sent when you are back online';
+    return 'Messages waiting to send: $n. They will be sent when you are back online.';
   }
 
   @override
   String cevrimdisiGonderiliyor(String n) {
-    return 'Sending $n message(s)…';
+    return 'Sending messages ($n)…';
   }
 
   @override
@@ -6780,7 +6785,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evcInfoReview => 'Published after admin approval.';
 
   @override
-  String get evcClubRequiredHint => 'Pick a club first.';
+  String get evcClubRequiredHint => 'Select a club first.';
 
   @override
   String get evcEmptyTitle =>
@@ -6794,7 +6799,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evcBrowseClubs => 'Browse clubs';
 
   @override
-  String get evcSubmittedTitle => 'Sent for approval';
+  String get evcSubmittedTitle => 'Submitted for approval';
 
   @override
   String get evcSubmittedBody =>
@@ -6816,7 +6821,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get evcErrClubRequired =>
-      'An event must be created on behalf of a club. Pick a club.';
+      'Events are created on behalf of a club. Select a club.';
 
   @override
   String get evcErrForbidden =>
@@ -6857,7 +6862,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evdChipNextWeek => 'Next week';
 
   @override
-  String get evdChipPickDate => 'Pick date';
+  String get evdChipPickDate => 'Select date';
 
   @override
   String get evdChipCustomTime => 'Custom time';
@@ -6872,7 +6877,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evdDurHalfDay => 'Half day';
 
   @override
-  String get evdChipCustomEnd => 'Pick end date';
+  String get evdChipCustomEnd => 'Select end date';
 
   @override
   String get evdErrStartPast => 'The start cannot be in the past.';
@@ -6908,5 +6913,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubMgmtCategoryInvalid =>
-      'The selected category is not valid. Pick another one from the list.';
+      'The selected category is not valid. Choose another one from the list.';
 }

@@ -46,7 +46,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navDiscover => 'استكشف';
 
   @override
-  String get navChat => 'الدردشة';
+  String get navChat => 'المحادثات';
 
   @override
   String get navClubs => 'النوادي';
@@ -544,7 +544,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadHubExamCount(String n) {
-    return '$n امتحانات قادمة';
+    return 'امتحانات قادمة: $n';
   }
 
   @override
@@ -737,7 +737,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadCalEventCount(String n) {
-    return '$n تواريخ مهمة';
+    return 'تواريخ مهمة: $n';
   }
 
   @override
@@ -755,7 +755,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadCalNextHeading => 'التواريخ المهمة القادمة';
 
   @override
-  String get acadTimeDay1 => 'الإثنين';
+  String get acadTimeDay1 => 'الاثنين';
 
   @override
   String get acadTimeDay2 => 'الثلاثاء';
@@ -776,7 +776,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeDay7 => 'الأحد';
 
   @override
-  String get acadTimeDayShort1 => 'إثن';
+  String get acadTimeDayShort1 => 'اثن';
 
   @override
   String get acadTimeDayShort2 => 'ثلا';
@@ -856,7 +856,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeRemExamTomorrow(String time, String room) {
-    return 'غدا $time$room';
+    return 'غدًا $time$room';
   }
 
   @override
@@ -865,7 +865,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get acadTimeExportNone => 'لا توجد مواد للتصدير.';
+  String get acadTimeExportNone => 'لا توجد مقررات للتصدير.';
 
   @override
   String get acadTimeExportCopied => 'تم نسخ نص التقويم (.ics) إلى الحافظة.';
@@ -877,7 +877,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeExportTooltip => 'تصدير إلى التقويم (.ics)';
 
   @override
-  String get acadTimeAddCourse => 'إضافة مادة';
+  String get acadTimeAddCourse => 'إضافة مقرر';
 
   @override
   String get acadTimeStale => 'تعذر التحديث، تُعرض آخر البيانات.';
@@ -887,15 +887,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeMyCourses(String count) {
-    return 'موادي ($count)';
+    return 'مقرراتي ($count)';
   }
 
   @override
   String get acadTimeEmptyText =>
-      'لم تضف أي مادة بعد.\nأضف موادك لإنشاء جدولك الأسبوعي.';
+      'لم تضف أي مقرر بعد.\nأضف مقرراتك لإنشاء جدولك الأسبوعي.';
 
   @override
-  String get acadTimeAddFirst => 'أضف أول مادة';
+  String get acadTimeAddFirst => 'أضف أول مقرر';
 
   @override
   String get acadTimeNowInClass => 'في المحاضرة الآن';
@@ -939,7 +939,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeTodayLeft(String count) {
-    return 'متبقي $count محاضرات اليوم';
+    return 'المحاضرات المتبقية اليوم: $count';
   }
 
   @override
@@ -969,27 +969,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeCourseSemantic(String name, String days) {
-    return '$name. $days. اضغط للتعديل.';
+    return '$name. $days. المس للتعديل.';
   }
 
   @override
   String get acadTimeNoSessions => 'لا توجد جلسات';
 
   @override
-  String get acadTimeNameRequired => 'اسم المادة مطلوب';
+  String get acadTimeNameRequired => 'اسم المقرر مطلوب';
 
   @override
   String get acadTimeEndAfterStart => 'يجب أن يكون وقت الانتهاء بعد وقت البدء.';
 
   @override
-  String get acadTimeOwnConflict => 'جلسات هذه المادة متداخلة';
+  String get acadTimeOwnConflict => 'جلسات هذا المقرر متداخلة';
 
   @override
   String get acadTimeConflictTitle => 'تعارض في المواعيد';
 
   @override
   String acadTimeConflictText(String lines) {
-    return 'تتعارض المواعيد مع هذه المواد:\n$lines\n\nهل تريد الحفظ على أي حال؟';
+    return 'تتعارض المواعيد مع هذه المقررات:\n$lines\n\nهل تريد الحفظ على أي حال؟';
   }
 
   @override
@@ -1001,30 +1001,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeSaveAnyway => 'احفظ على أي حال';
 
   @override
-  String get acadTimeDeleteCourse => 'حذف المادة';
+  String get acadTimeDeleteCourse => 'حذف المقرر';
 
   @override
   String acadTimeDeleteCourseText(String name) {
-    return 'سيتم حذف المادة \"$name\" وجميع جلساتها.';
+    return 'سيتم حذف المقرر \"$name\" وجميع جلساتها.';
   }
 
   @override
   String get acadTimeDelete => 'حذف';
 
   @override
-  String get acadTimeEditCourse => 'تعديل المادة';
+  String get acadTimeEditCourse => 'تعديل المقرر';
 
   @override
-  String get acadTimeNewCourse => 'مادة جديدة';
+  String get acadTimeNewCourse => 'مقرر جديد';
 
   @override
-  String get acadTimeCourseName => 'اسم المادة';
+  String get acadTimeCourseName => 'اسم المقرر';
 
   @override
   String get acadTimeNameHint => 'مثال: هياكل البيانات';
 
   @override
-  String get acadTimeCourseCode => 'رمز المادة';
+  String get acadTimeCourseCode => 'رمز المقرر';
 
   @override
   String get acadTimeInstructor => 'المحاضر';
@@ -1041,7 +1041,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get acadTimeColorAuto => 'إذا لم تختر، سيتم تعيين لون تلقائيا.';
+  String get acadTimeColorAuto => 'إذا لم تختر، سيتم تعيين لون تلقائيًا.';
 
   @override
   String get acadTimeDaysAndTimes => 'الأيام والأوقات';
@@ -1053,13 +1053,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeNote => 'ملاحظة';
 
   @override
-  String get acadTimeNoteHint => 'اختياري (مثال: أحضر حاسوبا محمولا)';
+  String get acadTimeNoteHint => 'اختياري (مثال: أحضر حاسوبًا محمولًا)';
 
   @override
   String get acadTimeSave => 'حفظ';
 
   @override
-  String get acadTimeAddCourseBtn => 'إضافة المادة';
+  String get acadTimeAddCourseBtn => 'إضافة المقرر';
 
   @override
   String acadTimeSessionN(String n) {
@@ -1082,7 +1082,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeSemester => 'الفصل';
 
   @override
-  String get acadTimeNoSemester => 'لا توجد فصول بعد. أضف فصلا لتنظيم موادك.';
+  String get acadTimeNoSemester =>
+      'لا توجد فصول بعد. أضف فصلًا لتنظيم مقرراتك.';
 
   @override
   String get acadTimeAddSemester => 'إضافة فصل جديد';
@@ -1109,7 +1110,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeDeleteSemesterText(String name) {
-    return 'سيتم حذف \"$name\". ستبقى المواد بدون فصل.';
+    return 'سيتم حذف \"$name\". ستبقى المقررات بدون فصل.';
   }
 
   @override
@@ -1128,7 +1129,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeCancel => 'إلغاء';
 
   @override
-  String get acadTimeSemesterNeedAll => 'الاسم والتاريخان مطلوبة.';
+  String get acadTimeSemesterNeedAll => 'الاسم والتاريخان مطلوبان.';
 
   @override
   String get acadTimeSemesterEndAfter =>
@@ -1353,7 +1354,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatDetailForwardFailedSome(String count) {
-    return 'تعذرت إعادة التوجيه إلى $count محادثات';
+    return 'تعذرت إعادة التوجيه إلى $count من المحادثات';
   }
 
   @override
@@ -1416,7 +1417,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatDetailMembersLoadFailed => 'تعذر تحميل قائمة الأعضاء.';
 
   @override
-  String get chatDetailAdmin => 'مشرف';
+  String get chatDetailAdmin => 'مدير';
 
   @override
   String get chatDetailBack => 'رجوع';
@@ -1462,7 +1463,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatDetailScrollDownNew(String count) {
-    return 'الانتقال إلى الأسفل، $count رسائل جديدة';
+    return 'الانتقال إلى الأسفل، $count من الرسائل الجديدة';
   }
 
   @override
@@ -1538,7 +1539,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatInfoYou => 'أنت';
 
   @override
-  String get chatInfoAdmin => 'مشرف';
+  String get chatInfoAdmin => 'مدير';
 
   @override
   String get chatInfoRemoveFromGroup => 'إزالة من المجموعة';
@@ -1695,7 +1696,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatInfoAll => 'الكل';
 
   @override
-  String get chatInfoMuteOn => 'مفعّلة';
+  String get chatInfoMuteOn => 'مفعّل';
 
   @override
   String get chatInfoMutedAlways => 'مكتومة · دائمًا';
@@ -1898,10 +1899,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMiscContactsRationale =>
-      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص جامعة بينغول بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
 
   @override
-  String get chatMiscContactsSubtitle => 'أشخاص جامعة بينغول';
+  String get chatMiscContactsSubtitle => 'أشخاص من الجامعة';
 
   @override
   String get chatMiscContactsPermTitle => 'إذن جهات الاتصال مطلوب';
@@ -1918,7 +1919,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMiscContactsNoneText =>
-      'لم يتم العثور على أي من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول. سيظهر أصدقاؤك هنا عند انضمامهم.';
+      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق ببريده الجامعي. سيظهر أصدقاؤك هنا عند انضمامهم.';
 
   @override
   String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
@@ -1988,7 +1989,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatMiscForwardMax(String max) {
-    return 'يمكن اختيار $max محادثات كحد أقصى.';
+    return 'الحد الأقصى للمحادثات: $max.';
   }
 
   @override
@@ -2011,7 +2012,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatMiscPickMax(String max) {
-    return 'يمكنك اختيار $max عناصر كحد أقصى';
+    return 'الحد الأقصى للعناصر: $max';
   }
 
   @override
@@ -2149,14 +2150,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubDeleted => 'تم حذف النادي.';
 
   @override
-  String get clubChatClosed => 'دردشة النادي مغلقة حاليًا.';
+  String get clubChatClosed => 'محادثة النادي مغلقة حاليًا.';
 
   @override
   String get clubChatPreparing =>
-      'دردشة النادي قيد التجهيز، حاول مرة أخرى بعد قليل.';
+      'محادثة النادي قيد التجهيز، حاول مرة أخرى بعد قليل.';
 
   @override
-  String get clubChat => 'دردشة النادي';
+  String get clubChat => 'محادثة النادي';
 
   @override
   String get clubDeletePostTitle => 'حذف المنشور';
@@ -2292,14 +2293,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubUser => 'مستخدم';
 
   @override
-  String get clubRoleOwner => 'المدير';
+  String get clubRoleOwner => 'مدير';
 
   @override
   String get clubRoleModerator => 'مشرف';
 
   @override
   String get clubDeleteBody =>
-      'سيتم حذف الأعضاء والفعاليات والدردشة. لا يمكن التراجع عن هذا الإجراء.';
+      'سيتم حذف الأعضاء والفعاليات والمحادثة. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String clubDeleteTypeName(String name) {
@@ -2324,7 +2325,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String clubLeaveMessage(String name) {
-    return 'هل تريد مغادرة $name؟ ستتم إزالتك من دردشة النادي أيضًا وستختفي من قائمة دردشاتك.';
+    return 'هل تريد مغادرة $name؟ ستتم إزالتك من محادثة النادي أيضًا وستختفي من قائمة محادثاتك.';
   }
 
   @override
@@ -2335,7 +2336,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String clubMgmtJoinAdminsSee(String club) {
-    return 'سيرى مشرفو $club إجاباتك.';
+    return 'سيرى مديرو $club إجاباتك.';
   }
 
   @override
@@ -2381,12 +2382,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String clubMgmtBanMessage(String name) {
-    return 'هل تريد إزالة $name من النادي ومنعه من الانضمام مجددا؟';
+    return 'هل تريد إزالة $name من النادي ومنعه من الانضمام مجددًا؟';
   }
 
   @override
   String clubMgmtRemoveMessage(String name) {
-    return 'هل تريد إزالة $name من النادي؟ سيغادر أيضا محادثة النادي.';
+    return 'هل تريد إزالة $name من النادي؟ وستتم إزالته أيضًا من محادثة النادي.';
   }
 
   @override
@@ -2402,10 +2403,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtSearchMember => 'ابحث عن عضو';
 
   @override
-  String get clubMgmtRoleManager => 'مشرف';
+  String get clubMgmtRoleManager => 'مدير';
 
   @override
-  String get clubMgmtRoleModerator => 'مراقب';
+  String get clubMgmtRoleModerator => 'مشرف';
 
   @override
   String get clubMgmtMemberActions => 'إجراءات العضو';
@@ -2421,13 +2422,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get clubMgmtPendingBody =>
-      'سيتم نشر النادي بعد مراجعة المشرفين. يمكنك متابعة الحالة من قسم أنديتي.';
+      'سيتم نشر النادي بعد مراجعة الإدارة. يمكنك متابعة الحالة من قسم أنديتي.';
 
   @override
-  String get clubMgmtOk => 'حسنا';
+  String get clubMgmtOk => 'حسنًا';
 
   @override
-  String get clubMgmtImageTooLarge => 'الصورة كبيرة جدا.';
+  String get clubMgmtImageTooLarge => 'الصورة كبيرة جدًا.';
 
   @override
   String get clubMgmtImageUnsupported =>
@@ -2443,13 +2444,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtNameMin => 'يجب ألا يقل اسم النادي عن 3 أحرف.';
 
   @override
-  String get clubMgmtNameMax => 'يجب ألا يتجاوز اسم النادي 80 حرفا.';
+  String get clubMgmtNameMax => 'يجب ألا يتجاوز اسم النادي 80 حرفًا.';
 
   @override
   String get clubMgmtDescMax => 'يجب ألا يتجاوز الوصف 1000 حرف.';
 
   @override
-  String get clubMgmtCategoryMax => 'يجب ألا يتجاوز التصنيف 40 حرفا.';
+  String get clubMgmtCategoryMax => 'يجب ألا تتجاوز الفئة 40 حرفًا.';
 
   @override
   String get clubMgmtSavedWithWarning =>
@@ -2474,7 +2475,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtDescHint => 'ماذا يفعل النادي؟';
 
   @override
-  String get clubMgmtCategoryLabel => 'التصنيف';
+  String get clubMgmtCategoryLabel => 'الفئة';
 
   @override
   String get clubMgmtCategoryHint => 'اختر من القائمة أو اكتب (اختياري)';
@@ -2493,7 +2494,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرى المحتوى الأعضاء فقط، والانضمام بموافقة.';
 
   @override
-  String get clubMgmtPublicHint => 'يظهر النادي في قائمة استكشاف.';
+  String get clubMgmtPublicHint => 'يظهر النادي في قسم استكشاف.';
 
   @override
   String get clubMgmtJoinLabel => 'الانضمام';
@@ -2506,7 +2507,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get clubMgmtApprovalHint =>
-      'يرسل الراغبون في الانضمام طلبا وتقوم بالموافقة عليه.';
+      'يرسل الراغبون في الانضمام طلبًا ويوافق عليه مديرو النادي.';
 
   @override
   String get clubMgmtOpenHint => 'يمكن للجميع الانضمام مباشرة.';
@@ -2558,7 +2559,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtAll => 'الكل';
 
   @override
-  String get clubMgmtEmptyMine => 'لست عضوا في أي نادٍ بعد.';
+  String get clubMgmtEmptyMine => 'لست عضوًا في أي نادٍ بعد.';
 
   @override
   String get clubMgmtNotFound => 'لم يتم العثور على أندية.';
@@ -2697,10 +2698,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportMessageTitle => 'الإبلاغ عن الرسالة';
 
   @override
-  String get reportThanks => 'تم استلام بلاغك. شكرا لك.';
+  String get reportThanks => 'تم استلام بلاغك. شكرًا لك.';
 
   @override
-  String get reportPrompt => 'اختر السبب. سيتم إرسال بلاغك إلى المشرفين.';
+  String get reportPrompt => 'اختر السبب. سيتم إرسال بلاغك إلى الإدارة.';
 
   @override
   String get reportDetailsHint => 'تفاصيل إضافية (اختياري)';
@@ -2713,14 +2714,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'اسمح لنا بإرسال الإشعارات لتعرف فورا بالرسائل والفعاليات والإعلانات.';
+      'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
 
   @override
   String get permContactsTitle => 'جهات الاتصال';
 
   @override
   String get permContactsText =>
-      'مطلوب للعثور على أشخاص جامعة بينغول في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+      'مطلوب للعثور على أشخاص الجامعة في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
 
   @override
   String get permCameraTitle => 'الكاميرا';
@@ -2765,7 +2766,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'نطلب الأذونات التالية لتستفيد من التطبيق بأفضل شكل. لست مضطرا لمنح أي منها الآن، ويمكنك تغييرها لاحقا من الإعدادات.';
+      'نطلب الأذونات التالية لتستفيد من التطبيق بأفضل شكل. لست مضطرًا لمنح أي منها الآن، ويمكنك تغييرها لاحقًا من الإعدادات.';
 
   @override
   String get permStart => 'ابدأ';
@@ -2786,7 +2787,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coreErrNetwork => 'تعذر الوصول إلى الخادم. تحقق من اتصالك.';
 
   @override
-  String get coreErrTooMany => 'محاولات كثيرة. يرجى الانتظار قليلاً.';
+  String get coreErrTooMany => 'محاولات كثيرة. يرجى الانتظار قليلًا.';
 
   @override
   String get coreErrGeneric => 'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
@@ -2820,7 +2821,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ستتم إزالة هذه الفعالية من قائمة فعالياتي.';
 
   @override
-  String get eventFormLeaveConfirm => 'إلغاء';
+  String get eventFormLeaveConfirm => 'مغادرة';
 
   @override
   String get eventFormRegsClosedToast => 'تم إغلاق التسجيل.';
@@ -2836,7 +2837,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
 
   @override
-  String get eventFormCancelAction => 'إلغاء';
+  String get eventFormCancelAction => 'إلغاء الفعالية';
 
   @override
   String get eventFormCancelledToast => 'تم إلغاء الفعالية.';
@@ -2851,7 +2852,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormCheckedIn => 'تم تسجيل حضورك';
 
   @override
-  String get eventFormChatSoon => 'دردشة الفعالية قريبا';
+  String get eventFormChatSoon => 'محادثة الفعالية قريبًا';
 
   @override
   String get eventFormEventTitle => 'الفعالية';
@@ -2919,7 +2920,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormFullHint => 'اكتمل العدد، لكن يمكنك الإشارة إلى اهتمامك.';
 
   @override
-  String get eventFormChat => 'دردشة الفعالية';
+  String get eventFormChat => 'محادثة الفعالية';
 
   @override
   String get eventFormManageJoin => 'إدارة المشاركة';
@@ -2931,7 +2932,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormScanQr => 'مسح رمز QR';
 
   @override
-  String get eventFormEnterCode => 'أدخل الرمز يدويا';
+  String get eventFormEnterCode => 'أدخل الرمز يدويًا';
 
   @override
   String get eventFormEnterOrganizerCode => 'أدخل الرمز الذي يعرضه المنظم';
@@ -2956,7 +2957,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String eventFormCodeExpires(String time) {
-    return 'ينتهي: $time · يتجدد الرمز تلقائيا';
+    return 'ينتهي: $time · يتجدد الرمز تلقائيًا';
   }
 
   @override
@@ -2996,7 +2997,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormTakePhoto => 'التقاط صورة';
 
   @override
-  String get eventFormImgTooLarge => 'الصورة كبيرة جدا، اختر صورة أصغر.';
+  String get eventFormImgTooLarge => 'الصورة كبيرة جدًا، اختر صورة أصغر.';
 
   @override
   String get eventFormImgUnsupported => 'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
@@ -3014,7 +3015,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormEndBeforeStart => 'يجب أن يكون الانتهاء بعد البداية.';
 
   @override
-  String get eventFormCapInvalid => 'يجب أن تكون السعة رقما 1 أو أكبر.';
+  String get eventFormCapInvalid => 'يجب أن تكون السعة رقمًا لا يقل عن 1.';
 
   @override
   String eventFormCoverRemoveFail(String reason) {
@@ -3064,7 +3065,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormCapacityLabel => 'السعة';
 
   @override
-  String get eventFormCapHint => 'اتركه فارغا لعدد غير محدود';
+  String get eventFormCapHint => 'اتركه فارغًا لعدد غير محدود';
 
   @override
   String get eventFormSave => 'حفظ';
@@ -3146,7 +3147,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListCancelMsg => 'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
 
   @override
-  String get eventListCancelConfirm => 'إلغاء';
+  String get eventListCancelConfirm => 'إلغاء الفعالية';
 
   @override
   String get eventListCancelledDone => 'تم إلغاء الفعالية.';
@@ -3171,7 +3172,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get eventListTruncated =>
-      'لا يمكن عرض الشهر كاملاً؛ بعض الفعاليات غير موجودة في القائمة.';
+      'لا يمكن عرض الشهر كاملًا؛ بعض الفعاليات غير موجودة في القائمة.';
 
   @override
   String get eventListUpcoming => 'القادمة';
@@ -3327,25 +3328,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListMon12 => 'ديسمبر';
 
   @override
-  String get eventListDayShort1 => 'الاثنين';
+  String get eventListDayShort1 => 'اثن';
 
   @override
-  String get eventListDayShort2 => 'الثلاثاء';
+  String get eventListDayShort2 => 'ثلا';
 
   @override
-  String get eventListDayShort3 => 'الأربعاء';
+  String get eventListDayShort3 => 'أرب';
 
   @override
-  String get eventListDayShort4 => 'الخميس';
+  String get eventListDayShort4 => 'خمي';
 
   @override
-  String get eventListDayShort5 => 'الجمعة';
+  String get eventListDayShort5 => 'جمع';
 
   @override
-  String get eventListDayShort6 => 'السبت';
+  String get eventListDayShort6 => 'سبت';
 
   @override
-  String get eventListDayShort7 => 'الأحد';
+  String get eventListDayShort7 => 'أحد';
 
   @override
   String get eventListDayLong1 => 'الاثنين';
@@ -3369,7 +3370,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListDayLong7 => 'الأحد';
 
   @override
-  String get homeGreetNight => 'طاب مساؤك';
+  String get homeGreetNight => 'طابت ليلتك';
 
   @override
   String get homeGreetMorning => 'صباح الخير';
@@ -3394,7 +3395,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeSourceUnreachable =>
-      'الموقع المصدر غير متاح حاليا، وقد تكون البيانات غير محدثة.';
+      'الموقع المصدر غير متاح حاليًا، وقد تكون البيانات غير محدثة.';
 
   @override
   String get homeSearchHint => 'ابحث عن أخبار أو أندية أو فعاليات';
@@ -3433,7 +3434,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeOfficialEvent => 'فعالية رسمية';
 
   @override
-  String get homeMostAttended => 'الأكثر حضورا';
+  String get homeMostAttended => 'الأكثر حضورًا';
 
   @override
   String homeGoingCount(String count) {
@@ -3453,7 +3454,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeRegClosed => 'التسجيل مغلق';
 
   @override
-  String get homeJoin => 'شارك';
+  String get homeJoin => 'انضم';
 
   @override
   String get homeQuickEvent => 'الفعاليات';
@@ -3510,7 +3511,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsLinkOpenFailed => 'تعذر فتح الرابط.';
 
   @override
-  String get newsFullContent => 'افتح الصفحة المصدر للاطلاع على المحتوى كاملا.';
+  String get newsFullContent =>
+      'افتح الصفحة المصدر للاطلاع على المحتوى كاملًا.';
 
   @override
   String get newsOpenSource => 'فتح في الصفحة المصدر';
@@ -3641,7 +3643,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get discoverSourceMaint =>
-      'الموقع المصدر قيد الصيانة حاليا. قد تكون البيانات غير محدثة.';
+      'الموقع المصدر قيد الصيانة حاليًا. قد تكون البيانات غير محدثة.';
 
   @override
   String get menuTitle => 'قائمة الطعام';
@@ -3698,24 +3700,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String notifMinAgo(String n) {
-    return 'قبل $n دقيقة';
+    return 'منذ $n دقيقة';
   }
 
   @override
   String notifHourAgo(String n) {
-    return 'قبل $n ساعة';
+    return 'منذ $n ساعة';
   }
 
   @override
   String notifDayAgo(String n) {
-    return 'قبل $n يوم';
+    return 'منذ $n يوم';
   }
 
   @override
   String get searchAll => 'الكل';
 
   @override
-  String get searchClub => 'نادي';
+  String get searchClub => 'نادٍ';
 
   @override
   String get searchPost => 'منشور';
@@ -3766,7 +3768,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followButtonFollow => 'متابعة';
 
   @override
-  String get followButtonFollowing => 'تتابعه';
+  String get followButtonFollowing => 'متابَع';
 
   @override
   String get followersTitle => 'المتابعون';
@@ -3778,10 +3780,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followersEmpty => 'لا يوجد متابعون بعد.';
 
   @override
-  String get followingEmpty => 'لا تتابع أحدا بعد.';
+  String get followingEmpty => 'لا تتابع أحدًا بعد.';
 
   @override
-  String get followSuggestionsEmpty => 'لا توجد اقتراحات حاليا.';
+  String get followSuggestionsEmpty => 'لا توجد اقتراحات حاليًا.';
 
   @override
   String get followSuggestionsTitle => 'أشخاص مقترحون';
@@ -3802,24 +3804,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get qrCameraRationale => 'نحتاج إلى الوصول إلى الكاميرا لمسح رمز QR.';
 
   @override
-  String get qrManualLabel => 'أدخل الرمز يدويا';
+  String get qrManualLabel => 'أدخل الرمز يدويًا';
 
   @override
   String get qrConfirm => 'تأكيد';
 
   @override
   String get qrCameraDenied =>
-      'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويا أو منح الإذن ومحاولة المسح مرة أخرى.';
+      'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.';
 
   @override
   String get qrGrantCamera => 'منح إذن الكاميرا';
 
   @override
   String get qrDeniedSettings =>
-      'لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويا.';
+      'لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويًا.';
 
   @override
-  String get qrCameraFailed => 'تعذر فتح الكاميرا. يمكنك إدخال الرمز يدويا.';
+  String get qrCameraFailed => 'تعذر فتح الكاميرا. يمكنك إدخال الرمز يدويًا.';
 
   @override
   String get qrTorch => 'المصباح';
@@ -3840,7 +3842,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollTabClosed => 'المغلقة';
 
   @override
-  String get pollEmptyOpen => 'لا توجد استطلاعات مفتوحة حاليا.';
+  String get pollEmptyOpen => 'لا توجد استطلاعات مفتوحة حاليًا.';
 
   @override
   String get pollEmptyMine => 'لم تشارك في أي استطلاع بعد.';
@@ -3881,7 +3883,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pollStars(String n) {
-    return '$n نجوم';
+    return 'النجوم: $n';
   }
 
   @override
@@ -3918,7 +3920,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollAnonymous => 'تصويت سري';
 
   @override
-  String get pollVotedBadge => 'لقد صوّتَّ';
+  String get pollVotedBadge => 'تم تصويتك';
 
   @override
   String get pollClosedBadge => 'مغلق';
@@ -3980,7 +3982,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollValMin2 => 'أدخل خيارين على الأقل.';
 
   @override
-  String get pollValMax12 => 'الحد الأقصى 12 خيارا.';
+  String get pollValMax12 => 'الحد الأقصى 12 خيارًا.';
 
   @override
   String get pollValDistinct => 'يجب أن تكون الخيارات مختلفة.';
@@ -3995,7 +3997,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollErrClosed => 'هذا الاستطلاع مغلق.';
 
   @override
-  String get pollErrAlreadyVoted => 'لقد صوّتَّ في هذا الاستطلاع بالفعل.';
+  String get pollErrAlreadyVoted => 'تم تسجيل صوتك في هذا الاستطلاع مسبقًا.';
 
   @override
   String get pollErrForbidden => 'ليس لديك صلاحية لهذا الإجراء.';
@@ -4032,7 +4034,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pollMaxChoicesSnack(String n) {
-    return 'يمكنك اختيار $n خيارات كحد أقصى.';
+    return 'الحد الأقصى للخيارات: $n.';
   }
 
   @override
@@ -4043,11 +4045,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pollHintRanked =>
-      'المس حسب الأفضلية: أول ما تلمسه هو خيارك الأول.';
+      'المس الخيارات بترتيب الأفضلية؛ أول خيار تلمسه هو الأول.';
 
   @override
   String pollHintMax(String n) {
-    return 'اختر $n خيارات كحد أقصى.';
+    return 'الحد الأقصى للاختيار: $n.';
   }
 
   @override
@@ -4099,14 +4101,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollAddOption => 'إضافة خيار';
 
   @override
-  String get pollAnonymousSub => 'لا يظهر لأحد من صوّت لماذا.';
+  String get pollAnonymousSub => 'لا يظهر لأحد من صوّت لأي خيار.';
 
   @override
   String get pollFieldEnd => 'وقت الانتهاء';
 
   @override
   String pollDurDays(String n) {
-    return '$n أيام';
+    return '$n يوم';
   }
 
   @override
@@ -4231,7 +4233,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeProfanityFallback => 'يحتوي النص على ألفاظ غير لائقة.';
 
   @override
-  String get postComposeHint => 'بماذا تفكر؟';
+  String get postComposeHint => 'ماذا يدور في بالك؟';
 
   @override
   String get postComposeSave => 'حفظ';
@@ -4241,7 +4243,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String postComposeMaxMedia(String max) {
-    return 'يمكنك إضافة $max وسائط كحد أقصى';
+    return 'الحد الأقصى للوسائط: $max';
   }
 
   @override
@@ -4251,7 +4253,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postComposeInvalidRetry =>
-      'الوسائط غير صالحة وسيعاد رفعها. اضغط على مشاركة مرة أخرى.';
+      'الوسائط غير صالحة وسيعاد رفعها. المس مشاركة مرة أخرى.';
 
   @override
   String get postComposeNetworkDraftKept =>
@@ -4426,12 +4428,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String postViewAgoWeek(String n) {
-    return '$n أ';
+    return '$n أسبوع';
   }
 
   @override
   String postViewAgoYear(String n) {
-    return '$n س';
+    return '$n سنة';
   }
 
   @override
@@ -4808,14 +4810,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileMyEvents => 'فعالياتي';
 
   @override
-  String get profileMyClubs => 'نواديّ';
+  String get profileMyClubs => 'أنديتي';
 
   @override
   String get profileReminders => 'تذكيرات المحاضرات والامتحانات';
 
   @override
   String get profileSavedEmpty =>
-      'لم تحفظ أي خبر بعد. اضغط على أيقونة الإشارة المرجعية في الأخبار.';
+      'لم تحفظ أي خبر بعد. المس أيقونة الإشارة المرجعية في الأخبار.';
 
   @override
   String get profileRetry => 'أعد المحاولة';
@@ -4900,7 +4902,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsWithdrawConfirm => 'سحب';
 
   @override
-  String get profilePrefsNoClubs => 'لست عضوا في أي نادٍ بعد.';
+  String get profilePrefsNoClubs => 'لست عضوًا في أي نادٍ بعد.';
 
   @override
   String get profilePrefsClubsOwned => 'التي أسستها';
@@ -4950,7 +4952,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsLeaveClub => 'مغادرة النادي';
 
   @override
-  String get profilePrefsReminders => 'تذكيرات الدروس والامتحانات';
+  String get profilePrefsReminders => 'تذكيرات المحاضرات والامتحانات';
 
   @override
   String get profilePrefsNotifNews => 'الأخبار';
@@ -4962,7 +4964,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsNotifEvents => 'الفعاليات';
 
   @override
-  String get profilePrefsNotifCommunities => 'المجتمعات';
+  String get profilePrefsNotifCommunities => 'الأندية';
 
   @override
   String get profilePrefsNotifMessages => 'الرسائل';
@@ -4999,7 +5001,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String profilePrefsTapToRetry(String error) {
-    return '$error اضغط للمحاولة مرة أخرى.';
+    return '$error المس للمحاولة مرة أخرى.';
   }
 
   @override
@@ -5080,7 +5082,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
 
   @override
-  String get authIdHelper => '226051015 أو الاسم.اللقب@bingol.edu.tr';
+  String get authIdHelper => '226051015 أو name.surname@bingol.edu.tr';
 
   @override
   String get supportCatAccount => 'الحساب';
@@ -5113,7 +5115,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportStInReview => 'قيد المراجعة';
 
   @override
-  String get supportStPlanned => 'مخطط';
+  String get supportStPlanned => 'مخطط له';
 
   @override
   String get supportStDone => 'مكتمل';
@@ -5132,7 +5134,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get supportTooManyRequests =>
-      'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلا ثم المحاولة مرة أخرى.';
+      'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.';
 
   @override
   String get supportLabelCategory => 'الفئة';
@@ -5156,13 +5158,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportHintIssue => 'اشرح مشكلتك';
 
   @override
-  String get supportHintReply => 'اكتب ردا';
+  String get supportHintReply => 'اكتب ردًا';
 
   @override
   String get supportFillFields => 'يرجى ملء حقلي الموضوع والرسالة.';
 
   @override
-  String get supportFeedbackThanks => 'شكرا على ملاحظاتك.';
+  String get supportFeedbackThanks => 'شكرًا على ملاحظاتك.';
 
   @override
   String get supportFeedbackTitle => 'ملاحظات';
@@ -5210,7 +5212,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportNoTickets => 'ليس لديك طلبات دعم بعد.';
 
   @override
-  String get supportSortTop => 'الأكثر تصويتا';
+  String get supportSortTop => 'الأكثر تصويتًا';
 
   @override
   String get supportSortNew => 'الأحدث';
@@ -5220,7 +5222,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get supportNoSuggestions =>
-      'لا توجد اقتراحات منشورة بعد. كن أول من يضيف اقتراحا.';
+      'لا توجد اقتراحات منشورة بعد. كن أول من يضيف اقتراحًا.';
 
   @override
   String get supportCloseTicketTitle => 'إغلاق الطلب';
@@ -5269,10 +5271,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get storyCamera => 'الكاميرا';
 
   @override
-  String get storyCaptionHint => 'أضف وصفا…';
+  String get storyCaptionHint => 'أضف وصفًا…';
 
   @override
-  String get storyTextHint => 'اكتب شيئا…';
+  String get storyTextHint => 'اكتب شيئًا…';
 
   @override
   String storyBgColor(String n) {
@@ -5467,7 +5469,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2PrivacyIntro =>
-      'اختر من يمكنه رؤية كل جزء من ملفك الشخصي. أنت ترى ملفك الشخصي كاملاً دائماً.';
+      'اختر من يمكنه رؤية كل جزء من ملفك الشخصي. أنت ترى ملفك الشخصي كاملًا دائمًا.';
 
   @override
   String get profil2VisibilitySection => 'ظهور الملف الشخصي';
@@ -5529,7 +5531,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2DataIntro =>
-      'يمكنك تنزيل نسخة من بياناتك الشخصية التي نحتفظ بها في التطبيق وفق قانون حماية البيانات.';
+      'يمكنك تنزيل نسخة من بياناتك الشخصية التي نحتفظ بها في التطبيق وفق قانون حماية البيانات الشخصية (KVKK).';
 
   @override
   String get profil2DataFileSub => 'يتم إعدادها كملف JSON';
@@ -5554,20 +5556,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2DataLimit =>
-      'يمكنك التنزيل حتى 3 مرات يومياً. احتفظ بالملف بأمان فهو يحتوي على معلومات شخصية.';
+      'يمكنك التنزيل حتى 3 مرات يوميًا. احتفظ بالملف بأمان فهو يحتوي على معلومات شخصية.';
 
   @override
   String get profil2DataOther => 'أخرى';
 
   @override
-  String get profil2DataKvkk => 'إشعار حماية البيانات';
+  String get profil2DataKvkk => 'إشعار حماية البيانات الشخصية (KVKK)';
 
   @override
   String get profil2DelWarnLead => 'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get profil2DelWarnBody =>
-      'سيتم إخفاء هوية حسابك ولن تتمكن من تسجيل الدخول مجدداً.';
+      'سيتم إخفاء هوية حسابك ولن تتمكن من تسجيل الدخول مجددًا.';
 
   @override
   String get profil2DelWhatHappens => 'ماذا سيحدث';
@@ -5592,7 +5594,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2DelAck =>
-      'أفهم أنه سيتم حذف حسابي نهائياً ولا يمكن التراجع عن ذلك.';
+      'أفهم أنه سيتم حذف حسابي نهائيًا ولا يمكن التراجع عن ذلك.';
 
   @override
   String get profil2Continue => 'متابعة';
@@ -5602,7 +5604,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2DelConfirmBody =>
-      'أدخل كلمة المرور للمتابعة. سيتم إخفاء هوية حسابك فوراً وتسجيل خروجك من جميع الأجهزة.';
+      'أدخل كلمة المرور للمتابعة. سيتم إخفاء هوية حسابك فورًا وتسجيل خروجك من جميع الأجهزة.';
 
   @override
   String get profil2SecTitle => 'الحساب والأمان';
@@ -5636,7 +5638,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      'من 8 إلى 72 حرفاً. خلط الحروف والأرقام يجعلها أقوى.';
+      'من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.';
 
   @override
   String get profil2SecPwButton => 'تحديث كلمة المرور';
@@ -5653,7 +5655,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2SecFailed =>
-      'تعذر تحديث كلمة المرور. يرجى المحاولة لاحقاً.';
+      'تعذر تحديث كلمة المرور. يرجى المحاولة لاحقًا.';
 
   @override
   String get profil2SecUpdated => 'تم تحديث كلمة المرور.';
@@ -5788,7 +5790,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String sohbetmedyaLimitNote(String max) {
-    return 'يمكنك تحديد $max عناصر كحد أقصى. مدة الفيديو 60 ثانية كحد أقصى.';
+    return 'الحد الأقصى للعناصر: $max. مدة الفيديو 60 ثانية كحد أقصى.';
   }
 
   @override
@@ -5796,7 +5798,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String sohbetmedyaSendItems(String n) {
-    return 'إرسال $n عناصر';
+    return 'إرسال ($n)';
   }
 
   @override
@@ -5816,11 +5818,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String anasayfaHello(String name) {
-    return 'مرحباً، $name';
+    return 'مرحبًا، $name';
   }
 
   @override
-  String get anasayfaHelloNoName => 'مرحباً';
+  String get anasayfaHelloNoName => 'مرحبًا';
 
   @override
   String get anasayfaMealLunch => 'وجبة اليوم · الغداء';
@@ -5836,12 +5838,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String gonderiWordCount(String n, String max) {
-    return '$n/$max كلمات';
+    return '$n/$max';
   }
 
   @override
   String gonderiWordLimit(String max) {
-    return 'يمكنك كتابة $max كلمات كحد أقصى.';
+    return 'الحد الأقصى للكلمات: $max.';
   }
 
   @override
@@ -5903,7 +5905,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get destekSortPopular => 'الأكثر شعبية';
 
   @override
-  String get destekShareSuggestion => 'شارك اقتراحا';
+  String get destekShareSuggestion => 'شارك اقتراحًا';
 
   @override
   String destekEffective(String date) {
@@ -5919,18 +5921,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get anketScopeGlobal => 'عام';
 
   @override
-  String get anketScopeClub => 'نادي';
+  String get anketScopeClub => 'نادٍ';
 
   @override
   String get anketScopeMenu => 'الوجبة';
 
   @override
   String get anketSecretNote =>
-      'صوتك سري. أنت وحدك ترى اختيارك، ولا أحد بمن فيهم المشرفون يستطيع معرفة من اختار ماذا.';
+      'صوتك سري. لا يرى اختيارك أحد غيرك، ولا يستطيع أحد، بمن فيهم الإدارة، معرفة من اختار أي خيار.';
 
   @override
   String get anketSecretVoteNote =>
-      'يبقى صوتك سريا ولا أحد يستطيع معرفة من اختار ماذا.';
+      'يبقى صوتك سريًا ولا يستطيع أحد معرفة من اختار أي خيار.';
 
   @override
   String get anketMineBadge => 'اختيارك';
@@ -5948,7 +5950,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get anketVisTitle => 'متى تظهر النتائج؟';
 
   @override
-  String get anketVisAlways => 'دائما';
+  String get anketVisAlways => 'دائمًا';
 
   @override
   String get anketVisAfterVote => 'بعد التصويت';
@@ -6012,7 +6014,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icerikMaintenance =>
-      'تعذر الوصول إلى مصدر الأخبار حاليا. يتم عرض آخر الأخبار المحفوظة.';
+      'تعذر الوصول إلى مصدر الأخبار حاليًا. يتم عرض آخر الأخبار المحفوظة.';
 
   @override
   String get icerikOpenSource => 'فتح في الموقع المصدر';
@@ -6063,7 +6065,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String kulupdetayPendingBanner(String count) {
-    return '$count طلبات انضمام معلقة';
+    return 'طلبات انضمام معلقة: $count';
   }
 
   @override
@@ -6093,7 +6095,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String akademik2CourseCount(String count) {
-    return '$count محاضرات';
+    return 'المحاضرات: $count';
   }
 
   @override
@@ -6187,7 +6189,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'نعمل على تحسين التطبيق من أجلك. حاول مرة أخرى بعد قليل. بياناتك في أمان.';
 
   @override
-  String get sistemuiMaintBand => 'قد تكون بعض الميزات غير متاحة مؤقتا.';
+  String get sistemuiMaintBand => 'قد تكون بعض الميزات غير متاحة مؤقتًا.';
 
   @override
   String sistemuiUpdateVersions(String current, String required) {
@@ -6286,7 +6288,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String profilyardEventPendingCount(String count) {
-    return '$count طلبات معلقة';
+    return 'طلبات معلقة: $count';
   }
 
   @override
@@ -6400,7 +6402,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get etkinlik2PolicyApprovalHint =>
-      'عند اختيار بطلب ستوافق أنت على المشاركين.';
+      'عند اختيار \"بطلب\" توافق أنت على كل مشارك.';
 
   @override
   String get etkinlik2FormClub => 'باسم نادٍ (اختياري)';
@@ -6409,7 +6411,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2ClubNone => 'غير محدد';
 
   @override
-  String get etkinlik2ClubSheetTitle => 'اختر نادياً';
+  String get etkinlik2ClubSheetTitle => 'اختر ناديًا';
 
   @override
   String get etkinlik2ClubNoneOption => 'ليس باسم نادٍ';
@@ -6418,11 +6420,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2ClubNoClubs => 'لا توجد أندية يمكنك إنشاء فعالية لها.';
 
   @override
-  String get etkinlik2ChatAutoTitle => 'تُفتح دردشة الفعالية تلقائياً';
+  String get etkinlik2ChatAutoTitle => 'تُفتح محادثة الفعالية تلقائيًا';
 
   @override
   String get etkinlik2ChatAutoBody =>
-      'يدخل المشاركون وأنت إلى الدردشة. في الانضمام بطلب يدخل المعتمدون فقط.';
+      'يدخل المشاركون وأنت إلى المحادثة. في الانضمام بطلب يدخل المعتمدون فقط.';
 
   @override
   String get etkinlik2CapacityOptional => 'السعة (اختياري)';
@@ -6445,7 +6447,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2SendRequest => 'إرسال طلب انضمام';
 
   @override
-  String get etkinlik2RequestHint => 'تدخل دردشة الفعالية عندما يوافق المنظّم.';
+  String get etkinlik2RequestHint =>
+      'تدخل محادثة الفعالية عندما يوافق المنظّم.';
 
   @override
   String get etkinlik2RequestSent => 'تم إرسال الطلب';
@@ -6463,7 +6466,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2WithdrawMessage => 'سيتم سحب طلب انضمامك.';
 
   @override
-  String get etkinlik2ChatLocked => 'دردشة الفعالية · تُفتح بعد الموافقة';
+  String get etkinlik2ChatLocked => 'محادثة الفعالية · تُفتح بعد الموافقة';
 
   @override
   String get etkinlik2RejectedTitle => 'تم رفض طلبك';
@@ -6479,12 +6482,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String etkinlik2GoingInterested(String going, String interested) {
-    return '$going مشاركاً · $interested مهتماً';
+    return '$going مشارك · $interested مهتم';
   }
 
   @override
   String etkinlik2GoingOnly(String going) {
-    return '$going مشاركاً';
+    return '$going مشارك';
   }
 
   @override
@@ -6569,7 +6572,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String etkinlik2SettingsCapMin(String n) {
-    return 'يوجد $n مؤكَّداً. لا يمكنك خفض السعة عن ذلك.';
+    return 'عدد المؤكَّدين $n. لا يمكنك خفض السعة عن ذلك.';
   }
 
   @override
@@ -6578,7 +6581,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get etkinlik2SettingsRegChat => 'التسجيل والدردشة';
+  String get etkinlik2SettingsRegChat => 'التسجيل والمحادثة';
 
   @override
   String get etkinlik2SettingsRegOpen => 'التسجيل مفتوح';
@@ -6588,7 +6591,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'عند الإيقاف لا تُقبل طلبات أو مشاركات جديدة.';
 
   @override
-  String get etkinlik2SettingsChatOpen => 'دردشة الفعالية مفتوحة';
+  String get etkinlik2SettingsChatOpen => 'محادثة الفعالية مفتوحة';
 
   @override
   String get etkinlik2SettingsChatHint =>
@@ -6599,14 +6602,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String etkinlik2SettingsCancelBody(String n) {
-    return 'سيتم إشعار $n مشاركاً وتُغلق الدردشة. لا يمكن التراجع.';
+    return 'سيتم إشعار جميع المشاركين ($n) وتُغلق المحادثة. لا يمكن التراجع.';
   }
 
   @override
   String get etkinlik2SettingsSaved => 'تم حفظ الإعدادات.';
 
   @override
-  String get etkinlik2QrManualCaption => 'لإدخال الرمز يدوياً';
+  String get etkinlik2QrManualCaption => 'لإدخال الرمز يدويًا';
 
   @override
   String etkinlik2QrRenewsIn(String n) {
@@ -6651,10 +6654,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2MarkFailed => 'تعذّر تحديث الحضور.';
 
   @override
-  String get etkinlik2ChatClosedToast => 'تم إغلاق الدردشة.';
+  String get etkinlik2ChatClosedToast => 'تم إغلاق المحادثة.';
 
   @override
-  String get etkinlik2ChatOpenedToast => 'تم فتح الدردشة.';
+  String get etkinlik2ChatOpenedToast => 'تم فتح المحادثة.';
 
   @override
   String get etkinlik2NoteLabel => 'ملاحظة للمنظّم (اختياري)';
@@ -6723,17 +6726,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get evcInfoInstant => 'يُنشر فورًا.';
 
   @override
-  String get evcInfoReview => 'يُنشر بعد موافقة المسؤول.';
+  String get evcInfoReview => 'يُنشر بعد موافقة الإدارة.';
 
   @override
-  String get evcClubRequiredHint => 'اختر نادي أولًا.';
+  String get evcClubRequiredHint => 'اختر ناديًا أولًا.';
 
   @override
-  String get evcEmptyTitle => 'يجب أن تكون مسؤولًا في نادٍ لإنشاء فعالية';
+  String get evcEmptyTitle => 'يجب أن تكون مديرًا في نادٍ لإنشاء فعالية';
 
   @override
   String get evcEmptyBody =>
-      'تُنشأ الفعاليات باسم الأندية. عندما تصبح مسؤولًا في نادٍ يمكنك إنشاء الفعاليات هنا.';
+      'تُنشأ الفعاليات باسم الأندية. عندما تصبح مديرًا في نادٍ يمكنك إنشاء الفعاليات هنا.';
 
   @override
   String get evcBrowseClubs => 'تصفّح الأندية';
@@ -6743,7 +6746,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get evcSubmittedBody =>
-      'ستُنشر فعاليتك بعد موافقة المسؤول. يمكنك متابعة حالتها من تبويب ما أنشأته.';
+      'ستُنشر فعاليتك بعد موافقة الإدارة. يمكنك متابعة حالتها من تبويب ما أنشأته.';
 
   @override
   String get evcOk => 'حسنًا';
@@ -6760,7 +6763,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get evcErrClubRequired => 'يجب إنشاء الفعالية باسم نادٍ. اختر نادي.';
+  String get evcErrClubRequired => 'يجب إنشاء الفعالية باسم نادٍ. اختر ناديًا.';
 
   @override
   String get evcErrForbidden => 'ليست لديك صلاحية إنشاء فعاليات لهذا النادي.';
@@ -6848,5 +6851,5 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get clubMgmtCategoryInvalid =>
-      'التصنيف المحدد غير صالح. اختر تصنيفا آخر من القائمة.';
+      'الفئة المحددة غير صالحة. اختر فئة أخرى من القائمة.';
 }
