@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppInfo, useStoreLinks } from '../api/hooks';
 import { CookieBanner } from '../components/CookieBanner';
@@ -9,9 +9,45 @@ import { StoreBadge } from '../components/StoreBadge';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { ButtonLink, ContourBackdrop, Icon, IconButton } from '../components/ui';
 import { useI18n } from '../i18n/I18nProvider';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { paths } from '../paths';
 import { MAIN_NAV, SITE_GROUPS } from './siteLinks';
 import styles from './SiteLayout.module.css';
+
+/** Alt bilgi bağlantı grubu: masaüstünde düz başlık + liste, mobilde akordeon (varsayılan kapalı). */
+function FootGroup({ title, accordion, children }: { title: string; accordion: boolean; children: ReactNode }) {
+  const uid = useId();
+  const [open, setOpen] = useState(false);
+  if (!accordion) {
+    return (
+      <nav aria-labelledby={`${uid}-h`}>
+        <h2 id={`${uid}-h`} className={styles.footTitle}>
+          {title}
+        </h2>
+        {children}
+      </nav>
+    );
+  }
+  return (
+    <nav aria-labelledby={`${uid}-h`} className={styles.acc}>
+      <h2 id={`${uid}-h`} className={styles.accHead}>
+        <button
+          type="button"
+          className={styles.accBtn}
+          aria-expanded={open}
+          aria-controls={`${uid}-p`}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span>{title}</span>
+          <Icon name="chevronDown" size={20} className={`${styles.accChev} ${open ? styles.accChevOpen : ''}`} />
+        </button>
+      </h2>
+      <div id={`${uid}-p`} hidden={!open} className={styles.accPanel}>
+        {children}
+      </div>
+    </nav>
+  );
+}
 
 /**
  * Herkese açık site kabuğu: atlama bağlantısı, banner, üst menü (dil + tema + mobil hamburger),
@@ -24,6 +60,7 @@ export function SiteLayout() {
   const location = useLocation();
   const info = useAppInfo();
   const stores = useStoreLinks();
+  const compactFooter = useMediaQuery('(max-width: 639px)');
 
   // Sayfa değişince menüyü kapat, en üste dön
   useEffect(() => {
@@ -32,6 +69,14 @@ export function SiteLayout() {
   }, [location.pathname]);
 
   const data = info.data;
+  const hasContact = !!(
+    data?.contactEmail ||
+    data?.phone ||
+    data?.address ||
+    data?.social.instagram ||
+    data?.social.twitter ||
+    data?.social.youtube
+  );
 
   return (
     <div className={styles.shell}>
@@ -103,58 +148,67 @@ export function SiteLayout() {
         <ContourBackdrop className={styles.footerArt} />
         <div className={`container ${styles.footGrid}`}>
           <div className={styles.footBrand}>
-            <Logo to={paths.site.home} tone="dark" height={40} />
-            <p>{t('site.footer.tagline')}</p>
-            <h2 className={styles.footTitle}>{t('pg.foot.get')}</h2>
-            <div className={styles.badges}>
-              <StoreBadge store="android" href={stores.android} />
-              <StoreBadge store="ios" href={stores.ios} />
+            <div className={styles.brandMain}>
+              <Logo to={paths.site.home} tone="dark" height={40} />
+              <p>{t('site.footer.tagline')}</p>
             </div>
-            <h2 className={styles.footTitle}>{t('pg.foot.contactTitle')}</h2>
-            <ul className={styles.footList}>
-              {data?.contactEmail && (
-                <li>
-                  <a href={`mailto:${data.contactEmail}`} className="ltr">
-                    {data.contactEmail}
-                  </a>
-                </li>
-              )}
-              {data?.phone && (
-                <li>
-                  <a href={`tel:${data.phone.replace(/\s+/g, '')}`} className="ltr">
-                    {data.phone}
-                  </a>
-                </li>
-              )}
-              {data?.address && <li>{data.address}</li>}
-              {data?.social.instagram && (
-                <li>
-                  <a href={data.social.instagram} target="_blank" rel="noopener noreferrer">
-                    Instagram
-                  </a>
-                </li>
-              )}
-              {data?.social.twitter && (
-                <li>
-                  <a href={data.social.twitter} target="_blank" rel="noopener noreferrer">
-                    X / Twitter
-                  </a>
-                </li>
-              )}
-              {data?.social.youtube && (
-                <li>
-                  <a href={data.social.youtube} target="_blank" rel="noopener noreferrer">
-                    YouTube
-                  </a>
-                </li>
-              )}
-            </ul>
+            <div className={styles.brandCol}>
+              <h2 className={styles.footTitle}>{t('pg.foot.get')}</h2>
+              <div className={styles.badges}>
+                <StoreBadge store="android" href={stores.android} />
+                <StoreBadge store="ios" href={stores.ios} />
+              </div>
+            </div>
+            <div className={styles.brandCol}>
+              <h2 className={styles.footTitle}>{t('pg.foot.contactTitle')}</h2>
+              <ul className={styles.footList}>
+                {data?.contactEmail && (
+                  <li>
+                    <a href={`mailto:${data.contactEmail}`} className="ltr">
+                      {data.contactEmail}
+                    </a>
+                  </li>
+                )}
+                {data?.phone && (
+                  <li>
+                    <a href={`tel:${data.phone.replace(/\s+/g, '')}`} className="ltr">
+                      {data.phone}
+                    </a>
+                  </li>
+                )}
+                {data?.address && <li>{data.address}</li>}
+                {data?.social.instagram && (
+                  <li>
+                    <a href={data.social.instagram} target="_blank" rel="noopener noreferrer">
+                      Instagram
+                    </a>
+                  </li>
+                )}
+                {data?.social.twitter && (
+                  <li>
+                    <a href={data.social.twitter} target="_blank" rel="noopener noreferrer">
+                      X / Twitter
+                    </a>
+                  </li>
+                )}
+                {data?.social.youtube && (
+                  <li>
+                    <a href={data.social.youtube} target="_blank" rel="noopener noreferrer">
+                      YouTube
+                    </a>
+                  </li>
+                )}
+                {/* Uygulama bilgisi gelmediyse / iletişim alanları boşsa başlık boş kalmasın: iletişim sayfasına yedek bağlantı */}
+                {!hasContact && (
+                  <li>
+                    <Link to={paths.site.contact}>{t('pg.foot.contactLink')}</Link>
+                  </li>
+                )}
+              </ul>
+            </div>
           </div>
           {SITE_GROUPS.map((g) => (
-            <nav key={g.title} aria-labelledby={`foot-${g.title}`}>
-              <h2 id={`foot-${g.title}`} className={styles.footTitle}>
-                {t(g.title)}
-              </h2>
+            <FootGroup key={g.title} title={t(g.title)} accordion={compactFooter}>
               <ul className={styles.footList}>
                 {g.links.map((l) => (
                   <li key={l.to}>
@@ -162,7 +216,7 @@ export function SiteLayout() {
                   </li>
                 ))}
               </ul>
-            </nav>
+            </FootGroup>
           ))}
         </div>
         <div className={`container ${styles.copy}`}>

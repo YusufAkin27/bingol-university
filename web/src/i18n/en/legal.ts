@@ -16,6 +16,7 @@ const legal = {
   'legal.list.read': 'Read',
   'legal.list.error': 'The document list could not be loaded',
   'legal.toc': 'Contents',
+  'legal.onThisPage': 'On this page',
   'legal.print': 'Print',
   'legal.versions': 'Previous versions',
   'legal.versionsNone': 'There are no other versions.',

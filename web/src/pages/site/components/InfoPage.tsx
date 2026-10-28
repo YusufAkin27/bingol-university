@@ -36,12 +36,14 @@ interface Props {
   sections: SectionSpec[];
   /** Sayfa sonuna eklenen özel içerik (bağlantılar, iletişim vb.). */
   children?: ReactNode;
+  /** Bölümlerden önce gösterilen kısa giriş (örn. uygulama/geliştirici satırı). */
+  intro?: ReactNode;
   /** Belirli bölümün altına eklenen özel içerik. */
   after?: Record<string, ReactNode>;
 }
 
 /** Çeviri anahtarlarından üretilen, bölüm tabanlı bilgi sayfası (çerez, güvenlik, erişilebilirlik vb.). */
-export function InfoPage({ slug, path, sections, children, after }: Props) {
+export function InfoPage({ slug, path, sections, children, after, intro }: Props) {
   const { t } = useI18n();
   const title = t(k(`pg.${slug}.title`));
   usePageMeta({ title, description: t(k(`pg.${slug}.meta`)), path });
@@ -50,6 +52,7 @@ export function InfoPage({ slug, path, sections, children, after }: Props) {
       <PageHero title={title} lead={t(k(`pg.${slug}.lead`))} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.body}`}>
+          {intro}
           {sections.map((s) => (
             <section key={s.id} aria-labelledby={`${slug}-${s.id}`} className={styles.block}>
               <h2 id={`${slug}-${s.id}`} className={shared.h3}>

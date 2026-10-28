@@ -78,7 +78,7 @@ function LegalDocPage({ type }: { type: LegalType }) {
             </Link>
             <Button
               variant="secondary"
-              size="sm"
+              size="md"
               leftIcon={<Icon name="file" size={16} />}
               onClick={() => window.print()}
             >

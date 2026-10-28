@@ -130,27 +130,92 @@
   opacity: 0.18;
   pointer-events: none;
 }
+/* Mobil: tek sütun (bağlantı grupları akordeon); >=640: 2 eşit sütun; >=1024: 4 eşit sütun.
+   Marka bloğu her zaman tam genişlikte üst satırdır, böylece "Yasal" gibi uzun gruplar daralmaz. */
 .footGrid {
   position: relative;
   display: grid;
-  gap: var(--space-6);
-  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
 }
-@media (max-width: 1100px) {
+@media (min-width: 640px) {
   .footGrid {
-    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6) var(--space-5);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (max-width: 560px) {
+@media (min-width: 1024px) {
   .footGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 .footBrand {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-5);
   align-content: start;
-  max-width: 34ch;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.brandMain {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 44ch;
+}
+.brandCol {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  min-width: 0;
+}
+.brandCol .footTitle {
+  margin-block-end: var(--space-1);
+}
+@media (min-width: 768px) {
+  .footBrand {
+    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+    padding-block-end: var(--space-5);
+    border-block-end: 1px solid rgba(255, 255, 255, 0.14);
+  }
+}
+/* Mobil akordeon */
+.acc {
+  border-block-end: 1px solid rgba(255, 255, 255, 0.14);
+}
+.accHead {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  letter-spacing: 0;
+}
+.accBtn {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  text-align: start;
+  cursor: pointer;
+}
+.accBtn:focus-visible {
+  outline-color: #fff;
+}
+.accChev {
+  flex: none;
+  transition: transform 0.2s var(--ease);
+}
+.accChevOpen {
+  transform: rotate(180deg);
+}
+.accPanel {
+  padding-block-end: var(--space-3);
 }
 .footTitle {
   font-family: var(--font-sans);
@@ -189,4 +254,13 @@
   border-block-start: 1px solid rgba(255, 255, 255, 0.14);
   font-size: var(--text-xs);
   color: #b3b8cc;
+}
+
+/* Dokunma hedefleri >= 44px (mobil ve dokunmatik) */
+@media (max-width: 1023px), (pointer: coarse) {
+  .footList a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }

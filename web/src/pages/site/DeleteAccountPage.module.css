@@ -1,0 +1,93 @@
+.app {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* Tablo yatay kaydırma kapsayıcısında: sayfayı taşırmaz, klavyeyle kaydırılabilir (tabindex=0) */
+.wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 36rem;
+  font-size: var(--text-sm);
+}
+.table th,
+.table td {
+  padding: var(--space-3);
+  text-align: start;
+  vertical-align: top;
+  border-block-end: 1px solid var(--border);
+}
+.table thead th {
+  background: var(--surface-2);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.table tbody th {
+  font-weight: 600;
+  min-width: 14rem;
+}
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+/* Mobil: satırlar kart olarak yığılır (rol öznitelikleri tablo anlamını korur), kaydırma gerekmez */
+@media (max-width: 639px) {
+  .wrap {
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+  .table {
+    min-width: 0;
+  }
+  .table,
+  .table tbody,
+  .table tr,
+  .table th,
+  .table td {
+    display: block;
+  }
+  .thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .table tbody {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .table tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .table tbody th {
+    min-width: 0;
+    background: var(--surface-2);
+  }
+  .table th,
+  .table td {
+    border-block-end: 0;
+  }
+  .table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+}

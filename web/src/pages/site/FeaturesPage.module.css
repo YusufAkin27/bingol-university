@@ -1,50 +1,51 @@
-.list {
-  display: grid;
-  padding-block-end: var(--space-7);
-}
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-7);
-  align-items: center;
-  padding-block: var(--space-6);
-  border-block-start: 1px solid var(--border);
-}
-.row:first-child {
-  border-block-start: 0;
-}
-.text {
+/* Mobil öncelikli: tek sütun, sonra 2 ve 3 sütun */
+.grid {
+  list-style: none;
+  margin-block: 0;
   display: grid;
   gap: var(--space-4);
-  justify-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block-start: var(--space-5);
 }
-.visual {
-  display: grid;
-  place-items: center;
-}
-.row:nth-child(even) .visual {
-  order: -1;
-}
-@media (max-width: 760px) {
-  .row {
-    grid-template-columns: 1fr;
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-5);
   }
-  .row:nth-child(even) .visual {
-    order: 0;
+}
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .visual {
-    order: 2;
-  }
+}
+.card {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.title {
+  font-size: var(--text-lg);
+  line-height: 1.25;
+}
+.text {
+  color: var(--text-muted);
+  font-size: var(--text-base);
 }
 .cta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  gap: var(--space-5);
   justify-content: space-between;
   align-items: center;
 }
 .ctaButtons {
-  display: grid;
-  gap: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }

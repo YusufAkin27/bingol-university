@@ -25,7 +25,7 @@
   font-size: var(--text-xs);
 }
 .md {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 var(--space-4);
   font-size: var(--text-sm);
 }
@@ -119,8 +119,8 @@
   cursor: not-allowed;
 }
 .icon-md {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
 }
 .icon-sm {
   width: 34px;

@@ -16,6 +16,7 @@ const legal = {
   'legal.list.read': 'اقرأ',
   'legal.list.error': 'تعذّر تحميل قائمة الوثائق',
   'legal.toc': 'المحتويات',
+  'legal.onThisPage': 'في هذه الصفحة',
   'legal.print': 'طباعة',
   'legal.versions': 'الإصدارات السابقة',
   'legal.versionsNone': 'لا توجد إصدارات أخرى.',

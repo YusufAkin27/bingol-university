@@ -3,7 +3,7 @@
   margin: 0 0 var(--space-7);
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: var(--space-4);
 }
 .card {
@@ -22,6 +22,9 @@
 }
 .open {
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-block-start: var(--space-2);
 }
 .support {

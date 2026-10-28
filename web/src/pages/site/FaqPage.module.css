@@ -36,11 +36,11 @@
 }
 .clear {
   position: absolute;
-  inset-inline-end: var(--space-2);
+  inset-inline-end: 0;
   inset-block: 0;
   margin-block: auto;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: 0;

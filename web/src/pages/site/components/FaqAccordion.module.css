@@ -42,3 +42,26 @@
 .panel {
   padding: 0 var(--space-2) var(--space-5);
 }
+
+/* Dokunma hedefi >= 44px, iç odak halkası (kapsayıcı taşmasında kesilmez), mobilde daha kompakt başlık */
+.btn {
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+}
+.btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+@media (max-width: 480px) {
+  .btn {
+    font-size: var(--text-base);
+    padding-inline: var(--space-1);
+  }
+  .panel {
+    padding-inline: var(--space-1);
+  }
+}
+.btn > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

@@ -17,6 +17,7 @@ const legal = {
   'legal.list.read': 'Oku',
   'legal.list.error': 'Belge listesi yüklenemedi',
   'legal.toc': 'İçindekiler',
+  'legal.onThisPage': 'Bu sayfada',
   'legal.print': 'Yazdır',
   'legal.versions': 'Önceki sürümler',
   'legal.versionsNone': 'Başka sürüm yok.',

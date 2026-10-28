@@ -7,6 +7,9 @@
   margin-block-end: var(--space-5);
 }
 .toolLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-weight: 600;
 }
 .skeleton {
@@ -51,4 +54,14 @@
     background: #fff;
     color: #000;
   }
+}
+
+/* Dokunma hedefleri >= 44px */
+.more li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.more ul {
+  gap: 0;
 }
