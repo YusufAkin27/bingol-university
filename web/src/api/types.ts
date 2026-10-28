@@ -519,6 +519,9 @@ export interface AdminChatMessage {
   deletedByName: string | null;
   deleteKind?: string | null;
   hidden: boolean;
+  /** P08: yönetici gizlemesi (geri alınabilir) ve kalıcı silme (içerik temizlendi, geri alınamaz). */
+  adminHidden?: boolean;
+  purged?: boolean;
   /** Gölge engel: alıcıya iletilmedi. */
   suppressed?: boolean;
   blockedBy?: ChatPerson | null;

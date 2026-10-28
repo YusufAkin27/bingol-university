@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Yonetici sohbet izleme (V270) duman betigi: kullanici sohbet goruntuleyici kisitsiz gorunurluk, tek gosterimlik
+# Yonetici sohbet izleme (V270) + sohbet mudahalesi (P08) duman betigi: kullanici sohbet goruntuleyici kisitsiz gorunurluk, tek gosterimlik
 # gorsel saklama, toplu ek/mesaj akisi, istatistik, sikayet baglami, yetki ve denetim.
 # Kullanim:
 #   docker compose exec -T redis redis-cli flushall
@@ -124,6 +124,60 @@ fi
 GM=$(echo "$MSGS2" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const m=(j.items||[]).find(m=>m.suppressed);console.log(m?m.id:'')})")
 [ -n "$GM" ] && check "golge mesaj karsi tarafca raporlanamaz 404" 404 "$(code -X POST -H "$H" -H "$AUTH_B" $A/reports -d "{\"targetType\":\"MESSAGE\",\"targetId\":$GM,\"reason\":\"SPAM\"}")"
 check "olmayan sikayet 404" 404 "$(code -H "$AUTH_ADM" $A/admin/reports/999999999)"
+
+echo "== P08: mesaj mudahalesi (gizle / geri goster / kalici sil / toplu)"
+RS="X-Admin-Reason: smoke-p08-kural-ihlali"
+check "yetkisiz gizle 403" 403 "$(code -X POST -H "$AUTH_A" -H "$RS" $A/admin/messages/$M1/hide)"
+check "sebepsiz gizle 400" 400 "$(code -X POST -H "$AUTH_ADM" $A/admin/messages/$M1/hide)"
+HID=$(curl -s -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/messages/$M1/hide)
+has "gizle: HIDDEN" "\"state\":\"HIDDEN\"" "$HID"
+has "kullanici yonetici yer tutucusunu gorur" "Bu mesaj yönetici tarafından kaldırıldı" "$(curl -s -H "$AUTH_B" "$A/conversations/$CONV/messages?size=50")"
+has "yonetici icerigi hala cozer" "adc-merhaba" "$(curl -s -H "$AUTH_ADM" -H "$RS" "$A/admin/users/$IDA/conversations/$CONV/messages?size=50")"
+check "tekrar gizle 409" 409 "$(code -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/messages/$M1/hide)"
+has "geri goster: VISIBLE" "\"state\":\"VISIBLE\"" "$(curl -s -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/messages/$M1/unhide)"
+check "gizli olmayani geri gosterme 409" 409 "$(code -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/messages/$M1/unhide)"
+BH=$(curl -s -X POST -H "$H" -H "$AUTH_ADM" $A/admin/messages/bulk-hide -d "{\"ids\":[$M1,$M3,999999999],\"reason\":\"smoke toplu gizleme\"}")
+has "toplu: 2 basarili" "\"done\":2" "$BH"
+has "toplu: olmayan mesaj hatasi" "MESSAGE_NOT_FOUND" "$BH"
+check "kalici silme kisa sebep 400" 400 "$(code -X DELETE -H "$AUTH_ADM" -H "X-Admin-Reason: kisa" $A/admin/messages/$M3)"
+PG=$(curl -s -X DELETE -H "$AUTH_ADM" -H "X-Admin-Reason: smoke kalici silme sebebi" $A/admin/messages/$M3)
+has "kalici silme: PURGED + irreversible" "\"irreversible\":true" "$PG"
+check "kalici silineni tekrar silme 409" 409 "$(code -X DELETE -H "$AUTH_ADM" -H "X-Admin-Reason: smoke kalici silme sebebi" $A/admin/messages/$M3)"
+has "kalici silinenin icerigi yok" "NO_CIPHERTEXT" "$(curl -s -H "$AUTH_ADM" -H "$RS" "$A/admin/users/$IDA/conversations/$CONV/messages?size=50")"
+
+echo "== P08: sohbet kapat / ac, uye cikar, ust veri"
+GRP=$(curl -s -X POST -H "$H" -H "$AUTH_A" $A/conversations -d "{\"title\":\"p08 grup $RUN\",\"memberIds\":[$IDB]}" | jget id)
+[ -n "$GRP" ] || { echo "  FAIL grup olusmadi"; exit 1; }
+check "grup mesaji (kapatmadan once)" 201 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$GRP/messages -d "{\"text\":\"p08-once\",\"clientId\":\"p8a-$RUN\"}")"
+META=$(curl -s -H "$AUTH_ADM" $A/admin/conversations/$GRP)
+has "ust veri: tur" "\"kind\":\"GROUP\"" "$META"
+has "ust veri: maskeli e-posta" "***@bingol.edu.tr" "$META"
+if echo "$META" | grep -qF "p08-once"; then echo "  FAIL ust veri icerik sizdirdi"; FAIL=1; else echo "  ok   ust veri icerik icermez"; fi
+check "ust veri yetkisiz 403" 403 "$(code -H "$AUTH_A" $A/admin/conversations/$GRP)"
+check "sohbeti kapat" 200 "$(code -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$GRP/close)"
+check "kapali sohbete mesaj 409" 409 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$GRP/messages -d "{\"text\":\"p08-kapali\",\"clientId\":\"p8b-$RUN\"}")"
+has "CONVERSATION_CLOSED kodu" "CONVERSATION_CLOSED" "$(curl -s -X POST -H "$H" -H "$AUTH_B" $A/conversations/$GRP/messages -d "{\"text\":\"p08-kapali\",\"clientId\":\"p8c-$RUN\"}")"
+check "tekrar kapat 409" 409 "$(code -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$GRP/close)"
+check "sohbeti ac" 200 "$(code -X POST -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$GRP/reopen)"
+check "acik sohbete mesaj" 201 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations/$GRP/messages -d "{\"text\":\"p08-sonra\",\"clientId\":\"p8d-$RUN\"}")"
+check "birebirde uye cikarma 400" 400 "$(code -X DELETE -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$CONV/members/$IDB)"
+check "gruptan uye cikar" 200 "$(code -X DELETE -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$GRP/members/$IDB)"
+check "cikarilan mesaj atamaz 404" 404 "$(code -X POST -H "$H" -H "$AUTH_B" $A/conversations/$GRP/messages -d "{\"text\":\"p08-cikarildi\",\"clientId\":\"p8e-$RUN\"}")"
+check "olmayan uyeyi cikar 404" 404 "$(code -X DELETE -H "$AUTH_ADM" -H "$RS" $A/admin/conversations/$GRP/members/$IDB)"
+
+echo "== P08: yasal disa aktarma (sebep >= 20 + ikinci onay)"
+LR="X-Admin-Reason: mahkeme karari 2026/15 sayili dosya"
+check "disa aktarma yetkisiz 403" 403 "$(code -H "$AUTH_A" -H "$LR" -H "X-Admin-Confirm: $GRP" $A/admin/conversations/$GRP/export)"
+check "disa aktarma kisa sebep 400" 400 "$(code -H "$AUTH_ADM" -H "X-Admin-Reason: kisa sebep" -H "X-Admin-Confirm: $GRP" $A/admin/conversations/$GRP/export)"
+check "disa aktarma onaysiz 400" 400 "$(code -H "$AUTH_ADM" -H "$LR" $A/admin/conversations/$GRP/export)"
+check "disa aktarma yanlis onay 400" 400 "$(code -H "$AUTH_ADM" -H "$LR" -H "X-Admin-Confirm: 1$GRP" $A/admin/conversations/$GRP/export)"
+EX=$(curl -s -H "$AUTH_ADM" -H "$LR" -H "X-Admin-Confirm: $GRP" "$A/admin/conversations/$GRP/export")
+has "disa aktarma: cozulmus mesaj" "p08-once" "$EX"
+has "disa aktarma: durum alani" "\"status\":\"VISIBLE\"" "$EX"
+CSVX=$(curl -s -H "$AUTH_ADM" -H "$LR" -H "X-Admin-Confirm: $GRP" "$A/admin/conversations/$GRP/export?format=csv")
+has "csv baslik" "id,createdAt,senderId" "$CSVX"
+has "mesaj erisim denetimi (EXPORT)" "\"kind\":\"EXPORT\"" "$(curl -s -H "$AUTH_ADM" "$A/admin/audit/message-access?conversationId=$GRP&kind=EXPORT&size=20")"
+has "admin_audit'te disa aktarma" "/admin/conversations/$GRP/export" "$(curl -s -H "$AUTH_ADM" "$A/admin/audit?size=50")"
 
 echo "== temizlik"
 rm -rf "$WORK"

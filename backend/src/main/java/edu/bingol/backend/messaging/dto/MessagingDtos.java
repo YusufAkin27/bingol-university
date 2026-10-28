@@ -17,6 +17,8 @@ public final class MessagingDtos {
     public static final String REMOVED_TEXT = "Bu mesaj kaldırıldı";
     public static final String UNREADABLE_TEXT = "Bu mesaj görüntülenemiyor";
     public static final String DELETED_TEXT = "Bu mesaj silindi";
+    /** P08: yonetici gizlemesi / kalici silmesi yer tutucusu (REMOVED_TEXT moderasyon gizlemesi icindir). */
+    public static final String ADMIN_REMOVED_TEXT = "Bu mesaj yönetici tarafından kaldırıldı";
     public static final String BLOCKED_TEXT ="Engellediğiniz kullanıcının mesajı gizlendi";
 
     // --- istekler ---
@@ -122,7 +124,7 @@ public final class MessagingDtos {
             boolean gone = m.isHidden() || m.isDeleted();
             boolean unreadable = !gone && !senderBlocked && m.getBody() == null;
             boolean removed = gone || senderBlocked || unreadable;
-            String text = m.isHidden() ? REMOVED_TEXT : m.isDeleted() ? DELETED_TEXT : senderBlocked ? BLOCKED_TEXT
+            String text = m.isAdminRemoved() ? ADMIN_REMOVED_TEXT : m.isHidden() ? REMOVED_TEXT : m.isDeleted() ? DELETED_TEXT : senderBlocked ? BLOCKED_TEXT
                     : unreadable ? UNREADABLE_TEXT : m.getBody();
             return new MessageView(m.getId(), m.getConversationId(), m.getSenderId(), m.getClientId(), text,
                     removed, m.getCreatedAt().toString(), m.isDeleted() ? null : m.getReplyToMessageId(), null,

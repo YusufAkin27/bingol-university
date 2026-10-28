@@ -15,6 +15,9 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { ChatBubble } from './chat/ChatBubble';
+import { ConversationTools } from './chat/ConversationTools';
+import { MessageActions } from './chat/MessageActions';
+import { MessageBulkBar, useMessageSelection } from './chat/MessageBulkBar';
 import { chatReasonKey, useRejectOnReasonError } from './chat/chatReason';
 import { ReasonGate } from './chat/ReasonGate';
 import { Lightbox } from './chat/Lightbox';
@@ -88,6 +91,8 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
   useRejectOnReasonError(chatReasonKey.user(userId), convs.error, msgs.error);
   const messages = useMemo(() => flattenPages(msgs.data?.pages ?? []), [msgs.data]);
   const info = msgs.data?.pages[0]?.conversation;
+  // P08: toplu gizleme seçimi (sohbet değişince sıfırlanır)
+  const selection = useMessageSelection(messages, convId);
   const lbItems = useMemo(() => collectLightboxItems(messages, () => null), [messages]);
 
   // ---- hedef mesaj (?m=): bulunana dek eski sayfaları yükle, kaydır, vurgula ----
@@ -274,6 +279,7 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
                   </span>
                 )}
               </div>
+              {convId !== null && <ConversationTools conversationId={convId} viewReason={reason} />}
               <div className={styles.scroller} ref={scroller} onScroll={onScroll} data-testid="message-scroller">
                 {hasNextPage && (
                   <div className={styles.loadMore}>
@@ -298,11 +304,14 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
                         m={m}
                         highlighted={targetKey !== null && m.id === mParam}
                         onOpenMedia={openMedia}
+                        actions={<MessageActions m={m} />}
+                        select={selection.bubbleSelect(m)}
                       />
                     ))}
                   </ul>
                 )}
               </div>
+              <MessageBulkBar selection={selection} />
             </>
           )}
         </section>
@@ -317,11 +326,15 @@ function MessageWithDay({
   prev,
   highlighted,
   onOpenMedia,
+  actions,
+  select,
 }: {
   m: Parameters<typeof ChatBubble>[0]['m'];
   prev: string | undefined;
   highlighted: boolean;
   onOpenMedia: (attachmentId: number) => void;
+  actions?: Parameters<typeof ChatBubble>[0]['actions'];
+  select?: Parameters<typeof ChatBubble>[0]['select'];
 }) {
   const { formatDate } = useI18n();
   const newDay = !prev || dayKey(prev) !== dayKey(m.createdAt);
@@ -332,7 +345,7 @@ function MessageWithDay({
           {formatDate(m.createdAt)}
         </li>
       )}
-      <ChatBubble m={m} highlighted={highlighted} onOpenMedia={onOpenMedia} />
+      <ChatBubble m={m} highlighted={highlighted} onOpenMedia={onOpenMedia} actions={actions} select={select} />
     </>
   );
 }

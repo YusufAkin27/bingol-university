@@ -1,0 +1,83 @@
+/* Sohbet müdahalesi (P08) bileşenleri: mesaj işlem menüsü, sohbet araç çubuğu, dışa aktarma diyaloğu. Mantıksal özellikler (RTL). */
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.menuList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.menuList[hidden] {
+  display: none;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-block-end: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.toolsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toolsHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.memberRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.memberSelect {
+  min-inline-size: 12rem;
+  max-inline-size: 100%;
+}
+
+.exportBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.warn {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.formats {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

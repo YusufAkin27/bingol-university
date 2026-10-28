@@ -22,6 +22,8 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { adminErrorMessage } from '../campaigns/shared';
 import { ChatBubble } from './ChatBubble';
+import { MessageActions } from './MessageActions';
+import { MessageBulkBar, useMessageSelection } from './MessageBulkBar';
 import { chatReasonKey, useRejectOnReasonError } from './chatReason';
 import { Lightbox } from './Lightbox';
 import { MediaBadges, MediaThumb } from './MediaThumb';
@@ -303,6 +305,8 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
   );
   const [lb, setLb] = useState<number | null>(null);
   const sentinel = useAutoLoad(!!q.hasNextPage && !q.isFetchingNextPage, () => void q.fetchNextPage());
+  // P08: toplu gizleme seçimi (süzgeç değişince sıfırlanır)
+  const selection = useMessageSelection(msgs, f);
 
   if (q.isError) return <ErrorState description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />;
   if (q.isLoading) return <Skeleton height="14rem" width="100%" />;
@@ -325,6 +329,8 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
               <ul className={styles.feedInner}>
                 <ChatBubble
                   m={msgs[i]}
+                  actions={<MessageActions m={msgs[i]} />}
+                  select={selection.bubbleSelect(msgs[i])}
                   onOpenMedia={(aid) => {
                     const k = lbItems.findIndex((x) => x.key === `a${aid}`);
                     if (k >= 0) setLb(k);
@@ -337,6 +343,7 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
       </ul>
       <div ref={sentinel} aria-hidden="true" />
       <LoadMore hasMore={!!q.hasNextPage} loading={q.isFetchingNextPage} onLoadMore={() => void q.fetchNextPage()} />
+      <MessageBulkBar selection={selection} />
       {lb !== null && <Lightbox items={lbItems} index={lb} onIndex={setLb} onClose={() => setLb(null)} />}
     </>
   );

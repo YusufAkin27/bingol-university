@@ -804,3 +804,26 @@ Kapsam: `/api/admin/users/**` (ADMIN). Kod: `admin/users/extras/**` (`AdminUserE
 Yeni hata kodları (3 dilde `i18n/useradmin*.properties`): `PROFILE_PATCH_EMPTY` (400), `SESSION_NOT_FOUND` (404), `PUSH_DEVICE_NOT_FOUND` (404), `EXPORT_CONFIRM_MISMATCH` (400), `USER_BULK_LIMIT` (400). Duman: `scripts/smoke-admin-users.sh`.
 
 Web: `UserDetailPage` "Derin yönetim" kartı (`pages/admin/users/UserDeepTabs.tsx`: Profil müdahalesi, Oturumlar, Cihazlar, Bildirimler, Veri dışa aktarma [iki aşamalı: yetki kutusu → sebep ≥20 + kimlik yazdırma]); `UsersPage` tarih süzgeçleri, çoklu seçim + `BulkBar` (toplu askı / askıyı kaldır / oturumları kapat, `BulkImpactNotice` + sebep, sonuç raporu), süzgeçli CSV. API: `web/src/api/adminUsers.ts`.
+
+## Sohbet müdahalesi (P08, V710)
+
+Yönetici sohbet içeriğini yalnız okumakla kalmaz; mesaja/odaya müdahale edebilir. Tüm uçlar `/api/admin/**` (yalnız JWT'li ADMIN; Basic auth 401), `admin_audit`'e yazılır (hedef `MESSAGE` | `CONVERSATION`), yönetici başına yazma/yıkıcı hız sınırı `AdminGuardInterceptor` ile otomatiktir. **Sebep zorunludur** (`X-Admin-Reason` başlığı ya da gövdede `reason`; en az 5 karakter, kalıcı silmede 10, dışa aktarmada 20). İşlem sebebi, sohbet içeriğini GÖRÜNTÜLEME sebebinden (`ReasonGate`) ayrı bir alandır.
+
+| Uç | Etki |
+|---|---|
+| `POST /api/admin/messages/{id}/hide` | Yönetici gizlemesi: `message.hidden_at` + `admin_hidden_at/by` yazılır; içerik SİLİNMEZ. Kullanıcı `"Bu mesaj yönetici tarafından kaldırıldı"` yer tutucusunu görür (`MessageView.removed=true`). Aktif üyelere STOMP `message-events` `type:"deleted"` gider. Zaten gizli/silinmiş mesajda 409 `MESSAGE_ALREADY_HIDDEN`. Yanıt `{id, conversationId, state:"HIDDEN", irreversible:false}` |
+| `POST /api/admin/messages/{id}/unhide` | Yalnız YÖNETİCİ gizlemesini kaldırır (moderasyon/rapor gizlemesini açmaz: 409 `MESSAGE_NOT_ADMIN_HIDDEN`). `state:"VISIBLE"` |
+| `DELETE /api/admin/messages/{id}` | KALICI silme (sebep >= 10): şifreli gövde/nonce/anahtar sürümü, düzenleme geçmişi, tepkiler ve ekler temizlenir; satır yer tutucu olarak kalır (`purged_at`, `deleted_at`). `state:"PURGED"`, `irreversible:true`. Tekrarında 409 `MESSAGE_ALREADY_PURGED` |
+| `POST /api/admin/messages/bulk-hide` | `{ids (<=200), reason}`; kısmi başarı `{requested, done, failed, items:[{id, ok, status, error}]}`; mesaj başına ayrı `admin_audit` satırı. 201+ -> 400 `CHAT_BULK_LIMIT` |
+| `POST /api/admin/conversations/{id}/close` \| `/reopen` | Yeni mesaj gönderimini kapatır/açar (`conversation.closed_at/by/reason`). Kullanıcı gönderirse 409 `CONVERSATION_CLOSED`. Geçmiş ve üyelikler korunur. Aktif üyelere (en çok 500) kayıtlı dillerinde `SYSTEM` bildirimi gider. Tekrarında 409 `CONVERSATION_ALREADY_CLOSED` / `CONVERSATION_NOT_CLOSED`. Yanıt `{id, closed, closedAt, notified}` |
+| `DELETE /api/admin/conversations/{id}/members/{userId}` | Üyeyi kullanıcı grubundan çıkarır (`left_at`; son yönetici düşerse en eski üye yönetici olur; çıkarılana bildirim). Birebirde 400 `NOT_A_GROUP`; kulüp/etkinlik odasında 409 `CONVERSATION_ROOM_MANAGED` (üyelik kaynağa bağlı); üye yoksa 404 `MEMBER_NOT_FOUND` |
+| `GET /api/admin/conversations/{id}` | ÜST VERİ, içerik YOK (`@AuditRead`): `type`, `kind` (DIRECT/GROUP/CLUB/EVENT), `communityId`/`eventId`, `closed*`, `messageCount`, `activeMemberCount`, `openReportCount` (açık MESSAGE raporları), `membersManaged`, `members[]` (en çok 200; `email` maskeli `a***@bingol.edu.tr`) |
+| `GET /api/admin/conversations/{id}/export` | Yasal talep için içerik dışa aktarımı (aşağıda) |
+
+**Dışa aktarma:** `?format=json|csv&afterId=` + başlıklar `X-Admin-Reason` (>= 20 karakter) ve ikinci onay `X-Admin-Confirm: <sohbet id>` (eksik/yanlışsa 400 `EXPORT_CONFIRM_REQUIRED`; sebep kısaysa 400 `REASON_REQUIRED`; `ADMIN_DECRYPT_DISABLED` kapalıysa 403). En çok 5000 mesaj, eskiden yeniye; fazlası için yanıt `truncated:true`, `nextAfterId` (CSV'de `X-Truncated`, `X-Next-Cursor` başlıkları) ile `afterId` verilerek devam edilir. Her mesaj çözülmüş metin + `status` (`VISIBLE|HIDDEN|ADMIN_HIDDEN|DELETED|PURGED`), gönderen kimliği/adı/maskeli e-posta. CSV: UTF-8 BOM, formül kaçışı (`=+-@` başlayan hücreye `'`). İçerik dönmeden ÖNCE değiştirilemez `message_access_audit` satırı (`kind=EXPORT`, sebep, IP, mesaj aralığı) yazılır (yazılamazsa 503, içerik dönmez); ayrıca istek `admin_audit`'e yazılır. Saatte yönetici başına 10 istek.
+
+**Yönetici sohbet görüntüleyicisi** (`GET /api/admin/users/{id}/conversations/{cid}/messages`, `chat-messages`, şikâyet bağlamı) `MessageItem` içine `adminHidden` ve `purged` bayraklarını ekler (`hidden` yönetici gizlemesinde de true).
+
+**Yeni hata kodları (3 dilde `i18n/chatadmin*.properties`):** `MESSAGE_ALREADY_HIDDEN`, `MESSAGE_NOT_ADMIN_HIDDEN`, `MESSAGE_ALREADY_PURGED`, `CONVERSATION_CLOSED` (kullanıcı gönderimi), `CONVERSATION_ALREADY_CLOSED`, `CONVERSATION_NOT_CLOSED`, `CONVERSATION_ROOM_MANAGED`, `EXPORT_CONFIRM_REQUIRED`, `CHAT_BULK_LIMIT`. Bildirim anahtarları: `notif.chat.closed|reopened|removed.title|body`.
+
+**Migration V710:** `message.admin_hidden_at/admin_hidden_by/purged_at`, `conversation.closed_at/closed_by/closed_reason`, indeksler `p08_message_admin_hidden`, `p08_conversation_closed`. Duman: `scripts/smoke-admin-chat.sh`.

@@ -68,6 +68,19 @@ public class Message {
 
     private Long deletedBy;
 
+    /** Yonetici gizlemesi (P08): hiddenAt de birlikte yazilir; bu alan gizlemenin geri alinabilir yonetici kaynakli oldugunu isaretler. */
+    private Instant adminHiddenAt;
+
+    private Long adminHiddenBy;
+
+    /** Yonetici kalici silmesi (P08): icerik temizlendi, satir yer tutucu olarak kalir; geri alinamaz. */
+    private Instant purgedAt;
+
+    /** Yonetici kaynakli kaldirma (gizleme ya da kalici silme): kullanici "yonetici tarafindan kaldirildi" gorur. */
+    public boolean isAdminRemoved() {
+        return adminHiddenAt != null || purgedAt != null;
+    }
+
     public boolean isDeleted() {
         return deletedAt != null;
     }

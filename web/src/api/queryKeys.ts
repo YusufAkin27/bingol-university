@@ -88,6 +88,7 @@ export const qk = {
     messages: (userId: number, conversationId: number) => ['adminChat', 'messages', userId, conversationId] as const,
     media: (f: unknown) => ['adminChat', 'media', f] as const,
     mediaStats: () => ['adminChat', 'mediaStats'] as const,
+    meta: (conversationId: number) => ['adminChat', 'meta', conversationId] as const,
     feed: (f: unknown) => ['adminChat', 'feed', f] as const,
     userSearch: (q: string) => ['adminChat', 'userSearch', q] as const,
   },

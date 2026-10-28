@@ -76,7 +76,8 @@ public class AdminChatViewerService {
                               String editedAt, List<RevisionView> revisions, boolean deleted, String deletedAt,
                               Long deletedBy, String deletedByName, String deleteKind, boolean hidden,
                               boolean suppressed, PersonView blockedBy, String status, ReplyView replyTo,
-                              List<ReactionView> reactions, List<AttachmentView> attachments) {}
+                              List<ReactionView> reactions, List<AttachmentView> attachments,
+                              boolean adminHidden, boolean purged) {}
 
     public record MemberView(PersonView person, String role, String joinedAt, String leftAt) {}
 
@@ -97,7 +98,7 @@ public class AdminChatViewerService {
     }
 
     record Row(long id, long conversationId, long senderId, String clientId, Instant createdAt, Sealed sealed,
-               Long replyTo, Instant editedAt, Instant deletedAt, Long deletedBy, boolean hidden, boolean suppressed) {}
+               Long replyTo, Instant editedAt, Instant deletedAt, Long deletedBy, boolean hidden, boolean suppressed, boolean adminHidden, boolean purged) {}
 
     record Built(List<MessageItem> items, int decrypted) {}
 
@@ -218,7 +219,7 @@ public class AdminChatViewerService {
 
     static final String MESSAGE_SELECT = "SELECT m.id, m.conversation_id, m.sender_id, m.client_id, m.created_at, "
             + "m.body_ciphertext, m.body_nonce, m.key_version, m.reply_to_message_id, m.edited_at, m.deleted_at, "
-            + "m.deleted_by, m.hidden_at, m.suppressed FROM message m";
+            + "m.deleted_by, m.hidden_at, m.suppressed, m.admin_hidden_at, m.purged_at FROM message m";
 
     static Row row(java.sql.ResultSet rs) throws java.sql.SQLException {
         byte[] ct = rs.getBytes("body_ciphertext");
@@ -231,7 +232,8 @@ public class AdminChatViewerService {
         return new Row(rs.getLong("id"), rs.getLong("conversation_id"), rs.getLong("sender_id"),
                 rs.getString("client_id"), instant(rs.getTimestamp("created_at")), sealed, replyNull ? null : replyTo,
                 instant(rs.getTimestamp("edited_at")), instant(rs.getTimestamp("deleted_at")),
-                deletedByNull ? null : deletedBy, rs.getTimestamp("hidden_at") != null, rs.getBoolean("suppressed"));
+                deletedByNull ? null : deletedBy, rs.getTimestamp("hidden_at") != null, rs.getBoolean("suppressed"),
+                rs.getTimestamp("admin_hidden_at") != null, rs.getTimestamp("purged_at") != null);
     }
 
     /**
@@ -271,7 +273,7 @@ public class AdminChatViewerService {
                     r.deletedBy(), deleter == null ? null : deleter.displayName(), deleteKind(r), r.hidden(),
                     r.suppressed(), r.suppressed() ? blockers.get(r.id()) : null, status(r, receipts.get(r.conversationId())),
                     replies.get(r.id()), reactions.getOrDefault(r.id(), List.of()),
-                    attachments.getOrDefault(r.id(), List.of())));
+                    attachments.getOrDefault(r.id(), List.of()), r.adminHidden(), r.purged()));
         }
         return new Built(items, decrypted);
     }

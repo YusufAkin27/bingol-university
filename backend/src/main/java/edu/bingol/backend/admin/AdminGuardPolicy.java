@@ -57,6 +57,13 @@ public final class AdminGuardPolicy {
     /** Kullanici adina KVKK disa aktarma icin en kisa sebep (kisisel verinin tamami cikar). */
     public static final int EXPORT_MIN_REASON = 20;
 
+    /** P08 sohbet mudahalesi: mesaj gizle/geri goster/toplu gizle, sohbet kapat/ac (POST). */
+    private static final Pattern CHAT_POST = Pattern.compile(
+            "^/api/admin/(messages/([^/]+/(hide|unhide)|bulk-hide)|conversations/[^/]+/(close|reopen))$");
+    /** P08: mesaj kalici silme, uyeyi sohbetten cikarma (DELETE). */
+    private static final Pattern CHAT_DELETE =
+            Pattern.compile("^/api/admin/(messages/[^/]+|conversations/[^/]+/members/[^/]+)$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -75,6 +82,12 @@ public final class AdminGuardPolicy {
         return ("POST".equals(method) && (MOD_POST.matcher(path).matches() || SUPPORT_MERGE.matcher(path).matches()))
                 || ("DELETE".equals(method)
                 && (MOD_TEMPLATE_DELETE.matcher(path).matches() || SUPPORT_DELETE.matcher(path).matches()));
+    }
+
+    /** P08: sohbet mudahalesi yazma islemi mi (sebep ister, saatlik siki hiz siniri). */
+    static boolean chatDestructive(String method, String path) {
+        return ("POST".equals(method) && CHAT_POST.matcher(path).matches())
+                || ("DELETE".equals(method) && CHAT_DELETE.matcher(path).matches());
     }
 
     public static boolean isWrite(String method) {
@@ -117,7 +130,7 @@ public final class AdminGuardPolicy {
                 || ("DELETE".equals(method) && EVENT_DELETE.matcher(path).matches())) {
             return DEFAULT_MIN_REASON;
         }
-        if (clubDestructive(method, path)) {
+        if (clubDestructive(method, path) || chatDestructive(method, path)) {
             return DEFAULT_MIN_REASON;
         }
         if (modSupportDestructive(method, path)) {

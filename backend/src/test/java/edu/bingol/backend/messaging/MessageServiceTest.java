@@ -118,6 +118,18 @@ class MessageServiceTest {
     }
 
     @Test
+    void closedConversationRejectsNewMessagesWith409() {
+        direct.setClosedAt(java.time.Instant.now()); // P08: yonetici kapatti
+
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "selam", "c1"));
+
+        assertEquals(HttpStatus.CONFLICT, e.status());
+        assertEquals("CONVERSATION_CLOSED", e.code());
+        verify(messages, never()).saveAndFlush(any());
+        verifyNoInteractions(bus);
+    }
+
+    @Test
     void blockedPairSendsWithoutErrorButMessageIsSuppressedAndNeverReachesPeer() {
         when(blocks.isBlocked(ME, PEER)).thenReturn(true);
 

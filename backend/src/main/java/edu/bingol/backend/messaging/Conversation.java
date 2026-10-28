@@ -54,6 +54,18 @@ public class Conversation {
 
     private Instant lastMessageAt;
 
+    /** Yonetici kapatmasi (P08): doluysa yeni mesaj gonderilemez (409 CONVERSATION_CLOSED); gecmis ve uyelikler korunur. */
+    private Instant closedAt;
+
+    private Long closedBy;
+
+    @Column(length = 300)
+    private String closedReason;
+
+    public boolean isClosed() {
+        return closedAt != null;
+    }
+
     public static String directKey(Long a, Long b) {
         return Math.min(a, b) + ":" + Math.max(a, b);
     }

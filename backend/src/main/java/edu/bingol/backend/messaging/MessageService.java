@@ -190,6 +190,10 @@ public class MessageService {
         }
 
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
+        // P08: yonetici kapattiysa yeni mesaj yok (yineleme yolu yukarida: eski clientId yine ayni mesaji doner)
+        if (conv.isClosed()) {
+            throw new ApiException(HttpStatus.CONFLICT, "CONVERSATION_CLOSED", "Bu sohbet yönetici tarafından kapatıldı.");
+        }
         Instant since = conv.getType() == Conversation.Type.GROUP ? sender.getJoinedAt() : null;
         if (replyToMessageId != null) {
             // Baska konusmanin / katilma oncesi / silinmis / gizlenmis mesaja yanit verilemez (varligi da sizdirilmaz)

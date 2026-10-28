@@ -1,6 +1,7 @@
 // Tek sohbet balonu. Yön: açılan kullanıcının mesajı bir yanda, karşı taraflar diğer yanda (Arapçada ayna, mantıksal CSS).
 // Hiçbir mesaj gizlenmez: silinmiş mesaj çözülmüş metinle (soluk + "Silindi" rozeti), gölge engelli mesaj "iletilmedi" rozetiyle,
 // düzenleme geçmişi <details> içinde, tek gönderimlik ekler "Açan" bilgisiyle gösterilir.
+import type { ReactNode } from 'react';
 import type { AdminChatMessage } from '../../../api/types';
 import { Avatar, Badge } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -15,9 +16,13 @@ interface Props {
   highlighted?: boolean;
   /** Şikâyet edilen mesaj işareti. */
   reported?: boolean;
+  /** P08: mesaj işlem menüsü (yalnız yönetici ekranlarında verilir). */
+  actions?: ReactNode;
+  /** P08: toplu seçim kutusu (verilmezse çizilmez). */
+  select?: { checked: boolean; onChange: (checked: boolean) => void; label: string } | null;
 }
 
-export function ChatBubble({ m, onOpenMedia, highlighted, reported }: Props) {
+export function ChatBubble({ m, onOpenMedia, highlighted, reported, actions, select }: Props) {
   const { t, formatDateTime } = useI18n();
   const side = bubbleSide(m);
   const name = personName(m.sender, m.senderName) ?? t('admin.chat.sender', { id: m.senderId });
@@ -60,6 +65,15 @@ export function ChatBubble({ m, onOpenMedia, highlighted, reported }: Props) {
           <strong dir="auto">{name}</strong>
           <time dateTime={m.createdAt}>{formatDateTime(m.createdAt)}</time>
           <span className="ltr">#{m.id}</span>
+          {select && (
+            <input
+              type="checkbox"
+              checked={select.checked}
+              aria-label={select.label}
+              data-testid="bubble-select"
+              onChange={(e) => select.onChange(e.target.checked)}
+            />
+          )}
           {ticks && (
             <span
               className={`${styles.ticks} ${m.status === 'READ' ? styles.ticksRead : ''}`}
@@ -106,7 +120,17 @@ export function ChatBubble({ m, onOpenMedia, highlighted, reported }: Props) {
               <span data-testid="suppressed-badge">{t('admin.chat.badge.suppressed')}</span>
             </Badge>
           )}
-          {m.hidden && <Badge tone="warning">{t('admin.chat.badge.hidden')}</Badge>}
+          {m.hidden && !m.adminHidden && <Badge tone="warning">{t('admin.chat.badge.hidden')}</Badge>}
+          {m.adminHidden && !m.purged && (
+            <Badge tone="warning">
+              <span data-testid="admin-hidden-badge">{t('admin.p08.badge.adminHidden')}</span>
+            </Badge>
+          )}
+          {m.purged && (
+            <Badge tone="danger">
+              <span data-testid="purged-badge">{t('admin.p08.badge.purged')}</span>
+            </Badge>
+          )}
           {m.edited && <Badge tone="info">{t('admin.chat.badge.edited')}</Badge>}
           {m.replyTo && <Badge tone="neutral">{t('admin.chat.badge.reply')}</Badge>}
           {[...reactions.entries()].map(([emoji, n]) => (
@@ -115,6 +139,8 @@ export function ChatBubble({ m, onOpenMedia, highlighted, reported }: Props) {
             </Badge>
           ))}
         </div>
+
+        {actions}
 
         {m.suppressed && m.blockedBy && (
           <p className={styles.muted}>{t('admin.chat.blockedBy', { name: m.blockedBy.displayName ?? `#${m.blockedBy.id}` })}</p>

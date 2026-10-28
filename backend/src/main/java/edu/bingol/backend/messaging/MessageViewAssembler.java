@@ -110,7 +110,8 @@ public class MessageViewAssembler {
         }
         if (p.isHidden() || p.isDeleted()) {
             return new ReplyPreview(p.getId(), p.getSenderId(),
-                    p.isDeleted() ? MessagingDtos.DELETED_TEXT : MessagingDtos.REMOVED_TEXT, true);
+                    p.isAdminRemoved() ? MessagingDtos.ADMIN_REMOVED_TEXT
+                            : p.isDeleted() ? MessagingDtos.DELETED_TEXT : MessagingDtos.REMOVED_TEXT, true);
         }
         if (blockedSenders.contains(p.getSenderId()) && !p.getSenderId().equals(viewerId)) {
             return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.BLOCKED_TEXT, false);

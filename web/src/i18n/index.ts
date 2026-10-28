@@ -37,6 +37,7 @@ import trAdminP03 from './tr/admin-p03'; // yalnız tr (anket yönetimi), aynı 
 import trAdminWp02 from './tr/admin-wp02'; // yalnız tr (denetim v2, sohbet sebebi), aynı kural
 import trAdminP06 from './tr/admin-p06'; // yalnız tr (kulüp derin yönetimi + içerik moderasyonu), aynı kural
 import trAdminP07 from './tr/admin-p07'; // yalnız tr (etkinlik derin yönetimi), aynı kural
+import trAdminP08 from './tr/admin-p08'; // yalnız tr (sohbet müdahalesi), aynı kural
 import trAdminP09 from './tr/admin-p09'; // yalnız tr (kullanıcı derin yönetimi), aynı kural
 import trAdminP11 from './tr/admin-p11'; // yalnız tr (moderasyon + destek tamamlama), aynı kural
 import trSiteNew from './tr/site-new';
@@ -140,6 +141,7 @@ const tr = {
   ...trAdminWp02,
   ...trAdminP06,
   ...trAdminP07,
+  ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
   ...trSiteNew,
@@ -186,6 +188,7 @@ const en: Dictionary = {
   ...trAdminWp02,
   ...trAdminP06,
   ...trAdminP07,
+  ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
   ...enSiteNew,
@@ -228,6 +231,7 @@ const ar: Dictionary = {
   ...trAdminWp02,
   ...trAdminP06,
   ...trAdminP07,
+  ...trAdminP08,
   ...trAdminP09,
   ...trAdminP11,
   ...arSiteNew,
