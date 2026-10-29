@@ -41,7 +41,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [33-anket-detay-durumlari.md](33-anket-detay-durumlari.md) | 6 | 66 (durumlar), A34 | [ ] |
 | [34-destek-talepler.md](34-destek-talepler.md) | 6 | 67, 68, 69, A35 | [ ] |
 | [35-destek-geri-bildirim-oneri.md](35-destek-geri-bildirim-oneri.md) | 5 | 70, 71 | [ ] |
-| [36-etkinlik-listeleri.md](36-etkinlik-listeleri.md) | 6 | 72, 73 | [ ] |
+| [36-etkinlik-listeleri.md](36-etkinlik-listeleri.md) | 6 | 72, 73 | [x] eksik: Düzelt ve Yeniden Gönder dügmesi, fazla alt basliklar (bkz RAPOR-s4) |
 | [37-etkinlik-liste-durumlari-diyaloglar.md](37-etkinlik-liste-durumlari-diyaloglar.md) | 6 | 72 (durumlar), A36, A42 | [ ] |
 | [38-etkinlik-detay-durumlari.md](38-etkinlik-detay-durumlari.md) | 6 | 74 (RSVP/kontenjan durumları) | [ ] |
 | [39-etkinlik-istek-ve-yoklama.md](39-etkinlik-istek-ve-yoklama.md) | 6 | 74 (istek/yoklama), A37 | [ ] |

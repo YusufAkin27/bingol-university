@@ -1,0 +1,10 @@
+# RAPOR s4 (Stitch istemleri 36-39, 46) - hesap /u/1/
+
+Not: Stitch kok adresleri `https://stitch.withgoogle.com/u/1/projects/<ID>`. Aktarma klasoru `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin screen.png + code.html). Export'ta PNG'ler ilk denemede "FIFE Image failed to fetch" (gecersiz) geldi; ikinci export gecerli PNG verdi.
+
+## 36 - Etkinlik listeleri (6 ekran, `C:\bu_design\stitch\36-etkinlik-listeleri\`)
+- Proje: "BU Kampus Event Management UI" - https://stitch.withgoogle.com/u/1/projects/10712957761678149545
+- Uretilen: Keşfet (takvim + 2 kart), Keşfet bos gun + kesinti notu + Kayit kapali/Iptal/Kontenjan doldu etiketleri, Etkinliklerim Yaklasan, Gecmis, Olusturduklarim (Acik/Onay bekliyor/Reddedildi + secenek menusu + bos durum), Profil > Etkinliklerim.
+- Duzeltilen (1 tur, 6 ekran birden): baslik "Etkinlik Detay" -> "Etkinlikler"/"Etkinliklerim"; paylas/yer imi ikonlari; Keşfet'e Yoklama + "+" dugmeleri; "Güz Dönemi", "KAMPÜS TAKVİMİ", "Arşiv Kayıtları", "Kulüp Lideri Paneli", "Yönetim Masası", "Bilet & Giriş Kartı", "Bilet Hazır", "Katılım QR Kodu", "Sertifika Alındı", "UI Durumu", "BOŞ DURUM ÖNİZLEMESİ", "Yedek Listeye Yaz", "Kayıt Ol", "resmi kampüs" silindi; kesinti notu kirmizidan amber'e.
+- Stitch halusinasyonlari: yanlis baslik (X Detay kalibi), paylas/bookmark, bilet/sertifika, "Yönetim Masası"/panel kartlari, "UI Durumu" etiketleri; ayrica oneri chip'ine istemeden tiklamayla ekstra "Etkinlik Oluştur" ekrani + tasarim sistemi uretildi (ekran silindi; "Academic Community Pulse" tasarim sistemi tuvalde kaldi).
+- Kalan eksik: Olusturduklarim'da "Düzelt ve Yeniden Gönder" dugmesi ve "Henüz bir etkinlik oluşturmadın mı?" metni fazla/farkli; açık menü kartın üstüne biniyor; Keşfet'te "Yaklaşan Diğer Günler / Önemli duyuru ve durum bildirimleri" ek başlık; Gecmis'te "Tamamlandı" etiketi; Profil ekraninda "2 bekleyen istek" yalniz Olusturduklarim sekmesi gosterilmediginden gorunmuyor; Yaklasan ekraninda bos durum karti listeyle ayni ekranda.
