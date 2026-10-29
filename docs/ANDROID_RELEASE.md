@@ -1,6 +1,6 @@
 # Android üretim (release) rehberi
 
-Paket: `edu.bingol.bu_kampus`, ad "BÜ Kampüs". Tüm komutlar `C:\bu_mobile` (mobile/ klasörünün ASCII bağlantısı) içinde, PowerShell'de çalışır.
+Paket (applicationId): `tr.com.bukampus.app`, ad "BÜ Kampüs". Kaynak paketi/`namespace` bilerek `edu.bingol.bu_kampus` kalır (Kotlin `MainActivity` vb.; manifestte `.MainActivity` göreli yazılıdır, dış kimliği etkilemez). iOS bundle id (`edu.bingol.buKampus`) bu değişiklikte değişmedi, ayrı karardır. Tüm komutlar `C:\bu_mobile` (mobile/ klasörünün ASCII bağlantısı) içinde, PowerShell'de çalışır.
 
 Ortam (her oturumda):
 
@@ -130,13 +130,24 @@ Bölüm 3'teki iki komut, `C:\bu_mobile` içinde, `key.properties` ile. Sonuç:
 Doğrulananlar:
 - AAB: `keytool -printcert -jarfile` -> `Owner: CN=BU Kampus Upload`, SHA-1/SHA-256 yukarıdakiyle aynı.
 - APK: `apksigner verify --print-certs` -> `Verifies`, v2 şeması (minSdk 24 için yeter), sertifika SHA-256 `87845cad...5011` = keystore.
-- `aapt2 dump badging`: paket `edu.bingol.bu_kampus`, `versionCode=1`, `versionName=1.0.0`, `minSdk=24`, `targetSdk=36`, `compileSdk=37`, etiket "BÜ Kampüs".
+- `aapt2 dump badging` (ilk derleme, ESKİ paket adı `edu.bingol.bu_kampus`; Play reddetti, bkz. 8.4): `versionCode=1`, `versionName=1.0.0`, `minSdk=24`, `targetSdk=36`, `compileSdk=37`, etiket "BÜ Kampüs".
 - Manifest: `usesCleartextTraffic=false`, `allowBackup=false`; izinler bölüm 5 + eklentilerden gelen `WAKE_LOCK`, `ACCESS_NETWORK_STATE`, `RECEIVE_BOOT_COMPLETED`, `com.google.android.c2dm.permission.RECEIVE` (FCM) ve `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; konum izni yok.
 - `libapp.so` (3 ABI) içinde `https://bukampus.com.tr` ve `https://bukampus.com.tr/api` var; `10.0.2.2`, `192.168.*`, `localhost`, `127.0.0.1` yok.
-- Firebase: `google-services.json` paket adı `edu.bingol.bu_kampus` ile uyumlu, eklenti release'de uygulandı (APK kaynaklarında `google_app_id`, `gcm_defaultSenderId`, proje kimliği var). **FCM sunucu kimliği sunucuya girilmeden push gitmez** ([PUSH_SETUP.md](PUSH_SETUP.md)).
+- Firebase (ilk derleme, eski paket adıyla): `google-services.json` paket adı o günkü `edu.bingol.bu_kampus` ile uyumluydu, eklenti release'de uygulandı (APK kaynaklarında `google_app_id`, `gcm_defaultSenderId`, proje kimliği var). **FCM sunucu kimliği sunucuya girilmeden push gitmez** ([PUSH_SETUP.md](PUSH_SETUP.md)).
 - Canlı uçlar (salt-okur, `Accept-Language`, `X-Device-Id` ile): `GET /api/status`, `/api/app/version?platform=android&version=1.0.0`, `/api/app/info`, `/api/menu/today` = 200; `wss://bukampus.com.tr/ws` WebSocket yükseltmesi 101 döndü.
 - `flutter analyze`: sorun yok; `flutter test`: 3300 test geçti (hata yok).
 
 **Doğrulanmadı:** APK'nın gerçek bir telefonda/emülatörde çalıştırılması (giriş, sohbet, QR, video sıkıştırma, rehber, R8 yansıma çökmeleri), gerçek push alımı, AAB'nin Play'e yüklenmesi.
 
 Derleme notları: `--split-debug-info` yolu ASCII olmalıdır (aksi halde "Unable to write file ... app.android-arm.symbols"); `key.properties` yolunda Türkçe karakter UTF-8 okunur (build.gradle.kts). `mobile/android/build/` yerel Gradle çıktısıdır, commit'lenmez.
+
+### 8.4 Paket adı değişikliği (MOB2, 2026-10-29)
+
+Play Console'da uygulama **`tr.com.bukampus.app`** adıyla oluşturuldu; MOB1 AAB'si `edu.bingol.bu_kampus` taşıdığı için Play reddetti ("paket adı tr.com.bukampus.app olmalı"). Yapılanlar:
+
+- `mobile/android/app/build.gradle.kts`: `applicationId = "tr.com.bukampus.app"`. `namespace` ve Kotlin kaynak paketi (`edu/bingol/bu_kampus/`) **değişmedi** (R sınıfı ve `.MainActivity`/`.ReminderReceiver`/`.BootReceiver` göreli adları namespace'e çözülür; dış kimlik applicationId'dir).
+- `LocalReminders.kt`: yerel hatırlatma intent eylemi `edu.bingol.bu_kampus.REMINDER` -> `tr.com.bukampus.app.REMINDER` (yalnız uygulama içi, açık hedefli broadcast; Play'e hiç yüklenmediği için geriye uyum gerekmez).
+- Başka paket adına bağlı Android öğesi yok: FileProvider/ContentProvider/App Links/derin bağlantı yok; bildirim kanal kimlikleri paket önekli değil; `proguard-rules.pro` paket adı geçirmez.
+- Sürüm `1.0.0+1` kalır (Play'e hiç yüklenmedi).
+- **Firebase:** Firebase konsolunda (proje `bu-kamp`) Android uygulaması **`tr.com.bukampus.app`** olarak eklenmeli (SHA-1/SHA-256: Play App Signing sonrası Play Console > Uygulama bütünlüğü sayfasındaki uygulama imzalama sertifikası parmak izleri de eklenir; yükleme anahtarı parmak izi de eklenebilir). Yeni `google-services.json` indirilip `mobile/android/app/google-services.json` üstüne konur (eski istemci içinde kalabilir). Dosya paket adıyla eşleşmezse google-services eklentisi derlemeyi reddeder ("No matching client found for package name"). API anahtarı kısıtlaması da yeni paket adı için güncellenir ([PUSH_SETUP.md](PUSH_SETUP.md)).
+- Derleme komutları bölüm 3'tekiyle aynıdır; çıktı adları değişmez, eski paket adlı dosyalar üstüne yazılır.

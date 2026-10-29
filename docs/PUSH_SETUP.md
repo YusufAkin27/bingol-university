@@ -78,12 +78,12 @@ iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (pl
 
 ## 6. `google-services.json` API anahtarını kısıtlama (Google Cloud Console)
 
-`mobile/android/app/google-services.json` repoda **izlenir** (Firebase proje kimliği `bu-kamp`, paket `edu.bingol.bu_kampus`). İçindeki `current_key` (Android API anahtarı) bir **sır değildir** ama uygulama paketine gömülüdür ve apk'dan çıkarılabilir; kısıtlanmazsa başkası bu anahtarla projenizin kotasını/faturasını kullanabilir. Yayından **önce** kısıtlayın (SİZ, Google Cloud hesabıyla; **doğrulanmadı**: Console arayüzü zamanla değişir, aşağıdaki adlar yazıldığı andaki yapıya göredir).
+`mobile/android/app/google-services.json` repoda **izlenir** (Firebase proje kimliği `bu-kamp`, paket `tr.com.bukampus.app`; MOB2'den sonra, bkz. ANDROID_RELEASE.md 8.4). İçindeki `current_key` (Android API anahtarı) bir **sır değildir** ama uygulama paketine gömülüdür ve apk'dan çıkarılabilir; kısıtlanmazsa başkası bu anahtarla projenizin kotasını/faturasını kullanabilir. Yayından **önce** kısıtlayın (SİZ, Google Cloud hesabıyla; **doğrulanmadı**: Console arayüzü zamanla değişir, aşağıdaki adlar yazıldığı andaki yapıya göredir).
 
 1. https://console.cloud.google.com adresinde Firebase ile **aynı projeyi** seçin (`bu-kamp`). Üst çubuktaki proje seçicide Firebase projesinin Cloud projesi olarak göründüğünü doğrulayın.
 2. **API'ler ve Hizmetler > Kimlik Bilgileri (Credentials) > API anahtarları**. Anahtarı bulun: `google-services.json` içindeki `current_key` değeriyle eşleşen (genellikle "Android key (auto created by Firebase)"). Hangi anahtar olduğunu görmek için dosyada `"current_key"` satırına bakın (sır olmadığından Console'daki "Show key" ile karşılaştırabilirsiniz).
 3. Anahtarı açın. **Uygulama kısıtlamaları (Application restrictions) > Android uygulamaları**:
-   - "Paket adı ve parmak izi ekle": paket `edu.bingol.bu_kampus`.
+   - "Paket adı ve parmak izi ekle": paket `tr.com.bukampus.app`.
    - **SHA-1 parmak izleri**, **üç ayrı** anahtar için (her biri ayrı satır; eksik olan anahtarla imzalı sürümde push kaydı ve Firebase çağrıları sessizce `API_KEY_ANDROID_APP_BLOCKED` ile reddedilir):
      1. **Upload key** (kendi ürettiğiniz keystore; Play'e yüklediğiniz AAB bununla imzalanır): `keytool -list -v -keystore <bu-upload.jks> -alias upload` çıktısındaki `SHA1:`.
      2. **Play App Signing anahtarı** (Google'ın kullanıcıya dağıttığı APK'yı imzalayan; **mağazadan kurulan uygulamada geçerli olan budur**): Play Console > uygulama > **Kurulum (Setup) > Uygulama bütünlüğü (App integrity) > Uygulama imzalama** altındaki "Uygulama imzalama anahtarı sertifikası" SHA-1 (ilk AAB yüklenip App Signing etkinleştikten sonra görünür).

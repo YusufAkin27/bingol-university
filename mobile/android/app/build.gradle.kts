@@ -49,7 +49,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "edu.bingol.bu_kampus"
+        // Dis kimlik (Play/Firebase). namespace (kaynak paketi) bilincli olarak ayri kalir: kaynak tasimaya gerek yok.
+        applicationId = "tr.com.bukampus.app"
         // 24: video_player, camera, mobile_scanner (ML Kit) gereksinimlerini karsilar
         minSdk = flutter.minSdkVersion
         targetSdk = 36 // Google Play hedef API (Android 16); Flutter varsayilani da 36

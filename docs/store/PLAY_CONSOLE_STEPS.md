@@ -16,7 +16,7 @@ Pratik sonuç: 12 kişiyi **hemen** toplayın (arkadaş, kulüp üyeleri; hepsin
 
 ## 2. Uygulamayı oluştur
 1. "Uygulama oluştur": ad **BÜ Kampüs** (başlığa üniversite adı/logosu eklemeyin: [README.md](README.md) ilke 1), varsayılan dil Türkçe, "Uygulama", "Ücretsiz".
-2. Paket adı AAB'den okunur: **`edu.bingol.bu_kampus`** (ilk yüklemede sabitlenir, sonra değişmez; `google-services.json` içindeki paket adı da aynıdır, uyumlu).
+2. Paket adı **`tr.com.bukampus.app`** (Console'da bu adla oluşturun; AAB'nin `applicationId`'si de aynıdır, Play uyuşmazsa yüklemeyi reddeder; sonradan değişmez). `google-services.json` içinde de bu paket adının Android istemcisi bulunmalıdır: Firebase konsolu (proje `bu-kamp`) > Proje ayarları > Android uygulaması ekle > paket adı `tr.com.bukampus.app` > `google-services.json` indir > `mobile/android/app/google-services.json` üstüne koyup yeniden derleyin ([../ANDROID_RELEASE.md](../ANDROID_RELEASE.md) 8.4). Play App Signing açıldıktan sonra Play Console > Uygulama bütünlüğü sayfasındaki "uygulama imzalama anahtarı" SHA-1/SHA-256 parmak izlerini Firebase'deki Android uygulamasına ekleyin.
 3. **Play App Signing**: ilk AAB yüklenirken kabul edin (yeni uygulamalarda zorunlu). Siz upload anahtarıyla imzalarsınız, Google dağıtım anahtarını tutar.
 
 ## 3. Uygulama içeriği (Politika > Uygulama içeriği)

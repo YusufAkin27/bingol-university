@@ -46,7 +46,7 @@ object LocalReminderStore {
     private fun pending(c: Context, group: String, item: JSONObject, create: Boolean): PendingIntent? {
         val id = item.optInt("id")
         val i = Intent(c, ReminderReceiver::class.java).apply {
-            action = "edu.bingol.bu_kampus.REMINDER"
+            action = "tr.com.bukampus.app.REMINDER"
             putExtra("group", group)
             putExtra("id", id)
             putExtra("title", item.optString("title"))
