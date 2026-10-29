@@ -70,24 +70,26 @@ class _PollClubSectionState extends State<PollClubSection> {
         openPollList(context, widget.session, communityId: widget.communityId, title: l.pollClubPolls, canCreate: widget.canCreate);
     return Column(
       children: [
-        if (widget.canCreate)
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-            child: BuCard(
-              onTap: _create,
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 4),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Center(
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.circlePlus, size: 20, color: t.pr)),
-                    const SizedBox(width: 10),
-                    Flexible(child: Text(l.pollCreate, style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w800))),
-                  ]),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(header: true, child: Text(l.pollClubPolls, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+                    Text(l.p11PollsSub, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  ],
                 ),
               ),
-            ),
+              if (widget.canCreate) ...[
+                const SizedBox(width: 12),
+                BuButton(label: l.pollCreate, icon: LucideIcons.chartColumn, compact: true, onPressed: _create),
+              ],
+            ],
           ),
+        ),
         if (_error != null && items == null)
           SizedBox(height: 300, child: BuErrorState(error: _error, compact: true, onRetry: _load))
         else if (items == null)

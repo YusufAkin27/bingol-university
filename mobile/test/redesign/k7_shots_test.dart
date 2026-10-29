@@ -178,6 +178,21 @@ FakeBackend _requestsBe({bool empty = false}) {
                 ],
               },
             ],
+      'nextCursor': empty ? null : 55,
+    })
+    ..on('/communities/7/requests?include=answers&size=20&cursor=55', {
+      'items': [
+        {
+          'userId': 23,
+          'displayName': 'Deniz Aksoy',
+          'department': 'Fizik Bölümü',
+          'classYear': 2,
+          'requestedAt': _iso(now.subtract(const Duration(days: 2))),
+          'answers': [
+            {'question': 'Neden katılmak istiyorsun?', 'answer': 'Sensör ve robot kolu projelerinde çalışmak istiyorum.'},
+          ],
+        },
+      ],
       'nextCursor': null,
     });
 }
@@ -208,6 +223,10 @@ Future<void> _tapText(WidgetTester t, String text, {bool last = false}) async {
 }
 
 Future<void> _tapTip(WidgetTester t, String tip) async {
+  if (find.byTooltip(tip).evaluate().isEmpty) {
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -400));
+    await settle(t, const Duration(milliseconds: 400));
+  }
   await t.tap(find.byTooltip(tip).first);
   await settle(t, const Duration(milliseconds: 800));
 }
@@ -268,11 +287,16 @@ final _shots = <_Shot>[
     await _tapTip(t, _l.clubMgmtMemberActions);
     await _tapText(t, _l.clubMgmtBan);
   }),
-  _Shot('27_03a_basvurular', _requestsBe, (b) => ClubRequestsPage(session: makeSession(b), communityId: 7), height: 1100),
+  _Shot('27_03a_basvurular', _requestsBe, (b) => ClubRequestsPage(session: makeSession(b), communityId: 7), height: 1250),
   _Shot('27_03b_onaylaniyor', _requestsBe, (b) => ClubRequestsPage(session: makeSession(b), communityId: 7), height: 1100, after: (t, b) async {
     b.delay = const Duration(seconds: 30);
     await t.tap(find.text(_l.clubMgmtApprove).at(1));
     await settle(t, const Duration(milliseconds: 500));
+  }),
+  _Shot('27_03c_daha_fazla', _requestsBe, (b) => ClubRequestsPage(session: makeSession(b), communityId: 7), height: 1500, after: (t, b) async {
+    await t.ensureVisible(find.text(_l.clubMgmtMoreRequests));
+    await t.tap(find.text(_l.clubMgmtMoreRequests));
+    await settle(t, const Duration(milliseconds: 600));
   }),
   _Shot('27_04a_basvuru_bos', () => _requestsBe(empty: true), (b) => ClubRequestsPage(session: makeSession(b), communityId: 7)),
   _Shot('27_04b_arama_yok', _membersBe, _membersPage, after: (t, b) async {

@@ -11,7 +11,6 @@ import 'club_categories.dart';
 import 'club_detail_page.dart';
 import 'club_detail_parts.dart' show ClubRoundButton;
 import 'club_ref_widgets.dart';
-import 'kulup_widgets.dart';
 
 /// Kulüp kurma akışını başlatır: form -> sonuç. ACTIVE ise kulüp sayfasına gider,
 /// onaya düştüyse bilgi verir (referans 29-06). Dönüş: kulüp oluşturuldu mu (liste yenilensin).
@@ -601,11 +600,10 @@ class _ClubFormPageState extends State<ClubFormPage> {
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.words,
             style: tx.bodyLarge!.copyWith(color: t.ink),
-            decoration: kulupField(context, hint: l10n.clubMgmtNameHint, error: _errors['name']).copyWith(
-              prefixIcon: Icon(LucideIcons.flag, size: 18, color: t.mut),
-              errorMaxLines: 2,
-            ),
+            decoration: clubFill(context,
+                hint: l10n.clubMgmtNameHint, hasError: _errors['name'] != null, prefixIcon: Icon(LucideIcons.flag, size: 18, color: t.mut)),
           ),
+          if (_errors['name'] != null) ClubFieldError(_errors['name']!),
           const SizedBox(height: 18),
           _label(t, l10n.clubMgmtDescLabel, trailing: '${_desc.text.characters.length}/$_descMax'),
           TextField(
@@ -615,9 +613,10 @@ class _ClubFormPageState extends State<ClubFormPage> {
             maxLines: 6,
             textCapitalization: TextCapitalization.sentences,
             style: tx.bodyLarge!.copyWith(color: t.ink),
-            decoration: kulupField(context,
-                hint: l10n.clubMgmtDescHint, error: _errors['description'], pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+            decoration: clubFill(context,
+                hint: l10n.clubMgmtDescHint, hasError: _errors['description'] != null, pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
           ),
+          if (_errors['description'] != null) ClubFieldError(_errors['description']!),
           const SizedBox(height: 18),
           _label(t, l10n.clubMgmtCategoryLabel),
           Semantics(
@@ -709,7 +708,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                         minLines: 1,
                         maxLines: 3,
                         style: tx.bodyLarge!.copyWith(color: t.ink),
-                        decoration: InputDecoration(hintText: l10n.p12QuestionPlaceholder, counterText: '', filled: true, fillColor: t.sf),
+                        decoration: clubFill(context, hint: l10n.p12QuestionPlaceholder, fill: t.sf, pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
                       ),
                     ),
                   ],
@@ -728,6 +727,23 @@ class _ClubFormPageState extends State<ClubFormPage> {
     );
   }
 
+  /// Onay notu: "topluluk ilkelerine" ifadesi kalın.
+  Widget _consentText(BuTokens t) {
+    final l = context.l10n;
+    final style = Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut, height: 1.4);
+    final text = l.p12ConsentNote;
+    final at = text.indexOf(l.p12ConsentBold);
+    if (at < 0) return Text(text, style: style);
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: text.substring(0, at)),
+        TextSpan(text: l.p12ConsentBold, style: TextStyle(color: t.ink, fontWeight: FontWeight.w800)),
+        TextSpan(text: text.substring(at + l.p12ConsentBold.length)),
+      ]),
+      style: style,
+    );
+  }
+
   Widget _consent(BuTokens t) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
@@ -742,7 +758,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(context.l10n.p12ConsentNote, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut, height: 1.4))),
+            Expanded(child: _consentText(t)),
           ],
         ),
       );

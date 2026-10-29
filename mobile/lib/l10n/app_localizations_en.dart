@@ -7560,7 +7560,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p03NotifUnreadEmptyBody =>
-      'Great! You have read all new notifications.';
+      'Great! You have read all new notifications. You will be notified instantly when new announcements arrive.';
 
   @override
   String get p03NotifLoadFailed => 'Could not load, try again';
@@ -8312,5 +8312,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String p04LikeCount(String count) {
     return '$count likes';
+  }
+
+  @override
+  String get p11UnavailableBody =>
+      'This community is temporarily frozen or under review.';
+
+  @override
+  String get p11UnderReview => 'Under review';
+
+  @override
+  String get p12ConsentBold => 'community guidelines';
+
+  @override
+  String get p03NotifLoadFailedBody =>
+      'The latest updates could not be synced with the server. Please check your connection.';
+
+  @override
+  String p03NotifShortDay(String n) {
+    return '${n}d';
   }
 }

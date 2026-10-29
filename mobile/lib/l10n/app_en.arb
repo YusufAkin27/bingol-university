@@ -2295,7 +2295,7 @@
   "p03MenuMaintenance": "System under maintenance.",
   "p03NotifNewCount": "{n} new",
   "p03NotifEmptyBody": "Club announcements, events and message notifications will be listed here.",
-  "p03NotifUnreadEmptyBody": "Great! You have read all new notifications.",
+  "p03NotifUnreadEmptyBody": "Great! You have read all new notifications. You will be notified instantly when new announcements arrive.",
   "p03NotifLoadFailed": "Could not load, try again",
   "p03NotifLoadingMore": "Loading more...",
   "p03HomeMealTitle": "Menu of the Day",
@@ -2562,5 +2562,11 @@
   "p04FollowAction": "Follow",
   "p04FollowingState": "Following",
   "p04FeedTitle": "Student Feed",
-  "p04LikeCount": "{count} likes"
+  "p04LikeCount": "{count} likes",
+  "p11UnavailableBody": "This community is temporarily frozen or under review.",
+  "p11UnderReview": "Under review",
+  "p12ConsentBold": "community guidelines",
+  "p03NotifLoadFailedBody": "The latest updates could not be synced with the server. Please check your connection.",
+  "p03NotifShortDay": "{n}d",
+  "p05SearchLikes": "{n} likes"
 }

@@ -7486,7 +7486,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p03NotifUnreadEmptyBody =>
-      'رائع! لقد قرأت جميع الإشعارات الجديدة.';
+      'رائع! لقد قرأت جميع الإشعارات الجديدة. ستصلك التنبيهات فور صدور إعلانات جديدة.';
 
   @override
   String get p03NotifLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
@@ -8224,5 +8224,24 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String p04LikeCount(String count) {
     return '$count إعجاب';
+  }
+
+  @override
+  String get p11UnavailableBody =>
+      'تم تجميد هذا المجتمع مؤقتًا أو أنه قيد المراجعة.';
+
+  @override
+  String get p11UnderReview => 'قيد المراجعة';
+
+  @override
+  String get p12ConsentBold => 'مبادئ المجتمع';
+
+  @override
+  String get p03NotifLoadFailedBody =>
+      'تعذّرت مزامنة آخر التحديثات مع الخادم. يرجى التحقق من اتصالك.';
+
+  @override
+  String p03NotifShortDay(String n) {
+    return '$n يوم';
   }
 }

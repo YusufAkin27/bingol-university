@@ -221,7 +221,8 @@ class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
       ),
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 8),
-        child: BuSegmented(items: labels, index: index, onChanged: onChanged),
+        // Büyük yazı ölçeğinde sekme adları birbirine yapışmasın: ölçek 1.1'de sınırlanır.
+        child: MediaQuery.withClampedTextScaling(maxScaleFactor: 1.1, child: BuSegmented(items: labels, index: index, onChanged: onChanged)),
       ),
     );
   }

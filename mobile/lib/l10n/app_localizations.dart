@@ -13816,7 +13816,7 @@ abstract class AppLocalizations {
   /// No description provided for @p03NotifUnreadEmptyBody.
   ///
   /// In tr, this message translates to:
-  /// **'Harika! Tüm yeni bildirimleri okudunuz.'**
+  /// **'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.'**
   String get p03NotifUnreadEmptyBody;
 
   /// No description provided for @p03NotifLoadFailed.
@@ -15102,6 +15102,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count} beğeni'**
   String p04LikeCount(String count);
+
+  /// No description provided for @p11UnavailableBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu topluluk geçici olarak dondurulmuştur veya inceleme altındadır.'**
+  String get p11UnavailableBody;
+
+  /// No description provided for @p11UnderReview.
+  ///
+  /// In tr, this message translates to:
+  /// **'İncelemede'**
+  String get p11UnderReview;
+
+  /// No description provided for @p12ConsentBold.
+  ///
+  /// In tr, this message translates to:
+  /// **'topluluk ilkelerine'**
+  String get p12ConsentBold;
+
+  /// No description provided for @p03NotifLoadFailedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.'**
+  String get p03NotifLoadFailedBody;
+
+  /// No description provided for @p03NotifShortDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} gün'**
+  String p03NotifShortDay(String n);
 }
 
 class _AppLocalizationsDelegate

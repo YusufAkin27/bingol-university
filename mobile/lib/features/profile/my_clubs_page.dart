@@ -285,7 +285,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
                 child: Column(
                   children: [
                     for (var i = 0; i < member.length; i++) ...[
-                      if (i > 0) Divider(height: 1, indent: 76, color: t.bd),
+                      if (i > 0) Divider(height: 1, indent: 78, endIndent: 16, color: t.bd),
                       _memberRow(member[i]),
                     ],
                   ],
@@ -419,7 +419,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final when = relativeTime((c['requestedAt'] ?? c['joinedAt'])?.toString(), context: context);
     return BuCard(
       onTap: () => _open(c),
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 2),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -450,15 +450,32 @@ class _MyClubsPageState extends State<MyClubsPage> {
               ],
             ),
           ),
-          Divider(height: 14, color: t.bd),
+          Divider(height: 8, indent: 62, color: t.bd),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: BuButton(
+            child: Semantics(
+              button: true,
               label: l.profilePrefsWithdrawTitle,
-              icon: LucideIcons.undo2,
-              kind: BuButtonKind.text,
-              compact: true,
-              onPressed: () => _withdraw(c),
+              child: InkWell(
+                onTap: () => _withdraw(c),
+                borderRadius: BuRadius.bPill,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: ExcludeSemantics(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(LucideIcons.undo2, size: 16, color: t.pr),
+                          const SizedBox(width: 6),
+                          Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -492,7 +509,7 @@ class _Pill extends StatelessWidget {
           if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fg)), const SizedBox(width: 4)],
           Flexible(
             child: Text(label,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
           ),

@@ -250,7 +250,29 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-              child: BuSearchField(hint: l.clubMgmtSearchMember, controller: _search, onChanged: (v) => setState(() => _query = v.trim())),
+              child: TextField(
+                controller: _search,
+                textInputAction: TextInputAction.search,
+                onChanged: (v) => setState(() => _query = v.trim()),
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink),
+                decoration: clubFill(
+                  context,
+                  hint: l.clubMgmtSearchMember,
+                  fill: t.sf,
+                  pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  prefixIcon: Icon(LucideIcons.search, size: 20, color: t.mut),
+                  suffixIcon: _query.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: l.p11ClearSearch,
+                          icon: Icon(LucideIcons.circleX, size: 20, color: t.mut),
+                          onPressed: () => setState(() {
+                            _query = '';
+                            _search.clear();
+                          }),
+                        ),
+                ),
+              ),
             ),
           ),
           if (list.isEmpty)

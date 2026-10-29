@@ -123,12 +123,12 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
             textInputAction: TextInputAction.next,
             onChanged: (_) => setState(() {}),
             style: tx.bodyLarge!.copyWith(color: t.ink),
-            decoration: InputDecoration(
-              hintText: l10n.clubMgmtAnswerHint,
-              counterText: '',
-              errorText: _showErrors && _ctrls[i].text.trim().isEmpty ? l10n.clubMgmtQuestionRequired : null,
-            ),
+            decoration: clubFill(context,
+                hint: l10n.clubMgmtAnswerHint,
+                hasError: _showErrors && _ctrls[i].text.trim().isEmpty,
+                pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
           ),
+          if (_showErrors && _ctrls[i].text.trim().isEmpty) ClubFieldError(l10n.clubMgmtQuestionRequired),
           Padding(
             padding: const EdgeInsetsDirectional.only(top: 4, end: 4, bottom: 12),
             child: Align(

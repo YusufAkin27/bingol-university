@@ -7529,7 +7529,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p03NotifUnreadEmptyBody =>
-      'Harika! Tüm yeni bildirimleri okudunuz.';
+      'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.';
 
   @override
   String get p03NotifLoadFailed => 'Yüklenemedi, tekrar dene';
@@ -8283,5 +8283,24 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String p04LikeCount(String count) {
     return '$count beğeni';
+  }
+
+  @override
+  String get p11UnavailableBody =>
+      'Bu topluluk geçici olarak dondurulmuştur veya inceleme altındadır.';
+
+  @override
+  String get p11UnderReview => 'İncelemede';
+
+  @override
+  String get p12ConsentBold => 'topluluk ilkelerine';
+
+  @override
+  String get p03NotifLoadFailedBody =>
+      'Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.';
+
+  @override
+  String p03NotifShortDay(String n) {
+    return '$n gün';
   }
 }

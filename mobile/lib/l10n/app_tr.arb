@@ -4032,7 +4032,7 @@
   "p03NotifNewCount": "{n} yeni",
   "@p03NotifNewCount": {"placeholders": {"n": {"type": "String"}}},
   "p03NotifEmptyBody": "Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.",
-  "p03NotifUnreadEmptyBody": "Harika! Tüm yeni bildirimleri okudunuz.",
+  "p03NotifUnreadEmptyBody": "Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.",
   "p03NotifLoadFailed": "Yüklenemedi, tekrar dene",
   "p03NotifLoadingMore": "Daha fazla yükleniyor...",
   "p03HomeMealTitle": "Günün Menüsü",
@@ -4347,5 +4347,13 @@
         "type": "String"
       }
     }
-  }
+  },
+  "p11UnavailableBody": "Bu topluluk geçici olarak dondurulmuştur veya inceleme altındadır.",
+  "p11UnderReview": "İncelemede",
+  "p12ConsentBold": "topluluk ilkelerine",
+  "p03NotifLoadFailedBody": "Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.",
+  "p03NotifShortDay": "{n} gün",
+  "@p03NotifShortDay": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchLikes": "{n} beğeni",
+  "@p05SearchLikes": {"placeholders": {"n": {"type": "String"}}}
 }

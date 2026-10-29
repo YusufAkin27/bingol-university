@@ -2295,7 +2295,7 @@
   "p03MenuMaintenance": "النظام قيد الصيانة.",
   "p03NotifNewCount": "{n} جديد",
   "p03NotifEmptyBody": "ستظهر هنا إشعارات إعلانات الأندية والفعاليات والرسائل.",
-  "p03NotifUnreadEmptyBody": "رائع! لقد قرأت جميع الإشعارات الجديدة.",
+  "p03NotifUnreadEmptyBody": "رائع! لقد قرأت جميع الإشعارات الجديدة. ستصلك التنبيهات فور صدور إعلانات جديدة.",
   "p03NotifLoadFailed": "تعذّر التحميل، حاول مرة أخرى",
   "p03NotifLoadingMore": "جارٍ تحميل المزيد...",
   "p03HomeMealTitle": "قائمة اليوم",
@@ -2562,5 +2562,11 @@
   "p04FollowAction": "متابعة",
   "p04FollowingState": "تتابعه",
   "p04FeedTitle": "منشورات الطلاب",
-  "p04LikeCount": "{count} إعجاب"
+  "p04LikeCount": "{count} إعجاب",
+  "p11UnavailableBody": "تم تجميد هذا المجتمع مؤقتًا أو أنه قيد المراجعة.",
+  "p11UnderReview": "قيد المراجعة",
+  "p12ConsentBold": "مبادئ المجتمع",
+  "p03NotifLoadFailedBody": "تعذّرت مزامنة آخر التحديثات مع الخادم. يرجى التحقق من اتصالك.",
+  "p03NotifShortDay": "{n} يوم",
+  "p05SearchLikes": "{n} إعجاب"
 }

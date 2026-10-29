@@ -183,7 +183,7 @@ class ClubMemberTile extends StatelessWidget {
                 if (sub.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 3),
-                    child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                    child: Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
                   ),
               ],
             ),

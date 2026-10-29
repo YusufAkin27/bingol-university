@@ -263,7 +263,7 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                           Text((r['displayName'] ?? l.clubMgmtUser).toString(),
                               maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                           if (sub.isNotEmpty)
-                            Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                            Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
                         ],
                       ),
                     ),

@@ -516,13 +516,17 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         backgroundColor: t.bg,
         appBar: AppBar(title: Text(l10n.clubTitle)),
         body: gone
-            ? Padding(
+            ? ListView(
                 key: const ValueKey('clubUnavailable'),
                 padding: const EdgeInsets.all(20),
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ClubNoteCard(icon: LucideIcons.circlePause, title: l10n.clubUnavailable),
-                ),
+                children: [
+                  ClubNoteCard(
+                    icon: LucideIcons.circlePause,
+                    title: l10n.clubUnavailable,
+                    body: l10n.p11UnavailableBody,
+                    badge: l10n.p11UnderReview,
+                  ),
+                ],
               )
             : BuErrorState(
                 error: _error,
@@ -707,7 +711,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             ),
           if (_isPending) ...[
             const SizedBox(height: 12),
-            ClubNoteCard(icon: LucideIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody, tone: ClubNoteTone.soft),
+            ClubNoteCard(icon: LucideIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody),
           ],
           if (_status == 'BANNED') ...[
             const SizedBox(height: 12),
@@ -909,7 +913,7 @@ class _DetailSkeleton extends StatelessWidget {
                             height: 56,
                             child: Stack(
                               clipBehavior: Clip.none,
-                              children: [PositionedDirectional(start: 0, top: -44, child: BuSkeleton(width: 88, height: 88, radius: BuRadius.xl))],
+                              children: [PositionedDirectional(start: 0, top: -44, child: _SkeletonLogo())],
                             ),
                           ),
                           BuSkeleton.line(width: 200, height: 24),
@@ -1014,4 +1018,18 @@ class _StatusPill extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Yükleniyor logosu: sayfa zemini halkalı daire (kapağa gömülü görünür, düz kesilmez).
+class _SkeletonLogo extends StatelessWidget {
+  const _SkeletonLogo();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 88,
+        height: 88,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(color: context.bu.bg, shape: BoxShape.circle),
+        child: const BuSkeleton.circle(80),
+      );
 }
