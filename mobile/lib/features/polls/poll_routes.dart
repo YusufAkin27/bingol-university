@@ -12,11 +12,11 @@ export 'poll_club_section.dart' show PollClubSection;
 /// Anket ekranlarına ince yönlendirme (tek giriş noktası).
 
 /// Anket listesi (Keşfet girişi ya da tek kulüp).
-Future<void> openPollList(BuildContext context, Session session, {int? communityId, String? title}) =>
+Future<void> openPollList(BuildContext context, Session session, {int? communityId, String? title, bool canCreate = false}) =>
     Navigator.push<void>(
         context,
         MaterialPageRoute<void>(
-            builder: (_) => PollListPage(session: session, communityId: communityId, title: title)));
+            builder: (_) => PollListPage(session: session, communityId: communityId, title: title, canCreate: canCreate)));
 
 /// Anket detayı. Oy verildi/geri çekildi ise true döner (çağıran listeyi tazeler).
 Future<bool?> openPollDetail(BuildContext context, Session session, int pollId, {Poll? initial}) =>

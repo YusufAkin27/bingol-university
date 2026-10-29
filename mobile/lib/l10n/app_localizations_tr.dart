@@ -5095,7 +5095,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authTermsAutoPrefix => 'Kayıt olarak ';
 
   @override
-  String get authTermsAutoSuffix => ' metinlerini kabul etmiş sayılırsınız.';
+  String get authTermsAutoSuffix => ' kabul etmiş sayılırsınız.';
 
   @override
   String get authPwMinErr => 'Şifre en az 8 karakter olmalı.';
@@ -7903,4 +7903,318 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p07ChatSearchClear => 'Temizle';
+
+  @override
+  String get p17DailyFlow => 'Günlük akış';
+
+  @override
+  String p17DayPlanned(String n) {
+    return '$n ders planlandı';
+  }
+
+  @override
+  String get p17SlotWaiting => 'Bekliyor';
+
+  @override
+  String p17RoomLabel(String room) {
+    return 'Derslik $room';
+  }
+
+  @override
+  String p17HoursPerWeek(String n) {
+    return '$n saat / hafta';
+  }
+
+  @override
+  String get p17NoSemesterTitle => 'Henüz dönem yok';
+
+  @override
+  String get p17NoSemesterBody =>
+      'Bir dönem ekleyerek derslerini düzenleyebilirsin.';
+
+  @override
+  String get p17NoCourseTitle => 'Henüz ders eklemedin';
+
+  @override
+  String get p17NoCourseBody =>
+      'Haftalık ders programını oluşturmak için ilk dersini kaydet.';
+
+  @override
+  String get p17DayFreeBody =>
+      'Günü dinlenmeye, kütüphanede çalışmaya ya da kampüste kahveye ayırabilirsin!';
+
+  @override
+  String get p17TodayDoneBody =>
+      'Günün tüm derslerini tamamladın, iyi dinlenmeler.';
+
+  @override
+  String get p17WeekDoneBody =>
+      'Haftalık program bitti. Gelecek haftaya hazırsın!';
+
+  @override
+  String get p17OutOfRangeBody =>
+      'Seçilen gün akademik takvim dışında kalıyor.';
+
+  @override
+  String get p17LoadErrTitle => 'Ders programı yüklenirken bir sorun oluştu.';
+
+  @override
+  String p17SemesterCount(String n) {
+    return '$n kayıtlı dönem';
+  }
+
+  @override
+  String get p17CheckFields => 'Lütfen aşağıdaki alanları kontrol et:';
+
+  @override
+  String get p17ExamDetail => 'Detay';
+
+  @override
+  String get p17ExamsNoUpcomingBody =>
+      'Tebrikler! Şu an için yaklaşan vize, final veya quiz bulunmuyor.';
+
+  @override
+  String get p17ExamsEmptyMineTitle => 'Kişisel sınav eklemedin.';
+
+  @override
+  String get p17ExamsEmptyMineBody =>
+      'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.';
+
+  @override
+  String get p17OfficialEmptyBody =>
+      'Bölümün sınav programı açıklandığında burada listelenecek.';
+
+  @override
+  String get p17CourseInfoSemantic => 'Ders bilgileri';
+
+  @override
+  String get p20EditProfile => 'Profili düzenle';
+
+  @override
+  String get p20HubExamPlan => 'Oturum planı';
+
+  @override
+  String get p20HubNoDeptTitle => 'Profilinde bölüm bilgisi yok';
+
+  @override
+  String get p20HubNoDeptBody =>
+      'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.';
+
+  @override
+  String get p20HubTimetableEmptyBody =>
+      'Haftalık akışını takip etmek ve sınıf takvimini oluşturmak için derslerini ekle.';
+
+  @override
+  String get p20HubExamBadge => 'Vize & Final';
+
+  @override
+  String get p20HubExamEmptyBody =>
+      'Tebrikler! Takviminde şu an için planlanmış bir vize veya final görünmüyor.';
+
+  @override
+  String get p20HubCalEmptySub => 'Dönem içi işlem aralıkları tamamlandı';
+
+  @override
+  String get p20HubAnnEmptyTitle => 'Okunmamış duyuru yok';
+
+  @override
+  String get p20HubAnnEmptyBody =>
+      'Bölüm sekreterliği veya danışmanından yeni bir bildirim paylaşıldığında burada listelenecek.';
+
+  @override
+  String get p20HubDateTime => 'Tarih & saat';
+
+  @override
+  String p20CalToday(String date) {
+    return 'Bugün: $date';
+  }
+
+  @override
+  String get p20CalSelected => 'Seçili';
+
+  @override
+  String get p20CalImportant => 'Önemli tarih';
+
+  @override
+  String get p20Yesterday => 'Dün';
+
+  @override
+  String get p20AnnFooterTitle => 'Bölümünle ilgili başka duyuru yok.';
+
+  @override
+  String get p20AnnFooterBody =>
+      'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.';
+
+  @override
+  String get p20AnnLinkErrBody =>
+      'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.';
+
+  @override
+  String get p20RemPermTitle => 'Bildirim izni verilmedi';
+
+  @override
+  String get p20RemPermBody =>
+      'Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.';
+
+  @override
+  String get p20RemOpenSettings => 'Ayarlardan aç';
+
+  @override
+  String p13PollArchiveCount(String n) {
+    return '$n anket arşivde';
+  }
+
+  @override
+  String get p13PollArchiveHeading => 'Sonuçlanan anketler';
+
+  @override
+  String p13PollAvgOutOf(String avg) {
+    return '5 üzerinden $avg puan';
+  }
+
+  @override
+  String get p13PollAvgTitle => 'Ortalama puan';
+
+  @override
+  String get p13PollChangeNote =>
+      'Oy verdikten sonra fikrinizi değiştirebilirsiniz.';
+
+  @override
+  String get p13PollClosingSoon => 'Bitiyor';
+
+  @override
+  String get p13PollClubEmptyBody =>
+      'Kulüp yöneticileri henüz oylamaya sunulmuş bir gündem paylaşmadı.';
+
+  @override
+  String get p13PollDateTime => 'Tarih ve saat';
+
+  @override
+  String get p13PollEditMode => 'Oyu değiştirme modu';
+
+  @override
+  String get p13PollEditNote =>
+      'Seçiminizi değiştirdiğinizde önceki oyunuz otomatik olarak iptal edilir ve yeni tercihiniz işlenir.';
+
+  @override
+  String get p13PollEmptyClosedBody => 'Sonuçlanan oylamalar arşive taşınır.';
+
+  @override
+  String get p13PollEmptyMineBody =>
+      'Oy kullandığınız anketler burada toplanır.';
+
+  @override
+  String get p13PollEmptyOpenBody =>
+      'Yeni anketler açıldığında burada listelenecektir.';
+
+  @override
+  String get p13PollErrBody => 'Sunucu bağlantısı kurulamadı';
+
+  @override
+  String get p13PollFormType => 'Anket türü';
+
+  @override
+  String get p13PollHowTo => 'Nasıl oy kullanılır?';
+
+  @override
+  String get p13PollMin2 => 'En az 2 seçenek';
+
+  @override
+  String get p13PollOptionsTitle => 'Seçenekler';
+
+  @override
+  String get p13PollPickEndDate => 'Bitiş tarihi seç';
+
+  @override
+  String get p13PollPickEndTime => 'Bitiş saati seç';
+
+  @override
+  String get p13PollPrefs => 'Katılım tercihleri';
+
+  @override
+  String get p13PollPrevChoice => 'Önceki seçiminiz';
+
+  @override
+  String get p13PollQuick => 'Hızlı süre';
+
+  @override
+  String p13PollRankLabel(String n) {
+    return '$n. tercih';
+  }
+
+  @override
+  String get p13PollRankReset =>
+      'Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.';
+
+  @override
+  String get p13PollRankTap => 'Seçmek için dokunun';
+
+  @override
+  String get p13PollRateCta => 'Puanla';
+
+  @override
+  String get p13PollSecretBody =>
+      'Kimliğiniz hiçbir yönetici, kulüp temsilcisi veya öğrenci tarafından görüntülenemez.';
+
+  @override
+  String p13PollSelectedCount(String n, String max) {
+    return '$n / $max seçildi';
+  }
+
+  @override
+  String get p13PollTopOption => 'En çok oy alan seçenek';
+
+  @override
+  String get p13PollTypeMultiHint => 'Birden fazla seçenek işaretlenebilir';
+
+  @override
+  String get p13PollTypeRankedHint => 'Tercih sırasına göre dizme';
+
+  @override
+  String get p13PollTypeRatingHint => '1-5 yıldız ile puanlama';
+
+  @override
+  String get p13PollTypeSingleHint => 'Yalnızca tek bir seçenek belirlenebilir';
+
+  @override
+  String get p13PollVisAfterCloseSub =>
+      'Süre dolana kadar hiçbir veri gösterilmez';
+
+  @override
+  String get p13PollVisAfterVoteSub =>
+      'Kullanıcı oyunu kullandıktan sonra açılır';
+
+  @override
+  String get p13PollVisAlwaysSub => 'Tüm oylar canlı olarak izlenebilir';
+
+  @override
+  String get p13PollYourScore => 'Puanınız';
+
+  @override
+  String get p17MyCourses => 'Derslerim';
+
+  @override
+  String p11LikeCount(String count) {
+    return '$count beğeni';
+  }
+
+  @override
+  String get p11CaseSensitive => 'Büyük/küçük harf duyarlıdır';
+
+  @override
+  String get p12BasicInfo => 'Temel bilgiler';
+
+  @override
+  String get p12VisibilityAndJoin => 'Görünürlük ve katılım';
+
+  @override
+  String get p17ConflictIntro => 'Şu derslerle saatler çakışıyor:';
+
+  @override
+  String p17ColorSelected(String name) {
+    return 'Seçili: $name';
+  }
+
+  @override
+  String get p17WeekDay => 'Haftanın günü';
 }

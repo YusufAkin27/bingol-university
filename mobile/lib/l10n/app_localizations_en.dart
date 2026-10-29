@@ -7936,4 +7936,314 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p07ChatSearchClear => 'Clear';
+
+  @override
+  String get p17DailyFlow => 'Daily schedule';
+
+  @override
+  String p17DayPlanned(String n) {
+    return '$n classes scheduled';
+  }
+
+  @override
+  String get p17SlotWaiting => 'Upcoming';
+
+  @override
+  String p17RoomLabel(String room) {
+    return 'Room $room';
+  }
+
+  @override
+  String p17HoursPerWeek(String n) {
+    return '$n h / week';
+  }
+
+  @override
+  String get p17NoSemesterTitle => 'No semester yet';
+
+  @override
+  String get p17NoSemesterBody => 'Add a semester to organise your classes.';
+
+  @override
+  String get p17NoCourseTitle => 'You have not added a course yet';
+
+  @override
+  String get p17NoCourseBody =>
+      'Save your first course to build your weekly timetable.';
+
+  @override
+  String get p17DayFreeBody =>
+      'Spend the day resting, studying in the library or having a coffee on campus!';
+
+  @override
+  String get p17TodayDoneBody =>
+      'You have finished all of today\'s classes. Enjoy your rest.';
+
+  @override
+  String get p17WeekDoneBody =>
+      'This week\'s schedule is over. You are ready for next week!';
+
+  @override
+  String get p17OutOfRangeBody =>
+      'The selected day is outside the academic calendar.';
+
+  @override
+  String get p17LoadErrTitle => 'There was a problem loading the timetable.';
+
+  @override
+  String p17SemesterCount(String n) {
+    return '$n saved semesters';
+  }
+
+  @override
+  String get p17CheckFields => 'Please check the following fields:';
+
+  @override
+  String get p17ExamDetail => 'Details';
+
+  @override
+  String get p17ExamsNoUpcomingBody =>
+      'Congratulations! There is no upcoming midterm, final or quiz right now.';
+
+  @override
+  String get p17ExamsEmptyMineTitle => 'You have not added a personal exam.';
+
+  @override
+  String get p17ExamsEmptyMineBody =>
+      'Add your first exam to build your schedule and follow the countdown.';
+
+  @override
+  String get p17OfficialEmptyBody =>
+      'Your department\'s exam schedule will be listed here once announced.';
+
+  @override
+  String get p17CourseInfoSemantic => 'Course details';
+
+  @override
+  String get p20EditProfile => 'Edit profile';
+
+  @override
+  String get p20HubExamPlan => 'Exam plan';
+
+  @override
+  String get p20HubNoDeptTitle => 'No department in your profile';
+
+  @override
+  String get p20HubNoDeptBody =>
+      'Complete your faculty details for a timetable and personalised announcements.';
+
+  @override
+  String get p20HubTimetableEmptyBody =>
+      'Add your courses to follow your weekly flow and build your class calendar.';
+
+  @override
+  String get p20HubExamBadge => 'Midterm & Final';
+
+  @override
+  String get p20HubExamEmptyBody =>
+      'Congratulations! No midterm or final is planned in your calendar right now.';
+
+  @override
+  String get p20HubCalEmptySub => 'The in-semester date ranges are over';
+
+  @override
+  String get p20HubAnnEmptyTitle => 'No unread announcements';
+
+  @override
+  String get p20HubAnnEmptyBody =>
+      'New notices from your department office or advisor will be listed here.';
+
+  @override
+  String get p20HubDateTime => 'Date & time';
+
+  @override
+  String p20CalToday(String date) {
+    return 'Today: $date';
+  }
+
+  @override
+  String get p20CalSelected => 'Selected';
+
+  @override
+  String get p20CalImportant => 'Important date';
+
+  @override
+  String get p20Yesterday => 'Yesterday';
+
+  @override
+  String get p20AnnFooterTitle => 'No more announcements for your department.';
+
+  @override
+  String get p20AnnFooterBody =>
+      'You will be notified when new calendar and exam notices are published.';
+
+  @override
+  String get p20AnnLinkErrBody =>
+      'The file server could not be reached. Please check your connection.';
+
+  @override
+  String get p20RemPermTitle => 'Notification permission not granted';
+
+  @override
+  String get p20RemPermBody =>
+      'Reminders need the system notification permission to ring on time.';
+
+  @override
+  String get p20RemOpenSettings => 'Open in settings';
+
+  @override
+  String p13PollArchiveCount(String n) {
+    return '$n polls archived';
+  }
+
+  @override
+  String get p13PollArchiveHeading => 'Concluded polls';
+
+  @override
+  String p13PollAvgOutOf(String avg) {
+    return '$avg out of 5';
+  }
+
+  @override
+  String get p13PollAvgTitle => 'Average rating';
+
+  @override
+  String get p13PollChangeNote => 'You can change your mind after voting.';
+
+  @override
+  String get p13PollClosingSoon => 'Ending soon';
+
+  @override
+  String get p13PollClubEmptyBody =>
+      'Club managers have not shared any poll for voting yet.';
+
+  @override
+  String get p13PollDateTime => 'Date and time';
+
+  @override
+  String get p13PollEditMode => 'Changing your vote';
+
+  @override
+  String get p13PollEditNote =>
+      'When you change your choice, your previous vote is cancelled automatically and your new choice is counted.';
+
+  @override
+  String get p13PollEmptyClosedBody =>
+      'Concluded polls are moved to the archive.';
+
+  @override
+  String get p13PollEmptyMineBody =>
+      'Polls you have voted in are collected here.';
+
+  @override
+  String get p13PollEmptyOpenBody =>
+      'New polls will be listed here when they open.';
+
+  @override
+  String get p13PollErrBody => 'Could not connect to the server';
+
+  @override
+  String get p13PollFormType => 'Poll type';
+
+  @override
+  String get p13PollHowTo => 'How does voting work?';
+
+  @override
+  String get p13PollMin2 => 'At least 2 options';
+
+  @override
+  String get p13PollOptionsTitle => 'Options';
+
+  @override
+  String get p13PollPickEndDate => 'Select end date';
+
+  @override
+  String get p13PollPickEndTime => 'Select end time';
+
+  @override
+  String get p13PollPrefs => 'Participation settings';
+
+  @override
+  String get p13PollPrevChoice => 'Your previous choice';
+
+  @override
+  String get p13PollQuick => 'Quick duration';
+
+  @override
+  String p13PollRankLabel(String n) {
+    return 'Choice $n';
+  }
+
+  @override
+  String get p13PollRankReset => 'Tap an option again to reset the ranking.';
+
+  @override
+  String get p13PollRankTap => 'Tap to select';
+
+  @override
+  String get p13PollRateCta => 'Rate';
+
+  @override
+  String get p13PollSecretBody =>
+      'Your identity cannot be seen by any administrator, club representative or student.';
+
+  @override
+  String p13PollSelectedCount(String n, String max) {
+    return '$n / $max selected';
+  }
+
+  @override
+  String get p13PollTopOption => 'Most voted option';
+
+  @override
+  String get p13PollTypeMultiHint => 'Several options can be selected';
+
+  @override
+  String get p13PollTypeRankedHint => 'Order by preference';
+
+  @override
+  String get p13PollTypeRatingHint => 'Rate with 1-5 stars';
+
+  @override
+  String get p13PollTypeSingleHint => 'Only one option can be chosen';
+
+  @override
+  String get p13PollVisAfterCloseSub => 'No data is shown until the poll ends';
+
+  @override
+  String get p13PollVisAfterVoteSub => 'Shown to a user after they vote';
+
+  @override
+  String get p13PollVisAlwaysSub => 'All votes can be followed live';
+
+  @override
+  String get p13PollYourScore => 'Your rating';
+
+  @override
+  String get p17MyCourses => 'My courses';
+
+  @override
+  String p11LikeCount(String count) {
+    return '$count likes';
+  }
+
+  @override
+  String get p11CaseSensitive => 'Case sensitive';
+
+  @override
+  String get p12BasicInfo => 'Basic information';
+
+  @override
+  String get p12VisibilityAndJoin => 'Visibility and joining';
+
+  @override
+  String get p17ConflictIntro => 'The times clash with these courses:';
+
+  @override
+  String p17ColorSelected(String name) {
+    return 'Selected: $name';
+  }
+
+  @override
+  String get p17WeekDay => 'Day of the week';
 }

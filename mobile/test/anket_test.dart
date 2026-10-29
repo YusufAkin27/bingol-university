@@ -40,7 +40,7 @@ void main() {
           final f = fakePolls(b, count: 1);
           f.polls[0] = samplePoll(id: 1, anonymous: true, myOptionIds: [101], optionCount: 5, title: 'Uzun baslik ' * 8);
           await show(tester, PollDetailPage(session: makeSession(b), pollId: 1), size: size, b: br);
-          expect(find.textContaining('Oyunuz gizli.', skipOffstage: false), findsOneWidget);
+          expect(find.textContaining('Oyunuz gizlidir', skipOffstage: false), findsOneWidget);
           noErr(tester);
         });
 

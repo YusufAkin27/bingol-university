@@ -9436,7 +9436,7 @@ abstract class AppLocalizations {
   /// No description provided for @authTermsAutoSuffix.
   ///
   /// In tr, this message translates to:
-  /// **' metinlerini kabul etmiş sayılırsınız.'**
+  /// **' kabul etmiş sayılırsınız.'**
   String get authTermsAutoSuffix;
 
   /// No description provided for @authPwMinErr.
@@ -14448,6 +14448,540 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Temizle'**
   String get p07ChatSearchClear;
+
+  /// No description provided for @p17DailyFlow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük akış'**
+  String get p17DailyFlow;
+
+  /// No description provided for @p17DayPlanned.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} ders planlandı'**
+  String p17DayPlanned(String n);
+
+  /// No description provided for @p17SlotWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekliyor'**
+  String get p17SlotWaiting;
+
+  /// No description provided for @p17RoomLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslik {room}'**
+  String p17RoomLabel(String room);
+
+  /// No description provided for @p17HoursPerWeek.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} saat / hafta'**
+  String p17HoursPerWeek(String n);
+
+  /// No description provided for @p17NoSemesterTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz dönem yok'**
+  String get p17NoSemesterTitle;
+
+  /// No description provided for @p17NoSemesterBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir dönem ekleyerek derslerini düzenleyebilirsin.'**
+  String get p17NoSemesterBody;
+
+  /// No description provided for @p17NoCourseTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz ders eklemedin'**
+  String get p17NoCourseTitle;
+
+  /// No description provided for @p17NoCourseBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık ders programını oluşturmak için ilk dersini kaydet.'**
+  String get p17NoCourseBody;
+
+  /// No description provided for @p17DayFreeBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günü dinlenmeye, kütüphanede çalışmaya ya da kampüste kahveye ayırabilirsin!'**
+  String get p17DayFreeBody;
+
+  /// No description provided for @p17TodayDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün tüm derslerini tamamladın, iyi dinlenmeler.'**
+  String get p17TodayDoneBody;
+
+  /// No description provided for @p17WeekDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık program bitti. Gelecek haftaya hazırsın!'**
+  String get p17WeekDoneBody;
+
+  /// No description provided for @p17OutOfRangeBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilen gün akademik takvim dışında kalıyor.'**
+  String get p17OutOfRangeBody;
+
+  /// No description provided for @p17LoadErrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders programı yüklenirken bir sorun oluştu.'**
+  String get p17LoadErrTitle;
+
+  /// No description provided for @p17SemesterCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} kayıtlı dönem'**
+  String p17SemesterCount(String n);
+
+  /// No description provided for @p17CheckFields.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lütfen aşağıdaki alanları kontrol et:'**
+  String get p17CheckFields;
+
+  /// No description provided for @p17ExamDetail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Detay'**
+  String get p17ExamDetail;
+
+  /// No description provided for @p17ExamsNoUpcomingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tebrikler! Şu an için yaklaşan vize, final veya quiz bulunmuyor.'**
+  String get p17ExamsNoUpcomingBody;
+
+  /// No description provided for @p17ExamsEmptyMineTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişisel sınav eklemedin.'**
+  String get p17ExamsEmptyMineTitle;
+
+  /// No description provided for @p17ExamsEmptyMineBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.'**
+  String get p17ExamsEmptyMineBody;
+
+  /// No description provided for @p17OfficialEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümün sınav programı açıklandığında burada listelenecek.'**
+  String get p17OfficialEmptyBody;
+
+  /// No description provided for @p17CourseInfoSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders bilgileri'**
+  String get p17CourseInfoSemantic;
+
+  /// No description provided for @p20EditProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili düzenle'**
+  String get p20EditProfile;
+
+  /// No description provided for @p20HubExamPlan.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum planı'**
+  String get p20HubExamPlan;
+
+  /// No description provided for @p20HubNoDeptTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilinde bölüm bilgisi yok'**
+  String get p20HubNoDeptTitle;
+
+  /// No description provided for @p20HubNoDeptBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.'**
+  String get p20HubNoDeptBody;
+
+  /// No description provided for @p20HubTimetableEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık akışını takip etmek ve sınıf takvimini oluşturmak için derslerini ekle.'**
+  String get p20HubTimetableEmptyBody;
+
+  /// No description provided for @p20HubExamBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vize & Final'**
+  String get p20HubExamBadge;
+
+  /// No description provided for @p20HubExamEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tebrikler! Takviminde şu an için planlanmış bir vize veya final görünmüyor.'**
+  String get p20HubExamEmptyBody;
+
+  /// No description provided for @p20HubCalEmptySub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dönem içi işlem aralıkları tamamlandı'**
+  String get p20HubCalEmptySub;
+
+  /// No description provided for @p20HubAnnEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okunmamış duyuru yok'**
+  String get p20HubAnnEmptyTitle;
+
+  /// No description provided for @p20HubAnnEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm sekreterliği veya danışmanından yeni bir bildirim paylaşıldığında burada listelenecek.'**
+  String get p20HubAnnEmptyBody;
+
+  /// No description provided for @p20HubDateTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih & saat'**
+  String get p20HubDateTime;
+
+  /// No description provided for @p20CalToday.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün: {date}'**
+  String p20CalToday(String date);
+
+  /// No description provided for @p20CalSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçili'**
+  String get p20CalSelected;
+
+  /// No description provided for @p20CalImportant.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önemli tarih'**
+  String get p20CalImportant;
+
+  /// No description provided for @p20Yesterday.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dün'**
+  String get p20Yesterday;
+
+  /// No description provided for @p20AnnFooterTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünle ilgili başka duyuru yok.'**
+  String get p20AnnFooterTitle;
+
+  /// No description provided for @p20AnnFooterBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.'**
+  String get p20AnnFooterBody;
+
+  /// No description provided for @p20AnnLinkErrBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.'**
+  String get p20AnnLinkErrBody;
+
+  /// No description provided for @p20RemPermTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim izni verilmedi'**
+  String get p20RemPermTitle;
+
+  /// No description provided for @p20RemPermBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.'**
+  String get p20RemPermBody;
+
+  /// No description provided for @p20RemOpenSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarlardan aç'**
+  String get p20RemOpenSettings;
+
+  /// No description provided for @p13PollArchiveCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} anket arşivde'**
+  String p13PollArchiveCount(String n);
+
+  /// No description provided for @p13PollArchiveHeading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuçlanan anketler'**
+  String get p13PollArchiveHeading;
+
+  /// No description provided for @p13PollAvgOutOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'5 üzerinden {avg} puan'**
+  String p13PollAvgOutOf(String avg);
+
+  /// No description provided for @p13PollAvgTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortalama puan'**
+  String get p13PollAvgTitle;
+
+  /// No description provided for @p13PollChangeNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy verdikten sonra fikrinizi değiştirebilirsiniz.'**
+  String get p13PollChangeNote;
+
+  /// No description provided for @p13PollClosingSoon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiyor'**
+  String get p13PollClosingSoon;
+
+  /// No description provided for @p13PollClubEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp yöneticileri henüz oylamaya sunulmuş bir gündem paylaşmadı.'**
+  String get p13PollClubEmptyBody;
+
+  /// No description provided for @p13PollDateTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih ve saat'**
+  String get p13PollDateTime;
+
+  /// No description provided for @p13PollEditMode.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyu değiştirme modu'**
+  String get p13PollEditMode;
+
+  /// No description provided for @p13PollEditNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçiminizi değiştirdiğinizde önceki oyunuz otomatik olarak iptal edilir ve yeni tercihiniz işlenir.'**
+  String get p13PollEditNote;
+
+  /// No description provided for @p13PollEmptyClosedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuçlanan oylamalar arşive taşınır.'**
+  String get p13PollEmptyClosedBody;
+
+  /// No description provided for @p13PollEmptyMineBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy kullandığınız anketler burada toplanır.'**
+  String get p13PollEmptyMineBody;
+
+  /// No description provided for @p13PollEmptyOpenBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni anketler açıldığında burada listelenecektir.'**
+  String get p13PollEmptyOpenBody;
+
+  /// No description provided for @p13PollErrBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucu bağlantısı kurulamadı'**
+  String get p13PollErrBody;
+
+  /// No description provided for @p13PollFormType.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket türü'**
+  String get p13PollFormType;
+
+  /// No description provided for @p13PollHowTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nasıl oy kullanılır?'**
+  String get p13PollHowTo;
+
+  /// No description provided for @p13PollMin2.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 2 seçenek'**
+  String get p13PollMin2;
+
+  /// No description provided for @p13PollOptionsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenekler'**
+  String get p13PollOptionsTitle;
+
+  /// No description provided for @p13PollPickEndDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş tarihi seç'**
+  String get p13PollPickEndDate;
+
+  /// No description provided for @p13PollPickEndTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş saati seç'**
+  String get p13PollPickEndTime;
+
+  /// No description provided for @p13PollPrefs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım tercihleri'**
+  String get p13PollPrefs;
+
+  /// No description provided for @p13PollPrevChoice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önceki seçiminiz'**
+  String get p13PollPrevChoice;
+
+  /// No description provided for @p13PollQuick.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı süre'**
+  String get p13PollQuick;
+
+  /// No description provided for @p13PollRankLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n}. tercih'**
+  String p13PollRankLabel(String n);
+
+  /// No description provided for @p13PollRankReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.'**
+  String get p13PollRankReset;
+
+  /// No description provided for @p13PollRankTap.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçmek için dokunun'**
+  String get p13PollRankTap;
+
+  /// No description provided for @p13PollRateCta.
+  ///
+  /// In tr, this message translates to:
+  /// **'Puanla'**
+  String get p13PollRateCta;
+
+  /// No description provided for @p13PollSecretBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimliğiniz hiçbir yönetici, kulüp temsilcisi veya öğrenci tarafından görüntülenemez.'**
+  String get p13PollSecretBody;
+
+  /// No description provided for @p13PollSelectedCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} / {max} seçildi'**
+  String p13PollSelectedCount(String n, String max);
+
+  /// No description provided for @p13PollTopOption.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok oy alan seçenek'**
+  String get p13PollTopOption;
+
+  /// No description provided for @p13PollTypeMultiHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birden fazla seçenek işaretlenebilir'**
+  String get p13PollTypeMultiHint;
+
+  /// No description provided for @p13PollTypeRankedHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tercih sırasına göre dizme'**
+  String get p13PollTypeRankedHint;
+
+  /// No description provided for @p13PollTypeRatingHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'1-5 yıldız ile puanlama'**
+  String get p13PollTypeRatingHint;
+
+  /// No description provided for @p13PollTypeSingleHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca tek bir seçenek belirlenebilir'**
+  String get p13PollTypeSingleHint;
+
+  /// No description provided for @p13PollVisAfterCloseSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre dolana kadar hiçbir veri gösterilmez'**
+  String get p13PollVisAfterCloseSub;
+
+  /// No description provided for @p13PollVisAfterVoteSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı oyunu kullandıktan sonra açılır'**
+  String get p13PollVisAfterVoteSub;
+
+  /// No description provided for @p13PollVisAlwaysSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm oylar canlı olarak izlenebilir'**
+  String get p13PollVisAlwaysSub;
+
+  /// No description provided for @p13PollYourScore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Puanınız'**
+  String get p13PollYourScore;
+
+  /// No description provided for @p17MyCourses.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslerim'**
+  String get p17MyCourses;
+
+  /// No description provided for @p11LikeCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni'**
+  String p11LikeCount(String count);
+
+  /// No description provided for @p11CaseSensitive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Büyük/küçük harf duyarlıdır'**
+  String get p11CaseSensitive;
+
+  /// No description provided for @p12BasicInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temel bilgiler'**
+  String get p12BasicInfo;
+
+  /// No description provided for @p12VisibilityAndJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görünürlük ve katılım'**
+  String get p12VisibilityAndJoin;
+
+  /// No description provided for @p17ConflictIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu derslerle saatler çakışıyor:'**
+  String get p17ConflictIntro;
+
+  /// No description provided for @p17ColorSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçili: {name}'**
+  String p17ColorSelected(String name);
+
+  /// No description provided for @p17WeekDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftanın günü'**
+  String get p17WeekDay;
 }
 
 class _AppLocalizationsDelegate

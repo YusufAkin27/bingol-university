@@ -7853,4 +7853,309 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p07ChatSearchClear => 'مسح';
+
+  @override
+  String get p17DailyFlow => 'الجدول اليومي';
+
+  @override
+  String p17DayPlanned(String n) {
+    return '$n محاضرات مجدولة';
+  }
+
+  @override
+  String get p17SlotWaiting => 'قادمة';
+
+  @override
+  String p17RoomLabel(String room) {
+    return 'القاعة $room';
+  }
+
+  @override
+  String p17HoursPerWeek(String n) {
+    return '$n ساعة / أسبوع';
+  }
+
+  @override
+  String get p17NoSemesterTitle => 'لا يوجد فصل دراسي بعد';
+
+  @override
+  String get p17NoSemesterBody => 'أضف فصلًا دراسيًا لتنظيم محاضراتك.';
+
+  @override
+  String get p17NoCourseTitle => 'لم تضف أي مقرر بعد';
+
+  @override
+  String get p17NoCourseBody => 'احفظ أول مقرر لبناء جدولك الأسبوعي.';
+
+  @override
+  String get p17DayFreeBody =>
+      'يمكنك قضاء اليوم في الراحة أو الدراسة في المكتبة أو شرب القهوة في الحرم الجامعي!';
+
+  @override
+  String get p17TodayDoneBody => 'أنهيت كل محاضرات اليوم، استمتع بالراحة.';
+
+  @override
+  String get p17WeekDoneBody =>
+      'انتهى جدول هذا الأسبوع. أنت جاهز للأسبوع القادم!';
+
+  @override
+  String get p17OutOfRangeBody => 'اليوم المحدد خارج التقويم الأكاديمي.';
+
+  @override
+  String get p17LoadErrTitle => 'حدثت مشكلة أثناء تحميل الجدول الدراسي.';
+
+  @override
+  String p17SemesterCount(String n) {
+    return '$n فصول محفوظة';
+  }
+
+  @override
+  String get p17CheckFields => 'يرجى التحقق من الحقول التالية:';
+
+  @override
+  String get p17ExamDetail => 'التفاصيل';
+
+  @override
+  String get p17ExamsNoUpcomingBody =>
+      'تهانينا! لا توجد اختبارات قادمة حاليًا.';
+
+  @override
+  String get p17ExamsEmptyMineTitle => 'لم تضف أي اختبار شخصي.';
+
+  @override
+  String get p17ExamsEmptyMineBody =>
+      'أضف أول اختبار لبناء جدولك ومتابعة العد التنازلي.';
+
+  @override
+  String get p17OfficialEmptyBody =>
+      'ستظهر هنا قائمة اختبارات قسمك عند الإعلان عنها.';
+
+  @override
+  String get p17CourseInfoSemantic => 'تفاصيل المقرر';
+
+  @override
+  String get p20EditProfile => 'تعديل الملف الشخصي';
+
+  @override
+  String get p20HubExamPlan => 'خطة الجلسات';
+
+  @override
+  String get p20HubNoDeptTitle => 'لا يوجد قسم في ملفك الشخصي';
+
+  @override
+  String get p20HubNoDeptBody =>
+      'أكمل بيانات كليتك للحصول على جدول وإعلانات مخصصة.';
+
+  @override
+  String get p20HubTimetableEmptyBody =>
+      'أضف مقرراتك لمتابعة جدولك الأسبوعي وبناء تقويم الصف.';
+
+  @override
+  String get p20HubExamBadge => 'نصفي ونهائي';
+
+  @override
+  String get p20HubExamEmptyBody =>
+      'تهانينا! لا يوجد اختبار نصفي أو نهائي مخطط في تقويمك حاليًا.';
+
+  @override
+  String get p20HubCalEmptySub => 'انتهت الفترات الزمنية داخل الفصل';
+
+  @override
+  String get p20HubAnnEmptyTitle => 'لا توجد إعلانات غير مقروءة';
+
+  @override
+  String get p20HubAnnEmptyBody =>
+      'ستظهر هنا الإشعارات الجديدة من سكرتارية القسم أو المرشد.';
+
+  @override
+  String get p20HubDateTime => 'التاريخ والوقت';
+
+  @override
+  String p20CalToday(String date) {
+    return 'اليوم: $date';
+  }
+
+  @override
+  String get p20CalSelected => 'المحدد';
+
+  @override
+  String get p20CalImportant => 'تاريخ مهم';
+
+  @override
+  String get p20Yesterday => 'أمس';
+
+  @override
+  String get p20AnnFooterTitle => 'لا توجد إعلانات أخرى لقسمك.';
+
+  @override
+  String get p20AnnFooterBody =>
+      'ستصلك إشعارات عند نشر تقويم أو اختبارات جديدة.';
+
+  @override
+  String get p20AnnLinkErrBody =>
+      'تعذر الوصول إلى خادم الملفات. يرجى التحقق من اتصالك.';
+
+  @override
+  String get p20RemPermTitle => 'لم يتم منح إذن الإشعارات';
+
+  @override
+  String get p20RemPermBody =>
+      'تحتاج التذكيرات إلى إذن إشعارات النظام لتعمل في وقتها.';
+
+  @override
+  String get p20RemOpenSettings => 'فتح من الإعدادات';
+
+  @override
+  String p13PollArchiveCount(String n) {
+    return '$n استطلاعات في الأرشيف';
+  }
+
+  @override
+  String get p13PollArchiveHeading => 'الاستطلاعات المنتهية';
+
+  @override
+  String p13PollAvgOutOf(String avg) {
+    return '$avg من 5';
+  }
+
+  @override
+  String get p13PollAvgTitle => 'متوسط التقييم';
+
+  @override
+  String get p13PollChangeNote => 'يمكنك تغيير رأيك بعد التصويت.';
+
+  @override
+  String get p13PollClosingSoon => 'ينتهي قريبًا';
+
+  @override
+  String get p13PollClubEmptyBody =>
+      'لم يشارك مسؤولو النادي أي استطلاع للتصويت بعد.';
+
+  @override
+  String get p13PollDateTime => 'التاريخ والوقت';
+
+  @override
+  String get p13PollEditMode => 'وضع تغيير التصويت';
+
+  @override
+  String get p13PollEditNote =>
+      'عند تغيير اختيارك يُلغى تصويتك السابق تلقائيًا ويُحتسب اختيارك الجديد.';
+
+  @override
+  String get p13PollEmptyClosedBody =>
+      'تُنقل الاستطلاعات المنتهية إلى الأرشيف.';
+
+  @override
+  String get p13PollEmptyMineBody => 'تُجمع هنا الاستطلاعات التي صوّتَّ فيها.';
+
+  @override
+  String get p13PollEmptyOpenBody => 'ستظهر الاستطلاعات الجديدة هنا عند فتحها.';
+
+  @override
+  String get p13PollErrBody => 'تعذّر الاتصال بالخادم';
+
+  @override
+  String get p13PollFormType => 'نوع الاستطلاع';
+
+  @override
+  String get p13PollHowTo => 'كيف يتم التصويت؟';
+
+  @override
+  String get p13PollMin2 => 'خياران على الأقل';
+
+  @override
+  String get p13PollOptionsTitle => 'الخيارات';
+
+  @override
+  String get p13PollPickEndDate => 'اختر تاريخ الانتهاء';
+
+  @override
+  String get p13PollPickEndTime => 'اختر وقت الانتهاء';
+
+  @override
+  String get p13PollPrefs => 'تفضيلات المشاركة';
+
+  @override
+  String get p13PollPrevChoice => 'اختيارك السابق';
+
+  @override
+  String get p13PollQuick => 'مدة سريعة';
+
+  @override
+  String p13PollRankLabel(String n) {
+    return 'الاختيار $n';
+  }
+
+  @override
+  String get p13PollRankReset => 'اضغط على الخيار مرة أخرى لإعادة ضبط الترتيب.';
+
+  @override
+  String get p13PollRankTap => 'اضغط للاختيار';
+
+  @override
+  String get p13PollRateCta => 'قيّم';
+
+  @override
+  String get p13PollSecretBody =>
+      'لا يمكن لأي مسؤول أو ممثل نادٍ أو طالب رؤية هويتك.';
+
+  @override
+  String p13PollSelectedCount(String n, String max) {
+    return '$n / $max محدد';
+  }
+
+  @override
+  String get p13PollTopOption => 'الخيار الأكثر تصويتًا';
+
+  @override
+  String get p13PollTypeMultiHint => 'يمكن تحديد أكثر من خيار';
+
+  @override
+  String get p13PollTypeRankedHint => 'الترتيب حسب الأفضلية';
+
+  @override
+  String get p13PollTypeRatingHint => 'التقييم من 1 إلى 5 نجوم';
+
+  @override
+  String get p13PollTypeSingleHint => 'يمكن اختيار خيار واحد فقط';
+
+  @override
+  String get p13PollVisAfterCloseSub => 'لا تُعرض أي بيانات حتى انتهاء المدة';
+
+  @override
+  String get p13PollVisAfterVoteSub => 'تظهر للمستخدم بعد تصويته';
+
+  @override
+  String get p13PollVisAlwaysSub => 'يمكن متابعة جميع الأصوات مباشرة';
+
+  @override
+  String get p13PollYourScore => 'تقييمك';
+
+  @override
+  String get p17MyCourses => 'مقرراتي';
+
+  @override
+  String p11LikeCount(String count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String get p11CaseSensitive => 'حساس لحالة الأحرف';
+
+  @override
+  String get p12BasicInfo => 'المعلومات الأساسية';
+
+  @override
+  String get p12VisibilityAndJoin => 'الظهور والانضمام';
+
+  @override
+  String get p17ConflictIntro => 'تتعارض الأوقات مع هذه المقررات:';
+
+  @override
+  String p17ColorSelected(String name) {
+    return 'المحدد: $name';
+  }
+
+  @override
+  String get p17WeekDay => 'يوم الأسبوع';
 }

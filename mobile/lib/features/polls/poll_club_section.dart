@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
+import 'anket_widgets.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 import 'poll_parts.dart';
@@ -62,34 +62,64 @@ class _PollClubSectionState extends State<PollClubSection> {
   @override
   Widget build(BuildContext context) {
     final items = _items;
+    final l = context.l10n;
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    void seeAll() =>
+        openPollList(context, widget.session, communityId: widget.communityId, title: l.pollClubPolls, canCreate: widget.canCreate);
     return Column(
       children: [
         if (widget.canCreate)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: BuButton(label: context.l10n.pollCreate, icon: LucideIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: _create),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+            child: BuCard(
+              onTap: _create,
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 4),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Center(
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    ExcludeSemantics(child: Icon(LucideIcons.circlePlus, size: 20, color: t.pr)),
+                    const SizedBox(width: 10),
+                    Flexible(child: Text(l.pollCreate, style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w800))),
+                  ]),
+                ),
+              ),
             ),
           ),
         if (_error != null && items == null)
-          SizedBox(height: 240, child: ErrorView(error: _error!, onRetry: _load))
+          SizedBox(height: 300, child: BuErrorState(error: _error, compact: true, onRetry: _load))
         else if (items == null)
-          const SizedBox(height: 200, child: LoadingView())
+          const BuSkeletonList(variant: BuSkeletonVariant.card, itemCount: 2, shrinkWrap: true)
         else if (items.isEmpty)
-          SizedBox(height: 220, child: EmptyView(icon: LucideIcons.vote, text: context.l10n.pollClubEmpty))
-        else ...[
-          for (final p in items)
-            Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: PollCard(poll: p, onTap: () => _open(p))),
-          if (_more)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: TextButton(
-                onPressed: () => openPollList(context, widget.session,
-                    communityId: widget.communityId, title: context.l10n.pollClubPolls),
-                child: Text(context.l10n.pollSeeAll),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+            child: BuCard(
+              padding: const EdgeInsetsDirectional.all(12),
+              child: AnketClubEmpty(
+                title: l.pollClubEmpty,
+                body: l.p13PollClubEmptyBody,
+                linkLabel: l.pollSeeAll,
+                onLink: () => openPollList(context, widget.session),
               ),
             ),
+          )
+        else ...[
+          BuStaggerScope(
+            child: Column(
+              children: [
+                for (var i = 0; i < items.length; i++)
+                  BuStaggerItem(
+                    index: i,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+                      child: PollCard(poll: items[i], onTap: () => _open(items[i])),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (_more) Padding(padding: const EdgeInsets.only(bottom: 12), child: AnketLinkButton(label: l.pollSeeAll, onTap: seeAll)),
         ],
       ],
     );

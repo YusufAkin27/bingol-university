@@ -180,7 +180,7 @@ void main() {
       final f = fakePolls(b, count: 30)..pageSize = 10;
       await show(tester, PollListPage(session: makeSession(b)));
       expect(b.count('cursor='), 0);
-      await tester.drag(find.byType(ListView).last, const Offset(0, -6000));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -6000));
       await tester.pumpAndSettle();
       expect(b.count('cursor='), 1);
       expect(f.polls.length, 30);
@@ -455,7 +455,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(2), 'Ali');
       await tester.pump();
       await tap(tester, find.text('Yayınla'), settle: false);
-      expect(find.textContaining('2 seçenek'), findsOneWidget);
+      expect(find.text('En az 2 seçenek girin.'), findsOneWidget);
       noErr(tester);
     });
 

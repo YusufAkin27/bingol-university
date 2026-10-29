@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
+import 'anket_style.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 import 'poll_parts.dart';
@@ -57,44 +56,82 @@ class _PollMenuCardState extends State<PollMenuCard> {
     }
   }
 
+  String _word(int r) {
+    final l = context.l10n;
+    return switch (r) {
+      1 => l.p13Rate1,
+      2 => l.p13Rate2,
+      3 => l.p13Rate3,
+      4 => l.p13Rate4,
+      _ => l.p13Rate5,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = _poll;
     if (p == null || p.isClosed()) return const SizedBox.shrink();
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     final canRate = p.canVote;
+    final tone = AnketTone.meal(context);
+    final caption = _msg ??
+        (p.voted
+            ? (p.average != null
+                ? l.pollYourRatingAvg('${p.myRating}', p.average!.toStringAsFixed(1))
+                : l.pollYourRating('${p.myRating}'))
+            : (p.canVote ? l.pollTapStar : l.pollNoVoteRight));
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: BuCard(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 18),
         child: SizedBox(
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                const Icon(LucideIcons.star, size: 16, color: Color(0xFFE8A317)),
-                const SizedBox(width: 8),
+              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                AnketIconTile(LucideIcons.star, bg: tone.bg, fg: tone.fg, size: 40),
+                const SizedBox(width: 12),
                 Expanded(
-                    child: Text(context.l10n.pollMenuRateToday, style: BuType.heading.copyWith(color: t.ink))),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Semantics(header: true, child: Text(l.pollMenuRateToday, style: tx.titleMedium!.copyWith(color: t.ink))),
+                    if (p.menuItems.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(p.menuItems.join(' · '),
+                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                    ],
+                  ]),
+                ),
               ]),
-              const SizedBox(height: 10),
-              if (p.menuItems.isNotEmpty) ...[
-                Text(p.menuItems.join(' · '),
-                    maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(color: t.mut)),
-                const SizedBox(height: 8),
-              ],
-              Center(child: StarRating(value: p.myRating, onChanged: canRate && !_busy ? _rate : null)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 14),
               Center(
-                child: Text(
-                  _msg ??
-                      (p.voted
-                          ? (p.average != null
-                              ? context.l10n.pollYourRatingAvg('${p.myRating}', p.average!.toStringAsFixed(1))
-                              : context.l10n.pollYourRating('${p.myRating}'))
-                          : (p.canVote ? context.l10n.pollTapStar : context.l10n.pollNoVoteRight)),
-                  textAlign: TextAlign.center,
-                  style: BuType.caption.copyWith(color: _msg != null ? t.danger : t.mut),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: StarRating(value: p.myRating, size: 36, onChanged: canRate && !_busy ? _rate : null),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: AnimatedSwitcher(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  child: Column(
+                    key: ValueKey('${p.myRating}|$_msg|${p.voted}'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (p.myRating != null && _msg == null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text(_word(p.myRating!.clamp(1, 5)), style: tx.titleSmall!.copyWith(color: t.ink)),
+                        ),
+                      Text(
+                        caption,
+                        textAlign: TextAlign.center,
+                        style: tx.bodySmall!.copyWith(color: _msg != null ? t.danger : t.mut),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
