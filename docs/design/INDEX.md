@@ -13,8 +13,8 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [05-sistem-seritler-hata.md](05-sistem-seritler-hata.md) | 6 | 2, 3, 4, 9, 10, 11, 12 | [x] 6 ekran, duzeltildi (kampus/hava/bakiye halusinasyonlari silindi; kucuk eksik: kcal toplami tutarsiz) |
 | [06-izinler-ve-qr-tarama.md](06-izinler-ve-qr-tarama.md) | 6 | 13, 14, 19, A1 | [x] 6 ekran, duzeltildi (turnike/bakiye/ust cubuk halusinasyonlari silindi) |
 | [07-sozlesmeler.md](07-sozlesmeler.md) | 6 | 15, 16, 17, 18, A2 | [x] 6 ekran uretildi; eksik: sahte ust cubuk 'Event Detail Sheet'+avatar (4 ekran), red sayfasi arka plani yanlis, okuyucuda 'Resmi Dijital Yururluk Belgesi' blogu, liste/bos ekranda fazla metinler (duzeltme istemleri Stitch'te uygulanmadi) |
-| [08-verilerim-hesap-silme.md](08-verilerim-hesap-silme.md) | 4 | 98, 99, A58 | [ ] |
-| [09-fotograf-kirpma.md](09-fotograf-kirpma.md) | 6 | A23, A38, A54 (kaynak sheet); kırpma akışı: 39, 56, 62, 75, 94 | [ ] |
+| [08-verilerim-hesap-silme.md](08-verilerim-hesap-silme.md) | 4 | 98, 99, A58 | [x] 4 ekran (s1), 2 tur duzeltildi; eksik: Hesabi sil ekraninda yedek ipucu satiri bos metin |
+| [09-fotograf-kirpma.md](09-fotograf-kirpma.md) | 6 | A23, A38, A54 (kaynak sheet); kırpma akışı: 39, 56, 62, 75, 94 | [x] 6 ekran (s1), 2 tur duzeltildi; eksik: stok foto uzerinde universite tabelasi, sohbet balon onizlemesi yok, kucuk fazla etiketler (RAPOR-s1) |
 | [10-gonderi-olustur-detay.md](10-gonderi-olustur-detay.md) | 6 | 39, 40, A6 | [ ] |
 | [11-gonderi-menuleri-ve-liste.md](11-gonderi-menuleri-ve-liste.md) | 6 | 91, A5 (gönderi şikâyeti), A7, A8, A9, A10 | [ ] |
 | [12-sekme-durumlari.md](12-sekme-durumlari.md) | 6 | 33, 35, 36 (durumlar) | [ ] |
