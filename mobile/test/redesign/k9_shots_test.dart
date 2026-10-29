@@ -12,6 +12,7 @@ import 'package:bu_kampus/features/events/etkinlik2_requests_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_settings_page.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:bu_kampus/widgets/bu.dart' show LucideIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -279,9 +280,12 @@ Future<void> _fillForm(WidgetTester t) async {
   await t.enterText(find.byKey(const ValueKey('evc-title')), 'Bahar Dönemi Akustik Kampüs Dinletisi');
   await t.enterText(find.byKey(const ValueKey('evc-desc')), 'Merkezi amfide gerçekleşecek akustik müzik dinletimize tüm öğrencilerimiz davetlidir. Katılım serbesttir.');
   await t.enterText(find.byKey(const ValueKey('evc-place')), 'Fen-Edebiyat Fakültesi Konferans Salonu');
-  await t.ensureVisible(find.text('Yarın'));
-  await t.tap(find.text('Yarın'));
-  await t.pump();
+  if (_lang == 'tr') {
+    await t.ensureVisible(find.text('Yarın'));
+    await t.pump();
+    await t.tap(find.text('Yarın'));
+    await t.pump();
+  }
   await t.tap(find.text('14:00'));
   await t.pump();
 }
@@ -318,7 +322,7 @@ final _formScenes = <_Scene>[
     EventCoverImage.debugProvider = (_) => _coverImg;
     return _formBe([]);
   }, (b) => EventFormPage(session: makeSession(b), event: _editEv(), now: _formNow), height: 900, after: (t) async {
-    await t.tap(find.text('Değiştir'));
+    await t.tap(find.byIcon(LucideIcons.camera));
     await t.pump(const Duration(milliseconds: 700));
   }),
   _Scene('40h_duzenle', () {
