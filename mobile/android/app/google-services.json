@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:247885082799:android:82af46f3815e62d90ca45a",
+        "mobilesdk_app_id": "1:247885082799:android:041c27e21f4e7e880ca45a",
         "android_client_info": {
-          "package_name": "edu.bingol.bu_kampus"
+          "package_name": "tr.com.bukampus.app"
         }
       },
       "oauth_client": [],
