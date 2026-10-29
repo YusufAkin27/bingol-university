@@ -2221,5 +2221,19 @@
   "p13Rate3": "Okay",
   "p13Rate4": "Good",
   "p13Rate5": "Excellent",
-  "p13Leading": "Leading"
+  "p13Leading": "Leading",
+  "p08ItemOf": "{n} / {total}",
+  "@p08ItemOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "p08Pause": "Pause",
+  "p08Seek": "Video position",
+  "p08OnceHint": "Once you close it, this photo can't be opened again."
 }

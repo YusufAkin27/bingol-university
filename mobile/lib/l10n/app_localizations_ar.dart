@@ -7269,4 +7269,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p13Leading => 'في الصدارة';
+
+  @override
+  String p08ItemOf(String n, String total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get p08Pause => 'إيقاف مؤقت';
+
+  @override
+  String get p08Seek => 'موضع الفيديو';
+
+  @override
+  String get p08OnceHint => 'بعد الإغلاق لا يمكن فتح هذه الصورة مرة أخرى.';
 }

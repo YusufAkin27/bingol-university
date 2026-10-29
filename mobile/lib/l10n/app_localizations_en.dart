@@ -7340,4 +7340,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p13Leading => 'Leading';
+
+  @override
+  String p08ItemOf(String n, String total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get p08Pause => 'Pause';
+
+  @override
+  String get p08Seek => 'Video position';
+
+  @override
+  String get p08OnceHint =>
+      'Once you close it, this photo can\'t be opened again.';
 }

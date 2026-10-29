@@ -13434,6 +13434,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Önde'**
   String get p13Leading;
+
+  /// No description provided for @p08ItemOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} / {total}'**
+  String p08ItemOf(String n, String total);
+
+  /// No description provided for @p08Pause.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duraklat'**
+  String get p08Pause;
+
+  /// No description provided for @p08Seek.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video konumu'**
+  String get p08Seek;
+
+  /// No description provided for @p08OnceHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapattığında bu fotoğraf bir daha açılamaz.'**
+  String get p08OnceHint;
 }
 
 class _AppLocalizationsDelegate

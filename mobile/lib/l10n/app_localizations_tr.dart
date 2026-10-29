@@ -7309,4 +7309,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p13Leading => 'Önde';
+
+  @override
+  String p08ItemOf(String n, String total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get p08Pause => 'Duraklat';
+
+  @override
+  String get p08Seek => 'Video konumu';
+
+  @override
+  String get p08OnceHint => 'Kapattığında bu fotoğraf bir daha açılamaz.';
 }

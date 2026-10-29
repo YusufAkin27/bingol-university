@@ -3922,5 +3922,19 @@
   "p13Rate3": "Orta",
   "p13Rate4": "İyi",
   "p13Rate5": "Çok iyi",
-  "p13Leading": "Önde"
+  "p13Leading": "Önde",
+  "p08ItemOf": "{n} / {total}",
+  "@p08ItemOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "p08Pause": "Duraklat",
+  "p08Seek": "Video konumu",
+  "p08OnceHint": "Kapattığında bu fotoğraf bir daha açılamaz."
 }

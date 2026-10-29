@@ -2221,5 +2221,19 @@
   "p13Rate3": "مقبول",
   "p13Rate4": "جيد",
   "p13Rate5": "ممتاز",
-  "p13Leading": "في الصدارة"
+  "p13Leading": "في الصدارة",
+  "p08ItemOf": "{n} / {total}",
+  "@p08ItemOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "p08Pause": "إيقاف مؤقت",
+  "p08Seek": "موضع الفيديو",
+  "p08OnceHint": "بعد الإغلاق لا يمكن فتح هذه الصورة مرة أخرى."
 }
