@@ -3,7 +3,7 @@
 # Caddy->backend baglantilari). Gercek kullanici trafigi gelmeden ONCE (ya da dusuk trafikte) calistirin; veri DEGISTIRMEZ.
 # Soguk JVM'de ilk dakikalar 10-20 kat yavastir (CLAUDE.md, docs/PERFORMANCE.md): isitmadan olcum/alarm esiklerine guvenmeyin.
 #
-# Kullanim:  BASE=https://bukampus.net bash scripts/warmup.sh
+# Kullanim:  BASE=https://bukampus.com.tr bash scripts/warmup.sh
 #   Ortam:   BASE (varsayilan http://localhost:8080)   N=toplam istek (300)   PAR=es zamanli istek (4, kucuk VPS icin dusuk)
 #            PAUSE_MS=istekler arasi bekleme (50)   TOKEN=erisim jetonu (verilirse oturumlu okuma uclari da isitilir)
 #            MAX_FAIL_PCT=izin verilen hata yuzdesi (2)

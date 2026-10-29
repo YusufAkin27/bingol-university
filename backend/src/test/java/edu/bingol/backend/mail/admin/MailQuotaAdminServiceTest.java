@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class MailQuotaAdminServiceTest {
 
     private static MailProperties props(int limit, int reserve, int resetHour) {
-        return new MailProperties(true, "noreply@bukampus.net", "BU", 5000, 3, 20, false, "", 30, 300, "", 180, "",
+        return new MailProperties(true, "noreply@bukampus.online", "BU", 5000, 3, 20, false, "", 30, 300, "", 180, "",
                 limit, reserve, resetHour);
     }
 

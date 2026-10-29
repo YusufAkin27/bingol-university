@@ -130,7 +130,7 @@ Sonra `mobile/android/key.properties.example` dosyasını `mobile/android/key.pr
 
 ```powershell
 # C:\bu_mobile içinde, ortam: bu belgenin başı
-flutter build appbundle --release --dart-define=API_BASE=https://bukampus.net --dart-define=APP_VERSION=1.0.0
+flutter build appbundle --release --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0
 # çıktı: build\app\outputs\bundle\release\app-release.aab
 ```
 
@@ -146,7 +146,7 @@ flutter build appbundle --release --dart-define=API_BASE=https://bukampus.net --
 1. **Hesap:** Play Console geliştirici hesabı (tek seferlik ücret; kişisel hesapta ad ve adres herkese görünebilir: [LEGAL_NOTES.md](LEGAL_NOTES.md) gizlilik uyarısı). Kimlik doğrulaması günler sürebilir; yayın sürecinin ilk işi olarak başlatın.
 2. **Uygulamayı oluştur** > varsayılan dil Türkçe > "Uygulama" > "Ücretsiz".
 3. **Mağaza girişi:** [store/store_tr.md](store/store_tr.md), [store/store_en.md](store/store_en.md), görseller [store/screenshots.md](store/screenshots.md).
-4. **Uygulama içeriği bölümü:** gizlilik politikası URL'si (`https://bukampus.net/tr/privacy`), uygulama erişimi (inceleyici hesabı), reklamlar (yok), içerik derecelendirme ([store/content_rating.md](store/content_rating.md)), hedef kitle (18+), Veri güvenliği ([store/data_safety.md](store/data_safety.md)), hesap silme URL'si (`https://bukampus.net/tr/delete-account`), hassas izin beyanları (READ_CONTACTS; READ_MEDIA_*: [store/data_safety.md](store/data_safety.md) bölüm 4).
+4. **Uygulama içeriği bölümü:** gizlilik politikası URL'si (`https://bukampus.com.tr/tr/privacy`), uygulama erişimi (inceleyici hesabı), reklamlar (yok), içerik derecelendirme ([store/content_rating.md](store/content_rating.md)), hedef kitle (18+), Veri güvenliği ([store/data_safety.md](store/data_safety.md)), hesap silme URL'si (`https://bukampus.com.tr/tr/delete-account`), hassas izin beyanları (READ_CONTACTS; READ_MEDIA_*: [store/data_safety.md](store/data_safety.md) bölüm 4).
 5. **Test > Kapalı test > Yeni kanal:** AAB'yi yükleyin, test kullanıcı listesi (e-posta listesi) oluşturun, sürüm notu yazın, incelemeye gönderin. Test kullanıcıları katılım bağlantısıyla kabul eder ve Play'den kurar.
 6. **Koşul (değişebilir, Console'da doğrulayın):** yeni kişisel geliştirici hesaplarında üretime çıkmadan önce kapalı testte **en az 12 test kullanıcısının 14 gün kesintisiz katılımı** istenmektedir; bu süre ve sayıyı hesabınız için Play Console "Üretime çık" bölümünde kontrol edin. Test kullanıcılarını (arkadaş, kulüp üyesi) bu sebeple erken toplayın.
 7. **Kapalı test sürümüyle** [DEVICE_TEST_PLAN.md](DEVICE_TEST_PLAN.md)'i koşturun; geri bildirimi düzeltip `N+1` yükleyin.
@@ -155,4 +155,4 @@ flutter build appbundle --release --dart-define=API_BASE=https://bukampus.net --
 
 ### Derleme kaydı (REL1, 2026-10-29)
 
-`flutter build appbundle --release --dart-define=API_BASE=https://bukampus.net --dart-define=APP_VERSION=1.0.0` komutu **commitli kaynaktan** (`git archive HEAD mobile` ile `C:\bu_rel1_aab` kopyası; başka ajanların bitmemiş değişiklikleri dışarıda) çalıştırıldı: **başarılı**, `app-release.aab` **85,4 MB**, soğuk Gradle önbelleğiyle 1159 sn (~19 dk; sonraki derlemeler çok daha kısa). `key.properties` olmadığı için **debug anahtarıyla imzalıdır** (`keytool -printcert -jarfile ...` çıktısı `CN=Android Debug`); bu dosya Play'e **yüklenemez**, yalnız derleme hattının çalıştığını gösterir. Upload anahtarıyla imzalı derleme, Play yüklemesi ve gerçek cihaz/R8 çalışma testi **doğrulanmadı**.
+`flutter build appbundle --release --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0` komutu **commitli kaynaktan** (`git archive HEAD mobile` ile `C:\bu_rel1_aab` kopyası; başka ajanların bitmemiş değişiklikleri dışarıda) çalıştırıldı: **başarılı**, `app-release.aab` **85,4 MB**, soğuk Gradle önbelleğiyle 1159 sn (~19 dk; sonraki derlemeler çok daha kısa). `key.properties` olmadığı için **debug anahtarıyla imzalıdır** (`keytool -printcert -jarfile ...` çıktısı `CN=Android Debug`); bu dosya Play'e **yüklenemez**, yalnız derleme hattının çalıştığını gösterir. Upload anahtarıyla imzalı derleme, Play yüklemesi ve gerçek cihaz/R8 çalışma testi **doğrulanmadı**.

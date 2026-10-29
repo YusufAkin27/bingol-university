@@ -8,9 +8,9 @@ Kaynak gerçekler: [docs/legal/privacy_tr.md](../legal/privacy_tr.md) bölüm 4 
 |---|---|---|
 | Uygulama kullanıcıdan veri topluyor/paylaşıyor mu? | **Evet, topluyor** | |
 | Toplanan tüm veri aktarımda şifreli mi? | **Evet** | Üretimde yalnız HTTPS/WSS; Android cleartext kapalı (`ALLOW_INSECURE_API` yalnız elden test) |
-| Kullanıcılar verilerinin silinmesini isteyebilir mi? | **Evet** | Uygulama içi "Hesabı sil" (anonimleştirme) + web: `https://bukampus.net/tr/delete-account` (tr/en/ar) ve `.../data-request` |
+| Kullanıcılar verilerinin silinmesini isteyebilir mi? | **Evet** | Uygulama içi "Hesabı sil" (anonimleştirme) + web: `https://bukampus.com.tr/tr/delete-account` (tr/en/ar) ve `.../data-request` |
 | Hesap oluşturma yöntemi | Kullanıcı adı yok; **e-posta + parola** (bingol.edu.tr, e-posta kodu doğrulaması) | |
-| Hesap silme URL'si (Play "Hesap silme" bölümü) | `https://bukampus.net/tr/delete-account` | Sayfa, silinen/saklanan verilerin tablosunu içerir |
+| Hesap silme URL'si (Play "Hesap silme" bölümü) | `https://bukampus.com.tr/tr/delete-account` | Sayfa, silinen/saklanan verilerin tablosunu içerir |
 | Bağımsız güvenlik incelemesi (MASA vb.) | **Hayır** | Yalnız iç denetimler ([SECURITY_AUDIT_2026-10-28.md](../SECURITY_AUDIT_2026-10-28.md)); "evet" demeyin |
 | Play Families politikası | **Uygulanmaz** | Hedef kitle 18+ (bkz. [content_rating.md](content_rating.md)) |
 

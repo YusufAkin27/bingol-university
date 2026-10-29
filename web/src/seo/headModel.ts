@@ -5,7 +5,7 @@
 import { translate } from '../i18n/registry';
 import { LANGS, dirOf, type Lang } from '../i18n/lang';
 
-export const DEFAULT_PUBLIC_URL = 'https://bukampus.net';
+export const DEFAULT_PUBLIC_URL = 'https://bukampus.com.tr';
 /** Paylaşım görseli; dil başına ayrı görsel gelince yalnızca bu işlev değişir (public/og-<lang>.png). */
 export function ogImagePath(_lang: Lang): string {
   return '/og.png';

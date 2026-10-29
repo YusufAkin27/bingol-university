@@ -44,7 +44,7 @@ GİZLİLİK VE VERİLERİNİZ
 • Verilerinizi indirebilirsiniz (KVKK kapsamında "verilerimi indir").
 • Konum bilgisi toplanmaz. Rehberiniz yalnızca siz izin verirseniz ve yalnızca e-posta özetleri (hash) ile arkadaş bulmak için kullanılır; ham rehber sunucuya gönderilmez.
 • Reklam yoktur, verileriniz üçüncü taraflara satılmaz veya reklam amacıyla paylaşılmaz.
-• Gizlilik politikası ve hesap silme bilgisi: https://bukampus.net/tr/privacy ve https://bukampus.net/tr/delete-account
+• Gizlilik politikası ve hesap silme bilgisi: https://bukampus.com.tr/tr/privacy ve https://bukampus.com.tr/tr/delete-account
 
 ÖNEMLİ NOT
 
@@ -61,9 +61,9 @@ Sorularınız için: uygulamadaki Destek bölümü veya <DESTEK_E_POSTASI>
 | Kategori | Sosyal (ya da Eğitim; Sosyal önerilir: sohbet/akış çekirdek özellik) |
 | Etiketler | Sosyal, Eğitim, Mesajlaşma |
 | Yeni sürüm notları (tr, ≤ 500) | `İlk sürüm: haber, yemek listesi, keşfet, sohbet, kulüpler, etkinlikler, QR yoklama, anketler, bildirimler. Resmî olmayan bağımsız bir uygulamadır.` |
-| İletişim e-postası (herkese görünür) | `<DESTEK_E_POSTASI>` (örn. `destek@bukampus.net`, Cloudflare yönlendirmesi: [MAIL_DELIVERABILITY.md](../MAIL_DELIVERABILITY.md) 9.5) |
-| Web sitesi | `https://bukampus.net` |
-| Gizlilik politikası URL'si | `https://bukampus.net/tr/privacy` (3 dilde sayfa var: `/tr`, `/en`, `/ar` önekli) |
-| Hesap silme URL'si | `https://bukampus.net/tr/delete-account` (veri silme talebi formu: `https://bukampus.net/tr/data-request`) |
+| İletişim e-postası (herkese görünür) | `<DESTEK_E_POSTASI>` (destek adresi: `ysufakin23@gmail.com`) |
+| Web sitesi | `https://bukampus.com.tr` |
+| Gizlilik politikası URL'si | `https://bukampus.com.tr/tr/privacy` (3 dilde sayfa var: `/tr`, `/en`, `/ar` önekli) |
+| Hesap silme URL'si | `https://bukampus.com.tr/tr/delete-account` (veri silme talebi formu: `https://bukampus.com.tr/tr/data-request`) |
 
 `<DESTEK_E_POSTASI>` ve alan adı, [LAUNCH_CHECKLIST.md](../LAUNCH_CHECKLIST.md) tamamlanınca doldurulur. Geliştirici (kişi) adı ve adresi Play'de görünür; kişisel adres gizliliği için [LEGAL_NOTES.md](../LEGAL_NOTES.md) "Gizlilik uyarısı" bölümüne bakın (Play, kişisel geliştirici hesabında adresi herkese açık gösterir).

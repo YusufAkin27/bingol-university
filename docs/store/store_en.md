@@ -44,7 +44,7 @@ PRIVACY AND YOUR DATA
 • You can download your data (data export).
 • Location is not collected. Contacts are used only if you allow it, and only e-mail hashes are used to find friends; your raw address book is never sent to the server.
 • There are no ads, and your data is not sold or shared with third parties for advertising.
-• Privacy policy and account deletion: https://bukampus.net/en/privacy and https://bukampus.net/en/delete-account
+• Privacy policy and account deletion: https://bukampus.com.tr/en/privacy and https://bukampus.com.tr/en/delete-account
 
 IMPORTANT
 
@@ -60,7 +60,7 @@ Questions: use the Support section in the app or <SUPPORT_EMAIL>
 | Category | Social (Education is the alternative) |
 | What's new (≤ 500) | `First release: news, dining menu, discover, chat, clubs, events, QR check-in, polls, notifications. An independent, unofficial app.` |
 | Contact e-mail | `<SUPPORT_EMAIL>` |
-| Privacy policy URL | `https://bukampus.net/en/privacy` |
-| Account deletion URL | `https://bukampus.net/en/delete-account` (data request form: `https://bukampus.net/en/data-request`) |
+| Privacy policy URL | `https://bukampus.com.tr/en/privacy` |
+| Account deletion URL | `https://bukampus.com.tr/en/delete-account` (data request form: `https://bukampus.com.tr/en/data-request`) |
 
 An Arabic (ar) translation of the listing is optional; if added, keep the same "unofficial / independent" statement in the first paragraph. The Arabic UI translation has not had a native-speaker review ([LEGAL_NOTES.md](../LEGAL_NOTES.md) item 11), so consider leaving the Play listing in tr + en for the closed test.

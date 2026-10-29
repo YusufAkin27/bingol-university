@@ -104,24 +104,28 @@ Seçerken: DKIM + özel gönderim alanı desteği, bounce/şikâyet bildirimi (w
 - FBL/şikâyet ve sağlayıcı bounce webhook'ları için uç yok; yalnız SMTP anındaki kalıcı hata (senkron bounce) işlenir. Asenkron bounce (DSN e-postası) okunmaz.
 - Kuyruk dakikalık bütçesi aynı örnekte eşzamanlı iki turla bir iki e-posta aşabilir (hafif).
 
-## 9. Brevo ücretsiz SMTP ile üretim kurulumu (`bukampus.net`)
+## 9. Brevo ücretsiz SMTP ile üretim kurulumu (`bukampus.online` gönderici, `bukampus.com.tr` site)
 
-Karar: e-posta Brevo ücretsiz SMTP ile gider; gönderici `noreply@bukampus.net`, Reply-To `destek@bukampus.net`. Kullanım yalnız kayıt doğrulama kodu, şifre sıfırlama kodu ve güvenlik bildirimleridir; toplu duyuru kullanılmaz. Ücretsiz plan yaklaşık günde 300 posta içindir.
+Alan adı kararı: **site `bukampus.com.tr`**; **e-posta gönderen alan adı `bukampus.online`** (From `noreply@bukampus.online`); destek adresi **`ysufakin23@gmail.com`** (Reply-To; ayrı bir `destek@` kutusu yoktur). İki alan adının DNS'i ayrı yönetilir: Brevo/SPF/DKIM/DMARC kayıtları `bukampus.online`'da, site A/CNAME kayıtları `bukampus.com.tr`'dedir. `PUBLIC_WEB_URL` e-postalardaki bağlantı kökü olduğundan `https://bukampus.com.tr`'dir (gönderen alan adından farklı olması normaldir).
+
+Karar: e-posta Brevo ücretsiz SMTP ile gider; gönderici `noreply@bukampus.online`, Reply-To `ysufakin23@gmail.com`. Kullanım yalnız kayıt doğrulama kodu, şifre sıfırlama kodu ve güvenlik bildirimleridir; toplu duyuru kullanılmaz. Ücretsiz plan yaklaşık günde 300 posta içindir.
 
 > **Kayıt sırasında doğrulayın:** Brevo'nun host adı (`smtp-relay.brevo.com`), port (587), günlük limit (~300), kota sıfırlama saati, SMTP giriş adı biçimi ve DNS kayıt adları zamanla değişebilir. Aşağıdaki servis ayrıntıları bu belge yazılırken bilinenlerdir; Brevo panelindeki ve belgesindeki güncel değer geçerlidir. DKIM/doğrulama kayıtlarının değerini asla uydurmayın: Brevo panelinden aynen kopyalayın.
 
 ### 9.1 Brevo tarafı
 
 1. brevo.com'da hesap açın (ücretsiz plan).
-2. **Senders, Domains & Dedicated IPs > Domains > Add a domain**: `bukampus.net` ekleyin. Brevo size şu kayıtları gösterir (tam kayıtları panelden kopyalayın):
+2. **Senders, Domains & Dedicated IPs > Domains > Add a domain**: `bukampus.online` ekleyin. Brevo size şu kayıtları gösterir (tam kayıtları panelden kopyalayın):
    - `brevo-code:...` değerli **TXT** doğrulama kaydı (alan adı sahipliği),
    - **DKIM**: `brevo1._domainkey` ve `brevo2._domainkey` adlı kayıtlar (CNAME biçiminde ya da TXT biçiminde sunulabilir; panelde hangisi yazıyorsa onu girin),
    - (varsa) DMARC önerisi.
-3. **Senders > Add a sender**: `noreply@bukampus.net` gönderici adresini ekleyin (alan adı doğrulandıktan sonra).
-4. **SMTP & API > SMTP** sayfasında **SMTP giriş adını** (genelde `bukampus.net` DEĞİL, Brevo'nun verdiği bir kullanıcı adıdır) ve **SMTP anahtarı** üretin. Anahtar bir sırdır: yalnız sunucudaki `.env.prod` dosyasına yazın; repoya/belgeye/sohbete koymayın.
+3. **Senders > Add a sender**: `noreply@bukampus.online` gönderici adresini ekleyin (alan adı doğrulandıktan sonra). Reply-To olarak kullanılan `ysufakin23@gmail.com` için ayrıca gönderici tanımı gerekmez (Reply-To başlığıdır, gönderen değildir).
+4. **SMTP & API > SMTP** sayfasında **SMTP giriş adını** (genelde `bukampus.online` DEĞİL, Brevo'nun verdiği bir kullanıcı adıdır) ve **SMTP anahtarı** üretin. Anahtar bir sırdır: yalnız sunucudaki `.env.prod` dosyasına yazın; repoya/belgeye/sohbete koymayın.
 5. Güvenlik: Brevo'da hesap için 2 adımlı doğrulamayı açın; sunucu IP'si için "Authorized IPs" kısıtı varsa sunucunun çıkış IP'sini ekleyin (Brevo'nun IP kısıtı ayarı hesabınızda açıksa).
 
 ### 9.2 DNS kayıtları (Cloudflare DNS)
+
+**A) `bukampus.online` (gönderen alan adı; Brevo burada doğrulanır):**
 
 | Tür | Ad | Değer |
 |---|---|---|
@@ -129,11 +133,23 @@ Karar: e-posta Brevo ücretsiz SMTP ile gider; gönderici `noreply@bukampus.net`
 | CNAME/TXT | `brevo1._domainkey` | Panelde gösterilen tam değer (kopyalayın) |
 | CNAME/TXT | `brevo2._domainkey` | Panelde gösterilen tam değer (kopyalayın) |
 | TXT | `@` (SPF) | `v=spf1 include:spf.brevo.com ~all` |
-| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:destek@bukampus.net` |
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc@bukampus.online; fo=1` |
+
+**B) `bukampus.com.tr` (site; posta GÖNDERMEZ):** başkasının sizin adınızla sahte posta atmasını engellemek için "boş gönderici" kayıtları ekleyin (site A/CNAME kayıtlarına dokunmaz):
+
+| Tür | Ad | Değer |
+|---|---|---|
+| TXT | `@` (SPF) | `v=spf1 -all` |
+| TXT | `_dmarc` | `v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s` |
+| TXT | `*._domainkey` | `v=DKIM1; p=` (boş anahtar = bu alanda imza yok) |
+
+Bu alan adından gerçekten posta göndermeyi (ör. `ad@bukampus.com.tr`) düşünürseniz bu kayıtları o gönderim yapısına göre değiştirin. Kullanıcıya görünen `From` her zaman `@bukampus.online` kalır, bu yüzden DMARC hizalaması `bukampus.online` için geçerlidir.
+
+**Ortak notlar:**
 
 - Cloudflare'de DKIM CNAME kayıtlarını **DNS only (gri bulut)** bırakın; proxy açık olursa doğrulama başarısız olur.
 - **SPF tek kayıt olmalıdır.** Alan adında zaten bir SPF TXT varsa ikinci bir `v=spf1` kaydı eklemeyin (iki SPF kaydı SPF'i bozar); mevcut kayda `include:spf.brevo.com` ekleyerek birleştirin.
-- **Cloudflare Email Routing** (aşağıda) kullanılıyorsa SPF'te Cloudflare'in include'u da olmalıdır. Birleşik örnek: `v=spf1 include:spf.brevo.com include:_spf.mx.cloudflare.net ~all`. Email Routing'i etkinleştirirken Cloudflare bu kayıtları (MX ve SPF) kendisi önerir; **güncel include adlarının doğruluğunu Brevo ve Cloudflare belgelerinden kontrol edin**.
+- **Cloudflare Email Routing** (aşağıda, yalnız `dmarc@bukampus.online` raporları için isteğe bağlı) kullanılıyorsa SPF'te Cloudflare'in include'u da olmalıdır; kullanmıyorsanız MX ve bu include eklenmez. Birleşik örnek: `v=spf1 include:spf.brevo.com include:_spf.mx.cloudflare.net ~all`. Email Routing'i etkinleştirirken Cloudflare bu kayıtları (MX ve SPF) kendisi önerir; **güncel include adlarının doğruluğunu Brevo ve Cloudflare belgelerinden kontrol edin**.
 - DMARC'a `p=none` ile başlayın; birkaç hafta `rua` raporlarında SPF/DKIM hizalamasının geçtiğini gördükten sonra `p=quarantine`'e çıkabilirsiniz.
 - Brevo panelinde alan adı "Verified/Authenticated" olana dek bekleyin (DNS yayılımı dakikalar–saatler sürebilir).
 
@@ -145,10 +161,10 @@ MAIL_HOST=smtp-relay.brevo.com
 MAIL_PORT=587
 MAIL_USERNAME=<Brevo SMTP giriş adı>
 MAIL_PASSWORD=<Brevo SMTP anahtarı>      # SIR
-MAIL_FROM=noreply@bukampus.net
-MAIL_REPLY_TO=destek@bukampus.net
+MAIL_FROM=noreply@bukampus.online
+MAIL_REPLY_TO=ysufakin23@gmail.com
 MAIL_REQUIRE_TLS=true
-PUBLIC_WEB_URL=https://bukampus.net
+PUBLIC_WEB_URL=https://bukampus.com.tr
 MAIL_MAX_PER_MINUTE=20
 MAIL_DAILY_LIMIT=300
 MAIL_DAILY_RESERVE=60
@@ -157,7 +173,7 @@ MAIL_DAILY_RESET_HOUR_UTC=21
 
 `docker-compose.yml` ve `docker-compose.prod.yml` bu değişkenlerin hepsini konteynere geçirir (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_SSL`, `MAIL_MAX_PER_MINUTE`, `MAIL_RECIPIENT_GAP_SECONDS`, `MAIL_DAILY_*`, `MAIL_UNSUBSCRIBE_KEY` dahil).
 
-`ProdSettingsValidator` bu yapılandırmayla açılışı **reddetmez**: `From` alan adı (`bukampus.net`) ile SMTP kullanıcı alan adı farklı olduğunda yalnızca **uyarı** üretir (hata değil). **Brevo'da bu uyarı beklenir**: SMTP kullanıcı adı `bukampus.net` değildir; hizalama DKIM/SPF'in `bukampus.net` için doğrulanmış olmasıyla sağlanır, Brevo panelinde alan adının "doğrulanmış" görünmesi yeterlidir.
+`ProdSettingsValidator` bu yapılandırmayla açılışı **reddetmez**: `From` alan adı (`bukampus.online`) ile SMTP kullanıcı alan adı farklı olduğunda yalnızca **uyarı** üretir (hata değil). **Brevo'da bu uyarı beklenir**: SMTP kullanıcı adı `bukampus.online` değildir; hizalama DKIM/SPF'in `bukampus.online` için doğrulanmış olmasıyla sağlanır, Brevo panelinde alan adının "doğrulanmış" görünmesi yeterlidir.
 
 ### 9.4 Günlük kota koruması
 
@@ -167,15 +183,15 @@ MAIL_DAILY_RESET_HOUR_UTC=21
 - Kota tamamen dolmuşken kayıt (`register`), `resend-code` ve `forgot-password` uçları, e-postadan bağımsız ve hesap sorgusundan ÖNCE, **503 `MAIL_QUOTA_EXHAUSTED`** ("Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin", tr/en/ar) döner. Karar yalnız küresel kota durumuna bağlı olduğundan hesabın varlığını sızdırmaz (`MAIL_UNAVAILABLE`, kuyruğa yazılamayan tekil hata içindir). Mobil/web bu kodu genel hata olarak gösterebilir.
 - Gözlemlenebilirlik: `GET /api/admin/system/overview` içinde `mail.dailyQuota` (kullanım %'si; %80 WARN, %95 CRIT; `MAIL_DAILY_LIMIT=0` ise UNKNOWN). Metrik: `mail.queue.quota_deferred`.
 
-### 9.5 Cloudflare Email Routing ve Gmail ile cevap
+### 9.5 Destek adresi ve (isteğe bağlı) Cloudflare Email Routing
 
-1. Cloudflare > `bukampus.net` > **Email > Email Routing** etkinleştirin (MX/SPF kayıtlarını Cloudflare ekler; yukarıdaki SPF birleştirmesini uygulayın).
-2. **Routing rules**: `destek@bukampus.net` ve `kvkk@bukampus.net` adreslerini kendi Gmail adresinize yönlendirin; Cloudflare'in gönderdiği doğrulama e-postasındaki bağlantıyı onaylayın.
-3. Gmail'den `destek@bukampus.net` adıyla cevap yazmak: Gmail > Ayarlar > **Hesaplar ve İçe Aktarma > Başka bir adresten e-posta gönder (Send mail as) > Başka bir e-posta adresi ekle**: `destek@bukampus.net`, "Takma ad olarak ele al" işaretli. SMTP sunucusu `smtp-relay.brevo.com`, port 587, TLS; kullanıcı adı ve parola Brevo SMTP giriş adı/anahtarı. Gmail adrese bir doğrulama kodu yollar (Email Routing ile Gmail'inize düşer). Not: bu gönderimler de Brevo günlük kotasından yer; destek yazışması az olduğundan sorun değildir. `destek@` Brevo'da gönderici olarak ayrıca tanımlanmalı/doğrulanmalıdır.
+- **Destek/Reply-To adresi `ysufakin23@gmail.com`'dur**: kullanıcı e-postayı yanıtlarsa doğrudan bu kutuya düşer; ayrı bir `destek@` ya da `kvkk@` kutusu ve "Send mail as" ayarı **gerekmez**. Aynı adres `app_setting support_email` ve KVKK denetleyici e-postası olarak V481 migration'ında yazılıdır (yasal metinler için bkz. [LEGAL_DOMAIN_TODO.md](LEGAL_DOMAIN_TODO.md)).
+- **DMARC raporları (isteğe bağlı ama önerilir):** `rua` adresini gönderen alan adının kendi içinde (`dmarc@bukampus.online`) tutmak, harici alan adına rapor için gereken ek DNS yetkilendirmesini (RFC 7489 madde 7.1) gerektirmez; bazı alıcılar harici (ör. gmail.com) hedefe rapor yollamaz. Bunun için Cloudflare > `bukampus.online` > **Email > Email Routing** etkinleştirin (MX ve SPF kayıtlarını Cloudflare ekler; SPF birleştirmesini 9.2'deki gibi uygulayın), **Routing rules**: `dmarc@bukampus.online` -> `ysufakin23@gmail.com`; Cloudflare'in gönderdiği doğrulama bağlantısını onaylayın. Bu adım yapılmazsa `rua` satırını `rua=mailto:ysufakin23@gmail.com` yapın ve rapor gelmediğini görürseniz yukarıdaki yola dönün.
+- `noreply@bukampus.online` gelen kutusu yoktur; bounce'lar Brevo tarafından yönetilir.
 
 ### 9.6 Kurulum sonrası kontrol
 
-1. Brevo alan adı durumu "doğrulanmış"; `dig TXT bukampus.net`, `dig TXT _dmarc.bukampus.net`, DKIM kayıtları dönüyor.
+1. Brevo alan adı durumu "doğrulanmış"; `dig TXT bukampus.online`, `dig TXT _dmarc.bukampus.online`, DKIM kayıtları dönüyor; site alan adı için `dig TXT bukampus.com.tr` `v=spf1 -all` döndürüyor.
 2. Backend açılışında `ProdSettingsValidator` hata vermiyor (yalnız "farklı alan adı" uyarısı olabilir).
 3. Gerçek bir kayıt denemesi: kod gelir; "orijinali göster" ile SPF/DKIM/DMARC = pass.
 4. `GET /api/admin/system/overview` > `mail.dailyQuota` değeri artıyor.

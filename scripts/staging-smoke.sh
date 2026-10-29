@@ -15,7 +15,7 @@
 # Sirlar: parola ortam degiskeniyle gelir, komut satirinda/log'da gosterilmez. Cikis kodu 1 = en az bir FAIL.
 set -u
 BASE="${BASE:-}"; BASE="${BASE%/}"
-[ -n "$BASE" ] || { echo "BASE gerekli (orn. BASE=https://bukampus.net)" >&2; exit 2; }
+[ -n "$BASE" ] || { echo "BASE gerekli (orn. BASE=https://bukampus.com.tr)" >&2; exit 2; }
 case "$BASE" in https://*) ;; http://localhost*|http://127.*) ;; *) echo "UYARI: BASE https degil; canli sistemde https kullanin" >&2;; esac
 command -v curl >/dev/null || { echo "curl gerekli" >&2; exit 2; }
 command -v node >/dev/null || { echo "node gerekli (JSON ayristirma)" >&2; exit 2; }

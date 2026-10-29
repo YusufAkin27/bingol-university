@@ -46,4 +46,4 @@ Let's Encrypt sertifikası, `bukampus.com.tr` ve `www.bukampus.com.tr` sunucu IP
 | `bukampus.com.tr` | A | `77.83.37.160` |
 | `www.bukampus.com.tr` | A | `77.83.37.160` |
 
-E-posta (Brevo; alan adı `bukampus.net` kullanılıyorsa onun DNS'inde): SPF, DKIM ve DMARC kayıtları [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) bölüm 9'dadır.
+E-posta (Brevo; alan adı `bukampus.online` kullanılıyorsa onun DNS'inde): SPF, DKIM ve DMARC kayıtları [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) bölüm 9'dadır.

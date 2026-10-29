@@ -203,3 +203,102 @@ Prova kendi geçici age anahtarını `$DRILL_DIR/kurtarma.age.key` altında üre
 - Gerçek VPS, gerçek alan adı, Caddy/TLS, uzak kopya (`BACKUP_REMOTE`/rclone), webhook uyarısı ve haftalık `verify-restore.sh` (doğrulama anahtarı gerektirir) bu provada **denenmedi**.
 - Tohum veri küçüktür; büyük veride süre ve disk/RAM davranışı ölçülmedi.
 - Redis oturumları yedeklenmez: geri yüklemeden sonra herkes yeniden giriş yapar (provada Redis temizlenir, tasarım gereği).
+
+### 10.6 Gerçek VPS'te aynı akış (komut özeti)
+
+Prova betiğinin `restore` aşamasının gerçek karşılığı (yeni/boş sunucu, `.env.prod` şifre yöneticisinden geri konmuş, repo klonlu; ayrıntı bölüm 5 ve 9):
+
+```bash
+DC="docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod"
+mkdir restore-in && rclone copy s3crypt:bu-yedek/<damga> ./restore-in/ && (cd restore-in && sha256sum -c SHA256SUMS)   # uzak kopyadan
+$DC up -d postgres redis                                    # backend'i BAŞLATMAYIN
+# kurtarma.age.key çevrimdışı kasadan geçici olarak getirilir (sunucuda kalıcı DEĞİL)
+bash scripts/backup/restore-live.sh ./restore-in ./kurtarma.age.key      # kuru doğrulama -> DB -> uploads -> Redis -> başlat
+shred -u ./kurtarma.age.key 2>/dev/null || rm -f ./kurtarma.age.key      # iş bitince özel anahtarı sunucudan sil
+curl -fsS https://<alan>/api/status; BASE=https://<alan> bash scripts/warmup.sh
+```
+
+Beklenen süre: küçük veride betik kısmı **15-40 sn** + uygulama açılışı **~1 dk** (provada ölçüldü); gerçek veride indirme ve `pg_restore` veri boyutuyla büyür. Toplam RTO hedefi 2 saat içinde kalmak için yılda 2 tatbikatta (bölüm 7) gerçek süreyi bu belgeye yazın.
+
+## 11. Yedeklerin sunucu DIŞINA kopyalanması (uzak kopya): adım adım
+
+**Durum tespiti (REL1b incelemesi):** `docker-compose.prod.yml` `backup` servisi rclone içerir (imaj `rclone` kurar, `deploy/rclone/` salt okunur `/config/rclone` olarak bağlanır, `RCLONE_CONFIG=/config/rclone/rclone.conf`) ve `scripts/backup/backup.sh` `BACKUP_REMOTE` doluysa her yedeği `rclone copy ... --checksum` ile `${BACKUP_REMOTE}/<damga>` altına yükler. **Ama `BACKUP_REMOTE` varsayılan olarak BOŞTUR** (`.env.prod.example`: `BACKUP_REMOTE=`); boşsa yedekler yalnız VPS'in `backups` volume'unda kalır, yani sunucu diski ya da hesabı giderse yedekler de gider. `deploy/compose.bukampus.yml` yalnız Caddy www yönlendirmesidir, yedek ayarı içermez. Yani **mekanizma var, açık değil**: aşağıdaki adımlar onu açar. Bu bölümdeki adımlar rclone sözdizimi düzeyinde (yerel `alias` uzağıyla `lsd` + `copy`) denendi; **gerçek bir sağlayıcı hesabına karşı DENENMEDİ** (hesap yok); ilk gerçek yüklemeyi `--dry-run` ve elle yedekle mutlaka doğrulayın.
+
+Neden güvenli: yüklenen her şey zaten **age ile şifrelidir** (`db.dump.age`, `uploads.tar.zst.age`); sağlayıcı yalnız şifreli bayt görür. Ek rclone `crypt` katmanı gerekmez (dosya adları yalnız zaman damgasıdır).
+
+### 11.1 Sağlayıcı seçimi (ucuz/ücretsiz, S3 uyumlu)
+
+| Seçenek | Not (fiyat/kota değişir, kayıt sırasında doğrulayın) |
+|---|---|
+| Cloudflare R2 | S3 uyumlu, çıkış (egress) ücreti yok; ücretsiz katman birkaç GB'a kadar yeterli olabilir |
+| Backblaze B2 | S3 uyumlu veya yerel B2 API; ilk 10 GB ücretsiz, sonrası GB başına çok düşük; uygulama anahtarı tek kovaya kısıtlanabilir |
+| Hetzner Storage Box / başka bir VPS | `sftp` ile; ayrı sağlayıcı/veri merkezi olduğu sürece uygundur |
+
+Kural: **farklı sağlayıcıda/bölgede** olsun (VPS ile aynı firmada ikinci disk yetmez). Boyut hesabı: saatlik yedek x 24 x gün; `BACKUP_KEEP_DAILY=3` yalnız YEREL saklamayı sınırlar, **uzak tarafta silme yoktur** (`rclone copy`, `sync` değil), bu yüzden uzak kovada yaşam döngüsü kuralı (11.4) şarttır.
+
+### 11.2 Kova ve kısıtlı anahtar oluşturma (R2 / B2 örneği)
+
+1. Sağlayıcıda **özel (public olmayan) bir kova** açın, ör. `bu-yedek`. Sürümleme/nesne kilidi varsa açın (fidye yazılımı ve yanlışlıkla silmeye karşı).
+2. **Yalnız o kovaya** erişen bir API anahtarı üretin (R2: "Object Read & Write" belirteci, kova kısıtlı; B2: "Application Key", tek kova, `listFiles/readFiles/writeFiles`). Hesabın ana anahtarını SUNUCUYA KOYMAYIN. Mümkünse silme yetkisi olmayan bir anahtar tercih edin (sunucu ele geçirilirse saldırgan uzak kopyayı silemesin); silme yetkisi gerekirse yaşam döngüsü kuralı sağlayıcı tarafında çalışır, anahtara gerek duymaz.
+3. Anahtar kimliği, gizli anahtar ve (R2 için) uç nokta adresini (`https://<hesapno>.r2.cloudflarestorage.com`) not edin. Bunlar SIRDIR: yalnız sunucudaki `deploy/rclone/rclone.conf` (gitignored) ve şifre yöneticinizde durur.
+
+### 11.3 Sunucuda `deploy/rclone/rclone.conf`
+
+Önemli: preflight `rclone lsd <uzak>:` çalıştırır. Kovaya kısıtlı anahtarla **kova listeleme** yetkisi olmayabileceğinden uzağı bir `alias` ile kovanın İÇİNE bağlayın; böylece `lsd` kova içeriğini listeler ve yetki sorunu çıkmaz.
+
+```ini
+# deploy/rclone/rclone.conf   (chmod 0644 veya chown 70:70 + 0400: konteynerdeki postgres kullanıcısı okuyabilmeli)
+[r2]
+type = s3
+provider = Cloudflare
+access_key_id = <ANAHTAR_KIMLIGI>
+secret_access_key = <GIZLI_ANAHTAR>
+endpoint = https://<HESAP_NO>.r2.cloudflarestorage.com
+acl = private
+no_check_bucket = true
+
+[bukup]
+type = alias
+remote = r2:bu-yedek
+```
+
+Backblaze B2 için `[r2]` yerine:
+
+```ini
+[b2]
+type = b2
+account = <APPLICATION_KEY_ID>
+key = <APPLICATION_KEY>
+hard_delete = false
+[bukup]
+type = alias
+remote = b2:bu-yedek
+```
+
+Hetzner Storage Box (sftp): `type = sftp`, `host = uXXXXX.your-storagebox.de`, `user = uXXXXX`, `port = 23`, `pass = <rclone obscure ile gizlenmiş parola>` (veya `key_file`); alias `remote = box:bu-yedek`.
+
+Yapılandırma dosyasını da şifrelemek isterseniz `rclone config` ile parola koyun ve parolayı `.env.prod` içinde `RCLONE_CONFIG_PASS` olarak verin (compose bunu servise geçirir); aksi hâlde dosya izni 600/ilgili kullanıcıyla sınırlı kalmalıdır.
+
+### 11.4 `.env.prod` ve ilk deneme
+
+```bash
+# .env.prod
+BACKUP_REMOTE=bukup:yedek          # alias:alt-dizin; backup.sh "bukup:yedek/<damga>" altına yükler
+```
+
+```bash
+DC="docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod"
+$DC up -d backup                                              # ortam değişkeni değişti: yeniden oluşturur
+$DC exec -u postgres backup rclone lsd bukup:                 # uzağa erişim (hata verirse conf/yetki)
+$DC exec -u postgres backup /opt/backup/backup.sh --dry-run   # bağlantı, anahtar, disk, UZAK HEDEF denemesi; hiçbir şey yazmaz
+$DC exec -u postgres backup /opt/backup/backup.sh             # gerçek yedek + yükleme
+$DC exec -u postgres backup rclone lsf bukup:yedek/ --max-depth 1   # damga dizini görünmeli
+```
+
+Yükleme hatası yedeği **başarısız** sayar (`backup_last_status`, webhook, `last-failure.json`); yerel kopya yine de alınmış ve rotasyon uygulanmıştır, yani sağlayıcı kesintisi yereli bozmaz ama uyarı üretir.
+
+Sağlayıcı tarafında **yaşam döngüsü kuralı** koyun (saatlik yedek ~24 dizin/gün birikir): ör. 7 günden eski saatlik yedekleri sil ya da son 3 günü tut + günde bir yedeği 30-90 gün sakla; sağlayıcı panelinde "lifecycle / delete after N days". Kaynak: sağlayıcı belgesi (alanlar zamanla değişir).
+
+### 11.5 Uzaktan geri yükleme denemesi (zorunlu, bölüm 7 ile birlikte)
+
+Uzak kopya, geri yüklenebildiği gösterilmedikçe yok sayılır: başka bir bilgisayarda/geçici dizinde `rclone copy bukup:yedek/<damga> ./restore-in/ && (cd restore-in && sha256sum -c SHA256SUMS)`, sonra bölüm 10.6 akışı. Sunucunun rclone.conf'u kaybolursa uzak kopyaya erişmek için sağlayıcı anahtarlarını da şifre yöneticisinde tutun.

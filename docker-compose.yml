@@ -101,7 +101,7 @@ services:
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_FROM: ${MAIL_FROM:-noreply@bukampus.net}
+      MAIL_FROM: ${MAIL_FROM:-noreply@bukampus.online}
       MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
       MAIL_REQUIRE_TLS: ${MAIL_REQUIRE_TLS:-false}
       MAIL_SSL: ${MAIL_SSL:-false}

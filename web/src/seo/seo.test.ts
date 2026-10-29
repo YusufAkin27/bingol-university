@@ -156,8 +156,8 @@ describe('headModel', () => {
     expect(pageUrl(ORIGIN, 'tr', '/')).toBe(`${ORIGIN}/tr`);
     expect(pageUrl(ORIGIN, 'ar', '/news/')).toBe(`${ORIGIN}/ar/news`);
     expect(normalizeOrigin('https://a.b///')).toBe('https://a.b');
-    expect(normalizeOrigin('')).toBe('https://bukampus.net');
-    expect(normalizeOrigin(undefined)).toBe('https://bukampus.net');
+    expect(normalizeOrigin('')).toBe('https://bukampus.com.tr');
+    expect(normalizeOrigin(undefined)).toBe('https://bukampus.com.tr');
   });
 });
 

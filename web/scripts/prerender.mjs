@@ -2,7 +2,7 @@
 //   node scripts/prerender.mjs        (npm run build zincirinde otomatik)
 // Üretir: dist/<tr|en|ar>/<yol>/index.html (title, description, canonical, hreflang, OG, Twitter, JSON-LD, <noscript> metni),
 //         dist/index.html (kök), dist/sitemap.xml, dist/robots.txt, dist/.well-known/security.txt ({{ORIGIN}} doldurulur).
-// Köken: PUBLIC_WEB_URL (yoksa VITE_PUBLIC_URL, yoksa https://bukampus.net). Headless tarayıcı gerekmez.
+// Köken: PUBLIC_WEB_URL (yoksa VITE_PUBLIC_URL, yoksa https://bukampus.com.tr). Headless tarayıcı gerekmez.
 // Mantık src/seo/*.ts içindedir (testli); bu dosya yalnızca dosya sistemi ve doğrulama işini yapar.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -83,7 +83,7 @@ if (!hints) console.warn('prerender: vite manifest yok, modulepreload ipuçları
 
 const buildDate = new Date().toISOString().slice(0, 10);
 const result = mod.prerender({ template, origin, buildDate, hints });
-const resolvedOrigin = origin.replace(/\/+$/, '') || 'https://bukampus.net';
+const resolvedOrigin = origin.replace(/\/+$/, '') || 'https://bukampus.com.tr';
 
 for (const [rel, html] of result.files) {
   const file = join(dist, rel);

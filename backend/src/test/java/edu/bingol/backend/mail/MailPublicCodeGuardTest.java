@@ -24,7 +24,7 @@ class MailPublicCodeGuardTest {
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
 
     private static MailProperties props(int limit) {
-        return new MailProperties(true, "noreply@bukampus.net", "BU", 5000, 3, 20, false, "", 30, 300, "", 180, "",
+        return new MailProperties(true, "noreply@bukampus.online", "BU", 5000, 3, 20, false, "", 30, 300, "", 180, "",
                 limit, 60, 21);
     }
 
