@@ -61,8 +61,10 @@ public class SystemAlertService {
         try {
             SystemOverviewService.Overview o = overview.evaluate(edu.bingol.backend.i18n.Lang.DEFAULT.locale());
             String previous = redis.opsForValue().get(STATE_KEY);
-            redis.opsForValue().set(STATE_KEY, o.overall().name());
-            if (!shouldAlert(previous, o.overall())) {
+            // Depolama dolulugu kendi uyari isi (StorageAlertJob) ile bildirilir: burada ikilenmesin
+            IndicatorStatus overall = overallExcept(o, StorageAlertJob.INDICATOR_KEY);
+            redis.opsForValue().set(STATE_KEY, overall.name());
+            if (!shouldAlert(previous, overall)) {
                 return;
             }
             Boolean first = redis.opsForValue().setIfAbsent(THROTTLE_KEY, "1",
@@ -76,13 +78,24 @@ public class SystemAlertService {
         }
     }
 
+    /** Genel durum, verilen gosterge anahtari haric. */
+    static IndicatorStatus overallExcept(SystemOverviewService.Overview o, String excludedKey) {
+        IndicatorStatus s = IndicatorStatus.UNKNOWN;
+        for (Map.Entry<String, Indicator> e : o.indicators().entrySet()) {
+            if (!e.getKey().equals(excludedKey)) {
+                s = IndicatorStatus.worse(s, e.getValue().status());
+            }
+        }
+        return s;
+    }
+
     /** OK/WARN/UNKNOWN/ilk -> CRIT gecisinde true; CRIT'te kalmak tekrar uyari uretmez. */
     static boolean shouldAlert(String previous, IndicatorStatus now) {
         return now == IndicatorStatus.CRIT && !IndicatorStatus.CRIT.name().equals(previous);
     }
 
     private void notifyAdmins(SystemOverviewService.Overview o) {
-        List<String> crit = o.critKeys();
+        List<String> crit = o.critKeys().stream().filter(k -> !k.equals(StorageAlertJob.INDICATOR_KEY)).toList();
         String summary = String.join(", ", crit.stream().limit(6).toList());
         String count = String.valueOf(crit.size());
         for (UserRepository.UserLang admin : users.audienceAdmins()) {

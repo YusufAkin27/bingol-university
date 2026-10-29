@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * <p>Kuyruk: olu (DEAD) kayit sayisi {@code deadWarn} ve ustu WARN, {@code deadCrit} ustu CRIT; en eski bekleyen kayit
  * {@code queueAgeWarnMinutes} ustu WARN, {@code queueAgeCritMinutes} ustu CRIT. Yedek (saatlik): {@code backupWarnHours}
  * ustu WARN, {@code backupCritHours} ustu CRIT. Disk doluluk yuzdesi {@code diskWarnPercent}/{@code diskCritPercent}.
+ * Depolama (veri saklama sayfasi, {@code /api/admin/system/storage}) esikleri {@code storageWarnPercent}/{@code storageCritPercent}.
  */
 @ConfigurationProperties("app.observability")
 public record ObservabilityProperties(
@@ -32,5 +33,8 @@ public record ObservabilityProperties(
         @DefaultValue("") String alertEmail,
         @DefaultValue("60") int alertIntervalMinutes,
         /** Yedek durum dosyasi; bos = ${STORAGE_DIR}/../backups/last-success.json (env BACKUP_STATUS_FILE). */
-        @DefaultValue("") String backupStatusFile) {
+        @DefaultValue("") String backupStatusFile,
+        /** Depolama doluluk uyarisi (%): veritabani sunucusu / uygulama diskleri. >= warn WARN, >= crit CRIT. */
+        @DefaultValue("80") int storageWarnPercent,
+        @DefaultValue("90") int storageCritPercent) {
 }

@@ -3,7 +3,9 @@ package edu.bingol.backend.dbmaint;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.function.LongConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +76,56 @@ public class ChunkedDeleter {
             log.info("dbmaint {}: {} satir silindi", name, total);
         }
         return total;
+    }
+
+    /** {@link #deleteAll} sonucu: silinen toplam satir ve (varsa) hata metni; hata cagirana firlatilmaz. */
+    public record Result(long deleted, String error, boolean cancelled) {
+    }
+
+    /**
+     * Elle (yonetici) temizlik: gece isinin parca ust sinirina takilmaz, her parcadan sonra {@code progress} toplam
+     * silinen sayiyla cagrilir. Hata yutulmaz, sonuc icinde doner (cagiran durumu kayda yazar). Guvenlik ust siniri
+     * 200 000 parca (~1 milyar satir). SQL kurali {@link #delete} ile aynidir.
+     */
+    public Result deleteAll(String name, String sql, Map<String, ?> params, LongConsumer progress, BooleanSupplier cancel) {
+        Map<String, Object> p = new HashMap<>();
+        if (params != null) {
+            p.putAll(params);
+        }
+        p.put("lim", chunkSize);
+        long total = 0;
+        String error = null;
+        boolean cancelled = false;
+        try {
+            for (int i = 0; i < 200_000; i++) {
+                if (cancel != null && cancel.getAsBoolean()) {
+                    cancelled = true;
+                    break;
+                }
+                int n = jdbc.update(sql, p);
+                total += n;
+                if (progress != null) {
+                    progress.accept(total);
+                }
+                if (n < chunkSize) {
+                    break;
+                }
+                if (pauseMs > 0) {
+                    Thread.sleep(pauseMs);
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            error = "interrupted";
+        } catch (RuntimeException e) {
+            log.warn("dbmaint {} elle silme hatasi (o ana kadar {} satir): {}", name, total, e.toString());
+            error = e.getClass().getSimpleName();
+        }
+        if (total > 0) {
+            meters.counter("bu_dbmaint_deleted_total", "table", name).increment(total);
+            log.info("dbmaint {}: {} satir silindi (elle)", name, total);
+        }
+        return new Result(total, error, cancelled);
     }
 
     public int chunkSize() {

@@ -60,7 +60,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String m = req.getMethod();
         boolean write = "POST".equals(m) || "PUT".equals(m) || "PATCH".equals(m) || "DELETE".equals(m);
-        return !write || !req.getRequestURI().startsWith("/api/admin/") || req.getHeader(HEADER) == null;
+        // Veri saklama disa aktarmasi buyuk bir akistir: yanit onbellegi (bellek) kullanilmaz
+        return !write || !req.getRequestURI().startsWith("/api/admin/") || req.getHeader(HEADER) == null
+                || req.getRequestURI().equals("/api/admin/data-retention/exports");
     }
 
     @Override

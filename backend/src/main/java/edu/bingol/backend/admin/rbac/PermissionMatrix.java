@@ -49,6 +49,12 @@ public final class PermissionMatrix {
     public static final String SYSTEM_WRITE = "system.write";
     public static final String AUDIT_READ = "audit.read";
     public static final String RBAC_MANAGE = "rbac.manage";
+    /** DS1 veri saklama: doluluk + envanter + onizleme okuma. */
+    public static final String RETENTION_READ = "data.retention.read";
+    /** Sisen log tablolarini (kisisel veri icerebilir) dışa aktarma. */
+    public static final String RETENTION_EXPORT = "data.retention.export";
+    /** Onayli kalici silme. */
+    public static final String RETENTION_PURGE = "data.retention.purge";
     /** Haritada eslenmemis /api/admin yollari icin guvenli varsayilan: yalniz FULL. */
     public static final String FULL_ONLY = "admin.full";
 
@@ -95,6 +101,9 @@ public final class PermissionMatrix {
         grant(SYSTEM_WRITE, F);
         grant(AUDIT_READ, F, V);
         grant(RBAC_MANAGE, F);
+        grant(RETENTION_READ, F, V);
+        grant(RETENTION_EXPORT, F);
+        grant(RETENTION_PURGE, F);
         grant(FULL_ONLY, F);
     }
 

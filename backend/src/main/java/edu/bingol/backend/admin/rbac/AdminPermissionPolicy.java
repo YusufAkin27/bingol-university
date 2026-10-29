@@ -108,10 +108,16 @@ public final class AdminPermissionPolicy {
         area("/api/admin/mail/campaigns(/.*)?", COMMS_READ, COMMS_SEND);
         area("/api/admin/mail/(templates|variables)(/.*)?", COMMS_READ, COMMS_WRITE);
 
+        // --- veri saklama (DS1): okuma VIEWER dahil; disa aktarma ve silme yalniz FULL ---
+        one(Set.of("GET"), "/api/admin/system/storage", RETENTION_READ);
+        one(Set.of("POST"), "/api/admin/data-retention/exports", RETENTION_EXPORT);
+        one(Set.of("POST"), "/api/admin/data-retention/purges", RETENTION_PURGE);
+        area("/api/admin/data-retention(/.*)?", RETENTION_READ, RETENTION_PURGE);
+
         // --- sistem / altyapi ---
         area("/api/admin/push/(fcm|outbox|devices)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
         area("/api/admin/mail/(outbox|suppressions|quota)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
-        area("/api/admin/(ops|system|crypto)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
+        area("/api/admin/(ops|system|crypto|crashes)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
 
         // --- sozlesme / ayar ---
         one(Set.of("POST"), "/api/admin/legal/" + ID, LEGAL_PUBLISH);

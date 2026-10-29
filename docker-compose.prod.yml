@@ -147,6 +147,12 @@ services:
       FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       STORAGE_DIR: /data/uploads
+      # DS1 depolama doluluk uyarisi (docs/DATABASE.md bolum 15): esikler ve DB sunucusu diski (olculen yol ya da kapasite)
+      OBS_STORAGE_WARN_PERCENT: ${OBS_STORAGE_WARN_PERCENT:-80}
+      OBS_STORAGE_CRIT_PERCENT: ${OBS_STORAGE_CRIT_PERCENT:-90}
+      STORAGE_DB_DISK_PATH: ${STORAGE_DB_DISK_PATH:-}
+      STORAGE_DB_DISK_CAPACITY_BYTES: ${STORAGE_DB_DISK_CAPACITY_BYTES:-0}
+      STORAGE_RESERVED_BYTES: ${STORAGE_RESERVED_BYTES:-0}
       APP_OPS_BACKUP_STATUS_FILE: /backup-status/backup.prom
       # Uygulama ici yedek gostergesi (BackupStatusProvider): yedek servisi ayni dosyayi yazar (asagida backup.BACKUP_STATUS_FILE,
       # ayni host dizini ${BACKUP_METRICS_DIR}); bicim {"lastSuccessAt":"...Z"}. Yol/biçim uyusmazsa gosterge hep UNKNOWN olur (M25).

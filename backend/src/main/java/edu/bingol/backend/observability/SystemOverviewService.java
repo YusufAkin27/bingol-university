@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 public class SystemOverviewService {
 
     /** Sik/gecelik/aylik gorev turu: esik carpanlari farklidir. */
-    enum JobKind { POLLER, NIGHTLY, MONTHLY }
+    enum JobKind { POLLER, NIGHTLY, MONTHLY, SLOW }
 
     record JobSpec(String key, String job, JobKind kind) {
     }
@@ -46,7 +46,8 @@ public class SystemOverviewService {
             new JobSpec("push-purge", "PushOutboxWorker.purgeOld", JobKind.NIGHTLY),
             new JobSpec("device-cleanup", "DeviceCleanupJob.scheduled", JobKind.NIGHTLY),
             new JobSpec("notification-retention", "NotificationRetentionJob.scheduled", JobKind.NIGHTLY),
-            new JobSpec("analytics-retention", "EventRetention.purge", JobKind.NIGHTLY));
+            new JobSpec("analytics-retention", "EventRetention.purge", JobKind.NIGHTLY),
+            new JobSpec("storage-alert", "StorageAlertJob.scheduled", JobKind.SLOW));
 
     /** Tum gosterge anahtarlari (metrik kaydi icin sabit liste). */
     public static List<String> indicatorKeys() {
@@ -54,7 +55,7 @@ public class SystemOverviewService {
                 "mail.dead", "mail.pending", "mail.oldestPendingAge", "mail.dailyQuota",
                 "push.dead", "push.pending", "push.oldestPendingAge",
                 "campaign.overdue", "campaign.counts",
-                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "backup.age"));
+                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age"));
         for (JobSpec j : JOBS) {
             keys.add("jobs." + j.key());
         }
@@ -85,14 +86,17 @@ public class SystemOverviewService {
     private final StorageProperties storage;
     private final I18n i18n;
     private final ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota;
+    private final StorageUsageService storageUsage;
     private final AtomicReference<Cached> cache = new AtomicReference<>();
 
     public SystemOverviewService(ObservabilityProperties props, QueueQueries queues, JdbcTemplate jdbc,
                                  StringRedisTemplate redis, ObjectProvider<SimpUserRegistry> users,
                                  ObjectProvider<PushDispatcher> push, JobMonitor jobs, BackupStatusProvider backup,
                                  StorageProperties storage, I18n i18n,
-                                 ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota) {
+                                 ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota,
+                                 StorageUsageService storageUsage) {
         this.mailQuota = mailQuota;
+        this.storageUsage = storageUsage;
         this.props = props;
         this.queues = queues;
         this.jdbc = jdbc;
@@ -127,6 +131,7 @@ public class SystemOverviewService {
         out.put("redis", redis(locale));
         out.put("fcm", fcm(locale));
         out.put("disk.storage", disk(locale));
+        out.put("storage", storage(locale));
         out.put("backup.age", backup(now, locale));
         for (JobSpec j : JOBS) {
             out.put("jobs." + j.key(), job(j, now, locale));
@@ -286,6 +291,21 @@ public class SystemOverviewService {
         }
     }
 
+    /** Depolama doluluk (veri saklama sayfasi): en yuksek disk yuzdesi; WARN/CRIT esikleri storage-*-percent. */
+    private Indicator storage(Locale l) {
+        try {
+            StorageUsageService.Report r = storageUsage.report();
+            Map<String, Object> th = Map.of("warn", props.storageWarnPercent(), "crit", props.storageCritPercent());
+            if (r.worstPercent() == null) {
+                return new Indicator(IndicatorStatus.UNKNOWN, null, th, msg(l, "obs.msg.STORAGE_UNKNOWN"));
+            }
+            return new Indicator(r.status(), r.worstPercent(), th, r.status() == IndicatorStatus.OK ? null
+                    : msg(l, "obs.msg.STORAGE_HIGH", String.valueOf(r.worstPercent()), String.valueOf(r.worstKey())));
+        } catch (RuntimeException e) {
+            return Indicator.unknown(msg(l, "obs.msg.STORAGE_UNKNOWN"));
+        }
+    }
+
     private Indicator backup(Instant now, Locale l) {
         Optional<Instant> last = backup.lastSuccess();
         Map<String, Object> th = Map.of("warn", props.backupWarnHours(), "crit", props.backupCritHours());
@@ -314,6 +334,7 @@ public class SystemOverviewService {
             case POLLER -> props.pollerMaxAgeSeconds();
             case NIGHTLY -> props.nightlyMaxAgeHours() * 3600L;
             case MONTHLY -> props.monthlyMaxAgeDays() * 86400L;
+            case SLOW -> 45 * 60L; // 15 dk'lik donem x3
         };
         Optional<JobMonitor.Stat> stat = jobs.stat(spec.job());
         Map<String, Object> th = Map.of("warn", max, "crit", max * critFactor(spec.kind()));

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 class ObservabilityUnitTest {
 
     private static final ObservabilityProperties DEFAULTS = new ObservabilityProperties(1, 20, 10, 30, 80, 90, 3, 6,
-            1000, 120, 26, 32, true, "", 60, "");
+            1000, 120, 26, 32, true, "", 60, "", 80, 90);
 
     // ---- esik kiyasi ----
 

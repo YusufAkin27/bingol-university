@@ -76,6 +76,9 @@ public final class AdminGuardPolicy {
     private static final Pattern P15_POST = Pattern.compile(
             "^/api/admin/(menu/bulk-delete|pending-registrations/bulk-cancel|sources/sync)$");
 
+    /** DS1 veri saklama: disa aktarma (kisisel veri cikarir) ve onayli silme (POST); ikisi de gerekce ister. */
+    private static final Pattern RETENTION_POST = Pattern.compile("^/api/admin/data-retention/(exports|purges)$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -168,6 +171,9 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && P15_POST.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && RETENTION_POST.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
         }
         return 0;
