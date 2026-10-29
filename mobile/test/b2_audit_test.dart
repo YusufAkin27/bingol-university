@@ -269,12 +269,12 @@ void main() {
       await tester.pump(const Duration(seconds: 7)); // validFor 10 sn -> 7. sn'de yenileme
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text('AAA.1'), findsOneWidget); // kod ekranda kalır
-      expect(find.textContaining('Bir sorun oluştu'), findsOneWidget); // hata şeridi
+      expect(find.byKey(const ValueKey('et2-qr-error')), findsOneWidget); // hata kartı
       b.on('/events/5/checkin-code', {'code': 'BBB.2', 'qrPayload': 'bingol-checkin:BBB.2', 'validForSeconds': 10});
       await tester.pump(const Duration(seconds: 5));
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text('BBB.2'), findsOneWidget);
-      expect(find.textContaining('Bir sorun oluştu'), findsNothing);
+      expect(find.byKey(const ValueKey('et2-qr-error')), findsNothing);
       await unmount(tester);
     });
   });

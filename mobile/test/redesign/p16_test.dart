@@ -97,7 +97,7 @@ void main() {
     testWidgets('bos: bekleyen yok ve katilimci yok', (tester) async {
       await p00Matrix(tester, () => Etkinlik2RequestsPage(session: makeSession(_be(emptyReq: true)), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
-        expect(find.byType(BuEmptyState), findsOneWidget);
+        expect(find.byKey(const ValueKey('et2-req-back')), findsOneWidget);
       });
       await p00Matrix(tester, () => Etkinlik2AttendancePage(session: makeSession(_be(emptyAtt: true)), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
@@ -109,12 +109,12 @@ void main() {
       final be = _be()..network('/events/5/attendance');
       await p00Matrix(tester, () => Etkinlik2AttendancePage(session: makeSession(be), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
-        expect(find.byType(BuErrorState), findsOneWidget);
+        expect(find.byKey(const ValueKey('et2-att-error')), findsOneWidget);
       });
       final be2 = _be()..network('/events/5/requests?status=PENDING&size=50');
       await p00Matrix(tester, () => Etkinlik2RequestsPage(session: makeSession(be2), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
-        expect(find.byType(BuErrorState), findsOneWidget);
+        expect(find.byKey(const ValueKey('et2-req-error')), findsOneWidget);
       });
     });
 
@@ -161,7 +161,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(Etkinlik2QrPage(session: makeSession(_be()), event: _ev()), scaffold: false));
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.tap(find.text('5.123.abcdef'));
+      await tester.tap(find.text('Kopyala'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(clip, '5.123.abcdef');
       expect(find.text('Kod kopyalandı'), findsOneWidget);
@@ -197,9 +197,9 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(Etkinlik2AttendancePage(session: makeSession(be), event: _ev()), scaffold: false));
       await tester.pump(const Duration(milliseconds: 900));
-      await tester.tap(find.text('Gelmedi'));
+      await tester.tap(find.byKey(const ValueKey('et2-filter-absent')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Bu süzgece uyan kimse yok.'), findsOneWidget);
+      expect(find.text('Bu filtreye uygun katılımcı kaydı bulunamadı.'), findsOneWidget);
       expect(find.text('Ayşe Yılmaz'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));

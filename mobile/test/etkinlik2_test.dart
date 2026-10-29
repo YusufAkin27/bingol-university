@@ -228,14 +228,15 @@ void main() {
     final be = requestsBe();
     await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14)));
     expect(find.byKey(const ValueKey('et2-full-banner')), findsNothing);
-    expect(find.text('Bekleyen · 2'), findsOneWidget);
+    expect(find.text('Bekleyen istekler'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget); // bekleyen sayısı rozeti
     expect(find.text('Onaylandı'), findsOneWidget);
     expect(find.text('Reddedildi'), findsOneWidget);
     expect(find.text('5 yer kaldı'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('et2-approve-21')));
     await settle(tester, const Duration(milliseconds: 400));
     expect(be.requests, contains('POST /events/5/requests/21/approve'));
-    expect(find.text('Bekleyen · 1'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget); // kalan bekleyen rozeti
     await tester.tap(find.byKey(const ValueKey('et2-reject-22')));
     await settle(tester, const Duration(milliseconds: 400));
     expect(be.requests, contains('POST /events/5/requests/22/reject'));
@@ -244,14 +245,26 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('istekler: kontenjan doluysa uyari bandi gorunur; EVENT_FULL istegi bekleyen birakir', (tester) async {
+  testWidgets('istekler: kontenjan doluysa uyari bandi gorunur ve Onayla pasif', (tester) async {
     final be = requestsBe(full: true);
-    be.fail('/events/5/requests/21/approve', status: 409, code: 'EVENT_FULL', message: 'Kontenjan dolu.');
     await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14, going: 14)));
     expect(find.byKey(const ValueKey('et2-full-banner')), findsOneWidget);
+    expect(find.text('Kontenjan yetersiz olduğu için onaylanamaz'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('et2-approve-21')), warnIfMissed: false);
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(be.requests.where((r) => r.contains('/approve')), isEmpty);
+    expect(find.text('Bekleyen istekler'), findsOneWidget);
+    _noErr(tester);
+    await unmount(tester);
+  });
+
+  testWidgets('istekler: EVENT_FULL (bayat sayac) istegi bekleyen birakir', (tester) async {
+    final be = requestsBe();
+    be.fail('/events/5/requests/21/approve', status: 409, code: 'EVENT_FULL', message: 'Kontenjan dolu.');
+    await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14)));
     await tester.tap(find.byKey(const ValueKey('et2-approve-21')));
     await settle(tester, const Duration(milliseconds: 400));
-    expect(find.text('Bekleyen · 2'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget); // hâlâ 2 bekleyen
     expect(find.text('Kontenjan dolu.'), findsOneWidget);
     _noErr(tester);
     await unmount(tester);
@@ -280,6 +293,8 @@ void main() {
     final be = _be(_ev(policy: 'APPROVAL', manage: true, capacity: 14));
     await _pump(tester, Etkinlik2SettingsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14)));
     await tester.enterText(find.byKey(const ValueKey('et2-settings-cap')), '5');
+    await tester.pump();
+    expect(find.textContaining('onaylı kişi sayısından (9) az olamaz'), findsOneWidget); // canlı hata satırı
     await tester.tap(find.text('Kaydet'));
     await settle(tester, const Duration(milliseconds: 300));
     expect(find.textContaining('onaylı kişi sayısından (9) az olamaz'), findsOneWidget);
@@ -303,7 +318,7 @@ void main() {
     await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true)));
     expect(find.text('2 / 3 kişi geldi'), findsOneWidget);
     expect(find.text('Can Demir'), findsOneWidget);
-    await tester.tap(find.text('Gelmedi'));
+    await tester.tap(find.byKey(const ValueKey('et2-filter-absent')));
     await tester.pump();
     expect(find.text('Ayşe Yılmaz'), findsNothing);
     expect(find.text('Can Demir'), findsOneWidget);

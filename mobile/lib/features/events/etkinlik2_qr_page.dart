@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -131,41 +133,72 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
+    final failed = _failed != null;
     return BuPageScaffold(
       title: l.eventFormCheckInCode,
       large: false,
-      bottomInset: 20,
-      bottomBar: Et2BottomBar(child: _bottom(context)),
+      bottomInset: 24,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
           sliver: SliverList.list(children: [
-            Et2EventStrip(event: widget.event),
-            const SizedBox(height: 14),
-            _ticket(context),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 14, 8, 0),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: ExcludeSemantics(child: Icon(LucideIcons.scanLine, size: 16, color: t.mut)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text('${l.eventFormQrHelp} ${l.eventFormCodeShortLived}',
-                      style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
-                ),
-              ]),
-            ),
+            _strip(context),
+            const SizedBox(height: 12),
+            _qrCard(context),
+            if (failed) ...[
+              const SizedBox(height: 12),
+              _errorCard(context),
+            ],
+            const SizedBox(height: 12),
+            failed || _code == null ? _compactStatus(context) : _statusCard(context),
           ]),
         ),
       ],
     );
   }
 
-  Widget _ticket(BuildContext context) {
+  /// Etkinlik şeridi: kulüp adı (varsa, küçük harf büyütülmüş) + etkinlik başlığı.
+  Widget _strip(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final club = (widget.event['communityName'] as String?)?.trim() ?? '';
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 14, 10),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.md), border: Border.all(color: t.bd)),
+      child: Row(children: [
+        Et2IconBox(club.isEmpty ? LucideIcons.calendarDays : LucideIcons.users, size: 40),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            if (club.isNotEmpty)
+              Text(club.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.pr, letterSpacing: ar ? 0 : .6)),
+            Text('${widget.event['title'] ?? ''}',
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  /// "Kod 4 sn sonra yenilenir" gibi metinde [token] (sayı) vurgulanır.
+  Widget _emph(String text, String token, TextStyle base, TextStyle emph) {
+    final i = token.isEmpty ? -1 : text.indexOf(token);
+    if (i < 0) return Text(text, textAlign: TextAlign.center, style: base);
+    return Text.rich(
+      TextSpan(style: base, children: [
+        TextSpan(text: text.substring(0, i)),
+        TextSpan(text: token, style: emph),
+        TextSpan(text: text.substring(i + token.length)),
+      ]),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _qrCard(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
@@ -173,104 +206,128 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     final qr = _code?['qrPayload'] as String?;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(BuRadius.xl),
-        border: Border.all(color: t.bd),
-      ),
-      child: code == null ? _noCode(context) : Column(children: [
-        if (_failed != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Semantics(
-              liveRegion: true,
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.triangleAlert, size: 16, color: t.danger),
-                const SizedBox(width: 6),
-                Flexible(child: Text(_failed!, style: tx.labelLarge!.copyWith(color: t.danger))),
-              ]),
-            ),
-          ),
-        ValueListenableBuilder<int>(
-          valueListenable: _left,
-          builder: (context, left, _) => _CountdownFrame(
-            progress: _validFor == 0 ? 0 : left / _validFor,
-            expired: left == 0,
-            low: left <= 5,
-            child: Semantics(
-              label: l.eventFormCheckInCode,
-              child: QrView(
-                data: qr ?? code,
-                size: 200,
-                radius: BuRadius.sm,
-                fallback: SelectableText(code, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.pr)),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(l.etkinlik2QrManualCaption,
-            textAlign: TextAlign.center,
-            style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut, letterSpacing: ar ? 0 : .8)),
-        const SizedBox(height: 6),
-        Semantics(
-          button: true,
-          label: '${l.p16QrCopy}: $code',
-          excludeSemantics: true,
-          onTap: () => _copy(code),
-          child: BuPressable(
-            onTap: () => _copy(code),
-            scale: .97,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text(
-                    code,
-                    style: tx.headlineMedium!.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: ar ? 0 : 3,
-                        color: t.ink,
-                        fontFeatures: const [FontFeature.tabularFigures()]),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), border: Border.all(color: t.bd)),
+      child: code == null
+          ? _noCode(context)
+          : Column(children: [
+              ValueListenableBuilder<int>(
+                valueListenable: _left,
+                builder: (context, left, _) => _QrFrame(
+                  expired: left == 0,
+                  child: Semantics(
+                    label: l.eventFormCheckInCode,
+                    child: QrView(
+                      data: qr ?? code,
+                      size: 192,
+                      radius: BuRadius.xs,
+                      fallback: SelectableText(code, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.pr)),
+                    ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<int>(
+                valueListenable: _left,
+                builder: (context, left, _) {
+                  final expired = left == 0;
+                  final base = tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink);
+                  return AnimatedContainer(
+                    duration: BuMotion.of(context, BuMotion.medium),
+                    constraints: const BoxConstraints(minHeight: 40),
+                    padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 16, 8),
+                    decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      ExcludeSemantics(
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CustomPaint(
+                            painter: _MiniRing(progress: _validFor == 0 ? 0 : left / _validFor, track: t.bd, color: expired ? t.danger : t.pr),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: expired
+                            ? Text(l.etkinlik2QrExpired, style: base)
+                            : _emph(l.etkinlik2QrRenewsIn('$left'), '$left', base, base.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
+                      ),
+                    ]),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              Text(l.eventFormQrHelp, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+              const SizedBox(height: 14),
+              Divider(height: 1, color: t.bd),
+              const SizedBox(height: 14),
+              Text(l.etkinlik2QrManualCaption,
+                  textAlign: TextAlign.center,
+                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut, letterSpacing: ar ? 0 : .8)),
+              const SizedBox(height: 8),
+              Container(
+                constraints: const BoxConstraints(minHeight: 56),
+                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 8, 6),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
+                child: Row(children: [
+                  ExcludeSemantics(child: Icon(LucideIcons.keyRound, size: 18, color: t.mut)),
                   const SizedBox(width: 10),
-                  Icon(LucideIcons.copy, size: 20, color: t.mut),
+                  Expanded(
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: SelectableText(
+                          code,
+                          key: const ValueKey('et2-manual-code'),
+                          maxLines: 1,
+                          style: tx.titleLarge!.copyWith(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 3,
+                              color: t.ink,
+                              fontFeatures: const [FontFeature.tabularFigures()]),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Semantics(
+                    button: true,
+                    label: '${l.p16QrCopy}: $code',
+                    excludeSemantics: true,
+                    onTap: () => _copy(code),
+                    child: BuPressable(
+                      onTap: () => _copy(code),
+                      scale: .96,
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.sm)),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(LucideIcons.copy, size: 16, color: t.ink),
+                            const SizedBox(width: 6),
+                            Text(l.p16QrCopyBtn, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                          ]),
+                        ),
+                      ),
+                    ),
+                  ),
                 ]),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        ValueListenableBuilder<int>(
-          valueListenable: _left,
-          builder: (context, left, _) {
-            final low = left <= 5;
-            final bg = left == 0 ? t.danger.withValues(alpha: .12) : (low ? t.warnSoft : t.soft);
-            final fg = left == 0 ? t.danger : (low ? t.onWarnSoft : t.onSoft);
-            return AnimatedContainer(
-              duration: BuMotion.of(context, BuMotion.medium),
-              constraints: const BoxConstraints(minHeight: 40),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(left == 0 ? LucideIcons.refreshCw : LucideIcons.clock, size: 16, color: fg),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(left == 0 ? l.etkinlik2QrExpired : l.etkinlik2QrRenewsIn('$left'),
-                      textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-                ),
-              ]),
-            );
-          },
-        ),
-      ]),
+            ]),
     );
   }
 
-  /// Kod henüz yok: yüklenirken QR iskeleti, hatada yeniden dene.
+  /// Kod henüz yok: yükleniyorsa QR iskeleti; hatadaysa bulanık yer tutucu + "Kod kısa süre geçerlidir".
   Widget _noCode(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     if (_busy) {
       return Semantics(
@@ -278,145 +335,323 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         liveRegion: true,
         child: const BuSkeletonScope(
           child: Column(children: [
-            BuSkeleton(width: 248, height: 248, radius: BuRadius.lg),
-            SizedBox(height: 22),
-            BuSkeleton.line(width: 120),
-            SizedBox(height: 12),
-            BuSkeleton(width: 220, height: 34, radius: 10),
+            BuSkeleton(width: 232, height: 232, radius: BuRadius.lg),
             SizedBox(height: 16),
-            BuSkeleton(width: 190, height: 40, radius: BuRadius.pill),
+            BuSkeleton(width: 200, height: 40, radius: BuRadius.pill),
+            SizedBox(height: 14),
+            BuSkeleton.line(width: 220),
+            SizedBox(height: 18),
+            BuSkeleton(height: 56, radius: BuRadius.md),
           ]),
         ),
       );
     }
-    return BuErrorState(compact: true, message: _failed ?? l.eventFormCodeFailed, onRetry: _loadCode);
-  }
-
-  Widget _bottom(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.userCheck, size: 18, color: t.mut)),
-        const SizedBox(width: 8),
-        Text(l.etkinlik2AttendanceLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(l.etkinlik2PresentOf('$_present', '$_total'),
-              key: const ValueKey('et2-present-count'),
-              textAlign: TextAlign.end,
-              style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
-        ),
-      ]),
-      const SizedBox(height: 8),
-      Et2Progress(fraction: _total == 0 ? 0 : _present / _total, height: 6),
-      const SizedBox(height: 12),
-      Row(children: [
-        Expanded(
-          child: BuButton(
-            label: l.eventFormRefreshCode,
-            icon: LucideIcons.refreshCw,
-            busy: _busy,
-            onPressed: _busy ? null : _loadCode,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: BuButton(label: l.eventFormAttendees, icon: LucideIcons.users, kind: BuButtonKind.outline, onPressed: _openList),
-        ),
+    return Column(children: [
+      const _QrFrame(expired: true, child: SizedBox.shrink()),
+      const SizedBox(height: 14),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        ExcludeSemantics(child: Icon(LucideIcons.timer, size: 14, color: t.mut)),
+        const SizedBox(width: 6),
+        Flexible(child: Text(l.eventFormCodeShortLived, style: tx.bodySmall!.copyWith(color: t.mut))),
       ]),
     ]);
   }
+
+  Widget _errorCard(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        key: const ValueKey('et2-qr-error'),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.lg)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), shape: BoxShape.circle),
+                child: Icon(LucideIcons.wifiOff, size: 20, color: t.danger),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(l.eventFormCodeFailed, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                ),
+                const SizedBox(height: 6),
+                Text(l.p16QrErrBody, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 14),
+          BuButton(label: l.eventFormRefreshCode, icon: LucideIcons.refreshCw, busy: _busy, onPressed: _busy ? null : _loadCode),
+          const SizedBox(height: 8),
+          BuButton(label: l.commonRetry, icon: LucideIcons.refreshCcw, kind: BuButtonKind.outline, onPressed: _busy ? null : _loadCode),
+        ]),
+      ),
+    );
+  }
+
+  /// "18 / 42 kişi geldi": sayı ([present]) vurgulu.
+  Widget _presentText(BuildContext context, {TextStyle? style}) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final base = style ?? tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut);
+    final text = l.etkinlik2PresentOf('$_present', '$_total');
+    final i = text.indexOf('$_present');
+    if (i < 0) return Text(text, key: const ValueKey('et2-present-count'), style: base);
+    return Directionality(
+      textDirection: Directionality.of(context),
+      child: Text.rich(
+        TextSpan(style: base, children: [
+          TextSpan(text: text.substring(0, i)),
+          TextSpan(text: '$_present', style: base.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
+          TextSpan(text: text.substring(i + '$_present'.length)),
+        ]),
+        key: const ValueKey('et2-present-count'),
+      ),
+    );
+  }
+
+  Widget _statusCard(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return BuCard(
+      padding: const EdgeInsets.all(16),
+      radius: 20,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Et2IconBox(LucideIcons.userCheck, size: 40, tint: t.tint(1)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(l.p16QrStatusTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              Text(l.p16QrStatusSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            flex: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: _presentText(context, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 14),
+        Et2Progress(fraction: _total == 0 ? 0 : _present / _total, height: 8),
+        const SizedBox(height: 14),
+        Semantics(
+          button: true,
+          label: l.p16QrList,
+          excludeSemantics: true,
+          onTap: _openList,
+          child: BuPressable(
+            key: const ValueKey('et2-open-list'),
+            onTap: _openList,
+            haptic: BuHaptic.selection,
+            scale: .98,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 52),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(LucideIcons.users, size: 18, color: t.onSoft),
+                const SizedBox(width: 8),
+                Flexible(child: Text(l.p16QrList, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft))),
+                const SizedBox(width: 6),
+                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.onSoft),
+              ]),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  /// Hata/yükleme durumunda sade yoklama satırı: "• Yoklama: 18 / 42 kişi geldi  [Katılımcılar >]".
+  Widget _compactStatus(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return BuCard(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 10, 10),
+      radius: 20,
+      child: Row(children: [
+        ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle))),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            '${l.etkinlik2AttendanceLabel}: ${l.etkinlik2PresentOf('$_present', '$_total')}',
+            key: const ValueKey('et2-present-count'),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Semantics(
+          button: true,
+          label: l.eventFormAttendees,
+          excludeSemantics: true,
+          onTap: _openList,
+          child: BuPressable(
+            key: const ValueKey('et2-open-list'),
+            onTap: _openList,
+            haptic: BuHaptic.selection,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 48),
+              alignment: Alignment.center,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(l.eventFormAttendees, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  const SizedBox(width: 4),
+                  Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.ink),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
 }
 
-/// QR çerçevesi: açık kâğıt zemin + çevresinde kalan süreyi gösteren halka (süre bitince soluk + yenileniyor katmanı).
-class _CountdownFrame extends StatelessWidget {
-  const _CountdownFrame({required this.progress, required this.expired, required this.low, required this.child});
+/// QR çerçevesi: yüksek kontrast kâğıt zemin; [expired] iken QR bulanıklaşır ve "Süresi doldu / Yenileniyor…" kartı çıkar.
+class _QrFrame extends StatelessWidget {
+  const _QrFrame({required this.expired, required this.child});
 
-  final double progress;
   final bool expired;
-  final bool low;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final ringColor = expired ? t.danger : (low ? t.warn : t.pr);
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     return SizedBox(
-      width: 248,
-      height: 248,
-      child: RepaintBoundary(
-        child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: progress, end: progress),
-          duration: BuMotion.of(context, const Duration(milliseconds: 1000)),
-          curve: Curves.linear,
-          builder: (context, v, _) => CustomPaint(
-            foregroundPainter: _RingPainter(progress: v, track: t.bd, color: ringColor, radius: BuRadius.lg + 4),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Stack(alignment: Alignment.center, children: [
-                Container(
-                  width: 220,
-                  height: 220,
-                  decoration: BoxDecoration(color: t.qrPaper, borderRadius: BorderRadius.circular(BuRadius.md), border: Border.all(color: t.bd)),
-                  alignment: Alignment.center,
-                  child: AnimatedOpacity(
-                    duration: BuMotion.of(context, BuMotion.medium),
-                    opacity: expired ? .12 : 1,
-                    child: child,
-                  ),
-                ),
-                if (expired)
-                  ExcludeSemantics(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(color: t.qrPaper, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-                      child: Icon(LucideIcons.refreshCw, size: 28, color: t.qrInk),
-                    ),
-                  ),
+      width: 232,
+      height: 232,
+      child: Stack(alignment: Alignment.center, children: [
+        Container(
+          width: 232,
+          height: 232,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: t.qrPaper,
+            borderRadius: BorderRadius.circular(BuRadius.lg),
+            border: Border.all(color: t.bd),
+            boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 18, offset: const Offset(0, 6), spreadRadius: -8)],
+          ),
+          child: expired
+              ? ImageFiltered(
+                  imageFilter: ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Opacity(opacity: .55, child: child is SizedBox ? const _PlaceholderQr() : child),
+                )
+              : child,
+        ),
+        if (expired)
+          Semantics(
+            liveRegion: true,
+            label: '${l.p16QrExpiredTitle}. ${l.p16QrRefreshing}',
+            excludeSemantics: true,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              decoration: BoxDecoration(
+                color: t.sf,
+                borderRadius: BorderRadius.circular(BuRadius.md),
+                boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .18), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -6)],
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3, color: t.pr, backgroundColor: t.soft)),
+                const SizedBox(height: 6),
+                Text(l.p16QrExpiredTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                Text(l.p16QrRefreshing, style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
             ),
           ),
-        ),
-      ),
+      ]),
     );
   }
 }
 
-/// Yuvarlatılmış dikdörtgen çevresinde ilerleme çizgisi.
-class _RingPainter extends CustomPainter {
-  _RingPainter({required this.progress, required this.track, required this.color, required this.radius});
+/// Kod yokken QR'ı andıran süs deseni (gerçek veri içermez; bulanık çizilir).
+class _PlaceholderQr extends StatelessWidget {
+  const _PlaceholderQr();
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(size: const Size(192, 192), painter: _PlaceholderPainter(context.bu.mut));
+}
+
+class _PlaceholderPainter extends CustomPainter {
+  _PlaceholderPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = color;
+    const f = 52.0;
+    for (final o in [Offset.zero, Offset(size.width - f, 0), Offset(0, size.height - f)]) {
+      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(o.dx, o.dy, f, f), const Radius.circular(8)), p);
+    }
+    const cells = [(80, 8), (104, 8), (88, 32), (128, 40), (64, 72), (96, 80), (124, 96), (72, 112), (100, 124), (150, 128), (130, 150), (88, 160), (170, 90)];
+    for (final c in cells) {
+      canvas.drawRect(Rect.fromLTWH(c.$1.toDouble(), c.$2.toDouble(), 16, 16), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PlaceholderPainter old) => old.color != color;
+}
+
+/// Küçük geri sayım halkası (kalan süre oranı kadar dolu yay).
+class _MiniRing extends CustomPainter {
+  _MiniRing({required this.progress, required this.track, required this.color});
 
   final double progress;
   final Color track;
   final Color color;
-  final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 4.0;
+    const stroke = 3.0;
     final rect = (Offset.zero & size).deflate(stroke / 2);
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-    final base = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..color = track;
-    canvas.drawRRect(rrect, base);
+    canvas.drawArc(
+        rect,
+        0,
+        math.pi * 2,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke
+          ..color = track);
     final p = progress.clamp(0.0, 1.0);
     if (p <= 0) return;
-    final path = Path()..addRRect(rrect);
-    final metric = path.computeMetrics().first;
-    final fg = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = stroke
-      ..color = color;
-    canvas.drawPath(metric.extractPath(0, metric.length * p), fg);
+    canvas.drawArc(
+        rect,
+        -math.pi / 2,
+        math.pi * 2 * p,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = stroke
+          ..color = color);
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.track != track || old.color != color || old.radius != radius;
+  bool shouldRepaint(_MiniRing old) => old.progress != progress || old.track != track || old.color != color;
 }

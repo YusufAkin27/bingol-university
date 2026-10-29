@@ -36,12 +36,16 @@ class Et2Segment<T> extends StatelessWidget {
     required this.options,
     required this.onChanged,
     this.enabled = true,
+    this.icons,
   });
 
   final T value;
   final List<(T, String)> options;
   final ValueChanged<T> onChanged;
   final bool enabled;
+
+  /// Seçeneklerle aynı sırada isteğe bağlı simgeler (seçiliyken marka renginde).
+  final List<IconData>? icons;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +60,6 @@ class Et2Segment<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.sf2,
         borderRadius: BorderRadius.circular(BuRadius.md),
-        border: Border.all(color: t.bd.withValues(alpha: .6)),
       ),
       child: Stack(children: [
         if (n > 0 && sel >= 0)
@@ -70,9 +73,9 @@ class Et2Segment<T> extends StatelessWidget {
                 heightFactor: 1,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: t.soft,
+                    color: t.sf,
                     borderRadius: BorderRadius.circular(BuRadius.md - 4),
-                    border: Border.all(color: t.pr.withValues(alpha: .18)),
+                    boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 8, offset: const Offset(0, 2))],
                   ),
                 ),
               ),
@@ -100,17 +103,25 @@ class Et2Segment<T> extends StatelessWidget {
                     constraints: const BoxConstraints(minHeight: 48),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: AnimatedDefaultTextStyle(
-                      duration: BuMotion.of(context, BuMotion.short),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tx.labelLarge!.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: i == sel ? t.onSoft : (enabled ? t.ink : t.mut),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      if (icons != null && i < icons!.length) ...[
+                        ExcludeSemantics(child: Icon(icons![i], size: 16, color: i == sel ? t.pr : t.mut)),
+                        const SizedBox(width: 6),
+                      ],
+                      Flexible(
+                        child: AnimatedDefaultTextStyle(
+                          duration: BuMotion.of(context, BuMotion.short),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.labelLarge!.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: i == sel ? t.ink : (enabled ? t.mut : t.mut.withValues(alpha: .6)),
+                          ),
+                          child: Text(options[i].$2, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                        ),
                       ),
-                      child: Text(options[i].$2, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-                    ),
+                    ]),
                   ),
                 ),
               ),
@@ -305,9 +316,12 @@ class Et2InfoRow extends StatelessWidget {
 /// Küçük etiket hapı ("Herkes katılabilir"). [dark] = olumlu/onaylı (yeşil ton), [muted] = sönük (reddedildi),
 /// varsayılan marka tonu. [icon] verilirse başa küçük simge.
 class Et2Tag extends StatelessWidget {
-  const Et2Tag(this.label, {super.key, this.dark = false, this.muted = false, this.icon});
+  const Et2Tag(this.label, {super.key, this.dark = false, this.muted = false, this.icon, this.danger = false});
 
   final String label;
+
+  /// Olumsuz (Reddedildi: kırmızı ton).
+  final bool danger;
 
   /// Olumlu (Onaylandı).
   final bool dark;
@@ -322,7 +336,9 @@ class Et2Tag extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final (bg, fg) = dark
         ? (t.okSoft, t.ok)
-        : muted
+        : danger
+            ? (t.danger.withValues(alpha: .12), t.danger)
+            : muted
             ? (t.sf2, t.mut)
             : (t.soft, t.onSoft);
     return Container(
@@ -652,4 +668,146 @@ String et2DateTimeShort(DateTime d) =>
 String et2Name(Object? v) {
   final s = '${v ?? ''}'.trim();
   return s;
+}
+
+
+/// Baş harfli yuvarlatılmış kare avatar (kimliğe göre kategori tonu). [url] varsa fotoğraf.
+class Et2Initials extends StatelessWidget {
+  const Et2Initials({super.key, required this.name, this.size = 48, this.seed = 0, this.url, this.tint, this.radius});
+
+  final String name;
+  final double size;
+  final int seed;
+  final String? url;
+  final BuTint? tint;
+  final double? radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final r = radius ?? size * .33;
+    if (url != null && url!.isNotEmpty) {
+      return ClipRRect(borderRadius: BorderRadius.circular(r), child: BuAvatar(name: name, url: url, size: size, square: true));
+    }
+    final c = tint ?? t.tint(seed);
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: c.bg, borderRadius: BorderRadius.circular(r)),
+        child: Text(initialsOf(name),
+            maxLines: 1,
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: c.fg, fontSize: size * .34)),
+      ),
+    );
+  }
+}
+
+/// Kırmızı yumuşak hata satırı: simge + metin (+ alt metin) + isteğe bağlı "Yeniden dene" düğmesi.
+class Et2ErrorRow extends StatelessWidget {
+  const Et2ErrorRow({super.key, required this.title, this.sub, this.onRetry, this.retryLabel});
+
+  final String title;
+  final String? sub;
+  final VoidCallback? onRetry;
+  final String? retryLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
+        constraints: const BoxConstraints(minHeight: 56),
+        decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.md)),
+        child: Row(children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), shape: BoxShape.circle),
+              child: Icon(LucideIcons.circleAlert, size: 20, color: t.danger),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+              if (sub != null)
+                Text(sub!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.danger.withValues(alpha: .85))),
+            ]),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(width: 8),
+            Semantics(
+              button: true,
+              label: retryLabel,
+              excludeSemantics: true,
+              onTap: onRetry,
+              child: BuPressable(
+                onTap: onRetry,
+                haptic: BuHaptic.selection,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  alignment: Alignment.center,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(LucideIcons.refreshCw, size: 14, color: t.danger),
+                      const SizedBox(width: 6),
+                      Text(retryLabel ?? '', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+/// Bölüm başlığı + isteğe bağlı sayı rozeti ("Bekleyen istekler  3").
+class Et2SectionTitle extends StatelessWidget {
+  const Et2SectionTitle(this.title, {super.key, this.count, this.soft = true});
+
+  final String title;
+  final int? count;
+
+  /// true: kırmızı yumuşak rozet; false: sönük gri sayı.
+  final bool soft;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 4, top: 22, bottom: 10),
+      child: Semantics(
+        header: true,
+        child: Row(children: [
+          Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+          if (count != null) ...[
+            const SizedBox(width: 8),
+            if (soft)
+              Container(
+                constraints: const BoxConstraints(minWidth: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                child: Text('$count', textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+              )
+            else
+              Text('($count)', style: tx.labelLarge!.copyWith(color: t.mut)),
+          ],
+        ]),
+      ),
+    );
+  }
 }

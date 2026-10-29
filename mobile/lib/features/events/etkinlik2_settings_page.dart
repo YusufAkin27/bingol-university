@@ -5,6 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'etkinlik2_widgets.dart';
+import 'event_cover.dart';
 import 'event_parts.dart';
 
 /// Sayfadan dönüş: `true` = kaydedildi/iptal edildi (detay yenilensin), `cancelled` ayrıca iptali bildirir.
@@ -53,6 +54,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
     _initRegOpen = _regOpen;
     _initCap = (e['capacity'] as num?)?.toInt();
     if (_initCap != null) _cap.text = '$_initCap';
+    _cap.addListener(() => setState(() {}));
     _loadExtras();
   }
 
@@ -96,10 +98,8 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
       setState(() => _error = l.eventFormCapInvalid);
       return;
     }
-    if (cap != null && cap < _going) {
-      setState(() => _error = l.etkinlik2SettingsCapTooLow('$_going'));
-      return;
-    }
+    // Altı onaylı kişi sayısı: hata satırı zaten canlı görünür (_capError).
+    if (cap != null && cap < _going) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -135,16 +135,17 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
 
   Future<void> _cancelEvent() async {
     final l = context.l10n;
-    final ok = await BuDialog.confirm(
+    final ok = await BuDialog.show<bool>(
       context,
-      title: l.eventFormCancelTitle,
-      message: l.eventFormCancelMessage,
-      confirmLabel: l.eventFormCancelAction,
-      cancelLabel: l.eventListDismiss,
-      destructive: true,
-      icon: LucideIcons.triangleAlert,
+      builder: (c) => _CancelDialog(
+        title: l.eventFormCancelTitle,
+        message: l.eventFormCancelMessage,
+        note: l.p16SetCancelNote('$_going'),
+        cancelLabel: l.eventListDismiss,
+        confirmLabel: l.eventFormCancelAction,
+      ),
     );
-    if (!ok || !mounted) return;
+    if (ok != true || !mounted) return;
     setState(() => _busy = true);
     final nav = Navigator.of(context);
     final done = l.eventFormCancelledToast;
@@ -162,12 +163,32 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
     }
   }
 
+  int? get _capValue {
+    final txt = _cap.text.trim();
+    return txt.isEmpty ? null : int.tryParse(txt);
+  }
+
+  /// Canlı kontenjan hatası: onaylı kişi sayısının altı olamaz.
+  String? get _capError {
+    final v = _capValue;
+    if (v != null && v < _going) return context.l10n.etkinlik2SettingsCapTooLow('$_going');
+    return null;
+  }
+
+  void _bump(int d) {
+    final v = _capValue;
+    final next = v == null ? (d > 0 ? (_going < 1 ? 1 : _going) : null) : v + d;
+    setState(() => _cap.text = (next == null || next < 1) ? '' : '$next');
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final approval = _policy == 'APPROVAL';
+    final capErr = _capError;
+    final cover = fileUrl(widget.event['coverUrl'] as String?);
     return PopScope<Object?>(
       canPop: !_changed,
       onPopInvokedWithResult: (didPop, _) {
@@ -175,6 +196,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
       },
       child: BuPageScaffold(
         title: l.etkinlik2SettingsTitle,
+        large: false,
         bottomInset: 24,
         bottomBar: Et2BottomBar(
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -196,6 +218,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
             BuButton(
               key: const ValueKey('et2-settings-save'),
               label: l.eventFormSave,
+              icon: LucideIcons.save,
               busy: _busy,
               onPressed: _busy ? null : _save,
             ),
@@ -203,90 +226,162 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
         ),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
             sliver: SliverList.list(children: [
-              Et2EventStrip(event: widget.event),
-              Et2Label(l.etkinlik2SettingsPolicy),
-              Et2Segment<String>(
-                value: _policy,
-                enabled: !_busy,
-                options: [('OPEN', l.etkinlik2PolicyOpen), ('APPROVAL', l.etkinlik2PolicyApproval)],
-                onChanged: (v) => setState(() => _policy = v),
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 2, top: 10),
-                child: AnimatedSwitcher(
-                  duration: BuMotion.of(context, BuMotion.medium),
-                  child: Row(
-                    key: ValueKey(approval),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: ExcludeSemantics(child: Icon(approval ? LucideIcons.userCheck : LucideIcons.users, size: 16, color: t.mut)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(approval ? l.etkinlik2PolicyApprovalHint : l.p16PolicyOpenHint,
-                            style: tx.bodyMedium!.copyWith(height: 1.4, color: t.mut)),
-                      ),
-                    ],
+              BuCard(
+                padding: const EdgeInsets.all(12),
+                radius: 20,
+                child: Row(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(BuRadius.sm),
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: cover != null
+                          ? EventCoverImage(url: cover, cacheWidth: 200)
+                          : ColoredBox(color: t.soft, child: Icon(LucideIcons.calendarDays, size: 28, color: t.pr)),
+                    ),
                   ),
-                ),
-              ),
-              Et2Label(l.etkinlik2CapacityOptional),
-              TextField(
-                key: const ValueKey('et2-settings-cap'),
-                controller: _cap,
-                enabled: !_busy,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: tx.titleMedium!.copyWith(color: t.ink),
-                decoration: InputDecoration(
-                  hintText: l.etkinlik2Unlimited,
-                  prefixIcon: Icon(LucideIcons.ticket, size: 20, color: t.mut),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 2, top: 8),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Text('${widget.event['title'] ?? ''}',
+                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        ExcludeSemantics(child: Icon(LucideIcons.users, size: 14, color: t.mut)),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text(l.p16SetApproved('$_going'), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
+                      ]),
+                    ]),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(l.etkinlik2SettingsCapMin('$_going'), style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
                 ]),
               ),
-              Et2Label(l.etkinlik2SettingsRegChat),
+              Et2SectionTitle(l.etkinlik2SettingsPolicy),
+              _policyCard(
+                selected: !approval,
+                title: l.etkinlik2PolicyOpen,
+                sub: l.p16SetOpenSub,
+                icon: LucideIcons.globe,
+                keyName: 'et2-policy-open',
+                onTap: () => setState(() => _policy = 'OPEN'),
+              ),
+              const SizedBox(height: 10),
+              _policyCard(
+                selected: approval,
+                title: l.etkinlik2PolicyApprovalTag,
+                sub: l.p16SetApprovalSub,
+                icon: LucideIcons.shieldCheck,
+                keyName: 'et2-policy-approval',
+                onTap: () => setState(() => _policy = 'APPROVAL'),
+              ),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 4, top: 22, bottom: 8),
+                child: Row(children: [
+                  Expanded(
+                    child: Text(l.p16SetCapLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  ),
+                  Text(l.p16SetCapCurrent('$_going'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+                ]),
+              ),
+              BuCard(
+                padding: const EdgeInsets.all(12),
+                radius: 20,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Container(
+                    constraints: const BoxConstraints(minHeight: 56),
+                    padding: const EdgeInsetsDirectional.only(start: 14, end: 8),
+                    decoration: BoxDecoration(
+                      color: capErr != null ? t.danger.withValues(alpha: .1) : t.sf2,
+                      borderRadius: BorderRadius.circular(BuRadius.md),
+                    ),
+                    child: Row(children: [
+                      Expanded(
+                        child: TextField(
+                          key: const ValueKey('et2-settings-cap'),
+                          controller: _cap,
+                          enabled: !_busy,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: capErr != null ? t.danger : t.ink),
+                          decoration: InputDecoration(
+                            hintText: l.etkinlik2Unlimited,
+                            hintStyle: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut),
+                            filled: false,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                      _StepButton(icon: LucideIcons.minus, label: l.p16SetCapDec, onTap: _busy ? null : () => _bump(-1)),
+                      const SizedBox(width: 2),
+                      _StepButton(icon: LucideIcons.plus, label: l.p16SetCapInc, onTap: _busy ? null : () => _bump(1)),
+                    ]),
+                  ),
+                  if (capErr != null) ...[
+                    const SizedBox(height: 10),
+                    Semantics(
+                      liveRegion: true,
+                      child: Container(
+                        key: const ValueKey('et2-cap-error'),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(BuRadius.sm)),
+                        child: Row(children: [
+                          ExcludeSemantics(
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
+                              child: Icon(LucideIcons.info, size: 13, color: t.onPr),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(capErr, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+                        ]),
+                      ),
+                    ),
+                  ],
+                  Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(4, 10, 4, 2),
+                    child: Text(l.etkinlik2SettingsCapMin('$_going'), style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
+                  ),
+                ]),
+              ),
+              Et2SectionTitle(l.etkinlik2SettingsRegChat),
               BuCard(
                 padding: EdgeInsets.zero,
+                radius: 20,
                 child: Column(children: [
                   _switchRow(
-                    icon: _regOpen ? LucideIcons.lockOpen : LucideIcons.lock,
+                    icon: LucideIcons.userCheck,
                     title: l.etkinlik2SettingsRegOpen,
                     sub: l.etkinlik2SettingsRegHint,
                     value: _regOpen,
                     keyName: 'et2-reg-switch',
                     onChanged: (v) => setState(() => _regOpen = v),
                   ),
-                  Divider(height: 1, indent: 64, color: t.bd),
+                  Divider(height: 1, color: t.bd),
                   _switchRow(
-                    icon: LucideIcons.messageCircle,
+                    icon: LucideIcons.messageSquare,
                     title: l.etkinlik2SettingsChatOpen,
                     sub: l.etkinlik2SettingsChatHint,
                     value: _chatOpen,
                     keyName: 'et2-chat-switch',
+                    tint: t.tint(1),
                     onChanged: _chatKnown ? (v) => setState(() => _chatOpen = v) : null,
                   ),
                 ]),
               ),
-              Et2Label(l.etkinlik2SettingsDanger),
+              Et2SectionTitle(l.etkinlik2SettingsDanger),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: t.sf,
-                  borderRadius: BorderRadius.circular(BuRadius.lg),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: t.danger.withValues(alpha: .4)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -324,6 +419,66 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
     );
   }
 
+  /// Katılım türü seçenek kartı: seçiliyken marka tonu, solda radyo, sağda simge.
+  Widget _policyCard({
+    required bool selected,
+    required String title,
+    required String sub,
+    required IconData icon,
+    required String keyName,
+    required VoidCallback onTap,
+  }) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      label: '$title, $sub',
+      excludeSemantics: true,
+      onTap: _busy ? null : onTap,
+      child: BuPressable(
+        key: ValueKey(keyName),
+        onTap: _busy ? null : onTap,
+        haptic: BuHaptic.selection,
+        scale: .985,
+        child: AnimatedContainer(
+          duration: BuMotion.of(context, BuMotion.short),
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 16, 12),
+          decoration: BoxDecoration(
+            color: selected ? t.soft : t.sf,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: selected ? Colors.transparent : t.bd),
+          ),
+          child: Row(children: [
+            AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              width: 24,
+              height: 24,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? t.pr : t.sf2,
+              ),
+              child: selected ? Container(width: 8, height: 8, decoration: BoxDecoration(color: t.onPr, shape: BoxShape.circle)) : null,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onSoft : t.ink)),
+                const SizedBox(height: 2),
+                Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: selected ? t.onSoft.withValues(alpha: .85) : t.mut)),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            Icon(icon, size: 20, color: selected ? t.pr : t.mut),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Widget _switchRow({
     required IconData icon,
     required String title,
@@ -331,23 +486,134 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
     required bool value,
     required String keyName,
     required ValueChanged<bool>? onChanged,
+    BuTint? tint,
   }) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
-      padding: const EdgeInsetsDirectional.only(start: 14, end: 8, top: 10, bottom: 10),
-      child: Row(children: [
-        Et2IconBox(icon, size: 40),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-            Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: t.mut)),
-          ]),
+      padding: const EdgeInsetsDirectional.only(start: 14, end: 8, top: 12, bottom: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Et2IconBox(icon, size: 40, tint: tint),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          ),
+          Et2Toggle(key: ValueKey(keyName), value: value, label: title, onChanged: _busy ? null : onChanged),
+        ]),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 52, end: 8),
+          child: Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: t.mut)),
         ),
-        Et2Toggle(key: ValueKey(keyName), value: value, label: title, onChanged: _busy ? null : onChanged),
       ]),
+    );
+  }
+}
+
+/// Kontenjan artır/azalt düğmesi (48 dp hedef, 40 dp görsel).
+class _StepButton extends StatelessWidget {
+  const _StepButton({required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: onTap != null,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: BuPressable(
+        onTap: onTap,
+        enabled: onTap != null,
+        haptic: BuHaptic.selection,
+        scale: .92,
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.sm)),
+              child: Icon(icon, size: 18, color: t.ink),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Etkinliği iptal onayı: simge + başlık + gövde + not; Vazgeç / İptal et yan yana.
+class _CancelDialog extends StatelessWidget {
+  const _CancelDialog({
+    required this.title,
+    required this.message,
+    required this.note,
+    required this.cancelLabel,
+    required this.confirmLabel,
+  });
+
+  final String title;
+  final String message;
+  final String note;
+  final String cancelLabel;
+  final String confirmLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), shape: BoxShape.circle),
+              child: Icon(LucideIcons.triangleAlert, size: 28, color: t.danger),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Semantics(
+            header: true,
+            child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.mut)),
+          const SizedBox(height: 6),
+          Text(note, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(
+              child: BuButton(
+                key: const ValueKey('et2-cancel-no'),
+                label: cancelLabel,
+                kind: BuButtonKind.soft,
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: BuButton(
+                key: const ValueKey('et2-cancel-yes'),
+                label: confirmLabel,
+                icon: LucideIcons.trash2,
+                kind: BuButtonKind.danger,
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ),
+          ]),
+        ]),
+      ),
     );
   }
 }
