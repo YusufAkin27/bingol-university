@@ -92,6 +92,9 @@ public final class AdminPermissionPolicy {
         // --- duyuru (akademik duyuru): yalniz duyuru yetkisi ---
         area("/api/admin/announcements(/.*)?", COMMS_READ, COMMS_ANNOUNCE);
 
+        // --- icerik: yemek kalorisi (EDITOR/FULL yazar, VIEWER okur; area kuralindan once bilincli) ---
+        one(Set.of("PUT"), "/api/admin/menu/(calories|" + ID + "/calories)", CONTENT_WRITE);
+
         // --- icerik ---
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
                 + "|events|polls|posts|sources)(/.*)?", CONTENT_READ, CONTENT_WRITE);

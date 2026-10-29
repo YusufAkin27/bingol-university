@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class MenuServiceTest {
 
-    private final MenuService service = new MenuService(mock(MenuRepository.class));
+    private final MenuService service = new MenuService(mock(MenuRepository.class), mock(MenuCalorieService.class));
 
     @Test
     void resolvesMonthOrDefaultsToCurrent() {

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,12 @@ public class MenuAdminService {
 
     private final MenuRepository repo;
     private final MediaService media;
+    private final MenuCalorieService calories;
 
-    public MenuAdminService(MenuRepository repo, MediaService media) {
+    public MenuAdminService(MenuRepository repo, MediaService media, MenuCalorieService calories) {
         this.repo = repo;
         this.media = media;
+        this.calories = calories;
     }
 
     public static LocalDate parseDate(String raw) {
@@ -48,7 +51,9 @@ public class MenuAdminService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MENU_RANGE_INVALID",
                     "Tarih aralığı geçersiz (en çok 366 gün).");
         }
-        return repo.findByMenuDateBetweenOrderByMenuDate(from, to).stream().map(MenuResponse::of).toList();
+        Map<LocalDate, Map<String, Integer>> kcal = calories.range(from, to);
+        return repo.findByMenuDateBetweenOrderByMenuDate(from, to).stream()
+                .map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()))).toList();
     }
 
     @Transactional

@@ -17,7 +17,7 @@ Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve y
 
 | Paket | İçerik |
 |---|---|
-| `news`, `menu`, `status` | Scraper'lar + senkronizasyon + sorgu servisleri; `SyncStatus` ile bakım durumu (`GET /api/status`) |
+| `news`, `menu`, `status` | Scraper'lar + senkronizasyon + sorgu servisleri; `SyncStatus` ile bakım durumu (`GET /api/status`). Menü: yemek başına yönetici kalorisi `menu_item_calorie` (V870, anahtar `(tarih, normalize yemek adı)`, `MenuCalorieService`); **senkron kaloriye dokunmaz**, yanıtta `dishes[{name,kcal}]`/`totalKcal`/`kcalComplete`, yazma `PUT /api/admin/menu/{date}/calories` ve toplu `PUT /api/admin/menu/calories` (bkz. `docs/changes/ops.md`) |
 | `auth` (+ `auth.jwt`, `auth.token`) | Bekleyen kayıt (Redis `reg:<email>`) + e-posta doğrulama, giriş, refresh, `logout-all`, şifre sıfırlama (`forgot-password` → `verify-reset-code` → `reset-password`); `JwtService`, `JwtAuthFilter`, `RefreshTokenService`, `SessionService` (`revokeAll`), `VerificationService`. Ayrıntı: `docs/changes/auth.md` |
 | `mail` | E-posta kuyruğu: `MailService.enqueue` → `mail_outbox` tablosu → `MailQueueWorker` (`FOR UPDATE SKIP LOCKED`, 5 dk kira, geri çekilme 1 dk/5 dk/30 dk/2 sa/12 sa, `app.mail.max-attempts` sonra DEAD); `MailTemplate` + `i18n/mail*.properties` + `mail-templates/layout.html` (tr/en/ar, HTML + düz metin); `mailQueue` sağlık göstergesi. Ayrıntı: `docs/changes/mail.md` |
 | `user`, `profile` | `User` varlığı (rol, durum, dil, bölüm…), profil, kullanıcı arama, hesap silme (anonimleştirme) |

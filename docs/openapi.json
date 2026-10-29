@@ -2562,17 +2562,18 @@
           }
         }
       },
-      "BulkEntry" : {
+      "BulkDay" : {
         "properties" : {
-          "present" : {
-            "type" : "boolean"
+          "date" : {
+            "type" : [ "string", "null" ]
           },
-          "userId" : {
-            "format" : "int64",
-            "type" : "integer"
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Entry"
+            },
+            "type" : "array"
           }
-        },
-        "required" : [ "present", "userId" ]
+        }
       },
       "BulkHideRequest" : {
         "properties" : {
@@ -2594,16 +2595,13 @@
       },
       "BulkRequest" : {
         "properties" : {
-          "entries" : {
+          "days" : {
             "items" : {
-              "$ref" : "#/components/schemas/BulkEntry"
+              "$ref" : "#/components/schemas/BulkDay"
             },
-            "maxItems" : 500,
-            "minItems" : 0,
             "type" : "array"
           }
-        },
-        "required" : [ "entries" ]
+        }
       },
       "BulkResolveRequest" : {
         "properties" : {
@@ -2635,6 +2633,20 @@
       },
       "BulkResult" : {
         "properties" : {
+          "cleared" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "skipped" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Skipped"
+            },
+            "type" : "array"
+          },
+          "unchanged" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "updated" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -4751,6 +4763,16 @@
           }
         }
       },
+      "DayRequest" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Entry"
+            },
+            "type" : "array"
+          }
+        }
+      },
       "DayStat" : {
         "properties" : {
           "created" : {
@@ -5056,32 +5078,12 @@
       },
       "Entry" : {
         "properties" : {
-          "createdAtEpochSec" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          },
-          "department" : {
-            "type" : [ "string", "null" ]
-          },
-          "displayName" : {
-            "type" : [ "string", "null" ]
-          },
-          "email" : {
-            "type" : [ "string", "null" ]
-          },
-          "faculty" : {
-            "type" : [ "string", "null" ]
-          },
-          "grade" : {
-            "type" : [ "string", "null" ]
-          },
-          "remainingSeconds" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          },
-          "resendCount" : {
+          "kcal" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
           }
         }
       },
@@ -6859,6 +6861,17 @@
         },
         "required" : [ "dates" ]
       },
+      "MenuDish" : {
+        "properties" : {
+          "kcal" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "MenuImageResponse" : {
         "properties" : {
           "date" : {
@@ -6874,6 +6887,12 @@
           "date" : {
             "type" : [ "string", "null" ]
           },
+          "dishes" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MenuDish"
+            },
+            "type" : "array"
+          },
           "imageUrl" : {
             "type" : [ "string", "null" ]
           },
@@ -6882,6 +6901,13 @@
               "type" : "string"
             },
             "type" : "array"
+          },
+          "kcalComplete" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "totalKcal" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -10910,6 +10936,19 @@
           "reason" : {
             "maxLength" : 300,
             "minLength" : 0,
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "Skipped" : {
+        "properties" : {
+          "date" : {
+            "type" : [ "string", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
             "type" : [ "string", "null" ]
           }
         }
@@ -26483,6 +26522,79 @@
         "tags" : [ "admin-bulk-controller" ]
       }
     },
+    "/api/admin/menu/calories" : {
+      "put" : {
+        "operationId" : "setCaloriesBulk",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BulkRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BulkResult"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "menu-admin-controller" ]
+      }
+    },
     "/api/admin/menu/export.csv" : {
       "get" : {
         "operationId" : "menuCsv",
@@ -26542,6 +26654,87 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "admin-bulk-controller" ]
+      }
+    },
+    "/api/admin/menu/{date}/calories" : {
+      "put" : {
+        "operationId" : "setCalories",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "date",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DayRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MenuResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "menu-admin-controller" ]
       }
     },
     "/api/admin/menu/{date}/image" : {

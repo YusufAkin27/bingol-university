@@ -79,6 +79,15 @@ Yonetici kullaniciyi, kayitsiz kisiyi (IP/CIDR) ya da mobil cihazi engeller; eng
 - Hata kodları (tr/en/ar `ops*.properties`): `MENU_DAY_NOT_FOUND`, `MENU_DATE_INVALID`, `MENU_RANGE_INVALID`.
 - Akşam yemeği: backend'de öğün/akşam kavramı yoktur (menü gün başına tek `items` listesidir); değişiklik gerekmedi.
 
+## Yemek kalorisi (V870, `menu`)
+
+- Yeni tablo `menu_item_calorie (menu_date, item_key, item_name, kcal, updated_at, updated_by)`; `UNIQUE (menu_date, item_key)` (`mc_item_calorie_uq`), `CHECK kcal 0..5000` (`mc_ck_kcal`). `item_key` = yemek adının normalize hali (`MenuItemKey.of`: NBSP/boşluklar tek, büyük/küçük harf ve Türkçe harf farkı yok sayılır: `I/İ/ı→i`, `ç/ş/ğ/ö/ü→c/s/g/o/u`; böylece kaynağın BÜYÜK HARFLİ adı ile yöneticinin yazdığı ad aynı yemeğe gider). Öğün kavramı yoktur (menü gün başına tek liste), bu yüzden anahtar (gün, yemek adı).
+- **Senkron kaloriye dokunmaz:** `MenuSyncService` yalnız `menu_day.items` yazar. Kaynak ayda bir yeniden çekilse, gün satırı silinip yeniden yazılsa ya da yemek listesine yeni yemek eklense, aynı (gün, ad) için girilmiş kalori korunur ve yeniden uygulanır. Gün menüsünden çıkan yemeğin kalori satırı yetim kalır (zararsız; gün+ad geri gelirse yeniden kullanılır).
+- Yanıt: `MenuResponse` = `{date, items, imageUrl, dishes[{name,kcal}], totalKcal, kcalComplete}` (eski alanlar aynı).
+- Admin: `PUT /api/admin/menu/{date}/calories` (sıkı) ve `PUT /api/admin/menu/calories` (toplu, gevşek; `{updated, cleared, unchanged, skipped[]}`). Hız sınırı 300/saat; RBAC `content.write` (`AdminPermissionPolicy`'de açık kural; FULL ve EDITOR yazar, VIEWER okur); denetim `AuditInterceptor` ile otomatik (`AuditContext` hedef + özet).
+- Hata kodları (tr/en/ar `ops*.properties`): `MENU_KCAL_INVALID`, `MENU_ITEM_NOT_FOUND`, `MENU_KCAL_LIMIT`.
+- Web: yönetim paneli menü sayfasında satır içi kalori düzenleme + toplu yapıştırma (`tarih;yemek;kcal`). Duman: `scripts/smoke-menu-calories.sh`.
+
 ## Sistem durumu ve gözlemlenebilirlik (`observability`)
 
 - Yeni paket `edu.bingol.backend.observability`: `SystemOverviewService` + `SystemOverviewController` (`GET /api/admin/system/overview`), `DeadLetterService` (DEAD mail/push listele, yeniden kuyruğa al, sil), `SystemAlertService` (OK→CRIT geçişinde yönetici bildirimi), `JobMonitor` (Spring zamanlayıcı gözlemi: `@Scheduled` metotlarına dokunmadan son başarı/hata), `BackupStatusProvider`, `RequestIdFilter`, `LogMasking`. Migration yok. Sözleşme: [ADMIN_API.md](../ADMIN_API.md) "Sistem durumu".

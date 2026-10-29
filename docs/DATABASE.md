@@ -48,7 +48,7 @@ Diğer log tabloları: `profanity_hit_log`, `blocked_attempt_log` (90 gün, mevc
 | Moderasyon | `report`, `moderation_*`, `blocked_content_hash`, `user_block`, `suspend_recommendation` | Olay başına | <100 k | Kalıcı (denetim) |
 | Topluluk/etkinlik | `community*`, `club_*`, `user_event`, `event_rsvp`, `event_attendance`, `event_*` | Etkinlik başına RSVP (üst sınır: kapasite) | <1 M | Etkinlik/kulüp ile |
 | Gönderi/keşfet | `post`, `post_media`, `post_like`, `post_save`, `post_mention`, `user_follow`, `poll*` | Kullanıcı etkileşimi | `post_like`/`user_follow` birkaç M | `PostRetentionJob` (silinmişler); kaldırılan özellik tabloları (`story*`, `post_comment`, `hashtag`, `post_hashtag`) V470 ile DROP edilir — burada dokunulmadı |
-| İçerik | `news_item`, `menu_day`, `academic_event`, `tt_*`, `department_announcement`, `announcement_read` | Kaynak sitede ≤20/tür/gün; **yinelenen çekilmez** (URL UNIQUE) | `news_item` ~3 k/yıl; `content` TEXT (TOAST, ortalama 8-20 KB) ≈ 60 MB | Kalıcı; `announcement_read` kullanıcı×duyuru |
+| İçerik | `news_item`, `menu_day`, `menu_item_calorie`, `academic_event`, `tt_*`, `department_announcement`, `announcement_read` | Kaynak sitede ≤20/tür/gün; **yinelenen çekilmez** (URL UNIQUE) | `news_item` ~3 k/yıl; `content` TEXT (TOAST, ortalama 8-20 KB) ≈ 60 MB | Kalıcı; `announcement_read` kullanıcı×duyuru |
 | Destek | `support_ticket`, `support_message`, `feedback*`, `faq_item`, `support_track_token` | Talep başına | <50 k | Herkese açık talep 365 gün |
 | Yapılandırma | `app_setting`, `legal_document`, `profanity_term`, `mail_template_custom*`, `mail_suppression`, `access_ban*` | Sabit/küçük | <10 k | Kalıcı |
 | Oturum | `refresh token` | **Redis** (`rt:*`, `rtu:*`), PostgreSQL'de yok | — | TTL 30 gün |

@@ -27,7 +27,7 @@ class MenuImageTest {
 
     private final MenuRepository repo = mock(MenuRepository.class);
     private final MediaService media = mock(MediaService.class);
-    private final MenuAdminService service = new MenuAdminService(repo, media);
+    private final MenuAdminService service = new MenuAdminService(repo, media, mock(MenuCalorieService.class));
     private final LocalDate date = LocalDate.of(2026, 10, 28);
     private final MockMultipartFile file = new MockMultipartFile("file", "a.jpg", "image/jpeg", new byte[] {1});
 

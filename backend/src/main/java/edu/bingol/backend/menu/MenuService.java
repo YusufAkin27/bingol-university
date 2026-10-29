@@ -7,6 +7,7 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,19 @@ public class MenuService {
     private static final int MAX_YEAR = 2100;
 
     private final MenuRepository repo;
+    private final MenuCalorieService calories;
 
-    public MenuService(MenuRepository repo) {
+    public MenuService(MenuRepository repo, MenuCalorieService calories) {
         this.repo = repo;
+        this.calories = calories;
     }
 
     public List<MenuResponse> month(YearMonth month) {
-        return repo.findByMenuDateBetweenOrderByMenuDate(month.atDay(1), month.atEndOfMonth())
-                .stream().map(MenuResponse::of).toList();
+        LocalDate from = month.atDay(1);
+        LocalDate to = month.atEndOfMonth();
+        Map<LocalDate, Map<String, Integer>> kcal = calories.range(from, to);
+        return repo.findByMenuDateBetweenOrderByMenuDate(from, to).stream()
+                .map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()))).toList();
     }
 
     /** null/bos -> bu ay; yyyy-MM disi veya makul aralik (2000-2100) disi -> 400. */
@@ -53,6 +59,7 @@ public class MenuService {
     }
 
     public Optional<MenuResponse> today() {
-        return repo.findByMenuDate(LocalDate.now(ZONE)).map(MenuResponse::of);
+        LocalDate today = LocalDate.now(ZONE);
+        return repo.findByMenuDate(today).map(d -> MenuResponse.of(d, calories.forDate(today)));
     }
 }

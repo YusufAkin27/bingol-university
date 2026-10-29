@@ -48,7 +48,8 @@ class AdminPermissionPolicyTest {
                     r("POST", "/api/admin/push/users/3/send"), r("GET", "/api/admin/mail/campaigns"),
                     r("GET", "/api/admin/news"), r("GET", "/api/admin/rbac/matrix"));
             case EDITOR -> List.of(r("POST", "/api/admin/news/bulk"), r("PATCH", "/api/admin/news/3"),
-                    r("PUT", "/api/admin/menu/2026-01-01/image"), r("POST", "/api/admin/communities/3/approve"),
+                    r("PUT", "/api/admin/menu/2026-01-01/image"), r("PUT", "/api/admin/menu/2026-01-01/calories"), r("PUT", "/api/admin/menu/calories"),
+                    r("GET", "/api/admin/menu"), r("POST", "/api/admin/communities/3/approve"),
                     r("POST", "/api/admin/announcements"), r("POST", "/api/admin/announcements/3/publish"),
                     r("POST", "/api/admin/events/3/hide"), r("POST", "/api/admin/mail/templates"),
                     r("POST", "/api/admin/polls/bulk"), r("POST", "/api/admin/faq"),
@@ -57,7 +58,7 @@ class AdminPermissionPolicyTest {
                     r("GET", "/api/admin/ops/health"), r("GET", "/api/admin/audit"),
                     r("GET", "/api/admin/settings"), r("GET", "/api/admin/support/tickets"),
                     r("GET", "/api/admin/analytics/overview"), r("GET", "/api/admin/mail/outbox"),
-                    r("GET", "/api/admin/push/outbox"), r("GET", "/api/admin/news"));
+                    r("GET", "/api/admin/push/outbox"), r("GET", "/api/admin/news"), r("GET", "/api/admin/menu"));
         };
     }
 
@@ -83,7 +84,8 @@ class AdminPermissionPolicyTest {
                     r("POST", "/api/admin/push/users/3/send"), r("POST", "/api/admin/messages/3/hide"),
                     r("POST", "/api/admin/legal/terms"), r("PUT", "/api/admin/settings/banner_text"),
                     r("GET", "/api/admin/chat-messages"), r("POST", "/api/admin/sync"));
-            case VIEWER -> List.of(r("GET", "/api/admin/reports/3"), r("POST", "/api/admin/support/tickets/3/notes"), r("PATCH", "/api/admin/news/3"),
+            case VIEWER -> List.of(r("PUT", "/api/admin/menu/2026-01-01/calories"), r("PUT", "/api/admin/menu/calories"),
+                    r("GET", "/api/admin/reports/3"), r("POST", "/api/admin/support/tickets/3/notes"), r("PATCH", "/api/admin/news/3"),
                     r("GET", "/api/admin/chat-messages"), r("GET", "/api/admin/users/export.csv"),
                     r("GET", "/api/admin/users/3/sessions"), r("POST", "/api/admin/users/3/suspend"),
                     r("POST", "/api/admin/reports/3/resolve"), r("PUT", "/api/admin/settings/banner_text"),
