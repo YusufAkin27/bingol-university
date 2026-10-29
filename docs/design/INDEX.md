@@ -26,7 +26,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [18-sohbet-liste-durumlari.md](18-sohbet-liste-durumlari.md) | 6 | 34 (durumlar) | [x] |
 | [19-sohbet-baloncuklar.md](19-sohbet-baloncuklar.md) | 6 | 47 (baloncuklar) | [x] |
 | [20-sohbet-baslik-yazma-alani.md](20-sohbet-baslik-yazma-alani.md) | 6 | 47 (başlık, yazma alanı) | [x] |
-| [21-sohbet-mesaj-menusu-iletme.md](21-sohbet-mesaj-menusu-iletme.md) | 6 | A14, A15, A17, A18 | [ ] |
+| [21-sohbet-mesaj-menusu-iletme.md](21-sohbet-mesaj-menusu-iletme.md) | 6 | A14, A15, A17, A18 | [x] 6 ekran uretildi (s2); eksik: baskasinin mesajinda "Ogrenci" etiketi, iletme listesinde kirmizi avatar noktalari |
 | [22-sohbet-diger-sheetler.md](22-sohbet-diger-sheetler.md) | 6 | A11, A12, A13 (tetik; pencere 25), A19, A20, A21, A22, A23 | [ ] |
 | [23-sohbet-yeni-rehber.md](23-sohbet-yeni-rehber.md) | 6 | 45, 46 | [ ] |
 | [24-sohbet-bilgi-uyeler-medya.md](24-sohbet-bilgi-uyeler-medya.md) | 6 | 52, 53, 54, A16 | [ ] |
