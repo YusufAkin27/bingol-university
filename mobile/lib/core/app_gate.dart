@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/system/gate_views.dart';
-import '../widgets/sistem_widgets.dart';
+import '../widgets/bu_widgets.dart' show LucideIcons, kNavInset;
 import 'locale_controller.dart';
 import 'analytics.dart';
 import 'api.dart';
@@ -110,6 +110,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   DateTime? _lastCheck;
   bool _noticeVisible = false;
   bool _offline = false;
+  String? _dismissedBanner; // kapatılan duyuru metni (metin değişince yeniden görünür)
   bool _checking = false;
   Timer? _probe;
 
@@ -221,15 +222,22 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
     if (_d.kind == GateKind.updateRequired) {
       return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion, onRetry: _check);
     }
+    final l = context.l10n;
     final strips = <Widget>[
-      if (_offline) TopStrip(icon: Icons.cloud_off, text: context.l10n.coreOffline, danger: true),
+      if (_offline) TopStrip(icon: LucideIcons.cloudOff, text: l.cevrimdisiInternetYok, danger: true, trailingText: l.cevrimdisiKayitliVeri),
       if (_d.maintenance)
-        MaintenanceBand(
-          icon: Icons.construction,
-          text: _d.maintenanceMessage ?? context.l10n.coreMaintenance,
-          margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+        GateNoticeStrip(
+          icon: LucideIcons.wrench,
+          text: _d.maintenanceMessage ?? l.sistemuiMaintBand,
+          kind: GateNoticeKind.maintenance,
         ),
-      if (_d.banner != null) TopStrip(icon: Icons.campaign, text: _d.banner!),
+      if (_d.banner != null && _d.banner != _dismissedBanner)
+        GateNoticeStrip(
+          icon: LucideIcons.megaphone,
+          text: _d.banner!,
+          kind: GateNoticeKind.announcement,
+          onClose: () => setState(() => _dismissedBanner = _d.banner),
+        ),
     ];
     return Stack(
       children: [
@@ -249,9 +257,9 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
         ),
         if (_noticeVisible && _d.kind == GateKind.updateAvailable)
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12 + MediaQuery.of(context).padding.bottom,
+            left: 16,
+            right: 16,
+            bottom: kNavInset - 8 + MediaQuery.of(context).padding.bottom,
             child: UpdateNotice(
               latest: _d.latest,
               storeUrl: _d.storeUrl,

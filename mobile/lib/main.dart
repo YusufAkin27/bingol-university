@@ -31,6 +31,7 @@ import 'features/auth/welcome_page.dart';
 import 'features/auth/permissions_page.dart';
 import 'features/legal/legal_reaccept_page.dart';
 import 'features/shell/app_shell.dart';
+import 'features/system/error_views.dart';
 import 'features/system/gate_views.dart';
 import 'features/system/splash_screen.dart';
 
@@ -40,45 +41,6 @@ import 'features/system/splash_screen.dart';
 void _reportError(Object error, StackTrace? stack, {String source = 'flutter'}) {
   ErrorLog.instance.report(error, source: source);
   CrashReporter.instance.capture(error, stack, source: source);
-}
-
-/// Hata ağaçta çizim yapamadığında kırmızı ekran yerine sade bir görünüm (yalnız release).
-class _ErrorView extends StatelessWidget {
-  const _ErrorView();
-
-  @override
-  Widget build(BuildContext context) {
-    // Ağaç bozukken Localizations yok olabilir: cihaz dilinden doğrudan çözülür.
-    final l = lookupAppLocalizations(resolveAppLocale('system', PlatformDispatcher.instance.locales));
-    return Material(
-      color: Colors.white,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 36, color: Colors.black54),
-              const SizedBox(height: 12),
-              Text(
-                l.commonSomethingWentWrong,
-                textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
-                style: const TextStyle(color: Colors.black87, fontSize: 16, decoration: TextDecoration.none),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  final nav = rootNavigatorKey.currentState;
-                  if (nav != null && nav.canPop()) nav.popUntil((r) => r.isFirst);
-                },
-                child: Text(l.commonRetry),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 @visibleForTesting
@@ -95,10 +57,10 @@ void installErrorHandling({bool release = kReleaseMode}) {
     _reportError(error, stack, source: 'platform');
     return true; // işlendi: süreç düşmez
   };
-  if (release) ErrorWidget.builder = (_) => const _ErrorView();
+  if (release) ErrorWidget.builder = (_) => const RenderErrorView();
 }
 
-/// Release derlemede API_BASE https değilse (yanlış derleme) açılışta net hata gösterir.
+/// Release derlemede API_BASE https değilse (yanlış derleme) açılışta net hata gösterir (05/6; yalnız geliştirici).
 class ConfigErrorApp extends StatelessWidget {
   const ConfigErrorApp({super.key});
 
@@ -108,17 +70,16 @@ class ConfigErrorApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: Locale(l.localeName),
-      home: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              l.configError,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: BuTheme.light(),
+      darkTheme: BuTheme.dark(),
+      home: const ConfigErrorView(),
     );
   }
 }

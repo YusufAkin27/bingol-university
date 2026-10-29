@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../features/system/gate_views.dart' show TopStrip;
+import '../../widgets/bu_widgets.dart' show LucideIcons;
 import '../locale_controller.dart' show L10nContext;
+import '../theme.dart';
 import '../outbox/outbox.dart';
 import 'connectivity_service.dart';
 
@@ -33,7 +35,12 @@ class OfflineBanner extends StatelessWidget {
               color: Colors.transparent,
               child: SafeArea(
                 bottom: false,
-                child: TopStrip(icon: offline ? Icons.schedule : Icons.send, text: text),
+                child: TopStrip(
+                  icon: LucideIcons.refreshCw,
+                  text: text,
+                  actionLabel: offline ? l.cevrimdisiYenidenDene : null,
+                  onAction: offline ? outbox.drain : null,
+                ),
               ),
             ),
             Expanded(child: MediaQuery.removePadding(context: context, removeTop: true, child: child)),
@@ -45,7 +52,7 @@ class OfflineBanner extends StatelessWidget {
 }
 
 /// Bayat veri etiketi: yalnızca [cachedAt] verilmişse (yanıt önbellekten geldiyse) "Son güncelleme: …" gösterir.
-/// Kullanım: `StaleLabel(cachedAt: res.fromCache ? res.cachedAt : null)`.
+/// Aynı gün saat (14:32), eski veride gün + saat. Kullanım: `StaleLabel(cachedAt: res.fromCache ? res.cachedAt : null)`.
 class StaleLabel extends StatelessWidget {
   const StaleLabel({super.key, required this.cachedAt, this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 4)});
 
@@ -54,24 +61,17 @@ class StaleLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final at = cachedAt;
+    final at = cachedAt?.toLocal();
     if (at == null) return const SizedBox.shrink();
     final locale = Localizations.localeOf(context).toString();
-    final f = DateFormat.MMMd(locale).add_Hm();
+    final now = DateTime.now();
+    final sameDay = at.year == now.year && at.month == now.month && at.day == now.day;
+    final f = sameDay ? DateFormat.Hm(locale) : DateFormat.MMMd(locale).add_Hm();
     return Padding(
       padding: padding,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.history, size: 13, color: Theme.of(context).hintColor),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              context.l10n.cevrimdisiSonGuncelleme(f.format(at.toLocal())),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
-            ),
-          ),
-        ],
+      child: Text(
+        context.l10n.cevrimdisiSonGuncelleme(f.format(at)),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: context.bu.mut, fontWeight: FontWeight.w500),
       ),
     );
   }

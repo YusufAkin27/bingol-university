@@ -1,15 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../auth/widgets/auth_art.dart';
-import '../auth/widgets/auth_motion.dart';
+import '../../widgets/bu.dart';
 
-/// Açılış ekranı: marka kırmızısı sahne (yavaş dalgalar + nefes alan halkalar), ölçeklenerek gelen logo karosu
-/// ve parıltı, altta üç noktalı yükleme göstergesi. Oturum durumu çözülürken gösterilir; ağ beklemez.
+/// Açılış ekranı (04/1): düz marka kırmızısı, ince beyaz dönen halkayla çevrili beyaz "BÜ" karosu ve uygulama adı.
+/// Oturum durumu çözülürken gösterilir; ağ beklemez. "Animasyonları azalt" açıkken halka sabit durur.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -18,144 +14,117 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _intro = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+  late final AnimationController _spin = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
   bool _started = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
-      _intro.value = 1;
-    } else {
-      _intro.forward();
+    final reduced = BuMotion.reduced(context);
+    if (reduced) {
+      _spin.stop();
+    } else if (!_started) {
+      _spin.repeat();
     }
+    _started = true;
   }
 
   @override
   void dispose() {
-    _intro.dispose();
+    _spin.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final card = CurvedAnimation(parent: _intro, curve: const Interval(0, .55, curve: Curves.easeOutBack));
-    final sheen = CurvedAnimation(parent: _intro, curve: const Interval(.45, .95, curve: Curves.easeInOut));
-    final text = CurvedAnimation(parent: _intro, curve: const Interval(.35, .85, curve: Curves.easeOut));
-    return AuthClockHost(
-      child: Builder(
-        builder: (context) {
-          final clock = authClockOf(context);
-          return Scaffold(
-            backgroundColor: kBrandRed,
-            body: DecoratedBox(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFFF4A3D), Color(0xFFD92E22)]),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ExcludeSemantics(
-                      child: RepaintBoundary(child: CustomPaint(painter: AuthHeroPainter(clock, ringY: .45))),
-                    ),
-                  ),
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ScaleTransition(
-                          scale: Tween(begin: .55, end: 1.0).animate(card),
-                          child: FadeTransition(
-                            opacity: card.drive(Tween(begin: 0.0, end: 1.0)),
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(34),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .3), blurRadius: 48, offset: const Offset(0, 24), spreadRadius: -20)],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(34),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/branding/mark_white.svg',
-                                      width: 76,
-                                      height: 76,
-                                      colorFilter: const ColorFilter.mode(kBrandRed, BlendMode.srcIn),
-                                      semanticsLabel: 'BÜ Kampüs',
-                                    ),
-                                    Positioned.fill(child: CustomPaint(painter: AuthSheenPainter(sheen))),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    return Scaffold(
+      backgroundColor: t.h1,
+      body: Center(
+        child: Semantics(
+          label: 'BÜ Kampüs',
+          excludeSemantics: true,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 124,
+                height: 124,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned.fill(
+                      child: RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: _spin,
+                          builder: (_, __) => CustomPaint(painter: _RingPainter(_spin.value, t.onMedia)),
                         ),
-                        const SizedBox(height: 24),
-                        FadeTransition(
-                          opacity: text,
-                          child: Column(
-                            children: [
-                              Text('BÜ Kampüs',
-                                  style: BuType.display.copyWith(color: Colors.white, fontSize: 32, letterSpacing: -.6, fontWeight: FontWeight.w800)),
-                              const SizedBox(height: 6),
-                              Text('Bingöl Üniversitesi',
-                                  style: BuType.body.copyWith(color: Colors.white.withValues(alpha: .88), fontSize: 15)),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 64,
-                    child: ExcludeSemantics(child: _Dots(clock: clock)),
-                  ),
-                ],
+                    Container(
+                      width: 80,
+                      height: 80,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: t.onMedia,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [BoxShadow(color: t.scrim.withValues(alpha: .28), blurRadius: 28, offset: const Offset(0, 12), spreadRadius: -8)],
+                      ),
+                      // Marka harfleri her dilde Latin kalır; yön ters çevrilmesin.
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text('BÜ', style: tx.displaySmall!.copyWith(color: t.h1, fontWeight: FontWeight.w800, letterSpacing: -.5, height: 1.1)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 32),
+              Text('BÜ Kampüs',
+                  style: tx.headlineMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800, letterSpacing: rtl ? 0 : -.3)),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Üç noktalı yükleme: tek saatten beslenir (ek ticker yok); hareket kapalıyken sabit.
-class _Dots extends StatelessWidget {
-  const _Dots({required this.clock});
+/// Soluk kılavuz halka + dönen kısa beyaz yay (r 57 / 124, çizgi 2.5; yay çevrenin 80/358'i).
+class _RingPainter extends CustomPainter {
+  const _RingPainter(this.turn, this.color);
 
-  final Animation<double> clock;
+  final double turn;
+  final Color color;
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: clock,
-      builder: (context, _) {
-        final p = clock.value * math.pi * 24; // 1 sn'lik döngü
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var i = 0; i < 3; i++)
-              Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: .45 + .55 * ((math.sin(p - i * 1.1) + 1) / 2)),
-                ),
-              ),
-          ],
-        );
-      },
+  void paint(Canvas canvas, Size s) {
+    final c = s.center(Offset.zero);
+    final r = s.width * 57 / 124;
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..color = color.withValues(alpha: .2)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    const sweep = 2 * math.pi * 80 / (2 * math.pi * 57);
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: r),
+      turn * 2 * math.pi - math.pi / 2,
+      sweep,
+      false,
+      Paint()
+        ..color = color.withValues(alpha: .95)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.5,
     );
   }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter old) => old.turn != turn || old.color != color;
 }
