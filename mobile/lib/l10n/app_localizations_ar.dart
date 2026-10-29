@@ -7044,4 +7044,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authTrustSecure => 'اتصالك مشفّر وآمن.';
+
+  @override
+  String p00StepOf(String current, String total) {
+    return 'الخطوة $current من $total';
+  }
 }

@@ -3819,5 +3819,16 @@
   "authTrustName": "Adınız profilinizde ve sohbetlerde diğer öğrencilere görünür.",
   "authTrustPassword": "Şifreniz yalnızca özeti alınarak saklanır; kimse göremez.",
   "authTrustCode": "E-posta gelmediyse gereksiz (spam) klasörünü de kontrol edin.",
-  "authTrustSecure": "Bağlantınız şifreli ve güvenlidir."
+  "authTrustSecure": "Bağlantınız şifreli ve güvenlidir.",
+  "p00StepOf": "Adım {current} / {total}",
+  "@p00StepOf": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'locale_controller.dart';
+import 'theme/bu_theme_builder.dart';
 import 'typography.dart';
 
 /// Marka renkleri: web/src/styles/tokens.css ile aynı değerler (Kampüs Kırmızısı + lacivert mürekkep).
@@ -13,8 +15,22 @@ class BuColors {
   static const red100 = Color(0xFFFDE7E4);
 }
 
+/// Kategori/etiket renk çifti: yumuşak zemin + üstündeki yazı/simge (AA kontrast).
+@immutable
+class BuTint {
+  const BuTint(this.bg, this.fg);
+
+  final Color bg;
+  final Color fg;
+
+  static BuTint lerp(BuTint a, BuTint b, double t) => BuTint(Color.lerp(a.bg, b.bg, t)!, Color.lerp(a.fg, b.fg, t)!);
+}
+
 /// Tasarım belirteçleri (mobile/design/*.dc.html içindeki CSS değişkenleriyle birebir).
 /// Kullanım: `final t = context.bu;` sonra `t.pr`, `t.sf`, `t.mut`...
+///
+/// Mevcut alanlar KİLİTLİ; P0 ile eklenen alanlar isteğe bağlıdır: `sf3`, `warn`, `warnSoft`, `onWarnSoft`,
+/// `onMedia`, `scrim`, `qrInk`, `qrPaper`, `shadow`, `tints`.
 @immutable
 class BuTokens extends ThemeExtension<BuTokens> {
   const BuTokens({
@@ -35,6 +51,16 @@ class BuTokens extends ThemeExtension<BuTokens> {
     required this.ok,
     required this.okSoft,
     required this.danger,
+    this.sf3 = const Color(0xFFFFFFFF),
+    this.warn = const Color(0xFF9A5700),
+    this.warnSoft = const Color(0xFFFFF1D6),
+    this.onWarnSoft = const Color(0xFF6B3E00),
+    this.onMedia = const Color(0xFFFFFFFF),
+    this.scrim = const Color(0xFF000000),
+    this.qrInk = const Color(0xFF000000),
+    this.qrPaper = const Color(0xFFFFFFFF),
+    this.shadow = const Color(0xFF171E33),
+    this.tints = _tintsLight,
   });
 
   final Color bg; // sayfa zemini
@@ -55,11 +81,56 @@ class BuTokens extends ThemeExtension<BuTokens> {
   final Color okSoft;
   final Color danger;
 
+  /// En üst yüzey: diyalog, alt sayfa, menü, gezinme çubuğu zemini.
+  final Color sf3;
+
+  /// Uyarı (sarı/turuncu) metin/simge rengi; zemini [warnSoft], üstündeki yazı [onWarnSoft].
+  final Color warn;
+  final Color warnSoft;
+  final Color onWarnSoft;
+
+  /// Medya (fotoğraf/video/kamera) üstündeki yazı/simge rengi: her temada açık.
+  final Color onMedia;
+
+  /// Medya zemini ve fotoğraf üstü karartma (alfa ile kullanın): her temada koyu.
+  final Color scrim;
+
+  /// QR kodun mürekkep ve kâğıt rengi: her temada yüksek kontrast (siyah/beyaz).
+  final Color qrInk;
+  final Color qrPaper;
+
+  /// Gölge rengi.
+  final Color shadow;
+
+  /// Kategori renkleri (kulüp/ders/haber türü): 6 çift. [tint] ile `id` bazlı döngüsel seçilir.
+  final List<BuTint> tints;
+
   LinearGradient get hero => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [h1, h2],
       );
+
+  /// [tints] içinden döngüsel seçim (`tint(club.id)`).
+  BuTint tint(int i) => tints[i.abs() % tints.length];
+
+  static const _tintsLight = <BuTint>[
+    BuTint(Color(0xFFFDE7E4), Color(0xFF8E1B13)), // kırmızı (marka)
+    BuTint(Color(0xFFE3EDFB), Color(0xFF1B4E96)), // mavi
+    BuTint(Color(0xFFDFF3E8), Color(0xFF1B6B43)), // yeşil
+    BuTint(Color(0xFFFDEFD2), Color(0xFF7A4A00)), // kehribar
+    BuTint(Color(0xFFEDE6FA), Color(0xFF55359A)), // mor
+    BuTint(Color(0xFFD9F1F1), Color(0xFF115E5E)), // turkuaz
+  ];
+
+  static const _tintsDark = <BuTint>[
+    BuTint(Color(0xFF3A1F22), Color(0xFFFFB4AC)),
+    BuTint(Color(0xFF1B2A44), Color(0xFF9CC2FF)),
+    BuTint(Color(0xFF12301F), Color(0xFF7BE0A8)),
+    BuTint(Color(0xFF3A2A0C), Color(0xFFF5C46B)),
+    BuTint(Color(0xFF2B2347), Color(0xFFC4B0FF)),
+    BuTint(Color(0xFF0F3333), Color(0xFF7DD9D9)),
+  ];
 
   static const light = BuTokens(
     bg: Color(0xFFFAF6F3),
@@ -99,162 +170,135 @@ class BuTokens extends ThemeExtension<BuTokens> {
     ok: Color(0xFF5FD596),
     okSoft: Color(0xFF11301F),
     danger: Color(0xFFFF8A82),
+    sf3: Color(0xFF292D42),
+    warn: Color(0xFFF5B54A),
+    warnSoft: Color(0xFF3A2B0E),
+    onWarnSoft: Color(0xFFFFD98F),
+    shadow: Color(0xFF000000),
+    tints: _tintsDark,
   );
 
   @override
-  BuTokens copyWith() => this;
+  BuTokens copyWith({
+    Color? bg,
+    Color? sf,
+    Color? sf2,
+    Color? ink,
+    Color? mut,
+    Color? bd,
+    Color? pr,
+    Color? onPr,
+    Color? soft,
+    Color? onSoft,
+    Color? nav,
+    Color? onNav,
+    Color? h1,
+    Color? h2,
+    Color? ok,
+    Color? okSoft,
+    Color? danger,
+    Color? sf3,
+    Color? warn,
+    Color? warnSoft,
+    Color? onWarnSoft,
+    Color? onMedia,
+    Color? scrim,
+    Color? qrInk,
+    Color? qrPaper,
+    Color? shadow,
+    List<BuTint>? tints,
+  }) =>
+      BuTokens(
+        bg: bg ?? this.bg,
+        sf: sf ?? this.sf,
+        sf2: sf2 ?? this.sf2,
+        ink: ink ?? this.ink,
+        mut: mut ?? this.mut,
+        bd: bd ?? this.bd,
+        pr: pr ?? this.pr,
+        onPr: onPr ?? this.onPr,
+        soft: soft ?? this.soft,
+        onSoft: onSoft ?? this.onSoft,
+        nav: nav ?? this.nav,
+        onNav: onNav ?? this.onNav,
+        h1: h1 ?? this.h1,
+        h2: h2 ?? this.h2,
+        ok: ok ?? this.ok,
+        okSoft: okSoft ?? this.okSoft,
+        danger: danger ?? this.danger,
+        sf3: sf3 ?? this.sf3,
+        warn: warn ?? this.warn,
+        warnSoft: warnSoft ?? this.warnSoft,
+        onWarnSoft: onWarnSoft ?? this.onWarnSoft,
+        onMedia: onMedia ?? this.onMedia,
+        scrim: scrim ?? this.scrim,
+        qrInk: qrInk ?? this.qrInk,
+        qrPaper: qrPaper ?? this.qrPaper,
+        shadow: shadow ?? this.shadow,
+        tints: tints ?? this.tints,
+      );
 
   @override
-  BuTokens lerp(ThemeExtension<BuTokens>? other, double t) => t < 0.5 ? this : (other as BuTokens? ?? this);
+  BuTokens lerp(ThemeExtension<BuTokens>? other, double t) {
+    if (other is! BuTokens) return this;
+    Color c(Color a, Color b) => Color.lerp(a, b, t)!;
+    return BuTokens(
+      bg: c(bg, other.bg),
+      sf: c(sf, other.sf),
+      sf2: c(sf2, other.sf2),
+      ink: c(ink, other.ink),
+      mut: c(mut, other.mut),
+      bd: c(bd, other.bd),
+      pr: c(pr, other.pr),
+      onPr: c(onPr, other.onPr),
+      soft: c(soft, other.soft),
+      onSoft: c(onSoft, other.onSoft),
+      nav: c(nav, other.nav),
+      onNav: c(onNav, other.onNav),
+      h1: c(h1, other.h1),
+      h2: c(h2, other.h2),
+      ok: c(ok, other.ok),
+      okSoft: c(okSoft, other.okSoft),
+      danger: c(danger, other.danger),
+      sf3: c(sf3, other.sf3),
+      warn: c(warn, other.warn),
+      warnSoft: c(warnSoft, other.warnSoft),
+      onWarnSoft: c(onWarnSoft, other.onWarnSoft),
+      onMedia: c(onMedia, other.onMedia),
+      scrim: c(scrim, other.scrim),
+      qrInk: c(qrInk, other.qrInk),
+      qrPaper: c(qrPaper, other.qrPaper),
+      shadow: c(shadow, other.shadow),
+      tints: [
+        for (var i = 0; i < tints.length && i < other.tints.length; i++) BuTint.lerp(tints[i], other.tints[i], t),
+      ],
+    );
+  }
 }
 
 extension BuThemeX on BuildContext {
   BuTokens get bu => Theme.of(this).extension<BuTokens>()!;
 }
 
+/// Uygulama teması (Material 3 + marka belirteçleri). Örnekler önbelleğe alınır: ilk karede ikinci kez kurulmaz.
+/// Arapça arayüzde (`LocaleController.current`) satır yüksekliği artar ve harf aralığı sıfırlanır.
 class BuTheme {
   BuTheme._();
 
   static const fontFamily = BuType.family; // paketlenmis Inter (pubspec fonts); Arapca icin sistem yedegi
 
-  static ThemeData light() => _build(BuTokens.light, Brightness.light);
-  static ThemeData dark() => _build(BuTokens.dark, Brightness.dark);
+  static final _cache = <int, ThemeData>{};
 
-  static TextTheme _textTheme(BuTokens t) => const TextTheme(
-        displayLarge: BuType.display,
-        displayMedium: BuType.display,
-        displaySmall: BuType.display,
-        headlineLarge: BuType.title,
-        headlineMedium: BuType.title,
-        headlineSmall: BuType.title,
-        titleLarge: BuType.title,
-        titleMedium: BuType.heading,
-        titleSmall: BuType.bodyStrong,
-        bodyLarge: BuType.body,
-        bodyMedium: BuType.body,
-        bodySmall: BuType.caption,
-        labelLarge: BuType.bodyStrong,
-        labelMedium: BuType.label,
-        labelSmall: BuType.micro,
-      ).apply(bodyColor: t.ink, displayColor: t.ink);
+  static bool get _arabic => LocaleController.current?.locale.languageCode == 'ar';
 
-  static ThemeData _build(BuTokens t, Brightness b) {
-    final cs = ColorScheme(
-      brightness: b,
-      primary: t.pr,
-      onPrimary: t.onPr,
-      primaryContainer: t.soft,
-      onPrimaryContainer: t.onSoft,
-      secondary: t.ink,
-      onSecondary: t.bg,
-      error: t.danger,
-      onError: Colors.white,
-      errorContainer: b == Brightness.light ? const Color(0xFFFBE3E1) : const Color(0xFF3B1816),
-      onErrorContainer: t.danger,
-      surface: t.sf,
-      onSurface: t.ink,
-      onSurfaceVariant: t.mut,
-      surfaceContainerHighest: t.sf2,
-      outline: t.mut,
-      outlineVariant: t.bd,
-    );
-    final radius = BorderRadius.circular(14);
-    OutlineInputBorder border(Color c, [double w = 1]) =>
-        OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: c, width: w));
+  static ThemeData light() => _get(Brightness.light, _arabic);
+  static ThemeData dark() => _get(Brightness.dark, _arabic);
 
-    return ThemeData(
-      useMaterial3: true,
-      fontFamily: fontFamily,
-      textTheme: _textTheme(t),
-      brightness: b,
-      colorScheme: cs,
-      extensions: [t],
-      scaffoldBackgroundColor: t.bg,
-      // Simgeler varsayılan 24 yerine 21.6 (%10 küçük); dokunma alanı Material varsayılanında kalır.
-      iconTheme: IconThemeData(size: 21.6, color: t.ink),
-      iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(iconSize: 21.6)),
-      appBarTheme: AppBarTheme(
-        iconTheme: IconThemeData(size: 21.6, color: t.ink),
-        actionsIconTheme: IconThemeData(size: 21.6, color: t.ink),
-        backgroundColor: t.bg,
-        foregroundColor: t.ink,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        titleTextStyle: BuType.title.copyWith(color: t.ink),
-      ),
-      cardTheme: CardThemeData(
-        color: t.sf,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.bd)),
-      ),
-      dividerTheme: DividerThemeData(color: t.bd, space: 1, thickness: 1),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: t.sf,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: border(t.bd),
-        enabledBorder: border(t.bd),
-        focusedBorder: border(t.pr, 2),
-        errorBorder: border(t.danger),
-        focusedErrorBorder: border(t.danger, 2),
-        hintStyle: BuType.body.copyWith(color: t.mut),
-        labelStyle: BuType.body.copyWith(color: t.mut),
-        helperStyle: BuType.caption.copyWith(color: t.mut),
-        errorStyle: BuType.caption.copyWith(color: t.danger),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: t.pr,
-          foregroundColor: t.onPr,
-          minimumSize: const Size.fromHeight(54),
-          shape: RoundedRectangleBorder(borderRadius: radius),
-          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: t.ink,
-          minimumSize: const Size.fromHeight(54),
-          shape: RoundedRectangleBorder(borderRadius: radius),
-          side: BorderSide(color: t.bd),
-          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: t.pr,
-          textStyle: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.onPr : Colors.white),
-        trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : t.sf2),
-        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-      ),
-      checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-        fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : Colors.transparent),
-        checkColor: WidgetStatePropertyAll(t.onPr),
-        // İşaretsiz kutu zeminde kaybolmasın (WCAG 1.4.11): çerçeve soluk yazı renginde.
-        side: WidgetStateBorderSide.resolveWith(
-            (s) => BorderSide(color: s.contains(WidgetState.selected) ? t.pr : t.mut, width: 2)),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: t.ink,
-        contentTextStyle: BuType.body.copyWith(color: t.bg),
-        shape: RoundedRectangleBorder(borderRadius: radius),
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: t.sf,
-        titleTextStyle: BuType.title.copyWith(color: t.ink),
-        contentTextStyle: BuType.body.copyWith(color: t.ink),
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      ),
-    );
-  }
+  /// Belirli dil için tema (test/galeri): `BuTheme.forLocale(Brightness.dark, 'ar')`.
+  static ThemeData forLocale(Brightness b, String languageCode) => _get(b, languageCode == 'ar');
+
+  static ThemeData _get(Brightness b, bool arabic) => _cache.putIfAbsent(
+        (b == Brightness.dark ? 2 : 0) + (arabic ? 1 : 0),
+        () => BuThemeBuilder.build(b == Brightness.dark ? BuTokens.dark : BuTokens.light, b, arabic: arabic),
+      );
 }

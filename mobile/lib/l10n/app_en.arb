@@ -2155,5 +2155,6 @@
   "authTrustName": "Your name is visible to other students on your profile and in chats.",
   "authTrustPassword": "Your password is stored only as a one-way hash; nobody can read it.",
   "authTrustCode": "If the email has not arrived, check your spam folder too.",
-  "authTrustSecure": "Your connection is encrypted and secure."
+  "authTrustSecure": "Your connection is encrypted and secure.",
+  "p00StepOf": "Step {current} of {total}"
 }

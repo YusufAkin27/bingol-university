@@ -13038,6 +13038,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bağlantınız şifreli ve güvenlidir.'**
   String get authTrustSecure;
+
+  /// No description provided for @p00StepOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adım {current} / {total}'**
+  String p00StepOf(String current, String total);
 }
 
 class _AppLocalizationsDelegate

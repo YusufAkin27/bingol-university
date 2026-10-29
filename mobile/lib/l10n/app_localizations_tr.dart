@@ -7080,4 +7080,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authTrustSecure => 'Bağlantınız şifreli ve güvenlidir.';
+
+  @override
+  String p00StepOf(String current, String total) {
+    return 'Adım $current / $total';
+  }
 }

@@ -7111,4 +7111,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authTrustSecure => 'Your connection is encrypted and secure.';
+
+  @override
+  String p00StepOf(String current, String total) {
+    return 'Step $current of $total';
+  }
 }
