@@ -11,7 +11,8 @@
 # Ortam: SKIP_TESTS=1 yerel kapilari (web lint/typecheck/test/build/check:bundle) atlar.
 # Yapilandirma: repo kokunde GITIGNORED `.deploy.env` (asla commit etme, loga yazma):
 #   DEPLOY_HOST, DEPLOY_USER (sudo'lu hesap; varsayilan deploy), DEPLOY_DOMAIN,
-#   istege bagli: DEPLOY_KEY (varsayilan ~/.ssh/bu_deploy_ed25519), DEPLOY_ACME_EMAIL, DEPLOY_ADMIN_EMAILS,
+#   DEPLOY_ACME_EMAIL (ilk .env.prod uretiminde ZORUNLU: Let's Encrypt bildirim adresi; varsayilan yok),
+#   istege bagli: DEPLOY_KEY (varsayilan ~/.ssh/bu_deploy_ed25519), DEPLOY_ADMIN_EMAILS,
 #   DEPLOY_MAIL_USER / DEPLOY_MAIL_PASSWORD (Brevo SMTP; yoksa MAIL_ENABLED=false baslar), DEPLOY_WWW (1 varsayilan),
 #   DEPLOY_MAIL_FROM, DEPLOY_MAIL_REPLY_TO, DEPLOY_MAIL_FROM_NAME (gorunen ad; varsayilan "BU Kampus" + Turkce karakterler),
 #   DEPLOY_ADMIN_PATH (gizli yonetim yolu; web imajina VITE_ADMIN_PATH olarak derlenir),
@@ -58,13 +59,23 @@ if [ "$SSH_USER" = root ]; then
   SSH_USER=deploy
 fi
 KEY="${DEPLOY_KEY:-$HOME/.ssh/bu_deploy_ed25519}"
-ACME_EMAIL="${DEPLOY_ACME_EMAIL:-admin@$DOMAIN}"
+# Let's Encrypt kayit e-postasi (sertifika sona erme bildirimleri): GERCEK, okunan bir adres olmali; alan adi altinda varsayilan kutu YOKTUR.
+ACME_EMAIL="${DEPLOY_ACME_EMAIL:-}"
 unset DEPLOY_PASSWORD   # bu betik parolayi hic kullanmaz
 [ -f "$KEY" ] || { [ "$DRY" = 1 ] || die "SSH anahtari yok: $KEY"; warn "SSH anahtari yok: $KEY (dry-run devam ediyor)"; }
 
 SSH_OPTS=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new
           -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o ConnectTimeout=20)
-rsh() { ssh "${SSH_OPTS[@]}" "$SSH_USER@$HOST" "$@"; }
+# UFW "limit 22/tcp" (30 sn'de 6 yeni baglanti) baglantilari dusurur: ssh cagrilari arasi en az 8 sn (damga dosyasi alt kabuklarda da gecerli)
+SSH_STAMP="${TMPDIR:-/tmp}/bu-deploy-ssh-stamp"
+rsh() {
+  local now last=0 w
+  now=$(date +%s); [ -f "$SSH_STAMP" ] && last=$(cat "$SSH_STAMP" 2>/dev/null || echo 0)
+  w=$((8 - (now - last)))
+  if [ "$w" -gt 0 ]; then sleep "$w"; fi
+  date +%s > "$SSH_STAMP"
+  ssh "${SSH_OPTS[@]}" "$SSH_USER@$HOST" "$@"
+}
 
 BASEDIR=/opt/bukampus
 DATADIR=/opt/bukampus-data
@@ -207,12 +218,28 @@ fi
 # =====================================================================================================
 log "3/7 .env.prod kontrolu"
 HAVE_ENV=0
-if [ "$DRY" = 0 ] && rsh "test -f $BASEDIR/.env.prod"; then HAVE_ENV=1; fi
+if [ "$DRY" = 0 ]; then
+  # ssh cikis kodu: 0 = dosya var, 1 = dosya YOK, 255 = baglanti hatasi (dosya yok SAYILMAZ: yanlislikla yeniden uretilmesin)
+  tries=0
+  while :; do
+    rc=0; rsh "test -f $BASEDIR/.env.prod" || rc=$?
+    case "$rc" in
+      0) HAVE_ENV=1; break;;
+      1) break;;
+      255) tries=$((tries+1))
+           [ "$tries" -ge 3 ] && die ".env.prod kontrolu icin SSH baglantisi kurulamadi (ufw limit 22/tcp veya ag olabilir); bir sure bekleyip tekrar calistirin" 1
+           warn "SSH baglanti hatasi (deneme $tries/3); 30 sn beklenip yeniden denenecek"; sleep 30;;
+      *) die ".env.prod kontrolu beklenmeyen cikis kodu: $rc" 1;;
+    esac
+  done
+fi
 if [ "$HAVE_ENV" = 1 ]; then
   log ".env.prod mevcut: DEGISTIRILMEDI"
 else
+  [ "$DRY" = 1 ] && [ -z "$ACME_EMAIL" ] && warn "DEPLOY_ACME_EMAIL tanimli degil: ilk .env.prod uretiminde dagitim DURUR (gercek bir adres gerekir)"
   [ "$DRY" = 1 ] && plan "sunucu: $BASEDIR/.env.prod YOKSA: gen-secrets.sh ile uretilir (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari, izin 600), DOMAIN=$DOMAIN, CORS/PUBLIC_WEB_URL=https://$DOMAIN, WWW_DOMAIN, BACKUP_METRICS_DIR, age yedek anahtar cifti (ozel anahtar yerel .deploy/'a alinip sunucudan SILINIR)"
   if [ "$DRY" = 0 ]; then
+    [ -n "$ACME_EMAIL" ] || die "DEPLOY_ACME_EMAIL gerekli (.deploy.env): Let's Encrypt bildirimleri icin gercek bir e-posta adresi; ilk .env.prod uretimi icin zorunlu" 2
     mkdir -p .deploy; umask 077
     WWW_DOMAIN_VAL="www.$DOMAIN"; [ "${DEPLOY_WWW:-1}" = 1 ] || WWW_DOMAIN_VAL="http://www.invalid.test"
     MAIL_ON=false; [ -n "${DEPLOY_MAIL_USER:-}" ] && [ -n "${DEPLOY_MAIL_PASSWORD:-}" ] && MAIL_ON=true

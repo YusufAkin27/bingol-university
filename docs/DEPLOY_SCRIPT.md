@@ -33,6 +33,10 @@ Adımlar: (1) yerel kapılar (git durumu uyarısı; `web`: lint, typecheck, test
 
 `DEPLOY_MAIL_USER/DEPLOY_MAIL_PASSWORD` verilmezse `MAIL_ENABLED=false` başlar (doğrulama kodları backend günlüğüne yazılır; yalnız ön test için). Brevo bilgileri sonradan `.env.prod`'a girilir ve `docker compose ... up -d backend` ile uygulanır.
 
+## SSH hız sınırı ve ACME e-postası
+
+Sunucuda `ufw limit 22/tcp` (30 sn'de 6 yeni bağlantı) olduğundan betik her ssh çağrısı arasında en az 8 sn bekler; `.env.prod` var mı denetiminde ssh çıkış kodu ayrılır (0 var, 1 yok, **255 bağlantı hatası** = "yok" sayılmaz, 3 kez 30 sn arayla yeniden denenir, olmazsa durur). `DEPLOY_ACME_EMAIL` ilk `.env.prod` üretiminde **zorunludur** (Let's Encrypt bildirim adresi; `admin@<alan>` varsayımı kaldırıldı, o kutu yoktur).
+
 ## `.env.prod` anahtar senkronu ve yönetim yolu
 
 Her dağıtımda (`.env.prod` yeni üretilmiş ya da var olsa da) `.deploy.env` içindeki değerler sunucudaki `.env.prod`'a **yalnız anahtar yoksa/boşsa ya da şablon değerindeyse** (`YER_TUTUCU…`, `example`) yazılır; elle değiştirilmiş değer **asla ezilmez**. Yazılan anahtarların yalnız **adları** günlüğe çıkar, değerler hiçbir yerde basılmaz (`--dry-run` çıktısında da maskelidir).
