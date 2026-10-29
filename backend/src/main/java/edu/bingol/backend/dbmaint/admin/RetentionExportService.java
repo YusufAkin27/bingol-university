@@ -54,7 +54,7 @@ public class RetentionExportService {
 
     public RetentionExportService(NamedParameterJdbcTemplate jdbc, DataExportReceiptRepository receipts,
                                   @Value("${app.retention.export-page-size:2000}") int pageSize,
-                                  @Value("${app.retention.export-max-rows:5000000}") long maxRows,
+                                  @Value("${app.retention.export-max-rows:2000000}") long maxRows,
                                   @Value("${app.retention.export-concurrency:2}") int concurrency) {
         this.jdbc = jdbc;
         this.receipts = receipts;
