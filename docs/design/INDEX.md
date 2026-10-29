@@ -52,7 +52,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [44-akademik-ders-sinav-formlari.md](44-akademik-ders-sinav-formlari.md) | 6 | 81, 82, 83 | [x] |
 | [45-akademik-takvim-duyuru-hatirlatma.md](45-akademik-takvim-duyuru-hatirlatma.md) | 6 | 85, 86, 87, 88 | [x] eksik: duzeltme turu kotadan uygulanamadi (baslik "Akademik Takvim Durum", "Ders Detay" tipi basliklar, uydurma kartlar) |
 | [46-akademik-diyaloglar-secici.md](46-akademik-diyaloglar-secici.md) | 4 | A45, A46, A47, A48, A49, A50 | [ ] |
-| [47-profil-baskasi-durumlari.md](47-profil-baskasi-durumlari.md) | 6 | 89, 90, A60 | [ ] |
+| [47-profil-baskasi-durumlari.md](47-profil-baskasi-durumlari.md) | 6 | 89, 90, A60 | [x] |
 | [48-takipciler-profil-duzenle.md](48-takipciler-profil-duzenle.md) | 6 | 92, 93, 94, A53 | [x] |
 | [49-ayarlar-hesap-gizlilik.md](49-ayarlar-hesap-gizlilik.md) | 6 | 95, 96, 97, 101, A56 | [x] |
 | [50-bildirim-tercihleri.md](50-bildirim-tercihleri.md) | 5 | 100, A59 | [x] |
