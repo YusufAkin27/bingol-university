@@ -962,6 +962,33 @@
           }
         }
       },
+      "AdminRow" : {
+        "properties" : {
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "lastSeenAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "pinned" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "profile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "AdminStats" : {
         "properties" : {
           "avgTurnoutPercent" : {
@@ -2940,6 +2967,61 @@
           }
         },
         "required" : [ "currentPassword", "newPassword" ]
+      },
+      "ChangeView" : {
+        "properties" : {
+          "decidedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "decidedBy" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "decisionNote" : {
+            "type" : [ "string", "null" ]
+          },
+          "expiresAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "fromProfile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "proposedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "proposedBy" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "proposedByEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : [ "string", "null" ]
+          },
+          "targetEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "targetName" : {
+            "type" : [ "string", "null" ]
+          },
+          "targetUserId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "toProfile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : [ "string", "null" ]
+          }
+        }
       },
       "ChatInfo" : {
         "properties" : {
@@ -6351,6 +6433,64 @@
           }
         }
       },
+      "Matrix" : {
+        "properties" : {
+          "entries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MatrixEntry"
+            },
+            "type" : "array"
+          },
+          "profiles" : {
+            "items" : {
+              "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        }
+      },
+      "MatrixEntry" : {
+        "properties" : {
+          "permission" : {
+            "type" : [ "string", "null" ]
+          },
+          "profiles" : {
+            "items" : {
+              "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        }
+      },
+      "Me" : {
+        "properties" : {
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "permissions" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "pinned" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "profile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : [ "string", "null" ]
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "MeSummary" : {
         "properties" : {
           "bookmarks" : {
@@ -8676,6 +8816,20 @@
           }
         }
       },
+      "ProfileRequest" : {
+        "properties" : {
+          "profile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : "string"
+          },
+          "reason" : {
+            "maxLength" : 300,
+            "minLength" : 5,
+            "type" : "string"
+          }
+        },
+        "required" : [ "profile", "reason" ]
+      },
       "ProfileView" : {
         "properties" : {
           "avatarUrl" : {
@@ -8721,6 +8875,24 @@
             "type" : [ "boolean", "null" ]
           }
         }
+      },
+      "ProposeRequest" : {
+        "properties" : {
+          "profile" : {
+            "enum" : [ "FULL", "MODERATOR", "SUPPORT", "EDITOR", "VIEWER" ],
+            "type" : "string"
+          },
+          "reason" : {
+            "maxLength" : 300,
+            "minLength" : 5,
+            "type" : "string"
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "profile", "reason", "userId" ]
       },
       "PublicCategory" : {
         "properties" : {
@@ -9747,6 +9919,10 @@
         "properties" : {
           "requeued" : {
             "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "skipped" : {
+            "format" : "int64",
             "type" : [ "integer", "null" ]
           }
         }
@@ -16493,7 +16669,7 @@
     },
     "/api/admin/communities/{id}/approve" : {
       "post" : {
-        "operationId" : "approve_2",
+        "operationId" : "approve_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -17549,7 +17725,7 @@
     },
     "/api/admin/communities/{id}/reject" : {
       "post" : {
-        "operationId" : "reject_4",
+        "operationId" : "reject_5",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -20165,7 +20341,7 @@
     },
     "/api/admin/events/{id}/applications/{userId}/reject" : {
       "post" : {
-        "operationId" : "reject_3",
+        "operationId" : "reject_4",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -20254,7 +20430,7 @@
     },
     "/api/admin/events/{id}/approve" : {
       "post" : {
-        "operationId" : "approve_1",
+        "operationId" : "approve_2",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -21255,7 +21431,7 @@
     },
     "/api/admin/events/{id}/reject" : {
       "post" : {
-        "operationId" : "reject_2",
+        "operationId" : "reject_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -24619,7 +24795,7 @@
     },
     "/api/admin/me" : {
       "get" : {
-        "operationId" : "me_2",
+        "operationId" : "me_3",
         "responses" : {
           "200" : {
             "content" : {
@@ -30887,6 +31063,541 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "campaign-controller" ]
+      }
+    },
+    "/api/admin/rbac/admins" : {
+      "get" : {
+        "operationId" : "admins",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/AdminRow"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/changes" : {
+      "get" : {
+        "operationId" : "changes",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "PENDING", "APPROVED", "REJECTED", "EXPIRED" ],
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/ChangeView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      },
+      "post" : {
+        "operationId" : "propose",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProposeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChangeView"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/changes/{id}/approve" : {
+      "post" : {
+        "operationId" : "approve_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChangeView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/changes/{id}/reject" : {
+      "post" : {
+        "operationId" : "reject_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChangeView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/matrix" : {
+      "get" : {
+        "operationId" : "matrix",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Matrix"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/me" : {
+      "get" : {
+        "operationId" : "me_2",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Me"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
+      }
+    },
+    "/api/admin/rbac/users/{id}/profile" : {
+      "put" : {
+        "operationId" : "setProfile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProfileRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "rbac-controller" ]
       }
     },
     "/api/admin/reports" : {
