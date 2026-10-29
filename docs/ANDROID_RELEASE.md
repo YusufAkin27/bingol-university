@@ -17,13 +17,9 @@ Set-Location C:\bu_mobile
 
 ## 2. İmzalama (keystore)
 
-Keystore'u **yalnızca siz üretirsiniz**; dosyayı ve şifreleri kimseyle paylaşmayın, git'e koymayın (`*.jks`, `android/key.properties` gitignore'dadır). Kaybederseniz Play uygulama imzası sıfırlama süreci gerekir; **yedekleyin** (parola yöneticisi + şifreli yedek).
+Upload keystore'u **MOB1'de üretildi** (bölüm 8.1). Dosya ve parolalar repo ve OneDrive dışındadır, git'e girmez (`*.jks`, `android/key.properties` gitignore'dadır; `git check-ignore -v mobile/android/key.properties` ile doğrulandı). **Yedekleyin** (parola yöneticisi + şifreli çevrimdışı kopya).
 
-```powershell
-& 'C:\android\jdk17\bin\keytool.exe' -genkey -v -keystore C:\keys\bu-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
-```
-
-Sonra `android/key.properties.example` dosyasını `android/key.properties` olarak kopyalayıp `storeFile` (android/ klasörüne göre ya da mutlak yol, ör. `C:/keys/bu-upload.jks`), `storePassword`, `keyAlias`, `keyPassword` değerlerini doldurun.
+Anahtar kaydı (MOB1): `C:\Users\Toprak Çevik\bu-secrets\bu-upload-keystore.jks` (PKCS12, RSA 4096, alias `bu-upload`, geçerlilik 2054-03-16). Parolalar ve parmak izleri aynı klasörde `android-signing.txt` içindedir. `mobile/android/key.properties` bu dosyayı mutlak yolla gösterir (yerel, gitignore'da). Şablon: `android/key.properties.example` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Gradle `key.properties`'i **UTF-8** okur (yol `Çevik` gibi Türkçe karakter içerebilir); dosyada alan eksikse ya da `storeFile` yoksa derleme **hata ile durur** (sessizce debug'a düşmez).
 
 **Karar:** `key.properties` yoksa release derlemesi durmaz, **debug anahtarıyla imzalanır ve Gradle net uyarı basar** ("release DEBUG anahtariyla imzalaniyor"). Bu çıktı elden test içindir, **Google Play'e yüklenemez**. Üretim derlemesinde uyarıyı görüyorsanız `key.properties` eksik demektir. Play App Signing kullanıldığında bu anahtar "upload key" olur.
 
@@ -32,11 +28,18 @@ Sonra `android/key.properties.example` dosyasını `android/key.properties` olar
 **Üretim (Play, AAB)** — API adresi `https://` olmak ZORUNDA (aksi halde uygulama açılışta yapılandırma hatası ekranı gösterir; Android tarafı da cleartext'i kapalı tutar):
 
 ```powershell
-flutter build appbundle --release --dart-define=API_BASE=https://api.ornek.edu.tr --dart-define=APP_VERSION=1.0.0
-# çıktı: build\app\outputs\bundle\release\app-release.aab  (arm64-v8a, armeabi-v7a, x86_64 hepsi içinde)
+# --split-debug-info dizini ASCII olmalı (Dart AOT, yolda "Ç" varsa dosya yazamaz); sonra bu-secrets'e kopyalanır
+flutter build appbundle --release --obfuscate --split-debug-info=C:\bu_symbols_1.0.0 `
+  --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0
+flutter build apk --release --obfuscate --split-debug-info=C:\bu_symbols_1.0.0 `
+  --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0
+# çıktılar: build\app\outputs\bundle\release\app-release.aab  ve  build\app\outputs\flutter-apk\app-release.apk
+# (arm64-v8a + armeabi-v7a + x86_64 hepsi içinde; fat APK büyüktür, telefona elden kurulum için yeter)
 ```
 
-Elden dağıtım için üretim APK'sı: `flutter build apk --release --target-platform android-arm64 --dart-define=API_BASE=https://...`
+WebSocket adresi ayrı bir define değildir: `API_BASE`'ten türetilir (`https` -> `wss://bukampus.com.tr/ws`, `ChatRealtime`).
+
+Derlemeden sonra: AAB/APK'yı `C:\Users\Toprak Çevik\bu-release\bu-kampus-<ad>+<kod>.aab|.apk` olarak kopyalayın; `C:\bu_symbols_<ad>` içeriğini (`app.android-*.symbols`) ve `build\app\outputs\mapping\release\mapping.txt` dosyasını `C:\Users\Toprak Çevik\bu-secrets\symbols-<ad>\` altına koyun (çökme yığın izlerini çözmek için; **kaybetmeyin**, yedekleyin). Bu klasörler repoda değildir.
 
 **Yerel test / staging (elden kurulum, http)** — cleartext yalnızca bu bayrakla açılır:
 
@@ -97,62 +100,43 @@ Mağaza gereksinimleri: hedef API 36 (karşılanıyor); 64-bit (arm64-v8a, AAB x
 - Gerçek cihaz/R8 testi: üretim APK'sı kurulduktan sonra giriş, sohbet (STOMP), QR tarama, video seçip sıkıştırma, rehber eşleştirme, push alma elle denenmelidir (R8 yansıma çökmeleri ancak çalışırken görülür).
 - Flutter test paketinde (visual_a erişilebilirlik) önceden var olan dokunma hedefi (44dp) hataları vardır; bu belgedeki değişikliklerle ilgili değildir.
 
-## 8. Upload keystore, Play App Signing ve kapalı test adımları (REL1)
+## 8. Upload keystore, Play App Signing ve kapalı test (MOB1)
 
-> **Keystore'u ben ÜRETMEDİM ve repoda üretilmemelidir.** Aşağıdaki adımları yalnız siz, kendi makinenizde yaparsınız. Yapılandırma hazırdır: `android/key.properties` varsa release o anahtarla imzalanır, yoksa debug anahtarıyla (uyarıyla) imzalanır ve **Play'e yüklenemez** (bölüm 2). `.gitignore` kontrolü yapıldı: `mobile/android/key.properties`, `*.jks`, `*.keystore`, `*.age.key`, `.env.prod` ignore listesindedir (`git check-ignore -v <dosya>` ile doğrulanır); `scripts/agent-push.sh` ayrıca `*.jks`/`*.keystore`/`*.aab`/`*.apk` yollarını reddeder.
+Play Console adımları sırayla: [store/PLAY_CONSOLE_STEPS.md](store/PLAY_CONSOLE_STEPS.md).
 
-### 8.1 Upload keystore üretimi (SİZ)
+### 8.1 Upload keystore (MOB1'de üretildi)
 
-```powershell
-# repo DIŞINDA bir klasör (örn. C:\keys); parola yöneticisinden güçlü parola seçin, bu komut sizden iki parola ve kimlik bilgileri ister
-New-Item -ItemType Directory -Force C:\keys | Out-Null
-& 'C:\android\jdk17\bin\keytool.exe' -genkeypair -v -keystore C:\keys\bu-upload.jks -storetype PKCS12 `
-  -alias upload -keyalg RSA -keysize 2048 -validity 10000
-# kontrol (parola sorar; SHA-1/SHA-256 parmak izlerini yazdırır, PUSH_SETUP.md bölüm 6 için gerekir)
-& 'C:\android\jdk17\bin\keytool.exe' -list -v -keystore C:\keys\bu-upload.jks -alias upload
-```
+- Dosya: `C:\Users\Toprak Çevik\bu-secrets\bu-upload-keystore.jks` (OneDrive dışı), alias `bu-upload`, PKCS12, RSA 4096, geçerlilik 2026-10-29 .. 2054-03-16. Parola ve parmak izi kaydı: aynı klasörde `android-signing.txt` (gizli, **yedekleyin**; repoya/rapora/e-postaya yazmayın). `generated-secrets.txt` bu işle ilgisizdir.
+- Upload sertifikası parmak izleri (açık bilgi; Firebase/Play karşılaştırması için):
+  - SHA-1: `A9:8E:0A:5A:B3:96:03:E2:FC:DD:11:46:7A:A9:F8:97:DB:91:ED:BC`
+  - SHA-256: `87:84:5C:AD:76:62:18:44:1F:02:DD:4F:C0:8E:37:70:23:05:41:1A:9D:87:CC:2A:E7:D8:79:3E:7B:CC:50:11`
+- **Play App Signing** kullanılır: siz AAB'yi bu upload anahtarıyla imzalarsınız, Google dağıtım APK'larını kendi anahtarıyla yeniden imzalar. Upload anahtarı kaybolursa Play Console'dan "upload key sıfırlama" talep edilir (günler sürer); yine de yedeği tutun. PKCS12'de `keyPassword` = `storePassword` olmalıdır.
+- Mağazadan kurulan sürümün gerçek imzası Play'in "app signing key" sertifikasıdır (Console > Kurulum > Uygulama bütünlüğü). **Bu SHA-1/SHA-256'yı** Firebase Android uygulamasına ve (kısıt varsa) Google Cloud API anahtarına ekleyin ([PUSH_SETUP.md](PUSH_SETUP.md) bölüm 6); aksi halde mağaza sürümünde push/Firebase çağrıları bloklanabilir. Elden kurulan APK ise yukarıdaki upload parmak iziyle imzalıdır (Firebase'e o da eklenebilir).
+- Yeni makinede yeniden üretme gerekirse: `keytool -genkeypair -keystore <yol>.jks -storetype PKCS12 -alias bu-upload -keyalg RSA -keysize 4096 -validity 10000` (parolaları kendiniz seçin); Play'e daha önce başka anahtarla yüklediyseniz anahtar değiştirilemez, sıfırlama gerekir.
 
-Sonra `mobile/android/key.properties.example` dosyasını `mobile/android/key.properties` olarak kopyalayıp doldurun (`storeFile=C:/keys/bu-upload.jks` gibi mutlak yol; `storePassword`, `keyAlias=upload`, `keyPassword`). **PKCS12 anahtar deposunda `keyPassword` ile `storePassword` aynı olmalıdır** (farklı verirseniz Gradle imzalama hatası alırsınız).
+### 8.2 Sürüm artırma
+`mobile/pubspec.yaml` `version: 1.0.0+1`: her yeni yüklemede `+N` artar (ad değişmese de), `APP_VERSION` define'ı ad ile aynı olur (sunucu `GET /api/app/version` zorunlu sürüm denetimi bunu kullanır).
 
-**Nerede saklanır:**
-- `bu-upload.jks` ve parolalar: parola yöneticisi + **ikinci bir çevrimdışı kopya** (şifreli USB / şifreli arşiv). Dosyayı e-postayla, sohbetle, buluta açık göndermeyin; repoya asla koymayın.
-- Kaybederseniz uygulama kaybolmaz: **Play App Signing** etkinse Google gerçek imzalama anahtarını tutar, siz Play Console'dan "upload key sıfırlama" talep edersiniz (birkaç gün sürer). Ancak Play App Signing'i **ilk yüklemede etkin bırakmak** zorunludur (yeni uygulamalarda varsayılan ve zorunludur).
-- Sunucudaki `.env.prod`/age/CRYPTO anahtarlarından **ayrı** tutun ([KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)); bu anahtar sunucu verisini açmaz, yalnız uygulama yayınlama yetkisi verir.
+### 8.3 Üretim derlemesi (MOB1, 2026-10-29, koşturulan komutlar)
 
-### 8.2 Play App Signing (Google imzalar, siz yüklersiniz)
+Bölüm 3'teki iki komut, `C:\bu_mobile` içinde, `key.properties` ile. Sonuç:
 
-1. Play Console'da uygulamayı oluşturun (paket adı **`edu.bingol.bu_kampus`**, bir kez seçilir, sonra değişmez).
-2. İlk AAB'yi yüklerken **Play App Signing'e katılın** (varsayılan). Siz AAB'yi *upload key* ile imzalarsınız; Google kullanıcıya dağıttığı APK'ları kendi *app signing key* ile yeniden imzalar.
-3. **Parmak izleri:** Play Console > Kurulum > Uygulama bütünlüğü > Uygulama imzalama: "App signing key certificate" (SHA-1/SHA-256) mağazadan kurulan sürümün gerçek imzasıdır. Bu SHA-1'i **Google Cloud API anahtarı kısıtına ekleyin** ([PUSH_SETUP.md](PUSH_SETUP.md) bölüm 6), yoksa mağazadan kurulan sürümde push/Firebase çağrıları bloklanır.
-4. İleride Google oturum açma/App Links kullanılırsa aynı parmak izleri gerekir (şu an kullanılmıyor).
+| Çıktı | Boyut | Konum |
+|---|---|---|
+| AAB | 83.424.605 bayt (79,6 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-1.0.0+1.aab` |
+| APK (fat, 3 ABI) | 92.406.626 bayt (88,1 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-1.0.0+1.apk` |
+| Hata ayıklama sembolleri + R8 eşleme | ~16 MB | `C:\Users\Toprak Çevik\bu-secrets\symbols-1.0.0\` |
 
-### 8.3 AAB derleme (üretim)
+Doğrulananlar:
+- AAB: `keytool -printcert -jarfile` -> `Owner: CN=BU Kampus Upload`, SHA-1/SHA-256 yukarıdakiyle aynı.
+- APK: `apksigner verify --print-certs` -> `Verifies`, v2 şeması (minSdk 24 için yeter), sertifika SHA-256 `87845cad...5011` = keystore.
+- `aapt2 dump badging`: paket `edu.bingol.bu_kampus`, `versionCode=1`, `versionName=1.0.0`, `minSdk=24`, `targetSdk=36`, `compileSdk=37`, etiket "BÜ Kampüs".
+- Manifest: `usesCleartextTraffic=false`, `allowBackup=false`; izinler bölüm 5 + eklentilerden gelen `WAKE_LOCK`, `ACCESS_NETWORK_STATE`, `RECEIVE_BOOT_COMPLETED`, `com.google.android.c2dm.permission.RECEIVE` (FCM) ve `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; konum izni yok.
+- `libapp.so` (3 ABI) içinde `https://bukampus.com.tr` ve `https://bukampus.com.tr/api` var; `10.0.2.2`, `192.168.*`, `localhost`, `127.0.0.1` yok.
+- Firebase: `google-services.json` paket adı `edu.bingol.bu_kampus` ile uyumlu, eklenti release'de uygulandı (APK kaynaklarında `google_app_id`, `gcm_defaultSenderId`, proje kimliği var). **FCM sunucu kimliği sunucuya girilmeden push gitmez** ([PUSH_SETUP.md](PUSH_SETUP.md)).
+- Canlı uçlar (salt-okur, `Accept-Language`, `X-Device-Id` ile): `GET /api/status`, `/api/app/version?platform=android&version=1.0.0`, `/api/app/info`, `/api/menu/today` = 200; `wss://bukampus.com.tr/ws` WebSocket yükseltmesi 101 döndü.
+- `flutter analyze`: sorun yok; `flutter test`: 3300 test geçti (hata yok).
 
-```powershell
-# C:\bu_mobile içinde, ortam: bu belgenin başı
-flutter build appbundle --release --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0
-# çıktı: build\app\outputs\bundle\release\app-release.aab
-```
+**Doğrulanmadı:** APK'nın gerçek bir telefonda/emülatörde çalıştırılması (giriş, sohbet, QR, video sıkıştırma, rehber, R8 yansıma çökmeleri), gerçek push alımı, AAB'nin Play'e yüklenmesi.
 
-- `API_BASE` **https olmak zorunda**; `ALLOW_INSECURE_API` üretimde verilmez. `APP_VERSION` pubspec `version:` ile aynı olsun.
-- Her yüklemede `pubspec.yaml` `version: 1.0.0+N` içindeki `N` artırılır.
-- İmza kontrolü (Play'e yüklemeden önce): `& 'C:\android\jdk17\bin\keytool.exe' -printcert -jarfile build\app\outputs\bundle\release\app-release.aab` çıktısındaki SHA-1, **upload key** parmak izinizle aynı olmalı. Debug anahtarıyla imzalanmışsa `Owner: CN=Android Debug` görürsünüz: yüklemeyin (`key.properties` eksik).
-- Sembolleştirme (isteğe bağlı): `--obfuscate --split-debug-info=build\symbols`; `build\symbols` saklanır.
-
-**REL1 doğrulama notu:** `flutter build appbundle --release` bu bölümdeki komutla **imzasız `key.properties` (debug imzalı)** olarak denendi; sonuç ve süre aşağıdaki "Derleme kaydı"ndadır. Gerçek upload anahtarıyla imzalı derleme ve Play yüklemesi **doğrulanmadı** (keystore/hesap kullanıcıda).
-
-### 8.4 Play Console: kapalı test (closed testing) adımları
-
-1. **Hesap:** Play Console geliştirici hesabı (tek seferlik ücret; kişisel hesapta ad ve adres herkese görünebilir: [LEGAL_NOTES.md](LEGAL_NOTES.md) gizlilik uyarısı). Kimlik doğrulaması günler sürebilir; yayın sürecinin ilk işi olarak başlatın.
-2. **Uygulamayı oluştur** > varsayılan dil Türkçe > "Uygulama" > "Ücretsiz".
-3. **Mağaza girişi:** [store/store_tr.md](store/store_tr.md), [store/store_en.md](store/store_en.md), görseller [store/screenshots.md](store/screenshots.md).
-4. **Uygulama içeriği bölümü:** gizlilik politikası URL'si (`https://bukampus.com.tr/tr/privacy`), uygulama erişimi (inceleyici hesabı), reklamlar (yok), içerik derecelendirme ([store/content_rating.md](store/content_rating.md)), hedef kitle (18+), Veri güvenliği ([store/data_safety.md](store/data_safety.md)), hesap silme URL'si (`https://bukampus.com.tr/tr/delete-account`), hassas izin beyanları (READ_CONTACTS; READ_MEDIA_*: [store/data_safety.md](store/data_safety.md) bölüm 4).
-5. **Test > Kapalı test > Yeni kanal:** AAB'yi yükleyin, test kullanıcı listesi (e-posta listesi) oluşturun, sürüm notu yazın, incelemeye gönderin. Test kullanıcıları katılım bağlantısıyla kabul eder ve Play'den kurar.
-6. **Koşul (değişebilir, Console'da doğrulayın):** yeni kişisel geliştirici hesaplarında üretime çıkmadan önce kapalı testte **en az 12 test kullanıcısının 14 gün kesintisiz katılımı** istenmektedir; bu süre ve sayıyı hesabınız için Play Console "Üretime çık" bölümünde kontrol edin. Test kullanıcılarını (arkadaş, kulüp üyesi) bu sebeple erken toplayın.
-7. **Kapalı test sürümüyle** [DEVICE_TEST_PLAN.md](DEVICE_TEST_PLAN.md)'i koşturun; geri bildirimi düzeltip `N+1` yükleyin.
-8. Üretime geçişte **aşamalı yayın** (%10 -> %50 -> %100) kullanın; `LEGAL_ENFORCE_REACCEPT` ve `min_version_android` sırası: [DEPLOY.md](DEPLOY.md) 14.4.
-9. Her mağaza sürümünde `pubspec` `+N` artar, sürüm notları tr/en yazılır, `google-services.json` derleme makinesinde bulunur (yoksa push kapalı derlenir).
-
-### Derleme kaydı (REL1, 2026-10-29)
-
-`flutter build appbundle --release --dart-define=API_BASE=https://bukampus.com.tr --dart-define=APP_VERSION=1.0.0` komutu **commitli kaynaktan** (`git archive HEAD mobile` ile `C:\bu_rel1_aab` kopyası; başka ajanların bitmemiş değişiklikleri dışarıda) çalıştırıldı: **başarılı**, `app-release.aab` **85,4 MB**, soğuk Gradle önbelleğiyle 1159 sn (~19 dk; sonraki derlemeler çok daha kısa). `key.properties` olmadığı için **debug anahtarıyla imzalıdır** (`keytool -printcert -jarfile ...` çıktısı `CN=Android Debug`); bu dosya Play'e **yüklenemez**, yalnız derleme hattının çalıştığını gösterir. Upload anahtarıyla imzalı derleme, Play yüklemesi ve gerçek cihaz/R8 çalışma testi **doğrulanmadı**.
+Derleme notları: `--split-debug-info` yolu ASCII olmalıdır (aksi halde "Unable to write file ... app.android-arm.symbols"); `key.properties` yolunda Türkçe karakter UTF-8 okunur (build.gradle.kts). `mobile/android/build/` yerel Gradle çıktısıdır, commit'lenmez.

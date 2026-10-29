@@ -18,7 +18,16 @@ if (file("google-services.json").exists()) {
 val keyProps = Properties()
 val keyPropsFile = rootProject.file("key.properties")
 val hasReleaseKey = keyPropsFile.exists()
-if (hasReleaseKey) keyPropsFile.inputStream().use { keyProps.load(it) }
+if (hasReleaseKey) {
+    // UTF-8 oku (Properties.load varsayilani ISO-8859-1: "Cevik" gibi Turkce karakterli yollari bozar)
+    keyPropsFile.reader(Charsets.UTF_8).use { keyProps.load(it) }
+    // key.properties var ama alanlar eksik ya da keystore dosyasi yoksa sessizce debug'a dusmeyelim: acik hata.
+    val missing = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").filter { keyProps.getProperty(it).isNullOrBlank() }
+    if (missing.isNotEmpty()) throw GradleException("key.properties eksik alan: $missing")
+    if (!rootProject.file(keyProps.getProperty("storeFile")).exists()) {
+        throw GradleException("key.properties storeFile bulunamadi: ${keyProps.getProperty("storeFile")}")
+    }
+}
 
 // `flutter build ... --dart-define=ALLOW_INSECURE_API=true` (ya da -Pbu.cleartext=true) ise duz http'ye izin verilir.
 val dartDefines: List<String> =
