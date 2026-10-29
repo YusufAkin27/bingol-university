@@ -590,9 +590,11 @@ class _ChatTabState extends State<ChatTab> {
             },
             background: Container(
               alignment: AlignmentDirectional.centerEnd,
-              padding: const EdgeInsetsDirectional.only(end: 24),
+              padding: const EdgeInsetsDirectional.only(end: 16),
               color: kChatdNavy,
-              child: Column(
+              child: SizedBox(
+                width: 96,
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
@@ -603,8 +605,11 @@ class _ChatTabState extends State<ChatTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
                 ],
+              ),
               ),
             ),
             child: Builder(

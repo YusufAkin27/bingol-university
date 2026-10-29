@@ -184,7 +184,7 @@ class ChatdSkeleton extends StatelessWidget {
                   const SizedBox(height: 10),
                   ClipRRect(
                     borderRadius: BuRadius.bPill,
-                    child: SizedBox(width: 120, height: 4, child: ColoredBox(color: t.sf, child: Align(alignment: AlignmentDirectional.centerStart, child: FractionallySizedBox(widthFactor: .35, child: ColoredBox(color: t.ink))))),
+                    child: SizedBox(width: 120, height: 4, child: ColoredBox(color: t.sf, child: Align(alignment: AlignmentDirectional.centerStart, child: FractionallySizedBox(widthFactor: .35, heightFactor: 1, child: ColoredBox(color: t.ink))))),
                   ),
                 ]),
               ),

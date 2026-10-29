@@ -156,7 +156,11 @@ class ChatlistAvatar extends StatelessWidget {
     this.online = false,
     this.badge,
     this.badgeAtTop = false,
+    this.circle = false,
   });
+
+  /// true: yuvarlak (sohbet içi 28 dp gönderen avatarı); false: yuvarlatılmış kare (liste).
+  final bool circle;
 
   final String name;
   final String? url;
@@ -181,19 +185,44 @@ class ChatlistAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final radius = size * .34;
+    final radius = circle ? size / 2 : size * .34;
+    // Baş harfli tonlu kare her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.
+    final tint = t.tint(name.runes.fold<int>(0, (a, r) => (a + r) % 9973));
+    final initialsTile = Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(radius)),
+      child: Text(initials(name), style: (size < 40 ? Theme.of(context).textTheme.labelSmall! : Theme.of(context).textTheme.titleMedium!).copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
+    );
+    final full = fileUrl(url);
     final Widget base;
-    if (url != null && url!.isNotEmpty) {
-      base = BuAvatar(name: name, url: url, size: size, group: group, square: true);
+    if (full == null) {
+      base = ExcludeSemantics(child: initialsTile);
     } else {
-      final tint = t.tint(name.runes.fold<int>(0, (a, r) => (a + r) % 9973));
+      final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
       base = ExcludeSemantics(
-        child: Container(
+        child: SizedBox(
           width: size,
           height: size,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(radius)),
-          child: Text(initials(name), style: Theme.of(context).textTheme.titleMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
+          child: Stack(fit: StackFit.expand, children: [
+            initialsTile,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(radius),
+              child: Image.network(
+                full,
+                width: size,
+                height: size,
+                cacheWidth: px,
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                frameBuilder: (c, child, frame, sync) =>
+                    sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
+                // Yüklenemezse alttaki baş harfli kare kalır.
+                errorBuilder: (c, e, st) => const SizedBox.shrink(),
+              ),
+            ),
+          ]),
         ),
       );
     }

@@ -7,7 +7,10 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/core/closed_conversations.dart';
+import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu.dart';
@@ -35,7 +38,7 @@ String s(String tr, String en, String ar) => switch (_lang) {
       _ => tr,
     };
 
-enum _Img { ok, hang }
+enum _Img { ok, hang, err }
 
 class _Board {
   const _Board(this.file, this.build, {this.height = 844, this.img = _Img.ok, this.after, this.settleMs = 1000, this.drainMs = 0});
@@ -62,6 +65,17 @@ class _HangClient implements HttpClient {
   Future<HttpClientRequest> getUrl(Uri url) => Completer<HttpClientRequest>().future;
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) => Completer<HttpClientRequest>().future;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _ErrClient implements HttpClient {
+  @override
+  bool autoUncompress = true;
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async => throw const SocketException('yok');
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async => throw const SocketException('yok');
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
@@ -210,24 +224,38 @@ Map<String, dynamic> _vid(int id) => {
       'height': 720,
     };
 
-Widget _bubble(Map<String, dynamic> m, {bool mine = false, String? sender, String? replyName, bool seen = false, bool tail = true}) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-      child: MessageBubble(
-        message: m,
-        mine: mine,
-        senderName: sender,
-        replyName: replyName,
-        seen: seen,
-        tail: tail,
-        authHeaders: const {},
-        onMenu: () {},
-        onRetry: () {},
-        onOpenImage: (_) {},
-        onReact: (_) {},
-        onOpenViewOnce: (_) {},
-        onOpenGallery: (a, i) {},
-      ),
-    );
+Widget _bubble(Map<String, dynamic> m,
+    {bool mine = false, String? sender, String? replyName, bool seen = false, bool tail = true, bool group = false, String? who, bool lastOfRun = true}) {
+  final bubble = MessageBubble(
+    message: m,
+    mine: mine,
+    senderName: sender,
+    onSenderTap: (group || sender != null) && !mine ? () {} : null,
+    replyName: replyName,
+    seen: seen,
+    tail: tail,
+    authHeaders: const {},
+    onMenu: () {},
+    onRetry: () {},
+    onOpenImage: (_) {},
+    onReact: (_) {},
+    onOpenViewOnce: (_) {},
+    onOpenGallery: (a, i) {},
+  );
+  // Grup/oda mesajlari detay sayfasindaki satir duzeniyle (solda 28 dp avatar sutunu) gosterilir.
+  if (group && !mine) {
+    return Padding(padding: const EdgeInsets.fromLTRB(0, 4, 16, 4), child: _senderRow(who ?? sender ?? '?', bubble, lastOfRun: lastOfRun));
+  }
+  return Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 4), child: bubble);
+}
+
+/// Sohbet detay sayfasindaki satir duzeni (`_rowFor`): solda 28 dp avatar sutunu, serinin son mesajinda avatar.
+Widget _senderRow(String name, Widget bubble, {bool lastOfRun = true}) => Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      const SizedBox(width: 16),
+      SizedBox(width: 28, child: lastOfRun ? ChatlistAvatar(name: name, size: 28, circle: true) : null),
+      const SizedBox(width: 8),
+      Expanded(child: bubble),
+    ]);
 
 class _Chat extends StatelessWidget {
   const _Chat(this.children);
@@ -263,25 +291,26 @@ Widget _b2() => _Chat([
             ],
             'myReaction': '👍',
           }, ago: 90),
-          sender: 'Ahmet Demir'),
+          sender: 'Ahmet Demir', group: true, lastOfRun: false),
+      _bubble(_m(7, s('Linki de ekledim.', 'I added the link too.', 'أضفت الرابط أيضًا.'), ago: 88), group: true, who: 'Ahmet Demir'),
       const SizedBox(height: 10),
       _bubble(_m(2, s('Harika olmuş, eline sağlık! 3. slayttaki grafiği güncelledim.', 'Great work! I updated the chart on slide 3.', 'عمل رائع! حدّثت الرسم في الشريحة 3.'), extra: {
         'reactions': [
           {'emoji': '👏', 'count': 2}
         ],
-      }, ago: 80), sender: 'Zeynep Arslan'),
+      }, ago: 80), sender: 'Zeynep Arslan', group: true),
       const SizedBox(height: 10),
-      _bubble(_m(3, 'Bu mesaj silindi', extra: {'deleted': true}, ago: 70), sender: 'Ahmet Demir'),
-      _bubble(_m(4, 'Bu mesaj yönetici tarafından kaldırıldı', extra: {'removed': true}, ago: 65)),
+      _bubble(_m(3, 'Bu mesaj silindi', extra: {'deleted': true}, ago: 70), sender: 'Ahmet Demir', group: true, lastOfRun: false),
+      _bubble(_m(4, 'Bu mesaj yönetici tarafından kaldırıldı', extra: {'removed': true}, ago: 65), group: true, who: 'Ahmet Demir'),
       _bubble(_m(5, s('Ben de kod reposunu inceledim, birleştirme isteğini onaylıyorum.', 'I reviewed the repo too and approve the merge request.', 'راجعت المستودع أيضًا وأوافق على طلب الدمج.'), extra: {'status': 'READ', 'senderId': 1}, ago: 60), mine: true, seen: true),
     ]);
 
 Widget _b3() {
   final progress = ValueNotifier<double>(.65);
   return _Chat([
-    _bubble(_m(1, s('Kampüs atölyesinde hazırladığımız prototip hazır!', 'The prototype we built at the campus workshop is ready!', 'النموذج الذي أعددناه في ورشة الحرم جاهز!'), extra: {'attachments': [_img(1, w: 900, h: 700)]}, ago: 60), sender: 'Alp Kaya'),
+    _bubble(_m(1, s('Kampüs atölyesinde hazırladığımız prototip hazır!', 'The prototype we built at the campus workshop is ready!', 'النموذج الذي أعددناه في ورشة الحرم جاهز!'), extra: {'attachments': [_img(1, w: 900, h: 700)]}, ago: 60), sender: 'Alp Kaya', group: true),
     const SizedBox(height: 10),
-    _bubble(_m(2, '', extra: {'attachments': [_vid(90)]}, ago: 50), sender: 'Selin Deniz'),
+    _bubble(_m(2, '', extra: {'attachments': [_vid(90)]}, ago: 50), sender: 'Selin Deniz', group: true),
     const SizedBox(height: 10),
     _bubble(_m(3, '', extra: {'_state': 'pending', 'senderId': 1, 'id': null, '_bytes': storeImageBytes(2), '_progress': progress}, ago: 1), mine: true),
   ]);
@@ -308,13 +337,43 @@ Widget _b5() => _Chat([
       _bubble(_m(4, s('Kütüphane 3. kat açık mı?', 'Is the 3rd floor open?', 'هل الطابق الثالث مفتوح؟'), ago: 5)),
     ]);
 
+Widget _closedChat() {
+  ClosedConversations.instance.markClosed(1);
+  Map<String, dynamic> msg(int id, int sender, String text, int ago) =>
+      {'id': id, 'conversationId': 1, 'senderId': sender, 'text': text, 'createdAt': _at(ago), 'attachments': const [], 'reactions': const []};
+  final be = FakeBackend()
+    ..on('/conversations/1/messages*', {
+      'items': [
+        msg(2, 12, s('Sorularınız için LinkedIn üzerinden ulaşabilirsiniz. Başarılar dilerim.', 'You can reach me on LinkedIn for questions. Good luck.', 'يمكنكم التواصل عبر لينكدإن للأسئلة. بالتوفيق.'), 1500),
+        msg(1, 11, s('Tüm katılımcılara teşekkür ederiz, soru-cevap oturumu tamamlanmıştır.', 'Thank you all, the Q&A session has ended.', 'شكرًا لجميع المشاركين، انتهت جلسة الأسئلة والأجوبة.'), 1510),
+      ],
+      'nextCursor': null,
+    })
+    ..on('/conversations/1', {
+      'conversation': {'id': 1},
+      'members': [
+        {'userId': 1, 'displayName': 'Ayşe Yılmaz'},
+        {'userId': 11, 'displayName': s('Moderatör', 'Moderator', 'المشرف')},
+        {'userId': 12, 'displayName': s('Konuşmacı', 'Speaker', 'المتحدث')},
+      ],
+    });
+  addTearDown(() => ClosedConversations.instance.markOpen(1));
+  return ChatDetailPage(
+    session: makeSession(be),
+    connectRealtime: false,
+    conversation: {'id': 1, 'type': 'EVENT', 'title': s('Kariyer Günleri Soru-Cevap', 'Career Days Q&A', 'أيام المهنة: أسئلة وأجوبة'), 'memberCount': 28, 'eventId': 5},
+  );
+}
+
 final _boards = <_Board>[
   _Board('L01_liste_dolu', () => _tab(_listBackend())),
   _Board('L02_liste_kaydir', () => _tab(_listBackend()), after: (t) async {
     final g = await t.startGesture(t.getCenter(find.text('Emre Can')));
-    await g.moveBy(const Offset(-120, 0));
+    await g.moveBy(const Offset(-150, 0));
     await t.pump(const Duration(milliseconds: 100));
-    await g.moveBy(const Offset(-40, 0));
+    await g.moveBy(const Offset(-50, 0));
+    await t.pump(const Duration(milliseconds: 100));
+    await g.moveBy(const Offset(-100, 0));
     await t.pump(const Duration(milliseconds: 100));
   }),
   _Board('L03_liste_uzun_basma', () => _tab(_listBackend()), after: (t) async {
@@ -335,12 +394,14 @@ final _boards = <_Board>[
   }),
   _Board('L06_yukleniyor', () => _tab(_listBackend(delay: const Duration(seconds: 2))), settleMs: 300, drainMs: 2500),
   _Board('L06b_hata_cevrimdisi', () => _tab(_listBackend(network: true))),
+  _Board('L07_avatar_hata', () => _tab(_listBackend()), img: _Img.err, settleMs: 900),
   _Board('B1_balon_metin', _b1, height: 700),
   _Board('B2_balon_grup', _b2, height: 700),
   _Board('B3_balon_medya', _b3, height: 1000),
   _Board('B3b_balon_gorsel_yukleniyor', _b3b, height: 700, img: _Img.hang, settleMs: 700),
   _Board('B4_balon_tek_gosterimlik', _b4, height: 520),
   _Board('B5_balon_hata_kuyruk', _b5, height: 560),
+  _Board('B6_sohbet_kapali', _closedChat),
 ];
 
 Future<void> _pumpImages(WidgetTester tester) async {
@@ -381,6 +442,7 @@ void main() {
         debugNetworkImageHttpClientProvider = switch (b.img) {
           _Img.ok => () => StoreImageHttpClient(),
           _Img.hang => () => _HangClient(),
+          _Img.err => () => _ErrClient(),
         };
 
         final key = GlobalKey();
@@ -390,6 +452,7 @@ void main() {
         if (b.after != null) {
           await b.after!(tester);
           await settle(tester, const Duration(milliseconds: 600));
+          if (b.img == _Img.ok) await _pumpImages(tester);
         }
         final err = tester.takeException();
         if (err != null) fail('Istisna: $err');

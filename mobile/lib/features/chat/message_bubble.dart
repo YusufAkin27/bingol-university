@@ -212,7 +212,7 @@ class MessageBubble extends StatelessWidget {
 
     // Yalnız medya: saat+tik görselin sağ altında yarı saydam koyu hap (okundu tiki de açık renk).
     Widget mediaWithPill(Widget media) {
-      if (showText || !hasMeta) return media;
+      if (showText || !hasMeta || (atts.length == 1 && localBytes == null && !localVideo && !localGrid)) return media;
       return Stack(children: [
         media,
         PositionedDirectional(
@@ -239,7 +239,16 @@ class MessageBubble extends StatelessWidget {
           ratio: (vw > 0 && vh > 0) ? (vw / vh).clamp(.55, 2.0) : null,
           progress: m['_progress'] is ValueListenable<double> ? m['_progress'] as ValueListenable<double> : null);
     } else if (atts.length == 1) {
-      mediaBlock = _AttachmentImage(attachment: atts.first, headers: authHeaders, maxW: w, onTap: () => onOpenImage(atts.first));
+      mediaBlock = _AttachmentImage(
+        attachment: atts.first,
+        headers: authHeaders,
+        maxW: w,
+        radius: BorderRadius.zero,
+        onTap: () => onOpenImage(atts.first),
+        overlay: (!showText && hasMeta)
+            ? PositionedDirectional(end: 8, bottom: 8, child: ChatdPill(child: metaRow(t.onMedia, readColor: t.onMedia)))
+            : null,
+      );
     } else if (atts.length > 1) {
       final cols = atts.length > 4 ? 3 : 2;
       final cap = cols == 3 ? 6 : 4;
@@ -281,11 +290,23 @@ class MessageBubble extends StatelessWidget {
     // Hap tek gösterimlik durumları (Açıldı/Gönderildi): gelen soluk zemin, giden kırmızı.
     final oncePill = hasOnce && !onceLocked;
     final softPill = oncePill && solidMine;
-    final body = Container(
+    final nameWidget = senderName == null
+        ? null
+        : Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(mediaStyle ? 6 : 0, 0, 0, mediaStyle ? 4 : 3),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: preview ? null : onSenderTap,
+              child: Text(senderName!,
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.tint(senderName.hashCode).fg, fontWeight: FontWeight.w700)),
+            ),
+          );
+    final core = Container(
       constraints: BoxConstraints(maxWidth: maxW),
-      padding: EdgeInsets.symmetric(horizontal: mediaStyle ? 4 : 14, vertical: mediaStyle ? 4 : 9),
+      clipBehavior: mediaStyle ? Clip.antiAlias : Clip.none,
+      padding: EdgeInsets.symmetric(horizontal: mediaStyle ? 0 : 14, vertical: mediaStyle ? 0 : 9),
       decoration: BoxDecoration(
-        color: softPill ? t.soft : (oncePill && !mine && !ghost ? t.sf2 : bodyColor),
+        color: onceLocked ? BuTokens.light.ink : (softPill ? t.soft : (oncePill && !mine && !ghost ? t.sf2 : bodyColor)),
         border: (mine || ghost) ? null : Border.all(color: t.bd),
         // Mantıksal köşeler: sağdan sola düzende kuyruk köşesi de aynalanır.
         borderRadius: BorderRadiusDirectional.only(
@@ -296,22 +317,14 @@ class MessageBubble extends StatelessWidget {
         ),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        if (senderName != null)
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(mediaStyle ? 8 : 0, mediaStyle ? 4 : 0, 0, 3),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: preview ? null : onSenderTap,
-              child: Text(senderName!,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.tint(senderName.hashCode).fg, fontWeight: FontWeight.w700)),
-            ),
-          ),
+        if (nameWidget != null && !mediaStyle) nameWidget,
         if (adminRemoved)
           Padding(
             padding: const EdgeInsets.only(bottom: 2),
             child: Text(context.l10n.p08ModerationTitle, style: tx.labelMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
           ),
-        if (reply != null && !deleted) _quote(context, t, reply, fg),
+        if (reply != null && !deleted)
+          mediaStyle ? Padding(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _quote(context, t, reply, fg)) : _quote(context, t, reply, fg),
         if (onceBlock != null)
           Padding(
             padding: EdgeInsets.only(bottom: showText ? 6 : 0),
@@ -325,11 +338,15 @@ class MessageBubble extends StatelessWidget {
         if (showText)
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(mediaStyle ? 10 : 0, mediaStyle ? 6 : 0, mediaStyle ? 10 : 0, mediaStyle ? 4 : 0),
-            child: textWithMeta(),
+            // Medya varken açıklama görselin genişliğini aşmasın: görsel balona kenardan kenara otursun.
+            child: hasMedia ? ConstrainedBox(constraints: BoxConstraints(maxWidth: _mediaWidth(maxW) - 20), child: textWithMeta()) : textWithMeta(),
           ),
       ]),
     );
 
+    final body = (mediaStyle && nameWidget != null)
+        ? Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [nameWidget, core])
+        : core;
     if (preview) return body;
 
     final gestureBubble = Builder(
@@ -605,7 +622,7 @@ class _LocalMedia extends StatelessWidget {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.zero,
       child: SizedBox(
         width: width,
         height: height,
@@ -688,7 +705,11 @@ class _AttachmentImage extends StatelessWidget {
     this.sideH,
     this.radius,
     this.more = 0,
+    this.overlay,
   });
+
+  /// Görsel yüklendikten (ya da hata verdikten) sonra üstüne bindirilen öğe (saat hapı).
+  final Widget? overlay;
 
   final Map<String, dynamic> attachment;
   final Map<String, String> headers;
@@ -722,6 +743,8 @@ class _AttachmentImage extends StatelessWidget {
     final durationMs = (attachment['durationMs'] as num?)?.toInt();
     final decode = (width * dpr).ceil().clamp(160, 900);
 
+    Widget withOverlay(Widget w) => overlay == null ? w : Stack(fit: StackFit.expand, children: [w, overlay!]);
+
     Widget box(Widget child) => ClipRRect(
           borderRadius: radius ?? BorderRadius.circular(18),
           child: SizedBox(width: width, height: height, child: child),
@@ -750,7 +773,7 @@ class _AttachmentImage extends StatelessWidget {
         onTap: onTap,
         child: box(Stack(fit: StackFit.expand, children: [
           if (thumb == null)
-            ColoredBox(color: t.sf2)
+            withOverlay(ColoredBox(color: t.sf2))
           else
             Image.network(
               chatMediaUrl(thumb),
@@ -761,10 +784,10 @@ class _AttachmentImage extends StatelessWidget {
               gaplessPlayback: true,
               // İlk kareye kadar (bağlantı + indirme) iskelet; kare gelince renk zemin üstünde belirir.
               frameBuilder: (c, child, frame, sync) => sync
-                  ? child
+                  ? withOverlay(child)
                   : frame == null
                       ? ChatdSkeleton(showLabel: side == null && height >= 90)
-                      : ColoredBox(
+                      : withOverlay(ColoredBox(
                           color: t.sf2,
                           child: TweenAnimationBuilder<double>(
                             tween: Tween(begin: 0, end: 1),
@@ -773,12 +796,12 @@ class _AttachmentImage extends StatelessWidget {
                             builder: (c, v, ch) => Opacity(opacity: v, child: ch),
                             child: child,
                           ),
-                        ),
-              errorBuilder: (c, e, s) => ColoredBox(
+                        )),
+              errorBuilder: (c, e, s) => withOverlay(ColoredBox(
                 color: t.sf2,
                 // Videoda oynat simgesi zaten ortada: kırık görsel simgesi onunla üst üste binmesin.
                 child: video ? null : Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
-              ),
+              )),
             ),
           if (video && more == 0) ...[
             ColoredBox(color: t.scrim.withValues(alpha: .12)),
@@ -964,7 +987,7 @@ class ViewOnceCard extends StatelessWidget {
       // Marka lacivertinde (her iki temada) koyu kart: medya baloncuğuyla aynı ağırlıkta durur.
       final navy = BuTokens.light.ink;
       content = Container(
-        width: 248,
+        width: 272,
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
         decoration: BoxDecoration(color: navy, borderRadius: BorderRadius.circular(18)),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -976,10 +999,10 @@ class ViewOnceCard extends StatelessWidget {
                 Row(children: [
                   Icon(LucideIcons.camera, size: 14, color: t.onMedia.withValues(alpha: .85)),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(l.chatMiscOnceTapToOpen, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700))),
+                  Expanded(child: Text(l.chatMiscOnceTapToOpen, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700))),
                 ]),
                 const SizedBox(height: 2),
-                Text(l.p08OnceSubtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.onMedia.withValues(alpha: .62))),
+                Text(l.p08OnceSubtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.onMedia.withValues(alpha: .62))),
               ]),
             ),
           ]),
