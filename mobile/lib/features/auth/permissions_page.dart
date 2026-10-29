@@ -4,13 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/permissions/permission_service.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/sistem_widgets.dart';
-import 'widgets/auth_art.dart';
-import 'widgets/auth_controls.dart';
-import 'widgets/auth_motion.dart';
+import '../../widgets/bu.dart';
+import '../system/gate_views.dart' show GateArrowButton;
 
 /// "İlk giriş izinleri gösterildi" bayrağı. Cihaz başınadır (hesap değişse de tekrar etmez);
 /// Keychain/Keystore'da tutulur.
@@ -66,9 +61,8 @@ class _PostLoginGateState extends State<PostLoginGate> {
   @override
   Widget build(BuildContext context) {
     final done = _done;
-    if (done == null) {
-      return Scaffold(backgroundColor: context.bu.bg, body: const Center(child: CircularProgressIndicator()));
-    }
+    // Bayrak okunurken (milisaniyeler) düz zemin: tam sayfa çember yok.
+    if (done == null) return Scaffold(backgroundColor: context.bu.bg);
     if (done) return widget.child;
     return PermissionsPage(
       service: widget.service,
@@ -82,12 +76,12 @@ class _PostLoginGateState extends State<PostLoginGate> {
 
 const _firstRun = [AppPermission.notifications, AppPermission.contacts, AppPermission.camera];
 
-/// Tam ekran, sıcak bir "İzinler" sayfası (Sm1): bildirim, rehber, kamera/galeri; 3 parçalı adım ilerlemesi.
-/// Her kart tek tek atlanabilir ("Şimdi değil"); "Devam" sayfayı kapatır.
+/// Tam ekran "Birkaç izin" sayfası (06/1-2): bildirim, rehber, kamera/galeri; 3 parçalı adım ilerlemesi.
+/// Her kart tek tek atlanabilir ("Şimdi değil"); "Başla"/"Devam" sayfayı kapatır.
 class PermissionsPage extends StatefulWidget {
   const PermissionsPage({super.key, required this.onFinished, this.onGranted, this.service});
 
-  /// "Devam" ile çıkış.
+  /// "Başla" / "Devam" ile çıkış.
   final VoidCallback onFinished;
   final ValueChanged<AppPermission>? onGranted;
   final PermissionService? service;
@@ -148,122 +142,97 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
     await _svc.openSettings();
   }
 
-  bool _resolved(AppPermission p) => (_st[p]?.usable ?? false) || _skipped.contains(p);
+  bool _denied(AppPermission p) {
+    final s = _st[p];
+    return s != null && !s.usable && (s.needsSettings || _asked.contains(p));
+  }
+
+  /// Karar verilmiş: verildi, reddedildi ya da atlandı.
+  bool _answered(AppPermission p) => (_st[p]?.usable ?? false) || _denied(p) || _skipped.contains(p);
 
   bool get _allGranted => _firstRun.every((p) => _st[p]?.usable ?? false);
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final resolved = _firstRun.where(_resolved).length;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final answered = _firstRun.where(_answered).length;
     final total = _firstRun.length;
-    final step = resolved >= total ? total : resolved + 1;
-    final active = _firstRun.cast<AppPermission?>().firstWhere((p) => !_resolved(p!), orElse: () => null);
-    final stepText = context.l10n.sistemuiPermStep(step.toString(), total.toString());
-    return AuthClockHost(
-      child: Scaffold(
+    final step = answered >= total ? total : answered + 1;
+    final stepText = l.sistemuiPermStep(step.toString(), total.toString());
+    final start = answered == 0 || _allGranted;
+    return Scaffold(
       backgroundColor: t.bg,
-      body: Stack(
-        children: [
-        const Positioned(top: 0, left: 0, right: 0, child: AuthAmbient()),
-        SafeArea(
-        child: Column(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+            Semantics(
+              container: true,
+              label: stepText,
+              excludeSemantics: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Semantics(
-                      container: true,
-                      label: stepText,
-                      excludeSemantics: true,
-                      child: Row(
-                        children: [
-                          for (var i = 0; i < total; i++) ...[
-                            if (i > 0) const SizedBox(width: 6),
-                            Expanded(
-                              child: AnimatedContainer(
-                                key: ValueKey('perm-step-$i'),
-                                duration: const Duration(milliseconds: 220),
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  color: i < step ? t.pr : t.mut.withValues(alpha: .22),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                  Text(stepText, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (var i = 0; i < total; i++) ...[
+                        if (i > 0) const SizedBox(width: 6),
+                        Expanded(
+                          child: AnimatedContainer(
+                            key: ValueKey('perm-step-$i'),
+                            duration: BuMotion.of(context, BuMotion.medium),
+                            height: 5,
+                            decoration: BoxDecoration(color: i < step ? t.pr : t.bd, borderRadius: BorderRadius.circular(3)),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
-                    child: ExcludeSemantics(
-                      child: Text(stepText, style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(4, 0, 4, 10),
-                    child: Align(alignment: AlignmentDirectional.centerStart, child: AuthArt(AuthArtKind.shield, size: 92)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Semantics(
-                      header: true,
-                      child: Text(context.l10n.permPageTitle,
-                          style: BuType.display.copyWith(color: t.ink, letterSpacing: -.5)),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(context.l10n.permPageIntro, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
-                  ),
-                  const SizedBox(height: 18),
-                  for (final p in _firstRun) ...[
-                    _PermRow(
-                      permission: p,
-                      state: _st[p],
-                      busy: _busy == p,
-                      asked: _asked.contains(p),
-                      active: p == active,
-                      onAllow: () => _ask(p),
-                      onSkip: () => setState(() => _skipped.add(p)),
-                      onSettings: _settings,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: AuthPrimaryButton(
-                label: _allGranted ? context.l10n.permStart : context.l10n.permContinue,
-                onPressed: widget.onFinished,
-              ),
+            const SizedBox(height: 20),
+            Semantics(
+              header: true,
+              child: Text(l.permPageTitle, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
             ),
+            const SizedBox(height: 8),
+            Text(l.permPageIntro, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.6)),
+            const SizedBox(height: 20),
+            for (final p in _firstRun) ...[
+              _PermCard(
+                permission: p,
+                state: _st[p],
+                busy: _busy == p,
+                denied: _denied(p),
+                onAllow: () => _ask(p),
+                onSkip: () => setState(() => _skipped.add(p)),
+                onSettings: _settings,
+              ),
+              const SizedBox(height: 16),
+            ],
+            const SizedBox(height: 8),
+            if (start)
+              GateArrowButton(label: l.permStart, onPressed: widget.onFinished)
+            else
+              BuButton(label: l.permContinue, onPressed: widget.onFinished),
           ],
         ),
       ),
-        ],
-      ),
-    ),
     );
   }
 }
 
-class _PermRow extends StatelessWidget {
-  const _PermRow({
+class _PermCard extends StatelessWidget {
+  const _PermCard({
     required this.permission,
     required this.state,
     required this.busy,
-    required this.asked,
-    required this.active,
+    required this.denied,
     required this.onAllow,
     required this.onSkip,
     required this.onSettings,
@@ -273,11 +242,8 @@ class _PermRow extends StatelessWidget {
   final PermState? state;
   final bool busy;
 
-  /// Bu sayfada istem gösterildi ve reddedildi.
-  final bool asked;
-
-  /// Sıradaki (vurgulu) adım.
-  final bool active;
+  /// Reddedildi (sistem kalıcı reddetti ya da bu sayfada istem reddedildi).
+  final bool denied;
   final VoidCallback onAllow;
   final VoidCallback onSkip;
   final VoidCallback onSettings;
@@ -296,102 +262,99 @@ class _PermRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     final (title, icon, text) = _content(context);
     final st = state;
-    final Widget action;
-    if (st != null && st.usable) {
-      action = _Mark(key: ValueKey('ok-${permission.name}'), color: t.ok, bg: t.okSoft, icon: LucideIcons.check, text: context.l10n.permGranted);
-    } else if (st != null && st.needsSettings) {
-      action = Wrap(
+    final granted = st != null && st.usable;
+
+    Widget? badge;
+    if (granted) {
+      badge = _StatusPill(key: ValueKey('ok-${permission.name}'), color: t.ok, bg: t.okSoft, icon: Icons.check_circle, text: l.permGranted);
+    } else if (denied) {
+      badge = _StatusPill(color: t.onSoft, bg: t.soft, icon: Icons.error, text: l.permDenied);
+    }
+
+    final Widget? actions;
+    if (granted) {
+      actions = null;
+    } else if (denied) {
+      actions = Wrap(
         key: ValueKey('perm-${permission.name}'),
         spacing: 8,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 4,
         children: [
-          _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
-          SistemButton(
-            label: context.l10n.permOpenSettings,
-            kind: SistemButtonKind.outline,
-            height: 44,
-            radius: 14,
-            onPressed: onSettings,
-          ),
+          _TonalPill(label: l.permRetry, icon: LucideIcons.rotateCw, onTap: busy ? null : onAllow),
+          BuButton(label: l.permOpenSettings, icon: LucideIcons.settings, kind: BuButtonKind.soft, compact: true, onPressed: onSettings),
         ],
       );
     } else {
-      action = Column(
-        key: ValueKey('ask-${permission.name}-$asked'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      actions = Row(
+        key: ValueKey('ask-${permission.name}-$denied'),
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (asked) ...[
-            _Mark(color: t.danger, bg: t.soft, icon: LucideIcons.x, text: context.l10n.permDenied),
-            const SizedBox(height: 8),
-          ],
-          Row(
-            children: [
-              Expanded(
-                child: SistemButton(
-                  label: asked ? context.l10n.permRetry : context.l10n.permAllow,
-                  height: 44,
-                  radius: 14,
-                  busy: busy,
-                  onPressed: st == null ? null : onAllow,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SistemButton(
-                  label: context.l10n.permNotNow,
-                  kind: SistemButtonKind.outline,
-                  height: 44,
-                  radius: 14,
-                  onPressed: onSkip,
-                ),
-              ),
-            ],
+          TextButton(
+            onPressed: onSkip,
+            style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+            child: Text(l.permNotNow, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
           ),
+          const SizedBox(width: 4),
+          BuButton(label: l.permAllow, compact: true, busy: busy, onPressed: st == null ? null : onAllow),
         ],
       );
     }
+
     return Semantics(
       container: true,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: t.sf,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: active ? t.pr : t.bd),
-          boxShadow: [BoxShadow(color: t.ink.withValues(alpha: .10), blurRadius: 18, offset: const Offset(0, 6), spreadRadius: -12)],
-        ),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SistemTile(icon: icon, size: 48, radius: 16, iconSize: 21),
-                const SizedBox(width: 14),
+                ExcludeSemantics(
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: granted ? t.sf2 : t.soft, borderRadius: BorderRadius.circular(14)),
+                    child: Icon(icon, size: 22, color: t.pr),
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: BuType.heading.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(title, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                            ),
+                          ),
+                          if (badge != null) ...[const SizedBox(width: 8), badge],
+                        ],
+                      ),
                       const SizedBox(height: 4),
-                      Text(text, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
+                      Text(text, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              transitionBuilder: (c, a) => FadeTransition(
-                opacity: a,
-                child: ScaleTransition(scale: Tween(begin: .92, end: 1.0).animate(a), child: c),
+            if (actions != null) ...[
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: BuMotion.of(context, BuMotion.medium),
+                child: Align(alignment: denied ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd, child: actions),
               ),
-              child: action,
-            ),
+            ],
           ],
         ),
       ),
@@ -399,8 +362,9 @@ class _PermRow extends StatelessWidget {
   }
 }
 
-class _Mark extends StatelessWidget {
-  const _Mark({super.key, required this.color, required this.bg, required this.icon, required this.text});
+/// Durum hapı: "Verildi" (yeşil) / "Reddedildi" (kırmızı ton), dolu daire simgeli.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({super.key, required this.color, required this.bg, required this.icon, required this.text});
 
   final Color color;
   final Color bg;
@@ -409,18 +373,66 @@ class _Mark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12.5, color: color),
-            const SizedBox(width: 6),
-            Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: color))),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
+          const SizedBox(width: 4),
+          Text(text, maxLines: 1, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: color, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gri tonal hap düğme ("Tekrar dene"): görsel 36 dp, dokunma hedefi 48 dp.
+class _TonalPill extends StatelessWidget {
+  const _TonalPill({required this.label, required this.icon, required this.onTap});
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+        child: Center(
+          widthFactor: 1,
+          child: Material(
+            color: t.sf2,
+            shape: const StadiumBorder(),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: onTap == null
+                  ? null
+                  : () {
+                      buHaptic(BuHaptic.selection);
+                      onTap!();
+                    },
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 36),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 14, color: t.ink),
+                      const SizedBox(width: 6),
+                      Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

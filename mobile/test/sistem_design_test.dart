@@ -44,7 +44,8 @@ void main() {
     'EmptyView eylemli': () => Scaffold(
         body: EmptyView(icon: LucideIcons.messageSquare, text: 'Birini bulup ilk mesajı gönderin.', title: 'Henüz sohbet yok', actionLabel: 'Yeni sohbet', onAction: () {})),
     'StaleBanner': () => const Scaffold(body: Padding(padding: EdgeInsets.all(20), child: StaleBanner(text: 'Bazı özellikler geçici olarak kullanılamayabilir.'))),
-    'QrScanPage': () => const QrScanPage(),
+    'QrScanPage': () => QrScanPage(permissionService: FakePermissionService(initial: {AppPermission.camera: PermState.granted}), scannerBuilder: (_) => const ColoredBox(color: Colors.black)),
+    'QrScanPage izin yok': () => QrScanPage(permissionService: FakePermissionService(initial: {AppPermission.camera: PermState.permanentlyDenied}), scannerBuilder: (_) => const SizedBox()),
     'PermissionsPage': () => PermissionsPage(service: FakePermissionService(), onFinished: () {}),
   };
 
@@ -64,23 +65,23 @@ void main() {
   }
 
   group('icerik', () {
-    testWidgets('guncelleme: surum satiri ve Magazada ac', (tester) async {
+    testWidgets('guncelleme: surum satiri ve Guncelle', (tester) async {
       await _pump(tester, const UpdateRequiredScreen(storeUrl: 'https://example.com', latest: '1.1.0', current: '1.0.2'));
       expect(find.text('Güncelleme gerekli'), findsOneWidget);
       expect(find.text('Yüklü sürüm 1.0.2 · Gerekli sürüm 1.1.0'), findsOneWidget);
-      expect(find.text('Mağazada aç'), findsOneWidget);
+      expect(find.text('Güncelle'), findsOneWidget);
     });
 
     testWidgets('guncelleme: guvensiz magaza adresinde dugme yok', (tester) async {
       await _pump(tester, const UpdateRequiredScreen(storeUrl: 'http://x.com'));
-      expect(find.text('Mağazada aç'), findsNothing);
+      expect(find.text('Güncelle'), findsNothing);
     });
 
     testWidgets('erisim engeli: kod satiri ve Tekrar dene geri cagrisi', (tester) async {
       var n = 0;
       await _pump(tester, AccessBlockedScreen(onRetry: () => n++));
       expect(find.text('Hata kodu: ACCESS_BLOCKED'), findsOneWidget);
-      await tester.tap(find.text('Tekrar dene'));
+      await tester.tap(find.text('Yeniden dene'));
       expect(n, 1);
     });
 
@@ -120,7 +121,15 @@ void main() {
         Builder(
           builder: (c) => Scaffold(
             body: TextButton(
-              onPressed: () async => result = await Navigator.push<String>(c, MaterialPageRoute(builder: (_) => const QrScanPage())),
+              onPressed: () async => result = await Navigator.push<String>(
+                c,
+                MaterialPageRoute(
+                  builder: (_) => QrScanPage(
+                    permissionService: FakePermissionService(initial: {AppPermission.camera: PermState.granted}),
+                    scannerBuilder: (_) => const ColoredBox(color: Colors.black),
+                  ),
+                ),
+              ),
               child: const Text('ac'),
             ),
           ),

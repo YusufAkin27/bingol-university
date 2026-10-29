@@ -39,7 +39,7 @@ void main() {
       expect(find.text('Birkaç izin'), findsOneWidget);
       expect(find.text('KABUK'), findsNothing);
 
-      await tester.tap(find.text('Devam'));
+      await tester.tap(find.text('Başla'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('KABUK'), findsOneWidget);
       expect(svc.requested, isEmpty);
@@ -52,9 +52,9 @@ void main() {
       _noErrors(tester);
     });
 
-    testWidgets('Devam da bayragi isaretler', (tester) async {
+    testWidgets('Basla da bayragi isaretler', (tester) async {
       await _pumpPage(tester, PostLoginGate(service: _fake(), child: const Text('KABUK')));
-      await tester.tap(find.text('Devam'));
+      await tester.tap(find.text('Başla'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('KABUK'), findsOneWidget);
       expect(await PermissionOnboarding.isDone(), isTrue);
@@ -219,7 +219,7 @@ void main() {
       final r = await run(tester, svc, () async {
         await tester.tap(find.text('Devam'));
         await settle(tester, const Duration(milliseconds: 500));
-        expect(find.textContaining('izni verilmedi'), findsOneWidget);
+        expect(find.textContaining('izni verilmedi'), findsWidgets);
         await tester.tap(find.text('Ayarlardan aç'));
       });
       expect(r, isFalse);
