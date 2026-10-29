@@ -6,9 +6,9 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 
 | Dosya | Ekran | Envanter kapsamı (docs/MOBILE_PAGES.md numaraları; A = alt sayfa/diyalog) | Durum |
 |---|---|---|---|
-| [01-karsilama-giris-durumlari.md](01-karsilama-giris-durumlari.md) | 5 | 20, 21 (varyantlar) | [ ] |
-| [02-kayit-adimlari.md](02-kayit-adimlari.md) | 6 | 22, 23, 28, 29, A3, A4 | [ ] |
-| [03-sifre-sifirlama.md](03-sifre-sifirlama.md) | 5 | 24, 25, 26, 27 | [ ] |
+| [01-karsilama-giris-durumlari.md](01-karsilama-giris-durumlari.md) | 5 | 20, 21 (varyantlar) | [x] 5 ekran, duzeltildi (sahte ust cubuk/kurum etiketleri/kartlar silindi; istek siniri geri sayimi eklendi) |
+| [02-kayit-adimlari.md](02-kayit-adimlari.md) | 6 | 22, 23, 28, 29, A3, A4 | [x] 6 ekran, duzeltildi (sahte ust cubuk/avatar/kurum etiketleri silindi) |
+| [03-sifre-sifirlama.md](03-sifre-sifirlama.md) | 5 | 24, 25, 26, 27 | [x] 5 ekran, duzeltildi (kurum dipnotu silindi) |
 | [04-sistem-tam-ekran.md](04-sistem-tam-ekran.md) | 5 | 1, 5, 6, 7, 8 | [ ] |
 | [05-sistem-seritler-hata.md](05-sistem-seritler-hata.md) | 6 | 2, 3, 4, 9, 10, 11, 12 | [ ] |
 | [06-izinler-ve-qr-tarama.md](06-izinler-ve-qr-tarama.md) | 6 | 13, 14, 19, A1 | [ ] |
