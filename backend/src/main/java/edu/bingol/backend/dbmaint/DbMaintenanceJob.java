@@ -45,6 +45,7 @@ public class DbMaintenanceJob {
     private final int auditLongDays;
     private final int analyticsRawDays;
     private final int activityDays;
+    private final int crashDays;
 
     public DbMaintenanceJob(ChunkedDeleter deleter, NamedParameterJdbcTemplate jdbc, AnalyticsRollup rollup,
                             SchedulerLock lock, Clock clock,
@@ -57,7 +58,8 @@ public class DbMaintenanceJob {
                             @Value("${app.dbmaint.admin-audit-days:365}") int adminAuditDays,
                             @Value("${app.dbmaint.audit-long-days:730}") int auditLongDays,
                             @Value("${app.dbmaint.analytics-raw-days:45}") int analyticsRawDays,
-                            @Value("${app.dbmaint.activity-daily-days:400}") int activityDays) {
+                            @Value("${app.dbmaint.activity-daily-days:400}") int activityDays,
+                            @Value("${app.dbmaint.crash-days:30}") int crashDays) {
         this.deleter = deleter;
         this.jdbc = jdbc;
         this.rollup = rollup;
@@ -73,6 +75,7 @@ public class DbMaintenanceJob {
         this.auditLongDays = auditLongDays;
         this.analyticsRawDays = analyticsRawDays;
         this.activityDays = activityDays;
+        this.crashDays = crashDays;
     }
 
     @Scheduled(cron = "${app.dbmaint.cron:0 0 3 * * *}", zone = "Europe/Istanbul")
@@ -99,6 +102,8 @@ public class DbMaintenanceJob {
         out.put("admin_audit", safe("admin_audit", () -> adminAudit(now)));
         out.put("message_access_audit", safe("message_access_audit", () -> longAudit("message_access_audit", now)));
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
+        out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
+        out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
         log.info("dbmaint tamam: {}", out);
         return out;
     }
@@ -174,6 +179,20 @@ public class DbMaintenanceJob {
         return adminAuditDays <= 0 ? 0 : deleter.delete("admin_audit",
                 "DELETE FROM admin_audit WHERE id IN (SELECT id FROM admin_audit WHERE created_at < :cutoff ORDER BY id LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, adminAuditDays)));
+    }
+
+    /** CR1: cokme olaylari 30 gun (anonim; grup basina son 50 siniri alim aninda uygulanir). */
+    private int crashEvents(Instant now) {
+        return crashDays <= 0 ? 0 : deleter.delete("crash_event",
+                "DELETE FROM crash_event WHERE id IN (SELECT id FROM crash_event WHERE received_at < :cutoff ORDER BY id LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, crashDays)));
+    }
+
+    /** CR1: son gorulmesi saklama suresini asan gruplar (olay/surum satirlari CASCADE ile gider). */
+    private int crashGroups(Instant now) {
+        return crashDays <= 0 ? 0 : deleter.delete("crash_group",
+                "DELETE FROM crash_group WHERE id IN (SELECT id FROM crash_group WHERE last_seen_at < :cutoff ORDER BY id LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, crashDays)));
     }
 
     /** Tablo adi sabit beyaz listeden gelir (kullanici girdisi degil). */

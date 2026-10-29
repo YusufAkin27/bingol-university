@@ -888,6 +888,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 
 Not: sikayet ayrintisi (`GET /api/admin/reports/{id}`) mesaj baglamini (sohbet icerigi) dondurdugu icin `chat.read` ister; `moderation.read` yalniz sikayet listesini, kuyrugu ve disa aktarmayi acar.
 
+
 ## Veri saklama ve depolama doluluğu (DS1, V830)
 
 Amaç: şişen log/kuyruk tablolarını **makbuzlu olarak dışarı aktarıp** sonra silebilmek ve depolama %80'e ulaşınca uyarı almak. Kod: `dbmaint.admin` (`RetentionAdminController`, `RetentionService`, `RetentionExportService`, `RetentionPurgeService`, `RetentionTables`), `observability` (`StorageUsageService`, `StorageAlertJob`). Panel: `/admin/data-retention` (Sistem altında), yalnız Türkçe.
@@ -913,3 +914,26 @@ Amaç: şişen log/kuyruk tablolarını **makbuzlu olarak dışarı aktarıp** s
 - **Hata kodları** (tr/en/ar `i18n/retention*.properties`): `RETENTION_TABLE_UNKNOWN`, `RETENTION_RANGE_INVALID`, `RETENTION_RANGE_TOO_RECENT`, `RETENTION_RECEIPT_NOT_FOUND`, `RETENTION_RECEIPT_INVALID`, `RETENTION_EXPORT_BUSY`, `RETENTION_IDEMPOTENCY_REQUIRED`, `RETENTION_TABLE_NOT_DELETABLE`, `RETENTION_CONFIRM_MISMATCH`, `RETENTION_FORCE_FORBIDDEN`, `RETENTION_EXPORT_REQUIRED`, `RETENTION_RECEIPT_STALE`, `RETENTION_NOTHING_TO_DELETE`, `RETENTION_PURGE_RUNNING`, `RETENTION_PURGE_NOT_FOUND`.
 - **Duman:** `scripts/smoke-admin-retention.sh`.
 
+## Çökme raporları (CR1, V860)
+
+Mobil uygulamanın anonim hata/çökme raporları KENDİ sunucumuzda toplanır (Firebase Crashlytics/Sentry gibi üçüncü tarafa veri gitmez). Yeni modül: `crash` paketi.
+
+**Alım (herkese açık, giriş gerekmez):** `POST /api/app/crash-reports` -> 202 (gövdesiz). Gövde en çok 16 KB (`RequestBodyLimitFilter`, aşımda 413 `PAYLOAD_TOO_LARGE`). Alanlar: `appVersion` (zorunlu, `[A-Za-z0-9._+-]{1,32}`), `platform` (ANDROID|IOS, diğeri OTHER sayılır), `osVersion`, `deviceModel`, `errorType` (zorunlu, 160), `message` (isteğe bağlı, 600), `stackTrace` (zorunlu, 12000), `screen` (80), `fatal`, `occurredAt` (istemci saati; gelecekte >5 dk ya da 30 günden eski ise alım zamanı). Kullanıcı kimliği/e-posta/jeton alanı YOKTUR; varsa `Authorization` yok sayılır ve kimlik saklanmaz (bu yüzden `DataExporter` kapsamı dışıdır). Metinler sunucuda yeniden maskelenir (`CrashScrubber`: e-posta, JWT/Bearer, parola/jeton anahtar-değer, URL sorgusu, UUID, 32+ karakterli jeton benzeri dizi, 7+ haneli sayı, ev dizinindeki kullanıcı adı; dosya yolu ve kare adları kalır; en çok 60 satır / 8000 karakter). Hız sınırı: cihaz (`X-Device-Id` HMAC özeti) başına günde `app.crash.per-device-per-day` (20) ve dakikada 6, IP başına günde 300 (cihaz kimliği yoksa 60); aşımda 429 + `Retry-After` (istemci raporu yeniden denemez). Hız sınırı sayaçları yalnız Redis'te 24 saat yaşar; veritabanında IP/cihaz yoktur.
+
+**Gruplama:** imza = SHA-256(hata türü + ilk 8 normalize yığın karesi; satır/sütun, adres, kare sırası ve `<asynchronous suspension>` hariç). `crash_group` (imza başına tek satır; kümülatif sayaç, ilk/son görülme, ilk/son sürüm, durum, gerekçe, düzeltme sürümü, yeniden açılma sayısı), `crash_event` (grup başına en yeni `app.crash.max-events-per-group` = 50 olay, 30 gün), `crash_group_version` (sürüm x platform kümülatif sayaç; olay sınırından bağımsız dağılım). Durum NEW -> ACK -> RESOLVED. **Yeniden açma:** RESOLVED grup, `fixedInVersion` verildiyse o sürüm ve sonrasında, verilmediyse çözüldüğü andaki son sürümden YENİ bir sürümde tekrar ederse NEW'e döner (`reopen_count`+1, durumu işleyen `system`); eski sürümden geç gelen rapor açmaz.
+
+**Saklama:** `DbMaintenanceJob` gece 03:00: olaylar `app.dbmaint.crash-days` (30) gün; son görülmesi 30 günü aşan grup (olay + sürüm satırları CASCADE) silinir. Olay sınırı alım anında uygulanır.
+
+**Yönetici bildirimi:** yeni (ya da yeniden açılan) grup Redis sayacına (`crash:pending`) yazılır; `CrashAlertService` (2 dk'da bir, `SchedulerLock`) en çok `app.crash.alert-interval-minutes` (60) dakikada BİR ÖZET bildirim (`crash.alert.*`, `route=/admin/crashes`) gönderir; spam yok.
+
+**Yönetici uçları** (izin: okuma `system.read` — FULL, VIEWER; yazma `system.write` — FULL; `AdminPermissionPolicy` `(ops|system|crypto|crashes)`):
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/admin/crashes?status=&platform=&version=&q=&sort=lastSeen\|firstSeen\|count&page=&size=` | Sayfalı grup listesi: `{items:[{id,errorType,message,topFrame,status,eventCount,firstSeenAt,lastSeenAt,firstVersion,lastVersion,reopenCount,statusReason,statusBy,statusAt,fixedInVersion,versions:[{version,platform,count}]}],page,totalPages,totalItems}`. Geçersiz durum 400 `CRASH_STATUS_INVALID`, geçersiz platform 400 `CRASH_FILTER_INVALID`. |
+| `GET /api/admin/crashes/summary` | `{newGroups,ackGroups,resolvedGroups,events24h,reopened}` |
+| `GET /api/admin/crashes/{id}` | `{group, events:[en yeni 50: id,appVersion,platform,osVersion,deviceModel,screen,fatal,message,stack,occurredAt,receivedAt]}`; yok -> 404 `CRASH_NOT_FOUND` |
+| `PATCH /api/admin/crashes/{id}/status` | Gövde `{status:NEW\|ACK\|RESOLVED, reason, fixedInVersion?}`; **gerekçe zorunlu** (>= 5 karakter, gövde `reason` ya da `X-Admin-Reason`; yoksa 400 `REASON_REQUIRED`); durum, gerekçe ve yönetici grup satırına, çağrı `admin_audit`'e yazılır. Yanıt: ayrıntı. |
+| `DELETE /api/admin/crashes/{id}` | Grubu ve tüm raporlarını siler; gerekçe zorunlu (`X-Admin-Reason`); 204. Aynı hata gelirse yeni grup olarak doğar. |
+
+Hata kodları (tr/en/ar `ops*.properties`): `CRASH_NOT_FOUND`, `CRASH_STATUS_INVALID`, `CRASH_FILTER_INVALID`. Web: `/admin/crashes` (Sistem grubu, `system.read`). Duman: `scripts/smoke-crash-reports.sh`.

@@ -116,6 +116,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
                         "/api/app/info", "/api/app/version", "/api/faculties", "/api/catalog/academic", "/api/catalog/departments").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                // CR1: anonim cokme raporu (hiz siniri + 16 KB govde siniri controller/filtrede)
+                .requestMatchers(HttpMethod.POST, "/api/app/crash-reports").permitAll()
                 // T27: herkese acik destek talebi (hiz siniri + e-posta dogrulamasi servis katmaninda)
                 .requestMatchers("/api/public/support/**").permitAll()
                 // Mail teslim edilebilirligi: imzali jetonla abonelikten cikma (IP hiz siniri controller'da)

@@ -67,6 +67,7 @@ class RequestBodyLimitFilterTest {
     @Test
     void defaultLimitIs64Kb() {
         assertEquals(65536, filter.limitFor("POST", "/api/auth/register"));
+        assertEquals(16384, filter.limitFor("POST", "/api/app/crash-reports"));
         assertEquals(65536, filter.limitFor("PUT", "/api/public/support/tickets"));
         assertEquals(65536, filter.limitFor("POST", "/api/conversations/5/messages"));
     }

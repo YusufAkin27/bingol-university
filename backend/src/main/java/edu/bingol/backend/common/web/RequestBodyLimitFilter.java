@@ -54,6 +54,8 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/admin/menu/[^/]+/image$"));
 
     private static final long ANALYTICS_LIMIT = 256L * 1024;
+    /** CR1 cokme raporu: 16 KB. */
+    static final long CRASH_LIMIT = 16L * 1024;
 
     private final long maxBody;
     private final long maxAdminBody;
@@ -82,6 +84,9 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
             if (p.matcher(uri).matches()) {
                 return maxUploadBody;
             }
+        }
+        if (uri.equals("/api/app/crash-reports")) {
+            return CRASH_LIMIT; // anonim uc: kucuk ve sabit sinir (maxBody ayarindan bagimsiz)
         }
         if (uri.equals("/api/analytics/events")) {
             return Math.max(maxBody, ANALYTICS_LIMIT);
