@@ -7355,4 +7355,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p08OnceHint =>
       'Once you close it, this photo can\'t be opened again.';
+
+  @override
+  String get p13TicketsHeading => 'My requests';
+
+  @override
+  String get p13ShareHeading => 'Share your thoughts';
+
+  @override
+  String get p13FeedbackMine => 'My submissions';
+
+  @override
+  String get p11ReadMore => 'Show more';
+
+  @override
+  String get p11ReadLess => 'Show less';
+
+  @override
+  String get p11TypeSingleHint => 'Voters pick one option';
+
+  @override
+  String get p11TypeMultiHint => 'Voters can pick several options';
+
+  @override
+  String get p11TypeRankedHint => 'Options are ranked by preference';
+
+  @override
+  String get p11TypeRatingHint => 'Rated with 1-5 stars';
+
+  @override
+  String get p11RequestsEmptyBody => 'New join requests will show up here.';
 }

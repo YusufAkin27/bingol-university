@@ -3936,5 +3936,15 @@
   },
   "p08Pause": "Duraklat",
   "p08Seek": "Video konumu",
-  "p08OnceHint": "Kapattığında bu fotoğraf bir daha açılamaz."
+  "p08OnceHint": "Kapattığında bu fotoğraf bir daha açılamaz.",
+  "p13TicketsHeading": "Taleplerim",
+  "p13ShareHeading": "Görüşünüzü paylaşın",
+  "p13FeedbackMine": "Gönderdiklerim",
+  "p11ReadMore": "Devamını göster",
+  "p11ReadLess": "Daha az göster",
+  "p11TypeSingleHint": "Tek bir seçenek işaretlenir",
+  "p11TypeMultiHint": "Birden fazla seçenek işaretlenebilir",
+  "p11TypeRankedHint": "Seçenekler tercih sırasına dizilir",
+  "p11TypeRatingHint": "1-5 yıldızla puanlanır",
+  "p11RequestsEmptyBody": "Yeni katılma istekleri geldiğinde burada görünecek."
 }

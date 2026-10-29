@@ -13458,6 +13458,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kapattığında bu fotoğraf bir daha açılamaz.'**
   String get p08OnceHint;
+
+  /// No description provided for @p13TicketsHeading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taleplerim'**
+  String get p13TicketsHeading;
+
+  /// No description provided for @p13ShareHeading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüşünüzü paylaşın'**
+  String get p13ShareHeading;
+
+  /// No description provided for @p13FeedbackMine.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderdiklerim'**
+  String get p13FeedbackMine;
+
+  /// No description provided for @p11ReadMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamını göster'**
+  String get p11ReadMore;
+
+  /// No description provided for @p11ReadLess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha az göster'**
+  String get p11ReadLess;
+
+  /// No description provided for @p11TypeSingleHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek bir seçenek işaretlenir'**
+  String get p11TypeSingleHint;
+
+  /// No description provided for @p11TypeMultiHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birden fazla seçenek işaretlenebilir'**
+  String get p11TypeMultiHint;
+
+  /// No description provided for @p11TypeRankedHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenekler tercih sırasına dizilir'**
+  String get p11TypeRankedHint;
+
+  /// No description provided for @p11TypeRatingHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'1-5 yıldızla puanlanır'**
+  String get p11TypeRatingHint;
+
+  /// No description provided for @p11RequestsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni katılma istekleri geldiğinde burada görünecek.'**
+  String get p11RequestsEmptyBody;
 }
 
 class _AppLocalizationsDelegate

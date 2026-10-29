@@ -7323,4 +7323,35 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p08OnceHint => 'Kapattığında bu fotoğraf bir daha açılamaz.';
+
+  @override
+  String get p13TicketsHeading => 'Taleplerim';
+
+  @override
+  String get p13ShareHeading => 'Görüşünüzü paylaşın';
+
+  @override
+  String get p13FeedbackMine => 'Gönderdiklerim';
+
+  @override
+  String get p11ReadMore => 'Devamını göster';
+
+  @override
+  String get p11ReadLess => 'Daha az göster';
+
+  @override
+  String get p11TypeSingleHint => 'Tek bir seçenek işaretlenir';
+
+  @override
+  String get p11TypeMultiHint => 'Birden fazla seçenek işaretlenebilir';
+
+  @override
+  String get p11TypeRankedHint => 'Seçenekler tercih sırasına dizilir';
+
+  @override
+  String get p11TypeRatingHint => '1-5 yıldızla puanlanır';
+
+  @override
+  String get p11RequestsEmptyBody =>
+      'Yeni katılma istekleri geldiğinde burada görünecek.';
 }

@@ -7283,4 +7283,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p08OnceHint => 'بعد الإغلاق لا يمكن فتح هذه الصورة مرة أخرى.';
+
+  @override
+  String get p13TicketsHeading => 'طلباتي';
+
+  @override
+  String get p13ShareHeading => 'شاركنا رأيك';
+
+  @override
+  String get p13FeedbackMine => 'ما أرسلته';
+
+  @override
+  String get p11ReadMore => 'عرض المزيد';
+
+  @override
+  String get p11ReadLess => 'عرض أقل';
+
+  @override
+  String get p11TypeSingleHint => 'يختار المصوّت خيارًا واحدًا';
+
+  @override
+  String get p11TypeMultiHint => 'يمكن اختيار أكثر من خيار';
+
+  @override
+  String get p11TypeRankedHint => 'تُرتَّب الخيارات حسب التفضيل';
+
+  @override
+  String get p11TypeRatingHint => 'التقييم بنجمة من 1 إلى 5';
+
+  @override
+  String get p11RequestsEmptyBody => 'ستظهر هنا طلبات الانضمام الجديدة.';
 }

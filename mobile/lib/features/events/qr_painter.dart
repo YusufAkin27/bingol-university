@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
+import '../../core/theme.dart';
 
 /// Saf Dart QR üretici: bayt kipi, hata düzeltme düzeyi M, sürüm 1-10 (en çok 213 bayt).
 /// Yoklama kodları kısa olduğu için yeterlidir; sığmazsa [QrCode.tryEncode] null döner.
@@ -358,42 +359,48 @@ class QrCode {
   }
 }
 
-/// QR'ı beyaz zemin üzerine siyah modüllerle çizer (tarayıcıların beklediği karşıtlık, tema bağımsız).
+/// QR'ı açık zemin üzerine koyu modüllerle çizer (tarayıcıların beklediği karşıtlık, tema bağımsız).
+/// Renkler verilmezse belirteçlerdeki sabit yüksek karşıtlık çifti (`qrInk` siyah / `qrPaper` beyaz) kullanılır.
+/// Modüller tek `Path` olarak çizilir (tek çizim çağrısı).
 class QrPainter extends CustomPainter {
-  QrPainter(this.qr);
+  QrPainter(this.qr, {Color? ink, Color? paper})
+      : ink = ink ?? BuTokens.light.qrInk,
+        paper = paper ?? BuTokens.light.qrPaper;
 
   final QrCode qr;
+  final Color ink;
+  final Color paper;
   static const _quiet = 4;
 
   @override
   void paint(Canvas canvas, Size size) {
     final cells = qr.size + _quiet * 2;
     final cell = size.shortestSide / cells;
-    canvas.drawRect(Offset.zero & size, Paint()..color = Colors.white);
-    final paint = Paint()..color = Colors.black;
+    canvas.drawRect(Offset.zero & size, Paint()..color = paper);
+    final path = Path();
     for (var y = 0; y < qr.size; y++) {
       for (var x = 0; x < qr.size; x++) {
         if (qr.isDark(x, y)) {
-          canvas.drawRect(
-            Rect.fromLTWH((x + _quiet) * cell, (y + _quiet) * cell, cell + .5, cell + .5),
-            paint,
-          );
+          path.addRect(Rect.fromLTWH((x + _quiet) * cell, (y + _quiet) * cell, cell + .5, cell + .5));
         }
       }
     }
+    canvas.drawPath(path, Paint()..color = ink);
   }
 
   @override
-  bool shouldRepaint(QrPainter old) => old.qr != qr;
+  bool shouldRepaint(QrPainter old) => old.qr != qr || old.ink != ink || old.paper != paper;
 }
 
 /// [data] QR olarak çizilir; üretilemezse (çok uzun) [fallback] gösterilir.
+/// [radius] köşe yuvarlaklığı (varsayılan 12); renkler isteğe bağlıdır (varsayılan belirteçler).
 class QrView extends StatefulWidget {
-  const QrView({super.key, required this.data, this.size = 220, this.fallback});
+  const QrView({super.key, required this.data, this.size = 220, this.fallback, this.radius = 12});
 
   final String data;
   final double size;
   final Widget? fallback;
+  final double radius;
 
   @override
   State<QrView> createState() => _QrViewState();
@@ -418,12 +425,13 @@ class _QrViewState extends State<QrView> {
   Widget build(BuildContext context) {
     final qr = _qr;
     if (qr == null) return widget.fallback ?? const SizedBox.shrink();
+    final t = Theme.of(context).extension<BuTokens>(); // yoksa varsayılan yüksek karşıtlık
     return Semantics(
       label: context.l10n.eventListQrLabel,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(widget.radius),
         child: RepaintBoundary(
-          child: CustomPaint(size: Size.square(widget.size), painter: QrPainter(qr)),
+          child: CustomPaint(size: Size.square(widget.size), painter: QrPainter(qr, ink: t?.qrInk, paper: t?.qrPaper)),
         ),
       ),
     );
