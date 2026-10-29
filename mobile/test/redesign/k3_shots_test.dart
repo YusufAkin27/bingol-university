@@ -9,7 +9,6 @@ import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
-import 'package:bu_kampus/features/menu/menu_photo.dart';
 import 'package:bu_kampus/features/news/news_detail_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
@@ -147,6 +146,37 @@ final _shots = <_Shot>[
       ..fail('/news');
     return b;
   }, height: 1100),
+  _Shot('d1_haber_etkinlik_kaydedildi', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(eventDate: '2026-11-14')), _detailBackend,
+      after: (t, b) async {
+    await t.tap(find.byKey(const ValueKey('news-share')));
+    await t.pump(const Duration(milliseconds: 500));
+  }),
+  _Shot('d2_haber_duyuru_gorselsiz', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(type: 'DUYURU', img: false)),
+      () => _detailBackend()..on('/bookmarks/news/ids', {'ids': <int>[]}), after: (t, b) async {
+    await t.tap(find.byKey(const ValueKey('news-open-source')));
+    await t.pump(const Duration(milliseconds: 500));
+  }),
+  _Shot('d3_haber_yukleniyor', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(img: false)), _detailBackend, slow: true),
+  _Shot('d4_haber_hata', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(img: false)), () => _detailBackend()..fail('/news/1')),
+  _Shot('s1_arama_bos', (b) => SearchPage(session: makeSession(b)), _searchBackend, recent: ['ders kayıt', 'robotik', 'yemek', 'Elif']),
+  _Shot('s2_arama_tumu', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(hits: _kulupHits, users: _people.take(1).toList()),
+      height: 1500, after: (t, b) => _typeQ(t, 'kulüp')),
+  _Shot('s3_arama_kulup', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(hits: _clubTabHits), after: (t, b) async {
+    await _typeQ(t, 'robot');
+    await _pickTab(t, lookupAppLocalizations(Locale(_lang)).searchClub);
+  }),
+  _Shot('s4_arama_kisi', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(users: _people), after: (t, b) async {
+    await _typeQ(t, 'elif');
+    await _pickTab(t, lookupAppLocalizations(Locale(_lang)).searchPerson);
+  }),
+  _Shot('s5_arama_gonderi', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(hits: _postHits), height: 1200, after: (t, b) async {
+    await _typeQ(t, 'kampüs');
+    await _pickTab(t, lookupAppLocalizations(Locale(_lang)).searchPost);
+  }),
+  _Shot('s6a_arama_yukleniyor', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(hits: _kulupHits), slow: true, after: (t, b) => _typeQ(t, 'xyz123')),
+  _Shot('s6b_arama_sonuc_yok', (b) => SearchPage(session: makeSession(b)), _searchBackend, after: (t, b) => _typeQ(t, 'xyz123')),
+  _Shot('s6c_arama_hata', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(failStatus: 500), after: (t, b) => _typeQ(t, 'xyz123')),
+  _Shot('s6d_arama_hiz_siniri', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(failStatus: 429), after: (t, b) => _typeQ(t, 'xyz123')),
 ];
 
 String _ago(Duration d) => DateTime.now().subtract(d).toIso8601String();
@@ -172,6 +202,102 @@ List<Map<String, dynamic>> get _notifItems => [
 Future<void> _tapText(WidgetTester t, String text) async {
   await t.tap(find.text(text).first);
   await t.pump(const Duration(milliseconds: 400));
+}
+
+Map<String, dynamic> _newsItem({String type = 'ETKINLIK', bool img = true, String? eventDate}) => {
+      'id': 1,
+      'title': type == 'ETKINLIK' ? 'Üniversitemizde Kariyer Günleri Düzenleniyor' : 'Güz Dönemi Çift Anadal ve Yandal Başvuru Sonuçları Açıklandı',
+      'type': type,
+      'imageUrl': img ? 'https://img.invalid/n1.jpg' : null,
+      'publishedDate': '2026-10-26',
+      'eventDate': eventDate,
+    };
+
+FakeBackend _detailBackend() => FakeBackend()
+  ..on('/news/1', {
+    'id': 1,
+    'content': 'Bu yıl on sekizinci kez düzenlenecek olan geleneksel BU Kampüs Kariyer Fuarı, savunma sanayii, yazılım, otomotiv ve finans sektörlerinin öncü teknoloji devlerini öğrencilerimizle ve yeni mezunlarımızla bir araya getiriyor.\n'
+        'Ana Kongre ve Sergi Sarayında tam gün sürecek etkinlik boyunca katılımcılar; insan kaynakları yöneticileriyle bire bir görüşme fırsatı bulacak ve vizyoner sunumları dinleyebilecektir.\n'
+        'Katılım sertifikası almak ve ön mülakat randevusu oluşturmak isteyen tüm lisans ve lisansüstü öğrencilerimizin dijital öğrenci kartlarını yanlarında bulundurmaları önemle rica olunur.',
+    'url': 'https://www.bingol.edu.tr/haber/1',
+    'eventDate': null,
+  })
+  ..on('/bookmarks/news/ids', {'ids': <int>[1]});
+
+Map<String, dynamic> _hit(String type, int id, String title, {String? snippet, String? date, String? img, Map<String, dynamic> extra = const {}}) =>
+    {'type': type, 'targetId': id, 'title': title, 'snippet': snippet, 'date': date, 'imageUrl': img, ...extra};
+
+FakeBackend _searchBackend({List<Map<String, dynamic>> hits = const [], List<Map<String, dynamic>> users = const [], int? failStatus}) {
+  final b = FakeBackend();
+  b.handlers.add((req, path) {
+    if (failStatus != null && (path == '/search' || path == '/users/search')) {
+      return FakeResult.json({'code': 'RATE_LIMITED', 'message': ''}, status: failStatus);
+    }
+    if (path == '/search') {
+      final type = req.url.queryParameters['type'];
+      final byType = <String, List<Map<String, dynamic>>>{};
+      for (final h in hits) {
+        if (type == null || type == h['type']) byType.putIfAbsent(h['type'] as String, () => []).add(h);
+      }
+      return FakeResult.json({
+        'groups': [for (final e in byType.entries) {'type': e.key, 'items': e.value}],
+        'nextCursor': null,
+      });
+    }
+    if (path == '/users/search') return FakeResult.json({'items': users, 'nextCursor': null});
+    return null;
+  });
+  return b;
+}
+
+Map<String, dynamic> _user(int id, String name, String dept, {int? year, String? extra}) =>
+    {'id': id, 'displayName': name, 'department': dept, if (year != null) 'classYear': year};
+
+final _kulupHits = <Map<String, dynamic>>[
+  _hit('NEWS', 1, 'Öğrenci Kulüpleri Tanıtım Günleri Başlıyor', date: '2026-10-24', img: 'https://img.invalid/n1.jpg'),
+  _hit('NEWS', 2, 'Kulüp Etkinlik Başvuruları İçin Son Gün', date: '2026-10-20', img: 'https://img.invalid/n2.jpg'),
+  _hit('ANNOUNCEMENT', 3, '2024-2025 Kulüp Tüzük Güncellemeleri Hakkında', date: '2026-10-18', snippet: 'Tüm aktif öğrenci topluluklarının yönergeleri...'),
+  _hit('EVENT', 4, 'Robotik ve Yapay Zekâ Tanışma Günü', date: '2026-10-28T17:30:00', snippet: 'Robotik Kulübü · Mühendislik Fakültesi'),
+  _hit('COMMUNITY', 5, 'Robotik Kulübü', snippet: 'Otonom araçlar ve robot yarışmaları.', extra: {'memberCount': 128, 'category': 'Teknoloji'}),
+  _hit('COMMUNITY', 6, 'Tiyatro ve Sahne Sanatları', snippet: 'Oyun atölyeleri.', extra: {'memberCount': 94, 'category': 'Kültür'}),
+  _hit('POSTS', 7, 'Elif Yıldız', snippet: 'Kulüp standımızda yeni dönem kayıtları devam ediyor!', img: 'https://img.invalid/p7.jpg', extra: {'likeCount': 42}),
+];
+
+final _clubTabHits = <Map<String, dynamic>>[
+  _hit('COMMUNITY', 5, 'Robotik Kulübü', snippet: 'Otonom araçlar, İHA ve robot yarışmaları üzerine projeler geliştiriyoruz.',
+      extra: {'memberCount': 86, 'category': 'Mühendislik ve Teknoloji', 'myStatus': 'ACTIVE'}),
+  _hit('COMMUNITY', 6, 'Robotik Kodlama ve Yapay Zekâ', snippet: 'Yapay zekâ ve gömülü sistemler atölyeleri.',
+      extra: {'memberCount': 64, 'category': 'Yazılım ve Bilişim', 'myStatus': 'NONE'}),
+  _hit('COMMUNITY', 8, 'Endüstriyel Otomasyon ve Robotik', snippet: 'Fabrika otomasyonu ve PLC yazılım projeleri.',
+      extra: {'memberCount': 39, 'category': 'Mesleki Gelişim', 'myStatus': 'NONE'}),
+];
+
+final _people = <Map<String, dynamic>>[
+  _user(1, 'Elif Yıldız', 'Bilgisayar Mühendisliği', year: 2),
+  _user(2, 'Elif Kaya', 'Hemşirelik Bölümü', year: 3),
+  _user(3, 'Elif Demir', 'İşletme', year: 4),
+  _user(4, 'Elif Su Aksoy', 'İlahiyat Fakültesi', year: 1),
+];
+
+final _postHits = <Map<String, dynamic>>[
+  for (var i = 0; i < 6; i++)
+    _hit('POSTS', 10 + i, ['Selin', 'Mert', 'Burak', 'Can', 'Emre', 'Zeynep'][i],
+        snippet: ['Sonbaharda merkez kütüphane önü harika.', 'Robotik kulübü atölyesinde yeni prototip.', 'Öğle arasında arkadaşlarla çay.', 'Fakülteler arası voleybol turnuvası.', 'Dağ manzarasına karşı sabah dersi.', 'Yeni dönem kulüp kayıt standı.'][i],
+        img: 'https://img.invalid/p$i.jpg', extra: {'likeCount': 84 + i * 7}),
+];
+
+Future<void> _typeQ(WidgetTester t, String q) async {
+  await t.enterText(find.byType(TextField).first, q);
+  await t.pump(const Duration(milliseconds: 500));
+}
+
+Future<void> _pickTab(WidgetTester t, String label) async {
+  if (find.text(label).evaluate().isEmpty) {
+    await t.drag(find.text(lookupAppLocalizations(Locale(_lang)).searchAll).first, const Offset(-300, 0));
+    await t.pump(const Duration(milliseconds: 400));
+  }
+  await t.tap(find.text(label).first);
+  await t.pump(const Duration(milliseconds: 600));
 }
 
 class _Variant {

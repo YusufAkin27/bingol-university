@@ -6,10 +6,11 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'icerik_parts.dart';
-import 'news_tile.dart' show newsLocalDate, newsSourceHost, newsTypeIcon, newsTypeLabel, newsTypeTint;
+import 'news_tile.dart' show newsLocalDate, newsTypeIcon, newsTypeLabel, newsTypeTint;
 
-/// Haber detayı (Ic3): kapak (paylaşılan geçişle listeden uçar) + kaydırınca daralan başlık, okuma süresi,
-/// makale metni, altta "Kaynak sitede aç" çubuğu. Veri: `GET /news/{id}`, `PUT/DELETE /bookmarks/news/{id}`.
+/// Haber detayı: kapak (paylaşılan geçişle listeden uçar; üstünde geri/favori/paylaş, altında tür rozeti) ya da
+/// kapaksız sade başlık; beyaz içerik kartı (tarih, başlık, metin, "içeriğin tamamı" notu, "Kaynak sayfada aç").
+/// Veri: `GET /news/{id}`, `PUT/DELETE /bookmarks/news/{id}`.
 class NewsDetailPage extends StatefulWidget {
   const NewsDetailPage({
     super.key,
@@ -31,7 +32,7 @@ class NewsDetailPage extends StatefulWidget {
 }
 
 class _NewsDetailPageState extends State<NewsDetailPage> {
-  static const _coverHeight = 320.0;
+  static const _coverHeight = 300.0;
 
   late Future<dynamic> _detail = _fetch();
   late bool _saved = widget.saved ?? false;
@@ -39,6 +40,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
   /// Başlık daraldı mı (düğme/başlık görünümü değişir); yalnız eşik geçilince yeniden kurulur.
   final _collapsed = ValueNotifier<bool>(false);
+
+  /// Kaynak bağlantısı açılamadıysa düğmenin altında satır içi hata gösterilir.
+  bool _linkFailed = false;
 
   int get _id => (widget.item['id'] as num).toInt();
 
@@ -104,12 +108,15 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   Future<void> _openOriginal(String? url) async {
     if (url == null) return;
     final uri = Uri.tryParse(url.startsWith('http://') ? url.replaceFirst('http://', 'https://') : url);
-    if (uri == null || uri.scheme != 'https') return;
+    if (uri == null || uri.scheme != 'https') {
+      setState(() => _linkFailed = true);
+      return;
+    }
     try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (mounted) setState(() => _linkFailed = !ok);
     } catch (_) {
-      if (!mounted) return;
-      BuToast.show(context, context.l10n.newsLinkOpenFailed, kind: BuToastKind.error);
+      if (mounted) setState(() => _linkFailed = true);
     }
   }
 
@@ -140,61 +147,26 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         final canOpen = url != null && (url.startsWith('https://') || url.startsWith('http://'));
         final eventDate = (d?['eventDate'] ?? n['eventDate']) as String?;
         final isEvent = type == 'ETKINLIK' && eventDate != null && eventDate.isNotEmpty;
-        final source = newsSourceHost({'url': url});
         final done = snap.connectionState == ConnectionState.done;
         final hasText = content != null && content.trim().isNotEmpty;
-        final minutes = hasText ? _readMinutes(content) : 0;
         final tint = newsTypeTint(t, type);
         final title = (n['title'] as String?) ?? '';
         final tx = Theme.of(context).textTheme;
+        final badge = IcerikBadge(newsTypeLabel(context, type), soft: tint == null, tint: tint);
+        final published = newsLocalDate(context, n['publishedDate'] as String?);
 
         Widget bodyChild;
         if (!done) {
           bodyChild = const _ArticleSkeleton();
         } else if (snap.hasError) {
-          bodyChild = SizedBox(
-            height: 280,
-            child: BuErrorState(
-              error: snap.error,
-              compact: true,
-              onRetry: () => setState(() {
-                _detail = _fetch();
-              }),
-            ),
-          );
-        } else if (hasText) {
-          bodyChild = _Article(content: content, source: source);
+          bodyChild = _NewsError(onRetry: () => setState(() => _detail = _fetch()));
         } else {
-          bodyChild = Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Icon(LucideIcons.info, size: 18, color: t.mut),
-              const SizedBox(width: 12),
-              Expanded(child: Text(l.newsFullContent, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45))),
-            ]),
-          );
+          bodyChild = _Article(content: hasText ? content : null);
         }
+        final showActions = done && !snap.hasError;
 
         return Scaffold(
           backgroundColor: t.bg,
-          bottomNavigationBar: canOpen
-              ? DecoratedBox(
-                  decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                      child: BuButton(
-                        key: const ValueKey('news-open-source'),
-                        label: l.icerikOpenSource,
-                        icon: LucideIcons.externalLink,
-                        onPressed: () => _openOriginal(url),
-                      ),
-                    ),
-                  ),
-                )
-              : null,
           body: CustomScrollView(
             controller: _scroll,
             slivers: [
@@ -207,7 +179,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     stretch: hasCover,
                     expandedHeight: hasCover ? _coverHeight : null,
                     backgroundColor: t.bg,
-                    surfaceTintColor: Colors.transparent,
+                    surfaceTintColor: t.bg,
                     scrolledUnderElevation: 0,
                     automaticallyImplyLeading: false,
                     leadingWidth: 64,
@@ -272,16 +244,18 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                                   ),
                                 ),
                               ),
+                              // Tür rozeti kapağın sol altında.
+                              PositionedDirectional(start: 20, bottom: 36, child: badge),
                               // İçerik sayfasının yuvarlak üst kenarı (kapağın üstüne biner).
                               PositionedDirectional(
                                 start: 0,
                                 end: 0,
                                 bottom: -1,
-                                height: 28,
+                                height: 24,
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     color: t.bg,
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                                   ),
                                 ),
                               ),
@@ -293,39 +267,91 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, hasCover ? 0 : 4, 20, MediaQuery.paddingOf(context).bottom + 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(spacing: 10, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                        IcerikBadge(newsTypeLabel(context, type), soft: tint == null, tint: tint),
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(LucideIcons.clock, size: 13, color: t.mut),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text('${newsLocalDate(context, n['publishedDate'] as String?)} · $source',
-                                style: tx.bodySmall!.copyWith(color: t.mut)),
+                  padding: EdgeInsets.fromLTRB(20, hasCover ? 0 : 8, 20, MediaQuery.paddingOf(context).bottom + 32),
+                  child: BuCard(
+                    radius: 20,
+                    padding: const EdgeInsets.all(20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (isEvent)
+                            Row(children: [
+                              Icon(newsTypeIcon(type), size: 16, color: t.pr),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(l.newsEventDate(newsLocalDate(context, eventDate)),
+                                    style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                              ),
+                            ])
+                          else if (hasCover)
+                            Row(children: [
+                              Icon(LucideIcons.calendar, size: 16, color: t.pr),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(published, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+                            ])
+                          else
+                            Row(children: [
+                              badge,
+                              const Spacer(),
+                              Icon(LucideIcons.calendar, size: 15, color: t.mut),
+                              const SizedBox(width: 6),
+                              Text(published, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                            ]),
+                          const SizedBox(height: 14),
+                          Semantics(
+                            header: true,
+                            child: Text(title, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
                           ),
-                        ]),
-                        if (minutes > 0)
-                          Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(LucideIcons.bookOpen, size: 13, color: t.mut),
-                            const SizedBox(width: 5),
-                            Text(l.p05ReadMinutes('$minutes'), style: tx.bodySmall!.copyWith(color: t.mut)),
-                          ]),
-                      ]),
-                      if (isEvent) ...[
-                        const SizedBox(height: 14),
-                        _EventDateChip(text: l.newsEventDate(newsLocalDate(context, eventDate)), icon: newsTypeIcon(type)),
-                      ],
-                      const SizedBox(height: 14),
-                      Semantics(
-                        header: true,
-                        child: Text(title, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
+                          const SizedBox(height: 16),
+                          BuFadeThrough(
+                              key: const ValueKey('news-body'),
+                              child: KeyedSubtree(key: ValueKey('body-$done-${snap.hasError}'), child: bodyChild)),
+                          if (showActions) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
+                              child: Row(children: [
+                                Icon(LucideIcons.info, size: 18, color: t.mut),
+                                const SizedBox(width: 12),
+                                Expanded(child: Text(l.newsFullContent, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4))),
+                              ]),
+                            ),
+                            if (canOpen) ...[
+                              const SizedBox(height: 16),
+                              BuButton(
+                                key: const ValueKey('news-open-source'),
+                                label: l.p05NewsOpenSource,
+                                icon: LucideIcons.externalLink,
+                                kind: BuButtonKind.outline,
+                                onPressed: () => _openOriginal(url),
+                              ),
+                              if (_linkFailed)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
+                                    child: Row(children: [
+                                      Icon(LucideIcons.triangleAlert, size: 18, color: t.onSoft),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Semantics(
+                                          liveRegion: true,
+                                          child: Text(l.newsLinkOpenFailed, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+                                        ),
+                                      ),
+                                    ]),
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 18),
-                      BuFadeThrough(key: const ValueKey('news-body'), child: KeyedSubtree(key: ValueKey('body-$done-${snap.hasError}'), child: bodyChild)),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -335,36 +361,53 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       },
     );
   }
-
-  /// Dakikada ~200 sözcük; en az 1.
-  int _readMinutes(String text) {
-    final words = text.trim().split(RegExp(r'\s+')).length;
-    return (words / 200).ceil().clamp(1, 99);
-  }
 }
 
-/// Etkinlik tarihi vurgusu (yeşil ton).
-class _EventDateChip extends StatelessWidget {
-  const _EventDateChip({required this.text, required this.icon});
+/// İçerik yüklenemedi kartı.
+class _NewsError extends StatelessWidget {
+  const _NewsError({required this.onRetry});
 
-  final String text;
-  final IconData icon;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tint = t.tint(1);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(BuRadius.md)),
-      child: Row(children: [
-        Icon(icon, size: 18, color: tint.fg),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: tint.fg)),
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const SizedBox(height: 8),
+      ExcludeSemantics(
+        child: Center(
+          child: Stack(clipBehavior: Clip.none, children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+              child: Icon(LucideIcons.wifiOff, size: 28, color: t.onSoft),
+            ),
+            PositionedDirectional(
+              end: -6,
+              bottom: -4,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
+                child: Icon(LucideIcons.x, size: 13, color: t.onPr),
+              ),
+            ),
+          ]),
         ),
-      ]),
-    );
+      ),
+      const SizedBox(height: 14),
+      Semantics(
+        liveRegion: true,
+        child: Text(l.p05NewsErrorTitle, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+      ),
+      const SizedBox(height: 6),
+      Text(l.p05NewsErrorBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+      const SizedBox(height: 16),
+      BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, onPressed: onRetry),
+    ]);
   }
 }
 
@@ -401,59 +444,31 @@ class _ArticleSkeleton extends StatelessWidget {
   }
 }
 
-// Düz metni paragraf paragraf gösterir (boş satırlarla ayrılmış bloklar); ilk paragraf öne çıkarılır.
+/// Düz metni paragraf paragraf gösterir (satır sonlarıyla ayrılmış bloklar); içerik yoksa boş kalır.
 class _Article extends StatelessWidget {
-  const _Article({required this.content, required this.source});
+  const _Article({required this.content});
 
-  final String content;
-  final String source;
+  final String? content;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    final paragraphs = content.split(RegExp(r'[\r\n]+')).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
-    // Uzun okuma metni: normal ağırlık, rahat satır aralığı; ilk paragraf biraz daha vurgulu.
-    final lead = tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, height: 1.6, color: t.ink);
-    final style = tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, height: 1.7, color: t.ink);
+    final paragraphs = (content ?? '').split(RegExp(r'[\r\n]+')).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+    if (paragraphs.isEmpty) return const SizedBox.shrink();
+    final style = tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, height: 1.6, color: t.ink);
     // SelectionArea: metin seçilip kopyalanabilir; SelectableText gibi sahte "dokunma hedefi" üretmez.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SelectionArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < paragraphs.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(paragraphs[i], style: i == 0 ? lead : style),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.md), border: Border.all(color: t.bd)),
-          child: Row(children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.sm)),
-              child: Icon(LucideIcons.globe, size: 18, color: t.onSoft),
+    return SelectionArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < paragraphs.length; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: i == paragraphs.length - 1 ? 0 : 14),
+              child: Text(paragraphs[i], style: style),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.p05Source, style: tx.labelSmall!.copyWith(color: t.mut)),
-                Text(source, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink)),
-              ]),
-            ),
-          ]),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

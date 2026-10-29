@@ -29,7 +29,18 @@ class SearchPage extends StatefulWidget {
 
 /// Tek tip sonuç satırı (hem /search hem /users/search'ten).
 class _Hit {
-  _Hit({required this.type, required this.id, required this.title, this.snippet, this.date, this.imageUrl});
+  _Hit({
+    required this.type,
+    required this.id,
+    required this.title,
+    this.snippet,
+    this.date,
+    this.imageUrl,
+    this.members,
+    this.category,
+    this.myStatus,
+    this.likes,
+  });
 
   final String type; // NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, POSTS, USER
   final int id;
@@ -37,6 +48,12 @@ class _Hit {
   final String? snippet;
   final String? date;
   final String? imageUrl;
+
+  // İsteğe bağlı alanlar (sunucu göndermiyorsa null; bkz. docs/design/BACKEND-ISTEK.md).
+  final int? members; // kulüp üye sayısı
+  final String? category; // kulüp kategorisi
+  final String? myStatus; // kulüp: ACTIVE (üye) | NONE/PENDING (değil)
+  final int? likes; // gönderi beğeni sayısı
 }
 
 enum _Tab { all, news, club, event, post, person }
@@ -71,25 +88,6 @@ _Tab _tabOf(String type) {
   }
 }
 
-String _badgeOf(AppLocalizations l, String type) {
-  switch (type) {
-    case 'NEWS':
-      return l.newsTypeNews;
-    case 'ANNOUNCEMENT':
-      return l.newsTypeAnnouncement;
-    case 'COMMUNITY':
-      return l.searchClub;
-    case 'EVENT':
-    case 'EVENT_OFFICIAL':
-      return l.newsTypeEvent;
-    case 'POSTS':
-    case 'POST':
-      return l.searchPost;
-    default:
-      return l.searchPerson;
-  }
-}
-
 IconData _iconOf(String type) {
   switch (type) {
     case 'ANNOUNCEMENT':
@@ -113,13 +111,13 @@ IconData _iconOf(String type) {
 
 /// Sonuç türüne göre simge karosu tonu (haber marka tonu, diğerleri kategori renkleri).
 BuTint _tintOf(BuTokens t, String type) {
-  if (type == 'ANNOUNCEMENT') return t.tint(2);
+  if (type == 'ANNOUNCEMENT') return t.tint(3);
   return switch (_tabOf(type)) {
     _Tab.news => BuTint(t.soft, t.onSoft),
-    _Tab.club => t.tint(0),
-    _Tab.event => t.tint(1),
-    _Tab.post => t.tint(3),
-    _ => t.tint(4),
+    _Tab.club => t.tint(1),
+    _Tab.event => t.tint(2),
+    _Tab.post => t.tint(4),
+    _ => t.tint(5),
   };
 }
 
@@ -151,6 +149,10 @@ _Hit _hitFromSearch(Map h) => _Hit(
       snippet: h['snippet'] as String?,
       date: h['date'] as String?,
       imageUrl: h['imageUrl'] as String?,
+      members: (h['memberCount'] as num?)?.toInt(),
+      category: h['category'] is String && (h['category'] as String).isNotEmpty ? h['category'] as String : null,
+      myStatus: h['myStatus'] as String?,
+      likes: (h['likeCount'] as num?)?.toInt(),
     );
 
 _Hit _hitFromUser(Map u, AppLocalizations l) {
@@ -164,25 +166,6 @@ _Hit _hitFromUser(Map u, AppLocalizations l) {
     snippet: sub.isEmpty ? null : sub,
     imageUrl: u['avatarUrl'] as String?,
   );
-}
-
-/// Düz sonuç listesi öğesi: grup başlığı ya da (gruplu kartın parçası olan) sonuç satırı.
-class _Entry {
-  const _Entry.header(this.tab, this.count, this.more)
-      : hit = null,
-        first = false,
-        last = false;
-  const _Entry.row(this.hit, {required this.first, required this.last})
-      : tab = null,
-        count = 0,
-        more = false;
-
-  final _Tab? tab;
-  final int count;
-  final bool more;
-  final _Hit? hit;
-  final bool first;
-  final bool last;
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -347,6 +330,7 @@ class _SearchPageState extends State<SearchPage> {
         _error = e;
         _loading = false;
       });
+      if (e is ApiError && e.status == 429) BuToast.show(context, l.searchTooMany, kind: BuToastKind.warning);
     }
   }
 
@@ -415,6 +399,7 @@ class _SearchPageState extends State<SearchPage> {
         d.loading = false;
         if (e is ApiError && e.status == 429) {
           d.cooldownUntil = DateTime.now().add(const Duration(seconds: 15));
+          BuToast.show(context, l.searchTooMany, kind: BuToastKind.warning);
         }
         if (d.loaded) {
           d.moreError = true;
@@ -469,10 +454,7 @@ class _SearchPageState extends State<SearchPage> {
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top + 8, 20, 4),
             child: Row(children: [
-              IcerikIconButton(
-                  icon: buDirIcon(context, LucideIcons.arrowLeft),
-                  label: l.authBack,
-                  onTap: () => Navigator.pop(context)),
+              IcerikIconButton(icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.authBack, onTap: () => Navigator.pop(context)),
               const SizedBox(width: 4),
               Expanded(
                 child: BuSearchField(
@@ -485,114 +467,165 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ]),
           ),
-          AnimatedSize(
-            duration: BuMotion.of(context, BuMotion.medium),
-            curve: BuMotion.emphasized,
-            alignment: Alignment.topCenter,
-            child: active
-                ? Semantics(
-                    container: true,
-                    label: l.icerikSearchTabs,
-                    child: BuChipRow(
-                      labels: [for (final tab in _tabOrder) _tabLabel(l, tab)],
-                      selected: _tabOrder.indexOf(_tab),
-                      onSelected: (i) => _selectTab(_tabOrder[i]),
-                    ),
-                  )
-                : const SizedBox(width: double.infinity),
+          Semantics(
+            container: true,
+            label: l.icerikSearchTabs,
+            child: _TabChips(
+              labels: [for (final tab in _tabOrder) _tabLabel(l, tab)],
+              selected: _tabOrder.indexOf(_tab),
+              onSelected: (i) => _selectTab(_tabOrder[i]),
+            ),
           ),
-          if (active && _loading && _query.isNotEmpty)
-            const LinearProgressIndicator(minHeight: 2)
-          else
-            const SizedBox(height: 2),
+          if (active && _loading && _query.isNotEmpty) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
           Expanded(child: active ? _results(t) : _suggestions(t)),
         ],
       ),
     );
   }
 
+  Widget _hint(BuTokens t) {
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(LucideIcons.info, size: 18, color: t.mut),
+        const SizedBox(width: 12),
+        Expanded(child: Text(context.l10n.searchPrompt, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4))),
+      ]),
+    );
+  }
+
   Widget _suggestions(BuTokens t) {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    if (_recent.isEmpty) {
-      return BuEmptyState(illustration: BuIllustration.search, title: l.p05SearchIdleTitle, message: l.searchPrompt);
-    }
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
-        BuSectionHeader(l.searchRecent,
-            action: l.searchClearRecent, onAction: _clearRecent, padding: const EdgeInsetsDirectional.fromSTEB(4, 12, 0, 4)),
-        IcerikCard(
-          shadow: false,
-          child: Column(children: [
-            for (var i = 0; i < _recent.length; i++)
-              InkWell(
-                onTap: () => _useRecent(_recent[i]),
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 52),
-                  padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 8, 6),
+        _hint(t),
+        if (_recent.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(4, 20, 0, 4),
+            child: Row(children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(l.searchRecent, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                onPressed: _clearRecent,
+                child: Text(l.searchClearRecent, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+              ),
+            ]),
+          ),
+          BuCard(
+            padding: EdgeInsets.zero,
+            radius: 20,
+            child: Column(children: [
+              for (var i = 0; i < _recent.length; i++)
+                Container(
+                  constraints: const BoxConstraints(minHeight: 56),
                   decoration: i == 0 ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd.withValues(alpha: .7)))),
                   child: Row(children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                      child: Icon(LucideIcons.clock, size: 15, color: t.mut),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(_recent[i],
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                      child: InkWell(
+                        onTap: () => _useRecent(_recent[i]),
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 0, 8),
+                          child: Row(children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                              child: Icon(LucideIcons.history, size: 18, color: t.mut),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(_recent[i],
+                                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                            ),
+                          ]),
+                        ),
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(Directionality.of(context) == TextDirection.rtl ? LucideIcons.arrowUpRight : LucideIcons.arrowUpLeft, size: 16, color: t.mut),
+                    IconButton(
+                      tooltip: l.p05SearchRemoveRecent,
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      onPressed: () => _removeRecent(i),
+                      icon: Icon(LucideIcons.x, size: 18, color: t.mut),
                     ),
                   ]),
                 ),
-              ),
-          ]),
-        ),
-        const SizedBox(height: 28),
-        const Center(child: BuIllustrationView(BuIllustration.search, size: 96)),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(l.searchPrompt, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
-        ),
+            ]),
+          ),
+        ],
       ],
     );
   }
 
+  Future<void> _removeRecent(int i) async {
+    final list = [..._recent]..removeAt(i);
+    setState(() => _recent = list);
+    try {
+      if (list.isEmpty) {
+        await _storage.delete(key: _recentKey);
+      } else {
+        await _storage.write(key: _recentKey, value: jsonEncode(list));
+      }
+    } catch (_) {}
+  }
+
   /// Tümü sekmesindeki grup başlığı ve etiketi.
-  String _groupLabel(AppLocalizations l, _Tab tab) => switch (tab) {
-        _Tab.news => l.icerikGroupNews,
-        _Tab.club => l.icerikGroupClub,
-        _Tab.event => l.icerikGroupEvent,
-        _Tab.post => l.icerikGroupPost,
-        _ => l.icerikGroupPerson,
+  String _groupLabel(AppLocalizations l, String type) => switch (type) {
+        'ANNOUNCEMENT' => l.icerikGroupAnnouncement,
+        'NEWS' => l.icerikGroupNews,
+        _ => switch (_tabOf(type)) {
+            _Tab.news => l.icerikGroupNews,
+            _Tab.club => l.icerikGroupClub,
+            _Tab.event => l.icerikGroupEvent,
+            _Tab.post => l.icerikGroupPost,
+            _ => l.icerikGroupPerson,
+          },
       };
 
-  List<_Entry> _entriesFor(List<_Hit> visible, {required bool paged, required bool more}) {
-    final out = <_Entry>[];
-    void group(_Tab tab, List<_Hit> hits, bool more) {
-      out.add(_Entry.header(tab, hits.length, more));
-      for (var i = 0; i < hits.length; i++) {
-        out.add(_Entry.row(hits[i], first: i == 0, last: i == hits.length - 1));
-      }
-    }
+  /// Tümü sekmesi grup sırası: haber, duyuru, etkinlik, kulüp, kişi, gönderi.
+  static const _groupOrder = ['NEWS', 'ANNOUNCEMENT', 'EVENT', 'COMMUNITY', 'USER', 'POSTS'];
 
-    if (paged) {
-      group(_tab, visible, more);
-    } else {
-      for (final tab in _tabOrder) {
-        if (tab == _Tab.all) continue;
-        final g = [for (final h in visible) if (_tabOf(h.type) == tab) h];
-        if (g.isNotEmpty) group(tab, g, false);
-      }
-    }
-    return out;
+  String _groupKey(String type) => switch (type) {
+        'EVENT_OFFICIAL' => 'EVENT',
+        'POST' => 'POSTS',
+        _ => type,
+      };
+
+  String _foundLabel(AppLocalizations l, _Tab tab, int n, bool more) {
+    final c = '$n${more ? '+' : ''}';
+    return switch (tab) {
+      _Tab.news => l.p05SearchFoundNews(c),
+      _Tab.event => l.p05SearchFoundEvents(c),
+      _Tab.club => l.p05SearchFoundClubs(c),
+      _Tab.person => l.p05SearchFoundPeople(c),
+      _Tab.post => l.p05SearchFoundPosts(c),
+      _ => l.searchResultCount(c),
+    };
+  }
+
+  Widget _countLabel(BuTokens t, String text, {String? sub}) {
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 12, 24, 8),
+      child: Semantics(
+        header: true,
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(text: text, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: .4, color: t.mut)),
+            if (sub != null) TextSpan(text: '   $sub', style: tx.labelMedium!.copyWith(color: t.mut)),
+          ]),
+        ),
+      ),
+    );
   }
 
   Widget _results(BuTokens t) {
@@ -608,58 +641,103 @@ class _SearchPageState extends State<SearchPage> {
       return const BuSkeletonList(itemCount: 7);
     }
     if (visible.isEmpty) {
-      return BuEmptyState(illustration: BuIllustration.search, title: l.searchNoResults, message: l.p05SearchNoResultsBody);
+      return ListView(padding: const EdgeInsets.fromLTRB(20, 12, 20, 24), children: [
+        BuCard(
+          radius: 20,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: BuEmptyState(
+            illustration: BuIllustration.search,
+            title: l.searchNoResults,
+            message: l.p05SearchNoResultsBody,
+            compact: true,
+          ),
+        ),
+      ]);
     }
     final more = paged && !(d?.done ?? true);
-    final entries = _entriesFor(visible, paged: paged, more: more);
+    final List<Widget> blocks;
+    if (!paged) {
+      blocks = [
+        _countLabel(t, l.searchResultCount('${visible.length}'), sub: l.p05SearchCountFor(_query)),
+        for (final key in _groupOrder)
+          ..._groupCard(t, key, [for (final h in visible) if (_groupKey(h.type) == key) h]),
+      ];
+    } else {
+      blocks = [
+        _countLabel(t, _foundLabel(l, _tab, visible.length, more)),
+        if (_tab == _Tab.club)
+          for (final h in visible) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _clubCard(t, h))
+        else if (_tab == _Tab.post)
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _postGrid(t, visible))
+        else
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _rowsCard(t, visible)),
+        _footer(t, d!),
+      ];
+    }
     return RefreshIndicator(
       color: t.pr,
       backgroundColor: t.sf3,
       onRefresh: () => paged ? _retryTab(_tab) : _run(_query),
       child: BuStaggerScope(
         key: ValueKey('$_seq-${_tab.name}'),
-        child: CustomScrollView(
+        child: ListView.builder(
           controller: _scroll,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              sliver: SliverList.builder(
-                itemCount: entries.length,
-                itemBuilder: (context, i) {
-                  final e = entries[i];
-                  if (e.hit == null) return _header(t, e);
-                  return BuStaggerItem(index: i, child: _row(t, e.hit!, first: e.first, last: e.last));
-                },
-              ),
-            ),
-            if (paged) SliverToBoxAdapter(child: _footer(t, d!)),
-            SliverToBoxAdapter(child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24)),
-          ],
+          padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 24),
+          itemCount: blocks.length,
+          itemBuilder: (context, i) => blocks[i],
         ),
       ),
     );
   }
 
-  Widget _header(BuTokens t, _Entry e) {
+  /// Tümü sekmesinde bir grup kartı: üstte küçük harfli başlık + "Tümünü gör (N)", altında satırlar.
+  List<Widget> _groupCard(BuTokens t, String key, List<_Hit> hits) {
+    if (hits.isEmpty) return const [];
     final l = context.l10n;
-    final tab = e.tab!;
-    final text = '${_groupLabel(l, tab)} · ${l.searchResultCount('${e.count}${e.more ? '+' : ''}')}';
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4, top: 18, bottom: 8),
-      child: Row(children: [
-        Expanded(child: Semantics(header: true, child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: icerikSectionStyle(t)))),
-        if (_tab == _Tab.all)
-          TextButton(
-            style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12), tapTargetSize: MaterialTapTargetSize.padded),
-            onPressed: () => _selectTab(tab),
-            child: Text(l.postViewSeeAll),
-          ),
-      ]),
-    );
+    final tx = Theme.of(context).textTheme;
+    final tab = _tabOf(key);
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        child: BuCard(
+          padding: EdgeInsets.zero,
+          radius: 20,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 0),
+              child: Row(children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(_groupLabel(l, key),
+                        style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: .5, color: t.mut)),
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                  onPressed: () => _selectTab(tab),
+                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+                ),
+              ]),
+            ),
+            _rows(t, hits),
+          ]),
+        ),
+      ),
+    ];
   }
+
+  Widget _rowsCard(BuTokens t, List<_Hit> hits) => BuCard(padding: EdgeInsets.zero, radius: 20, child: _rows(t, hits));
+
+  Widget _rows(BuTokens t, List<_Hit> hits) => Column(children: [
+        for (var i = 0; i < hits.length; i++)
+          Container(
+            decoration: i == 0 ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd.withValues(alpha: .7)))),
+            child: _row(t, hits[i]),
+          ),
+      ]);
 
   /// Sekmeyi baştan yükler (yenile / yeniden dene).
   Future<void> _retryTab(_Tab tab) async {
@@ -706,81 +784,258 @@ class _SearchPageState extends State<SearchPage> {
     return d.year == DateTime.now().year ? base : '$base ${d.year}';
   }
 
-  /// Gruplu kartın bir parçası: dış katman çizgi rengi (kenarlık + satır ayracı), iç katman yüzey.
-  Widget _row(BuTokens t, _Hit h, {required bool first, required bool last}) {
+  /// Tek sonuç satırı (karta gömülü): türüne göre görünüm.
+  Widget _row(BuTokens t, _Hit h) {
     final tx = Theme.of(context).textTheme;
-    final person = h.type == 'USER';
-    final isNews = _tabOf(h.type) == _Tab.news;
+    final l = context.l10n;
+    final tab = _tabOf(h.type);
+    final base = tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.25, color: t.ink);
     final snip = (h.snippet ?? '').trim();
-    final badge = _badgeOf(context.l10n, h.type);
-    String sub;
-    if (person) {
-      sub = snip;
-    } else if (isNews) {
-      sub = h.date == null ? badge : '$badge · ${_shortDate(h.date)}';
-    } else {
-      final parts = [badge, if (h.date != null) _shortDate(h.date), if (snip.isNotEmpty) snip];
-      sub = parts.join(' · ');
+    Widget leading;
+    Widget sub = const SizedBox.shrink();
+    Widget? trailing;
+    switch (tab) {
+      case _Tab.news:
+        leading = (h.imageUrl ?? '').isNotEmpty
+            ? IcerikThumb(url: h.imageUrl, size: 56, radius: 12, fallbackIcon: _iconOf(h.type), tint: _tintOf(t, h.type))
+            : _iconTile(t, h.type, 56, 12);
+        if (h.date != null) {
+          sub = Row(children: [
+            Icon(LucideIcons.clock, size: 13, color: t.mut),
+            const SizedBox(width: 5),
+            Flexible(child: Text(_shortDate(h.date), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
+          ]);
+        }
+      case _Tab.event:
+        final d = h.date == null ? null : DateTime.tryParse(h.date!)?.toLocal();
+        leading = d == null
+            ? _iconTile(t, h.type, 56, 12)
+            : Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
+                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
+                  Text('${d.day}', style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: t.pr)),
+                ]),
+              );
+        if (snip.isNotEmpty) sub = Text(snip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut));
+      case _Tab.club:
+        leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48, group: true);
+        final sb = h.members != null ? l.clubMemberCount('${h.members}') : snip;
+        if (sb.isNotEmpty) sub = Text(sb, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut));
+        if (h.category != null) trailing = _Pill(text: h.category!);
+      case _Tab.post:
+        leading = IcerikThumb(url: h.imageUrl, size: 56, radius: 12, fallbackIcon: LucideIcons.image, tint: _tintOf(t, h.type));
+        if (h.likes != null) {
+          sub = Row(children: [
+            Icon(LucideIcons.heart, size: 14, color: t.pr),
+            const SizedBox(width: 5),
+            Text('${h.likes}', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ]);
+        }
+      case _Tab.person:
+      case _Tab.all:
+        leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48);
+        if (snip.isNotEmpty) sub = Text(snip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut));
     }
-    const r = Radius.circular(20);
-    const ri = Radius.circular(19);
-    final outer = BorderRadius.vertical(top: first ? r : Radius.zero, bottom: last ? r : Radius.zero);
-    final inner = BorderRadius.vertical(top: first ? ri : Radius.zero, bottom: last ? ri : Radius.zero);
-    final tint = _tintOf(t, h.type);
-    final hasImage = !person && (h.imageUrl ?? '').isNotEmpty;
-    final Widget leading;
-    if (person) {
-      leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48);
-    } else if (hasImage) {
-      leading = IcerikThumb(url: h.imageUrl, size: 48, radius: 14, fallbackIcon: _iconOf(h.type), tint: tint);
-    } else {
-      leading = Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
-        child: Icon(_iconOf(h.type), size: 22, color: tint.fg),
-      );
-    }
-    final base = tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink);
-    return DecoratedBox(
-      decoration: BoxDecoration(color: t.bd, borderRadius: outer),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(1, first ? 1 : 0, 1, 1),
-        child: Material(
-          color: t.sf,
-          borderRadius: inner,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            key: ValueKey('search-hit-${h.type}-${h.id}'),
-            onTap: () => _open(h),
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 68),
-              padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 10),
-              child: Row(children: [
-                leading,
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text.rich(
-                      _highlight(h.title, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (sub.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                      ),
+    // Gönderi satırında başlık yerine gönderi metni öne çıkar.
+    final isPost = tab == _Tab.post;
+    final headline = isPost && snip.isNotEmpty ? snip : h.title;
+    return InkWell(
+      key: ValueKey('search-hit-${h.type}-${h.id}'),
+      onTap: () => _open(h),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 72),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 10),
+        child: Row(children: [
+          leading,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text.rich(_highlight(headline, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)),
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              if (sub is! SizedBox) Padding(padding: const EdgeInsets.only(top: 3), child: sub),
+            ]),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing],
+          if (tab == _Tab.person || tab == _Tab.all)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 6),
+              child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _iconTile(BuTokens t, String type, double size, double radius) {
+    final tint = _tintOf(t, type);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(radius)),
+      child: Icon(_iconOf(type), size: size * .45, color: tint.fg),
+    );
+  }
+
+  /// Kulüp sekmesi kartı: logo, ad, kategori + üye sayısı, açıklama, üyelik durumu.
+  Widget _clubCard(BuTokens t, _Hit h) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final base = tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.2, color: t.ink);
+    final snip = (h.snippet ?? '').trim();
+    final status = h.myStatus;
+    return BuCard(
+      key: ValueKey('search-hit-${h.type}-${h.id}'),
+      radius: 20,
+      padding: const EdgeInsets.all(16),
+      onTap: () => _open(h),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          BuAvatar(name: h.title, url: h.imageUrl, size: 56, square: true, group: true),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text.rich(_highlight(h.title, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)), maxLines: 2, overflow: TextOverflow.ellipsis),
+              if (h.category != null || h.members != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                    if (h.category != null) _Pill(text: h.category!),
+                    if (h.members != null)
+                      Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(LucideIcons.users, size: 14, color: t.mut),
+                        const SizedBox(width: 4),
+                        Text(l.clubMemberCount('${h.members}'), style: tx.labelMedium!.copyWith(color: t.mut)),
+                      ]),
                   ]),
                 ),
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 4, end: 4),
-                  child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
-                ),
+            ]),
+          ),
+        ]),
+        if (snip.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(snip, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+        ],
+        if (status != null) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: status == 'ACTIVE'
+                ? BuButton(label: l.clubIsMember, icon: LucideIcons.circleCheck, kind: BuButtonKind.soft, compact: true, onPressed: () => _open(h))
+                : BuButton(label: l.clubJoin, icon: LucideIcons.plus, compact: true, onPressed: () => _open(h)),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  /// Gönderi sekmesi: iki sütunlu fotoğraf kartları (fotoğraf, açıklama, yazar, beğeni sayısı).
+  Widget _postGrid(BuTokens t, List<_Hit> hits) {
+    final tx = Theme.of(context).textTheme;
+    Widget card(_Hit h) {
+      final snip = (h.snippet ?? '').trim();
+      return BuCard(
+        key: ValueKey('search-hit-${h.type}-${h.id}'),
+        radius: 20,
+        padding: EdgeInsets.zero,
+        onTap: () => _open(h),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            AspectRatio(aspectRatio: 4 / 5, child: BuImage(h.imageUrl, width: double.infinity, height: double.infinity, maxDecodeWidth: 600)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (snip.isNotEmpty)
+                  Text(snip, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: t.ink)),
+                const SizedBox(height: 8),
+                Row(children: [
+                  if (h.likes != null) ...[
+                    Icon(LucideIcons.heart, size: 14, color: t.pr),
+                    const SizedBox(width: 4),
+                    Text('${h.likes}', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(child: Text(h.title, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.end, style: tx.labelMedium!.copyWith(color: t.mut))),
+                ]),
               ]),
             ),
-          ),
+          ]),
         ),
+      );
+    }
+
+    final left = [for (var i = 0; i < hits.length; i += 2) hits[i]];
+    final right = [for (var i = 1; i < hits.length; i += 2) hits[i]];
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: Column(children: [for (final h in left) Padding(padding: const EdgeInsets.only(bottom: 12), child: card(h))])),
+      const SizedBox(width: 12),
+      Expanded(child: Column(children: [for (final h in right) Padding(padding: const EdgeInsets.only(bottom: 12), child: card(h))])),
+    ]);
+  }
+}
+
+/// Küçük hap etiket (kulüp kategorisi).
+class _Pill extends StatelessWidget {
+  const _Pill({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+      child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+    );
+  }
+}
+
+/// Sonuç türü çipleri: seçili = mürekkep zemin (referans), yatay kaydırılır.
+class _TabChips extends StatelessWidget {
+  const _TabChips({required this.labels, required this.selected, required this.onSelected});
+
+  final List<String> labels;
+  final int selected;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return SizedBox(
+      height: 56,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        itemCount: labels.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final on = i == selected;
+          return Semantics(
+            button: true,
+            selected: on,
+            child: BuPressable(
+              onTap: () => onSelected(i),
+              child: AnimatedContainer(
+                duration: BuMotion.of(context, BuMotion.short),
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: on ? t.ink : t.sf,
+                  borderRadius: BorderRadius.circular(BuRadius.pill),
+                  border: Border.all(color: on ? t.ink : t.bd),
+                ),
+                child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: on ? t.bg : t.ink)),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

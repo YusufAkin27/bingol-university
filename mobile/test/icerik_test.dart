@@ -53,7 +53,8 @@ void main() {
             final be = _newsBackend(maintenance: true);
             await tester.pumpWidget(buildApp(_wrap(NewsListPage(session: makeSession(be)), rtl: rtl), brightness: b, size: size));
             await settle(tester);
-            expect(find.text('Haberler'), findsOneWidget);
+            // Büyük başlık (SliverAppBar.large) hem açık hem daralmış başlığı çizer.
+            expect(find.text('Haberler'), findsWidgets);
             expect(find.text('Haber'), findsWidgets);
             expect(find.text('Duyuru'), findsOneWidget);
             expect(find.text('Etkinlik'), findsOneWidget);
@@ -133,7 +134,7 @@ void main() {
                   brightness: b,
                   size: size));
               await settle(tester);
-              expect(find.text('Kaynak sitede aç'), findsOneWidget);
+              expect(find.text('Kaynak sayfada aç'), findsOneWidget);
               expect(find.byTooltip('Paylaş'), findsOneWidget);
               expect(find.byTooltip('Favorilere ekle'), findsOneWidget);
               expect(find.textContaining('hafta içi geçerlidir'), findsOneWidget);
@@ -160,7 +161,7 @@ void main() {
             });
           await tester.pumpWidget(buildApp(SavedNewsPage(session: makeSession(be)), brightness: b, size: size));
           await settle(tester);
-          expect(find.text('Favori haberler'), findsOneWidget);
+          expect(find.text('Favori haberler'), findsWidgets);
           expect(find.text('3 kayıtlı haber'), findsOneWidget);
           expect(find.textContaining('Kayıtlı haber başlığı'), findsNWidgets(3));
           expect(find.text('Daha fazla haberi kaydet'), findsOneWidget);
@@ -217,9 +218,9 @@ void main() {
             await settle(tester);
             expect(find.text('Tümü'), findsOneWidget);
             expect(find.text('Kişi', skipOffstage: false), findsOneWidget);
-            expect(find.textContaining('HABER · 2'), findsOneWidget);
-            expect(find.textContaining('KULÜP · 1'), findsOneWidget);
-            expect(find.text('Duyuru · 9 Ekim'), findsOneWidget);
+            expect(find.text('HABER'), findsOneWidget);
+            expect(find.text('KULÜP'), findsOneWidget);
+            expect(find.text('9 Ekim'), findsOneWidget);
             // Eşleşen parça ayrı (vurgulu) metin parçası olarak çizilir.
             final rich = tester.widgetList<RichText>(find.byType(RichText)).where((r) => _hasMark(r.text, 'Kamp'));
             expect(rich, isNotEmpty);
