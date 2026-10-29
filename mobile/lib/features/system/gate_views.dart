@@ -483,7 +483,8 @@ class TopStrip extends StatelessWidget {
             const SizedBox(width: 8),
             ExcludeSemantics(child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle))),
             const SizedBox(width: 6),
-            Flexible(
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 170),
               child: Text(trailingText!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
