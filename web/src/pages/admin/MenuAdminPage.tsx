@@ -1,4 +1,4 @@
-// SAYFA: Yemek menüsü (/admin/content/menu) — günün menüsüne isteğe bağlı fotoğraf ekle/değiştir/kaldır.
+// SAYFA: Yemek menüsü (/admin/content/menu) — günün menüsüne isteğe bağlı fotoğraf ekle/değiştir/kaldır + yemek kalorisi (kcal) düzenle.
 // API: GET /api/admin/menu?from&to, PUT /api/admin/menu/{date}/image (multipart `file`), DELETE .../image (api/adminMenu.ts).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
@@ -21,6 +21,8 @@ import { adminErrorMessage } from './campaigns/shared';
 import { MENU_BULK_MAX, exportMenuCsv } from '../../api/adminBulk';
 import { MenuBulkBar } from './bulk/BulkBars';
 import { BulkCsvButton, RowPick, SelectPage, useIdSelection, type IdSelection } from './bulk/BulkParts';
+import { CalorieBulkImport } from './menu/CalorieBulkImport';
+import { CalorieEditor } from './menu/CalorieEditor';
 import { currentMonth, isMonth, monthRange, validateMenuImage } from './menu/menuLogic';
 import styles from './menu/menu.module.css';
 
@@ -80,17 +82,7 @@ function DayRow({
           <RowPick id={day.date} label={t('admin.p15.menu.select', { date: label })} selection={selection} />
           {label}
         </h3>
-        {day.items.length > 0 ? (
-          <ul className={styles.items}>
-            {day.items.map((it, i) => (
-              <li key={`${i}-${it}`} dir="auto">
-                {it}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <span className={styles.muted}>{t('admin.menu.noItems')}</span>
-        )}
+        <CalorieEditor day={day} onSaved={onChanged} />
       </div>
       <div className={styles.media}>
         {day.imageUrl ? (
@@ -191,6 +183,8 @@ export default function MenuAdminPage() {
         </FormField>
       </div>
       <p className={styles.muted}>{t('admin.menu.hint')}</p>
+      <p className={styles.muted}>{t('admin.menu.kcal.hint')}</p>
+      <CalorieBulkImport onDone={() => void qc.invalidateQueries({ queryKey: ['adminMenu'] })} />
 
       {!valid ? (
         <EmptyState icon="calendar" title={t('admin.menu.pickMonth')} description=" " />

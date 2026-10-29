@@ -11,3 +11,18 @@
 .file { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; overflow: hidden; }
 .error { color: var(--danger); font-size: var(--text-sm); margin: 0; }
 .muted { color: var(--text-muted); font-size: var(--text-sm); }
+
+/* Kalori düzenleme */
+.kcal { display: grid; gap: var(--space-2); }
+.dishes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1, 0.25rem); }
+.dish { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); color: var(--text-muted); font-size: var(--text-sm); }
+.dishName { min-inline-size: 0; overflow-wrap: anywhere; }
+.kcalField { display: inline-flex; align-items: center; gap: var(--space-1, 0.25rem); flex: none; }
+.kcalInput { inline-size: 5.5rem; padding: 0.25rem 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text); font: inherit; text-align: end; }
+.kcalInput[aria-invalid='true'] { border-color: var(--danger); }
+.unit { color: var(--text-muted); font-size: var(--text-sm); }
+.kcalFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.total { font-weight: 600; font-size: var(--text-sm); }
+.bulk { margin-block: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); }
+.bulk > summary { cursor: pointer; font-weight: 600; }
+.errors { margin: 0; padding-inline-start: 1.1rem; color: var(--danger); font-size: var(--text-sm); }
