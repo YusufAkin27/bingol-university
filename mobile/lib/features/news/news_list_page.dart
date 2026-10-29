@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../profile/saved_news_page.dart';
 import '../search/search_page.dart';
 import 'icerik_parts.dart';
@@ -29,6 +26,7 @@ class NewsListPage extends StatefulWidget {
 
 class _NewsListPageState extends State<NewsListPage> {
   static const _types = ['HABER', 'DUYURU', 'ETKINLIK'];
+  static const _tabIcons = [LucideIcons.newspaper, LucideIcons.megaphone, LucideIcons.calendar];
   static const _pageSize = 20;
 
   final _scroll = ScrollController();
@@ -152,7 +150,7 @@ class _NewsListPageState extends State<NewsListPage> {
       setState(() {
         _loading = false;
         if (replace && _loaded) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
+          BuToast.show(context, errorText(e), kind: BuToastKind.error);
         } else {
           _error = e;
         }
@@ -170,10 +168,14 @@ class _NewsListPageState extends State<NewsListPage> {
       } else {
         await widget.session.api.put('/bookmarks/news/$id');
       }
+      if (mounted) {
+        final l = context.l10n;
+        BuToast.show(context, was ? l.p05UnsavedToast : l.p05SavedToast, kind: BuToastKind.success);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => was ? _savedIds.add(id) : _savedIds.remove(id));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
+      BuToast.show(context, errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -207,189 +209,131 @@ class _NewsListPageState extends State<NewsListPage> {
     return switch (i) { 0 => l.newsTypeNews, 1 => l.newsTypeAnnouncement, _ => l.newsTypeEvent };
   }
 
+  BuViewState get _view {
+    if (!_loaded && _error == null) return BuViewState.loading;
+    if (_error != null && !_loaded) return BuViewState.error;
+    return _items.isEmpty ? BuViewState.empty : BuViewState.ready;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final l = context.l10n;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
-            child: Row(children: [
-              IcerikIconButton(
-                  icon: buDirIcon(context, LucideIcons.arrowLeft),
-                  label: l.commonBack,
-                  onTap: () => Navigator.maybePop(context)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(l.icerikNewsTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.display.copyWith(fontSize: 28, letterSpacing: -.5, height: 1.15, color: t.ink)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              IcerikIconButton(
-                  key: const ValueKey('news-favorites'),
-                  icon: LucideIcons.bookmark,
-                  label: l.icerikFavorites,
-                  onTap: _openFavorites),
-              const SizedBox(width: 10),
-              IcerikIconButton(
-                  key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
-            ]),
+    return BuPageScaffold(
+      title: l.icerikNewsTitle,
+      state: _view,
+      error: _error,
+      onRetry: _reload,
+      onRefresh: _refresh,
+      controller: _scroll,
+      bottomInset: MediaQuery.paddingOf(context).bottom + 16,
+      actions: [
+        IcerikIconButton(
+            key: const ValueKey('news-favorites'),
+            icon: LucideIcons.bookmark,
+            label: l.icerikFavorites,
+            onTap: _openFavorites),
+        IcerikIconButton(
+            key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
+        const SizedBox(width: 8),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(68),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+          child: IcerikTabs(
+            labels: [for (var i = 0; i < _types.length; i++) _tabLabel(i)],
+            icons: _tabIcons,
+            index: _tab,
+            keyPrefix: 'news-tab-',
+            semanticLabel: l.icerikNewsTypeTabs,
+            onChanged: _selectTab,
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-            child: Semantics(
-              container: true,
-              label: l.icerikNewsTypeTabs,
-              child: Row(children: [
-                for (var i = 0; i < _types.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  Expanded(child: _TypeTab(label: _tabLabel(i), on: i == _tab, onTap: () => _selectTab(i), index: i)),
-                ],
-              ]),
-            ),
-          ),
-          if (_maintenance)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _MaintenanceBanner(text: l.icerikMaintenance),
-            ),
-          StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
-          Expanded(child: _body(t)),
-        ],
+        ),
       ),
+      banner: (_maintenance || _staleAt != null)
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (_maintenance) IcerikNotice(text: l.icerikMaintenance),
+                StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.only(top: 8)),
+              ]),
+            )
+          : null,
+      loading: const IcerikListSkeleton(),
+      empty: BuEmptyState(illustration: BuIllustration.document, title: l.icerikNewsEmpty, message: l.p05NewsEmptyBody),
+      slivers: _slivers(),
     );
   }
 
-  Widget _body(BuTokens t) {
-    if (!_loaded && _error == null) return const LoadingView();
-    if (_error != null && !_loaded) return ErrorView(error: _error!, onRetry: _reload);
-    final bottom = MediaQuery.of(context).padding.bottom + 24;
-    if (_items.isEmpty) {
-      return RefreshIndicator(
-        color: t.pr,
-        onRefresh: _refresh,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            SizedBox(height: 320, child: EmptyView(icon: LucideIcons.newspaper, text: context.l10n.icerikNewsEmpty)),
-          ],
-        ),
-      );
-    }
-    return Semantics(
-      container: true,
-      label: context.l10n.icerikNewsList,
-      explicitChildNodes: true,
-      child: RefreshIndicator(
-        color: t.pr,
-        onRefresh: _refresh,
-        child: ListView.separated(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, 16, 20, bottom),
-          itemCount: _items.length + 1,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, i) {
-            if (i == _items.length) return _footer();
-            final n = _items[i];
-            return NewsTile(item: n, onTap: () => _open(n));
-          },
+  List<Widget> _slivers() {
+    if (_items.isEmpty) return const [];
+    final first = _items.first;
+    final img = first['imageUrl'] as String?;
+    final featured = img != null && img.isNotEmpty;
+    final rest = featured ? _items.skip(1).toList() : _items;
+    return [
+      SliverSemantics(
+        container: true,
+        explicitChildNodes: true,
+        label: context.l10n.icerikNewsList,
+        sliver: BuStaggerScope(
+          key: ValueKey('$_tab-$_gen'),
+          child: SliverMainAxisGroup(slivers: [
+            if (featured)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                sliver: SliverToBoxAdapter(
+                  child: BuStaggerItem(
+                    index: 0,
+                    child: NewsFeaturedCard(
+                      item: first,
+                      saved: _savedIds.contains((first['id'] as num).toInt()),
+                      onToggleSave: () => _toggleSave(first),
+                      onTap: () => _open(first),
+                    ),
+                  ),
+                ),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(20, featured ? 0 : 4, 20, 0),
+              sliver: SliverList.separated(
+                itemCount: rest.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, i) {
+                  final n = rest[i];
+                  return BuStaggerItem(
+                    index: i + (featured ? 1 : 0),
+                    child: NewsTile(
+                      item: n,
+                      showType: false,
+                      saved: _savedIds.contains((n['id'] as num).toInt()),
+                      onToggleSave: () => _toggleSave(n),
+                      onTap: () => _open(n),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SliverToBoxAdapter(child: _footer()),
+          ]),
         ),
       ),
-    );
+    ];
   }
 
   Widget _footer() {
     if (_error != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: BuButton(
               label: context.l10n.commonRetry, compact: true, kind: BuButtonKind.outline, onPressed: _loadMore),
         ),
       );
     }
-    if (_loading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
-      );
+    if (_loading && _page > 0) {
+      return const IcerikListSkeleton(featured: false, count: 1, padding: EdgeInsets.fromLTRB(20, 12, 20, 0));
     }
     return const SizedBox(height: 4);
-  }
-}
-
-class _TypeTab extends StatelessWidget {
-  const _TypeTab({required this.label, required this.on, required this.onTap, required this.index});
-
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      selected: on,
-      label: label,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: GestureDetector(
-        key: ValueKey('news-tab-$index'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: on ? t.pr : t.sf,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: on ? t.pr : t.bd),
-          ),
-          child: Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: on ? t.onPr : t.mut)),
-        ),
-      ),
-    );
-  }
-}
-
-class _MaintenanceBanner extends StatelessWidget {
-  const _MaintenanceBanner({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = icerikWarnColors(context);
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: c.bg,
-          border: Border.all(color: c.border),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(children: [
-          Icon(LucideIcons.circleAlert, size: 18, color: c.fg),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text, style: BuType.body.copyWith(fontSize: 13, height: 1.4, color: c.fg))),
-        ]),
-      ),
-    );
   }
 }

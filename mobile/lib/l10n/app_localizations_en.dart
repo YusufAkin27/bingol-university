@@ -7116,4 +7116,228 @@ class AppLocalizationsEn extends AppLocalizations {
   String p00StepOf(String current, String total) {
     return 'Step $current of $total';
   }
+
+  @override
+  String get p05NewsEmptyBody =>
+      'New items will show up here when they arrive.';
+
+  @override
+  String get p05SavedEmptyTitle => 'No favorites yet';
+
+  @override
+  String get p05SavedToast => 'Added to favorites';
+
+  @override
+  String get p05UnsavedToast => 'Removed from favorites';
+
+  @override
+  String get p05SearchIdleTitle => 'Search the campus';
+
+  @override
+  String get p05SearchNoResultsBody =>
+      'Try a different word or check the spelling.';
+
+  @override
+  String get p05Source => 'Source';
+
+  @override
+  String p05ReadMinutes(String count) {
+    return '$count min read';
+  }
+
+  @override
+  String p17WeekOf(String n, String total) {
+    return 'Week $n of $total';
+  }
+
+  @override
+  String get p17SemesterName => 'Semester name';
+
+  @override
+  String get p17NoClassesTitle => 'Your timetable is empty';
+
+  @override
+  String get p17ExamsEmptyTitle => 'No exams yet';
+
+  @override
+  String get p17OfficialEmptyTitle => 'No official schedule yet';
+
+  @override
+  String get p17SemestersEmptyTitle => 'No semesters';
+
+  @override
+  String get p17MaintenanceTitle => 'Under maintenance';
+
+  @override
+  String get p17PreviewHint => 'Preview';
+
+  @override
+  String get p16QrCopy => 'Copy code';
+
+  @override
+  String get p16QrCopied => 'Code copied';
+
+  @override
+  String get p16ReqNoneBody => 'New join requests will show up here.';
+
+  @override
+  String get p16AttEmptyBody =>
+      'Attendees are listed here as they join the event.';
+
+  @override
+  String get p16AttFilterEmpty => 'No one matches this filter.';
+
+  @override
+  String get p16PolicyOpenHint =>
+      'Anyone can join directly without sending a request.';
+
+  @override
+  String p16AttPresentCount(String n) {
+    return '$n checked in';
+  }
+
+  @override
+  String get p10PageTitle => 'Add media';
+
+  @override
+  String get p10SheetTitle => 'Add';
+
+  @override
+  String get p10SheetSubtitle => 'What would you like to send?';
+
+  @override
+  String get p10SourcePhotos => 'Photos';
+
+  @override
+  String get p10SourcePhotosHint => 'Pick one or more photos from your library';
+
+  @override
+  String get p10SourceVideo => 'Video';
+
+  @override
+  String get p10SourceVideoHint =>
+      'Pick a video from your library (up to 60 s)';
+
+  @override
+  String get p10SourceCamera => 'Camera';
+
+  @override
+  String get p10SourceCameraHint => 'Take a photo or record a video';
+
+  @override
+  String get p10PrivacyNote =>
+      'Only the items you pick are shared. Your whole library stays private.';
+
+  @override
+  String get p10PickedHeader => 'Selected';
+
+  @override
+  String get p10EmptyTitle => 'Nothing selected yet';
+
+  @override
+  String get p10EmptyBody =>
+      'Start by choosing photos, a video or the camera above.';
+
+  @override
+  String get p10Preview => 'Preview';
+
+  @override
+  String get p10Remove => 'Remove';
+
+  @override
+  String get p10PickFailed => 'Could not open the picker. Please try again.';
+
+  @override
+  String get p14Today => 'Today';
+
+  @override
+  String get p14Tomorrow => 'Tomorrow';
+
+  @override
+  String get p14ClearDay => 'Whole month';
+
+  @override
+  String get p14Ended => 'Ended';
+
+  @override
+  String get p14Live => 'Live now';
+
+  @override
+  String p14EventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events',
+      one: '1 event',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get p14EmptyMonthBody =>
+      'Browse another month; new events show up here as soon as they are added.';
+
+  @override
+  String get p14EmptyDayBody => 'Pick another day or see the whole month.';
+
+  @override
+  String get p14EmptyUpcomingBody =>
+      'Join club events and the ones you attend are collected here.';
+
+  @override
+  String get p14EmptyPastBody =>
+      'Events you attended are kept here once they end.';
+
+  @override
+  String get p14EmptyCreatedBody =>
+      'Create an event for your club and manage requests and attendance here.';
+
+  @override
+  String get p13SuppAskTitle => 'How can we help you?';
+
+  @override
+  String get p13SuppAskBody => 'Browse the FAQ or write to the support team.';
+
+  @override
+  String get p13TicketIntro =>
+      'Describe your issue briefly; the support team will reply as soon as possible.';
+
+  @override
+  String get p13TicketsEmptyHint =>
+      'If you run into a problem, you can create a new request.';
+
+  @override
+  String get p13FeedbackEmptyHint =>
+      'The suggestions and bug reports you send are listed here.';
+
+  @override
+  String get p13SugEmptyTitle => 'Ideas gather here';
+
+  @override
+  String get p13PollEmptyOpenHint =>
+      'New polls will appear here when they open.';
+
+  @override
+  String get p13PollEmptyMineHint => 'Polls you vote in are listed here.';
+
+  @override
+  String get p13PollEmptyClosedHint => 'Results of ended polls are kept here.';
+
+  @override
+  String get p13Rate1 => 'Very bad';
+
+  @override
+  String get p13Rate2 => 'Poor';
+
+  @override
+  String get p13Rate3 => 'Okay';
+
+  @override
+  String get p13Rate4 => 'Good';
+
+  @override
+  String get p13Rate5 => 'Excellent';
+
+  @override
+  String get p13Leading => 'Leading';
 }

@@ -2,24 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
-import '../news/news_detail_page.dart';
 import '../news/icerik_parts.dart';
+import '../news/news_detail_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_routes.dart';
 import '../profile/user_profile_page.dart';
-import '../../core/typography.dart';
 
 /// Genel arama: haber/duyuru, kulüp, etkinlik, gönderi ve kişi.
 class SearchPage extends StatefulWidget {
@@ -95,6 +91,12 @@ String _badgeOf(AppLocalizations l, String type) {
 }
 
 IconData _iconOf(String type) {
+  switch (type) {
+    case 'ANNOUNCEMENT':
+      return LucideIcons.megaphone;
+    default:
+      break;
+  }
   switch (_tabOf(type)) {
     case _Tab.news:
       return LucideIcons.newspaper;
@@ -103,10 +105,22 @@ IconData _iconOf(String type) {
     case _Tab.event:
       return LucideIcons.calendar;
     case _Tab.post:
-      return LucideIcons.messageSquare;
+      return LucideIcons.image;
     default:
       return LucideIcons.user;
   }
+}
+
+/// Sonuç türüne göre simge karosu tonu (haber marka tonu, diğerleri kategori renkleri).
+BuTint _tintOf(BuTokens t, String type) {
+  if (type == 'ANNOUNCEMENT') return t.tint(2);
+  return switch (_tabOf(type)) {
+    _Tab.news => BuTint(t.soft, t.onSoft),
+    _Tab.club => t.tint(0),
+    _Tab.event => t.tint(1),
+    _Tab.post => t.tint(3),
+    _ => t.tint(4),
+  };
 }
 
 /// Sekme başına sayfalama durumu (Tümü hariç).
@@ -150,6 +164,25 @@ _Hit _hitFromUser(Map u, AppLocalizations l) {
     snippet: sub.isEmpty ? null : sub,
     imageUrl: u['avatarUrl'] as String?,
   );
+}
+
+/// Düz sonuç listesi öğesi: grup başlığı ya da (gruplu kartın parçası olan) sonuç satırı.
+class _Entry {
+  const _Entry.header(this.tab, this.count, this.more)
+      : hit = null,
+        first = false,
+        last = false;
+  const _Entry.row(this.hit, {required this.first, required this.last})
+      : tab = null,
+        count = 0,
+        more = false;
+
+  final _Tab? tab;
+  final int count;
+  final bool more;
+  final _Hit? hit;
+  final bool first;
+  final bool last;
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -434,187 +467,103 @@ class _SearchPageState extends State<SearchPage> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
+            padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top + 8, 20, 4),
             child: Row(children: [
               IcerikIconButton(
                   icon: buDirIcon(context, LucideIcons.arrowLeft),
                   label: l.authBack,
-                  shadow: true,
                   onTap: () => Navigator.pop(context)),
-              const SizedBox(width: 12),
-              Expanded(child: _field(t)),
-            ]),
-          ),
-          if (active)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Semantics(
-                container: true,
-                label: l.icerikSearchTabs,
-                child: SizedBox(
-                  height: 44,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    // 6 çip: hepsi oluşturulsun (erişilebilirlik ağacında görünür)
-                    scrollCacheExtent: const ScrollCacheExtent.pixels(800),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    children: [
-                      for (final tab in _tabOrder)
-                        Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 8),
-                          child: _chip(t, _tabLabel(l, tab), _tab == tab, () => _selectTab(tab)),
-                        ),
-                    ],
-                  ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: BuSearchField(
+                  hint: l.searchHint,
+                  controller: _ctrl,
+                  autofocus: true,
+                  onChanged: _onChanged,
+                  onSubmitted: _submit,
                 ),
               ),
-            ),
+            ]),
+          ),
+          AnimatedSize(
+            duration: BuMotion.of(context, BuMotion.medium),
+            curve: BuMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: active
+                ? Semantics(
+                    container: true,
+                    label: l.icerikSearchTabs,
+                    child: BuChipRow(
+                      labels: [for (final tab in _tabOrder) _tabLabel(l, tab)],
+                      selected: _tabOrder.indexOf(_tab),
+                      onSelected: (i) => _selectTab(_tabOrder[i]),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+          if (active && _loading && _query.isNotEmpty)
+            const LinearProgressIndicator(minHeight: 2)
+          else
+            const SizedBox(height: 2),
           Expanded(child: active ? _results(t) : _suggestions(t)),
         ],
       ),
     );
   }
 
-  Widget _field(BuTokens t) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsetsDirectional.only(start: 16, end: 6),
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.pr, width: 1.5),
-        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .12), spreadRadius: 4, blurRadius: 0)],
-      ),
-      child: Row(children: [
-        Icon(LucideIcons.search, size: 18, color: t.mut),
-        const SizedBox(width: 10),
-        Expanded(
-          child: TextField(
-            controller: _ctrl,
-            autofocus: true,
-            onChanged: (v) {
-              setState(() {});
-              _onChanged(v);
-            },
-            onSubmitted: _submit,
-            textInputAction: TextInputAction.search,
-            style: BuType.body.copyWith(fontSize: 16, height: 1.25, color: t.ink),
-            cursorColor: t.pr,
-            decoration: InputDecoration(
-              hintText: context.l10n.searchHint,
-              hintStyle: BuType.body.copyWith(fontSize: 16, height: 1.25, color: t.mut),
-              isCollapsed: true,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              filled: false,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ),
-        if (_ctrl.text.isNotEmpty)
-          Semantics(
-            button: true,
-            label: context.l10n.searchClear,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                _ctrl.clear();
-                _onChanged('');
-              },
-              child: SizedBox(width: 44, height: 44, child: Icon(LucideIcons.x, size: 18, color: t.mut)),
-            ),
-          )
-        else
-          const SizedBox(width: 10),
-      ]),
-    );
-  }
-
-  Widget _chip(BuTokens t, String label, bool on, VoidCallback onTap) {
-    return Semantics(
-      button: true,
-      selected: on,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: on ? t.ink : t.sf,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: on ? t.ink : t.bd),
-          ),
-          child: Text(label, style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: on ? t.bg : t.mut)),
-        ),
-      ),
-    );
-  }
-
   Widget _suggestions(BuTokens t) {
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     if (_recent.isEmpty) {
-      return EmptyView(
-        icon: LucideIcons.search,
-        text: context.l10n.searchPrompt,
-      );
+      return BuEmptyState(illustration: BuIllustration.search, title: l.p05SearchIdleTitle, message: l.searchPrompt);
     }
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        Row(children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(start: 6),
-              child: Text(context.l10n.searchRecent, style: icerikSectionStyle(t)),
-            ),
-          ),
-          InkWell(
-            onTap: _clearRecent,
-            borderRadius: BorderRadius.circular(8),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                widthFactor: 1,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text(context.l10n.searchClearRecent,
-                      style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
-                ),
-              ),
-            ),
-          ),
-        ]),
+        BuSectionHeader(l.searchRecent,
+            action: l.searchClearRecent, onAction: _clearRecent, padding: const EdgeInsetsDirectional.fromSTEB(4, 12, 0, 4)),
         IcerikCard(
+          shadow: false,
           child: Column(children: [
             for (var i = 0; i < _recent.length; i++)
               InkWell(
                 onTap: () => _useRecent(_recent[i]),
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: i == 0 ? null : BoxDecoration(border: Border(top: BorderSide(color: _divider(t)))),
+                  constraints: const BoxConstraints(minHeight: 52),
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 8, 6),
+                  decoration: i == 0 ? null : BoxDecoration(border: Border(top: BorderSide(color: t.bd.withValues(alpha: .7)))),
                   child: Row(children: [
-                    Icon(LucideIcons.clock, size: 18, color: t.mut),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                      child: Icon(LucideIcons.clock, size: 15, color: t.mut),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(_recent[i],
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.bodyStrong.copyWith(fontSize: 15, color: t.ink)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(Directionality.of(context) == TextDirection.rtl ? LucideIcons.arrowUpRight : LucideIcons.arrowUpLeft, size: 16, color: t.mut),
                     ),
                   ]),
                 ),
               ),
           ]),
         ),
+        const SizedBox(height: 28),
+        const Center(child: BuIllustrationView(BuIllustration.search, size: 96)),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(l.searchPrompt, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
+        ),
       ],
     );
   }
-
-  Color _divider(BuTokens t) => t.bd.withValues(alpha: .6);
 
   /// Tümü sekmesindeki grup başlığı ve etiketi.
   String _groupLabel(AppLocalizations l, _Tab tab) => switch (tab) {
@@ -625,55 +574,90 @@ class _SearchPageState extends State<SearchPage> {
         _ => l.icerikGroupPerson,
       };
 
-  Widget _section(BuTokens t, String label, int count, bool more, List<_Hit> hits) {
-    final l = context.l10n;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(
-        padding: const EdgeInsetsDirectional.only(start: 6, bottom: 8, top: 12),
-        child: Text('$label · ${l.searchResultCount('${hits.length}${more ? '+' : ''}')}',
-            style: icerikSectionStyle(t)),
-      ),
-      IcerikCard(
-        child: Column(children: [
-          for (var i = 0; i < hits.length; i++) _row(t, hits[i], first: i == 0),
-        ]),
-      ),
-    ]);
-  }
-
-  Widget _results(BuTokens t) {
-    final paged = _tab != _Tab.all;
-    final d = paged ? _tabs[_tab] : null;
-    final error = paged ? d?.error : _error;
-    if (error != null) return ErrorView(error: error, onRetry: () => paged ? _retryTab(_tab) : _run(_query));
-    final visible = paged ? (d?.hits ?? const <_Hit>[]) : _hits;
-    if (paged ? (d == null || !d.loaded) : (_loading && _hits.isEmpty)) return const LoadingView();
-    if (visible.isEmpty) {
-      return EmptyView(icon: LucideIcons.searchX, text: context.l10n.searchNoResults);
+  List<_Entry> _entriesFor(List<_Hit> visible, {required bool paged, required bool more}) {
+    final out = <_Entry>[];
+    void group(_Tab tab, List<_Hit> hits, bool more) {
+      out.add(_Entry.header(tab, hits.length, more));
+      for (var i = 0; i < hits.length; i++) {
+        out.add(_Entry.row(hits[i], first: i == 0, last: i == hits.length - 1));
+      }
     }
-    final l = context.l10n;
-    final more = paged && !(d?.done ?? true);
-    final children = <Widget>[];
+
     if (paged) {
-      children.add(_section(t, _groupLabel(l, _tab), visible.length, more, visible));
-      children.add(_footer(t, d!));
+      group(_tab, visible, more);
     } else {
       for (final tab in _tabOrder) {
         if (tab == _Tab.all) continue;
-        final group = [for (final h in visible) if (_tabOf(h.type) == tab) h];
-        if (group.isEmpty) continue;
-        children.add(_section(t, _groupLabel(l, tab), group.length, false, group));
+        final g = [for (final h in visible) if (_tabOf(h.type) == tab) h];
+        if (g.isNotEmpty) group(tab, g, false);
       }
     }
+    return out;
+  }
+
+  Widget _results(BuTokens t) {
+    final l = context.l10n;
+    final paged = _tab != _Tab.all;
+    final d = paged ? _tabs[_tab] : null;
+    final error = paged ? d?.error : _error;
+    if (error != null) {
+      return BuErrorState(error: error, onRetry: () => paged ? _retryTab(_tab) : _run(_query));
+    }
+    final visible = paged ? (d?.hits ?? const <_Hit>[]) : _hits;
+    if (paged ? (d == null || !d.loaded) : (_loading && _hits.isEmpty)) {
+      return const BuSkeletonList(itemCount: 7);
+    }
+    if (visible.isEmpty) {
+      return BuEmptyState(illustration: BuIllustration.search, title: l.searchNoResults, message: l.p05SearchNoResultsBody);
+    }
+    final more = paged && !(d?.done ?? true);
+    final entries = _entriesFor(visible, paged: paged, more: more);
     return RefreshIndicator(
       color: t.pr,
+      backgroundColor: t.sf3,
       onRefresh: () => paged ? _retryTab(_tab) : _run(_query),
-      child: ListView(
-        controller: _scroll,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 24),
-        children: children,
+      child: BuStaggerScope(
+        key: ValueKey('$_seq-${_tab.name}'),
+        child: CustomScrollView(
+          controller: _scroll,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+              sliver: SliverList.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, i) {
+                  final e = entries[i];
+                  if (e.hit == null) return _header(t, e);
+                  return BuStaggerItem(index: i, child: _row(t, e.hit!, first: e.first, last: e.last));
+                },
+              ),
+            ),
+            if (paged) SliverToBoxAdapter(child: _footer(t, d!)),
+            SliverToBoxAdapter(child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24)),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _header(BuTokens t, _Entry e) {
+    final l = context.l10n;
+    final tab = e.tab!;
+    final text = '${_groupLabel(l, tab)} · ${l.searchResultCount('${e.count}${e.more ? '+' : ''}')}';
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 4, top: 18, bottom: 8),
+      child: Row(children: [
+        Expanded(child: Semantics(header: true, child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: icerikSectionStyle(t)))),
+        if (_tab == _Tab.all)
+          TextButton(
+            style: TextButton.styleFrom(
+                minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12), tapTargetSize: MaterialTapTargetSize.padded),
+            onPressed: () => _selectTab(tab),
+            child: Text(l.postViewSeeAll),
+          ),
+      ]),
     );
   }
 
@@ -694,7 +678,7 @@ class _SearchPageState extends State<SearchPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(context.l10n.searchTooMany,
-                  textAlign: TextAlign.center, style: BuType.caption.copyWith(color: t.mut)),
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
             ),
           BuButton(
             label: context.l10n.commonRetry,
@@ -709,10 +693,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
     if (d.loading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
-      );
+      return const BuSkeletonList(itemCount: 2, shrinkWrap: true, padding: EdgeInsets.fromLTRB(20, 8, 20, 8));
     }
     return const SizedBox(height: 4);
   }
@@ -725,7 +706,9 @@ class _SearchPageState extends State<SearchPage> {
     return d.year == DateTime.now().year ? base : '$base ${d.year}';
   }
 
-  Widget _row(BuTokens t, _Hit h, {required bool first}) {
+  /// Gruplu kartın bir parçası: dış katman çizgi rengi (kenarlık + satır ayracı), iç katman yüzey.
+  Widget _row(BuTokens t, _Hit h, {required bool first, required bool last}) {
+    final tx = Theme.of(context).textTheme;
     final person = h.type == 'USER';
     final isNews = _tabOf(h.type) == _Tab.news;
     final snip = (h.snippet ?? '').trim();
@@ -739,43 +722,65 @@ class _SearchPageState extends State<SearchPage> {
       final parts = [badge, if (h.date != null) _shortDate(h.date), if (snip.isNotEmpty) snip];
       sub = parts.join(' · ');
     }
-    return InkWell(
-      key: ValueKey('search-hit-${h.type}-${h.id}'),
-      onTap: () => _open(h),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 64),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: first ? null : BoxDecoration(border: Border(top: BorderSide(color: _divider(t)))),
-        child: Row(children: [
-          if (person)
-            BuAvatar(name: h.title, url: h.imageUrl, size: 48)
-          else
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-              child: Icon(_iconOf(h.type), size: 22, color: t.pr),
-            ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text.rich(
-                _highlight(h.title, _query, BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink),
-                    BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.onSoft, backgroundColor: t.soft)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (sub.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(sub,
-                      maxLines: 1,
+    const r = Radius.circular(20);
+    const ri = Radius.circular(19);
+    final outer = BorderRadius.vertical(top: first ? r : Radius.zero, bottom: last ? r : Radius.zero);
+    final inner = BorderRadius.vertical(top: first ? ri : Radius.zero, bottom: last ? ri : Radius.zero);
+    final tint = _tintOf(t, h.type);
+    final hasImage = !person && (h.imageUrl ?? '').isNotEmpty;
+    final Widget leading;
+    if (person) {
+      leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48);
+    } else if (hasImage) {
+      leading = IcerikThumb(url: h.imageUrl, size: 48, radius: 14, fallbackIcon: _iconOf(h.type), tint: tint);
+    } else {
+      leading = Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
+        child: Icon(_iconOf(h.type), size: 22, color: tint.fg),
+      );
+    }
+    final base = tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink);
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.bd, borderRadius: outer),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(1, first ? 1 : 0, 1, 1),
+        child: Material(
+          color: t.sf,
+          borderRadius: inner,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: ValueKey('search-hit-${h.type}-${h.id}'),
+            onTap: () => _open(h),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 68),
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 10),
+              child: Row(children: [
+                leading,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text.rich(
+                      _highlight(h.title, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: BuType.caption.copyWith(fontSize: 12.5, color: t.mut)),
+                    ),
+                    if (sub.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                      ),
+                  ]),
                 ),
-            ]),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 4, end: 4),
+                  child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+                ),
+              ]),
+            ),
           ),
-        ]),
+        ),
       ),
     );
   }

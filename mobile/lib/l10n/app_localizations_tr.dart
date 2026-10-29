@@ -7085,4 +7085,228 @@ class AppLocalizationsTr extends AppLocalizations {
   String p00StepOf(String current, String total) {
     return 'Adım $current / $total';
   }
+
+  @override
+  String get p05NewsEmptyBody => 'Yeni içerikler geldiğinde burada görünecek.';
+
+  @override
+  String get p05SavedEmptyTitle => 'Henüz favorin yok';
+
+  @override
+  String get p05SavedToast => 'Favorilere eklendi';
+
+  @override
+  String get p05UnsavedToast => 'Favorilerden çıkarıldı';
+
+  @override
+  String get p05SearchIdleTitle => 'Kampüste ara';
+
+  @override
+  String get p05SearchNoResultsBody =>
+      'Farklı bir kelime deneyin veya yazımı kontrol edin.';
+
+  @override
+  String get p05Source => 'Kaynak';
+
+  @override
+  String p05ReadMinutes(String count) {
+    return '$count dk okuma';
+  }
+
+  @override
+  String p17WeekOf(String n, String total) {
+    return 'Hafta $n / $total';
+  }
+
+  @override
+  String get p17SemesterName => 'Dönem adı';
+
+  @override
+  String get p17NoClassesTitle => 'Haftalık programın boş';
+
+  @override
+  String get p17ExamsEmptyTitle => 'Henüz sınav yok';
+
+  @override
+  String get p17OfficialEmptyTitle => 'Resmi program yayınlanmadı';
+
+  @override
+  String get p17SemestersEmptyTitle => 'Dönem yok';
+
+  @override
+  String get p17MaintenanceTitle => 'Bakım çalışması';
+
+  @override
+  String get p17PreviewHint => 'Önizleme';
+
+  @override
+  String get p16QrCopy => 'Kodu kopyala';
+
+  @override
+  String get p16QrCopied => 'Kod kopyalandı';
+
+  @override
+  String get p16ReqNoneBody =>
+      'Yeni katılma istekleri geldiğinde burada görünür.';
+
+  @override
+  String get p16AttEmptyBody =>
+      'Katılımcılar etkinliğe katıldıkça burada listelenir.';
+
+  @override
+  String get p16AttFilterEmpty => 'Bu süzgece uyan kimse yok.';
+
+  @override
+  String get p16PolicyOpenHint => 'Herkes istek göndermeden doğrudan katılır.';
+
+  @override
+  String p16AttPresentCount(String n) {
+    return '$n geldi';
+  }
+
+  @override
+  String get p10PageTitle => 'Medya ekle';
+
+  @override
+  String get p10SheetTitle => 'Ekle';
+
+  @override
+  String get p10SheetSubtitle => 'Sohbete ne göndermek istersin?';
+
+  @override
+  String get p10SourcePhotos => 'Fotoğraf';
+
+  @override
+  String get p10SourcePhotosHint => 'Galerinden bir ya da birkaç fotoğraf seç';
+
+  @override
+  String get p10SourceVideo => 'Video';
+
+  @override
+  String get p10SourceVideoHint => 'Galerinden video seç (en fazla 60 sn)';
+
+  @override
+  String get p10SourceCamera => 'Kamera';
+
+  @override
+  String get p10SourceCameraHint => 'Fotoğraf çek ya da video kaydet';
+
+  @override
+  String get p10PrivacyNote =>
+      'Yalnızca seçtiğin öğelere erişilir; galerinin tamamı uygulamaya açılmaz.';
+
+  @override
+  String get p10PickedHeader => 'Seçilenler';
+
+  @override
+  String get p10EmptyTitle => 'Henüz bir şey seçmedin';
+
+  @override
+  String get p10EmptyBody =>
+      'Yukarıdan fotoğraf, video ya da kamerayı seçerek başla.';
+
+  @override
+  String get p10Preview => 'Önizle';
+
+  @override
+  String get p10Remove => 'Kaldır';
+
+  @override
+  String get p10PickFailed => 'Seçici açılamadı. Lütfen tekrar dene.';
+
+  @override
+  String get p14Today => 'Bugün';
+
+  @override
+  String get p14Tomorrow => 'Yarın';
+
+  @override
+  String get p14ClearDay => 'Tüm ay';
+
+  @override
+  String get p14Ended => 'Sona erdi';
+
+  @override
+  String get p14Live => 'Şimdi';
+
+  @override
+  String p14EventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count etkinlik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get p14EmptyMonthBody =>
+      'Başka bir aya göz at; yeni etkinlikler eklendikçe burada görünür.';
+
+  @override
+  String get p14EmptyDayBody => 'Başka bir gün seç ya da tüm ayı gör.';
+
+  @override
+  String get p14EmptyUpcomingBody =>
+      'Kulüplerin etkinliklerine katıl; katıldıkların burada toplanır.';
+
+  @override
+  String get p14EmptyPastBody =>
+      'Katıldığın etkinlikler bittikten sonra burada saklanır.';
+
+  @override
+  String get p14EmptyCreatedBody =>
+      'Kulübün adına bir etkinlik oluştur; başvuruları ve yoklamayı buradan yönet.';
+
+  @override
+  String get p13SuppAskTitle => 'Size nasıl yardımcı olabiliriz?';
+
+  @override
+  String get p13SuppAskBody =>
+      'Sık sorulan sorulara göz atın ya da destek ekibine yazın.';
+
+  @override
+  String get p13TicketIntro =>
+      'Sorununuzu kısaca anlatın; destek ekibi en kısa sürede yanıt verecek.';
+
+  @override
+  String get p13TicketsEmptyHint =>
+      'Bir sorun yaşarsanız yeni bir talep oluşturabilirsiniz.';
+
+  @override
+  String get p13FeedbackEmptyHint =>
+      'Gönderdiğiniz öneri ve hata bildirimleri burada listelenir.';
+
+  @override
+  String get p13SugEmptyTitle => 'Fikirler burada toplanır';
+
+  @override
+  String get p13PollEmptyOpenHint =>
+      'Yeni anketler açıldığında burada görünür.';
+
+  @override
+  String get p13PollEmptyMineHint =>
+      'Bir ankete oy verdiğinizde burada listelenir.';
+
+  @override
+  String get p13PollEmptyClosedHint =>
+      'Sona eren anketlerin sonuçları burada saklanır.';
+
+  @override
+  String get p13Rate1 => 'Çok kötü';
+
+  @override
+  String get p13Rate2 => 'Kötü';
+
+  @override
+  String get p13Rate3 => 'Orta';
+
+  @override
+  String get p13Rate4 => 'İyi';
+
+  @override
+  String get p13Rate5 => 'Çok iyi';
+
+  @override
+  String get p13Leading => 'Önde';
 }

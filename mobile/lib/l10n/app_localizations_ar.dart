@@ -7049,4 +7049,224 @@ class AppLocalizationsAr extends AppLocalizations {
   String p00StepOf(String current, String total) {
     return 'الخطوة $current من $total';
   }
+
+  @override
+  String get p05NewsEmptyBody => 'ستظهر العناصر الجديدة هنا عند وصولها.';
+
+  @override
+  String get p05SavedEmptyTitle => 'لا توجد مفضلات بعد';
+
+  @override
+  String get p05SavedToast => 'تمت الإضافة إلى المفضلة';
+
+  @override
+  String get p05UnsavedToast => 'تمت الإزالة من المفضلة';
+
+  @override
+  String get p05SearchIdleTitle => 'ابحث في الحرم الجامعي';
+
+  @override
+  String get p05SearchNoResultsBody => 'جرّب كلمة مختلفة أو تحقق من الإملاء.';
+
+  @override
+  String get p05Source => 'المصدر';
+
+  @override
+  String p05ReadMinutes(String count) {
+    return 'قراءة $count د';
+  }
+
+  @override
+  String p17WeekOf(String n, String total) {
+    return 'الأسبوع $n من $total';
+  }
+
+  @override
+  String get p17SemesterName => 'اسم الفصل';
+
+  @override
+  String get p17NoClassesTitle => 'جدولك الأسبوعي فارغ';
+
+  @override
+  String get p17ExamsEmptyTitle => 'لا توجد امتحانات بعد';
+
+  @override
+  String get p17OfficialEmptyTitle => 'لم يُنشر الجدول الرسمي بعد';
+
+  @override
+  String get p17SemestersEmptyTitle => 'لا توجد فصول';
+
+  @override
+  String get p17MaintenanceTitle => 'قيد الصيانة';
+
+  @override
+  String get p17PreviewHint => 'معاينة';
+
+  @override
+  String get p16QrCopy => 'نسخ الرمز';
+
+  @override
+  String get p16QrCopied => 'تم نسخ الرمز';
+
+  @override
+  String get p16ReqNoneBody => 'ستظهر طلبات الانضمام الجديدة هنا.';
+
+  @override
+  String get p16AttEmptyBody => 'يُعرض الحضور هنا عند انضمامهم إلى الفعالية.';
+
+  @override
+  String get p16AttFilterEmpty => 'لا أحد يطابق هذا الفلتر.';
+
+  @override
+  String get p16PolicyOpenHint => 'يمكن لأي شخص الانضمام مباشرة دون إرسال طلب.';
+
+  @override
+  String p16AttPresentCount(String n) {
+    return 'حضر $n';
+  }
+
+  @override
+  String get p10PageTitle => 'إضافة وسائط';
+
+  @override
+  String get p10SheetTitle => 'إضافة';
+
+  @override
+  String get p10SheetSubtitle => 'ماذا تريد أن ترسل؟';
+
+  @override
+  String get p10SourcePhotos => 'صور';
+
+  @override
+  String get p10SourcePhotosHint => 'اختر صورة أو أكثر من معرض الصور';
+
+  @override
+  String get p10SourceVideo => 'فيديو';
+
+  @override
+  String get p10SourceVideoHint => 'اختر فيديو من المعرض (حتى 60 ثانية)';
+
+  @override
+  String get p10SourceCamera => 'الكاميرا';
+
+  @override
+  String get p10SourceCameraHint => 'التقط صورة أو سجّل فيديو';
+
+  @override
+  String get p10PrivacyNote =>
+      'تتم مشاركة العناصر التي تختارها فقط، ولا يُفتح معرض صورك بالكامل.';
+
+  @override
+  String get p10PickedHeader => 'المحدد';
+
+  @override
+  String get p10EmptyTitle => 'لم تختر شيئاً بعد';
+
+  @override
+  String get p10EmptyBody => 'ابدأ باختيار صور أو فيديو أو الكاميرا من الأعلى.';
+
+  @override
+  String get p10Preview => 'معاينة';
+
+  @override
+  String get p10Remove => 'إزالة';
+
+  @override
+  String get p10PickFailed => 'تعذّر فتح المنتقي. حاول مرة أخرى.';
+
+  @override
+  String get p14Today => 'اليوم';
+
+  @override
+  String get p14Tomorrow => 'غدًا';
+
+  @override
+  String get p14ClearDay => 'الشهر كاملًا';
+
+  @override
+  String get p14Ended => 'انتهت';
+
+  @override
+  String get p14Live => 'جارية الآن';
+
+  @override
+  String p14EventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فعالية',
+      many: '$count فعالية',
+      few: '$count فعاليات',
+      two: 'فعاليتان',
+      one: 'فعالية واحدة',
+      zero: 'لا فعاليات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get p14EmptyMonthBody =>
+      'تصفح شهرًا آخر؛ ستظهر الفعاليات الجديدة هنا فور إضافتها.';
+
+  @override
+  String get p14EmptyDayBody => 'اختر يومًا آخر أو اعرض الشهر كاملًا.';
+
+  @override
+  String get p14EmptyUpcomingBody =>
+      'انضم إلى فعاليات الأندية وستجد ما تشارك فيه هنا.';
+
+  @override
+  String get p14EmptyPastBody =>
+      'تُحفظ هنا الفعاليات التي شاركت فيها بعد انتهائها.';
+
+  @override
+  String get p14EmptyCreatedBody =>
+      'أنشئ فعالية باسم ناديك وأدر الطلبات والحضور من هنا.';
+
+  @override
+  String get p13SuppAskTitle => 'كيف يمكننا مساعدتك؟';
+
+  @override
+  String get p13SuppAskBody => 'تصفّح الأسئلة الشائعة أو راسل فريق الدعم.';
+
+  @override
+  String get p13TicketIntro =>
+      'اشرح مشكلتك باختصار، وسيردّ فريق الدعم في أقرب وقت.';
+
+  @override
+  String get p13TicketsEmptyHint => 'إذا واجهت مشكلة، يمكنك إنشاء طلب جديد.';
+
+  @override
+  String get p13FeedbackEmptyHint =>
+      'تظهر هنا الاقتراحات وبلاغات الأخطاء التي ترسلها.';
+
+  @override
+  String get p13SugEmptyTitle => 'الأفكار تجتمع هنا';
+
+  @override
+  String get p13PollEmptyOpenHint => 'ستظهر الاستطلاعات الجديدة هنا عند فتحها.';
+
+  @override
+  String get p13PollEmptyMineHint => 'تظهر هنا الاستطلاعات التي صوّتّ فيها.';
+
+  @override
+  String get p13PollEmptyClosedHint => 'تُحفظ هنا نتائج الاستطلاعات المنتهية.';
+
+  @override
+  String get p13Rate1 => 'سيئ جدًا';
+
+  @override
+  String get p13Rate2 => 'سيئ';
+
+  @override
+  String get p13Rate3 => 'مقبول';
+
+  @override
+  String get p13Rate4 => 'جيد';
+
+  @override
+  String get p13Rate5 => 'ممتاز';
+
+  @override
+  String get p13Leading => 'في الصدارة';
 }

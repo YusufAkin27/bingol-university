@@ -13044,6 +13044,396 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Adım {current} / {total}'**
   String p00StepOf(String current, String total);
+
+  /// No description provided for @p05NewsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni içerikler geldiğinde burada görünecek.'**
+  String get p05NewsEmptyBody;
+
+  /// No description provided for @p05SavedEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz favorin yok'**
+  String get p05SavedEmptyTitle;
+
+  /// No description provided for @p05SavedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Favorilere eklendi'**
+  String get p05SavedToast;
+
+  /// No description provided for @p05UnsavedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Favorilerden çıkarıldı'**
+  String get p05UnsavedToast;
+
+  /// No description provided for @p05SearchIdleTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüste ara'**
+  String get p05SearchIdleTitle;
+
+  /// No description provided for @p05SearchNoResultsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Farklı bir kelime deneyin veya yazımı kontrol edin.'**
+  String get p05SearchNoResultsBody;
+
+  /// No description provided for @p05Source.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynak'**
+  String get p05Source;
+
+  /// No description provided for @p05ReadMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} dk okuma'**
+  String p05ReadMinutes(String count);
+
+  /// No description provided for @p17WeekOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hafta {n} / {total}'**
+  String p17WeekOf(String n, String total);
+
+  /// No description provided for @p17SemesterName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dönem adı'**
+  String get p17SemesterName;
+
+  /// No description provided for @p17NoClassesTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık programın boş'**
+  String get p17NoClassesTitle;
+
+  /// No description provided for @p17ExamsEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz sınav yok'**
+  String get p17ExamsEmptyTitle;
+
+  /// No description provided for @p17OfficialEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Resmi program yayınlanmadı'**
+  String get p17OfficialEmptyTitle;
+
+  /// No description provided for @p17SemestersEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dönem yok'**
+  String get p17SemestersEmptyTitle;
+
+  /// No description provided for @p17MaintenanceTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bakım çalışması'**
+  String get p17MaintenanceTitle;
+
+  /// No description provided for @p17PreviewHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizleme'**
+  String get p17PreviewHint;
+
+  /// No description provided for @p16QrCopy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu kopyala'**
+  String get p16QrCopy;
+
+  /// No description provided for @p16QrCopied.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod kopyalandı'**
+  String get p16QrCopied;
+
+  /// No description provided for @p16ReqNoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni katılma istekleri geldiğinde burada görünür.'**
+  String get p16ReqNoneBody;
+
+  /// No description provided for @p16AttEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılar etkinliğe katıldıkça burada listelenir.'**
+  String get p16AttEmptyBody;
+
+  /// No description provided for @p16AttFilterEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu süzgece uyan kimse yok.'**
+  String get p16AttFilterEmpty;
+
+  /// No description provided for @p16PolicyOpenHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkes istek göndermeden doğrudan katılır.'**
+  String get p16PolicyOpenHint;
+
+  /// No description provided for @p16AttPresentCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} geldi'**
+  String p16AttPresentCount(String n);
+
+  /// No description provided for @p10PageTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Medya ekle'**
+  String get p10PageTitle;
+
+  /// No description provided for @p10SheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekle'**
+  String get p10SheetTitle;
+
+  /// No description provided for @p10SheetSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbete ne göndermek istersin?'**
+  String get p10SheetSubtitle;
+
+  /// No description provided for @p10SourcePhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf'**
+  String get p10SourcePhotos;
+
+  /// No description provided for @p10SourcePhotosHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galerinden bir ya da birkaç fotoğraf seç'**
+  String get p10SourcePhotosHint;
+
+  /// No description provided for @p10SourceVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video'**
+  String get p10SourceVideo;
+
+  /// No description provided for @p10SourceVideoHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galerinden video seç (en fazla 60 sn)'**
+  String get p10SourceVideoHint;
+
+  /// No description provided for @p10SourceCamera.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kamera'**
+  String get p10SourceCamera;
+
+  /// No description provided for @p10SourceCameraHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çek ya da video kaydet'**
+  String get p10SourceCameraHint;
+
+  /// No description provided for @p10PrivacyNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca seçtiğin öğelere erişilir; galerinin tamamı uygulamaya açılmaz.'**
+  String get p10PrivacyNote;
+
+  /// No description provided for @p10PickedHeader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilenler'**
+  String get p10PickedHeader;
+
+  /// No description provided for @p10EmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir şey seçmedin'**
+  String get p10EmptyTitle;
+
+  /// No description provided for @p10EmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yukarıdan fotoğraf, video ya da kamerayı seçerek başla.'**
+  String get p10EmptyBody;
+
+  /// No description provided for @p10Preview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizle'**
+  String get p10Preview;
+
+  /// No description provided for @p10Remove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get p10Remove;
+
+  /// No description provided for @p10PickFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçici açılamadı. Lütfen tekrar dene.'**
+  String get p10PickFailed;
+
+  /// No description provided for @p14Today.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün'**
+  String get p14Today;
+
+  /// No description provided for @p14Tomorrow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın'**
+  String get p14Tomorrow;
+
+  /// No description provided for @p14ClearDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm ay'**
+  String get p14ClearDay;
+
+  /// No description provided for @p14Ended.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sona erdi'**
+  String get p14Ended;
+
+  /// No description provided for @p14Live.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi'**
+  String get p14Live;
+
+  /// No description provided for @p14EventCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, other{{count} etkinlik}}'**
+  String p14EventCount(int count);
+
+  /// No description provided for @p14EmptyMonthBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir aya göz at; yeni etkinlikler eklendikçe burada görünür.'**
+  String get p14EmptyMonthBody;
+
+  /// No description provided for @p14EmptyDayBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir gün seç ya da tüm ayı gör.'**
+  String get p14EmptyDayBody;
+
+  /// No description provided for @p14EmptyUpcomingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüplerin etkinliklerine katıl; katıldıkların burada toplanır.'**
+  String get p14EmptyUpcomingBody;
+
+  /// No description provided for @p14EmptyPastBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldığın etkinlikler bittikten sonra burada saklanır.'**
+  String get p14EmptyPastBody;
+
+  /// No description provided for @p14EmptyCreatedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübün adına bir etkinlik oluştur; başvuruları ve yoklamayı buradan yönet.'**
+  String get p14EmptyCreatedBody;
+
+  /// No description provided for @p13SuppAskTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Size nasıl yardımcı olabiliriz?'**
+  String get p13SuppAskTitle;
+
+  /// No description provided for @p13SuppAskBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sık sorulan sorulara göz atın ya da destek ekibine yazın.'**
+  String get p13SuppAskBody;
+
+  /// No description provided for @p13TicketIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorununuzu kısaca anlatın; destek ekibi en kısa sürede yanıt verecek.'**
+  String get p13TicketIntro;
+
+  /// No description provided for @p13TicketsEmptyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir sorun yaşarsanız yeni bir talep oluşturabilirsiniz.'**
+  String get p13TicketsEmptyHint;
+
+  /// No description provided for @p13FeedbackEmptyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderdiğiniz öneri ve hata bildirimleri burada listelenir.'**
+  String get p13FeedbackEmptyHint;
+
+  /// No description provided for @p13SugEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fikirler burada toplanır'**
+  String get p13SugEmptyTitle;
+
+  /// No description provided for @p13PollEmptyOpenHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni anketler açıldığında burada görünür.'**
+  String get p13PollEmptyOpenHint;
+
+  /// No description provided for @p13PollEmptyMineHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir ankete oy verdiğinizde burada listelenir.'**
+  String get p13PollEmptyMineHint;
+
+  /// No description provided for @p13PollEmptyClosedHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sona eren anketlerin sonuçları burada saklanır.'**
+  String get p13PollEmptyClosedHint;
+
+  /// No description provided for @p13Rate1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok kötü'**
+  String get p13Rate1;
+
+  /// No description provided for @p13Rate2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kötü'**
+  String get p13Rate2;
+
+  /// No description provided for @p13Rate3.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orta'**
+  String get p13Rate3;
+
+  /// No description provided for @p13Rate4.
+  ///
+  /// In tr, this message translates to:
+  /// **'İyi'**
+  String get p13Rate4;
+
+  /// No description provided for @p13Rate5.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok iyi'**
+  String get p13Rate5;
+
+  /// No description provided for @p13Leading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önde'**
+  String get p13Leading;
 }
 
 class _AppLocalizationsDelegate

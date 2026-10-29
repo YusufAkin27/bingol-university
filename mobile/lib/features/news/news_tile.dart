@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
-import '../../core/typography.dart';
 import 'icerik_parts.dart';
 
-/// Haber türü -> rozet metni; duyuru/etkinlik yumuşak kırmızı, haber koyu.
-bool _softBadge(String? type) => type != 'HABER';
+/// Tür rozeti tonu: haber marka tonu (null), duyuru kehribar, etkinlik yeşil.
+BuTint? newsTypeTint(BuTokens t, String? type) => switch (type) {
+      'DUYURU' || 'ANNOUNCEMENT' => t.tint(2),
+      'ETKINLIK' || 'EVENT' => t.tint(1),
+      _ => null,
+    };
+
+/// Tür simgesi (görseli olmayan haberin karosu ve rozet).
+IconData newsTypeIcon(String? type) => switch (type) {
+      'DUYURU' || 'ANNOUNCEMENT' => LucideIcons.megaphone,
+      'ETKINLIK' || 'EVENT' => LucideIcons.calendar,
+      _ => LucideIcons.newspaper,
+    };
 
 /// Sunucudan gelen sabit tür kodunun ekranda görünen adı (dile göre).
 String newsTypeLabel(BuildContext context, String? type) {
@@ -72,7 +81,8 @@ String newsSourceHost(Map<String, dynamic> item) {
   return h.startsWith('www.') ? h.substring(4) : h;
 }
 
-/// Liste satırı (Ic2/Ic4): küçük resim, rozet, başlık, kaynak + tarih, isteğe bağlı favori düğmesi.
+/// Liste satırı (Ic2/Ic4): küçük resim (yoksa tür karosu), isteğe bağlı rozet, başlık, kaynak + tarih,
+/// isteğe bağlı favori düğmesi. Görsel, detay sayfasının kapağına paylaşılan geçişle (Hero) uçar.
 class NewsTile extends StatelessWidget {
   const NewsTile({
     super.key,
@@ -82,6 +92,7 @@ class NewsTile extends StatelessWidget {
     this.onToggleSave,
     this.thumbSize = 84,
     this.showSource = true,
+    this.showType = true,
   });
 
   final Map<String, dynamic> item;
@@ -93,48 +104,69 @@ class NewsTile extends StatelessWidget {
   /// Meta satırının başına kaynak site adı eklenir (favorilerde yalnız tarih).
   final bool showSource;
 
+  /// Başlığın üstünde tür rozeti (sekmeyle zaten belli olan listede kapatılır).
+  final bool showType;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final type = item['type'] as String?;
     final date = newsDateLabel(context, item);
     final meta = showSource ? '${newsSourceHost(item)} · $date' : date;
     final hasSave = onToggleSave != null;
+    final tint = newsTypeTint(t, type);
+    final img = item['imageUrl'] as String?;
+    final id = (item['id'] as num?)?.toInt();
+    Widget thumb = IcerikThumb(
+      url: img,
+      size: thumbSize,
+      radius: 14,
+      fallbackIcon: newsTypeIcon(type),
+      tint: tint ?? BuTint(t.soft, t.onSoft),
+    );
+    if (id != null && img != null && img.isNotEmpty) thumb = Hero(tag: 'news-img-$id', child: thumb);
     return IcerikCard(
       onTap: onTap,
-      padding: EdgeInsetsDirectional.fromSTEB(12, 12, hasSave ? 4 : 12, 12),
+      shadow: false,
+      padding: EdgeInsetsDirectional.fromSTEB(12, 12, hasSave ? 0 : 12, 12),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 72),
         child: Row(
-          crossAxisAlignment: hasSave ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IcerikThumb(url: item['imageUrl'] as String?, size: thumbSize),
+            thumb,
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: IcerikBadge(newsTypeLabel(context, type), soft: _softBadge(type)),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 6, bottom: hasSave ? 3 : 6),
-                    child: Text(
-                      (item['title'] as String?) ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, height: 1.3, color: t.ink),
+                  if (showType)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: IcerikBadge(newsTypeLabel(context, type), soft: tint == null, tint: tint),
+                      ),
                     ),
+                  Text(
+                    (item['title'] as String?) ?? '',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.3, color: t.ink),
                   ),
-                  Text(meta,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.caption.copyWith(fontSize: 12.5, color: t.mut)),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    Icon(LucideIcons.clock, size: 13, color: t.mut),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                    ),
+                  ]),
                 ],
               ),
             ),
-            if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!, size: 20),
+            if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!),
           ],
         ),
       ),
@@ -142,7 +174,7 @@ class NewsTile extends StatelessWidget {
   }
 }
 
-/// Keşfet'in öne çıkan büyük kartı: gradyan/görsel üst alan + başlık + tarih.
+/// Keşfet'in öne çıkan büyük kartı: kapak görseli (yoksa marka gradyanı) + altta başlık ve tarih.
 class NewsFeaturedCard extends StatelessWidget {
   const NewsFeaturedCard({
     super.key,
@@ -160,85 +192,122 @@ class NewsFeaturedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final img = item['imageUrl'] as String?;
-    return BuCard(
-      padding: EdgeInsets.zero,
-      radius: 20,
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 150,
-            width: double.infinity,
+    final hasImg = img != null && img.isNotEmpty;
+    final type = item['type'] as String?;
+    final id = (item['id'] as num?)?.toInt();
+    final tint = newsTypeTint(t, type);
+    final r = BorderRadius.circular(24);
+    Widget cover = hasImg
+        ? BuImage(img, height: 220, width: double.infinity, maxDecodeWidth: 1200)
+        : DecoratedBox(
+            decoration: BoxDecoration(gradient: t.hero),
+            child: SizedBox(
+              height: 220,
+              width: double.infinity,
+              child: Align(
+                alignment: AlignmentDirectional.topEnd,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 28, top: 56),
+                  child: Icon(newsTypeIcon(type), size: 84, color: t.onMedia.withValues(alpha: .16)),
+                ),
+              ),
+            ),
+          );
+    if (id != null && hasImg) cover = Hero(tag: 'news-img-$id', child: cover);
+    return BuPressable(
+      scale: .98,
+      child: DecoratedBox(
+        decoration: BoxDecoration(borderRadius: r, boxShadow: BuElevation.of(context, 2)),
+        child: ClipRRect(
+          borderRadius: r,
+          child: SizedBox(
+            height: 220,
             child: Stack(
               fit: StackFit.expand,
               children: [
-                DecoratedBox(decoration: BoxDecoration(gradient: t.hero)),
-                Positioned(
-                  right: -30,
-                  top: -40,
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .15)),
+                cover,
+                // Yazı okunurluğu için alt kısımda durağan karartma (saveLayer/blur yok).
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [.3, 1],
+                          colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .82)],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                if (img != null && img.isNotEmpty)
-                  Image.network(img,
-                      fit: BoxFit.cover,
-                      cacheWidth: 800,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      loadingBuilder: (_, child, p) => p == null ? child : const SizedBox.shrink()),
-                Positioned(
-                  left: 14,
+                // Dokunma yüzeyi: görselin üstünde; başlık/rozet/kaydet bunun üstüne çizilir.
+                Positioned.fill(
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(onTap: onTap, child: const SizedBox.expand()),
+                  ),
+                ),
+                PositionedDirectional(
+                  start: 16,
+                  end: 16,
+                  bottom: 16,
+                  child: IgnorePointer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text((item['title'] as String?) ?? '',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.onMedia)),
+                        const SizedBox(height: 8),
+                        Text(newsDateLabel(context, item),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.bodySmall!.copyWith(color: t.onMedia.withValues(alpha: .86))),
+                      ],
+                    ),
+                  ),
+                ),
+                PositionedDirectional(
+                  start: 14,
                   top: 14,
-                  child:
-                      BuBadge(newsTypeLabel(context, item['type'] as String?), color: Colors.white, onColor: BuColors.red800),
+                  child: IgnorePointer(child: IcerikBadge(newsTypeLabel(context, type), soft: tint == null, tint: tint)),
                 ),
+                if (onToggleSave != null)
+                  PositionedDirectional(top: 4, end: 4, child: _SaveIcon(saved: saved, onTap: onToggleSave!, overlay: true)),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text((item['title'] as String?) ?? '',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.heading.copyWith(height: 1.3, color: t.ink)),
-                      const SizedBox(height: 6),
-                      Text(newsDateLabel(context, item), style: BuType.caption.copyWith(color: t.mut)),
-                    ],
-                  ),
-                ),
-                if (onToggleSave != null) _SaveIcon(saved: saved, onTap: onToggleSave!, size: 21.5),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Favori simgesi: görünür 20 dp, dokunma alanı 44x44 dp; ekran okuyucuya düğme olarak bildirilir.
+/// Favori simgesi: görünür 22 dp, dokunma alanı 48x48 dp; ekran okuyucuya düğme olarak bildirilir.
+/// Durum değişince simge ölçekle belirir (kısa "pop").
 class _SaveIcon extends StatelessWidget {
-  const _SaveIcon({required this.saved, required this.onTap, required this.size});
+  const _SaveIcon({required this.saved, required this.onTap, this.overlay = false});
 
   final bool saved;
   final VoidCallback onTap;
-  final double size;
+  final bool overlay;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
+    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.mut);
+    final icon = Icon(
+      saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
+      key: ValueKey(saved),
+      size: 22,
+      color: fg,
+    );
     return Semantics(
       button: true,
       toggled: saved,
@@ -250,12 +319,29 @@ class _SaveIcon extends StatelessWidget {
         excludeFromSemantics: true,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: onTap,
+          onTap: () {
+            buHaptic(BuHaptic.selection);
+            onTap();
+          },
           child: SizedBox(
-            width: 44,
-            height: 44,
-            child:
-                Icon(saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark, size: size, color: saved ? t.pr : t.mut),
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: overlay ? 40 : 36,
+                height: overlay ? 40 : 36,
+                alignment: Alignment.center,
+                decoration: overlay
+                    ? BoxDecoration(shape: BoxShape.circle, color: saved ? t.sf : t.scrim.withValues(alpha: .42))
+                    : null,
+                child: AnimatedSwitcher(
+                  duration: BuMotion.of(context, BuMotion.medium),
+                  switchInCurve: Curves.easeOutBack,
+                  transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+                  child: icon,
+                ),
+              ),
+            ),
           ),
         ),
       ),

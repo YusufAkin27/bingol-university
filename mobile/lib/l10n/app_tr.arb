@@ -3830,5 +3830,97 @@
         "type": "String"
       }
     }
-  }
+  },
+  "p05NewsEmptyBody": "Yeni içerikler geldiğinde burada görünecek.",
+  "p05SavedEmptyTitle": "Henüz favorin yok",
+  "p05SavedToast": "Favorilere eklendi",
+  "p05UnsavedToast": "Favorilerden çıkarıldı",
+  "p05SearchIdleTitle": "Kampüste ara",
+  "p05SearchNoResultsBody": "Farklı bir kelime deneyin veya yazımı kontrol edin.",
+  "p05Source": "Kaynak",
+  "p05ReadMinutes": "{count} dk okuma",
+  "@p05ReadMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "p17WeekOf": "Hafta {n} / {total}",
+  "@p17WeekOf": {
+    "placeholders": {
+        "n": {"type": "String"},
+        "total": {"type": "String"}
+    }
+  },
+  "p17SemesterName": "Dönem adı",
+  "p17NoClassesTitle": "Haftalık programın boş",
+  "p17ExamsEmptyTitle": "Henüz sınav yok",
+  "p17OfficialEmptyTitle": "Resmi program yayınlanmadı",
+  "p17SemestersEmptyTitle": "Dönem yok",
+  "p17MaintenanceTitle": "Bakım çalışması",
+  "p17PreviewHint": "Önizleme",
+  "p16QrCopy": "Kodu kopyala",
+  "p16QrCopied": "Kod kopyalandı",
+  "p16ReqNoneBody": "Yeni katılma istekleri geldiğinde burada görünür.",
+  "p16AttEmptyBody": "Katılımcılar etkinliğe katıldıkça burada listelenir.",
+  "p16AttFilterEmpty": "Bu süzgece uyan kimse yok.",
+  "p16PolicyOpenHint": "Herkes istek göndermeden doğrudan katılır.",
+  "p16AttPresentCount": "{n} geldi",
+  "@p16AttPresentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p10PageTitle": "Medya ekle",
+  "p10SheetTitle": "Ekle",
+  "p10SheetSubtitle": "Sohbete ne göndermek istersin?",
+  "p10SourcePhotos": "Fotoğraf",
+  "p10SourcePhotosHint": "Galerinden bir ya da birkaç fotoğraf seç",
+  "p10SourceVideo": "Video",
+  "p10SourceVideoHint": "Galerinden video seç (en fazla 60 sn)",
+  "p10SourceCamera": "Kamera",
+  "p10SourceCameraHint": "Fotoğraf çek ya da video kaydet",
+  "p10PrivacyNote": "Yalnızca seçtiğin öğelere erişilir; galerinin tamamı uygulamaya açılmaz.",
+  "p10PickedHeader": "Seçilenler",
+  "p10EmptyTitle": "Henüz bir şey seçmedin",
+  "p10EmptyBody": "Yukarıdan fotoğraf, video ya da kamerayı seçerek başla.",
+  "p10Preview": "Önizle",
+  "p10Remove": "Kaldır",
+  "p10PickFailed": "Seçici açılamadı. Lütfen tekrar dene.",
+  "p14Today": "Bugün",
+  "p14Tomorrow": "Yarın",
+  "p14ClearDay": "Tüm ay",
+  "p14Ended": "Sona erdi",
+  "p14Live": "Şimdi",
+  "p14EventCount": "{count, plural, other{{count} etkinlik}}",
+  "@p14EventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "p14EmptyMonthBody": "Başka bir aya göz at; yeni etkinlikler eklendikçe burada görünür.",
+  "p14EmptyDayBody": "Başka bir gün seç ya da tüm ayı gör.",
+  "p14EmptyUpcomingBody": "Kulüplerin etkinliklerine katıl; katıldıkların burada toplanır.",
+  "p14EmptyPastBody": "Katıldığın etkinlikler bittikten sonra burada saklanır.",
+  "p14EmptyCreatedBody": "Kulübün adına bir etkinlik oluştur; başvuruları ve yoklamayı buradan yönet.",
+  "p13SuppAskTitle": "Size nasıl yardımcı olabiliriz?",
+  "p13SuppAskBody": "Sık sorulan sorulara göz atın ya da destek ekibine yazın.",
+  "p13TicketIntro": "Sorununuzu kısaca anlatın; destek ekibi en kısa sürede yanıt verecek.",
+  "p13TicketsEmptyHint": "Bir sorun yaşarsanız yeni bir talep oluşturabilirsiniz.",
+  "p13FeedbackEmptyHint": "Gönderdiğiniz öneri ve hata bildirimleri burada listelenir.",
+  "p13SugEmptyTitle": "Fikirler burada toplanır",
+  "p13PollEmptyOpenHint": "Yeni anketler açıldığında burada görünür.",
+  "p13PollEmptyMineHint": "Bir ankete oy verdiğinizde burada listelenir.",
+  "p13PollEmptyClosedHint": "Sona eren anketlerin sonuçları burada saklanır.",
+  "p13Rate1": "Çok kötü",
+  "p13Rate2": "Kötü",
+  "p13Rate3": "Orta",
+  "p13Rate4": "İyi",
+  "p13Rate5": "Çok iyi",
+  "p13Leading": "Önde"
 }
