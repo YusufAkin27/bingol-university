@@ -219,6 +219,15 @@ export async function apiBlob(path: string, opts: RequestOptions = {}): Promise<
   return res.blob();
 }
 
+/** Dosya indirme + yanıt başlıkları (örn. `X-Export-Receipt-Id`); veri saklama dışa aktarması kullanır. */
+export async function apiBlobMeta(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<{ blob: Blob; headers: Headers }> {
+  const res = await execute(path, opts);
+  return { blob: await res.blob(), headers: res.headers };
+}
+
 export const api = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) => apiFetch<T>(path, { query, signal }),
   post: <T = void>(path: string, body?: unknown, extra?: ExtraOptions) =>

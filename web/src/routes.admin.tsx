@@ -49,6 +49,7 @@ const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
 const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const CrashesPage = lazy(() => import('./pages/admin/CrashesPage'));
+const DataRetentionPage = lazy(() => import('./pages/admin/DataRetentionPage'));
 const SystemStatusPage = lazy(() => import('./pages/admin/SystemStatusPage'));
 const SourcesPage = lazy(() => import('./pages/admin/SourcesPage'));
 const MailTemplatesPage = lazy(() => import('./pages/admin/MailTemplatesPage'));
@@ -114,6 +115,7 @@ export default function AdminRoutes() {
           <Route path="crypto" element={<CryptoPage />} />
           <Route path="ops" element={<OpsPage />} />
           <Route path="crashes" element={<CrashesPage />} />
+          <Route path="data-retention" element={<DataRetentionPage />} />
           <Route path="system" element={<SystemStatusPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="mail/templates" element={<MailTemplatesPage />} />

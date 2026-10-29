@@ -1,0 +1,254 @@
+/* Veri saklama: kartlar, ilerleme çubuğu, tablo, diyalog içeriği. Yalnızca tasarım token'ları ve mantıksal özellikler. */
+.page {
+  display: grid;
+  gap: var(--space-5);
+  margin-block-start: var(--space-4);
+  min-inline-size: 0;
+}
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs, var(--text-sm));
+  margin: 0;
+}
+.mono {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.errorText {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+.okText {
+  margin: 0;
+  color: var(--success);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-3);
+}
+.card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  min-inline-size: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-lg);
+}
+.card[data-status='OK'] {
+  border-inline-start-color: var(--success);
+}
+.card[data-status='WARN'] {
+  border-inline-start-color: var(--warning);
+}
+.card[data-status='CRIT'] {
+  border-inline-start-color: var(--danger);
+}
+.card[data-status='UNKNOWN'] {
+  border-inline-start-color: var(--border-strong, var(--border));
+}
+.cardTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+.big {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.level {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.card[data-status='WARN'] .level {
+  color: var(--warning);
+}
+.card[data-status='CRIT'] .level {
+  color: var(--danger);
+}
+.card[data-status='OK'] .level {
+  color: var(--success);
+}
+.bar {
+  block-size: 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2, var(--border));
+  overflow: hidden;
+}
+.barFill {
+  block-size: 100%;
+  border-radius: inherit;
+  transition: inline-size 0.3s ease;
+}
+.barFill[data-status='OK'] {
+  background: var(--success);
+}
+.barFill[data-status='WARN'] {
+  background: var(--warning);
+}
+.barFill[data-status='CRIT'] {
+  background: var(--danger);
+}
+.barFill[data-status='UNKNOWN'] {
+  background: var(--border-strong, var(--border));
+}
+.source {
+  display: inline-block;
+  justify-self: start;
+  padding: 0.1rem var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs, var(--text-sm));
+  font-weight: 600;
+}
+.source[data-source='MEASURED'] {
+  color: var(--success);
+  border-color: var(--success);
+}
+.source[data-source='COMPUTED'] {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+.topList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.topList li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.tableScroll {
+  overflow-x: auto;
+  max-inline-size: 100%;
+}
+.tableCell {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 12rem;
+  max-inline-size: 28rem;
+}
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.readOnly {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2, var(--surface));
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+.dialogStack {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.dateRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3);
+}
+.previewBox,
+.receipt {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+.dl dt {
+  color: var(--text-muted);
+}
+.dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.forceBox {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+}
+.progressText {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+.inlineActions {
+  margin-block-start: var(--space-2);
+}
+
+/* Tüm yönetim sayfalarının üstündeki kalıcı depolama uyarı bandı (StorageBanner) */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-block-end: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+.banner[data-status='WARN'] {
+  background: var(--warning-bg, color-mix(in srgb, var(--warning) 14%, var(--surface)));
+  color: var(--text);
+  border-inline-start: 4px solid var(--warning);
+}
+.banner[data-status='CRIT'] {
+  background: var(--danger-bg, color-mix(in srgb, var(--danger) 14%, var(--surface)));
+  color: var(--text);
+  border-inline-start: 4px solid var(--danger);
+}
+.bannerText {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+.bannerLink {
+  font-weight: 700;
+  text-decoration: underline;
+}

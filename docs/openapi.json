@@ -5387,6 +5387,29 @@
           }
         }
       },
+      "ExportRequest" : {
+        "properties" : {
+          "from" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "maxLength" : 300,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "table" : {
+            "maxLength" : 48,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "to" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "table" ]
+      },
       "Extras" : {
         "properties" : {
           "blockedBy" : {
@@ -8987,6 +9010,171 @@
         },
         "required" : [ "tr" ]
       },
+      "PurgePreview" : {
+        "properties" : {
+          "blockers" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "canPurge" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "capped" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "deletable" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "estimatedBytes" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "from" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "maxTo" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "minRetentionDays" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "notDeletableReason" : {
+            "type" : [ "string", "null" ]
+          },
+          "receipt" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ReceiptView"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "receiptStale" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "rowsInRange" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "table" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "PurgeRequest" : {
+        "properties" : {
+          "confirmTable" : {
+            "maxLength" : 48,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "forceWithoutExport" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "from" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "receiptId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "table" : {
+            "maxLength" : 48,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "to" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "confirmTable", "table" ]
+      },
+      "PurgeView" : {
+        "properties" : {
+          "adminEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "adminId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "deletedRows" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "error" : {
+            "type" : [ "string", "null" ]
+          },
+          "estRows" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "finishedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "forced" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "from" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "newestAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "oldestAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "receiptId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "startedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : [ "string", "null" ]
+          },
+          "table" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "vacuumRecommended" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
+      },
       "PushDead" : {
         "properties" : {
           "attempts" : {
@@ -9321,6 +9509,60 @@
               "type" : "string"
             },
             "type" : [ "object", "null" ]
+          }
+        }
+      },
+      "ReceiptView" : {
+        "properties" : {
+          "adminEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "adminId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "byteCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "finishedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "format" : {
+            "type" : [ "string", "null" ]
+          },
+          "from" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "rowCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "sha256" : {
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : [ "string", "null" ]
+          },
+          "table" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
           }
         }
       },
@@ -10934,6 +11176,48 @@
           },
           "source" : {
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "TableInfo" : {
+        "properties" : {
+          "deletable" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "description" : {
+            "type" : [ "string", "null" ]
+          },
+          "estimatedRows" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "label" : {
+            "type" : [ "string", "null" ]
+          },
+          "maxTo" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "minRetentionDays" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          },
+          "notDeletableReason" : {
+            "type" : [ "string", "null" ]
+          },
+          "oldestAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "personalData" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "sizeBytes" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -19428,6 +19712,526 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "admin-crypto-controller" ]
+      }
+    },
+    "/api/admin/data-retention/exports" : {
+      "get" : {
+        "operationId" : "exportList",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "table",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/ReceiptView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      },
+      "post" : {
+        "operationId" : "export",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      }
+    },
+    "/api/admin/data-retention/exports/{id}" : {
+      "get" : {
+        "operationId" : "exportOne",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReceiptView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      }
+    },
+    "/api/admin/data-retention/purges" : {
+      "get" : {
+        "operationId" : "purgeList",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PurgeView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      },
+      "post" : {
+        "operationId" : "purge",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurgeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurgeView"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      }
+    },
+    "/api/admin/data-retention/purges/{id}" : {
+      "get" : {
+        "operationId" : "purgeOne",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurgeView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      }
+    },
+    "/api/admin/data-retention/tables" : {
+      "get" : {
+        "operationId" : "tables",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/TableInfo"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
+      }
+    },
+    "/api/admin/data-retention/tables/{table}/purge-preview" : {
+      "get" : {
+        "operationId" : "preview_3",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "table",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : true,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurgePreview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
       }
     },
     "/api/admin/events" : {
@@ -33903,6 +34707,59 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "system-overview-controller" ]
+      }
+    },
+    "/api/admin/system/storage" : {
+      "get" : {
+        "operationId" : "storage",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Report"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "retention-admin-controller" ]
       }
     },
     "/api/admin/users" : {

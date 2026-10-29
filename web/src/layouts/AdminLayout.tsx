@@ -11,6 +11,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { readStorage, writeStorage } from '../lib/storage';
 import { paths } from '../paths';
 import { adminNav, locateNav, navMatches } from './adminNav';
+import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
 import { QuickNav } from './QuickNav';
 import { UserMenu } from './UserMenu';
 import styles from './AdminLayout.module.css';
@@ -360,6 +361,9 @@ export function AdminLayout() {
             {maintenance.message && <span>{maintenance.message}</span>}
           </div>
         )}
+
+        {/* DS1: depolama %80+ iken kalıcı uyarı (Veri saklama sayfasının kendi uyarısı olduğundan orada gizli) */}
+        {location.pathname !== paths.admin.dataRetention && <StorageBanner />}
 
         <main id="admin-main" className={styles.main} tabIndex={-1}>
           <Suspense

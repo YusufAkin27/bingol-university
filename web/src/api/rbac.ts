@@ -40,6 +40,9 @@ export type Permission =
   | 'system.write'
   | 'audit.read'
   | 'rbac.manage'
+  | 'data.retention.read'
+  | 'data.retention.export'
+  | 'data.retention.purge'
   | 'admin.full';
 
 export interface RbacMe {
