@@ -10,11 +10,18 @@ import 'post_routes.dart';
 
 /// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran 4:5 (tasarım 17).
 class PostPhoto extends StatelessWidget {
-  const PostPhoto({super.key, required this.session, required this.post, this.radius = BuRadius.lg});
+  const PostPhoto({
+    super.key,
+    required this.session,
+    required this.post,
+    this.radius = BuRadius.lg,
+    this.aspectRatio = 4 / 5,
+  });
 
   final Session session;
   final Post post;
   final double radius;
+  final double aspectRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,7 @@ class PostPhoto extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: AspectRatio(
-        aspectRatio: 4 / 5,
+        aspectRatio: aspectRatio,
         child: Semantics(
           image: true,
           label: context.l10n.postComposePhoto,

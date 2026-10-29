@@ -29,6 +29,8 @@ class LikeButton extends StatefulWidget {
     this.onChanged,
     this.compact = false,
     this.controller,
+    this.countLabel,
+    this.size,
   });
 
   final Session session;
@@ -36,6 +38,12 @@ class LikeButton extends StatefulWidget {
   final ValueChanged<Post>? onChanged;
   final bool compact;
   final LikeController? controller;
+
+  /// Sayacın metni (varsayılan: yalnız sayı); örn. "284 beğeni" için.
+  final String Function(int count)? countLabel;
+
+  /// Kalp boyutu (varsayılan 26, kompaktta 22).
+  final double? size;
 
   static const debounce = Duration(milliseconds: 250);
 
@@ -101,6 +109,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  String _label(int n) => widget.countLabel?.call(n) ?? '$n';
   void _toggle() => _setLiked(!_liked);
 
   /// Sayacı değiştirir; değer farklıysa eski sayı solarak yenisiyle yer değiştirir (setState içinde çağrılır).
@@ -170,7 +179,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
-    final size = widget.compact ? 22.0 : 26.0;
+    final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
     final color = _liked ? BuColors.red600 : t.mut;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
@@ -207,7 +216,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     );
 
     final style = (widget.compact ? tt.titleSmall : tt.titleMedium)?.copyWith(color: t.ink, height: 1.2);
-    final countText = Text('$_count', key: const ValueKey('like-count'), maxLines: 1, style: style);
+    final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
       animation: _countAnim,
       builder: (c, _) {
@@ -217,7 +226,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
           Opacity(
             opacity: 1 - v,
             child: Transform.translate(
-                offset: Offset(0, -8 * v), child: Text('$_prevCount', maxLines: 1, style: style)),
+                offset: Offset(0, -8 * v), child: Text(_label(_prevCount), maxLines: 1, style: style)),
           ),
           Opacity(
             opacity: v,

@@ -1,7 +1,6 @@
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
-import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +17,7 @@ Widget discover(FakeBackend b, [ValueNotifier<String?>? req]) =>
 void main() {
   setUpAll(loadTestFonts);
 
-  group('kesfet masonry', () {
+  group('kesfet akis', () {
     testWidgets('yalniz gonderi akisi: /feed istenir, haber/kapsam yok, iki sutun kart', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
@@ -29,26 +28,82 @@ void main() {
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
       expect(find.byType(DiscoverPostCard), findsWidgets);
       expect(find.text('Keşfet'), findsOneWidget);
-      // Kategori/segment yok.
+      // Haber/kategori yok; yalniz Tumu + Populer cipleri.
       expect(find.text('Haberler'), findsNothing);
-      expect(find.text('Popüler'), findsNothing);
-      // Iki sutun: kartlar iki farkli sol kenara dizilir.
+      expect(find.text('Tümü'), findsOneWidget);
+      expect(find.text('Popüler'), findsOneWidget);
+      // Tek sutun: kartlar ayni sol kenarda (16) ve tam genislikte.
       final lefts = {
         for (final e in tester.elementList(find.byType(DiscoverPostCard))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
       };
-      expect(lefts.length, 2);
+      expect(lefts, {16});
+      expect(tester.getSize(find.byType(DiscoverPostCard).first).width, 358);
+      // Yorum/kaydet/paylas yok.
+      for (final i in [Icons.bookmark_border, Icons.mode_comment_outlined, Icons.send, Icons.share]) {
+        expect(find.byIcon(i), findsNothing);
+      }
       noErr(tester);
     });
 
-    testWidgets('gorselsiz gonderi renkli metin karti, gorselli gonderi gorsel karti', (tester) async {
+    testWidgets('Populer cipi akisi scope=popular ile bastan yukler', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byKey(const ValueKey('discoverQuote')), findsWidgets);
-      expect(find.text('Gönderi 1000'), findsOneWidget);
-      expect(find.byKey(const ValueKey('discoverImgError')), findsWidgets);
+      await tester.tap(find.byKey(const ValueKey('discoverChipPopular')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=popular')), isTrue);
+      expect(find.byType(DiscoverPostCard), findsWidgets);
+      noErr(tester);
+    });
+
+    testWidgets('Tanıyor Olabilirsin: oneriler gelince serit gorunur, Takip Et istegi atar; oneri yoksa bolum gizli',
+        (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      b.on('/users/me/follow-suggestions*', {
+        'items': [
+          {'id': 31, 'displayName': 'Deniz Aksoy', 'department': 'Bilgisayar Müh.', 'followedByMe': false},
+          {'id': 32, 'displayName': 'Ece Yılmaz', 'department': 'İktisat', 'followedByMe': false},
+        ],
+      });
+      b.on('/users/31/follow', {'following': true, 'followerCount': 3});
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Tanıyor Olabilirsin'), findsOneWidget);
+      expect(find.text('Deniz Aksoy'), findsOneWidget);
+      expect(find.text('Takip Et'), findsWidgets);
+      await tester.tap(find.byKey(const ValueKey('discover-follow-31')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.requests.any((r) => r.startsWith('POST') && r.contains('/users/31/follow')), isTrue, reason: b.requests.join('|'));
+      expect(find.text('Takiptesin'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+
+      final b2 = FakeBackend();
+      fakePosts(b2);
+      b2.on('/users/me/follow-suggestions*', {'items': <Object>[]});
+      await tester.pumpWidget(buildApp(discover(b2)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('discoverSuggestions')), findsNothing);
+      noErr(tester);
+    });
+
+    testWidgets('kart: yazar adi + metin alt yazisi; gorselli gonderi 4:3 tam genislik fotograf', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.textContaining('Gönderi 1000'), findsOneWidget);
+      expect(find.textContaining('Ayşe Yılmaz'), findsWidgets);
+      final photo = find.byKey(const ValueKey('post-photo-999')); // i=1: gorselli
+      expect(photo, findsOneWidget);
+      final card = tester.getSize(find.byKey(const ValueKey('discover-post-999')));
+      final ph = tester.getSize(find.ancestor(of: photo, matching: find.byType(AspectRatio)).first);
+      expect(ph.width, card.width);
+      expect((ph.width / ph.height - 4 / 3).abs(), lessThan(0.01));
       noErr(tester);
     });
 
@@ -58,15 +113,19 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      final like = find.byKey(const ValueKey('discover-like')).first;
-      final before = int.parse((tester.widget(find.byKey(const ValueKey('discover-like-count')).first) as Text).data!);
+      final card = find.byKey(const ValueKey('discover-post-999'));
+      final like = find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart')));
+      int count() => int.parse((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data!.split(' ').first);
+      final before = count();
+      expect((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data, endsWith('beğeni'));
       // 44 px dokunma alani.
       expect(tester.getSize(like).height, greaterThanOrEqualTo(44));
+      await tester.ensureVisible(like);
+      await tester.pump();
       await tester.tap(like);
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.contains('PUT') && r.contains('/like')), isTrue, reason: b.requests.join(' | '));
-      final after = int.parse((tester.widget(find.byKey(const ValueKey('discover-like-count')).first) as Text).data!);
-      expect(after, before + 1);
+      expect(count(), before + 1);
       noErr(tester);
     });
 
@@ -76,7 +135,7 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.text('Gönderi 1000'));
+      await tester.tap(find.textContaining('Gönderi 1000'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(PostDetailPage), findsOneWidget);
       Navigator.of(tester.element(find.byType(PostDetailPage))).pop();
@@ -142,7 +201,10 @@ void main() {
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.where((r) => r.contains('/feed')).length, 1);
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -2500));
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -2500));
+        await tester.pump();
+      }
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.contains('/feed') && r.contains('cursor=p2')), isTrue);
       noErr(tester);
@@ -201,11 +263,11 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(seen.first.queryParameters['scope'], 'top');
       expect(seen.first.queryParameters['size'], '12');
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
       expect(seen.length, 2);
       expect(seen[1].queryParameters['cursor'], 'Ab-_c9==x');
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
       expect(seen.length, 2); // nextCursor null: yeni istek yok
       noErr(tester);
@@ -221,7 +283,7 @@ void main() {
       ], seen);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
       expect(seen.length, 2);
       expect(find.byType(DiscoverPostCard), findsNWidgets(3));
@@ -238,7 +300,7 @@ void main() {
       ], seen);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 800));
       // 1) ilk sayfa, 2) bozuk imleç, 3) imlecsiz yeniden yukleme
       expect(seen.length, greaterThanOrEqualTo(3));
@@ -255,25 +317,12 @@ void main() {
       ], seen);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.drag(find.byType(SingleChildScrollView).last, const Offset(0, -3000));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.fling(find.byType(SingleChildScrollView).last, const Offset(0, 600), 2000);
+      await tester.fling(find.byType(CustomScrollView).last, const Offset(0, 600), 2000);
       await settle(tester, const Duration(milliseconds: 1500));
       expect(seen.where((u) => !u.queryParameters.containsKey('cursor')).length, greaterThanOrEqualTo(2));
       noErr(tester);
-    });
-  });
-
-  group('kesfet kart yuksekligi', () {
-    test('gorsel orana gore 150-250 arasi, metin uzunluga gore', () {
-      final tall = Post.fromJson(samplePost(id: 1, media: [samplePostMedia(width: 500, height: 1000)]));
-      final wide = Post.fromJson(samplePost(id: 2, media: [samplePostMedia(width: 1600, height: 900)]));
-      expect(DiscoverPostCard.heightFor(tall, 165), inInclusiveRange(150, 250));
-      expect(DiscoverPostCard.heightFor(wide, 165), inInclusiveRange(150, 250));
-      expect(DiscoverPostCard.heightFor(tall, 165), greaterThan(DiscoverPostCard.heightFor(wide, 165)));
-      final short = Post.fromJson(samplePost(id: 3, text: 'a'));
-      final long = Post.fromJson(samplePost(id: 4, text: 'a' * 300));
-      expect(DiscoverPostCard.heightFor(long, 165), greaterThan(DiscoverPostCard.heightFor(short, 165)));
     });
   });
 }

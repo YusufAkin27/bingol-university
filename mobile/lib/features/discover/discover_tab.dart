@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../polls/poll_routes.dart';
 import '../posts/post_routes.dart';
 import '../search/search_page.dart';
 import 'discover_masonry.dart';
+import 'discover_suggestions.dart';
 
-/// Keşfet sekmesi: yalnız öğrenci gönderileri, tek akış (iki sütunlu masonry).
-/// Başlık + gönderi paylaş düğmesi, arama kutusu (dokununca arama sayfası), akış.
+/// Keşfet sekmesi: yalnız öğrenci gönderileri, tek sütun akış.
+/// Başlık + anket/gönderi paylaş düğmeleri, arama kutusu (dokununca arama sayfası), çipler, öneriler, akış.
 class DiscoverTab extends StatefulWidget {
   const DiscoverTab({super.key, required this.session, required this.typeRequest});
 
@@ -27,6 +26,7 @@ class DiscoverTab extends StatefulWidget {
 
 class _DiscoverTabState extends State<DiscoverTab> {
   final _feedController = DiscoverFeedController();
+  String _scope = 'top';
 
   @override
   void initState() {
@@ -68,69 +68,161 @@ class _DiscoverTabState extends State<DiscoverTab> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final l = context.l10n;
     return Scaffold(
       backgroundColor: t.bg,
-      body: Column(
-        children: [
-          BuHeader(
-            title: l.navDiscover,
-            subtitle: l.kesfetSubtitle,
-            actions: [
-              BuIconButton(
-                icon: LucideIcons.vote,
-                tooltip: l.discoverPolls,
-                onTap: () => openPollList(context, widget.session),
-              ),
-              BuIconButton(
-                icon: LucideIcons.plus,
-                tooltip: l.discoverCompose,
-                filled: true,
-                onTap: _compose,
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
-            child: Semantics(
-              button: true,
-              label: l.kesfetSearchHint,
-              excludeSemantics: true,
-              onTap: _openSearch,
-              child: Material(
-                color: t.sf,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: t.bd),
-                ),
-                child: InkWell(
-                  key: const ValueKey('discoverSearch'),
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: _openSearch,
-                  child: SizedBox(
-                    height: 48,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(children: [
-                        Icon(LucideIcons.search, size: 18, color: t.mut),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            l.kesfetSearchHint,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: BuType.body.copyWith(color: t.mut, fontSize: 14),
-                          ),
-                        ),
-                      ]),
-                    ),
+      body: DiscoverMasonryFeed(
+        session: widget.session,
+        controller: _feedController,
+        scope: _scope,
+        header: _header(context),
+      ),
+    );
+  }
+
+  Widget _header(BuildContext context) {
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: MediaQuery.paddingOf(context).top + BuSpace.md),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.navDiscover,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.headlineLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                Text(l.p04DiscoverSub, style: tt.bodySmall?.copyWith(color: t.mut)),
+              ]),
+            ),
+            BuIconButton(
+              icon: LucideIcons.vote,
+              size: 40,
+              tooltip: l.discoverPolls,
+              onTap: () => openPollList(context, widget.session),
+            ),
+            BuGap.w4,
+            BuIconButton(
+              icon: LucideIcons.plus,
+              size: 40,
+              tooltip: l.discoverCompose,
+              filled: true,
+              onTap: _compose,
+            ),
+          ]),
+        ),
+        BuGap.h12,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+          child: Semantics(
+            button: true,
+            label: l.p04SearchHint,
+            excludeSemantics: true,
+            onTap: _openSearch,
+            child: Material(
+              color: t.sf2,
+              borderRadius: BorderRadius.circular(BuRadius.sm),
+              child: InkWell(
+                key: const ValueKey('discoverSearch'),
+                borderRadius: BorderRadius.circular(BuRadius.sm),
+                onTap: _openSearch,
+                child: SizedBox(
+                  height: 48,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(children: [
+                      Icon(LucideIcons.search, size: 20, color: t.mut),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(l.p04SearchHint,
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.bodyMedium?.copyWith(color: t.mut)),
+                      ),
+                    ]),
                   ),
                 ),
               ),
             ),
           ),
-          Expanded(child: DiscoverMasonryFeed(session: widget.session, controller: _feedController)),
-        ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(BuSpace.lg, BuSpace.xs, BuSpace.lg, BuSpace.md),
+          child: Row(children: [
+            _Chip(
+                key: const ValueKey('discoverChipAll'),
+                label: l.p04ChipAll,
+                selected: _scope == 'top',
+                onTap: () => setState(() => _scope = 'top')),
+            BuGap.w8,
+            _Chip(
+                key: const ValueKey('discoverChipPopular'),
+                label: l.discoverScopePopular,
+                selected: _scope == 'popular',
+                onTap: () => setState(() => _scope = 'popular')),
+          ]),
+        ),
+        BuGap.h8,
+        DiscoverSuggestions(session: widget.session),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(BuSpace.lg, 0, BuSpace.lg, BuSpace.md),
+          child: Row(children: [
+            Icon(Icons.dynamic_feed, size: 18, color: t.pr),
+            BuGap.w6,
+            Expanded(
+              child: Text(l.p04FeedTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+/// Hızlı süzgeç çipi: seçili = kırmızı dolgu, değilse beyaz hap + hafif gölge (dokunma hedefi 44).
+class _Chip extends StatelessWidget {
+  const _Chip({super.key, required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      selected: selected,
+      excludeSemantics: true,
+      label: label,
+      onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Center(
+            child: AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: selected ? t.pr : t.sf,
+                borderRadius: BorderRadius.circular(BuRadius.pill),
+                boxShadow: selected ? const [] : BuElevation.of(context, 1),
+              ),
+              child: Text(label,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: selected ? t.onPr : t.ink, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
       ),
     );
   }
