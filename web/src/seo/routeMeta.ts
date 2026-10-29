@@ -89,6 +89,7 @@ export const ROUTE_META: RouteMeta[] = [
   legal('RETENTION', 'legalRetention', paths.site.legal('RETENTION')),
   { id: 'cookies', path: paths.site.cookies, titleKey: 'pg.cookies.title', descKey: 'pg.cookies.meta', leadKey: 'pg.cookies.lead', infoSlug: 'cookies', changefreq: 'yearly', priority: 0.3 },
   { id: 'guidelines', path: paths.site.guidelines, titleKey: 'pg.guidelines.title', descKey: 'pg.guidelines.meta', leadKey: 'pg.guidelines.lead', infoSlug: 'guidelines', changefreq: 'yearly', priority: 0.4 },
+  { id: 'childSafety', path: paths.site.childSafety, titleKey: 'pg.childsafety.title', descKey: 'pg.childsafety.meta', leadKey: 'pg.childsafety.lead', infoSlug: 'childsafety', changefreq: 'yearly', priority: 0.5 },
   { id: 'accessibility', path: paths.site.accessibility, titleKey: 'pg.accessibility.title', descKey: 'pg.accessibility.meta', leadKey: 'pg.accessibility.lead', infoSlug: 'accessibility', changefreq: 'yearly', priority: 0.3 },
   { id: 'security', path: paths.site.security, titleKey: 'pg.security.title', descKey: 'pg.security.meta', leadKey: 'pg.security.lead', infoSlug: 'security', changefreq: 'yearly', priority: 0.3 },
   { id: 'sitemap', path: paths.site.sitemap, titleKey: 'pg.sitemap.title', descKey: 'pg.sitemap.meta', leadKey: 'pg.sitemap.lead', changefreq: 'monthly', priority: 0.2 },

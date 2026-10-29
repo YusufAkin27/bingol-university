@@ -6,5 +6,6 @@ import legal from '../tr/legal';
 import pages from '../tr/pages';
 import supportPublic from '../tr/support-public';
 import seo from '../tr/seo';
+import childSafety from '../tr/child-safety';
 
-export default { ...common, ...site, ...siteNew, ...legal, ...pages, ...supportPublic, ...seo };
+export default { ...common, ...site, ...siteNew, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety };

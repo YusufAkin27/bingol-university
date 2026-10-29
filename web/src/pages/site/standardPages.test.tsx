@@ -15,6 +15,7 @@ import { COOKIES_SECTIONS } from './CookiesPage';
 import { DELETE_SECTIONS } from './DeleteAccountPage';
 import { GUIDELINES_SECTIONS } from './CommunityGuidelinesPage';
 import { SECURITY_SECTIONS } from './SecurityPage';
+import { CHILD_SAFETY_EMAIL, CHILD_SAFETY_SECTIONS } from './ChildSafetyPage';
 import { BRAND_COLORS, BRAND_LOGOS, hexToRgb } from './BrandPage';
 import { CHANGELOG } from './ChangelogPage';
 import { HELP_CATEGORIES } from './HelpPage';
@@ -126,6 +127,10 @@ describe('çeviri tamlığı', () => {
       ...infoKeys('accessibility', ACCESSIBILITY_SECTIONS),
       ...infoKeys('security', SECURITY_SECTIONS),
       ...infoKeys('guidelines', GUIDELINES_SECTIONS),
+      ...infoKeys('childsafety', CHILD_SAFETY_SECTIONS),
+      'pg.childsafety.mail',
+      'pg.childsafety.rules',
+      'pg.childsafety.terms',
       ...BRAND_LOGOS.map((l) => l.name as string),
       ...CHANGELOG.flatMap((e) => [
         `pg.changelog.${e.id}.title`,
@@ -165,6 +170,7 @@ describe('rota eşleşmesi ve sayfalar', () => {
     ['/accessibility', 'Erişilebilirlik beyanı'],
     ['/security', 'Güvenlik'],
     ['/community-guidelines', 'Topluluk kuralları'],
+    ['/child-safety', 'Çocuk güvenliği standartları'],
     ['/help', 'Yardım merkezi'],
     ['/sitemap', 'Site haritası'],
     ['/changelog', 'Sürüm notları'],
@@ -247,6 +253,36 @@ describe('rota eşleşmesi ve sayfalar', () => {
     expect(await screen.findByText('Mercimek çorbası')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Aylık' }));
     expect(await within(screen.getByRole('main')).findByRole('heading', { level: 2 })).toBeInTheDocument();
+  });
+});
+
+describe('çocuk güvenliği standartları (/child-safety)', () => {
+  it.each([
+    ['tr', 'Çocuk güvenliği standartları', /CSAM/, 'Çocuk Güvenliği İrtibat Noktası'],
+    ['en', 'Child safety standards', /CSAM/, 'Child Safety Contact Point'],
+    ['ar', 'معايير سلامة الأطفال', /CSAM/, 'مسؤول الاتصال لسلامة الأطفال'],
+  ] as const)('%s: başlık, içerik ve iletişim bağlantısı', async (lang, h1, body, contact) => {
+    renderAt('/child-safety', lang);
+    await screen.findByRole('heading', { level: 1, name: h1 });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('main').textContent).toMatch(body);
+    expect(screen.getByRole('heading', { level: 2, name: contact })).toBeInTheDocument();
+    const mail = screen.getAllByRole('link').find((a) => a.getAttribute('href') === `mailto:${CHILD_SAFETY_EMAIL}`);
+    expect(mail).toBeTruthy();
+    expect(screen.getByRole('main').textContent).toContain(CHILD_SAFETY_EMAIL);
+    await waitFor(() => expect(document.title).toContain(h1));
+    expect(document.documentElement.dir).toBe(lang === 'ar' ? 'rtl' : 'ltr');
+    expect(document.documentElement.lang).toBe(lang);
+  });
+
+  it('otomatik CSAM taraması olmadığını dürüstçe söyler', () => {
+    expect(dictionaries.tr['pg.childsafety.s3.p2']).toMatch(/otomatik tanıyan bir sistem/);
+    expect(dictionaries.en['pg.childsafety.s3.p2']).toMatch(/no system that automatically recognizes CSAM/);
+  });
+
+  it('alt bilgideki yasal grupta bağlantı vardır ve yönetim yolu geçmez', () => {
+    const legal = SITE_GROUPS.find((g) => g.title === 'pg.foot.legal')!;
+    expect(legal.links.some((l) => l.to === '/child-safety')).toBe(true);
   });
 });
 

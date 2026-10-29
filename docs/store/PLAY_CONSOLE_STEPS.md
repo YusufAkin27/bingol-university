@@ -30,6 +30,7 @@ Hepsi için hazır cevaplar: [data_safety.md](data_safety.md), [content_rating.m
 | İçerik derecelendirme (IARC) | [content_rating.md](content_rating.md); kullanıcı içeriği + sohbet var, raporlama/engelleme var |
 | Hedef kitle | 18+ (bkz. content_rating.md "Hedef kitle ve içerik") |
 | Veri güvenliği | [data_safety.md](data_safety.md): "Device or other IDs" işaretlenir (FCM belirteci + rastgele uygulama cihaz kimliği), konum **toplanmaz** |
+| Çocuk güvenliği standartları (CSAE beyanı) | `https://bukampus.com.tr/tr/child-safety` (`/en/`, `/ar/`); iletişim noktası `ysufakin23@gmail.com`. Console formunda "Çocuk güvenliği standartları" bağlantısı olarak girin, CSAM karşıtı politika ve bildirim mekanizması sorularına sayfadaki olgularla (otomatik CSAM taraması **yok**) cevap verin; avukat notu: [../LEGAL_NOTES.md](../LEGAL_NOTES.md) bölüm 11 |
 | Hesap silme | Uygulama içinde var; web URL'si: `https://bukampus.com.tr/tr/delete-account` (canlıda 200; sayfa tek sayfa uygulama olduğu için yalnız HTTP kodu doğrulandı, içeriğin tarayıcıda görüntülendiğini siz de bir kez açıp bakın) |
 | Haber uygulaması beyanı | Uygulama haber/duyuruyu üniversite sitesinden **derleyip gösterir**; "haber uygulaması" olarak beyan etmeniz gerekirse bağımsız, resmî olmayan olduğunu ve kaynak göstermeyi belirtin |
 | COVID-19 / sağlık | Hayır (ilgili değil) |

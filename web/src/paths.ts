@@ -19,6 +19,7 @@ export const paths = {
     sitemap: '/sitemap',
     security: '/security',
     guidelines: '/community-guidelines',
+    childSafety: '/child-safety',
     help: '/help',
     news: '/news',
     newsItem: (id: number | string) => `/news/${id}`,

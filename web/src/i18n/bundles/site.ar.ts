@@ -6,5 +6,6 @@ import legal from '../ar/legal';
 import pages from '../ar/pages';
 import supportPublic from '../ar/support-public';
 import seo from '../ar/seo';
+import childSafety from '../ar/child-safety';
 
-export default { ...common, ...site, ...siteNew, ...legal, ...pages, ...supportPublic, ...seo };
+export default { ...common, ...site, ...siteNew, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety };

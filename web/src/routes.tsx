@@ -28,6 +28,7 @@ const AccessibilityPage = lazy(() => import('./pages/site/AccessibilityPage'));
 const SitemapPage = lazy(() => import('./pages/site/SitemapPage'));
 const SecurityPage = lazy(() => import('./pages/site/SecurityPage'));
 const CommunityGuidelinesPage = lazy(() => import('./pages/site/CommunityGuidelinesPage'));
+const ChildSafetyPage = lazy(() => import('./pages/site/ChildSafetyPage'));
 const HelpPage = lazy(() => import('./pages/site/HelpPage'));
 const NewsListPage = lazy(() => import('./pages/site/NewsListPage'));
 const NewsDetailPage = lazy(() => import('./pages/site/NewsDetailPage'));
@@ -72,6 +73,7 @@ export function AppRoutes() {
             <Route path="sitemap" element={<SitemapPage />} />
             <Route path="security" element={<SecurityPage />} />
             <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
+            <Route path="child-safety" element={<ChildSafetyPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="news" element={<NewsListPage />} />
             <Route path="news/:id" element={<NewsDetailPage />} />

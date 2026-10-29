@@ -71,7 +71,7 @@ if [ "$WEB" = auto ]; then
   case "$BASE" in https://*) WEB=1;; *) [ "$(code -L "$BASE/")" = 200 ] && WEB=1 || WEB=0;; esac
 fi
 if [ "$WEB" = 1 ]; then
-  for p in / /tr /tr/privacy /tr/delete-account /tr/data-request /en/privacy /ar/privacy; do
+  for p in / /tr /tr/privacy /tr/delete-account /tr/data-request /tr/child-safety /en/child-safety /ar/child-safety /en/privacy /ar/privacy; do
     c="$(code -L "$BASE$p")"; [ "$c" = 200 ] && ok "web $p ($c)" || bad "web $p ($c)"
   done
 else

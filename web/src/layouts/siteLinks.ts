@@ -46,6 +46,7 @@ export const SITE_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
       { to: paths.site.legal('CONTENT_REMOVAL'), label: 'legal.title.CONTENT_REMOVAL' },
       { to: paths.site.legal('RETENTION'), label: 'legal.title.RETENTION' },
       { to: paths.site.guidelines, label: 'pg.guidelines.title' },
+      { to: paths.site.childSafety, label: 'pg.childsafety.title' },
       { to: paths.site.accessibility, label: 'pg.accessibility.title' },
       { to: paths.site.security, label: 'pg.security.title' },
       { to: paths.site.sitemap, label: 'pg.sitemap.title' },

@@ -49,7 +49,7 @@ const PAGE_SRC = {
   changelog: 'ChangelogPage', deleteAccount: 'DeleteAccountPage', dataRequest: 'DataRequestPage',
   privacy: 'LegalPage', terms: 'LegalPage', legal: 'LegalListPage', legalKvkk: 'LegalPage',
   legalCommunityRules: 'LegalPage', legalExplicitConsent: 'LegalPage', legalContentRemoval: 'LegalPage',
-  legalRetention: 'LegalPage', cookies: 'CookiesPage', guidelines: 'CommunityGuidelinesPage',
+  legalRetention: 'LegalPage', cookies: 'CookiesPage', guidelines: 'CommunityGuidelinesPage', childSafety: 'ChildSafetyPage',
   accessibility: 'AccessibilityPage', security: 'SecurityPage', sitemap: 'SitemapPage',
 };
 // girdi paketinin (index.html) zaten yüklediği dosyalar yeniden ipucu olmasın
@@ -115,7 +115,7 @@ for (const f of textFiles) {
   if (/ALAN-ADI|\{\{ORIGIN\}\}/.test(body)) fail(`yer tutucu kalmış: ${f}`);
 }
 for (const lang of ['tr', 'en', 'ar']) {
-  for (const slug of ['privacy', 'delete-account', 'contact']) {
+  for (const slug of ['privacy', 'delete-account', 'contact', 'child-safety']) {
     const f = join(dist, lang, slug, 'index.html');
     if (!existsSync(f)) fail(`eksik: ${f}`);
     const h = readFileSync(f, 'utf8');

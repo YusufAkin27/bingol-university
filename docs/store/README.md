@@ -16,12 +16,13 @@ Bu klasör Play Console'a girilecek metin ve cevapları hazır tutar. **Hiçbiri
 3. **Kişisel veri sızdırma.** Metinlere kişisel adres/telefon yazılmaz; iletişim `<DESTEK_E_POSTASI>` (destek adresi: `ysufakin23@gmail.com`). Ekran görüntülerinde yalnız sahte tohum hesaplar.
 
 ## Herkese açık sayfalar (Play URL'leri) - kontrol edildi
-`web/src/routes.tsx`'te dil önekli (`/tr`, `/en`, `/ar`) rotalar **mevcut** ve 3 dilli içerik taşır; yeni sayfa eklenmedi:
+`web/src/routes.tsx`'te dil önekli (`/tr`, `/en`, `/ar`) rotalar **mevcut** ve 3 dilli içerik taşır; `/child-safety` (CSAE1) sonradan eklendi:
 
 | Play alanı | URL | Kaynak |
 |---|---|---|
 | Gizlilik politikası | `https://bukampus.com.tr/tr/privacy` (`/en/privacy`, `/ar/privacy`) | `pages/site/LegalPage.tsx` (`fixedType="PRIVACY"`, metin API'den: `docs/legal/privacy_*.md`) |
 | Hesap silme | `https://bukampus.com.tr/tr/delete-account` | `pages/site/DeleteAccountPage.tsx` (tablo: hangi veri silinir/saklanır/süre) |
+| Çocuk güvenliği standartları (CSAE) | `https://bukampus.com.tr/tr/child-safety` (`/en/child-safety`, `/ar/child-safety`) | `pages/site/ChildSafetyPage.tsx` (`i18n/*/child-safety.ts`) |
 | Veri silme/erişim talebi | `https://bukampus.com.tr/tr/data-request` | `pages/site/DataRequestPage.tsx` |
 | Kullanım koşulları | `https://bukampus.com.tr/tr/terms` | `LegalPage` |
 

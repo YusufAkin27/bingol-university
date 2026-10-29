@@ -35,7 +35,7 @@ function api(url: string) {
 
 afterEach(() => vi.unstubAllGlobals());
 
-const SITE_ROUTES = ['/', '/about', '/features', '/download', '/accessibility', '/cookies', '/security', '/delete-account'];
+const SITE_ROUTES = ['/', '/about', '/features', '/download', '/accessibility', '/cookies', '/security', '/delete-account', '/child-safety'];
 
 describe('erisilebilirlik (axe)', () => {
   for (const lang of ['tr', 'ar'] as const) {

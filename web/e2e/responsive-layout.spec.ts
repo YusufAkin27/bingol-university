@@ -14,7 +14,7 @@ const WIDTHS = [360, 768, 1280] as const;
 // Site rotalari dil onekli: her sayfa test dilinde /<lang><yol> olarak acilir (kok '/' tarayici/kayitli dile yonlenir)
 const ALL_PAGES = [
   '/', '/about', '/features', '/download', '/faq', '/contact', '/data-request', '/legal', '/privacy', '/terms',
-  '/cookies', '/delete-account', '/accessibility', '/sitemap', '/security', '/community-guidelines', '/help',
+  '/cookies', '/delete-account', '/accessibility', '/sitemap', '/security', '/community-guidelines', '/child-safety', '/help',
   '/news', '/menu', '/support/track', '/brand', '/changelog', '/legal/KVKK', '/legal/RETENTION', '/news/1',
 ];
 const inLang = (lang: Lang, route: string) => `/${lang}${route === '/' ? '' : route}`;
