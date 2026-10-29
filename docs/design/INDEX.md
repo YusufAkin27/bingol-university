@@ -45,12 +45,12 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [37-etkinlik-liste-durumlari-diyaloglar.md](37-etkinlik-liste-durumlari-diyaloglar.md) | 6 | 72 (durumlar), A36, A42 | [ ] |
 | [38-etkinlik-detay-durumlari.md](38-etkinlik-detay-durumlari.md) | 6 | 74 (RSVP/kontenjan durumları) | [ ] |
 | [39-etkinlik-istek-ve-yoklama.md](39-etkinlik-istek-ve-yoklama.md) | 6 | 74 (istek/yoklama), A37 | [ ] |
-| [40-etkinlik-olustur-duzenle.md](40-etkinlik-olustur-duzenle.md) | 6 | 75, A39, A40, A41, A43 | [ ] |
-| [41-etkinlik-organizator-ayar-istek.md](41-etkinlik-organizator-ayar-istek.md) | 6 | 76, 77 | [ ] |
-| [42-etkinlik-qr-yoklama-listesi.md](42-etkinlik-qr-yoklama-listesi.md) | 5 | 78, 79 | [ ] |
-| [43-akademik-hub-ders-programi.md](43-akademik-hub-ders-programi.md) | 6 | 80, 84, A44 | [ ] |
-| [44-akademik-ders-sinav-formlari.md](44-akademik-ders-sinav-formlari.md) | 6 | 81, 82, 83 | [ ] |
-| [45-akademik-takvim-duyuru-hatirlatma.md](45-akademik-takvim-duyuru-hatirlatma.md) | 6 | 85, 86, 87, 88 | [ ] |
+| [40-etkinlik-olustur-duzenle.md](40-etkinlik-olustur-duzenle.md) | 6 | 75, A39, A40, A41, A43 | [x] |
+| [41-etkinlik-organizator-ayar-istek.md](41-etkinlik-organizator-ayar-istek.md) | 6 | 76, 77 | [x] |
+| [42-etkinlik-qr-yoklama-listesi.md](42-etkinlik-qr-yoklama-listesi.md) | 5 | 78, 79 | [x] |
+| [43-akademik-hub-ders-programi.md](43-akademik-hub-ders-programi.md) | 6 | 80, 84, A44 | [x] |
+| [44-akademik-ders-sinav-formlari.md](44-akademik-ders-sinav-formlari.md) | 6 | 81, 82, 83 | [x] |
+| [45-akademik-takvim-duyuru-hatirlatma.md](45-akademik-takvim-duyuru-hatirlatma.md) | 6 | 85, 86, 87, 88 | [x] eksik: duzeltme turu kotadan uygulanamadi (baslik "Akademik Takvim Durum", "Ders Detay" tipi basliklar, uydurma kartlar) |
 | [46-akademik-diyaloglar-secici.md](46-akademik-diyaloglar-secici.md) | 4 | A45, A46, A47, A48, A49, A50 | [ ] |
 | [47-profil-baskasi-durumlari.md](47-profil-baskasi-durumlari.md) | 6 | 89, 90, A60 | [ ] |
 | [48-takipciler-profil-duzenle.md](48-takipciler-profil-duzenle.md) | 6 | 92, 93, 94, A53 | [ ] |
