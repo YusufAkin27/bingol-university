@@ -293,7 +293,7 @@ Future<void> _typeQ(WidgetTester t, String q) async {
 
 Future<void> _pickTab(WidgetTester t, String label) async {
   if (find.text(label).evaluate().isEmpty) {
-    await t.drag(find.text(lookupAppLocalizations(Locale(_lang)).searchAll).first, const Offset(-300, 0));
+    await t.drag(find.text(lookupAppLocalizations(Locale(_lang)).searchAll).first, Offset(_lang == 'ar' ? 300 : -300, 0));
     await t.pump(const Duration(milliseconds: 400));
   }
   await t.tap(find.text(label).first);
@@ -417,7 +417,7 @@ void main() {
           // ignore: avoid_print
           print('YAZILDI ${f.path} ${image.width}x${image.height}');
         });
-        if (s.slow) {
+        if (s.slow || s.file.startsWith('n6')) {
           for (var i = 0; i < 8; i++) {
             await tester.pump(const Duration(seconds: 2));
           }
