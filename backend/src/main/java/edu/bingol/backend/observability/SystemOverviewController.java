@@ -59,7 +59,8 @@ public class SystemOverviewController {
     @PostMapping("/dead-letters/mail/retry")
     public Map<String, Integer> retryMail(@RequestBody(required = false) IdsRequest body) {
         limiter.check("admin:system:write:" + adminKey(), 30, Duration.ofMinutes(10));
-        return Map.of("requeued", deadLetters.retryMail(ids(body)));
+        DeadLetterService.MailRetryResult r = deadLetters.retryMail(ids(body));
+        return Map.of("requeued", r.requeued(), "skipped", r.skipped());
     }
 
     @PostMapping("/dead-letters/push/retry")

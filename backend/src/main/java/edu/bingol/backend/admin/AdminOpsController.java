@@ -56,7 +56,7 @@ public class AdminOpsController {
 
     public record MailStats(long pending, long sending, long dead, long sentLast24h, Long oldestPendingAgeSeconds) {}
 
-    public record Requeued(int requeued) {}
+    public record Requeued(int requeued, long skipped) {}
 
     public record BackupStatus(String status, Instant lastSuccessAt, Instant lastAttemptAt, Long sizeBytes,
                                String message) {}
@@ -99,7 +99,11 @@ public class AdminOpsController {
     @PostMapping("/mail-outbox/retry-dead")
     public Requeued retryDead() {
         limiter.check("admin:ops:retry:" + CurrentUser.id(), 10, Duration.ofMinutes(10));
-        return new Requeued(outbox.requeueDead(Instant.now()));
+        // Icerigi silinmis / suresi dolmus kod postalari yeniden alinmaz; sayilari acikca doner (skipped).
+        Instant now = Instant.now();
+        long dead = outbox.countByStatus(MailStatus.DEAD);
+        int requeued = outbox.requeueDead(now, now.minus(Duration.ofMinutes(10)));
+        return new Requeued(requeued, Math.max(0, dead - requeued));
     }
 
     /**

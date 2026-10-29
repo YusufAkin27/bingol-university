@@ -677,6 +677,7 @@ Eşikler (`app.observability.*`, varsayılanlar): `dead-warn=1` (≥1 WARN), `de
 | `GET /dead-letters/mail?limit=50` | `[{id, template, to (maskeli: a***@alan), attempts, lastError (temizlenmiş), createdAt}]`, en çok 200 |
 | `GET /dead-letters/push?limit=50` | `[{id, userId, attempts, lastError, createdAt}]` |
 | `POST /dead-letters/{mail\|push}/retry` | Gövde `{"ids":[1,2]}`; `ids` boş/yoksa **tüm** ölüler. `{requeued:n}`. Deneme sayacı sıfırlanır, `PENDING` olur |
+| (mail için ek kural) | DEAD olurken mail değişkenleri temizlendiğinden (`{}`) içeriği yeniden üretilemeyen kayıtlar (ACCOUNT_DELETED hariç) ve 10 dakikadan eski kod postaları (VERIFICATION_CODE/PASSWORD_RESET_CODE) **kuyruğa alınmaz**, değiştirilmez; yanıt `{requeued:n, skipped:m}`. Aynı kural eski `POST /api/admin/ops/mail-outbox/retry-dead` için de geçerlidir (`{requeued, skipped}`) |
 | `POST /dead-letters/{mail\|push}/delete` | Gövde `{"ids":[...]}` ZORUNLU (en çok 500; boşsa 400). `{deleted:n}`; yalnız `DEAD` durumundaki satırlar etkilenir |
 
 İçerik (mail değişkenleri, push gövdesi) hiçbir uçta dönmez. Eski toplu uçlar (`/api/admin/ops/mail-outbox/retry-dead`, `/api/admin/push/outbox/retry-dead`) çalışmaya devam eder.

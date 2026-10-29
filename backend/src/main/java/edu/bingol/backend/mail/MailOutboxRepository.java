@@ -59,9 +59,18 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
     @Query("SELECT MIN(m.createdAt) FROM MailOutbox m WHERE m.status IN (edu.bingol.backend.mail.MailStatus.PENDING, edu.bingol.backend.mail.MailStatus.FAILED)")
     Instant oldestPendingCreatedAt();
 
-    /** Yonetici: olu (DEAD) kayitlari yeniden kuyruga alir. */
+    /**
+     * Yonetici: olu (DEAD) kayitlari yeniden kuyruga alir. DEAD olurken degiskenler temizlendigi ({}) icin icerigi
+     * yeniden uretilemeyen kayitlar (ACCOUNT_DELETED haric) ve suresi dolmus kod postalari ({@code codeCutoff}'tan
+     * eski) ALINMAZ; bos degiskenle bos/kodsuz posta gitmesin diye.
+     */
     @Transactional
     @Modifying
-    @Query("UPDATE MailOutbox m SET m.status = edu.bingol.backend.mail.MailStatus.PENDING, m.attempts = 0, m.nextAttemptAt = :now WHERE m.status = edu.bingol.backend.mail.MailStatus.DEAD")
-    int requeueDead(@Param("now") Instant now);
+    @Query("UPDATE MailOutbox m SET m.status = edu.bingol.backend.mail.MailStatus.PENDING, m.attempts = 0, "
+            + "m.nextAttemptAt = :now WHERE m.status = edu.bingol.backend.mail.MailStatus.DEAD "
+            + "AND (m.template = edu.bingol.backend.mail.MailTemplate.ACCOUNT_DELETED "
+            + "OR (m.varsJson IS NOT NULL AND TRIM(m.varsJson) <> '' AND TRIM(m.varsJson) <> '{}')) "
+            + "AND NOT (m.template IN (edu.bingol.backend.mail.MailTemplate.VERIFICATION_CODE, "
+            + "edu.bingol.backend.mail.MailTemplate.PASSWORD_RESET_CODE) AND m.createdAt < :codeCutoff)")
+    int requeueDead(@Param("now") Instant now, @Param("codeCutoff") Instant codeCutoff);
 }

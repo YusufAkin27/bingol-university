@@ -109,9 +109,9 @@ Yeni hata kodu yoktur.
 - **Şikâyet bağlamı:** `GET /api/admin/reports/{id}` (`context`, `relatedReports`, `viewerPath`); kuyruk satırlarına `reporter`, `reportedUser`, `viewerPath` eklendi. MESSAGE şikâyeti artık yalnız sohbet üyesi ve mesaj kendisine ULAŞMIŞSA kabul edilir (gölge engelle bastırılmış mesaj, gönderen dışındakine `TARGET_NOT_FOUND`).
 - **Migration V270:** `adm270_message_created`, `adm270_attachment_created`, `adm270_attachment_viewonce`, `adm270_attachment_kind`. Yeni hata kodları: `MEDIA_PURGED` (410), `INVALID_FILTER` (400).
 
-## P08 — Yönetici sohbet müdahalesi (V710) — mobil sözleşmesi (B4'te uygulanacak)
+## P08 — Yönetici sohbet müdahalesi (V710) — mobil sözleşmesi
 
-Mobil istemci bu pakette DEĞİŞMEDİ; aşağıdaki davranışlar sunucuda hazırdır:
+Sunucu ve mobil istemci uygulanmıştır (mobil: `lib/core/closed_conversations.dart`, `chat_detail_page.dart` kapalı sohbet bandı + `removed` yer tutucusu, `push_targets.dart` `CONVERSATION_REMOVED`). Davranışlar:
 
 - **Yeni hata kodu `CONVERSATION_CLOSED` (HTTP 409):** yönetici sohbeti kapattıysa `POST /api/conversations/{id}/messages` ve STOMP gönderimi bu kodla reddedilir (3 dilde metin). İstemci yazma alanını kapatıp "Bu sohbet yönetici tarafından kapatıldı" göstermelidir. Aynı `clientId` ile tekrar gönderim (idempotent yol) kapalı sohbette de önceki mesajı döndürür. Sohbet yeniden açılınca (`/reopen`) gönderim normale döner.
 - **Yönetici gizlemesi yer tutucusu:** yönetici gizlediği ya da kalıcı sildiği mesaj `MessageView` içinde `removed=true`, `text="Bu mesaj yönetici tarafından kaldırıldı"` olarak gelir (`MessagingDtos.ADMIN_REMOVED_TEXT`); moderasyon gizlemesi `"Bu mesaj kaldırıldı"`, kullanıcı silmesi `"Bu mesaj silindi"` olarak ayrı kalır. Yanıt önizlemesi (`replyTo`) de aynı yer tutucuyu kullanır. Metin sabittir (yerelleştirilmez); istemci `removed` bayrağına bakmalıdır.

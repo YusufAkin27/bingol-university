@@ -81,8 +81,6 @@
 	<string>Profil, kulüp ve etkinlik görseli seçebilmeniz için fotoğraf arşivinize erişiriz.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Görselleri fotoğraf arşivinize kaydedebilmemiz için izin gerekir.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Yakındaki etkinlik ve duyuruları gösterebilmek için yaklaşık konumunuzu kullanırız.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için e-posta adreslerini cihazınızda özetleyip eşleştiririz; rehberiniz sunucuya gönderilmez.</string>
 	<key>NSMicrophoneUsageDescription</key>
