@@ -1,324 +1,235 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import 'widgets/auth_art.dart';
-import 'widgets/auth_controls.dart';
-import 'widgets/auth_fields.dart';
-import 'widgets/auth_motion.dart';
-import 'widgets/auth_sheets.dart';
+import '../../widgets/bu.dart';
+import 'widgets/auth_ref.dart';
 
-/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama: markaya özgü hareketli kırmızı sahne
-/// (yavaş dalgalar, nefes alan halkalar, ölçeklenerek gelen logo + parıltı) ve altta yumuşak köşeli eylem sayfası.
-class WelcomePage extends StatefulWidget {
+/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama (Stitch 01 "Karşılama"): koyu lacivert tanıtım kartı,
+/// üç özellik satırı, kayıt notu, Giriş yap + Kayıt ol. Sağ üstte TR | EN | AR dil seçici.
+class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key, required this.onLogin, required this.onRegister});
 
   final VoidCallback onLogin;
   final VoidCallback onRegister;
 
   @override
-  State<WelcomePage> createState() => _WelcomePageState();
-}
-
-class _WelcomePageState extends State<WelcomePage> with SingleTickerProviderStateMixin {
-  late final AnimationController _intro = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-  bool _started = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
-      _intro.value = 1;
-    } else {
-      _intro.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _intro.dispose();
-    super.dispose();
-  }
-
-  Animation<double> _seg(double a, double b, [Curve c = Curves.easeOutCubic]) =>
-      CurvedAnimation(parent: _intro, curve: Interval(a, b, curve: c));
-
-  @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final top = MediaQuery.viewPaddingOf(context).top;
-    final bottom = MediaQuery.viewPaddingOf(context).bottom;
-    final card = _seg(0, .45, Curves.easeOutBack);
-    final sheen = _seg(.4, .85, Curves.easeInOut);
-    final chips = _seg(.45, .9);
-    final sheet = _seg(.25, .8);
+    final tx = Theme.of(context).textTheme;
+    final features = <(IconData, Color, Color, String, String)>[
+      (LucideIcons.newspaper, t.soft, t.pr, l.welcomeNews, l.p02WelcomeNewsSub),
+      (LucideIcons.utensils, t.tint(1).bg, t.tint(1).fg, l.welcomeMenu, l.p02WelcomeMenuSub),
+      (LucideIcons.users, t.sf2, t.pr, l.welcomeClubs, l.p02WelcomeClubsSub),
+    ];
+    return RefPage(
+      showBack: false,
+      trailing: const _LangPill(),
+      bottomPad: 20,
+      children: [
+        const _Hero(),
+        const SizedBox(height: 16),
+        for (final f in features) ...[
+          RefCard(
+            radius: 24,
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(color: f.$2, shape: BoxShape.circle),
+                  child: Icon(f.$1, color: f.$3, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(f.$4, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(f.$5, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        const SizedBox(height: 4),
+        _DomainNote(l.welcomeNote),
+        const SizedBox(height: 20),
+        RefButton(label: l.loginSubmit, icon: buDirIcon(context, LucideIcons.arrowRight), onPressed: onLogin),
+        const SizedBox(height: 12),
+        RefButton(label: l.loginRegister, kind: RefButtonKind.secondary, onPressed: onRegister),
+        const SizedBox(height: 16),
+        Center(
+          child: Text(
+            trUpper(l.profileVersion(appVersion)),
+            style: tx.labelSmall!.copyWith(color: t.mut, letterSpacing: .8, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-    return AuthClockHost(
-      child: Scaffold(
-        backgroundColor: t.bg,
-        body: LayoutBuilder(
-          builder: (context, cons) {
-            final h = cons.maxHeight;
-            final heroH = (h * .53).clamp(330.0, 470.0);
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(
-                          height: heroH,
-                          child: _Hero(top: top, card: card, sheen: sheen, chips: chips),
-                        ),
-                        Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 440),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(26, 6, 26, 0),
-                              child: _Reveal(
-                                animation: sheet,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Semantics(
-                                      header: true,
-                                      child: Text(
-                                        l.welcomeHeadline,
-                                        style: BuType.display.copyWith(
-                                            color: t.ink, fontSize: 32, height: 1.1, letterSpacing: -1, fontWeight: FontWeight.w800),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(l.welcomeSub, style: BuType.body.copyWith(color: t.mut, fontSize: 15.5, height: 1.5)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 440),
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(26, 24, 26, 18 + bottom),
-                          child: _Reveal(
-                            animation: sheet,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                AuthPrimaryButton(
-                                  onPressed: widget.onLogin,
-                                  label: l.loginSubmit,
-                                  icon: buDirIcon(context, LucideIcons.arrowRight),
-                                ),
-                                const SizedBox(height: 12),
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    minimumSize: const Size.fromHeight(56),
-                                    backgroundColor: t.sf,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kAuthRadius)),
-                                    side: BorderSide(color: t.bd, width: 1.2),
-                                  ),
-                                  onPressed: widget.onRegister,
-                                  child: Text(l.authCreateAccount,
-                                      style: BuType.bodyStrong.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w700)),
-                                ),
-                                const SizedBox(height: 16),
-                                AuthTrustNote(l.welcomeNote),
-                              ],
-                            ),
-                          ),
-                        ),
+/// Sağ üst dil seçici: üç dilimli hap, seçili dilim marka kırmızısı. Dokununca dil hemen değişir.
+class _LangPill extends StatelessWidget {
+  const _LangPill();
+
+  static const _codes = ['tr', 'en', 'ar'];
+
+  @override
+  Widget build(BuildContext context) {
+    final lc = LocaleController.current;
+    if (lc == null) return const SizedBox.shrink();
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final cur = Localizations.localeOf(context).languageCode;
+    return Semantics(
+      label: context.l10n.welcomeLanguage,
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(999)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final c in _codes)
+              Semantics(
+                button: true,
+                selected: c == cur,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: c == cur ? null : () => lc.set(c),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 28),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: c == cur ? t.pr : Colors.transparent,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        c.toUpperCase(),
+                        style: tx.labelMedium!.copyWith(color: c == cur ? t.onPr : t.mut, fontWeight: FontWeight.w800),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            );
-          },
+          ],
         ),
       ),
     );
   }
 }
 
-/// İçeriğin belirirken hafifçe yukarı süzülmesi (animasyon bitince katman kalmaz).
-class _Reveal extends StatelessWidget {
-  const _Reveal({required this.animation, required this.child});
-
-  final Animation<double> animation;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: animation,
-        child: child,
-        builder: (context, ch) => Opacity(
-          opacity: animation.value,
-          child: Transform.translate(offset: Offset(0, (1 - animation.value) * 22), child: ch),
-        ),
-      );
-}
-
+/// Koyu lacivert tanıtım kartı: marka + iki satırlı başlık + açıklama.
 class _Hero extends StatelessWidget {
-  const _Hero({required this.top, required this.card, required this.sheen, required this.chips});
-
-  final double top;
-  final Animation<double> card;
-  final Animation<double> sheen;
-  final Animation<double> chips;
+  const _Hero();
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final clock = authClockOf(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(gradient: t.hero),
-      child: Stack(
+    final tx = Theme.of(context).textTheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final lines = l.welcomeHeadline.split('\n');
+    final accent = Color.lerp(t.pr, t.onMedia, .78)!;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: dark ? [t.sf3, t.sf] : [Color.lerp(t.ink, t.pr, .22)!, t.ink],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned.fill(
-            child: ExcludeSemantics(
-              child: RepaintBoundary(child: CustomPaint(painter: AuthHeroPainter(clock))),
-            ),
+          Row(
+            children: [
+              const RefBrandMark(size: 48),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('BU Kampüs', style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                    Text(l.p02BrandSub,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.labelSmall!.copyWith(color: t.onMedia.withValues(alpha: .78), fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          PositionedDirectional(top: top + 12, end: 20, child: const AuthLanguageButton(onDark: true)),
-          Align(
-            alignment: const Alignment(0, -.30),
-            child: Padding(
-              padding: EdgeInsets.only(top: top * .4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: 20),
+          Semantics(
+            header: true,
+            child: Text.rich(
+              TextSpan(
                 children: [
-                  ScaleTransition(
-                    scale: Tween(begin: .5, end: 1.0).animate(card),
-                    child: FadeTransition(
-                      opacity: card,
-                      child: Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .28), blurRadius: 34, offset: const Offset(0, 16), spreadRadius: -8)],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/branding/mark_white.svg',
-                                width: 62,
-                                height: 62,
-                                colorFilter: const ColorFilter.mode(kBrandRed, BlendMode.srcIn),
-                                semanticsLabel: 'BÜ Kampüs',
-                              ),
-                              Positioned.fill(child: CustomPaint(painter: AuthSheenPainter(sheen))),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  FadeTransition(
-                    opacity: chips,
-                    child: Column(
-                      children: [
-                        Text('BÜ Kampüs',
-                            style: BuType.display.copyWith(color: Colors.white, fontSize: 28, letterSpacing: -.6, fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 2),
-                        Text('Bingöl Üniversitesi',
-                            style: BuType.body.copyWith(color: Colors.white.withValues(alpha: .86), fontSize: 14.5)),
-                      ],
-                    ),
-                  ),
+                  TextSpan(text: lines.first),
+                  if (lines.length > 1) ...[const TextSpan(text: '\n'), TextSpan(text: lines.sublist(1).join(' '), style: TextStyle(color: accent))],
                 ],
               ),
+              style: tx.headlineLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800, height: 1.12),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: -1,
-            height: 34,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: t.bg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(34)),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 50,
-            child: FadeTransition(
-              opacity: chips,
-              child: AnimatedBuilder(
-                animation: clock,
-                builder: (context, _) {
-                  final p = clock.value * math.pi * 12;
-                  Widget chip(int i, IconData icon, String label) => Transform.translate(
-                        offset: Offset(0, math.sin(p + i * 1.9) * 2.5),
-                        child: _HeroChip(icon: icon, label: label),
-                      );
-                  return Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      chip(0, LucideIcons.newspaper, l.welcomeChipNews),
-                      chip(1, LucideIcons.utensils, l.welcomeChipMenu),
-                      chip(2, LucideIcons.calendarDays, l.welcomeChipClubs),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
+          const SizedBox(height: 10),
+          Text(l.welcomeSub, style: tx.bodyMedium!.copyWith(color: t.onMedia.withValues(alpha: .8), height: 1.45)),
         ],
       ),
     );
   }
 }
 
-class _HeroChip extends StatelessWidget {
-  const _HeroChip({required this.icon, required this.label});
+/// "Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir." kartı; alan adı kalın kırmızı.
+class _DomainNote extends StatelessWidget {
+  const _DomainNote(this.text);
 
-  final IconData icon;
-  final String label;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    const dom = 'bingol.edu.tr';
+    final at = text.indexOf(dom);
+    final base = tx.bodyMedium!.copyWith(color: t.ink, height: 1.4);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .16),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: .28)),
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(20)),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: Colors.white),
-          const SizedBox(width: 7),
-          Text(label, style: BuType.label.copyWith(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
+            child: Icon(LucideIcons.shieldCheck, size: 20, color: t.pr),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: at < 0
+                ? Text(text, style: base)
+                : Text.rich(
+                    TextSpan(style: base, children: [
+                      TextSpan(text: text.substring(0, at)),
+                      TextSpan(text: dom, style: TextStyle(color: t.pr, fontWeight: FontWeight.w800)),
+                      TextSpan(text: text.substring(at + dom.length)),
+                    ]),
+                  ),
+          ),
         ],
       ),
     );

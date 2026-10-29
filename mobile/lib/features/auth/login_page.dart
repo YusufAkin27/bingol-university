@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/app_gate.dart' show appVersion;
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
 import '../../core/pending_verification.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 import 'verify_code_page.dart';
-import 'widgets/auth_controls.dart';
-import 'widgets/auth_fields.dart';
 import 'widgets/auth_motion.dart';
-import 'widgets/auth_shell.dart';
-import 'widgets/auth_sheets.dart';
+import 'widgets/auth_ref.dart';
 
+/// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
+/// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
 
@@ -32,7 +30,9 @@ class _LoginPageState extends State<LoginPage> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
-  int _shake = 0;
+
+  /// 429: bandın ikinci satırı ("40 sn sonra tekrar deneyin.").
+  String? _retry;
   PendingVerification? _pending;
 
   @override
@@ -60,11 +60,19 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _fail(String message) {
+  void _fail(Object e) {
     authHaptic(AuthHaptic.error);
+    final l = context.l10n;
+    String? retry;
+    var text = errorText(e);
+    if (e is ApiError && e.status == 429 && !e.isNetwork) {
+      // Başlık ile bekleme süresi ayrı satırlarda gösterilir.
+      retry = retryAfterText(e.retryAfter, l);
+      text = e.message.isNotEmpty ? e.message : l.coreErrTooMany;
+    }
     setState(() {
-      _error = message;
-      _shake++;
+      _error = text;
+      _retry = retry;
     });
   }
 
@@ -72,12 +80,12 @@ class _LoginPageState extends State<LoginPage> {
     if (_busy) return;
     if (!_form.currentState!.validate()) {
       authHaptic(AuthHaptic.error);
-      setState(() => _shake++);
       return;
     }
     setState(() {
       _busy = true;
       _error = null;
+      _retry = null;
     });
     try {
       await widget.session.login(_email.text, _password.text);
@@ -96,10 +104,10 @@ class _LoginPageState extends State<LoginPage> {
         if (!mounted) return;
         await _openVerify(id);
       } else {
-        _fail(errorText(e));
+        _fail(e);
       }
     } catch (e) {
-      if (mounted) _fail(errorText(e));
+      if (mounted) _fail(e);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -108,156 +116,159 @@ class _LoginPageState extends State<LoginPage> {
   void _forgot() => Navigator.push(
         context,
         MaterialPageRoute(
+          settings: const RouteSettings(name: kForgotPasswordRoute),
           builder: (_) => ForgotPasswordPage(session: widget.session, initialEmail: normalizeIdentifier(_email.text)),
         ),
       );
 
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return AuthShell(
-      title: l.loginWelcome,
-      subtitle: l.loginSubtitle,
-      trailing: const AuthLanguageButton(),
-      body: [
-        // Bildirimler tek kapta: yuva her zaman ağaçta (alt öğelerin durumu korunur).
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ValueListenableBuilder<bool>(
-              valueListenable: widget.session.replacedNotice,
-              builder: (context, show, _) => AnimatedSize(
-                duration: const Duration(milliseconds: 240),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment.topCenter,
-                child: show
-                    ? AuthBanner(
-                        l.loginReplacedNotice,
-                        key: const ValueKey('replaced-notice'),
-                        kind: AuthBannerKind.info,
-                        icon: LucideIcons.shieldAlert,
-                        closeKey: const ValueKey('replaced-notice-close'),
-                        onClose: widget.session.dismissReplacedNotice,
-                      )
-                    : const SizedBox(width: double.infinity),
-              ),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              child: _pending == null
-                  ? const SizedBox(width: double.infinity)
-                  : Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _PendingBanner(pending: _pending!, onTap: () => _openVerify(_pending!.identifier)),
-                    ),
-            ),
-            AuthFeedbackSlot(error: _error, shake: _shake),
-          ],
-        ),
-        Form(
-          key: _form,
-          child: AutofillGroup(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AuthIdentifierField(controller: _email, enabled: !_busy),
-                const SizedBox(height: 16),
-                AuthPasswordField(
-                  controller: _password,
-                  enabled: !_busy,
-                  validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
-                  onSubmitted: _submit,
-                ),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: AuthTextAction(label: l.loginForgotPassword, onPressed: _busy ? null : _forgot),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        AuthTrustNote(l.authTrustSecure, icon: LucideIcons.lockKeyhole),
-      ],
-      bottom: [
-        AuthPrimaryButton(onPressed: _busy ? null : _submit, busy: _busy, label: l.loginSubmit),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: keyboard
-              ? const SizedBox(width: double.infinity)
-              : Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: AuthFooterPrompt(
-                    prompt: l.loginNoAccount,
-                    action: l.loginRegister,
-                    onPressed: _busy
-                        ? null
-                        : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
-                  ),
-                ),
-        ),
-      ],
-    );
+  Future<void> _otherAccount() async {
+    await widget.session.pending.clear();
+    if (mounted) setState(() => _pending = null);
   }
-}
-
-/// Doğrulaması yarım kalan kayıt için "Doğrulamayı tamamla" kartı.
-class _PendingBanner extends StatelessWidget {
-  const _PendingBanner({required this.pending, required this.onTap});
-
-  final PendingVerification pending;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Semantics(
-      button: true,
-      label: context.l10n.loginCompleteVerification,
-      child: Material(
-        color: t.soft,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          key: const ValueKey('pending-verify-banner'),
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(13)),
-                  child: Icon(LucideIcons.mailCheck, color: t.pr, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(context.l10n.loginCompleteVerification,
-                          style: BuType.bodyStrong.copyWith(color: t.onSoft, fontWeight: FontWeight.w800, fontSize: 14.5)),
-                      const SizedBox(height: 1),
-                      Text(pending.email,
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.onSoft, fontSize: 12.5)),
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+    return RefPage(
+      showBack: Navigator.canPop(context),
+      children: [
+        // Yuva her zaman ağaçta (alt öğelerin durumu korunur).
+        ValueListenableBuilder<bool>(
+          valueListenable: widget.session.replacedNotice,
+          builder: (context, show, _) => AnimatedSize(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: show
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: RefBanner(
+                      l.loginReplacedNotice,
+                      key: const ValueKey('replaced-notice'),
+                      tone: RefTone.info,
+                      icon: LucideIcons.smartphone,
+                      title: l.p02ReplacedTitle,
+                      closeKey: const ValueKey('replaced-notice-close'),
+                      onClose: widget.session.dismissReplacedNotice,
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: _pending == null
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: RefBanner(
+                    l.p02PendingBody,
+                    tone: RefTone.warn,
+                    icon: LucideIcons.mailCheck,
+                    title: l.p02PendingTitle,
+                    actions: [
+                      RefButton(
+                        key: const ValueKey('pending-verify-banner'),
+                        label: l.loginCompleteVerification,
+                        kind: RefButtonKind.warn,
+                        icon: buDirIcon(context, LucideIcons.arrowRight),
+                        onPressed: () => _openVerify(_pending!.identifier),
+                      ),
+                      Center(child: RefLink(label: l.authUseOtherAccount, color: t.onWarnSoft, onPressed: _otherAccount)),
                     ],
                   ),
                 ),
-                Icon(buDirIcon(context, LucideIcons.chevronRight), color: t.onSoft, size: 20),
-              ],
+        ),
+        RefCard(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+          child: Form(
+            key: _form,
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!keyboard) ...[
+                    const Center(child: RefBrandMark(size: 64, badge: true)),
+                    const SizedBox(height: 10),
+                    Text(l.p02BrandSub,
+                        textAlign: TextAlign.center,
+                        style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 14),
+                  ],
+                  Semantics(
+                    header: true,
+                    child: Text(l.loginWelcome,
+                        textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(l.loginSubtitle, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                  const SizedBox(height: 24),
+                  RefIdentifierField(controller: _email, enabled: !_busy, onCard: true),
+                  const SizedBox(height: 18),
+                  RefPasswordField(
+                    controller: _password,
+                    onCard: true,
+                    enabled: !_busy,
+                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
+                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
+                    onSubmitted: _submit,
+                    labelAction: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                  ),
+                  const SizedBox(height: 22),
+                  RefButton(
+                    label: l.loginSubmit,
+                    icon: buDirIcon(context, LucideIcons.arrowRight),
+                    busy: _busy,
+                    busyLabel: l.p02LoginBusy,
+                    onPressed: _submit,
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topCenter,
+                    child: _error == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: RefBanner(
+                              _error!,
+                              key: ValueKey('login-error-$_error'),
+                              icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
+                              sub: _retry,
+                              subIcon: LucideIcons.hourglass,
+                              onClose: () => setState(() {
+                                _error = null;
+                                _retry = null;
+                              }),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+        if (!keyboard) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: RefFooterPrompt(
+              prompt: l.loginNoAccount,
+              action: l.loginRegister,
+              onPressed: _busy
+                  ? null
+                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+            ),
+          ),
+          Center(
+            child: Text(l.profileVersion(appVersion), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ],
     );
   }
 }

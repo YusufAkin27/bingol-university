@@ -6,12 +6,11 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import 'new_password_page.dart';
 import 'otp_code_boxes.dart';
-import 'widgets/auth_art.dart';
 import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
-import 'widgets/auth_shell.dart';
+import 'widgets/auth_ref.dart';
 
-/// Şifremi unuttum, 2. adım: kodu doğrula. Doğruysa yeni şifre ekranına geçilir.
+/// Şifremi unuttum, 2. adım (Stitch 03): kodu doğrula. Doğruysa yeni şifre ekranına geçilir.
 class ResetCodePage extends StatefulWidget {
   const ResetCodePage({super.key, required this.session, required this.email});
 
@@ -57,12 +56,14 @@ class _ResetCodePageState extends State<ResetCodePage> {
       _info = null;
     });
     try {
-      final token = await widget.session.verifyResetCode(widget.email, _code.text);
+      final token =
+          await widget.session.verifyResetCode(widget.email, _code.text);
       if (!mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => NewPasswordPage(session: widget.session, email: widget.email, resetToken: token),
+          builder: (_) => NewPasswordPage(
+              session: widget.session, email: widget.email, resetToken: token),
         ),
       );
     } catch (e) {
@@ -70,7 +71,9 @@ class _ResetCodePageState extends State<ResetCodePage> {
         _fail(errorText(e));
         _code.clear();
         // Deneme sınırı aşıldıysa beklemeden yeni kod istenebilir.
-        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') _resendKey.currentState?.makeReady();
+        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') {
+          _resendKey.currentState?.makeReady();
+        }
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -96,35 +99,56 @@ class _ResetCodePageState extends State<ResetCodePage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final mail = fullEmail(widget.email);
-    return AuthShell(
-      showBack: true,
-      step: 1,
-      stepLabel: l.authStepOf('2', '3'),
-      art: AuthArtKind.envelope,
-      title: l.authEnterCode,
-      subtitle: l.authCodeSentTo(mail),
-      emphasis: mail,
-      body: [
-        AuthFeedbackSlot(error: _error, info: _info, shake: _shake),
-        OtpCodeBoxes(
-          controller: _code,
-          enabled: !_busy,
-          hasError: _error != null,
-          shakeTrigger: _shake,
-          onCompleted: _verify,
+    return RefPage(
+      children: [
+        RefHeading(title: l.authEnterCode, subtitle: l.authCodeSentTo(mail)),
+        const SizedBox(height: 24),
+        RefCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OtpCodeBoxes(
+                controller: _code,
+                enabled: !_busy,
+                hasError: _error != null,
+                shakeTrigger: _shake,
+                onCompleted: _verify,
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                alignment: Alignment.topCenter,
+                child: _error != null
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 14),
+                        child: RefPill(_error!, key: ValueKey('e$_error')))
+                    : _info != null
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: RefPill(_info!, tone: RefTone.success))
+                        : const SizedBox(width: double.infinity),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  AuthResendRow(
+                    key: _resendKey,
+                    onResend: _busy ? () {} : _resend,
+                    waitingLabel: (s) => l.authResendIn('$s'),
+                    resendLabel: l.authResendCode,
+                  ),
+                  RefLink(
+                      label: l.authChangeEmail,
+                      onPressed:
+                          _busy ? null : () => Navigator.maybePop(context)),
+                ],
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 10),
-        AuthResendRow(
-          key: _resendKey,
-          onResend: _busy ? () {} : _resend,
-          waitingLabel: (s) => l.authResendIn('$s'),
-          resendLabel: l.authResendCode,
-        ),
-      ],
-      bottom: [
-        AuthPrimaryButton(onPressed: _busy ? null : _verify, busy: _busy, label: l.authVerify),
-        const SizedBox(height: 4),
-        Center(child: AuthTextAction(label: l.authChangeEmail, muted: true, onPressed: _busy ? null : () => Navigator.maybePop(context))),
+        const SizedBox(height: 20),
+        RefButton(label: l.authVerify, busy: _busy, onPressed: _verify),
       ],
     );
   }

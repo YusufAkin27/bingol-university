@@ -196,7 +196,7 @@ void main() {
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Doğrulamayı tamamla'), findsOneWidget);
-      expect(find.text('226051015@bingol.edu.tr'), findsOneWidget);
+      expect(find.text('E-postanı doğrula'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('pending-verify-banner')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(VerifyCodePage), findsOneWidget);
@@ -314,8 +314,11 @@ void main() {
           await settle(tester, const Duration(milliseconds: 300));
           await tester.enterText(find.byType(TextFormField).at(0), '226051015');
           await tester.enterText(find.byType(TextFormField).at(1), 'x');
-          await tester.pump();
+          // Odaklanan alanı görünür kılan kaydırma animasyonu bitmeden dokunuşlar yok sayılır.
+          await settle(tester, const Duration(milliseconds: 600));
           expect(tester.takeException(), isNull);
+          await tester.ensureVisible(find.byKey(const ValueKey('pending-verify-banner')));
+          await settle(tester, const Duration(milliseconds: 400));
           await tester.tap(find.byKey(const ValueKey('pending-verify-banner')));
           await settle(tester, const Duration(milliseconds: 500));
           expect(find.byType(VerifyCodePage), findsOneWidget);

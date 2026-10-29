@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -348,31 +347,28 @@ class AuthResendRowState extends State<AuthResendRow> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       child: _left > 0
           ? Row(
               key: const ValueKey('wait'),
-              mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CustomPaint(painter: _RingPainter(_left / _total, t.pr, t.bd)),
-                ),
-                const SizedBox(width: 10),
+                Icon(LucideIcons.clock, size: 20, color: t.mut),
+                const SizedBox(width: 8),
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    child: Text(widget.waitingLabel(_left),
-                        textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, fontSize: 14)),
+                    child: Text(widget.waitingLabel(_left), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
             )
-          : Center(
+          : Align(
               key: const ValueKey('ready'),
+              alignment: AlignmentDirectional.centerStart,
+              widthFactor: 1,
               child: AuthTextAction(
                 label: widget.resendLabel,
                 icon: LucideIcons.refreshCw,
@@ -383,28 +379,7 @@ class AuthResendRowState extends State<AuthResendRow> {
   }
 }
 
-class _RingPainter extends CustomPainter {
-  _RingPainter(this.value, this.color, this.track);
-
-  final double value;
-  final Color color, track;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final r = Rect.fromLTWH(2, 2, size.width - 4, size.height - 4);
-    final p = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.6
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(r, 0, math.pi * 2, false, p..color = track);
-    canvas.drawArc(r, -math.pi / 2, math.pi * 2 * value.clamp(0.0, 1.0), false, p..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_RingPainter old) => old.value != value || old.color != color;
-}
-
-/// Parola gücü (3 parçalı, renkli) ve tek tek tik atan kural listesi.
+/// Parola gücü ("Şifre gücü" + durum, 3 parçalı çubuk) ve tek tek tik atan kural listesi.
 class AuthPasswordGuide extends StatelessWidget {
   const AuthPasswordGuide({super.key, required this.password});
 
@@ -426,9 +401,9 @@ class AuthPasswordGuide extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final sc = score(password);
-    final warn = Theme.of(context).brightness == Brightness.dark ? const Color(0xFFFFC66B) : const Color(0xFF8A5200);
-    final color = sc <= 1 ? t.danger : (sc == 2 ? warn : t.ok);
+    final color = sc >= 3 ? t.ok : t.danger;
     final label = sc <= 1 ? l.authPwWeak : (sc == 2 ? l.authPwFair : l.authPwStrong);
     final hasMix = RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'\d').hasMatch(password);
     return Padding(
@@ -436,6 +411,20 @@ class AuthPasswordGuide extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Row(
+            children: [
+              Expanded(child: Text(l.p02PwStrengthTitle, style: tx.bodySmall!.copyWith(color: t.mut, fontWeight: FontWeight.w500))),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Text(
+                  password.isEmpty ? '' : label,
+                  key: ValueKey(password.isEmpty ? '' : label),
+                  style: tx.labelLarge!.copyWith(color: color, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               for (var i = 0; i < 3; i++) ...[
@@ -446,30 +435,12 @@ class AuthPasswordGuide extends StatelessWidget {
                     height: 6,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(3),
-                      color: password.isNotEmpty && i < sc ? color : t.bd,
+                      color: password.isNotEmpty && i < sc ? color : t.sf2,
                     ),
                   ),
                 ),
-                if (i < 2) const SizedBox(width: 5),
+                if (i < 2) const SizedBox(width: 6),
               ],
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 56,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (c, a) => FadeTransition(
-                    opacity: a,
-                    child: SlideTransition(position: Tween(begin: const Offset(0, .3), end: Offset.zero).animate(a), child: c),
-                  ),
-                  child: Text(
-                    password.isEmpty ? '' : label,
-                    key: ValueKey(password.isEmpty ? '' : label),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.label.copyWith(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -482,7 +453,7 @@ class AuthPasswordGuide extends StatelessWidget {
   }
 }
 
-/// Kural satırı: sağlanınca daire dolar, tik "yaylanarak" belirir ve hafif titreşim verir.
+/// Kural satırı: sağlanınca yumuşak mavi daire dolar, tik belirir ve hafif titreşim verir.
 class AuthRule extends StatefulWidget {
   const AuthRule({super.key, required this.ok, required this.label});
 
@@ -503,7 +474,9 @@ class _AuthRuleState extends State<AuthRule> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final ok = widget.ok;
+    final tint = t.tint(1);
     return Row(
       children: [
         AnimatedContainer(
@@ -513,21 +486,20 @@ class _AuthRuleState extends State<AuthRule> {
           height: 22,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ok ? t.ok : Colors.transparent,
-            border: Border.all(color: ok ? t.ok : t.bd, width: 1.6),
+            color: ok ? tint.bg : t.sf2,
           ),
           child: AnimatedScale(
             scale: ok ? 1 : 0,
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutBack,
-            child: Icon(LucideIcons.check, size: 13, color: Theme.of(context).brightness == Brightness.dark ? t.bg : Colors.white),
+            child: Icon(LucideIcons.check, size: 14, color: tint.fg),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
-            style: BuType.body.copyWith(color: ok ? t.ink : t.mut, fontSize: 14, fontWeight: ok ? FontWeight.w600 : FontWeight.w400),
+            style: tx.bodyMedium!.copyWith(color: ok ? t.ink : t.mut),
             child: Text(widget.label),
           ),
         ),

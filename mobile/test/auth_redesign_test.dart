@@ -89,24 +89,23 @@ void main() {
   });
 
   group('karşılama', () {
-    testWidgets('düğmeler geri çağırır; dil düğmesi dil sayfasını açar ve dili değiştirir', (tester) async {
-      useScreen(tester, kPhoneMedium);
+    testWidgets('düğmeler geri çağırır; TR | EN | AR hapı dili hemen değiştirir', (tester) async {
+      useScreen(tester, const Size(390, 1000));
       var login = 0, register = 0;
       final lc = LocaleController(deviceLocales: () => [const Locale('tr')])..pref = 'tr';
       LocaleController.current = lc;
       addTearDown(() => LocaleController.current = null);
       mockSecureStorage();
       await tester.pumpWidget(_app(WelcomePage(onLogin: () => login++, onRegister: () => register++)));
-      await settle(tester, const Duration(milliseconds: 1800));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.text('Giriş yap'));
-      await tester.tap(find.text('Hesap oluştur'));
+      await tester.tap(find.text('Kayıt ol'));
       expect((login, register), (1, 1));
-      await tester.tap(find.text('TR'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Dil seçin'), findsOneWidget);
-      expect(find.text('English'), findsOneWidget);
-      await tester.tap(find.text('English'));
-      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.text('TR'), findsOneWidget);
+      expect(find.text('EN'), findsOneWidget);
+      expect(find.text('AR'), findsOneWidget);
+      await tester.tap(find.text('EN'));
+      await settle(tester, const Duration(milliseconds: 300));
       expect(lc.pref, 'en');
       await unmount(tester);
     });

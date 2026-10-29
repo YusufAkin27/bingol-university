@@ -143,14 +143,15 @@ void main() {
       await tester.tap(find.text('Bölüm seçin'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      // Boş aramada tüm bölümler, altında fakülte adı.
+      // Boş aramada tüm bölümler, fakülte başlığı altında gruplanır.
       expect(find.text('Biyoloji'), findsOneWidget);
       expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
-      expect(find.text('Fen-Edebiyat Fakültesi'), findsNWidgets(2));
+      expect(find.text('FEN-EDEBİYAT FAKÜLTESİ'), findsOneWidget);
       await tester.enterText(_search, 'MÜHENDİS');
       await tester.pump();
       expect(find.text('Biyoloji'), findsNothing);
-      expect(find.text('Mühendislik Fakültesi'), findsNWidgets(2));
+      expect(find.text('MÜHENDİSLİK FAKÜLTESİ'), findsOneWidget);
+      expect(find.text('FEN-EDEBİYAT FAKÜLTESİ'), findsNothing);
       await tester.tap(find.text('Bilgisayar Mühendisliği'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
@@ -205,8 +206,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('İngilizce'), findsNWidgets(2));
-      expect(find.text('Eğitim Fakültesi'), findsOneWidget);
-      await tester.tap(find.text('Eğitim Fakültesi'));
+      expect(find.text('MÜHENDİSLİK FAKÜLTESİ'), findsOneWidget);
+      expect(find.text('EĞİTİM FAKÜLTESİ'), findsOneWidget);
+      // Gruplar katalog sırasıyla: ikinci "İngilizce" Eğitim Fakültesi'ndedir.
+      await tester.tap(find.text('İngilizce').last);
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.textContaining('f=Eğitim Fakültesi d=İngilizce'), findsOneWidget);
@@ -273,7 +276,7 @@ void main() {
       expect(find.byType(TextFormField), findsNothing);
       await tester.tap(find.text('Bölüm seçin'));
       await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
-      expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
+      expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
       // Otomatik sınıf önerilmez: sınıf seçilmeden ilerlenemez.
       await tester.tap(find.text('Devam'));
       await tester.pump();

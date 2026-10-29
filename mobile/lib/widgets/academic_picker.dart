@@ -4,6 +4,7 @@ import '../core/academic_catalog.dart';
 import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/typography.dart';
+import 'academic_pickers.dart';
 import 'bu_widgets.dart';
 
 /// Fakülte, bölüm ve sınıf seçimi. Fakülte/bölüm adları serbest metin olabilir (katalogda olmayan eski kayıtlar
@@ -49,17 +50,7 @@ class AcademicFields extends StatelessWidget {
 
   Future<void> _pickDepartment(BuildContext context) async {
     if (!_openable(context)) return;
-    final r = await Navigator.push<AcademicDepartment>(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => _DepartmentPicker(
-          catalog: catalog,
-          selectedFaculty: faculty,
-          selected: department,
-        ),
-      ),
-    );
+    final r = await showDepartmentPicker(context, catalog: catalog, selectedFaculty: faculty, selected: department);
     if (r == null) return;
     // Bölüm seçilince fakülte otomatik dolar.
     onChanged(r.faculty.name, r.name, grade);
@@ -67,13 +58,7 @@ class AcademicFields extends StatelessWidget {
 
   Future<void> _pickGrade(BuildContext context) async {
     if (!_openable(context)) return;
-    final r = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => _GradePicker(grades: catalog.grades, selected: grade),
-      ),
-    );
+    final r = await showGradeSheet(context, grades: catalog.grades, selected: grade);
     if (r == null) return;
     onChanged(faculty, department, r);
   }
@@ -209,89 +194,6 @@ class _SelectBox extends StatelessWidget {
   }
 }
 
-/// Aranabilir tam ekran liste iskeleti.
-class _SearchScaffold extends StatelessWidget {
-  const _SearchScaffold({
-    required this.title,
-    required this.controller,
-    required this.onChanged,
-    required this.itemCount,
-    required this.itemBuilder,
-  });
-
-  final String title;
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final int itemCount;
-  final IndexedWidgetBuilder itemBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
-        children: [
-          BuHeader(title: title, onBack: () => Navigator.maybePop(context)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: BuSearchField(hint: context.l10n.pickSearch, controller: controller, onChanged: onChanged),
-          ),
-          Expanded(
-            child: itemCount == 0
-                ? Center(child: Text(context.l10n.pickNoResults, style: BuType.body.copyWith(color: t.mut)))
-                : ListView.builder(
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    itemCount: itemCount,
-                    itemBuilder: itemBuilder,
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PickRow extends StatelessWidget {
-  const _PickRow({required this.title, this.subtitle, required this.selected, required this.onTap});
-
-  final String title;
-  final String? subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 52),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd.withValues(alpha: 0.5)))),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: BuType.bodyStrong.copyWith(color: selected ? t.pr : t.ink)),
-                  if (subtitle != null)
-                    Text(subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(color: t.mut)),
-                ],
-              ),
-            ),
-            if (selected) Icon(LucideIcons.check, size: 18, color: t.pr),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _FacultyInfo extends StatelessWidget {
   const _FacultyInfo(this.name);
 
@@ -307,84 +209,6 @@ class _FacultyInfo extends StatelessWidget {
           Icon(LucideIcons.building2, size: 12.5, color: t.mut),
           const SizedBox(width: 6),
           Expanded(child: Text(name, style: BuType.caption.copyWith(color: t.mut))),
-        ],
-      ),
-    );
-  }
-}
-
-class _DepartmentPicker extends StatefulWidget {
-  const _DepartmentPicker({required this.catalog, required this.selectedFaculty, required this.selected});
-
-  final AcademicCatalog catalog;
-  final String? selectedFaculty;
-  final String? selected;
-
-  @override
-  State<_DepartmentPicker> createState() => _DepartmentPickerState();
-}
-
-class _DepartmentPickerState extends State<_DepartmentPicker> {
-  final _q = TextEditingController();
-
-  @override
-  void dispose() {
-    _q.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Tüm bölümler (her fakültedeki ayrı satır); yazdıkça aksan duyarsız süzülür.
-    final items = widget.catalog.searchDepartments(_q.text);
-    final sel = widget.selected == null ? null : foldTr(widget.selected!);
-    final selF = widget.selectedFaculty == null ? null : foldTr(widget.selectedFaculty!);
-    return _SearchScaffold(
-      title: context.l10n.pickDepartment,
-      controller: _q,
-      onChanged: (_) => setState(() {}),
-      itemCount: items.length,
-      itemBuilder: (_, i) {
-        final d = items[i];
-        return _PickRow(
-          title: d.name,
-          subtitle: d.faculty.name,
-          selected: sel == foldTr(d.name) && (selF == null || selF == foldTr(d.faculty.name)),
-          onTap: () => Navigator.pop(context, d),
-        );
-      },
-    );
-  }
-}
-
-/// Sınıf seçimi: kısa liste (arama yok), bölüm seçicisiyle aynı satır görünümü.
-class _GradePicker extends StatelessWidget {
-  const _GradePicker({required this.grades, required this.selected});
-
-  final List<AcademicGrade> grades;
-  final String? selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
-        children: [
-          BuHeader(title: context.l10n.pickGrade, onBack: () => Navigator.maybePop(context)),
-          Expanded(
-            child: ListView.builder(
-              itemCount: grades.length,
-              itemBuilder: (_, i) => _PickRow(
-                title: () {
-                  final loc = gradeLabelL(context.l10n, grades[i].id);
-                  return loc == grades[i].id ? grades[i].name : loc;
-                }(),
-                selected: grades[i].id == selected,
-                onTap: () => Navigator.pop(context, grades[i].id),
-              ),
-            ),
-          ),
         ],
       ),
     );

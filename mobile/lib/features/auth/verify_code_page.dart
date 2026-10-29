@@ -4,17 +4,13 @@ import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'otp_code_boxes.dart';
-import 'widgets/auth_art.dart';
 import 'widgets/auth_controls.dart';
-import 'widgets/auth_fields.dart';
 import 'widgets/auth_motion.dart';
-import 'widgets/auth_shell.dart';
+import 'widgets/auth_ref.dart';
 
-/// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi (halka geri sayım).
+/// E-posta doğrulama (Stitch 02): 6 haneli kod, yeniden gönderme beklemesi, "E-postayı değiştir", spam ipucu.
 class VerifyCodePage extends StatefulWidget {
   const VerifyCodePage({
     super.key,
@@ -32,7 +28,7 @@ class VerifyCodePage extends StatefulWidget {
   /// Gösterilecek tam e-posta (yoksa [email]'den türetilir).
   final String? displayEmail;
 
-  /// Girişte doğrulanmamış hesap ya da yarım kalan kayıt: bilgi kutusu + "Başka hesapla giriş yap".
+  /// Girişte doğrulanmamış hesap ya da yarım kalan kayıt: bilgi bandı + "Başka hesapla giriş yap".
   final bool unverified;
 
   @override
@@ -44,7 +40,8 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   final _password = TextEditingController();
   final _resendKey = GlobalKey<AuthResendRowState>();
   // Kayıt şifresi bellekte yoksa (uygulama yeniden açıldı) parola kanıtı için kullanıcıdan istenir.
-  late final bool _needsPassword = !widget.session.hasRememberedPassword(widget.email);
+  late final bool _needsPassword =
+      !widget.session.hasRememberedPassword(widget.email);
   bool _busy = false;
   String? _error;
   String? _info;
@@ -82,7 +79,8 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       _info = null;
     });
     try {
-      await widget.session.verifyEmail(widget.email, _code.text, password: _needsPassword ? _password.text : null);
+      await widget.session.verifyEmail(widget.email, _code.text,
+          password: _needsPassword ? _password.text : null);
       // Oturum açıldı: kök ekran ana sayfaya geçer, kimlik ekranlarını kapat.
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     } catch (e) {
@@ -112,68 +110,125 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     } catch (e) {
       if (!mounted) return;
       _fail(errorText(e));
-      if (e is ApiError && e.code == 'RESEND_COOLDOWN') _resendKey.currentState?.restart();
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') {
+        _resendKey.currentState?.restart();
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final mail = widget.displayEmail ?? fullEmail(widget.email);
-    return AuthShell(
-      showBack: true,
-      art: AuthArtKind.envelope,
-      title: l.authVerifyEmailTitle,
-      subtitle: l.authVerifySubtitle(mail),
-      emphasis: mail,
-      body: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (widget.unverified) AuthBanner(l.authUnverifiedNotice, kind: AuthBannerKind.info),
-            AuthFeedbackSlot(error: _error, info: _info, shake: _shake),
-          ],
+    return RefPage(
+      children: [
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: RefIconTile(LucideIcons.mailCheck,
+              bg: t.soft, fg: t.pr, radius: 16),
         ),
-        OtpCodeBoxes(
-          controller: _code,
-          enabled: !_busy,
-          hasError: _error != null,
-          shakeTrigger: _shake,
-          onCompleted: _verify,
+        const SizedBox(height: 16),
+        RefHeading(
+            title: l.authVerifyEmailTitle,
+            subtitle: l.authVerifySubtitle(mail),
+            emphasis: mail),
+        if (widget.unverified) ...[
+          const SizedBox(height: 16),
+          RefBanner(l.authUnverifiedNotice, tone: RefTone.info),
+        ],
+        const SizedBox(height: 24),
+        RefCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OtpCodeBoxes(
+                controller: _code,
+                enabled: !_busy,
+                hasError: _error != null,
+                shakeTrigger: _shake,
+                onCompleted: _verify,
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                alignment: Alignment.topCenter,
+                child: _error != null
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 14),
+                        child: RefPill(_error!, key: ValueKey('e$_error')))
+                    : _info != null
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: RefPill(_info!, tone: RefTone.success))
+                        : const SizedBox(width: double.infinity),
+              ),
+              const SizedBox(height: 10),
+              Divider(height: 1, color: t.bd),
+              const SizedBox(height: 4),
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  AuthResendRow(
+                    key: _resendKey,
+                    onResend: _busy ? () {} : _resend,
+                    waitingLabel: (s) => l.authResendIn('$s'),
+                    resendLabel: l.authResendCode,
+                  ),
+                  RefLink(
+                      label: l.authChangeEmail,
+                      onPressed:
+                          _busy ? null : () => Navigator.maybePop(context)),
+                ],
+              ),
+            ],
+          ),
         ),
         if (_needsPassword) ...[
-          const SizedBox(height: 18),
-          Text(l.authVerifyPasswordNote, style: BuType.caption.copyWith(color: context.bu.mut, height: 1.45, fontSize: 12.5)),
-          const SizedBox(height: 10),
-          AuthPasswordField(
-            controller: _password,
-            label: l.authVerifyPasswordLabel,
-            enabled: !_busy,
-            onSubmitted: _verify,
-          ),
-        ],
-        const SizedBox(height: 8),
-        AuthResendRow(
-          key: _resendKey,
-          onResend: _busy ? () {} : _resend,
-          waitingLabel: (s) => l.authNewCodeIn('$s'),
-          resendLabel: l.authResendCode,
-        ),
-        const SizedBox(height: 8),
-        AuthTrustNote(l.authTrustCode, icon: LucideIcons.mailCheck),
-      ],
-      bottom: [
-        AuthPrimaryButton(onPressed: _busy ? null : _verify, busy: _busy, label: l.authVerify),
-        if (widget.unverified) ...[
-          const SizedBox(height: 4),
-          Center(
-            child: AuthTextAction(
-              label: l.authUseOtherAccount,
-              muted: true,
-              onPressed: _busy ? null : () => Navigator.of(context).popUntil((r) => r.isFirst),
+          const SizedBox(height: 16),
+          RefCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(l.authVerifyPasswordNote,
+                    style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
+                const SizedBox(height: 12),
+                RefPasswordField(
+                  controller: _password,
+                  label: l.authVerifyPasswordLabel,
+                  onCard: true,
+                  enabled: !_busy,
+                  onSubmitted: _verify,
+                ),
+              ],
             ),
           ),
         ],
+        const SizedBox(height: 16),
+        RefNote(l.authTrustCode,
+            icon: LucideIcons.lightbulb,
+            title: l.p02TipTitle,
+            iconTint: t.tint(1)),
+        const SizedBox(height: 24),
+        RefButton(
+          label: l.authVerify,
+          icon: buDirIcon(context, LucideIcons.arrowRight),
+          busy: _busy,
+          onPressed: _verify,
+        ),
+        if (widget.unverified)
+          Center(
+            child: RefLink(
+              label: l.authUseOtherAccount,
+              muted: true,
+              onPressed: _busy
+                  ? null
+                  : () => Navigator.of(context).popUntil((r) => r.isFirst),
+            ),
+          ),
       ],
     );
   }
