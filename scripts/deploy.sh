@@ -207,7 +207,7 @@ if [ "$DRY" = 1 ]; then
   plan "yerel: git archive $SHORT (mobile/, brand/, test-results/ haric) | ssh tar -x -C $BASEDIR/releases/$SHORT"
 else
   rsh "rm -rf $BASEDIR/releases/$SHORT.tmp && mkdir -p $BASEDIR/releases/$SHORT.tmp"
-  git archive --format=tar "$SHA" -- . ':(exclude)mobile' ':(exclude)brand' ':(exclude)test-results' ':(exclude)docs/perf-results' \
+  git -c core.autocrlf=false archive --format=tar "$SHA" -- . ':(exclude)mobile' ':(exclude)brand' ':(exclude)test-results' ':(exclude)docs/perf-results' \
     | rsh "tar -x -C $BASEDIR/releases/$SHORT.tmp --no-same-owner --exclude='*.key'"
   rsh "set -e; rm -rf $BASEDIR/releases/$SHORT; mv $BASEDIR/releases/$SHORT.tmp $BASEDIR/releases/$SHORT; \
        cd $BASEDIR/releases/$SHORT && git_files=\$(find . -type f | wc -l) && echo \"aktarilan dosya: \$git_files\" && test -f docker-compose.prod.yml && test -f deploy/compose.bukampus.yml"
@@ -330,7 +330,7 @@ set -euo pipefail
 ENVF=/opt/bukampus/.env.prod
 [ -f "$ENVF" ] || { echo "ENVSYNC: .env.prod yok"; exit 0; }
 getv() { # son tanimin degeri (bastaki/sondaki tirnak atilir)
-  awk -v k="$1" 'index($0,k"=")==1 {sub(/^[^=]*=/,""); v=$0} END{gsub(/^["\047]|["\047]$/,"",v); print v}' "$ENVF"
+  tr -d '\r' < "$ENVF" | awk -v k="$1" 'index($0,k"=")==1 {sub(/^[^=]*=/,""); v=$0} END{gsub(/^["\047]|["\047]$/,"",v); print v}'
 }
 putv() { # putv ANAHTAR DEGER (ENVIRON: ozel karakter guvenli; yoksa sona ekler)
   K="$1" V="$2" awk 'BEGIN{k=ENVIRON["K"]; v=ENVIRON["V"]; f=0} index($0, k"=")==1 {print k"="v; f=1; next} {print} END{if(!f) print k"="v}' "$ENVF" > "$ENVF.new"
