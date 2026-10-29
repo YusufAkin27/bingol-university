@@ -129,7 +129,6 @@ void main() {
     expect(find.text('Yönetici'), findsOneWidget);
     expect(find.text('Üye'), findsOneWidget);
     expect(find.text('Onay bekliyor'), findsOneWidget);
-    expect(find.textContaining('Kurucu'), findsOneWidget);
   });
 
   testWidgets('Kuluplerim bos: kulupleri kesfet dugmesi', (tester) async {

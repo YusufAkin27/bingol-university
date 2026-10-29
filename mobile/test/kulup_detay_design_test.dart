@@ -68,18 +68,17 @@ void main() {
       final be = _be()..on('/communities/7/join', {'status': 'PENDING'});
       await _pump(tester, ClubDetailPage(session: makeSession(be), communityId: 7));
       expect(find.text('Katılma isteği gönder'), findsOneWidget);
-      expect(find.text('128 üye'), findsNothing); // meta tek satır: kategori · üye · görünürlük
-      expect(find.textContaining('Sanat · 128 üye'), findsOneWidget);
+      expect(find.text('128 üye'), findsOneWidget); // çip satırı: kategori · üye · görünürlük
       await tester.tap(find.text('Katılma isteği gönder'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Neden katılmak istiyorsun?'), findsOneWidget);
+      expect(find.textContaining('Neden katılmak istiyorsun?'), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(0), 'Öğrenmek istiyorum');
-      await tester.tap(find.text('İsteği gönder'));
+      await tester.tap(find.text('İstek gönder'));
       await tester.pump();
-      expect(find.text('Bu soru zorunlu.'), findsOneWidget); // ikinci soru boş
+      expect(find.text('Bu soru zorunlu'), findsOneWidget); // ikinci soru boş
       expect(be.requests, isNot(contains('POST /communities/7/join')));
       await tester.enterText(find.byType(TextField).at(1), 'Telefon');
-      await tester.tap(find.text('İsteği gönder'));
+      await tester.tap(find.text('İstek gönder'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(be.bodies['POST /communities/7/join'], {
         'answers': [
@@ -108,7 +107,7 @@ void main() {
           expect(tester.takeException(), isNull);
           await tester.tap(find.text('Katılma isteği gönder'));
           await settle(tester, const Duration(milliseconds: 500));
-          await tester.tap(find.text('İsteği gönder'));
+          await tester.tap(find.text('İstek gönder'));
           await tester.pump();
           expect(tester.takeException(), isNull);
           await unmount(tester);
@@ -139,7 +138,7 @@ void main() {
       expect(find.text('3 bekleyen katılma isteği'), findsOneWidget);
       await tester.tap(find.byTooltip('Kulüp seçenekleri'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('Katılma istekleri'), findsOneWidget);
+      expect(find.text('Başvurular'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
       await unmount(tester);
     });
@@ -192,7 +191,7 @@ void main() {
         ..on('/communities/7/requests/20/approve', {}, status: 200);
       be.delay = const Duration(milliseconds: 300);
       await _pump(tester, ClubRequestsPage(session: makeSession(be), communityId: 7));
-      expect(find.text('Katılma istekleri'), findsOneWidget);
+      expect(find.text('Başvurular'), findsWidgets); // büyük başlık: genişlemiş + daralmış
       await tester.tap(find.text('Onayla'));
       await tester.pump(const Duration(milliseconds: 50));
       expect(find.text('Onaylanıyor...'), findsOneWidget);
@@ -219,7 +218,7 @@ void main() {
           await unmount(tester);
           final fb = FakeBackend()..on('/communities/categories', [{'category': 'Sanat'}, {'category': 'Spor'}, {'category': 'Teknoloji'}, {'category': 'Bilim'}]);
           await _pump(tester, ClubFormPage(session: makeSession(fb)), b: b, size: kPhoneSmall, rtl: rtl);
-          expect(find.text('Kulüp oluştur'), findsOneWidget);
+          expect(find.text('Kulüp kur'), findsOneWidget);
           expect(find.text('Kulübü oluştur'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);

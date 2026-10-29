@@ -113,7 +113,12 @@ void main() {
       final be = base();
       await _pump(tester, host(makeSession(be)), size: kPhoneSmall);
       await _open(tester);
-      expect(find.text('Teknoloji'), findsOneWidget); // kategori çipi
+      await tester.ensureVisible(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await tester.tap(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.text('Teknoloji'), findsOneWidget); // kategori satiri
+      await tester.tap(find.text('Teknoloji'));
+      await settle(tester, const Duration(milliseconds: 600));
       await _reveal(tester, find.text('Kulübü oluştur'));
       await tester.tap(find.text('Kulübü oluştur'));
       await tester.pump();
@@ -128,15 +133,18 @@ void main() {
       await _open(tester);
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
       await tester.enterText(find.byType(TextField).at(1), 'Açıklama');
+      await tester.ensureVisible(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await tester.tap(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await settle(tester, const Duration(milliseconds: 700));
       await tester.tap(find.text('Spor'));
-      await tester.pump();
+      await settle(tester, const Duration(milliseconds: 600));
       await _reveal(tester, find.text('Onaylı'));
       await tester.tap(find.text('Onaylı'));
       await tester.pump();
       await _reveal(tester, find.text('Soru ekle'));
       await tester.tap(find.text('Soru ekle'));
       await tester.pump();
-      await tester.enterText(find.widgetWithText(TextField, 'Soru 1'), 'Neden katılmak istiyorsun?');
+      await tester.enterText(find.widgetWithText(TextField, 'Sorunu yaz...'), 'Neden katılmak istiyorsun?');
       await _reveal(tester, find.text('Kulübü oluştur'));
       await tester.tap(find.text('Kulübü oluştur'));
       await settle(tester, const Duration(seconds: 1));
@@ -218,7 +226,7 @@ void main() {
       await _pump(tester, ClubDetailPage(session: makeSession(_detailBackend()), communityId: 7));
       await _menu(tester, 'Kulüp seçenekleri');
       expect(find.text('Kulübü düzenle'), findsOneWidget);
-      expect(find.text('Katılma istekleri'), findsOneWidget);
+      expect(find.text('Başvurular'), findsOneWidget);
       expect(find.text('1'), findsOneWidget); // sayı hapı
       expect(find.text('Üyeleri yönet'), findsOneWidget);
       expect(find.text('Kulübü sil'), findsOneWidget);
@@ -467,9 +475,9 @@ void main() {
 
     testWidgets('kurduklarim / uye olduklarim / bekleyen ayrimi', (tester) async {
       await _pump(tester, MyClubsPage(session: makeSession(be())));
-      expect(find.text('YÖNETTIKLERIM (1)'), findsOneWidget);
-      expect(find.text('ÜYESI OLDUKLARIM (1)'), findsOneWidget);
-      expect(find.text('BEKLEYEN ISTEKLER (1)'), findsOneWidget);
+      expect(find.text('KURDUKLARIM'), findsOneWidget);
+      expect(find.text('ÜYE OLDUKLARIM'), findsOneWidget);
+      expect(find.text('BEKLEYEN BAŞVURULAR'), findsOneWidget);
       expect(find.text('Onay bekliyor'), findsOneWidget);
       await unmount(tester);
     });
@@ -479,8 +487,8 @@ void main() {
       final s = makeSession(b);
       await _pump(tester, MyClubsPage(session: s));
       // Sıra: sahip (Yönet), üye, bekleyen.
-      await tester.tap(find.byTooltip('Seçenekler').first);
-      await settle(tester, const Duration(milliseconds: 400));
+      await tester.longPress(find.text('Satranç'));
+      await settle(tester, const Duration(milliseconds: 700));
       await tester.tap(find.text('Kulüpten ayrıl'));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Ayrıl'));
@@ -493,11 +501,11 @@ void main() {
 
     testWidgets('kurduklarimda Yonet menusu', (tester) async {
       await _pump(tester, MyClubsPage(session: makeSession(be())));
-      await tester.tap(find.byTooltip('Yönet'));
-      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.text('Yönet'));
+      await settle(tester, const Duration(milliseconds: 700));
       expect(find.text('Yönet: düzenle'), findsOneWidget);
       expect(find.text('Yönet: başvurular'), findsOneWidget);
-      expect(find.text('Kulüpten ayrıl'), findsNothing);
+      expect(find.text('Kulüpten ayrıl'), findsOneWidget); // sahip ayrilmaya calisinca bilgi diyalogu cikar
       await unmount(tester);
     });
 

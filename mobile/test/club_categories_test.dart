@@ -30,6 +30,16 @@ Future<void> _pump(WidgetTester tester, Widget w) async {
   await settle(tester, const Duration(milliseconds: 600));
 }
 
+/// Kategori acilir alanini acip [name] satirini secer (K7: cip yerine acilir liste).
+Future<void> pickCategory(WidgetTester tester, String name) async {
+  const hint = 'Listeden seç ya da yaz (isteğe bağlı)';
+  await tester.ensureVisible(find.text(hint));
+  await tester.tap(find.text(hint));
+  await settle(tester, const Duration(milliseconds: 700));
+  await tester.tap(find.text(name));
+  await settle(tester, const Duration(milliseconds: 600));
+}
+
 void main() {
   setUp(ClubCategories.reset);
 
@@ -111,8 +121,13 @@ void main() {
     testWidgets('secilmedi varsayilan: kategori gonderilmez', (tester) async {
       final be = base()..on('/communities', {'id': 9, 'status': 'PENDING_REVIEW'}, status: 202);
       await _pump(tester, ClubFormPage(session: makeSession(be)));
+      await tester.ensureVisible(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await tester.tap(find.text('Listeden seç ya da yaz (isteğe bağlı)'));
+      await settle(tester, const Duration(milliseconds: 700));
       expect(find.text('Seçilmedi'), findsOneWidget);
       expect(find.text('Sports'), findsOneWidget);
+      await tester.tap(find.text('Seçilmedi'));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
       await tester.ensureVisible(find.text('Kulübü oluştur'));
       await tester.tap(find.text('Kulübü oluştur'));
@@ -125,8 +140,7 @@ void main() {
       final be = base()..on('/communities', {'id': 9, 'status': 'PENDING_REVIEW'}, status: 202);
       await _pump(tester, ClubFormPage(session: makeSession(be)));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
-      await tester.tap(find.text('Sports'));
-      await tester.pump();
+      await pickCategory(tester, 'Sports');
       await tester.ensureVisible(find.text('Kulübü oluştur'));
       await tester.tap(find.text('Kulübü oluştur'));
       await settle(tester, const Duration(seconds: 1));
@@ -141,7 +155,12 @@ void main() {
         ..on('/communities/7', {'ok': true}); // PATCH yaniti
       final club = _club(category: 'eskikat');
       await _pump(tester, ClubFormPage(session: makeSession(be), club: club));
-      expect(find.text('Eskikat (kullanım dışı)'), findsOneWidget);
+      expect(find.text('Eskikat'), findsOneWidget); // alandaki deger
+      await tester.tap(find.text('Eskikat'));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.text('Eskikat (kullanım dışı)'), findsOneWidget); // listede
+      await tester.tapAt(const Offset(10, 10)); // perdeye dokun: kapat
+      await settle(tester, const Duration(milliseconds: 600));
       final save = find.text('Kaydet');
       await tester.ensureVisible(save);
       await tester.tap(save);
@@ -154,8 +173,7 @@ void main() {
       final be = base()..fail('/communities', status: 400, code: 'COMMUNITY_CATEGORY_INVALID', message: '');
       await _pump(tester, ClubFormPage(session: makeSession(be)));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
-      await tester.tap(find.text('Sports'));
-      await tester.pump();
+      await pickCategory(tester, 'Sports');
       await tester.ensureVisible(find.text('Kulübü oluştur'));
       await tester.tap(find.text('Kulübü oluştur'));
       await settle(tester, const Duration(seconds: 1));
