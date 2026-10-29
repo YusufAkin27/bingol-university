@@ -19,13 +19,13 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [11-gonderi-menuleri-ve-liste.md](11-gonderi-menuleri-ve-liste.md) | 6 | 91, A5 (gönderi şikâyeti), A7, A8, A9, A10 | [ ] |
 | [12-sekme-durumlari.md](12-sekme-durumlari.md) | 6 | 33, 35, 36 (durumlar) | [ ] |
 | [13-haber-liste-favoriler.md](13-haber-liste-favoriler.md) | 6 | 41, 43 | [ ] |
-| [14-arama.md](14-arama.md) | 6 | 44 | [ ] |
-| [15-ana-yemek-bildirim-durumlari.md](15-ana-yemek-bildirim-durumlari.md) | 6 | 32, 37, 38 (durumlar) | [ ] |
-| [16-haber-detay-bildirim-bos-hata.md](16-haber-detay-bildirim-bos-hata.md) | 5 | 42 (varyant), 38 (boş/hata) | [ ] |
-| [17-gonderi-karti-begeni.md](17-gonderi-karti-begeni.md) | 6 | 33, 40 (gönderi kartı) | [ ] |
-| [18-sohbet-liste-durumlari.md](18-sohbet-liste-durumlari.md) | 6 | 34 (durumlar) | [ ] |
-| [19-sohbet-baloncuklar.md](19-sohbet-baloncuklar.md) | 6 | 47 (baloncuklar) | [ ] |
-| [20-sohbet-baslik-yazma-alani.md](20-sohbet-baslik-yazma-alani.md) | 6 | 47 (başlık, yazma alanı) | [ ] |
+| [14-arama.md](14-arama.md) | 6 | 44 | [x] |
+| [15-ana-yemek-bildirim-durumlari.md](15-ana-yemek-bildirim-durumlari.md) | 6 | 32, 37, 38 (durumlar) | [x] |
+| [16-haber-detay-bildirim-bos-hata.md](16-haber-detay-bildirim-bos-hata.md) | 5 | 42 (varyant), 38 (boş/hata) | [x] |
+| [17-gonderi-karti-begeni.md](17-gonderi-karti-begeni.md) | 6 | 33, 40 (gönderi kartı) | [x] |
+| [18-sohbet-liste-durumlari.md](18-sohbet-liste-durumlari.md) | 6 | 34 (durumlar) | [x] |
+| [19-sohbet-baloncuklar.md](19-sohbet-baloncuklar.md) | 6 | 47 (baloncuklar) | [x] |
+| [20-sohbet-baslik-yazma-alani.md](20-sohbet-baslik-yazma-alani.md) | 6 | 47 (başlık, yazma alanı) | [x] |
 | [21-sohbet-mesaj-menusu-iletme.md](21-sohbet-mesaj-menusu-iletme.md) | 6 | A14, A15, A17, A18 | [ ] |
 | [22-sohbet-diger-sheetler.md](22-sohbet-diger-sheetler.md) | 6 | A11, A12, A13 (tetik; pencere 25), A19, A20, A21, A22, A23 | [ ] |
 | [23-sohbet-yeni-rehber.md](23-sohbet-yeni-rehber.md) | 6 | 45, 46 | [ ] |
