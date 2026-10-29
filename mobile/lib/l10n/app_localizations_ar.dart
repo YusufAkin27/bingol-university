@@ -7661,4 +7661,196 @@ class AppLocalizationsAr extends AppLocalizations {
   String p12CountRequests(String count) {
     return '$count طلب';
   }
+
+  @override
+  String get p15PublishRoleActive => 'صلاحية المدير مفعّلة';
+
+  @override
+  String get p15CoverOptional => 'اختياري';
+
+  @override
+  String get p15CoverHint => 'يُفضّل 16:9 أفقي • بحد أقصى 3 ميغابايت';
+
+  @override
+  String get p15CoverChange => 'تغيير';
+
+  @override
+  String get p15CoverSheetTitle => 'صورة الغلاف';
+
+  @override
+  String get p15CoverGallerySub => 'اختر صورة من ألبومات جهازك';
+
+  @override
+  String get p15CoverCameraSub => 'التقط صورة فورًا بالكاميرا';
+
+  @override
+  String get p15CoverRemoveSub => 'العودة إلى الصورة الافتراضية';
+
+  @override
+  String p15ErrBannerTitle(String n) {
+    return 'يرجى تصحيح $n من الأخطاء في النموذج.';
+  }
+
+  @override
+  String get p15ErrBannerBody =>
+      'بعض المعلومات التي أدخلتها ناقصة أو لا تلتزم بالقواعد. راجع الحقول المحددة.';
+
+  @override
+  String get p15ErrHint =>
+      'يصبح زر الإنشاء نشطًا تلقائيًا بعد تصحيح الحقول المطلوبة.';
+
+  @override
+  String p15ErrLocked(String n) {
+    return 'أصلح $n من أخطاء التحقق أولًا';
+  }
+
+  @override
+  String get p15ErrForbiddenTitle => 'قيد في الصلاحية';
+
+  @override
+  String get p15ErrInactiveTitle => 'النادي غير نشط';
+
+  @override
+  String get p15PickerSubtitle => 'النادي المخوّل الذي سيُنشر الحدث باسمه';
+
+  @override
+  String get p15PickerSearch => 'ابحث عن نادٍ…';
+
+  @override
+  String get p15PickerNoMatch => 'لا يوجد نادٍ مطابق.';
+
+  @override
+  String p15PickerMembers(String n) {
+    return '$n عضو';
+  }
+
+  @override
+  String get p15PickerInfoTitle => 'معلومات الصلاحيات';
+
+  @override
+  String get p15PickerInfoBody =>
+      'تُنشر الأحداث فورًا في الأندية التي تديرها أو تشرف عليها. أما أحداث الأعضاء الذين لديهم صلاحية الأحداث فتُنشر بعد موافقة الإدارة.';
+
+  @override
+  String get p15PickerEmptyBody =>
+      'لا يوجد نادٍ تملك فيه صلاحية المدير أو المشرف.';
+
+  @override
+  String get p15RefreshPerms => 'تحديث الصلاحيات';
+
+  @override
+  String get p16ReqQuotaStatus => 'حالة السعة';
+
+  @override
+  String get p16ReqRegistered => 'مسجّل';
+
+  @override
+  String get p16ReqUnlimitedTitle => 'حصة المشاركين';
+
+  @override
+  String get p16ReqPendingTitle => 'الطلبات المعلقة';
+
+  @override
+  String get p16ReqNoteLabel => 'ملاحظة الطلب';
+
+  @override
+  String get p16ReqFullTitle => 'اكتملت السعة';
+
+  @override
+  String get p16ReqFullBody =>
+      'لا يمكن قبول طلبات جديدة. ارفع السعة أو حدّث قائمة المشاركين لتوفير مكان.';
+
+  @override
+  String get p16ReqRaiseQuota => 'رفع السعة';
+
+  @override
+  String p16ReqFullPeople(String a, String b) {
+    return '$a / $b شخص';
+  }
+
+  @override
+  String get p16ReqCantApprove => 'لا يمكن القبول: السعة غير كافية';
+
+  @override
+  String get p16ReqErrTitle => 'تعذّر تحديث قائمة الطلبات.';
+
+  @override
+  String get p16ReqBackToEvent => 'العودة إلى تفاصيل الحدث';
+
+  @override
+  String get p16ReqEmptyBody =>
+      'تمت الإجابة على جميع الطلبات أو لم يصل طلب جديد بعد.';
+
+  @override
+  String p16SetApproved(String n) {
+    return '$n مشارك معتمد';
+  }
+
+  @override
+  String get p16SetOpenSub => 'يُقبل كل من يسجّل مباشرة.';
+
+  @override
+  String get p16SetApprovalSub => 'يمرّ كل طلب بموافقة المنظّم.';
+
+  @override
+  String get p16SetCapLabel => 'السعة (أشخاص)';
+
+  @override
+  String p16SetCapCurrent(String n) {
+    return 'الحالي: $n شخص';
+  }
+
+  @override
+  String get p16SetCapDec => 'إنقاص السعة';
+
+  @override
+  String get p16SetCapInc => 'زيادة السعة';
+
+  @override
+  String p16SetCancelNote(String n) {
+    return 'سيتم إشعار $n من المشاركين فورًا وإزالة الحدث من القوائم.';
+  }
+
+  @override
+  String get p16QrStatusTitle => 'حالة الحضور';
+
+  @override
+  String get p16QrStatusSub => 'سجل الحضور المباشر';
+
+  @override
+  String get p16QrList => 'قائمة المشاركين';
+
+  @override
+  String get p16QrExpiredTitle => 'انتهت الصلاحية';
+
+  @override
+  String get p16QrRefreshing => 'جارٍ التحديث…';
+
+  @override
+  String get p16QrErrBody => 'تعذّر الاتصال بالخادم أو انتهت مهلة الجلسة.';
+
+  @override
+  String get p16QrCopyBtn => 'نسخ';
+
+  @override
+  String get p16AttTitle => 'المشاركون والحضور';
+
+  @override
+  String get p16AttWaiting => 'في الانتظار';
+
+  @override
+  String get p16AttFilterEmptyBody => 'لا يوجد مشارك يطابق هذا المرشح.';
+
+  @override
+  String p16AttMarkedToast(String name, String method) {
+    return 'تمت إضافة $name إلى الحضور ($method)';
+  }
+
+  @override
+  String p16AttUnmarkedToast(String name) {
+    return 'تمت إزالة $name من الحضور';
+  }
+
+  @override
+  String get p07ChatSearchClear => 'مسح';
 }

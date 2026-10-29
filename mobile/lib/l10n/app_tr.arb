@@ -4109,5 +4109,108 @@
         "type": "String"
       }
     }
-  }
+  },
+  "p15PublishRoleActive": "Yönetici yetkisi aktif",
+  "p15CoverOptional": "İsteğe bağlı",
+  "p15CoverHint": "16:9 yatay önerilir • En fazla 3 MB",
+  "p15CoverChange": "Değiştir",
+  "p15CoverSheetTitle": "Kapak fotoğrafı",
+  "p15CoverGallerySub": "Cihazındaki albümlerden bir görsel belirle",
+  "p15CoverCameraSub": "Kamerayı kullanarak anında çekim yap",
+  "p15CoverRemoveSub": "Varsayılan şablon görseline geri dön",
+  "p15ErrBannerTitle": "Lütfen formdaki {n} hatayı düzelt.",
+  "@p15ErrBannerTitle": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrBannerBody": "Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.",
+  "p15ErrHint": "Gerekli alanlar düzeltildiğinde oluşturma düğmesi otomatik olarak aktifleşir.",
+  "p15ErrLocked": "Önce {n} doğrulama hatasını gidermelisin",
+  "@p15ErrLocked": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrForbiddenTitle": "Yetki kısıtlaması",
+  "p15ErrInactiveTitle": "Kulüp durumu pasif",
+  "p15PickerSubtitle": "Etkinliğin yayınlanacağı yetkili kulübün",
+  "p15PickerSearch": "Kulüp ara…",
+  "p15PickerNoMatch": "Eşleşen kulüp yok.",
+  "p15PickerMembers": "{n} üye",
+  "@p15PickerMembers": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15PickerInfoTitle": "Yetki bilgilendirmesi",
+  "p15PickerInfoBody": "Yönetici veya moderatör olduğun kulüplerde etkinlik hemen yayınlanır. Etkinlik yetkisi olan üyelerin etkinliği admin onayından sonra yayınlanır.",
+  "p15PickerEmptyBody": "Yönetici veya moderatör yetkisine sahip olduğun bir kulüp bulunmuyor.",
+  "p15RefreshPerms": "Yetkileri yenile",
+  "p16ReqQuotaStatus": "Kontenjan durumu",
+  "p16ReqRegistered": "Kayıtlı",
+  "p16ReqUnlimitedTitle": "Katılımcı kotası",
+  "p16ReqPendingTitle": "Bekleyen istekler",
+  "p16ReqNoteLabel": "Başvuru notu",
+  "p16ReqFullTitle": "Kontenjan doldu",
+  "p16ReqFullBody": "Yeni istekler onaylanamaz. Yer açmak için kontenjanı artırabilir veya katılımcı listesini güncelleyebilirsin.",
+  "p16ReqRaiseQuota": "Kontenjanı artır",
+  "p16ReqFullPeople": "{a} / {b} kişi",
+  "@p16ReqFullPeople": {
+    "placeholders": {
+      "a": {"type": "String"},
+      "b": {"type": "String"}
+    }
+  },
+  "p16ReqCantApprove": "Kontenjan yetersiz olduğu için onaylanamaz",
+  "p16ReqErrTitle": "İstek listesi güncellenemedi.",
+  "p16ReqBackToEvent": "Etkinlik detayına dön",
+  "p16ReqEmptyBody": "Tüm katılım istekleri yanıtlandı veya yeni başvuru henüz gelmedi.",
+  "p16SetApproved": "{n} onaylı katılımcı",
+  "@p16SetApproved": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetOpenSub": "Kayıt olan herkes doğrudan onaylanır.",
+  "p16SetApprovalSub": "Her katılımcı isteği yönetici onayından geçer.",
+  "p16SetCapLabel": "Kontenjan (kişi)",
+  "p16SetCapCurrent": "Mevcut: {n} kişi",
+  "@p16SetCapCurrent": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetCapDec": "Kontenjanı azalt",
+  "p16SetCapInc": "Kontenjanı artır",
+  "p16SetCancelNote": "Katılan {n} kişiye anlık bildirim gönderilecek ve etkinlik listelerden kaldırılacaktır.",
+  "@p16SetCancelNote": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16QrStatusTitle": "Yoklama durumu",
+  "p16QrStatusSub": "Anlık katılım kaydı",
+  "p16QrList": "Katılımcılar listesi",
+  "p16QrExpiredTitle": "Süresi doldu",
+  "p16QrRefreshing": "Yenileniyor…",
+  "p16QrErrBody": "Sunucu ile bağlantı kurulamadı veya oturum zaman aşımına uğradı.",
+  "p16QrCopyBtn": "Kopyala",
+  "p16AttTitle": "Katılımcılar ve yoklama",
+  "p16AttWaiting": "Bekliyor",
+  "p16AttFilterEmptyBody": "Bu filtreye uygun katılımcı kaydı bulunamadı.",
+  "p16AttMarkedToast": "{name} yoklamaya eklendi ({method})",
+  "@p16AttMarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "method": {"type": "String"}
+    }
+  },
+  "p16AttUnmarkedToast": "{name} yoklamadan çıkarıldı",
+  "@p16AttUnmarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "p07ChatSearchClear": "Temizle"
 }

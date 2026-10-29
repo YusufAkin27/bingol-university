@@ -14112,6 +14112,342 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count} başvuru'**
   String p12CountRequests(String count);
+
+  /// No description provided for @p15PublishRoleActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici yetkisi aktif'**
+  String get p15PublishRoleActive;
+
+  /// No description provided for @p15CoverOptional.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteğe bağlı'**
+  String get p15CoverOptional;
+
+  /// No description provided for @p15CoverHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'16:9 yatay önerilir • En fazla 3 MB'**
+  String get p15CoverHint;
+
+  /// No description provided for @p15CoverChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değiştir'**
+  String get p15CoverChange;
+
+  /// No description provided for @p15CoverSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapak fotoğrafı'**
+  String get p15CoverSheetTitle;
+
+  /// No description provided for @p15CoverGallerySub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazındaki albümlerden bir görsel belirle'**
+  String get p15CoverGallerySub;
+
+  /// No description provided for @p15CoverCameraSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kamerayı kullanarak anında çekim yap'**
+  String get p15CoverCameraSub;
+
+  /// No description provided for @p15CoverRemoveSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsayılan şablon görseline geri dön'**
+  String get p15CoverRemoveSub;
+
+  /// No description provided for @p15ErrBannerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lütfen formdaki {n} hatayı düzelt.'**
+  String p15ErrBannerTitle(String n);
+
+  /// No description provided for @p15ErrBannerBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.'**
+  String get p15ErrBannerBody;
+
+  /// No description provided for @p15ErrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerekli alanlar düzeltildiğinde oluşturma düğmesi otomatik olarak aktifleşir.'**
+  String get p15ErrHint;
+
+  /// No description provided for @p15ErrLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce {n} doğrulama hatasını gidermelisin'**
+  String p15ErrLocked(String n);
+
+  /// No description provided for @p15ErrForbiddenTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yetki kısıtlaması'**
+  String get p15ErrForbiddenTitle;
+
+  /// No description provided for @p15ErrInactiveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp durumu pasif'**
+  String get p15ErrInactiveTitle;
+
+  /// No description provided for @p15PickerSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliğin yayınlanacağı yetkili kulübün'**
+  String get p15PickerSubtitle;
+
+  /// No description provided for @p15PickerSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp ara…'**
+  String get p15PickerSearch;
+
+  /// No description provided for @p15PickerNoMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşen kulüp yok.'**
+  String get p15PickerNoMatch;
+
+  /// No description provided for @p15PickerMembers.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} üye'**
+  String p15PickerMembers(String n);
+
+  /// No description provided for @p15PickerInfoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yetki bilgilendirmesi'**
+  String get p15PickerInfoTitle;
+
+  /// No description provided for @p15PickerInfoBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici veya moderatör olduğun kulüplerde etkinlik hemen yayınlanır. Etkinlik yetkisi olan üyelerin etkinliği admin onayından sonra yayınlanır.'**
+  String get p15PickerInfoBody;
+
+  /// No description provided for @p15PickerEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici veya moderatör yetkisine sahip olduğun bir kulüp bulunmuyor.'**
+  String get p15PickerEmptyBody;
+
+  /// No description provided for @p15RefreshPerms.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yetkileri yenile'**
+  String get p15RefreshPerms;
+
+  /// No description provided for @p16ReqQuotaStatus.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan durumu'**
+  String get p16ReqQuotaStatus;
+
+  /// No description provided for @p16ReqRegistered.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı'**
+  String get p16ReqRegistered;
+
+  /// No description provided for @p16ReqUnlimitedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcı kotası'**
+  String get p16ReqUnlimitedTitle;
+
+  /// No description provided for @p16ReqPendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istekler'**
+  String get p16ReqPendingTitle;
+
+  /// No description provided for @p16ReqNoteLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başvuru notu'**
+  String get p16ReqNoteLabel;
+
+  /// No description provided for @p16ReqFullTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan doldu'**
+  String get p16ReqFullTitle;
+
+  /// No description provided for @p16ReqFullBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni istekler onaylanamaz. Yer açmak için kontenjanı artırabilir veya katılımcı listesini güncelleyebilirsin.'**
+  String get p16ReqFullBody;
+
+  /// No description provided for @p16ReqRaiseQuota.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjanı artır'**
+  String get p16ReqRaiseQuota;
+
+  /// No description provided for @p16ReqFullPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'{a} / {b} kişi'**
+  String p16ReqFullPeople(String a, String b);
+
+  /// No description provided for @p16ReqCantApprove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan yetersiz olduğu için onaylanamaz'**
+  String get p16ReqCantApprove;
+
+  /// No description provided for @p16ReqErrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek listesi güncellenemedi.'**
+  String get p16ReqErrTitle;
+
+  /// No description provided for @p16ReqBackToEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik detayına dön'**
+  String get p16ReqBackToEvent;
+
+  /// No description provided for @p16ReqEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm katılım istekleri yanıtlandı veya yeni başvuru henüz gelmedi.'**
+  String get p16ReqEmptyBody;
+
+  /// No description provided for @p16SetApproved.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} onaylı katılımcı'**
+  String p16SetApproved(String n);
+
+  /// No description provided for @p16SetOpenSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt olan herkes doğrudan onaylanır.'**
+  String get p16SetOpenSub;
+
+  /// No description provided for @p16SetApprovalSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her katılımcı isteği yönetici onayından geçer.'**
+  String get p16SetApprovalSub;
+
+  /// No description provided for @p16SetCapLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan (kişi)'**
+  String get p16SetCapLabel;
+
+  /// No description provided for @p16SetCapCurrent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevcut: {n} kişi'**
+  String p16SetCapCurrent(String n);
+
+  /// No description provided for @p16SetCapDec.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjanı azalt'**
+  String get p16SetCapDec;
+
+  /// No description provided for @p16SetCapInc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjanı artır'**
+  String get p16SetCapInc;
+
+  /// No description provided for @p16SetCancelNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılan {n} kişiye anlık bildirim gönderilecek ve etkinlik listelerden kaldırılacaktır.'**
+  String p16SetCancelNote(String n);
+
+  /// No description provided for @p16QrStatusTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama durumu'**
+  String get p16QrStatusTitle;
+
+  /// No description provided for @p16QrStatusSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anlık katılım kaydı'**
+  String get p16QrStatusSub;
+
+  /// No description provided for @p16QrList.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılar listesi'**
+  String get p16QrList;
+
+  /// No description provided for @p16QrExpiredTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süresi doldu'**
+  String get p16QrExpiredTitle;
+
+  /// No description provided for @p16QrRefreshing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yenileniyor…'**
+  String get p16QrRefreshing;
+
+  /// No description provided for @p16QrErrBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucu ile bağlantı kurulamadı veya oturum zaman aşımına uğradı.'**
+  String get p16QrErrBody;
+
+  /// No description provided for @p16QrCopyBtn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kopyala'**
+  String get p16QrCopyBtn;
+
+  /// No description provided for @p16AttTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılar ve yoklama'**
+  String get p16AttTitle;
+
+  /// No description provided for @p16AttWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekliyor'**
+  String get p16AttWaiting;
+
+  /// No description provided for @p16AttFilterEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu filtreye uygun katılımcı kaydı bulunamadı.'**
+  String get p16AttFilterEmptyBody;
+
+  /// No description provided for @p16AttMarkedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} yoklamaya eklendi ({method})'**
+  String p16AttMarkedToast(String name, String method);
+
+  /// No description provided for @p16AttUnmarkedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} yoklamadan çıkarıldı'**
+  String p16AttUnmarkedToast(String name);
+
+  /// No description provided for @p07ChatSearchClear.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temizle'**
+  String get p07ChatSearchClear;
 }
 
 class _AppLocalizationsDelegate

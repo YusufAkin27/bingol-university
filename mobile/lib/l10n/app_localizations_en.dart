@@ -7741,4 +7741,199 @@ class AppLocalizationsEn extends AppLocalizations {
   String p12CountRequests(String count) {
     return '$count requests';
   }
+
+  @override
+  String get p15PublishRoleActive => 'Manager access active';
+
+  @override
+  String get p15CoverOptional => 'Optional';
+
+  @override
+  String get p15CoverHint => '16:9 landscape recommended • Up to 3 MB';
+
+  @override
+  String get p15CoverChange => 'Change';
+
+  @override
+  String get p15CoverSheetTitle => 'Cover photo';
+
+  @override
+  String get p15CoverGallerySub => 'Pick an image from your device albums';
+
+  @override
+  String get p15CoverCameraSub => 'Take a photo right now with the camera';
+
+  @override
+  String get p15CoverRemoveSub => 'Go back to the default placeholder image';
+
+  @override
+  String p15ErrBannerTitle(String n) {
+    return 'Please fix the $n error(s) in the form.';
+  }
+
+  @override
+  String get p15ErrBannerBody =>
+      'Some of the information you entered is missing or breaks the rules. Check the marked fields.';
+
+  @override
+  String get p15ErrHint =>
+      'The create button becomes active automatically once the required fields are fixed.';
+
+  @override
+  String p15ErrLocked(String n) {
+    return 'Fix the $n validation error(s) first';
+  }
+
+  @override
+  String get p15ErrForbiddenTitle => 'Permission restricted';
+
+  @override
+  String get p15ErrInactiveTitle => 'Club is inactive';
+
+  @override
+  String get p15PickerSubtitle =>
+      'The club you manage that will host the event';
+
+  @override
+  String get p15PickerSearch => 'Search clubs…';
+
+  @override
+  String get p15PickerNoMatch => 'No matching club.';
+
+  @override
+  String p15PickerMembers(String n) {
+    return '$n members';
+  }
+
+  @override
+  String get p15PickerInfoTitle => 'About permissions';
+
+  @override
+  String get p15PickerInfoBody =>
+      'Events in clubs where you are a manager or moderator are published right away. Events by members with event permission are published after admin approval.';
+
+  @override
+  String get p15PickerEmptyBody =>
+      'You are not a manager or moderator of any club.';
+
+  @override
+  String get p15RefreshPerms => 'Refresh permissions';
+
+  @override
+  String get p16ReqQuotaStatus => 'Capacity status';
+
+  @override
+  String get p16ReqRegistered => 'Registered';
+
+  @override
+  String get p16ReqUnlimitedTitle => 'Attendee quota';
+
+  @override
+  String get p16ReqPendingTitle => 'Pending requests';
+
+  @override
+  String get p16ReqNoteLabel => 'Application note';
+
+  @override
+  String get p16ReqFullTitle => 'Capacity reached';
+
+  @override
+  String get p16ReqFullBody =>
+      'New requests can\'t be approved. Raise the capacity or update the attendee list to free up a spot.';
+
+  @override
+  String get p16ReqRaiseQuota => 'Raise capacity';
+
+  @override
+  String p16ReqFullPeople(String a, String b) {
+    return '$a / $b people';
+  }
+
+  @override
+  String get p16ReqCantApprove => 'Can\'t approve: not enough capacity';
+
+  @override
+  String get p16ReqErrTitle => 'The request list couldn\'t be updated.';
+
+  @override
+  String get p16ReqBackToEvent => 'Back to event details';
+
+  @override
+  String get p16ReqEmptyBody =>
+      'All requests have been answered or no new request has arrived yet.';
+
+  @override
+  String p16SetApproved(String n) {
+    return '$n approved attendees';
+  }
+
+  @override
+  String get p16SetOpenSub => 'Everyone who registers is approved right away.';
+
+  @override
+  String get p16SetApprovalSub =>
+      'Every request goes through organizer approval.';
+
+  @override
+  String get p16SetCapLabel => 'Capacity (people)';
+
+  @override
+  String p16SetCapCurrent(String n) {
+    return 'Current: $n people';
+  }
+
+  @override
+  String get p16SetCapDec => 'Decrease capacity';
+
+  @override
+  String get p16SetCapInc => 'Increase capacity';
+
+  @override
+  String p16SetCancelNote(String n) {
+    return '$n attendees will be notified right away and the event will be removed from the lists.';
+  }
+
+  @override
+  String get p16QrStatusTitle => 'Attendance status';
+
+  @override
+  String get p16QrStatusSub => 'Live attendance record';
+
+  @override
+  String get p16QrList => 'Attendee list';
+
+  @override
+  String get p16QrExpiredTitle => 'Expired';
+
+  @override
+  String get p16QrRefreshing => 'Refreshing…';
+
+  @override
+  String get p16QrErrBody =>
+      'Couldn\'t reach the server or the session timed out.';
+
+  @override
+  String get p16QrCopyBtn => 'Copy';
+
+  @override
+  String get p16AttTitle => 'Attendees and attendance';
+
+  @override
+  String get p16AttWaiting => 'Waiting';
+
+  @override
+  String get p16AttFilterEmptyBody => 'No attendee matches this filter.';
+
+  @override
+  String p16AttMarkedToast(String name, String method) {
+    return '$name was marked present ($method)';
+  }
+
+  @override
+  String p16AttUnmarkedToast(String name) {
+    return '$name was removed from attendance';
+  }
+
+  @override
+  String get p07ChatSearchClear => 'Clear';
 }

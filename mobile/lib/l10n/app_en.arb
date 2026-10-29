@@ -2344,5 +2344,108 @@
   "p12CategorySheetTitle": "Choose a category",
   "p12JoinNote": "You will be notified when your request is approved.",
   "p12CountClubs": "{count} clubs",
-  "p12CountRequests": "{count} requests"
+  "p12CountRequests": "{count} requests",
+  "p15PublishRoleActive": "Manager access active",
+  "p15CoverOptional": "Optional",
+  "p15CoverHint": "16:9 landscape recommended • Up to 3 MB",
+  "p15CoverChange": "Change",
+  "p15CoverSheetTitle": "Cover photo",
+  "p15CoverGallerySub": "Pick an image from your device albums",
+  "p15CoverCameraSub": "Take a photo right now with the camera",
+  "p15CoverRemoveSub": "Go back to the default placeholder image",
+  "p15ErrBannerTitle": "Please fix the {n} error(s) in the form.",
+  "@p15ErrBannerTitle": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrBannerBody": "Some of the information you entered is missing or breaks the rules. Check the marked fields.",
+  "p15ErrHint": "The create button becomes active automatically once the required fields are fixed.",
+  "p15ErrLocked": "Fix the {n} validation error(s) first",
+  "@p15ErrLocked": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrForbiddenTitle": "Permission restricted",
+  "p15ErrInactiveTitle": "Club is inactive",
+  "p15PickerSubtitle": "The club you manage that will host the event",
+  "p15PickerSearch": "Search clubs…",
+  "p15PickerNoMatch": "No matching club.",
+  "p15PickerMembers": "{n} members",
+  "@p15PickerMembers": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15PickerInfoTitle": "About permissions",
+  "p15PickerInfoBody": "Events in clubs where you are a manager or moderator are published right away. Events by members with event permission are published after admin approval.",
+  "p15PickerEmptyBody": "You are not a manager or moderator of any club.",
+  "p15RefreshPerms": "Refresh permissions",
+  "p16ReqQuotaStatus": "Capacity status",
+  "p16ReqRegistered": "Registered",
+  "p16ReqUnlimitedTitle": "Attendee quota",
+  "p16ReqPendingTitle": "Pending requests",
+  "p16ReqNoteLabel": "Application note",
+  "p16ReqFullTitle": "Capacity reached",
+  "p16ReqFullBody": "New requests can't be approved. Raise the capacity or update the attendee list to free up a spot.",
+  "p16ReqRaiseQuota": "Raise capacity",
+  "p16ReqFullPeople": "{a} / {b} people",
+  "@p16ReqFullPeople": {
+    "placeholders": {
+      "a": {"type": "String"},
+      "b": {"type": "String"}
+    }
+  },
+  "p16ReqCantApprove": "Can't approve: not enough capacity",
+  "p16ReqErrTitle": "The request list couldn't be updated.",
+  "p16ReqBackToEvent": "Back to event details",
+  "p16ReqEmptyBody": "All requests have been answered or no new request has arrived yet.",
+  "p16SetApproved": "{n} approved attendees",
+  "@p16SetApproved": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetOpenSub": "Everyone who registers is approved right away.",
+  "p16SetApprovalSub": "Every request goes through organizer approval.",
+  "p16SetCapLabel": "Capacity (people)",
+  "p16SetCapCurrent": "Current: {n} people",
+  "@p16SetCapCurrent": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetCapDec": "Decrease capacity",
+  "p16SetCapInc": "Increase capacity",
+  "p16SetCancelNote": "{n} attendees will be notified right away and the event will be removed from the lists.",
+  "@p16SetCancelNote": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16QrStatusTitle": "Attendance status",
+  "p16QrStatusSub": "Live attendance record",
+  "p16QrList": "Attendee list",
+  "p16QrExpiredTitle": "Expired",
+  "p16QrRefreshing": "Refreshing…",
+  "p16QrErrBody": "Couldn't reach the server or the session timed out.",
+  "p16QrCopyBtn": "Copy",
+  "p16AttTitle": "Attendees and attendance",
+  "p16AttWaiting": "Waiting",
+  "p16AttFilterEmptyBody": "No attendee matches this filter.",
+  "p16AttMarkedToast": "{name} was marked present ({method})",
+  "@p16AttMarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "method": {"type": "String"}
+    }
+  },
+  "p16AttUnmarkedToast": "{name} was removed from attendance",
+  "@p16AttUnmarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "p07ChatSearchClear": "Clear"
 }

@@ -7708,4 +7708,199 @@ class AppLocalizationsTr extends AppLocalizations {
   String p12CountRequests(String count) {
     return '$count başvuru';
   }
+
+  @override
+  String get p15PublishRoleActive => 'Yönetici yetkisi aktif';
+
+  @override
+  String get p15CoverOptional => 'İsteğe bağlı';
+
+  @override
+  String get p15CoverHint => '16:9 yatay önerilir • En fazla 3 MB';
+
+  @override
+  String get p15CoverChange => 'Değiştir';
+
+  @override
+  String get p15CoverSheetTitle => 'Kapak fotoğrafı';
+
+  @override
+  String get p15CoverGallerySub => 'Cihazındaki albümlerden bir görsel belirle';
+
+  @override
+  String get p15CoverCameraSub => 'Kamerayı kullanarak anında çekim yap';
+
+  @override
+  String get p15CoverRemoveSub => 'Varsayılan şablon görseline geri dön';
+
+  @override
+  String p15ErrBannerTitle(String n) {
+    return 'Lütfen formdaki $n hatayı düzelt.';
+  }
+
+  @override
+  String get p15ErrBannerBody =>
+      'Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.';
+
+  @override
+  String get p15ErrHint =>
+      'Gerekli alanlar düzeltildiğinde oluşturma düğmesi otomatik olarak aktifleşir.';
+
+  @override
+  String p15ErrLocked(String n) {
+    return 'Önce $n doğrulama hatasını gidermelisin';
+  }
+
+  @override
+  String get p15ErrForbiddenTitle => 'Yetki kısıtlaması';
+
+  @override
+  String get p15ErrInactiveTitle => 'Kulüp durumu pasif';
+
+  @override
+  String get p15PickerSubtitle => 'Etkinliğin yayınlanacağı yetkili kulübün';
+
+  @override
+  String get p15PickerSearch => 'Kulüp ara…';
+
+  @override
+  String get p15PickerNoMatch => 'Eşleşen kulüp yok.';
+
+  @override
+  String p15PickerMembers(String n) {
+    return '$n üye';
+  }
+
+  @override
+  String get p15PickerInfoTitle => 'Yetki bilgilendirmesi';
+
+  @override
+  String get p15PickerInfoBody =>
+      'Yönetici veya moderatör olduğun kulüplerde etkinlik hemen yayınlanır. Etkinlik yetkisi olan üyelerin etkinliği admin onayından sonra yayınlanır.';
+
+  @override
+  String get p15PickerEmptyBody =>
+      'Yönetici veya moderatör yetkisine sahip olduğun bir kulüp bulunmuyor.';
+
+  @override
+  String get p15RefreshPerms => 'Yetkileri yenile';
+
+  @override
+  String get p16ReqQuotaStatus => 'Kontenjan durumu';
+
+  @override
+  String get p16ReqRegistered => 'Kayıtlı';
+
+  @override
+  String get p16ReqUnlimitedTitle => 'Katılımcı kotası';
+
+  @override
+  String get p16ReqPendingTitle => 'Bekleyen istekler';
+
+  @override
+  String get p16ReqNoteLabel => 'Başvuru notu';
+
+  @override
+  String get p16ReqFullTitle => 'Kontenjan doldu';
+
+  @override
+  String get p16ReqFullBody =>
+      'Yeni istekler onaylanamaz. Yer açmak için kontenjanı artırabilir veya katılımcı listesini güncelleyebilirsin.';
+
+  @override
+  String get p16ReqRaiseQuota => 'Kontenjanı artır';
+
+  @override
+  String p16ReqFullPeople(String a, String b) {
+    return '$a / $b kişi';
+  }
+
+  @override
+  String get p16ReqCantApprove => 'Kontenjan yetersiz olduğu için onaylanamaz';
+
+  @override
+  String get p16ReqErrTitle => 'İstek listesi güncellenemedi.';
+
+  @override
+  String get p16ReqBackToEvent => 'Etkinlik detayına dön';
+
+  @override
+  String get p16ReqEmptyBody =>
+      'Tüm katılım istekleri yanıtlandı veya yeni başvuru henüz gelmedi.';
+
+  @override
+  String p16SetApproved(String n) {
+    return '$n onaylı katılımcı';
+  }
+
+  @override
+  String get p16SetOpenSub => 'Kayıt olan herkes doğrudan onaylanır.';
+
+  @override
+  String get p16SetApprovalSub =>
+      'Her katılımcı isteği yönetici onayından geçer.';
+
+  @override
+  String get p16SetCapLabel => 'Kontenjan (kişi)';
+
+  @override
+  String p16SetCapCurrent(String n) {
+    return 'Mevcut: $n kişi';
+  }
+
+  @override
+  String get p16SetCapDec => 'Kontenjanı azalt';
+
+  @override
+  String get p16SetCapInc => 'Kontenjanı artır';
+
+  @override
+  String p16SetCancelNote(String n) {
+    return 'Katılan $n kişiye anlık bildirim gönderilecek ve etkinlik listelerden kaldırılacaktır.';
+  }
+
+  @override
+  String get p16QrStatusTitle => 'Yoklama durumu';
+
+  @override
+  String get p16QrStatusSub => 'Anlık katılım kaydı';
+
+  @override
+  String get p16QrList => 'Katılımcılar listesi';
+
+  @override
+  String get p16QrExpiredTitle => 'Süresi doldu';
+
+  @override
+  String get p16QrRefreshing => 'Yenileniyor…';
+
+  @override
+  String get p16QrErrBody =>
+      'Sunucu ile bağlantı kurulamadı veya oturum zaman aşımına uğradı.';
+
+  @override
+  String get p16QrCopyBtn => 'Kopyala';
+
+  @override
+  String get p16AttTitle => 'Katılımcılar ve yoklama';
+
+  @override
+  String get p16AttWaiting => 'Bekliyor';
+
+  @override
+  String get p16AttFilterEmptyBody =>
+      'Bu filtreye uygun katılımcı kaydı bulunamadı.';
+
+  @override
+  String p16AttMarkedToast(String name, String method) {
+    return '$name yoklamaya eklendi ($method)';
+  }
+
+  @override
+  String p16AttUnmarkedToast(String name) {
+    return '$name yoklamadan çıkarıldı';
+  }
+
+  @override
+  String get p07ChatSearchClear => 'Temizle';
 }

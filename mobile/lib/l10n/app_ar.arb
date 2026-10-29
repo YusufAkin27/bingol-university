@@ -2344,5 +2344,108 @@
   "p12CategorySheetTitle": "اختر فئة",
   "p12JoinNote": "ستصلك إشعارات عند الموافقة على طلبك.",
   "p12CountClubs": "{count} نادٍ",
-  "p12CountRequests": "{count} طلب"
+  "p12CountRequests": "{count} طلب",
+  "p15PublishRoleActive": "صلاحية المدير مفعّلة",
+  "p15CoverOptional": "اختياري",
+  "p15CoverHint": "يُفضّل 16:9 أفقي • بحد أقصى 3 ميغابايت",
+  "p15CoverChange": "تغيير",
+  "p15CoverSheetTitle": "صورة الغلاف",
+  "p15CoverGallerySub": "اختر صورة من ألبومات جهازك",
+  "p15CoverCameraSub": "التقط صورة فورًا بالكاميرا",
+  "p15CoverRemoveSub": "العودة إلى الصورة الافتراضية",
+  "p15ErrBannerTitle": "يرجى تصحيح {n} من الأخطاء في النموذج.",
+  "@p15ErrBannerTitle": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrBannerBody": "بعض المعلومات التي أدخلتها ناقصة أو لا تلتزم بالقواعد. راجع الحقول المحددة.",
+  "p15ErrHint": "يصبح زر الإنشاء نشطًا تلقائيًا بعد تصحيح الحقول المطلوبة.",
+  "p15ErrLocked": "أصلح {n} من أخطاء التحقق أولًا",
+  "@p15ErrLocked": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ErrForbiddenTitle": "قيد في الصلاحية",
+  "p15ErrInactiveTitle": "النادي غير نشط",
+  "p15PickerSubtitle": "النادي المخوّل الذي سيُنشر الحدث باسمه",
+  "p15PickerSearch": "ابحث عن نادٍ…",
+  "p15PickerNoMatch": "لا يوجد نادٍ مطابق.",
+  "p15PickerMembers": "{n} عضو",
+  "@p15PickerMembers": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15PickerInfoTitle": "معلومات الصلاحيات",
+  "p15PickerInfoBody": "تُنشر الأحداث فورًا في الأندية التي تديرها أو تشرف عليها. أما أحداث الأعضاء الذين لديهم صلاحية الأحداث فتُنشر بعد موافقة الإدارة.",
+  "p15PickerEmptyBody": "لا يوجد نادٍ تملك فيه صلاحية المدير أو المشرف.",
+  "p15RefreshPerms": "تحديث الصلاحيات",
+  "p16ReqQuotaStatus": "حالة السعة",
+  "p16ReqRegistered": "مسجّل",
+  "p16ReqUnlimitedTitle": "حصة المشاركين",
+  "p16ReqPendingTitle": "الطلبات المعلقة",
+  "p16ReqNoteLabel": "ملاحظة الطلب",
+  "p16ReqFullTitle": "اكتملت السعة",
+  "p16ReqFullBody": "لا يمكن قبول طلبات جديدة. ارفع السعة أو حدّث قائمة المشاركين لتوفير مكان.",
+  "p16ReqRaiseQuota": "رفع السعة",
+  "p16ReqFullPeople": "{a} / {b} شخص",
+  "@p16ReqFullPeople": {
+    "placeholders": {
+      "a": {"type": "String"},
+      "b": {"type": "String"}
+    }
+  },
+  "p16ReqCantApprove": "لا يمكن القبول: السعة غير كافية",
+  "p16ReqErrTitle": "تعذّر تحديث قائمة الطلبات.",
+  "p16ReqBackToEvent": "العودة إلى تفاصيل الحدث",
+  "p16ReqEmptyBody": "تمت الإجابة على جميع الطلبات أو لم يصل طلب جديد بعد.",
+  "p16SetApproved": "{n} مشارك معتمد",
+  "@p16SetApproved": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetOpenSub": "يُقبل كل من يسجّل مباشرة.",
+  "p16SetApprovalSub": "يمرّ كل طلب بموافقة المنظّم.",
+  "p16SetCapLabel": "السعة (أشخاص)",
+  "p16SetCapCurrent": "الحالي: {n} شخص",
+  "@p16SetCapCurrent": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16SetCapDec": "إنقاص السعة",
+  "p16SetCapInc": "زيادة السعة",
+  "p16SetCancelNote": "سيتم إشعار {n} من المشاركين فورًا وإزالة الحدث من القوائم.",
+  "@p16SetCancelNote": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p16QrStatusTitle": "حالة الحضور",
+  "p16QrStatusSub": "سجل الحضور المباشر",
+  "p16QrList": "قائمة المشاركين",
+  "p16QrExpiredTitle": "انتهت الصلاحية",
+  "p16QrRefreshing": "جارٍ التحديث…",
+  "p16QrErrBody": "تعذّر الاتصال بالخادم أو انتهت مهلة الجلسة.",
+  "p16QrCopyBtn": "نسخ",
+  "p16AttTitle": "المشاركون والحضور",
+  "p16AttWaiting": "في الانتظار",
+  "p16AttFilterEmptyBody": "لا يوجد مشارك يطابق هذا المرشح.",
+  "p16AttMarkedToast": "تمت إضافة {name} إلى الحضور ({method})",
+  "@p16AttMarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "method": {"type": "String"}
+    }
+  },
+  "p16AttUnmarkedToast": "تمت إزالة {name} من الحضور",
+  "@p16AttUnmarkedToast": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "p07ChatSearchClear": "مسح"
 }
