@@ -170,3 +170,14 @@ Not: izlenen `google-services.json` artık yalnız `tr.com.bukampus.app` istemci
 
 Play Console, yüklenen AAB için "1 sürüm kodu daha önce kullanıldı" dedi: dosya `bu-kampus-2.0.2.aab` adına çevrilmişti ama içi `1.0.0+1` idi (dosya adı sürümü değiştirmez). Sürüm `2.0.2+20002` yapıldı (kural bölüm 1), ayarlar ekranındaki sabit "1.0.0" `appVersion` sabitine bağlandı, `APP_VERSION` varsayılanları `2.0.2` oldu.
 
+**Derleme sonucu (MOB3, bölüm 3'teki iki komut, `--split-debug-info=C:\bu_symbols_2.0.2`, `APP_VERSION=2.0.2`):**
+
+| Çıktı | Boyut | Konum |
+|---|---|---|
+| AAB | 83.426.174 bayt (79,6 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-2.0.2+20002.aab` |
+| APK (fat, 3 ABI) | 92.406.658 bayt (88,1 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-2.0.2+20002.apk` |
+| Semboller + R8 eşleme | ~88 MB | `C:\Users\Toprak Çevik\bu-secrets\symbols-2.0.2\` |
+
+Eski dosyalar (`bu-kampus-2.0.2.aab` = aslında 1.0.0+1, `bu-kampus-1.0.0+1.apk`) `bu-release\eski\` altına taşındı. Doğrulananlar: `aapt2 dump badging` (APK): paket `tr.com.bukampus.app`, `versionCode=20002`, `versionName=2.0.2`, minSdk 24, targetSdk 36. AAB ham protobuf manifesti (`bundletool` yok, ham tarama): `versionCode` 20002, `versionName` 2.0.2, paket adı var, `usesCleartextTraffic=false`, `allowBackup=false`. APK `apksigner verify`: v2 geçerli, sertifika SHA-256 `87:84:5C:AD:...:CC:50:11`; AAB `keytool -printcert -jarfile` aynı. `libapp.so` (AAB ve APK, 3 ABI): `https://bukampus.com.tr` var; `10.0.2.2`, `192.168`, `http://localhost`, `127.0.0.1`, `http://10.` yok. `google_app_id` `1:247885082799:android:041c27e2...` (yeni istemci; AAB `resources.pb` ve APK). Sunucu `GET /api/app/version?platform=android&version=2.0.2` = 200 `{updateRequired:false,updateAvailable:false,latestVersion:"1.0.0"}` (zorunlu güncelleme yok). `flutter analyze`: sorun yok; `flutter test`: 3300 test geçti.
+
+**Doğrulanmadı:** cihazda/emülatörde çalıştırma, Play'in `versionCode` 20002'yi kabul etmesi, gerçek push alımı.
