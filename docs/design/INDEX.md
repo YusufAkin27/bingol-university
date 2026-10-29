@@ -32,12 +32,12 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [24-sohbet-bilgi-uyeler-medya.md](24-sohbet-bilgi-uyeler-medya.md) | 6 | 52, 53, 54, A16 | [ ] |
 | [25-sohbet-medya-secici.md](25-sohbet-medya-secici.md) | 6 | 55, 56, 57, A13, A24, A25 | [ ] |
 | [26-sohbet-goruntuleyiciler.md](26-sohbet-goruntuleyiciler.md) | 6 | 48, 49, 50, 51 | [ ] |
-| [27-kulup-yonetimi.md](27-kulup-yonetimi.md) | 6 | 59, 60, 62 | [ ] |
-| [28-kulup-detay-uyelik-durumlari.md](28-kulup-detay-uyelik-durumlari.md) | 6 | 58 (varyantlar) | [ ] |
-| [29-kulup-sheet-diyaloglar.md](29-kulup-sheet-diyaloglar.md) | 6 | A26, A27, A28, A29, A32, A33 | [ ] |
-| [30-kuluplerim.md](30-kuluplerim.md) | 3 | 63, 64 | [ ] |
-| [31-anket-liste-olustur.md](31-anket-liste-olustur.md) | 6 | 61, 65, A30, A31 | [ ] |
-| [32-anket-detay-oy-turleri.md](32-anket-detay-oy-turleri.md) | 6 | 66 (oy türleri) | [ ] |
+| [27-kulup-yonetimi.md](27-kulup-yonetimi.md) | 6 | 59, 60, 62 | [x] |
+| [28-kulup-detay-uyelik-durumlari.md](28-kulup-detay-uyelik-durumlari.md) | 6 | 58 (varyantlar) | [x] |
+| [29-kulup-sheet-diyaloglar.md](29-kulup-sheet-diyaloglar.md) | 6 | A26, A27, A28, A29, A32, A33 | [x] |
+| [30-kuluplerim.md](30-kuluplerim.md) | 3 | 63, 64 | [x] |
+| [31-anket-liste-olustur.md](31-anket-liste-olustur.md) | 6 | 61, 65, A30, A31 | [x] |
+| [32-anket-detay-oy-turleri.md](32-anket-detay-oy-turleri.md) | 6 | 66 (oy türleri) | [ ] üretildi (op3), düzeltme bekliyor: başlıklar İngilizce (Poll Details, Club Poll Vote), 'Genel Kampüs' çipi, Merkezi Kütüphane görseli; Stitch kotası doldu |
 | [33-anket-detay-durumlari.md](33-anket-detay-durumlari.md) | 6 | 66 (durumlar), A34 | [ ] |
 | [34-destek-talepler.md](34-destek-talepler.md) | 6 | 67, 68, 69, A35 | [ ] |
 | [35-destek-geri-bildirim-oneri.md](35-destek-geri-bildirim-oneri.md) | 5 | 70, 71 | [ ] |
