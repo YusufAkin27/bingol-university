@@ -2,6 +2,7 @@ import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:bu_kampus/widgets/common.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -635,6 +636,31 @@ void main() {
           const Divider(),
         ]),
       );
+    });
+  });
+
+  group('BuImage ve eski sarmalayıcılar', () {
+    testWidgets('BuImage: url yoksa yer tutucu, hata yedeği, cacheWidth düzen x DPR', (t) async {
+      await p00Matrix(t, () => const Column(children: [BuImage(null, width: 100, height: 60, radius: 12), BuImage('/files/x.png', width: 100, height: 60, radius: 12)]), widths: const [320]);
+      await t.pumpWidget(p00App(const BuImage(null, width: 80, height: 80)));
+      expect(find.byIcon(LucideIcons.image), findsOneWidget);
+    });
+
+    testWidgets('ErrorView/EmptyView artık BuErrorState/BuEmptyState sarmalayıcısı; imza ve metinler aynı', (t) async {
+      var n = 0;
+      await t.pumpWidget(p00App(ErrorView(error: ApiError(0, 'NETWORK', 'x'), onRetry: () => n++)));
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.byType(BuErrorState), findsOneWidget);
+      await t.tap(find.text('Yeniden dene'));
+      expect(n, 1);
+      await t.pumpWidget(p00App(EmptyView(icon: LucideIcons.messageCircle, title: 'Başlık', text: 'Açıklama', actionLabel: 'Git', onAction: () => n++)));
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.byType(BuEmptyState), findsOneWidget);
+      expect(find.text('Başlık'), findsOneWidget);
+      expect(find.text('Açıklama'), findsOneWidget);
+      await t.pumpWidget(p00App(const EmptyView(icon: LucideIcons.bell, text: 'Sadece metin')));
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.text('Sadece metin'), findsOneWidget);
     });
   });
 

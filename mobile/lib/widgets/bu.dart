@@ -10,6 +10,7 @@ library;
 export '../core/theme/bu_design.dart';
 export 'bu_hero.dart';
 export 'bu_illustrations.dart';
+export 'bu_image.dart';
 export 'bu_list.dart';
 export 'bu_motion_widgets.dart';
 export 'bu_overlays.dart';

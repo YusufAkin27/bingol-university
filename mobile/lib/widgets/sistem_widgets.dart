@@ -6,13 +6,10 @@ import '../core/typography.dart';
 /// Sistem ekranları (izin, bakım, güncelleme, hata, QR) için ortak yapı taşları.
 /// Tasarım: Sm1-Sm8, Et3b. Renkler `context.bu`; tasarımdaki sabit tonlar burada.
 abstract final class SistemTones {
-  /// Bakım bandı (sıcak sarı): açık / koyu tema.
-  static Color bandBg(BuildContext c) =>
-      Theme.of(c).brightness == Brightness.dark ? const Color(0xFF3A2A12) : const Color(0xFFFFF3E3);
-  static Color bandBd(BuildContext c) =>
-      Theme.of(c).brightness == Brightness.dark ? const Color(0xFF5A4220) : const Color(0xFFF3DDBF);
-  static Color bandFg(BuildContext c) =>
-      Theme.of(c).brightness == Brightness.dark ? const Color(0xFFF3D9A8) : const Color(0xFF5B3B0E);
+  /// Bakım bandı (sıcak sarı): belirteçlerden (`warnSoft` / `onWarnSoft`), açık ve koyu temada AA.
+  static Color bandBg(BuildContext c) => c.bu.warnSoft;
+  static Color bandBd(BuildContext c) => c.bu.warn.withValues(alpha: .28);
+  static Color bandFg(BuildContext c) => c.bu.onWarnSoft;
 
   /// Seçilmemiş radyo halkası.
   static Color radioOff(BuildContext c) =>

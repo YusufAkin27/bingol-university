@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/locale_controller.dart';
 import '../l10n/app_localizations.dart';
-import '../core/session.dart';
-import '../core/api.dart';
-import '../core/theme.dart';
 import '../core/typography.dart';
+import 'bu_illustrations.dart';
+import 'bu_state.dart';
 import 'bu_widgets.dart' show LucideIcons;
 import 'sistem_widgets.dart';
 
@@ -62,23 +61,8 @@ class LoadingView extends StatelessWidget {
           label: context.l10n.commonLoading, child: const CircularProgressIndicator()));
 }
 
-/// Hata/boş görünümü: sınırlı yükseklikte ortalar, sığmazsa (320 dp + büyük yazı) kaydırır;
-/// sınırsız yükseklikte (ListView içinde) düz ortalar.
-class _FitCenter extends StatelessWidget {
-  const _FitCenter({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, c) => c.hasBoundedHeight
-            ? SingleChildScrollView(
-                child: ConstrainedBox(constraints: BoxConstraints(minHeight: c.maxHeight), child: Center(child: child)))
-            : Center(child: child),
-      );
-}
-
 /// Hata durumu + yeniden dene (Sm3 / Sm8). Ağ hatası "Bağlantı yok", diğerleri "Bir şeyler ters gitti" başlığı alır.
+/// P0: `BuErrorState` (çizili illüstrasyon + M3 düğme) için ince sarmalayıcı; imza korunur.
 class ErrorView extends StatelessWidget {
   const ErrorView({super.key, required this.error, required this.onRetry});
 
@@ -86,40 +70,11 @@ class ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final net = error is ApiError && (error as ApiError).isNetwork;
-    return _FitCenter(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SistemTile(icon: net ? LucideIcons.wifiOff : LucideIcons.triangleAlert, size: 64, radius: 22, iconSize: 28),
-            const SizedBox(height: 12),
-            Text(net ? context.l10n.sistemuiOfflineTitle : context.l10n.sistemuiErrorTitle,
-                textAlign: TextAlign.center, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Semantics(
-              liveRegion: true,
-              child: Text(errorText(error),
-                  textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.5)),
-            ),
-            const SizedBox(height: 14),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 180),
-              child: IntrinsicWidth(
-                child: SistemButton(label: context.l10n.commonRetry, height: 48, radius: 16, onPressed: onRetry),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuErrorState(error: error, onRetry: onRetry);
 }
 
-/// Boş durum (Sm7): ikon karosu + başlık. [title] verilirse [text] açıklama olur; [actionLabel] ile eylem düğmesi.
+/// Boş durum (Sm7): [icon] anlamına göre çizili illüstrasyon + başlık. [title] verilirse [text] açıklama olur;
+/// [actionLabel] ile eylem düğmesi. P0: `BuEmptyState` için ince sarmalayıcı; imza korunur.
 class EmptyView extends StatelessWidget {
   const EmptyView({
     super.key,
@@ -136,33 +91,31 @@ class EmptyView extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  static final Map<IconData, BuIllustration> _art = {
+    LucideIcons.messageCircle: BuIllustration.message,
+    LucideIcons.messageSquare: BuIllustration.message,
+    LucideIcons.search: BuIllustration.search,
+    LucideIcons.calendar: BuIllustration.calendar,
+    LucideIcons.calendarDays: BuIllustration.calendar,
+    LucideIcons.users: BuIllustration.club,
+    LucideIcons.bell: BuIllustration.bell,
+    LucideIcons.bellOff: BuIllustration.bell,
+    LucideIcons.heart: BuIllustration.heart,
+    LucideIcons.bookmark: BuIllustration.heart,
+    LucideIcons.image: BuIllustration.image,
+    LucideIcons.fileText: BuIllustration.document,
+    LucideIcons.wifiOff: BuIllustration.wifiOff,
+    LucideIcons.lock: BuIllustration.lock,
+  };
+
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return _FitCenter(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SistemTile(icon: icon, size: 64, radius: 22, iconSize: 28),
-            const SizedBox(height: 12),
-            if (title != null) ...[
-              Text(title!,
-                  textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
-            ] else
-              Text(text, textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 14),
-              SistemButton(label: actionLabel!, height: 44, radius: 14, onPressed: onAction),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuEmptyState(
+        illustration: _art[icon] ?? BuIllustration.box,
+        title: title ?? text,
+        message: title == null ? null : text,
+        actionLabel: actionLabel,
+        onAction: onAction,
+      );
 }
 
 /// Kaynak site bakımdaysa listenin üstünde gösterilen uyarı (hata ekranı değil: eski veri sunulur).

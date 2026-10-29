@@ -1,5 +1,6 @@
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/theme/bu_design.dart';
+import 'package:bu_kampus/core/theme/bu_theme_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -76,6 +77,22 @@ void main() {
     test('FilledButton tema rengi ezmez: tonal ayri kalir', () {
       final s = BuTheme.light().filledButtonTheme.style!;
       expect(s.backgroundColor, isNull, reason: 'renk ColorScheme den gelir; tonal/primary birbirini ezmez');
+    });
+
+    test('tema kurulumu ucuz (fromSeed yok): ilk kurulum <100 ms, onbellekten ~0', () {
+      final sw = Stopwatch()..start();
+      BuThemeBuilder.build(BuTokens.light, Brightness.light);
+      final first = sw.elapsedMilliseconds;
+      sw
+        ..reset()
+        ..start();
+      for (var i = 0; i < 1000; i++) {
+        BuTheme.light();
+      }
+      // ignore: avoid_print
+      print('tema kurulum ms: $first; 1000 onbellekli cagri ms: ${sw.elapsedMilliseconds}');
+      expect(first, lessThan(100));
+      expect(sw.elapsedMilliseconds, lessThan(20));
     });
 
     test('BuTokens.lerp ve copyWith', () {
