@@ -12954,6 +12954,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.'**
   String get profil2DelItemClubOwner;
+
+  /// No description provided for @settingsCrashReports.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hata raporu gönder'**
+  String get settingsCrashReports;
+
+  /// No description provided for @settingsCrashReportsDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.'**
+  String get settingsCrashReportsDesc;
 }
 
 class _AppLocalizationsDelegate

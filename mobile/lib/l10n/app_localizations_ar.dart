@@ -6996,4 +6996,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get profil2DelItemClubOwner =>
       'تُنقل ملكية النوادي التي تملكها إلى عضو مشرف؛ وإذا لم يوجد مرشح يُغلق النادي.';
+
+  @override
+  String get settingsCrashReports => 'إرسال تقارير الأعطال';
+
+  @override
+  String get settingsCrashReportsDesc =>
+      'عند حدوث خطأ في التطبيق أو إغلاقه بشكل غير متوقع، يُرسل تقرير أعطال مجهول إلى خادم BÜ Kampüs: إصدار التطبيق ونظام التشغيل ونوع الخطأ وتتبع تقني للمكدس دون بيانات شخصية. لا يتم إرسال بريدك الإلكتروني أو كلمة المرور أو محتوى الرسائل أو هويتك، ولا يُنقل أي شيء إلى خدمات خارجية. يمكنك إيقاف ذلك في أي وقت.';
 }

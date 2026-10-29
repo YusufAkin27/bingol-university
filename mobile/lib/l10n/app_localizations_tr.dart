@@ -7032,4 +7032,11 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get profil2DelItemClubOwner =>
       'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.';
+
+  @override
+  String get settingsCrashReports => 'Hata raporu gönder';
+
+  @override
+  String get settingsCrashReportsDesc =>
+      'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.';
 }

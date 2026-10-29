@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/crash/crash_reporter.dart';
 import '../../core/locale_controller.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
@@ -37,6 +38,8 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _showEmail = false;
   bool _loaded = false;
   String _pushStatus = '...'; // 'notConfigured' | 'on' | 'off' | 'notGranted'
+
+  CrashReporter get _crash => CrashReporter.instance;
 
   LocaleController? get _lc => widget.localeController ?? LocaleController.current;
 
@@ -302,6 +305,27 @@ class _SettingsPageState extends State<SettingsPage> {
                         showChevron: false,
                         onTap: _logoutAll),
                   ]),
+                ),
+                // Anonim hata raporu: açık/kapalı anahtarı + ne gönderildiğini anlatan gizlilik metni.
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ListenableBuilder(
+                    listenable: _crash,
+                    builder: (_, __) => BuGroup(children: [
+                      PrefSwitchRow(
+                          key: const ValueKey('crashReportsSwitch'),
+                          label: l10n.settingsCrashReports,
+                          value: _crash.enabled,
+                          onChanged: (v) => _crash.setEnabled(v)),
+                    ]),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
+                  child: Text(l10n.settingsCrashReportsDesc,
+                      key: const ValueKey('crashReportsDesc'),
+                      style: BuType.caption.copyWith(color: t.mut, height: 1.4)),
                 ),
                 const SizedBox(height: 18),
                 Center(child: Text(l10n.settingsVersion('1.0.0'), style: BuType.caption.copyWith(color: t.mut))),

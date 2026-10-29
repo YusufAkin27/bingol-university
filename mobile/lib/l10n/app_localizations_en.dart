@@ -7063,4 +7063,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profil2DelItemClubOwner =>
       'Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.';
+
+  @override
+  String get settingsCrashReports => 'Send crash reports';
+
+  @override
+  String get settingsCrashReportsDesc =>
+      'When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time.';
 }

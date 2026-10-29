@@ -13,6 +13,7 @@ import 'core/app_hooks.dart';
 import 'core/cache/disk_cache.dart';
 import 'core/connectivity/connectivity_service.dart';
 import 'core/connectivity/offline_banner.dart';
+import 'core/crash/crash_reporter.dart';
 import 'core/outbox/outbox.dart';
 import 'core/locale_controller.dart';
 import 'l10n/app_localizations.dart';
@@ -35,8 +36,10 @@ import 'features/system/splash_screen.dart';
 
 /// Yakalanmamış hatayı yerel günlüğe (disk + bellek) ve — oturum açıksa — anonim `app_error` analitik
 /// olayına yazar: yalnız hata türü, ekran adı ve sürüm; mesaj/yığın/kişisel veri yok ([ErrorLog]).
+/// Ayrıca (ayar açıksa, yalnız release) maskelenmiş yığın izi kendi sunucumuza anonim raporlanır ([CrashReporter]).
 void _reportError(Object error, StackTrace? stack, {String source = 'flutter'}) {
   ErrorLog.instance.report(error, source: source);
+  CrashReporter.instance.capture(error, stack, source: source);
 }
 
 /// Hata ağaçta çizim yapamadığında kırmızı ekran yerine sade bir görünüm (yalnız release).
@@ -121,6 +124,11 @@ class ConfigErrorApp extends StatelessWidget {
 }
 
 Future<void> main() async {
+  // Çerçeve dışında kalan asenkron hatalar da kendi sunucumuza raporlanır (runZonedGuarded).
+  await runZonedGuarded<Future<void>>(_bootstrap, (error, stack) => _reportError(error, stack, source: 'zone'));
+}
+
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!apiConfigValid()) {
     runApp(const ConfigErrorApp());
@@ -133,11 +141,15 @@ Future<void> main() async {
   }
   installErrorHandling();
   unawaited(ErrorLog.instance.init());
+  await CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
   await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır
   final connectivity = ConnectivityService.instance;
   final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);
   final outbox = Outbox();
   api.outbox = outbox;
+  CrashReporter.instance.attach(api);
+  // Önceki oturumdan kalan raporlar, açılışla yarışmasın diye biraz sonra gönderilir.
+  unawaited(Future<void>.delayed(const Duration(seconds: 8), CrashReporter.instance.flush));
   outbox.attach(api, connectivity);
   final session = Session(api);
   final theme = ThemeController();

@@ -3805,5 +3805,7 @@
   "errCertificateRevoked": "Bu sertifika yönetici tarafından iptal edildi.",
   "clubUnavailable": "Kulüp şu an kullanılamıyor.",
   "profil2DelItemUsage": "Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.",
-  "profil2DelItemClubOwner": "Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır."
+  "profil2DelItemClubOwner": "Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.",
+  "settingsCrashReports": "Hata raporu gönder",
+  "settingsCrashReportsDesc": "Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz."
 }

@@ -2141,5 +2141,7 @@
   "errCertificateRevoked": "This certificate was revoked by an administrator.",
   "clubUnavailable": "This club is not available right now.",
   "profil2DelItemUsage": "Your device, IP and usage (analytics) records are deleted immediately.",
-  "profil2DelItemClubOwner": "Clubs you own are transferred to an admin member; if there is no candidate, the club is closed."
+  "profil2DelItemClubOwner": "Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.",
+  "settingsCrashReports": "Send crash reports",
+  "settingsCrashReportsDesc": "When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time."
 }
