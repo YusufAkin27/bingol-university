@@ -10,6 +10,20 @@ Genel gozlem: /u/1/ projesinde ekran cercevesi 1280x1024 (masaustu boyutu) cikti
 - Halusinasyonlar: sahte ust cubuk+avatar, kullanici adi (@handle), universite adi etiketi, uydurma durum etiketleri.
 - Kalan eksik: takipci listesinde sekmeler ust cubuga cok yakin (tuvalde kismen kesik); "Takip Edilenler" ekraninda "Takipciler Sekmesi"/"Takip Edilenler Sekmesi" kucuk etiketleri ve ek "Aramayi Temizle" dugmesi var; profil duzenle HTML'inde Bolum/Sinif listeleri acik secenek metinleriyle geliyor (gorsel dogrulanmadi).
 
+## 50 - Bildirim tercihleri (5 ekran)
+- Proje: "BU Kampus Notification Preferences" https://stitch.withgoogle.com/u/3/projects/18223965491906364984 ; PNG/HTML: `C:\bu_design\stitch\50-bildirim-tercihleri\`
+- Uretilen: ana tercihler (push acik), push kapali, ayrintili tercihler (ust anahtar kapaliyken alt anahtarlar pasif), sessiz saatler + saat secici, hata satiri + "Bu cihazda: Ders ve sinav hatirlatmalari".
+- Duzeltilen (2 tur): sahte avatar ust cubuk, "rektorluk / acil durum ... SMS ve e-posta ile iletilir" notlari, "Rektorluk Acil Duyurulari" karti, "Bulut Esitleme/Cevrimdisi", "Cihaz bildirim gecmisi", "Yemekhane menu bildirimi", "Tekrarlama Gunleri", "Kampus Bilgi Sistemi" alt bilgisi, "6/7 Aktif" sayaci silindi; ilk turda silinen "Sessiz saatleri ac" anahtari ikinci turda geri getirildi.
+- Halusinasyonlar: rektorluk/SMS/e-posta mesajlari, yemekhane/cihaz gecmisi satirlari, avatar.
+- Kalan eksik: beklenen "Neler bildirilsin" listesinde Anketler/Akademik duyurular dahil tum satirlar var; yukleniyor/hata ekraninda uyarı satiri ile cihaz bolumu tek ekranda; sessiz saatler ekraninda saat secici acikken arka plan donuk oldugundan anahtar satiri soluk gorunuyor.
+
+## 51 - Ortak sheet ve diyaloglar (6 ekran)
+- Proje: "BU Kampus Modal Overlays" https://stitch.withgoogle.com/u/3/projects/1533949826162683044 ; PNG/HTML: `C:\bu_design\stitch\51-ortak-sheetler\`
+- Uretilen: kullanici sikayet sheet'i (5 neden + ek aciklama + Gonder), mesaj sikayet sheet'i + "Sikayetiniz alindi. Tesekkurler." toast'i, cikis diyalogu, tum cihazlardan cikis diyalogu, engelleme diyalogu (kullanici + gonderi metni + toast), tema sheet'i (Sistem/Acik/Koyu + onizleme kartlari).
+- Duzeltilen (1 tur): arka planlardaki yasak icerik temizlendi: "Bakiye 142.50 / Yemek Hak / Ring Izni", SMS ile iki adimli dogrulama + cihaz listesi, @kullanici adlari ve dogrulama rozeti, "Kampus Haritasi Tam Ekran" sahte ust cubugu + avatar, "Kampus Entegrasyonlari / Yemekhane Bakiye / Ring Otobusu"; tema sheet'inden Aktif etiketi, Vazgec/Uygula ve X kaldirildi.
+- Halusinasyonlar: bakiye/ring (odeme/servis uydurmalari), iki adimli dogrulama, cihaz listesi, kullanici adi (@handle), sahte ust cubuk.
+- Kalan eksik: yok (sikayet sheet'i "Taciz veya zorbalik" secili; mesaj sheet'inde 5 neden gorunuyor). Arka plan ekranlari sade tutuldu.
+
 ## 49 - Ayarlar, hesap, gizlilik, engellenenler, dil sheet (6 ekran)
 - Proje: "BU Kampus Settings Screens" https://stitch.withgoogle.com/u/3/projects/16713373544331066654 ; PNG/HTML: `C:\bu_design\stitch\49-ayarlar-hesap-gizlilik\`
 - Uretilen: Ayarlar, Hesap ve guvenlik, Gizlilik ve engellenenler, Engellenenler listesi, bos/yukleniyor/hata, Dil sheet'i.

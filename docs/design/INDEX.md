@@ -55,8 +55,8 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [47-profil-baskasi-durumlari.md](47-profil-baskasi-durumlari.md) | 6 | 89, 90, A60 | [ ] |
 | [48-takipciler-profil-duzenle.md](48-takipciler-profil-duzenle.md) | 6 | 92, 93, 94, A53 | [x] |
 | [49-ayarlar-hesap-gizlilik.md](49-ayarlar-hesap-gizlilik.md) | 6 | 95, 96, 97, 101, A56 | [x] |
-| [50-bildirim-tercihleri.md](50-bildirim-tercihleri.md) | 5 | 100, A59 | [ ] |
-| [51-ortak-sheetler.md](51-ortak-sheetler.md) | 6 | A5, A25 (çerçeve), A51, A52, A55, A57, A10/A60 (engelleme metni) | [ ] |
+| [50-bildirim-tercihleri.md](50-bildirim-tercihleri.md) | 5 | 100, A59 | [x] |
+| [51-ortak-sheetler.md](51-ortak-sheetler.md) | 6 | A5, A25 (çerçeve), A51, A52, A55, A57, A10/A60 (engelleme metni) | [x] |
 
 Referans tasarımda zaten bulunan ekranlar (tekrar istenmedi): 21, 30, 31, 32, 33, 34, 35, 36, 37, 38, 42, 47, 58, 66, 74 (Giriş, AppShell, FloatingNav, Ana Sayfa, Keşfet, Sohbet, Kulüpler, Profil, Yemek, Bildirimler, Haber Detayı, Sohbet Konuşması, Kulüp Detayı, Anket Detayı, Etkinlik Detayı). Bunların durum ve özellik varyantları yukarıdaki istemlerde ayrıca istenir (12, 15, 16, 17, 18, 19, 20, 28, 32, 33, 38, 39).
 
