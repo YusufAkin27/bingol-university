@@ -151,3 +151,17 @@ Play Console'da uygulama **`tr.com.bukampus.app`** adıyla oluşturuldu; MOB1 AA
 - Sürüm `1.0.0+1` kalır (Play'e hiç yüklenmedi).
 - **Firebase:** Firebase konsolunda (proje `bu-kamp`) Android uygulaması **`tr.com.bukampus.app`** olarak eklenmeli (SHA-1/SHA-256: Play App Signing sonrası Play Console > Uygulama bütünlüğü sayfasındaki uygulama imzalama sertifikası parmak izleri de eklenir; yükleme anahtarı parmak izi de eklenebilir). Yeni `google-services.json` indirilip `mobile/android/app/google-services.json` üstüne konur (eski istemci içinde kalabilir). Dosya paket adıyla eşleşmezse google-services eklentisi derlemeyi reddeder ("No matching client found for package name"). API anahtarı kısıtlaması da yeni paket adı için güncellenir ([PUSH_SETUP.md](PUSH_SETUP.md)).
 - Derleme komutları bölüm 3'tekiyle aynıdır; çıktı adları değişmez, eski paket adlı dosyalar üstüne yazılır.
+
+**Yeniden derleme sonucu (MOB2, `tr.com.bukampus.app`, bölüm 3'teki iki komut koşturuldu):**
+
+| Çıktı | Boyut | Konum |
+|---|---|---|
+| AAB | 83.425.713 bayt (79,6 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-1.0.0+1.aab` |
+| APK (fat, 3 ABI) | 92.406.654 bayt (88,1 MB) | `C:\Users\Toprak Çevik\bu-release\bu-kampus-1.0.0+1.apk` |
+| Semboller + `r8-mapping.txt` | ~66 MB | `C:\Users\Toprak Çevik\bu-secrets\symbols-1.0.0\` |
+
+Doğrulananlar: `aapt2 dump badging`: paket `tr.com.bukampus.app`, `versionCode=1`, `versionName=1.0.0`, `targetSdk=36`, etiket "BÜ Kampüs". Birleşik manifestte `package="tr.com.bukampus.app"`, `usesCleartextTraffic=false`, `allowBackup=false`; sınıf adları namespace'ten tam çözülür (`edu.bingol.bu_kampus.MainActivity`, `...ReminderReceiver`). AAB manifestinde (ham tarama) yeni paket adı var; `bundletool` makinede yok, AAB manifesti onunla dump edilmedi. APK `apksigner verify`: `Verifies` (v2); AAB `keytool -printcert -jarfile` ve APK sertifika SHA-256 = yükleme anahtarı `87:84:5C:AD:...:CC:50:11`. `libapp.so` (3 ABI): `https://bukampus.com.tr` ve `/api` var; `http://localhost`, `http://10.`, `192.168.`, `127.0.0.1`, `10.0.2.2` yok (çıplak `localhost` dizgisi Flutter çerçevesinden gelir, MOB1 derlemesinde de aynı). Firebase kaynakları (APK): `google_app_id` = `1:247885082799:android:041c27e2...` (yeni istemci), `project_id` = `bu-kamp`, `gcm_defaultSenderId` = `247885082799`; eski istemci kimliği pakette yok. `flutter analyze`: sorun yok; `flutter test`: 3300 test geçti.
+
+Not: izlenen `google-services.json` artık yalnız `tr.com.bukampus.app` istemcisini içerir. Eski adla (`edu.bingol.bu_kampus`) derleme gerekirse eklenti "No matching client" hatası verir; geliştirmede de yeni `applicationId` kullanılır (emülatörde eski kurulu uygulama ayrı bir uygulama olarak kalır, kaldırın).
+
+**Doğrulanmadı:** cihazda/emülatörde çalıştırma, Play'in yeni AAB'yi kabul etmesi, gerçek push alımı (FCM sunucu kimliği ve Play App Signing parmak izlerinin Firebase'e eklenmesi sizde).
