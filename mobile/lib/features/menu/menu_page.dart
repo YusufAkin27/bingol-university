@@ -3,19 +3,18 @@ import 'package:flutter/material.dart';
 import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
-import '../../core/typography.dart';
 import '../news/news_tile.dart' show newsMonthName, newsWeekdayName;
 import '../polls/poll_menu_card.dart';
 import 'menu_models.dart';
+import 'menu_parts.dart';
 import 'menu_photo.dart';
 
 String _monthParam(DateTime m) => '${m.year}-${m.month.toString().padLeft(2, '0')}';
 
-/// Yemek listesi: gün seçici (önceki/sonraki gün) + öğle yemeği kartı (fotoğraflı ya da fotoğrafsız)
-/// + günlük menü puanlama.
+/// Yemek listesi: gün seçici + öğle yemeği kartı (fotoğraflı ya da fotoğrafsız; yemek başına kalori ve
+/// günlük toplam) + günlük menü puanlama.
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key, required this.session});
 
@@ -31,26 +30,33 @@ class _MenuPageState extends State<MenuPage> {
 
   late DateTime _month;
   late DateTime _selected;
-  Map<int, MenuDay> _menus = {}; // gün -> yemekler + fotoğraf
+  late final List<DateTime> _days;
+  final Map<String, Map<int, MenuDay>> _byMonth = {}; // 'yyyy-MM' -> gün -> menü
   bool _loading = true;
   bool _maintenance = false;
   Object? _error;
   int _reqId = 0;
 
+  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
+  DateTime? _staleAt;
+
+  Map<int, MenuDay> get _menus => _byMonth[_monthParam(_month)] ?? const {};
+
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     _month = DateTime(now.year, now.month);
-    _selected = DateTime(now.year, now.month, now.day);
+    _selected = today;
+    // Seçici: bir hafta öncesinden dört hafta sonrasına (ay sınırı aşılınca o ay yüklenir).
+    _days = [for (var i = -7; i <= 28; i++) DateTime(today.year, today.month, today.day + i)];
     _load();
   }
 
-  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
-  DateTime? _staleAt;
-
   Future<void> _load({bool silent = false}) async {
     final id = ++_reqId;
+    final month = _month;
     if (!silent) {
       setState(() {
         _loading = true;
@@ -59,7 +65,7 @@ class _MenuPageState extends State<MenuPage> {
     }
     try {
       final api = widget.session.api;
-      final resp = await api.getResponse('/menu?month=${_monthParam(_month)}');
+      final resp = await api.getResponse('/menu?month=${_monthParam(month)}');
       final res = resp.body;
       var maintenance = false;
       try {
@@ -71,13 +77,13 @@ class _MenuPageState extends State<MenuPage> {
         for (final e in res) {
           if (e is! Map) continue;
           final d = DateTime.tryParse('${e['date'] ?? ''}');
-          if (d == null || d.year != _month.year || d.month != _month.month) continue;
+          if (d == null || d.year != month.year || d.month != month.month) continue;
           map[d.day] = MenuDay.fromJson(e);
         }
       }
       if (!mounted || id != _reqId) return;
       setState(() {
-        _menus = map;
+        _byMonth[_monthParam(month)] = map;
         _staleAt = resp.fromCache ? resp.cachedAt : null;
         _maintenance = maintenance;
         _loading = false;
@@ -92,18 +98,13 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
-  /// Gün ±1; ay sınırı aşılırsa o ayın listesi yüklenir.
-  void _step(int delta) {
-    final d = DateTime(_selected.year, _selected.month, _selected.day + delta);
+  void _select(DateTime d) {
     final monthChanged = d.year != _month.year || d.month != _month.month;
     setState(() {
       _selected = d;
-      if (monthChanged) {
-        _month = DateTime(d.year, d.month);
-        _menus = {};
-      }
+      if (monthChanged) _month = DateTime(d.year, d.month);
     });
-    if (monthChanged) _load();
+    if (monthChanged && !_byMonth.containsKey(_monthParam(_month))) _load();
   }
 
   bool _isToday(DateTime d) {
@@ -119,223 +120,55 @@ class _MenuPageState extends State<MenuPage> {
       body: Column(
         children: [
           BuHeader(title: context.l10n.menuTitle, onBack: () => Navigator.pop(context)),
-          _dayStepper(t),
           if (_maintenance && !_loading)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.fromLTRB(_hPad, 4, _hPad, 0),
               child: StaleBanner(text: context.l10n.menuStale),
             ),
-          if (!_loading) StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
-          Expanded(child: _body(t)),
-        ],
-      ),
-    );
-  }
-
-  Widget _dayStepper(BuTokens t) {
-    final d = _selected;
-    final l = context.l10n;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    final title = '${d.day} ${newsMonthName(context, d.month)} ${newsWeekdayName(context, d.weekday)}';
-    Widget arrow(IconData icon, String tip, int delta) => IconButton(
-          key: ValueKey('yemek_day_${delta < 0 ? 'prev' : 'next'}'),
-          tooltip: tip,
-          onPressed: () => _step(delta),
-          icon: Icon(icon, size: 20, color: t.ink),
-          constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-          padding: EdgeInsets.zero,
-        );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(_hPad, 18, _hPad, 0),
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: t.sf,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: t.bd),
-        ),
-        child: Row(
-          children: [
-            // Simgeler RTL'de kendiliğinden çevrilmez: "önceki" = başlangıç tarafı.
-            arrow(rtl ? LucideIcons.chevronRight : LucideIcons.chevronLeft, l.yemekPrevDay, -1),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(title,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.heading.copyWith(fontSize: 16, fontWeight: FontWeight.w800, color: t.ink)),
-                  if (_isToday(d))
-                    Text(l.yemekToday,
-                        style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.pr)),
-                ],
-              ),
+          if (_loading && _byMonth.isEmpty) ...[
+            const Expanded(child: MenuSkeleton()),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
             ),
-            arrow(rtl ? LucideIcons.chevronLeft : LucideIcons.chevronRight, l.yemekNextDay, 1),
+            if (!_loading) StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
+            Expanded(child: _body(t)),
           ],
-        ),
+        ],
       ),
     );
   }
 
   Widget _body(BuTokens t) {
-    if (_loading) return const LoadingView();
-    if (_error != null) return ErrorView(error: _error!, onRetry: _load);
+    if (_loading) return const MenuSkeleton(strip: false);
+    if (_error != null && _menus.isEmpty) return ErrorView(error: _error!, onRetry: _load);
 
-    final day0 = _menus[_selected.day];
+    final l = context.l10n;
+    final d = _selected;
+    final today = _isToday(d);
+    final date = '${d.day} ${newsMonthName(context, d.month)}';
+    final label = trUpper(today ? '${l.yemekToday} · $date' : '${newsWeekdayName(context, d.weekday)} · $date');
+    final day = _menus[d.day];
+    final has = day != null && day.items.isNotEmpty;
     return RefreshIndicator(
       onRefresh: () => _load(silent: true),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(_hPad, 14, _hPad, 24),
+        padding: const EdgeInsets.fromLTRB(_hPad, 16, _hPad, 24),
         children: [
-          if (_menus.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 48),
-              child: EmptyView(icon: LucideIcons.utensils, text: context.l10n.menuNoMenuMonth),
+          MenuDayLabel(text: label, today: today),
+          const SizedBox(height: 12),
+          if (has)
+            MenuPhotoGate(
+              url: day.imageUrl,
+              builder: (context, photo) => MenuMealCard(day: day, photo: photo, time: _time),
             )
           else
-            _lunch(t, day0?.items, day0?.imageUrl),
-          if (_isToday(_selected)) PollMenuCard(session: widget.session),
+            MenuEmptyCard(maintenance: _maintenance, onRetry: _load),
+          if (today) PollMenuCard(session: widget.session),
         ],
       ),
-    );
-  }
-
-  /// Öğle yemeği: fotoğraf varsa üstte 16:9 fotoğraf (başlık + saat rozeti koyu degrade üstünde).
-  Widget _lunch(BuTokens t, List<String>? items, String? imageUrl) {
-    final empty = items == null || items.isEmpty;
-    final l = context.l10n;
-    return MenuPhotoGate(
-      url: imageUrl,
-      builder: (context, photo) {
-        final hasPhoto = photo != null;
-        final list = BuCard(
-          radius: 20,
-          padding: EdgeInsetsDirectional.fromSTEB(18, hasPhoto ? 6 : 16, 18, 6),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!hasPhoto)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(l.yemekLunch,
-                              style: BuType.title.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(_time, style: BuType.label.copyWith(fontSize: 12, color: t.mut)),
-                      ],
-                    ),
-                  ),
-                if (empty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(l.menuNoMenuDay, style: BuType.heading.copyWith(height: 1.5, color: t.ink)),
-                  )
-                else
-                  for (var i = 0; i < items.length; i++)
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: hasPhoto ? 10 : 13),
-                      decoration: BoxDecoration(
-                        border: i == 0 ? null : Border(top: BorderSide(color: t.bd.withAlpha(150))),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(items[i],
-                                style: BuType.heading.copyWith(fontWeight: FontWeight.w600, height: 1.35, color: t.ink)),
-                          ),
-                        ],
-                      ),
-                    ),
-              ],
-            ),
-          ),
-        );
-        if (!hasPhoto) return Padding(padding: const EdgeInsets.only(bottom: 14), child: list);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Semantics(
-              image: true,
-              label: l.menuPhotoLabel,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      photo,
-                      const Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              stops: [0, .55, 1],
-                              colors: [Color(0xEB171E33), Color(0x8C171E33), Color(0x00171E33)],
-                            ),
-                          ),
-                        ),
-                      ),
-                      PositionedDirectional(
-                        start: 16,
-                        end: 16,
-                        bottom: 12,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(l.yemekTodaysMenu,
-                                      style: BuType.label.copyWith(fontSize: 12, color: Colors.white)),
-                                  Text(l.yemekLunch,
-                                      style: BuType.title.copyWith(
-                                          fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              height: 28,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0x33FFFFFF),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: const Color(0x66FFFFFF)),
-                              ),
-                              child: Text(_time,
-                                  style: BuType.label.copyWith(
-                                      fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            list,
-            const SizedBox(height: 14),
-          ],
-        );
-      },
     );
   }
 }

@@ -7,8 +7,7 @@ import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../academic/academic_hub_page.dart';
 import '../events/event_cover.dart';
@@ -24,7 +23,6 @@ import '../notifications/notifications_page.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
 import '../support/support_page.dart';
-import '../../core/typography.dart';
 import 'home_parts.dart';
 
 /// Ana sayfa: selamlama, arama, hızlı erişim, bugünün yemeği, (varsa) öne çıkan etkinlik, duyurular.
@@ -297,7 +295,7 @@ class _HomeTabState extends State<HomeTab> {
     final t = context.bu;
     Widget body;
     if (_loading) {
-      body = const LoadingView();
+      body = const HomeSkeleton();
     } else if (_error != null) {
       body = ErrorView(
           error: _error!,
@@ -322,27 +320,31 @@ class _HomeTabState extends State<HomeTab> {
   List<Widget> _content(BuildContext context) {
     final maintenance = _info?['maintenance'] is Map ? _info!['maintenance'] as Map : null;
     final banner = _info?['banner'] is Map ? _info!['banner'] as Map : null;
-    return [
-      _header(context),
-      StaleLabel(cachedAt: _staleInfoAt ?? _staleMenuAt),
+    final banners = <Widget>[
       if (maintenance?['enabled'] == true)
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: StaleBanner(text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ?? context.l10n.homeMaintenanceDefault),
-        ),
+        StaleBanner(
+            text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ??
+                context.l10n.homeMaintenanceDefault),
       if (banner != null && (banner['text'] ?? banner['message']) is String && ((banner['text'] ?? banner['message']) as String).isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: InkWell(
-            onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
-            child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
-          ),
+        InkWell(
+          onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
+          child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
         ),
-      if (_newsStale)
+      if (_newsStale) StaleBanner(text: context.l10n.homeSourceUnreachable),
+    ];
+    return [
+      if (banners.isNotEmpty)
         Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: StaleBanner(text: context.l10n.homeSourceUnreachable),
+          padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
+          child: Column(children: [
+            for (var i = 0; i < banners.length; i++) ...[
+              if (i > 0) const SizedBox(height: 8),
+              banners[i],
+            ],
+          ]),
         ),
+      _header(context, afterBanner: banners.isNotEmpty),
+      StaleLabel(cachedAt: _staleInfoAt ?? _staleMenuAt),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: HomeSearchBox(hint: context.l10n.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
@@ -355,26 +357,33 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Widget _newsSection(BuildContext context) {
-    final t = context.bu;
     final news = _news;
     Widget list;
     if (news == null && (_newsLoading || !_newsFailed)) {
       list = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: BuSkeletonScope(
+          child: Column(children: [
+            BuSkeleton(height: 72, radius: 20),
+            SizedBox(height: 10),
+            BuSkeleton(height: 72, radius: 20),
+          ]),
+        ),
       );
     } else if (news == null) {
       list = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(children: [
-          Text(context.l10n.homeContentLoadFailed, style: TextStyle(color: t.mut)),
-          TextButton(onPressed: _loadNews, child: Text(context.l10n.commonRetryShort)),
-        ]),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: HomeNewsStateCard(
+          emptyText: context.l10n.homeNoContent,
+          errorText: context.l10n.homeContentLoadFailed,
+          retryLabel: context.l10n.commonRetry,
+          onRetry: _loadNews,
+        ),
       );
     } else if (news.isEmpty) {
       list = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Center(child: Text(context.l10n.homeNoContent, style: TextStyle(color: t.mut))),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: HomeNewsStateCard(emptyText: context.l10n.homeNoContent),
       );
     } else {
       list = Column(children: [
@@ -401,12 +410,12 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _header(BuildContext context, {bool afterBanner = false}) {
     final t = context.bu;
     final l = context.l10n;
     final name = (_s.displayName ?? '').trim();
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
+      padding: EdgeInsets.fromLTRB(20, (afterBanner ? 0 : MediaQuery.of(context).padding.top) + 12, 20, 0),
       child: Row(
         children: [
           Expanded(
@@ -470,17 +479,14 @@ class _HomeTabState extends State<HomeTab> {
       );
     }
     if (e == null) {
-      return BuHeroCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _heroPill(LucideIcons.calendar, l.homeNextEvent),
-            const SizedBox(height: 12),
-            Text(l.homeNoUpcoming, style: BuType.title.copyWith(height: 1.2)),
-            const SizedBox(height: 14),
-            _whitePill(l.homeBrowseEvents, () => _push(EventsPage(session: _s))),
-          ],
-        ),
+      return HomeEmptyCard(
+        title: l.p03HomeEventsTitle,
+        trailingIcon: LucideIcons.calendarX,
+        icon: LucideIcons.calendarClock,
+        headline: l.homeNoUpcoming,
+        body: l.p03HomeNoEventBody,
+        actionLabel: l.homeBrowseEvents,
+        onAction: () => _push(EventsPage(session: _s)),
       );
     }
     final id = (e['id'] as num?)?.toInt();
@@ -645,6 +651,17 @@ class _HomeTabState extends State<HomeTab> {
   Widget _mealCard(BuildContext context) {
     final today = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final items = today.items;
+    if (items.isEmpty) {
+      final l = context.l10n;
+      return HomeEmptyCard(
+        title: l.p03HomeMealTitle,
+        subtitle: l.yemekLunch,
+        icon: LucideIcons.utensils,
+        headline: l.homeNoMenuToday,
+        body: l.p03HomeNoMenuBody,
+        onTap: () => _push(MenuPage(session: _s)),
+      );
+    }
     return MenuPhotoGate(
       url: today.imageUrl,
       builder: (context, photo) => HomeMealCard(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
-import '../../core/typography.dart';
+import '../../widgets/bu.dart';
 
 /// Tasarım (P8/P10) ton çifti: açık temada pastel zemin + koyu ikon, koyu temada yarı saydam zemin + açık ikon.
 class NotifTone {
@@ -15,8 +14,7 @@ class NotifTone {
   static const amber = NotifTone(Color(0xFFFBEFD9), Color(0xFF8A5200), Color(0xFFF2BC66));
 
   Color fg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? darkFg : lightFg;
-  Color bg(BuildContext c) =>
-      Theme.of(c).brightness == Brightness.dark ? darkFg.withValues(alpha: .18) : lightBg;
+  Color bg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? darkFg.withValues(alpha: .18) : lightBg;
 }
 
 /// Renkli ikon karosu (bildirim satırı ve akademik ekran ortak kullanır).
@@ -36,7 +34,8 @@ class NotifIconTile extends StatelessWidget {
       );
 }
 
-/// Bildirim satırı: okunmamışta beyaz kart + sol şerit + nokta; sağda kısa zaman.
+/// Bildirim satırı (referans: 15/16): sol yuvarlak tür simgesi (okunmamışta köşe noktası), üstte tür etiketi +
+/// kısa zaman, altında başlık (tek satır) ve en çok iki satır gövde.
 class NotifRow extends StatelessWidget {
   const NotifRow({
     super.key,
@@ -49,8 +48,11 @@ class NotifRow extends StatelessWidget {
     required this.onTap,
     this.body = '',
     this.unreadLabel,
+    this.strong = false,
   });
 
+  /// true: koyu (mürekkep) daire + açık simge (etkinlik/duyuru türleri).
+  final bool strong;
   final IconData icon;
   final NotifTone tone;
   final String title, typeLabel, time, body;
@@ -61,87 +63,91 @@ class NotifRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(20);
+    final circleBg = strong ? t.ink : tone.bg(context);
+    final circleFg = strong ? t.bg : tone.fg(context);
     return Semantics(
       button: true,
       label: unread ? unreadLabel : null,
       child: Container(
         decoration: BoxDecoration(
-          color: unread ? t.sf : Colors.transparent,
+          color: t.sf,
           borderRadius: radius,
-          border: Border.all(color: unread ? t.bd : Colors.transparent),
-          boxShadow: unread
-              ? const [
-                  BoxShadow(color: Color(0x0D171E33), blurRadius: 6, offset: Offset(0, 2)),
-                  BoxShadow(color: Color(0x0D171E33), blurRadius: 20, offset: Offset(0, 8)),
-                ]
-              : null,
+          border: Border.all(color: t.bd.withValues(alpha: .6)),
         ),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
             borderRadius: radius,
             onTap: onTap,
-            child: Stack(children: [
-              if (unread)
-                PositionedDirectional(
-                  start: 0,
-                  top: 18,
-                  bottom: 18,
-                  child: Container(
-                    width: 4,
-                    decoration: BoxDecoration(
-                      color: t.pr,
-                      borderRadius: const BorderRadiusDirectional.horizontal(end: Radius.circular(4)),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 14),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(clipBehavior: Clip.none, children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      margin: const EdgeInsets.only(top: 2),
+                      decoration: BoxDecoration(color: circleBg, shape: BoxShape.circle),
+                      child: Icon(icon, size: 22, color: circleFg),
                     ),
-                  ),
-                ),
-              Container(
-                constraints: const BoxConstraints(minHeight: 64),
-                padding: EdgeInsetsDirectional.fromSTEB(unread ? 14 : 15, 10, unread ? 14 : 15, 10),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  NotifIconTile(icon: icon, tone: tone),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                      Text(title,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.heading.copyWith(
-                              fontSize: 15,
-                              height: 1.35,
-                              color: t.ink,
-                              fontWeight: unread ? FontWeight.w700 : FontWeight.w500)),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(typeLabel, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
-                      ),
-                      if (body.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(body,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.caption.copyWith(fontSize: 12, height: 1.4, color: t.mut)),
+                    if (unread)
+                      PositionedDirectional(
+                        end: 0,
+                        top: 0,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                              color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
                         ),
-                    ]),
-                  ),
-                  const SizedBox(width: 8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 40),
-                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      ),
+                  ]),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child:
+                      Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                    Row(children: [
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                            child: Text(typeLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Text(time,
-                          maxLines: 1,
-                          style: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: t.mut)),
-                      const SizedBox(height: 6),
-                      unread
-                          ? Container(width: 9, height: 9, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle))
-                          : const SizedBox(width: 9, height: 9),
+                          maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
                     ]),
-                  ),
-                ]),
-              ),
-            ]),
+                    const SizedBox(height: 6),
+                    Text(title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.titleMedium!.copyWith(
+                            height: 1.25, color: t.ink, fontWeight: unread ? FontWeight.w800 : FontWeight.w600)),
+                    if (body.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(body,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.bodyMedium!.copyWith(height: 1.4, color: t.mut)),
+                      ),
+                  ]),
+                ),
+              ]),
+            ),
           ),
         ),
       ),

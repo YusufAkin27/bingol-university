@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
-import '../../core/typography.dart';
 import '../news/news_tile.dart' show newsLocalDate;
 import 'notif_row.dart';
 
@@ -38,7 +35,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   void initState() {
     super.initState();
     _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
+      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
+        _loadMore();
+      }
     });
     _load();
   }
@@ -91,7 +90,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   int get _unread => _items.where((n) => n['read'] != true).length;
 
-  void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _snack(String m) => BuToast.show(context, m, kind: BuToastKind.error);
 
   Future<void> _markAll() async {
     try {
@@ -184,19 +183,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return l.notifGroupOlder;
   }
 
+  /// Koyu (mürekkep) daire kullanan türler: etkinlik, duyuru, haber.
+  bool _strong(String? type) => type == 'NEWS' || type == 'EVENT' || type == 'ANNOUNCEMENT';
+
   NotifTone _tone(String? type) {
     switch (type) {
-      case 'NEWS':
-      case 'EVENT':
-        return NotifTone.blue;
-      case 'ANNOUNCEMENT':
-      case 'MESSAGE':
+      case 'COMMUNITY':
       case 'POST_LIKE':
         return NotifTone.red;
-      case 'COMMUNITY':
+      case 'MESSAGE':
+      case 'POLL':
+      case 'POLL_CLOSED':
+      case 'POLL_NEW':
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
-        return NotifTone.green;
+        return NotifTone.blue;
       default:
         return NotifTone.amber;
     }
@@ -236,7 +237,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final now = DateTime.now();
     final diff = now.difference(d);
     if (diff.inMinutes < 1) return l.notifNow;
-    if (diff.inMinutes < 60) return l.bildirimShortMin(diff.inMinutes.toString());
+    if (diff.inMinutes < 60) {
+      return l.bildirimShortMin(diff.inMinutes.toString());
+    }
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
     if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
     if (days == 1) return l.bildirimYesterday;
@@ -260,61 +263,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  Widget _segment(BuTokens t) {
+  Widget _filters(BuTokens t) {
     final l = context.l10n;
     final unread = _unread > 0 ? _unread : _s.badges.notifications.value;
-    Widget seg(Key k, String label, bool on, VoidCallback tap, {int badge = 0}) => Expanded(
-          child: Semantics(
-            button: true,
-            selected: on,
-            child: Material(
-              color: on ? t.sf : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              elevation: on ? 1 : 0,
-              shadowColor: const Color(0x33171E33),
-              child: InkWell(
-                key: k,
-                borderRadius: BorderRadius.circular(12),
-                onTap: tap,
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Flexible(
-                      child: Text(label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.bodyStrong.copyWith(
-                              fontSize: 14, color: on ? t.ink : t.mut, fontWeight: on ? FontWeight.w700 : FontWeight.w600)),
-                    ),
-                    if (badge > 0) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(10)),
-                        child: Text(badge > 99 ? '99+' : '$badge',
-                            style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.onPr)),
-                      ),
-                    ],
-                  ]),
-                ),
-              ),
-            ),
-          ),
-        );
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-      child: Row(children: [
-        seg(const ValueKey('notif-seg-all'), l.bildirimFilterAll, !_unreadOnly, () => setState(() => _unreadOnly = false)),
-        const SizedBox(width: 4),
-        seg(const ValueKey('notif-seg-unread'), l.bildirimFilterUnread, _unreadOnly, () => setState(() => _unreadOnly = true),
-            badge: unread),
-      ]),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      child: SizedBox(
+        width: double.infinity,
+        child: Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.start, children: [
+          _NotifFilterChip(
+              key: const ValueKey('notif-seg-all'),
+              label: l.bildirimFilterAll,
+              count: _items.length,
+              selected: !_unreadOnly,
+              onTap: () => setState(() => _unreadOnly = false)),
+          _NotifFilterChip(
+              key: const ValueKey('notif-seg-unread'),
+              label: l.bildirimFilterUnread,
+              count: unread,
+              selected: _unreadOnly,
+              onTap: () => setState(() => _unreadOnly = true)),
+        ]),
+      ),
     );
   }
 
@@ -332,77 +302,134 @@ class _NotificationsPageState extends State<NotificationsPage> {
               borderRadius: BorderRadius.circular(12),
               onTap: _markAll,
               child: Container(
-                constraints: const BoxConstraints(minHeight: 44),
+                constraints: const BoxConstraints(minHeight: 48),
                 alignment: AlignmentDirectional.centerEnd,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(l.notifMarkAll,
                     maxLines: 2,
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
               ),
             ),
           )
         : null;
 
     final shown = _unreadOnly ? _items.where((n) => n['read'] != true).toList() : _items;
+    final failed = _error != null;
 
     Widget body;
     if (_loading) {
-      body = const LoadingView();
-    } else if (_error != null && _items.isEmpty) {
-      body = ErrorView(error: _error!, onRetry: _load);
+      body = const BuSkeletonList(itemCount: 6, padding: EdgeInsets.fromLTRB(20, 12, 20, 24));
+    } else if (failed && _items.isEmpty) {
+      body = ListView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        children: [_ErrorCard(onRetry: _load)],
+      );
     } else if (shown.isEmpty) {
+      final unreadEmpty = _unreadOnly && _items.isNotEmpty;
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
-        child: ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
-          const SizedBox(height: 120),
-          EmptyView(icon: LucideIcons.bellOff, text: _unreadOnly && _items.isNotEmpty ? l.bildirimEmptyUnread : l.notifEmpty),
-        ]),
+        child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            children: [
+              BuCard(
+                radius: 20,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: BuEmptyState(
+                  illustration: unreadEmpty ? BuIllustration.check : BuIllustration.bell,
+                  title: unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
+                  message: unreadEmpty ? l.p03NotifUnreadEmptyBody : l.p03NotifEmptyBody,
+                  compact: true,
+                ),
+              ),
+            ]),
       );
     } else {
       final children = <Widget>[];
+      if (failed) {
+        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 4), child: _ErrorCard(onRetry: _load)));
+      }
       String? last;
+      final groups = <String, int>{};
+      for (final n in shown) {
+        if (n['read'] != true) {
+          groups.update(_group(n['createdAt'] as String?), (v) => v + 1, ifAbsent: () => 1);
+        }
+      }
+      final today = l.notifGroupToday;
+      final tx = Theme.of(context).textTheme;
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
           last = g;
+          final fresh = groups[g] ?? 0;
           children.add(Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 8),
-            child: Semantics(
-              header: true,
-              child: Text(g, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
-            ),
+            child: Row(children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(g,
+                      style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
+                ),
+              ),
+              if (fresh > 0)
+                Text(l.p03NotifNewCount('$fresh'),
+                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: g == today ? t.pr : t.mut)),
+            ]),
           ));
         }
-        children.add(Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 8), child: _tile(t, n)));
+        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 10), child: _tile(t, n)));
       }
       if (_more) {
-        children.add(const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())));
+        children.add(Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr)),
+              const SizedBox(width: 10),
+              Flexible(
+                  child: Text(l.p03NotifLoadingMore,
+                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+            ]),
+          ),
+        ));
       } else if (_cursor == null) {
         children.add(Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Container(width: 28, height: 1, color: t.bd),
-              const SizedBox(width: 8),
+            Row(children: [
+              Expanded(child: Divider(color: t.bd, height: 1)),
+              const SizedBox(width: 10),
+              Icon(LucideIcons.circleCheck, size: 16, color: t.mut),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(l.bildirimAllCaughtUp,
                     textAlign: TextAlign.center,
-                    style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: t.mut)),
+                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
               ),
-              const SizedBox(width: 8),
-              Container(width: 28, height: 1, color: t.bd),
+              const SizedBox(width: 10),
+              Expanded(child: Divider(color: t.bd, height: 1)),
             ]),
-            const SizedBox(height: 8),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 14, color: t.mut),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(l.bildirimSwipeHint,
-                    textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
-              ),
-            ]),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                  color: t.ink.withValues(alpha: .92), borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(LucideIcons.pointer, size: 16, color: t.bg),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(l.bildirimSwipeHint,
+                      textAlign: TextAlign.center,
+                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.bg)),
+                ),
+              ]),
+            ),
           ]),
         ));
       }
@@ -430,7 +457,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
-        if (!_loading && !(_error != null && _items.isEmpty)) _segment(t),
+        if (!_loading && !(failed && _items.isEmpty)) _filters(t),
         Expanded(child: body),
       ]),
     );
@@ -439,19 +466,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
     final un = n['read'] != true;
     final type = n['type'] as String?;
+    final tx = Theme.of(context).textTheme;
     return Dismissible(
       key: ValueKey('notif-${n['id']}'),
       direction: DismissDirection.endToStart,
       onDismissed: (_) => _delete(n),
       background: Container(
         alignment: AlignmentDirectional.centerEnd,
-        padding: const EdgeInsetsDirectional.only(end: 22),
+        padding: const EdgeInsetsDirectional.only(end: 28),
         decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(20)),
-        child: Semantics(label: context.l10n.bildirimDelete, child: const Icon(LucideIcons.trash2, size: 20, color: Colors.white)),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(LucideIcons.trash2, size: 22, color: t.onMedia),
+          const SizedBox(height: 4),
+          Text(context.l10n.bildirimDelete,
+              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onMedia)),
+        ]),
       ),
       child: NotifRow(
         icon: _icon(type),
         tone: _tone(type),
+        strong: _strong(type),
         title: (n['title'] as String?) ?? '',
         typeLabel: _typeLabel(type),
         body: (n['body'] as String?) ?? '',
@@ -460,6 +494,93 @@ class _NotificationsPageState extends State<NotificationsPage> {
         unreadLabel: context.l10n.notifUnread,
         onTap: () => _open(n),
       ),
+    );
+  }
+}
+
+/// Süzgeç hapı: seçili = mürekkep zemin, sayaç rozeti seçilide kırmızı daire.
+class _NotifFilterChip extends StatelessWidget {
+  const _NotifFilterChip(
+      {super.key, required this.label, required this.count, required this.selected, required this.onTap});
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: BuPressable(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: BuMotion.of(context, BuMotion.short),
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: selected ? t.ink : t.sf,
+            borderRadius: BorderRadius.circular(BuRadius.pill),
+            border: Border.all(color: selected ? t.ink : t.bd),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.bg : t.ink)),
+            const SizedBox(width: 8),
+            Container(
+              constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              alignment: Alignment.center,
+              decoration:
+                  BoxDecoration(color: selected ? t.pr : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Text(count > 99 ? '99+' : '$count',
+                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onPr : t.mut)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Yüklenemedi, tekrar dene" kartı.
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return BuCard(
+      radius: 20,
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
+              child: Icon(LucideIcons.wifiOff, size: 24, color: t.onSoft),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Semantics(
+              liveRegion: true,
+              child: Text(l.p03NotifLoadFailed,
+                  style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, onPressed: onRetry),
+      ]),
     );
   }
 }

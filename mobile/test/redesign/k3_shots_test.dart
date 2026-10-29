@@ -1,0 +1,305 @@
+@Tags(['store-shots'])
+library;
+
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:bu_kampus/core/locale_controller.dart';
+import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/home/home_tab.dart';
+import 'package:bu_kampus/features/menu/menu_page.dart';
+import 'package:bu_kampus/features/menu/menu_photo.dart';
+import 'package:bu_kampus/features/news/news_detail_page.dart';
+import 'package:bu_kampus/features/notifications/notifications_page.dart';
+import 'package:bu_kampus/features/search/search_page.dart';
+import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../support/fake_app.dart';
+import '../support/store_shots_images.dart';
+
+/// K3 (arama, ana sayfa/yemek/bildirim durumlari, haber detay varyantlari) referans karsilastirma goruntuleri.
+///
+/// Uretim (C:\bu_mobile, Git Bash):
+///   STORE_SHOTS_OUT='C:/Users/.../redesign/k3/uygulama' flutter test test/redesign/k3_shots_test.dart
+/// Istege bagli: `K3_LANG=tr|en|ar`, `K3_ONLY=y1,n2` (dosya adi oneki), `K3_MODES=light,dark,x13`.
+const _dpr = 2.0;
+const _w = 390.0;
+const _h = 844.0;
+
+String _lang = 'tr';
+
+class _Shot {
+  const _Shot(this.file, this.build, this.backend, {this.after, this.recent, this.slow = false, this.height = _h});
+  final String file;
+  final Widget Function(FakeBackend b) build;
+  final FakeBackend Function() backend;
+  final Future<void> Function(WidgetTester t, FakeBackend b)? after;
+  final List<String>? recent;
+  final bool slow;
+  final double height;
+}
+
+String _today([int add = 0]) {
+  final n = DateTime.now().add(Duration(days: add));
+  return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
+}
+
+List<Map<String, dynamic>> _menuMonth(Map<String, dynamic> today) {
+  final n = DateTime.now();
+  final last = DateTime(n.year, n.month + 1, 0).day;
+  return [
+    for (var d = 1; d <= last; d++)
+      if (d == n.day) {...today, 'date': _today()} else {'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}', 'items': <String>[]},
+  ];
+}
+
+Map<String, dynamic> _dish(String n, int? k) => {'name': n, 'kcal': k};
+
+FakeBackend _menuBackend({required Map<String, dynamic> today, bool maintenance = false, bool rated = false, bool poll = true}) {
+  final b = FakeBackend()
+    ..on('/menu', _menuMonth(today))
+    ..on('/status', {
+      'NEWS': {'maintenance': false},
+      'MENU': {'maintenance': maintenance},
+    });
+  if (poll) {
+    b.on('/polls/menu/today', {
+      'id': 9,
+      'type': 'RATING',
+      'scope': 'MENU',
+      'title': 'Bugünün menüsü',
+      'status': 'OPEN',
+      'canVote': true,
+      'voted': rated,
+      if (rated) 'myRating': 4,
+      if (rated) 'average': 4.2,
+      'options': <Object>[],
+      'menuItems': ['Kuru fasulye', 'Bulgur pilavı', 'Turşu'],
+    });
+  } else {
+    b.on('/polls/menu/today', <String, dynamic>{}, status: 204);
+  }
+  return b;
+}
+
+final _fullMenu = <String, dynamic>{
+  'items': ['MERCİMEK ÇORBASI', 'ETLİ NOHUT', 'PİRİNÇ PİLAVI', 'CACIK', 'MEYVE'],
+  'imageUrl': 'https://img.invalid/menu.jpg',
+  'dishes': [_dish('MERCİMEK ÇORBASI', 120), _dish('ETLİ NOHUT', 310), _dish('PİRİNÇ PİLAVI', 280), _dish('CACIK', 70), _dish('MEYVE', 60)],
+  'totalKcal': 840,
+  'kcalComplete': true,
+};
+
+final _partialMenu = <String, dynamic>{
+  'items': ['Kuru fasulye', 'Bulgur pilavı', 'Turşu'],
+  'dishes': [_dish('Kuru fasulye', 290), _dish('Bulgur pilavı', 260), _dish('Turşu', null)],
+  'totalKcal': 550,
+  'kcalComplete': false,
+};
+
+final _shots = <_Shot>[
+  _Shot('y1_yemek_detay', (b) => MenuPage(session: makeSession(b)), () => _menuBackend(today: _fullMenu)),
+  _Shot('y2_yemek_eksik_kalori', (b) => MenuPage(session: makeSession(b)), () => _menuBackend(today: _partialMenu, rated: true)),
+  _Shot('y3_yemek_bos_bakim', (b) => MenuPage(session: makeSession(b)),
+      () => _menuBackend(today: {'items': <String>[]}, maintenance: true, poll: false)),
+  _Shot('y4_yemek_yukleniyor', (b) => MenuPage(session: makeSession(b)), () => _menuBackend(today: _fullMenu), slow: true),
+  _Shot('y5_yemek_bos', (b) => MenuPage(session: makeSession(b)), () => _menuBackend(today: {'items': <String>[]}, poll: false)),
+  _Shot('n1_bildirim_okunmamis_kaydir', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend(_notifItems), after: (t, b) async {
+    await _tapText(t, lookupAppLocalizations(Locale(_lang)).bildirimFilterUnread);
+    final g = await t.startGesture(t.getCenter(find.byKey(const ValueKey('notif-2'))));
+    await g.moveBy(const Offset(-30, 0));
+    await t.pump(const Duration(milliseconds: 100));
+    await g.moveBy(const Offset(-130, 0));
+    await t.pump(const Duration(milliseconds: 300));
+  }),
+  _Shot('n2_bildirim_bos', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend([])),
+  _Shot('n3_bildirim_okunmamis_bos', (b) => NotificationsPage(session: makeSession(b)),
+      () => _notifBackend([for (final n in _notifItems.take(3)) {...n, 'read': true}]), after: (t, b) async {
+    await _tapText(t, lookupAppLocalizations(Locale(_lang)).bildirimFilterUnread);
+  }),
+  _Shot('n4_bildirim_hata', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend([])..fail('/notifications')),
+  _Shot('n5_bildirim_liste_sonu', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend(_notifItems), after: (t, b) async {
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -900));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Shot('n6_bildirim_daha_fazla', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend([..._notifItems, for (final n in _notifItems) {...n, 'id': 100 + (n['id'] as int)}], next: 20),
+      after: (t, b) async {
+    b.delay = const Duration(seconds: 4);
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -900));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Shot('n7_bildirim_yukleniyor', (b) => NotificationsPage(session: makeSession(b)), () => _notifBackend(_notifItems), slow: true),
+  _Shot('h1_ana_yukleniyor', (b) => Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {})), () => FakeBackend(), slow: true),
+  _Shot('h2_ana_bayat_bos', (b) => Scaffold(body: HomeTab(session: makeSession(b)..displayName = 'Elif', onOpenTab: (i, {newsType}) {})), () {
+    final b = FakeBackend()
+      ..on('/status', {
+        'NEWS': {'maintenance': true},
+        'MENU': {'maintenance': false},
+      })
+      ..on('/menu/today', <String, dynamic>{})
+      ..fail('/news');
+    return b;
+  }, height: 1100),
+];
+
+String _ago(Duration d) => DateTime.now().subtract(d).toIso8601String();
+
+Map<String, dynamic> _notif(int id, String type, String title, String body, Duration ago, {bool read = false}) =>
+    {'id': id, 'type': type, 'title': title, 'body': body, 'read': read, 'createdAt': _ago(ago)};
+
+FakeBackend _notifBackend(List<Map<String, dynamic>> items, {int? unread, int? next}) => FakeBackend()
+  ..on('/notifications', {
+    'items': items,
+    'unreadCount': unread ?? items.where((e) => e['read'] != true).length,
+    'nextCursor': next,
+  });
+
+List<Map<String, dynamic>> get _notifItems => [
+      _notif(1, 'EVENT', 'Robotik Kulübü Yapay Zeka Çalıştayı', 'Yarın saat 14:00\'te Mühendislik Fakültesi B-102 amfisinde.', const Duration(minutes: 5)),
+      _notif(2, 'MESSAGE', 'Ahmet Yılmaz', 'Yarınki ders notlarını paylaşabilir misin?', const Duration(minutes: 25)),
+      _notif(3, 'COMMUNITY', 'Tiyatro Kulübü Prova Saati', 'Yeni dönem oyun seçmeleri için takvim güncellendi.', const Duration(hours: 2)),
+      _notif(4, 'POLL', 'Yemekhane Memnuniyet Anketi', 'Ekim ayı menülerini değerlendirmek için 3 soruluk anketi doldurun.', const Duration(days: 1)),
+      _notif(5, 'ANNOUNCEMENT', 'Güz Dönemi Ders Kayıtları', 'Danışman onayları için son gün 3 Kasım olarak belirlenmiştir.', const Duration(days: 3)),
+    ];
+
+Future<void> _tapText(WidgetTester t, String text) async {
+  await t.tap(find.text(text).first);
+  await t.pump(const Duration(milliseconds: 400));
+}
+
+class _Variant {
+  const _Variant(this.suffix, this.dark, this.scale);
+  final String suffix;
+  final bool dark;
+  final double scale;
+}
+
+Widget _app(Widget home, bool dark, GlobalKey key, double scale) {
+  final lang = _lang;
+  return RepaintBoundary(
+    key: key,
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: BuTheme.forLocale(Brightness.light, lang),
+      darkTheme: BuTheme.forLocale(Brightness.dark, lang),
+      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+      locale: Locale(lang),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(scale)),
+        child: child!,
+      ),
+      home: home,
+    ),
+  );
+}
+
+Future<void> _loadFonts(bool arabic) async {
+  await loadTestFonts();
+  if (!arabic) return;
+  final f = FontLoader('Inter');
+  for (final n in ['arial.ttf', 'arialbd.ttf']) {
+    final file = File('C:/Windows/Fonts/$n');
+    if (file.existsSync()) f.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+  }
+  await f.load();
+}
+
+Future<void> _pumpImages(WidgetTester tester) async {
+  for (var i = 0; i < 5; i++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
+    await tester.pump(const Duration(milliseconds: 120));
+  }
+}
+
+void main() {
+  final out = Platform.environment['STORE_SHOTS_OUT'];
+  final skip = out == null ? 'STORE_SHOTS_OUT tanimli degil (yalniz ekran goruntusu uretimi icin)' : null;
+  _lang = Platform.environment['K3_LANG'] ?? 'tr';
+  final only = (Platform.environment['K3_ONLY'] ?? '').split(',').where((e) => e.isNotEmpty).toList();
+  final modes = (Platform.environment['K3_MODES'] ?? 'light').split(',');
+  final variants = <_Variant>[
+    if (modes.contains('light')) const _Variant('', false, 1),
+    if (modes.contains('dark')) const _Variant('_koyu', true, 1),
+    if (modes.contains('x13')) const _Variant('_x1.3', false, 1.3),
+  ];
+
+  setUpAll(() => _loadFonts(_lang == 'ar'));
+
+  for (final v in variants) {
+    for (final s in _shots) {
+      if (only.isNotEmpty && !only.any((o) => s.file.startsWith(o))) continue;
+      final name = '${s.file}${v.suffix}_$_lang';
+      testWidgets('k3 $name', skip: skip != null, (tester) async {
+        debugNetworkImageHttpClientProvider = () => StoreImageHttpClient();
+        addTearDown(() => debugNetworkImageHttpClientProvider = null);
+        tester.view.devicePixelRatio = _dpr;
+        tester.view.physicalSize = Size(_w * _dpr, s.height * _dpr);
+        tester.view.padding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
+        tester.view.viewPadding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
+        addTearDown(tester.view.reset);
+        LocaleController.current = LocaleController(deviceLocales: () => [Locale(_lang)])..pref = _lang;
+        addTearDown(() => LocaleController.current = null);
+
+        final b = s.backend();
+        if (s.slow) b.delay = const Duration(seconds: 3);
+        final key = GlobalKey();
+        final home = s.build(b);
+        if (s.recent != null) {
+          await const FlutterSecureStorage().write(key: 'recent_searches', value: jsonEncode(s.recent));
+        } else {
+          await const FlutterSecureStorage().delete(key: 'recent_searches');
+        }
+        await tester.pumpWidget(_app(home, v.dark, key, v.scale));
+        await tester.pump(const Duration(milliseconds: 100));
+        if (!s.slow) {
+          await settle(tester, const Duration(milliseconds: 900));
+          await _pumpImages(tester);
+        }
+        if (s.after != null) {
+          await s.after!(tester, b);
+          if (!s.slow) {
+            await settle(tester, const Duration(milliseconds: 700));
+            await _pumpImages(tester);
+          } else {
+            await tester.pump(const Duration(milliseconds: 600));
+          }
+        } else if (s.slow) {
+          await tester.pump(const Duration(milliseconds: 500));
+        }
+        final err = tester.takeException();
+        if (err != null) fail('Istisna: $err');
+        await tester.runAsync(() async {
+          final ro = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final image = await ro.toImage(pixelRatio: _dpr);
+          final data = (await image.toByteData(format: ui.ImageByteFormat.png))!;
+          final dir = Directory(out!)..createSync(recursive: true);
+          final f = File('${dir.path}/$name.png')..writeAsBytesSync(data.buffer.asUint8List());
+          // ignore: avoid_print
+          print('YAZILDI ${f.path} ${image.width}x${image.height}');
+        });
+        if (s.slow) {
+          for (var i = 0; i < 8; i++) {
+            await tester.pump(const Duration(seconds: 2));
+          }
+        }
+        await unmount(tester);
+        await const FlutterSecureStorage().delete(key: 'recent_searches');
+        debugNetworkImageHttpClientProvider = null;
+      });
+    }
+  }
+}

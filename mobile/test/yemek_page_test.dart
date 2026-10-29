@@ -16,6 +16,54 @@ List<Map<String, dynamic>> _month() {
 }
 
 void main() {
+  testWidgets('Yemek kalori: satir kcal, eksikse en az N kcal, kalorisiz yemekte tire', (tester) async {
+    useScreen(tester, const Size(390, 844));
+    final n = DateTime.now();
+    final b = FakeBackend()
+      ..on('/menu', [
+        {
+          'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}',
+          'items': ['KURU FASULYE', 'TURSU'],
+          'dishes': [
+            {'name': 'KURU FASULYE', 'kcal': 290},
+            {'name': 'TURSU', 'kcal': null},
+          ],
+          'totalKcal': 290,
+          'kcalComplete': false,
+        },
+      ]);
+    await tester.pumpWidget(buildApp(MenuPage(session: makeSession(b))));
+    await settle(tester);
+    expect(find.text('Kuru Fasulye'), findsOneWidget);
+    expect(find.text('290 kcal'), findsOneWidget);
+    expect(find.text('-'), findsOneWidget);
+    expect(find.text('En az 290 kcal'), findsOneWidget);
+    expect(find.text('0 kcal'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('Yemek kalori: tamamsa Toplam N kcal', (tester) async {
+    useScreen(tester, const Size(390, 844));
+    final n = DateTime.now();
+    final b = FakeBackend()
+      ..on('/menu', [
+        {
+          'date': '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}',
+          'items': ['Pilav'],
+          'dishes': [
+            {'name': 'Pilav', 'kcal': 280},
+          ],
+          'totalKcal': 280,
+          'kcalComplete': true,
+        },
+      ]);
+    await tester.pumpWidget(buildApp(MenuPage(session: makeSession(b))));
+    await settle(tester);
+    expect(find.text('Toplam'), findsOneWidget);
+    expect(find.text('280 kcal'), findsNWidgets(2));
+    await unmount(tester);
+  });
+
   setUpAll(loadTestFonts);
 
   for (final dark in [false, true]) {
@@ -27,11 +75,12 @@ void main() {
             brightness: dark ? Brightness.dark : Brightness.light));
         await settle(tester);
         expect(find.text('Mercimek corbasi'), findsOneWidget);
-        expect(find.byKey(const ValueKey('yemek_day_prev')), findsOneWidget);
-        await tester.tap(find.byKey(const ValueKey('yemek_day_next')));
-        await tester.pump();
-        await tester.tap(find.byKey(const ValueKey('yemek_day_prev')));
-        await tester.pump();
+        final n = DateTime.now();
+        final next = DateTime(n.year, n.month, n.day + 1);
+        final nextKey = ValueKey('yemek_day_${next.year}-${next.month}-${next.day}');
+        expect(find.byKey(nextKey), findsOneWidget);
+        await tester.tap(find.byKey(nextKey));
+        await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
       });
     }
