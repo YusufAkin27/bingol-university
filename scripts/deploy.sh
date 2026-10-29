@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # BU Kampus: yerelden tek komutla VDS'e dagitim (kod aktar -> .env.prod yoksa uret -> derle -> baslat -> saglik -> geri alma -> isitma).
-# Kullanim:  scripts/deploy.sh [--dry-run] [--no-build] [--rollback] [--ip-test] [--ref <git-ref>] [--skip-warmup]
+# Kullanim:  scripts/deploy.sh [--dry-run] [--no-build] [--rollback] [--ip-test] [--ref <git-ref>] [--skip-warmup] [--skip-cleanup]
 #   --dry-run      Sunucuya DOKUNMAZ; adimlari ve komutlari yazdirir (yerel salt-okur kontroller calisir).
 #   --no-build     Imaj derlemez; mevcut yerel imajlarla `up -d` (yeni surum aktarilir ama derlenmez).
 #   --rollback     Onceki surume doner (onceki imajlar :previous etiketli + onceki surum dizini).
@@ -8,6 +8,8 @@
 #                  .env.prod degismez (DOMAIN/CORS/PUBLIC_WEB_URL yalnizca bu calistirma icin ortamdan ezilir).
 #   --ref          Dagitilacak git surumu (varsayilan HEAD). Yalniz COMMIT'LENMIS dosyalar aktarilir (git archive).
 #   --skip-warmup  scripts/warmup.sh calistirma.
+#   --skip-cleanup Basarili dagitimdan sonra disk temizligi kurulumunu/calistirmasini (scripts/ops/install-cleanup.sh) atlar.
+#                  Temizlik hatasi dagitimi BASARISIZ saymaz (yalniz uyari). Ayrinti: docs/DEPLOY_SCRIPT.md "Disk temizligi".
 # Ortam: SKIP_TESTS=1 yerel kapilari (web lint/typecheck/test/build/check:bundle) atlar.
 # Yapilandirma: repo kokunde GITIGNORED `.deploy.env` (asla commit etme, loga yazma):
 #   DEPLOY_HOST, DEPLOY_USER (sudo'lu hesap; varsayilan deploy), DEPLOY_DOMAIN,
@@ -28,7 +30,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ROOT="$(pwd)"
 
-DRY=0; NOBUILD=0; ROLLBACK=0; IPTEST=0; REF="HEAD"; WARMUP=1
+DRY=0; NOBUILD=0; ROLLBACK=0; IPTEST=0; REF="HEAD"; WARMUP=1; CLEANUP=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1; shift;;
@@ -37,7 +39,8 @@ while [ $# -gt 0 ]; do
     --ip-test) IPTEST=1; shift;;
     --ref) REF="${2:?--ref deger ister}"; shift 2;;
     --skip-warmup) WARMUP=0; shift;;
-    -h|--help) sed -n '2,21p' "$0"; exit 0;;
+    --skip-cleanup) CLEANUP=0; shift;;
+    -h|--help) sed -n '2,23p' "$0"; exit 0;;
     *) echo "bilinmeyen arguman: $1" >&2; exit 2;;
   esac
 done
@@ -448,6 +451,19 @@ if [ "$WARMUP" = 1 ]; then
   fi
 else
   log "6/7 isitma atlandi (--skip-warmup)"
+fi
+
+# --- 6b) disk temizligi: betik + systemd timer kurulumu (idempotent) ve bir kez calistirma. Hata dagitimi BASARISIZ saymaz. ---
+# Yalniz basarili dagitimdan sonra gelir (basarisizlikta yukarida die ile cikildi; geri alma yolunda eski imajlar/dizin korunur).
+if [ "$CLEANUP" = 1 ]; then
+  if [ "$DRY" = 1 ]; then
+    bash scripts/ops/install-cleanup.sh --dry-run --run --ref "$SHA" || warn "disk temizligi dry-run basarisiz (dagitim etkilenmedi)"
+  else
+    log "6b/7 disk temizligi: betik + timer kurulumu ve bir kez calistirma (scripts/ops/install-cleanup.sh)"
+    bash scripts/ops/install-cleanup.sh --run --ref "$SHA"       || warn "disk temizligi kurulumu/calistirmasi basarisiz (dagitim TAMAM sayildi); elle: scripts/ops/install-cleanup.sh --run"
+  fi
+else
+  log "6b/7 disk temizligi atlandi (--skip-cleanup)"
 fi
 
 log "7/7 OZET"

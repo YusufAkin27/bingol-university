@@ -101,17 +101,32 @@ status_failure() {
   chmod 644 "$FAILURE_FILE" 2>/dev/null || true
 }
 
-# prune <dizin> <tut>: yalniz YEDEK adli (YYYYmmddTHHMMSS) dizinleri, en yeni <tut> tanesi disinda siler.
-# Yalnizca basarili yedekten SONRA cagrilir. <tut> < 1 ise hicbir sey silinmez (guvenli taraf).
+# prune <dizin> <tut>: yalniz YEDEK adli (YYYYmmddTHHMMSS) dizinleri siler; en yeni <tut> GECERLI yedek (SHA256SUMS + db.dump.age
+# var) ve onlardan yeni her sey kalir, daha eskiler silinir. GECERLI yedek sayisi <tut>'tan azsa HICBIR SEY silinmez (eldeki son iyi
+# yedekler korunur). Yalnizca basarili yedekten SONRA cagrilir. <tut> < 1 ise saklama KAPALIDIR (haftalik/aylik varsayilani 0):
+# bos dizinde sessiz kalir (eski surumdeki "prune sayisi gecersiz (0)" uyarisi her saat yanlis alarm veriyordu); dizinde yedek
+# varsa bir kez uyarir, yine de silmez (guvenli taraf).
 prune() {
-  local n=0 d
-  [ "${2:-0}" -ge 1 ] 2>/dev/null || { log "uyari: prune sayisi gecersiz ($2); silme yapilmadi"; return 0; }
-  for d in $(ls -1 "$1" 2>/dev/null | grep -E '^[0-9]{8}T[0-9]{6}$' | sort -r); do
-    n=$((n+1))
-    if [ "$n" -gt "$2" ]; then
+  local keep="${2:-0}" d valid=0 cnt
+  if ! [ "$keep" -ge 1 ] 2>/dev/null; then
+    cnt="$(ls -1 "$1" 2>/dev/null | grep -cE '^[0-9]{8}T[0-9]{6}$' || true)"
+    [ "${cnt:-0}" -eq 0 ] || log "uyari: $1 icin saklama kapali/gecersiz ($keep) ama $cnt yedek var; silme yapilmadi"
+    return 0
+  fi
+  local names; names="$(ls -1 "$1" 2>/dev/null | grep -E '^[0-9]{8}T[0-9]{6}$' | sort -r || true)"
+  local total_valid=0
+  for d in $names; do [ -s "$1/$d/SHA256SUMS" ] && [ -s "$1/$d/db.dump.age" ] && total_valid=$((total_valid+1)); done
+  if [ "$total_valid" -lt "$keep" ]; then
+    log "saklama: $1 icinde $total_valid gecerli yedek var (< $keep); silme yapilmadi"
+    return 0
+  fi
+  for d in $names; do
+    if [ "$valid" -ge "$keep" ]; then
       log "siliniyor: $1/$d"
       # Temizlik hatasi yedegi/uzak kopyayi BASARISIZ saymaz (izin sorunu yedekleme zincirini kirmasin)
       rm -rf "${1:?}/$d" || log "uyari: $1/$d silinemedi (sahiplik/izin?); sonraki calismada yeniden denenir"
+    elif [ -s "$1/$d/SHA256SUMS" ] && [ -s "$1/$d/db.dump.age" ]; then
+      valid=$((valid+1))
     fi
   done
 }

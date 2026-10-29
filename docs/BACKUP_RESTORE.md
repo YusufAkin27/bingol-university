@@ -8,7 +8,7 @@ Kapsam: PostgreSQL veritabanı + yüklenen dosyalar (`uploads` volume: avatarlar
 |---|---|---|
 | **RPO** (kabul edilen en çok veri kaybı) | **1 saat** | Saatlik yedek (`BACKUP_CRON=5 * * * *`). Güncel politika özeti: [BACKUP.md](BACKUP.md). Daha sıkı RPO için WAL arşivi (pgBackRest/WAL-G) gerekir. |
 | **RTO** (kabul edilen en uzun kesinti) | **2 saat** | Aşağıdaki geri yükleme adımları; veritabanı ~birkaç GB için `pg_restore` dakikalar sürer. Yılda 2 tatbikatta süre ölçülür. |
-| Saklama | **En yeni 3 yedek** (3 saatlik pencere) | `BACKUP_KEEP_DAILY=3`; haftalık/aylık varsayılan kapalı (`BACKUP_KEEP_WEEKLY/MONTHLY=0`, açılırsa hardlink kopyası). **Uzak kopya (`BACKUP_REMOTE`) olmadan disk kaybı = tüm yedeklerin kaybı.** |
+| Saklama | **En yeni 3 yedek** (3 saatlik pencere) | `BACKUP_KEEP_DAILY=3`; haftalık/aylık varsayılan kapalı (`BACKUP_KEEP_WEEKLY/MONTHLY=0`, açılırsa hardlink kopyası). **Uzak kopya (`BACKUP_REMOTE`) olmadan disk kaybı = tüm yedeklerin kaybı.** Silme mantığı (`lib.sh prune`): en yeni N **geçerli** yedek (`SHA256SUMS` + `db.dump.age` var) ve onlardan yenisi kalır, daha eskisi silinir; geçerli yedek N'den azsa hiçbir şey silinmez; yalnız başarılı yedekten sonra çalışır. Sınama: `bash scripts/backup/selftest-prune.sh`. |
 | Doğrulama | Haftalık otomatik geri yükleme denemesi | Pazar 04:30 `verify-restore.sh --latest` (aşağıda). |
 
 KVKK: yedekler kişisel veri içerir. Saklama süresi (öneri <= 12 ay, aylık en eski) saklama politikasıyla uyumlu olmalıdır (`docs/legal/internal/01_saklama_ve_imha_politikasi.md`); **silinen hesaplar yedekten geri yüklenince yeniden anonimleştirilmelidir** (bölüm 5, adım 7).

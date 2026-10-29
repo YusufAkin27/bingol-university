@@ -1,0 +1,13 @@
+# Gunluk 04:30 (Europe/Istanbul). 03:00 DbMaintenanceJob, saatlik :05 yedek ve 04:00 cihaz temizligi ile cakismaz.
+# (Pazar 04:30'da yedek konteynerinin geri yukleme dogrulamasi da calisir; temizlik IO "idle" sinifindadir.)
+[Unit]
+Description=BU Kampus Docker disk temizligi (gunluk)
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 Europe/Istanbul
+RandomizedDelaySec=300
+Persistent=true
+Unit=bu-docker-cleanup.service
+
+[Install]
+WantedBy=timers.target

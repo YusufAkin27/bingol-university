@@ -62,6 +62,7 @@ Doğrulama kodu (`vc:*`), refresh token (`rt:*`, yalnız SHA-256 hash), rate lim
 | Mail kuyruğu işleyici | `app.mail.queue-poll-ms` (5 sn) ve yeni kayıtta; 30 günden eski SENT/DEAD kayıtlar gece silinir | `app.mail.*` |
 | Eski cihaz token temizliği | her gece 04:00 (60 gün görülmeyen) | `app.push.device-cleanup-cron`, `app.push.device-ttl-days` |
 | Sohbet odası bakımı | 5 dk (kapanan/yasaklı üyelerin düşürülmesi) | `app.chat.room-purge-ms` |
+| Sunucu disk temizliği (Docker imaj/önbellek/eski sürüm dizini; uygulama dışı, systemd) | her gün 04:30 | `bu-docker-cleanup.timer`, `scripts/ops/docker-cleanup.sh` (bkz. `docs/DEPLOY_SCRIPT.md`) |
 
 Açılışta tablolar **boşsa** ilk doldurma **arka planda** bir kez yapılır (`app.sync.initial-fill`). Manuel: `POST /api/admin/sync`, `/api/admin/sync-menu`.
 

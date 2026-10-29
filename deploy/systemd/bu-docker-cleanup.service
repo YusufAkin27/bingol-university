@@ -1,0 +1,31 @@
+# BU Kampus: gunluk Docker disk temizligi (eski imajlar, build onbellegi, eski surum dizinleri). Volume'lara DOKUNMAZ.
+# Kurulum: scripts/ops/install-cleanup.sh (deploy.sh sonunda da cagrilir). Betik: /opt/bukampus/bin/docker-cleanup.sh
+[Unit]
+Description=BU Kampus Docker disk temizligi
+After=docker.service
+Wants=docker.service
+ConditionPathExists=/opt/bukampus/bin/docker-cleanup.sh
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+SupplementaryGroups=docker
+ExecStart=/opt/bukampus/bin/docker-cleanup.sh
+SyslogIdentifier=bu-docker-cleanup
+TimeoutStartSec=30min
+Nice=10
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle
+# Kisitlar: yalniz surum dizinine ve kilit dosyasina yazabilir; docker.sock'a baglanmak okunur-yazilir olmayi gerektirmez
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/bukampus /run/lock
+ProtectHome=yes
+Environment=DOCKER_CONFIG=/tmp/.docker
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
