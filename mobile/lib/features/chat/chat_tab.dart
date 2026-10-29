@@ -339,6 +339,7 @@ class _ChatTabState extends State<ChatTab> {
         await widget.session.api.delete('/conversations/${c['id']}/archive');
       }
       _scheduleBadge();
+      if (!mounted) return;
       _toast(archive
           ? context.l10n.chatMiscArchived
           : context.l10n.chatMiscUnarchived);

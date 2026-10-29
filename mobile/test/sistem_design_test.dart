@@ -40,7 +40,7 @@ void main() {
     'Offline': () => OfflineScreen(onRetry: () {}),
     'ErrorView net': () => Scaffold(body: ErrorView(error: ApiError(0, 'NETWORK', ''), onRetry: () {})),
     'ErrorView genel': () => Scaffold(body: ErrorView(error: ApiError(500, 'X', ''), onRetry: () {})),
-    'EmptyView': () => Scaffold(body: EmptyView(icon: LucideIcons.bell, text: 'Yeni bildirimler burada görünecek.', title: 'Bildirim yok')),
+    'EmptyView': () => const Scaffold(body: EmptyView(icon: LucideIcons.bell, text: 'Yeni bildirimler burada görünecek.', title: 'Bildirim yok')),
     'EmptyView eylemli': () => Scaffold(
         body: EmptyView(icon: LucideIcons.messageSquare, text: 'Birini bulup ilk mesajı gönderin.', title: 'Henüz sohbet yok', actionLabel: 'Yeni sohbet', onAction: () {})),
     'StaleBanner': () => const Scaffold(body: Padding(padding: EdgeInsets.all(20), child: StaleBanner(text: 'Bazı özellikler geçici olarak kullanılamayabilir.'))),

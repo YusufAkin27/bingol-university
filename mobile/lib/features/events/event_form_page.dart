@@ -209,6 +209,7 @@ class _EventFormPageState extends State<EventFormPage> {
         });
       }
     } on ImageException catch (e) {
+      if (!mounted) return;
       final l = context.l10n;
       _toast(e.code == 'TOO_LARGE'
           ? l.eventFormImgTooLarge
@@ -216,6 +217,7 @@ class _EventFormPageState extends State<EventFormPage> {
               ? l.eventFormImgUnsupported
               : l.eventFormImgUnreadable);
     } catch (_) {
+      if (!mounted) return;
       _toast(context.l10n.eventFormImgPickFail);
     }
   }

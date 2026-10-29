@@ -85,7 +85,7 @@ void main() {
     });
 
     testWidgets('tek fotograf secilince onizleme gelir ve paylas aktif olur', (tester) async {
-      final (_, __, ___, asked) = await open(tester);
+      final (_, _, _, asked) = await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(asked, [ImageSource.gallery]);
@@ -149,7 +149,7 @@ void main() {
     });
 
     testWidgets('metinsiz de paylasilir (metin istege bagli)', (tester) async {
-      final (b, _, __, ___) = await open(tester);
+      final (b, _, _, _) = await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.byKey(const ValueKey('composeShare')));

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/api.dart';
@@ -454,7 +455,8 @@ class _SearchPageState extends State<SearchPage> {
                   height: 44,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    cacheExtent: 800, // 6 çip: hepsi oluşturulsun (erişilebilirlik ağacında görünür)
+                    // 6 çip: hepsi oluşturulsun (erişilebilirlik ağacında görünür)
+                    scrollCacheExtent: const ScrollCacheExtent.pixels(800),
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     children: [
                       for (final tab in _tabOrder)

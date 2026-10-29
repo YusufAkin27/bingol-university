@@ -266,9 +266,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
           return;
         case 'close':
           await api.post('$_path/close', {});
+          if (!mounted) return;
           _toast(context.l10n.eventFormRegsClosedToast);
         case 'reopen':
           await api.post('$_path/reopen', {});
+          if (!mounted) return;
           _toast(context.l10n.eventFormRegsReopenedToast);
         case 'cancel':
           final ok = await confirmEventDialog(
@@ -280,6 +282,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           );
           if (!ok || !mounted) return;
           await api.delete(_path);
+          if (!mounted) return;
           _toast(context.l10n.eventFormCancelledToast);
       }
       if (mounted) await _load(refresh: true);
@@ -287,6 +290,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (eventIsNotFound(e)) {
         if (mounted) await _load(refresh: true); // gizlenmiş: "Etkinlik bulunamadı" ekranı
       } else {
+        if (!mounted) return;
         _toast(eventSaveErrorText(context, e));
       }
     }
@@ -378,6 +382,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ),
       );
     } on ApiError catch (e) {
+      if (!mounted) return;
       if (e.status == 404 || e.status == 405) {
         _toast(context.l10n.eventFormChatSoon);
       } else {

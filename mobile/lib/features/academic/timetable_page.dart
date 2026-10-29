@@ -109,11 +109,12 @@ class _TimetablePageState extends State<TimetablePage> {
       academicToast(context, context.l10n.acadTimeExportNone);
       return;
     }
+    final l = context.l10n;
     var exams = <Exam>[];
     try {
       exams = await _api.exams();
     } catch (_) {}
-    final ics = buildIcs(d.courses, d.semester, exams, l: context.l10n);
+    final ics = buildIcs(d.courses, d.semester, exams, l: l);
     final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
     if (!shared) {
       await Clipboard.setData(ClipboardData(text: ics));

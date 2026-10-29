@@ -298,9 +298,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           };
         }
       }
-      if (mounted) {
-        setState(() => _merge(Map<String, dynamic>.from(res as Map)));
-      }
+      if (!mounted) return;
+      setState(() => _merge(Map<String, dynamic>.from(res as Map)));
       _toast(pick == 'off'
           ? context.l10n.chatInfoUnmuted
           : context.l10n.chatInfoMuted);
@@ -317,7 +316,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       } else {
         await _api.put('/conversations/$_cid/archive', {'keepArchived': false});
       }
-      if (mounted) setState(() => _merge({'archived': !archived}));
+      if (!mounted) return;
+      setState(() => _merge({'archived': !archived}));
       _toast(archived
           ? context.l10n.chatInfoUnarchived
           : context.l10n.chatInfoArchived);
@@ -333,7 +333,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     }
     try {
       await _api.post('/conversations/$_cid/leave');
-      if (mounted) Navigator.pop(context, 'left');
+      if (!mounted) return;
+      Navigator.pop(context, 'left');
     } catch (e) {
       _toast(errorText(e));
     }
@@ -345,7 +346,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     try {
       if (_blocked) {
         await _api.delete('/users/$pid/block');
-        if (mounted) setState(() => _merge({'blocked': false}));
+        if (!mounted) return;
+        setState(() => _merge({'blocked': false}));
         _toast(context.l10n.chatInfoUnblocked);
       } else {
         if (!await _confirm(context.l10n.chatInfoBlockTitle,
@@ -353,7 +355,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           return;
         }
         await _api.post('/users/$pid/block');
-        if (mounted) setState(() => _merge({'blocked': true}));
+        if (!mounted) return;
+        setState(() => _merge({'blocked': true}));
         _toast(context.l10n.chatInfoBlocked);
       }
     } catch (e) {
@@ -451,6 +454,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             () => ImageService()
                 .pickPrepared(ImageSource.gallery, avatar: true))();
       } on ImageException catch (e) {
+        if (!mounted) return;
         _toast(e.code == 'TOO_LARGE'
             ? context.l10n.chatInfoImageTooLarge
             : context.l10n.chatInfoImageTypeOnly);
@@ -489,6 +493,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     try {
       await _api.post('/conversations/$_cid/members', {'userIds': ids});
       await _loadMembers();
+      if (!mounted) return;
       _toast(context.l10n.sohbetyAddDone);
     } catch (e) {
       _toast(errorText(e));

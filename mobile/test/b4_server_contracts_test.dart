@@ -61,7 +61,7 @@ ChatDetailPage _detail(Session s, {ChatRealtime? rt}) => ChatDetailPage(
       realtime: rt,
       mediaLibrary: FakeMediaLibrary.photos(1),
       ensureAccess: (c, p, {rationale}) async => true,
-      conversation: {
+      conversation: const {
         'id': 1,
         'type': 'DIRECT',
         'title': 'Ali Veli',

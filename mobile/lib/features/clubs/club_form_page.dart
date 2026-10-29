@@ -134,12 +134,14 @@ class _ClubFormPageState extends State<ClubFormPage> {
       final img = await _images.pickPrepared(ImageSource.gallery);
       if (img != null && mounted) setState(() => _cover = img);
     } on ImageException catch (e) {
+      if (!mounted) return;
       _snack(e.code == 'TOO_LARGE'
           ? context.l10n.clubMgmtImageTooLarge
           : e.code == 'UNSUPPORTED_TYPE'
               ? context.l10n.clubMgmtImageUnsupported
               : context.l10n.clubMgmtImageUnreadable);
     } catch (_) {
+      if (!mounted) return;
       _snack(context.l10n.clubMgmtImagePickFailed);
     }
   }
