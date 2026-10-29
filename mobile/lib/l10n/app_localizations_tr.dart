@@ -7597,4 +7597,115 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p05SearchRemoveRecent => 'Aramayı sil';
+
+  @override
+  String get p11PendingInfoTitle => 'Başvuru değerlendiriliyor';
+
+  @override
+  String get p11PendingInfoBody =>
+      'Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.';
+
+  @override
+  String get p11LockPrivateTitle => 'Bu kulüp özeldir';
+
+  @override
+  String get p11LockPrivateBody =>
+      'Gönderileri ve üye listesini yalnızca onaylı üyeler görebilir.';
+
+  @override
+  String get p11LockMembersTitle => 'İçerikler yalnızca üyelere açık';
+
+  @override
+  String get p11LockMembersBody =>
+      'Kulüp paylaşımları, isteğin onaylandıktan sonra görüntülenebilir.';
+
+  @override
+  String get p11LockBannedTitle => 'İçerik görüntülenemiyor';
+
+  @override
+  String get p11LockBannedBody =>
+      'Erişim kısıtlandığı için kulüp içeriği gizlendi.';
+
+  @override
+  String get p11BannedTitle => 'Kulüpten uzaklaştırıldın';
+
+  @override
+  String get p11BannedBody =>
+      'Bu kulübe katılamaz ve etkinliklerine başvuramazsın.';
+
+  @override
+  String get p11ApprovalNote =>
+      'Katılma isteğin yöneticiler tarafından onaylandıktan sonra kulüp içeriği açılır.';
+
+  @override
+  String get p11PostPinSub => 'Kulüp sayfasının en üstüne yerleştir';
+
+  @override
+  String get p11PostUnpinSub => 'Gönderiyi normal sıraya döndür';
+
+  @override
+  String get p11PostDeleteSub => 'Gönderiyi kalıcı olarak akıştan kaldır';
+
+  @override
+  String get p11PostReportSub => 'Kulüp kurallarının ihlalini bildir';
+
+  @override
+  String get p11PollsSub => 'Üye kararları ve seçimleri';
+
+  @override
+  String p11SearchEmptyBody(String query) {
+    return '“$query” aramasıyla eşleşen kulüp üyesi yok. İsmi kontrol edip tekrar dene.';
+  }
+
+  @override
+  String get p11ClearSearch => 'Aramayı temizle';
+
+  @override
+  String get p11RequestsEmptyAll =>
+      'Kulübüne gelen tüm başvurular yanıtlandı ya da henüz yeni başvuru yapılmadı.';
+
+  @override
+  String get p11LoadErrorBody =>
+      'Bağlantı hatası oluştu. Bilgiler sunucudan alınamadı.';
+
+  @override
+  String get p12LogoAdd => 'Logo ekle';
+
+  @override
+  String get p12LogoChange => 'Logoyu değiştir';
+
+  @override
+  String get p12LogoHint => 'Kare profil (1:1)';
+
+  @override
+  String get p12CoverHint => '16:9 yatay görsel önerilir';
+
+  @override
+  String get p12QuestionsSubtitle => 'Adaylara yöneltilecek mini form';
+
+  @override
+  String get p12QuestionPlaceholder => 'Sorunu yaz...';
+
+  @override
+  String get p12ConsentNote =>
+      'Kulüp oluşturarak topluluk ilkelerine ve öğrenci kurallarına uymayı kabul edersin.';
+
+  @override
+  String get p12PartialTitle => 'Kısmi kayıt uyarısı';
+
+  @override
+  String get p12CategorySheetTitle => 'Kategori seç';
+
+  @override
+  String get p12JoinNote => 'Talebin onaylandığında bildirim alacaksın.';
+
+  @override
+  String p12CountClubs(String count) {
+    return '$count kulüp';
+  }
+
+  @override
+  String p12CountRequests(String count) {
+    return '$count başvuru';
+  }
 }

@@ -7629,4 +7629,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p05SearchRemoveRecent => 'Remove search';
+
+  @override
+  String get p11PendingInfoTitle => 'Application under review';
+
+  @override
+  String get p11PendingInfoBody =>
+      'Your join request is waiting for the club managers to approve it. You will be notified once it is decided.';
+
+  @override
+  String get p11LockPrivateTitle => 'This club is private';
+
+  @override
+  String get p11LockPrivateBody =>
+      'Only approved members can see its posts and member list.';
+
+  @override
+  String get p11LockMembersTitle => 'Content is for members only';
+
+  @override
+  String get p11LockMembersBody =>
+      'Club posts become visible after your request is approved.';
+
+  @override
+  String get p11LockBannedTitle => 'Content unavailable';
+
+  @override
+  String get p11LockBannedBody =>
+      'Club content is hidden because your access is restricted.';
+
+  @override
+  String get p11BannedTitle => 'You were removed from the club';
+
+  @override
+  String get p11BannedBody =>
+      'You cannot join this club or apply to its events.';
+
+  @override
+  String get p11ApprovalNote =>
+      'Club content opens once the managers approve your request.';
+
+  @override
+  String get p11PostPinSub => 'Place it at the top of the club page';
+
+  @override
+  String get p11PostUnpinSub => 'Return the post to its normal order';
+
+  @override
+  String get p11PostDeleteSub => 'Remove the post from the feed permanently';
+
+  @override
+  String get p11PostReportSub => 'Report a violation of the rules';
+
+  @override
+  String get p11PollsSub => 'Member decisions and choices';
+
+  @override
+  String p11SearchEmptyBody(String query) {
+    return 'No club member matches “$query”. Check the name and try again.';
+  }
+
+  @override
+  String get p11ClearSearch => 'Clear search';
+
+  @override
+  String get p11RequestsEmptyAll =>
+      'All requests have been answered or none has arrived yet.';
+
+  @override
+  String get p11LoadErrorBody =>
+      'A connection error occurred. The data could not be fetched.';
+
+  @override
+  String get p12LogoAdd => 'Add logo';
+
+  @override
+  String get p12LogoChange => 'Change logo';
+
+  @override
+  String get p12LogoHint => 'Square profile (1:1)';
+
+  @override
+  String get p12CoverHint => 'A 16:9 landscape image is recommended';
+
+  @override
+  String get p12QuestionsSubtitle => 'A short form for applicants';
+
+  @override
+  String get p12QuestionPlaceholder => 'Write your question...';
+
+  @override
+  String get p12ConsentNote =>
+      'By creating a club you agree to follow the community guidelines and student rules.';
+
+  @override
+  String get p12PartialTitle => 'Partially saved';
+
+  @override
+  String get p12CategorySheetTitle => 'Choose a category';
+
+  @override
+  String get p12JoinNote =>
+      'You will be notified when your request is approved.';
+
+  @override
+  String p12CountClubs(String count) {
+    return '$count clubs';
+  }
+
+  @override
+  String p12CountRequests(String count) {
+    return '$count requests';
+  }
 }

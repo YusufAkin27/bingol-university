@@ -7553,4 +7553,112 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p05SearchRemoveRecent => 'حذف البحث';
+
+  @override
+  String get p11PendingInfoTitle => 'الطلب قيد المراجعة';
+
+  @override
+  String get p11PendingInfoBody =>
+      'طلب انضمامك بانتظار موافقة مديري النادي. سيصلك إشعار عند صدور القرار.';
+
+  @override
+  String get p11LockPrivateTitle => 'هذا النادي خاص';
+
+  @override
+  String get p11LockPrivateBody =>
+      'لا يستطيع رؤية المنشورات وقائمة الأعضاء إلا الأعضاء المعتمدون.';
+
+  @override
+  String get p11LockMembersTitle => 'المحتوى للأعضاء فقط';
+
+  @override
+  String get p11LockMembersBody => 'تظهر منشورات النادي بعد الموافقة على طلبك.';
+
+  @override
+  String get p11LockBannedTitle => 'المحتوى غير متاح';
+
+  @override
+  String get p11LockBannedBody => 'تم إخفاء محتوى النادي لأن وصولك مقيّد.';
+
+  @override
+  String get p11BannedTitle => 'تمت إزالتك من النادي';
+
+  @override
+  String get p11BannedBody =>
+      'لا يمكنك الانضمام إلى هذا النادي أو التقديم على فعالياته.';
+
+  @override
+  String get p11ApprovalNote =>
+      'يُفتح محتوى النادي بعد موافقة المديرين على طلبك.';
+
+  @override
+  String get p11PostPinSub => 'ضعه في أعلى صفحة النادي';
+
+  @override
+  String get p11PostUnpinSub => 'أعد المنشور إلى ترتيبه العادي';
+
+  @override
+  String get p11PostDeleteSub => 'احذف المنشور نهائيًا من الصفحة';
+
+  @override
+  String get p11PostReportSub => 'أبلغ عن مخالفة للقواعد';
+
+  @override
+  String get p11PollsSub => 'قرارات الأعضاء واختياراتهم';
+
+  @override
+  String p11SearchEmptyBody(String query) {
+    return 'لا يوجد عضو يطابق “$query”. تحقق من الاسم وحاول مجددًا.';
+  }
+
+  @override
+  String get p11ClearSearch => 'مسح البحث';
+
+  @override
+  String get p11RequestsEmptyAll =>
+      'تم الرد على جميع الطلبات أو لم يصل طلب جديد بعد.';
+
+  @override
+  String get p11LoadErrorBody => 'حدث خطأ في الاتصال. تعذّر جلب البيانات.';
+
+  @override
+  String get p12LogoAdd => 'إضافة شعار';
+
+  @override
+  String get p12LogoChange => 'تغيير الشعار';
+
+  @override
+  String get p12LogoHint => 'ملف شخصي مربع (1:1)';
+
+  @override
+  String get p12CoverHint => 'يُنصح بصورة أفقية 16:9';
+
+  @override
+  String get p12QuestionsSubtitle => 'نموذج قصير للمتقدمين';
+
+  @override
+  String get p12QuestionPlaceholder => 'اكتب سؤالك...';
+
+  @override
+  String get p12ConsentNote =>
+      'بإنشائك النادي فإنك توافق على الالتزام بمبادئ المجتمع وقواعد الطلاب.';
+
+  @override
+  String get p12PartialTitle => 'حُفظ جزئيًا';
+
+  @override
+  String get p12CategorySheetTitle => 'اختر فئة';
+
+  @override
+  String get p12JoinNote => 'ستصلك إشعارات عند الموافقة على طلبك.';
+
+  @override
+  String p12CountClubs(String count) {
+    return '$count نادٍ';
+  }
+
+  @override
+  String p12CountRequests(String count) {
+    return '$count طلب';
+  }
 }

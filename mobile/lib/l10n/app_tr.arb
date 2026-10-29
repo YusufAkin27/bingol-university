@@ -4056,5 +4056,58 @@
   "@p05SearchFoundPosts": {"placeholders": {"n": {"type": "String"}}},
   "p05SearchSeeAllN": "Tümünü gör ({n})",
   "@p05SearchSeeAllN": {"placeholders": {"n": {"type": "String"}}},
-  "p05SearchRemoveRecent": "Aramayı sil"
+  "p05SearchRemoveRecent": "Aramayı sil",
+  "p11PendingInfoTitle": "Başvuru değerlendiriliyor",
+  "p11PendingInfoBody": "Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.",
+  "p11LockPrivateTitle": "Bu kulüp özeldir",
+  "p11LockPrivateBody": "Gönderileri ve üye listesini yalnızca onaylı üyeler görebilir.",
+  "p11LockMembersTitle": "İçerikler yalnızca üyelere açık",
+  "p11LockMembersBody": "Kulüp paylaşımları, isteğin onaylandıktan sonra görüntülenebilir.",
+  "p11LockBannedTitle": "İçerik görüntülenemiyor",
+  "p11LockBannedBody": "Erişim kısıtlandığı için kulüp içeriği gizlendi.",
+  "p11BannedTitle": "Kulüpten uzaklaştırıldın",
+  "p11BannedBody": "Bu kulübe katılamaz ve etkinliklerine başvuramazsın.",
+  "p11ApprovalNote": "Katılma isteğin yöneticiler tarafından onaylandıktan sonra kulüp içeriği açılır.",
+  "p11PostPinSub": "Kulüp sayfasının en üstüne yerleştir",
+  "p11PostUnpinSub": "Gönderiyi normal sıraya döndür",
+  "p11PostDeleteSub": "Gönderiyi kalıcı olarak akıştan kaldır",
+  "p11PostReportSub": "Kulüp kurallarının ihlalini bildir",
+  "p11PollsSub": "Üye kararları ve seçimleri",
+  "p11SearchEmptyBody": "“{query}” aramasıyla eşleşen kulüp üyesi yok. İsmi kontrol edip tekrar dene.",
+  "@p11SearchEmptyBody": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "p11ClearSearch": "Aramayı temizle",
+  "p11RequestsEmptyAll": "Kulübüne gelen tüm başvurular yanıtlandı ya da henüz yeni başvuru yapılmadı.",
+  "p11LoadErrorBody": "Bağlantı hatası oluştu. Bilgiler sunucudan alınamadı.",
+  "p12LogoAdd": "Logo ekle",
+  "p12LogoChange": "Logoyu değiştir",
+  "p12LogoHint": "Kare profil (1:1)",
+  "p12CoverHint": "16:9 yatay görsel önerilir",
+  "p12QuestionsSubtitle": "Adaylara yöneltilecek mini form",
+  "p12QuestionPlaceholder": "Sorunu yaz...",
+  "p12ConsentNote": "Kulüp oluşturarak topluluk ilkelerine ve öğrenci kurallarına uymayı kabul edersin.",
+  "p12PartialTitle": "Kısmi kayıt uyarısı",
+  "p12CategorySheetTitle": "Kategori seç",
+  "p12JoinNote": "Talebin onaylandığında bildirim alacaksın.",
+  "p12CountClubs": "{count} kulüp",
+  "@p12CountClubs": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "p12CountRequests": "{count} başvuru",
+  "@p12CountRequests": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

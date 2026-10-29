@@ -13920,6 +13920,198 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Aramayı sil'**
   String get p05SearchRemoveRecent;
+
+  /// No description provided for @p11PendingInfoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başvuru değerlendiriliyor'**
+  String get p11PendingInfoTitle;
+
+  /// No description provided for @p11PendingInfoBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.'**
+  String get p11PendingInfoBody;
+
+  /// No description provided for @p11LockPrivateTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulüp özeldir'**
+  String get p11LockPrivateTitle;
+
+  /// No description provided for @p11LockPrivateBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderileri ve üye listesini yalnızca onaylı üyeler görebilir.'**
+  String get p11LockPrivateBody;
+
+  /// No description provided for @p11LockMembersTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerikler yalnızca üyelere açık'**
+  String get p11LockMembersTitle;
+
+  /// No description provided for @p11LockMembersBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp paylaşımları, isteğin onaylandıktan sonra görüntülenebilir.'**
+  String get p11LockMembersBody;
+
+  /// No description provided for @p11LockBannedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik görüntülenemiyor'**
+  String get p11LockBannedTitle;
+
+  /// No description provided for @p11LockBannedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Erişim kısıtlandığı için kulüp içeriği gizlendi.'**
+  String get p11LockBannedBody;
+
+  /// No description provided for @p11BannedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpten uzaklaştırıldın'**
+  String get p11BannedTitle;
+
+  /// No description provided for @p11BannedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübe katılamaz ve etkinliklerine başvuramazsın.'**
+  String get p11BannedBody;
+
+  /// No description provided for @p11ApprovalNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma isteğin yöneticiler tarafından onaylandıktan sonra kulüp içeriği açılır.'**
+  String get p11ApprovalNote;
+
+  /// No description provided for @p11PostPinSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp sayfasının en üstüne yerleştir'**
+  String get p11PostPinSub;
+
+  /// No description provided for @p11PostUnpinSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiyi normal sıraya döndür'**
+  String get p11PostUnpinSub;
+
+  /// No description provided for @p11PostDeleteSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiyi kalıcı olarak akıştan kaldır'**
+  String get p11PostDeleteSub;
+
+  /// No description provided for @p11PostReportSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp kurallarının ihlalini bildir'**
+  String get p11PostReportSub;
+
+  /// No description provided for @p11PollsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye kararları ve seçimleri'**
+  String get p11PollsSub;
+
+  /// No description provided for @p11SearchEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'“{query}” aramasıyla eşleşen kulüp üyesi yok. İsmi kontrol edip tekrar dene.'**
+  String p11SearchEmptyBody(String query);
+
+  /// No description provided for @p11ClearSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı temizle'**
+  String get p11ClearSearch;
+
+  /// No description provided for @p11RequestsEmptyAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübüne gelen tüm başvurular yanıtlandı ya da henüz yeni başvuru yapılmadı.'**
+  String get p11RequestsEmptyAll;
+
+  /// No description provided for @p11LoadErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı hatası oluştu. Bilgiler sunucudan alınamadı.'**
+  String get p11LoadErrorBody;
+
+  /// No description provided for @p12LogoAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Logo ekle'**
+  String get p12LogoAdd;
+
+  /// No description provided for @p12LogoChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Logoyu değiştir'**
+  String get p12LogoChange;
+
+  /// No description provided for @p12LogoHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kare profil (1:1)'**
+  String get p12LogoHint;
+
+  /// No description provided for @p12CoverHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'16:9 yatay görsel önerilir'**
+  String get p12CoverHint;
+
+  /// No description provided for @p12QuestionsSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adaylara yöneltilecek mini form'**
+  String get p12QuestionsSubtitle;
+
+  /// No description provided for @p12QuestionPlaceholder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorunu yaz...'**
+  String get p12QuestionPlaceholder;
+
+  /// No description provided for @p12ConsentNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp oluşturarak topluluk ilkelerine ve öğrenci kurallarına uymayı kabul edersin.'**
+  String get p12ConsentNote;
+
+  /// No description provided for @p12PartialTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısmi kayıt uyarısı'**
+  String get p12PartialTitle;
+
+  /// No description provided for @p12CategorySheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori seç'**
+  String get p12CategorySheetTitle;
+
+  /// No description provided for @p12JoinNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Talebin onaylandığında bildirim alacaksın.'**
+  String get p12JoinNote;
+
+  /// No description provided for @p12CountClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kulüp'**
+  String p12CountClubs(String count);
+
+  /// No description provided for @p12CountRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} başvuru'**
+  String p12CountRequests(String count);
 }
 
 class _AppLocalizationsDelegate
