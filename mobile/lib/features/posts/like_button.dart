@@ -6,9 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart' show LucideIcons;
+import '../../widgets/bu.dart';
 import 'post_models.dart';
 
 /// Dışarıdan (çift dokunuş gibi) beğeni tetiklemek için: yalnız beğenilmemişse beğenir.
@@ -45,7 +43,7 @@ class LikeButton extends StatefulWidget {
   State<LikeButton> createState() => _LikeButtonState();
 }
 
-class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateMixin {
+class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
   late bool _liked = widget.post.likedByMe;
   late int _count = widget.post.likeCount;
 
@@ -57,6 +55,10 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
   bool _inflight = false;
   late final AnimationController _anim =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  // Sayaç değişimi: eski sayı yukarı kayıp solar, yenisi aşağıdan gelir.
+  late final AnimationController _countAnim =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 250), value: 1);
+  int _prevCount = 0;
 
   Post get _post => widget.post;
   bool get _pending => _timer != null || _inflight;
@@ -88,6 +90,7 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
     _timer?.cancel();
     _timer = null;
     _anim.dispose();
+    _countAnim.dispose();
     // Ekrandan çıkarken bekleyen son durum kaybolmasın.
     if (flush && _liked != _confirmedLiked) {
       final api = widget.session.api;
@@ -100,12 +103,20 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
 
   void _toggle() => _setLiked(!_liked);
 
+  /// Sayacı değiştirir; değer farklıysa eski sayı solarak yenisiyle yer değiştirir (setState içinde çağrılır).
+  void _changeCount(int v) {
+    if (v == _count) return;
+    _prevCount = _count;
+    _count = v;
+    _countAnim.forward(from: 0);
+  }
+
   void _setLiked(bool v, {bool onlyIfDifferent = false}) {
     if (onlyIfDifferent && _liked == v) return;
     HapticFeedback.selectionClick();
     setState(() {
       _liked = v;
-      _count = math.max(0, _confirmedCount + (v == _confirmedLiked ? 0 : (v ? 1 : -1)));
+      _changeCount(math.max(0, _confirmedCount + (v == _confirmedLiked ? 0 : (v ? 1 : -1))));
     });
     if (v) _anim.forward(from: 0);
     widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
@@ -131,7 +142,7 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
         // Kullanıcı bu arada değiştirmediyse sunucu sayısını esas al.
         setState(() {
           _liked = res.liked;
-          _count = res.likeCount;
+          _changeCount(res.likeCount);
         });
         widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
       } else if (_timer == null && _liked != _confirmedLiked) {
@@ -142,25 +153,32 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
       if (!mounted) return;
       setState(() {
         _liked = _confirmedLiked;
-        _count = _confirmedCount;
+        _changeCount(_confirmedCount);
       });
       widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
-      ScaffoldMessenger.maybeOf(context)
-          ?.showSnackBar(SnackBar(content: Text(errorText(e).isEmpty ? context.l10n.postViewLikeFailed : errorText(e))));
+      // İyimser güncelleme geri alındı: uyarı + "Tekrar dene" (aynı beğeni/vazgeçme yeniden denenir).
+      BuToast.show(context, context.l10n.postViewLikeFailed,
+          kind: BuToastKind.warning,
+          actionLabel: context.l10n.commonRetryShort,
+          onAction: () {
+            if (mounted) _setLiked(want);
+          });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final size = widget.compact ? 20.0 : 24.0;
+    final tt = Theme.of(context).textTheme;
+    final size = widget.compact ? 22.0 : 26.0;
     final color = _liked ? BuColors.red600 : t.mut;
     final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.38, end: .92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: .92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
       TweenSequenceItem(tween: Tween(begin: .92, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
     ]).animate(_anim);
 
+    // Kalp, fotoğrafın başlangıç kenarıyla hizalı (kutu yalnız dokunma hedefini büyütür).
     final heart = Semantics(
       button: true,
       label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
@@ -169,9 +187,10 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
         onTap: _toggle,
         radius: 24,
         child: SizedBox(
-          width: 44,
+          width: size + 10,
           height: 44,
-          child: Center(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
             child: AnimatedBuilder(
               animation: _anim,
               builder: (c, _) => CustomPaint(
@@ -187,19 +206,33 @@ class _LikeButtonState extends State<LikeButton> with SingleTickerProviderStateM
       ),
     );
 
-    final countText = Text(
-      '$_count',
-      key: const ValueKey('like-count'),
-      maxLines: 1,
-      style: (widget.compact ? BuType.caption : BuType.label).copyWith(color: _liked ? BuColors.red600 : t.mut),
+    final style = (widget.compact ? tt.titleSmall : tt.titleMedium)?.copyWith(color: t.ink, height: 1.2);
+    final countText = Text('$_count', key: const ValueKey('like-count'), maxLines: 1, style: style);
+    final count = AnimatedBuilder(
+      animation: _countAnim,
+      builder: (c, _) {
+        final v = Curves.easeOut.transform(_countAnim.value);
+        if (v >= 1) return countText;
+        return Stack(alignment: AlignmentDirectional.centerStart, children: [
+          Opacity(
+            opacity: 1 - v,
+            child: Transform.translate(
+                offset: Offset(0, -8 * v), child: Text('$_prevCount', maxLines: 1, style: style)),
+          ),
+          Opacity(
+            opacity: v,
+            child: Transform.translate(offset: Offset(0, 8 * (1 - v)), child: countText),
+          ),
+        ]);
+      },
     );
 
     return Row(mainAxisSize: MainAxisSize.min, children: [
       heart,
-      if (_count > 0)
+      if (_count > 0 || _countAnim.value < 1)
         Padding(
           padding: const EdgeInsetsDirectional.only(end: 4),
-          child: countText,
+          child: count,
         ),
     ]);
   }
@@ -214,14 +247,12 @@ class _HeartIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Lucide kalbi çizgi ikonudur; dolgu için aynı yolu Material'ın dolu kalbiyle değiştiriyoruz.
-    return filled
-        ? Icon(Icons.favorite, size: size, color: color)
-        : Icon(LucideIcons.heart, size: size, color: color);
+    // Tasarım 17: dolu kalp ve çizgi kalp aynı Material kalp ailesindendir.
+    return Icon(filled ? Icons.favorite : Icons.favorite_border, size: size, color: color);
   }
 }
 
-/// Kalbin etrafında kısa süre dağılan küçük parçacıklar.
+/// Kalbin etrafında kısa süre dağılan sekiz nokta + yumuşak ışıma (tasarım 17, ekran 2).
 class _BurstPainter extends CustomPainter {
   _BurstPainter({required this.progress, required this.color});
 
@@ -232,12 +263,20 @@ class _BurstPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (progress <= 0 || progress >= 1) return;
     final c = size.center(Offset.zero);
-    final p = Paint()..color = color.withValues(alpha: (1 - progress).clamp(0, 1));
-    const n = 7;
-    final r = 10 + 14 * Curves.easeOut.transform(progress);
+    final fade = (1 - progress).clamp(0.0, 1.0);
+    canvas.drawCircle(
+      c,
+      30,
+      Paint()
+        ..color = color.withValues(alpha: .28 * fade)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
+    final p = Paint()..color = color.withValues(alpha: .75 * fade);
+    const n = 8;
+    final r = 17 + 12 * Curves.easeOut.transform(progress);
     for (var i = 0; i < n; i++) {
       final a = (i / n) * 2 * math.pi;
-      canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * r, 2.2 * (1 - progress) + .6, p);
+      canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * r, 3 * fade + .8, p);
     }
   }
 
@@ -249,11 +288,14 @@ class _BurstPainter extends CustomPainter {
 /// (çağıran yalnız beğenilmemişse beğenmeli: [LikeController.like] bunu yapar). [onTap] verilirse tek dokunuş
 /// için kullanılır.
 class DoubleTapLike extends StatefulWidget {
-  const DoubleTapLike({super.key, required this.child, required this.onLike, this.onTap});
+  const DoubleTapLike({super.key, required this.child, required this.onLike, this.onTap, this.radius = 0});
 
   final Widget child;
   final VoidCallback onLike;
   final VoidCallback? onTap;
+
+  /// Kararma katmanının köşe yarıçapı (çocuğun köşesiyle aynı olmalı).
+  final double radius;
 
   @override
   State<DoubleTapLike> createState() => _DoubleTapLikeState();
@@ -287,6 +329,12 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 55),
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
     ]).animate(_c);
+    final t = context.bu;
+    final dim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 15),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 55),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
+    ]).animate(_c);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onDoubleTap: _double,
@@ -298,19 +346,26 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
             child: AnimatedBuilder(
               animation: _c,
               builder: (c, _) => _c.isAnimating
-                  ? Center(
-                      child: Opacity(
+                  ? Stack(alignment: Alignment.center, children: [
+                      // Fotoğraf hafif kararır (köşeler fotoğrafla aynı yuvarlaklıkta).
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(widget.radius),
+                          child: ColoredBox(color: t.scrim.withValues(alpha: .18 * dim.value.clamp(0, 1))),
+                        ),
+                      ),
+                      Opacity(
                         opacity: opacity.value.clamp(0, 1),
                         child: Transform.scale(
                           scale: scale.value,
-                          child: const Icon(Icons.favorite,
-                              key: ValueKey('double-tap-heart'),
+                          child: Icon(Icons.favorite,
+                              key: const ValueKey('double-tap-heart'),
                               size: 88,
-                              color: Colors.white,
-                              shadows: [Shadow(color: Colors.black38, blurRadius: 16)]),
+                              color: t.onMedia,
+                              shadows: [Shadow(color: t.scrim.withValues(alpha: .3), blurRadius: 16)]),
                         ),
                       ),
-                    )
+                    ])
                   : const SizedBox.shrink(),
             ),
           ),
