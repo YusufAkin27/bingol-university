@@ -1,0 +1,33 @@
+03:19:01 200 0.007093 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:02 200 0.006273 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:03 200 0.010859 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:05 200 0.008351 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:06 200 0.005370 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:12 500 5.014239 {"timestamp":"2026-10-29T00:19:12.551Z","status":500,"error":"Internal Server Error","path
+03:19:18 500 5.010786 {"timestamp":"2026-10-29T00:19:18.720Z","status":500,"error":"Internal Server Error","path
+03:19:24 500 5.007614 {"timestamp":"2026-10-29T00:19:24.907Z","status":500,"error":"Internal Server Error","path
+03:19:31 500 5.007747 {"timestamp":"2026-10-29T00:19:31.133Z","status":500,"error":"Internal Server Error","path
+03:19:37 500 5.006361 {"timestamp":"2026-10-29T00:19:37.301Z","status":500,"error":"Internal Server Error","path
+03:19:43 500 5.013042 {"timestamp":"2026-10-29T00:19:43.492Z","status":500,"error":"Internal Server Error","path
+03:19:44 200 0.009850 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:46 200 0.005078 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:47 200 0.008401 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:48 200 0.005931 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:49 200 0.005392 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:50 200 0.004538 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:52 200 0.004421 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:53 200 0.005722 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:54 200 0.005584 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:55 200 0.007074 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:56 200 0.010614 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:58 200 0.007158 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:19:59 200 0.006439 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:00 200 0.005134 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:01 200 0.005198 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:02 200 0.008609 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:04 200 0.005307 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:05 200 0.005654 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:06 200 0.004596 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:07 200 0.005026 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:09 200 0.007653 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}
+03:20:10 200 0.007570 {"communities":1,"events":2,"bookmarks":0,"unreadNotifications":19,"unreadMessages":9}

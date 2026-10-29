@@ -21,4 +21,15 @@ class DbTimeoutHandlerTest {
         assertEquals("5", res.getHeaders().getFirst("Retry-After"));
         assertEquals("DB_TIMEOUT", res.getBody().get("code"));
     }
+
+    @Test
+    void cannotCreateTransactionBecomes503() throws Exception {
+        I18n i18n = mock(I18n.class);
+        when(i18n.error(anyString(), anyString(), any(), any())).thenReturn("yogun");
+        var m = ApiExceptionHandler.class.getDeclaredMethod("dbTimeout", Exception.class).getAnnotation(org.springframework.web.bind.annotation.ExceptionHandler.class);
+        assertEquals(true, java.util.Arrays.asList(m.value()).contains(org.springframework.transaction.CannotCreateTransactionException.class));
+        var res = new ApiExceptionHandler(i18n).dbTimeout(new org.springframework.transaction.CannotCreateTransactionException("havuz dolu"));
+        assertEquals(503, res.getStatusCode().value());
+        assertEquals("DB_TIMEOUT", res.getBody().get("code"));
+    }
 }

@@ -35,8 +35,13 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    PasswordEncoder passwordEncoder(
+            @org.springframework.beans.factory.annotation.Value("${app.security.password-hash-concurrency:0}") int concurrency,
+            @org.springframework.beans.factory.annotation.Value("${app.security.password-hash-max-queue:32}") int maxQueue,
+            @org.springframework.beans.factory.annotation.Value("${app.security.password-hash-wait-ms:10000}") long waitMs) {
+        // 0 = otomatik: cekirdek sayisi - 1 (en az 1); bcrypt patlamasi tum CPU'yu yiyip okuma trafigini bogmasin
+        int permits = concurrency > 0 ? concurrency : Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+        return new BoundedPasswordEncoder(new BCryptPasswordEncoder(), permits, maxQueue, waitMs);
     }
 
     /**

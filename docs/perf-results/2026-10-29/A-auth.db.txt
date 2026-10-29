@@ -1,0 +1,117 @@
+### en yavas 15 sorgu (toplam sure)
+ calls | total_ms | mean_ms | max_ms | rows |                                                                              query                                                                               
+-------+----------+---------+--------+------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  2581 |      198 |    0.08 |      7 | 2581 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+  2239 |      137 |    0.06 |      1 | 1008 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+  1232 |      122 |    0.10 |      3 | 1232 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+  1008 |       96 |    0.09 |      1 | 1008 | update user_device_log set app_version=$1,device_hash=$2,first_seen_at=$3,ip=$4,ip_family=$5,last_event=$6,last_seen_at=$7,platform=$8,seen_count=$9,user_id=$10
+   500 |       66 |    0.13 |      2 |    0 | select m1_0.conversation_id,count(m1_0.id) from message m1_0,conversation_member cm1_0 where cm1_0.conversation_id=m1_0.conversation_id and cm1_0.user_id=$1 and
+   500 |       60 |    0.12 |      2 |  500 | SELECT (SELECT COUNT(*) FROM community_member WHERE user_id = $1 AND status = 'ACTIVE'), (SELECT COUNT(*) FROM event_rsvp r JOIN user_event e ON e.id = r.event_
+  1231 |       54 |    0.04 |      4 | 1231 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+  1232 |       46 |    0.04 |      1 |  714 | select udl1_0.id from user_device_log udl1_0 where udl1_0.user_id=$1 and udl1_0.device_hash=$2 fetch first $3 rows only
+  1008 |       40 |    0.04 |      1 | 1008 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+   500 |       28 |    0.06 |      2 | 3000 | select cm1_0.id,cm1_0.archive_sticky,cm1_0.archived_at,cm1_0.cleared_up_to_message_id,cm1_0.conversation_id,cm1_0.hidden_at,cm1_0.joined_at,cm1_0.last_delivered
+   500 |       26 |    0.05 |      0 |  500 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+   518 |       21 |    0.04 |      1 |  518 | select count(distinct udl1_0.device_hash) from user_device_log udl1_0 where udl1_0.user_id=$1
+  1000 |       14 |    0.01 |      0 |    0 | BEGIN READ ONLY
+   500 |        6 |    0.01 |      0 |    0 | SELECT blocked_id FROM user_block WHERE blocker_id = $1 UNION SELECT blocker_id FROM user_block WHERE blocked_id = $2
+    13 |        4 |    0.32 |      1 |   13 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+(15 rows)
+
+### en cok cagrilan 15 sorgu
+ calls | total_ms | mean_ms | rows |                                                                              query                                                                               
+-------+----------+---------+------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  2761 |        3 |    0.00 |    0 | BEGIN
+  2581 |      198 |    0.08 | 2581 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+  2239 |      137 |    0.06 | 1008 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+  1232 |      122 |    0.10 | 1232 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+  1232 |       46 |    0.04 |  714 | select udl1_0.id from user_device_log udl1_0 where udl1_0.user_id=$1 and udl1_0.device_hash=$2 fetch first $3 rows only
+  1231 |       54 |    0.04 | 1231 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+  1008 |       96 |    0.09 | 1008 | update user_device_log set app_version=$1,device_hash=$2,first_seen_at=$3,ip=$4,ip_family=$5,last_event=$6,last_seen_at=$7,platform=$8,seen_count=$9,user_id=$10
+  1008 |       40 |    0.04 | 1008 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+  1000 |       14 |    0.01 |    0 | BEGIN READ ONLY
+   518 |       21 |    0.04 |  518 | select count(distinct udl1_0.device_hash) from user_device_log udl1_0 where udl1_0.user_id=$1
+   500 |       26 |    0.05 |  500 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+   500 |       66 |    0.13 |    0 | select m1_0.conversation_id,count(m1_0.id) from message m1_0,conversation_member cm1_0 where cm1_0.conversation_id=m1_0.conversation_id and cm1_0.user_id=$1 and
+   500 |       28 |    0.06 | 3000 | select cm1_0.id,cm1_0.archive_sticky,cm1_0.archived_at,cm1_0.cleared_up_to_message_id,cm1_0.conversation_id,cm1_0.hidden_at,cm1_0.joined_at,cm1_0.last_delivered
+   500 |        6 |    0.01 |    0 | SELECT blocked_id FROM user_block WHERE blocker_id = $1 UNION SELECT blocker_id FROM user_block WHERE blocked_id = $2
+   500 |       60 |    0.12 |  500 | SELECT (SELECT COUNT(*) FROM community_member WHERE user_id = $1 AND status = 'ACTIVE'), (SELECT COUNT(*) FROM event_rsvp r JOIN user_event e ON e.id = r.event_
+(15 rows)
+
+### en yuksek ortalama sureli 10 sorgu (calls>=20)
+ calls | mean_ms | max_ms |                                                                              query                                                                               
+-------+---------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   500 |    0.13 |      2 | select m1_0.conversation_id,count(m1_0.id) from message m1_0,conversation_member cm1_0 where cm1_0.conversation_id=m1_0.conversation_id and cm1_0.user_id=$1 and
+   500 |    0.12 |      2 | SELECT (SELECT COUNT(*) FROM community_member WHERE user_id = $1 AND status = 'ACTIVE'), (SELECT COUNT(*) FROM event_rsvp r JOIN user_event e ON e.id = r.event_
+  1232 |    0.10 |      3 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+  1008 |    0.09 |      1 | update user_device_log set app_version=$1,device_hash=$2,first_seen_at=$3,ip=$4,ip_family=$5,last_event=$6,last_seen_at=$7,platform=$8,seen_count=$9,user_id=$10
+  2581 |    0.08 |      7 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+  2239 |    0.06 |      1 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+   500 |    0.06 |      2 | select cm1_0.id,cm1_0.archive_sticky,cm1_0.archived_at,cm1_0.cleared_up_to_message_id,cm1_0.conversation_id,cm1_0.hidden_at,cm1_0.joined_at,cm1_0.last_delivered
+   500 |    0.05 |      0 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+  1231 |    0.04 |      4 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+   518 |    0.04 |      1 | select count(distinct udl1_0.device_hash) from user_device_log udl1_0 where udl1_0.user_id=$1
+(10 rows)
+
+### tablo basina seq scan (seq_tup_read en yuksek 10)
+          relname          | seq_scan | seq_tup_read | idx_scan | idx_pct | n_live_tup | n_dead_tup 
+---------------------------+----------+--------------+----------+---------+------------+------------
+ support_message           |        0 |            0 |        0 |         |          0 |          0
+ club_join_answer          |        0 |            0 |        0 |         |          0 |          0
+ notification              |        0 |            0 |      478 |   100.0 |          0 |          0
+ flyway_schema_history     |        0 |            0 |        0 |         |          0 |          0
+ user_event                |        0 |            0 |      493 |   100.0 |          0 |          0
+ profanity_term            |        0 |            0 |        0 |         |          0 |          0
+ support_ticket_note       |        0 |            0 |        0 |         |          0 |          0
+ user_block                |     1350 |            0 |        0 |     0.0 |          0 |          0
+ notification_subtype_pref |        0 |            0 |        0 |         |          0 |          0
+ app_setting               |        0 |            0 |        0 |         |          0 |          0
+(10 rows)
+
+### onbellek isabet orani
+ table_hit_pct 
+---------------
+         99.75
+(1 row)
+
+ index_hit_pct 
+---------------
+         99.83
+(1 row)
+
+ datname | xact_commit | xact_rollback | deadlocks | temp_files | temp_bytes | read_ms 
+---------+-------------+---------------+-----------+------------+------------+---------
+ bingol  |       14998 |             0 |         0 |          0 | 0 bytes    |      48
+(1 row)
+
+### kilit beklemeleri (an itibariyla)
+ waiting_locks | locks 
+---------------+-------
+             0 |     2
+(1 row)
+
+ state  | wait_event_type | count 
+--------+-----------------+-------
+ idle   | Client          |    30
+ active |                 |     1
+(2 rows)
+
+### WAL / disk
+ db_size | wal_total 
+---------+-----------
+ 1589 MB | 3533 MB
+(1 row)
+
+ checkpoints_timed | checkpoints_req 
+-------------------+-----------------
+                 1 |               4
+(1 row)
+
+### Redis
+used_memory_human:6.20M
+maxmemory_human:200.00M
+total_commands_processed:321990
+instantaneous_ops_per_sec:0
+rejected_connections:0
+evicted_keys:0
+42489

@@ -1,0 +1,117 @@
+### en yavas 15 sorgu (toplam sure)
+ calls | total_ms | mean_ms | max_ms |  rows  |                                                                              query                                                                               
+-------+----------+---------+--------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    80 |    18040 |  225.50 |    688 |    240 | SELECT name, sum(cnt) AS cnt, sum(uniq) AS uniq FROM (SELECT name, events AS cnt, users AS uniq FROM analytics_event_daily WHERE day >= $1 AND day <= $2 AND day
+    80 |    10740 |  134.25 |    495 |    480 | SELECT screen, sum(views) AS views FROM (SELECT screen, events AS views FROM analytics_event_daily WHERE name = $8 AND screen <> $9 AND day >= $1 AND day <= $2 
+    80 |     9119 |  113.99 |    394 |   2400 | SELECT g.day AS day, COALESCE(c.n, $9) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($10, $2) gs) g LEFT JOIN (SELECT day, sum(n) AS n FRO
+    80 |     5058 |   63.23 |    297 |   2400 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT CAST(created_at AT TI
+    55 |     5057 |   91.95 |    398 |     55 | SELECT (SELECT count(*) FROM app_user WHERE status <> $9) AS total_users, (SELECT count(*) FROM app_user WHERE status <> $10 AND email_verified) AS verified_use
+   110 |     2001 |   18.19 |     76 |    110 | SELECT count(DISTINCT user_id) FROM activity_daily WHERE day BETWEEN CAST($1 AS date) AND CAST($2 AS date)
+    50 |     1821 |   36.42 |    150 |    600 | WITH weeks AS (SELECT CAST($1 AS date) + ($6 * w) AS week_start FROM generate_series($7, $8) w), c AS (SELECT u.id, CAST(u.created_at AT TIME ZONE $9 AS date) A
+   171 |     1743 |   10.19 |     73 |    171 | SELECT count(*) FROM admin_audit WHERE $1
+ 13956 |     1350 |    0.10 |     36 |  13956 | update post set rank_score=$1 where id=$2
+    55 |      955 |   17.36 |     25 |   1650 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT day, count(*) AS n FR
+    80 |      698 |    8.73 |     88 |     80 | SELECT count(*) AS registered, count(*) FILTER (WHERE u.email_verified) AS verified, count(*) FILTER (WHERE u.department IS NOT NULL AND u.class_year IS NOT NUL
+    80 |      630 |    7.87 |     16 |   2400 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT CAST(created_at AT TI
+   103 |      553 |    5.37 |     38 |    103 | SELECT count(*) FROM app_user WHERE (display_name ILIKE $1 ESCAPE $3 OR email ILIKE $2 ESCAPE $4)
+    12 |      505 |   42.12 |     72 | 600000 | SELECT id, admin_id, admin_email, method, path, status, created_at, ip, target_type, target_id, reason, summary, request_id FROM admin_audit WHERE $2 ORDER BY i
+   215 |      473 |    2.20 |     47 |    215 | SELECT count(*) FROM app_user WHERE $1
+(15 rows)
+
+### en cok cagrilan 15 sorgu
+ calls | total_ms | mean_ms | rows  |                                                                              query                                                                               
+-------+----------+---------+-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 13956 |     1350 |    0.10 | 13956 | update post set rank_score=$1 where id=$2
+   280 |        3 |    0.01 |     0 | BEGIN READ ONLY
+   215 |      402 |    1.87 |  4300 | SELECT id, email, display_name, faculty, department, class_year, language, role, status, email_verified, created_at, last_seen_at, avatar_url FROM app_user WHER
+   215 |      473 |    2.20 |   215 | SELECT count(*) FROM app_user WHERE $1
+   171 |     1743 |   10.19 |   171 | SELECT count(*) FROM admin_audit WHERE $1
+   171 |      209 |    1.22 |  3420 | SELECT id, admin_id, admin_email, method, path, status, created_at, ip, target_type, target_id, reason, summary, request_id FROM admin_audit WHERE $3 ORDER BY i
+   160 |        0 |    0.00 |     0 | BEGIN
+   120 |       24 |    0.20 |  3600 | SELECT g.day AS day, COALESCE(c.n, $6) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($7, $2) gs) g LEFT JOIN (SELECT published_date AS day
+   110 |     2001 |   18.19 |   110 | SELECT count(DISTINCT user_id) FROM activity_daily WHERE day BETWEEN CAST($1 AS date) AND CAST($2 AS date)
+   103 |      181 |    1.76 |   799 | SELECT id, email, display_name, faculty, department, class_year, language, role, status, email_verified, created_at, last_seen_at, avatar_url FROM app_user WHER
+   103 |      553 |    5.37 |   103 | SELECT count(*) FROM app_user WHERE (display_name ILIKE $1 ESCAPE $3 OR email ILIKE $2 ESCAPE $4)
+    80 |    18040 |  225.50 |   240 | SELECT name, sum(cnt) AS cnt, sum(uniq) AS uniq FROM (SELECT name, events AS cnt, users AS uniq FROM analytics_event_daily WHERE day >= $1 AND day <= $2 AND day
+    80 |     5058 |   63.23 |  2400 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT CAST(created_at AT TI
+    80 |      630 |    7.87 |  2400 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT CAST(created_at AT TI
+    80 |      698 |    8.73 |    80 | SELECT count(*) AS registered, count(*) FILTER (WHERE u.email_verified) AS verified, count(*) FILTER (WHERE u.department IS NOT NULL AND u.class_year IS NOT NUL
+(15 rows)
+
+### en yuksek ortalama sureli 10 sorgu (calls>=20)
+ calls | mean_ms | max_ms |                                                                              query                                                                               
+-------+---------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    80 |  225.50 |    688 | SELECT name, sum(cnt) AS cnt, sum(uniq) AS uniq FROM (SELECT name, events AS cnt, users AS uniq FROM analytics_event_daily WHERE day >= $1 AND day <= $2 AND day
+    80 |  134.25 |    495 | SELECT screen, sum(views) AS views FROM (SELECT screen, events AS views FROM analytics_event_daily WHERE name = $8 AND screen <> $9 AND day >= $1 AND day <= $2 
+    80 |  113.99 |    394 | SELECT g.day AS day, COALESCE(c.n, $9) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($10, $2) gs) g LEFT JOIN (SELECT day, sum(n) AS n FRO
+    55 |   91.95 |    398 | SELECT (SELECT count(*) FROM app_user WHERE status <> $9) AS total_users, (SELECT count(*) FROM app_user WHERE status <> $10 AND email_verified) AS verified_use
+    80 |   63.23 |    297 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT CAST(created_at AT TI
+    50 |   36.42 |    150 | WITH weeks AS (SELECT CAST($1 AS date) + ($6 * w) AS week_start FROM generate_series($7, $8) w), c AS (SELECT u.id, CAST(u.created_at AT TIME ZONE $9 AS date) A
+   110 |   18.19 |     76 | SELECT count(DISTINCT user_id) FROM activity_daily WHERE day BETWEEN CAST($1 AS date) AND CAST($2 AS date)
+    55 |   17.36 |     25 | SELECT g.day AS day, COALESCE(c.n, $5) AS n FROM (SELECT CAST($1 AS date) + gs AS day FROM generate_series($6, $2) gs) g LEFT JOIN (SELECT day, count(*) AS n FR
+   171 |   10.19 |     73 | SELECT count(*) FROM admin_audit WHERE $1
+    80 |    8.73 |     88 | SELECT count(*) AS registered, count(*) FILTER (WHERE u.email_verified) AS verified, count(*) FILTER (WHERE u.department IS NOT NULL AND u.class_year IS NOT NUL
+(10 rows)
+
+### tablo basina seq scan (seq_tup_read en yuksek 10)
+          relname          | seq_scan | seq_tup_read | idx_scan | idx_pct | n_live_tup | n_dead_tup 
+---------------------------+----------+--------------+----------+---------+------------+------------
+ analytics_event           |      720 |    719525373 |      694 |    49.1 |          0 |        691
+ app_user                  |      180 |      3600180 |     1248 |    87.4 |          0 |          1
+ post                      |        1 |        30000 |    13984 |   100.0 |      30000 |          0
+ analytics_event_daily     |       44 |        27720 |      196 |    81.7 |          0 |          0
+ community                 |       55 |         5500 |       55 |    50.0 |          0 |          0
+ conversation_member       |        1 |            1 |        2 |    66.7 |          0 |          0
+ profanity_term            |        0 |            0 |        0 |         |          0 |          0
+ user_event                |        0 |            0 |      140 |   100.0 |          0 |          0
+ club_join_answer          |        1 |            0 |        0 |     0.0 |          0 |          0
+ notification_subtype_pref |        0 |            0 |        0 |         |          0 |          0
+(10 rows)
+
+### onbellek isabet orani
+ table_hit_pct 
+---------------
+         90.88
+(1 row)
+
+ index_hit_pct 
+---------------
+         99.76
+(1 row)
+
+ datname | xact_commit | xact_rollback | deadlocks | temp_files | temp_bytes | read_ms 
+---------+-------------+---------------+-----------+------------+------------+---------
+ bingol  |        3568 |             0 |         0 |          0 | 0 bytes    |    2871
+(1 row)
+
+### kilit beklemeleri (an itibariyla)
+ waiting_locks | locks 
+---------------+-------
+             0 |     2
+(1 row)
+
+ state  | wait_event_type | count 
+--------+-----------------+-------
+ idle   | Client          |    13
+ active |                 |     1
+(2 rows)
+
+### WAL / disk
+ db_size | wal_total 
+---------+-----------
+ 1652 MB | 4669 MB
+(1 row)
+
+ checkpoints_timed | checkpoints_req 
+-------------------+-----------------
+                 9 |               4
+(1 row)
+
+### Redis
+used_memory_human:5.35M
+maxmemory_human:200.00M
+total_commands_processed:2156664
+instantaneous_ops_per_sec:0
+rejected_connections:0
+evicted_keys:0
+32222

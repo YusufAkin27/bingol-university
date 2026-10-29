@@ -1,0 +1,118 @@
+### en yavas 15 sorgu (toplam sure)
+ calls | total_ms | mean_ms | max_ms |  rows  |                                                                              query                                                                               
+-------+----------+---------+--------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  4200 |   201166 |   47.90 |    418 |   8730 | SELECT n.id AS id, n.title AS title, n.summary AS summary, n.image_url AS imageUrl, CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.
+  6020 |   119691 |   19.88 |    184 | 120400 | select cm1_0.community_id,count(cm1_0.id) from community_member cm1_0 where cm1_0.community_id in ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$1
+  3825 |    13622 |    3.56 |     52 | 283050 | select ni1_0.id,ni1_0.content,ni1_0.content_attempted_at,ni1_0.content_attempts,ni1_0.event_date,ni1_0.fetched_at,ni1_0.hidden,ni1_0.image_url,ni1_0.published_d
+  5316 |    10577 |    1.99 |     16 |   5316 | select count(*) from news_item ni1_0 where ni1_0.type=$1 and ni1_0.hidden=false
+  1400 |     8191 |    5.85 |    179 |      0 | SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, (SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.kind = $8 AND m.hidde
+  2918 |     6878 |    2.36 |     74 |  37934 | select p1_0.id,p1_0.author_id,p1_0.body,p1_0.created_at,p1_0.deleted_at,p1_0.deleted_by,p1_0.edited_at,p1_0.hidden_at,p1_0.hidden_reason,p1_0.like_count,p1_0.me
+ 15057 |     4477 |    0.30 |     15 |      0 | select m1_0.conversation_id,count(m1_0.id) from message m1_0,conversation_member cm1_0 where cm1_0.conversation_id=m1_0.conversation_id and cm1_0.user_id=$1 and
+  8241 |     3985 |    0.48 |     83 |   8241 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+  1400 |     3917 |    2.80 |    100 |      0 | SELECT e.* FROM user_event e WHERE e.status = 'ACTIVE' AND e.ends_at >= now() AND (e.title ILIKE $1 ESCAPE '!' OR e.description ILIKE $2 ESCAPE '!' OR e.locatio
+  8241 |     2943 |    0.36 |     91 |   8241 | INSERT INTO activity_daily (user_id, day, opens) VALUES ($1, $2, 1) ON CONFLICT (user_id, day) DO NOTHING
+  9277 |     2884 |    0.31 |     12 | 194817 | select n1_0.id,n1_0.body,n1_0.collapse_key,n1_0.created_at,n1_0.data,n1_0.group_count,n1_0.read_at,n1_0.subtype,n1_0.title,n1_0.type,n1_0.user_id from notificat
+ 55814 |     2575 |    0.05 |      9 |  55814 | SELECT body FROM message WHERE id = $1
+  6685 |     2219 |    0.33 |     13 | 105960 | select ue1_0.id,ue1_0.capacity,ue1_0.community_id,ue1_0.cover_url,ue1_0.created_at,ue1_0.created_by,ue1_0.description,ue1_0.ends_at,ue1_0.going_count,ue1_0.loca
+  4835 |     2164 |    0.45 |     13 |  96700 | select ni1_0.id,ni1_0.content,ni1_0.content_attempted_at,ni1_0.content_attempts,ni1_0.event_date,ni1_0.fetched_at,ni1_0.hidden,ni1_0.image_url,ni1_0.published_d
+ 54333 |     1724 |    0.03 |      7 |    147 | select cm1_0.id,cm1_0.community_id,cm1_0.joined_at,cm1_0.role,cm1_0.status,cm1_0.user_id from community_member cm1_0 where cm1_0.community_id=$1 and cm1_0.user_
+(15 rows)
+
+### en cok cagrilan 15 sorgu
+ calls | total_ms | mean_ms |  rows  |                                                                              query                                                                               
+-------+----------+---------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 55814 |     2575 |    0.05 |  55814 | SELECT body FROM message WHERE id = $1
+ 54333 |     1724 |    0.03 |    147 | select cm1_0.id,cm1_0.community_id,cm1_0.joined_at,cm1_0.role,cm1_0.status,cm1_0.user_id from community_member cm1_0 where cm1_0.community_id=$1 and cm1_0.user_
+ 44490 |     1058 |    0.02 |      0 | BEGIN READ ONLY
+ 26831 |      735 |    0.03 |      0 | SELECT blocked_id FROM user_block WHERE blocker_id = $1 UNION SELECT blocker_id FROM user_block WHERE blocked_id = $2
+ 15057 |     4477 |    0.30 |      0 | select m1_0.conversation_id,count(m1_0.id) from message m1_0,conversation_member cm1_0 where cm1_0.conversation_id=m1_0.conversation_id and cm1_0.user_id=$1 and
+ 11648 |       12 |    0.00 |      0 | BEGIN
+ 11541 |      576 |    0.05 |     35 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+ 11505 |      379 |    0.03 |   4381 | select udl1_0.id from user_device_log udl1_0 where udl1_0.user_id=$1 and udl1_0.device_hash=$2 fetch first $3 rows only
+ 11505 |      500 |    0.04 |  11505 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+ 11505 |     1474 |    0.13 |  11505 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+ 10587 |     1325 |    0.13 |  63522 | select cm1_0.id,cm1_0.archive_sticky,cm1_0.archived_at,cm1_0.cleared_up_to_message_id,cm1_0.conversation_id,cm1_0.hidden_at,cm1_0.joined_at,cm1_0.last_delivered
+  9277 |     2884 |    0.31 | 194817 | select n1_0.id,n1_0.body,n1_0.collapse_key,n1_0.created_at,n1_0.data,n1_0.group_count,n1_0.read_at,n1_0.subtype,n1_0.title,n1_0.type,n1_0.user_id from notificat
+  9277 |     1360 |    0.15 |   9277 | select count(n1_0.id) from notification n1_0 where n1_0.user_id=$1 and n1_0.read_at is null
+  8241 |     2943 |    0.36 |   8241 | INSERT INTO activity_daily (user_id, day, opens) VALUES ($1, $2, 1) ON CONFLICT (user_id, day) DO NOTHING
+  8241 |     3985 |    0.48 |   8241 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+(15 rows)
+
+### en yuksek ortalama sureli 10 sorgu (calls>=20)
+ calls | mean_ms | max_ms |                                                                              query                                                                               
+-------+---------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  4200 |   47.90 |    418 | SELECT n.id AS id, n.title AS title, n.summary AS summary, n.image_url AS imageUrl, CAST(n.published_date AS varchar) AS publishedDate FROM news_item n WHERE n.
+  6020 |   19.88 |    184 | select cm1_0.community_id,count(cm1_0.id) from community_member cm1_0 where cm1_0.community_id in ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$1
+  1400 |    5.85 |    179 | SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, (SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.kind = $8 AND m.hidde
+  3825 |    3.56 |     52 | select ni1_0.id,ni1_0.content,ni1_0.content_attempted_at,ni1_0.content_attempts,ni1_0.event_date,ni1_0.fetched_at,ni1_0.hidden,ni1_0.image_url,ni1_0.published_d
+  1400 |    2.80 |    100 | SELECT e.* FROM user_event e WHERE e.status = 'ACTIVE' AND e.ends_at >= now() AND (e.title ILIKE $1 ESCAPE '!' OR e.description ILIKE $2 ESCAPE '!' OR e.locatio
+  2918 |    2.36 |     74 | select p1_0.id,p1_0.author_id,p1_0.body,p1_0.created_at,p1_0.deleted_at,p1_0.deleted_by,p1_0.edited_at,p1_0.hidden_at,p1_0.hidden_reason,p1_0.like_count,p1_0.me
+  5316 |    1.99 |     16 | select count(*) from news_item ni1_0 where ni1_0.type=$1 and ni1_0.hidden=false
+  1526 |    0.84 |     10 | select m1_0.id,m1_0.admin_hidden_at,m1_0.admin_hidden_by,m1_0.body_ciphertext,m1_0.body_nonce,m1_0.client_id,m1_0.conversation_id,m1_0.created_at,m1_0.deleted_a
+  1400 |    0.49 |     87 | SELECT * FROM community WHERE status = $4 AND visibility = $5 AND (name ILIKE $1 ESCAPE $6 OR description ILIKE $2 ESCAPE $7) ORDER BY id DESC LIMIT $3
+  8241 |    0.48 |     83 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+(10 rows)
+
+### tablo basina seq scan (seq_tup_read en yuksek 10)
+          relname          | seq_scan | seq_tup_read | idx_scan | idx_pct | n_live_tup | n_dead_tup 
+---------------------------+----------+--------------+----------+---------+------------+------------
+ community                 |    16170 |      1617000 |     6026 |    27.1 |          0 |          0
+ menu_day                  |     7269 |       225339 |        0 |     0.0 |          0 |          0
+ user_event                |       16 |         3216 |    19191 |    99.9 |          0 |          0
+ conversation_member       |        1 |            1 |    59343 |   100.0 |          0 |          0
+ club_join_answer          |        1 |            0 |        0 |     0.0 |          0 |          0
+ profanity_term            |        0 |            0 |        0 |         |          0 |          0
+ flyway_schema_history     |        0 |            0 |        0 |         |          0 |          0
+ user_block                |    91188 |            0 |        0 |     0.0 |          0 |          0
+ notification_subtype_pref |        0 |            0 |        0 |         |          0 |          0
+ support_ticket_note       |        0 |            0 |        0 |         |          0 |          0
+(10 rows)
+
+### onbellek isabet orani
+ table_hit_pct 
+---------------
+         99.88
+(1 row)
+
+ index_hit_pct 
+---------------
+         99.72
+(1 row)
+
+ datname | xact_commit | xact_rollback | deadlocks | temp_files | temp_bytes | read_ms 
+---------+-------------+---------------+-----------+------------+------------+---------
+ bingol  |      197547 |             0 |         0 |          0 | 0 bytes    |    2421
+(1 row)
+
+### kilit beklemeleri (an itibariyla)
+ waiting_locks | locks 
+---------------+-------
+             0 |     2
+(1 row)
+
+ state  | wait_event_type | count 
+--------+-----------------+-------
+ idle   | Client          |    29
+ active | IO              |     1
+ active |                 |     1
+(3 rows)
+
+### WAL / disk
+ db_size | wal_total 
+---------+-----------
+ 1588 MB | 3531 MB
+(1 row)
+
+ checkpoints_timed | checkpoints_req 
+-------------------+-----------------
+                 1 |               4
+(1 row)
+
+### Redis
+used_memory_human:5.75M
+maxmemory_human:200.00M
+total_commands_processed:295135
+instantaneous_ops_per_sec:0
+rejected_connections:0
+evicted_keys:0
+42387

@@ -24,3 +24,5 @@ Sonuc `scripts/perf/last-run.json` dosyasina yazilir (gitignore).
 Cikis kodu: 0 = tum uclar esik icinde; 1 = esik asimi veya hata; 2 = giris/betik hatasi.
 
 Notlar: 429 hata sayilmaz, ayrica sayilir ve betik geri ceker. Betik her kosuda yalnizca bir kez giris yapar. `/api/me/summary` 404 donerse atlanir. Rate limit sik tetiklenirse `docker compose exec -T redis redis-cli flushall` calistirin. Yorumlama: `docs/PERFORMANCE.md`.
+
+Yuk testi (20k kullanici, k6, yazma/yaris/WebSocket/admin/cokme): scripts/perf/load/README.md

@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Oy verme/geri cekme. Yaris guvenligi: anket satiri PESSIMISTIC_WRITE ile kilitlenir (bir ankette oylar siraya girer),
@@ -34,10 +36,11 @@ public class PollVoteService {
     private final PollAccess access;
     private final PollViewAssembler assembler;
     private final Clock clock;
+    private final TransactionTemplate tx;
 
     public PollVoteService(PollRepository polls, PollOptionRepository options, PollBallotRepository ballots,
                            PollVoteRepository votes, UserRepository users, PollAccess access, PollViewAssembler assembler,
-                           Clock clock) {
+                           Clock clock, PlatformTransactionManager txManager) {
         this.polls = polls;
         this.options = options;
         this.ballots = ballots;
@@ -46,27 +49,50 @@ public class PollVoteService {
         this.access = access;
         this.assembler = assembler;
         this.clock = clock;
+        this.tx = new TransactionTemplate(txManager);
     }
 
-    @Transactional
+    /**
+     * Oy ver. Kritik bolum kisa tutulur (yuk testi bulgusu: 300 es zamanli oy, anket satir kilidini ~10 ms'lik islemlerle
+     * siraya sokuyor, bekleyen oylar Hikari baglantilarini tutup havuzu dolduruyordu). Kural denetimi ve secenek cozumleme
+     * KILITSIZ yapilir; satir kilidi yalniz yazma icin (ballot + oy + sayac) alinir ve gorunum kilit birakildiktan sonra kurulur.
+     * Anket kilit beklerken degistiyse (updatedAt farkli) hazirlik kilit icinde yeniden yapilir.
+     */
     public PollView vote(Actor actor, Long pollId, VoteRequest req) {
-        Poll p = polls.lockById(pollId).orElseThrow(PollService::notFound);
-        Instant now = clock.instant();
+        Poll pre = polls.findById(pollId).orElseThrow(PollService::notFound);
+        List<PollOption> opts = options.findByPollIdOrderByPositionAsc(pollId);
+        List<Long> chosen = prepare(pre, opts, actor, req, clock.instant());
+        tx.executeWithoutResult(s -> {
+            Poll p = polls.lockById(pollId).orElseThrow(PollService::notFound);
+            Instant now = clock.instant();
+            checkOpen(p, actor, now);
+            List<Long> ids = p.getUpdatedAt().equals(pre.getUpdatedAt())
+                    ? chosen : prepare(p, options.findByPollIdOrderByPositionAsc(pollId), actor, req, now);
+            write(p, actor, ids, now);
+        });
+        return assembler.view(polls.findById(pollId).orElseThrow(), actor, false);
+    }
+
+    /** Acik mi, hak var mi, istek gecerli mi (kilit gerektirmez); secilen secenek kimliklerini doner. */
+    private List<Long> prepare(Poll p, List<PollOption> opts, Actor actor, VoteRequest req, Instant now) {
         checkOpen(p, actor, now);
         Set<Long> cids = access.memberCommunityIds(actor.id());
         User me = users.findById(actor.id()).orElse(null);
         if (!access.eligible(p, me, cids)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "POLL_NOT_ELIGIBLE", "Bu ankete katılma hakkınız yok.");
         }
-        List<PollOption> opts = options.findByPollIdOrderByPositionAsc(pollId);
-        List<Long> chosen = parse(p, opts, req);
+        return parse(p, opts, req);
+    }
 
+    /** Kilit altinda: ballot, oy satirlari ve atomik sayaclar (idempotent: ayni oy degisiklik yapmaz). */
+    private void write(Poll p, Actor actor, List<Long> chosen, Instant now) {
+        Long pollId = p.getId();
         PollBallot ballot = ballots.findByPollIdAndUserId(pollId, actor.id()).orElse(null);
         if (ballot != null) {
             List<Long> existing = votes.findByPollIdAndUserIdOrderByChoiceRankAsc(pollId, actor.id()).stream()
                     .map(PollVote::getOptionId).toList();
             if (same(p, existing, chosen)) {
-                return assembler.view(p, actor, false); // idempotent
+                return; // idempotent
             }
             if (!p.isAllowChangeVote()) {
                 throw alreadyVoted();
@@ -87,7 +113,6 @@ public class PollVoteService {
         for (PollVote v : rows) {
             options.addCounts(v.getOptionId(), voteInc(p, v.getChoiceRank()), score(p, v.getChoiceRank()));
         }
-        return assembler.view(polls.findById(pollId).orElseThrow(), actor, false);
     }
 
     @Transactional

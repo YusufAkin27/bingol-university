@@ -1,0 +1,242 @@
+{
+ "summary": {
+  "samples": 8,
+  "appCpuAvgPct": 66.84027777777777,
+  "appCpuMaxPct": 100,
+  "heapMaxMb": 498.2667007446289,
+  "threadsMax": 225,
+  "hikActiveMax": 1,
+  "hikPendingMax": 0,
+  "hikMax": 30,
+  "hikTimeoutsEnd": 0,
+  "gcPauses": 11,
+  "gcPauseSec": 0.08199999999999985,
+  "containers": {
+   "bu_ld_app": {
+    "cpuAvgPct": 129.44,
+    "cpuMaxPct": 199.99,
+    "memMaxMb": 1054.72
+   },
+   "bu_ld_pg": {
+    "cpuAvgPct": 12.60125,
+    "cpuMaxPct": 25.59,
+    "memMaxMb": 1321.984
+   },
+   "bu_ld_redis": {
+    "cpuAvgPct": 2.6599999999999997,
+    "cpuMaxPct": 4.6,
+    "memMaxMb": 12.49
+   }
+  }
+ },
+ "rows": [
+  {
+   "t": 1793230724,
+   "cpu": 0.17222222222222222,
+   "heapMb": 374.11058044433594,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 131,
+   "gcCount": 165,
+   "gcSec": 2.182,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 199.99,
+     "memMb": 1050.624
+    },
+    "bu_ld_pg": {
+     "cpu": 25.07,
+     "memMb": 1321.984
+    },
+    "bu_ld_redis": {
+     "cpu": 0.47,
+     "memMb": 10.82
+    }
+   }
+  },
+  {
+   "t": 1793230729,
+   "cpu": 1,
+   "heapMb": 498.2667007446289,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 225,
+   "gcCount": 166,
+   "gcSec": 2.198,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 186.16,
+     "memMb": 1052.672
+    },
+    "bu_ld_pg": {
+     "cpu": 25.59,
+     "memMb": 1318.912
+    },
+    "bu_ld_redis": {
+     "cpu": 3.28,
+     "memMb": 11.99
+    }
+   }
+  },
+  {
+   "t": 1793230734,
+   "cpu": 1,
+   "heapMb": 452.27095794677734,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 225,
+   "gcCount": 168,
+   "gcSec": 2.214,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 132.35,
+     "memMb": 1053.696
+    },
+    "bu_ld_pg": {
+     "cpu": 15.27,
+     "memMb": 1316.864
+    },
+    "bu_ld_redis": {
+     "cpu": 2.86,
+     "memMb": 12.05
+    }
+   }
+  },
+  {
+   "t": 1793230739,
+   "cpu": 0.84375,
+   "heapMb": 431.6048126220703,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 225,
+   "gcCount": 170,
+   "gcSec": 2.225,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 144.04,
+     "memMb": 1053.696
+    },
+    "bu_ld_pg": {
+     "cpu": 9.22,
+     "memMb": 1316.864
+    },
+    "bu_ld_redis": {
+     "cpu": 3.69,
+     "memMb": 12.47
+    }
+   }
+  },
+  {
+   "t": 1793230744,
+   "cpu": 0.7375,
+   "heapMb": 375.27099609375,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 172,
+   "gcSec": 2.239,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 152.41,
+     "memMb": 1053.696
+    },
+    "bu_ld_pg": {
+     "cpu": 9.95,
+     "memMb": 1316.864
+    },
+    "bu_ld_redis": {
+     "cpu": 4.6,
+     "memMb": 12.49
+    }
+   }
+  },
+  {
+   "t": 1793230749,
+   "cpu": 0.8125,
+   "heapMb": 494.7709426879883,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 225,
+   "gcCount": 173,
+   "gcSec": 2.246,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 123.99,
+     "memMb": 1054.72
+    },
+    "bu_ld_pg": {
+     "cpu": 7.81,
+     "memMb": 1317.888
+    },
+    "bu_ld_redis": {
+     "cpu": 2.91,
+     "memMb": 11.89
+    }
+   }
+  },
+  {
+   "t": 1793230754,
+   "cpu": 0.68125,
+   "heapMb": 409.77099609375,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 175,
+   "gcSec": 2.258,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 96.36,
+     "memMb": 1054.72
+    },
+    "bu_ld_pg": {
+     "cpu": 6.2,
+     "memMb": 1316.864
+    },
+    "bu_ld_redis": {
+     "cpu": 2.93,
+     "memMb": 12.38
+    }
+   }
+  },
+  {
+   "t": 1793230759,
+   "cpu": 0.1,
+   "heapMb": 410.7709732055664,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 176,
+   "gcSec": 2.264,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 0.22,
+     "memMb": 1051.648
+    },
+    "bu_ld_pg": {
+     "cpu": 1.7,
+     "memMb": 1318.912
+    },
+    "bu_ld_redis": {
+     "cpu": 0.54,
+     "memMb": 10.76
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,1360 @@
+{
+ "summary": {
+  "samples": 51,
+  "appCpuAvgPct": 2.593061273191775,
+  "appCpuMaxPct": 14.310344827586208,
+  "heapMaxMb": 677.304328918457,
+  "threadsMax": 233,
+  "hikActiveMax": 2,
+  "hikPendingMax": 0,
+  "hikMax": 30,
+  "hikTimeoutsEnd": 0,
+  "gcPauses": 8,
+  "gcPauseSec": 0.1399999999999988,
+  "containers": {
+   "bu_ld_app": {
+    "cpuAvgPct": 4.104901960784313,
+    "cpuMaxPct": 26.68,
+    "memMaxMb": 1344.512
+   },
+   "bu_ld_pg": {
+    "cpuAvgPct": 34.19137254901961,
+    "cpuMaxPct": 124.61,
+    "memMaxMb": 1762.304
+   },
+   "bu_ld_redis": {
+    "cpuAvgPct": 0.4276470588235294,
+    "cpuMaxPct": 0.52,
+    "memMaxMb": 16.27
+   }
+  }
+ },
+ "rows": [
+  {
+   "t": 1793232786,
+   "cpu": 0.008333333333333333,
+   "heapMb": 495.3554000854492,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 233,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.28,
+     "memMb": 1334.272
+    },
+    "bu_ld_pg": {
+     "cpu": 0.3,
+     "memMb": 1592.32
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 15.91
+    }
+   }
+  },
+  {
+   "t": 1793232791,
+   "cpu": 0.02727272727272727,
+   "heapMb": 499.3553924560547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 233,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 4.79,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 1.28,
+     "memMb": 1594.368
+    },
+    "bu_ld_redis": {
+     "cpu": 0.34,
+     "memMb": 15.36
+    }
+   }
+  },
+  {
+   "t": 1793232796,
+   "cpu": 0.028,
+   "heapMb": 503.3553924560547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 233,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 0.61,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 2.7,
+     "memMb": 1594.368
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 15.34
+    }
+   }
+  },
+  {
+   "t": 1793232801,
+   "cpu": 0.027777777777777776,
+   "heapMb": 510.35538482666016,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 233,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.87,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 26.92,
+     "memMb": 1761.28
+    },
+    "bu_ld_redis": {
+     "cpu": 0.38,
+     "memMb": 15.76
+    }
+   }
+  },
+  {
+   "t": 1793232806,
+   "cpu": 0.016666666666666666,
+   "heapMb": 515.3553848266602,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 9.68,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 14.72,
+     "memMb": 1762.304
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 15.12
+    }
+   }
+  },
+  {
+   "t": 1793232811,
+   "cpu": 0.021666666666666667,
+   "heapMb": 520.3553771972656,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 232,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 6.36,
+     "memMb": 1753.088
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 15.36
+    }
+   }
+  },
+  {
+   "t": 1793232816,
+   "cpu": 0.014583333333333334,
+   "heapMb": 524.3553695678711,
+   "hikActive": 2,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1805,
+   "gcSec": 14.797,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.66,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 22.28,
+     "memMb": 1754.112
+    },
+    "bu_ld_redis": {
+     "cpu": 0.52,
+     "memMb": 15.29
+    }
+   }
+  },
+  {
+   "t": 1793232821,
+   "cpu": 0.14310344827586208,
+   "heapMb": 337.35546875,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1806,
+   "gcSec": 14.847,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 0.76,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 0.95,
+     "memMb": 1754.112
+    },
+    "bu_ld_redis": {
+     "cpu": 0.4,
+     "memMb": 15.81
+    }
+   }
+  },
+  {
+   "t": 1793232826,
+   "cpu": 0.016666666666666666,
+   "heapMb": 341.35546112060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1806,
+   "gcSec": 14.847,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 25.86,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 0.79,
+     "memMb": 1748.992
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 16.27
+    }
+   }
+  },
+  {
+   "t": 1793232831,
+   "cpu": 0.11206896551724138,
+   "heapMb": 590.3552780151367,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1806,
+   "gcSec": 14.847,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 2.92,
+     "memMb": 1753.088
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 15.55
+    }
+   }
+  },
+  {
+   "t": 1793232836,
+   "cpu": 0.008928571428571428,
+   "heapMb": 594.3552780151367,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 231,
+   "gcCount": 1806,
+   "gcSec": 14.847,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.01,
+     "memMb": 1335.296
+    },
+    "bu_ld_pg": {
+     "cpu": 22.74,
+     "memMb": 1652.736
+    },
+    "bu_ld_redis": {
+     "cpu": 0.5,
+     "memMb": 15.68
+    }
+   }
+  },
+  {
+   "t": 1793232841,
+   "cpu": 0.05862068965517241,
+   "heapMb": 452.80467987060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1807,
+   "gcSec": 14.861,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 5.64,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 0.44,
+     "memMb": 1512.448
+    },
+    "bu_ld_redis": {
+     "cpu": 0.36,
+     "memMb": 15.03
+    }
+   }
+  },
+  {
+   "t": 1793232846,
+   "cpu": 0.01935483870967742,
+   "heapMb": 456.80467987060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1807,
+   "gcSec": 14.861,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 18.23,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 1.47,
+     "memMb": 1554.432
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 14.59
+    }
+   }
+  },
+  {
+   "t": 1793232851,
+   "cpu": 0.06666666666666667,
+   "heapMb": 315.3046875,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.24,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 1.68,
+     "memMb": 1554.432
+    },
+    "bu_ld_redis": {
+     "cpu": 0.38,
+     "memMb": 14.58
+    }
+   }
+  },
+  {
+   "t": 1793232856,
+   "cpu": 0.0125,
+   "heapMb": 321.30467987060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.2,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 1.29,
+     "memMb": 1554.432
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 14.62
+    }
+   }
+  },
+  {
+   "t": 1793232861,
+   "cpu": 0.06219512195121951,
+   "heapMb": 488.3044662475586,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 4.85,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 0.67,
+     "memMb": 1555.456
+    },
+    "bu_ld_redis": {
+     "cpu": 0.37,
+     "memMb": 15.21
+    }
+   }
+  },
+  {
+   "t": 1793232866,
+   "cpu": 0.012121212121212121,
+   "heapMb": 496.30445861816406,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.58,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 13.32,
+     "memMb": 1546.24
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 14.99
+    }
+   }
+  },
+  {
+   "t": 1793232871,
+   "cpu": 0.030232558139534883,
+   "heapMb": 664.3043365478516,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.38,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 94.09,
+     "memMb": 1525.76
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 14.32
+    }
+   }
+  },
+  {
+   "t": 1793232876,
+   "cpu": 0.011111111111111112,
+   "heapMb": 671.3043365478516,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1808,
+   "gcSec": 14.875,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 4.19,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 4.75,
+     "memMb": 1525.76
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 15.19
+    }
+   }
+  },
+  {
+   "t": 1793232881,
+   "cpu": 0.03409090909090909,
+   "heapMb": 435.3045196533203,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1809,
+   "gcSec": 14.883,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.91,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 1.93,
+     "memMb": 1526.784
+    },
+    "bu_ld_redis": {
+     "cpu": 0.39,
+     "memMb": 14.49
+    }
+   }
+  },
+  {
+   "t": 1793232886,
+   "cpu": 0.01125,
+   "heapMb": 441.3045196533203,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1809,
+   "gcSec": 14.883,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.95,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 3.64,
+     "memMb": 1527.808
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 14.83
+    }
+   }
+  },
+  {
+   "t": 1793232891,
+   "cpu": 0.06,
+   "heapMb": 656.304328918457,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1809,
+   "gcSec": 14.883,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 0.27,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 56.23,
+     "memMb": 1518.592
+    },
+    "bu_ld_redis": {
+     "cpu": 0.46,
+     "memMb": 14.82
+    }
+   }
+  },
+  {
+   "t": 1793232896,
+   "cpu": 0.0125,
+   "heapMb": 662.304328918457,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1809,
+   "gcSec": 14.883,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.65,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 9.94,
+     "memMb": 1518.592
+    },
+    "bu_ld_redis": {
+     "cpu": 0.4,
+     "memMb": 15.26
+    }
+   }
+  },
+  {
+   "t": 1793232901,
+   "cpu": 0.03974358974358974,
+   "heapMb": 461.80450439453125,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1810,
+   "gcSec": 14.897,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.63,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 10.73,
+     "memMb": 1523.712
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 15.16
+    }
+   }
+  },
+  {
+   "t": 1793232906,
+   "cpu": 0.008974358974358974,
+   "heapMb": 469.80450439453125,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1810,
+   "gcSec": 14.897,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.01,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 84.08,
+     "memMb": 1524.736
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 14.53
+    }
+   }
+  },
+  {
+   "t": 1793232911,
+   "cpu": 0.027142857142857142,
+   "heapMb": 639.8042526245117,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1810,
+   "gcSec": 14.897,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.61,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 116.53,
+     "memMb": 1537.024
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 14.35
+    }
+   }
+  },
+  {
+   "t": 1793232916,
+   "cpu": 0.010714285714285714,
+   "heapMb": 646.8042449951172,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1810,
+   "gcSec": 14.897,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.65,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 90.57,
+     "memMb": 1525.76
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 14.81
+    }
+   }
+  },
+  {
+   "t": 1793232921,
+   "cpu": 0.036585365853658534,
+   "heapMb": 450.3045883178711,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1811,
+   "gcSec": 14.91,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.21,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 6.61,
+     "memMb": 1525.76
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 15.04
+    }
+   }
+  },
+  {
+   "t": 1793232926,
+   "cpu": 0.007692307692307693,
+   "heapMb": 457.3045883178711,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1811,
+   "gcSec": 14.91,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.34,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 0.55,
+     "memMb": 1525.76
+    },
+    "bu_ld_redis": {
+     "cpu": 0.49,
+     "memMb": 15.28
+    }
+   }
+  },
+  {
+   "t": 1793232931,
+   "cpu": 0.03837209302325582,
+   "heapMb": 318.3046875,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.65,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 10.64,
+     "memMb": 1524.736
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 14.92
+    }
+   }
+  },
+  {
+   "t": 1793232936,
+   "cpu": 0.009375,
+   "heapMb": 326.30467987060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.48,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 106.97,
+     "memMb": 1505.28
+    },
+    "bu_ld_redis": {
+     "cpu": 0.37,
+     "memMb": 14.81
+    }
+   }
+  },
+  {
+   "t": 1793232941,
+   "cpu": 0.011428571428571429,
+   "heapMb": 333.30467224121094,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.34,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 1.44,
+     "memMb": 1492.992
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 14.7
+    }
+   }
+  },
+  {
+   "t": 1793232946,
+   "cpu": 0.010606060606060607,
+   "heapMb": 339.30467224121094,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 0.92,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 97.25,
+     "memMb": 1498.112
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 14.36
+    }
+   }
+  },
+  {
+   "t": 1793232951,
+   "cpu": 0.011627906976744186,
+   "heapMb": 346.30467224121094,
+   "hikActive": 2,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.19,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 21.62,
+     "memMb": 1495.04
+    },
+    "bu_ld_redis": {
+     "cpu": 0.5,
+     "memMb": 14.86
+    }
+   }
+  },
+  {
+   "t": 1793232956,
+   "cpu": 0.010810810810810811,
+   "heapMb": 354.30467224121094,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.06,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 95.93,
+     "memMb": 1495.04
+    },
+    "bu_ld_redis": {
+     "cpu": 0.52,
+     "memMb": 15.27
+    }
+   }
+  },
+  {
+   "t": 1793232961,
+   "cpu": 0.010256410256410256,
+   "heapMb": 361.3046646118164,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.14,
+     "memMb": 1342.464
+    },
+    "bu_ld_pg": {
+     "cpu": 124.61,
+     "memMb": 1497.088
+    },
+    "bu_ld_redis": {
+     "cpu": 0.42,
+     "memMb": 15.56
+    }
+   }
+  },
+  {
+   "t": 1793232966,
+   "cpu": 0.011764705882352941,
+   "heapMb": 367.3046569824219,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.04,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 19.26,
+     "memMb": 1497.088
+    },
+    "bu_ld_redis": {
+     "cpu": 0.43,
+     "memMb": 14.78
+    }
+   }
+  },
+  {
+   "t": 1793232971,
+   "cpu": 0.01,
+   "heapMb": 374.3046340942383,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.93,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 3.1,
+     "memMb": 1497.088
+    },
+    "bu_ld_redis": {
+     "cpu": 0.4,
+     "memMb": 15.29
+    }
+   }
+  },
+  {
+   "t": 1793232976,
+   "cpu": 0.010606060606060607,
+   "heapMb": 380.30462646484375,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.65,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 67.53,
+     "memMb": 1512.448
+    },
+    "bu_ld_redis": {
+     "cpu": 0.48,
+     "memMb": 14.36
+    }
+   }
+  },
+  {
+   "t": 1793232981,
+   "cpu": 0.00945945945945946,
+   "heapMb": 387.30462646484375,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 5.73,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 103.69,
+     "memMb": 1478.656
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 14.75
+    }
+   }
+  },
+  {
+   "t": 1793232986,
+   "cpu": 0.013888888888888888,
+   "heapMb": 394.3046188354492,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.38,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 1.67,
+     "memMb": 1477.632
+    },
+    "bu_ld_redis": {
+     "cpu": 0.38,
+     "memMb": 14.8
+    }
+   }
+  },
+  {
+   "t": 1793232991,
+   "cpu": 0.014285714285714285,
+   "heapMb": 401.3046188354492,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.2,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 13.01,
+     "memMb": 1467.392
+    },
+    "bu_ld_redis": {
+     "cpu": 0.46,
+     "memMb": 14.58
+    }
+   }
+  },
+  {
+   "t": 1793232996,
+   "cpu": 0.0125,
+   "heapMb": 407.3046112060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.37,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 5.49,
+     "memMb": 1457.152
+    },
+    "bu_ld_redis": {
+     "cpu": 0.4,
+     "memMb": 14.46
+    }
+   }
+  },
+  {
+   "t": 1793233001,
+   "cpu": 0.00945945945945946,
+   "heapMb": 415.3046112060547,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 26.68,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 66.7,
+     "memMb": 1473.536
+    },
+    "bu_ld_redis": {
+     "cpu": 0.41,
+     "memMb": 14.92
+    }
+   }
+  },
+  {
+   "t": 1793233006,
+   "cpu": 0.10638297872340426,
+   "heapMb": 657.3043441772461,
+   "hikActive": 2,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 2.54,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 45.19,
+     "memMb": 1454.08
+    },
+    "bu_ld_redis": {
+     "cpu": 0.4,
+     "memMb": 14.67
+    }
+   }
+  },
+  {
+   "t": 1793233011,
+   "cpu": 0.0125,
+   "heapMb": 664.3043441772461,
+   "hikActive": 2,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.32,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 100.27,
+     "memMb": 1463.296
+    },
+    "bu_ld_redis": {
+     "cpu": 0.44,
+     "memMb": 14.73
+    }
+   }
+  },
+  {
+   "t": 1793233016,
+   "cpu": 0.009210526315789473,
+   "heapMb": 670.3043365478516,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 8.58,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 7.7,
+     "memMb": 1440.768
+    },
+    "bu_ld_redis": {
+     "cpu": 0.51,
+     "memMb": 14.89
+    }
+   }
+  },
+  {
+   "t": 1793233021,
+   "cpu": 0.018055555555555554,
+   "heapMb": 677.304328918457,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1812,
+   "gcSec": 14.925,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 4.07,
+     "memMb": 1342.464
+    },
+    "bu_ld_pg": {
+     "cpu": 12.46,
+     "memMb": 1440.768
+    },
+    "bu_ld_redis": {
+     "cpu": 0.5,
+     "memMb": 14.75
+    }
+   }
+  },
+  {
+   "t": 1793233026,
+   "cpu": 0.014473684210526316,
+   "heapMb": 275.8046875,
+   "hikActive": 2,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1813,
+   "gcSec": 14.937,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.23,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 115.64,
+     "memMb": 1440.768
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 14.34
+    }
+   }
+  },
+  {
+   "t": 1793233031,
+   "cpu": 0.0125,
+   "heapMb": 280.8046875,
+   "hikActive": 0,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 223,
+   "gcCount": 1813,
+   "gcSec": 14.937,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 3.11,
+     "memMb": 1343.488
+    },
+    "bu_ld_pg": {
+     "cpu": 122.69,
+     "memMb": 1453.056
+    },
+    "bu_ld_redis": {
+     "cpu": 0.45,
+     "memMb": 14.14
+    }
+   }
+  },
+  {
+   "t": 1793233036,
+   "cpu": 0.008333333333333333,
+   "heapMb": 288.8046875,
+   "hikActive": 1,
+   "hikPending": 0,
+   "hikMax": 30,
+   "threads": 224,
+   "gcCount": 1813,
+   "gcSec": 14.937,
+   "hikTimeouts": 0,
+   "docker": {
+    "bu_ld_app": {
+     "cpu": 1.68,
+     "memMb": 1344.512
+    },
+    "bu_ld_pg": {
+     "cpu": 0.42,
+     "memMb": 1426.432
+    },
+    "bu_ld_redis": {
+     "cpu": 0.38,
+     "memMb": 14.27
+    }
+   }
+  }
+ ]
+}

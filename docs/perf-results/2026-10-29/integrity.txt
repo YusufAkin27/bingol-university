@@ -1,0 +1,62 @@
+== veri butunlugu ==
+Output format is aligned.
+                 kontrol                 | ihlal 
+-----------------------------------------+-------
+ kapasite yarisi: going_count > capacity |     0
+(1 row)
+
+                                 kontrol                                  | ihlal 
+--------------------------------------------------------------------------+-------
+ kapasite yarisi: GOING RSVP sayisi != going_count (tum ldx etkinlikleri) |     0
+(1 row)
+
+                      kontrol                      |  ihlal  
+---------------------------------------------------+---------
+ kapasite yarisi etkinligi: dolu koltuk / kapasite | 100/100
+(1 row)
+
+               kontrol               | ihlal 
+-------------------------------------+-------
+ anket: voter_count != ballot sayisi |     0
+(1 row)
+
+                        kontrol                         | ihlal 
+--------------------------------------------------------+-------
+ anket: secenek oy toplami != poll_vote satiri (SINGLE) |     0
+(1 row)
+
+                        kontrol                         | ihlal 
+--------------------------------------------------------+-------
+ anket: ayni kullanici ayni ankette birden fazla ballot |     0
+(1 row)
+
+                              kontrol                               | ihlal 
+--------------------------------------------------------------------+-------
+ anket: ayni kullanici ayni ankette (SINGLE) birden fazla oy satiri |     0
+(1 row)
+
+                kontrol                 | ihlal 
+----------------------------------------+-------
+ begeni: like_count != post_like satiri |     0
+(1 row)
+
+                   kontrol                   | ihlal 
+---------------------------------------------+-------
+ takip: follower_count != user_follow satiri |     0
+(1 row)
+
+                   kontrol                    | ihlal 
+----------------------------------------------+-------
+ takip: following_count != user_follow satiri |     0
+(1 row)
+
+                      kontrol                      | ihlal 
+---------------------------------------------------+-------
+ mesaj: ayni (konusma, gonderen, client_id) tekrar |     0
+(1 row)
+
+                           kontrol                           | ihlal 
+-------------------------------------------------------------+-------
+ mesaj: konusma last_message_id geride (yuk testi mesajlari) |     0
+(1 row)
+

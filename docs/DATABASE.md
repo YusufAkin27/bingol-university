@@ -200,3 +200,9 @@ Yalnız geliştirme/test veritabanı (koruma: `-v confirm=I_AM_DEV_ONLY` ve ≤5
 - Kullanılmayan indeks adayları (`mail110_due`, `rcp230_message_conv_sender`, `idx_perf_message_unread`) başka ajanların bölgesi; 2 hafta `idx_scan` izlenmeden düşürülmedi.
 - Sınırsız/ağır sorgu taraması bulguları (düzeltilmedi, başka ajan paketi): `EventModerationService` katılım sayımı için `attendance.findByEventId(...)` ile tüm yoklamayı çekiyor (sayım sorgusu olmalı); `AttendanceService` katılımcı listesi ve `EventChatService` `findByEventIdAndStatus` tüm GOING listesini belleğe alır (üst sınır etkinlik kapasitesi; kapasitesiz etkinlikte 20k'ya çıkabilir → sayfalanmalı); `AccessBanService.usersInRange` 200 000 satırlık sınır (yönetici işlemi).
 - Yedek betiği ve Redis `maxmemory-policy` (volatile-lru) önerisi uygulanmadı (başka ajan bölgesi).
+
+## 14. Yük testi sonrası notlar (paket LD, 2026-10-29)
+- Uygulama gerçek PostgreSQL 16 ve 20k seed ile ayağa kaldırılıp k6 ile ölçüldü (bölüm 13 ilk madde kapandı): `docs/PERFORMANCE.md` "20k yük testi", ham sonuçlar `docs/perf-results/2026-10-29/`.
+- `statement_timeout`/`lock_timeout` uygulama oturumunda doğrulandı (kilit testi 3,0 sn; bölüm 13 ikinci madde kapandı). Eklendi: JDBC `socketTimeout` 30 sn / `connectTimeout` 10 sn.
+- V800: `news_item.search_vec` (saklı tsvector + GIN `ld_news_search_vec`) ve gönderi arama indeksleri `ld_post_body_fts`, `ld_post_body_trgm`. Büyük `post` tablosunda üretimde `CREATE INDEX CONCURRENTLY` ile elle kurulabilir.
+- PostgreSQL 2 CPU / 2 GB ile 360 RPS okuma karışımında PG CPU ~1,6 çekirdek, tablo önbellek isabeti %99,9; WAL/disk darboğazı görülmedi.

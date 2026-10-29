@@ -9,8 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface NewsRepository extends JpaRepository<NewsItem, Long> {
 
-    /** GIN indeksi (V30 idx_news_fts) ile birebir ayni ifade; degistirirseniz migration'i da guncelleyin. */
-    String VEC = "to_tsvector('turkish', n.title || ' ' || coalesce(n.summary, ''))";
+    /** Saklı tsvector sütunu (V800 search_vec = to_tsvector(turkish, title || summary), GIN ld_news_search_vec): ts_rank yeniden hesap yapmaz. */
+    String VEC = "n.search_vec";
     String MATCH = "(" + VEC + " @@ websearch_to_tsquery('turkish', :q) OR n.title ILIKE :like)";
 
     boolean existsByUrl(String url);

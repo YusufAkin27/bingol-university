@@ -106,3 +106,71 @@ Durum ve ham `EXPLAIN` ciktilari asagida (bu bolum calistirildikca guncellenir):
 | Bildirim kullanici ust siniri tespiti (800 k satir) | 65 ms | `idx_notification_user` uzerinden |
 
 Not: veri seed ile uretildigi icin zaman kolonlari rastgele; BRIN/saklama sonuclari en kotu durum sayilmalidir. Mesaj/bildirim sorgulari yerel makinede birkac yuz mikrosaniyedir; 20k kullanici icin darbogaz ag, JSON serilestirme ve Redis gidis-donuslerinde aranmalidir (`perf-api.js`).
+
+## 20k yük testi (k6, paket LD, 2026-10-29)
+
+Paket: [`scripts/perf/load/`](../scripts/perf/load/README.md) (k6; `run-load.sh` yığını kurar, seed eder, koşar, `docs/perf-results/<tarih>/` altına yazar). Ham sonuçlar ve ayrıntılı tablolar: [`docs/perf-results/2026-10-29/SUMMARY.md`](perf-results/2026-10-29/SUMMARY.md) (+ koşu başına `*.db.txt`: `pg_stat_statements`, seq scan, önbellek, kilit; `*.res.summary.json`: CPU/heap/GC/Hikari).
+
+### Düzen ve sınırlar (sonuçlar YAKLAŞIKTIR)
+
+VPS'i **taklit eden** yerel Docker yığını: PostgreSQL 16 `-m 2g --cpus 2` (üretim `postgresql.conf` değerleri, `pg_stat_statements` açık), Redis `-m 300m` (`maxmemory 200mb volatile-lru`), uygulama `-m 2g --cpus 2 -Xmx1g`, Hikari 30, hız sınırları üretim varsayılanı. Veri: 20.000 kullanıcı, 1,2 M mesaj (düz metin eski satırlar), 60 bin konuşma, 800 bin bildirim, 3 M analitik olay, 100 bin denetim kaydı, 100 kulüp/5 bin üyelik, 200 etkinlik/20 bin RSVP, 30 bin gönderi/90 bin beğeni/300 bin takip, 3000 haber, 21 anket.
+Yük üreticisi (k6, 2 GB) **aynı makinede** (12 çekirdek, Docker 7,6 GB) çalıştı: k6'nın CPU'su sunucu sınırlarının dışındadır ama disk/bellek/zamanlayıcı paylaşılır, mutlak değerler ±%20 oynayabilir. Uygulama `dev` profilinde (actuator metrics için), log INFO. Access token'lar test sırrıyla üretildi (gerçek bcrypt yalnız A senaryosunda). Ölçüm penceresi: 60 sn ısınma sonrası; **JVM ayrıca 4 dk ısıtıldı** (bkz. "Soğuk JVM"). Gerçek VPS (4 vCPU/8 GB) farklı olacağından **çıkarım aşağıdadır, gerçek ölçüm VPS'te yapılmalıdır** (komut: en altta).
+
+### Sonuç tablosu (ısınmış JVM; hedef p95: okuma < 400 ms, yazma < 800 ms)
+
+| Senaryo | Yük | RPS | p50 / p95 / p99 (ms) | Hata | 429 | Not |
+|---|---|---:|---|---:|---:|---|
+| B okuma karışımı | 100 VU | ~104 | 6 / 11 / 15 | 0 | 0 | uygulama CPU %32, PG %21 (200 = 2 çekirdek) |
+| B | 200 VU | ~205 | 6 / 13 / 19 | 0 | 0 | app %72, PG %43 |
+| B | **300 VU** (5 dk) | ~305 | 7 / 58 / 100 | 0 | 0 | app %133, PG %86; en yavaş uç p95 91 ms (arama) |
+| B | 400 VU | ~363 | 106 / 338 / 584 | 0 | 0 | **diz çökme**: Hikari 29/30 + 85 bekleyen; mesaj geçmişi p95 677 ms, arama 512 ms (hedef aşıldı) |
+| B doygunluk | 400 VU, düşünme ~0,15 sn | ~364 | 696 / 1997 / 3086 | 0 | 0 | app %197, PG %158, Hikari 30/30 + 150 bekleyen; hata yok, yalnız kuyruklanma |
+| C1 yazma karışımı | 150 VU (mesaj REST+clientId, beğeni, takip, RSVP) | ~110 | 14 / 31 / 71 | 0 | 0 | mesaj gönderme p95 39 ms |
+| C2 yarış | 100 kişi son 10 koltuk; 300 oy aynı ankette; 50 kişi çift oy | - | RSVP p95 213; oy p95 2373 (max 2526) | 0 | 0 | **bütünlük: 10 başarılı/90 dolu, 100/100, çift oy ve sayaç ihlali 0** |
+| D WebSocket | 1000 STOMP bağlantısı, 500 çift, 90 sn | - | teslim 13 / 23 / 34 (ack p95 24) | bağlantı hatası 0 | - | 4000 mesaj gönderildi, 4000 teslim, kayıp 0; bağlantı kurma p95 10 ms |
+| E yönetim | 8 yönetici + CSV | - | liste p95 ≤ 25 ms; `engagement` p95 1134, `overview` 166 | 0 | 0 | CSV ~35 bin satır / 4,2 MB: p50 122 ms, max 285 ms |
+| A giriş patlaması | 500 eşzamanlı giriş (istemci 429'da `Retry-After` bekler) | - | giriş uçtan uca p50 18 s, p95 31 s; **aynı anda arka plan trafiği p95 110 ms** | 0 | 2081 (kasıtlı yük atma) | bcrypt ~12 giriş/sn (1 izin); 500'ü de girdi |
+| H soğuk açılış | yeniden başlatır başlatmaz 150 VU | ~97 | 460 / 1410 / 2226 | 0 | 0 | aynı yük ısınmış JVM'de p95 ~13 ms |
+| G uç başına | 32 VU kapalı döngü | notifications 619, menu 485, unread-count 441, communities 401, news 354, me/summary 296, calendar 255, conversations 196, feed top 195, events 191, messages 102, **search 93** | | 0 | 0 | tablo SUMMARY.md |
+
+**Kapasite çıkarımı (bu makine):** p95 < 400 ms ile **~350 VU ≈ 300-340 RPS** (VU = ortalama 2 sn düşünme süreli kullanıcı); p95 < 100 ms için 300 VU. Doygunluk ~360 RPS: uygulama 2 çekirdek %100, PostgreSQL ~1,6 çekirdek ve Hikari 30/30 birlikte tükenir (ikinci darboğaz PG CPU).
+**VPS çıkarımı (4 vCPU/8 GB, ÖLÇÜLMEDİ):** uygulama ve PG aynı 4 çekirdeği paylaşır; burada 2+2 çekirdek ~360 RPS verdi, VPS'te ~300-400 RPS beklenir (±%30; fsync/disk, Caddy/TLS ve ağ dahil değil). Gerçek kullanım: 5 bin aktif kullanıcının ~%10'u eşzamanlı = ~500 kullanıcı x 1 istek/5 sn ≈ **100 RPS** → **5 bin aktif kullanıcıda ~3x pay**. 20 bin kayıtlı kullanıcının zirvesi (~1500 çevrimiçi) ≈ 300 RPS: sınırda; o ölçekte arama önbelleği ve sorgu sayısı azaltma (kalan riskler 3-4) ya da ikinci uygulama örneği önerilir.
+
+### Soğuk JVM (en büyük tek bulgu)
+
+Aynı yük (150 VU) yeni başlamış JVM'de p50 460 ms / p95 1410 ms; ısınmış JVM'de p95 ~13 ms. İlk dakikalarda aynı iş 10-20 kat yavaş (`menu/today` tek başına dört dakikada 91 → 1156 RPS'e tırmandı): JIT (C2) derleyici iş parçacıkları aynı 2 çekirdeği paylaşıyor. Önlem: dağıtımı/yeniden başlatmayı düşük trafikte yapın, ilk 3-5 dk için yük dengeleyicide yavaş giriş ya da el ile ısıtma (`scripts/perf/load/run-load.sh` `WARM_MIN`), `docker-compose` `start_period` yeterli. Bu önlem olmadan "ilk koşu" tabloları yanıltıcıdır (eski sonuç dosyalarında soğuk koşular vardı).
+
+### Darboğazlar ve düzeltmeler (önce / sonra)
+
+| # | Bulgu (kök neden) | Düzeltme | Önce | Sonra |
+|---|---|---|---|---|
+| 1 | **Gönderi araması** (`PostSearchProvider`): `to_tsvector(body) @@ ... OR body ILIKE '%q%'` indekssiz; 30 bin gönderide paralel seq scan, her satırda `to_tsvector`. Yük altında tek çağrı 1,1-5,3 sn, arama p95 2,7-5 sn, PG CPU doygun | V800: `ld_post_body_fts` + `ld_post_body_trgm` (GIN); sorgu metni aynı (BitmapOr) | `EXPLAIN`: **562 ms** | **8,6 ms** (65x) |
+| 2 | **Haber araması** (`NewsRepository`): `ts_rank` her eşleşen satırda `to_tsvector`'u yeniden hesaplıyordu (yük altında toplam DB süresinin ~%55'i: 2210 çağrı x 193 ms) | V800: saklı `news_item.search_vec` + GIN `ld_news_search_vec`; `VEC = n.search_vec` | `EXPLAIN` (tüm satırlar eşleşir): **24,3 ms**; nadir terim 1,6 ms | **1,4 ms** (17x); 0,4 ms |
+| 3 | **Giriş patlaması**: 500 eşzamanlı bcrypt tüm çekirdekleri dolduruyor; aynı anda okuma isteği p95 **4,3 sn + 39 hata**, yenileme p95 4,6 sn | `BoundedPasswordEncoder`: en çok (çekirdek-1) eşzamanlı özet, 32 kişilik sıra, taşan/10 sn aşan anında 429 + `Retry-After: 3` | arka plan p95 4263 ms | arka plan **p95 110 ms**, 0 hata; giriş ~12/sn (4 çekirdekte ~37/sn) |
+| 4 | **Anket oyu yarışı**: `PESSIMISTIC_WRITE` kilidi görünüm kurulana kadar tutuluyor; 300 eşzamanlı oy Hikari havuzunu dolduruyor (aktif 29-30/30, bekleyen 131) | `PollVoteService.vote`: doğrulama/seçenek çözümü kilitsiz, kilit yalnız yazma için, görünüm kilit sonrası | p95 2746 / max 2927 ms (lock_timeout 3 sn'ye 73 ms kala) | p95 2373 / max 2526 (**kısmi iyileşme**, bkz. kalan risk 1) |
+| 5 | **JWT ayrıştırıcı** her istekte yeniden kuruluyordu (CPU profilinde `JwtService.parse` ~%4-6) | `JwtParser` alan olarak bir kez | - | tek başına ölçülmedi |
+| 6 | **Havuz tükenmesinde 500**: DB 36 sn donunca `@Transactional` metotlar bağlantı alamayınca `CannotCreateTransactionException` işleyicide yoktu, istemci Spring varsayılan **500** (5 sn) alıyordu | `ApiExceptionHandler.dbTimeout`'a `CannotCreateTransactionException`/`TransactionTimedOutException` (503 `DB_TIMEOUT` + `Retry-After`) | 500 | 503 (birim testli; uçtan uca yeniden koşulmadı) |
+| 7 | DB tamamen donarsa `statement_timeout` işleyemez; JDBC soket zaman aşımı yoktu | `socketTimeout=30`, `connectTimeout=10`, `tcpKeepAlive` | sınırsız | 30 sn (donma testi 36 sn'de havuz sınırı önce devreye girdi) |
+
+Kontrol edilip **sorun çıkmayanlar:** `statement_timeout`/`lock_timeout` uygulama oturumunda etkin (kilit testi: `notification` 12 sn kilitlenince istek tam **3,0 sn**'de 503 `DB_TIMEOUT`); DB 5 sn dondurulunca (docker pause) süreç çökmedi, istek 4,8 sn sonra 200 döndü, yeniden başlama yok, sağlık UP; Redis 5 sn dondurulunca istek 5,5 sn bekleyip 200; yazma yolları p95 ≤ 39 ms; WebSocket 1000 bağlantıda kayıpsız; yönetici listeleri ve 35 bin satır CSV < 300 ms; veri bütünlüğü ihlali **0** (`integrity.txt`).
+
+### Kalan riskler ve açık maddeler
+
+1. **Tek ankete eşzamanlı oy:** satır kilidi seri işler (~120 oy/sn/anket). 300 aynı-anlı oy 2,4 sn; ~600+ aynı-anlı oy `lock_timeout` (3 sn) aşıp 503 verir ve havuzu doldurur (diğer kullanıcılar da etkilenir). Anketi push ile duyururken bildirimleri parça parça gönderin; kalıcı çözüm: oy sayaçlarını kilitsiz (kovalı sayaç/Redis) tutmak.
+2. **Giriş patlaması:** 500 eşzamanlı giriş istemci geri çekilmesiyle ~30 sn'de biter (2 çekirdek). Mobil istemci 429 `Retry-After`'a saygı göstermeli. **Kampüs NAT:** hız sınırları IP başına (giriş 200/15 dk, yenileme 300/15 dk); yüzlerce kullanıcı tek NAT çıkış adresindeyse takılabilir (test `X-Forwarded-For` ile IP'leri ayırdığından bu riski ölçmez; ölçüm için tek IP'den tekrar koşun).
+3. **Arama** en pahalı uç (~93 RPS, istek başına ~20 ms CPU, 5 sağlayıcı sırayla): sağlayıcıları paralel çalıştırın ya da herkese açık parçaları (haber/etkinlik/kulüp) 30 sn önbellekleyin (gönderi sonuçları kullanıcıya özgü engel süzgeci içerir, önbelleklenmez).
+4. **CPU/istek ~15-20 ms** (küçük sorgu sayısı, Hibernate `IN (...)` listeli sorgularda plan yeniden çevirisi, Jackson): 2 çekirdekte tavan ~360 RPS. İlk adaylar: akış (`PostViewAssembler`, ~10 sorgu), sohbet listesi/geçmişi, `me/summary`.
+5. Sohbet geçmişi 400 VU'da p95 677 ms: eski düz metin mesajlarda satır başına `SELECT body` (N+1, 30/istek) test verisinin yapaylığıdır (üretimde mesajlar şifreli); gerçek şifreli veriyle yeniden ölçülmeli. Not: 1,2 M mesajın şifreleme geçişi tek iş parçacığıyla ~290 satır/sn (1,2 M için ~70 dk); canlı sisteme sonradan açılırsa planlayın.
+6. `PostRankService` 5 dakikada bir penceredeki TÜM gönderileri tek tek günceller (30 bin gönderide ~14 bin UPDATE/tur); haftalık gönderi sayısı yüzlerceyken önemsiz, on binlerce olursa toplu `UPDATE ... FROM` gerekir.
+7. Yönetici `engagement` raporu p95 1,1 sn (seed zamanları rastgele; en kötü durum).
+8. Migration sırası: V800 repoda V820'den düşük; `prod`'da `out-of-order=false` olduğundan V800'ü V820'den **önce** dağıtın.
+9. Kapsam dışı/doğrulanmadı: gerçek VPS ağı/diski (fsync, SSD), Caddy/TLS yükü, ffmpeg/medya yükleme, FCM/SMTP, 20k eşzamanlı WebSocket (1000 test edildi), şifreli mesajlarla geçmiş okuması, madde 6'daki 503 düzeltmesinin uçtan uca doğrulaması.
+
+### VPS'te yeniden ölçme
+
+```bash
+# staging (üretim veritabanı DEĞİL) + ayrı yük makinesi; ayrıntı: scripts/perf/load/README.md
+export MODE=remote BASE=https://staging.ornek.net JWT_SECRET='<staging-sirri>' SEED=1 SCENARIOS="G B C D E"
+export PSQL_CMD='ssh vps "docker compose -f docker-compose.prod.yml exec -T postgres psql -U bingol -d bingol"' K6_CMD='k6 run'
+bash scripts/perf/load/run-load.sh            # sonuç: docs/perf-results/<tarih>/SUMMARY.md
+```

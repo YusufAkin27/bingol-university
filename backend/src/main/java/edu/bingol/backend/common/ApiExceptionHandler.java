@@ -80,6 +80,9 @@ public class ApiExceptionHandler {
             org.springframework.dao.PessimisticLockingFailureException.class,
             org.springframework.dao.DataAccessResourceFailureException.class,
             org.springframework.jdbc.CannotGetJdbcConnectionException.class,
+            // @Transactional metot baglanti alamazsa (havuz dolu/DB donmus) JpaTransactionManager bunu firlatir (yuk testi F2b: 500 donuyordu)
+            org.springframework.transaction.CannotCreateTransactionException.class,
+            org.springframework.transaction.TransactionTimedOutException.class,
             jakarta.persistence.QueryTimeoutException.class,
             jakarta.persistence.LockTimeoutException.class,
             jakarta.persistence.PessimisticLockException.class})

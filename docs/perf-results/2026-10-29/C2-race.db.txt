@@ -1,0 +1,117 @@
+### en yavas 15 sorgu (toplam sure)
+ calls | total_ms | mean_ms | max_ms | rows |                                                                              query                                                                               
+-------+----------+---------+--------+------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   400 |    74934 |  187.34 |   1628 |  400 | select p1_0.id,p1_0.allow_change_vote,p1_0.anonymous,p1_0.audience_department,p1_0.audience_faculty,p1_0.audience_grade,p1_0.closed_at,p1_0.closes_at,p1_0.closi
+   100 |     3289 |   32.89 |    195 |   10 | update user_event ue1_0 set going_count=(ue1_0.going_count+1) where ue1_0.id=$1 and (ue1_0.capacity is null or ue1_0.going_count<ue1_0.capacity)
+   400 |      110 |    0.27 |      1 |  400 | insert into poll_vote (choice_rank,created_at,option_id,poll_id,user_id) values ($1,$2,$3,$4,$5) RETURNING *
+   350 |       94 |    0.27 |      3 |  350 | insert into poll_ballot (created_at,poll_id,updated_at,user_id) values ($1,$2,$3,$4) RETURNING *
+  1202 |       68 |    0.06 |      2 | 1202 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+   802 |       50 |    0.06 |      3 |  706 | select cm1_0.id,cm1_0.community_id,cm1_0.joined_at,cm1_0.role,cm1_0.status,cm1_0.user_id from community_member cm1_0 where cm1_0.user_id=$1 and cm1_0.status=$2 
+    85 |       40 |    0.47 |      3 |   85 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+   445 |       39 |    0.09 |      3 |  445 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+   350 |       39 |    0.11 |      1 |  350 | update poll p1_0 set voter_count=(p1_0.voter_count+$1) where p1_0.id=$2
+   801 |       32 |    0.04 |      1 |  801 | select p1_0.id,p1_0.allow_change_vote,p1_0.anonymous,p1_0.audience_department,p1_0.audience_faculty,p1_0.audience_grade,p1_0.closed_at,p1_0.closes_at,p1_0.closi
+   445 |       23 |    0.05 |      0 |  445 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+   450 |       21 |    0.05 |      1 |  450 | update poll_option po1_0 set vote_count=(po1_0.vote_count+$1),rank_score=(po1_0.rank_score+$2) where po1_0.id=$3
+   401 |       21 |    0.05 |      1 |  400 | select pv1_0.id,pv1_0.choice_rank,pv1_0.created_at,pv1_0.option_id,pv1_0.poll_id,pv1_0.user_id from poll_vote pv1_0 where pv1_0.user_id=$1 and pv1_0.poll_id in 
+   100 |       21 |    0.21 |      2 |  100 | select ue1_0.id,ue1_0.capacity,ue1_0.community_id,ue1_0.cover_url,ue1_0.created_at,ue1_0.created_by,ue1_0.description,ue1_0.ends_at,ue1_0.going_count,ue1_0.loca
+   401 |       20 |    0.05 |      1 | 1203 | select po1_0.id,po1_0.poll_id,po1_0.position,po1_0.rank_score,po1_0.text,po1_0.vote_count from poll_option po1_0 where po1_0.poll_id in ($1) order by po1_0.poll
+(15 rows)
+
+### en cok cagrilan 15 sorgu
+ calls | total_ms | mean_ms | rows |                                                                              query                                                                               
+-------+----------+---------+------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  2001 |       19 |    0.01 |    0 | BEGIN READ ONLY
+  1202 |       68 |    0.06 | 1202 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+   960 |        1 |    0.00 |    0 | BEGIN
+   802 |       50 |    0.06 |  706 | select cm1_0.id,cm1_0.community_id,cm1_0.joined_at,cm1_0.role,cm1_0.status,cm1_0.user_id from community_member cm1_0 where cm1_0.user_id=$1 and cm1_0.status=$2 
+   801 |       32 |    0.04 |  801 | select p1_0.id,p1_0.allow_change_vote,p1_0.anonymous,p1_0.audience_department,p1_0.audience_faculty,p1_0.audience_grade,p1_0.closed_at,p1_0.closes_at,p1_0.closi
+   450 |       21 |    0.05 |  450 | update poll_option po1_0 set vote_count=(po1_0.vote_count+$1),rank_score=(po1_0.rank_score+$2) where po1_0.id=$3
+   448 |       19 |    0.04 |    3 | select udl1_0.id,udl1_0.app_version,udl1_0.device_hash,udl1_0.first_seen_at,udl1_0.ip,udl1_0.ip_family,udl1_0.last_event,udl1_0.last_seen_at,udl1_0.platform,udl
+   445 |       12 |    0.03 |  445 | select udl1_0.id from user_device_log udl1_0 where udl1_0.user_id=$1 and udl1_0.device_hash=$2 fetch first $3 rows only
+   445 |       39 |    0.09 |  445 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+   445 |       23 |    0.05 |  445 | select count(udl1_0.id) from user_device_log udl1_0 where udl1_0.user_id=$1
+   401 |       20 |    0.05 |  400 | select pb1_0.id,pb1_0.created_at,pb1_0.poll_id,pb1_0.updated_at,pb1_0.user_id from poll_ballot pb1_0 where pb1_0.user_id=$1 and pb1_0.poll_id in ($2)
+   401 |       20 |    0.05 | 1203 | select po1_0.id,po1_0.poll_id,po1_0.position,po1_0.rank_score,po1_0.text,po1_0.vote_count from poll_option po1_0 where po1_0.poll_id in ($1) order by po1_0.poll
+   401 |       21 |    0.05 |  400 | select pv1_0.id,pv1_0.choice_rank,pv1_0.created_at,pv1_0.option_id,pv1_0.poll_id,pv1_0.user_id from poll_vote pv1_0 where pv1_0.user_id=$1 and pv1_0.poll_id in 
+   400 |       11 |    0.03 |   50 | select pb1_0.id,pb1_0.created_at,pb1_0.poll_id,pb1_0.updated_at,pb1_0.user_id from poll_ballot pb1_0 where pb1_0.poll_id=$1 and pb1_0.user_id=$2
+   400 |      110 |    0.27 |  400 | insert into poll_vote (choice_rank,created_at,option_id,poll_id,user_id) values ($1,$2,$3,$4,$5) RETURNING *
+(15 rows)
+
+### en yuksek ortalama sureli 10 sorgu (calls>=20)
+ calls | mean_ms | max_ms |                                                                              query                                                                               
+-------+---------+--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   400 |  187.34 |   1628 | select p1_0.id,p1_0.allow_change_vote,p1_0.anonymous,p1_0.audience_department,p1_0.audience_faculty,p1_0.audience_grade,p1_0.closed_at,p1_0.closes_at,p1_0.closi
+   100 |   32.89 |    195 | update user_event ue1_0 set going_count=(ue1_0.going_count+1) where ue1_0.id=$1 and (ue1_0.capacity is null or ue1_0.going_count<ue1_0.capacity)
+    85 |    0.47 |      3 | UPDATE app_user SET last_seen_at = now() WHERE id = $1
+   400 |    0.27 |      1 | insert into poll_vote (choice_rank,created_at,option_id,poll_id,user_id) values ($1,$2,$3,$4,$5) RETURNING *
+   350 |    0.27 |      3 | insert into poll_ballot (created_at,poll_id,updated_at,user_id) values ($1,$2,$3,$4) RETURNING *
+   100 |    0.21 |      2 | select ue1_0.id,ue1_0.capacity,ue1_0.community_id,ue1_0.cover_url,ue1_0.created_at,ue1_0.created_by,ue1_0.description,ue1_0.ends_at,ue1_0.going_count,ue1_0.loca
+   350 |    0.11 |      1 | update poll p1_0 set voter_count=(p1_0.voter_count+$1) where p1_0.id=$2
+   445 |    0.09 |      3 | insert into user_device_log (app_version,device_hash,first_seen_at,ip,ip_family,last_event,last_seen_at,platform,seen_count,user_id) values ($1,$2,$3,$4,$5,$6,$
+   802 |    0.06 |      3 | select cm1_0.id,cm1_0.community_id,cm1_0.joined_at,cm1_0.role,cm1_0.status,cm1_0.user_id from community_member cm1_0 where cm1_0.user_id=$1 and cm1_0.status=$2 
+  1202 |    0.06 |      2 | select u1_0.id,u1_0.admin_profile,u1_0.avatar_url,u1_0.bio,u1_0.class_year,u1_0.created_at,u1_0.deleted_at,u1_0.department,u1_0.display_name,u1_0.email,u1_0.ema
+(10 rows)
+
+### tablo basina seq scan (seq_tup_read en yuksek 10)
+          relname          | seq_scan | seq_tup_read | idx_scan | idx_pct | n_live_tup | n_dead_tup 
+---------------------------+----------+--------------+----------+---------+------------+------------
+ poll_option               |      383 |        24073 |      828 |    68.4 |         63 |          5
+ app_user                  |        1 |        20001 |     1900 |    99.9 |          0 |         78
+ poll                      |      442 |         9282 |     1373 |    75.6 |         21 |          1
+ club_join_answer          |        0 |            0 |        0 |         |          0 |          0
+ user_event                |        0 |            0 |      256 |   100.0 |          0 |         19
+ profanity_term            |        0 |            0 |        0 |         |          0 |          0
+ flyway_schema_history     |        0 |            0 |        0 |         |          0 |          0
+ user_block                |      171 |            0 |        0 |     0.0 |          0 |          0
+ notification_subtype_pref |       29 |            0 |        0 |     0.0 |          0 |          0
+ support_ticket_note       |        0 |            0 |        0 |         |          0 |          0
+(10 rows)
+
+### onbellek isabet orani
+ table_hit_pct 
+---------------
+         99.98
+(1 row)
+
+ index_hit_pct 
+---------------
+         99.85
+(1 row)
+
+ datname | xact_commit | xact_rollback | deadlocks | temp_files | temp_bytes | read_ms 
+---------+-------------+---------------+-----------+------------+------------+---------
+ bingol  |        6373 |            90 |         0 |          0 | 0 bytes    |       5
+(1 row)
+
+### kilit beklemeleri (an itibariyla)
+ waiting_locks | locks 
+---------------+-------
+             0 |     2
+(1 row)
+
+ state  | wait_event_type | count 
+--------+-----------------+-------
+ idle   | Client          |    30
+ active |                 |     1
+(2 rows)
+
+### WAL / disk
+ db_size | wal_total 
+---------+-----------
+ 1650 MB | 4538 MB
+(1 row)
+
+ checkpoints_timed | checkpoints_req 
+-------------------+-----------------
+                 8 |               4
+(1 row)
+
+### Redis
+used_memory_human:6.68M
+maxmemory_human:200.00M
+total_commands_processed:2080873
+instantaneous_ops_per_sec:5
+rejected_connections:0
+evicted_keys:0
+39490

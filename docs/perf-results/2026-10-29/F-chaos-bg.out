@@ -1,0 +1,37 @@
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/feed?scope=top&size=12\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/search?q=yemek&limit=5\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/me/summary\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/feed?scope=top&size=12&cursor=VHw2LjMzNDk3MzA0NjczMDcyMnwyODU3MnwxNzkzMjMzMDAx\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/notifications?size=20\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/feed?scope=top&size=12\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/feed?scope=top&size=12&cursor=VHw2LjQ0NjIzMDY3MzczNDM1N3wyOTcxNHwxNzkzMjMzMDAx\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/conversations/27409/messages?size=30\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/news?type=ETKINLIK&size=20&page=0\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/feed?scope=top&size=12&cursor=VHw2LjMzNDk3MzA0NjczMDcyMnwyODU3MnwxNzkzMjMzMDAx\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/news?type=DUYURU&size=20&page=0\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/conversations?size=20\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/conversations?size=20\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/me/summary\": request timeout"
+time="2026-10-29T00:19:37Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/conversations?size=20\": request timeout"
+time="2026-10-29T00:19:40Z" level=warning msg="Request Failed" error="Get \"http://ldapp:8080/api/search?q=burs&limit=5\": request timeout"
+
+== F-chaos-bg == istek(main)=24049 429=0 hata=550 503=122 sure=295s
+ad                                       n     p50     p95     p99     max   hata    429
+GET /communities                       599       6     357    5005    8247     16      0
+GET /communities/{id}                  282       4     188    5005    5045      8      0
+GET /conversations                    1791       8     364    5039   29999     39      0
+GET /conversations/unread-count       1791       4     101    5004    9961     36      0
+GET /conversations/{id}/messages      1756      11      19    4998   29999     10      0
+GET /events                            927       9     446    5006   10211     26      0
+GET /events/calendar                   353       7      19    5004    5005      7      0
+GET /events/{id}                       502       6      86    5005    5006     11      0
+GET /feed?scope=top (cursor)          2786       7      13    4896   29999      9      0
+GET /feed?scope=top                   3636       7     220    5006   29999    101      0
+GET /me/summary                       2199       6    3106    5010   29999    106      0
+GET /menu/today                       2199       2      25    5005    9187     42      0
+GET /news                             2935       4      76    5006   30000     59      0
+GET /notifications                     915       4    3006    5004   29999     43      0
+GET /notifications/unread-count        915       3     181    5003    9848     35      0
+GET /search                            463      12     857   21082   29999      2      0
+time="2026-10-29T00:22:21Z" level=error msg="thresholds on metrics 'http_req_duration{phase:main,name:GET /events}, http_req_duration{phase:main,name:GET /me/summary}, http_req_duration{phase:main,name:GET /notifications}, http_req_duration{phase:main,name:GET /search}, http_req_failed{phase:main,name:GET /communities/{id}}, http_req_failed{phase:main,name:GET /communities}, http_req_failed{phase:main,name:GET /conversations/unread-count}, http_req_failed{phase:main,name:GET /conversations}, http_req_failed{phase:main,name:GET /events/calendar}, http_req_failed{phase:main,name:GET /events/{id}}, http_req_failed{phase:main,name:GET /events}, http_req_failed{phase:main,name:GET /feed?scope=top}, http_req_failed{phase:main,name:GET /me/summary}, http_req_failed{phase:main,name:GET /menu/today}, http_req_failed{phase:main,name:GET /news}, http_req_failed{phase:main,name:GET /notifications/unread-count}, http_req_failed{phase:main,name:GET /notifications}, http_req_failed{phase:main}' have been crossed"
+[F-chaos-bg] k6 cikis kodu=99; kaynak ozeti: {"samples":60,"appCpuAvgPct":19.576113610738613,"appCpuMaxPct":38.54166666666667,"heapMaxMb":726.3818283081055,"threadsMax":225,"hikActiveMax":30,"hikPendingMax":89,"hikMax":30,"hikTimeoutsEnd":505,"gcPauses":24,"gcPauseSec":0.18299999999999983,"containers":{"bu_ld_app":{"cpuAvgPct":37.26383333333333,"cpuMaxPct":74.8,"memMaxMb":1350.656},"bu_ld_pg":{"cpuAvgPct":23.288333333333334,"cpuMaxPct":94.95,"memMaxMb":1617.92},"bu_ld_redis":{"cpuAvgPct":2.3551666666666673,"cpuMaxPct":4.05,"memMaxMb":24.85}}}
