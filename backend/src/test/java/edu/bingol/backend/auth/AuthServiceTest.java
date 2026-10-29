@@ -672,4 +672,87 @@ class AuthServiceTest {
         verifyNoInteractions(verification);
         verify(pending, never()).save(anyString(), any());
     }
+    // --- Yonetici e-postasi istisnasi (ADMIN_EMAILS alan adi kisitindan muaf, baska adres degil) ---
+
+    private AuthService authWithAdmins(String... adminEmails) {
+        return new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh, verification,
+                new AdminProperties(List.of(adminEmails)), accounts, pending, sessions, new CatalogService());
+    }
+
+    @Test
+    void adminListedNonUniversityEmailCanRegisterThroughNormalVerificationFlow() {
+        String admin = "ysufakin23@gmail.com";
+        when(users.findByEmail(admin)).thenReturn(Optional.empty());
+
+        authWithAdmins(admin).register(" YsufAkin23@Gmail.com ", "Sifre1234", "Yonetici", Lang.TR);
+
+        verify(verification).requireMailQuota();
+        verify(verification).issue(admin, Lang.TR); // kod e-postayla gider: sahiplik kaniti sart
+        verify(pending).save(eq(admin), any(Pending.class));
+        verify(users, never()).save(any()); // hesap yalniz dogrulamadan sonra
+    }
+
+    @Test
+    void nonAdminGmailIsStillRejectedWhenAdminListIsNonEmpty() {
+        ApiException e = assertThrows(ApiException.class, () ->
+                authWithAdmins("ysufakin23@gmail.com").register("baska@gmail.com", "Sifre1234", "X", Lang.TR));
+
+        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void adminDomainExemptionIsExactAddressNotDomainOrPrefix() {
+        AuthService a = authWithAdmins("ysufakin23@gmail.com");
+        for (String bad : new String[]{"ysufakin23@gmail.com.evil.com", "xysufakin23@gmail.com", "ysufakin23@mail.gmail.com"}) {
+            ApiException e = assertThrows(ApiException.class, () -> a.register(bad, "Sifre1234", "X", Lang.TR));
+            assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        }
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void adminExemptionDoesNotLiftPlusAliasBan() {
+        ApiException e = assertThrows(ApiException.class, () ->
+                authWithAdmins("yonetici+x@gmail.com").register("yonetici+x@gmail.com", "Sifre1234", "X", Lang.TR));
+
+        assertEquals("EMAIL_ALIAS_NOT_ALLOWED", e.code());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void adminExemptionKeepsPasswordLimitAndExistingAccountConflict() {
+        String admin = "ysufakin23@gmail.com";
+        AuthService a = authWithAdmins(admin);
+        ApiException tooLong = assertThrows(ApiException.class,
+                () -> a.register(admin, "x".repeat(73), "X", Lang.TR));
+        assertEquals("PASSWORD_TOO_LONG", tooLong.code());
+
+        User verified = new User();
+        verified.setEmailVerified(true);
+        when(users.findByEmail(admin)).thenReturn(Optional.of(verified));
+        ApiException dup = assertThrows(ApiException.class, () -> a.register(admin, "Sifre1234", "X", Lang.TR));
+        assertEquals("EMAIL_ALREADY_REGISTERED", dup.code());
+    }
+
+    @Test
+    void adminGmailLoginAndPasswordResetUseSameEmailWithoutDomainCheck() {
+        String admin = "ysufakin23@gmail.com";
+        User u = new User();
+        u.setEmail(admin);
+        u.setEmailVerified(true);
+        u.setPasswordHash(PW_HASH);
+        when(users.findByEmail(admin)).thenReturn(Optional.of(u));
+        when(refresh.issue(any(), any())).thenReturn("rt");
+        when(jwt.createAccessToken(any(), any())).thenReturn("at");
+        when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
+        AuthService a = authWithAdmins(admin);
+
+        assertEquals("at", a.login("YsufAkin23@gmail.com", PW).accessToken());
+        assertEquals(edu.bingol.backend.user.Role.ADMIN, u.getRole()); // giriste ADMIN/FULL'e terfi
+        assertEquals(edu.bingol.backend.admin.rbac.AdminProfile.FULL, u.getAdminProfile());
+
+        a.forgotPassword(admin);
+        verify(verification).issueReset(eq(admin), any());
+    }
 }

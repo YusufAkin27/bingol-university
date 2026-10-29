@@ -41,7 +41,22 @@ class AccountCreatorTest {
 
         assertTrue(u.isEmailVerified());
         assertEquals(Role.ADMIN, u.getRole());
+        assertEquals(edu.bingol.backend.admin.rbac.AdminProfile.FULL, u.getAdminProfile());
         verify(legal).recordSignupConsent(5L);
+    }
+
+    @Test
+    void nonUniversityAdminEmailBecomesAdminFullWhileOthersStayUser() {
+        AccountCreator c = new AccountCreator(users, legal, new AdminProperties(List.of("ysufakin23@gmail.com")));
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+        when(users.saveAndFlush(any(User.class))).thenAnswer(i -> i.getArgument(0, User.class));
+
+        User admin = c.create("ysufakin23@gmail.com", new Pending("h", "Y", "tr"));
+        User other = c.create("ogrenci@bingol.edu.tr", new Pending("h", "O", "tr"));
+
+        assertEquals(Role.ADMIN, admin.getRole());
+        assertEquals(edu.bingol.backend.admin.rbac.AdminProfile.FULL, admin.getAdminProfile());
+        assertEquals(Role.USER, other.getRole());
     }
 
     @Test

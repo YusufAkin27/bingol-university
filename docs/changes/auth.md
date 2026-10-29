@@ -27,6 +27,13 @@ Cagiran cihazin da oturumu kapanir; yeniden giris gerekir.
 - Testler: `AuthServiceTest` (uyusmazlik, eksik parola, IP kapsamli sayac, bayrak kapaliyken eski istemci, bayrak kapaliyken verilen yanlis parola), `VerificationServiceTest.recordWrongAttempt*`.
 - Hata kodu degisikligi yok (mevcut `INVALID_CODE`).
 
+## Yonetici e-postasi alan adi istisnasi (DEP2, 2026-10-29)
+
+- **Sorun:** `register` yalniz `bingol.edu.tr` kabul ediyordu; uretimde `ADMIN_EMAILS=ysufakin23@gmail.com` oldugundan bu hesap hic olusturulamiyor, panele girilemiyordu.
+- **Cozum:** `AuthService.register`, adres `app.admin.emails` (`AdminProperties.isAdminEmail`, buyuk/kucuk harf duyarsiz, TAM adres eslesmesi) listesindeyse alan adi kisitini atlar; baska hicbir adres icin gevsemez (liste bossa eski davranis, `400 EMAIL_DOMAIN_NOT_ALLOWED`). E-posta dogrulama kodu (parola kaniti dahil), parola kurallari, sozlesme kabulu, hiz siniri, genel `202` cevabi ve `+etiket` yasagi (`EMAIL_ALIAS_NOT_ALLOWED`) aynen gecerlidir. Rol/profil dogrulamada `AccountCreator` ve girişte `promoteIfAdmin` ile ADMIN/FULL olur (degismedi). Giris (`LoginIdentifier`: tam e-posta ya da okul numarasi kisayolu) ve sifre sifirlama akislari alan adina bakmaz, bu adresle de calisir.
+- **Guvenlik:** yetki yukseltme yolu acilmaz: yonetici olmak icin adresin sunucu yapilandirmasinda (ADMIN_EMAILS) olmasi VE adres sahibinin kutusundaki kodu girmesi gerekir; listede olmayan adres okul disi alan adiyla kayit olamaz. Yonetici listesine adres eklemek yalniz dagitim ayaridir (API'den degistirilemez).
+- **Web:** `/admin/register` (ya da ADMIN_PATH altindaki `register`): kayit -> e-posta kodu -> otomatik giris; istemcide alan adi kontrolu YOKTUR, karar sunucudadir. Mobil istemci okul alan adini istemcide dayatmaya devam eder (yonetici paneli webdedir).
+
 ## Diger modullerin kullanabilecegi servis
 
 `auth.token.SessionService.revokeAll(userId)`: refresh token'lar + `pwchg` isareti. Sifre sifirlama/degistirme akislari bunu cagirmalidir.

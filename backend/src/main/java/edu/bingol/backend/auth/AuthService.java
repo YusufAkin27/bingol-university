@@ -128,7 +128,9 @@ public class AuthService {
     public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
                          String department, String grade) {
         String email = normalizeEmail(rawEmail);
-        if (!UNIVERSITY_EMAIL.matcher(email).matches()) {
+        // Tek istisna: yapilandirmadaki yonetici adresleri (app.admin.emails / ADMIN_EMAILS) alan adi kisitindan muaftir
+        // (bagimsiz/gmail yonetici hesabi). Baska hicbir adres icin gevsemez; e-posta dogrulamasi ve diger kurallar aynidir.
+        if (!UNIVERSITY_EMAIL.matcher(email).matches() && !admin.isAdminEmail(email)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
                     "Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.");
         }
