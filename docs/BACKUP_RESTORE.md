@@ -302,3 +302,8 @@ Sağlayıcı tarafında **yaşam döngüsü kuralı** koyun (saatlik yedek ~24 d
 ### 11.5 Uzaktan geri yükleme denemesi (zorunlu, bölüm 7 ile birlikte)
 
 Uzak kopya, geri yüklenebildiği gösterilmedikçe yok sayılır: başka bir bilgisayarda/geçici dizinde `rclone copy bukup:yedek/<damga> ./restore-in/ && (cd restore-in && sha256sum -c SHA256SUMS)`, sonra bölüm 10.6 akışı. Sunucunun rclone.conf'u kaybolursa uzak kopyaya erişmek için sağlayıcı anahtarlarını da şifre yöneticisinde tutun.
+
+## 12. Saklama düzeltmesi ve kanıt (CLN1, 2026-10-29)
+- **Belirti:** günlükte her saat `uyari: prune sayisi gecersiz (0); silme yapilmadi`. **Kök neden:** uyarı kapalı (0) haftalık/aylık katmanlar içindi (`BACKUP_KEEP_WEEKLY/MONTHLY=0`, bilinçli); `prune` 0'ı "geçersiz" sayıp her çağrıda uyarıyordu. Günlük (saatlik yedek) katmanında `BACKUP_KEEP_DAILY=3` ile silme zaten çalışıyordu (yanlış alarm; `.env.prod` ve compose anahtarları doğruydu, konteyner ortamında `BACKUP_KEEP_DAILY=3`). `.env.prod` CRLF satır sonlu olsa da compose ``'yi atar (konteyner ortamında `od -c` ile doğrulandı).
+- **Düzeltme:** `scripts/backup/lib.sh prune` (geçerli yedek sayımı, kapalı katmanda sessizlik, geçerli < N iken silmeme). Sınama: `scripts/backup/selftest-prune.sh` (sahte tarihli dizinlerle, gerçek yedek dizinine dokunmaz; sunucuda yedek konteyneri içinde de koşturuldu: 8/8 OK).
+- **Cron kanıtı (sunucu, yeni imaj):** 14:05 cron koşusu `siliniyor: /var/backups/daily/20261029T130933` yazdı ve sonrasında `daily/` içinde tam 3 yedek kaldı (`132035`, `135736`, `140500`); uyarı satırı yok. Yedekler küçüktür (~650 KB sıkıştırılmış/şifreli; fotoğraflar `uploads.tar.zst.age` içinde); 3 yedek en fazla birkaç MB.
