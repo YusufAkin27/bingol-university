@@ -17,3 +17,19 @@ Aktarma klasoru: `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin `
 - Halusinasyonlar: ekran basliklari, katilimci sayisi, Sabitle satiri, Resmi etiketi, guvenlik/gizlilik bolum etiketi.
 - Kalan kusurlar: baskasinin mesajinda "Ogrenci" etiketi, iletme listesinde avatar uzerinde kirmizi nokta ve hata satirinda "Ag baglantisi zaman asimi" alt metni, kendi mesaj etiketi "Sen (Yonetici)".
 - Not: Stitch export'unun screen.png dosyalari "FIFE Image failed to fetch" (28 bayt) donuyordu (gecici hizmet hatasi); bu klasorde screen.png, export edilen code.html'in 390x844 Playwright render'idir (export.zip icindeki PNG'ler bos). Grup 13 klasorundeki PNG'ler gercek Stitch export'udur.
+
+## 22 - Sohbet diger sheetler (6 ekran, `C:\bu_design\stitch\22-sohbet-diger-sheetler\`)
+- Proje: "BU Kampus S2-22-23" (22 ve 23 ayni projede) - https://stitch.withgoogle.com/u/1/projects/3380562025770969118
+- Uretilen: sessize alma sheet'i (8 saat / 1 hafta / Her zaman, "Sessize al", "Vazgec", "Sesi Ac" satiri), sohbeti sil diyalogu (+ "Sohbet arsivlendi" snackbar), sohbetten ayril diyalogu, uye ekle sheet'i (2 secili cip, arama, 50 kisi ipucu, "Ekle (2)"), grup adi diyalogu ("Grup adi girin." hatasi, 21/40 sayac), grup fotografi sheet'i (Galeriden sec / Fotograf cek / Fotografi kaldir kirmizi + JPEG/PNG/WebP hatasi); 6/6.
+- Duzeltilen (1 tur): "ONERILEN" etiketi ve secenek altindaki uydurma aciklamalar ("Ders ve etut suresince"...), "MUHENDISLIK PROJE GRUBU" etiketi + bilgi kutusu, uye satirlarindaki bolum etiketleri (IBF...), snackbar "GERI AL", foto sheet alt metinleri temizlendi.
+- Halusinasyonlar: secenek aciklama metinleri, "Onerilen" rozeti, bolum etiketleri, "GERI AL" eylemi.
+- Kalan kusurlar: sessize alma sheet'inde ek "Sesi acik tut / Sesi Ac" satiri (istem "Sesi ac" satirini istiyordu, metin biraz farkli), uye ekle basliginda "2 secildi" rozeti, grup foto sheet'inde basliktaki kucuk avatar.
+- Not: export'taki screen.png'ler yine "FIFE Image failed to fetch" (28 bayt) oldugundan screen.png = code.html'in 390x844 render'i (bkz. 21).
+
+## 23 - Yeni sohbet, grup, rehber (6 ekran, `C:\bu_design\stitch\23-sohbet-yeni-rehber\`)
+- Proje: "BU Kampus S2-22-23" - https://stitch.withgoogle.com/u/1/projects/3380562025770969118
+- Uretilen: yeni sohbet baslangic (arama, "Yeni grup" + "Rehberden kisi bul" kartlari, 2 karakter ipucu), arama sonuclari ("mehmet", "Sohbet baslat", bos satir), yeni grup (2 kisi secildi cipleri, Grup adi/en cok 50, "Grup adi girin.", "Grubu olustur"), rehber izni gerekli, rehber hazir (5 KISI, "Mesaj" dugmeleri, saatlik sinir uyarisi, gizlilik notu), rehber yukleniyor/bos/hata ("Eslesen kisi yok", "Aramanla eslesen kisi yok.", "Yeniden dene"); 6/6.
+- Duzeltilen (2 tur): tum basliklar "Yemekhane Detay" + sag ust avatar -> "Yeni sohbet"/"Yeni grup"/"Rehberden kisi bul"; "SIK GORUSULEN KAMPUS BIRIMLERI" (Merkez Kutuphane vb.), "Rehberde tara", davet linki cumlesi, KVKK satiri, "Canli Eslesme", "Rehber taraniyor %64", bolum etiketleri, yesil cevrimici noktalari kaldirildi; izin ekranindaki bozuk "_JU_TING_" yazili cizim sade ikonla degisti.
+- Halusinasyonlar: baslik "Yemekhane Detay", sahte kampus birimleri listesi, davet linki, KVKK/sifreleme satiri, canli esleme/yuzde tarama gostergesi.
+- Kalan kusurlar: yeni grup ekraninda "Minimum 2 kisi kurali saglandi" satiri ("Grup icin en az 2 kisi secin." dogrulama satiri yok), "Kisi Ekle" bolum basliginda kirmizi nokta, secili cip avatarlari kirik gorsel; yeni sohbet ekraninda 2. ipucu satiri silindi ama "Kisi aramak icin..." altinda bos alan; rehber hazir ekraninda satirlarda e-posta (istem yalniz bolum istiyordu).
+- Not: PNG'ler render'dir (bkz. 21).
