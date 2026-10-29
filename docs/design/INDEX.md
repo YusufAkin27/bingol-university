@@ -31,7 +31,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [23-sohbet-yeni-rehber.md](23-sohbet-yeni-rehber.md) | 6 | 45, 46 | [ ] |
 | [24-sohbet-bilgi-uyeler-medya.md](24-sohbet-bilgi-uyeler-medya.md) | 6 | 52, 53, 54, A16 | [ ] |
 | [25-sohbet-medya-secici.md](25-sohbet-medya-secici.md) | 6 | 55, 56, 57, A13, A24, A25 | [x] 6 ekran + 1 ek (kamera kayit durumu) (s3), 2 tur duzeltildi; eksik: video ilerleme %45 yerine animasyonlu sayi, sheet'te '4 album' cipi, 'Son Eklenenler' buyuk harf (RAPOR-s3) |
-| [26-sohbet-goruntuleyiciler.md](26-sohbet-goruntuleyiciler.md) | 6 | 48, 49, 50, 51 | [ ] |
+| [26-sohbet-goruntuleyiciler.md](26-sohbet-goruntuleyiciler.md) | 6 | 48, 49, 50, 51 | [x] 6 ekran (s3), 1 tur duzeltildi; eksik: tek gosterimlik rozetinde '1' yerine '!' benzeri simge, gorsel goruntuleyicide yan oklar/nokta seridi, video ekranlari stok fotograf (RAPOR-s3) |
 | [27-kulup-yonetimi.md](27-kulup-yonetimi.md) | 6 | 59, 60, 62 | [x] |
 | [28-kulup-detay-uyelik-durumlari.md](28-kulup-detay-uyelik-durumlari.md) | 6 | 58 (varyantlar) | [x] |
 | [29-kulup-sheet-diyaloglar.md](29-kulup-sheet-diyaloglar.md) | 6 | A26, A27, A28, A29, A32, A33 | [x] |

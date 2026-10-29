@@ -9,3 +9,10 @@ Aktarma klasoru: `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin c
 - Duzeltilen (2 tur + onizleme icin 2 ek istem): avatar ve Ingilizce basliklar (Media Gallery Picker / Create Post Sheet), "Merkez Kampus Meydani", "Canli Simulasyon", "Mod Ozeti", "Sistem Bildirimi", "Yeni album olustur", dosya adi/H.264/SISTEM UYARILARI, kirmizi hata notu (gri bilgiye cevrildi), cift ust satir, ikon adlarinin metin olarak gorunmesi (onizleme ekrani SVG ikonlara cevrildi), eski kopyalar silindi. Yanlislikla tetiklenen "Yeni Album Olustur" ekrani silindi.
 - Halusinasyonlar: avatar, ingilizce baslik, kampus adi, uydurma "mod/durum" kartlari, ikon fontu metin olarak.
 - Kalan eksik: video penceresinde ilerleme %45 degil (animasyonlu, %81 gorunuyor); album sheet'te "4 album" cipi; "Son Eklenenler" buyuk harf; izin ekraninda iki blok tek ekranda (istem boyle istiyor).
+
+## 26 - Sohbet goruntuleyiciler (6 ekran, `C:\bu_design\stitch\26-sohbet-goruntuleyiciler\`)
+- Proje: **BU Kampus S3-26-33** - https://stitch.withgoogle.com/u/1/projects/17489771455933385551 (33 de bu projeye eklenecek)
+- Uretilen: gorsel goruntuleyici (2/5, Indir), kaydetme geri bildirimi + 4 hata metni (yakinlastirilmis), video posteri (Videoyu oynat, 0:42), oynatilan video (0:18/0:42), oynatma hatasi (Yeniden dene), tek gosterimlik fotograf (3 durum metni; indir/paylas yok).
+- Duzeltilen (1 tur): "Media Overlay Viewer" basligi, paylas dugmesi, avatar, kulup/sarki adlari, "Kampus Kayitlari" listesi, Wi-Fi karti, hata kodu, "Sorun Bildir", "Canli Kayit"/"Aktif Onizleme" etiketleri, ikon adlari metin olarak, ekstra kartlar silindi.
+- Halusinasyonlar: ingilizce baslik, paylas/avatar, kulup adlari, Wi-Fi/ag karti, hata kodu, ikon fontu metni.
+- Kalan eksik: tek gosterimlik rozetinde "1" yerine "!" benzeri simge; gorsel ekranda yan oklar + nokta seridi; yalniz tuval ve render ile denetlendi.
