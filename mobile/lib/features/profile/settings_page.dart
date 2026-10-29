@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/crash/crash_reporter.dart';
+import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
@@ -328,7 +329,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: BuType.caption.copyWith(color: t.mut, height: 1.4)),
                 ),
                 const SizedBox(height: 18),
-                Center(child: Text(l10n.settingsVersion('1.0.0'), style: BuType.caption.copyWith(color: t.mut))),
+                Center(child: Text(l10n.settingsVersion(appVersion), style: BuType.caption.copyWith(color: t.mut))),
               ],
             ),
           ),

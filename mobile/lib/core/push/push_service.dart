@@ -18,7 +18,7 @@ import 'push_api.dart';
 import 'push_banner.dart';
 import 'push_router.dart';
 
-const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
+const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.2');
 
 /// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır).
 /// Sunucu `notification` bloklu mesaj gönderdiği için sistem bildirimi kendisi gösterir; burada yalnız

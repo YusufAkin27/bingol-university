@@ -10,7 +10,7 @@ import 'analytics.dart';
 import 'api.dart';
 import 'device_identity.dart';
 
-const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
+const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.2');
 
 /// Sayısal sürümleri karşılaştırır (1.2.3); eksik parça 0 sayılır. a<b -> -1.
 int compareVersions(String a, String b) {

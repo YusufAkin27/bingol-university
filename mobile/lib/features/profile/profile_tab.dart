@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show gradeLabelL;
+import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
@@ -306,7 +307,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                 ]),
                 const SizedBox(height: 18),
-                Center(child: Text(context.l10n.settingsVersion('1.0.0'), style: BuType.caption.copyWith(color: t.mut))),
+                Center(child: Text(context.l10n.settingsVersion(appVersion), style: BuType.caption.copyWith(color: t.mut))),
               ],
             ),
           );

@@ -13,7 +13,7 @@ Set-Location C:\bu_mobile
 
 ## 1. Sürüm
 
-`pubspec.yaml` içindeki `version: 1.0.0+1` -> `versionName=1.0.0`, `versionCode=1`. **Her mağaza yüklemesinde `+N` artırılır** (Play aynı `versionCode`'u iki kez kabul etmez). Uygulama içi sürüm kontrolü (`/api/app/info`) için ayrıca `--dart-define=APP_VERSION=1.0.0` verin (pubspec ile aynı değer).
+`pubspec.yaml` içindeki `version: <ad>+<kod>` -> `versionName=<ad>`, `versionCode=<kod>`. Play aynı `versionCode`'u iki kez kabul etmez ve düşük koda inemez. **Kural (MOB3):** `kod = major*10000 + minor*100 + patch` (2.0.2 -> `20002`, 2.1.0 -> `20100`, 3.0.0 -> `30000`). Her Play yüklemesi yeni bir sürüm adı (en az patch artışı) ister; böylece kod hep benzersiz ve büyük kalır, `+N` elle oynanmaz (patch en çok 99, minor en çok 99). Dosya adı sürümü değiştirmez: AAB'yi yeniden adlandırmak `versionCode`'u değiştirmez, kod yalnız `pubspec.yaml`'dan gelir. Uygulama içi sürüm kontrolü (`/api/app/version`, ayarlar "Sürüm" satırı, push cihaz kaydı) için `--dart-define=APP_VERSION=<ad>` verin (pubspec'in ad kısmıyla aynı); koddaki varsayılanlar (`core/app_gate.dart`, `core/push/push_service.dart`) da aynı adı taşır, sürüm artınca üçünü birlikte güncelleyin.
 
 ## 2. İmzalama (keystore)
 
@@ -165,3 +165,8 @@ Doğrulananlar: `aapt2 dump badging`: paket `tr.com.bukampus.app`, `versionCode=
 Not: izlenen `google-services.json` artık yalnız `tr.com.bukampus.app` istemcisini içerir. Eski adla (`edu.bingol.bu_kampus`) derleme gerekirse eklenti "No matching client" hatası verir; geliştirmede de yeni `applicationId` kullanılır (emülatörde eski kurulu uygulama ayrı bir uygulama olarak kalır, kaldırın).
 
 **Doğrulanmadı:** cihazda/emülatörde çalıştırma, Play'in yeni AAB'yi kabul etmesi, gerçek push alımı (FCM sunucu kimliği ve Play App Signing parmak izlerinin Firebase'e eklenmesi sizde).
+
+### 8.5 Sürüm kodu düzeltmesi (MOB3, 2026-10-29)
+
+Play Console, yüklenen AAB için "1 sürüm kodu daha önce kullanıldı" dedi: dosya `bu-kampus-2.0.2.aab` adına çevrilmişti ama içi `1.0.0+1` idi (dosya adı sürümü değiştirmez). Sürüm `2.0.2+20002` yapıldı (kural bölüm 1), ayarlar ekranındaki sabit "1.0.0" `appVersion` sabitine bağlandı, `APP_VERSION` varsayılanları `2.0.2` oldu.
+
