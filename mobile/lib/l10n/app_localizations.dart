@@ -13518,6 +13518,90 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeni katılma istekleri geldiğinde burada görünecek.'**
   String get p11RequestsEmptyBody;
+
+  /// No description provided for @p06EmptyNoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.'**
+  String get p06EmptyNoneBody;
+
+  /// No description provided for @p06NoMatchBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'“{q}” aramasıyla eşleşen kişi, kulüp veya mesaj bulunamadı.'**
+  String p06NoMatchBody(String q);
+
+  /// No description provided for @p06ResetSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı sıfırla'**
+  String get p06ResetSearch;
+
+  /// No description provided for @p06ArchiveEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.'**
+  String get p06ArchiveEmptyBody;
+
+  /// No description provided for @p06BackToChats.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbetlere dön'**
+  String get p06BackToChats;
+
+  /// No description provided for @p06LoadFailedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p06LoadFailedTitle;
+
+  /// No description provided for @p06LoadFailedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet listesi güncellenirken bir bağlantı hatası oluştu. Lütfen bağlantınızı kontrol edin.'**
+  String get p06LoadFailedBody;
+
+  /// No description provided for @p06MenuDeleteChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbeti sil'**
+  String get p06MenuDeleteChat;
+
+  /// No description provided for @p08OnceSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca bir kez görüntülenebilir'**
+  String get p08OnceSubtitle;
+
+  /// No description provided for @p08OnceSentSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek seferlik görünüm'**
+  String get p08OnceSentSub;
+
+  /// No description provided for @p08ModerationTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderasyon bildirimi'**
+  String get p08ModerationTitle;
+
+  /// No description provided for @p08Percent.
+  ///
+  /// In tr, this message translates to:
+  /// **'%{n}'**
+  String p08Percent(String n);
+
+  /// No description provided for @p08PhotoLoadingSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucudan indiriliyor'**
+  String get p08PhotoLoadingSub;
+
+  /// No description provided for @p08Queued.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kuyrukta · Bekliyor'**
+  String get p08Queued;
 }
 
 class _AppLocalizationsDelegate

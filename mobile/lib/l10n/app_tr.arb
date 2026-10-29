@@ -3946,5 +3946,21 @@
   "p11TypeMultiHint": "Birden fazla seçenek işaretlenebilir",
   "p11TypeRankedHint": "Seçenekler tercih sırasına dizilir",
   "p11TypeRatingHint": "1-5 yıldızla puanlanır",
-  "p11RequestsEmptyBody": "Yeni katılma istekleri geldiğinde burada görünecek."
+  "p11RequestsEmptyBody": "Yeni katılma istekleri geldiğinde burada görünecek.",
+  "p06EmptyNoneBody": "Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.",
+  "p06NoMatchBody": "“{q}” aramasıyla eşleşen kişi, kulüp veya mesaj bulunamadı.",
+  "@p06NoMatchBody": {"placeholders": {"q": {"type": "String"}}},
+  "p06ResetSearch": "Aramayı sıfırla",
+  "p06ArchiveEmptyBody": "Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.",
+  "p06BackToChats": "Sohbetlere dön",
+  "p06LoadFailedTitle": "Yüklenemedi, tekrar dene",
+  "p06LoadFailedBody": "Sohbet listesi güncellenirken bir bağlantı hatası oluştu. Lütfen bağlantınızı kontrol edin.",
+  "p06MenuDeleteChat": "Sohbeti sil",
+  "p08OnceSubtitle": "Yalnızca bir kez görüntülenebilir",
+  "p08OnceSentSub": "Tek seferlik görünüm",
+  "p08ModerationTitle": "Moderasyon bildirimi",
+  "p08Percent": "%{n}",
+  "@p08Percent": {"placeholders": {"n": {"type": "String"}}},
+  "p08PhotoLoadingSub": "Sunucudan indiriliyor",
+  "p08Queued": "Kuyrukta · Bekliyor"
 }

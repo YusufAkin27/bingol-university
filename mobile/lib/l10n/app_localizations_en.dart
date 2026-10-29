@@ -7385,4 +7385,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p11RequestsEmptyBody => 'New join requests will show up here.';
+
+  @override
+  String get p06EmptyNoneBody =>
+      'Start messaging your friends, student clubs or event groups.';
+
+  @override
+  String p06NoMatchBody(String q) {
+    return 'No person, club or message matches “$q”.';
+  }
+
+  @override
+  String get p06ResetSearch => 'Reset search';
+
+  @override
+  String get p06ArchiveEmptyBody =>
+      'Archived chats are kept here and keep your inbox tidy.';
+
+  @override
+  String get p06BackToChats => 'Back to chats';
+
+  @override
+  String get p06LoadFailedTitle => 'Could not load, try again';
+
+  @override
+  String get p06LoadFailedBody =>
+      'A connection error occurred while updating the chat list. Please check your connection.';
+
+  @override
+  String get p06MenuDeleteChat => 'Delete chat';
+
+  @override
+  String get p08OnceSubtitle => 'Can only be viewed once';
+
+  @override
+  String get p08OnceSentSub => 'One-time view';
+
+  @override
+  String get p08ModerationTitle => 'Moderation notice';
+
+  @override
+  String p08Percent(String n) {
+    return '$n%';
+  }
+
+  @override
+  String get p08PhotoLoadingSub => 'Downloading from the server';
+
+  @override
+  String get p08Queued => 'Queued · Waiting';
 }

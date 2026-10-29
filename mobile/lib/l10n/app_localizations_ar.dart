@@ -7313,4 +7313,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p11RequestsEmptyBody => 'ستظهر هنا طلبات الانضمام الجديدة.';
+
+  @override
+  String get p06EmptyNoneBody =>
+      'ابدأ المراسلة مع أصدقائك أو الأندية الطلابية أو مجموعات الفعاليات.';
+
+  @override
+  String p06NoMatchBody(String q) {
+    return 'لا يوجد شخص أو نادٍ أو رسالة تطابق “$q”.';
+  }
+
+  @override
+  String get p06ResetSearch => 'إعادة ضبط البحث';
+
+  @override
+  String get p06ArchiveEmptyBody =>
+      'تُحفظ المحادثات المؤرشفة هنا لتبقى قائمتك مرتبة.';
+
+  @override
+  String get p06BackToChats => 'العودة إلى المحادثات';
+
+  @override
+  String get p06LoadFailedTitle => 'تعذّر التحميل، حاول مجددًا';
+
+  @override
+  String get p06LoadFailedBody =>
+      'حدث خطأ في الاتصال أثناء تحديث قائمة المحادثات. يرجى التحقق من اتصالك.';
+
+  @override
+  String get p06MenuDeleteChat => 'حذف المحادثة';
+
+  @override
+  String get p08OnceSubtitle => 'يمكن عرضها مرة واحدة فقط';
+
+  @override
+  String get p08OnceSentSub => 'عرض لمرة واحدة';
+
+  @override
+  String get p08ModerationTitle => 'إشعار الإشراف';
+
+  @override
+  String p08Percent(String n) {
+    return '$n٪';
+  }
+
+  @override
+  String get p08PhotoLoadingSub => 'جارٍ التنزيل من الخادم';
+
+  @override
+  String get p08Queued => 'في قائمة الانتظار · بانتظار الاتصال';
 }

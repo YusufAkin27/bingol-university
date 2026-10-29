@@ -2245,5 +2245,19 @@
   "p11TypeMultiHint": "Voters can pick several options",
   "p11TypeRankedHint": "Options are ranked by preference",
   "p11TypeRatingHint": "Rated with 1-5 stars",
-  "p11RequestsEmptyBody": "New join requests will show up here."
+  "p11RequestsEmptyBody": "New join requests will show up here.",
+  "p06EmptyNoneBody": "Start messaging your friends, student clubs or event groups.",
+  "p06NoMatchBody": "No person, club or message matches “{q}”.",
+  "p06ResetSearch": "Reset search",
+  "p06ArchiveEmptyBody": "Archived chats are kept here and keep your inbox tidy.",
+  "p06BackToChats": "Back to chats",
+  "p06LoadFailedTitle": "Could not load, try again",
+  "p06LoadFailedBody": "A connection error occurred while updating the chat list. Please check your connection.",
+  "p06MenuDeleteChat": "Delete chat",
+  "p08OnceSubtitle": "Can only be viewed once",
+  "p08OnceSentSub": "One-time view",
+  "p08ModerationTitle": "Moderation notice",
+  "p08Percent": "{n}%",
+  "p08PhotoLoadingSub": "Downloading from the server",
+  "p08Queued": "Queued · Waiting"
 }

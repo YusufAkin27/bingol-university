@@ -7354,4 +7354,53 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p11RequestsEmptyBody =>
       'Yeni katılma istekleri geldiğinde burada görünecek.';
+
+  @override
+  String get p06EmptyNoneBody =>
+      'Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.';
+
+  @override
+  String p06NoMatchBody(String q) {
+    return '“$q” aramasıyla eşleşen kişi, kulüp veya mesaj bulunamadı.';
+  }
+
+  @override
+  String get p06ResetSearch => 'Aramayı sıfırla';
+
+  @override
+  String get p06ArchiveEmptyBody =>
+      'Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.';
+
+  @override
+  String get p06BackToChats => 'Sohbetlere dön';
+
+  @override
+  String get p06LoadFailedTitle => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String get p06LoadFailedBody =>
+      'Sohbet listesi güncellenirken bir bağlantı hatası oluştu. Lütfen bağlantınızı kontrol edin.';
+
+  @override
+  String get p06MenuDeleteChat => 'Sohbeti sil';
+
+  @override
+  String get p08OnceSubtitle => 'Yalnızca bir kez görüntülenebilir';
+
+  @override
+  String get p08OnceSentSub => 'Tek seferlik görünüm';
+
+  @override
+  String get p08ModerationTitle => 'Moderasyon bildirimi';
+
+  @override
+  String p08Percent(String n) {
+    return '%$n';
+  }
+
+  @override
+  String get p08PhotoLoadingSub => 'Sunucudan indiriliyor';
+
+  @override
+  String get p08Queued => 'Kuyrukta · Bekliyor';
 }
