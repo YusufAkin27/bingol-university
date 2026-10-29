@@ -86,6 +86,7 @@ public class MailRenderer {
         page.put("dir", lang == Lang.AR ? "rtl" : "ltr");
         page.put("title", titleText);
         page.put("brand", brand);
+        page.put("brandHtml", MailBrand.headerHtml(brand));
         page.put("footer", footerText);
         page.put("bodyHtml", bodyHtml.toString());
         page.put("codeHtml", codeHtml);

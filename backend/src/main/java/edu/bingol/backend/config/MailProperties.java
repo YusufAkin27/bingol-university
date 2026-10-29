@@ -1,5 +1,7 @@
 package edu.bingol.backend.config;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
@@ -8,6 +10,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * `app.mail.*` ayarlari. enabled=false iken e-postalar gonderilmez, kuyruk isleyicisi icerigi log'a yazar
  * (yalnizca gelistirme).
  *
+ * @param from        gonderen adresi; "Ad <adres>" verilirse adres ayrilir (gorunen ad icin bkz. fromName)
+ * @param fromName    gorunen gonderen adi (MAIL_FROM_NAME; bos ise MAIL_FROM icindeki ad, o da yoksa "BÜ Kampüs")
  * @param queuePollMs kuyruk isleyicisinin calisma araligi (ms)
  * @param maxAttempts bu kadar basarisiz denemeden sonra e-posta DEAD olur
  * @param batchSize   bir turda alinan en fazla e-posta
@@ -48,6 +52,36 @@ public record MailProperties(
     /** Baglama icin kanonik kurucu (birden fazla kurucu oldugundan acikca isaretlenir). */
     @ConstructorBinding
     public MailProperties {
+        // MAIL_FROM "Ad <adres>" bicimde verilmis olabilir: adres ayrilir, gorunen ad iki kez uretilmez.
+        // Oncelik: acik MAIL_FROM_NAME > MAIL_FROM icindeki ad > varsayilan marka adi.
+        String embedded = null;
+        if (from != null) {
+            Matcher m = NAME_ADDR.matcher(from.trim());
+            if (m.matches()) {
+                embedded = m.group(1).trim().replaceAll("^\"|\"$", "").trim();
+                from = m.group(2).trim();
+            } else {
+                from = from.trim();
+            }
+        }
+        if (fromName == null || fromName.isBlank()) {
+            fromName = embedded == null || embedded.isBlank() ? DEFAULT_FROM_NAME : embedded;
+        }
+        fromName = fromName.replaceAll("[\r\n]+", " ").trim();
+    }
+
+    /** Gorunen gonderen adi varsayilani (urun adi; MAIL_FROM_NAME ile degistirilir). */
+    public static final String DEFAULT_FROM_NAME = "BÜ Kampüs";
+
+    private static final Pattern NAME_ADDR = Pattern.compile("^(.*)<([^<>]+)>\s*$");
+
+    /** "Ad <adres>" ya da yalnizca "adres" -> adres kismi (dogrulayici/yardimcilar icin). */
+    public static String addressOf(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        Matcher m = NAME_ADDR.matcher(raw.trim());
+        return (m.matches() ? m.group(2) : raw).trim();
     }
 
     /** Eski 13 alanli kurucu (kota alanlari olmadan; geriye uyumluluk). */

@@ -26,7 +26,7 @@ Ortam degiskenleri (`.env`):
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | SMTP kimligi | |
 | `MAIL_FROM` | Gonderen adresi | `no-reply@bingol.edu.tr` |
 
-Gonderen gorunen adi `BÜ Kampüs` (`app.mail.from-name`). Istege bagli ayarlar (application.properties, varsayilanlar kodda): `app.mail.queue-poll-ms=5000`, `app.mail.max-attempts=5`, `app.mail.batch-size=20`, `app.mail.from-name`.
+Gonderen gorunen adi `BÜ Kampüs` (`app.mail.from-name`, ortam: `MAIL_FROM_NAME`). `MAIL_FROM` yalniz adrestir (`noreply@bukampus.online`); `"Ad <adres>"` bicimi verilirse adres ayrilir ve ad CIFT uretilmez. Oncelik: acik `MAIL_FROM_NAME` > `MAIL_FROM` icindeki ad > varsayilan `BÜ Kampüs` (bos `MAIL_FROM_NAME` = varsayilan/gomulu ad). Ad RFC 2047 (`=?UTF-8?...?=`) ile kodlanir (`MimeMessageHelper` UTF-8), satir sonlari temizlenir. `docker-compose*.yml` `MAIL_FROM_NAME`'i konteynere gecirir; `deploy.sh` `.env.prod`'a yazar. UYARI: Gmail'deki yuvarlak profil resmi (avatar) BIMI + dogrulanmis marka sertifikasi (VMC/CMC) olmadan DEGISMEZ; kodla cozulemez (bkz. MAIL_DELIVERABILITY.md). Istege bagli ayarlar (application.properties, varsayilanlar kodda): `app.mail.queue-poll-ms=5000`, `app.mail.max-attempts=5`, `app.mail.batch-size=20`, `app.mail.from-name`.
 
 Dogrulama: `MAIL_ENABLED=true` ile bir kayit yapin; `select status, attempts, last_error from mail_outbox order by id desc;` ile durumu izleyin. Takilan kayit (DEAD) icin `update mail_outbox set status='PENDING', attempts=0, next_attempt_at=now() where id=..` ile yeniden kuyruga alinabilir (degiskenler silindigi icin kod/baglanti yeniden uretilmelidir; pratikte kullanici yeni kod ister).
 
@@ -39,6 +39,14 @@ Dogrulama: `MAIL_ENABLED=true` ile bir kayit yapin; `select status, attempts, la
 5. Gorsel duzen `src/main/resources/mail-templates/layout.html` icindedir (600px, `#C62A20` baslik bandi, `#171E33` metin, `#FAF6F3` zemin, koyu mod meta + medya sorgusu, Arapcada `dir="rtl"`).
 
 Sablonlarin cagrildigi yerler (kayit disindakiler sonraki modullerce baglanmalidir): dogrulama kodu `VerificationService` (bagli). Sifre sifirlama, hesap silindi, yeni cihaz girisi ve sifre degisti bildirimleri icin servis metotlari hazirdir; sifre sifirlama ozelligi eklendiginde cagrilmalidir.
+
+## Marka logosu (DEP2)
+
+- `layout.html` ust bandi (kirmizi `#C62A20`, tum temalarda ayni) beyaz yatay logo gosterir: `mail-templates/logo.png` (`brand/dist/horizontal-white.png`'den 276x72 px = 138x36 CSS px, 2x yogunluk, ~8 KB; kaynak `brand/` PNG'si degistirildiginde yeniden uretin). `MailBrand.headerHtml(brand)` hem `MailRenderer` hem `CustomMailRenderer` (yonetici sablonlari) icin ust bant HTML'ini uretir; `{{{brandHtml}}}` yer tutucusu.
+- **Neden CID (gomulu ek), neden harici URL degil:** Gmail `data:` URI'yi engeller; harici URL (`PUBLIC_WEB_URL/brand/...`) web dagitimina/CDN'e, DNS'e ve alicinin "gorselleri goster" ayarina baglidir, yerel/staging'de kirilir ve her acista bir istek (izleme sinyali) uretir. `MailTransport` zaten `multipart` + `MimeMessageHelper` kullandigindan `helper.addInline("bu-logo", ...)` ile `multipart/related` icinde tek bir gomulu parca eklemek en saglam yoldur (web/sunucu bagimsiz). Maliyet: her postaya ~8 KB; Gmail inline CID'yi ek olarak gostermez. HTML'de `cid:bu-logo` YOKSA (destek yanitlari gibi `sendRich` HTML'i) ek eklenmez.
+- Gorsel yuklenmezse `alt="BÜ Kampüs"` beyaz+kalin 20 px olarak kirmizi bant uzerinde okunur (acik ve koyu kipte ayni; koyu kipte `.brandbar` rengi `!important` ile sabit). Duz metin parcasinda logo/gorsel yoktur. Arapcada bant `dir="rtl"` ve `text-align:start` ile saga yaslanir; kod kutusu LTR kalir.
+- Yonetim panelindeki sablon onizlemesinde (`MailTemplateAdminService`) `cid:` kaynagi `MailBrand.forPreview` ile `data:` URI'ye cevrilir (yalniz onizleme; gonderimde kullanilmaz).
+- Testler: `MailBrandTest` (From RFC 2047, cift ad yok, MIME yapisi: related/alternative, `Content-ID <bu-logo>`, duz metinde logo yok, tr/en/ar, onizleme); `target/mail-preview/*.html|*.eml` elle inceleme dosyalari uretir.
 
 ## Teslim edilebilirlik (spam'e dusmeme) - V420/V421
 

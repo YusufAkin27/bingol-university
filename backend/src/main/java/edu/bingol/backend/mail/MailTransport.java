@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -70,6 +71,10 @@ public class MailTransport {
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         applyHeaders(helper, to, subject, replyTo);
         helper.setText(plain, html);
+        if (html != null && MailBrand.hasLogo() && html.contains("cid:" + MailBrand.LOGO_CID)) {
+            // Gomulu logo (multipart/related): Gmail data: URI'yi engeller, CID gosterilir. Duz metin parcasinda logo yok.
+            helper.addInline(MailBrand.LOGO_CID, new ByteArrayResource(MailBrand.logoPng()), "image/png");
+        }
         if (category == MailCategory.ANNOUNCEMENT) {
             message.setHeader("Precedence", "bulk");
             message.setHeader("List-Unsubscribe", "<" + unsubscribeUrl + ">");

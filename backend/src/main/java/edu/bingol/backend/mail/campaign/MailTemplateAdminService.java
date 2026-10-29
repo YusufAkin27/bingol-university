@@ -239,7 +239,8 @@ public class MailTemplateAdminService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MAIL_TEMPLATE_INVALID", "Şablon geçersiz.", "tr");
         }
         MailRenderer.Rendered out = renderer.renderContent(r.content(), r.used(), sample, "");
-        return new PreviewView(want.code(), r.used().code(), r.fallback(), out.subject(), out.html(), out.text(), sample);
+        return new PreviewView(want.code(), r.used().code(), r.fallback(), out.subject(),
+                edu.bingol.backend.mail.MailBrand.forPreview(out.html()), out.text(), sample);
     }
 
     private MailCustomTemplateVersion buildVersion(TemplateRequest r, Long adminId) {

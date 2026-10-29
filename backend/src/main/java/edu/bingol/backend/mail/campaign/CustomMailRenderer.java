@@ -100,6 +100,7 @@ public class CustomMailRenderer implements CustomMailContent {
         page.put("dir", lang == Lang.AR ? "rtl" : "ltr");
         page.put("title", subject);
         page.put("brand", brand);
+        page.put("brandHtml", edu.bingol.backend.mail.MailBrand.headerHtml(brand));
         page.put("footer", footer);
         page.put("bodyHtml", body.toString());
         page.put("codeHtml", "");

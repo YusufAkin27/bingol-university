@@ -128,7 +128,7 @@ public class ProdSettingsValidator {
         if (!env.getProperty("app.mail.enabled", Boolean.class, false)) {
             return;
         }
-        String from = env.getProperty("app.mail.from", "no-reply@bingol.edu.tr").trim();
+        String from = MailProperties.addressOf(env.getProperty("app.mail.from", "no-reply@bingol.edu.tr"));
         int at = from.lastIndexOf('@');
         String domain = at < 0 ? "" : from.substring(at + 1).toLowerCase(java.util.Locale.ROOT);
         if (from.isEmpty() || at < 1 || domain.isEmpty()) {
