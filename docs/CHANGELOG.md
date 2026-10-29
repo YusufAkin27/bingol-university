@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Yayın hazırlığı (REL1)
+
+- **Geri yükleme provası:** `scripts/restore-drill.sh` (tohum veri + fotoğraf -> gerçek yedek -> `down -v` -> yeni boş yığında `restore-live.sh` -> parmak izi karşılaştırması). Sonuç ve süreler: [BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 10. Prova üç gerçek hata buldu ve düzeltildi: prod compose'ta redis `setpriv` için `SETUID/SETGID`, yedek servisi için `FOWNER` (aksi halde yedek konteyneri döngüde), ve backend'in `prod` profilinde açılmamasına yol açan `OpenApiConfig.uniqueSchemaNames` (springdoc kapalıyken `ObjectMapperProvider` yok).
+- **Belgeler/betikler:** [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) (alan adı, DNS, Brevo, VPS sırası), [DEPLOY.md](DEPLOY.md) bölüm 14 (dağıtım disiplini), `scripts/warmup.sh` (soğuk JVM ısıtma), `scripts/staging-smoke.sh` (canlı salt-okur duman), [DEVICE_TEST_PLAN.md](DEVICE_TEST_PLAN.md), [store/](store/README.md) (Play metinleri, veri güvenliği, derecelendirme), [ANDROID_RELEASE.md](ANDROID_RELEASE.md) bölüm 8, [PUSH_SETUP.md](PUSH_SETUP.md) bölüm 6 (API anahtarı kısıtlama).
+
 ### Backend
 
 - **Auth:** şifre sıfırlama (3 adım: `forgot-password` → `verify-reset-code` → `reset-password`); `POST /api/auth/logout-all`; bekleyen kayıt Redis'te (`reg:<email>`, 1 saat), hesap yalnız `verify-email` ile oluşur (başkasının e-postasıyla önceden kayıt açıp hesabı ele geçirme yolu kapandı); kod deneme kilidi (5 yanlış → 10 dk), `verify-email` e-posta başına sınır; `/login` sabit süre; `pwchg:<uid>` ile eski access token iptali; `SessionService.revokeAll`.

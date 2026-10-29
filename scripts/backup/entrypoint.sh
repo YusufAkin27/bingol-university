@@ -30,7 +30,9 @@ fi
 : "${BACKUP_AGE_RECIPIENT:?BACKUP_AGE_RECIPIENT gerekli}"
 [ -f "$BACKUP_DIR/metrics/backup.prom" ] || /opt/backup/lib.sh init-metrics
 chown -R postgres:postgres "$BACKUP_DIR"
-chmod 755 "$BACKUP_DIR" "$BACKUP_DIR/metrics"
+# 755: backend (uid 1001) metrics dizinini salt okunur baglayip okur. Dizin postgres'e ait oldugundan kok icin chmod CAP_FOWNER ister
+# (compose'ta cap_add FOWNER). Windows/Docker Desktop bind mount'larinda chmod hic desteklenmez: orada uyar, calismaya devam et.
+chmod 755 "$BACKUP_DIR" "$BACKUP_DIR/metrics" 2>/dev/null   || echo "uyari: $BACKUP_DIR veya metrics icin chmod 755 yapilamadi (cap_add FOWNER yok mu / Windows bind mount?); backend yedek durumunu okuyamayabilir" >&2
 
 CRON_FILE=/tmp/backup.cron
 {

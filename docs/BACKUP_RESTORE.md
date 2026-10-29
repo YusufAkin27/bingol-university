@@ -154,3 +154,52 @@ bash scripts/backup/restore-live.sh <yedek-dizini> <kurtarma.age.key>
 ```
 
 `restore-live.sh` yığını durdurmadan ÖNCE yedeği kuru doğrular (yanlış/okunamayan anahtar veya bozuk dump: hiçbir şey değişmez), anahtarı konteynere `/run/restore-key/restore.key` olarak bağlar (servisin `:ro /run/backup` bağlamasının altına değil) ve postgres için 0400 kopyaya çevirir, canlı veritabanını silmez (`bingol_prev_<damga>`), uploads'ı önce geçici dizine çıkarıp sonra yerine koyar, adım hatasında yığını yeniden başlatmaya çalışır. Geçici yığında uçtan uca denenmiştir (yanlış anahtar: yığın dokunulmadan kalır; doğru anahtar: DB + dosyalar geri gelir).
+
+## 10. Geri yükleme provası (VPS taklidi, yerelde): `scripts/restore-drill.sh`
+
+Amaç: yedeğin **gerçekten** geri yüklenebildiğini, yeni boş bir yığında yalnız yedek + age özel anahtarıyla uygulamanın açıldığını ve verinin birebir döndüğünü, gerçek sunucuya dokunmadan kanıtlamak. Bu bölüm REL1 provasının (2026-10-29) sonucunu ve yeniden çalıştırma yolunu verir. Betik **yerel Docker** içindir; gerçek VPS'te aynı komutlar bölüm 5 ve 9'daki gibidir.
+
+### 10.1 Ne yapar
+`bash scripts/restore-drill.sh [all|source|backup|destroy|restore|verify|build|clean]` (varsayılan `all`; her aşama ayrı da çalışır, tekrar çalıştırılabilir):
+
+| Aşama | İşlem |
+|---|---|
+| `source` | Üretim compose'u (`docker-compose.prod.yml`) proje adı `rel1`, `127.0.0.1:18090`, Caddy/web olmadan; `dev,seed` profiliyle **tohum veri** (12 kullanıcı, 5 kulüp, 15 gönderi, şifreli sohbetler, anketler) + gerçek yükleme hattından bir **avatar**; sırlar ve age anahtar çifti `$DRILL_DIR` altında üretilir (repoya yazılmaz). Backend durdurulup tutarlı **parmak izi** alınır |
+| `backup` | Gerçek `backup.sh` (pg_dump + uploads, age şifreli), yedek `daily/<damga>` hosta kopyalanır (uzak kopya taklidi), `sha256sum -c` |
+| `destroy` | `docker compose down -v`: veritabanı, uploads, redis ve **yedek volume'u dahil her şey** silinir |
+| `restore` | **Yeni boş** yığın (yalnız postgres + redis), sonra `scripts/backup/restore-live.sh` (kuru doğrulama, DB, uploads, Redis temizliği, başlatma); uygulama bu kez **`prod` profiliyle** (`ProdSettingsValidator`, Flyway `out-of-order=false`) açılır |
+| `verify` | Sağlık UP; Flyway son sürümü ve sayısı; tablo satır sayıları; uploads dosya sayısı/bayt/SHA-256 özeti; API: tohum kullanıcıyla giriş, **sohbet metinlerinin çözülmesi** (`CRYPTO_MASTER_KEYS` doğru), gönderi görselleri ve avatar baytlarının SHA-256'sı; kaynakla birebir karşılaştırma. Fark varsa çıkış kodu 1 |
+| `clean` | Yığını ve `$DRILL_DIR`'i siler |
+
+Ortam: `PROJECT=rel1`, `PORT=18090`, `DRILL_DIR=/c/bu_restore_drill` (ASCII yol; Windows'ta Türkçe karakterli yoldan bind mount'tan kaçınmak için), `BACKEND_IMAGE=bu-rel1-backend:drill` (yoksa `git archive HEAD` ile **commitli kaynaktan** derlenir; `OVERLAY="yol1 yol2"` ile commitsiz düzeltmeler üstüne kopyalanır), `SEED=0` (boş veritabanı). Gereken: Docker + Compose >= 2.24, node, curl, openssl.
+
+### 10.2 Sonuç (REL1 koşusu)
+Tüm denetimler **PASS**: sağlık UP; Flyway son sürüm (820) ve 81 başarılı kayıt aynı; 12 kullanıcı, 15 gönderi, 10 gönderi medyası, 4 sohbet/8 mesaj/4 sohbet anahtarı, 4 anket, 25 bildirim satırları aynı; 43 dosya / 515 042 bayt / aynı SHA-256 özeti; yedek öncesi ve sonrası **aynı** çözülmüş sohbet metni özeti ve **aynı** gönderi/avatar bayt özetleri.
+
+| Ölçülen süre (Docker Desktop, 8 GB RAM, Windows; küçük VPS'e yaklaşık) | Süre |
+|---|---|
+| Kaynak yığını kurma + tohum (imaj hazırken; yük altında 55-165 sn) | ~55-165 sn |
+| Yedek alma (43 dosya, ~0,5 MB uploads + küçük DB; `backup.sh`) | 3-9 sn |
+| Yığını silme (`down -v`) | 2-13 sn |
+| **Geri yükleme** (`restore-live.sh`: kuru doğrulama + DB + dosyalar + başlatma; 4 koşu) | **11-38 sn (son koşu 15 sn)** |
+| Uygulamanın açılıp `UP` olması (soğuk JVM, Flyway doğrulaması) | 54-60 sn |
+| **Boş yığından açık uygulamaya toplam** (postgres/redis başlatma dahil; son tam koşu 78 sn, tüm betik 6 dk 14 sn) | **78-85 sn** |
+
+**Bu süreler küçük veriyle ölçüldü.** Gerçek sürede ölçeklenen kısım indirme (uzak kopya) ve `pg_restore`/uploads çıkarma süresidir (veri boyutuyla doğru orantılı); kabaca saniyeler yerine "veri GB'ı başına dakikalar" bekleyin. RTO hedefi (2 sa) için ayrıca: sunucu kurulumu (`bootstrap-server.sh`, ~10 dk), repo klonu, `.env.prod`'u şifre yöneticisinden geri koyma, DNS yayılması (TTL), indirme. İlk gerçek tatbikatta (bölüm 7) bu kalemleri ölçüp tabloya ekleyin.
+
+### 10.3 Prova sırasında bulunan ve düzeltilen sorunlar
+Prova, `docker-compose.prod.yml` ile gerçek (kısıtlı, salt okunur, `cap_drop: ALL`) kapsayıcılarda ilk kez uçtan uca koşturuldu ve **üç gerçek hata** buldu (bunlar olmadan VPS'te yedek hattı ve uygulama açılmazdı):
+
+1. **Redis açılmıyordu.** `redis:7-alpine` giriş betiği `setpriv` ile kullanıcı düşürür; `cap_drop: ALL` + `SETUID/SETGID` yok => `setpriv: setresuid failed: Operation not permitted` sonsuz döngüsü (konteyner "unhealthy"). Düzeltme: redis servisine `cap_add: CHOWN, SETUID, SETGID`.
+2. **Yedek servisi (`backup`) sürekli yeniden başlıyordu.** `entrypoint.sh` kök olarak `chown -R postgres /var/backups` yapıp ardından `chmod 755` çalıştırıyordu; dizin artık postgres'e ait olduğundan kök için `chmod` **CAP_FOWNER** ister (compose'ta yok) => `Operation not permitted`, `set -e` ile çıkış, döngü. Düzeltme: yedek servisine `cap_add: FOWNER`; ayrıca `chmod` hatası artık ölümcül değil (uyarı basar; Docker Desktop/Windows bind mount'unda chmod hiç desteklenmez). `scripts/backup/selftest.sh` bu hatayı yakalayamıyordu çünkü kısıtlı yetkilerle (`cap_drop: ALL`) koşmuyor.
+3. **Backend `prod` profilinde HİÇ açılmıyordu** (`Parameter 0 of method uniqueSchemaNames in OpenApiConfig required a bean of type ObjectMapperProvider`). Prod'da `springdoc.api-docs.enabled=false` iken springdoc `ObjectMapperProvider` bean'ini üretmez, ama `OpenApiConfig.uniqueSchemaNames` kayıtsız şartsız ona bağlıydı. Düzeltme: bean `@ConditionalOnProperty(springdoc.api-docs.enabled)` ile koşullandı. Dev/test (api-docs açık) davranışı değişmez.
+
+Ayrıca belgelenen davranış: prod profili `MAIL_ENABLED=false` ile **başlamayı reddeder** (`app.mail.allow-log-only=true` bilinçli verilmedikçe); prova yalnız bu bindirmede `APP_MAIL_ALLOW_LOG_ONLY=true` kullanır, gerçek `.env.prod`'da kullanılmaz.
+
+### 10.4 Anahtar saklama uyarısı (tekrar)
+Prova kendi geçici age anahtarını `$DRILL_DIR/kurtarma.age.key` altında üretir ve `clean` ile siler. **Gerçek kurtarma özel anahtarı hiçbir koşulda sunucuda, repoda, yedek dizininde ya da yedekle aynı kasada durmaz**: çevrimdışı kasa + parola yöneticisi (>= 2 yer). `CRYPTO_MASTER_KEYS` yedeğin içinde değildir: ikisinden biri kayıpsa geri yükleme ya yapılamaz (age anahtarı) ya da mesajlar/gönderi videoları okunamaz (ana anahtar). Prova bunu doğrular: `verify` aşaması sohbet metnini ancak doğru ana anahtarla çözer.
+
+### 10.5 Kapsam dışı / doğrulanmadı
+- Gerçek VPS, gerçek alan adı, Caddy/TLS, uzak kopya (`BACKUP_REMOTE`/rclone), webhook uyarısı ve haftalık `verify-restore.sh` (doğrulama anahtarı gerektirir) bu provada **denenmedi**.
+- Tohum veri küçüktür; büyük veride süre ve disk/RAM davranışı ölçülmedi.
+- Redis oturumları yedeklenmez: geri yüklemeden sonra herkes yeniden giriş yapar (provada Redis temizlenir, tasarım gereği).

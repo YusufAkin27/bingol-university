@@ -4,6 +4,8 @@ Bu belge **uygulama işleticisi (siz) içindir**; kullanıcıya gösterilmez. Me
 
 ## Yayın öncesi avukat kontrol listesi (toplu: B1 + PAKET LG)
 
+> **Yayın sırası içindeki yeri:** bu liste [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) "Aşama 0" ile bağlıdır (hangi maddelerin kapalı test için, hangilerinin herkese açık yayın için beklediği orada). Mağaza metinleri ve Play formları bu belgedeki kararlara göre yazıldı: [store/](store/README.md). Yeniden onay zorlamasının (`LEGAL_ENFORCE_REACCEPT`) açılma sırası: [DEPLOY.md](DEPLOY.md) 14.4.
+
 Aşağıdakiler kodla doğrulanan olgulara dayalı **sorulardır**; metinlerin hiçbiri hukuki görüş değildir. Her madde için ilgili belge ve bölüm yazılıdır.
 
 1. **Kimlik, statü ve üniversite izni.** Veri sorumlusu gerçek kişi (Yusuf Akın). Üniversite adı/logosu/haber-duyuru-yemek içeriğinin kullanımı için yazılı izin veya protokol gerekir mi? Kullanım Koşulları 15.1 ve 8.3 "resmî uygulama değildir / izin ima edilmez" yaklaşımı yeterli mi?

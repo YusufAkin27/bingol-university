@@ -255,3 +255,67 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 - **İstek gövdesi sınırları (Caddy):** yalnız yükleme yolları (`/api/posts/media`, `/api/users/me/avatar`, `/api/communities/{id}/cover|logo|posts/upload`, `/api/events/{id}/cover`, `/api/conversations/{id}/avatar|media`, `/api/admin/menu/{date}/image`) `CADDY_MAX_BODY` (55 MB) alır; `/api/admin/*` 2 MB; diğer `/api/*`, `/files/*`, `/ws` 128 KB (aşarsa 413). **Yeni bir multipart yükleme ucu eklenirse `deploy/Caddyfile` içindeki `@upload` düzenli ifadesine de eklenmelidir.** `read_header 10s` (slowloris). `X-Forwarded-For` güven modeli değişmedi.
 - **Yedek servisi tek kullanıcı (postgres, uid 70):** elle komutlar `exec -u postgres backup ...`; `update.sh` böyle çağırır. Betikler root çağrılsa bile kendilerini postgres'e geçirir. supercronic mutlak yolla (`/usr/local/bin/supercronic`) başlatılır: PID 1 iken yolsuz ad ENOENT verir ve zamanlayıcı hiç başlamazdı. supercronic imajda SHA-256 ile doğrulanır.
 - **CI:** `backend-postgres` işi gerçek PostgreSQL 16 + Redis ile Flyway zinciri + `ddl-auto=validate` kapısıdır (`scripts/ci/flyway-validate.sh`, `SMOKE=1` ile `smoke.sh`/`smoke-support.sh` bilgilendirme amaçlı). `deploy-staging.yml` girdileri doğrular, değerleri SSH stdin'i ile geçirir (komut satırında token/etiket yok) ve otomatik yolda değişmez `sha-<head_sha>` etiketini dağıtır. Staging artık `-p bu-staging -f docker-compose.prod.yml -f docker-compose.staging.yml --env-file .env.staging` kullanır; `vars.STAGING_HEALTH_URL` isteğe bağlıdır (varsayılan sağlık denetimi konteyner `healthy` durumudur, host portu yoktur). Üçüncü taraf action'lar tam commit SHA'sına sabitlidir (`# vX.Y.Z` yorumu); yükseltirken SHA'yı etiketten yeniden çözün.
+
+## 14. Dağıtım disiplini (REL1)
+
+Bölüm 0, 8 ve 13 "nasıl"ı anlatır; bu bölüm **ne zaman ve hangi sırayla** sorusunu ve geri alma planını sabitler. Yayın öncesi tüm liste: [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
+
+### 14.1 Ne zaman dağıtılır
+- **Düşük trafik penceresi: 01:15-02:45 (Europe/Istanbul).** Gerekçe: 00:00 haber/duyuru senkronu biter, 03:00'te `DbMaintenanceJob` (parçalı silme, yoğun I/O), 04:00 cihaz token temizliği, 04:30 haftalık yedek doğrulaması (pazar) başlar. Saatlik yedek `:05`'te çalışır; `update.sh` zaten kendi öncesi yedeğini alır, yine de `:00-:10` arasına denk getirmeyin (yedek kilidi çakışır).
+- Cuma akşamı, sınav/kayıt haftası ve etkinlik duyurusu (kampanya push/e-posta) hemen öncesi dağıtım yapmayın; dağıttıktan sonra en az 30 dk izleyebileceğiniz bir zaman seçin.
+- Mobil sürümle birlikte çıkan sunucu değişikliği: **önce sunucu** (geriye uyumlu), sonra mobil (bölüm 14.4 ve 14.5).
+
+### 14.2 Dağıtım sırası ve soğuk JVM ısıtma
+Soğuk JVM'de ilk dakikalar 10-20 kat yavaştır (JIT, Hikari havuzu, Hibernate/Jackson önbellekleri; bkz. [PERFORMANCE.md](PERFORMANCE.md)). `update.sh` sağlık geçince Caddy trafiği hemen yönlendirir; ısıtma yapılmazsa ilk kullanıcılar yavaş yanıt ve zaman aşımı görür. Sıra:
+
+```bash
+# 0) (önerilir) kullanıcıya bakım bandı: yönetici paneli > Ayarlar ya da API (bölüm 14.6)
+# 1) dağıtım (önce yedek alır, derler, başlatır, sağlık bekler, başarısızsa kendiliğinden geri alır)
+bash scripts/deploy/update.sh --ref vX.Y.Z
+# 2) SOĞUK JVM ISITMA: ~300 hafif salt-okur istek (veri değiştirmez); hata oranı > %2 ise çıkış kodu 1
+BASE=https://<alan> bash scripts/warmup.sh
+#    oturumlu uçlar da ısınsın istenirse: TOKEN=<test hesabı access JWT> BASE=... bash scripts/warmup.sh
+# 3) canlı duman kontrolü (salt-okur + tek test hesabı): scripts/staging-smoke.sh
+BASE=https://<alan> TEST_EMAIL=... TEST_PASSWORD=... bash scripts/staging-smoke.sh
+# 4) bakım bandını kapatın; 30 dk izleyin: `docker compose ... logs -f backend`, admin > Sistem (/admin/system)
+```
+
+`warmup.sh` varsayılanları küçük VPS için düşüktür (`N=300`, `PAR=4`, istekler arası 50 ms). Yük testi değildir; yük testi için `scripts/perf/load/` (yalnız test yığını).
+
+### 14.3 Migration sırası (Flyway)
+- Sürümler **tek yönlü ve sıralıdır**: V800 (`ld_` arama indeksleri) < V820 (hukuki metin v4) < V830 < V860 ... **Prod'da `spring.flyway.out-of-order=false`** (`application-prod.properties`): uygulanmış en yüksek sürümden DÜŞÜK numaralı yeni bir migration prod'da "detected resolved migration not applied" ile uygulamayı başlatmaz.
+- Kurallar: uygulanmış migration düzenlenmez; yeni migration numarası **birleştirme anında main'deki en yüksek numaradan büyük** olmalıdır (paralel kollarda numara çakışırsa birleştirmeden önce yeniden numaralayın; indeks adları şemada benzersizdir); aralıklar CLAUDE.md'de modüllere ayrılmıştır.
+- **Hiçbir sürümü elle/tek başına uygulamayın.** Zincir bir dağıtımda sırayla uygulanır; V820'yi V800'den önce uygulamak V800'ü prod'da kalıcı olarak "uygulanamaz" bırakır.
+- Büyük tabloda indeks/migration süresi: V800'ün gönderi arama indeksleri büyük `post` tablosunda uzun sürebilir ([DATABASE.md](DATABASE.md) V800 notu). Süresi tahmin edilemeyen migration'ı bakım bandıyla çalıştırın.
+- Dağıtımdan önce bekleyen migration'ları görün: `ls backend/src/main/resources/db/migration | sort -V | tail` ve sunucuda `docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod exec -T postgres psql -U bingol -d bingol -Atc "select version from flyway_schema_history where success order by installed_rank desc limit 1"`. CI `backend-postgres` işi zinciri boş PostgreSQL 16'ya karşı doğrular (`scripts/ci/flyway-validate.sh`).
+- **Acil durum (yalnız bilinçli):** aralıkta kalmış bir migration'ı uygulamak için tek seferlik `SPRING_FLYWAY_OUT_OF_ORDER=true` ile başlatın, uygulandıktan sonra **hemen kaldırın** (Flyway "yeniden üretilebilirlik" uyarısı verir).
+
+### 14.4 `LEGAL_ENFORCE_REACCEPT` yalnız mobil sürüm mağazada yayınlandıktan SONRA açılır
+`LEGAL_ENFORCE_REACCEPT=true` iken `LegalReacceptFilter`, bekleyen yeniden onayı olan her kullanıcının **tüm yazma isteklerine** (gönderi, mesaj, etkinlik katılımı, profil güncellemesi...) 403 `LEGAL_REACCEPT_REQUIRED` döner (okuma, giriş, `/api/legal/**`, destek, hesap silme ve veri indirme muaf). Yeniden onay ekranı yalnız **yeni mobil sürümde** vardır (`features/legal/`, `LegalReacceptGate`). Mağazada eski sürümü kullanan kullanıcı bu kodu "genel hata" olarak görür ve **onaylayabileceği bir ekran yoktur**: uygulama fiilen yalnız-okunur kalır. Mağaza incelemesi (günler) ve aşamalı yayın yüzünden eski sürümler haftalarca yaşar. Bu yüzden sıra:
+
+1. Yeniden onay ekranı içeren mobil sürümü Play'de **yayınlayın** (kullanıcıya ulaşan kanal; aşamalı yayını %100'e çıkarın).
+2. Yeni sürümün kullanım oranını izleyin (cihaz kaydındaki `appVersion`, yönetici analitiği); hedef: etkin kullanıcıların büyük çoğunluğu (örn. >= %90) yeni sürümde. Gerekirse `min_version_android` ayarını yükselterek eski sürümlere güncelleme kapısı gösterin (`PUT /api/admin/settings/min_version_android`).
+3. Yeni hukuki sürümü yayımlayın (`require_reaccept=TRUE` olan sürüm; avukat onayı: [LEGAL_NOTES.md](LEGAL_NOTES.md)).
+4. **Son adım:** `.env.prod` içinde `LEGAL_ENFORCE_REACCEPT=true`, `docker compose ... up -d backend`. Sonra yazma uçlarında 403 oranını izleyin; beklenmedik artışta anahtarı `false` yapıp yeniden başlatın (anında geri döner, veri etkilenmez).
+
+Varsayılan kapalıdır ve ilk sürümde kapalı kalmalıdır (yeni kullanıcılar kayıtta zaten güncel sözleşmeyi kabul eder).
+
+### 14.5 Geri alma (rollback) planı
+Karar sırası, **hızlıdan yavaşa**:
+
+| Durum | Eylem | Süre | Veri etkisi |
+|---|---|---|---|
+| `update.sh` sağlık denetimi başarısız | Kendiliğinden `rollback.sh --auto` (önceki git ref + `bu-backend:previous` imajı) | ~2-5 dk | Yok |
+| Dağıtım geçti, sonradan sorun (5xx, yavaşlık), **şema değişmedi** | `bash scripts/deploy/rollback.sh` (ya da `--ref <önceki-etiket>`); ardından `scripts/warmup.sh` | ~5 dk | Yok |
+| Sorunlu sürümde **migration vardı** | Önce kodu geri alın (`rollback.sh`): migration'lar "ekle-kullan-kaldır" ile **geriye uyumlu** yazıldığından önceki kod yeni şemada genelde çalışır. Çalışmıyorsa (kolon düştü, tür değişti) sonraki satır | ~5-10 dk | Yok |
+| Veri bozuldu / geriye uyumsuz migration | **Dağıtım öncesi yedekten** geri yükleme: `bash scripts/backup/restore-live.sh <yedek> <kurtarma.age.key>` ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 9-10; `update.sh` dağıtımdan hemen önce yedek aldığı için yedek damgası dağıtım saatidir). O yedekten sonra yazılan veri kaybolur | BACKUP_RESTORE.md "ölçülen süre" | Yedekten sonraki yazmalar kaybolur |
+| Sorun mobil sürümde | Play Console'da **aşamalı yayını durdurun** / önceki sürüme dönün; sunucu N-1 ve N-2 mobil sürümlerle uyumlu kalmalıdır. Kapı kullanıcıları bozuk sürüme zorluyorsa `min_version_android`'i düşürün | dakikalar | Yok |
+| Sorunun kaynağı belirsiz | Bakım bandını açın (14.6), `docker compose ... logs --tail=300 backend`, [RUNBOOK.md](RUNBOOK.md) bölüm 1 | | |
+
+Geri alma sonrası: neden, süre ve ders [RUNBOOK.md](RUNBOOK.md) olay şablonuna; geri alınan sürüm `.deploy/previous_ref` dosyasındadır. **Geri almayı dağıtım öncesinden bilin:** ilk gerçek dağıtımdan önce staging'de `update.sh` + `rollback.sh` + `restore-live.sh` bir kez deneyin ([LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)).
+
+### 14.6 Bakım modu kullanımı
+- **Uygulama bakım bandı (veri akışını durdurmaz):** `PUT /api/admin/settings/maintenance_mode` gövde `{"value":"true"}` (yönetici paneli > Ayarlar'da da var; değer yalnız `true`/`false`). İsteğe bağlı mesaj: `maintenance_message` (dil ekli anahtarlar). Mobil açılış kapısı (`GET /api/app/info` → `maintenance`) bandı gösterir; kritik anahtar olduğundan kayıt altına alınır ([ADMIN_API.md](ADMIN_API.md)). Dağıtım bitince `false` yapmayı unutmayın.
+- **Ne zaman:** uzun süreceği bilinen migration, geri alma/yedekten geri yükleme, FCM/SMTP anahtarı değişimi. Kaynak site sorunu bu mekanizma değildir (`GET /api/status` ile ayrı gösterilir).
+- Gerçek kesintide (backend kapalı) uygulama bandı gösterilemez: istemci ağ hatasında oturumu **korur** ve "eski veri" görünümüne geçer; duyuru kanalı olarak web sitesini kullanın.
+- Dağıtım sırasında 30-60 sn'lik kısa kesinti (backend yeniden başlar) normaldir; WebSocket istemcileri üstel geri çekilmeyle kendiliğinden yeniden bağlanır.

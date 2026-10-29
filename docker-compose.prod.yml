@@ -269,6 +269,12 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     <<: *hardening
+    # redis:7-alpine giris betigi root olarak baslayip `setpriv` ile redis kullanicisina duser: cap_drop ALL tek basina
+    # "setpriv: setresuid failed: Operation not permitted" ile sonsuz dongude birakir (REL1 geri yukleme provasinda bulundu).
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     read_only: true
     tmpfs:
       - /tmp
@@ -298,6 +304,7 @@ services:
       - SETUID
       - SETGID
       - DAC_OVERRIDE
+      - FOWNER            # entrypoint postgres'e ait /var/backups icin chmod 755 yapar (yoksa konteyner donguye girer; REL1 provasi)
     mem_limit: 1g
     cpus: 1
     depends_on:
