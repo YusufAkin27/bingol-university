@@ -18,7 +18,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [10-gonderi-olustur-detay.md](10-gonderi-olustur-detay.md) | 6 | 39, 40, A6 | [ ] |
 | [11-gonderi-menuleri-ve-liste.md](11-gonderi-menuleri-ve-liste.md) | 6 | 91, A5 (gönderi şikâyeti), A7, A8, A9, A10 | [ ] |
 | [12-sekme-durumlari.md](12-sekme-durumlari.md) | 6 | 33, 35, 36 (durumlar) | [ ] |
-| [13-haber-liste-favoriler.md](13-haber-liste-favoriler.md) | 6 | 41, 43 | [ ] |
+| [13-haber-liste-favoriler.md](13-haber-liste-favoriler.md) | 6 | 41, 43 | [x] 6 ekran uretildi (s2); eksik: ilk satir "img" yer tutucu, bos ekranda ek "Akademik Takvim" cipi, bakim ekraninda iskelet bloklari |
 | [14-arama.md](14-arama.md) | 6 | 44 | [x] |
 | [15-ana-yemek-bildirim-durumlari.md](15-ana-yemek-bildirim-durumlari.md) | 6 | 32, 37, 38 (durumlar) | [x] |
 | [16-haber-detay-bildirim-bos-hata.md](16-haber-detay-bildirim-bos-hata.md) | 5 | 42 (varyant), 38 (boş/hata) | [x] |
