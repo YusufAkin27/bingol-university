@@ -102,7 +102,7 @@ void main() {
           expect(find.byKey(const ValueKey('sender-avatar-6')), findsOneWidget);
           // Tek gösterimlik: kilitli kart, açıldı hapı, gönderildi hapı.
           expect(find.text('Görüntüle'), findsOneWidget);
-          expect(find.text('Tek gösterimlik fotoğraf'), findsOneWidget);
+          expect(find.text('Fotoğraf · Açmak için dokun'), findsOneWidget);
           expect(find.text('Fotoğraf · Açıldı'), findsOneWidget);
           expect(find.text('Fotoğraf · Gönderildi'), findsOneWidget);
           // Açıklamalı fotoğraf ve +N ızgarası.

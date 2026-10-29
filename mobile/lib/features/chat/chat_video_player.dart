@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/typography.dart';
+import '../../widgets/bu.dart';
 import 'chat_media.dart';
-import 'message_bubble.dart' show chatMediaUrl;
+import 'chat_media_parts.dart';
+import 'chatd_parts.dart';
 
 /// Testlerde sahte platform ile birlikte ya da özel denetleyiciyle değiştirilebilir.
 typedef VideoControllerFactory = VideoPlayerController Function(
@@ -14,7 +14,7 @@ typedef VideoControllerFactory = VideoPlayerController Function(
 VideoPlayerController _networkController(Uri uri, Map<String, String> headers) =>
     VideoPlayerController.networkUrl(uri, httpHeaders: headers);
 
-/// Tam ekran siyah video oynatıcı: otomatik oynatır, dokununca oynat/duraklat, ilerleme çubuğu.
+/// Tam ekran siyah video oynatıcı: otomatik oynatır, dokununca oynat/duraklat, ilerleme çubuğu (tampon göstergeli).
 /// Akış, yetkili (Bearer) HTTP Range isteğiyle okunur; hata olursa "Video oynatılamadı" + yeniden dene.
 class ChatVideoPlayerPage extends StatefulWidget {
   const ChatVideoPlayerPage({
@@ -91,6 +91,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
   Future<void> _toggle() async {
     final c = _c;
     if (c == null || !c.value.isInitialized) return;
+    buHaptic(BuHaptic.selection);
     final v = c.value;
     if (v.isPlaying) {
       await c.pause();
@@ -115,69 +116,37 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top;
-    final bottom = MediaQuery.paddingOf(context).bottom;
-    return Scaffold(
-      backgroundColor: Colors.black,
+    final l = context.l10n;
+    return ChatdMediaScaffold(
       body: Stack(children: [
         Positioned.fill(child: _stage()),
-        Positioned(
-          left: 0,
-          right: 0,
+        PositionedDirectional(
+          start: 0,
+          end: 0,
           top: 0,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(4, top + 4, 4, 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: .7),
-                  Colors.black.withValues(alpha: 0)
-                ],
-              ),
-            ),
+          child: ChatdTopBar(
             child: Row(children: [
-              IconButton(
-                tooltip: context.l10n.chatMiscClose,
-                color: Colors.white,
-                icon: const Icon(LucideIcons.x),
-                onPressed: () => Navigator.pop(context),
-              ),
+              ChatdRoundButton(
+                  icon: LucideIcons.x,
+                  tooltip: l.chatMiscClose,
+                  onPressed: () => Navigator.pop(context)),
               const Spacer(),
               if (widget.onSave != null)
-                IconButton(
-                  tooltip: context.l10n.chatMiscDownload,
-                  color: Colors.white,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(LucideIcons.download),
-                  onPressed: _saving ? null : _save,
-                ),
+                ChatdRoundButton(
+                    icon: LucideIcons.download,
+                    tooltip: l.chatMiscDownload,
+                    busy: _saving,
+                    onPressed: _save),
             ]),
           ),
         ),
         if (!_loading && !_failed && _c != null)
-          Positioned(
-            left: 0,
-            right: 0,
+          PositionedDirectional(
+            start: 0,
+            end: 0,
             bottom: 0,
-            child: Container(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8 + bottom),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: .7),
-                    Colors.black.withValues(alpha: 0)
-                  ],
-                ),
-              ),
+            child: ChatdBottomBar(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 28, 16, 8),
               child: _controls(_c!),
             ),
           ),
@@ -186,30 +155,19 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
   }
 
   Widget _stage() {
+    final l = context.l10n;
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
+      return Center(
+        child: ChatdRing(icon: LucideIcons.play, semantics: l.chatMiscPlayVideo),
+      );
     }
     final c = _c;
     if (_failed || c == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(context.l10n.chatMiscVideoPlayFailed,
-                textAlign: TextAlign.center,
-                style: BuType.bodyStrong.copyWith(color: Colors.white)),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _init,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white54),
-                minimumSize: const Size(140, 44),
-              ),
-              child: Text(context.l10n.chatMiscRetry),
-            ),
-          ]),
-        ),
+      return ChatdMediaMessage(
+        icon: LucideIcons.videoOff,
+        title: l.chatMiscVideoPlayFailed,
+        actionLabel: l.chatMiscRetry,
+        onAction: _init,
       );
     }
     return GestureDetector(
@@ -226,21 +184,24 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
             });
           }
           final ar = v.aspectRatio > 0 ? v.aspectRatio : 16 / 9;
+          final showPlay = !v.isPlaying && !v.isBuffering;
           return Stack(alignment: Alignment.center, children: [
-            Center(child: AspectRatio(aspectRatio: ar, child: VideoPlayer(c))),
+            Center(
+                child: RepaintBoundary(
+                    child: AspectRatio(
+                        aspectRatio: ar, child: VideoPlayer(c)))),
             if (v.isBuffering)
-              const CircularProgressIndicator(color: Colors.white),
-            if (!v.isPlaying && !v.isBuffering)
-              Container(
-                key: const ValueKey('videoPlayIcon'),
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: .5),
-                    shape: BoxShape.circle),
-                child: const Icon(LucideIcons.play,
-                    size: 29, color: Colors.white),
-              ),
+              const ChatdRing(icon: LucideIcons.play),
+            AnimatedSwitcher(
+              duration: BuMotion.of(context, BuMotion.short),
+              child: showPlay
+                  ? Semantics(
+                      key: const ValueKey('videoPlayIcon'),
+                      label: l.chatMiscPlayVideo,
+                      child: const ChatdPlay(size: 72),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('videoNoIcon')),
+            ),
           ]);
         },
       ),
@@ -248,44 +209,87 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
   }
 
   Widget _controls(VideoPlayerController c) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final timeStyle = tx.labelMedium!.copyWith(
+        color: t.onMedia,
+        fontFeatures: const [FontFeature.tabularFigures()]);
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: c,
       builder: (context, v, _) {
         final total = v.duration.inMilliseconds > 0
             ? v.duration.inMilliseconds
             : (widget.durationMs ?? 0);
+        final max = total > 0 ? total.toDouble() : 1.0;
         final pos = v.position.inMilliseconds.clamp(0, total > 0 ? total : 0);
         final shown = _drag ?? pos.toDouble();
-        return Row(children: [
-          Text(formatMediaDuration(shown.round()),
-              style: BuType.caption.copyWith(color: Colors.white)),
-          Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
-                activeTrackColor: Colors.white,
-                inactiveTrackColor: Colors.white24,
-                thumbColor: Colors.white,
-                overlayColor: Colors.white24,
-                thumbShape:
-                    const RoundSliderThumbShape(enabledThumbRadius: 6),
-              ),
-              child: Slider(
-                key: const ValueKey('videoSeek'),
-                min: 0,
-                max: total > 0 ? total.toDouble() : 1,
-                value: shown.clamp(0, total > 0 ? total.toDouble() : 1),
-                onChanged: total > 0 ? (x) => setState(() => _drag = x) : null,
-                onChangeEnd: (x) async {
-                  setState(() => _drag = null);
-                  await c.seekTo(Duration(milliseconds: x.round()));
-                },
+        final buffered = v.buffered.isEmpty
+            ? 0.0
+            : v.buffered.last.end.inMilliseconds.toDouble().clamp(0.0, max);
+        // Seek çubuğu her dilde soldan sağa akar (zaman ekseni).
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Row(children: [
+            IconButton(
+              key: const ValueKey('videoToggle'),
+              tooltip: v.isPlaying ? l.p08Pause : l.chatMiscPlayVideo,
+              onPressed: _toggle,
+              icon: Icon(
+                  v.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  size: 30),
+              style: IconButton.styleFrom(
+                foregroundColor: t.onMedia,
+                minimumSize: const Size(48, 48),
+                fixedSize: const Size(48, 48),
               ),
             ),
-          ),
-          Text(formatMediaDuration(total),
-              style: BuType.caption.copyWith(color: Colors.white)),
-        ]);
+            ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 36),
+                child: Text(formatMediaDuration(shown.round()),
+                    maxLines: 1, softWrap: false, style: timeStyle)),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 4,
+                  activeTrackColor: t.onMedia,
+                  inactiveTrackColor: t.onMedia.withValues(alpha: .24),
+                  secondaryActiveTrackColor: t.onMedia.withValues(alpha: .42),
+                  thumbColor: t.onMedia,
+                  overlayColor: t.onMedia.withValues(alpha: .18),
+                  trackShape: const RoundedRectSliderTrackShape(),
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 7),
+                ),
+                child: Semantics(
+                  label: l.p08Seek,
+                  child: Slider(
+                    key: const ValueKey('videoSeek'),
+                    min: 0,
+                    max: max,
+                    value: shown.clamp(0, max),
+                    secondaryTrackValue: buffered,
+                    semanticFormatterCallback: (x) =>
+                        formatMediaDuration(x.round()),
+                    onChanged:
+                        total > 0 ? (x) => setState(() => _drag = x) : null,
+                    onChangeEnd: (x) async {
+                      setState(() => _drag = null);
+                      await c.seekTo(Duration(milliseconds: x.round()));
+                    },
+                  ),
+                ),
+              ),
+            ),
+            ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 36),
+                child: Text(formatMediaDuration(total),
+                    maxLines: 1,
+                    softWrap: false,
+                    textAlign: TextAlign.end,
+                    style: timeStyle)),
+          ]),
+        );
       },
     );
   }

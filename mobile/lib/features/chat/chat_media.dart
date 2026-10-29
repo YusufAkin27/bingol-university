@@ -2,7 +2,11 @@
 
 import 'dart:ui' show Locale;
 
+import '../../core/api.dart' show apiOrigin;
 import '../../l10n/app_localizations.dart';
+
+/// Sohbet medyası adresi: tam adres olduğu gibi, sunucu yolu API kökü ile birleştirilir.
+String chatMediaUrl(String path) => path.startsWith('http') ? path : '$apiOrigin$path';
 
 /// Ek tek gösterimlik mi.
 bool isViewOnceAttachment(Map a) => a['viewOnce'] == true;

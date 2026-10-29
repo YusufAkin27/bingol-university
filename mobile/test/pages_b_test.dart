@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
+import 'package:bu_kampus/widgets/bu_skeleton.dart' show BuSkeleton;
 import 'package:bu_kampus/widgets/bu_widgets.dart' show LucideIcons;
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
@@ -280,34 +281,18 @@ void main() {
     testWidgets('ag hatasi -> hata gorunumu', (tester) async {
       final be = FakeBackend()..network('/conversations');
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      expect(find.text('Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.'), findsOneWidget);
+      expect(find.text('Yüklenemedi, tekrar dene'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);
     });
 
     for (final size in [kPhoneSmall, kPhoneMedium, kPhoneLarge]) {
-      testWidgets('4 segment tam gorunur, yatay kaydirma yok ${size.width.toInt()}', (tester) async {
+      testWidgets('4 suzgec cipi (Tumu/Kisiler/Kulupler/Etkinlikler) listelenir ${size.width.toInt()}', (tester) async {
         await _pump(tester, build(makeSession(full())), size: size);
-        final seg = tester.getRect(find.byKey(const ValueKey('chat-segment')));
-        var prevRight = -1.0;
+        // Çipler yatay kayan satırdadır (referans 18): ilk üçü her boyutta görünür, dördüncü kaydırmayla.
         for (final l in ['Tümü', 'Kişiler', 'Kulüpler', 'Etkinlikler']) {
-          final f = find.descendant(of: find.byKey(const ValueKey('chat-segment')), matching: find.text(l));
-          expect(f, findsOneWidget);
-          final r = tester.getRect(f);
-          expect(r.left >= seg.left && r.right <= seg.right, isTrue, reason: l);
-          expect(r.left >= prevRight, isTrue, reason: l);
-          prevRight = r.right;
+          expect(find.descendant(of: find.byKey(const ValueKey('chat-segment')), matching: find.text(l)), findsOneWidget, reason: l);
         }
-        expect(
-            find.descendant(
-                of: find.byKey(const ValueKey('chat-segment')),
-                matching: find.byWidgetPredicate((w) => w is Scrollable, description: 'kaydirici')),
-            findsNothing);
-        expect(
-            find.byWidgetPredicate(
-                (w) => w is Scrollable && w.axis == Axis.horizontal && w.restorationId != 'editable',
-                description: 'yatay'),
-            findsNothing);
         _noErrors(tester);
         await unmount(tester);
       });
@@ -1052,7 +1037,8 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(BuSkeleton), findsWidgets); // iskelet (dönen çember yok)
+      expect(find.byType(CircularProgressIndicator), findsNothing);
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Robotik ve Yapay Zekâ Topluluğu'), findsOneWidget);
       _noErrors(tester);

@@ -6,17 +6,15 @@ import 'package:flutter/services.dart';
 import '../../core/locale_controller.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import 'chat_detail_page.dart';
 import 'chat_media.dart';
+import 'chatd_parts.dart' show kChatdNavy;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_placeholder.dart';
 import 'new_chat_page.dart';
-import '../../core/typography.dart';
 
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
@@ -47,6 +45,7 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   final _scroll = ScrollController();
+  final _search = TextEditingController();
   final _items = <Map<String, dynamic>>[];
   late final ChatRealtime _rt;
   final _subs = <StreamSubscription<dynamic>>[];
@@ -88,6 +87,7 @@ class _ChatTabState extends State<ChatTab> {
     }
     _rt.dispose();
     _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -269,7 +269,7 @@ class _ChatTabState extends State<ChatTab> {
 
   void _toast(String text) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    BuToast.show(context, text);
   }
 
   void _replaceRow(Map<String, dynamic> updated) {
@@ -375,24 +375,15 @@ class _ChatTabState extends State<ChatTab> {
     }
   }
 
-  Future<void> _showActions(Map<String, dynamic> c, BuildContext rowCtx) async {
-    final box = rowCtx.findRenderObject();
-    if (box is! RenderBox || !box.attached) return;
-    final anchor = box.localToGlobal(Offset.zero) & box.size;
-    final t = context.bu;
+  Future<void> _showActions(Map<String, dynamic> c) async {
     final muted = c['muted'] == true || c['mutedForever'] == true;
     final type = _type(c);
+    final peer = c['peer'];
     final choice = await showConversationMenu(
       context,
-      anchor: anchor,
-      preview: ColoredBox(
-        color: t.bg,
-        child: _ConversationRow(
-            title: _title(context, c),
-            conversation: c,
-            onTap: () {},
-            onLongPress: () {}),
-      ),
+      title: _title(context, c),
+      avatarUrl: type == 'DIRECT' ? (peer is Map ? peer['avatarUrl'] as String? : null) : c['avatarUrl'] as String?,
+      group: type != 'DIRECT',
       muted: muted,
       archived: _archived,
       canDelete: type != 'CLUB' && type != 'EVENT',
@@ -449,6 +440,7 @@ class _ChatTabState extends State<ChatTab> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: RefreshIndicator(
@@ -458,32 +450,25 @@ class _ChatTabState extends State<ChatTab> {
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Başlık kaydıkça gizlenir; arama + segment aşağıda sabit kalır.
+            // Başlık kaydıkça gizlenir; arama + süzgeç çipleri aşağıda sabit kalır.
             SliverToBoxAdapter(
               child: _archived
-                  ? BuHeader(
-                      title: context.l10n.chatMiscArchive,
-                      onBack: () => _setArchiveView(false))
+                  ? BuHeader(title: context.l10n.chatMiscArchive, onBack: () => _setArchiveView(false))
                   : Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 4),
                       child: Row(
                         children: [
                           Expanded(
                             child: Semantics(
                               header: true,
                               child: Text(context.l10n.chatMiscChat,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: BuType.display.copyWith(
-                                      color: t.ink,
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -.5)),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineMedium!.copyWith(color: t.ink)),
                             ),
                           ),
-                          ChatlistNewButton(
-                              tooltip: context.l10n.chatMiscNewChat,
-                              onTap: _openNew),
+                          ChatlistRoundButton(
+                              icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
+                          const SizedBox(width: 10),
+                          ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
                         ],
                       ),
                     ),
@@ -493,10 +478,20 @@ class _ChatTabState extends State<ChatTab> {
               delegate: _PinnedFilterDelegate(
                 filters: _filterLabels(context),
                 selected: _filter,
+                controller: _search,
+                showChips: !_archived,
+                showSearch: !_archived,
                 onQuery: (v) => setState(() => _query = v),
                 onSelect: (i) => setState(() => _filter = i),
               ),
             ),
+            if (_error != null && !_loading && _items.isNotEmpty)
+              SliverToBoxAdapter(
+                child: BuOfflineBanner(
+                  margin: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
+                  onRetry: _load,
+                ),
+              ),
             ..._bodySlivers(t),
           ],
         ),
@@ -505,15 +500,21 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   List<Widget> _bodySlivers(BuTokens t) {
+    final l = context.l10n;
     if (_loading) {
       return [const SliverToBoxAdapter(child: _SkeletonList())];
     }
     if (_error != null && _items.isEmpty) {
       return [
-        // hasScrollBody:false alt çocuğun doğal boyutunu ister; ErrorView sınırlı yüksekliğe ihtiyaç duyar.
         SliverFillRemaining(
-            hasScrollBody: true,
-            child: ErrorView(error: _error!, onRetry: _load)),
+          hasScrollBody: true,
+          child: BuErrorState(
+            error: _error,
+            title: l.p06LoadFailedTitle,
+            message: l.p06LoadFailedBody,
+            onRetry: _load,
+          ),
+        ),
       ];
     }
     final list = _visible;
@@ -521,77 +522,65 @@ class _ChatTabState extends State<ChatTab> {
     return [_list(list)];
   }
 
-  Widget _archiveEntry(BuTokens t) {
-    return InkWell(
-      onTap: () => _setArchiveView(true),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(LucideIcons.archive, size: 16, color: t.mut),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(context.l10n.chatMiscArchive,
-                  style: BuType.bodyStrong.copyWith(color: t.mut)),
-            ),
-            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
-          ],
-        ),
-      ),
-    );
+  void _resetSearch() {
+    _search.clear();
+    setState(() {
+      _query = '';
+      _filter = 0;
+    });
   }
 
   Widget _empty(BuTokens t) {
+    final l = context.l10n;
     final searching = _query.trim().isNotEmpty || _filter != 0;
-    final text = _archived
-        ? context.l10n.chatMiscEmptyArchive
-        : (_items.isNotEmpty && searching)
-            ? context.l10n.chatMiscEmptyNoMatch
-            : context.l10n.chatMiscEmptyNone;
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          children: [
-            if (!_archived) _archiveEntry(t),
-            const SizedBox(height: 32),
-            EmptyView(icon: LucideIcons.messageCircle, text: text),
-            if (_items.isEmpty && !_archived)
-              Center(
-                child: BuButton(
-                    label: context.l10n.chatMiscNewChat,
-                    icon: LucideIcons.plus,
-                    compact: true,
-                    onPressed: _openNew),
-              ),
-          ],
-        ),
-      ),
+    final Widget view;
+    if (_archived) {
+      view = BuEmptyState(
+        illustration: BuIllustration.box,
+        title: l.chatMiscEmptyArchive,
+        message: l.p06ArchiveEmptyBody,
+        actionLabel: l.p06BackToChats,
+        onAction: () => _setArchiveView(false),
+      );
+    } else if (_items.isNotEmpty && searching) {
+      view = BuEmptyState(
+        illustration: BuIllustration.search,
+        title: l.chatMiscEmptyNoMatch,
+        message: _query.trim().isNotEmpty ? l.p06NoMatchBody(_query.trim()) : null,
+        actionLabel: l.p06ResetSearch,
+        onAction: _resetSearch,
+      );
+    } else {
+      view = BuEmptyState(
+        illustration: BuIllustration.message,
+        title: l.chatMiscEmptyNone,
+        message: l.p06EmptyNoneBody,
+        actionLabel: l.chatMiscNewChat,
+        onAction: _openNew,
+      );
+    }
+    return SliverFillRemaining(
+      hasScrollBody: true,
+      child: Padding(padding: const EdgeInsets.only(bottom: kNavInset), child: view),
     );
   }
 
   Widget _list(List<Map<String, dynamic>> list) {
     final t = context.bu;
-    final head = _archived ? 0 : 1;
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, kNavInset),
       sliver: SliverList.builder(
-        itemCount: head + list.length + (_loadingMore ? 1 : 0),
-        itemBuilder: (_, i) {
-          if (i < head) return _archiveEntry(t);
-          final k = i - head;
+        itemCount: list.length + (_loadingMore ? 1 : 0),
+        itemBuilder: (_, k) {
           if (k >= list.length) {
             return const Padding(
               padding: EdgeInsets.all(16),
-              child: Center(
-                  child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2.4))),
+              child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4))),
             );
           }
           final c = list[k];
+          final first = k == 0;
+          final last = k == list.length - 1;
           final row = Dismissible(
             key: ValueKey('conv-${c['id']}'),
             direction: DismissDirection.endToStart,
@@ -601,17 +590,20 @@ class _ChatTabState extends State<ChatTab> {
             },
             background: Container(
               alignment: AlignmentDirectional.centerEnd,
-              padding: const EdgeInsetsDirectional.only(end: 20),
-              color: t.pr,
+              padding: const EdgeInsetsDirectional.only(end: 24),
+              color: kChatdNavy,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(LucideIcons.archive, color: t.onPr),
-                  Text(
-                      _archived
-                          ? context.l10n.chatMiscUnarchiveAction
-                          : context.l10n.chatMiscArchiveAction,
-                      style: BuType.micro.copyWith(color: t.onPr)),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+                    child: Icon(_archived ? LucideIcons.archiveRestore : LucideIcons.archive, size: 20, color: t.onPr),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),
@@ -619,10 +611,13 @@ class _ChatTabState extends State<ChatTab> {
               builder: (rowCtx) => _ConversationRow(
                 title: _title(context, c),
                 conversation: c,
+                myId: widget.session.userId,
+                first: first,
+                last: last,
                 onTap: () => _openChat(c),
                 onLongPress: () {
                   HapticFeedback.selectionClick();
-                  _showActions(c, rowCtx);
+                  _showActions(c);
                 },
               ),
             ),
@@ -635,7 +630,7 @@ class _ChatTabState extends State<ChatTab> {
               child: AnimatedAlign(
                 alignment: Alignment.topCenter,
                 heightFactor: removing ? 0 : 1,
-                duration: const Duration(milliseconds: 220),
+                duration: BuMotion.of(context, const Duration(milliseconds: 220)),
                 curve: Curves.easeOutCubic,
                 child: row,
               ),
@@ -647,21 +642,27 @@ class _ChatTabState extends State<ChatTab> {
   }
 }
 
-/// Sabit (pinned) segment + arama alanı.
+/// Sabit (pinned) arama alanı + süzgeç çipleri.
 class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
   _PinnedFilterDelegate({
     required this.filters,
     required this.selected,
+    required this.controller,
+    required this.showChips,
+    required this.showSearch,
     required this.onQuery,
     required this.onSelect,
   });
 
   final List<String> filters;
   final int selected;
+  final TextEditingController controller;
+  final bool showChips;
+  final bool showSearch;
   final ValueChanged<String> onQuery;
   final ValueChanged<int> onSelect;
 
-  static const double _height = 128;
+  double get _height => !showSearch ? 0 : (showChips ? 12 + 52 + 4 + 52 + 4 : 12 + 52 + 8);
 
   @override
   double get minExtent => _height;
@@ -671,94 +672,104 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _PinnedFilterDelegate old) =>
-      old.selected != selected || old.filters != filters;
+      old.selected != selected || old.filters != filters || old.showChips != showChips || old.showSearch != showSearch;
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    if (!showSearch) return const SizedBox.shrink();
     final t = context.bu;
     return Container(
       height: _height,
       color: t.bg,
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
       child: Column(
         children: [
-          ChatlistSegment(
-              labels: filters, selected: selected, onSelect: onSelect),
-          const SizedBox(height: 12),
-          ChatlistSearch(hint: context.l10n.chatlistSearchHint, onChanged: onQuery),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
+            child: ChatlistSearch(hint: context.l10n.chatlistSearchHint, controller: controller, onChanged: onQuery),
+          ),
+          if (showChips)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: KeyedSubtree(key: const ValueKey('chat-segment'), child: BuChipRow(labels: filters, selected: selected, onSelected: onSelect)),
+            ),
         ],
       ),
     );
   }
 }
 
-/// İlk yükleme iskeleti: animasyonsuz, hafif kartlar.
+/// İlk yükleme iskeleti: kart içinde 7 satır (daire/kare avatar + iki çubuk + zaman).
 class _SkeletonList extends StatelessWidget {
   const _SkeletonList();
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    Widget bar(double w, double h) => Container(
-          width: w,
-          height: h,
-          decoration: BoxDecoration(
-              color: t.sf2, borderRadius: BorderRadius.circular(6)),
-        );
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-      child: Column(
-        children: List.generate(7, (_) => _skeletonRow(t, bar)),
-      ),
-    );
-  }
-
-  Widget _skeletonRow(BuTokens t, Widget Function(double, double) bar) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle)),
-          const SizedBox(width: 12),
-          Expanded(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: ExcludeSemantics(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(24), border: Border.all(color: t.bd)),
+          child: BuSkeletonScope(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [bar(140, 14), const SizedBox(height: 8), bar(220, 12)],
+              children: [
+                for (var i = 0; i < 7; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(children: [
+                      const BuSkeleton(width: 52, height: 52, radius: 18),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          BuSkeleton.line(width: 130 + (i % 3) * 20, height: 14),
+                          const SizedBox(height: 10),
+                          BuSkeleton.line(width: 210 - (i % 2) * 40, height: 12),
+                        ]),
+                      ),
+                      const SizedBox(width: 12),
+                      const BuSkeleton(width: 30, height: 10),
+                    ]),
+                  ),
+              ],
             ),
           ),
-          bar(28, 10),
-        ],
+        ),
       ),
     );
   }
 }
 
+/// Sohbet satırı (referans 18): avatar, ad (+ Kulüp/Etkinlik etiketi), son mesaj, saat, rozet.
+/// [first]/[last]: kartın üst/alt köşesi ve ayırıcı çizgisi için.
 class _ConversationRow extends StatelessWidget {
   const _ConversationRow({
     required this.title,
     required this.conversation,
     required this.onTap,
     required this.onLongPress,
+    this.myId,
+    this.first = true,
+    this.last = true,
   });
 
   final String title;
   final Map<String, dynamic> conversation;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final int? myId;
+  final bool first;
+  final bool last;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final type = (conversation['type'] as String?)?.toUpperCase() ?? 'DIRECT';
     final peer = conversation['peer'];
-    final last = conversation['lastMessage'];
+    final lastMsg = conversation['lastMessage'];
     final unread = (conversation['unreadCount'] as num?)?.toInt() ?? 0;
-    final muted = conversation['muted'] == true;
+    final muted = conversation['muted'] == true || conversation['mutedForever'] == true;
     final hot = unread > 0 && !muted;
 
     final tag = switch (type) {
@@ -766,129 +777,174 @@ class _ConversationRow extends StatelessWidget {
       'EVENT' => l.chatMiscTagEvent,
       _ => null
     };
+    final tagTint = type == 'CLUB' ? t.tint(0) : t.tint(1);
     final isDirect = type == 'DIRECT';
-    final avatarUrl = isDirect
-        ? (peer is Map ? peer['avatarUrl'] as String? : null)
-        : conversation['avatarUrl'] as String?;
+    final avatarUrl = isDirect ? (peer is Map ? peer['avatarUrl'] as String? : null) : conversation['avatarUrl'] as String?;
+    // `online` yalnız sunucu alanı gelirse çizilir (BACKEND-ISTEK: ConversationView.peer.online).
+    final online = isDirect && peer is Map && peer['online'] == true;
 
     String preview = '';
     IconData? kindIcon;
     var once = false;
+    var removedMsg = false;
     String? when;
     String? status;
-    if (last is Map) {
-      final s = last['status'];
+    String? prefix;
+    if (lastMsg is Map) {
+      final s = lastMsg['status'];
       if (s is String) status = s.toUpperCase();
-      final removed = last['removed'] == true || last['deleted'] == true;
+      final removed = lastMsg['removed'] == true || lastMsg['deleted'] == true;
       if (removed) {
-        preview = isAdminRemovedText(last['text'] as String?) ? l.chatAdminRemovedMsg : l.chatMiscMessageDeleted;
+        removedMsg = true;
+        preview = isAdminRemovedText(lastMsg['text'] as String?) ? l.chatAdminRemovedMsg : l.chatMiscMessageDeleted;
       } else {
-        final p = _preview(context, last);
+        final p = _preview(context, lastMsg);
         preview = p.$1;
         kindIcon = p.$2;
         once = p.$3;
+        final sid = (lastMsg['senderId'] as num?)?.toInt();
+        if (myId != null && sid == myId) {
+          prefix = l.chatDetailYou;
+        } else if (!isDirect && lastMsg['senderName'] is String && (lastMsg['senderName'] as String).isNotEmpty) {
+          // Grup/kulüp/etkinlik: gönderen adı (sunucu alanı gelirse).
+          prefix = (lastMsg['senderName'] as String).split(' ').first;
+        }
       }
-      when = last['createdAt'] as String?;
+      when = lastMsg['createdAt'] as String?;
     }
 
     final tick = switch (status) {
       'SENT' => (LucideIcons.check, t.mut),
       'DELIVERED' => (LucideIcons.checkCheck, t.mut),
-      'READ' => (LucideIcons.checkCheck, t.ok),
+      'READ' => (LucideIcons.checkCheck, t.pr),
       _ => null,
     };
     final bodyColor = hot ? t.ink : t.mut;
+    const r = Radius.circular(24);
+    final radius = BorderRadius.vertical(top: first ? r : Radius.zero, bottom: last ? r : Radius.zero);
 
-    return Material(
-      color: t.bg,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
+    return Semantics(
+      container: true,
+      child: Material(
+        color: t.sf,
+        shape: RoundedRectangleBorder(borderRadius: radius),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: Stack(
             children: [
-              ChatlistAvatar(name: title, url: avatarUrl, group: !isDirect),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.bodyStrong.copyWith(
-                                  color: t.ink,
-                                  fontSize: 15,
-                                  fontWeight:
-                                      hot ? FontWeight.w800 : FontWeight.w700)),
-                        ),
-                        if (tag != null) ...[
-                          const SizedBox(width: 6),
-                          BuBadge(tag, soft: true)
-                        ],
-                        if (muted) ...[
-                          const SizedBox(width: 6),
-                          Icon(LucideIcons.bellOff, size: 12, color: t.mut),
-                        ],
-                        const Spacer(),
-                        const SizedBox(width: 8),
-                        Text(_stamp(context, when),
-                            style: BuType.micro.copyWith(
-                                fontSize: 12,
-                                fontWeight:
-                                    hot ? FontWeight.w600 : FontWeight.w400,
-                                color: hot ? t.pr : t.mut)),
-                      ],
+                    ChatlistAvatar(
+                      name: title,
+                      url: avatarUrl,
+                      group: !isDirect,
+                      online: online,
+                      badge: type == 'CLUB'
+                          ? LucideIcons.megaphone
+                          : type == 'EVENT'
+                              ? LucideIcons.calendar
+                              : null,
+                      badgeAtTop: type == 'CLUB',
                     ),
-                    const SizedBox(height: 3),
-                    Row(children: [
-                      Expanded(
-                        child: Row(children: [
-                          if (tick != null) ...[
-                            Icon(tick.$1, size: 16, color: tick.$2),
-                            const SizedBox(width: 6),
-                          ],
-                          if (once) ...[
-                            OnceBadge(color: bodyColor, size: 16),
-                            const SizedBox(width: 6),
-                          ] else if (kindIcon != null) ...[
-                            Icon(kindIcon, size: 16, color: bodyColor),
-                            const SizedBox(width: 6),
-                          ],
-                          Expanded(
-                            child: Text(preview,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: BuType.body
-                                    .copyWith(fontSize: 14, color: bodyColor)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Row(children: [
+                                  Flexible(
+                                    child: Text(title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w800 : FontWeight.w700)),
+                                  ),
+                                  if (tag != null) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(color: tagTint.bg, borderRadius: BuRadius.bPill),
+                                      child: Text(tag, maxLines: 1, style: tx.labelSmall!.copyWith(color: tagTint.fg, fontWeight: FontWeight.w700)),
+                                    ),
+                                  ],
+                                ]),
+                              ),
+                              const SizedBox(width: 8),
+                              if (muted) ...[
+                                Icon(LucideIcons.bellOff, size: 13, color: t.mut),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(_stamp(context, when),
+                                  style: tx.labelMedium!.copyWith(color: hot ? t.pr : t.mut, fontWeight: hot ? FontWeight.w700 : FontWeight.w500)),
+                            ],
                           ),
-                        ]),
+                          const SizedBox(height: 4),
+                          Row(children: [
+                            Expanded(
+                              child: Row(children: [
+                                if (tick != null) ...[
+                                  Icon(tick.$1, size: 16, color: tick.$2),
+                                  const SizedBox(width: 6),
+                                ],
+                                if (removedMsg) ...[
+                                  Icon(LucideIcons.ban, size: 15, color: t.mut),
+                                  const SizedBox(width: 6),
+                                ] else if (once) ...[
+                                  OnceBadge(color: t.pr, dashed: true, size: 18),
+                                  const SizedBox(width: 6),
+                                ] else if (kindIcon != null) ...[
+                                  Icon(kindIcon, size: 16, color: bodyColor),
+                                  const SizedBox(width: 6),
+                                ],
+                                Expanded(
+                                  child: Text.rich(
+                                    TextSpan(children: [
+                                      if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                                      TextSpan(text: preview),
+                                    ]),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: tx.bodyMedium!.copyWith(
+                                        color: bodyColor,
+                                        fontWeight: hot ? FontWeight.w700 : FontWeight.w400,
+                                        fontStyle: removedMsg ? FontStyle.italic : FontStyle.normal),
+                                  ),
+                                ),
+                              ]),
+                            ),
+                            if (unread > 0) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                constraints: const BoxConstraints(minWidth: 22),
+                                height: 22,
+                                padding: const EdgeInsets.symmetric(horizontal: 7),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(11)),
+                                child: Text(unread > 99 ? '99+' : '$unread',
+                                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: muted ? t.mut : t.onPr)),
+                              ),
+                            ],
+                          ]),
+                        ],
                       ),
-                      if (unread > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          constraints: const BoxConstraints(minWidth: 22),
-                          height: 22,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              color: muted ? t.mut : t.pr,
-                              borderRadius: BorderRadius.circular(11)),
-                          child: Text(unread > 99 ? '99+' : '$unread',
-                              style: BuType.micro.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: muted ? t.bg : t.onPr)),
-                        ),
-                      ],
-                    ]),
+                    ),
                   ],
                 ),
               ),
+              if (!last)
+                PositionedDirectional(
+                  start: 82,
+                  end: 0,
+                  bottom: 0,
+                  child: Container(height: 1, color: t.bd),
+                ),
             ],
           ),
         ),
@@ -911,12 +967,10 @@ class _ConversationRow extends StatelessWidget {
       final first = att.whereType<Map>().first;
       if (isVideoAttachment(first)) {
         final ms = first['durationMs'];
-        final label = ms is num && ms > 0
-            ? '${l.chatMiscVideo} ${formatMediaDuration(ms.toInt())}'
-            : l.chatMiscVideo;
+        final label = ms is num && ms > 0 ? '${l.chatMiscVideo} ${formatMediaDuration(ms.toInt())}' : l.chatMiscVideo;
         return (label, LucideIcons.video, false);
       }
-      return (l.chatMiscPhoto, LucideIcons.image, false);
+      return (l.chatMiscPhoto, LucideIcons.camera, false);
     }
     return ('', null, false);
   }

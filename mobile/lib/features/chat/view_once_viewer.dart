@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
+import 'chat_media_parts.dart';
+import 'chatd_parts.dart';
 import 'message_bubble.dart' show OnceBadge;
 
 /// Tek gösterimlik fotoğraf görüntüleyicisi: siyah zemin, yakınlaştırma/kopyalama/indirme/paylaşma YOK.
@@ -36,6 +37,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     with WidgetsBindingObserver {
   MemoryImage? _image;
   String? _error;
+  IconData _errorIcon = LucideIcons.circleAlert;
   bool _network = false;
   bool _loading = true;
   bool _consumed = false;
@@ -74,6 +76,12 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       setState(() {
         _loading = false;
         _network = e.isNetwork;
+        _errorIcon = switch (e.status) {
+          410 => LucideIcons.eyeOff,
+          403 => LucideIcons.lock,
+          0 => LucideIcons.wifiOff,
+          _ => LucideIcons.circleAlert,
+        };
         _error = switch (e.status) {
           410 => context.l10n.chatMiscOnceGone,
           403 => context.l10n.chatMiscOnceOwn,
@@ -115,74 +123,81 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top;
-    return Scaffold(
-      backgroundColor: Colors.black,
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final showHint = !_loading && _error == null && _image != null;
+    return ChatdMediaScaffold(
       body: Stack(children: [
         Positioned.fill(child: _content()),
-        Positioned(
-          left: 0,
-          right: 0,
+        PositionedDirectional(
+          start: 0,
+          end: 0,
           top: 0,
-          child: Container(
-            padding: EdgeInsetsDirectional.fromSTEB(4, top + 4, 12, 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: .7),
-                  Colors.black.withValues(alpha: 0)
-                ],
-              ),
-            ),
+          child: ChatdTopBar(
             child: Row(children: [
-              IconButton(
-                tooltip: context.l10n.chatMiscClose,
-                color: Colors.white,
-                icon: const Icon(LucideIcons.x),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-              const SizedBox(width: 4),
-              const OnceBadge(color: Colors.white, size: 24),
+              ChatdRoundButton(
+                  icon: LucideIcons.x,
+                  tooltip: l.chatMiscClose,
+                  onPressed: () => Navigator.of(context).maybePop()),
+              const SizedBox(width: 12),
+              OnceBadge(color: t.onMedia, size: 24),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(context.l10n.chatMiscOnceTitle,
+                child: Text(l.chatMiscOnceTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: BuType.label.copyWith(color: Colors.white)),
+                    style: tx.titleSmall!.copyWith(
+                        color: t.onMedia, fontWeight: FontWeight.w700)),
               ),
             ]),
           ),
         ),
+        if (showHint)
+          PositionedDirectional(
+            start: 24,
+            end: 24,
+            bottom: MediaQuery.paddingOf(context).bottom + 20,
+            child: Center(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                    color: t.scrim.withValues(alpha: .58),
+                    borderRadius: BuRadius.bPill),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(LucideIcons.eyeOff,
+                        size: 15, color: t.onMedia.withValues(alpha: .9)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(l.p08OnceHint,
+                          style: tx.labelMedium!.copyWith(
+                              color: t.onMedia.withValues(alpha: .92),
+                              fontWeight: FontWeight.w600)),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
       ]),
     );
   }
 
   Widget _content() {
+    final l = context.l10n;
     if (_loading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.white));
+      return Center(
+          child: ChatdRing(icon: LucideIcons.image, semantics: l.chatdPhotoLoading));
     }
     final err = _error;
     if (err != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(err,
-                textAlign: TextAlign.center,
-                style: BuType.body.copyWith(color: Colors.white70)),
-            if (_network) ...[
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _load,
-                child: Text(context.l10n.chatMiscRetry,
-                    style: BuType.bodyStrong.copyWith(color: Colors.white)),
-              ),
-            ],
-          ]),
-        ),
+      return ChatdMediaMessage(
+        icon: _errorIcon,
+        text: err,
+        actionLabel: _network ? l.chatMiscRetry : null,
+        onAction: _network ? _load : null,
       );
     }
     final img = _image;
@@ -191,12 +206,15 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       child: Image(
         image: img,
         fit: BoxFit.contain,
-        errorBuilder: (c, e, s) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Text(context.l10n.chatMiscOnceShowFailed,
-              textAlign: TextAlign.center,
-              style: BuType.body.copyWith(color: Colors.white70)),
-        ),
+        frameBuilder: (c, child, frame, sync) => sync
+            ? child
+            : AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: BuMotion.of(c, BuMotion.medium),
+                curve: BuMotion.decelerate,
+                child: child),
+        errorBuilder: (c, e, s) => ChatdMediaMessage(
+            icon: LucideIcons.imageOff, text: l.chatMiscOnceShowFailed),
       ),
     );
   }

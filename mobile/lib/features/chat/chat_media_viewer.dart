@@ -3,15 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/typography.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/bu.dart';
 import 'chat_media.dart';
+import 'chat_media_parts.dart';
 import 'chat_video_player.dart';
-import 'message_bubble.dart' show chatMediaUrl, PlayBadge, DurationPill;
+import 'chatd_parts.dart';
+import 'message_bubble.dart' show PlayBadge;
 
 /// Sohbet medyası listesindeki tek görsel.
 class ChatMediaItem {
@@ -122,7 +123,8 @@ String _saveErrorText(Object e, AppLocalizations l) {
   return l.chatMiscImageSaveFailed;
 }
 
-/// Tam ekran görüntüleyici: sohbetin görselleri arasında yatay gezinme, yakınlaştırma, galeriye kaydetme.
+/// Tam ekran görüntüleyici: sohbetin görselleri arasında yatay gezinme, yakınlaştırma (çift dokunuş dahil),
+/// galeriye kaydetme, alt küçük resim şeridi. Tek dokunuş çubukları gizler/gösterir.
 class ChatMediaViewer extends StatefulWidget {
   const ChatMediaViewer({
     super.key,
@@ -150,8 +152,12 @@ class ChatMediaViewer extends StatefulWidget {
 }
 
 class _ChatMediaViewerState extends State<ChatMediaViewer> {
+  static const _thumb = 48.0;
+  static const _thumbGap = 6.0;
+
   late final PageController _pc = PageController(
       initialPage: widget.initialIndex.clamp(0, widget.items.length - 1));
+  final _strip = ScrollController();
   late int _index = widget.initialIndex.clamp(0, widget.items.length - 1);
   bool _bars = true;
   bool _zoomed = false;
@@ -160,6 +166,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
   @override
   void dispose() {
     _pc.dispose();
+    _strip.dispose();
     super.dispose();
   }
 
@@ -178,31 +185,59 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
 
   Future<void> _save() async {
     if (_saving) return;
-    final messenger = ScaffoldMessenger.of(context);
     final l = context.l10n;
     setState(() => _saving = true);
     String msg;
+    var ok = false;
     final item = widget.items[_index];
     try {
       await (item.isVideo ? widget.saveVideo : widget.saveImage)(
           item.url, widget.headers);
       msg = l.chatMiscSavedToGallery;
+      ok = true;
     } catch (e) {
       msg = item.isVideo ? chatVideoSaveErrorText(e, l) : _saveErrorText(e, l);
     }
-    if (mounted) setState(() => _saving = false);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
+    if (!mounted) return;
+    setState(() => _saving = false);
+    BuToast.show(context, msg,
+        kind: ok ? BuToastKind.success : BuToastKind.error,
+        duration: const Duration(seconds: 2));
+  }
+
+  void _jump(int i) {
+    if (i == _index) return;
+    buHaptic(BuHaptic.selection);
+    final d = BuMotion.of(context, BuMotion.medium);
+    if (d == Duration.zero) {
+      _pc.jumpToPage(i);
+    } else {
+      _pc.animateToPage(i, duration: d, curve: BuMotion.standard);
+    }
+  }
+
+  void _followStrip(int i) {
+    if (!_strip.hasClients) return;
+    final vp = _strip.position.viewportDimension;
+    final target = (i * (_thumb + _thumbGap) - (vp - _thumb) / 2)
+        .clamp(0.0, _strip.position.maxScrollExtent);
+    final d = BuMotion.of(context, BuMotion.medium);
+    if (d == Duration.zero) {
+      _strip.jumpTo(target);
+    } else {
+      _strip.animateTo(target, duration: d, curve: BuMotion.standard);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final n = widget.items.length;
     final it = widget.items[_index];
     final meta = _meta(it);
-    return Scaffold(
-      backgroundColor: Colors.black,
+    return ChatdMediaScaffold(
       body: Stack(children: [
         Positioned.fill(
           child: GestureDetector(
@@ -210,14 +245,17 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
             onTap: () => setState(() => _bars = !_bars),
             child: PageView.builder(
               controller: _pc,
-              itemCount: widget.items.length,
+              itemCount: n,
               physics: _zoomed
                   ? const NeverScrollableScrollPhysics()
                   : const PageScrollPhysics(),
-              onPageChanged: (i) => setState(() {
-                _index = i;
-                _zoomed = false;
-              }),
+              onPageChanged: (i) {
+                setState(() {
+                  _index = i;
+                  _zoomed = false;
+                });
+                _followStrip(i);
+              },
               itemBuilder: (c, i) => widget.items[i].isVideo
                   ? _VideoPosterPage(
                       key: ValueKey(widget.items[i].url),
@@ -225,9 +263,10 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                       headers: widget.headers,
                       controllerFactory: widget.videoControllerFactory,
                     )
-                  : _ZoomPage(
+                  : ChatZoomImage(
                       key: ValueKey(widget.items[i].url),
-                      item: widget.items[i],
+                      url: widget.items[i].url,
+                      thumbUrl: widget.items[i].thumbUrl,
                       headers: widget.headers,
                       onZoom: (z) {
                         if (z != _zoomed && i == _index) {
@@ -238,76 +277,151 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
             ),
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
+        PositionedDirectional(
+          start: 0,
+          end: 0,
           top: 0,
-          child: IgnorePointer(
-            ignoring: !_bars,
-            child: AnimatedOpacity(
-              opacity: _bars ? 1 : 0,
-              duration: const Duration(milliseconds: 150),
-              child: Container(
-                padding: EdgeInsets.fromLTRB(
-                    4, MediaQuery.of(context).padding.top + 4, 4, 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: .7),
-                      Colors.black.withValues(alpha: 0)
-                    ],
-                  ),
-                ),
-                child: Row(children: [
-                  IconButton(
-                    tooltip: context.l10n.chatMiscClose,
-                    color: Colors.white,
-                    icon: const Icon(LucideIcons.x),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('${_index + 1} / ${widget.items.length}',
+          child: ChatdChrome(
+            visible: _bars,
+            child: ChatdTopBar(
+              child: Row(children: [
+                ChatdRoundButton(
+                    icon: LucideIcons.x,
+                    tooltip: l.chatMiscClose,
+                    onPressed: () => Navigator.pop(context)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${_index + 1} / $n',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.titleSmall!.copyWith(
+                                color: t.onMedia, fontWeight: FontWeight.w700)),
+                        if (meta.isNotEmpty)
+                          Text(meta,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style:
-                                  BuType.label.copyWith(color: Colors.white)),
-                          if (meta.isNotEmpty)
-                            Text(meta,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: BuType.caption
-                                    .copyWith(color: Colors.white70)),
-                        ]),
-                  ),
-                  IconButton(
-                    tooltip: context.l10n.chatMiscDownload,
-                    color: Colors.white,
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
-                        : const Icon(LucideIcons.download),
-                    onPressed: _saving ? null : _save,
-                  ),
-                ]),
-              ),
+                              style: tx.bodySmall!.copyWith(
+                                  color: t.onMedia.withValues(alpha: .78))),
+                      ]),
+                ),
+                const SizedBox(width: 8),
+                ChatdRoundButton(
+                    icon: LucideIcons.download,
+                    tooltip: l.chatMiscDownload,
+                    busy: _saving,
+                    onPressed: _save),
+              ]),
             ),
           ),
         ),
+        if (n > 1)
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: ChatdChrome(
+              visible: _bars,
+              fromTop: false,
+              child: ChatdBottomBar(
+                padding: const EdgeInsetsDirectional.fromSTEB(0, 28, 0, 10),
+                child: SizedBox(
+                  height: _thumb,
+                  child: ListView.builder(
+                    controller: _strip,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: n,
+                    itemExtent: _thumb + _thumbGap,
+                    itemBuilder: (c, i) => _StripThumb(
+                      item: widget.items[i],
+                      headers: widget.headers,
+                      selected: i == _index,
+                      label: l.p08ItemOf('${i + 1}', '$n'),
+                      onTap: () => _jump(i),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ]),
     );
   }
 }
 
-/// Galeride video sayfası: poster + oynat düğmesi; dokununca tam ekran oynatıcı açılır.
+/// Alt şeritteki küçük resim (48 dp): seçili olan açık halkalı, diğerleri hafif karartılı.
+class _StripThumb extends StatelessWidget {
+  const _StripThumb(
+      {required this.item,
+      required this.headers,
+      required this.selected,
+      required this.label,
+      required this.onTap});
+
+  final ChatMediaItem item;
+  final Map<String, String> headers;
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final src = item.isVideo ? item.thumbUrl : (item.thumbUrl ?? item.url);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(end: 6),
+          child: AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            curve: BuMotion.standard,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: selected ? t.onMedia : t.onMedia.withValues(alpha: 0),
+                  width: 2),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: Stack(fit: StackFit.expand, children: [
+                if (src == null)
+                  ColoredBox(color: t.onMedia.withValues(alpha: .14))
+                else
+                  Image.network(chatMediaUrl(src),
+                      headers: headers,
+                      fit: BoxFit.cover,
+                      cacheWidth: 144,
+                      gaplessPlayback: true,
+                      errorBuilder: (c, e, s) =>
+                          ColoredBox(color: t.onMedia.withValues(alpha: .14))),
+                if (!selected)
+                  ColoredBox(color: t.scrim.withValues(alpha: .42)),
+                if (item.isVideo)
+                  Center(
+                      child:
+                          Icon(LucideIcons.play, size: 16, color: t.onMedia)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Galeride video sayfası: poster + oynat düğmesi + süre; dokununca tam ekran oynatıcı açılır.
 class _VideoPosterPage extends StatelessWidget {
   const _VideoPosterPage(
       {super.key,
@@ -320,6 +434,7 @@ class _VideoPosterPage extends StatelessWidget {
   final VideoControllerFactory? controllerFactory;
 
   void _play(BuildContext context) {
+    buHaptic(BuHaptic.light);
     Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -337,6 +452,8 @@ class _VideoPosterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final thumb = item.thumbUrl;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final w = MediaQuery.sizeOf(context).width;
     return GestureDetector(
       key: const ValueKey('viewerVideoPage'),
       behavior: HitTestBehavior.opaque,
@@ -346,77 +463,24 @@ class _VideoPosterPage extends StatelessWidget {
           Image.network(chatMediaUrl(thumb),
               headers: headers,
               fit: BoxFit.contain,
+              cacheWidth: (w * dpr).ceil().clamp(300, 1600),
+              gaplessPlayback: true,
               errorBuilder: (c, e, s) => const SizedBox.shrink()),
         Center(
           child: Semantics(
             button: true,
             label: context.l10n.chatMiscPlayVideo,
-            child: const PlayBadge(size: 64),
+            child: const PlayBadge(size: 72),
           ),
         ),
         if (item.durationMs != null)
-          Positioned(
-              bottom: 24,
-              left: 0,
-              right: 0,
-              child: Center(child: DurationPill(ms: item.durationMs!))),
-      ]),
-    );
-  }
-}
-
-class _ZoomPage extends StatefulWidget {
-  const _ZoomPage(
-      {super.key,
-      required this.item,
-      required this.headers,
-      required this.onZoom});
-
-  final ChatMediaItem item;
-  final Map<String, String> headers;
-  final ValueChanged<bool> onZoom;
-
-  @override
-  State<_ZoomPage> createState() => _ZoomPageState();
-}
-
-class _ZoomPageState extends State<_ZoomPage> {
-  final _tc = TransformationController();
-
-  @override
-  void initState() {
-    super.initState();
-    _tc.addListener(() => widget.onZoom(_tc.value.getMaxScaleOnAxis() > 1.02));
-  }
-
-  @override
-  void dispose() {
-    _tc.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InteractiveViewer(
-      transformationController: _tc,
-      minScale: 1,
-      maxScale: 5,
-      child: Center(
-        child: Image.network(
-          chatMediaUrl(widget.item.url),
-          headers: widget.headers,
-          fit: BoxFit.contain,
-          loadingBuilder: (c, child, p) => p == null
-              ? child
-              : const Center(
-                  child: CircularProgressIndicator(color: Colors.white)),
-          errorBuilder: (c, e, s) => Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(context.l10n.chatMiscImageLoadFailed,
-                style: BuType.body.copyWith(color: Colors.white70)),
+          PositionedDirectional(
+            bottom: 96,
+            start: 0,
+            end: 0,
+            child: Center(child: ChatdDuration(ms: item.durationMs!)),
           ),
-        ),
-      ),
+      ]),
     );
   }
 }

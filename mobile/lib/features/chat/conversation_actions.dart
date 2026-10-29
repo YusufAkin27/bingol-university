@@ -1,98 +1,126 @@
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import 'message_actions.dart';
+import '../../widgets/bu.dart';
+import 'chatlist_widgets.dart';
 
-/// Sohbet listesi satırına uzun basınca açılan menü (mesaj menüsüyle aynı tasarım dili).
+/// Sohbet listesi satırına uzun basınca açılan alt sayfa (referans 18: ad başlıkta; Sessize al, Arşivle, Sil).
 /// Dönüş: `mute` | `unmute` | `archive` | `unarchive` | `delete`; kapatılırsa null.
 /// [canDelete] false ise (kulüp/etkinlik odaları) "Sil" satırı hiç gösterilmez.
 Future<String?> showConversationMenu(
   BuildContext context, {
-  required Rect anchor,
-  required Widget preview,
+  required String title,
+  String? avatarUrl,
+  bool group = false,
   required bool muted,
   required bool archived,
   required bool canDelete,
 }) {
-  return showMessageActions(
+  final l = context.l10n;
+  return BuSheet.show<String>(
     context,
-    anchor: anchor,
-    preview: preview,
-    mine: false,
-    actions: [
-      if (muted)
-        MessageAction('unmute', context.l10n.chatInfoUnmute, LucideIcons.bell)
-      else
-        MessageAction('mute', context.l10n.chatInfoMute, LucideIcons.bellOff),
-      if (archived)
-        MessageAction('unarchive', context.l10n.chatInfoUnarchive, LucideIcons.archive)
-      else
-        MessageAction('archive', context.l10n.chatInfoArchive, LucideIcons.archive),
-      if (canDelete)
-        MessageAction('delete', context.l10n.chatInfoDelete, LucideIcons.trash2, danger: true),
-    ],
+    builder: (c) {
+      final tx = Theme.of(c).textTheme;
+      final t = c.bu;
+      return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(bottom: 12),
+          child: Row(children: [
+            ChatlistAvatar(name: title, url: avatarUrl, group: group, size: 48),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink)),
+              ),
+            ),
+          ]),
+        ),
+        _ActionRow(
+          id: muted ? 'unmute' : 'mute',
+          icon: muted ? LucideIcons.bell : LucideIcons.bellOff,
+          label: muted ? l.chatInfoUnmute : l.chatInfoMute,
+          onTap: () => Navigator.pop(c, muted ? 'unmute' : 'mute'),
+        ),
+        _ActionRow(
+          id: archived ? 'unarchive' : 'archive',
+          icon: LucideIcons.archive,
+          label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
+          onTap: () => Navigator.pop(c, archived ? 'unarchive' : 'archive'),
+        ),
+        if (canDelete) ...[
+          Divider(height: 16, color: t.bd),
+          _ActionRow(id: 'delete', icon: LucideIcons.trash2, label: l.p06MenuDeleteChat, danger: true, onTap: () => Navigator.pop(c, 'delete')),
+        ],
+      ]);
+    },
   );
+}
+
+/// Alt sayfa satırı: yuvarlak tonlu simge + etiket (48 dp'den yüksek dokunma hedefi).
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.icon, required this.label, required this.onTap, this.danger = false, this.id});
+
+  /// Test/erişim anahtarı: `act-<id>`.
+  final String? id;
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final color = danger ? t.danger : t.ink;
+    return BuPressable(
+      key: id == null ? null : ValueKey('act-$id'),
+      onTap: onTap,
+      scale: .99,
+      semanticLabel: label,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 56),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: danger ? t.soft : t.sf2, shape: BoxShape.circle),
+            child: Icon(icon, size: 19, color: danger ? t.danger : t.ink),
+          ),
+          const SizedBox(width: 14),
+          Expanded(child: Text(label, style: tx.titleSmall!.copyWith(color: color, fontWeight: FontWeight.w600))),
+          if (!danger) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+        ]),
+      ),
+    );
+  }
 }
 
 /// Sessize alma süresi: '480' (8 saat), '10080' (1 hafta), 'forever'; vazgeçilirse null.
 Future<String?> pickMuteDuration(BuildContext context) {
-  final t = context.bu;
-  return showModalBottomSheet<String>(
-    context: context,
-    backgroundColor: t.sf,
-    showDragHandle: true,
-    builder: (c) => SafeArea(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        BuMenuRow(
-            icon: LucideIcons.bellOff,
-            label: context.l10n.chatInfoMute8h,
-            showChevron: false,
-            onTap: () => Navigator.pop(c, '480')),
-        BuMenuRow(
-            icon: LucideIcons.bellOff,
-            label: context.l10n.chatInfoMute1w,
-            showChevron: false,
-            onTap: () => Navigator.pop(c, '10080')),
-        BuMenuRow(
-            icon: LucideIcons.bellOff,
-            label: context.l10n.chatInfoMuteForever,
-            showChevron: false,
-            onTap: () => Navigator.pop(c, 'forever')),
-        const SizedBox(height: 8),
-      ]),
-    ),
+  final l = context.l10n;
+  return BuSheet.show<String>(
+    context,
+    title: l.chatInfoMute,
+    builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
+      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMute8h, onTap: () => Navigator.pop(c, '480')),
+      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMute1w, onTap: () => Navigator.pop(c, '10080')),
+      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMuteForever, onTap: () => Navigator.pop(c, 'forever')),
+    ]),
   );
 }
 
 /// Silme onayı (yanlışlıkla silmeyi önler). Yalnızca "Sil" true döndürür.
-Future<bool> confirmDeleteConversation(BuildContext context,
-    {required bool group}) async {
-  final t = context.bu;
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (c) => AlertDialog(
-      backgroundColor: t.sf,
-      title: Text(context.l10n.chatInfoDeleteConvTitle,
-          style: BuType.heading.copyWith(color: t.ink)),
-      content: Text(
-          group
-              ? context.l10n.chatInfoDeleteConvGroup
-              : context.l10n.chatInfoDeleteConvDirect,
-          style: BuType.body.copyWith(color: t.mut)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(c, false),
-          child: Text(context.l10n.chatInfoCancel, style: BuType.bodyStrong.copyWith(color: t.ink)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(c, true),
-          child: Text(context.l10n.chatInfoDelete, style: BuType.bodyStrong.copyWith(color: t.danger)),
-        ),
-      ],
-    ),
+Future<bool> confirmDeleteConversation(BuildContext context, {required bool group}) {
+  final l = context.l10n;
+  return BuDialog.confirm(
+    context,
+    title: l.chatInfoDeleteConvTitle,
+    message: group ? l.chatInfoDeleteConvGroup : l.chatInfoDeleteConvDirect,
+    confirmLabel: l.chatInfoDelete,
+    cancelLabel: l.chatInfoCancel,
+    destructive: true,
+    icon: LucideIcons.trash2,
   );
-  return ok == true;
 }
