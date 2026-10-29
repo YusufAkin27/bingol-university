@@ -7394,4 +7394,163 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p01QrAttended => 'تم تسجيل حضورك';
+
+  @override
+  String get p07ChatEmptyTitle => 'لا توجد رسائل بعد';
+
+  @override
+  String get p07ChatEmptyBody => 'اكتب أول رسالة.';
+
+  @override
+  String get p07ChatBlockedLine => 'لا يمكنك مراسلة شخص قمت بحظره.';
+
+  @override
+  String get p02WelcomeNewsSub => 'إشعارات فورية وآخر مستجدات الحرم الجامعي.';
+
+  @override
+  String get p02WelcomeMenuSub => 'السعرات اليومية وتفاصيل محتوى الوجبات.';
+
+  @override
+  String get p02WelcomeClubsSub => 'الأندية وورش العمل وتسجيل الحضور.';
+
+  @override
+  String get p02BrandSub => 'تطبيق طلابي مستقل';
+
+  @override
+  String get p02LoginBusy => 'جارٍ تسجيل الدخول…';
+
+  @override
+  String get p02PwStrengthTitle => 'قوة كلمة المرور';
+
+  @override
+  String get p02TipTitle => 'نصيحة';
+
+  @override
+  String p02FacultyCount(String n) {
+    return '$n أقسام';
+  }
+
+  @override
+  String get p02PendingTitle => 'تحقق من بريدك الإلكتروني';
+
+  @override
+  String get p02PendingBody => 'يجب التحقق من حسابك قبل تسجيل الدخول.';
+
+  @override
+  String get p02ReplacedTitle => 'انتهت الجلسة';
+
+  @override
+  String get p01LgLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
+
+  @override
+  String p01LgMetaLine(String version, String date) {
+    return 'الإصدار $version · السريان: $date';
+  }
+
+  @override
+  String get p03MenuTotal => 'الإجمالي';
+
+  @override
+  String get p03MenuTotalEnergy => 'إجمالي الطاقة';
+
+  @override
+  String p03MenuKcal(String n) {
+    return '$n kcal';
+  }
+
+  @override
+  String p03MenuAtLeast(String n) {
+    return '$n kcal على الأقل';
+  }
+
+  @override
+  String get p03MenuKcalMissing => 'لم تُدخل السعرات الحرارية لبعض الأطباق';
+
+  @override
+  String get p03MenuKcalNone => 'لا توجد سعرات';
+
+  @override
+  String get p03MenuNoList => 'لا توجد قائمة طعام.';
+
+  @override
+  String get p03MenuMaintenance => 'النظام قيد الصيانة.';
+
+  @override
+  String p03NotifNewCount(String n) {
+    return '$n جديد';
+  }
+
+  @override
+  String get p03NotifEmptyBody =>
+      'ستظهر هنا إشعارات إعلانات الأندية والفعاليات والرسائل.';
+
+  @override
+  String get p03NotifUnreadEmptyBody =>
+      'رائع! لقد قرأت جميع الإشعارات الجديدة.';
+
+  @override
+  String get p03NotifLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
+
+  @override
+  String get p03NotifLoadingMore => 'جارٍ تحميل المزيد...';
+
+  @override
+  String get p03HomeMealTitle => 'قائمة اليوم';
+
+  @override
+  String get p03HomeNoMenuBody => 'لم تُدخل قائمة المطعم بعد.';
+
+  @override
+  String get p03HomeEventsTitle => 'الفعاليات القادمة';
+
+  @override
+  String get p03HomeNoEventBody => 'لا توجد فعاليات أندية مجدولة حالياً.';
+
+  @override
+  String get p05NewsOpenSource => 'فتح صفحة المصدر';
+
+  @override
+  String get p05NewsErrorTitle => 'حدث خطأ ما';
+
+  @override
+  String get p05NewsErrorBody =>
+      'حدثت مشكلة أثناء تحميل المحتوى. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+
+  @override
+  String p05SearchCountFor(String q) {
+    return 'لـ «$q»';
+  }
+
+  @override
+  String p05SearchFoundNews(String n) {
+    return 'تم العثور على $n خبر';
+  }
+
+  @override
+  String p05SearchFoundEvents(String n) {
+    return 'تم العثور على $n فعالية';
+  }
+
+  @override
+  String p05SearchFoundClubs(String n) {
+    return 'تم العثور على $n نادٍ';
+  }
+
+  @override
+  String p05SearchFoundPeople(String n) {
+    return 'تم العثور على $n شخص';
+  }
+
+  @override
+  String p05SearchFoundPosts(String n) {
+    return 'تم العثور على $n منشور';
+  }
+
+  @override
+  String p05SearchSeeAllN(String n) {
+    return 'عرض الكل ($n)';
+  }
+
+  @override
+  String get p05SearchRemoveRecent => 'حذف البحث';
 }

@@ -7435,4 +7435,166 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p01QrAttended => 'Yoklaman alındı';
+
+  @override
+  String get p07ChatEmptyTitle => 'Henüz mesaj yok';
+
+  @override
+  String get p07ChatEmptyBody => 'İlk mesajı sen yaz.';
+
+  @override
+  String get p07ChatBlockedLine => 'Engellediğiniz kişiyle mesajlaşamazsınız.';
+
+  @override
+  String get p02WelcomeNewsSub => 'Anlık bildirimler ve kampüs içi gelişmeler.';
+
+  @override
+  String get p02WelcomeMenuSub => 'Günlük kalori ve detaylı öğün içerikleri.';
+
+  @override
+  String get p02WelcomeClubsSub =>
+      'Topluluklar, atölyeler ve katılım yoklaması.';
+
+  @override
+  String get p02BrandSub => 'Bağımsız öğrenci uygulaması';
+
+  @override
+  String get p02LoginBusy => 'Giriş yapılıyor…';
+
+  @override
+  String get p02PwStrengthTitle => 'Şifre gücü';
+
+  @override
+  String get p02TipTitle => 'İpucu';
+
+  @override
+  String p02FacultyCount(String n) {
+    return '$n Bölüm';
+  }
+
+  @override
+  String get p02PendingTitle => 'E-postanı doğrula';
+
+  @override
+  String get p02PendingBody =>
+      'Giriş yapabilmek için hesabının doğrulanması gerekir.';
+
+  @override
+  String get p02ReplacedTitle => 'Oturum sonlandırıldı';
+
+  @override
+  String get p01LgLoadFailed => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String p01LgMetaLine(String version, String date) {
+    return 'Sürüm $version · Yürürlük: $date';
+  }
+
+  @override
+  String get p03MenuTotal => 'Toplam';
+
+  @override
+  String get p03MenuTotalEnergy => 'Toplam enerji';
+
+  @override
+  String p03MenuKcal(String n) {
+    return '$n kcal';
+  }
+
+  @override
+  String p03MenuAtLeast(String n) {
+    return 'En az $n kcal';
+  }
+
+  @override
+  String get p03MenuKcalMissing => 'Bazı yemeklerin kalorisi girilmemiş';
+
+  @override
+  String get p03MenuKcalNone => 'Kalori girilmemiş';
+
+  @override
+  String get p03MenuNoList => 'Yemek listesi yok.';
+
+  @override
+  String get p03MenuMaintenance => 'Sistem bakımda.';
+
+  @override
+  String p03NotifNewCount(String n) {
+    return '$n yeni';
+  }
+
+  @override
+  String get p03NotifEmptyBody =>
+      'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.';
+
+  @override
+  String get p03NotifUnreadEmptyBody =>
+      'Harika! Tüm yeni bildirimleri okudunuz.';
+
+  @override
+  String get p03NotifLoadFailed => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String get p03NotifLoadingMore => 'Daha fazla yükleniyor...';
+
+  @override
+  String get p03HomeMealTitle => 'Günün Menüsü';
+
+  @override
+  String get p03HomeNoMenuBody => 'Yemekhane menüsü sisteme henüz girilmedi.';
+
+  @override
+  String get p03HomeEventsTitle => 'Yaklaşan Etkinlikler';
+
+  @override
+  String get p03HomeNoEventBody =>
+      'Şu anda planlanmış aktif bir kulüp etkinliği bulunmuyor.';
+
+  @override
+  String get p05NewsOpenSource => 'Kaynak sayfada aç';
+
+  @override
+  String get p05NewsErrorTitle => 'Bir şeyler ters gitti';
+
+  @override
+  String get p05NewsErrorBody =>
+      'İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String p05SearchCountFor(String q) {
+    return '“$q” araması için';
+  }
+
+  @override
+  String p05SearchFoundNews(String n) {
+    return '$n HABER BULUNDU';
+  }
+
+  @override
+  String p05SearchFoundEvents(String n) {
+    return '$n ETKİNLİK BULUNDU';
+  }
+
+  @override
+  String p05SearchFoundClubs(String n) {
+    return '$n KULÜP BULUNDU';
+  }
+
+  @override
+  String p05SearchFoundPeople(String n) {
+    return '$n KİŞİ BULUNDU';
+  }
+
+  @override
+  String p05SearchFoundPosts(String n) {
+    return '$n GÖNDERİ BULUNDU';
+  }
+
+  @override
+  String p05SearchSeeAllN(String n) {
+    return 'Tümünü gör ($n)';
+  }
+
+  @override
+  String get p05SearchRemoveRecent => 'Aramayı sil';
 }

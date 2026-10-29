@@ -7466,4 +7466,167 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p01QrAttended => 'Attendance recorded';
+
+  @override
+  String get p07ChatEmptyTitle => 'No messages yet';
+
+  @override
+  String get p07ChatEmptyBody => 'Send the first one.';
+
+  @override
+  String get p07ChatBlockedLine =>
+      'You can\'t message someone you have blocked.';
+
+  @override
+  String get p02WelcomeNewsSub => 'Instant alerts and campus updates.';
+
+  @override
+  String get p02WelcomeMenuSub => 'Daily calories and detailed meal contents.';
+
+  @override
+  String get p02WelcomeClubsSub => 'Clubs, workshops and attendance check-in.';
+
+  @override
+  String get p02BrandSub => 'Independent student app';
+
+  @override
+  String get p02LoginBusy => 'Signing in…';
+
+  @override
+  String get p02PwStrengthTitle => 'Password strength';
+
+  @override
+  String get p02TipTitle => 'Tip';
+
+  @override
+  String p02FacultyCount(String n) {
+    return '$n departments';
+  }
+
+  @override
+  String get p02PendingTitle => 'Verify your email';
+
+  @override
+  String get p02PendingBody =>
+      'Your account must be verified before you can sign in.';
+
+  @override
+  String get p02ReplacedTitle => 'Session ended';
+
+  @override
+  String get p01LgLoadFailed => 'Could not load, try again';
+
+  @override
+  String p01LgMetaLine(String version, String date) {
+    return 'Version $version · Effective: $date';
+  }
+
+  @override
+  String get p03MenuTotal => 'Total';
+
+  @override
+  String get p03MenuTotalEnergy => 'Total energy';
+
+  @override
+  String p03MenuKcal(String n) {
+    return '$n kcal';
+  }
+
+  @override
+  String p03MenuAtLeast(String n) {
+    return 'At least $n kcal';
+  }
+
+  @override
+  String get p03MenuKcalMissing => 'Calories are missing for some dishes';
+
+  @override
+  String get p03MenuKcalNone => 'No calorie info';
+
+  @override
+  String get p03MenuNoList => 'No menu available.';
+
+  @override
+  String get p03MenuMaintenance => 'System under maintenance.';
+
+  @override
+  String p03NotifNewCount(String n) {
+    return '$n new';
+  }
+
+  @override
+  String get p03NotifEmptyBody =>
+      'Club announcements, events and message notifications will be listed here.';
+
+  @override
+  String get p03NotifUnreadEmptyBody =>
+      'Great! You have read all new notifications.';
+
+  @override
+  String get p03NotifLoadFailed => 'Could not load, try again';
+
+  @override
+  String get p03NotifLoadingMore => 'Loading more...';
+
+  @override
+  String get p03HomeMealTitle => 'Menu of the Day';
+
+  @override
+  String get p03HomeNoMenuBody =>
+      'The cafeteria menu has not been entered yet.';
+
+  @override
+  String get p03HomeEventsTitle => 'Upcoming Events';
+
+  @override
+  String get p03HomeNoEventBody =>
+      'There are no scheduled club events right now.';
+
+  @override
+  String get p05NewsOpenSource => 'Open source page';
+
+  @override
+  String get p05NewsErrorTitle => 'Something went wrong';
+
+  @override
+  String get p05NewsErrorBody =>
+      'There was a problem loading the content. Please check your internet connection and try again.';
+
+  @override
+  String p05SearchCountFor(String q) {
+    return 'for “$q”';
+  }
+
+  @override
+  String p05SearchFoundNews(String n) {
+    return '$n NEWS FOUND';
+  }
+
+  @override
+  String p05SearchFoundEvents(String n) {
+    return '$n EVENTS FOUND';
+  }
+
+  @override
+  String p05SearchFoundClubs(String n) {
+    return '$n CLUBS FOUND';
+  }
+
+  @override
+  String p05SearchFoundPeople(String n) {
+    return '$n PEOPLE FOUND';
+  }
+
+  @override
+  String p05SearchFoundPosts(String n) {
+    return '$n POSTS FOUND';
+  }
+
+  @override
+  String p05SearchSeeAllN(String n) {
+    return 'See all ($n)';
+  }
+
+  @override
+  String get p05SearchRemoveRecent => 'Remove search';
 }

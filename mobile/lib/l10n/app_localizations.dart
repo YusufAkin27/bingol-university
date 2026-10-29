@@ -13656,6 +13656,270 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yoklaman alındı'**
   String get p01QrAttended;
+
+  /// No description provided for @p07ChatEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz mesaj yok'**
+  String get p07ChatEmptyTitle;
+
+  /// No description provided for @p07ChatEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk mesajı sen yaz.'**
+  String get p07ChatEmptyBody;
+
+  /// No description provided for @p07ChatBlockedLine.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğiniz kişiyle mesajlaşamazsınız.'**
+  String get p07ChatBlockedLine;
+
+  /// No description provided for @p02WelcomeNewsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anlık bildirimler ve kampüs içi gelişmeler.'**
+  String get p02WelcomeNewsSub;
+
+  /// No description provided for @p02WelcomeMenuSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük kalori ve detaylı öğün içerikleri.'**
+  String get p02WelcomeMenuSub;
+
+  /// No description provided for @p02WelcomeClubsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluklar, atölyeler ve katılım yoklaması.'**
+  String get p02WelcomeClubsSub;
+
+  /// No description provided for @p02BrandSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağımsız öğrenci uygulaması'**
+  String get p02BrandSub;
+
+  /// No description provided for @p02LoginBusy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yapılıyor…'**
+  String get p02LoginBusy;
+
+  /// No description provided for @p02PwStrengthTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre gücü'**
+  String get p02PwStrengthTitle;
+
+  /// No description provided for @p02TipTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İpucu'**
+  String get p02TipTitle;
+
+  /// No description provided for @p02FacultyCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} Bölüm'**
+  String p02FacultyCount(String n);
+
+  /// No description provided for @p02PendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanı doğrula'**
+  String get p02PendingTitle;
+
+  /// No description provided for @p02PendingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yapabilmek için hesabının doğrulanması gerekir.'**
+  String get p02PendingBody;
+
+  /// No description provided for @p02ReplacedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum sonlandırıldı'**
+  String get p02ReplacedTitle;
+
+  /// No description provided for @p01LgLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p01LgLoadFailed;
+
+  /// No description provided for @p01LgMetaLine.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürüm {version} · Yürürlük: {date}'**
+  String p01LgMetaLine(String version, String date);
+
+  /// No description provided for @p03MenuTotal.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam'**
+  String get p03MenuTotal;
+
+  /// No description provided for @p03MenuTotalEnergy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam enerji'**
+  String get p03MenuTotalEnergy;
+
+  /// No description provided for @p03MenuKcal.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} kcal'**
+  String p03MenuKcal(String n);
+
+  /// No description provided for @p03MenuAtLeast.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az {n} kcal'**
+  String p03MenuAtLeast(String n);
+
+  /// No description provided for @p03MenuKcalMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bazı yemeklerin kalorisi girilmemiş'**
+  String get p03MenuKcalMissing;
+
+  /// No description provided for @p03MenuKcalNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalori girilmemiş'**
+  String get p03MenuKcalNone;
+
+  /// No description provided for @p03MenuNoList.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek listesi yok.'**
+  String get p03MenuNoList;
+
+  /// No description provided for @p03MenuMaintenance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem bakımda.'**
+  String get p03MenuMaintenance;
+
+  /// No description provided for @p03NotifNewCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yeni'**
+  String p03NotifNewCount(String n);
+
+  /// No description provided for @p03NotifEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.'**
+  String get p03NotifEmptyBody;
+
+  /// No description provided for @p03NotifUnreadEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Harika! Tüm yeni bildirimleri okudunuz.'**
+  String get p03NotifUnreadEmptyBody;
+
+  /// No description provided for @p03NotifLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p03NotifLoadFailed;
+
+  /// No description provided for @p03NotifLoadingMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla yükleniyor...'**
+  String get p03NotifLoadingMore;
+
+  /// No description provided for @p03HomeMealTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Menüsü'**
+  String get p03HomeMealTitle;
+
+  /// No description provided for @p03HomeNoMenuBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemekhane menüsü sisteme henüz girilmedi.'**
+  String get p03HomeNoMenuBody;
+
+  /// No description provided for @p03HomeEventsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan Etkinlikler'**
+  String get p03HomeEventsTitle;
+
+  /// No description provided for @p03HomeNoEventBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu anda planlanmış aktif bir kulüp etkinliği bulunmuyor.'**
+  String get p03HomeNoEventBody;
+
+  /// No description provided for @p05NewsOpenSource.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynak sayfada aç'**
+  String get p05NewsOpenSource;
+
+  /// No description provided for @p05NewsErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir şeyler ters gitti'**
+  String get p05NewsErrorTitle;
+
+  /// No description provided for @p05NewsErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.'**
+  String get p05NewsErrorBody;
+
+  /// No description provided for @p05SearchCountFor.
+  ///
+  /// In tr, this message translates to:
+  /// **'“{q}” araması için'**
+  String p05SearchCountFor(String q);
+
+  /// No description provided for @p05SearchFoundNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} HABER BULUNDU'**
+  String p05SearchFoundNews(String n);
+
+  /// No description provided for @p05SearchFoundEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} ETKİNLİK BULUNDU'**
+  String p05SearchFoundEvents(String n);
+
+  /// No description provided for @p05SearchFoundClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} KULÜP BULUNDU'**
+  String p05SearchFoundClubs(String n);
+
+  /// No description provided for @p05SearchFoundPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} KİŞİ BULUNDU'**
+  String p05SearchFoundPeople(String n);
+
+  /// No description provided for @p05SearchFoundPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} GÖNDERİ BULUNDU'**
+  String p05SearchFoundPosts(String n);
+
+  /// No description provided for @p05SearchSeeAllN.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü gör ({n})'**
+  String p05SearchSeeAllN(String n);
+
+  /// No description provided for @p05SearchRemoveRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı sil'**
+  String get p05SearchRemoveRecent;
 }
 
 class _AppLocalizationsDelegate

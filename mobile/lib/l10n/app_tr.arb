@@ -3985,5 +3985,76 @@
       }
     }
   },
-  "p01QrAttended": "Yoklaman alındı"
+  "p01QrAttended": "Yoklaman alındı",
+  "p07ChatEmptyTitle": "Henüz mesaj yok",
+  "p07ChatEmptyBody": "İlk mesajı sen yaz.",
+  "p07ChatBlockedLine": "Engellediğiniz kişiyle mesajlaşamazsınız.",
+  "p02WelcomeNewsSub": "Anlık bildirimler ve kampüs içi gelişmeler.",
+  "p02WelcomeMenuSub": "Günlük kalori ve detaylı öğün içerikleri.",
+  "p02WelcomeClubsSub": "Topluluklar, atölyeler ve katılım yoklaması.",
+  "p02BrandSub": "Bağımsız öğrenci uygulaması",
+  "p02LoginBusy": "Giriş yapılıyor…",
+  "p02PwStrengthTitle": "Şifre gücü",
+  "p02TipTitle": "İpucu",
+  "p02FacultyCount": "{n} Bölüm",
+  "@p02FacultyCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p02PendingTitle": "E-postanı doğrula",
+  "p02PendingBody": "Giriş yapabilmek için hesabının doğrulanması gerekir.",
+  "p02ReplacedTitle": "Oturum sonlandırıldı",
+  "p01LgLoadFailed": "Yüklenemedi, tekrar dene",
+  "p01LgMetaLine": "Sürüm {version} · Yürürlük: {date}",
+  "@p01LgMetaLine": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "p03MenuTotal": "Toplam",
+  "p03MenuTotalEnergy": "Toplam enerji",
+  "p03MenuKcal": "{n} kcal",
+  "@p03MenuKcal": {"placeholders": {"n": {"type": "String"}}},
+  "p03MenuAtLeast": "En az {n} kcal",
+  "@p03MenuAtLeast": {"placeholders": {"n": {"type": "String"}}},
+  "p03MenuKcalMissing": "Bazı yemeklerin kalorisi girilmemiş",
+  "p03MenuKcalNone": "Kalori girilmemiş",
+  "p03MenuNoList": "Yemek listesi yok.",
+  "p03MenuMaintenance": "Sistem bakımda.",
+  "p03NotifNewCount": "{n} yeni",
+  "@p03NotifNewCount": {"placeholders": {"n": {"type": "String"}}},
+  "p03NotifEmptyBody": "Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.",
+  "p03NotifUnreadEmptyBody": "Harika! Tüm yeni bildirimleri okudunuz.",
+  "p03NotifLoadFailed": "Yüklenemedi, tekrar dene",
+  "p03NotifLoadingMore": "Daha fazla yükleniyor...",
+  "p03HomeMealTitle": "Günün Menüsü",
+  "p03HomeNoMenuBody": "Yemekhane menüsü sisteme henüz girilmedi.",
+  "p03HomeEventsTitle": "Yaklaşan Etkinlikler",
+  "p03HomeNoEventBody": "Şu anda planlanmış aktif bir kulüp etkinliği bulunmuyor.",
+  "p05NewsOpenSource": "Kaynak sayfada aç",
+  "p05NewsErrorTitle": "Bir şeyler ters gitti",
+  "p05NewsErrorBody": "İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.",
+  "p05SearchCountFor": "“{q}” araması için",
+  "@p05SearchCountFor": {"placeholders": {"q": {"type": "String"}}},
+  "p05SearchFoundNews": "{n} HABER BULUNDU",
+  "@p05SearchFoundNews": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchFoundEvents": "{n} ETKİNLİK BULUNDU",
+  "@p05SearchFoundEvents": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchFoundClubs": "{n} KULÜP BULUNDU",
+  "@p05SearchFoundClubs": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchFoundPeople": "{n} KİŞİ BULUNDU",
+  "@p05SearchFoundPeople": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchFoundPosts": "{n} GÖNDERİ BULUNDU",
+  "@p05SearchFoundPosts": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchSeeAllN": "Tümünü gör ({n})",
+  "@p05SearchSeeAllN": {"placeholders": {"n": {"type": "String"}}},
+  "p05SearchRemoveRecent": "Aramayı sil"
 }
