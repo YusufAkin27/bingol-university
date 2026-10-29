@@ -92,9 +92,9 @@ void main() {
       expect(src, ImageSource.gallery);
       expect(find.text('Kapak fotoğrafı ekle'), findsNothing);
       expect(find.byTooltip('Kapağı değiştir'), findsOneWidget);
-      expect(find.byTooltip('Kapağı kaldır'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'Bahar Şenliği');
       await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
       await tester.tap(find.text('Etkinliği oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(calls, ['/events/55/cover']);
@@ -111,6 +111,7 @@ void main() {
       await openForm(tester);
       await tester.enterText(find.byType(TextField).first, 'Bahar Şenliği');
       await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
       await tester.tap(find.text('Etkinliği oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(n, 0);
@@ -133,6 +134,7 @@ void main() {
       await pickCoverFlow(tester);
       await tester.enterText(find.byType(TextField).first, 'Bahar Şenliği');
       await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
       await tester.tap(find.text('Etkinliği oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(n, 1);
@@ -151,6 +153,7 @@ void main() {
       await openForm(tester);
       await tester.enterText(find.byType(TextField).first, 'ab');
       await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
       await tester.tap(find.text('Etkinliği oluştur'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Başlık en az 3 karakter olmalı.'), findsOneWidget);
@@ -165,11 +168,14 @@ void main() {
       await tester.pumpWidget(buildApp(launcher(b, event: ev)));
       await openForm(tester);
       expect(find.byType(EventCoverImage), findsOneWidget);
-      await tester.tap(find.byTooltip('Kapağı kaldır'));
+      await tester.tap(find.byTooltip('Kapağı değiştir'));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.text('Kapağı kaldır'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.byType(EventCoverImage), findsNothing);
       expect(find.text('Kapak fotoğrafı ekle'), findsOneWidget);
       await tester.ensureVisible(find.text('Kaydet'));
+      await tester.pump();
       await tester.tap(find.text('Kaydet'));
       await settle(tester, const Duration(seconds: 1));
       expect(b.requests, contains('PATCH /events/9'));
@@ -194,6 +200,7 @@ void main() {
       await tester.tap(find.text('Galeriden seç'));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.ensureVisible(find.text('Kaydet'));
+      await tester.pump();
       await tester.tap(find.text('Kaydet'));
       await settle(tester, const Duration(seconds: 1));
       expect(calls, ['/events/9/cover']);

@@ -42,6 +42,7 @@ Future<void> _open(WidgetTester tester, FakeBackend b, {int? communityId, DateTi
 Future<void> _submit(WidgetTester tester, {String title = 'Boğaz yürüyüşü'}) async {
   await tester.enterText(find.byType(TextField).first, title);
   await tester.ensureVisible(find.text('Etkinliği oluştur'));
+  await tester.pump();
   await tester.tap(find.text('Etkinliği oluştur'));
   await settle(tester, const Duration(milliseconds: 800));
 }
@@ -112,6 +113,7 @@ void main() {
     expect(b.requests.where((r) => r.startsWith('POST')), isEmpty);
 
     await tester.ensureVisible(find.byKey(const ValueKey('et2-club-field')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('et2-club-field')));
     await settle(tester, const Duration(milliseconds: 400));
     expect(find.text('İzinsiz Üye Kulübü'), findsNothing);
@@ -121,6 +123,7 @@ void main() {
     expect(find.text('Hemen yayınlanır.'), findsNothing);
 
     await tester.ensureVisible(find.byKey(const ValueKey('et2-club-field')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('et2-club-field')));
     await settle(tester, const Duration(milliseconds: 400));
     await tester.tap(find.text('Robotik Topluluğu'));
@@ -171,6 +174,8 @@ void main() {
     await _submit(tester);
     expect(find.text('Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.'), findsOneWidget);
     b.fail('/events', status: 403, code: 'FORBIDDEN', message: 'Forbidden');
+    await tester.ensureVisible(find.text('Etkinliği oluştur'));
+    await tester.pump();
     await tester.tap(find.text('Etkinliği oluştur'));
     await settle(tester, const Duration(milliseconds: 800));
     expect(find.text('Bu kulüp adına etkinlik oluşturma yetkin yok.'), findsOneWidget);
@@ -213,8 +218,7 @@ void main() {
   });
 
   group('tarih/saat ve aciklama kurallari', () {
-    String summaryText(WidgetTester t) =>
-        t.widget<Text>(find.descendant(of: find.byKey(const ValueKey('evd-summary')), matching: find.byType(Text))).data ?? '';
+    String summaryText(WidgetTester t) => t.widget<Semantics>(find.byKey(const ValueKey('evd-summary'))).properties.label ?? '';
 
     testWidgets('varsayilan: siradaki yuvarlak saat, bitis +2 saat (10:20 -> 11:00-13:00)', (tester) async {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
@@ -253,6 +257,7 @@ void main() {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
       await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Yarın'));
+      await tester.pump();
       await tester.tap(find.text('Yarın'));
       await tester.pump();
       await tester.tap(find.text('14:00'));
@@ -277,6 +282,7 @@ void main() {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
       await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Bugün'));
+      await tester.pump();
       await tester.tap(find.text('Bugün'));
       await tester.pump();
       final before = summaryText(tester);
@@ -300,6 +306,7 @@ void main() {
       expect(find.text('Açıklama en fazla 1000 karakter olabilir.'), findsWidgets);
       await tester.enterText(find.byType(TextField).first, 'Boğaz yürüyüşü');
       await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
       await tester.tap(find.text('Etkinliği oluştur'), warnIfMissed: false);
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.requests.where((r) => r.startsWith('POST')), isEmpty);
@@ -310,6 +317,7 @@ void main() {
       final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER')]);
       await _open(tester, b, now: _fixedNow);
       await tester.ensureVisible(find.text('Bitiş tarihi seç'));
+      await tester.pump();
       await tester.tap(find.text('Bitiş tarihi seç'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(DatePickerDialog), findsOneWidget);
