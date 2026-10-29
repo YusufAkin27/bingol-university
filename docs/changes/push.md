@@ -122,3 +122,5 @@ Yönetici panelinde (`/admin/push/ops`) FCM durumu, kuyruk, cihaz özeti, bildir
 **Yeni hata kodları** (`i18n/pushadmin*.properties`, tr/en/ar): `PUSHADMIN_OUTBOX_NOT_FOUND`, `PUSHADMIN_STATE_CONFLICT`, `PUSHADMIN_BULK_INVALID`, `PUSHADMIN_FILTER_INVALID`.
 
 **Kapsam dışı / bilinen sınırlar:** PushGate bastırma sayaçları Redis'te tutulur (kalıcı değil), bu yüzden bildirim istatistiklerinde "bastırılan" alanı yoktur. Kampanya alıcı bazında hata kaydı tutulmadığından hata listesi outbox hata koduna göre toplulaştırılır. Duman: `scripts/smoke-admin-pushops.sh`.
+
+**FCM1 (dogrulama tanisi):** `POST /api/admin/push/fcm/validate` cevabi (`FcmCheck`) yeni `detail` alani tasir: basarisizsa maskeli tani metni (hata sinifi, `errorCode`, `fcmCode`, `http`, kisa `msg` <= 200 karakter, neden zinciri sinif adlari); jeton/anahtar/e-posta maskelenir (`FcmErrorDetail`), ayni metin `log.warn("FCM dogrulama basarisiz: ...")` olarak yazilir. `projectId` servis hesabi JSON `project_id` alanindan okunur (`FirebaseOptions.setProjectId`). `ProdSettingsValidator` FCM uyarisi artik `FCM_CREDENTIALS_JSON`/`app.fcm.credentials-json` kimligini de sayar.
