@@ -8093,11 +8093,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String p13PollArchiveCount(String n) {
-    return '$n polls archived';
+    return '$n Polls Archived';
   }
 
   @override
-  String get p13PollArchiveHeading => 'Concluded polls';
+  String get p13PollArchiveHeading => 'Concluded Polls';
 
   @override
   String p13PollAvgOutOf(String avg) {
@@ -8105,7 +8105,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p13PollAvgTitle => 'Average rating';
+  String get p13PollAvgTitle => 'Average Satisfaction';
 
   @override
   String get p13PollChangeNote => 'You can change your mind after voting.';
@@ -8246,4 +8246,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p17WeekDay => 'Day of the week';
+
+  @override
+  String get p13PollViewAll => 'View All';
+
+  @override
+  String get p13PollReview => 'Review Vote';
+
+  @override
+  String get p13PollOpenBadge => 'Open poll';
+
+  @override
+  String get p13PollClosedKicker => 'Closed poll';
+
+  @override
+  String p13PollDone(String n) {
+    return 'Completed · $n votes';
+  }
+
+  @override
+  String p13PollWinner(String name, String pct) {
+    return 'Winner: $name ($pct%)';
+  }
+
+  @override
+  String get p13PollOneVote => 'One vote';
+
+  @override
+  String get p13PollHiddenResults => 'Hidden results';
+
+  @override
+  String get p13PollVoteCta => 'Vote';
+
+  @override
+  String get p13PollNoMoreActive => 'This club has no other active poll.';
+
+  @override
+  String get p13PollNoMoreBody =>
+      'Community decisions and event preferences are published here.';
+
+  @override
+  String get p04DiscoverSub => 'Catch the pulse of campus and live posts';
+
+  @override
+  String get p04SearchHint => 'Search campus: clubs, events, people...';
+
+  @override
+  String get p04ChipAll => 'All';
+
+  @override
+  String get p04SuggestTitle => 'People You May Know';
+
+  @override
+  String get p04SuggestSeeAll => 'See All';
+
+  @override
+  String get p04FollowAction => 'Follow';
+
+  @override
+  String get p04FollowingState => 'Following';
+
+  @override
+  String get p04FeedTitle => 'Student Feed';
+
+  @override
+  String p04LikeCount(String count) {
+    return '$count likes';
+  }
 }

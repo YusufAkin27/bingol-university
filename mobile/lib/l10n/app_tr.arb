@@ -4261,12 +4261,12 @@
   "p20RemPermTitle": "Bildirim izni verilmedi",
   "p20RemPermBody": "Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.",
   "p20RemOpenSettings": "Ayarlardan aç",
-  "p13PollArchiveCount": "{n} anket arşivde",
+  "p13PollArchiveCount": "{n} Anket Arşivde",
   "@p13PollArchiveCount": {"placeholders": {"n": {"type": "String"}}},
-  "p13PollArchiveHeading": "Sonuçlanan anketler",
+  "p13PollArchiveHeading": "Sonuçlanan Anketler",
   "p13PollAvgOutOf": "5 üzerinden {avg} puan",
   "@p13PollAvgOutOf": {"placeholders": {"avg": {"type": "String"}}},
-  "p13PollAvgTitle": "Ortalama puan",
+  "p13PollAvgTitle": "Ortalama Memnuniyet",
   "p13PollChangeNote": "Oy verdikten sonra fikrinizi değiştirebilirsiniz.",
   "p13PollClosingSoon": "Bitiyor",
   "p13PollClubEmptyBody": "Kulüp yöneticileri henüz oylamaya sunulmuş bir gündem paylaşmadı.",
@@ -4286,7 +4286,7 @@
   "p13PollPrefs": "Katılım tercihleri",
   "p13PollPrevChoice": "Önceki seçiminiz",
   "p13PollQuick": "Hızlı süre",
-  "p13PollRankLabel": "{n}. tercih",
+  "p13PollRankLabel": "{n}. Tercih",
   "@p13PollRankLabel": {"placeholders": {"n": {"type": "String"}}},
   "p13PollRankReset": "Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.",
   "p13PollRankTap": "Seçmek için dokunun",
@@ -4318,5 +4318,34 @@
   "p17ConflictIntro": "Şu derslerle saatler çakışıyor:",
   "p17ColorSelected": "Seçili: {name}",
   "@p17ColorSelected": {"placeholders": {"name": {"type": "String"}}},
-  "p17WeekDay": "Haftanın günü"
+  "p17WeekDay": "Haftanın günü",
+  "p13PollViewAll": "Tümünü Gör",
+  "p13PollReview": "Oyu İncele",
+  "p13PollOpenBadge": "Açık anket",
+  "p13PollClosedKicker": "Kapanan anket",
+  "p13PollDone": "Tamamlandı · {n} oy",
+  "@p13PollDone": {"placeholders": {"n": {"type": "String"}}},
+  "p13PollWinner": "Kazanan: {name} (%{pct})",
+  "@p13PollWinner": {"placeholders": {"name": {"type": "String"}, "pct": {"type": "String"}}},
+  "p13PollOneVote": "Tek oylu",
+  "p13PollHiddenResults": "Gizli sonuçlar",
+  "p13PollVoteCta": "Oyla",
+  "p13PollNoMoreActive": "Bu kulübün başka aktif anketi yok.",
+  "p13PollNoMoreBody": "Topluluk kararları ve etkinlik tercihleri burada yayımlanır.",
+  "p04DiscoverSub": "Kampüsün nabzını ve anlık paylaşımları yakala",
+  "p04SearchHint": "Kampüste ara: kulüpler, etkinlikler, kişiler...",
+  "p04ChipAll": "Tümü",
+  "p04SuggestTitle": "Tanıyor Olabilirsin",
+  "p04SuggestSeeAll": "Tümünü Gör",
+  "p04FollowAction": "Takip Et",
+  "p04FollowingState": "Takiptesin",
+  "p04FeedTitle": "Öğrenci Akışı",
+  "p04LikeCount": "{count} beğeni",
+  "@p04LikeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

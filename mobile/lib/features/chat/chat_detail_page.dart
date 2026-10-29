@@ -16,10 +16,8 @@ import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
@@ -1745,11 +1743,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           if (mounted) setState(() => _conv['blocked'] = true);
           _toast(l.chatDetailUserBlocked);
         case 'unblock':
-          if (pid == null) return;
-          await _api.delete('/users/$pid/block');
-          _changed = true;
-          if (mounted) setState(() => _conv['blocked'] = false);
-          _toast(l.chatDetailUserUnblocked);
+          await _unblockPeer();
         case 'report':
           if (pid == null) return;
           await ReportSheet.show(context, widget.session,
@@ -1836,207 +1830,398 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         body: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
           Expanded(child: _body(t)),
-          _closed ? _closedBar(t) : _composer(t),
+          _closed
+              ? _closedBar(t)
+              : (_direct && _blocked)
+                  ? _blockedBar(t)
+                  : _composer(t),
         ]),
       ),
     );
   }
 
+  /// Üst çubuk ve altındaki arama çubuğu aynı gölgeli, sayfa zeminli çerçeveyi kullanır.
+  Widget _barFrame(BuTokens t, Widget child) {
+    return Container(
+      decoration: BoxDecoration(color: t.bg, boxShadow: [
+        BoxShadow(
+            color: t.shadow.withValues(alpha: .08),
+            blurRadius: 6,
+            offset: const Offset(0, 1)),
+      ]),
+      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
+      child: child,
+    );
+  }
+
   Widget _topBar(BuTokens t) {
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final status = _statusText();
     final online = _direct && _presence?['online'] == true;
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.of(context).padding.top + 8, 16, 12),
-      decoration: BoxDecoration(
-          color: t.sf, border: Border(bottom: BorderSide(color: t.bd))),
-      child: Row(children: [
-        BuIconButton(
-            icon: LucideIcons.arrowLeft,
-            tooltip: context.l10n.chatDetailBack,
-            onTap: () => Navigator.pop(context, _changed)),
-        const SizedBox(width: 12),
-        Semantics(
-          button: true,
-          label: _direct
-              ? context.l10n.chatDetailOpenProfile
-              : context.l10n.chatDetailChatInfo,
-          excludeSemantics: true,
-          onTap: _direct
-              ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
-              : _openInfo,
-          child: GestureDetector(
-            onTap: _direct
-                ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
-                : _openInfo,
-            child: Stack(clipBehavior: Clip.none, children: [
-              BuAvatar(
-                  name: _title,
-                  url: _avatarUrl,
-                  size: 44,
-                  group: !_direct,
-                  headers: _avatarHeaders(_avatarUrl)),
-              if (online)
-                PositionedDirectional(
-                  end: -1,
-                  bottom: -1,
-                  child: Container(
-                    key: const ValueKey('onlineDot'),
-                    width: 13,
-                    height: 13,
-                    decoration: BoxDecoration(
-                        color: t.ok,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: t.sf, width: 2)),
+    final openHeader = _direct
+        ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
+        : _openInfo;
+    return _barFrame(
+      t,
+      Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+        SizedBox(
+          height: 64,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 14, end: 10),
+            child: Row(children: [
+              Tooltip(
+                message: l.chatDetailBack,
+                child: Semantics(
+                  button: true,
+                  label: l.chatDetailBack,
+                  excludeSemantics: true,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => Navigator.pop(context, _changed),
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(buDirIcon(context, LucideIcons.arrowLeft),
+                          size: 24, color: t.ink),
+                    ),
                   ),
                 ),
-            ])),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: InkWell(
-            onTap: _openInfo,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(_title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.heading.copyWith(
-                      color: t.ink, fontSize: 16, fontWeight: FontWeight.w800)),
-              ValueListenableBuilder<bool>(
-                valueListenable: _typingNow,
-                builder: (c, typing, _) {
-                  final text = typing ? c.l10n.chatDetailTyping : status;
-                  if (text == null) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(text,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(
-                            color: (online || typing) ? t.ok : t.mut,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600)),
-                  );
-                },
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: InkWell(
+                  onTap: _openInfo,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.titleLarge!.copyWith(color: t.ink)),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _typingNow,
+                          builder: (c, typing, _) {
+                            final text = typing ? c.l10n.chatDetailTyping : status;
+                            if (text == null) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Row(children: [
+                                if (online && !typing) ...[
+                                  Container(
+                                    key: const ValueKey('onlineDot'),
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                        color: t.ok, shape: BoxShape.circle),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Flexible(
+                                  child: Text(text,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: tx.labelMedium!.copyWith(
+                                          color: typing ? t.pr : t.mut,
+                                          fontWeight: typing
+                                              ? FontWeight.w700
+                                              : FontWeight.w500)),
+                                ),
+                              ]),
+                            );
+                          },
+                        ),
+                      ]),
+                ),
+              ),
+              Tooltip(
+                message: l.chatDetailMenu,
+                child: Semantics(
+                  button: true,
+                  label: l.chatDetailMenu,
+                  excludeSemantics: true,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _openChatMenu,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(LucideIcons.ellipsisVertical,
+                          size: 20, color: t.ink),
+                    ),
+                  ),
+                ),
+              ),
+              Semantics(
+                button: true,
+                label: _direct ? l.chatDetailOpenProfile : l.chatDetailChatInfo,
+                excludeSemantics: true,
+                onTap: openHeader,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: openHeader,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: BuAvatar(
+                          name: _title,
+                          url: _avatarUrl,
+                          size: 36,
+                          group: !_direct,
+                          headers: _avatarHeaders(_avatarUrl)),
+                    ),
+                  ),
+                ),
               ),
             ]),
           ),
         ),
-        const SizedBox(width: 12),
-        Tooltip(
-          message: context.l10n.chatDetailMenu,
-          child: Semantics(
-          button: true,
-          label: context.l10n.chatDetailMenu,
-          excludeSemantics: true,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: _openChatMenu,
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Icon(LucideIcons.ellipsisVertical, size: 20, color: t.ink),
+        if (_roomPage)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 16, end: 16),
+              child: _roomChip(t),
             ),
           ),
-        )),
       ]),
+    );
+  }
+
+  /// Kulüp/etkinlik odası başlığının altındaki sayfa bağlantısı hapı.
+  Widget _roomChip(BuTokens t) {
+    final l = context.l10n;
+    final label =
+        _type == 'CLUB' ? l.chatDetailClubPage : l.chatDetailEventPage;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        key: const ValueKey('roomPageChip'),
+        borderRadius: BuRadius.bPill,
+        onTap: _openRoomPage,
+        child: SizedBox(
+          height: 48,
+          child: Center(
+            widthFactor: 1,
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration:
+                  BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge!
+                        .copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 6),
+                Icon(
+                    _type == 'CLUB'
+                        ? LucideIcons.arrowUpRight
+                        : buDirIcon(context, LucideIcons.arrowRight),
+                    size: 14,
+                    color: t.onSoft),
+              ]),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _searchBar(BuTokens t) {
     final l = context.l10n;
-    final count = _query.isEmpty
-        ? l.chatDetailTypeToSearch
-        : (_matches.isEmpty
-            ? l.chatDetailNoMatch
-            : '${_matchPos + 1} / ${_matches.length}');
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.of(context).padding.top + 8, 16, 8),
-      decoration: BoxDecoration(
-          color: t.sf, border: Border(bottom: BorderSide(color: t.bd))),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [
-          BuIconButton(
-              icon: LucideIcons.x,
-              tooltip: l.chatDetailCloseSearch,
-              onTap: _stopSearch),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                  color: t.sf2, borderRadius: BorderRadius.circular(22)),
-              alignment: Alignment.center,
-              child: TextField(
-                key: const ValueKey('chatSearchField'),
-                controller: _searchCtl,
-                focusNode: _searchFocus,
-                onChanged: _onSearchChanged,
-                textInputAction: TextInputAction.search,
-                style: BuType.body.copyWith(color: t.ink),
-                cursorColor: t.pr,
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  hintText: l.chatDetailSearchInChat,
-                  hintStyle: BuType.body.copyWith(color: t.mut),
+    final tx = Theme.of(context).textTheme;
+    final hasMatches = _matches.isNotEmpty;
+    final status = _searchOlderBusy
+        ? l.chatDetailSearching
+        : (_query.isEmpty ? l.chatDetailTypeToSearch : l.chatDetailNoMatch);
+    Widget navButton(IconData icon, String tip, VoidCallback? onTap) {
+      return Tooltip(
+        message: tip,
+        child: Semantics(
+          button: true,
+          enabled: onTap != null,
+          label: tip,
+          excludeSemantics: true,
+          child: InkWell(
+            borderRadius: BuRadius.bSm,
+            onTap: onTap,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration:
+                      BoxDecoration(color: t.sf2, borderRadius: BuRadius.bSm),
+                  child: Icon(icon, size: 20, color: t.ink),
                 ),
               ),
             ),
           ),
-        ]),
-        const SizedBox(height: 4),
-        Row(children: [
-          Expanded(
-              child: Text(count,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.label.copyWith(color: t.mut))),
-          IconButton(
-            tooltip: l.chatDetailPrevMatch,
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            icon: Icon(LucideIcons.chevronUp,
-                color: _matches.isEmpty ? t.bd : t.ink),
-            onPressed: _matches.isEmpty ? null : () => _stepMatch(1),
-          ),
-          IconButton(
-            tooltip: l.chatDetailNextMatch,
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-            icon: Icon(LucideIcons.chevronDown,
-                color: _matches.isEmpty ? t.bd : t.ink),
-            onPressed: _matches.isEmpty ? null : () => _stepMatch(-1),
-          ),
-        ]),
-        if (_beforeCursor != null)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton(
-              onPressed: _searchOlderBusy ? null : _searchOlder,
-              child: Text(
-                  _searchOlderBusy
-                      ? l.chatDetailSearching
-                      : l.chatDetailSearchOlder,
-                  style: BuType.label.copyWith(color: t.pr)),
+        ),
+      );
+    }
+
+    return _barFrame(
+      t,
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsetsDirectional.only(start: 14, end: 4),
+              decoration:
+                  BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+              child: Row(children: [
+                Icon(LucideIcons.search, size: 20, color: t.pr),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    key: const ValueKey('chatSearchField'),
+                    controller: _searchCtl,
+                    focusNode: _searchFocus,
+                    onChanged: _onSearchChanged,
+                    textInputAction: TextInputAction.search,
+                    style: tx.bodyLarge!.copyWith(color: t.ink),
+                    cursorColor: t.pr,
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      hintText: l.chatDetailSearchInChat,
+                      hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
+                    ),
+                  ),
+                ),
+                if (_query.isNotEmpty)
+                  Tooltip(
+                    message: l.p07ChatSearchClear,
+                    child: Semantics(
+                      button: true,
+                      label: l.p07ChatSearchClear,
+                      excludeSemantics: true,
+                      child: InkWell(
+                        key: const ValueKey('chatSearchClear'),
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          _searchCtl.clear();
+                          _onSearchChanged('');
+                        },
+                        child: SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: Icon(LucideIcons.x, size: 18, color: t.mut),
+                        ),
+                      ),
+                    ),
+                  ),
+              ]),
             ),
           ),
-      ]),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
+            child: SizedBox(
+              height: 52,
+              child: Row(children: [
+                if (hasMatches) ...[
+                  Container(
+                    height: 24,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
+                    child: Text('${_matchPos + 1} / ${_matches.length}',
+                        textDirection: TextDirection.ltr,
+                        style: tx.labelMedium!.copyWith(
+                            color: t.onPr, fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 4),
+                  navButton(LucideIcons.chevronUp, l.chatDetailPrevMatch,
+                      () => _stepMatch(1)),
+                  navButton(LucideIcons.chevronDown, l.chatDetailNextMatch,
+                      () => _stepMatch(-1)),
+                  const Spacer(),
+                ] else
+                  Expanded(
+                    child: Text(status,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.labelLarge!.copyWith(color: t.mut)),
+                  ),
+                TextButton(
+                  key: const ValueKey('chatSearchClose'),
+                  onPressed: _stopSearch,
+                  style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      foregroundColor: t.pr,
+                      padding: const EdgeInsets.symmetric(horizontal: 12)),
+                  child: Text(l.chatDetailClose,
+                      style: tx.labelLarge!.copyWith(
+                          color: t.pr, fontWeight: FontWeight.w700)),
+                ),
+              ]),
+            ),
+          ),
+          if (_beforeCursor != null && _query.isNotEmpty && !_searchOlderBusy)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                borderRadius: BuRadius.bPill,
+                onTap: _searchOlder,
+                child: SizedBox(
+                  height: 48,
+                  child: Center(
+                    child: Container(
+                      height: 36,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                          color: t.sf2, borderRadius: BuRadius.bPill),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(LucideIcons.history, size: 16, color: t.pr),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(l.chatDetailSearchOlder,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tx.labelLarge!.copyWith(
+                                  color: t.onSoft, fontWeight: FontWeight.w700)),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ]),
+      ),
     );
   }
 
   Widget _body(BuTokens t) {
-    if (_loading) return const LoadingView();
+    if (_loading) return _skeleton(t);
     if (_error != null) return ErrorView(error: _error!, onRetry: _boot);
     if (_msgs.isEmpty) {
-      return EmptyView(
-          icon: LucideIcons.messageCircle, text: context.l10n.chatDetailEmpty);
+      return BuEmptyState(
+          illustration: BuIllustration.message,
+          title: context.l10n.p07ChatEmptyTitle,
+          message: context.l10n.p07ChatEmptyBody);
     }
     return Stack(children: [
       Positioned.fill(
@@ -2047,6 +2232,36 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       ),
       PositionedDirectional(end: 16, bottom: 12, child: _downButton(t)),
     ]);
+  }
+
+  /// Yükleniyor: sohbet düzenine benzeyen balon iskeleti (çember yok).
+  Widget _skeleton(BuTokens t) {
+    Widget bubble(bool mine, double w, double h) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+              mainAxisAlignment:
+                  mine ? MainAxisAlignment.end : MainAxisAlignment.start,
+              children: [
+                if (!mine) ...[
+                  const BuSkeleton.circle(28),
+                  const SizedBox(width: 8),
+                ],
+                BuSkeleton(width: w, height: h, radius: 18),
+              ]),
+        );
+    return BuSkeletonScope(
+      child: SingleChildScrollView(
+        reverse: true,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          bubble(false, 220, 64),
+          bubble(true, 190, 48),
+          bubble(false, 150, 44),
+          bubble(true, 230, 64),
+          bubble(false, 200, 48),
+        ]),
+      ),
+    );
   }
 
   Widget _downButton(BuTokens t) {
@@ -2079,7 +2294,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     border: Border.all(color: t.bd),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withValues(alpha: .12),
+                          color: t.shadow.withValues(alpha: .12),
                           blurRadius: 8,
                           offset: const Offset(0, 2))
                     ],
@@ -2308,98 +2523,202 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         listenable: _input, builder: (c, _) => _composerBody(t));
   }
 
+  Future<void> _unblockPeer() async {
+    final pid = (_peer?['id'] as num?)?.toInt();
+    if (pid == null) return;
+    try {
+      await _api.delete('/users/$pid/block');
+      _changed = true;
+      if (!mounted) return;
+      setState(() => _conv['blocked'] = false);
+      _toast(context.l10n.chatDetailUserUnblocked);
+    } catch (e) {
+      if (mounted) _toast(errorText(e));
+    }
+  }
+
+  /// Engellenen kişiyle birebir sohbette yazma alanı yerine geçer.
+  Widget _blockedBar(BuTokens t) {
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      key: const ValueKey('chatBlockedBar'),
+      width: double.infinity,
+      decoration: BoxDecoration(color: t.bg, boxShadow: _topShadow(t)),
+      padding: EdgeInsets.fromLTRB(
+          16, 8, 16, 8 + MediaQuery.paddingOf(context).bottom),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Semantics(
+          liveRegion: true,
+          child: Text(context.l10n.p07ChatBlockedLine,
+              textAlign: TextAlign.center,
+              style: tx.bodyMedium!.copyWith(color: t.mut)),
+        ),
+        TextButton(
+          key: const ValueKey('chatUnblockButton'),
+          onPressed: _unblockPeer,
+          style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48), foregroundColor: t.pr),
+          child: Text(context.l10n.chatDetailUnblock,
+              style:
+                  tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+        ),
+      ]),
+    );
+  }
+
+  List<BoxShadow> _topShadow(BuTokens t) => [
+        BoxShadow(
+            color: t.shadow.withValues(alpha: .08),
+            blurRadius: 6,
+            offset: const Offset(0, -1)),
+      ];
+
+  /// Yazma alanının yuvarlak tonal düğmesi (Ekle, Kamera): 44 dp görünüm, 48 dp dokunma alanı.
+  Widget _roundTool(BuTokens t,
+      {required Key key,
+      required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: InkWell(
+          key: key,
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: Icon(icon, size: 22, color: t.ink),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Yanıt / düzenleme çubuğu: solda kırmızı çizgi, ad ya da "Mesaj düzenleniyor", alıntı, kapat.
+  Widget _replyBar(BuTokens t, Map<String, dynamic> banner) {
+    final tx = Theme.of(context).textTheme;
+    final editing = _editing != null;
+    return Container(
+      key: ValueKey(editing ? 'editBar' : 'replyBar'),
+      width: double.infinity,
+      color: t.sf2,
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 4, 6),
+      child: Row(children: [
+        Container(
+          width: 3,
+          height: 40,
+          decoration: BoxDecoration(
+              color: t.pr, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Icon(editing ? LucideIcons.pencil : LucideIcons.reply,
+                      size: 14, color: t.pr),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                        editing
+                            ? context.l10n.chatDetailEditing
+                            : _nameOf((banner['senderId'] as num?)?.toInt()),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.labelMedium!.copyWith(
+                            color: t.pr, fontWeight: FontWeight.w700)),
+                  ),
+                ]),
+                const SizedBox(height: 2),
+                Text((banner['text'] as String?) ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.labelMedium!
+                        .copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+              ]),
+        ),
+        IconButton(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          tooltip: context.l10n.chatDetailNevermind,
+          icon: Icon(LucideIcons.x, size: 20, color: t.ink),
+          onPressed: () => setState(() {
+            if (_editing != null) _input.clear();
+            _editing = null;
+            _replyTo = null;
+          }),
+        ),
+      ]),
+    );
+  }
+
   Widget _composerBody(BuTokens t) {
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final len = _input.text.characters.length;
     final canSend = _input.text.trim().isNotEmpty && len <= _maxLen;
     final banner = _editing ?? _replyTo;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    Widget sendIcon = Icon(
+        _editing != null ? LucideIcons.check : LucideIcons.send,
+        size: 22,
+        color: t.onPr);
+    if (_editing == null && rtl) {
+      sendIcon = Transform.flip(flipX: true, child: sendIcon);
+    }
     return Container(
-      decoration: BoxDecoration(
-          color: t.sf, border: Border(top: BorderSide(color: t.bd))),
-      padding: EdgeInsets.fromLTRB(
-          16, 10, 16, 10 + MediaQuery.of(context).padding.bottom),
+      decoration: BoxDecoration(color: t.bg, boxShadow: _topShadow(t)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (banner != null)
-          Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 4, 8),
-            decoration: BoxDecoration(
-                color: t.sf2, borderRadius: BorderRadius.circular(14)),
-            child: Row(children: [
-              Icon(_editing != null ? LucideIcons.pencil : LucideIcons.reply,
-                  size: 14.5, color: t.pr),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          _editing != null
-                              ? context.l10n.chatDetailEditing
-                              : _nameOf((banner['senderId'] as num?)?.toInt()),
-                          style: BuType.micro.copyWith(
-                              color: t.ink, fontWeight: FontWeight.w700)),
-                      Text((banner['text'] as String?) ?? '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.caption.copyWith(color: t.mut)),
-                    ]),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                tooltip: context.l10n.chatDetailNevermind,
-                icon: Icon(LucideIcons.x, size: 16, color: t.mut),
-                onPressed: () => setState(() {
-                  if (_editing != null) _input.clear();
-                  _editing = null;
-                  _replyTo = null;
-                }),
-              ),
-            ]),
-          ),
+        if (banner != null) _replyBar(t, banner),
         if (len >= 1500)
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsetsDirectional.only(top: 4, start: 16, end: 16),
             child: Align(
               alignment: AlignmentDirectional.centerEnd,
               child: Text('$len/$_maxLen',
-                  style: BuType.micro.copyWith(
+                  style: tx.labelSmall!.copyWith(
                       color: len > _maxLen ? t.danger : t.mut,
                       fontWeight: FontWeight.w700)),
             ),
           ),
-        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          if (_editing == null) ...[
-            Semantics(
-              button: true,
-              label: context.l10n.chatDetailAdd,
-              child: GestureDetector(
-                key: const ValueKey('attachButton'),
-                onTap: _openGallery,
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+              12, 8, 16, 8 + MediaQuery.paddingOf(context).bottom),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            if (_editing == null) ...[
+              _roundTool(t,
+                  key: const ValueKey('attachButton'),
+                  icon: LucideIcons.plus,
+                  label: l.chatDetailAdd,
+                  onTap: _openGallery),
+              _roundTool(t,
+                  key: const ValueKey('cameraShortcut'),
+                  icon: LucideIcons.camera,
+                  label: l.chatDetailCamera,
+                  onTap: _openCameraShortcut),
+              const SizedBox(width: 4),
+            ] else
+              const SizedBox(width: 4),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Container(
-                  width: 44,
-                  height: 44,
+                  constraints: const BoxConstraints(minHeight: 46),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                      color: t.bg,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: t.bd)),
-                  child: Icon(LucideIcons.plus, size: 20, color: t.mut),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: EdgeInsetsDirectional.only(
-                  start: 18, end: _editing == null ? 4 : 18),
-              decoration: BoxDecoration(
-                  color: t.bg,
-                  border: Border.all(color: t.bd),
-                  borderRadius: BorderRadius.circular(24)),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Expanded(
+                      color: t.sf, borderRadius: BorderRadius.circular(23)),
                   child: TextField(
                     key: const ValueKey('composerField'),
                     controller: _input,
@@ -2408,7 +2727,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
                     keyboardType: TextInputType.multiline,
-                    style: BuType.body.copyWith(color: t.ink, fontSize: 15),
+                    style: tx.bodyLarge!.copyWith(color: t.ink),
                     cursorColor: t.pr,
                     decoration: InputDecoration(
                       isCollapsed: true,
@@ -2416,62 +2735,41 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                      hintText: context.l10n.chatDetailWriteMessage,
-                      hintStyle: BuType.body.copyWith(color: t.mut, fontSize: 15),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                      hintText: l.chatDetailWriteMessage,
+                      hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
                     ),
                   ),
                 ),
-                if (_editing == null)
-                  SizedBox(
-                    width: 44,
-                    height: 48,
-                    child: IconButton(
-                      key: const ValueKey('cameraShortcut'),
-                      tooltip: context.l10n.chatDetailCamera,
-                      padding: EdgeInsets.zero,
-                      onPressed: _openCameraShortcut,
-                      icon: Icon(LucideIcons.camera, size: 18, color: t.mut),
-                    ),
-                  ),
-              ]),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Semantics(
-            button: true,
-            enabled: canSend,
-            label: _editing != null
-                ? context.l10n.chatDetailSave
-                : context.l10n.chatDetailSend,
-            child: GestureDetector(
-              key: const ValueKey('sendButton'),
-              onTap: canSend ? _submit : null,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                    color: canSend ? t.pr : t.pr.withValues(alpha: .4),
-                    shape: BoxShape.circle,
-                    boxShadow: canSend
-                        ? [
-                            BoxShadow(
-                                color: t.pr.withValues(alpha: .35),
-                                blurRadius: 20,
-                                spreadRadius: -10,
-                                offset: const Offset(0, 10))
-                          ]
-                        : null),
-                child: Icon(
-                    _editing != null
-                        ? LucideIcons.check
-                        : buDirIcon(context, LucideIcons.arrowRight),
-                    size: 20,
-                    color: t.onPr),
               ),
             ),
-          ),
-        ]),
+            const SizedBox(width: 6),
+            Semantics(
+              button: true,
+              enabled: canSend,
+              label: _editing != null ? l.chatDetailSave : l.chatDetailSend,
+              excludeSemantics: true,
+              child: GestureDetector(
+                key: const ValueKey('sendButton'),
+                onTap: canSend ? _submit : null,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                      color: t.pr,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                            color: t.pr.withValues(alpha: .3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4))
+                      ]),
+                  child: sendIcon,
+                ),
+              ),
+            ),
+          ]),
+        ),
       ]),
     );
   }

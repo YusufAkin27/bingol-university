@@ -8019,7 +8019,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p13PollAvgTitle => 'متوسط التقييم';
+  String get p13PollAvgTitle => 'متوسط الرضا';
 
   @override
   String get p13PollChangeNote => 'يمكنك تغيير رأيك بعد التصويت.';
@@ -8158,4 +8158,71 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p17WeekDay => 'يوم الأسبوع';
+
+  @override
+  String get p13PollViewAll => 'عرض الكل';
+
+  @override
+  String get p13PollReview => 'مراجعة التصويت';
+
+  @override
+  String get p13PollOpenBadge => 'استطلاع مفتوح';
+
+  @override
+  String get p13PollClosedKicker => 'استطلاع مغلق';
+
+  @override
+  String p13PollDone(String n) {
+    return 'اكتمل · $n صوت';
+  }
+
+  @override
+  String p13PollWinner(String name, String pct) {
+    return 'الفائز: $name ($pct%)';
+  }
+
+  @override
+  String get p13PollOneVote => 'صوت واحد';
+
+  @override
+  String get p13PollHiddenResults => 'نتائج مخفية';
+
+  @override
+  String get p13PollVoteCta => 'صوّت';
+
+  @override
+  String get p13PollNoMoreActive => 'لا يوجد استطلاع نشط آخر لهذا النادي.';
+
+  @override
+  String get p13PollNoMoreBody =>
+      'تُنشر هنا قرارات المجتمع وتفضيلات الفعاليات.';
+
+  @override
+  String get p04DiscoverSub => 'تعرّف على نبض الحرم الجامعي والمنشورات الحية';
+
+  @override
+  String get p04SearchHint => 'ابحث في الحرم: أندية، فعاليات، أشخاص...';
+
+  @override
+  String get p04ChipAll => 'الكل';
+
+  @override
+  String get p04SuggestTitle => 'قد تعرفهم';
+
+  @override
+  String get p04SuggestSeeAll => 'عرض الكل';
+
+  @override
+  String get p04FollowAction => 'متابعة';
+
+  @override
+  String get p04FollowingState => 'تتابعه';
+
+  @override
+  String get p04FeedTitle => 'منشورات الطلاب';
+
+  @override
+  String p04LikeCount(String count) {
+    return '$count إعجاب';
+  }
 }

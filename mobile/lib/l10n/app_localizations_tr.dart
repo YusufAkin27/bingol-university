@@ -8061,11 +8061,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String p13PollArchiveCount(String n) {
-    return '$n anket arşivde';
+    return '$n Anket Arşivde';
   }
 
   @override
-  String get p13PollArchiveHeading => 'Sonuçlanan anketler';
+  String get p13PollArchiveHeading => 'Sonuçlanan Anketler';
 
   @override
   String p13PollAvgOutOf(String avg) {
@@ -8073,7 +8073,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p13PollAvgTitle => 'Ortalama puan';
+  String get p13PollAvgTitle => 'Ortalama Memnuniyet';
 
   @override
   String get p13PollChangeNote =>
@@ -8139,7 +8139,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String p13PollRankLabel(String n) {
-    return '$n. tercih';
+    return '$n. Tercih';
   }
 
   @override
@@ -8217,4 +8217,71 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p17WeekDay => 'Haftanın günü';
+
+  @override
+  String get p13PollViewAll => 'Tümünü Gör';
+
+  @override
+  String get p13PollReview => 'Oyu İncele';
+
+  @override
+  String get p13PollOpenBadge => 'Açık anket';
+
+  @override
+  String get p13PollClosedKicker => 'Kapanan anket';
+
+  @override
+  String p13PollDone(String n) {
+    return 'Tamamlandı · $n oy';
+  }
+
+  @override
+  String p13PollWinner(String name, String pct) {
+    return 'Kazanan: $name (%$pct)';
+  }
+
+  @override
+  String get p13PollOneVote => 'Tek oylu';
+
+  @override
+  String get p13PollHiddenResults => 'Gizli sonuçlar';
+
+  @override
+  String get p13PollVoteCta => 'Oyla';
+
+  @override
+  String get p13PollNoMoreActive => 'Bu kulübün başka aktif anketi yok.';
+
+  @override
+  String get p13PollNoMoreBody =>
+      'Topluluk kararları ve etkinlik tercihleri burada yayımlanır.';
+
+  @override
+  String get p04DiscoverSub => 'Kampüsün nabzını ve anlık paylaşımları yakala';
+
+  @override
+  String get p04SearchHint => 'Kampüste ara: kulüpler, etkinlikler, kişiler...';
+
+  @override
+  String get p04ChipAll => 'Tümü';
+
+  @override
+  String get p04SuggestTitle => 'Tanıyor Olabilirsin';
+
+  @override
+  String get p04SuggestSeeAll => 'Tümünü Gör';
+
+  @override
+  String get p04FollowAction => 'Takip Et';
+
+  @override
+  String get p04FollowingState => 'Takiptesin';
+
+  @override
+  String get p04FeedTitle => 'Öğrenci Akışı';
+
+  @override
+  String p04LikeCount(String count) {
+    return '$count beğeni';
+  }
 }

@@ -14710,13 +14710,13 @@ abstract class AppLocalizations {
   /// No description provided for @p13PollArchiveCount.
   ///
   /// In tr, this message translates to:
-  /// **'{n} anket arşivde'**
+  /// **'{n} Anket Arşivde'**
   String p13PollArchiveCount(String n);
 
   /// No description provided for @p13PollArchiveHeading.
   ///
   /// In tr, this message translates to:
-  /// **'Sonuçlanan anketler'**
+  /// **'Sonuçlanan Anketler'**
   String get p13PollArchiveHeading;
 
   /// No description provided for @p13PollAvgOutOf.
@@ -14728,7 +14728,7 @@ abstract class AppLocalizations {
   /// No description provided for @p13PollAvgTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Ortalama puan'**
+  /// **'Ortalama Memnuniyet'**
   String get p13PollAvgTitle;
 
   /// No description provided for @p13PollChangeNote.
@@ -14848,7 +14848,7 @@ abstract class AppLocalizations {
   /// No description provided for @p13PollRankLabel.
   ///
   /// In tr, this message translates to:
-  /// **'{n}. tercih'**
+  /// **'{n}. Tercih'**
   String p13PollRankLabel(String n);
 
   /// No description provided for @p13PollRankReset.
@@ -14982,6 +14982,126 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Haftanın günü'**
   String get p17WeekDay;
+
+  /// No description provided for @p13PollViewAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü Gör'**
+  String get p13PollViewAll;
+
+  /// No description provided for @p13PollReview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyu İncele'**
+  String get p13PollReview;
+
+  /// No description provided for @p13PollOpenBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık anket'**
+  String get p13PollOpenBadge;
+
+  /// No description provided for @p13PollClosedKicker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapanan anket'**
+  String get p13PollClosedKicker;
+
+  /// No description provided for @p13PollDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlandı · {n} oy'**
+  String p13PollDone(String n);
+
+  /// No description provided for @p13PollWinner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanan: {name} (%{pct})'**
+  String p13PollWinner(String name, String pct);
+
+  /// No description provided for @p13PollOneVote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek oylu'**
+  String get p13PollOneVote;
+
+  /// No description provided for @p13PollHiddenResults.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli sonuçlar'**
+  String get p13PollHiddenResults;
+
+  /// No description provided for @p13PollVoteCta.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyla'**
+  String get p13PollVoteCta;
+
+  /// No description provided for @p13PollNoMoreActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübün başka aktif anketi yok.'**
+  String get p13PollNoMoreActive;
+
+  /// No description provided for @p13PollNoMoreBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk kararları ve etkinlik tercihleri burada yayımlanır.'**
+  String get p13PollNoMoreBody;
+
+  /// No description provided for @p04DiscoverSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüsün nabzını ve anlık paylaşımları yakala'**
+  String get p04DiscoverSub;
+
+  /// No description provided for @p04SearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüste ara: kulüpler, etkinlikler, kişiler...'**
+  String get p04SearchHint;
+
+  /// No description provided for @p04ChipAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get p04ChipAll;
+
+  /// No description provided for @p04SuggestTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tanıyor Olabilirsin'**
+  String get p04SuggestTitle;
+
+  /// No description provided for @p04SuggestSeeAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü Gör'**
+  String get p04SuggestSeeAll;
+
+  /// No description provided for @p04FollowAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip Et'**
+  String get p04FollowAction;
+
+  /// No description provided for @p04FollowingState.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takiptesin'**
+  String get p04FollowingState;
+
+  /// No description provided for @p04FeedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğrenci Akışı'**
+  String get p04FeedTitle;
+
+  /// No description provided for @p04LikeCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni'**
+  String p04LikeCount(String count);
 }
 
 class _AppLocalizationsDelegate
