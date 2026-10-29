@@ -1,18 +1,20 @@
-import 'dart:async';
-
-import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/identifier.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
-import 'auth_widgets.dart';
-import 'otp_code_boxes.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
+import 'otp_code_boxes.dart';
+import 'widgets/auth_art.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_fields.dart';
+import 'widgets/auth_motion.dart';
+import 'widgets/auth_shell.dart';
 
-/// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi.
+/// E-posta doğrulama: 6 haneli kod, 60 sn'lik yeniden gönderme beklemesi (halka geri sayım).
 class VerifyCodePage extends StatefulWidget {
   const VerifyCodePage({
     super.key,
@@ -40,46 +42,38 @@ class VerifyCodePage extends StatefulWidget {
 class _VerifyCodePageState extends State<VerifyCodePage> {
   final _code = TextEditingController();
   final _password = TextEditingController();
+  final _resendKey = GlobalKey<AuthResendRowState>();
   // Kayıt şifresi bellekte yoksa (uygulama yeniden açıldı) parola kanıtı için kullanıcıdan istenir.
   late final bool _needsPassword = !widget.session.hasRememberedPassword(widget.email);
   bool _busy = false;
   String? _error;
   String? _info;
-  int _cooldown = 60;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startCooldown();
-  }
+  int _shake = 0;
 
   @override
   void dispose() {
-    _timer?.cancel();
     _code.dispose();
     _password.dispose();
     super.dispose();
   }
 
-  void _startCooldown([int seconds = 60]) {
-    _timer?.cancel();
-    setState(() => _cooldown = seconds);
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return t.cancel();
-      setState(() => _cooldown--);
-      if (_cooldown <= 0) t.cancel();
+  void _fail(String m) {
+    authHaptic(AuthHaptic.error);
+    setState(() {
+      _error = m;
+      _info = null;
+      _shake++;
     });
   }
 
   Future<void> _verify() async {
     if (_busy) return;
     if (_code.text.length != 6) {
-      setState(() => _error = context.l10n.authRestEnterCode);
+      _fail(context.l10n.authRestEnterCode);
       return;
     }
     if (_needsPassword && _password.text.isEmpty) {
-      setState(() => _error = context.l10n.authVerifyPasswordRequired);
+      _fail(context.l10n.authVerifyPasswordRequired);
       return;
     }
     setState(() {
@@ -91,10 +85,15 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       await widget.session.verifyEmail(widget.email, _code.text, password: _needsPassword ? _password.text : null);
       // Oturum açıldı: kök ekran ana sayfaya geçer, kimlik ekranlarını kapat.
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
-    } on ApiError catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
     } catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
+      if (mounted) {
+        _fail(errorText(e));
+        // Deneme sınırı: yeni kod beklemeden istenebilir.
+        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') {
+          _code.clear();
+          _resendKey.currentState?.makeReady();
+        }
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -109,60 +108,72 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       await widget.session.resendCode(widget.email);
       if (!mounted) return;
       setState(() => _info = context.l10n.authNewCodeSent);
-      _startCooldown();
+      _resendKey.currentState?.restart();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = errorText(e));
-      if (e is ApiError && e.code == 'RESEND_COOLDOWN') _startCooldown();
+      _fail(errorText(e));
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') _resendKey.currentState?.restart();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    return AuthScaffold(
+    final l = context.l10n;
+    final mail = widget.displayEmail ?? fullEmail(widget.email);
+    return AuthShell(
       showBack: true,
-      icon: LucideIcons.mail,
-      title: context.l10n.authVerifyEmailTitle,
-      subtitle: context.l10n.authVerifySubtitle(widget.displayEmail ?? fullEmail(widget.email)),
-      children: [
-        if (widget.unverified) Notice(context.l10n.authUnverifiedNotice, error: false),
-        if (_error != null) Notice(_error!),
-        if (_info != null) Notice(_info!, error: false),
+      art: AuthArtKind.envelope,
+      title: l.authVerifyEmailTitle,
+      subtitle: l.authVerifySubtitle(mail),
+      emphasis: mail,
+      body: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.unverified) AuthBanner(l.authUnverifiedNotice, kind: AuthBannerKind.info),
+            AuthFeedbackSlot(error: _error, info: _info, shake: _shake),
+          ],
+        ),
         OtpCodeBoxes(
           controller: _code,
           enabled: !_busy,
           hasError: _error != null,
+          shakeTrigger: _shake,
           onCompleted: _verify,
         ),
         if (_needsPassword) ...[
-          const SizedBox(height: 14),
-          Text(context.l10n.authVerifyPasswordNote, style: BuType.caption.copyWith(color: t.mut, height: 1.35)),
-          const SizedBox(height: 8),
-          PasswordField(
+          const SizedBox(height: 18),
+          Text(l.authVerifyPasswordNote, style: BuType.caption.copyWith(color: context.bu.mut, height: 1.45, fontSize: 12.5)),
+          const SizedBox(height: 10),
+          AuthPasswordField(
             controller: _password,
-            label: context.l10n.authVerifyPasswordLabel,
+            label: l.authVerifyPasswordLabel,
+            enabled: !_busy,
             onSubmitted: _verify,
           ),
         ],
-        const SizedBox(height: 14),
-        Center(
-          child: _cooldown > 0
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  child: Text(context.l10n.authNewCodeIn('$_cooldown'), style: BuType.body.copyWith(color: t.mut)),
-                )
-              : TextButton(onPressed: _busy ? null : _resend, child: Text(context.l10n.authResendCode)),
+        const SizedBox(height: 8),
+        AuthResendRow(
+          key: _resendKey,
+          onResend: _busy ? () {} : _resend,
+          waitingLabel: (s) => l.authNewCodeIn('$s'),
+          resendLabel: l.authResendCode,
         ),
-        const SizedBox(height: 4),
-        AuthButton(onPressed: _busy ? null : _verify, busy: _busy, label: context.l10n.authVerify),
-        if (widget.unverified)
+        const SizedBox(height: 8),
+        AuthTrustNote(l.authTrustCode, icon: LucideIcons.mailCheck),
+      ],
+      bottom: [
+        AuthPrimaryButton(onPressed: _busy ? null : _verify, busy: _busy, label: l.authVerify),
+        if (widget.unverified) ...[
+          const SizedBox(height: 4),
           Center(
-            child: TextButton(
+            child: AuthTextAction(
+              label: l.authUseOtherAccount,
+              muted: true,
               onPressed: _busy ? null : () => Navigator.of(context).popUntil((r) => r.isFirst),
-              child: Text(context.l10n.authUseOtherAccount),
             ),
           ),
+        ],
       ],
     );
   }

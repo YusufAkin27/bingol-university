@@ -108,3 +108,16 @@ Notlar:
 - **Sertifika iptali (P07):** mobilde sertifika ekranı yoktur; `CERTIFICATE_REVOKED` (409) `knownErrorText` ile yerel metne çevrilir. Doğrulama (`valid:false`) uçta iptal bilgisi vermez.
 - **Hesap silme (B1):** silme sayfasına "cihaz/IP/kullanım kayıtları anında silinir" ve "sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kapatılır" maddeleri eklendi (tr/en/ar).
 - Testler: `test/b4_server_contracts_test.dart`.
+
+## 11. Kimlik akışı yeniden tasarımı (AUTH1)
+
+Karşılama, giriş, kayıt (3 adım), e-posta doğrulama, şifremi unuttum (e-posta -> kod -> yeni şifre -> başarı), sözleşme yeniden onayı ve izin sayfası ortak bir "kimlik kiti" ile yenilendi. Davranış/API/güvenlik aynıdır.
+
+- **Kit:** `lib/features/auth/widgets/` — `auth_shell.dart` (iskelet: üstte geri/marka + adım noktaları, kaydırılan gövde `body`, klavyeyle yükselen sabit alt çubuk `bottom`, aşamalı giriş), `auth_fields.dart` (`AuthTextField`: etiket kutunun içinde yüzer, odak halkası, alandan çıkınca doğrulama + hata görününce anında düzelme, doğru tik; `AuthPasswordField`, `AuthIdentifierField`), `auth_controls.dart` (ana düğme, banner + sarsıntı, adım noktaları, halka geri sayımlı `AuthResendRow`, parola gücü + tek tek tik atan kurallar, güven notu), `auth_art.dart` (kodla çizilmiş illüstrasyonlar, başarı tiki + konfeti, parıltı, kırmızı sahne boyacısı), `auth_motion.dart` (tek saat `AuthClockHost`, `AuthAmbient` arka plan, `AuthShake`, `authHaptic`), `auth_sheets.dart` (sürüklenebilir arama destekli seçici sayfa + dil sayfası), `auth_academic.dart` (kayıtta bölüm/sınıf).
+- **Tek ticker ilkesi:** ekran başına tek döngülü saat (24 sn); arka plan lekeleri, illüstrasyon süzülmesi, kırmızı sahne dalgaları ve yükleme noktaları aynı saati okur. Döngü, `MediaQuery.disableAnimations` açıkken ve `flutter test` altında çalışmaz (`AuthMotion`); sınırlı girişler (500-1500 ms) her zaman oynar.
+- **Eski ortak bileşenler** (`auth_widgets.dart`: `PasswordField`, `AuthButton`, `Notice`, `PasswordStrength`) profil ekranları için olduğu gibi kaldı; kimlik ekranları yeni kiti kullanır.
+- **Başarı ekranı:** `reset_success_page.dart` (şifre sıfırlama sonunda; geri tuşu girişe döner).
+- **Görsel inceleme:** `AUTH_SHOTS_OUT=<klasör> flutter test test/auth_shots_test.dart` (`AUTH_SHOTS_LANG=tr,en,ar`, `AUTH_SHOTS_DARK=0|1|both`, `AUTH_SHOTS_SCALE=1.3`, `AUTH_SHOTS_ONLY=02,03`). Arapça yerleşim için Windows Arial yedeği yüklenir. Testler: `test/auth_redesign_test.dart` (3 dil x 2 tema x 2 boyut x 2 yazı ölçeği taşma matrisi + davranışlar).
+- **Yerel kod okuma:** `scripts/dev/last-code.sh [proje]` (MAIL_ENABLED=false yığınında son doğrulama/sıfırlama kodunu ve e-postasını backend logundan yazar).
+- **Android debug derlemesi:** `MainActivity` yalnız debuggable DEĞİLKEN `FLAG_SECURE` uygular (release'te ekran görüntüsü/kayıt engeli aynen sürer). Gradle, Türkçe karakterli yolda (`jni` CMake) derlenemez: ASCII bir kopyadan derleyin (`robocopy ... /XD build .dart_tool ios`).
+

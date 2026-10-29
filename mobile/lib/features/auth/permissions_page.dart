@@ -8,6 +8,9 @@ import '../../core/theme.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/sistem_widgets.dart';
+import 'widgets/auth_art.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_motion.dart';
 
 /// "İlk giriş izinleri gösterildi" bayrağı. Cihaz başınadır (hesap değişse de tekrar etmez);
 /// Keychain/Keystore'da tutulur.
@@ -157,9 +160,13 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
     final step = resolved >= total ? total : resolved + 1;
     final active = _firstRun.cast<AppPermission?>().firstWhere((p) => !_resolved(p!), orElse: () => null);
     final stepText = context.l10n.sistemuiPermStep(step.toString(), total.toString());
-    return Scaffold(
+    return AuthClockHost(
+      child: Scaffold(
       backgroundColor: t.bg,
-      body: SafeArea(
+      body: Stack(
+        children: [
+        const Positioned(top: 0, left: 0, right: 0, child: AuthAmbient()),
+        SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -180,10 +187,10 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
                               child: AnimatedContainer(
                                 key: ValueKey('perm-step-$i'),
                                 duration: const Duration(milliseconds: 220),
-                                height: 6,
+                                height: 7,
                                 decoration: BoxDecoration(
-                                  color: i < step ? t.pr : t.bd,
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: i < step ? t.pr : t.mut.withValues(alpha: .22),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
                             ),
@@ -199,6 +206,10 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
                     ),
                   ),
                   const SizedBox(height: 14),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(4, 0, 4, 10),
+                    child: Align(alignment: AlignmentDirectional.centerStart, child: AuthArt(AuthArtKind.shield, size: 92)),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Semantics(
@@ -231,7 +242,7 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: SistemButton(
+              child: AuthPrimaryButton(
                 label: _allGranted ? context.l10n.permStart : context.l10n.permContinue,
                 onPressed: widget.onFinished,
               ),
@@ -239,6 +250,9 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
           ],
         ),
       ),
+        ],
+      ),
+    ),
     );
   }
 }

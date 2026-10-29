@@ -4,9 +4,13 @@ import 'package:flutter/services.dart';
 import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_motion.dart';
 
 /// Altı kutulu kod girişi: içte tek (görünmez) TextField, üstte 6 kutu çizimi.
-/// Tek alan olduğu için yapıştırma ve oneTimeCode otomatik doldurma çalışır.
+/// Tek alan olduğu için yapıştırma ve oneTimeCode otomatik doldurma çalışır. Kutular: odak halkası,
+/// rakam girince "yaylanma", hata durumunda sarsıntı + kırmızı çerçeve; altta "Yapıştır" kısayolu.
 class OtpCodeBoxes extends StatefulWidget {
   const OtpCodeBoxes({
     super.key,
@@ -14,12 +18,18 @@ class OtpCodeBoxes extends StatefulWidget {
     required this.onCompleted,
     this.enabled = true,
     this.hasError = false,
+    this.shakeTrigger = 0,
+    this.showPaste = true,
   });
 
   final TextEditingController controller;
   final VoidCallback onCompleted;
   final bool enabled;
   final bool hasError;
+
+  /// Artınca kutular sarsılır (yanlış kod).
+  final int shakeTrigger;
+  final bool showPaste;
 
   @override
   State<OtpCodeBoxes> createState() => _OtpCodeBoxesState();
@@ -34,92 +44,154 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
     super.dispose();
   }
 
+  Future<void> _paste() async {
+    authHaptic(AuthHaptic.tap);
+    String? text;
+    try {
+      text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    } catch (_) {}
+    final digits = (text ?? '').replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return;
+    final code = digits.length > 6 ? digits.substring(0, 6) : digits;
+    widget.controller.value = TextEditingValue(text: code, selection: TextSelection.collapsed(offset: code.length));
+    if (code.length == 6) widget.onCompleted();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Semantics(
-      label: context.l10n.authRestCodeLabel,
-      textField: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _focus.requestFocus(),
-        child: SizedBox(
-          height: 60,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: ListenableBuilder(
-                  listenable: Listenable.merge([widget.controller, _focus]),
-                  builder: (context, _) {
-                    final text = widget.controller.text;
-                    final focused = _focus.hasFocus;
-                    return Row(
-                      children: List.generate(6, (i) {
-                        final active = focused && i == (text.length < 6 ? text.length : 5);
-                        final ch = i < text.length ? text[i] : '';
-                        final borderColor = widget.hasError
-                            ? t.danger
-                            : active
-                                ? t.pr
-                                : t.bd;
-                        return Expanded(
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.only(start: i == 0 ? 0 : 8),
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: t.sf,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: borderColor, width: active ? 2 : 1),
-                              ),
-                              child: ch.isNotEmpty
-                                  ? Text(ch,
-                                      style: BuType.display.copyWith(color: t.ink))
-                                  : (active
-                                      ? Container(width: 2, height: 28, color: t.pr)
-                                      : null),
-                            ),
-                          ),
-                        );
-                      }),
-                    );
-                  },
-                ),
-              ),
-              // Görünmez giriş alanı (odak, klavye, yapıştırma, otomatik doldurma).
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 0,
-                  child: TextField(
-                    controller: widget.controller,
-                    focusNode: _focus,
-                    enabled: widget.enabled,
-                    autofocus: true,
-                    keyboardType: TextInputType.number,
-                    autofillHints: const [AutofillHints.oneTimeCode],
-                    enableInteractiveSelection: false,
-                    showCursor: false,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(6),
-                    ],
-                    onChanged: (v) {
-                      if (v.length == 6) widget.onCompleted();
-                    },
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      counterText: '',
-                      filled: false,
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          label: context.l10n.authRestCodeLabel,
+          textField: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _focus.requestFocus(),
+            onLongPress: widget.enabled ? _paste : null,
+            // Kod rakamları her dilde soldan sağa dizilir (RTL'de kutular aynalanmaz).
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: AuthShake(
+              trigger: widget.shakeTrigger,
+              child: SizedBox(
+                height: 66,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge([widget.controller, _focus]),
+                        builder: (context, _) {
+                          final text = widget.controller.text;
+                          final focused = _focus.hasFocus && widget.enabled;
+                          final activeIndex = text.length < 6 ? text.length : 5;
+                          return Row(
+                            children: List.generate(6, (i) {
+                              final active = focused && i == activeIndex;
+                              final ch = i < text.length ? text[i] : '';
+                              final filled = ch.isNotEmpty;
+                              final border = widget.hasError
+                                  ? t.danger
+                                  : active
+                                      ? t.pr
+                                      : (filled ? t.ink.withValues(alpha: .35) : t.bd);
+                              return Expanded(
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.only(start: i == 0 ? 0 : 8),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 160),
+                                    curve: Curves.easeOut,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: widget.hasError ? cs.errorContainer.withValues(alpha: .55) : t.sf,
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(color: border, width: active || widget.hasError ? 2 : 1.2),
+                                      boxShadow: active
+                                          ? [BoxShadow(color: t.pr.withValues(alpha: .16), spreadRadius: 3)]
+                                          : const [],
+                                    ),
+                                    child: filled
+                                        ? TweenAnimationBuilder<double>(
+                                            key: ValueKey('$i$ch'),
+                                            tween: Tween(begin: .6, end: 1),
+                                            duration: const Duration(milliseconds: 220),
+                                            curve: Curves.easeOutBack,
+                                            builder: (_, v, child) => Transform.scale(scale: v, child: child),
+                                            child: Text(ch,
+                                                style: BuType.display.copyWith(
+                                                    color: widget.hasError ? t.danger : t.ink, fontSize: 26, fontWeight: FontWeight.w800)),
+                                          )
+                                        : (active ? Container(width: 2, height: 28, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1))) : null),
+                                  ),
+                                ),
+                              );
+                            }),
+                          );
+                        },
+                      ),
                     ),
-                  ),
+                    // Görünmez giriş alanı (odak, klavye, otomatik doldurma).
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 0,
+                        child: TextField(
+                          controller: widget.controller,
+                          focusNode: _focus,
+                          enabled: widget.enabled,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          enableInteractiveSelection: false,
+                          showCursor: false,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6),
+                          ],
+                          onChanged: (v) {
+                            if (v.length == 6) widget.onCompleted();
+                          },
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            counterText: '',
+                            filled: false,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+              ),
+            ),
           ),
         ),
-      ),
+        if (widget.showPaste)
+          ListenableBuilder(
+            listenable: widget.controller,
+            builder: (context, _) => AnimatedSize(
+              duration: const Duration(milliseconds: 180),
+              alignment: Alignment.topCenter,
+              child: widget.controller.text.isEmpty && widget.enabled
+                  ? Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: AuthTextAction(
+                          label: context.l10n.authPaste,
+                          icon: LucideIcons.clipboardPaste,
+                          muted: true,
+                          onPressed: _paste,
+                        ),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
 import '../../core/api.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import 'auth_widgets.dart';
+import 'auth_widgets.dart' show newPasswordValidator;
+import 'reset_success_page.dart';
+import 'widgets/auth_art.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_fields.dart';
+import 'widgets/auth_motion.dart';
+import 'widgets/auth_shell.dart';
 
-/// Şifremi unuttum, 3. adım: kod doğrulandıktan sonra yeni şifreyi belirle.
+/// Şifremi unuttum, 3. adım: kod doğrulandıktan sonra yeni şifreyi belirle. Başarıda kutlama ekranı açılır.
 class NewPasswordPage extends StatefulWidget {
   const NewPasswordPage({
     super.key,
@@ -27,6 +33,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
+  int _shake = 0;
 
   @override
   void dispose() {
@@ -34,8 +41,20 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     super.dispose();
   }
 
+  void _fail(String m) {
+    authHaptic(AuthHaptic.error);
+    setState(() {
+      _error = m;
+      _shake++;
+    });
+  }
+
   Future<void> _save() async {
-    if (_busy || !_form.currentState!.validate()) return;
+    if (_busy) return;
+    if (!_form.currentState!.validate()) {
+      authHaptic(AuthHaptic.error);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -43,70 +62,61 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     try {
       await widget.session.resetPassword(widget.email, widget.resetToken, _password.text);
       if (!mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
-      Navigator.of(context).popUntil((r) => r.isFirst);
-      messenger.showSnackBar(SnackBar(
-        content: Text(context.l10n.authPasswordUpdated),
-      ));
+      await Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ResetSuccessPage()));
+      return;
     } on ApiError catch (e) {
       if (!mounted) return;
       if (e.code == 'INVALID_CODE') {
         // Anahtarın süresi dolmuş: başa dön, yeni kod iste.
         final messenger = ScaffoldMessenger.of(context);
         Navigator.of(context).popUntil((r) => r.isFirst);
-        messenger.showSnackBar(
-            SnackBar(content: Text(context.l10n.authSessionExpired)));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.authSessionExpired)));
         return;
       }
-      setState(() => _error = errorText(e));
+      _fail(errorText(e));
     } catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) _fail(errorText(e));
     }
+    if (mounted) setState(() => _busy = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return AuthScaffold(
+    final l = context.l10n;
+    return AuthShell(
       showBack: true,
-      title: context.l10n.authNewPasswordTitle,
-      subtitle: context.l10n.authNewPwSub,
-      children: [
-        if (_error != null) Notice(_error!),
+      step: 2,
+      stepLabel: l.authStepOf('3', '3'),
+      art: AuthArtKind.lock,
+      title: l.authNewPasswordTitle,
+      subtitle: l.authNewPwSub,
+      body: [
+        AuthFeedbackSlot(error: _error, shake: _shake),
         Form(
           key: _form,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PasswordField(
+              AuthPasswordField(
                 controller: _password,
-                label: context.l10n.authNewPasswordLabel,
+                label: l.authNewPasswordLabel,
+                enabled: !_busy,
                 validator: newPasswordValidator(context),
                 autofillHints: const [AutofillHints.newPassword],
                 onSubmitted: _save,
               ),
               ValueListenableBuilder<TextEditingValue>(
                 valueListenable: _password,
-                builder: (_, v, __) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PasswordStrength(password: v.text),
-                    const SizedBox(height: 18),
-                    PasswordRule(ok: v.text.length >= 8, label: context.l10n.authRuleLen),
-                    const SizedBox(height: 10),
-                    PasswordRule(
-                      ok: RegExp(r'[A-Za-z]').hasMatch(v.text) && RegExp(r'\d').hasMatch(v.text),
-                      label: context.l10n.authRuleMix,
-                    ),
-                  ],
-                ),
+                builder: (_, v, __) => AuthPasswordGuide(password: v.text),
               ),
-              const SizedBox(height: 28),
-              AuthButton(onPressed: _busy ? null : _save, busy: _busy, label: context.l10n.authUpdatePassword),
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        AuthTrustNote(l.authTrustPassword),
+      ],
+      bottom: [
+        AuthPrimaryButton(onPressed: _busy ? null : _save, busy: _busy, label: l.authUpdatePassword),
       ],
     );
   }

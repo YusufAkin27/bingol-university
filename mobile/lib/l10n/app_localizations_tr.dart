@@ -7039,4 +7039,45 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get settingsCrashReportsDesc =>
       'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.';
+
+  @override
+  String get welcomeChipNews => 'Haberler';
+
+  @override
+  String get welcomeChipMenu => 'Yemek';
+
+  @override
+  String get welcomeChipClubs => 'Kulüpler';
+
+  @override
+  String get authLangTitle => 'Dil seçin';
+
+  @override
+  String get authPaste => 'Yapıştır';
+
+  @override
+  String get authResetDoneTitle => 'Şifreniz güncellendi';
+
+  @override
+  String get authResetDoneBody =>
+      'Yeni şifrenizle giriş yapabilirsiniz. Diğer cihazlardaki oturumlar kapatıldı.';
+
+  @override
+  String get authTrustAcademic =>
+      'Bölümünüz, size uygun duyuru ve kulüpleri göstermek için kullanılır.';
+
+  @override
+  String get authTrustName =>
+      'Adınız profilinizde ve sohbetlerde diğer öğrencilere görünür.';
+
+  @override
+  String get authTrustPassword =>
+      'Şifreniz yalnızca özeti alınarak saklanır; kimse göremez.';
+
+  @override
+  String get authTrustCode =>
+      'E-posta gelmediyse gereksiz (spam) klasörünü de kontrol edin.';
+
+  @override
+  String get authTrustSecure => 'Bağlantınız şifreli ve güvenlidir.';
 }

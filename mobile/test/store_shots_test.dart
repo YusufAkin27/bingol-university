@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/nav.dart';
+import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
@@ -15,7 +16,6 @@ import 'package:bu_kampus/features/polls/poll_detail_page.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart' show debugNetworkImageHttpClientProvider;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +52,7 @@ class _Ctx {
   _Ctx(this.lang, this.b, this.session, this.theme);
   final String lang;
   final FakeBackend b;
-  final dynamic session;
+  final Session session;
   final ThemeController theme;
   bool get tr => lang == 'tr';
 }
@@ -474,12 +474,12 @@ Widget _canvasWidget(Widget app, String title, bool dark, GlobalKey boundary) {
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             height: 4,
-            child: const ColoredBox(color: Color(0xFFFF3B30)),
+            child: ColoredBox(color: Color(0xFFFF3B30)),
           ),
         ]),
       ),

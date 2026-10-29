@@ -7070,4 +7070,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsCrashReportsDesc =>
       'When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time.';
+
+  @override
+  String get welcomeChipNews => 'News';
+
+  @override
+  String get welcomeChipMenu => 'Menu';
+
+  @override
+  String get welcomeChipClubs => 'Clubs';
+
+  @override
+  String get authLangTitle => 'Choose language';
+
+  @override
+  String get authPaste => 'Paste';
+
+  @override
+  String get authResetDoneTitle => 'Password updated';
+
+  @override
+  String get authResetDoneBody =>
+      'You can now sign in with your new password. Sessions on other devices were signed out.';
+
+  @override
+  String get authTrustAcademic =>
+      'Your department is used to show you relevant announcements and clubs.';
+
+  @override
+  String get authTrustName =>
+      'Your name is visible to other students on your profile and in chats.';
+
+  @override
+  String get authTrustPassword =>
+      'Your password is stored only as a one-way hash; nobody can read it.';
+
+  @override
+  String get authTrustCode =>
+      'If the email has not arrived, check your spam folder too.';
+
+  @override
+  String get authTrustSecure => 'Your connection is encrypted and secure.';
 }

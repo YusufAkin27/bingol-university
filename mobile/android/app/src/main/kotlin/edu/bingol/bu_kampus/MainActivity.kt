@@ -2,6 +2,7 @@ package edu.bingol.bu_kampus
 
 import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -17,7 +18,12 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Ekran görüntüsü ve ekran kaydını engeller; son uygulamalar görünümünde de içerik gizlenir.
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        // YALNIZ release'te: debug (debuggable) derlemede tasarım incelemesi için ekran görüntüsü serbesttir.
+        // (BuildConfig üretimi kapalı olduğundan DEBUG bayrağı yerine uygulamanın debuggable bayrağına bakılır.)
+        val debuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (!debuggable) {
+            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        }
         super.onCreate(savedInstanceState)
         // Sunucu push yükünde kanal kimliği gönderir (chat, event, announcement, social, poll, academic);
         // kanal yoksa Android 8+ bildirimi sessiz "Diğer" kanalına düşürür. Idempotent oluşturulur.

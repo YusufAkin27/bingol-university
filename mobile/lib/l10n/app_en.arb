@@ -2143,5 +2143,17 @@
   "profil2DelItemUsage": "Your device, IP and usage (analytics) records are deleted immediately.",
   "profil2DelItemClubOwner": "Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.",
   "settingsCrashReports": "Send crash reports",
-  "settingsCrashReportsDesc": "When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time."
+  "settingsCrashReportsDesc": "When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time.",
+  "welcomeChipNews": "News",
+  "welcomeChipMenu": "Menu",
+  "welcomeChipClubs": "Clubs",
+  "authLangTitle": "Choose language",
+  "authPaste": "Paste",
+  "authResetDoneTitle": "Password updated",
+  "authResetDoneBody": "You can now sign in with your new password. Sessions on other devices were signed out.",
+  "authTrustAcademic": "Your department is used to show you relevant announcements and clubs.",
+  "authTrustName": "Your name is visible to other students on your profile and in chats.",
+  "authTrustPassword": "Your password is stored only as a one-way hash; nobody can read it.",
+  "authTrustCode": "If the email has not arrived, check your spam folder too.",
+  "authTrustSecure": "Your connection is encrypted and secure."
 }

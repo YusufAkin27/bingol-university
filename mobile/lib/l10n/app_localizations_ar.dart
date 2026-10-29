@@ -7003,4 +7003,45 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsCrashReportsDesc =>
       'عند حدوث خطأ في التطبيق أو إغلاقه بشكل غير متوقع، يُرسل تقرير أعطال مجهول إلى خادم BÜ Kampüs: إصدار التطبيق ونظام التشغيل ونوع الخطأ وتتبع تقني للمكدس دون بيانات شخصية. لا يتم إرسال بريدك الإلكتروني أو كلمة المرور أو محتوى الرسائل أو هويتك، ولا يُنقل أي شيء إلى خدمات خارجية. يمكنك إيقاف ذلك في أي وقت.';
+
+  @override
+  String get welcomeChipNews => 'الأخبار';
+
+  @override
+  String get welcomeChipMenu => 'الطعام';
+
+  @override
+  String get welcomeChipClubs => 'الأندية';
+
+  @override
+  String get authLangTitle => 'اختر اللغة';
+
+  @override
+  String get authPaste => 'لصق';
+
+  @override
+  String get authResetDoneTitle => 'تم تحديث كلمة المرور';
+
+  @override
+  String get authResetDoneBody =>
+      'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة. تم إغلاق الجلسات على الأجهزة الأخرى.';
+
+  @override
+  String get authTrustAcademic =>
+      'يُستخدم قسمك لعرض الإعلانات والأندية المناسبة لك.';
+
+  @override
+  String get authTrustName =>
+      'يظهر اسمك للطلاب الآخرين في ملفك الشخصي وفي المحادثات.';
+
+  @override
+  String get authTrustPassword =>
+      'تُخزَّن كلمة المرور على شكل بصمة مشفّرة فقط؛ لا يمكن لأحد قراءتها.';
+
+  @override
+  String get authTrustCode =>
+      'إذا لم يصل البريد، فتحقق من مجلد الرسائل غير المرغوبة أيضًا.';
+
+  @override
+  String get authTrustSecure => 'اتصالك مشفّر وآمن.';
 }

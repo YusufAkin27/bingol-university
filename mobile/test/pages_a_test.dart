@@ -5,6 +5,7 @@ import 'package:bu_kampus/features/auth/new_password_page.dart';
 import 'package:bu_kampus/features/auth/otp_code_boxes.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/reset_code_page.dart';
+import 'package:bu_kampus/features/auth/reset_success_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/news/news_detail_page.dart';
@@ -223,6 +224,7 @@ void main() {
       expect(find.textContaining('60 sn'), findsOneWidget);
       await tester.pump(const Duration(seconds: 61));
       expect(find.text('Kodu yeniden gönder'), findsOneWidget);
+      await tester.ensureVisible(find.text('Kodu yeniden gönder'));
       await tester.tap(find.text('Kodu yeniden gönder'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Yeni kod gönderildi.'), findsOneWidget);
@@ -309,8 +311,13 @@ void main() {
       await tester.enterText(f.at(0), 'Sifre1234');
       await tester.tap(find.text('Şifreyi güncelle'));
       await settle(tester, const Duration(milliseconds: 800));
+      // Başarı ekranı: çizilen tik + "Şifreniz güncellendi"; tek eylem girişe (kök ekrana) döner.
+      expect(find.byType(ResetSuccessPage), findsOneWidget);
+      expect(find.text('Şifreniz güncellendi'), findsOneWidget);
+      await tester.tap(find.text('Girişe dön'));
+      await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('git'), findsOneWidget);
-      expect(find.text('Şifre güncellendi.'), findsOneWidget);
+      expect(find.byType(ResetSuccessPage), findsNothing);
       noErr(tester);
     });
 

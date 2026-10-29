@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
 import '../../core/identifier.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import 'auth_widgets.dart';
 import 'reset_code_page.dart';
+import 'widgets/auth_art.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_fields.dart';
+import 'widgets/auth_motion.dart';
+import 'widgets/auth_shell.dart';
 
 /// Şifremi unuttum, 1. adım: e-posta gir, kod gönder. Sonra kod doğrulama ekranına geçer.
 class ForgotPasswordPage extends StatefulWidget {
@@ -24,6 +26,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   late final _email = TextEditingController(text: widget.initialEmail);
   bool _busy = false;
   String? _error;
+  int _shake = 0;
 
   @override
   void dispose() {
@@ -32,7 +35,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Future<void> _sendCode() async {
-    if (_busy || !_form.currentState!.validate()) return;
+    if (_busy) return;
+    if (!_form.currentState!.validate()) {
+      authHaptic(AuthHaptic.error);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -47,7 +54,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
     } catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
+      if (mounted) {
+        authHaptic(AuthHaptic.error);
+        setState(() {
+          _error = errorText(e);
+          _shake++;
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -55,31 +68,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AuthScaffold(
+    final l = context.l10n;
+    return AuthShell(
       showBack: true,
-      icon: LucideIcons.keyRound,
-      title: context.l10n.authResetTitle,
-      subtitle: context.l10n.authForgotSub,
-      children: [
-        if (_error != null) Notice(_error!),
+      step: 0,
+      stepLabel: l.authStepOf('1', '3'),
+      art: AuthArtKind.key,
+      title: l.authResetTitle,
+      subtitle: l.authForgotSub,
+      body: [
+        AuthFeedbackSlot(error: _error, shake: _shake),
         Form(
           key: _form,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              IdentifierField(controller: _email, onSubmitted: _sendCode),
-              const SizedBox(height: 24),
-              AuthButton(onPressed: _busy ? null : _sendCode, busy: _busy, label: context.l10n.authSendCode),
-              const SizedBox(height: 10),
-              Center(
-                child: TextButton(
-                  onPressed: _busy ? null : () => Navigator.maybePop(context),
-                  child: Text(context.l10n.authBackToLogin, style: BuType.bodyStrong),
-                ),
-              ),
-            ],
-          ),
+          child: AuthIdentifierField(controller: _email, enabled: !_busy, textInputAction: TextInputAction.done, onSubmitted: _sendCode),
         ),
+      ],
+      bottom: [
+        AuthPrimaryButton(onPressed: _busy ? null : _sendCode, busy: _busy, label: l.authSendCode),
+        const SizedBox(height: 4),
+        Center(child: AuthTextAction(label: l.authBackToLogin, muted: true, onPressed: _busy ? null : () => Navigator.maybePop(context))),
       ],
     );
   }

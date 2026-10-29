@@ -42,7 +42,7 @@ void _tree(im.Image g, int x, int base, int s, int leaf, int trunk) {
 void _hall(im.Image g, int x, int y, int w, int h, int wall, int roof, int win) {
   _rect(g, x, y, w, h, wall);
   _tri(g, x - 14, y, x + w + 14, y, x + w ~/ 2, y - h ~/ 3, roof);
-  final cols = 6;
+  const cols = 6;
   for (var i = 0; i < cols; i++) {
     _rect(g, x + 14 + i * ((w - 40) ~/ (cols - 1)), y + 10, 12, h - 24, 0xFFFFFF);
   }
@@ -227,6 +227,7 @@ class _FakeResponse extends Stream<List<int>> implements HttpClientResponse {
 
 class _FakeRequest implements HttpClientRequest {
   _FakeRequest(this.uri);
+  @override
   final Uri uri;
   @override
   HttpHeaders get headers => _FakeHeaders();

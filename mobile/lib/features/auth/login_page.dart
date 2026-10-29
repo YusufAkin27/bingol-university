@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
-import '../../widgets/bu_widgets.dart';
-
 import '../../core/api.dart';
 import '../../core/identifier.dart';
+import '../../core/locale_controller.dart';
 import '../../core/pending_verification.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
-import 'auth_widgets.dart';
+import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 import 'verify_code_page.dart';
-import '../../core/typography.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_fields.dart';
+import 'widgets/auth_motion.dart';
+import 'widgets/auth_shell.dart';
+import 'widgets/auth_sheets.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
@@ -29,6 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
+  int _shake = 0;
   PendingVerification? _pending;
 
   @override
@@ -56,8 +60,21 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void _fail(String message) {
+    authHaptic(AuthHaptic.error);
+    setState(() {
+      _error = message;
+      _shake++;
+    });
+  }
+
   Future<void> _submit() async {
-    if (_busy || !_form.currentState!.validate()) return;
+    if (_busy) return;
+    if (!_form.currentState!.validate()) {
+      authHaptic(AuthHaptic.error);
+      setState(() => _shake++);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -79,121 +96,120 @@ class _LoginPageState extends State<LoginPage> {
         if (!mounted) return;
         await _openVerify(id);
       } else {
-        setState(() => _error = errorText(e));
+        _fail(errorText(e));
       }
     } catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
+      if (mounted) _fail(errorText(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
+  void _forgot() => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ForgotPasswordPage(session: widget.session, initialEmail: normalizeIdentifier(_email.text)),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
-    return AuthScaffold(
-      title: context.l10n.loginWelcome,
-      subtitle: context.l10n.loginSubtitle,
-      children: [
-        ValueListenableBuilder<bool>(
-          valueListenable: widget.session.replacedNotice,
-          builder: (context, show, _) => show
-              ? Padding(
-                  key: const ValueKey('replaced-notice'),
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Stack(
-                    children: [
-                      Notice(
-                        context.l10n.loginReplacedNotice,
-                        error: false,
-                      ),
-                      PositionedDirectional(
-                        top: 0,
-                        end: 0,
-                        child: IconButton(
-                          key: const ValueKey('replaced-notice-close'),
-                          tooltip: context.l10n.commonClose,
-                          visualDensity: VisualDensity.compact,
-                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: widget.session.dismissReplacedNotice,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
+    final l = context.l10n;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+    return AuthShell(
+      title: l.loginWelcome,
+      subtitle: l.loginSubtitle,
+      trailing: const AuthLanguageButton(),
+      body: [
+        // Bildirimler tek kapta: yuva her zaman ağaçta (alt öğelerin durumu korunur).
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ValueListenableBuilder<bool>(
+              valueListenable: widget.session.replacedNotice,
+              builder: (context, show, _) => AnimatedSize(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: show
+                    ? AuthBanner(
+                        l.loginReplacedNotice,
+                        key: const ValueKey('replaced-notice'),
+                        kind: AuthBannerKind.info,
+                        icon: LucideIcons.shieldAlert,
+                        closeKey: const ValueKey('replaced-notice-close'),
+                        onClose: widget.session.dismissReplacedNotice,
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: _pending == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _PendingBanner(pending: _pending!, onTap: () => _openVerify(_pending!.identifier)),
+                    ),
+            ),
+            AuthFeedbackSlot(error: _error, shake: _shake),
+          ],
         ),
-        if (_pending != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _PendingBanner(pending: _pending!, onTap: () => _openVerify(_pending!.identifier)),
-          ),
         Form(
           key: _form,
           child: AutofillGroup(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (_error != null) Notice(_error!),
-                IdentifierField(controller: _email),
-                const SizedBox(height: 14),
-                PasswordField(
+                AuthIdentifierField(controller: _email, enabled: !_busy),
+                const SizedBox(height: 16),
+                AuthPasswordField(
                   controller: _password,
-                  validator: (v) => (v == null || v.isEmpty) ? context.l10n.loginPasswordRequired : null,
+                  enabled: !_busy,
+                  validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                   onSubmitted: _submit,
                 ),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ForgotPasswordPage(
-                                  session: widget.session,
-                                  initialEmail: normalizeIdentifier(_email.text),
-                                ),
-                              ),
-                            ),
-                    child: Text(context.l10n.loginForgotPassword,
-                        style: BuType.bodyStrong.copyWith(color: context.bu.pr)),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: AuthTextAction(label: l.loginForgotPassword, onPressed: _busy ? null : _forgot),
                   ),
-                ),
-                const SizedBox(height: 4),
-                AuthButton(
-                  onPressed: _busy ? null : _submit,
-                  busy: _busy,
-                  label: context.l10n.loginSubmit,
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(context.l10n.loginNoAccount,
-                style: BuType.body.copyWith(color: context.bu.mut)),
-            TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session)),
-                      ),
-              child: Text(context.l10n.loginRegister),
-            ),
-          ],
+        const SizedBox(height: 8),
+        AuthTrustNote(l.authTrustSecure, icon: LucideIcons.lockKeyhole),
+      ],
+      bottom: [
+        AuthPrimaryButton(onPressed: _busy ? null : _submit, busy: _busy, label: l.loginSubmit),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: keyboard
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: AuthFooterPrompt(
+                    prompt: l.loginNoAccount,
+                    action: l.loginRegister,
+                    onPressed: _busy
+                        ? null
+                        : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+                  ),
+                ),
         ),
       ],
     );
   }
 }
 
-/// Doğrulaması yarım kalan kayıt için "Doğrulamayı tamamla" bandı.
+/// Doğrulaması yarım kalan kayıt için "Doğrulamayı tamamla" kartı.
 class _PendingBanner extends StatelessWidget {
   const _PendingBanner({required this.pending, required this.onTap});
 
@@ -208,30 +224,35 @@ class _PendingBanner extends StatelessWidget {
       label: context.l10n.loginCompleteVerification,
       child: Material(
         color: t.soft,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
           key: const ValueKey('pending-verify-banner'),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Icon(LucideIcons.mailCheck, color: t.onSoft, size: 20),
-                const SizedBox(width: 10),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(13)),
+                  child: Icon(LucideIcons.mailCheck, color: t.pr, size: 20),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(context.l10n.loginCompleteVerification, style: BuType.bodyStrong.copyWith(color: t.onSoft)),
+                      Text(context.l10n.loginCompleteVerification,
+                          style: BuType.bodyStrong.copyWith(color: t.onSoft, fontWeight: FontWeight.w800, fontSize: 14.5)),
+                      const SizedBox(height: 1),
                       Text(pending.email,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.caption.copyWith(color: t.onSoft)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.onSoft, fontSize: 12.5)),
                     ],
                   ),
                 ),
-                Icon(buDirIcon(context, LucideIcons.chevronRight), color: t.onSoft, size: 18),
+                Icon(buDirIcon(context, LucideIcons.chevronRight), color: t.onSoft, size: 20),
               ],
             ),
           ),

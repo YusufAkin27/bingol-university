@@ -1,18 +1,23 @@
 import 'package:flutter/gestures.dart';
-import '../../core/locale_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
-import '../../widgets/academic_picker.dart';
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import 'auth_widgets.dart';
-import '../profile/legal_pages.dart';
-import 'verify_code_page.dart';
 import '../../core/typography.dart';
+import '../../widgets/bu_widgets.dart';
+import '../profile/legal_pages.dart';
+import 'auth_widgets.dart' show newPasswordValidator;
+import 'verify_code_page.dart';
+import 'widgets/auth_academic.dart';
+import 'widgets/auth_art.dart';
+import 'widgets/auth_controls.dart';
+import 'widgets/auth_fields.dart';
+import 'widgets/auth_motion.dart';
+import 'widgets/auth_shell.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, required this.session});
@@ -23,8 +28,8 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-/// Kayıt 3 adımda istenir: akademik bilgi → kişisel bilgi → şifre. Sözleşme onayı kayıtla birlikte
-/// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bilgi satırı gösterilir.
+/// Kayıt 3 adımda istenir: akademik bilgi, kişisel bilgi, şifre. Sözleşme onayı kayıtla birlikte
+/// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bilgi kartı gösterilir.
 class _RegisterPageState extends State<RegisterPage> {
   static const _steps = 3;
 
@@ -33,8 +38,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   int _step = 0;
+  int _dir = 1; // 1 ileri, -1 geri: adım geçişinin yönü
   bool _busy = false;
   String? _error;
+  int _shake = 0;
 
   /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): e-posta alanının altında gösterilir.
   String? _emailFieldError;
@@ -74,9 +81,15 @@ class _RegisterPageState extends State<RegisterPage> {
   bool get _academicOk => (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
 
   void _goTo(int step) => setState(() {
+        _dir = step >= _step ? 1 : -1;
         _step = step;
         _error = null;
       });
+
+  void _reject() {
+    authHaptic(AuthHaptic.error);
+    setState(() => _shake++);
+  }
 
   Future<void> _next() async {
     if (_busy) return;
@@ -87,11 +100,20 @@ class _RegisterPageState extends State<RegisterPage> {
           _error = context.l10n.authDepartmentsLoadFailed;
         }
       });
-      if (_academicOk) _goTo(1);
+      if (_academicOk) {
+        authHaptic(AuthHaptic.tap);
+        _goTo(1);
+      } else {
+        _reject();
+      }
       return;
     }
-    if (!(_form.currentState?.validate() ?? false)) return;
+    if (!(_form.currentState?.validate() ?? false)) {
+      _reject();
+      return;
+    }
     if (_step < _steps - 1) {
+      authHaptic(AuthHaptic.tap);
       _goTo(_step + 1);
     } else {
       await _submit();
@@ -126,15 +148,26 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() {
           _emailFieldError = errorText(e);
           _emailErrorFor = _email.text;
+          _dir = -1;
           _step = 1;
           _error = null;
         });
         WidgetsBinding.instance.addPostFrameCallback((_) => _form.currentState?.validate());
       } else {
-        setState(() => _error = errorText(e));
+        authHaptic(AuthHaptic.error);
+        setState(() {
+          _error = errorText(e);
+          _shake++;
+        });
       }
     } catch (e) {
-      if (mounted) setState(() => _error = errorText(e));
+      if (mounted) {
+        authHaptic(AuthHaptic.error);
+        setState(() {
+          _error = errorText(e);
+          _shake++;
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -165,58 +198,75 @@ class _RegisterPageState extends State<RegisterPage> {
       };
 
   Widget _stepBody(BuildContext context) {
-    final t = context.bu;
+    final l = context.l10n;
     switch (_step) {
       case 0:
-        return AcademicFields(
-          catalog: _catalog,
-          faculty: _faculty,
-          department: _department,
-          grade: _grade,
-          enabled: !_busy,
-          departmentError: _departmentErr,
-          gradeError: _gradeErr,
-          onChanged: (f, d, g) => setState(() {
-            _faculty = f;
-            _department = d;
-            _grade = g;
-            _error = null;
-          }),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AuthAcademicFields(
+              catalog: _catalog,
+              faculty: _faculty,
+              department: _department,
+              grade: _grade,
+              enabled: !_busy,
+              departmentError: _departmentErr,
+              gradeError: _gradeErr,
+              onChanged: (f, d, g) => setState(() {
+                _faculty = f;
+                _department = d;
+                _grade = g;
+                _error = null;
+              }),
+            ),
+            const SizedBox(height: 22),
+            AuthTrustNote(l.authTrustAcademic, icon: LucideIcons.info),
+          ],
         );
       case 1:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
+            AuthTextField(
               controller: _name,
-              textInputAction: TextInputAction.next,
+              label: l.authNameHint,
+              icon: LucideIcons.user,
               textCapitalization: TextCapitalization.words,
               autofillHints: const [AutofillHints.name],
               maxLength: 80,
-              validator: (v) => (v == null || v.trim().isEmpty) ? context.l10n.authNameRequired : null,
-              style: BuType.body.copyWith(color: t.ink),
-              decoration: authFieldDecoration(context, hint: context.l10n.authNameHint, icon: LucideIcons.user)
-                  .copyWith(counterText: ''),
+              enabled: !_busy,
+              validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
             ),
-            const SizedBox(height: 14),
-            IdentifierField(controller: _email, onSubmitted: _next, validator: _validateRegisterId),
+            const SizedBox(height: 16),
+            AuthIdentifierField(
+              controller: _email,
+              enabled: !_busy,
+              validator: _validateRegisterId,
+              textInputAction: TextInputAction.done,
+              onSubmitted: _next,
+            ),
+            const SizedBox(height: 22),
+            AuthTrustNote(l.authTrustName, icon: LucideIcons.eye),
           ],
         );
       default:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PasswordField(
+            AuthPasswordField(
               controller: _password,
-              label: context.l10n.authPasswordMin8,
+              label: l.authPasswordMin8,
+              enabled: !_busy,
               validator: newPasswordValidator(context),
               autofillHints: const [AutofillHints.newPassword],
               onSubmitted: _next,
             ),
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: _password,
-              builder: (_, v, __) => PasswordStrength(password: v.text),
+              builder: (_, v, __) => AuthPasswordGuide(password: v.text),
             ),
+            const SizedBox(height: 22),
+            _ConsentCard(termsLink: _termsLink, privacyLink: _privacyLink),
           ],
         );
     }
@@ -225,77 +275,134 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final last = _step == _steps - 1;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final art = switch (_step) {
+      0 => AuthArtKind.cap,
+      1 => AuthArtKind.user,
+      _ => AuthArtKind.shield,
+    };
     return PopScope(
       canPop: _step == 0,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && !_busy) _goTo(_step - 1);
       },
-      child: AuthScaffold(
+      child: AuthShell(
         showBack: true,
-        trailing: Text(context.l10n.authStepOf('${_step + 1}', '$_steps'),
-            style: BuType.label.copyWith(color: t.mut, fontSize: 13)),
-        progress: AuthProgress(step: _step, total: _steps),
+        step: _step,
+        stepTotal: _steps,
+        stepLabel: l.authStepOf('${_step + 1}', '$_steps'),
+        trailing: Text(l.authStepOf('${_step + 1}', '$_steps'),
+            style: BuType.label.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w700)),
+        art: art,
         title: _title(context),
         subtitle: _hint(context),
-        children: [
+        body: [
+          AuthFeedbackSlot(error: _error, shake: _shake),
           Form(
             key: _form,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: AutofillGroup(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_error != null) Notice(_error!),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
-                  ),
-                  const SizedBox(height: 28),
-                  AuthButton(
-                    onPressed: _busy ? null : _next,
-                    busy: _busy,
-                    label: last ? context.l10n.loginRegister : context.l10n.authNext,
-                  ),
-                  if (last) ...[
-                    const SizedBox(height: 14),
-                    Text.rich(
-                      TextSpan(
-                        style: BuType.caption.copyWith(height: 1.5, color: t.mut),
-                        children: [
-                          TextSpan(text: context.l10n.authTermsAutoPrefix),
-                          TextSpan(
-                            text: context.l10n.authTermsLink,
-                            recognizer: _termsLink,
-                            style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
-                          ),
-                          TextSpan(text: context.l10n.authTermsSep),
-                          TextSpan(
-                            text: context.l10n.authPrivacyLink,
-                            recognizer: _privacyLink,
-                            style: TextStyle(color: t.pr, fontWeight: FontWeight.w600),
-                          ),
-                          TextSpan(text: context.l10n.authTermsAutoSuffix),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeIn,
+                layoutBuilder: (cur, prev) => Stack(
+                  alignment: Alignment.topCenter,
+                  children: [...prev, if (cur != null) cur],
+                ),
+                transitionBuilder: (child, anim) {
+                  // Gelen çocuk yönden süzülür, giden hızla solar (paylaşılan eksen).
+                  final incoming = child.key == ValueKey(_step);
+                  final begin = Offset((incoming ? .10 : -.10) * _dir * (rtl ? -1 : 1), 0);
+                  return FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(position: Tween(begin: begin, end: Offset.zero).animate(anim), child: child),
+                  );
+                },
+                child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(context.l10n.authHaveAccount, style: BuType.body.copyWith(color: t.mut)),
-              TextButton(
-                onPressed: _busy ? null : () => Navigator.maybePop(context),
-                child: Text(context.l10n.loginSubmit),
+        ],
+        bottom: [
+          AuthPrimaryButton(
+            onPressed: _busy ? null : _next,
+            busy: _busy,
+            label: last ? l.loginRegister : l.authNext,
+            icon: last ? null : buDirIcon(context, LucideIcons.arrowRight),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: keyboard
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: AuthFooterPrompt(
+                      prompt: l.authHaveAccount,
+                      action: l.loginSubmit,
+                      onPressed: _busy ? null : () => Navigator.maybePop(context),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sözleşme bilgi kartı: kayıt = kabul (onay kutusu yok); metinlere bağlantılar.
+class _ConsentCard extends StatelessWidget {
+  const _ConsentCard({required this.termsLink, required this.privacyLink});
+
+  final TapGestureRecognizer termsLink;
+  final TapGestureRecognizer privacyLink;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: t.sf2,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: t.bd),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+            child: Icon(LucideIcons.fileCheck, size: 17, color: t.pr),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: BuType.caption.copyWith(height: 1.55, color: t.mut, fontSize: 12.5),
+                children: [
+                  TextSpan(text: l.authTermsAutoPrefix),
+                  TextSpan(
+                    text: l.authTermsLink,
+                    recognizer: termsLink,
+                    style: TextStyle(color: t.pr, fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: l.authTermsSep),
+                  TextSpan(
+                    text: l.authPrivacyLink,
+                    recognizer: privacyLink,
+                    style: TextStyle(color: t.pr, fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: l.authTermsAutoSuffix),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

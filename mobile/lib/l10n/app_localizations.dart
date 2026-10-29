@@ -12966,6 +12966,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.'**
   String get settingsCrashReportsDesc;
+
+  /// No description provided for @welcomeChipNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haberler'**
+  String get welcomeChipNews;
+
+  /// No description provided for @welcomeChipMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek'**
+  String get welcomeChipMenu;
+
+  /// No description provided for @welcomeChipClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpler'**
+  String get welcomeChipClubs;
+
+  /// No description provided for @authLangTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dil seçin'**
+  String get authLangTitle;
+
+  /// No description provided for @authPaste.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yapıştır'**
+  String get authPaste;
+
+  /// No description provided for @authResetDoneTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreniz güncellendi'**
+  String get authResetDoneTitle;
+
+  /// No description provided for @authResetDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni şifrenizle giriş yapabilirsiniz. Diğer cihazlardaki oturumlar kapatıldı.'**
+  String get authResetDoneBody;
+
+  /// No description provided for @authTrustAcademic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünüz, size uygun duyuru ve kulüpleri göstermek için kullanılır.'**
+  String get authTrustAcademic;
+
+  /// No description provided for @authTrustName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adınız profilinizde ve sohbetlerde diğer öğrencilere görünür.'**
+  String get authTrustName;
+
+  /// No description provided for @authTrustPassword.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreniz yalnızca özeti alınarak saklanır; kimse göremez.'**
+  String get authTrustPassword;
+
+  /// No description provided for @authTrustCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta gelmediyse gereksiz (spam) klasörünü de kontrol edin.'**
+  String get authTrustCode;
+
+  /// No description provided for @authTrustSecure.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantınız şifreli ve güvenlidir.'**
+  String get authTrustSecure;
 }
 
 class _AppLocalizationsDelegate
