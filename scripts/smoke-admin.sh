@@ -218,7 +218,9 @@ check "rol: bulunamadi" 404 "$(code -X PATCH -H "$H" -H "$AAD" $A/admin/users/99
 ADMINS=$(curl -s -H "$AAD" "$A/admin/users?role=ADMIN&status=ACTIVE" | num totalItems)
 if [ "$ADMINS" = "1" ]; then
   R=$(curl -s -u "admin:$ADMIN_PASSWORD" -X PATCH -H "$H" $A/admin/users/$IDA/role -d '{"role":"USER"}' -w ' [%{http_code}]')
-  has "son yonetici dusurulemez (409)" '"code":"LAST_ADMIN"' "$R"
+  # ADMIN_EMAILS'teki (sabitlenmis) tek yonetici icin ADMIN_EMAIL_PINNED, degilse LAST_ADMIN doner; ikisi de 409 korumasidir.
+  if echo "$R" | grep -qF '"code":"ADMIN_EMAIL_PINNED"'; then PINNED_OR_LAST='"code":"ADMIN_EMAIL_PINNED"'; else PINNED_OR_LAST='"code":"LAST_ADMIN"'; fi
+  has "son yonetici dusurulemez (409)" "$PINNED_OR_LAST" "$R"
   has "son yonetici 409 durumu" '[409]' "$R"
   check "son yonetici silinemez" 409 "$(code -u "admin:$ADMIN_PASSWORD" -X DELETE $A/admin/users/$IDA)"
   check "admin hala admin" 200 "$(code -H "$AAD" $A/admin/me)"
