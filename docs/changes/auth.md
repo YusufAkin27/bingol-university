@@ -81,3 +81,37 @@ Kimlikli (Bearer). Govde `{currentPassword, newPassword}` (yeni sifre 8-72). Yan
 - **BCrypt 72 bayt**: parola uzunlugu bayt olarak denetlenir; `register`/`resetPassword`/`changePassword` -> `400 PASSWORD_TOO_LONG` (tr/en/ar, kod e-postasindan ONCE), `login`/mevcut parola asiri uzunsa genel `INVALID_CREDENTIALS`/`WRONG_PASSWORD` (500 yok).
 - **+alias politikasi (karar)**: `bingol.edu.tr` icin yerel kisimda `+` KAYITTA REDDEDILIR (`400 EMAIL_ALIAS_NOT_ALLOWED`, tr/en/ar): tek posta kutusu = tek hesap (anket tek oy, kullanici basina kotalar buna dayanir). Kanonikleştirme yerine ret secildi (kullanicinin yazdigi adres ile saklanan adres ayrismaz, yeni sutun/migration gerekmez). Daha once `+` ile acilmis hesaplar giris yapabilir; hiz siniri anahtarlari `+etiketi` atip ayni sayaci paylasir (`LoginIdentifier.aliasKey`).
 - **Giris zamanlamasi**: hesap yok/bekleyen/hesap var yollari ayni bcrypt maliyetini oder (`dummyHash`); zamanlama farki bulunmadi, degisiklik yapilmadi.
+
+## Kampus NAT'i ve hiz siniri yeniden tasarimi (RL1, 2026-10-29)
+
+Sorun: binlerce ogrenci kampus agindan AYNI genel IP ile cikar; IP basina `login` 200/15 dk, `refresh` 300/15 dk, kayit/kod 30/sa gibi sinirlar gercek kullanicilari 429'a dusuruyordu (yuk testi `a-auth.js` her kullaniciya ayri `X-Forwarded-For` verdigi icin bunu olcmuyordu; olcum: `scripts/perf/load/rl1/nat-login.mjs`).
+
+Ilke: kaba kuvvet korumasi HESAP/E-POSTA ve CIHAZ (`X-Device-Id` HMAC ozeti) bazli ve sikidir; IP sinirlari yalnizca yuksek "toplu/NAT" tavanidir; refresh siniri token sahibi kullanici bazlidir. Esikler `app.rate-limit.*` (`RateLimitProperties`, ortam degiskenleri `RL_*`; `application.properties`):
+
+| Anahtar | Varsayilan | Anlam |
+|---|---|---|
+| `login-ip-max` | 5000 / 15 dk | IP basina TOPLAM giris denemesi (eski 200) |
+| `login-ip-fail-max` | 600 / 15 dk | IP basina BASARISIZ giris (credential stuffing tavani) |
+| `login-device-fail-max` | 30 / 15 dk | cihaz basina basarisiz giris (farkli hesaplari tarayan cihaz) |
+| `login-pair-fail-max` | 10 / 15 dk | (e-posta, cihaz) cifti basina basarisiz giris; cihaz kimligi yoksa (e-posta, IP) cifti — **degismedi** |
+| `login-email-ip-fail-max` | 30 / 15 dk | (e-posta, IP) cifti, cihaz kimligi VARKEN (kimlik dondurerek tek IP'den deneme tavani) |
+| `login-email-fail-max` | 60 / 15 dk | e-posta basina istemciden bagimsiz basarisiz giris — **degismedi** (hesap basina kesin tavan) |
+| `refresh-ip-max` | 30000 / 15 dk | IP basina refresh (eski 300) |
+| `refresh-user-max` | 60 / 15 dk | token SAHIBI kullanici basina refresh (`refresh:user:<id>`) |
+| `refresh-invalid-ip-max` | 600 / 15 dk | IP basina gecersiz/tuketilmis refresh denemesi (`refresh:bad:<ip>`) |
+| `code-ip-max` | 1000 / sa | IP basina register / resend-code / forgot-password (her biri ayri; eski 30) |
+| `code-device-max` | 10 / sa | cihaz basina kod postasi isteyen istek (ortak `codereq:dev:<ozet>`) |
+| `verify-ip-max` | 3000 / 10 dk | IP basina verify-email ve verify-reset-code (eski 60) |
+| `reset-ip-max` | 3000 / 10 dk | IP basina reset-password (eski 40) |
+| `change-password-ip-max` | 600 / sa | IP basina change-password (kullanici basina 5/sa sabit) |
+
+Ayrica `app.mail.max-code-requests-per-ip-per-day` 100 -> 3000 (gunluk kod istegi IP kotasi de NAT'ta tukeniyordu; e-posta basina `max-codes-per-email-per-day` ve genel gunluk posta kotasi sabit).
+
+Davranis:
+- `LoginThrottle`: basarisiz deneme (e-posta, cihaz) cifti basina sayilir; ayni NAT'taki saldirgan kurbanin cihazini kilitleyemez (kurban baska cihazdan girer). Cihaz kimligi rastgele degistirilirse (e-posta, IP) cifti 30'da, e-posta genelinde 60'ta durur. X-Device-Id gondermeyen istemcide eski (e-posta, IP) cift kurali (10) aynen gecerlidir. Tek hesaba toplam deneme tavani (60/15 dk) ve bcrypt-oncesi kontrol aynidir.
+- `refresh`: once IP toplu tavani, sonra token tuketilmeden (`RefreshTokenService.peekUserId`, tek GET) sahibi bulunur ve `refresh:user:<id>` sayilir; bilinmeyen/tuketilmis token `refresh:bad:<ip>` sayilir. Yanit ve hata kodlari degismedi (enumerasyon yok: gecersiz token da ayni 401).
+- Anahtar bicimleri: `lgf:i:<ip>`, `lgf:d:<cihaz>`, `lgf:pd:<eposta-ozeti>:<cihaz>`, `lgf:p:<eposta-ozeti>:<ip>`, `lgf:e:<eposta-ozeti>`. Hepsi 15 dk TTL, ham e-posta tutulmaz.
+- Risk notu: IP basarisiz-giris tavani (600) kampus icindeki kotu niyetli biri tarafindan doldurulursa ayni NAT'tan giris 15 dk 429 olur; eski sinir (200 toplam) bunu 3 kat daha kolay yapiyordu. Esik `RL_LOGIN_IP_FAIL_MAX` ile ayarlanir; admin `access-bans` ile IP/cihaz engellenebilir.
+
+## Basic auth yonetici ve /api/admin/ops (RL1)
+`AdminOpsController` hiz siniri anahtari icin `CurrentUser.id()` istiyordu; Basic auth yoneticisinde (kayitli kullanici yok, principal `Long` degil) bu 401 `UNAUTHORIZED` veriyordu. Artik anahtar `actorKey()`: JWT yoneticisinde kullanici id'si, Basic yoneticide sabit `basic` (`admin:ops:basic`). Yetki degismedi (`/api/admin/**` yalniz ADMIN; Basic prod'da kapali; RBAC'ta Basic = FULL); denetimde aktor `basic-admin`.

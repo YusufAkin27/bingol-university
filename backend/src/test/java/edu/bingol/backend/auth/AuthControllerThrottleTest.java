@@ -14,16 +14,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.dto.EmailRequest;
 import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.RegisterRequest;
 import edu.bingol.backend.auth.dto.TokenResponse;
+import edu.bingol.backend.auth.dto.RefreshRequest;
 import edu.bingol.backend.auth.jwt.JwtService;
+import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.RateLimitedException;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.config.RateLimitProperties;
 import edu.bingol.backend.i18n.I18n;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -40,8 +44,11 @@ class AuthControllerThrottleTest {
     private final AuthService auth = mock(AuthService.class);
     private final RateLimiter limiter = mock(RateLimiter.class);
     private final LoginThrottle throttle = mock(LoginThrottle.class);
+    private final ClientContexts contexts = mock(ClientContexts.class);
+    private final RefreshTokenService refreshTokens = mock(RefreshTokenService.class);
     private final AuthController controller = new AuthController(auth, limiter, mock(I18n.class),
-            new ClientIp("10.0.0.0/8"), mock(ClientContexts.class), mock(JwtService.class), throttle);
+            new ClientIp("10.0.0.0/8"), contexts, mock(JwtService.class), throttle, RateLimitProperties.defaults(),
+            refreshTokens);
 
     private static MockHttpServletRequest from(String ip) {
         MockHttpServletRequest req = new MockHttpServletRequest();
@@ -65,8 +72,8 @@ class AuthControllerThrottleTest {
         assertThrows(ApiException.class,
                 () -> controller.login(new LoginRequest(EMAIL, "yanlis", null), from("203.0.113.9")));
 
-        verify(throttle).recordFailure(EMAIL, "203.0.113.9");
-        verify(throttle, never()).recordSuccess(anyString(), anyString());
+        verify(throttle).recordFailure(EMAIL, "203.0.113.9", null);
+        verify(throttle, never()).recordSuccess(anyString(), anyString(), any());
     }
 
     @Test
@@ -77,7 +84,7 @@ class AuthControllerThrottleTest {
         assertThrows(ApiException.class,
                 () -> controller.login(new LoginRequest(EMAIL, "dogru", null), from("203.0.113.9")));
 
-        verify(throttle, never()).recordFailure(anyString(), anyString());
+        verify(throttle, never()).recordFailure(anyString(), anyString(), any());
     }
 
     @Test
@@ -88,14 +95,14 @@ class AuthControllerThrottleTest {
         controller.login(new LoginRequest(EMAIL, "dogru", null), from("203.0.113.9"));
 
         InOrder order = inOrder(throttle, auth);
-        order.verify(throttle).check(EMAIL, "203.0.113.9");
+        order.verify(throttle).check(EMAIL, "203.0.113.9", null);
         order.verify(auth).login(anyString(), anyString(), any(), any());
-        order.verify(throttle).recordSuccess(EMAIL, "203.0.113.9");
+        order.verify(throttle).recordSuccess(EMAIL, "203.0.113.9", null);
     }
 
     @Test
     void lockedPairNeverReachesBcrypt() {
-        doThrow(new RateLimitedException(600)).when(throttle).check(anyString(), anyString());
+        doThrow(new RateLimitedException(600)).when(throttle).check(anyString(), anyString(), any());
 
         assertThrows(RateLimitedException.class,
                 () -> controller.login(new LoginRequest(EMAIL, "x", null), from("6.6.6.6")));
@@ -137,5 +144,70 @@ class AuthControllerThrottleTest {
         verify(limiter, org.mockito.Mockito.times(2)).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check("resend:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("forgot:email:" + digest, 5, Duration.ofHours(1));
+    }
+
+    @Test
+    void loginIpLimitIsTheHighNatCeilingNotTheOldTwoHundred() {
+        controller.login(new LoginRequest(EMAIL, "Sifre1234", null), from("203.0.113.9"));
+
+        verify(limiter).check("login:ip:203.0.113.9", 5000, Duration.ofMinutes(15));
+    }
+
+    @Test
+    void loginPassesTheDeviceHashToTheThrottle() {
+        MockHttpServletRequest req = from("203.0.113.9");
+        when(contexts.of(req)).thenReturn(new ClientContext("203.0.113.9", "dev-hash", "ANDROID", null));
+        when(auth.login(anyString(), anyString(), any(), any()))
+                .thenThrow(new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "x"));
+
+        assertThrows(ApiException.class, () -> controller.login(new LoginRequest(EMAIL, "yanlis", null), req));
+
+        verify(throttle).check(EMAIL, "203.0.113.9", "dev-hash");
+        verify(throttle).recordFailure(EMAIL, "203.0.113.9", "dev-hash");
+    }
+
+    @Test
+    void refreshOfAValidTokenIsLimitedPerUserNotPerIpAlone() {
+        when(refreshTokens.peekUserId("tok")).thenReturn(42L);
+
+        controller.refresh(new RefreshRequest("tok"), from("203.0.113.9"));
+
+        verify(limiter).check("refresh:ip:203.0.113.9", 30000, Duration.ofMinutes(15));
+        verify(limiter).check("refresh:user:42", 60, Duration.ofMinutes(15));
+        verify(limiter, never()).check(startsWith("refresh:bad:"), anyInt(), any(Duration.class));
+    }
+
+    @Test
+    void refreshOfAnUnknownTokenCountsAgainstTheInvalidIpBucket() {
+        when(refreshTokens.peekUserId("tok")).thenReturn(null);
+
+        controller.refresh(new RefreshRequest("tok"), from("203.0.113.9"));
+
+        verify(limiter).check("refresh:bad:203.0.113.9", 600, Duration.ofMinutes(15));
+        verify(limiter, never()).check(startsWith("refresh:user:"), anyInt(), any(Duration.class));
+    }
+
+    @Test
+    void refreshOverTheUserLimitNeverReachesTheService() {
+        when(refreshTokens.peekUserId("tok")).thenReturn(42L);
+        doThrow(new RateLimitedException(60)).when(limiter)
+                .check(eq("refresh:user:42"), anyInt(), any(Duration.class));
+
+        assertThrows(RateLimitedException.class,
+                () -> controller.refresh(new RefreshRequest("tok"), from("203.0.113.9")));
+
+        verify(auth, never()).refresh(anyString(), any());
+    }
+
+    @Test
+    void codeRequestsUseHighIpCeilingAndStrictPerDeviceLimit() {
+        MockHttpServletRequest req = from("203.0.113.9");
+        when(contexts.of(req)).thenReturn(new ClientContext("203.0.113.9", "dev-hash", "IOS", null));
+
+        controller.forgotPassword(new EmailRequest(EMAIL), req);
+
+        verify(limiter).check("forgot:ip:203.0.113.9", 1000, Duration.ofHours(1));
+        verify(limiter).check("codereq:dev:dev-hash", 10, Duration.ofHours(1));
+        verify(limiter).check("forgot:email:" + LoginThrottle.digest(EMAIL), 5, Duration.ofHours(1));
     }
 }

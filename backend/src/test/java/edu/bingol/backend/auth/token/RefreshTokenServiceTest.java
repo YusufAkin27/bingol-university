@@ -51,6 +51,16 @@ class RefreshTokenServiceTest {
     }
 
     @Test
+    void peekReturnsOwnerWithoutConsuming() {
+        when(values.get("rt:" + Hashing.sha256("tok"))).thenReturn("7:mobile:1700000000000");
+
+        assertEquals(7L, service.peekUserId("tok"));
+        org.mockito.Mockito.verify(values, org.mockito.Mockito.never()).getAndDelete(any());
+        assertNull(service.peekUserId("nope"));
+        assertNull(service.peekUserId(""));
+    }
+
+    @Test
     void consumeUnknownTokenReturnsNull() {
         assertNull(service.consume("nope"));
     }

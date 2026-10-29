@@ -192,7 +192,8 @@ class ChangePasswordTest {
         MockHttpServletRequest http = new MockHttpServletRequest();
         when(ip.of(http)).thenReturn("1.2.3.4");
         when(ip.limitKey(http)).thenReturn("1.2.3.4");
-        AuthController c = new AuthController(svc, limiter, null, ip, null, jwt, null);
+        AuthController c = new AuthController(svc, limiter, null, ip, null, jwt, null,
+                edu.bingol.backend.config.RateLimitProperties.defaults(), null);
         var authn = new TestingAuthenticationToken(7L, null);
         doThrow(new RateLimitedException(60)).when(limiter).check("chpw:user:7", 5, Duration.ofHours(1));
 
@@ -201,7 +202,7 @@ class ChangePasswordTest {
 
         verify(svc, never()).changePassword(any(), any(), any(), any());
         // IP penceresi de uygulanir
-        doThrow(new RateLimitedException(60)).when(limiter).check("chpw:ip:1.2.3.4", 30, Duration.ofHours(1));
+        doThrow(new RateLimitedException(60)).when(limiter).check("chpw:ip:1.2.3.4", 600, Duration.ofHours(1));
         org.mockito.Mockito.doNothing().when(limiter).check("chpw:user:7", 5, Duration.ofHours(1));
         assertThrows(RateLimitedException.class,
                 () -> c.changePassword(new ChangePasswordRequest("Eski12345", "Yeni12345"), authn, http));

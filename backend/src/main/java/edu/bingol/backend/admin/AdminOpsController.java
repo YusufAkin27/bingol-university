@@ -1,6 +1,5 @@
 package edu.bingol.backend.admin;
 
-import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.mail.MailOutboxRepository;
 import edu.bingol.backend.mail.MailStatus;
@@ -17,6 +16,8 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +51,16 @@ public class AdminOpsController {
         this.backupMaxAgeHours = backupMaxAgeHours;
     }
 
+    /**
+     * Hiz siniri anahtari icin yonetici kimligi: JWT yoneticisinde kullanici id'si, Basic auth yoneticisinde (kayitli
+     * kullanici yok) sabit "basic". Yalniz sayac anahtaridir; yetki /api/admin/** ADMIN kuralindan gelir ve
+     * degismez, denetimde aktor AuditRecorder tarafindan "basic-admin" yazilir.
+     */
+    static String actorKey() {
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        return a != null && a.getPrincipal() instanceof Long id ? String.valueOf(id) : "basic";
+    }
+
     public record ComponentStatus(String status, Map<String, Object> details) {}
 
     public record OpsHealth(String status, Map<String, ComponentStatus> components) {}
@@ -63,7 +74,7 @@ public class AdminOpsController {
 
     @GetMapping("/health")
     public OpsHealth health() {
-        limiter.check("admin:ops:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
+        limiter.check("admin:ops:" + actorKey(), 60, Duration.ofMinutes(1));
         Map<String, ComponentStatus> out = new LinkedHashMap<>();
         String overall = "UP";
         for (Map.Entry<String, HealthIndicator> e : indicators.entrySet()) {
@@ -85,7 +96,7 @@ public class AdminOpsController {
 
     @GetMapping("/mail-outbox/stats")
     public MailStats mailStats() {
-        limiter.check("admin:ops:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
+        limiter.check("admin:ops:" + actorKey(), 60, Duration.ofMinutes(1));
         Instant now = Instant.now();
         Instant oldest = outbox.oldestPendingCreatedAt();
         return new MailStats(
@@ -98,7 +109,7 @@ public class AdminOpsController {
 
     @PostMapping("/mail-outbox/retry-dead")
     public Requeued retryDead() {
-        limiter.check("admin:ops:retry:" + CurrentUser.id(), 10, Duration.ofMinutes(10));
+        limiter.check("admin:ops:retry:" + actorKey(), 10, Duration.ofMinutes(10));
         // Icerigi silinmis / suresi dolmus kod postalari yeniden alinmaz; sayilari acikca doner (skipped).
         Instant now = Instant.now();
         long dead = outbox.countByStatus(MailStatus.DEAD);
@@ -112,7 +123,7 @@ public class AdminOpsController {
      */
     @GetMapping("/backup-status")
     public BackupStatus backupStatus() {
-        limiter.check("admin:ops:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
+        limiter.check("admin:ops:" + actorKey(), 60, Duration.ofMinutes(1));
         return readBackup(backupFile, backupMaxAgeHours, Instant.now());
     }
 

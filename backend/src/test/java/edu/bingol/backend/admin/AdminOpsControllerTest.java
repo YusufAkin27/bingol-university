@@ -55,4 +55,21 @@ class AdminOpsControllerTest {
         assertThat(AdminOpsController.componentName("redisHealthContributor")).isEqualTo("redis");
         assertThat(AdminOpsController.componentName("mailQueue")).isEqualTo("mailQueue");
     }
+
+    @Test
+    void basicAdminGetsAStableRateKeyInsteadOfA401() {
+        var ctx = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        try {
+            ctx.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    "admin", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))));
+            org.springframework.security.core.context.SecurityContextHolder.setContext(ctx);
+            assertThat(AdminOpsController.actorKey()).isEqualTo("basic");
+
+            ctx.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    7L, null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))));
+            assertThat(AdminOpsController.actorKey()).isEqualTo("7");
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
 }

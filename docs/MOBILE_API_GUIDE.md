@@ -354,8 +354,8 @@ Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve bireb
 |---|---|
 | `POST /api/auth/register`, `resend-code` | IP başına saatte 10 |
 | `POST /api/auth/verify-email` | IP başına 10 dk'da 20 |
-| `POST /api/auth/login` | IP başına 15 dk'da 30; e-posta başına 15 dk'da 10 |
-| `POST /api/auth/refresh` | IP başına 15 dk'da 60 |
+| `POST /api/auth/login` | Başarısız deneme: (e-posta, cihaz) çifti başına 15 dk'da 10, e-posta başına 60; cihaz başına 30; IP başına yalnız yüksek toplu tavan (5000). `X-Device-Id` göndermek NAT'ta (kampüs) kilitlenmeyi önler |
+| `POST /api/auth/refresh` | Kullanıcı (token sahibi) başına 15 dk'da 60; IP başına yalnız yüksek toplu tavan |
 | `POST /api/auth/forgot-password` | IP başına saatte 10; e-posta başına saatte 5 |
 | `POST /api/auth/verify-reset-code`, `reset-password` | IP başına 10 dk'da 20 |
 | `POST /api/auth/logout-all` | kullanıcı başına 15 dk'da 5 |

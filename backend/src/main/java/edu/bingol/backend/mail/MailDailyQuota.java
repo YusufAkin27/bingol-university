@@ -136,8 +136,8 @@ public class MailDailyQuota {
     private double resetCodeShare = 0.85;
     @Value("${app.mail.max-codes-per-email-per-day:10}")
     private int maxCodesPerEmailPerDay = 10;
-    @Value("${app.mail.max-code-requests-per-ip-per-day:100}")
-    private int maxCodeRequestsPerIpPerDay = 100;
+    @Value("${app.mail.max-code-requests-per-ip-per-day:3000}")
+    private int maxCodeRequestsPerIpPerDay = 3000;
 
     private ClientIp clientIp;
 

@@ -1,9 +1,11 @@
 package edu.bingol.backend.auth;
 
+import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.dto.ChangePasswordRequest;
 import edu.bingol.backend.auth.dto.EmailRequest;
 import edu.bingol.backend.auth.jwt.JwtService;
+import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.RefreshRequest;
@@ -17,6 +19,7 @@ import edu.bingol.backend.auth.dto.VerifyRequest;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.config.RateLimitProperties;
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.i18n.Lang;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -36,7 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
  * Uyelik ve oturum uclari. Is kurallari AuthService'te; burada yalnizca rate limit ve HTTP eslemesi var.
  * Hiz siniri anahtarlari: IP IPv6'da /64'e indirgenir ({@link ClientIp#limitKey}); e-posta anahtarlari +etiketten
  * arindirilmis kanonik adresin ozetidir (sabit uzunluk: Redis'i sisiremez, +alias ayni sayaci paylasir). Kampus NAT'i
- * icin IP sinirlari genis, e-posta/kimlik sinirlari (e-posta, IP) cifti basinadir: baskasinin hesabini kilitleyemez.
+ * icin IP sinirlari genis "toplu" tavandir (`app.rate-limit.*`); kaba kuvvet korumasi e-posta/cihaz bazlidir ve
+ * (e-posta, cihaz|IP) cifti basinadir: baskasinin hesabini kilitleyemez. Refresh siniri token sahibi kullanici bazlidir.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -50,9 +54,14 @@ public class AuthController {
     private final ClientContexts contexts;
     private final JwtService jwt;
     private final LoginThrottle loginThrottle;
+    private final RateLimitProperties limits;
+    private final RefreshTokenService refreshTokens;
 
     public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp,
-                          ClientContexts contexts, JwtService jwt, LoginThrottle loginThrottle) {
+                          ClientContexts contexts, JwtService jwt, LoginThrottle loginThrottle,
+                          RateLimitProperties limits, RefreshTokenService refreshTokens) {
+        this.limits = limits;
+        this.refreshTokens = refreshTokens;
         this.loginThrottle = loginThrottle;
         this.jwt = jwt;
         this.contexts = contexts;
@@ -67,10 +76,28 @@ public class AuthController {
         limiter.check("codemail:day:" + emailDigest, 20, Duration.ofHours(24));
     }
 
+    /** Istegin cihaz ozeti (X-Device-Id HMAC); baslik yok/gecersizse null. */
+    private String deviceOf(HttpServletRequest http) {
+        ClientContext c = contexts == null ? null : contexts.of(http);
+        return c == null ? null : c.deviceHash();
+    }
+
+    /**
+     * Kod postasi isteyen kimliksiz uclar: IP tavani NAT icin genis; sikilik cihaz basinadir (varsa). Ayrica e-posta
+     * basina sinirlar (cagiranda) ayni kalir.
+     */
+    private void codeRequestLimits(String prefix, HttpServletRequest http) {
+        limiter.check(prefix + ":ip:" + clientIp.limitKey(http), limits.codeIpMax(), Duration.ofHours(1));
+        String dev = deviceOf(http);
+        if (dev != null) {
+            limiter.check("codereq:dev:" + dev, limits.codeDeviceMax(), Duration.ofHours(1));
+        }
+    }
+
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
-        limiter.check("register:ip:" + clientIp.limitKey(http), 30, Duration.ofHours(1));
+        codeRequestLimits("register", http);
         // E-posta basina sinir: kod yenileme/posta bombalama ve bekleyen kaydi tekrar tekrar ezme engellenir.
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("register:email:" + ed, 5, Duration.ofHours(1));
@@ -83,7 +110,7 @@ public class AuthController {
     @PostMapping("/resend-code")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
-        limiter.check("resend:ip:" + clientIp.limitKey(http), 30, Duration.ofHours(1));
+        codeRequestLimits("resend", http);
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("resend:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
@@ -94,7 +121,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
-        limiter.check("forgot:ip:" + clientIp.limitKey(http), 30, Duration.ofHours(1));
+        codeRequestLimits("forgot", http);
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("forgot:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
@@ -105,7 +132,7 @@ public class AuthController {
     @PostMapping("/verify-reset-code")
     public ResetTokenResponse verifyResetCode(@Valid @RequestBody VerifyRequest r, HttpServletRequest http) {
         String ip = clientIp.limitKey(http);
-        limiter.check("vreset:ip:" + ip, 60, Duration.ofMinutes(10));
+        limiter.check("vreset:ip:" + ip, limits.verifyIpMax(), Duration.ofMinutes(10));
         // (e-posta, ag) cifti: baskasinin adresine yanlis kod gondererek gercek kullanicinin butcesini tuketemezsiniz.
         limiter.check("vreset:email:" + LoginThrottle.digest(AuthService.normalizeEmail(r.email())) + ":" + ip,
                 10, Duration.ofMinutes(10));
@@ -114,7 +141,7 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest r, HttpServletRequest http) {
-        limiter.check("reset:ip:" + clientIp.limitKey(http), 40, Duration.ofMinutes(10));
+        limiter.check("reset:ip:" + clientIp.limitKey(http), limits.resetIpMax(), Duration.ofMinutes(10));
         auth.resetPassword(r.email(), r.resetToken(), r.newPassword());
         return new MessageResponse(i18n.current("msg.reset.done"));
     }
@@ -122,7 +149,7 @@ public class AuthController {
     @PostMapping("/verify-email")
     public TokenResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest r, HttpServletRequest http) {
         String ip = clientIp.limitKey(http);
-        limiter.check("verify:ip:" + ip, 60, Duration.ofMinutes(10));
+        limiter.check("verify:ip:" + ip, limits.verifyIpMax(), Duration.ofMinutes(10));
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("verify:email:" + ed + ":" + ip, 10, Duration.ofMinutes(10));
         limiter.check("verify:email:" + ed, 60, Duration.ofMinutes(10));
@@ -133,25 +160,35 @@ public class AuthController {
     public TokenResponse login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
         String email = AuthService.normalizeEmail(r.email());
         String ip = clientIp.limitKey(http);
-        limiter.check("login:ip:" + ip, 200, Duration.ofMinutes(15));
-        // Yalniz BASARISIZ denemeler (e-posta, ag) cifti basina sayilir; kilit baskasinin hesabini kapatamaz.
-        loginThrottle.check(email, ip);
+        // IP: yalniz toplu/NAT tavani (genis). Kaba kuvvet korumasi asagida e-posta ve cihaz bazli.
+        limiter.check("login:ip:" + ip, limits.loginIpMax(), Duration.ofMinutes(15));
+        String dev = deviceOf(http);
+        // Yalniz BASARISIZ denemeler (e-posta, cihaz|ag) cifti basina sayilir; kilit baskasinin hesabini kapatamaz.
+        loginThrottle.check(email, ip, dev);
         TokenResponse res;
         try {
             res = auth.login(email, r.password(), r.client(), contexts.of(http));
         } catch (ApiException e) {
             if ("INVALID_CREDENTIALS".equals(e.code())) {
-                loginThrottle.recordFailure(email, ip);
+                loginThrottle.recordFailure(email, ip, dev);
             }
             throw e;
         }
-        loginThrottle.recordSuccess(email, ip);
+        loginThrottle.recordSuccess(email, ip, dev);
         return res;
     }
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest r, HttpServletRequest http) {
-        limiter.check("refresh:ip:" + clientIp.limitKey(http), 300, Duration.ofMinutes(15));
+        String ip = clientIp.limitKey(http);
+        // IP yalniz toplu/NAT tavani; asil sinir token sahibi kullanici bazli. Gecersiz/tuketilmis token IP basina sayilir.
+        limiter.check("refresh:ip:" + ip, limits.refreshIpMax(), Duration.ofMinutes(15));
+        Long owner = refreshTokens.peekUserId(r.refreshToken());
+        if (owner != null) {
+            limiter.check("refresh:user:" + owner, limits.refreshUserMax(), Duration.ofMinutes(15));
+        } else {
+            limiter.check("refresh:bad:" + ip, limits.refreshInvalidIpMax(), Duration.ofMinutes(15));
+        }
         return auth.refresh(r.refreshToken(), contexts.of(http));
     }
 
@@ -175,7 +212,7 @@ public class AuthController {
                                         HttpServletRequest http) {
         Long userId = (Long) authentication.getPrincipal();
         limiter.check("chpw:user:" + userId, 5, Duration.ofHours(1));
-        limiter.check("chpw:ip:" + clientIp.limitKey(http), 30, Duration.ofHours(1));
+        limiter.check("chpw:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
         return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http));
     }
 

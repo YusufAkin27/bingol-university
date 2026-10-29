@@ -145,6 +145,23 @@ public class RefreshTokenService {
         }
     }
 
+    /**
+     * Token'i TUKETMEDEN sahibinin id'sini doner (hiz siniri anahtari icin); gecersiz/tuketilmis/bilinmeyen token icin
+     * null. Salt okuma: tek Redis GET.
+     */
+    public Long peekUserId(String token) {
+        if (token == null || token.isBlank() || token.length() > 256) {
+            return null;
+        }
+        String v = redis.opsForValue().get(TOKEN_PREFIX + Hashing.sha256(token));
+        if (v == null) {
+            return null;
+        }
+        int i = v.indexOf(':');
+        long id = parseLong(i < 0 ? v : v.substring(0, i));
+        return id > 0 ? id : null;
+    }
+
     /** Token'i tuketir ve sahibinin id'sini doner; gecersizse null. */
     public Long consume(String token) {
         Session s = consumeSession(token);
