@@ -30,6 +30,7 @@ export const paths = {
   },
   admin: {
     login: `${ADMIN_BASE}/login`,
+    register: `${ADMIN_BASE}/register`,
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
     pendingUsers: `${ADMIN_BASE}/pending-users`,

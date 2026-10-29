@@ -10,6 +10,9 @@ ENV VITE_API_BASE=/api
 ARG PUBLIC_WEB_URL=
 ENV PUBLIC_WEB_URL=$PUBLIC_WEB_URL
 ENV VITE_PUBLIC_URL=$PUBLIC_WEB_URL
+# Gizli yonetim yolu (docker-compose build.args <- ADMIN_PATH); bos = /admin. Guvenlik onlemi degil, bkz. web/src/adminBase.ts
+ARG VITE_ADMIN_PATH=
+ENV VITE_ADMIN_PATH=$VITE_ADMIN_PATH
 RUN npm run build
 
 # Aşama 2: statik sunum + ters vekil

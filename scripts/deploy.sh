@@ -12,7 +12,13 @@
 # Yapilandirma: repo kokunde GITIGNORED `.deploy.env` (asla commit etme, loga yazma):
 #   DEPLOY_HOST, DEPLOY_USER (sudo'lu hesap; varsayilan deploy), DEPLOY_DOMAIN,
 #   istege bagli: DEPLOY_KEY (varsayilan ~/.ssh/bu_deploy_ed25519), DEPLOY_ACME_EMAIL, DEPLOY_ADMIN_EMAILS,
-#   DEPLOY_MAIL_USER / DEPLOY_MAIL_PASSWORD (Brevo SMTP; yoksa MAIL_ENABLED=false baslar), DEPLOY_WWW (1 varsayilan).
+#   DEPLOY_MAIL_USER / DEPLOY_MAIL_PASSWORD (Brevo SMTP; yoksa MAIL_ENABLED=false baslar), DEPLOY_WWW (1 varsayilan),
+#   DEPLOY_MAIL_FROM, DEPLOY_MAIL_REPLY_TO, DEPLOY_MAIL_FROM_NAME (gorunen ad; varsayilan "BU Kampus" + Turkce karakterler),
+#   DEPLOY_ADMIN_PATH (gizli yonetim yolu; web imajina VITE_ADMIN_PATH olarak derlenir),
+#   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES (varsayilan 48 GiB), DEPLOY_STORAGE_RESERVED_BYTES (varsayilan 10 GiB).
+# .env.prod ANAHTAR SENKRONU: yukaridaki DEPLOY_* degerleri sunucudaki .env.prod'a YALNIZ anahtar yoksa/bossa ya da
+#   sablon (YER_TUTUCU/example) degerindeyse yazilir; elle degistirilmis deger ASLA ezilmez. ADMIN_PASSWORD ve
+#   ADMIN_BASIC_ENABLED'e dokunulmaz (uretimde Basic yonetici girisi kapali kalir).
 #   Parola ile giris DESTEKLENMEZ (sunucuda parola girisi kapali): anahtar kullanilir.
 # Sunucu duzeni: /opt/bukampus/{releases/<sha>,current,.env.prod}  /opt/bukampus-data/{backup-metrics,secrets}
 # Sirlar: .env.prod YOKSA sunucuda uretilir (izin 600) ve yerel kopya .deploy/generated-secrets.txt (600) yazilir; VARSA ASLA ezilmez.
@@ -264,6 +270,89 @@ fi
 # sunucuya hedef release adini her durumda yaz (derleme adimi okur)
 if [ "$DRY" = 0 ]; then rsh "echo $SHORT > $BASEDIR/.next_release"; fi
 
+# --- 3b) .env.prod anahtar senkronu (yerel DEPLOY_* degerleri; mevcut elle degerler ASLA ezilmez) ---
+# Gizli yonetim yolu: bicim denetimi + bastaki '/' (deger HICBIR YERE yazdirilmaz).
+ADMIN_PATH_V=""
+if [ -n "${DEPLOY_ADMIN_PATH:-}" ]; then
+  ADMIN_PATH_V="/${DEPLOY_ADMIN_PATH#/}"; ADMIN_PATH_V="${ADMIN_PATH_V%/}"
+  printf '%s' "$ADMIN_PATH_V" | grep -Eq '^/[A-Za-z0-9][A-Za-z0-9._~-]{2,60}(/[A-Za-z0-9._~-]+)*$' \
+    || die "DEPLOY_ADMIN_PATH gecersiz (harf/rakam/._~- ve '/', en az 3 karakter)"
+  case "${ADMIN_PATH_V#/}" in api|api/*|files|files/*|ws|ws/*|assets|assets/*|fonts|fonts/*|actuator|actuator/*|tr|tr/*|en|en/*|ar|ar/*)
+    die "DEPLOY_ADMIN_PATH ayrilmis bir yolla cakisiyor (api, files, ws, assets, fonts, actuator, tr, en, ar)";; esac
+fi
+STORAGE_CAP_V="${DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES:-51539607552}"   # 48 GiB (VDS diski 48 GB)
+STORAGE_RES_V="${DEPLOY_STORAGE_RESERVED_BYTES:-10737418240}"           # 10 GiB: isletim sistemi + docker imajlari + gunlukler
+case "$STORAGE_CAP_V$STORAGE_RES_V" in *[!0-9]*) die "DEPLOY_STORAGE_* yalniz rakam (bayt) olmali";; esac
+mask_state() { if [ -n "$1" ]; then printf '***'; else printf '(yok: sablon/varsayilan)'; fi; }
+if [ "$DRY" = 1 ]; then
+  plan "sunucu: .env.prod anahtar senkronu (yalniz eksik/bos/sablon ise yazilir, mevcut deger ezilmez; degerler MASKELI):"
+  plan "    MAIL_FROM=$(mask_state "${DEPLOY_MAIL_FROM:-}") MAIL_REPLY_TO=$(mask_state "${DEPLOY_MAIL_REPLY_TO:-}") MAIL_FROM_NAME=$(mask_state "${DEPLOY_MAIL_FROM_NAME:-BU Kampus}")"
+  plan "    ADMIN_PATH=$(mask_state "$ADMIN_PATH_V") (web imajina VITE_ADMIN_PATH olarak derlenir) ADMIN_EMAILS=$(mask_state "${DEPLOY_ADMIN_EMAILS:-}")"
+  plan "    MAIL_USERNAME=$(mask_state "${DEPLOY_MAIL_USER:-}") MAIL_PASSWORD=$(mask_state "${DEPLOY_MAIL_PASSWORD:-}")"
+  plan "    STORAGE_DB_DISK_CAPACITY_BYTES=$STORAGE_CAP_V STORAGE_RESERVED_BYTES=$STORAGE_RES_V"
+  plan "    ADMIN_BASIC_ENABLED yazilmaz/degistirilmez (uretimde kapali); ADMIN_PASSWORD'e dokunulmaz"
+else
+  mkdir -p .deploy; umask 077
+  {
+    printf 'V_MAIL_FROM=%q\nV_MAIL_REPLY_TO=%q\nV_MAIL_FROM_NAME=%q\nV_ADMIN_PATH=%q\nV_ADMIN_EMAILS=%q\n' \
+      "${DEPLOY_MAIL_FROM:-}" "${DEPLOY_MAIL_REPLY_TO:-}" "${DEPLOY_MAIL_FROM_NAME:-BÜ Kampüs}" "$ADMIN_PATH_V" "${DEPLOY_ADMIN_EMAILS:-}"
+    printf 'V_MAIL_USER=%q\nV_MAIL_PASS=%q\nV_STORAGE_CAP=%q\nV_STORAGE_RES=%q\n' \
+      "${DEPLOY_MAIL_USER:-}" "${DEPLOY_MAIL_PASSWORD:-}" "$STORAGE_CAP_V" "$STORAGE_RES_V"
+    cat <<'REMOTE'
+set -euo pipefail
+ENVF=/opt/bukampus/.env.prod
+[ -f "$ENVF" ] || { echo "ENVSYNC: .env.prod yok"; exit 0; }
+getv() { # son tanimin degeri (bastaki/sondaki tirnak atilir)
+  awk -v k="$1" 'index($0,k"=")==1 {sub(/^[^=]*=/,""); v=$0} END{gsub(/^["\047]|["\047]$/,"",v); print v}' "$ENVF"
+}
+putv() { # putv ANAHTAR DEGER (ENVIRON: ozel karakter guvenli; yoksa sona ekler)
+  K="$1" V="$2" awk 'BEGIN{k=ENVIRON["K"]; v=ENVIRON["V"]; f=0} index($0, k"=")==1 {print k"="v; f=1; next} {print} END{if(!f) print k"="v}' "$ENVF" > "$ENVF.new"
+  mv "$ENVF.new" "$ENVF"; chmod 600 "$ENVF"
+}
+is_tpl() { case "$1" in ""|YER_TUTUCU*|*example.edu.tr*|*example.com*|no-reply@bingol.edu.tr) return 0;; esac; return 1; }
+WROTE=""
+sync_tpl() { # anahtar yoksa/bossa/sablon degerindeyse yaz
+  local k="$1" v="$2" cur
+  [ -n "$v" ] || return 0
+  cur="$(getv "$k")"
+  if is_tpl "$cur"; then
+    [ "$cur" = "$v" ] || { putv "$k" "$v"; WROTE="$WROTE $k"; }
+  fi
+}
+sync_miss() { # yalniz anahtar yoksa/bossa; sablon degeri sayilmaz
+  local k="$1" v="$2" cur
+  [ -n "$v" ] || return 0
+  cur="$(getv "$k")"
+  if [ -z "$cur" ]; then putv "$k" "$v"; WROTE="$WROTE $k"; fi
+}
+sync_tpl MAIL_FROM "$V_MAIL_FROM"
+sync_tpl MAIL_REPLY_TO "$V_MAIL_REPLY_TO"
+sync_miss MAIL_FROM_NAME "$V_MAIL_FROM_NAME"
+sync_miss ADMIN_PATH "$V_ADMIN_PATH"
+sync_tpl ADMIN_EMAILS "$V_ADMIN_EMAILS"
+# SMTP: yalniz ikisi de sablondaysa yaz; yazildiysa e-posta acilir
+if [ -n "$V_MAIL_USER" ] && [ -n "$V_MAIL_PASS" ]; then
+  if is_tpl "$(getv MAIL_USERNAME)" && is_tpl "$(getv MAIL_PASSWORD)"; then
+    putv MAIL_USERNAME "$V_MAIL_USER"; putv MAIL_PASSWORD "$V_MAIL_PASS"; putv MAIL_ENABLED true
+    WROTE="$WROTE MAIL_USERNAME MAIL_PASSWORD MAIL_ENABLED"
+  fi
+fi
+cur="$(getv STORAGE_DB_DISK_CAPACITY_BYTES)"
+case "$cur" in ""|0) putv STORAGE_DB_DISK_CAPACITY_BYTES "$V_STORAGE_CAP"; WROTE="$WROTE STORAGE_DB_DISK_CAPACITY_BYTES";; esac
+sync_miss STORAGE_RESERVED_BYTES "$V_STORAGE_RES"
+echo "ENVSYNC: yazilan anahtarlar:${WROTE:- (yok; her sey zaten ayarli)}"
+if [ "$(getv ADMIN_BASIC_ENABLED)" = true ]; then echo "ENVSYNC-UYARI: ADMIN_BASIC_ENABLED=true (uretimde kapali olmali; elle degistirin)"; fi
+exit 0
+REMOTE
+  } > .deploy/.env-sync.sh
+  OUT="$(rsh "bash -s" < .deploy/.env-sync.sh)" || { rm -f .deploy/.env-sync.sh; die ".env.prod anahtar senkronu basarisiz" 1; }
+  rm -f .deploy/.env-sync.sh
+  printf '%s\n' "$OUT" | grep '^ENVSYNC' | while IFS= read -r l; do log "$l"; done
+  if printf '%s' "$OUT" | grep -q 'yazilan anahtarlar:.*ADMIN_PATH'; then
+    log "ADMIN_PATH degisti: web imaji yeniden derlenecek (--no-build ile calistirmayin)"
+  fi
+fi
+
 # =====================================================================================================
 # 4) derle + baslat (onceki imajlar :previous), 5) saglik + otomatik geri alma
 # =====================================================================================================
@@ -347,4 +436,9 @@ else
   else
     warn "DNS hazir degil: https://$DOMAIN calismaz. A kaydi: $DOMAIN ve www.$DOMAIN -> $HOST"
   fi
+fi
+if [ "$DRY" = 0 ]; then
+  log "SONRAKI ADIMLAR (ayrinti: docs/DEPLOY_SCRIPT.md):"
+  log "  1) .deploy/generated-secrets.txt (varsa) icerigini sifre yoneticisine + cevrimdisi kasaya tasiyin, sonra yerel kopyayi guvenle silin (CRYPTO_MASTER_KEYS kaybi = sifreli veri kaybi)."
+  log "  2) Yonetici hesabi: DEPLOY_ADMIN_EMAILS adresiyle sitedeki yonetici kayit sayfasindan kayit olun -> e-postaya gelen kod -> giris; panel ADMIN_PATH degeriniz altindadir (ayarlanmadiysa /admin)."
 fi

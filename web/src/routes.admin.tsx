@@ -11,6 +11,7 @@ import { AdminLayout } from './layouts/AdminLayout';
 import { AdminScope } from './layouts/AdminScope';
 
 const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
+const AdminRegisterPage = lazy(() => import('./pages/admin/AdminRegisterPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
@@ -70,6 +71,7 @@ export default function AdminRoutes() {
     <Routes>
       <Route element={<AdminScope />}>
         <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<AdminRegisterPage />} />
         <Route
           element={
             <RequireAdmin>

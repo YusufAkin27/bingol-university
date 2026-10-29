@@ -106,6 +106,9 @@ export default function LoginPage() {
           </Button>
           <p className={styles.note}>{t('admin.login.restricted')}</p>
         </form>
+        <Link to={paths.admin.register} className={styles.back}>
+          {t('admin.reg.linkFromLogin')}
+        </Link>
         <Link to={paths.site.home} className={styles.back}>
           {t('admin.login.backToSite')}
         </Link>

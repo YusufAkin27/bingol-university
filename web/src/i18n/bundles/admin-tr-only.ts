@@ -15,6 +15,7 @@ import P15 from '../tr/admin-p15';
 import P16 from '../tr/admin-p16';
 import Cr1 from '../tr/admin-cr1';
 import Ds1 from '../tr/admin-ds1';
+import Reg from '../tr/admin-reg';
 
 export default {
   ...Guard,
@@ -33,4 +34,5 @@ export default {
   ...P16,
   ...Cr1,
   ...Ds1,
+  ...Reg,
 };

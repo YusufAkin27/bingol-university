@@ -103,6 +103,7 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_FROM: ${MAIL_FROM:-noreply@bukampus.online}
       MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
       MAIL_REQUIRE_TLS: ${MAIL_REQUIRE_TLS:-false}
       MAIL_SSL: ${MAIL_SSL:-false}
       MAIL_MAX_PER_MINUTE: ${MAIL_MAX_PER_MINUTE:-30}
