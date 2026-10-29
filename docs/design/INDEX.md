@@ -12,7 +12,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [04-sistem-tam-ekran.md](04-sistem-tam-ekran.md) | 5 | 1, 5, 6, 7, 8 | [x] 5 ekran, duzeltildi (Splash tam yukseklik) |
 | [05-sistem-seritler-hata.md](05-sistem-seritler-hata.md) | 6 | 2, 3, 4, 9, 10, 11, 12 | [x] 6 ekran, duzeltildi (kampus/hava/bakiye halusinasyonlari silindi; kucuk eksik: kcal toplami tutarsiz) |
 | [06-izinler-ve-qr-tarama.md](06-izinler-ve-qr-tarama.md) | 6 | 13, 14, 19, A1 | [x] 6 ekran, duzeltildi (turnike/bakiye/ust cubuk halusinasyonlari silindi) |
-| [07-sozlesmeler.md](07-sozlesmeler.md) | 6 | 15, 16, 17, 18, A2 | [ ] |
+| [07-sozlesmeler.md](07-sozlesmeler.md) | 6 | 15, 16, 17, 18, A2 | [x] 6 ekran uretildi; eksik: sahte ust cubuk 'Event Detail Sheet'+avatar (4 ekran), red sayfasi arka plani yanlis, okuyucuda 'Resmi Dijital Yururluk Belgesi' blogu, liste/bos ekranda fazla metinler (duzeltme istemleri Stitch'te uygulanmadi) |
 | [08-verilerim-hesap-silme.md](08-verilerim-hesap-silme.md) | 4 | 98, 99, A58 | [ ] |
 | [09-fotograf-kirpma.md](09-fotograf-kirpma.md) | 6 | A23, A38, A54 (kaynak sheet); kırpma akışı: 39, 56, 62, 75, 94 | [ ] |
 | [10-gonderi-olustur-detay.md](10-gonderi-olustur-detay.md) | 6 | 39, 40, A6 | [ ] |
