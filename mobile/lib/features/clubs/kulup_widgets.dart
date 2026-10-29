@@ -1,32 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 
-/// Kulüp sayfalarının ortak bileşenleri (Kl1-Kl5 tasarımları).
+/// Kulüp sayfalarının ortak bileşenleri (P11 yeniden tasarım: Material 3 + marka belirteçleri).
+/// İmzalar P12 (kulüp formu, katılım akışı, Kulüplerim) tarafından kullanılır; yalnız isteğe bağlı parametre eklenir.
 
-/// Tasarımdaki sabit avatar tonları (açık tema): zemin / yazı.
-const _tones = <(Color, Color)>[
-  (Color(0xFFFDE7E4), Color(0xFFC62A20)),
-  (Color(0xFFE8EDF8), Color(0xFF2F4FA8)),
-  (Color(0xFFE6F2EA), Color(0xFF1F7A4A)),
-  (Color(0xFFFBEFD9), Color(0xFF8A5200)),
-];
-
-/// Ada göre kararlı ton; koyu temada zemin yazı renginin saydam hali, yazı açılır.
+/// Ada göre kararlı ton (kategori renkleri `context.bu.tint`): zemin / yazı. Koyu temada belirteç kendiliğinden uyar.
 (Color, Color) kulupTone(BuildContext context, String? name) {
   final n = (name ?? '').trim();
   var h = 0;
   for (final r in n.runes) {
     h = (h * 31 + r) & 0x7fffffff;
   }
-  final (bg, fg) = _tones[h % _tones.length];
-  if (Theme.of(context).brightness == Brightness.dark) {
-    final light = Color.lerp(fg, Colors.white, .45)!;
-    return (fg.withValues(alpha: .28), light);
-  }
-  return (bg, fg);
+  final tint = context.bu.tint(h);
+  return (tint.bg, tint.fg);
 }
 
 /// Baş harfli tonlu daire; fotoğraf varsa onu gösterir.
@@ -41,42 +28,68 @@ class KulupAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (url != null && url!.isNotEmpty) return BuAvatar(name: name, url: url, size: size);
     final (bg, fg) = kulupTone(context, name);
+    final tx = Theme.of(context).textTheme;
+    final style = size >= 64 ? tx.titleLarge! : (size >= 40 ? tx.titleSmall! : tx.labelMedium!);
     return ExcludeSemantics(
       child: Container(
         width: size,
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-        child: Text(initialsOf(name), style: BuType.label.copyWith(fontWeight: FontWeight.w800, color: fg)),
+        // Büyük yazı ölçeğinde baş harfler daireden taşmasın.
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(initialsOf(name), maxLines: 1, style: style.copyWith(fontWeight: FontWeight.w800, color: fg)),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Rol etiketi (Yönetici / Moderatör): yumuşak zemin, 22 dp yükseklik.
+/// Rol etiketi (Yönetici / Moderatör): marka tonlu hap, 24 dp yükseklik, isteğe bağlı simge.
 class KulupRoleBadge extends StatelessWidget {
-  const KulupRoleBadge(this.text, {super.key});
+  const KulupRoleBadge(this.text, {super.key, this.icon, this.bg, this.fg});
 
   final String text;
+  final IconData? icon;
+
+  /// İsteğe bağlı ton (varsayılan marka tonu): moderatör için mavi gibi.
+  final Color? bg;
+  final Color? fg;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final fgc = fg ?? t.onSoft;
     return Container(
-      height: 22,
-      padding: const EdgeInsets.symmetric(horizontal: 9),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(11)),
-      child: Text(text, maxLines: 1, style: BuType.micro.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+      constraints: const BoxConstraints(minHeight: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(color: bg ?? t.soft, borderRadius: BuRadius.bPill),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fgc)), const SizedBox(width: 4)],
+          Flexible(
+            child: Text(text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fgc)),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Yuvarlak köşeli, çizgili, gölgeli açılır menü biçimi (tasarımdaki .mn).
+/// Yuvarlak köşeli, çizgili açılır menü biçimi (P12 `PopupMenuButton`ları için).
 ShapeBorder kulupMenuShape(BuildContext context) =>
-    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: context.bu.bd));
+    RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: context.bu.bd));
 
-/// Menü satırı: 44 dp en az yükseklik; [danger] kırmızı yazı; [count] sağda kırmızı sayı hapı.
+/// Menü satırı: 44 dp en az yükseklik; [danger] kırmızı yazı; [count] sağda sayı hapı.
 class KulupMenuRow extends StatelessWidget {
   const KulupMenuRow(this.label, {super.key, this.danger = false, this.count});
 
@@ -87,31 +100,22 @@ class KulupMenuRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Row(
       children: [
         Expanded(
           child: Text(label,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: BuType.bodyStrong.copyWith(color: danger ? t.pr : t.ink)),
+              style: tx.titleSmall!.copyWith(color: danger ? t.danger : t.ink)),
         ),
-        if (count != null && count! > 0) ...[
-          const SizedBox(width: 10),
-          Container(
-            constraints: const BoxConstraints(minWidth: 22),
-            height: 22,
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(11)),
-            child: Text('$count', style: BuType.micro.copyWith(fontWeight: FontWeight.w700, color: t.onPr)),
-          ),
-        ],
+        if (count != null && count! > 0) ...[const SizedBox(width: 10), BuCountBadge(count!)],
       ],
     );
   }
 }
 
-/// Üç noktalı (⋯) yatay menü simgesi, dolgulu daireler.
+/// Üç noktalı (⋯) yatay menü simgesi.
 class KulupDots extends StatelessWidget {
   const KulupDots({super.key, this.size = 20, this.color});
 
@@ -119,34 +123,17 @@ class KulupDots extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) =>
-      Icon(Icons.more_horiz_rounded, size: size + 2, color: color ?? context.bu.mut);
+  Widget build(BuildContext context) => Icon(LucideIcons.ellipsis, size: size, color: color ?? context.bu.mut);
 }
 
-/// Girdi alanı: 1.5 dp çizgi, 16 dp köşe (tasarımdaki .fd/.fa). [error] varsa kırmızı çizgi.
-InputDecoration kulupField(BuildContext context, {String? hint, String? error, EdgeInsetsGeometry? pad}) {
-  final t = context.bu;
-  OutlineInputBorder b(Color c) =>
-      OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: 1.5));
-  return InputDecoration(
-    hintText: hint,
-    hintStyle: TextStyle(color: t.mut),
-    errorText: error,
-    counterText: '',
-    filled: true,
-    fillColor: t.sf,
-    contentPadding: pad ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    enabledBorder: b(error != null ? t.pr : t.bd),
-    focusedBorder: b(t.pr),
-    errorBorder: b(t.pr),
-    focusedErrorBorder: b(t.pr),
-    border: b(t.bd),
-  );
-}
+/// Girdi alanı süsü: tema (`inputDecorationTheme`: dolu + çerçeveli, odakta 2 dp marka rengi) kullanılır.
+/// [error] varsa alanın altında hata metni ve kırmızı çizgi görünür.
+InputDecoration kulupField(BuildContext context, {String? hint, String? error, EdgeInsetsGeometry? pad}) =>
+    InputDecoration(hintText: hint, errorText: error, counterText: '', contentPadding: pad);
 
 enum KulupPillKind { primary, soft, outline }
 
-/// 44 dp, 14 dp köşeli üyelik / sohbet düğmesi. [staticLook] true: dokunulmaz durum etiketi ("Üyesin").
+/// Üyelik / sohbet düğmesi (hap). [staticLook] true: dokunulmaz durum etiketi ("Üyesin").
 class KulupPillButton extends StatelessWidget {
   const KulupPillButton({
     super.key,
@@ -168,81 +155,89 @@ class KulupPillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    if (!staticLook) {
+      return BuButton(
+        label: label,
+        icon: icon,
+        busy: busy,
+        compact: true,
+        kind: switch (kind) {
+          KulupPillKind.primary => BuButtonKind.primary,
+          KulupPillKind.soft => BuButtonKind.soft,
+          KulupPillKind.outline => BuButtonKind.outline,
+        },
+        onPressed: onPressed,
+      );
+    }
     final (bg, fg, side) = switch (kind) {
       KulupPillKind.primary => (t.pr, t.onPr, BorderSide.none),
       KulupPillKind.soft => (t.soft, t.onSoft, BorderSide.none),
-      KulupPillKind.outline => (t.sf, t.ink, BorderSide(color: t.bd)),
+      KulupPillKind.outline => (t.sf2, t.mut, BorderSide(color: t.bd)),
     };
-    final content = busy
-        ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
-        : Row(
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      label: label,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: ShapeDecoration(color: bg, shape: StadiumBorder(side: side)),
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[Icon(icon, size: 18, color: fg), const SizedBox(width: 6)],
+              if (icon != null) ...[Icon(icon, size: 16, color: fg), const SizedBox(width: 6)],
               Flexible(
                 child: Text(label,
                     maxLines: 2,
                     textAlign: TextAlign.center,
-                    style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                    style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
               ),
             ],
-          );
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: side);
-    final body = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 44),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        child: Center(heightFactor: 1, child: content),
+          ),
+        ),
       ),
-    );
-    return Material(
-      color: bg,
-      shape: shape,
-      shadowColor: t.pr.withValues(alpha: .7),
-      elevation: 0,
-      child: staticLook
-          ? body
-          : InkWell(customBorder: shape, onTap: busy ? null : onPressed, child: body),
     );
   }
 }
 
-/// 48 dp, 14 dp köşeli işlem düğmesi (başvuru Reddet / Onayla).
+/// 48 dp işlem düğmesi (başvuru Reddet / Onayla): M3 dolu ya da çerçeveli düğme, basınca hafif küçülür.
 class KulupActionButton extends StatelessWidget {
-  const KulupActionButton({super.key, required this.label, required this.onPressed, this.primary = false});
+  const KulupActionButton({super.key, required this.label, required this.onPressed, this.primary = false, this.icon});
 
   final String label;
   final VoidCallback? onPressed;
   final bool primary;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final fg = primary ? t.onPr : t.ink;
-    final bg = primary ? t.pr : t.sf;
-    return Material(
-      color: onPressed == null ? bg.withValues(alpha: .6) : bg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: primary ? BorderSide.none : BorderSide(color: t.bd, width: 1.5),
-      ),
-      child: InkWell(
-        customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        onTap: onPressed,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Center(
-            heightFactor: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Text(label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: BuType.heading.copyWith(color: fg)),
-            ),
-          ),
-        ),
-      ),
+    final child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 8)],
+        Flexible(child: Text(label, maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
+      ],
+    );
+    final void Function()? tap = onPressed == null
+        ? null
+        : () {
+            buHaptic(BuHaptic.selection);
+            onPressed!();
+          };
+    const size = Size(0, 48);
+    return BuPressable(
+      scale: .98,
+      enabled: tap != null,
+      child: primary
+          ? FilledButton(
+              onPressed: tap,
+              style: FilledButton.styleFrom(minimumSize: size, padding: const EdgeInsets.symmetric(horizontal: 12)),
+              child: child)
+          : OutlinedButton(
+              onPressed: tap,
+              style: OutlinedButton.styleFrom(minimumSize: size, padding: const EdgeInsets.symmetric(horizontal: 12)),
+              child: child),
     );
   }
 }

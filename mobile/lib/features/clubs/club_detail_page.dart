@@ -1,29 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../events/event_form_page.dart';
+import '../polls/poll_routes.dart';
 import 'club_actions.dart';
 import 'club_categories.dart';
+import 'club_detail_parts.dart';
+import 'club_detail_sheets.dart';
 import 'club_form_page.dart';
+import 'club_ref_widgets.dart';
 import 'club_join_flow.dart';
 import 'club_members_page.dart';
 import 'club_requests_page.dart';
-import '../polls/poll_routes.dart';
-import '../posts/post_text_rules.dart';
-import 'kulup_widgets.dart';
-import '../../core/typography.dart';
 
-/// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler.
+/// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler / anketler.
 class ClubDetailPage extends StatefulWidget {
   const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService});
 
@@ -47,6 +44,9 @@ class _Paged {
   Object? error;
 }
 
+/// Kapak yüksekliği (durum çubuğu hariç).
+const double _coverH = 208;
+
 class _ClubDetailPageState extends State<ClubDetailPage> {
   Map<String, dynamic>? _club;
   Object? _error;
@@ -61,6 +61,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   final _scroll = ScrollController();
   final _text = TextEditingController();
+
+  /// Kapak daraldı mı (başlık ve düğme renkleri buna göre değişir); yalnız eşik geçilince bildirir.
+  final _collapsed = ValueNotifier<bool>(false);
   bool _sending = false;
   PreparedImage? _image;
   late final ImageService _images = widget.imageService ?? ImageService();
@@ -78,17 +81,24 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _more();
-    });
+    _scroll.addListener(_onScroll);
     _load();
   }
 
   @override
   void dispose() {
+    _scroll.removeListener(_onScroll);
     _scroll.dispose();
     _text.dispose();
+    _collapsed.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final pos = _scroll.position;
+    _collapsed.value = pos.pixels > _coverH - kToolbarHeight - 12;
+    if (pos.pixels > pos.maxScrollExtent - 300) _more();
   }
 
   Future<void> _load() async {
@@ -115,7 +125,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           p.error = null;
         }
       }
-      _refreshTab(reset: true);
+      if (!_locked) _refreshTab(reset: true);
       if (_isManager) {
         _fetch(_requests, _requestsPath, reset: true);
       } else {
@@ -181,7 +191,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     }
   }
 
-  void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _snack(String m) => BuToast.show(context, m, kind: BuToastKind.error);
 
   String _imageError(ImageException e) {
     final l10n = context.l10n;
@@ -289,20 +299,17 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     if (mounted) setState(() => _busy = false);
   }
 
-  /// İki aşamalı silme: uyarı + kulüp adını yazarak onay.
+  /// İki aşamalı silme: uyarı + kulüp adını yazarak onay (A28).
   Future<void> _delete() async {
     final name = (_club?['name'] ?? '').toString();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => _DeleteClubDialog(name: name),
-    );
-    if (ok != true || !mounted) return;
+    final ok = await ClubDeleteDialog.show(context, name);
+    if (!ok || !mounted) return;
     setState(() => _busy = true);
     try {
       await widget.session.api.delete(_base);
       widget.session.badges.conversationsDirty.value++;
       if (!mounted) return;
-      _snack(context.l10n.clubDeleted);
+      BuToast.show(context, context.l10n.clubDeleted, kind: BuToastKind.success);
       Navigator.pop(context, 'deleted');
       return;
     } catch (e) {
@@ -319,14 +326,14 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       room = room is Map ? Map<String, dynamic>.from(room) : <String, dynamic>{};
       if (room['joined'] != true) {
         if (room['closed'] == true) {
-          if (mounted) _snack(context.l10n.clubChatClosed);
+          if (mounted) BuToast.show(context, context.l10n.clubChatClosed, kind: BuToastKind.warning);
           return;
         }
         room = Map<String, dynamic>.from(await api.post('$_base/chat-room/join') as Map);
       }
       final cid = (room['conversationId'] as num?)?.toInt();
       if (cid == null) {
-        if (mounted) _snack(context.l10n.clubChatPreparing);
+        if (mounted) BuToast.show(context, context.l10n.clubChatPreparing, kind: BuToastKind.info);
         return;
       }
       if (!mounted) return;
@@ -400,18 +407,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   Future<void> _deletePost(Map<String, dynamic> p) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(c.l10n.clubDeletePostTitle),
-        content: Text(c.l10n.clubDeletePostMessage),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.clubCancel)),
-          TextButton(onPressed: () => Navigator.pop(c, true), child: Text(c.l10n.clubDelete)),
-        ],
-      ),
-    );
-    if (ok != true) return;
+    final ok = await confirmDeletePost(context);
+    if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('$_base/posts/${p['id']}');
       if (mounted) setState(() => _posts.items.remove(p));
@@ -442,686 +439,579 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       targetType: 'POST', targetId: (p['id'] as num).toInt(), title: context.l10n.clubReportPost);
 
   void _setTab(int i) {
+    if (i == _tab) return;
     setState(() => _tab = i);
-    if (i != 3 && !_cur.loaded) _refreshTab(reset: true);
+    if (i != 3 && !_locked && !_cur.loaded) _refreshTab(reset: true);
   }
 
   Future<void> _refresh() async {
     await _load();
   }
 
-  String _meta() {
-    final c = _club!;
-    final l10n = context.l10n;
-    final parts = <String>[
-      if ((c['category'] ?? '').toString().isNotEmpty) ClubCategories.labelFor(c['category'].toString()),
-      l10n.clubMemberCount('${c['memberCount'] ?? 0}'),
-      c['visibility'] == 'PRIVATE' ? l10n.clubPrivate : l10n.clubPublic,
-    ];
-    return parts.join(' · ');
+  /// Kulüp seçenekleri (⋯) açılır menüsü; seçilen eylemi çalıştırır.
+  Future<void> _openMenu(BuildContext anchor) async {
+    final v = await showClubMenu(
+      anchor,
+      isManager: _isManager,
+      isOwner: _isOwner,
+      isMember: _isMember,
+      pendingCount: _requests.items.length,
+    );
+    if (v == null || !mounted) return;
+    switch (v) {
+      case 'event':
+        await Navigator.push<bool>(
+            context, MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
+      case 'edit':
+        await _edit();
+      case 'requests':
+        await _openRequests();
+      case 'members':
+        await _openMembers();
+      case 'cover':
+        await _changeCover();
+      case 'delete':
+        await _delete();
+      case 'leave':
+        await _leave();
+      case 'report':
+        await _reportClub();
+    }
   }
+
+  Future<void> _openPostMenu(Map<String, dynamic> p) async {
+    final v = await showPostMenuSheet(
+      context,
+      canPin: _isManager,
+      pinned: p['pinned'] == true,
+      canDelete: p['canDelete'] == true,
+      canReport: _canReportPost(p),
+    );
+    if (v == null || !mounted) return;
+    switch (v) {
+      case 'pin':
+        await _togglePin(p);
+      case 'delete':
+        await _deletePost(p);
+      case 'report':
+        await _reportPost(p);
+    }
+  }
+
+  bool _canReportPost(Map<String, dynamic> p) => _isMember && (p['authorId'] as num?)?.toInt() != widget.session.userId;
+
+  bool _hasPostActions(Map<String, dynamic> p) => _isManager || p['canDelete'] == true || _canReportPost(p);
+
+  // -------------------------------------------------------------------------------------------------------------
+  // Yapı
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    Widget body;
-    if (_error != null && _club == null && clubIsGone(_error!)) {
+    final l10n = context.l10n;
+    if (_error != null && _club == null) {
       // Kulüp kapatıldı (HIDDEN) ya da silindi: etkinlik ve sohbet odası da kapanır; yeniden denemenin anlamı yok.
-      body = Column(children: [
-        BuHeader(title: context.l10n.clubTitle, onBack: () => Navigator.pop(context)),
-        Expanded(child: EmptyView(key: const ValueKey('clubUnavailable'), icon: LucideIcons.users, text: context.l10n.clubUnavailable)),
-      ]);
-    } else if (_error != null && _club == null) {
-      body = Column(children: [
-        BuHeader(title: context.l10n.clubTitle, onBack: () => Navigator.pop(context)),
-        Expanded(child: ErrorView(error: _error!, onRetry: () {
-          setState(() => _error = null);
-          _load();
-        })),
-      ]);
-    } else if (_club == null) {
-      body = Column(children: [
-        BuHeader(title: context.l10n.clubTitle, onBack: () => Navigator.pop(context)),
-        const Expanded(child: LoadingView()),
-      ]);
-    } else {
-      body = RefreshIndicator(
-        onRefresh: _refresh,
-        edgeOffset: 120,
-        child: ListView(
-          controller: _scroll,
-          padding: EdgeInsets.zero,
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            _cover(t),
-            _identity(t),
-            _tabs(t),
-            ..._content(t),
-            const SizedBox(height: 32),
-          ],
-        ),
+      final gone = clubIsGone(_error!);
+      return Scaffold(
+        backgroundColor: t.bg,
+        appBar: AppBar(title: Text(l10n.clubTitle)),
+        body: gone
+            ? Padding(
+                key: const ValueKey('clubUnavailable'),
+                padding: const EdgeInsets.all(20),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ClubNoteCard(icon: LucideIcons.circlePause, title: l10n.clubUnavailable),
+                ),
+              )
+            : BuErrorState(
+                error: _error,
+                onRetry: () {
+                  setState(() => _error = null);
+                  _load();
+                }),
       );
     }
-    return Scaffold(backgroundColor: t.bg, resizeToAvoidBottomInset: true, body: body);
-  }
-
-  Widget _cover(BuTokens t) {
-    final cover = fileUrl(_club!['coverUrl']?.toString());
-    return SizedBox(
-      height: 190,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-            child: Stack(fit: StackFit.expand, children: [
-              Container(decoration: BoxDecoration(gradient: t.hero)),
-              if (cover != null)
-                Image.network(cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink())
-              else ...[
-                Positioned(
-                    right: -40,
-                    top: -50,
-                    child: Container(
-                        width: 190,
-                        height: 190,
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .15), shape: BoxShape.circle))),
-                Positioned(
-                    left: -30,
-                    bottom: -60,
-                    child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .10), shape: BoxShape.circle))),
-              ],
-            ]),
-          ),
-          PositionedDirectional(
-            start: 20,
-            top: MediaQuery.of(context).padding.top + 8,
-            child: BuIconButton(icon: LucideIcons.arrowLeft, onTap: () => Navigator.pop(context), tooltip: context.l10n.clubBack),
-          ),
-          PositionedDirectional(
-            end: 20,
-            top: MediaQuery.of(context).padding.top + 8,
-            child: _menu(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Kulüp seçenekleri (⋯): yönetim (yalnız yetkili), ayrılma (üye), şikâyet (sahip değilse).
-  Widget _menu() {
-    final pendingCount = _requests.items.length;
-    final t = context.bu;
-    return PopupMenuButton<String>(
-      tooltip: context.l10n.clubOptions,
-      color: t.sf,
-      elevation: 8,
-      shadowColor: Colors.black.withValues(alpha: .4),
-      shape: kulupMenuShape(context),
-      constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
-      onSelected: (v) {
-        switch (v) {
-          case 'edit':
-            _edit();
-          case 'event':
-            Navigator.push<bool>(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
-          case 'requests':
-            _openRequests();
-          case 'members':
-            _openMembers();
-          case 'cover':
-            _changeCover();
-          case 'delete':
-            _delete();
-          case 'leave':
-            _leave();
-          case 'report':
-            _reportClub();
-        }
-      },
-      itemBuilder: (_) {
-        final l10n = context.l10n;
-        return [
-          if (_isManager) ...[
-            PopupMenuItem(value: 'event', height: 44, child: KulupMenuRow(l10n.eventListCreate)),
-            PopupMenuItem(value: 'edit', height: 44, child: KulupMenuRow(l10n.clubEdit)),
-            PopupMenuItem(
-                value: 'requests',
-                height: 44,
-                child: KulupMenuRow(l10n.kulupdetayRequestsTitle, count: pendingCount)),
-            PopupMenuItem(value: 'members', height: 44, child: KulupMenuRow(l10n.clubManageMembers)),
-            PopupMenuItem(value: 'cover', height: 44, child: KulupMenuRow(l10n.clubChangeCover)),
+    if (_club == null) return const _DetailSkeleton();
+    return Scaffold(
+      backgroundColor: t.bg,
+      resizeToAvoidBottomInset: true,
+      body: RefreshIndicator(
+        color: t.pr,
+        backgroundColor: t.sf3,
+        edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
+        onRefresh: _refresh,
+        child: CustomScrollView(
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _appBar(t),
+            SliverToBoxAdapter(child: _identity(t)),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: ClubTabsDelegate(
+                labels: [l10n.clubTabPosts, l10n.clubTabEvents, l10n.clubTabMembers, l10n.clubTabPolls],
+                index: _tab,
+                onChanged: _setTab,
+              ),
+            ),
+            ..._content(t),
+            SliverToBoxAdapter(child: SizedBox(height: 32 + MediaQuery.paddingOf(context).bottom)),
           ],
-          if (_isManager && (_isOwner || _isMember)) const PopupMenuDivider(height: 9),
-          if (_isOwner) PopupMenuItem(value: 'delete', height: 44, child: KulupMenuRow(l10n.clubDeleteClub, danger: true)),
-          if (_isMember) PopupMenuItem(value: 'leave', height: 44, child: KulupMenuRow(l10n.clubLeave, danger: true)),
-          if (!_isOwner) PopupMenuItem(value: 'report', height: 44, child: KulupMenuRow(l10n.clubReportClub)),
-        ];
-      },
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: t.sf,
-          shape: BoxShape.circle,
-          border: Border.all(color: t.bd),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .12), blurRadius: 10, offset: const Offset(0, 4))],
         ),
-        child: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
       ),
     );
   }
 
-  Widget _glassBtn(IconData icon, VoidCallback onTap, String tip) => Tooltip(
-        message: tip,
-        child: Material(
-          color: Colors.black.withValues(alpha: .45),
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: SizedBox(width: 44, height: 44, child: Icon(buDirIcon(context, icon), size: 20, color: Colors.white)),
+  Widget _appBar(BuTokens t) {
+    final l10n = context.l10n;
+    final name = (_club!['name'] ?? '').toString();
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: _coverH + kClubCoverBand,
+      backgroundColor: t.bg,
+      surfaceTintColor: t.bg.withValues(alpha: 0),
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      leadingWidth: 62,
+      leading: ValueListenableBuilder<bool>(
+        valueListenable: _collapsed,
+        builder: (_, c, __) => Padding(
+          padding: const EdgeInsetsDirectional.only(start: 10),
+          child: ClubRoundButton(icon: LucideIcons.arrowLeft, tooltip: l10n.clubBack, onTap: () => Navigator.maybePop(context), onCover: !c),
+        ),
+      ),
+      title: ValueListenableBuilder<bool>(
+        valueListenable: _collapsed,
+        builder: (_, c, __) => AnimatedSwitcher(
+          duration: BuMotion.of(context, BuMotion.short),
+          child: c
+              ? Text(name, key: const ValueKey('collapsedName'), maxLines: 1, overflow: TextOverflow.ellipsis)
+              : const SizedBox.shrink(key: ValueKey('noName')),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 10),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _collapsed,
+            builder: (_, c, __) => Builder(
+              builder: (anchor) => ClubRoundButton(icon: LucideIcons.ellipsis, tooltip: l10n.clubOptions, onTap: () => _openMenu(anchor), onCover: !c),
+            ),
           ),
         ),
-      );
+      ],
+      flexibleSpace: ClubCoverSpace(
+        url: _club!['coverUrl']?.toString(),
+        coverHeight: _coverH,
+        seed: (_club!['id'] as num?)?.toInt() ?? widget.communityId,
+        logo: _logo(t),
+      ),
+    );
+  }
+
+  /// Kulüp logosu: yuvarlak; yüklenmişse görsel, yoksa kategori tonlu baş harfler. Kapakla çakışır.
+  Widget _logo(BuTokens t) {
+    final c = _club!;
+    final tint = t.tint((c['id'] as num?)?.toInt() ?? widget.communityId);
+    final tx = Theme.of(context).textTheme;
+    final logo = fileUrl(c['logoUrl']?.toString());
+    return Container(
+      width: 88,
+      height: 88,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: logo == null ? tint.bg : t.sf,
+        shape: BoxShape.circle,
+        border: Border.all(color: t.bg, width: 4),
+        boxShadow: BuElevation.of(context, 1),
+      ),
+      child: logo != null
+          ? ClipOval(child: BuImage(c['logoUrl']?.toString(), width: 80, height: 80, placeholderIcon: LucideIcons.users))
+          : ExcludeSemantics(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(initialsOf(c['name']?.toString()), style: tx.headlineMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ),
+    );
+  }
+
+  /// Kategori / üye sayısı / görünürlük çipleri (referans 28-02).
+  Widget _chips(BuTokens t) {
+    final c = _club!;
+    final l10n = context.l10n;
+    final cat = (c['category'] ?? '').toString();
+    final private = c['visibility'] == 'PRIVATE';
+    final catInfo = ClubCategories.find(cat);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (cat.isNotEmpty)
+          _InfoChip(icon: catInfo == null ? LucideIcons.tag : ClubCategory.iconFor(catInfo.icon), text: ClubCategories.labelFor(cat)),
+        _InfoChip(icon: LucideIcons.users, text: l10n.clubMemberCount('${c['memberCount'] ?? 0}')),
+        _InfoChip(
+          icon: private ? LucideIcons.lock : LucideIcons.globe,
+          text: private ? l10n.clubPrivate : l10n.clubPublic,
+          accent: private,
+        ),
+      ],
+    );
+  }
 
   Widget _identity(BuTokens t) {
     final c = _club!;
-    final desc = (c['description'] ?? '').toString();
+    final tx = Theme.of(context).textTheme;
+    final desc = (c['description'] ?? '').toString().trim();
+    final l10n = context.l10n;
+    final roleBadge = _isMember ? clubRoleBadge(context, _role) : null;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      padding: BuSpace.pageH,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Transform.translate(
-            offset: const Offset(0, -34),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  width: 68,
-                  height: 68,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: t.sf,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: t.bg, width: 4),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .15), blurRadius: 12, offset: const Offset(0, 4))],
-                  ),
-                  child: Text(initialsOf(c['name']?.toString()),
-                      style: BuType.title.copyWith(color: t.pr)),
-                ),
-                const Spacer(),
-                _membershipButton(),
-              ],
-            ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Semantics(
+                header: true,
+                child: Text((c['name'] ?? '').toString(),
+                    maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+              ),
+              if (roleBadge != null && _isManager) roleBadge,
+            ],
           ),
-          Transform.translate(
-            offset: const Offset(0, -22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text((c['name'] ?? '').toString(),
-                    style: BuType.display.copyWith(letterSpacing: -.3, color: t.ink)),
-                const SizedBox(height: 4),
-                Text(_meta(), style: BuType.caption.copyWith(color: t.mut)),
-                if (desc.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text(desc, style: BuType.body.copyWith(height: 1.5, color: t.ink)),
+          const SizedBox(height: 10),
+          _chips(t),
+          if (desc.isNotEmpty) ...[const SizedBox(height: 12), ClubExpandableText(desc)],
+          const SizedBox(height: 12),
+          _cta(),
+          if (_status == 'NONE' && (c['joinPolicy'] == 'APPROVAL' || c['visibility'] == 'PRIVATE'))
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 2, right: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(padding: const EdgeInsets.only(top: 2), child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 15, color: t.mut))),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l10n.p11ApprovalNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
                 ],
-                if (_isMember) ...[
-                  const SizedBox(height: 14),
-                  KulupPillButton(label: context.l10n.clubChat, icon: LucideIcons.messageCircle, busy: _busy, onPressed: _openChat),
-                ],
-              ],
+              ),
             ),
-          ),
+          if (_isPending) ...[
+            const SizedBox(height: 12),
+            ClubNoteCard(icon: LucideIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody, tone: ClubNoteTone.soft),
+          ],
+          if (_status == 'BANNED') ...[
+            const SizedBox(height: 12),
+            ClubNoteCard(icon: LucideIcons.userX, title: l10n.p11BannedTitle, body: l10n.p11BannedBody, tone: ClubNoteTone.soft),
+          ],
+          if (_isManager && _requests.items.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ClubRequestsBanner(
+              text: l10n.kulupdetayPendingBanner('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
+              onTap: _openRequests,
+            ),
+          ],
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _membershipButton() {
+  /// Üyelik durumuna göre ana eylem(ler).
+  Widget _cta() {
+    final l10n = context.l10n;
     if (_isMember) {
-      // Ayrılma eylemi belirgin değil: ⋯ menüsündeki "Kulüpten ayrıl".
-      return KulupPillButton(
-          label: context.l10n.clubIsMember, icon: LucideIcons.check, kind: KulupPillKind.soft, staticLook: true);
+      return Row(
+        children: [
+          Expanded(child: _StatusPill(label: l10n.clubIsMember, icon: LucideIcons.circleCheck)),
+          const SizedBox(width: 12),
+          Expanded(child: ClubBtn(label: l10n.clubChat, icon: LucideIcons.messageSquare, kind: ClubBtnKind.ink, busy: _busy, onPressed: _openChat)),
+        ],
+      );
     }
     if (_isPending) {
-      return KulupPillButton(
-          label: context.l10n.clubRequestSent, kind: KulupPillKind.outline, busy: _busy, onPressed: _withdraw);
+      return Row(
+        children: [
+          Expanded(child: _StatusPill(label: l10n.clubRequestSent, icon: LucideIcons.hourglass, muted: true)),
+          const SizedBox(width: 8),
+          BuButton(label: l10n.clubWithdrawConfirm, icon: LucideIcons.undo2, kind: BuButtonKind.text, compact: true, onPressed: _busy ? null : _withdraw),
+        ],
+      );
     }
     if (_status == 'BANNED') {
-      return KulupPillButton(label: context.l10n.clubCannotJoin, kind: KulupPillKind.outline, staticLook: true);
+      return ClubBtn(label: l10n.clubCannotJoin, icon: LucideIcons.circleMinus, onPressed: null);
     }
-    return KulupPillButton(
-        label: _club!['joinPolicy'] == 'APPROVAL' ? context.l10n.clubSendJoinRequest : context.l10n.clubJoin,
-        busy: _busy,
-        onPressed: _join);
-  }
-
-  Widget _tabs(BuTokens t) {
-    final l10n = context.l10n;
-    final names = [l10n.clubTabPosts, l10n.clubTabEvents, l10n.clubTabMembers, l10n.clubTabPolls];
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
-      child: Row(
-        children: [
-          for (var i = 0; i < names.length; i++)
-            Expanded(
-              child: Semantics(
-                button: true,
-                selected: i == _tab,
-                child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _setTab(i),
-                child: Container(
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: i == _tab ? t.pr : Colors.transparent, width: 2))),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(names[i],
-                        maxLines: 1, style: BuType.bodyStrong.copyWith(color: i == _tab ? t.pr : t.mut)),
-                  ),
-                ),
-              )),
-            ),
-        ],
-      ),
+    return BuButton(
+      label: _club!['joinPolicy'] == 'APPROVAL' ? l10n.clubSendJoinRequest : l10n.clubJoin,
+      icon: LucideIcons.userPlus,
+      busy: _busy,
+      onPressed: _join,
     );
   }
 
+  /// Üye olunmadan içerik kilitli mi (özel kulüp ya da yasak)?
+  bool get _locked => _club != null && (_status == 'BANNED' || (_club!['visibility'] == 'PRIVATE' && !_isMember));
+
+  static const _pad = EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12);
+
   List<Widget> _content(BuTokens t) {
+    final l10n = context.l10n;
+    if (_locked) {
+      final (icon, title, body) = _status == 'BANNED'
+          ? (LucideIcons.eyeOff, l10n.p11LockBannedTitle, l10n.p11LockBannedBody)
+          : _isPending
+              ? (LucideIcons.lock, l10n.p11LockMembersTitle, l10n.p11LockMembersBody)
+              : (LucideIcons.lock, l10n.p11LockPrivateTitle, l10n.p11LockPrivateBody);
+      return [
+        SliverToBoxAdapter(
+          child: Padding(padding: _pad, child: ClubLockCard(icon: icon, title: title, body: body)),
+        ),
+      ];
+    }
     if (_tab == 3) {
       return [
-        PollClubSection(
-            key: ValueKey('polls-$_pollGen'),
-            session: widget.session,
-            communityId: widget.communityId,
-            canCreate: _isManager),
+        SliverToBoxAdapter(
+          child: PollClubSection(
+              key: ValueKey('polls-$_pollGen'), session: widget.session, communityId: widget.communityId, canCreate: _isManager),
+        ),
       ];
     }
     final p = _cur;
-    final out = <Widget>[];
+    final head = <Widget>[];
     if (_tab == 0) {
-      if (_requests.items.isNotEmpty) out.add(_requestsSection(t));
-      if (_isMember) out.add(_composer(t));
+      if (_isMember) head.add(Padding(padding: _pad, child: _composer()));
     }
+    if (_tab == 2 && _isManager) {
+      head.add(Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 4),
+        child: Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: BuButton(label: l10n.clubManageMembers, icon: LucideIcons.userCog, kind: BuButtonKind.soft, compact: true, onPressed: _openMembers),
+        ),
+      ));
+    }
+    final out = <Widget>[if (head.isNotEmpty) SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: head))];
     if (p.error != null && p.items.isEmpty) {
-      out.add(SizedBox(height: 260, child: ErrorView(error: p.error!, onRetry: () => _refreshTab(reset: true))));
+      out.add(SliverToBoxAdapter(
+          child: SizedBox(height: 300, child: BuErrorState(error: p.error, compact: true, onRetry: () => _refreshTab(reset: true)))));
       return out;
     }
     if (!p.loaded) {
-      out.add(const SizedBox(height: 200, child: LoadingView()));
+      out.add(const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.card, itemCount: 2, shrinkWrap: true)));
       return out;
     }
     if (p.items.isEmpty) {
-      final (icon, text) = switch (_tab) {
-        0 => (LucideIcons.messageSquare, context.l10n.clubNoPosts),
-        1 => (LucideIcons.calendarX, context.l10n.clubNoEvents),
-        _ => (LucideIcons.users, context.l10n.clubNoMembers),
+      final (art, text) = switch (_tab) {
+        0 => (BuIllustration.message, l10n.clubNoPosts),
+        1 => (BuIllustration.calendar, l10n.clubNoEvents),
+        _ => (BuIllustration.club, l10n.clubNoMembers),
       };
-      out.add(SizedBox(height: 220, child: EmptyView(icon: icon, text: text)));
+      out.add(SliverToBoxAdapter(child: SizedBox(height: 300, child: BuEmptyState(illustration: art, title: text, compact: true))));
       return out;
     }
-    for (final it in p.items) {
-      out.add(Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-        child: switch (_tab) {
-          0 => _postCard(t, it),
-          1 => _eventCard(t, it),
-          _ => _memberRow(t, it),
-        },
-      ));
-    }
+    out.add(BuStaggerScope(
+      key: ValueKey('tab-$_tab'),
+      child: SliverPadding(
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+        sliver: SliverList.builder(
+          itemCount: p.items.length,
+          itemBuilder: (c, i) {
+            final it = p.items[i];
+            return BuStaggerItem(
+              index: i,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: switch (_tab) {
+                  0 => ClubPostCard(post: it, onMenu: _isMember && _hasPostActions(it) ? () => _openPostMenu(it) : null),
+                  1 => ClubEventCard(event: it, onTap: _eventTap(it)),
+                  _ => ClubMemberTile(member: it),
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    ));
     if (p.loading) {
-      out.add(const Padding(padding: EdgeInsets.all(16), child: LoadingView()));
+      out.add(const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 1, shrinkWrap: true)));
     } else if (p.error != null) {
-      out.add(Center(child: TextButton(onPressed: _more, child: Text(context.l10n.clubLoadFailedRetry))));
+      out.add(SliverToBoxAdapter(
+          child: Center(child: BuButton(label: l10n.clubLoadFailedRetry, kind: BuButtonKind.text, compact: true, onPressed: _more))));
     }
     return out;
   }
 
-  Widget _composer(BuTokens t) {
-    final l10n = context.l10n;
-    final words = postWordCount(_text.text);
-    final ok = postTextOk(_text.text);
-    final hasText = _text.text.trim().isNotEmpty;
-    final canSend = !_sending && ok && (hasText || _image != null);
-    final needText = _image != null && !hasText;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: BuCard(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_image != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(bottom: 8, end: 8, top: 4),
-                child: Stack(
-                  alignment: AlignmentDirectional.topEnd,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.memory(_image!.bytes,
-                          width: double.infinity, height: 150, fit: BoxFit.cover, gaplessPlayback: true),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: _glassBtn(LucideIcons.x, () => setState(() => _image = null), l10n.clubRemoveImage),
-                    ),
-                  ],
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _text,
-                    minLines: 1,
-                    maxLines: 1,
-                    onChanged: (_) => setState(() => _needText = false),
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(kPostMaxChars),
-                      FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
-                    ],
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => canSend ? _post() : null,
-                    style: BuType.body.copyWith(fontSize: 14.5, color: t.ink),
-                    decoration: InputDecoration(
-                      hintText: l10n.clubWriteHint,
-                      hintStyle: TextStyle(color: t.mut),
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-                _squareBtn(t, LucideIcons.image, _sending ? null : _pickImage, l10n.clubAddImage, filled: false),
-                const SizedBox(width: 6),
-                _squareBtn(t, LucideIcons.send, canSend ? _post : null, l10n.clubShare, filled: true),
-              ],
-            ),
-            if (needText)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(bottom: 4, end: 8),
-                child: Semantics(
-                  liveRegion: true,
-                  child: Text(l10n.clubPostTextRequired,
-                      key: const ValueKey('clubPostTextRequired'),
-                      style: BuType.caption.copyWith(color: _needText ? t.danger : t.mut)),
-                ),
-              ),
-            if (_text.text.isNotEmpty)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(bottom: 4, end: 8),
-                child: Text(
-                  ok
-                      ? l10n.gonderiWordCount(words.toString(), kPostMaxWords.toString())
-                      : l10n.gonderiWordLimit(kPostMaxWords.toString()),
-                  style: BuType.caption.copyWith(color: ok ? t.mut : t.pr),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 44 dp, 14 dp köşeli kare ikon düğmesi (yazma kutusu).
-  Widget _squareBtn(BuTokens t, IconData icon, VoidCallback? onTap, String tip, {required bool filled}) => Semantics(
-        button: true,
-        enabled: onTap != null,
-        label: tip,
-        child: Tooltip(
-          message: tip,
-          excludeFromSemantics: true,
-          child: Material(
-            color: filled ? (onTap == null ? t.pr.withValues(alpha: .5) : t.pr) : t.bg,
-            borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: onTap,
-              child: SizedBox(width: 44, height: 44, child: Icon(icon, size: 20, color: filled ? t.onPr : t.ink)),
-            ),
-          ),
-        ),
-      );
-
-  /// Başvurular özeti: ayrı sayfada yönetilir.
-  Widget _requestsSection(BuTokens t) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-        child: BuCard(
-          onTap: _openRequests,
-          color: t.soft,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(LucideIcons.inbox, size: 20, color: t.pr),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                    context.l10n.kulupdetayPendingBanner('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-              ),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.pr),
-            ],
-          ),
-        ),
-      );
-
-  Widget _postMenu(BuTokens t, Map<String, dynamic> p) {
-    final pinned = p['pinned'] == true;
-    return PopupMenuButton<String>(
-      tooltip: context.l10n.clubPostActions,
-      icon: Icon(LucideIcons.ellipsis, size: 16, color: t.mut),
-      padding: EdgeInsets.zero,
-      onSelected: (v) {
-        switch (v) {
-          case 'pin':
-            _togglePin(p);
-          case 'delete':
-            _deletePost(p);
-          case 'report':
-            _reportPost(p);
-        }
-      },
-      itemBuilder: (_) {
-        final l10n = context.l10n;
-        return [
-          if (_isManager) PopupMenuItem(value: 'pin', child: Text(pinned ? l10n.clubUnpin : l10n.clubPin)),
-          if (p['canDelete'] == true) PopupMenuItem(value: 'delete', child: Text(l10n.clubDelete)),
-          if (_isMember && (p['authorId'] as num?)?.toInt() != widget.session.userId)
-            PopupMenuItem(value: 'report', child: Text(l10n.clubReport)),
-        ];
-      },
-    );
-  }
-
-  Widget _postCard(BuTokens t, Map<String, dynamic> p) {
-    final img = fileUrl(p['imageUrl']?.toString());
-    final pinned = p['pinned'] == true;
-    return BuCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              KulupAvatar(name: p['authorName']?.toString(), url: p['authorAvatarUrl']?.toString(), size: 38),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text((p['authorName'] ?? '').toString(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.bodyStrong.copyWith(color: t.ink)),
-                    Text(relativeTime(p['createdAt']?.toString()), style: BuType.caption.copyWith(color: t.mut)),
-                  ],
-                ),
-              ),
-              if (pinned) ...[BuBadge(context.l10n.clubPinned, soft: true), const SizedBox(width: 6)],
-              if (_isMember) _postMenu(t, p),
-            ],
-          ),
-          if ((p['text'] ?? '').toString().isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(p['text'].toString(), style: BuType.body.copyWith(height: 1.5, color: t.ink)),
-          ],
-          if (img != null) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Image.network(img,
-                  width: double.infinity,
-                  height: 150,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                      height: 130,
-                      color: t.sf2,
-                      alignment: Alignment.center,
-                      child: Icon(LucideIcons.image, size: 27, color: t.mut))),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _eventCard(BuTokens t, Map<String, dynamic> e) {
+  VoidCallback? _eventTap(Map<String, dynamic> e) {
     final id = (e['id'] as num?)?.toInt();
-    return BuCard(
-      onTap: id == null
-          ? null
-          : () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => EventDetailPage(session: widget.session, eventId: id))),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.calendar, color: t.onSoft, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text((e['title'] ?? '').toString(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(color: t.ink)),
-                const SizedBox(height: 2),
-                Text(
-                    [
-                      niceDate(e['startsAt']?.toString()),
-                      if ((e['location'] ?? '').toString().isNotEmpty) e['location'].toString(),
-                    ].join(' · '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.caption.copyWith(color: t.mut)),
-              ],
-            ),
-          ),
-          Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
-        ],
-      ),
-    );
+    if (id == null) return null;
+    return () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventDetailPage(session: widget.session, eventId: id)));
   }
 
-  Widget _memberRow(BuTokens t, Map<String, dynamic> m) {
-    final role = m['role']?.toString();
-    return BuCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          KulupAvatar(name: m['displayName']?.toString(), url: m['avatarUrl']?.toString(), size: 42),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text((m['displayName'] ?? context.l10n.clubUser).toString(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-          ),
-          if (role == 'OWNER' || role == 'ADMIN') KulupRoleBadge(context.l10n.clubRoleOwner),
-          if (role == 'MODERATOR') KulupRoleBadge(context.l10n.clubRoleModerator),
-        ],
-      ),
-    );
-  }
+  Widget _composer() => ListenableBuilder(
+        listenable: _text,
+        builder: (context, _) => ClubComposer(
+          selfName: widget.session.displayName,
+          controller: _text,
+          image: _image,
+          sending: _sending,
+          needText: _needText,
+          onChanged: () {
+            if (_needText) setState(() => _needText = false);
+          },
+          onPickImage: _pickImage,
+          onRemoveImage: () => setState(() => _image = null),
+          onSend: _post,
+        ),
+      );
 }
 
-/// Kulübü silmeden önce son onay: uyarı + kulüp adını yazma.
-class _DeleteClubDialog extends StatefulWidget {
-  const _DeleteClubDialog({required this.name});
-
-  final String name;
-
-  @override
-  State<_DeleteClubDialog> createState() => _DeleteClubDialogState();
-}
-
-class _DeleteClubDialogState extends State<_DeleteClubDialog> {
-  final _c = TextEditingController();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
+/// Yükleniyor görünümü: kapak + logo + metin + sekme + kart iskeleti (dönen çember yok).
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final match = _c.text.trim() == widget.name.trim();
-    return AlertDialog(
-      title: Text(context.l10n.clubDeleteClub),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context.l10n.clubDeleteBody,
-                style: BuType.body.copyWith(color: t.ink)),
-            const SizedBox(height: 12),
-            Text(context.l10n.clubDeleteTypeName(widget.name), style: BuType.caption.copyWith(color: t.mut)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _c,
-              autofocus: true,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(hintText: context.l10n.clubNameHint),
+    final top = MediaQuery.paddingOf(context).top;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Stack(
+        children: [
+          Semantics(
+            label: context.l10n.commonLoading,
+            liveRegion: true,
+            container: true,
+            child: BuSkeletonScope(
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(BuRadius.xl)),
+                      child: BuSkeleton(height: top + _coverH, radius: 0),
+                    ),
+                    const Padding(
+                      padding: BuSpace.pageH,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 56,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [PositionedDirectional(start: 0, top: -44, child: BuSkeleton(width: 88, height: 88, radius: BuRadius.xl))],
+                            ),
+                          ),
+                          BuSkeleton.line(width: 200, height: 24),
+                          BuGap.h8,
+                          BuSkeleton.line(width: 150),
+                          BuGap.h16,
+                          BuSkeleton.line(),
+                          BuGap.h8,
+                          BuSkeleton.line(width: 260),
+                          BuGap.h20,
+                          BuSkeleton(height: 54, radius: BuRadius.md),
+                          BuGap.h20,
+                          BuSkeleton(height: 52, radius: 26),
+                        ],
+                      ),
+                    ),
+                    const BuSkeletonList(variant: BuSkeletonVariant.card, itemCount: 1, shrinkWrap: true),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+          PositionedDirectional(
+            start: 10,
+            top: top + 4,
+            child: ClubRoundButton(icon: LucideIcons.arrowLeft, tooltip: context.l10n.clubBack, onTap: () => Navigator.maybePop(context), onCover: true),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.clubCancel)),
-        TextButton(
-          onPressed: match ? () => Navigator.pop(context, true) : null,
-          child: Text(context.l10n.clubDelete, style: match ? TextStyle(color: t.pr) : null),
-        ),
-      ],
     );
   }
 }
 
 /// Kulüp ayrıntısı/alt kaynağı 404 (kapatılmış `HIDDEN`, silinmiş ya da var olmayan kulüp).
 bool clubIsGone(Object e) => e is ApiError && (e.status == 404 || e.code == 'COMMUNITY_NOT_FOUND');
+
+/// Kimlik bölümündeki çip: simge + metin; [accent] marka tonlu (özel kulüp).
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.text, this.accent = false});
+
+  final IconData icon;
+  final String text;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final fg = accent ? t.onSoft : t.ink;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: accent ? t.soft : t.sf2, borderRadius: BuRadius.bPill),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(child: Icon(icon, size: 15, color: accent ? t.onSoft : t.mut)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(text,
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dokunulmaz durum etiketi (52 dp): "Üyesin" / "İstek gönderildi".
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.icon, this.muted = false});
+
+  final String label;
+  final IconData icon;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      container: true,
+      label: label,
+      child: ExcludeSemantics(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: muted ? t.mut : t.ok),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(label,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: muted ? t.mut : t.ink, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

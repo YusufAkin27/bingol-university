@@ -3,41 +3,51 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
+import '../../widgets/bu.dart';
+import 'club_ref_widgets.dart';
 
 /// Kulüp rolü yönetici mi (sahip / yönetici / moderatör)?
 bool isClubManagerRole(String? role) => role == 'OWNER' || role == 'ADMIN' || role == 'MODERATOR';
 
-/// Basit onay diyaloğu; [danger] true ise onay düğmesi soluk kırmızıdır.
+/// Onay diyaloğu (A26, referans 29-02 / 27-02): simgeli kart; [danger] true ise onay düğmesi kırmızıdır.
+/// [leading] true: simge solda (üye çıkar/yasakla); [boldName] metnin başındaki adı kalın yazar.
 Future<bool> confirmDialog(
   BuildContext context, {
   required String title,
   required String message,
   required String confirmLabel,
   bool danger = false,
+  IconData? icon,
+  IconData? confirmIcon,
+  bool leading = false,
+  String? boldName,
 }) async {
-  final t = context.bu;
-  final ok = await showDialog<bool>(
+  final r = await showDialog<bool>(
     context: context,
-    builder: (c) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
+    builder: (ctx) => ClubDialogCard(
+      icon: icon ?? (danger ? LucideIcons.logOut : LucideIcons.circleHelp),
+      title: title,
+      message: message,
+      boldName: boldName,
+      leading: leading,
+      danger: danger,
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.clubCancel)),
-        TextButton(
-          onPressed: () => Navigator.pop(c, true),
-          child: Text(confirmLabel, style: danger ? TextStyle(color: t.pr) : null),
+        ClubBtn(label: context.l10n.clubCancel, onPressed: () => Navigator.of(ctx).pop(false)),
+        ClubBtn(
+          label: confirmLabel,
+          icon: confirmIcon,
+          kind: danger ? ClubBtnKind.danger : ClubBtnKind.primary,
+          onPressed: () => Navigator.of(ctx).pop(true),
         ),
       ],
     ),
   );
-  return ok == true;
+  return r ?? false;
 }
 
 /// Kulüpten ayrılma akışı: onay -> `DELETE /communities/{id}/membership`.
 /// Başarıda sohbet listesi yenilensin diye [AppBadges.conversationsDirty] artırılır. Dönüş: ayrıldı mı.
-/// Sahip için ayrılma yerine açıklama gösterilir (sunucu `OWNER_CANNOT_LEAVE` dönerse de aynı mesaj).
+/// Sahip için ayrılma yerine açıklama gösterilir (A27; sunucu `OWNER_CANNOT_LEAVE` dönerse de aynı mesaj).
 Future<bool> leaveClubFlow(
   BuildContext context,
   Session session, {
@@ -50,10 +60,12 @@ Future<bool> leaveClubFlow(
   if (isOwner) {
     await showDialog<void>(
       context: context,
-      builder: (c) => AlertDialog(
-        title: Text(l10n.clubCannotLeaveTitle),
-        content: Text(ownerInfo),
-        actions: [TextButton(onPressed: () => Navigator.pop(c), child: Text(l10n.clubOk))],
+      builder: (ctx) => ClubDialogCard(
+        icon: LucideIcons.shieldAlert,
+        title: l10n.clubCannotLeaveTitle,
+        message: ownerInfo,
+        badge: LucideIcons.info,
+        actions: [ClubBtn(label: l10n.clubOk, kind: ClubBtnKind.ink, onPressed: () => Navigator.of(ctx).pop())],
       ),
     );
     return false;
@@ -64,20 +76,25 @@ Future<bool> leaveClubFlow(
     message: l10n.clubLeaveMessage(clubName.isEmpty ? l10n.clubThisClub : clubName),
     confirmLabel: l10n.clubLeaveConfirm,
     danger: true,
+    icon: LucideIcons.logOut,
   );
   if (!ok || !context.mounted) return false;
-  final messenger = ScaffoldMessenger.of(context);
+  void toast(String m) {
+    if (context.mounted) BuToast.show(context, m, kind: BuToastKind.error);
+  }
+
   try {
     await session.api.delete('/communities/$communityId/membership');
     session.badges.conversationsDirty.value++;
     return true;
   } on ApiError catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text(e.code == 'OWNER_CANNOT_LEAVE' ? ownerInfo : errorText(e))));
+    toast(e.code == 'OWNER_CANNOT_LEAVE' ? ownerInfo : errorText(e));
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text(errorText(e))));
+    toast(errorText(e));
   }
   return false;
 }
 
 /// Soluk kırmızı menü satırı yazısı.
-TextStyle dangerItemStyle(BuildContext context) => BuType.body.copyWith(color: context.bu.pr);
+TextStyle dangerItemStyle(BuildContext context) =>
+    Theme.of(context).textTheme.bodyLarge!.copyWith(color: context.bu.danger);

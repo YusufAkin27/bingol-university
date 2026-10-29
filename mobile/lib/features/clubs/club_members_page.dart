@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import 'club_actions.dart';
-import 'kulup_widgets.dart';
+import 'club_detail_parts.dart';
+import 'club_ref_widgets.dart';
 
 /// Kulüp üyelerini yönetme: arama, rol değiştirme (yalnız sahip), çıkarma, yasaklama.
 /// Pop sonucu: değişiklik olduysa true.
@@ -37,10 +35,12 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
   final _items = <Map<String, dynamic>>[];
   int? _next;
   bool _loading = true;
+  bool _paging = false; // sayfalama ucundaki iskelet; çekerek yenilemede görünmez
   Object? _error;
   bool _changed = false;
   String _query = '';
   final _scroll = ScrollController();
+  final _search = TextEditingController();
   int _gen = 0;
 
   String get _base => '/communities/${widget.communityId}';
@@ -50,7 +50,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
   void initState() {
     super.initState();
     _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300 && _next != null && !_loading) _load();
+      if (_scroll.hasClients && _scroll.position.pixels > _scroll.position.maxScrollExtent - 300 && _next != null && !_loading) _load();
     });
     _load(reset: true);
   }
@@ -58,6 +58,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
   @override
   void dispose() {
     _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -65,6 +66,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     final gen = ++_gen;
     setState(() {
       _loading = true;
+      _paging = !reset;
       if (reset) _error = null;
     });
     try {
@@ -76,14 +78,22 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
         _items.addAll((r['items'] as List? ?? []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)));
         _next = (r['nextCursor'] as num?)?.toInt();
         _loading = false;
+        _paging = false;
       });
     } catch (e) {
-      if (mounted && gen == _gen) setState(() { _error = e; _loading = false; });
+      if (mounted && gen == _gen) {
+        setState(() {
+          _error = e;
+          _loading = false;
+          _paging = false;
+        });
+      }
     }
   }
 
-  void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _snack(String m) => BuToast.show(context, m, kind: BuToastKind.error);
 
+  /// Çıkar / yasakla onayı (A26 ailesi) + `DELETE members/{id}`.
   Future<void> _remove(Map<String, dynamic> m, {required bool ban}) async {
     final l = context.l10n;
     final name = (m['displayName'] ?? l.clubMgmtUser).toString();
@@ -93,6 +103,10 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
       message: ban ? l.clubMgmtBanMessage(name) : l.clubMgmtRemoveMessage(name),
       confirmLabel: ban ? l.clubMgmtBan : l.clubMgmtRemoveConfirm,
       danger: true,
+      leading: true,
+      boldName: name,
+      icon: ban ? LucideIcons.ban : LucideIcons.userMinus,
+      confirmIcon: ban ? LucideIcons.ban : LucideIcons.userMinus,
     );
     if (!ok || !mounted) return;
     try {
@@ -126,122 +140,167 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     return _items.where((m) => (m['displayName'] ?? '').toString().toLowerCase().contains(q)).toList();
   }
 
+  /// Üye işlemleri alt sayfası (referans 27-02): üstte üye özeti + kapat, altında rol değiştir (yalnız sahip), çıkar, yasakla.
+  Future<void> _openActions(Map<String, dynamic> m) async {
+    final l = context.l10n;
+    final role = m['role']?.toString();
+    final name = (m['displayName'] ?? l.clubMgmtUser).toString();
+    final sub = clubMemberSubtitle(context, m);
+    final v = await BuSheet.show<String>(
+      context,
+      builder: (c) {
+        final t = c.bu;
+        final tx = Theme.of(c).textTheme;
+        void pick(String v) => Navigator.of(c).pop(v);
+        final badge = clubRoleBadge(c, role);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  ClubRoleAvatar(name: name, url: m['avatarUrl']?.toString(), role: role, size: 48, ring: t.sf3),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 2,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                            if (badge != null) badge,
+                          ],
+                        ),
+                        if (sub.isNotEmpty) Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                      ],
+                    ),
+                  ),
+                  ClubRoundButton(icon: LucideIcons.x, tooltip: l.commonClose, onTap: () => Navigator.of(c).pop(), size: 40),
+                ],
+              ),
+            ),
+            if (_isOwner)
+              if (role == 'MEMBER')
+                ClubSheetRow(icon: LucideIcons.shieldCheck, title: l.clubMgmtMakeModerator, onTap: () => pick('mod'))
+              else
+                ClubSheetRow(icon: LucideIcons.user, title: l.clubMgmtMakeMember, onTap: () => pick('member')),
+            ClubSheetRow(icon: LucideIcons.userMinus, title: l.clubMgmtRemoveFromClub, onTap: () => pick('remove')),
+            ClubSheetRow(icon: LucideIcons.ban, title: l.clubMgmtBan, danger: true, onTap: () => pick('ban')),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+    if (v == null || !mounted) return;
+    switch (v) {
+      case 'mod':
+        await _setRole(m, 'MODERATOR');
+      case 'member':
+        await _setRole(m, 'MEMBER');
+      case 'remove':
+        await _remove(m, ban: false);
+      case 'ban':
+        await _remove(m, ban: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final t = context.bu;
     final list = _visible;
-    Widget body;
-    if (_loading && _items.isEmpty) {
-      body = const LoadingView();
-    } else if (_error != null && _items.isEmpty) {
-      body = ErrorView(error: _error!, onRetry: () => _load(reset: true));
-    } else if (list.isEmpty) {
-      body = EmptyView(icon: LucideIcons.users, text: context.l10n.clubMgmtNoMembers);
-    } else {
-      body = ListView.separated(
-        controller: _scroll,
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-        itemCount: list.length + (_loading ? 1 : 0),
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (_, i) {
-          if (i >= list.length) {
-            return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-          }
-          return _row(t, list[i]);
-        },
-      );
-    }
+    final state = _loading && _items.isEmpty
+        ? BuViewState.loading
+        : _error != null && _items.isEmpty
+            ? BuViewState.error
+            : _items.isEmpty
+                ? BuViewState.empty
+                : BuViewState.ready;
+    final subtitle = (widget.clubName ?? '').isEmpty
+        ? null
+        : l.kulupdetayMembersSubtitle(widget.clubName!, '${widget.memberCount ?? _items.length}');
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) Navigator.pop(context, _changed);
       },
-      child: Scaffold(
-        backgroundColor: t.bg,
-        body: Column(
-          children: [
-            BuHeader(
-              title: context.l10n.clubMgmtMembersTitle,
-              subtitle: (widget.clubName ?? '').isEmpty
-                  ? null
-                  : context.l10n.kulupdetayMembersSubtitle(widget.clubName!, '${widget.memberCount ?? _items.length}'),
-              onBack: () => Navigator.pop(context, _changed),
+      child: BuPageScaffold(
+        title: l.clubMgmtMembersTitle,
+        large: false,
+        state: state,
+        error: _error,
+        onRetry: () => _load(reset: true),
+        onRefresh: () => _load(reset: true),
+        controller: _scroll,
+        loading: const BuSkeletonList(variant: BuSkeletonVariant.row, shrinkWrap: true),
+        empty: BuEmptyState(illustration: BuIllustration.club, title: l.clubMgmtNoMembers),
+        slivers: [
+          if (subtitle != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+                child: Text(subtitle, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-              child: BuSearchField(hint: context.l10n.clubMgmtSearchMember, onChanged: (v) => setState(() => _query = v.trim())),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+              child: BuSearchField(hint: l.clubMgmtSearchMember, controller: _search, onChanged: (v) => setState(() => _query = v.trim())),
             ),
-            Expanded(child: body),
-          ],
-        ),
+          ),
+          if (list.isEmpty)
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 320,
+                child: BuEmptyState(
+                  illustration: BuIllustration.search,
+                  title: l.clubMgmtNoMembers,
+                  message: l.p11SearchEmptyBody(_query),
+                  secondaryLabel: l.p11ClearSearch,
+                  onSecondary: () => setState(() {
+                    _query = '';
+                    _search.clear();
+                  }),
+                  compact: true,
+                ),
+              ),
+            )
+          else
+            BuStaggerScope(
+              child: SliverPadding(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+                sliver: SliverList.builder(
+                  itemCount: list.length,
+                  itemBuilder: (_, i) => BuStaggerItem(
+                    index: i,
+                    child: Padding(padding: const EdgeInsets.only(bottom: 10), child: _row(list[i])),
+                  ),
+                ),
+              ),
+            ),
+          if (_paging)
+            const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 1, shrinkWrap: true)),
+        ],
       ),
     );
   }
 
-  Widget _row(BuTokens t, Map<String, dynamic> m) {
+  Widget _row(Map<String, dynamic> m) {
     final role = m['role']?.toString();
     final self = (m['userId'] as num?)?.toInt() == widget.session.userId;
     final target = role == 'OWNER';
     final canAct = !self && !target && (_isOwner || role == 'MEMBER');
-    return BuCard(
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
-      child: Row(
-        children: [
-          KulupAvatar(name: m['displayName']?.toString(), url: m['avatarUrl']?.toString(), size: 42),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text((m['displayName'] ?? context.l10n.clubMgmtUser).toString(),
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                if (role == 'OWNER' || role == 'ADMIN' || role == 'MODERATOR')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: KulupRoleBadge(role == 'OWNER' || role == 'ADMIN'
-                          ? context.l10n.clubMgmtRoleManager
-                          : context.l10n.clubMgmtRoleModerator),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (canAct)
-            PopupMenuButton<String>(
-              tooltip: context.l10n.clubMgmtMemberActions,
-              color: t.sf,
-              elevation: 8,
-              shape: kulupMenuShape(context),
-              constraints: const BoxConstraints(minWidth: 200, maxWidth: 280),
-              icon: const KulupDots(),
-              onSelected: (v) {
-                switch (v) {
-                  case 'mod':
-                    _setRole(m, 'MODERATOR');
-                  case 'member':
-                    _setRole(m, 'MEMBER');
-                  case 'remove':
-                    _remove(m, ban: false);
-                  case 'ban':
-                    _remove(m, ban: true);
-                }
-              },
-              itemBuilder: (_) => [
-                if (_isOwner && role == 'MEMBER')
-                  PopupMenuItem(value: 'mod', height: 44, child: KulupMenuRow(context.l10n.clubMgmtMakeModerator)),
-                if (_isOwner && role != 'MEMBER')
-                  PopupMenuItem(value: 'member', height: 44, child: KulupMenuRow(context.l10n.clubMgmtMakeMember)),
-                if (_isOwner) const PopupMenuDivider(height: 9),
-                PopupMenuItem(value: 'remove', height: 44, child: KulupMenuRow(context.l10n.clubMgmtRemoveFromClub, danger: true)),
-                PopupMenuItem(value: 'ban', height: 44, child: KulupMenuRow(context.l10n.clubMgmtBan, danger: true)),
-              ],
-            )
-          else
-            const SizedBox(width: 8),
-        ],
-      ),
+    return ClubMemberTile(
+      member: m,
+      nameFallback: context.l10n.clubMgmtUser,
+      trailing: canAct
+          ? ClubRoundButton(icon: LucideIcons.ellipsis, tooltip: context.l10n.clubMgmtMemberActions, onTap: () => _openActions(m), plain: true)
+          : null,
     );
   }
 }
