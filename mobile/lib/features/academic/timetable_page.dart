@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
@@ -16,8 +15,10 @@ import 'akad_widgets.dart';
 import 'course_form_page.dart';
 import 'reminders.dart';
 import 'semester_sheet.dart';
+import 'timetable_parts.dart';
 
-/// Ders programı (Ak1): dönem düğmesi, gün şeridi, renkli ders blokları, alt eylem çubuğu.
+/// Ders programı (Ak1): dönem düğmesi + hafta ilerlemesi, sıradaki ders kartı, gün şeridi, zaman çizelgesi,
+/// derslerim listesi, "Ders ekle" yüzen düğmesi. Büyük başlık kaydırınca daralır; çekerek yenilenir.
 class TimetablePage extends StatefulWidget {
   const TimetablePage({super.key, required this.session});
 
@@ -34,6 +35,7 @@ class _TimetablePageState extends State<TimetablePage> {
   bool _loading = true;
   int? _semesterId;
   int _day = istanbulWall(academicClock()).weekday;
+  bool _back = false; // gün geçişi yönü (shared axis)
   Timer? _tick;
 
   @override
@@ -87,12 +89,10 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Future<void> _pickSemester() async {
-    final r = await showModalBottomSheet<SemesterAction>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.bu.bg,
-      barrierColor: const Color(0x73171E33),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+    final r = await BuSheet.show<SemesterAction>(
+      context,
+      scrollable: false,
+      padding: EdgeInsets.zero,
       builder: (_) => SemesterSheet(api: _api, activeId: _semesterId ?? _data?.semester?.id),
     );
     if (r == null || !mounted) return;
@@ -118,125 +118,186 @@ class _TimetablePageState extends State<TimetablePage> {
     final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
     if (!shared) {
       await Clipboard.setData(ClipboardData(text: ics));
-      if (mounted) academicToast(context, context.l10n.acadTimeExportCopied);
+      if (mounted) academicToast(context, context.l10n.acadTimeExportCopied, kind: BuToastKind.success);
     }
+  }
+
+  void _selectDay(int d) {
+    setState(() {
+      _back = d < _day;
+      _day = d;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = _data;
     final l = context.l10n;
-    return AcademicScaffold(
+    final data = _data;
+    final maintenance = _error is ApiError && (_error! as ApiError).status == 503;
+    final BuViewState state;
+    if (data != null) {
+      state = BuViewState.ready;
+    } else if (_loading) {
+      state = BuViewState.loading;
+    } else if (maintenance) {
+      state = BuViewState.empty;
+    } else {
+      state = BuViewState.error;
+    }
+    return BuPageScaffold(
       title: l.acadTimeTitle,
+      state: state,
+      loading: const TtSkeleton(),
+      error: _error,
+      onRetry: _load,
+      empty: AcademicErrorView(error: _error ?? 'x', onRetry: _load),
+      onRefresh: () => _load(quiet: true),
       actions: [
         BuIconButton(icon: LucideIcons.share, tooltip: l.acadTimeExportTooltip, onTap: data == null ? null : _export),
+        const SizedBox(width: 12),
       ],
-      bottomBar: data == null
+      banner: _error != null && data != null ? BuOfflineBanner(message: l.acadTimeStale, showCachedHint: false) : null,
+      floatingActionButton: data == null
           ? null
-          : AkadBottomBar(children: [
-              if (data.courses.isNotEmpty)
-                AkadButton(label: l.akademik2ExportLabel, icon: LucideIcons.calendarDays, outlined: true, onPressed: _export),
-              AkadButton(
-                label: data.courses.isEmpty ? l.acadTimeAddFirst : l.acadTimeAddCourse,
-                icon: LucideIcons.plus,
-                tooltip: l.acadTimeAddCourse,
-                onPressed: () => _openForm(day: _day),
-              ),
-            ]),
-      child: _body(data),
+          : FloatingActionButton.extended(
+              heroTag: null,
+              tooltip: l.acadTimeAddCourse,
+              onPressed: () => _openForm(day: _day),
+              icon: const Icon(LucideIcons.plus),
+              label: Text(data.courses.isEmpty ? l.acadTimeAddFirst : l.acadTimeAddCourse),
+            ),
+      bottomInset: 104,
+      slivers: data == null ? const [] : _slivers(data),
     );
   }
 
-  Widget _body(TimetableData? data) {
-    if (_loading && data == null) return const LoadingView();
-    if (data == null) return AcademicErrorView(error: _error ?? 'x', onRetry: _load);
-    final t = context.bu;
+  List<Widget> _slivers(TimetableData data) {
+    final l = context.l10n;
     final nowWall = istanbulWall(academicClock());
     final sem = data.semester;
-    return RefreshIndicator(
-      onRefresh: () => _load(quiet: true),
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, AkadBottomBar.reserve),
-        children: [
-          if (_error != null)
-            Padding(padding: const EdgeInsets.only(bottom: 8), child: StaleBanner(text: context.l10n.acadTimeStale)),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Semantics(
-              button: true,
-              label: context.l10n.acadTimePickSemester,
-              excludeSemantics: true,
-              onTap: _pickSemester,
-              child: Material(
-                color: t.sf,
-                shape: StadiumBorder(side: BorderSide(color: t.bd, width: 1.5)),
-                child: InkWell(
-                  customBorder: const StadiumBorder(),
-                  onTap: _pickSemester,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Flexible(
-                          child: Text(sem?.name ?? context.l10n.acadTimePickSemester,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
-                      ]),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (data.courses.isEmpty)
-            _emptyState(t)
-          else ...[
-            _nextCard(t, data, nowWall),
-            const SizedBox(height: 14),
-            _dayTabs(t, nowWall),
-            _dayHeading(t, data, nowWall),
-            const SizedBox(height: 12),
-            _timeline(t, data, nowWall),
-            const SizedBox(height: 22),
-            Text(context.l10n.acadTimeMyCourses(data.courses.length.toString()),
-                style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
-            const SizedBox(height: 10),
-            for (final c in data.courses) Padding(padding: const EdgeInsets.only(bottom: 8), child: _courseTile(t, c)),
-          ],
-        ],
+    final week = _weekInfo(sem, nowWall);
+    final dates = [for (var d = 1; d <= 7; d++) _dateOf(d, nowWall)];
+    final bar = Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 14),
+      child: TtSemesterBar(
+        name: sem?.name ?? l.acadTimePickSemester,
+        onTap: _pickSemester,
+        week: week?.week,
+        weeks: week?.weeks,
+        progress: week?.progress,
       ),
     );
+    if (data.courses.isEmpty) {
+      return [
+        SliverToBoxAdapter(child: bar),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 24),
+            child: BuEmptyState(
+              illustration: BuIllustration.calendar,
+              title: l.p17NoClassesTitle,
+              message: l.acadTimeEmptyText,
+            ),
+          ),
+        ),
+      ];
+    }
+    final hasClass = [
+      for (final d in dates) slotsForDay(data.courses, sem, d, nowWall: nowWall).isNotEmpty || slotsForDay(data.courses, null, d, nowWall: nowWall).isNotEmpty
+    ];
+    return [
+      SliverToBoxAdapter(child: bar),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 14),
+          child: _nextCard(data, nowWall),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: BuSpace.pageH,
+          child: TtDayStrip(selected: _day, todayWeekday: nowWall.weekday, dates: dates, hasClass: hasClass, onSelect: _selectDay),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: BuSharedAxis(
+          reverse: _back,
+          distance: 24,
+          child: Padding(
+            key: ValueKey('daybody$_day'),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+            child: _dayBody(data, nowWall),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+          child: BuSectionHeader(l.acadTimeMyCourses(data.courses.length.toString()), padding: const EdgeInsetsDirectional.fromSTEB(20, 28, 20, 12))),
+      SliverList.builder(
+        itemCount: data.courses.length,
+        itemBuilder: (c, i) {
+          final course = data.courses[i];
+          final days = {for (final s in course.sessions) '${acadDayShort(l, s.dayOfWeek.clamp(1, 7))} ${s.start}-${s.end}'}.join(' · ');
+          return Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
+            child: TtCourseTile(course: course, days: days, onTap: () => _openForm(course: course)),
+          );
+        },
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+          child: AkadCard(
+            shadow: false,
+            color: context.bu.sf2,
+            borderColor: context.bu.sf2,
+            onTap: _export,
+            child: Row(children: [
+              Icon(LucideIcons.calendarDays, size: 20, color: context.bu.pr),
+              const SizedBox(width: 12),
+              Expanded(child: Text(l.akademik2ExportLabel, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700))),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: context.bu.mut),
+            ]),
+          ),
+        ),
+      ),
+    ];
   }
 
-  Widget _emptyState(BuTokens t) => Padding(
-        padding: const EdgeInsets.only(top: 24),
-        child: EmptyView(icon: LucideIcons.calendarDays, text: context.l10n.acadTimeEmptyText),
-      );
+  /// Dönemin kaçıncı haftası (dönem tarihleri varsa ve bugün aralıktaysa).
+  ({int week, int weeks, double progress})? _weekInfo(Semester? s, DateTime nowWall) {
+    final a = s?.startDate, b = s?.endDate;
+    if (a == null || b == null) return null;
+    final total = b.difference(a).inDays + 1;
+    if (total <= 0) return null;
+    final today = DateTime.utc(nowWall.year, nowWall.month, nowWall.day);
+    final elapsed = today.difference(a).inDays;
+    if (elapsed < 0 || elapsed >= total) return null;
+    return (week: elapsed ~/ 7 + 1, weeks: (total / 7).ceil(), progress: (elapsed + 1) / total);
+  }
 
-  /// Sıradaki / süren ders özeti (kompakt).
-  Widget _nextCard(BuTokens t, TimetableData data, DateTime nowWall) {
+  /// Sıradaki / süren ders özeti.
+  Widget _nextCard(TimetableData data, DateTime nowWall) {
     final today = slotsForDay(data.courses, data.semester, nowWall, nowWall: nowWall);
     DaySlot? ongoing;
     for (final s in today) {
       if (s.status == SlotStatus.ongoing) ongoing = s;
     }
     final next = nextSlot(data.courses, data.semester, nowWall);
-
     final l = context.l10n;
     String head;
     String line;
     Color? accent;
+    double? progress;
+    IconData icon = LucideIcons.clock;
     if (ongoing != null) {
-      final left = ongoing.session.endMin - (nowWall.hour * 60 + nowWall.minute);
+      final nowMin = nowWall.hour * 60 + nowWall.minute;
+      final left = ongoing.session.endMin - nowMin;
+      final len = ongoing.session.endMin - ongoing.session.startMin;
       head = l.acadTimeNowInClass;
       line = l.acadTimeMinLeft(ongoing.course.name, left.toString());
       accent = courseColor(ongoing.course.color);
+      progress = len <= 0 ? null : (nowMin - ongoing.session.startMin) / len;
+      icon = LucideIcons.bookOpen;
     } else if (next != null) {
       final s = next.slot;
       final isToday = s.date.day == nowWall.day && s.date.month == nowWall.month;
@@ -253,27 +314,9 @@ class _TimetablePageState extends State<TimetablePage> {
     } else {
       head = l.acadTimeToday;
       line = l.acadTimeNoMoreWeek;
+      icon = LucideIcons.partyPopper;
     }
-    return Semantics(
-      container: true,
-      label: '$head. $line',
-      excludeSemantics: true,
-      child: AkadCard(
-        shadow: false,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(children: [
-          Container(width: 10, height: 10, decoration: BoxDecoration(color: accent ?? t.mut, shape: BoxShape.circle)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(head, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut)),
-              const SizedBox(height: 2),
-              Text(line, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
-            ]),
-          ),
-        ]),
-      ),
-    );
+    return TtNextCard(head: head, line: line, accent: accent, progress: progress, icon: icon);
   }
 
   /// Haftanın [weekday] gününün tarihi (bu hafta içinde).
@@ -282,160 +325,42 @@ class _TimetablePageState extends State<TimetablePage> {
     return base.add(Duration(days: weekday - nowWall.weekday));
   }
 
-  Widget _dayTabs(BuTokens t, DateTime nowWall) => Row(children: [
-        for (var d = 1; d <= 7; d++) ...[
-          if (d > 1) const SizedBox(width: 6),
-          Expanded(child: _dayCell(t, d, nowWall)),
-        ],
-      ]);
-
-  Widget _dayCell(BuTokens t, int d, DateTime nowWall) {
+  Widget _dayBody(TimetableData data, DateTime nowWall) {
     final l = context.l10n;
-    final sel = _day == d;
-    final date = _dateOf(d, nowWall);
-    final name = acadDayName(l, d);
-    return Semantics(
-      button: true,
-      selected: sel,
-      label: '${d == nowWall.weekday ? l.acadTimeDayToday(name) : name} ${date.day}',
-      excludeSemantics: true,
-      onTap: () => setState(() => _day = d),
-      child: Material(
-        color: sel ? t.pr : t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: sel ? t.pr : t.bd, width: 1.5)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () => setState(() => _day = d),
-          child: SizedBox(
-            height: 60,
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(acadDayShort(l, d), style: BuType.label.copyWith(fontSize: 11, fontWeight: FontWeight.w700, color: sel ? t.onPr : t.mut)),
-              ),
-              const SizedBox(height: 2),
-              Text('${date.day}', style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: sel ? t.onPr : t.ink)),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dayHeading(BuTokens t, TimetableData data, DateTime nowWall) {
-    final l = context.l10n;
-    final date = _dateOf(_day, nowWall);
-    var count = slotsForDay(data.courses, data.semester, date, nowWall: nowWall).length;
-    if (count == 0) count = slotsForDay(data.courses, null, date, nowWall: nowWall).length;
-    final name = acadDayName(l, _day);
-    final title = _day == nowWall.weekday ? l.akademik2DayHeadingToday(name) : name;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4, top: 16),
-      child: Text.rich(
-        TextSpan(children: [
-          TextSpan(text: title, style: BuType.heading.copyWith(fontSize: 17, fontWeight: FontWeight.w800, color: t.ink)),
-          if (count > 0)
-            TextSpan(text: ' · ${l.akademik2CourseCount(count.toString())}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _timeline(BuTokens t, TimetableData data, DateTime nowWall) {
-    // Seçili haftanın günü: dönem kısıtı için bu hafta içindeki tarihi al.
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final date = _dateOf(_day, nowWall);
     final slots = slotsForDay(data.courses, data.semester, date, nowWall: nowWall);
-    final plain = <DaySlot>[];
-    if (slots.isEmpty) {
-      // Dönem aralığı dışındaysa da oturumları göstermek için kısıtsız çek.
-      plain.addAll(slotsForDay(data.courses, null, date, nowWall: nowWall));
-    }
-    if (slots.isEmpty && plain.isEmpty) {
-      return AkadCard(
-        child: Row(children: [
-          Icon(LucideIcons.coffee, size: 18, color: t.mut),
-          const SizedBox(width: 10),
-          Expanded(child: Text(context.l10n.acadTimeNoClassDay(acadDayName(context.l10n, _day)), style: BuType.body.copyWith(color: t.mut))),
-        ]),
-      );
-    }
+    // Dönem aralığı dışındaysa da oturumları göstermek için kısıtsız çek.
+    final plain = slots.isEmpty ? slotsForDay(data.courses, null, date, nowWall: nowWall) : const <DaySlot>[];
     final list = slots.isNotEmpty ? slots : plain;
-    return Column(children: [
-      if (slots.isEmpty && plain.isNotEmpty)
-        Padding(padding: const EdgeInsets.only(bottom: 8), child: StaleBanner(text: context.l10n.acadTimeOutOfRange)),
-      for (final s in list) Padding(padding: const EdgeInsets.only(bottom: 12), child: _slotRow(t, s)),
-    ]);
-  }
-
-  Widget _slotRow(BuTokens t, DaySlot s) {
-    final c = s.course;
-    final color = courseColor(c.color);
-    final onTint = akadOnTint(context, color);
-    final status = switch (s.status) {
-      SlotStatus.ongoing => context.l10n.acadTimeStatusNow,
-      SlotStatus.past => context.l10n.acadTimeStatusDone,
-      SlotStatus.upcoming => null,
-    };
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(
-        width: 44,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            FittedBox(fit: BoxFit.scaleDown, child: Text(s.session.start, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: t.mut))),
-            const SizedBox(height: 2),
-            FittedBox(fit: BoxFit.scaleDown, child: Text(s.session.end, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w500, color: t.mut))),
-          ]),
+    final name = acadDayName(l, _day);
+    final title = _day == nowWall.weekday ? l.akademik2DayHeadingToday(name) : name;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4, top: 12, bottom: 14),
+        child: Semantics(
+          header: true,
+          child: Text.rich(TextSpan(children: [
+            TextSpan(text: title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            if (list.isNotEmpty) TextSpan(text: ' · ${l.akademik2CourseCount(list.length.toString())}', style: tx.labelLarge!.copyWith(color: t.mut)),
+          ])),
         ),
       ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Opacity(
-          opacity: s.status == SlotStatus.past ? .6 : 1,
-          child: ColorCard(
-            color: color,
-            onTap: () => _openForm(course: c),
-            semanticLabel:
-                '${context.l10n.acadTimeSlotSemantic(c.name, acadDayName(context.l10n, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}',
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink))),
-                if (status != null) BuBadge(status, color: s.status == SlotStatus.ongoing ? t.ok : t.sf2, onColor: s.status == SlotStatus.ongoing ? Colors.white : t.mut),
-              ]),
-              if (s.session.room != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.mapPin, size: 14, color: onTint)),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(s.session.room!, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontSize: 12.5, fontWeight: FontWeight.w600, color: t.ink))),
-                  ]),
-                ),
-              if (c.code != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(c.code!, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut))),
-              if (c.instructor != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(c.instructor!, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut))),
-            ]),
-          ),
-        ),
-      ),
-    ]);
-  }
-
-  Widget _courseTile(BuTokens t, Course c) {
-    final days = {for (final s in c.sessions) '${acadDayShort(context.l10n, s.dayOfWeek.clamp(1, 7))} ${s.start}-${s.end}'}.join(' · ');
-    return ColorCard(
-      color: courseColor(c.color),
-      onTap: () => _openForm(course: c),
-      semanticLabel: context.l10n.acadTimeCourseSemantic(c.name, days),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(c.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
-            if (c.instructor != null) MetaLine(LucideIcons.user, c.instructor!),
-            MetaLine(LucideIcons.clock, days.isEmpty ? context.l10n.acadTimeNoSessions : days),
+      if (list.isEmpty)
+        TtEmptyDay(text: l.acadTimeNoClassDay(name))
+      else ...[
+        if (slots.isEmpty) Padding(padding: const EdgeInsets.only(bottom: 12), child: StaleBanner(text: l.acadTimeOutOfRange, icon: LucideIcons.info)),
+        BuStaggerScope(
+          child: Column(children: [
+            for (var i = 0; i < list.length; i++)
+              BuStaggerItem(
+                index: i,
+                child: TtSlotRow(slot: list[i], first: i == 0, last: i == list.length - 1, onTap: () => _openForm(course: list[i].course)),
+              ),
           ]),
         ),
-        Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
-      ]),
-    );
+      ],
+    ]);
   }
 }

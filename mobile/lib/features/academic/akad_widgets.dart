@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 
-/// Akademik alt sayfaların (Ak1-Ak8) ortak tasarım bileşenleri.
+/// Akademik alt sayfaların (Ak1-Ak8) ortak tasarım bileşenleri (Material 3 + marka).
 
-/// Rengin açık zemin tonu: açıkta beyaz üstüne %11, koyuda yüzey üstüne %22.
+/// Rengin açık zemin tonu: açıkta yüzey üstüne %11, koyuda %22.
 Color akadTint(BuildContext context, Color base) {
   final dark = Theme.of(context).brightness == Brightness.dark;
-  return dark ? Color.alphaBlend(base.withValues(alpha: .22), context.bu.sf) : Color.alphaBlend(base.withValues(alpha: .11), Colors.white);
+  return Color.alphaBlend(base.withValues(alpha: dark ? .22 : .11), context.bu.sf);
 }
 
 /// Ton zemini üzerindeki yazı/simge rengi (koyuda okunur olması için açılır).
 Color akadOnTint(BuildContext context, Color base) {
   final dark = Theme.of(context).brightness == Brightness.dark;
-  return dark ? Color.lerp(base, Colors.white, .5)! : base;
+  return dark ? Color.lerp(base, context.bu.onMedia, .5)! : base;
 }
 
 /// Büyük harfe çevirir (Türkçede i -> İ, ı -> I).
@@ -25,25 +23,34 @@ String akadUpper(BuildContext context, String s) {
   return s.toUpperCase();
 }
 
-/// Bölüm başlığı (ör. YAKLAŞAN): 12/700, soluk, harf aralıklı.
+bool _isArabic(BuildContext context) => Localizations.maybeLocaleOf(context)?.languageCode == 'ar';
+
+/// Bölüm başlığı (ör. YAKLAŞAN): küçük, soluk, harf aralıklı; ekran okuyucuya başlık.
 class AkadSection extends StatelessWidget {
-  const AkadSection(this.text, {super.key, this.padding = const EdgeInsetsDirectional.only(start: 6, bottom: 8, top: 4)});
+  const AkadSection(this.text, {super.key, this.padding = const EdgeInsetsDirectional.only(start: 4, bottom: 8, top: 4), this.trailing});
 
   final String text;
   final EdgeInsetsGeometry padding;
 
+  /// Satır sonunda küçük yardımcı (sayaç vb.).
+  final Widget? trailing;
+
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: padding,
-        child: Semantics(
-          header: true,
-          child: Text(akadUpper(context, text),
-              style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: .6, color: context.bu.mut)),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final label = Text(akadUpper(context, text),
+        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : .7, color: t.mut));
+    return Padding(
+      padding: padding,
+      child: Semantics(
+        header: true,
+        child: trailing == null ? label : Row(children: [Expanded(child: label), trailing!]),
+      ),
+    );
+  }
 }
 
-/// Çip: beyaz/çizgili; seçili: yumuşak kırmızı zemin + kırmızı çizgi. En az 44 dp, 22 yarıçap.
+/// Çip: seçili = marka tonu (soft + onSoft), kayan renk geçişi, titreşim + hafif küçülme. Dokunma hedefi >= 48 dp.
 class AkadChip extends StatelessWidget {
   const AkadChip({super.key, required this.label, this.selected = false, this.onTap, this.expand = false, this.semanticLabel, this.fontSize = 14});
 
@@ -52,35 +59,58 @@ class AkadChip extends StatelessWidget {
   final VoidCallback? onTap;
   final bool expand; // gün çipleri gibi eşit genişlik
   final String? semanticLabel;
+
+  /// Eski imza (kullanılmaz; yazı boyutu TextTheme'den gelir). `expand` çiplerde etiket küçülerek sığar.
   final double fontSize;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final chip = Semantics(
+    final tx = Theme.of(context).textTheme;
+    final fg = selected ? t.onSoft : t.ink;
+    void tap() {
+      buHaptic(BuHaptic.selection);
+      onTap?.call();
+    }
+
+    final text = MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: expand
+          ? FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg)),
+            )
+          : Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg)),
+    );
+    return Semantics(
       button: true,
       selected: selected,
       label: semanticLabel,
       excludeSemantics: semanticLabel != null,
       onTap: onTap,
-      child: Material(
-        color: selected ? t.soft : t.sf,
-        shape: StadiumBorder(side: BorderSide(color: selected ? t.pr : t.bd, width: 1.5)),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: expand ? 0 : 16),
-              child: Center(
-                widthFactor: expand ? null : 1,
-                child: MediaQuery.withClampedTextScaling(
-                  maxScaleFactor: 1.4,
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: BuType.label.copyWith(fontSize: fontSize, fontWeight: FontWeight.w600, color: selected ? t.danger : t.ink)),
+      child: BuPressable(
+        scale: .95,
+        child: AnimatedContainer(
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
+          decoration: ShapeDecoration(
+            color: selected ? t.soft : t.sf,
+            shape: StadiumBorder(side: BorderSide(color: selected ? t.pr.withValues(alpha: .5) : t.bd)),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              excludeFromSemantics: true,
+              onTap: onTap == null ? null : tap,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
+                  child: Center(widthFactor: expand ? null : 1, child: text),
                 ),
               ),
             ),
@@ -88,7 +118,6 @@ class AkadChip extends StatelessWidget {
         ),
       ),
     );
-    return chip;
   }
 }
 
@@ -102,17 +131,20 @@ class AkadPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 24,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+        constraints: const BoxConstraints(minHeight: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (icon != null) ...[Icon(icon, size: 12, color: fg), const SizedBox(width: 4)],
-          Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: fg))),
+          if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fg)), const SizedBox(width: 4)],
+          Flexible(
+            child: Text(text,
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+          ),
         ]),
       );
 }
 
-/// Kart: beyaz, 1 px çizgi, 20 yarıçap, yumuşak gölge.
+/// Kart: yüzey rengi, ince çizgi, 20 yarıçap; [shadow] açıkken yumuşak gölge (koyuda yok). Tıklanabilirse basınca küçülür.
 class AkadCard extends StatelessWidget {
   const AkadCard({super.key, required this.child, this.padding = const EdgeInsets.all(14), this.onTap, this.borderColor, this.color, this.shadow = true});
 
@@ -125,13 +157,13 @@ class AkadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final r = BorderRadius.circular(20);
-    return Container(
+    const r = BuRadius.bLg;
+    final card = DecoratedBox(
       decoration: BoxDecoration(
         color: color ?? t.sf,
         borderRadius: r,
         border: Border.all(color: borderColor ?? t.bd),
-        boxShadow: shadow ? const [BoxShadow(color: Color(0x40171E33), blurRadius: 18, spreadRadius: -12, offset: Offset(0, 6))] : null,
+        boxShadow: shadow ? BuElevation.of(context, 1) : null,
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -140,69 +172,80 @@ class AkadCard extends StatelessWidget {
         child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
       ),
     );
+    return onTap == null ? card : BuPressable(scale: .985, child: card);
   }
 }
 
 /// Ay + gün pulu (54x58 / 50x50).
 class AkadDateTile extends StatelessWidget {
-  const AkadDateTile({super.key, required this.month, required this.day, required this.bg, required this.fg, this.width = 54, this.height = 58, this.daySize = 22});
+  const AkadDateTile(
+      {super.key, required this.month, required this.day, required this.bg, required this.fg, this.width = 54, this.height = 58, this.daySize = 22});
 
   final String month;
   final int day;
   final Color bg, fg;
-  final double width, height, daySize;
+  final double width, height;
+
+  /// Eski imza (kullanılmaz; sayı TextTheme.titleLarge ile yazılır).
+  final double daySize;
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
+  Widget build(BuildContext context) {
+    final tx = Theme.of(context).textTheme;
+    return ExcludeSemantics(
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bMd),
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.2,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(akadUpper(context, String.fromCharCodes(month.runes.take(3))),
-                maxLines: 1, style: BuType.micro.copyWith(fontSize: 10, fontWeight: FontWeight.w700, color: fg)),
-            Text('$day', style: BuType.title.copyWith(fontSize: daySize, fontWeight: FontWeight.w800, height: 1.1, color: fg)),
+                maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fg, height: 1.1)),
+            Text('$day', style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: fg)),
           ]),
         ),
-      );
+      ),
+    );
+  }
 }
 
-/// Alt sabit eylem çubuğu: sayfa rengine solan zemin üzerinde düğmeler.
+/// Alt sabit eylem çubuğu: yüzey zemini + ince üst çizgi; düğmeler eşit genişlikte. `Scaffold.bottomNavigationBar`
+/// olarak ya da `AcademicScaffold.bottomBar` ile kullanılır.
 class AkadBottomBar extends StatelessWidget {
   const AkadBottomBar({super.key, required this.children});
 
   final List<Widget> children;
 
-  /// Listelerin altına bırakılacak boşluk.
+  /// Listelerin altına bırakılacak boşluk ([AcademicScaffold] içindeki eski yerleşim için).
   static const double reserve = 120;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      padding: EdgeInsetsDirectional.fromSTEB(20, 28, 20, 16 + bottom),
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          stops: const [0.62, 1],
-          colors: [t.bg, t.bg.withValues(alpha: 0)],
-        ),
+        color: t.bg,
+        border: Border(top: BorderSide(color: t.bd.withValues(alpha: .7))),
       ),
-      child: Row(children: [
-        for (var i = 0; i < children.length; i++) ...[
-          if (i > 0) const SizedBox(width: 12),
-          Expanded(child: children[i]),
-        ],
-      ]),
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(20, 12, 20, 12 + bottom),
+        child: Row(children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: children[i]),
+          ],
+        ]),
+      ),
     );
   }
 }
 
-/// 56 yükseklikli büyük düğme (dolgulu ya da çizgili).
+/// Büyük düğme: dolgulu (birincil) ya da çizgili. [BuButton] üzerine ince sarmalayıcı (eski imza).
 class AkadButton extends StatelessWidget {
-  const AkadButton({super.key, required this.label, required this.onPressed, this.icon, this.outlined = false, this.busy = false, this.accentOutline = false, this.tooltip});
+  const AkadButton(
+      {super.key, required this.label, required this.onPressed, this.icon, this.outlined = false, this.busy = false, this.accentOutline = false, this.tooltip});
 
   final String label;
   final VoidCallback? onPressed;
@@ -212,49 +255,18 @@ class AkadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final r = BorderRadius.circular(18);
-    final fg = outlined ? (accentOutline ? t.pr : t.ink) : t.onPr;
-    final enabled = onPressed != null && !busy;
-    final btn = Container(
-      decoration: BoxDecoration(
-        borderRadius: r,
-        boxShadow: outlined ? null : const [BoxShadow(color: Color(0x99C62A20), blurRadius: 26, spreadRadius: -12, offset: Offset(0, 14))],
-      ),
-      child: Material(
-        color: outlined ? t.sf : (enabled ? t.pr : t.pr.withValues(alpha: .5)),
-        shape: RoundedRectangleBorder(borderRadius: r, side: outlined ? BorderSide(color: accentOutline ? t.pr : t.bd, width: 1.5) : BorderSide.none),
-        child: InkWell(
-          borderRadius: r,
-          onTap: enabled ? onPressed : null,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 56),
-            child: Center(
-              child: busy
-                  ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        if (icon != null) ...[Icon(icon, size: 18, color: fg), const SizedBox(width: 8)],
-                        Flexible(
-                          child: MediaQuery.withClampedTextScaling(
-                            maxScaleFactor: 1.3,
-                            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
-                          ),
-                        ),
-                      ]),
-                    ),
-            ),
-          ),
-        ),
-      ),
+    final btn = BuButton(
+      label: label,
+      icon: icon,
+      busy: busy,
+      kind: !outlined ? BuButtonKind.primary : (accentOutline ? BuButtonKind.soft : BuButtonKind.outline),
+      onPressed: onPressed,
     );
-    final wrapped = Semantics(button: true, enabled: enabled, container: true, child: btn);
-    return tooltip == null ? wrapped : Tooltip(message: tooltip!, excludeFromSemantics: true, child: wrapped);
+    return tooltip == null ? btn : Tooltip(message: tooltip!, excludeFromSemantics: true, child: btn);
   }
 }
 
-/// Form etiketi (13/700, hafif içeriden).
+/// Form etiketi (bölüm içi alt başlık).
 class AkadLabel extends StatelessWidget {
   const AkadLabel(this.text, {super.key});
 
@@ -262,32 +274,27 @@ class AkadLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
-        child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: context.bu.ink)),
+        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
+        child: Text(text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: context.bu.ink)),
       );
 }
 
-/// 56 yükseklikli, 16 yarıçaplı, 1.5 çizgili metin alanı biçimi.
-InputDecoration akadInput(BuildContext context, {String? hint, String? error, bool tall = false}) {
-  final t = context.bu;
-  OutlineInputBorder b(Color c, [double w = 1.5]) => OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: w));
+/// Tema (dolu, çerçeveli, odakta 2 dp marka) metin alanı biçimi; yalnız ipucu/hata ve sayaç gizleme ekler.
+InputDecoration akadInput(BuildContext context, {String? hint, String? error, bool tall = false, String? label}) {
   return InputDecoration(
+    labelText: label,
     hintText: hint,
     errorText: error,
     counterText: '',
-    filled: true,
-    fillColor: t.sf,
-    isDense: false,
-    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: tall ? 14 : 17),
-    border: b(t.bd),
-    enabledBorder: b(t.bd),
-    focusedBorder: b(t.pr),
-    errorBorder: b(t.danger),
-    focusedErrorBorder: b(t.danger),
+    floatingLabelBehavior: label == null ? null : FloatingLabelBehavior.auto,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: tall ? 16 : 16),
   );
 }
 
-/// Etiketli metin alanı.
+/// Etiketli metin alanı (yüzen etiket; hata altında kırmızı).
 class AkadTextField extends StatelessWidget {
   const AkadTextField({
     super.key,
@@ -299,6 +306,8 @@ class AkadTextField extends StatelessWidget {
     this.capitalization = TextCapitalization.none,
     this.minLines,
     this.maxLines = 1,
+    this.icon,
+    this.onChanged,
   });
 
   final String label;
@@ -307,23 +316,26 @@ class AkadTextField extends StatelessWidget {
   final int? maxLength;
   final TextCapitalization capitalization;
   final int? minLines, maxLines;
+  final IconData? icon;
+  final ValueChanged<String>? onChanged;
 
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        AkadLabel(label),
-        TextField(
-          controller: controller,
-          maxLength: maxLength,
-          minLines: minLines,
-          maxLines: maxLines,
-          textCapitalization: capitalization,
-          style: BuType.body.copyWith(fontSize: 16, color: context.bu.ink),
-          decoration: akadInput(context, hint: hint, error: error, tall: (maxLines ?? 1) > 1),
+  Widget build(BuildContext context) => TextField(
+        controller: controller,
+        maxLength: maxLength,
+        minLines: minLines,
+        maxLines: maxLines,
+        textCapitalization: capitalization,
+        onChanged: onChanged,
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: context.bu.ink),
+        decoration: akadInput(context, hint: hint, error: error, label: label, tall: (maxLines ?? 1) > 1).copyWith(
+          prefixIcon: icon == null ? null : Icon(icon, size: 18),
+          alignLabelWithHint: (maxLines ?? 1) > 1,
         ),
-      ]);
+      );
 }
 
-/// Dokununca seçici açan alan: değer solda, simge sağda (tarih/saat).
+/// Dokununca seçici açan alan (tarih/saat): metin alanı görünümünde, yüzen etiketli.
 class AkadPicker extends StatelessWidget {
   const AkadPicker({super.key, required this.label, required this.icon, required this.onTap, this.value, this.hint, this.compact = false});
 
@@ -337,42 +349,33 @@ class AkadPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final shown = value ?? hint ?? '';
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      AkadLabel(label),
-      Semantics(
-        button: true,
-        label: label,
-        value: shown,
-        excludeSemantics: true,
+    return Semantics(
+      button: true,
+      label: label,
+      value: shown,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: BuPressable(
         onTap: onTap,
-        child: Material(
-          color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd, width: 1.5)),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 56),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
-                child: Row(children: [
-                  Expanded(
-                      child: Text(shown,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BuType.body.copyWith(fontSize: 16, color: value == null ? t.mut : t.ink))),
-                  if (!compact) ...[const SizedBox(width: 8), Icon(icon, size: 18, color: t.mut)],
-                ]),
-              ),
-            ),
+        haptic: BuHaptic.selection,
+        scale: .98,
+        child: InputDecorator(
+          isEmpty: false,
+          decoration: InputDecoration(
+            labelText: label,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            contentPadding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: 16),
+            suffixIcon: compact ? null : Icon(icon, size: 18),
           ),
+          child: Text(shown,
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink)),
         ),
       ),
-    ]);
+    );
   }
 }
 
-/// Anahtar satırı (başlık + isteğe bağlı alt yazı + Switch).
+/// Anahtar satırı (başlık + isteğe bağlı alt yazı + temalı Switch).
 class AkadSwitchRow extends StatelessWidget {
   const AkadSwitchRow({super.key, required this.title, this.subtitle, required this.value, required this.onChanged});
 
@@ -384,27 +387,26 @@ class AkadSwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return MergeSemantics(
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 60),
-        padding: const EdgeInsetsDirectional.only(start: 16, end: 8, top: 8, bottom: 8),
-        child: Row(children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: BuType.bodyStrong.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
-              if (subtitle != null) Text(subtitle!, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut)),
-            ]),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: Colors.white,
-            activeTrackColor: t.pr,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFD9CFC8),
-            trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
-          ),
-        ]),
+      child: InkWell(
+        onTap: () {
+          buHaptic(BuHaptic.selection);
+          onChanged(!value);
+        },
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: const EdgeInsetsDirectional.only(start: 16, end: 8, top: 8, bottom: 8),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                if (subtitle != null) Text(subtitle!, style: tx.bodySmall!.copyWith(color: t.mut)),
+              ]),
+            ),
+            Switch(value: value, onChanged: onChanged),
+          ]),
+        ),
       ),
     );
   }
@@ -422,7 +424,7 @@ class AkadDivider extends StatelessWidget {
 Widget akadHeaderAction(BuildContext context, {required IconData icon, required String tooltip, VoidCallback? onTap}) =>
     BuIconButton(icon: icon, tooltip: tooltip, onTap: onTap);
 
-/// Kesikli kırmızı çizgili düğme (Başka gün ekle).
+/// Kesikli marka çizgili, tonal dolgulu düğme (Başka gün ekle).
 class AkadDashedButton extends StatelessWidget {
   const AkadDashedButton({super.key, required this.label, required this.icon, required this.onPressed});
 
@@ -436,22 +438,36 @@ class AkadDashedButton extends StatelessWidget {
     return Semantics(
       button: true,
       container: true,
-      child: CustomPaint(
-        foregroundPainter: _DashedRRect(color: t.pr, radius: 14),
-        child: Material(
-          color: t.sf,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: onPressed,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: Center(
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(icon, size: 16, color: t.pr),
-                  const SizedBox(width: 6),
-                  Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: t.pr))),
-                ]),
+      child: BuPressable(
+        scale: .98,
+        child: CustomPaint(
+          foregroundPainter: _DashedRRect(color: t.pr.withValues(alpha: .55), radius: BuRadius.sm),
+          child: Material(
+            color: t.soft.withValues(alpha: .55),
+            borderRadius: BuRadius.bSm,
+            child: InkWell(
+              borderRadius: BuRadius.bSm,
+              onTap: () {
+                buHaptic(BuHaptic.selection);
+                onPressed();
+              },
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(icon, size: 16, color: t.onSoft),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+                      ),
+                    ]),
+                  ),
+                ),
               ),
             ),
           ),

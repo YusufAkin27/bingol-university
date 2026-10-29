@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
 
 /// Kişisel sınav ekle / düzenle. Başarıda `true` ile kapanır.
+/// Başlık, tür çipleri, (varsa) ders çipleri, tarih/saat seçiciler, yer ve not; hata üstte bir şeritte çıkar.
 class ExamFormPage extends StatefulWidget {
   const ExamFormPage({super.key, required this.session, this.exam, this.courses = const []});
 
@@ -131,85 +130,122 @@ class _ExamFormPageState extends State<ExamFormPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return AcademicScaffold(
+    return BuPageScaffold(
       title: _editing ? l.acadFormEdit : l.acadExamsAdd,
-      actions: [if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete)],
+      large: false,
+      actions: [
+        if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete),
+        const SizedBox(width: 12),
+      ],
       bottomBar: AkadBottomBar(children: [
         AkadButton(label: _editing ? l.acadSave : l.acadFormAdd, busy: _busy, onPressed: _busy ? null : _save),
       ]),
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, AkadBottomBar.reserve),
-        children: [
-          AkadTextField(
-            label: l.akademik2ExamTitle,
-            controller: _title,
-            maxLength: 120,
-            capitalization: TextCapitalization.sentences,
-            hint: l.acadFormTitleHint,
-          ),
-          const SizedBox(height: 14),
-          AkadLabel(l.acadFormType),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final k in examTypes) AkadChip(label: examTypeLabelL(l, k), selected: _type == k, onTap: () => setState(() => _type = k)),
-          ]),
-          if (widget.courses.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            AkadLabel(l.akademik2Course),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              AkadChip(label: l.acadFormNone, selected: _courseId == null, onTap: () => setState(() => _courseId = null)),
-              for (final c in widget.courses) AkadChip(label: c.name, selected: _courseId == c.id, onTap: () => setState(() => _courseId = c.id)),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              AnimatedSize(
+                duration: BuMotion.of(context, BuMotion.medium),
+                curve: BuMotion.standard,
+                alignment: Alignment.topCenter,
+                child: _error == null ? const SizedBox(width: double.infinity) : _errorBanner(t),
+              ),
+              AkadTextField(
+                label: l.akademik2ExamTitle,
+                controller: _title,
+                maxLength: 120,
+                capitalization: TextCapitalization.sentences,
+                hint: l.acadFormTitleHint,
+                icon: LucideIcons.fileText,
+              ),
+              const SizedBox(height: 14),
+              AkadLabel(l.acadFormType),
+              Wrap(spacing: 8, runSpacing: 0, children: [
+                for (final k in examTypes) AkadChip(label: examTypeLabelL(l, k), selected: _type == k, onTap: () => setState(() => _type = k)),
+              ]),
+              if (widget.courses.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                AkadLabel(l.akademik2Course),
+                Wrap(spacing: 8, runSpacing: 0, children: [
+                  AkadChip(label: l.acadFormNone, selected: _courseId == null, onTap: () => setState(() => _courseId = null)),
+                  for (final c in widget.courses) AkadChip(label: c.name, selected: _courseId == c.id, onTap: () => setState(() => _courseId = c.id)),
+                ]),
+              ],
+              const SizedBox(height: 18),
+              AkadPicker(
+                icon: LucideIcons.calendar,
+                label: l.acadFormExamDate,
+                hint: l.acadFormPickDate,
+                value: _day == null ? null : fmtWallDateL(l, _day!),
+                onTap: () async {
+                  final now = istanbulWall(academicClock());
+                  final d = await showDatePicker(
+                    context: context,
+                    initialDate: _day ?? DateTime(now.year, now.month, now.day),
+                    firstDate: DateTime(now.year - 1),
+                    lastDate: DateTime(now.year + 2),
+                    helpText: l.acadFormExamDate,
+                  );
+                  if (d != null && mounted) setState(() => _day = DateTime.utc(d.year, d.month, d.day));
+                },
+              ),
+              const SizedBox(height: 14),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                  child: AkadPicker(
+                    icon: LucideIcons.clock,
+                    label: l.akademik2Start,
+                    value: hhmm(_start),
+                    onTap: () async {
+                      final m = await _pickTime(_start);
+                      if (m != null && mounted) setState(() => _start = m);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AkadPicker(
+                    icon: LucideIcons.clock,
+                    label: l.akademik2EndOptional,
+                    hint: l.acadFormEndHint,
+                    value: _end == null ? null : hhmm(_end!),
+                    onTap: () async {
+                      final m = await _pickTime(_end ?? _start + 90);
+                      if (m != null && mounted) setState(() => _end = m);
+                    },
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 14),
+              AkadTextField(label: l.akademik2Place, controller: _room, maxLength: 60, hint: l.acadFormRoomHint, icon: LucideIcons.mapPin),
+              const SizedBox(height: 14),
+              AkadTextField(label: l.acadFormNote, controller: _note, maxLength: 500, minLines: 2, maxLines: 4, hint: l.acadFormNoteHint),
             ]),
-          ],
-          const SizedBox(height: 14),
-          AkadPicker(
-            icon: LucideIcons.calendar,
-            label: l.acadFormExamDate,
-            hint: l.acadFormPickDate,
-            value: _day == null ? null : fmtWallDateL(l, _day!),
-            onTap: () async {
-              final now = istanbulWall(academicClock());
-              final d = await showDatePicker(
-                context: context,
-                initialDate: _day ?? DateTime(now.year, now.month, now.day),
-                firstDate: DateTime(now.year - 1),
-                lastDate: DateTime(now.year + 2),
-              );
-              if (d != null && mounted) setState(() => _day = DateTime.utc(d.year, d.month, d.day));
-            },
           ),
-          const SizedBox(height: 14),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
-              child: AkadPicker(
-                icon: LucideIcons.clock,
-                label: l.akademik2Start,
-                value: hhmm(_start),
-                onTap: () async {
-                  final m = await _pickTime(_start);
-                  if (m != null && mounted) setState(() => _start = m);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AkadPicker(
-                icon: LucideIcons.clock,
-                label: l.akademik2EndOptional,
-                hint: l.acadFormEndHint,
-                value: _end == null ? null : hhmm(_end!),
-                onTap: () async {
-                  final m = await _pickTime(_end ?? _start + 90);
-                  if (m != null && mounted) setState(() => _end = m);
-                },
-              ),
-            ),
-          ]),
-          const SizedBox(height: 14),
-          AkadTextField(label: l.akademik2Place, controller: _room, maxLength: 60, hint: l.acadFormRoomHint),
-          const SizedBox(height: 14),
-          AkadTextField(label: l.acadFormNote, controller: _note, maxLength: 500, minLines: 2, maxLines: 4, hint: l.acadFormNoteHint),
-          if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: BuType.caption.copyWith(color: t.danger))),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _errorBanner(BuTokens t) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Semantics(
+        liveRegion: true,
+        container: true,
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 18, color: cs.onErrorContainer)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(_error!, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: cs.onErrorContainer, fontWeight: FontWeight.w600))),
+            ]),
+          ),
+        ),
       ),
     );
   }

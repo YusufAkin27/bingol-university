@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show gradeLabelL;
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
@@ -17,6 +16,7 @@ import 'exam_form_page.dart';
 import 'reminders.dart';
 
 /// Sınavlar: kişisel sınavlar (geri sayım) ve resmi sınav programı (bölüme göre).
+/// Büyük başlık + sabit segment (Sınavlarım / Resmi program); kişisel sekmede "Sınav ekle" yüzen düğmesi.
 class ExamsPage extends StatefulWidget {
   const ExamsPage({super.key, required this.session, this.initialTab = 0});
 
@@ -98,64 +98,89 @@ class _ExamsPageState extends State<ExamsPage> {
     }
   }
 
+  void _toggleAll(bool all) {
+    if (_showAll == all) return;
+    setState(() => _showAll = all);
+    _loadOfficial();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    return AcademicScaffold(
+    final mine = _tab == 0;
+    final Object? err = mine ? (_mine.isEmpty ? _errMine : null) : (_official.isEmpty ? _errOfficial : null);
+    final maintenance = err is ApiError && err.status == 503;
+    final BuViewState state;
+    if (mine && _loadingMine && _mine.isEmpty && err == null) {
+      state = BuViewState.loading;
+    } else if (err != null) {
+      state = maintenance ? BuViewState.empty : BuViewState.error;
+    } else if (mine && _mine.isEmpty) {
+      state = BuViewState.empty;
+    } else {
+      state = BuViewState.ready;
+    }
+    return BuPageScaffold(
       title: l.acadExamsTitle,
-      bottomBar: _tab == 0 ? AkadBottomBar(children: [AkadButton(label: l.acadExamsAdd, icon: LucideIcons.plus, onPressed: () => _openForm())]) : null,
-      child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-          child: Row(children: [
-            Flexible(child: AkadChip(label: l.acadExamsTabMine, selected: _tab == 0, onTap: () => setState(() => _tab = 0))),
-            const SizedBox(width: 8),
-            Flexible(child: AkadChip(label: l.acadExamsTabOfficial, selected: _tab == 1, onTap: () => setState(() => _tab = 1))),
-          ]),
+      state: state,
+      loading: const _ExamsSkeleton(),
+      error: err,
+      onRetry: mine ? _loadMine : _loadOfficial,
+      empty: err != null
+          ? AcademicErrorView(error: err, onRetry: mine ? _loadMine : _loadOfficial)
+          : BuEmptyState(illustration: BuIllustration.document, title: l.p17ExamsEmptyTitle, message: l.acadExamsEmptyMine),
+      onRefresh: mine ? _loadMine : _loadOfficial,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(68),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
+          child: BuSegmented(items: [l.acadExamsTabMine, l.acadExamsTabOfficial], index: _tab, onChanged: (i) => setState(() => _tab = i)),
         ),
-        const SizedBox(height: 4),
-        Expanded(child: _tab == 0 ? _mineView() : _officialView()),
-      ]),
+      ),
+      floatingActionButton: mine && !_loadingMine && state != BuViewState.error && !maintenance
+          ? FloatingActionButton.extended(
+              heroTag: null,
+              onPressed: () => _openForm(),
+              icon: const Icon(LucideIcons.plus),
+              label: Text(l.acadExamsAdd),
+            )
+          : null,
+      bottomInset: mine ? 104 : 32,
+      slivers: mine ? _mineSlivers() : _officialSlivers(),
     );
   }
 
   // ---- kişisel
-  Widget _mineView() {
-    if (_loadingMine && _mine.isEmpty) return const LoadingView();
-    if (_errMine != null && _mine.isEmpty) return AcademicErrorView(error: _errMine!, onRetry: _loadMine);
+  List<Widget> _mineSlivers() {
     final now = academicClock();
     final upcoming = _mine.where((e) => (e.endsAt ?? e.startsAt).isAfter(now)).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));
     final past = _mine.where((e) => !(e.endsAt ?? e.startsAt).isAfter(now)).toList()..sort((a, b) => b.startsAt.compareTo(a.startsAt));
     final l = context.l10n;
-    if (_mine.isEmpty) {
-      return EmptyView(icon: LucideIcons.fileText, text: l.acadExamsEmptyMine);
-    }
-    final t = context.bu;
-    return RefreshIndicator(
-      onRefresh: _loadMine,
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, AkadBottomBar.reserve),
-        children: [
-          if (upcoming.isNotEmpty) ...[
-            AkadSection(l.acadExamsUpcoming),
-            for (final e in upcoming) Padding(padding: const EdgeInsets.only(bottom: 12), child: _examCard(t, e, now)),
-          ] else
-            Padding(padding: const EdgeInsets.only(bottom: 8), child: StaleBanner(text: l.acadExamsNoUpcoming, icon: LucideIcons.partyPopper)),
-          if (past.isNotEmpty) ...[
-            AkadSection(l.acadExamsPast, padding: const EdgeInsetsDirectional.only(start: 6, bottom: 8, top: 8)),
-            for (final e in past) Padding(padding: const EdgeInsets.only(bottom: 12), child: _examCard(t, e, now)),
-          ],
-        ],
-      ),
-    );
+    final items = <Widget>[
+      if (_errMine != null)
+        Padding(padding: const EdgeInsets.only(bottom: 12), child: BuOfflineBanner(message: l.acadTimeStale, showCachedHint: false, margin: EdgeInsets.zero)),
+      if (upcoming.isNotEmpty) ...[
+        AkadSection(l.acadExamsUpcoming),
+        for (final e in upcoming) Padding(padding: const EdgeInsets.only(bottom: 12), child: _examCard(e, now)),
+      ] else
+        Padding(padding: const EdgeInsets.only(bottom: 12), child: StaleBanner(text: l.acadExamsNoUpcoming, icon: LucideIcons.partyPopper)),
+      if (past.isNotEmpty) ...[
+        AkadSection(l.acadExamsPast, padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8, top: 12)),
+        for (final e in past) Padding(padding: const EdgeInsets.only(bottom: 12), child: _examCard(e, now)),
+      ],
+    ];
+    return [_list(items)];
   }
 
-  Widget _examCard(BuTokens t, Exam e, DateTime now) {
+  Widget _list(List<Widget> items) => SliverPadding(
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+        sliver: SliverList.builder(itemCount: items.length, itemBuilder: (c, i) => BuStaggerItem(index: i, child: items[i])),
+      );
+
+  Widget _examCard(Exam e, DateTime now) {
     final l = context.l10n;
     final cd = countdownTextL(l, e.startsAt, now);
-    final color = e.courseId == null
-        ? courseColor('gray')
-        : courseColor(_courses.where((c) => c.id == e.courseId).map((c) => c.color).firstOrNull ?? 'blue');
+    final color = e.courseId == null ? courseColor('gray') : courseColor(_courses.where((c) => c.id == e.courseId).map((c) => c.color).firstOrNull ?? 'blue');
     final typeText = examTypeLabelL(l, e.type);
     final dateText = fmtInstantL(l, e.startsAt);
     final isPast = cd == null;
@@ -175,46 +200,45 @@ class _ExamsPageState extends State<ExamsPage> {
   }
 
   // ---- resmi
-  Widget _officialView() {
-    if (_loadingOfficial && _official.isEmpty) return const LoadingView();
-    if (_errOfficial != null && _official.isEmpty) return AcademicErrorView(error: _errOfficial!, onRetry: _loadOfficial);
-    final t = context.bu;
+  List<Widget> _officialSlivers() {
     final l = context.l10n;
     final now = academicClock();
-    return RefreshIndicator(
-      onRefresh: _loadOfficial,
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
-        children: [
-          if (!_profileComplete)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: StaleBanner(text: l.acadExamsProfileIncomplete, icon: LucideIcons.info),
+    final loadingList = _loadingOfficial && _official.isEmpty;
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            if (!_profileComplete)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: StaleBanner(text: l.acadExamsProfileIncomplete, icon: LucideIcons.info),
+              ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Wrap(spacing: 8, children: [
+                AkadChip(label: l.acadMyDept, selected: !_showAll, onTap: () => _toggleAll(false)),
+                AkadChip(label: l.acadAll, selected: _showAll, onTap: () => _toggleAll(true)),
+              ]),
             ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Wrap(spacing: 8, children: [
-              AkadChip(label: l.acadMyDept, selected: !_showAll, onTap: () => _toggleAll(false)),
-              AkadChip(label: l.acadAll, selected: _showAll, onTap: () => _toggleAll(true)),
-            ]),
-          ),
-          const SizedBox(height: 8),
-          if (_official.isEmpty)
-            EmptyView(icon: LucideIcons.fileText, text: l.acadExamsEmptyOfficial)
-          else
-            for (final e in _official) Padding(padding: const EdgeInsets.only(bottom: 12), child: _officialCard(t, e, now)),
-        ],
+          ]),
+        ),
       ),
-    );
+      if (loadingList)
+        const SliverToBoxAdapter(child: _ExamsSkeleton(count: 3))
+      else if (_official.isEmpty)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: BuEmptyState(illustration: BuIllustration.calendar, title: l.p17OfficialEmptyTitle, message: l.acadExamsEmptyOfficial, compact: true),
+          ),
+        )
+      else
+        _list([for (final e in _official) Padding(padding: const EdgeInsets.only(bottom: 12), child: _officialCard(e, now))]),
+    ];
   }
 
-  void _toggleAll(bool all) {
-    if (_showAll == all) return;
-    setState(() => _showAll = all);
-    _loadOfficial();
-  }
-
-  Widget _officialCard(BuTokens t, OfficialExam e, DateTime now) {
+  Widget _officialCard(OfficialExam e, DateTime now) {
     final l = context.l10n;
     final cd = countdownTextL(l, e.startsAt, now);
     final who = [if (e.department != null) e.department!, if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
@@ -237,7 +261,7 @@ class _ExamsPageState extends State<ExamsPage> {
   }
 }
 
-/// Sınav kartı (Ak4): ay/gün pulu + başlık + "tür · saat" + yer + sağda geri sayım hapı.
+/// Sınav kartı: ay/gün pulu + başlık + tür hapı ve saat + yer/bölüm satırları + sağda geri sayım hapı.
 class _ExamTile extends StatelessWidget {
   const _ExamTile({
     required this.color,
@@ -267,18 +291,18 @@ class _ExamTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final w = istanbulWall(start);
-    final time = end == null
-        ? hhmm(w.hour * 60 + w.minute)
-        : '${hhmm(w.hour * 60 + w.minute)} – ${hhmm(istanbulWall(end!).hour * 60 + istanbulWall(end!).minute)}';
+    final time =
+        end == null ? hhmm(w.hour * 60 + w.minute) : '${hhmm(w.hour * 60 + w.minute)} – ${hhmm(istanbulWall(end!).hour * 60 + istanbulWall(end!).minute)}';
     final tileBg = past ? t.sf2 : akadTint(context, color);
     final tileFg = past ? t.mut : akadOnTint(context, color);
     Widget sub(String s, {IconData? icon}) => Padding(
-          padding: const EdgeInsets.only(top: 2),
+          padding: const EdgeInsets.only(top: 3),
           child: Row(children: [
-            if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 13, color: t.mut)), const SizedBox(width: 4)],
-            Expanded(child: Text(s, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut))),
+            if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 14, color: t.mut)), const SizedBox(width: 6)],
+            Expanded(child: Text(s, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
           ]),
         );
     return Semantics(
@@ -289,30 +313,63 @@ class _ExamTile extends StatelessWidget {
       onTap: onTap,
       child: AkadCard(
         onTap: onTap,
-        child: Row(children: [
+        shadow: false,
+        color: past ? t.sf2 : t.sf,
+        borderColor: past ? t.sf2 : t.bd,
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           AkadDateTile(month: monthNameL(l, w.month), day: w.day, bg: tileBg, fg: tileFg),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w800, color: t.ink)),
+              Wrap(spacing: 6, runSpacing: 4, children: [
+                if (pill != null)
+                  past
+                      ? AkadPill(pill!, bg: t.sf, fg: t.mut)
+                      : AkadPill(pill!,
+                          bg: Color.alphaBlend(color.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .3 : .18), t.sf),
+                          fg: t.ink,
+                          icon: LucideIcons.timer),
+                AkadPill(typeText, bg: past ? t.sf : tileBg, fg: past ? t.mut : akadOnTint(context, color)),
+              ]),
+              const SizedBox(height: 6),
+              Text(title,
+                  maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: past ? t.mut : t.ink)),
               if (course != null) sub(course!, icon: LucideIcons.bookOpen),
-              sub('${code == null ? '' : '$code · '}$typeText · $time'),
+              sub('${code == null ? '' : '$code · '}$time', icon: LucideIcons.clock),
               if (room != null) sub(room!, icon: LucideIcons.mapPin),
               if (who != null) sub(who!, icon: LucideIcons.graduationCap),
               if (note != null) sub(note!, icon: LucideIcons.info),
             ]),
           ),
-          if (pill != null) ...[
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 96),
-              child: past
-                  ? AkadPill(pill!, bg: t.sf2, fg: t.mut)
-                  : AkadPill(pill!, bg: Theme.of(context).brightness == Brightness.dark ? akadOnTint(context, color) : color, fg: Theme.of(context).brightness == Brightness.dark ? t.onPr : Colors.white),
-            ),
-          ],
         ]),
       ),
     );
   }
+}
+
+/// Sınav listesi iskeleti: tarih karosu + iki satır.
+class _ExamsSkeleton extends StatelessWidget {
+  const _ExamsSkeleton({this.count = 4});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: context.l10n.commonLoading,
+        liveRegion: true,
+        container: true,
+        child: BuSkeletonScope(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(children: [
+              for (var i = 0; i < count; i++)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: BuSkeleton(height: 96, radius: 20),
+                ),
+            ]),
+          ),
+        ),
+      );
 }

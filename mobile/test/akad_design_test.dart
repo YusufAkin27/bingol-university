@@ -152,6 +152,8 @@ void main() {
     expect(find.textContaining('Pazartesi, bugün'), findsOneWidget);
     expect(find.text('2'), findsOneWidget); // 2 Kasim pazartesi
     expect(find.text('8'), findsOneWidget); // pazar
+    expect(find.byTooltip('Takvime aktar (.ics)'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Takvime aktar'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('Takvime aktar'), findsOneWidget);
     expect(find.text('Ders ekle'), findsOneWidget);
     await unmount(tester);
