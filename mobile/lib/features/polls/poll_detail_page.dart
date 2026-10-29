@@ -225,6 +225,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final count = p.turnoutVoted ?? p.totalVotes;
     final multi = p.type == PollType.multi;
     final mode = voting ? 'v' : (showResults ? 'r' : 'n');
+    // Çoklu ve sıralı seçimde gizlilik bilgisi meta satırında küçük hap; diğerlerinde not kutusu (tek yerde).
+    final secretInMeta = p.anonymous && (multi || p.type == PollType.ranked);
+    final hintBg = AnketTone.general(context).bg;
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
       child: Column(
@@ -242,13 +245,14 @@ class _PollDetailPageState extends State<PollDetailPage> {
             child: SizedBox(
               width: double.infinity,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if ((rem != null && !closed) || count != null)
+                if ((rem != null && !closed) || count != null || secretInMeta)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Wrap(spacing: 14, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       if (rem != null && !closed)
                         _MetaLine(icon: LucideIcons.clock, text: rem, color: urgent ? t.pr : t.mut, strong: urgent),
                       if (count != null) _MetaLine(icon: LucideIcons.users, text: l.pollParticipants('$count'), color: t.mut),
+                      if (secretInMeta) AnketPill(l.pollSecretVote, bg: t.sf2, fg: t.ink, icon: LucideIcons.shieldCheck, small: true),
                     ]),
                   ),
                 Semantics(header: true, child: Text(p.title, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
@@ -259,7 +263,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ]),
             ),
           ),
-          if (p.anonymous) _gap(AnketHintBox(icon: LucideIcons.shieldCheck, title: l.pollSecretVote, body: l.p13PollSecretBody), top: 12),
+          if (p.anonymous && !secretInMeta)
+            _gap(AnketHintBox(icon: LucideIcons.shieldCheck, title: l.pollSecretVote, body: l.p13PollSecretBody, bg: hintBg), top: 12),
           const SizedBox(height: 12),
           if (closed) _gap(AnketNotice(icon: LucideIcons.clock, text: l.pollBlockedClosed)),
           if (!closed && p.notOpenYet) _gap(AnketNotice(icon: LucideIcons.clock, text: l.pollBlockedNotOpen)),
@@ -274,7 +279,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               trailing: p.maxChoices != null ? l.p13PollSelectedCount('${_sel!.ids.length}', '${p.maxChoices}') : null,
             )),
           if (voting && p.type == PollType.ranked)
-            _gap(AnketHintBox(icon: LucideIcons.pointer, title: l.p13PollHowTo, body: l.pollHintRanked)),
+            _gap(AnketHintBox(icon: LucideIcons.pointer, title: l.p13PollHowTo, body: l.pollHintRanked, bg: hintBg)),
           BuFadeThrough(
             child: KeyedSubtree(
               key: ValueKey(mode),
@@ -285,6 +290,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
               ]),
             ),
           ),
+          if (voting && p.showResultsMode == 'AFTER_CLOSE') ...[
+            const SizedBox(height: 4),
+            AnketHintBox(icon: LucideIcons.shieldCheck, body: l.pollResultsAfterClose),
+          ],
           if (!voting) ...[const SizedBox(height: 16), _turnout(t, p)],
           if (!closed && p.voted && !_editing && p.allowChangeVote) ..._ownerActions(p),
         ],
@@ -300,7 +309,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
     if (v == null) return const SizedBox.shrink();
     final tx = Theme.of(context).textTheme;
     final e = p.turnoutEligible;
-    final text = e != null && e > 0 ? context.l10n.pollParticipationOf('$v', '$e') : context.l10n.pollParticipants('$v');
+    // Uygun seçmen sayısı oy sayısından azsa ("343 / 40") oran anlamsızdır: yalnız katılım yazılır, çubuk tam dolar.
+    final ratio = e != null && e > 0 && v <= e;
+    final text = ratio ? context.l10n.pollParticipationOf('$v', '$e') : context.l10n.pollParticipants('$v');
     final frac = e != null && e > 0 ? (v / e).clamp(0, 1).toDouble() : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -326,6 +337,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                     alignment: AlignmentDirectional.centerStart,
                     child: FractionallySizedBox(
                       widthFactor: v < .02 ? .02 : v,
+                      heightFactor: 1,
                       child: DecoratedBox(decoration: BoxDecoration(color: t.mut.withValues(alpha: .55), borderRadius: BuRadius.bPill)),
                     ),
                   ),
@@ -545,6 +557,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                                     alignment: AlignmentDirectional.centerStart,
                                     child: FractionallySizedBox(
                                       widthFactor: v,
+                                      heightFactor: 1,
                                       child: DecoratedBox(decoration: BoxDecoration(color: gold, borderRadius: BuRadius.bPill)),
                                     ),
                                   ),

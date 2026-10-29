@@ -279,12 +279,15 @@ class AnketErrorBanner extends StatelessWidget {
 
 /// Bölüm başlığı: solda küçük renkli nokta (ya da simge) + başlık, sağda yan metin.
 class AnketHeading extends StatelessWidget {
-  const AnketHeading({super.key, required this.title, this.icon, this.trailing, this.iconColor});
+  const AnketHeading({super.key, required this.title, this.icon, this.trailing, this.iconColor, this.onTrailingTap});
 
   final String title;
   final IconData? icon;
   final String? trailing;
   final Color? iconColor;
+
+  /// Verilirse yan metin dokunulabilir bağlantı olur ("Tümünü gör >").
+  final VoidCallback? onTrailingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -300,26 +303,55 @@ class AnketHeading extends StatelessWidget {
       Expanded(
         child: Semantics(
           header: true,
-          child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(title, maxLines: 1, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+          ),
         ),
       ),
-      if (trailing != null) ...[
+      if (trailing != null && onTrailingTap == null) ...[
         const SizedBox(width: 8),
         Text(trailing!, maxLines: 1, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
       ],
+      if (trailing != null && onTrailingTap != null)
+        Semantics(
+          button: true,
+          label: trailing,
+          excludeSemantics: true,
+          onTap: onTrailingTap,
+          child: InkWell(
+            borderRadius: BuRadius.bSm,
+            onTap: onTrailingTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(trailing!, maxLines: 1, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                  const SizedBox(width: 4),
+                  Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.ink),
+                ]),
+              ),
+            ),
+          ),
+        ),
     ]);
   }
 }
 
 /// İpucu/uyarı kutusu: başta yuvarlak (beyaz) simge, kalın başlık ve açıklama; isteğe bağlı sağ rozet.
 class AnketHintBox extends StatelessWidget {
-  const AnketHintBox({super.key, required this.icon, this.body, this.title, this.trailing, this.iconColor});
+  const AnketHintBox({super.key, required this.icon, this.body, this.title, this.trailing, this.iconColor, this.bg});
 
   final IconData icon;
   final String? title;
   final String? body;
   final String? trailing;
   final Color? iconColor;
+
+  /// Zemin rengi (varsayılan `sf2`).
+  final Color? bg;
 
   @override
   Widget build(BuildContext context) {
@@ -328,8 +360,8 @@ class AnketHintBox extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      decoration: BoxDecoration(color: bg ?? t.sf2, borderRadius: BorderRadius.circular(16)),
+      child: Row(crossAxisAlignment: title == null ? CrossAxisAlignment.center : CrossAxisAlignment.start, children: [
         AnketRoundIcon(icon, size: 36, bg: t.sf, fg: iconColor ?? t.ink),
         const SizedBox(width: 12),
         Expanded(

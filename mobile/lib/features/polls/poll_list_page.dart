@@ -34,6 +34,7 @@ class _PollListPageState extends State<PollListPage> {
   int _tab = 0;
   int _gen = 0;
   int? _openCount;
+  List<Poll> _joined = const [];
   String? _cursor;
   bool _hasMore = false;
   bool _loading = false;
@@ -80,6 +81,7 @@ class _PollListPageState extends State<PollListPage> {
         _loading = false;
         if (_tab == 0 && widget.communityId == null && !_hasMore) _openCount = _items.length;
       });
+      if (reset && _tab == 2 && widget.communityId == null) _loadJoined(gen);
     } catch (e) {
       if (!mounted || gen != _gen) return;
       setState(() {
@@ -89,9 +91,23 @@ class _PollListPageState extends State<PollListPage> {
     }
   }
 
+  /// Kapanan sekmesinin altındaki "Katıldıklarım" bloğu: oy verilen anketlerden en çok 2'si (hata/boşta gizli).
+  Future<void> _loadJoined(int gen) async {
+    try {
+      final page = await _api.list(scope: 'mine', size: 2);
+      if (!mounted || gen != _gen) return;
+      setState(() => _joined = page.items.where((p) => p.voted).take(2).toList());
+    } catch (_) {
+      // Sessiz: ek blok yalnız bir kolaylık.
+    }
+  }
+
   void _select(int i) {
     if (i == _tab) return;
-    setState(() => _tab = i);
+    setState(() {
+      _tab = i;
+      _joined = const [];
+    });
     _load(reset: true);
   }
 
@@ -189,6 +205,22 @@ class _PollListPageState extends State<PollListPage> {
               },
             ),
           ),
+        if (_tab == 2 && !club && _loaded && _joined.isNotEmpty) ...[
+          SliverPadding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 8),
+            sliver: SliverToBoxAdapter(
+              child: AnketHeading(title: l.pollTabMine, trailing: l.p13PollViewAll, onTrailingTap: () => _select(1)),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+            sliver: SliverList.separated(
+              itemCount: _joined.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) => PollCard(poll: _joined[i], reviewCta: true, onTap: () => _open(_joined[i])),
+            ),
+          ),
+        ],
         SliverToBoxAdapter(child: _footer(l.pollLoadFailedRetry)),
       ],
     );

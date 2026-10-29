@@ -106,6 +106,7 @@ Map<String, dynamic> _poll(
   int? maxChoices,
   List<String>? options,
   String showResults = 'ALWAYS',
+  bool allowChangeVote = true,
 }) {
   final p = samplePoll(
     id: id,
@@ -120,6 +121,7 @@ Map<String, dynamic> _poll(
     myRating: myRating,
     maxChoices: maxChoices,
     showResults: showResults,
+    allowChangeVote: allowChangeVote,
     closesAt: closed ? _in(const Duration(days: -1)) : _in(left),
   );
   p['scope'] = scope;
@@ -156,14 +158,16 @@ const _openOthers = {
 List<Map<String, dynamic>> _closedList() => [
       _poll(12, 'Kantin Çay & Kahve Fiyatlandırma Anketi', type: 'RATING', closed: true, anonymous: false)..['average'] = 2.4,
       _poll(11, 'Güz Dönemi Vize Çalışma Kampı Lokasyonu', scope: 'COMMUNITY', closed: true, options: ['Mühendislik D Blok', 'Kütüphane Zemin Kat', 'Öğrenci Kulüpleri Binası']),
+      _poll(20, 'Yapay Zeka Çalıştayı Konu Başlığı', type: 'MULTI', scope: 'COMMUNITY', left: const Duration(days: 1, hours: 3), mine: [2001], options: ['Üretken yapay zeka', 'Görüntü işleme', 'Robotik']),
     ];
 
 const _closedOthers = {
   12: {1201: 150, 1202: 90, 1203: 80, 1204: 60, 1205: 32},
   11: {1101: 80, 1102: 30, 1103: 18},
+  20: {2001: 30, 2002: 20, 2003: 5},
 };
 
-Map<String, dynamic> _menuPoll({String type = 'SINGLE', int? maxChoices, bool anon = true, int? rating, List<int>? ids}) => _poll(
+Map<String, dynamic> _menuPoll({String type = 'SINGLE', int? maxChoices, bool anon = true, int? rating, List<int>? ids, String showResults = 'ALWAYS'}) => _poll(
       1,
       type == 'MULTI'
           ? 'Bahar şenliği konserinde hangi sanatçıları görmek istersiniz?'
@@ -175,6 +179,7 @@ Map<String, dynamic> _menuPoll({String type = 'SINGLE', int? maxChoices, bool an
       type: type,
       anonymous: anon,
       maxChoices: maxChoices,
+      showResults: showResults,
       mine: ids,
       myRating: rating,
       options: type == 'MULTI'
@@ -231,7 +236,7 @@ final _shots = <_Shot>[
   // ---- 32: detay ----
   _Shot('32-01_tek', (b) => _fp(b, [_menuPoll()], others: {1: {101: 120, 102: 90, 103: 80, 104: 52}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 917,
       act: (t) => _tapText(t, 'İskender & Yoğurt')),
-  _Shot('32-02_coklu', (b) => _fp(b, [_menuPoll(type: 'MULTI', maxChoices: 2)], others: {1: {101: 300, 102: 200, 103: 100, 104: 18}}),
+  _Shot('32-02_coklu', (b) => _fp(b, [_menuPoll(type: 'MULTI', maxChoices: 2, showResults: 'AFTER_CLOSE')]),
       (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 884, act: (t) => _tapText(t, 'Madrigal')),
   _Shot('32-02b_coklu_uyari', (b) => _fp(b, [_menuPoll(type: 'MULTI', maxChoices: 2)]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 884,
       act: (t) async {
@@ -251,15 +256,16 @@ final _shots = <_Shot>[
   }),
   _Shot('32-05_kulup', (b) {
     _fp(b, [
-      _poll(2, 'TEKNOFEST 2026 için hangi kategoriye odaklanalım?', scope: 'COMMUNITY', description: 'Atölye bütçesi ve takım dağılımı bu oylamaya göre şekillenecektir.', anonymous: true, left: const Duration(days: 1, hours: 3)),
-    ], others: {2: {201: 20, 202: 15, 203: 13}});
+      _poll(3, 'TEKNOFEST 2026 için hangi kategoriye odaklanalım?', scope: 'COMMUNITY', description: 'Atölye bütçesi ve takım dağılımı bu oylamaya göre şekillenecektir.', anonymous: true, left: const Duration(days: 1, hours: 3), allowChangeVote: false, showResults: 'AFTER_CLOSE', options: ['İnsansız Hava Araçları (İHA)', 'Otonom Kara Aracı (UGV)', 'Su Altı Sistemleri']),
+      _poll(2, 'Yeni Kulüp Logosu Seçimi', scope: 'COMMUNITY', closed: true, options: ['Minimalist Çip Rozeti', 'Klasik Dişli', 'Yıldız']),
+    ], others: {2: {201: 46, 202: 18, 203: 8}});
   }, (b) => Scaffold(body: SafeArea(child: SingleChildScrollView(child: Column(children: [const SizedBox(height: 16), PollClubSection(session: makeSession(b), communityId: 5, canCreate: true)])))),
       h: 941),
   _Shot('32-05b_kulup_bos', (b) => _fp(b, []), (b) => Scaffold(body: SafeArea(child: SingleChildScrollView(child: Column(children: [const SizedBox(height: 16), PollClubSection(session: makeSession(b), communityId: 5, canCreate: true)])))),
       h: 700),
   _Shot('32-06_degistir', (b) => _fp(b, [_menuPoll(ids: [101])], others: {1: {101: 120, 102: 90, 103: 80, 104: 52}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 884,
       act: (t) => _tapText(t, _tr('Oyu değiştir', 'Change vote', 'تغيير التصويت'))),
-  _Shot('32-07_sonuc', (b) => _fp(b, [_menuPoll(ids: [101])], others: {1: {101: 120, 102: 90, 103: 80, 104: 52}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 1000),
+  _Shot('32-07_sonuc', (b) => _fp(b, [_menuPoll(ids: [101])], others: {1: {101: 14, 102: 9, 103: 6, 104: 3}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 1000),
   _Shot('32-08_hata', (b) => b.fail('/polls/1'), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 600),
   _Shot('32-09_yukleniyor', (b) {
     _fp(b, [_menuPoll()]);

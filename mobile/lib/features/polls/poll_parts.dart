@@ -119,6 +119,7 @@ class ResultBar extends StatelessWidget {
                     alignment: AlignmentDirectional.centerStart,
                     child: FractionallySizedBox(
                       widthFactor: v,
+                      heightFactor: 1,
                       child: DecoratedBox(decoration: BoxDecoration(color: fill, borderRadius: BuRadius.bPill)),
                     ),
                   ),
@@ -165,10 +166,13 @@ Duration? pollTimeLeft(Poll p, [DateTime? now]) {
 /// Liste kartı (tasarım 31): kapsam/tür/gizli oy çipleri, durum hapı, başlık, açıklama, kalan süre · katılım ve eylem düğmesi.
 /// Kapanan kartta sonuç özeti (en çok oy alan seçenek ya da ortalama puan) gösterilir.
 class PollCard extends StatelessWidget {
-  const PollCard({super.key, required this.poll, required this.onTap});
+  const PollCard({super.key, required this.poll, required this.onTap, this.reviewCta = false});
 
   final Poll poll;
   final VoidCallback onTap;
+
+  /// true ise oy verilmiş açık kartta "Oyu incele" düğmesi görünür (Katıldıklarım bloğu).
+  final bool reviewCta;
 
   /// Açılıştan bitişe geçen süre oranı (0-1); tarih yoksa/kapalıysa null.
   static double? elapsedFraction(Poll p, [DateTime? now]) {
@@ -238,8 +242,9 @@ class PollCard extends StatelessWidget {
               ],
               if (summary != null) ...[
                 const SizedBox(height: 12),
-                Wrap(spacing: 14, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   _Meta(icon: LucideIcons.clock, text: l.pollEnded, style: meta, color: t.mut),
+                  if (count != null) const _Bullet(),
                   if (count != null) _Meta(icon: LucideIcons.users, text: l.pollParticipants('$count'), style: meta, color: t.mut, strongNumber: true),
                 ]),
                 const SizedBox(height: 12),
@@ -248,9 +253,10 @@ class PollCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(children: [
                   Expanded(
-                    child: Wrap(spacing: 14, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                    child: Wrap(spacing: closed ? 10 : 14, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       if (rem != null)
                         _Meta(icon: LucideIcons.clock, text: closed ? l.pollEnded : rem, style: meta, color: timeColor, strong: urgent),
+                      if (closed && rem != null && count != null) const _Bullet(),
                       if (count != null)
                         _Meta(icon: LucideIcons.users, text: l.pollParticipants('$count'), style: meta, color: t.mut, strongNumber: true),
                     ]),
@@ -258,6 +264,9 @@ class PollCard extends StatelessWidget {
                   if (canAct) ...[
                     const SizedBox(width: 12),
                     _Cta(label: poll.type == PollType.rating ? l.p13PollRateCta : l.pollVote, rating: poll.type == PollType.rating),
+                  ] else if (reviewCta && !closed && poll.voted) ...[
+                    const SizedBox(width: 12),
+                    _Cta(label: l.p13PollReview, rating: false, soft: true),
                   ],
                 ]),
               ],
@@ -368,11 +377,7 @@ class PollMiniStars extends StatelessWidget {
     return ExcludeSemantics(
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         for (var i = 1; i <= 5; i++)
-          Icon(
-            v >= i ? Icons.star_rounded : (v >= i - .5 ? Icons.star_half_rounded : Icons.star_outline_rounded),
-            size: size + 2,
-            color: v >= i - .5 ? t.pr : t.mut.withValues(alpha: .5),
-          ),
+          if (v >= i - .5) Icon(v >= i ? Icons.star_rounded : Icons.star_half_rounded, size: size + 2, color: t.pr),
       ]),
     );
   }
@@ -402,10 +407,13 @@ class _DotPill extends StatelessWidget {
 
 /// Kart içi eylem görünümü ("Oy ver →" / "Puanla ★"); dokunmayı kartın kendisi alır.
 class _Cta extends StatelessWidget {
-  const _Cta({required this.label, required this.rating});
+  const _Cta({required this.label, required this.rating, this.soft = false});
 
   final String label;
   final bool rating;
+
+  /// true: gri (ikincil) düğme görünümü.
+  final bool soft;
 
   @override
   Widget build(BuildContext context) {
@@ -415,15 +423,24 @@ class _Cta extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(minHeight: 44),
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(color: soft ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(14)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(label, style: tx.labelLarge!.copyWith(color: t.onPr, fontWeight: FontWeight.w700)),
+          Text(label, style: tx.labelLarge!.copyWith(color: soft ? t.ink : t.onPr, fontWeight: FontWeight.w700)),
           const SizedBox(width: 8),
-          Icon(rating ? LucideIcons.star : buDirIcon(context, LucideIcons.arrowRight), size: 16, color: t.onPr),
+          Icon(rating ? LucideIcons.star : buDirIcon(context, LucideIcons.arrowRight), size: 16, color: soft ? t.ink : t.onPr),
         ]),
       ),
     );
   }
+}
+
+/// Meta öğeleri arasındaki küçük nokta ayırıcı.
+class _Bullet extends StatelessWidget {
+  const _Bullet();
+
+  @override
+  Widget build(BuildContext context) =>
+      ExcludeSemantics(child: Container(width: 4, height: 4, decoration: BoxDecoration(color: context.bu.mut.withValues(alpha: .6), shape: BoxShape.circle)));
 }
 
 class _Meta extends StatelessWidget {

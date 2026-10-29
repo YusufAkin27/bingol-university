@@ -32,7 +32,7 @@ class _PollFormPageState extends State<PollFormPage> {
   final List<TextEditingController> _opts = [TextEditingController(), TextEditingController()];
   final _errKey = GlobalKey();
   PollType _type = PollType.single;
-  bool _anonymous = false;
+  bool _anonymous = true; // kulüp anketinde varsayılan gizli oy (sunucu da COMMUNITY için gizli varsayar)
   bool _notify = true;
   String _showResults = 'AFTER_VOTE';
   DateTime? _closesAt;
@@ -378,24 +378,28 @@ class _PollFormPageState extends State<PollFormPage> {
               ),
               const SizedBox(height: 20),
               _Heading(icon: LucideIcons.slidersHorizontal, title: l.p13PollPrefs),
-              BuGroup(dividerIndent: 66, children: [
-                BuSettingsTile.toggle(
-                  icon: LucideIcons.lock,
-                  title: l.pollAnonymous,
-                  subtitle: l.pollAnonymousSub,
-                  tint: t.tint(1),
-                  value: _anonymous,
-                  onChanged: (v) => setState(() => _anonymous = v),
-                ),
-                BuSettingsTile.toggle(
-                  icon: LucideIcons.bellRing,
-                  title: l.anketNotifyTitle,
-                  subtitle: l.anketNotifySub,
-                  tint: t.tint(1),
-                  value: _notify,
-                  onChanged: (v) => setState(() => _notify = v),
-                ),
-              ]),
+              BuCard(
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  BuSettingsTile.toggle(
+                    icon: LucideIcons.lock,
+                    title: l.pollAnonymous,
+                    subtitle: l.pollAnonymousSub,
+                    tint: t.tint(1),
+                    value: _anonymous,
+                    onChanged: (v) => setState(() => _anonymous = v),
+                  ),
+                  Padding(padding: const EdgeInsetsDirectional.symmetric(horizontal: 16), child: Divider(height: 1, color: t.bd)),
+                  BuSettingsTile.toggle(
+                    icon: LucideIcons.bellRing,
+                    title: l.anketNotifyTitle,
+                    subtitle: l.anketNotifySub,
+                    tint: t.tint(1),
+                    value: _notify,
+                    onChanged: (v) => setState(() => _notify = v),
+                  ),
+                ]),
+              ),
               AnimatedSize(
                 duration: BuMotion.of(context, BuMotion.medium),
                 curve: BuMotion.emphasized,

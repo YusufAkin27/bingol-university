@@ -93,6 +93,7 @@ class Poll {
     this.average,
     this.ratingCount,
     this.menuItems = const [],
+    this.showResultsMode = 'ALWAYS',
   });
 
   final int id;
@@ -124,6 +125,9 @@ class Poll {
   final double? average;
   final int? ratingCount;
   final List<String> menuItems;
+
+  /// Sonuç görünürlüğü ayarı: ALWAYS | AFTER_VOTE | AFTER_CLOSE.
+  final String showResultsMode;
 
   bool get voted => hasVote;
 
@@ -195,6 +199,7 @@ class Poll {
       average: _dbl(j['average']),
       ratingCount: _intN(j['ratingCount']),
       menuItems: j['menuItems'] is List ? [for (final e in j['menuItems'] as List) '$e'] : const [],
+      showResultsMode: '${j['showResults'] ?? 'ALWAYS'}'.toUpperCase(),
     );
   }
 }

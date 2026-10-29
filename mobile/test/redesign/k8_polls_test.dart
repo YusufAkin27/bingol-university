@@ -17,6 +17,7 @@ FakeBackend _closedBackend() {
   final f = fakePolls(b, count: 0);
   f.polls.add(samplePoll(id: 1, title: 'Kapanan oylama ' * 4, closed: true, optionCount: 4));
   f.polls.add(samplePoll(id: 2, title: 'Puanlama', type: 'RATING', closed: true, communityId: null, communityName: null)..['average'] = 2.4);
+  f.polls.add(samplePoll(id: 3, title: 'Oy verilmis acik', myOptionIds: [301]));
   f.others[1] = {101: 14, 102: 9, 103: 4, 104: 1};
   f.others[2] = {201: 3, 202: 4, 203: 5, 204: 6, 205: 7};
   return b;
@@ -106,13 +107,19 @@ void main() {
       expect(find.text('Oy verdiniz'), findsOneWidget);
       await unmount(t);
 
+      t.view.physicalSize = const Size(390, 1800);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
       await t.pumpWidget(p00App(PollListPage(session: makeSession(_closedBackend())), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
       await t.tap(find.text('Kapanan'));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.byType(PollCard), findsNWidgets(2));
+      expect(find.byType(PollCard), findsNWidgets(3));
       expect(find.text('En çok oy alan seçenek'), findsOneWidget);
-      expect(find.text('Ortalama puan'), findsOneWidget);
+      expect(find.text('Ortalama Memnuniyet'), findsOneWidget);
+      expect(find.text('Sonuçlanan Anketler'), findsOneWidget);
+      expect(find.text('Katıldıklarım'), findsNWidgets(2)); // sekme + blok başlığı
+      expect(find.text('Oyu İncele'), findsOneWidget);
       expect(find.text('Kapandı'), findsNWidgets(2));
       await unmount(t);
     });
@@ -157,8 +164,54 @@ void main() {
       await settle(t, const Duration(milliseconds: 900));
       await t.tap(find.text('Seçenek 3'));
       await settle(t, const Duration(milliseconds: 500));
-      expect(find.text('1. tercih'), findsOneWidget);
+      expect(find.text('1. Tercih'), findsOneWidget);
       expect(find.text('Seçmek için dokunun'), findsNWidgets(2));
+      await unmount(t);
+    });
+
+    testWidgets('detay: coklu secimde gizlilik meta hapinda (kutu yok), sonuclar kapaninca notu', (t) async {
+      final b = FakeBackend();
+      fakePolls(b, count: 0).polls.add(samplePoll(id: 1, type: 'MULTI', maxChoices: 2, anonymous: true, showResults: 'AFTER_CLOSE'));
+      t.view.physicalSize = const Size(390, 1400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(p00App(PollDetailPage(session: makeSession(b), pollId: 1), scaffold: false));
+      await settle(t, const Duration(milliseconds: 900));
+      expect(find.text('Oyunuz gizlidir'), findsOneWidget);
+      expect(find.textContaining('Kimliğiniz hiçbir yönetici'), findsNothing);
+      expect(find.text('Sonuçlar anket kapanınca görünecek.'), findsOneWidget);
+      await unmount(t);
+    });
+
+    testWidgets('detay: katilim oy sayisindan az uygun secmenle "343 / 40" yazmaz', (t) async {
+      final b = FakeBackend();
+      final f = fakePolls(b, count: 0);
+      f.polls.add(samplePoll(id: 1, anonymous: true, myOptionIds: [101]));
+      f.others[1] = {101: 30, 102: 20};
+      t.view.physicalSize = const Size(390, 1400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(p00App(PollDetailPage(session: makeSession(b), pollId: 1), scaffold: false));
+      await settle(t, const Duration(milliseconds: 900));
+      expect(find.textContaining(' / 40 katılım'), findsNothing);
+      await unmount(t);
+    });
+
+    testWidgets('form: gizli oy varsayilan ACIK, govdeye anonymous=true gider', (t) async {
+      final b = FakeBackend();
+      fakePolls(b, count: 0);
+      t.view.physicalSize = const Size(390, 2600);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(p00App(PollFormPage(session: makeSession(b), communityId: 5), scaffold: false));
+      await settle(t, const Duration(milliseconds: 700));
+      await t.enterText(find.byType(TextField).first, 'Gun secimi');
+      await t.enterText(find.byType(TextField).at(2), 'Pazartesi');
+      await t.enterText(find.byType(TextField).at(3), 'Sali');
+      await t.pump();
+      await t.tap(find.text('Yayınla'));
+      await settle(t, const Duration(milliseconds: 700));
+      expect((b.bodies['POST /polls'] as Map)['anonymous'], true);
       await unmount(t);
     });
 
