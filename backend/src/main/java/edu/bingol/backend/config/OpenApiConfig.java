@@ -25,6 +25,7 @@ import java.util.function.BiPredicate;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.providers.ObjectMapperProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
@@ -69,8 +70,11 @@ public class OpenApiConfig {
     /**
      * Ayni basit ada sahip ic DTO'lar (ornegin iki ayri MemberView) tek semaya carpisip birini siliyordu.
      * Carpisan adlar ust sinif adiyla one eklenir (CommunityDtosMemberView); digerleri degismez.
+     * springdoc.api-docs.enabled=false iken (prod varsayilani, OPENAPI_DOCS_ENABLED) springdoc ObjectMapperProvider bean'ini
+     * olusturmaz; bean kosulsuz olursa uygulama prod profilinde HIC ACILMAZ (REL1 geri yukleme provasinda bulundu).
      */
     @Bean
+    @ConditionalOnProperty(prefix = "springdoc.api-docs", name = "enabled", havingValue = "true", matchIfMissing = true)
     ModelConverter uniqueSchemaNames(ObjectMapperProvider mapper) {
         return new ModelResolver(mapper.jsonMapper(), new TypeNameResolver() {
             @Override
