@@ -1,0 +1,31 @@
+{
+  "natLogin": {
+    "users": 300,
+    "statuses": {
+      "200": 300
+    },
+    "p50": 615,
+    "p95": 1102
+  },
+  "natRefresh": {
+    "users": 300,
+    "statuses": {
+      "200": 300
+    },
+    "p95": 223
+  },
+  "bruteForceOneDevice": {
+    "statuses": "401,401,401,401,401,401,401,401,401,401,429,429,429,429",
+    "firstBlockedAt": 11
+  },
+  "victimOnSameNatDifferentDevice": 200,
+  "otherUserOnSameNat": 200,
+  "distributedBruteForce": {
+    "attempts": 80,
+    "statuses": {
+      "401:INVALID_CREDENTIALS": 60,
+      "429:RATE_LIMITED": 20
+    },
+    "firstBlockedAt": 61
+  }
+}

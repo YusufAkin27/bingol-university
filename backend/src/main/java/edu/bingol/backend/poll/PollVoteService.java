@@ -14,16 +14,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Oy verme/geri cekme. Yaris guvenligi: anket satiri PESSIMISTIC_WRITE ile kilitlenir (bir ankette oylar siraya girer),
- * sayaclar atomik UPDATE ile artar/azalir, (poll_id,user_id) tekillik kisitlari son savunmadir. Idempotent: ayni oy tekrar
- * gonderilirse degisiklik olmaz.
+ * Oy verme/geri cekme. Yaris guvenligi: anket satiri KILITLENMEZ; ayni kullanicinin istekleri kendi ballot satirinda
+ * (yeni secmen: (poll_id,user_id) tekillik kisiti) siraya girer, sayaclar en sonda sirali atomik UPDATE ile
+ * artar/azalir. Idempotent: ayni oy tekrar gonderilirse degisiklik olmaz.
  */
 @Service
 public class PollVoteService {
@@ -53,24 +55,51 @@ public class PollVoteService {
     }
 
     /**
-     * Oy ver. Kritik bolum kisa tutulur (yuk testi bulgusu: 300 es zamanli oy, anket satir kilidini ~10 ms'lik islemlerle
-     * siraya sokuyor, bekleyen oylar Hikari baglantilarini tutup havuzu dolduruyordu). Kural denetimi ve secenek cozumleme
-     * KILITSIZ yapilir; satir kilidi yalniz yazma icin (ballot + oy + sayac) alinir ve gorunum kilit birakildiktan sonra kurulur.
-     * Anket kilit beklerken degistiyse (updatedAt farkli) hazirlik kilit icinde yeniden yapilir.
+     * Oy ver. Anket satiri KILITLENMEZ (yuk testi: tek ankete 300-600 es zamanli oy, FOR UPDATE ile siraya girip
+     * lock_timeout'u asiyor ve Hikari havuzunu dolduruyordu). Bunun yerine:
+     * <ul>
+     *   <li>kural denetimi ve secenek cozumleme islem DISINDA (kilitsiz) yapilir;</li>
+     *   <li>ayni kullanicinin es zamanli istekleri kendi ballot satirinda (yeni secmense (poll_id,user_id) tekillik
+     *       kisitinda) siraya girer: cift oy yok, farkli kullanicilar birbirini beklemez;</li>
+     *   <li>ballot + oy satirlari once, sayaclar EN SON ve secenek kimligine gore sirali tek hamlede atomik
+     *       {@code UPDATE ... SET n = n + k} ile yazilir: sicak satir kilidi yalniz bu birkac ifade ile commit arasinda
+     *       tutulur ve kilit sirasi hep ayni oldugu icin kilitlenme olmaz. Anketin hala acik oldugu ayni ifadede
+     *       dogrulanir ({@link PollRepository#addVotersIfOpen}).</li>
+     * </ul>
+     * Gizli oy: oy satiri kimlik tasir (tek-oy kurali icin) ancak hicbir uc kimligi gostermez (degismedi).
      */
     public PollView vote(Actor actor, Long pollId, VoteRequest req) {
-        Poll pre = polls.findById(pollId).orElseThrow(PollService::notFound);
-        List<PollOption> opts = options.findByPollIdOrderByPositionAsc(pollId);
-        List<Long> chosen = prepare(pre, opts, actor, req, clock.instant());
-        tx.executeWithoutResult(s -> {
-            Poll p = polls.lockById(pollId).orElseThrow(PollService::notFound);
-            Instant now = clock.instant();
-            checkOpen(p, actor, now);
-            List<Long> ids = p.getUpdatedAt().equals(pre.getUpdatedAt())
-                    ? chosen : prepare(p, options.findByPollIdOrderByPositionAsc(pollId), actor, req, now);
-            write(p, actor, ids, now);
-        });
-        return assembler.view(polls.findById(pollId).orElseThrow(), actor, false);
+        for (int attempt = 0; ; attempt++) {
+            Poll pre = polls.findById(pollId).orElseThrow(PollService::notFound);
+            List<PollOption> opts = options.findByPollIdOrderByPositionAsc(pollId);
+            List<Long> chosen = prepare(pre, opts, actor, req, clock.instant());
+            try {
+                tx.executeWithoutResult(s -> write(pre, actor, chosen, clock.instant()));
+                return assembler.view(polls.findById(pollId).orElseThrow(), actor, false);
+            } catch (DataIntegrityViolationException e) {
+                // (a) ayni kullanicinin es zamanli ilk iki istegi: ikincisi tekillik kisitina carpti -> yeniden dene, bu kez
+                //     ballot gorunur (idempotent/degisiklik yolu). (b) secenekler arada degisti (FK) -> hazirligi yenile.
+                if (attempt >= 2) {
+                    throw invalidVote();
+                }
+            } catch (PessimisticLockingFailureException e) {
+                // Sicak sayac satirinda lock_timeout (burst): islem geri alindi, hicbir sey yazilmadi -> kisa beklemeyle
+                // yeniden dene (tekillik/idempotans sayesinde cift oy olmaz). Hala olmazsa 503 DB_TIMEOUT'a duser.
+                if (attempt >= 2) {
+                    throw e;
+                }
+                backoff(attempt);
+            }
+        }
+    }
+
+    /** Yeniden denemeden once rastgele kisa bekleme (herkes ayni anda tekrar yuklenmesin). */
+    private static void backoff(int attempt) {
+        try {
+            Thread.sleep(50L * (attempt + 1) + java.util.concurrent.ThreadLocalRandom.current().nextInt(100));
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** Acik mi, hak var mi, istek gecerli mi (kilit gerektirmez); secilen secenek kimliklerini doner. */
@@ -84,25 +113,33 @@ public class PollVoteService {
         return parse(p, opts, req);
     }
 
-    /** Kilit altinda: ballot, oy satirlari ve atomik sayaclar (idempotent: ayni oy degisiklik yapmaz). */
+    /** Islem icinde: kullanici kilidi, ballot/oy satirlari, en sonda sirali atomik sayaclar (idempotent). */
     private void write(Poll p, Actor actor, List<Long> chosen, Instant now) {
         Long pollId = p.getId();
-        PollBallot ballot = ballots.findByPollIdAndUserId(pollId, actor.id()).orElse(null);
+        // Sayac farklari secenek kimligine gore SIRALI uygulanir (sabit kilit sirasi = kilitlenme yok); ayni secenegin
+        // eksi/arti farki birlesir (degisiklikte gereksiz yazma yok).
+        Map<Long, int[]> delta = new TreeMap<>();
+        int voterDelta = 0;
+        PollBallot ballot = ballots.lockByPollIdAndUserId(pollId, actor.id()).orElse(null);
         if (ballot != null) {
-            List<Long> existing = votes.findByPollIdAndUserIdOrderByChoiceRankAsc(pollId, actor.id()).stream()
-                    .map(PollVote::getOptionId).toList();
+            List<PollVote> old = votes.findByPollIdAndUserIdOrderByChoiceRankAsc(pollId, actor.id());
+            List<Long> existing = old.stream().map(PollVote::getOptionId).toList();
             if (same(p, existing, chosen)) {
                 return; // idempotent
             }
             if (!p.isAllowChangeVote()) {
                 throw alreadyVoted();
             }
-            revert(p, actor.id());
+            for (PollVote v : old) {
+                bump(delta, v.getOptionId(), -voteInc(p, v.getChoiceRank()), -score(p, v.getChoiceRank()));
+            }
+            votes.deleteByPollIdAndUserId(pollId, actor.id());
+            votes.flush(); // silme, ayni secenegi yeniden yazan eklemeden ONCE calissin (tekillik kisiti)
             ballot.setUpdatedAt(now);
             ballots.save(ballot);
         } else {
-            ballots.save(new PollBallot(pollId, actor.id()));
-            polls.addVoters(pollId, 1);
+            ballots.saveAndFlush(new PollBallot(pollId, actor.id())); // es zamanli ikinci istek burada tekillige carpar
+            voterDelta = 1;
         }
         List<PollVote> rows = new ArrayList<>();
         for (int i = 0; i < chosen.size(); i++) {
@@ -111,34 +148,56 @@ public class PollVoteService {
         }
         votes.saveAll(rows);
         for (PollVote v : rows) {
-            options.addCounts(v.getOptionId(), voteInc(p, v.getChoiceRank()), score(p, v.getChoiceRank()));
+            bump(delta, v.getOptionId(), voteInc(p, v.getChoiceRank()), score(p, v.getChoiceRank()));
         }
+        applyCounters(p, voterDelta, delta, now);
     }
 
-    @Transactional
+    /** Sayaclari en sonda yazar: once anket (acik mi + secmen sayisi), sonra secenekler (kimlik sirasiyla). */
+    private void applyCounters(Poll p, int voterDelta, Map<Long, int[]> delta, Instant now) {
+        if (polls.addVotersIfOpen(p.getId(), voterDelta, now) == 0) {
+            // Okuma ile yazma arasinda kapandi/iptal edildi: islem geri alinir
+            Poll fresh = polls.findById(p.getId()).orElseThrow(PollService::notFound);
+            if (fresh.getStatus() == Poll.Status.OPEN && fresh.getOpensAt().isAfter(now)) {
+                throw new ApiException(HttpStatus.CONFLICT, "POLL_NOT_OPEN", "Bu anket henüz açılmadı.");
+            }
+            throw new ApiException(HttpStatus.CONFLICT, "POLL_CLOSED", "Bu anket kapalı.");
+        }
+        delta.forEach((optionId, d) -> {
+            if (d[0] != 0 || d[1] != 0) {
+                options.addCounts(optionId, d[0], d[1]);
+            }
+        });
+    }
+
+    private static void bump(Map<Long, int[]> delta, Long optionId, int votes, int score) {
+        int[] d = delta.computeIfAbsent(optionId, k -> new int[2]);
+        d[0] += votes;
+        d[1] += score;
+    }
+
+    /** Geri cekme: oy ile ayni kilit sirasi (kullanici ballot'u -> anket sayaci -> secenekler); anket satiri kilitlenmez. */
     public PollView retract(Actor actor, Long pollId) {
-        Poll p = polls.lockById(pollId).orElseThrow(PollService::notFound);
-        checkOpen(p, actor, clock.instant());
-        PollBallot ballot = ballots.findByPollIdAndUserId(pollId, actor.id()).orElse(null);
-        if (ballot == null) {
-            return assembler.view(p, actor, false); // idempotent
-        }
-        if (!p.isAllowChangeVote()) {
-            throw alreadyVoted();
-        }
-        revert(p, actor.id());
-        ballots.deleteByPollIdAndUserId(pollId, actor.id());
-        polls.addVoters(pollId, -1);
+        Poll pre = polls.findById(pollId).orElseThrow(PollService::notFound);
+        checkOpen(pre, actor, clock.instant());
+        tx.executeWithoutResult(s -> {
+            PollBallot ballot = ballots.lockByPollIdAndUserId(pollId, actor.id()).orElse(null);
+            if (ballot == null) {
+                return; // idempotent
+            }
+            if (!pre.isAllowChangeVote()) {
+                throw alreadyVoted();
+            }
+            Map<Long, int[]> delta = new TreeMap<>();
+            for (PollVote v : votes.findByPollIdAndUserIdOrderByChoiceRankAsc(pollId, actor.id())) {
+                bump(delta, v.getOptionId(), -voteInc(pre, v.getChoiceRank()), -score(pre, v.getChoiceRank()));
+            }
+            votes.deleteByPollIdAndUserId(pollId, actor.id());
+            ballots.deleteByPollIdAndUserId(pollId, actor.id());
+            ballots.flush();
+            applyCounters(pre, -1, delta, clock.instant());
+        });
         return assembler.view(polls.findById(pollId).orElseThrow(), actor, false);
-    }
-
-    /** Kullanicinin mevcut oylarini sayaclardan dusurur ve siler. */
-    private void revert(Poll p, Long userId) {
-        for (PollVote v : votes.findByPollIdAndUserIdOrderByChoiceRankAsc(p.getId(), userId)) {
-            options.addCounts(v.getOptionId(), -voteInc(p, v.getChoiceRank()), -score(p, v.getChoiceRank()));
-        }
-        votes.deleteByPollIdAndUserId(p.getId(), userId);
-        votes.flush(); // silme, ayni secenegi yeniden yazan eklemeden ONCE calissin (tekillik kisiti)
     }
 
     /** Taslak -> 404/NOT_OPEN, bitmis ya da suresi dolmus -> CLOSED, henuz acilmamis -> NOT_OPEN. */

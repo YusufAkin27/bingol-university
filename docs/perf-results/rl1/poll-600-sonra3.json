@@ -1,0 +1,35 @@
+anket 3: 600 es zamanli oy + 50 cift istek -> http://localhost:18621
+{
+  "pollId": "3",
+  "n": 600,
+  "double": 50,
+  "requests": 650,
+  "wallMs": 18053,
+  "statuses": {
+    "200": 650
+  },
+  "okLatencyMs": {
+    "p50": 11841,
+    "p95": 17609,
+    "max": 18018
+  },
+  "allLatencyMs": {
+    "p50": 11841,
+    "p95": 17609,
+    "max": 18018
+  },
+  "hikariPeak": {
+    "active": 0,
+    "pending": 0
+  },
+  "integrity": {
+    "ballots": 600,
+    "voterCount": 600,
+    "voteRows": 600,
+    "optionSum": 600,
+    "dupBallots": 0,
+    "dupVotes": 0,
+    "optionCountMismatch": 0,
+    "ok": true
+  }
+}

@@ -99,6 +99,22 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
     @Query("UPDATE Poll p SET p.voterCount = p.voterCount + :delta WHERE p.id = :id")
     int addVoters(@Param("id") Long id, @Param("delta") int delta);
 
+    /**
+     * Oy yolunun SON adimi: secmen sayacini atomik gunceller VE anketin hala acik oldugunu ayni ifadede dogrular (0 donerse
+     * kapandi/iptal/acilmamis). Satir kilidi bu ifadeden commit'e kadar tutulur; bu yuzden oy islemi bunu en sona koyar.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Poll p SET p.voterCount = p.voterCount + :delta
+            WHERE p.id = :id AND p.status = :open AND p.opensAt <= :now
+              AND (p.closesAt IS NULL OR p.closesAt > :now)""")
+    int addVotersIfOpen(@Param("id") Long id, @Param("delta") int delta, @Param("now") Instant now,
+                        @Param("open") Poll.Status open);
+
+    default int addVotersIfOpen(Long id, int delta, Instant now) {
+        return addVotersIfOpen(id, delta, now, Poll.Status.OPEN);
+    }
+
     /** Acildi bildirimi isareti (yalniz henuz isaretlenmemisse; 0 donerse baska ornek gondermistir). */
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)

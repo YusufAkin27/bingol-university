@@ -1,0 +1,1 @@
+pg log: kilit bekleme satiri = 33, lock timeout iptali = 0
