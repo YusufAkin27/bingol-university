@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+
+import '../../core/push/push_router.dart';
+import '../../core/session.dart';
 import '../../widgets/bu.dart';
 
 /// Sohbet listesi bileşenleri (referans 18).
@@ -157,7 +160,30 @@ class ChatlistAvatar extends StatelessWidget {
     this.badge,
     this.badgeAtTop = false,
     this.circle = false,
+    this.headers,
   });
+
+  /// Yetkili (`/api/...`) avatar adresleri için istek başlıkları. Verilmezse `/api/` adreslerinde oturumun
+  /// Bearer başlığı kendiliğinden eklenir ([authHeadersFor]); `/files/...` herkese açık adreslerde başlık gitmez.
+  final Map<String, String>? headers;
+
+  /// Testlerde oturum yerine kullanılacak başlık kaynağı.
+  @visibleForTesting
+  static Map<String, String>? Function()? authProvider;
+
+  static Session? _bound;
+
+  /// Sohbet sekmesi oturumu bağlar (push yolu henüz kurulmamış olsa da avatarlar yetkili istenir).
+  static void bindSession(Session s) => _bound = s;
+
+  /// [url] için varsayılan başlıklar: yalnız `/api/` ile başlayan göreli adreslerde Bearer.
+  static Map<String, String>? authHeadersFor(String? url) {
+    if (url == null || !url.startsWith('/api/')) return null;
+    final custom = authProvider;
+    if (custom != null) return custom();
+    final tok = (_bound ?? PushRouter.session)?.api.tokens?.access;
+    return tok == null ? null : {'Authorization': 'Bearer $tok'};
+  }
 
   /// true: yuvarlak (sohbet içi 28 dp gönderen avatarı); false: yuvarlatılmış kare (liste).
   final bool circle;
@@ -211,6 +237,7 @@ class ChatlistAvatar extends StatelessWidget {
               borderRadius: BorderRadius.circular(radius),
               child: Image.network(
                 full,
+                headers: headers ?? authHeadersFor(url),
                 width: size,
                 height: size,
                 cacheWidth: px,

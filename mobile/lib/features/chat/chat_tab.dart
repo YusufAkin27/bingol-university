@@ -65,6 +65,7 @@ class _ChatTabState extends State<ChatTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    ChatlistAvatar.bindSession(widget.session);
     // Kulüpten ayrılma/silme gibi işlemler listeyi geçersiz kılar.
     widget.session.badges.conversationsDirty.addListener(_scheduleReload);
     _rt = ChatRealtime(widget.session);
