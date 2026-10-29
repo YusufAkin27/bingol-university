@@ -7403,4 +7403,36 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p08Queued => 'Kuyrukta · Bekliyor';
+
+  @override
+  String get p01ConfigTitle => 'Yapılandırma hatası';
+
+  @override
+  String get p01ConfigBody =>
+      'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
+
+  @override
+  String get p01ConfigCode => 'HATA KODU • BUILD_ENV';
+
+  @override
+  String get p01UpdateNoticeLabel => 'Uygulama Güncellemesi';
+
+  @override
+  String get p01PushNow => 'şimdi';
+
+  @override
+  String p01PushMore(String n) {
+    return '+$n yeni mesaj daha';
+  }
+
+  @override
+  String get p01PushReply => 'Cevaplamak için dokun';
+
+  @override
+  String p01PermDeniedTitle(String title) {
+    return '$title izni verilmedi';
+  }
+
+  @override
+  String get p01QrAttended => 'Yoklaman alındı';
 }

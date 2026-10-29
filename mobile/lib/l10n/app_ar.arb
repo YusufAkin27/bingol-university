@@ -2259,5 +2259,14 @@
   "p08ModerationTitle": "إشعار الإشراف",
   "p08Percent": "{n}٪",
   "p08PhotoLoadingSub": "جارٍ التنزيل من الخادم",
-  "p08Queued": "في قائمة الانتظار · بانتظار الاتصال"
+  "p08Queued": "في قائمة الانتظار · بانتظار الاتصال",
+  "p01ConfigTitle": "خطأ في الإعدادات",
+  "p01ConfigBody": "عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.",
+  "p01ConfigCode": "رمز الخطأ • BUILD_ENV",
+  "p01UpdateNoticeLabel": "تحديث التطبيق",
+  "p01PushNow": "الآن",
+  "p01PushMore": "+{n} رسائل أخرى",
+  "p01PushReply": "المس للرد",
+  "p01PermDeniedTitle": "لم يتم منح إذن {title}",
+  "p01QrAttended": "تم تسجيل حضورك"
 }

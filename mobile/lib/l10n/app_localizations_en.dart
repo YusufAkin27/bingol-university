@@ -7434,4 +7434,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p08Queued => 'Queued · Waiting';
+
+  @override
+  String get p01ConfigTitle => 'Configuration error';
+
+  @override
+  String get p01ConfigBody =>
+      'The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.';
+
+  @override
+  String get p01ConfigCode => 'ERROR CODE • BUILD_ENV';
+
+  @override
+  String get p01UpdateNoticeLabel => 'App update';
+
+  @override
+  String get p01PushNow => 'now';
+
+  @override
+  String p01PushMore(String n) {
+    return '+$n more messages';
+  }
+
+  @override
+  String get p01PushReply => 'Tap to reply';
+
+  @override
+  String p01PermDeniedTitle(String title) {
+    return '$title permission not granted';
+  }
+
+  @override
+  String get p01QrAttended => 'Attendance recorded';
 }

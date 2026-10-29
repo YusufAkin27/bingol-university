@@ -3962,5 +3962,28 @@
   "p08Percent": "%{n}",
   "@p08Percent": {"placeholders": {"n": {"type": "String"}}},
   "p08PhotoLoadingSub": "Sunucudan indiriliyor",
-  "p08Queued": "Kuyrukta · Bekliyor"
+  "p08Queued": "Kuyrukta · Bekliyor",
+  "p01ConfigTitle": "Yapılandırma hatası",
+  "p01ConfigBody": "Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.",
+  "p01ConfigCode": "HATA KODU • BUILD_ENV",
+  "p01UpdateNoticeLabel": "Uygulama Güncellemesi",
+  "p01PushNow": "şimdi",
+  "p01PushMore": "+{n} yeni mesaj daha",
+  "@p01PushMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p01PushReply": "Cevaplamak için dokun",
+  "p01PermDeniedTitle": "{title} izni verilmedi",
+  "@p01PermDeniedTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "p01QrAttended": "Yoklaman alındı"
 }

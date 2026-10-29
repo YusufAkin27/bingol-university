@@ -13602,6 +13602,60 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kuyrukta · Bekliyor'**
   String get p08Queued;
+
+  /// No description provided for @p01ConfigTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yapılandırma hatası'**
+  String get p01ConfigTitle;
+
+  /// No description provided for @p01ConfigBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.'**
+  String get p01ConfigBody;
+
+  /// No description provided for @p01ConfigCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'HATA KODU • BUILD_ENV'**
+  String get p01ConfigCode;
+
+  /// No description provided for @p01UpdateNoticeLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama Güncellemesi'**
+  String get p01UpdateNoticeLabel;
+
+  /// No description provided for @p01PushNow.
+  ///
+  /// In tr, this message translates to:
+  /// **'şimdi'**
+  String get p01PushNow;
+
+  /// No description provided for @p01PushMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'+{n} yeni mesaj daha'**
+  String p01PushMore(String n);
+
+  /// No description provided for @p01PushReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevaplamak için dokun'**
+  String get p01PushReply;
+
+  /// No description provided for @p01PermDeniedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{title} izni verilmedi'**
+  String p01PermDeniedTitle(String title);
+
+  /// No description provided for @p01QrAttended.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklaman alındı'**
+  String get p01QrAttended;
 }
 
 class _AppLocalizationsDelegate

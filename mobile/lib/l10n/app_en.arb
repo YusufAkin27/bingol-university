@@ -2259,5 +2259,14 @@
   "p08ModerationTitle": "Moderation notice",
   "p08Percent": "{n}%",
   "p08PhotoLoadingSub": "Downloading from the server",
-  "p08Queued": "Queued · Waiting"
+  "p08Queued": "Queued · Waiting",
+  "p01ConfigTitle": "Configuration error",
+  "p01ConfigBody": "The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.",
+  "p01ConfigCode": "ERROR CODE • BUILD_ENV",
+  "p01UpdateNoticeLabel": "App update",
+  "p01PushNow": "now",
+  "p01PushMore": "+{n} more messages",
+  "p01PushReply": "Tap to reply",
+  "p01PermDeniedTitle": "{title} permission not granted",
+  "p01QrAttended": "Attendance recorded"
 }

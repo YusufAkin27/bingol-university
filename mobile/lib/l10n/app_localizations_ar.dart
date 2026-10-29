@@ -7362,4 +7362,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p08Queued => 'في قائمة الانتظار · بانتظار الاتصال';
+
+  @override
+  String get p01ConfigTitle => 'خطأ في الإعدادات';
+
+  @override
+  String get p01ConfigBody =>
+      'عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
+
+  @override
+  String get p01ConfigCode => 'رمز الخطأ • BUILD_ENV';
+
+  @override
+  String get p01UpdateNoticeLabel => 'تحديث التطبيق';
+
+  @override
+  String get p01PushNow => 'الآن';
+
+  @override
+  String p01PushMore(String n) {
+    return '+$n رسائل أخرى';
+  }
+
+  @override
+  String get p01PushReply => 'المس للرد';
+
+  @override
+  String p01PermDeniedTitle(String title) {
+    return 'لم يتم منح إذن $title';
+  }
+
+  @override
+  String get p01QrAttended => 'تم تسجيل حضورك';
 }
