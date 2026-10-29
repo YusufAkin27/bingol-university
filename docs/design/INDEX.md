@@ -16,7 +16,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [08-verilerim-hesap-silme.md](08-verilerim-hesap-silme.md) | 4 | 98, 99, A58 | [x] 4 ekran (s1), 2 tur duzeltildi; eksik: Hesabi sil ekraninda yedek ipucu satiri bos metin |
 | [09-fotograf-kirpma.md](09-fotograf-kirpma.md) | 6 | A23, A38, A54 (kaynak sheet); kırpma akışı: 39, 56, 62, 75, 94 | [x] 6 ekran (s1), 2 tur duzeltildi; eksik: stok foto uzerinde universite tabelasi, sohbet balon onizlemesi yok, kucuk fazla etiketler (RAPOR-s1) |
 | [10-gonderi-olustur-detay.md](10-gonderi-olustur-detay.md) | 6 | 39, 40, A6 | [x] 6 ekran (s1), 2 tur duzeltildi; eksik: marka renkleri zayif, foto-secili ekranda kirik gorsel, kendi gonderim kalbi siyah, vazgec diyalogunda kart yok, foto tabelasinda universite adi (RAPOR-s1) |
-| [11-gonderi-menuleri-ve-liste.md](11-gonderi-menuleri-ve-liste.md) | 6 | 91, A5 (gönderi şikâyeti), A7, A8, A9, A10 | [ ] |
+| [11-gonderi-menuleri-ve-liste.md](11-gonderi-menuleri-ve-liste.md) | 6 | 91, A5 (gönderi şikâyeti), A7, A8, A9, A10 | [x] 6 ekran (s1), 2 tur duzeltildi; eksik: kart fotograflari HTML'de yuklenmiyor, bos alt alan, fazladan not/alt metinler (RAPOR-s1) |
 | [12-sekme-durumlari.md](12-sekme-durumlari.md) | 6 | 33, 35, 36 (durumlar) | [ ] |
 | [13-haber-liste-favoriler.md](13-haber-liste-favoriler.md) | 6 | 41, 43 | [x] 6 ekran uretildi (s2); eksik: ilk satir "img" yer tutucu, bos ekranda ek "Akademik Takvim" cipi, bakim ekraninda iskelet bloklari |
 | [14-arama.md](14-arama.md) | 6 | 44 | [x] |
