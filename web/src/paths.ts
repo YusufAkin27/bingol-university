@@ -83,5 +83,6 @@ export const paths = {
     audit: `${ADMIN_BASE}/audit`,
     auditMessageAccess: `${ADMIN_BASE}/audit/message-access`,
     roles: `${ADMIN_BASE}/roles`,
+    crashes: `${ADMIN_BASE}/crashes`,
   },
 } as const;

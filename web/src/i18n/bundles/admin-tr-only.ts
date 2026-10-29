@@ -13,6 +13,7 @@ import P13 from '../tr/admin-p13';
 import P14 from '../tr/admin-p14';
 import P15 from '../tr/admin-p15';
 import P16 from '../tr/admin-p16';
+import Cr1 from '../tr/admin-cr1';
 
 export default {
   ...Guard,
@@ -29,4 +30,5 @@ export default {
   ...P14,
   ...P15,
   ...P16,
+  ...Cr1,
 };

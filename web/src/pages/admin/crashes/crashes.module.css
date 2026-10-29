@@ -1,0 +1,134 @@
+/* Çökme raporları (CR1): yalnızca tasarım token'ları ve mantıksal özellikler. */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.stat {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.statValue {
+  font-size: var(--text-xl, 1.5rem);
+  font-weight: 600;
+}
+.statLabel {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+  align-items: end;
+  margin-block-end: var(--space-4);
+}
+.meta {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.pager {
+  margin-block-start: var(--space-4);
+}
+.cellStack {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 7rem;
+}
+.errType {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.muted {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.callout {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--info, var(--primary));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.calloutWarn {
+  border-inline-start-color: var(--warning, var(--primary));
+}
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-4);
+}
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.versionTable {
+  inline-size: 100%;
+  margin: 0 0 var(--space-4);
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.versionTable th,
+.versionTable td {
+  padding: var(--space-1) var(--space-2);
+  border-block-end: 1px solid var(--border);
+  text-align: start;
+}
+.event {
+  margin-block-end: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.event summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+.stack {
+  margin: 0;
+  padding: var(--space-3);
+  border-block-start: 1px solid var(--border);
+  overflow-x: auto;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  white-space: pre;
+  direction: ltr;
+  text-align: left;
+}
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: end;
+  margin-block-end: var(--space-4);
+}
+.dangerZone {
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
