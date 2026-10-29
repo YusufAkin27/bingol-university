@@ -1,0 +1,11 @@
+# docker-compose.prod.yml uzerine bindirme (bukampus.com.tr): yalniz Caddy'ye www yonlendirmesi ekler. Port YAYINLAMAZ.
+# Kullanim: docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file .env.prod ...
+# (kok docker-compose.yml ile birlestirmeyin: docs/DEPLOY.md A4)
+# Not: redir hedefi ({$DOMAIN}) IP testinde "http://IP" olur; test modunda www bloku zaten HTTP-only bos hosta baglanir.
+services:
+  caddy:
+    environment:
+      WWW_DOMAIN: ${WWW_DOMAIN:-http://www.invalid.test}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile.base:ro
+      - ./deploy/Caddyfile.bukampus:/etc/caddy/Caddyfile:ro

@@ -1,0 +1,9 @@
+# bukampus.com.tr icin Caddy: paylasilan deploy/Caddyfile (/etc/caddy/Caddyfile.base olarak baglanir) + www -> apex yonlendirmesi.
+# deploy/compose.bukampus.yml bu dosyayi /etc/caddy/Caddyfile olarak baglar. DOMAIN ve WWW_DOMAIN .env.prod'dan gelir.
+#   Normal:   DOMAIN=bukampus.com.tr   WWW_DOMAIN=www.bukampus.com.tr   (otomatik HTTPS; DNS her iki ad icin de sunucuyu gostermeli)
+#   IP testi: DOMAIN=http://77.83.37.160   WWW_DOMAIN=http://www.invalid.test   (yalniz HTTP, sertifika denenmez; scripts/deploy.sh --ip-test)
+import /etc/caddy/Caddyfile.base
+
+{$WWW_DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}

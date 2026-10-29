@@ -34,3 +34,7 @@ deploy/backup-keys/verify.key
 
 # CI araclari
 .ci-tools/
+
+# Sunucu dagitim kimlik bilgileri (asla commit etme)
+.deploy.env
+.deploy/
