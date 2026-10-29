@@ -16,3 +16,10 @@ Aktarma klasoru: `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin c
 - Duzeltilen (1 tur): "Media Overlay Viewer" basligi, paylas dugmesi, avatar, kulup/sarki adlari, "Kampus Kayitlari" listesi, Wi-Fi karti, hata kodu, "Sorun Bildir", "Canli Kayit"/"Aktif Onizleme" etiketleri, ikon adlari metin olarak, ekstra kartlar silindi.
 - Halusinasyonlar: ingilizce baslik, paylas/avatar, kulup adlari, Wi-Fi/ag karti, hata kodu, ikon fontu metni.
 - Kalan eksik: tek gosterimlik rozetinde "1" yerine "!" benzeri simge; gorsel ekranda yan oklar + nokta seridi; yalniz tuval ve render ile denetlendi.
+
+## 33 - Anket detay durumlari (6 ekran, `C:\bu_design\stitch\33-anket-detay-durumlari\`)
+- Proje: **BU Kampus S3-26-33** (26 ile ayni) - https://stitch.withgoogle.com/u/1/projects/17489771455933385551
+- Uretilen: oy verildi/sonuclar acik, sonuclar gizli, henuz acilmadi, kapandi + puanlama ozeti, oy verilemez (3 kart), oyu geri cek diyalogu + eski veri + snackbar. Gizli oy: kimlik/avatar hicbir yerde yok.
+- Duzeltilen (1 tur, 6 ekrana birden): paylas ikonu + avatar, "Anket Detayi" basliklari, kulup rozet/adlari, "Resmi Ogrenci Anketi", Rektorluk, kutuphane/kampus adlari, kapak gorselleri, "Yorumlar (19)" baglantisi, "Kriter" satirlari, "Ornek Anket Formu" karti, yildiz dagilim tablosu, bildirim anahtari; soru ve secenekler tum ekranlarda yemek anketine sabitlendi.
+- Halusinasyonlar: uydurma anket konulari (Bahar gezisi, Tiyatro, Kutuphane saatleri), kulup/rektorluk etiketleri, yorum sayaci, avatar+paylas.
+- Kalan eksik: gizli oy notunun basliginda "Gizli ve Dogrulanmis Oy" ifadesi; kapanan ekranda yuzdeler/oy sayilari (68/22/10, 87+28+13) istemdeki "128 katilim" ile ayni degil, "12 Mayis 2024" dipnotu; amber bayat bant diyalog ekraninda bulanik.

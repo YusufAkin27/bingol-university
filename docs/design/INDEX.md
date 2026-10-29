@@ -38,7 +38,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [30-kuluplerim.md](30-kuluplerim.md) | 3 | 63, 64 | [x] |
 | [31-anket-liste-olustur.md](31-anket-liste-olustur.md) | 6 | 61, 65, A30, A31 | [x] |
 | [32-anket-detay-oy-turleri.md](32-anket-detay-oy-turleri.md) | 6 | 66 (oy türleri) | [ ] üretildi (op3), düzeltme bekliyor: başlıklar İngilizce (Poll Details, Club Poll Vote), 'Genel Kampüs' çipi, Merkezi Kütüphane görseli; Stitch kotası doldu |
-| [33-anket-detay-durumlari.md](33-anket-detay-durumlari.md) | 6 | 66 (durumlar), A34 | [ ] |
+| [33-anket-detay-durumlari.md](33-anket-detay-durumlari.md) | 6 | 66 (durumlar), A34 | [x] 6 ekran (s3), 1 tur duzeltildi; eksik: 'Gizli ve Dogrulanmis Oy' basligi (gizli oy notunda), kapanan ekranda yuzdeler 68/22/10 (istemdeki 126/128 ile ayni degil), 'Anket 12 Mayis 2024' dipnotu, geri cek ekraninda amber bant bulanik (RAPOR-s3) |
 | [34-destek-talepler.md](34-destek-talepler.md) | 6 | 67, 68, 69, A35 | [ ] |
 | [35-destek-geri-bildirim-oneri.md](35-destek-geri-bildirim-oneri.md) | 5 | 70, 71 | [ ] |
 | [36-etkinlik-listeleri.md](36-etkinlik-listeleri.md) | 6 | 72, 73 | [x] eksik: Düzelt ve Yeniden Gönder dügmesi, fazla alt basliklar (bkz RAPOR-s4) |
