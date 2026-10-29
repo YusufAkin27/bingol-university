@@ -9926,6 +9926,7 @@ export interface components {
             sortOrder?: number | null;
         };
         FcmCheck: {
+            detail?: string | null;
             enabled?: boolean | null;
             error?: string | null;
             projectId?: string | null;

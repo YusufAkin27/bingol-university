@@ -72,6 +72,7 @@ export default {
   'admin.p14.fcm.validate.ok': 'Doğrulama başarılı: Firebase bağlantısı çalışıyor.',
   'admin.p14.fcm.validate.at': 'Doğrulama zamanı: {time}',
   'admin.p14.fcm.validate.fail': 'Doğrulama başarısız',
+  'admin.p14.fcm.validate.detail': 'Ayrıntı (maskeli)',
   'admin.p14.fcm.ios.title': 'iOS push hazırlığı',
   'admin.p14.fcm.ios.body': 'iOS cihazlara push gönderimi şu an çalışmaz. Gerekenler:',
   'admin.p14.fcm.ios.plist': 'Mobil uygulama paketinde GoogleService-Info.plist dosyası yok; eklenmeden iOS cihazlar Firebase’e kaydolamaz.',

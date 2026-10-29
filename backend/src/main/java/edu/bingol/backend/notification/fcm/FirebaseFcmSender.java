@@ -1,6 +1,7 @@
 package edu.bingol.backend.notification.fcm;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.AndroidConfig;
@@ -34,10 +35,19 @@ public class FirebaseFcmSender implements FcmSender {
     private final String projectId;
 
     public FirebaseFcmSender(InputStream credentials) throws IOException {
-        FirebaseApp app = FirebaseApp.getApps().isEmpty()
-                ? FirebaseApp.initializeApp(FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(credentials)).build())
-                : FirebaseApp.getInstance();
+        FirebaseApp app;
+        if (FirebaseApp.getApps().isEmpty()) {
+            GoogleCredentials creds = GoogleCredentials.fromStream(credentials);
+            FirebaseOptions.Builder ob = FirebaseOptions.builder().setCredentials(creds);
+            // Proje kimligi servis hesabi JSON'undaki project_id'den okunur (acikca verilir).
+            if (creds instanceof ServiceAccountCredentials sac && sac.getProjectId() != null
+                    && !sac.getProjectId().isBlank()) {
+                ob.setProjectId(sac.getProjectId());
+            }
+            app = FirebaseApp.initializeApp(ob.build());
+        } else {
+            app = FirebaseApp.getInstance();
+        }
         this.messaging = FirebaseMessaging.getInstance(app);
         this.projectId = app.getOptions().getProjectId();
         log.info("FCM etkin: Firebase proje kimligi={}", projectId); // proje kimligi gizli degildir; anahtar yazilmaz
@@ -54,10 +64,16 @@ public class FirebaseFcmSender implements FcmSender {
                     .setNotification(Notification.builder().setTitle("validate").setBody("validate").build()).build(), true);
             return new FcmCheck(true, true, projectId, null);
         } catch (FirebaseMessagingException e) {
+            String detail = FcmErrorDetail.of(e);
+            log.warn("FCM dogrulama basarisiz: {}", detail);
             return new FcmCheck(true, false, projectId,
-                    e.getMessagingErrorCode() == null ? "ERROR" : e.getMessagingErrorCode().name());
+                    e.getMessagingErrorCode() != null ? e.getMessagingErrorCode().name()
+                            : e.getErrorCode() != null ? e.getErrorCode().name() : "ERROR",
+                    detail);
         } catch (RuntimeException e) {
-            return new FcmCheck(true, false, projectId, e.getClass().getSimpleName());
+            String detail = FcmErrorDetail.of(e);
+            log.warn("FCM dogrulama basarisiz: {}", detail);
+            return new FcmCheck(true, false, projectId, e.getClass().getSimpleName(), detail);
         }
     }
 
@@ -84,7 +100,7 @@ public class FirebaseFcmSender implements FcmSender {
                 BatchResponse res = messaging.sendEachForMulticast(toMulticast(batch, m));
                 collect(batch, res.getResponses(), invalid, retryable, codes);
             } catch (FirebaseMessagingException | RuntimeException e) {
-                log.warn("FCM toplu gonderimi basarisiz: {}", e.getClass().getSimpleName());
+                log.warn("FCM toplu gonderimi basarisiz: {}", FcmErrorDetail.of(e));
                 retryable.addAll(batch);
                 batch.forEach(t -> codes.put(t, "UNAVAILABLE"));
             }

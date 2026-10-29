@@ -66,6 +66,17 @@ class ProdSettingsValidatorTest {
     }
 
     @Test
+    void fcmJsonCredentialsCountAsConfigured() {
+        var withJson = valid().withProperty("app.fcm.credentials-file", "")
+                .withProperty("app.fcm.credentials-json", "e30=");
+        assertTrue(ProdSettingsValidator.validate(withJson).warnings().isEmpty());
+        var withEnv = valid().withProperty("app.fcm.credentials-file", "").withProperty("FCM_CREDENTIALS_JSON", "e30=");
+        assertTrue(ProdSettingsValidator.validate(withEnv).warnings().isEmpty());
+        var none = valid().withProperty("app.fcm.credentials-file", "");
+        assertTrue(ProdSettingsValidator.validate(none).warnings().stream().anyMatch(w -> w.contains("FCM")));
+    }
+
+    @Test
     void mailOffIsAnErrorInProdWithoutExplicitFlag() {
         var r = ProdSettingsValidator.validate(valid().withProperty("app.mail.enabled", "false"));
         assertTrue(r.errors().stream().anyMatch(e -> e.contains("MAIL_ENABLED")));

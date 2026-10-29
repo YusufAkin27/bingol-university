@@ -37,7 +37,7 @@ public class ProdSettingsValidator {
                     + String.join("\n - ", r.errors()));
         }
         log.info("Uretim ayarlari dogrulandi (FCM: {}, e-posta: {})",
-                notBlank(env, "app.fcm.credentials-file") ? "etkin" : "kapali (push gitmez)",
+                hasFcmCredentials(env) ? "etkin" : "kapali (push gitmez)",
                 env.getProperty("app.mail.enabled", Boolean.class, false) ? "etkin" : "kapali");
     }
 
@@ -117,10 +117,16 @@ public class ProdSettingsValidator {
             errors.add("DEVICE_HMAC_KEY verilirse en az 32 karakter olmali");
         }
 
-        if (!notBlank(env, "app.fcm.credentials-file")) {
+        if (!hasFcmCredentials(env)) {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }
         return new Result(errors, warnings);
+    }
+
+    /** FCM kimligi: dosya yolu ya da JSON (app.fcm.credentials-json / FCM_CREDENTIALS_JSON); FcmConfig ile ayni kaynaklar. */
+    static boolean hasFcmCredentials(Environment env) {
+        return notBlank(env, "app.fcm.credentials-file") || notBlank(env, "app.fcm.credentials-json")
+                || notBlank(env, "FCM_CREDENTIALS_JSON");
     }
 
     /** E-posta teslim edilebilirligi tutarliligi (yalniz MAIL_ENABLED=true iken). Ayrinti: docs/MAIL_DELIVERABILITY.md. */

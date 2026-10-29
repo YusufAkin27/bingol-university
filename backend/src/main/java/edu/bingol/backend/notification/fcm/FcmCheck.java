@@ -7,5 +7,11 @@ package edu.bingol.backend.notification.fcm;
  * @param validated Firebase'e validateOnly (kuru calistirma, cihaza gitmez) istegi basarili oldu
  * @param projectId Firebase proje kimligi (varsa)
  * @param error     basarisizsa kisa neden kodu (ornek: UNAUTHENTICATED, DISABLED); aksi halde null
+ * @param detail    basarisizsa maskeli tani metni (hata sinifi, ErrorCode, HTTP durumu, kisa mesaj); aksi halde null
  */
-public record FcmCheck(boolean enabled, boolean validated, String projectId, String error) {}
+public record FcmCheck(boolean enabled, boolean validated, String projectId, String error, String detail) {
+
+    public FcmCheck(boolean enabled, boolean validated, String projectId, String error) {
+        this(enabled, validated, projectId, error, null);
+    }
+}

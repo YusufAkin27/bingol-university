@@ -88,6 +88,11 @@ export function FcmTab() {
             ) : (
               <Callout tone="danger" role="alert" title={t('admin.p14.fcm.validate.fail')}>
                 <span className="ltr">{errorLabel(last.check.error) ?? '—'}</span>
+                {last.check.detail && (
+                  <div className="ltr">
+                    {t('admin.p14.fcm.validate.detail')}: {last.check.detail}
+                  </div>
+                )}
               </Callout>
             )}
           </div>

@@ -28,6 +28,8 @@ export interface FcmCheck {
   validated: boolean;
   projectId: string | null;
   error: string | null;
+  /** Başarısızsa maskeli tanı metni (hata sınıfı, kod, HTTP durumu, kısa mesaj). */
+  detail?: string | null;
 }
 
 export interface OutboxRow {

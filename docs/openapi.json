@@ -5667,6 +5667,9 @@
       },
       "FcmCheck" : {
         "properties" : {
+          "detail" : {
+            "type" : [ "string", "null" ]
+          },
           "enabled" : {
             "type" : [ "boolean", "null" ]
           },
