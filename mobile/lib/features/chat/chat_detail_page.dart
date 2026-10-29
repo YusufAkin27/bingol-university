@@ -25,6 +25,7 @@ import '../profile/user_profile_page.dart';
 import '../events/event_detail_page.dart';
 import 'chat_info_page.dart';
 import 'chat_media.dart';
+import 'chatlist_widgets.dart' show ChatlistAvatar;
 import 'chat_media_viewer.dart';
 import 'chat_video_player.dart';
 import 'forward_sheet.dart';
@@ -2429,11 +2430,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             ? GestureDetector(
                 key: ValueKey('sender-avatar-${m['id']}'),
                 onTap: () => _openProfileOf(sid),
-                child: BuAvatar(
-                    name: name,
-                    url: url,
-                    size: 28,
-                    headers: _avatarHeaders(url)))
+                child: ChatlistAvatar(
+                    name: name, url: url, size: 28, circle: true))
             : null,
       ),
       const SizedBox(width: 8),
