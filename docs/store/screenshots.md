@@ -1,6 +1,6 @@
 # Mağaza görselleri: liste, boyutlar ve çekim yönergesi
 
-Henüz görsel ÜRETİLMEDİ (gerçek cihaz/emülatör gerekir; bu belge yönergedir). Play Console görsel kuralları zamanla değişir; yüklemeden önce güncel kuralı doğrulayın. Aşağıdakiler yazıldığı andaki bilinen sınırlardır.
+**Otomatik üretim (IMG1):** emülatör yokken 8 ekran x tr/en görseli (1080x1920 PNG, başlık şeritli) gerçek ekran widget'ları + sahte API verisiyle üretilir: `mobile/test/store_shots_test.dart` (varsayılan `flutter test`te atlanır; `C:\bu_mobile` içinde `STORE_SHOTS_OUT=<klasör> flutter test test/store_shots_test.dart`; isteğe bağlı `STORE_SHOTS_LANG=tr|en`, `STORE_SHOTS_ONLY=01,05`). Görseller kampüs temalı soyut sahnelerdir (`test/support/store_shots_images.dart`), gerçek kişi/fotoğraf/e-posta yoktur; durum çubuğu 9:41 çizimdir. Gerçek cihaz/emülatör çekimi gerekirse aşağıdaki yönerge geçerlidir. Play Console görsel kuralları zamanla değişir; yüklemeden önce güncel kuralı doğrulayın. Aşağıdakiler yazıldığı andaki bilinen sınırlardır.
 
 ## Zorunlu / önerilen varlıklar
 
