@@ -383,3 +383,32 @@ class AnketHintBox extends StatelessWidget {
     );
   }
 }
+
+/// Durum kartı (tasarım 33): solda yuvarlak simge (kırmızı ton ya da gri), yanında kalın metin.
+class AnketStatusCard extends StatelessWidget {
+  const AnketStatusCard({super.key, required this.icon, required this.text, this.red = false});
+
+  final IconData icon;
+  final String text;
+
+  /// true: kırmızı tonlu simge (engel/uyarı); false: gri.
+  final bool red;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: BuCard(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
+        child: Row(children: [
+          AnketRoundIcon(icon, size: 48, bg: red ? t.soft : t.sf2, fg: red ? t.pr : t.mut),
+          const SizedBox(width: 16),
+          Expanded(child: Text(text, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+        ]),
+      ),
+    );
+  }
+}

@@ -132,7 +132,7 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(PollDetailPage(session: makeSession(b), pollId: 1), scaffold: false));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Oyunuz gizlidir'), findsOneWidget);
+      expect(find.textContaining('Oyunuz gizli.'), findsOneWidget);
       await t.tap(find.text('Oyu değiştir'));
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Önceki seçiminiz'), findsOneWidget);

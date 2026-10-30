@@ -9,6 +9,8 @@ import 'package:bu_kampus/features/polls/poll_club_section.dart';
 import 'package:bu_kampus/features/polls/poll_detail_page.dart';
 import 'package:bu_kampus/features/polls/poll_form_page.dart';
 import 'package:bu_kampus/features/polls/poll_list_page.dart';
+import 'package:bu_kampus/features/polls/poll_menu_card.dart';
+import 'package:bu_kampus/features/polls/poll_models.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -107,6 +109,10 @@ Map<String, dynamic> _poll(
   List<String>? options,
   String showResults = 'ALWAYS',
   bool allowChangeVote = true,
+  String state = 'OPEN',
+  bool canVote = true,
+  String? blocked,
+  String? status,
 }) {
   final p = samplePoll(
     id: id,
@@ -122,9 +128,13 @@ Map<String, dynamic> _poll(
     maxChoices: maxChoices,
     showResults: showResults,
     allowChangeVote: allowChangeVote,
+    state: state,
+    canVote: canVote,
+    voteBlockedReason: blocked,
     closesAt: closed ? _in(const Duration(days: -1)) : _in(left),
   );
   p['scope'] = scope;
+  if (status != null) p['status'] = status;
   p['description'] = description;
   if (options != null && type != 'RATING') {
     p['options'] = [for (var i = 0; i < options.length; i++) {'id': id * 100 + i + 1, 'text': options[i], 'position': i + 1}];
@@ -273,6 +283,48 @@ final _shots = <_Shot>[
   }, (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 700, pumpMs: 400, drain: true),
 ];
 
+
+const _soup = ['Mercimek çorbası', 'Ezogelin', 'Domates çorbası'];
+Map<String, dynamic> _soupPoll({bool anon = true, bool closed = false, String showResults = 'ALWAYS', List<int>? mine, bool allowChange = true, String state = 'OPEN', bool canVote = true, String? blocked, String? status, String type = 'SINGLE'}) =>
+    _poll(1, 'Yarın menüde hangi çorbayı görmek istersiniz?',
+        type: type, anonymous: anon, closed: closed, showResults: showResults, mine: mine, allowChangeVote: allowChange, state: state, canVote: canVote, blocked: blocked, status: status, options: type == 'RATING' ? null : _soup);
+
+Widget _menuHost(FakeBackend b) => Scaffold(body: Padding(padding: const EdgeInsets.fromLTRB(20, 80, 20, 0), child: PollMenuCard(session: makeSession(b))));
+
+final _shots33 = <_Shot>[
+  _Shot('33-01_sonuclar', (b) => _fp(b, [_soupPoll(mine: [101])], others: {1: {101: 57, 102: 39, 103: 29}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 893),
+  _Shot('33-02_sonuclar_gizli', (b) => _fp(b, [_soupPoll(mine: [101], showResults: 'AFTER_CLOSE')]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 844),
+  _Shot('33-03_kapandi', (b) => _fp(b, [_soupPoll(closed: true, anon: false)], others: {1: {101: 87, 102: 28, 103: 13}}), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 911),
+  _Shot('33-03b_kapandi_puan', (b) {
+    final f = _fp(b, [_soupPoll(closed: true, anon: false, type: 'RATING')], others: {1: {101: 2, 102: 3, 103: 10, 104: 31, 105: 40}});
+    f.polls[0]['average'] = 4.2;
+    f.polls[0]['ratingCount'] = 86;
+  }, (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 911),
+  _Shot('33-04_acilmadi', (b) => _fp(b, [_soupPoll(state: 'SCHEDULED', canVote: false, blocked: 'NOT_OPEN', showResults: 'AFTER_CLOSE')]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 844),
+  _Shot('33-05a_yetki_yok', (b) => _fp(b, [_soupPoll(canVote: false, blocked: 'NOT_ELIGIBLE', showResults: 'AFTER_CLOSE')]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 500),
+  _Shot('33-05b_degistirilemez', (b) => _fp(b, [_soupPoll(mine: [101], allowChange: false, showResults: 'AFTER_CLOSE', canVote: false, blocked: 'ALREADY_VOTED')]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 500),
+  _Shot('33-05c_kapandi_oy_yok', (b) => _fp(b, [_soupPoll(status: 'CANCELLED', canVote: false, blocked: 'CLOSED', showResults: 'AFTER_CLOSE')]), (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 500),
+  _Shot('33-06a_geri_cek', (b) {
+    b.fail('/polls/1');
+  }, (b) => PollDetailPage(session: makeSession(b), pollId: 1, initial: Poll.fromJson(_soupPoll(mine: [101]))), h: 844, act: (t) async {
+    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب التصويت'));
+  }),
+  _Shot('33-06b_geri_cekildi', (b) {
+    _fp(b, [_soupPoll(mine: [101])], others: {1: {101: 57, 102: 39, 103: 29}});
+  }, (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 844, act: (t) async {
+    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب التصويت'));
+    await _tapText(t, _tr('Geri çek', 'Retract', 'سحب'));
+  }),
+  _Shot('15-menu-puan_bos', (b) {
+    final f = _fp(b, []);
+    f.menuPoll = samplePoll(id: 77, type: 'RATING', title: 'Menü', communityName: null, communityId: null);
+  }, _menuHost, h: 420),
+  _Shot('15-menu-puan_verilmis', (b) {
+    final f = _fp(b, []);
+    f.menuPoll = samplePoll(id: 77, type: 'RATING', title: 'Menü', communityName: null, communityId: null, myRating: 4);
+  }, _menuHost, h: 420),
+];
+
 void main() {
   final out = Platform.environment['STORE_SHOTS_OUT'];
   final skip = out == null ? 'STORE_SHOTS_OUT tanimli degil (yalniz ekran goruntusu uretimi icin)' : null;
@@ -283,7 +335,7 @@ void main() {
 
   setUpAll(() => _loadFonts(_lang == 'ar'));
 
-  for (final s in _shots) {
+  for (final s in [..._shots, ..._shots33]) {
     if (only.isNotEmpty && !only.any((o) => s.file.startsWith(o))) continue;
     final name = '${s.file}_$_lang${dark ? '_koyu' : ''}${scale != 1.0 ? '_x$scale' : ''}';
     testWidgets('k8 $name', skip: skip != null, (tester) async {

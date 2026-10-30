@@ -4,6 +4,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'anket_style.dart';
+import 'anket_widgets.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 import 'poll_parts.dart';
@@ -56,17 +57,6 @@ class _PollMenuCardState extends State<PollMenuCard> {
     }
   }
 
-  String _word(int r) {
-    final l = context.l10n;
-    return switch (r) {
-      1 => l.p13Rate1,
-      2 => l.p13Rate2,
-      3 => l.p13Rate3,
-      4 => l.p13Rate4,
-      _ => l.p13Rate5,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final p = _poll;
@@ -75,67 +65,54 @@ class _PollMenuCardState extends State<PollMenuCard> {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final canRate = p.canVote;
-    final tone = AnketTone.meal(context);
-    final caption = _msg ??
-        (p.voted
-            ? (p.average != null
-                ? l.pollYourRatingAvg('${p.myRating}', p.average!.toStringAsFixed(1))
-                : l.pollYourRating('${p.myRating}'))
-            : (p.canVote ? l.pollTapStar : l.pollNoVoteRight));
+    final rated = p.myRating != null;
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    String avgText(double v) => isTr ? v.toStringAsFixed(1).replaceAll('.', ',') : v.toStringAsFixed(1);
+    final stars = StarRating(
+      value: p.myRating,
+      size: 30,
+      activeColor: t.pr,
+      inactiveColor: rated ? t.pr.withValues(alpha: .25) : t.pr,
+      onChanged: canRate && !_busy ? _rate : null,
+    );
+    final title = Semantics(header: true, child: Text(l.pollMenuRateToday, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)));
+    final err = _msg == null ? null : Text(_msg!, style: tx.bodySmall!.copyWith(color: t.danger));
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: BuCard(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 18),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 20),
         child: SizedBox(
           width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                AnketIconTile(LucideIcons.star, bg: tone.bg, fg: tone.fg, size: 40),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Semantics(header: true, child: Text(l.pollMenuRateToday, style: tx.titleMedium!.copyWith(color: t.ink))),
-                    if (p.menuItems.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(p.menuItems.join(' · '),
-                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                    ],
+          child: rated
+              // Puan verilmiş: sola dayalı başlık + onay simgesi, yıldızlar, "Puanınız · Ortalama" hapı, teşekkür metni.
+              ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: title),
+                    const SizedBox(width: 8),
+                    ExcludeSemantics(child: Icon(LucideIcons.circleCheck, size: 24, color: t.pr)),
                   ]),
-                ),
-              ]),
-              const SizedBox(height: 14),
-              Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: StarRating(value: p.myRating, size: 36, onChanged: canRate && !_busy ? _rate : null),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: AnimatedSwitcher(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  child: Column(
-                    key: ValueKey('${p.myRating}|$_msg|${p.voted}'),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (p.myRating != null && _msg == null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Text(_word(p.myRating!.clamp(1, 5)), style: tx.titleSmall!.copyWith(color: t.ink)),
-                        ),
-                      Text(
-                        caption,
-                        textAlign: TextAlign.center,
-                        style: tx.bodySmall!.copyWith(color: _msg != null ? t.danger : t.mut),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: stars),
+                  const SizedBox(height: 10),
+                  AnketPill(
+                    p.average != null ? l.pollYourRatingAvg('${p.myRating}', avgText(p.average!)) : l.pollYourRating('${p.myRating}'),
+                    bg: t.soft,
+                    fg: t.onSoft,
                   ),
-                ),
-              ),
-            ],
-          ),
+                  const SizedBox(height: 12),
+                  if (err != null) err else Text(l.p13MenuRated, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+                ])
+              // Henüz puan yok: ortalanmış simge, başlık, ipucu ve boş yıldızlar.
+              : Column(children: [
+                  AnketRoundIcon(LucideIcons.thumbsUp, size: 44, bg: t.soft, fg: t.pr),
+                  const SizedBox(height: 12),
+                  Center(child: title),
+                  const SizedBox(height: 4),
+                  Text(canRate ? l.pollTapStar : l.pollNoVoteRight, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  const SizedBox(height: 12),
+                  FittedBox(fit: BoxFit.scaleDown, child: stars),
+                  if (err != null) ...[const SizedBox(height: 8), err],
+                ]),
         ),
       ),
     );

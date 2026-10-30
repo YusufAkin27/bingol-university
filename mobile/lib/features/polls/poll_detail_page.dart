@@ -101,7 +101,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
       confirmLabel: l.pollRetractAction,
       cancelLabel: l.pollCancel,
       destructive: true,
-      icon: LucideIcons.undo2,
     );
     if (!ok || !mounted) return;
     setState(() => _busy = true);
@@ -114,7 +113,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         _editing = false;
         _resetSelection();
       });
-      _toast(context.l10n.pollVoteRetracted, BuToastKind.success);
+      BuToast.show(context, context.l10n.pollVoteRetracted, kind: BuToastKind.success, actionLabel: context.l10n.commonClose);
     } catch (e) {
       if (mounted) await _fail(e);
     } finally {
@@ -156,13 +155,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
         onRefresh: _load,
         loading: const _DetailSkeleton(),
         banner: p != null && _error != null ? BuOfflineBanner(message: l.pollStale, showCachedHint: false) : null,
-        actions: [
-          if (p != null && p.isClosed())
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 16),
-              child: Center(child: AnketPill(l.pollClosedBadge, bg: t.sf2, fg: t.mut, icon: LucideIcons.lock)),
-            ),
-        ],
         bottomInset: voting ? 16 : 32,
         bottomBar: voting ? _voteBar(p) : null,
         slivers: p == null ? const [] : [SliverToBoxAdapter(child: _content(t, p))],
@@ -212,7 +204,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     );
   }
 
-  Widget _content(BuTokens t, Poll p) {
+  Widget _votingContent(BuTokens t, Poll p) {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final closed = p.isClosed();
@@ -294,61 +286,342 @@ class _PollDetailPageState extends State<PollDetailPage> {
             const SizedBox(height: 4),
             AnketHintBox(icon: LucideIcons.shieldCheck, body: l.pollResultsAfterClose),
           ],
-          if (!voting) ...[const SizedBox(height: 16), _turnout(t, p)],
-          if (!closed && p.voted && !_editing && p.allowChangeVote) ..._ownerActions(p),
         ],
       ),
     );
   }
 
-  Widget _gap(Widget w, {double top = 0}) => Padding(padding: EdgeInsets.only(top: top, bottom: 12), child: w);
+  /// Sayfa gövdesi: oylama (tasarım 32) ya da durum ekranları (tasarım 33: sonuçlar, gizli sonuç, kapandı, açılmadı, engel).
+  Widget _content(BuTokens t, Poll p) => _isVoting(p) ? _votingContent(t, p) : _stateContent(t, p);
 
-  /// Katılım özeti: "29 / 40 katılım" + doluluk çubuğu (uygun seçmen sayısı biliniyorsa).
-  Widget _turnout(BuTokens t, Poll p) {
-    final v = p.turnoutVoted ?? p.totalVotes;
-    if (v == null) return const SizedBox.shrink();
+  Widget _stateContent(BuTokens t, Poll p) {
+    final l = context.l10n;
+    final closed = p.isClosed();
+    final results = p.showResults();
+    // Engel/durum kartı (tasarım 33-05): yetki yok, oy değiştirilemez, kapandı (sonuç yoksa).
+    final status = !closed && !p.voted && !p.canVote && !p.notOpenYet
+        ? (LucideIcons.lock, pollBlockedText(p.voteBlockedReason, l), true)
+        : !closed && p.voted && !p.allowChangeVote
+            ? (LucideIcons.history, pollBlockedText('ALREADY_VOTED', l), false)
+            : closed && !results
+                ? (LucideIcons.clock, l.pollBlockedClosed, false)
+                : null;
+    Widget body;
+    if (!closed && p.notOpenYet) {
+      body = _notOpenView(t, p);
+    } else if (results) {
+      body = _resultsView(t, p);
+    } else if (!closed && p.voted && p.canVote) {
+      body = _hiddenView(t, p);
+    } else {
+      body = _titleCard(t, p, pills: [if (p.voted) _votedPill(t)]);
+    }
+    if (status != null && !p.notOpenYet) {
+      body = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        AnketStatusCard(icon: status.$1, text: status.$2, red: status.$3),
+        const SizedBox(height: 12),
+        body,
+      ]);
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+      child: BuFadeThrough(child: KeyedSubtree(key: ValueKey('${results}_${p.voted}_$closed'), child: body)),
+    );
+  }
+
+  Widget _votedPill(BuTokens t) => AnketPill(context.l10n.pollVotedBadge, bg: t.okSoft, fg: t.ok, icon: LucideIcons.circleCheck);
+
+  /// Soru kartı: üstte durum hapları (ve isteğe bağlı sağ öğe), "SONA ERDİ" etiketi, soru metni.
+  Widget _titleCard(BuTokens t, Poll p, {List<Widget> pills = const [], Widget? trailing, String? kicker}) {
     final tx = Theme.of(context).textTheme;
-    final e = p.turnoutEligible;
-    // Uygun seçmen sayısı oy sayısından azsa ("343 / 40") oran anlamsızdır: yalnız katılım yazılır, çubuk tam dolar.
-    final ratio = e != null && e > 0 && v <= e;
-    final text = ratio ? context.l10n.pollParticipationOf('$v', '$e') : context.l10n.pollParticipants('$v');
-    final frac = e != null && e > 0 ? (v / e).clamp(0, 1).toDouble() : null;
+    return BuCard(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 18),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (pills.isNotEmpty || trailing != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(children: [
+                Expanded(child: Wrap(spacing: 8, runSpacing: 6, children: pills)),
+                if (trailing != null) ...[const SizedBox(width: 8), trailing],
+              ]),
+            ),
+          if (kicker != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(kicker, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .6)),
+            ),
+          Semantics(header: true, child: Text(p.title, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+          if (p.description != null) ...[
+            const SizedBox(height: 8),
+            Text(p.description!, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+          ],
+        ]),
+      ),
+    );
+  }
+
+  /// Henüz açılmamış anket (33-04): durum kartı, soru, pasif seçenekler, pasif düğme.
+  Widget _notOpenView(BuTokens t, Poll p) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(LucideIcons.users, size: 15, color: t.mut),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600))),
+      AnketStatusCard(icon: LucideIcons.clock, text: l.pollBlockedNotOpen, red: true),
+      const SizedBox(height: 16),
+      Text(p.title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500, height: 1.4)),
+      const SizedBox(height: 14),
+      if (p.type == PollType.rating)
+        const SizedBox.shrink()
+      else
+        for (final o in p.options)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: ExcludeSemantics(
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 56),
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(color: t.sf2.withValues(alpha: .7), borderRadius: BuRadius.bMd),
+                child: Row(children: [
+                  Expanded(child: Text(o.text, style: tx.titleSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w800, height: 1.3))),
+                  const SizedBox(width: 12),
+                  Container(width: 24, height: 24, alignment: Alignment.center, decoration: BoxDecoration(color: t.bd, shape: BoxShape.circle), child: Container(width: 10, height: 10, decoration: BoxDecoration(color: t.mut.withValues(alpha: .5), shape: BoxShape.circle))),
+                ]),
+              ),
+            ),
+          ),
+      const SizedBox(height: 8),
+      ExcludeSemantics(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 54),
+          decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bMd),
+          child: Center(
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(LucideIcons.lock, size: 18, color: t.mut),
+              const SizedBox(width: 10),
+              Text(l.pollVote, style: tx.titleMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  /// Sonuçlar anket kapanınca görünecek (33-02): soru kartı, göz kapalı kartı, gizli oy notu, eylemler.
+  Widget _hiddenView(BuTokens t, Poll p) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _titleCard(t, p, pills: [_votedPill(t)]),
+      const SizedBox(height: 12),
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsetsDirectional.all(16),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(20)),
+        child: Row(children: [
+          AnketRoundIcon(LucideIcons.eyeOff, size: 48, bg: t.ink, fg: t.bg),
+          const SizedBox(width: 16),
+          Expanded(child: Text(l.pollResultsAfterClose, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+        ]),
+      ),
+      if (p.anonymous) ...[const SizedBox(height: 12), _secretNote(t, plain: true)],
+      ..._actions(t, p),
+    ]);
+  }
+
+  /// "Oyunuz gizli. ..." notu: ilk cümle kalın. [plain] true: gri zeminli kutu, false: beyaz kart + kilit simgesi.
+  Widget _secretNote(BuTokens t, {required bool plain}) {
+    final tx = Theme.of(context).textTheme;
+    final text = context.l10n.anketSecretNote;
+    final i = text.indexOf('. ');
+    final lead = i < 0 ? '' : text.substring(0, i + 1);
+    final rest = i < 0 ? text : text.substring(i + 1);
+    final style = (plain ? tx.bodySmall! : tx.bodyMedium!).copyWith(color: t.mut, height: 1.45);
+    final rich = Text.rich(TextSpan(style: style, children: [
+      if (lead.isNotEmpty) TextSpan(text: lead, style: TextStyle(color: t.ink, fontWeight: FontWeight.w800)),
+      TextSpan(text: rest),
+    ]));
+    if (plain) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AnketRoundIcon(LucideIcons.shieldCheck, size: 36, bg: t.bd, fg: t.ink),
+          const SizedBox(width: 12),
+          Expanded(child: rich),
+        ]),
+      );
+    }
+    return BuCard(
+      padding: const EdgeInsetsDirectional.all(16),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        AnketRoundIcon(LucideIcons.lock, size: 40, bg: t.sf2, fg: t.ink),
+        const SizedBox(width: 12),
+        Expanded(child: rich),
       ]),
-      if (frac != null) ...[
-        const SizedBox(height: 8),
-        ExcludeSemantics(
-          child: ClipRRect(
-            borderRadius: BuRadius.bPill,
-            child: ColoredBox(
-              color: t.sf2,
-              child: SizedBox(
-                height: 6,
-                width: double.infinity,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: frac),
-                  duration: BuMotion.of(context, BuMotion.long),
-                  curve: BuMotion.emphasizedDecelerate,
-                  builder: (context, v, _) => Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: FractionallySizedBox(
-                      widthFactor: v < .02 ? .02 : v,
-                      heightFactor: 1,
-                      child: DecoratedBox(decoration: BoxDecoration(color: t.mut.withValues(alpha: .55), borderRadius: BuRadius.bPill)),
-                    ),
-                  ),
+    );
+  }
+
+  /// Oyu değiştir (koyu dolu düğme) + Oyu geri çek (kırmızı metin bağlantısı); yalnız açık ve oy verilmiş ankette.
+  List<Widget> _actions(BuTokens t, Poll p) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    if (p.isClosed() || !p.voted || !p.allowChangeVote) return const [];
+    return [
+      const SizedBox(height: 20),
+      if (p.allowChangeVote && p.canVote)
+        Semantics(
+          button: true,
+          label: l.pollChangeVote,
+          excludeSemantics: true,
+          onTap: _busy ? null : () => setState(() => _editing = true),
+          child: Material(
+            color: t.ink,
+            borderRadius: BuRadius.bMd,
+            child: InkWell(
+              borderRadius: BuRadius.bMd,
+              onTap: _busy ? null : () => setState(() => _editing = true),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 54),
+                child: Center(
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(LucideIcons.pencil, size: 18, color: t.bg),
+                    const SizedBox(width: 10),
+                    Flexible(child: Text(l.pollChangeVote, style: tx.titleMedium!.copyWith(color: t.bg, fontWeight: FontWeight.w800))),
+                  ]),
                 ),
               ),
             ),
           ),
         ),
+      const SizedBox(height: 4),
+      Center(
+        child: TextButton.icon(
+          style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size(0, 48)),
+          onPressed: _busy ? null : _retract,
+          icon: const Icon(LucideIcons.undo2, size: 18),
+          label: Text(l.pollRetractTitle, style: tx.titleSmall!.copyWith(color: t.danger, fontWeight: FontWeight.w800)),
+        ),
+      ),
+    ];
+  }
+
+  /// Sonuç görünümü (33-01 oy verildi / 33-03 kapandı).
+  Widget _resultsView(BuTokens t, Poll p) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final closed = p.isClosed();
+    final count = p.turnoutVoted ?? p.totalVotes;
+    final rating = p.type == PollType.rating;
+    var topId = -1;
+    var topPct = 0.0;
+    for (final o in p.options) {
+      if (p.percentOf(o) > topPct) {
+        topPct = p.percentOf(o);
+        topId = o.id;
+      }
+    }
+    final kicker = closed
+        ? (Localizations.localeOf(context).languageCode == 'tr' ? trUpper(l.pollEnded) : l.pollEnded.toUpperCase())
+        : null;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _titleCard(
+        t,
+        p,
+        kicker: kicker,
+        pills: [if (closed) AnketPill(l.pollClosedBadge, bg: t.sf2, fg: t.mut, icon: LucideIcons.lock) else if (p.voted) _votedPill(t)],
+        trailing: closed && count != null
+            ? Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(LucideIcons.circleCheck, size: 16, color: t.pr),
+                const SizedBox(width: 6),
+                Text(l.pollParticipants('$count'), style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+              ])
+            : null,
+      ),
+      const SizedBox(height: 12),
+      if (rating) ...(closed ? [_ratingSummary(t, p)] : _resultsBody(t, p))
+      else if (closed)
+        BuCard(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(child: Text(l.p13PollDistribution, style: tx.bodySmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600))),
+              ExcludeSemantics(child: Icon(LucideIcons.trophy, size: 15, color: t.pr)),
+              const SizedBox(width: 4),
+              Text(l.p13PollWinnerOption, style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 12),
+            for (final o in p.options)
+              _ClosedResultRow(
+                text: o.text,
+                percent: p.percentOf(o),
+                votes: p.countOf(o),
+                winner: o.id == topId && topPct > 0,
+                mine: p.myOptionIds.contains(o.id),
+              ),
+          ]),
+        )
+      else
+        for (final o in p.options)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _OpenResultRow(text: o.text, percent: p.percentOf(o), votes: p.countOf(o), mine: p.myOptionIds.contains(o.id)),
+          ),
+      if (!closed && count != null) ...[
+        const SizedBox(height: 2),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Row(children: [
+            AnketRoundIcon(LucideIcons.usersRound, size: 36, bg: t.sf, fg: t.ink),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l.pollParticipants('$count'), style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+          ]),
+        ),
       ],
+      if (!closed && p.anonymous) ...[const SizedBox(height: 12), _secretNote(t, plain: false)],
+      ..._actions(t, p),
     ]);
   }
+
+  /// "Puanlama özeti" (33-03): ortalama, yıldızlar, puan sayısı.
+  Widget _ratingSummary(BuTokens t, Poll p) {
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final avg = p.average;
+    final n = p.ratingCount ?? p.participants;
+    if (avg == null) return const SizedBox.shrink();
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    final avgText = isTr ? avg.toStringAsFixed(1).replaceAll('.', ',') : avg.toStringAsFixed(1);
+    return BuCard(
+      padding: const EdgeInsetsDirectional.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(l.p13PollRatingSummary, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsetsDirectional.all(16),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Row(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(avgText, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1)),
+              const SizedBox(height: 4),
+              Text(l.p13PollOutOf5, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+            ]),
+            const Spacer(),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              StarRating(value: avg.round(), size: 20),
+              const SizedBox(height: 4),
+              Text(l.pollRatingCount('$n'), style: tx.bodySmall!.copyWith(color: t.mut)),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _gap(Widget w, {double top = 0}) => Padding(padding: EdgeInsets.only(top: top, bottom: 12), child: w);
 
   List<Widget> _votingBody(BuTokens t, Poll p) {
     final s = _sel!;
@@ -575,51 +848,150 @@ class _PollDetailPageState extends State<PollDetailPage> {
         ),
       ];
     }
-    var topId = -1;
-    var topPct = 0.0;
-    for (final o in p.options) {
-      if (p.percentOf(o) > topPct) {
-        topPct = p.percentOf(o);
-        topId = o.id;
-      }
-    }
-    return [
-      BuCard(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 18, vertical: 20),
-        child: Column(children: [
-          for (var i = 0; i < p.options.length; i++) ...[
-            if (i > 0) const SizedBox(height: 18),
-            ResultBar(
-              text: p.options[i].text,
-              percent: p.percentOf(p.options[i]),
-              votes: p.countOf(p.options[i]),
-              mine: p.myOptionIds.contains(p.options[i].id),
-              top: p.options[i].id == topId,
-              score: p.resultOf(p.options[i])?.score,
-            ),
-          ],
+    return const [];
+  }
+}
+
+/// Kapanan anketin seçenek satırı (33-03): kazanan kutulu + kupa, diğerleri sade; çubuk ve "N oy".
+class _ClosedResultRow extends StatelessWidget {
+  const _ClosedResultRow({required this.text, required this.percent, required this.votes, required this.winner, required this.mine});
+
+  final String text;
+  final double percent;
+  final int votes;
+  final bool winner;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final pct = percent.round();
+    final bar = _ResultBar(fraction: percent / 100, color: winner ? t.pr : t.mut.withValues(alpha: .45), height: 10);
+    final name = Row(children: [
+      if (winner) ...[
+        Container(
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+          child: Icon(LucideIcons.trophy, size: 14, color: t.onPr),
+        ),
+        const SizedBox(width: 10),
+      ],
+      Expanded(
+        child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          Text(text, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: winner ? FontWeight.w800 : FontWeight.w600, height: 1.3)),
+          if (mine) AnketPill(l.anketMineBadge, bg: t.soft, fg: t.onSoft, small: true, icon: LucideIcons.check),
         ]),
       ),
-    ];
+      const SizedBox(width: 8),
+      Text('%$pct', style: tx.titleMedium!.copyWith(color: winner ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+    ]);
+    final content = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      name,
+      const SizedBox(height: 8),
+      bar,
+      const SizedBox(height: 6),
+      Align(alignment: AlignmentDirectional.centerEnd, child: Text(l.pollVotes('$votes'), style: tx.labelMedium!.copyWith(color: t.mut))),
+    ]);
+    return Semantics(
+      label: [l.pollSemPercent(text, '$pct'), l.pollVotes('$votes'), if (mine) l.pollSemMine].join(', '),
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: winner
+            ? Container(padding: const EdgeInsetsDirectional.all(12), decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)), child: content)
+            : Padding(padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 8), child: content),
+      ),
+    );
   }
+}
 
-  List<Widget> _ownerActions(Poll p) => [
-        const SizedBox(height: 20),
-        if (p.canVote)
-          BuButton(
-            label: context.l10n.pollChangeVote,
-            icon: LucideIcons.pencil,
-            kind: BuButtonKind.soft,
-            onPressed: _busy ? null : () => setState(() => _editing = true),
+/// Açık ve oy verilmiş anketin sonuç satırı (33-01): kendi seçimi yumuşak kırmızı zeminli + "Seçiminiz" rozeti.
+class _OpenResultRow extends StatelessWidget {
+  const _OpenResultRow({required this.text, required this.percent, required this.votes, required this.mine});
+
+  final String text;
+  final double percent;
+  final int votes;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final pct = percent.round();
+    return Semantics(
+      label: [l.pollSemPercent(text, '$pct'), l.pollVotes('$votes'), if (mine) l.pollSemMine].join(', '),
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 12),
+        decoration: BoxDecoration(
+          color: mine ? t.soft : t.sf,
+          borderRadius: BuRadius.bMd,
+          border: Border.all(color: mine ? t.pr.withValues(alpha: .18) : t.bd.withValues(alpha: .7)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(
+              child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                Text(text, style: tx.titleSmall!.copyWith(color: mine ? t.onSoft : t.ink, fontWeight: FontWeight.w800, height: 1.3)),
+                if (mine) AnketPill(l.anketMineBadge, bg: t.pr, fg: t.onPr, small: true),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            Text('%$pct', style: tx.titleMedium!.copyWith(color: mine ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 8),
+          _ResultBar(fraction: percent / 100, color: mine ? t.pr : t.mut.withValues(alpha: .45), height: 10),
+          const SizedBox(height: 6),
+          Text('%$pct · ${l.pollVotes('$votes')}', style: tx.labelMedium!.copyWith(color: t.mut)),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Yüzde çubuğu: hedefe animasyonla dolar (hareket azaltılmışsa anında).
+class _ResultBar extends StatelessWidget {
+  const _ResultBar({required this.fraction, required this.color, required this.height});
+
+  final double fraction;
+  final Color color;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final f = fraction.clamp(0.0, 1.0);
+    return ExcludeSemantics(
+      child: ClipRRect(
+        borderRadius: BuRadius.bPill,
+        child: ColoredBox(
+          color: t.bd,
+          child: SizedBox(
+            height: height,
+            width: double.infinity,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: f),
+              duration: BuMotion.of(context, BuMotion.long),
+              curve: BuMotion.emphasizedDecelerate,
+              builder: (context, v, _) => Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: FractionallySizedBox(
+                  widthFactor: v,
+                  heightFactor: 1,
+                  child: DecoratedBox(decoration: BoxDecoration(color: color, borderRadius: BuRadius.bPill)),
+                ),
+              ),
+            ),
           ),
-        const SizedBox(height: 8),
-        BuButton(
-            label: context.l10n.pollRetractTitle,
-            icon: LucideIcons.undo2,
-            kind: BuButtonKind.outline,
-            busy: _busy,
-            onPressed: _busy ? null : _retract),
-      ];
+        ),
+      ),
+    );
+  }
 }
 
 /// Başlık kartındaki meta satırı (simge + metin).

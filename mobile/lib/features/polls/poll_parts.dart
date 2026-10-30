@@ -8,16 +8,20 @@ import 'poll_models.dart';
 /// 1-5 yıldız seçici. [value] null ise boş; [onChanged] null ise salt okunur.
 /// Dokunulabilir yıldız en az 48 dp hedef; seçilen yıldız hafifçe büyüyüp titreşir (hareket azaltılmışsa yalnız renk).
 class StarRating extends StatelessWidget {
-  const StarRating({super.key, required this.value, this.onChanged, this.size = 36});
+  const StarRating({super.key, required this.value, this.onChanged, this.size = 36, this.activeColor, this.inactiveColor});
 
   final int? value;
   final ValueChanged<int>? onChanged;
   final double size;
 
+  /// Dolu/boş yıldız renkleri (varsayılan: altın / soluk gri).
+  final Color? activeColor;
+  final Color? inactiveColor;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final gold = anketGoldOf(context);
+    final gold = activeColor ?? anketGoldOf(context);
     final cell = onChanged == null ? size + 8 : (size + 8 < 48 ? 48.0 : size + 8);
     final d = BuMotion.of(context, BuMotion.short);
     return Row(
@@ -47,7 +51,7 @@ class StarRating extends StatelessWidget {
                   curve: Curves.easeOutBack,
                   child: Icon((value ?? 0) >= i ? Icons.star_rounded : Icons.star_outline_rounded,
                       size: size + 4,
-                      color: (value ?? 0) >= i ? gold : t.mut.withValues(alpha: .5)),
+                      color: (value ?? 0) >= i ? gold : (inactiveColor ?? t.mut.withValues(alpha: .5))),
                 ),
               ),
             ),

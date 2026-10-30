@@ -307,7 +307,7 @@ void main() {
       expect(find.text('Oyu değiştir'), findsNothing);
       expect(find.text('Oyu geri çek'), findsNothing);
       expect(find.textContaining('değiştirilemez'), findsOneWidget);
-      expect(find.byType(ResultBar), findsNWidgets(3));
+      expect(find.text('Seçiminiz'), findsOneWidget);
     });
 
     testWidgets('henuz acilmadi', (tester) async {
@@ -316,7 +316,8 @@ void main() {
       f.polls[0] = samplePoll(id: 1, state: 'SCHEDULED', canVote: false, voteBlockedReason: 'NOT_OPEN');
       await show(tester, PollDetailPage(session: makeSession(b), pollId: 1));
       expect(find.text('Bu anket henüz açılmadı.'), findsOneWidget);
-      expect(find.text('Oy ver'), findsNothing);
+      expect(find.text('Oy ver'), findsOneWidget); // pasif düğme (dokunulamaz)
+      expect(find.byType(OutlinedButton), findsNothing);
     });
 
     testWidgets('gizli oy etiketi', (tester) async {
@@ -332,9 +333,9 @@ void main() {
       final f = fakePolls(b, count: 1);
       f.polls[0] = samplePoll(id: 1, closed: true);
       await show(tester, PollDetailPage(session: makeSession(b), pollId: 1));
-      expect(find.text('Bu anket kapandı. Oy verilemez.'), findsOneWidget);
+      expect(find.text('Kapandı'), findsOneWidget);
+      expect(find.text('Kazanan Seçenek'), findsOneWidget);
       expect(find.text('Oy ver'), findsNothing);
-      expect(find.byType(ResultBar), findsNWidgets(3));
     });
 
     testWidgets('yetkisiz', (tester) async {
