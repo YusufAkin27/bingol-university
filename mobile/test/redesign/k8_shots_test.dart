@@ -307,12 +307,12 @@ final _shots33 = <_Shot>[
   _Shot('33-06a_geri_cek', (b) {
     b.fail('/polls/1');
   }, (b) => PollDetailPage(session: makeSession(b), pollId: 1, initial: Poll.fromJson(_soupPoll(mine: [101]))), h: 844, act: (t) async {
-    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب التصويت'));
+    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب الصوت'));
   }),
   _Shot('33-06b_geri_cekildi', (b) {
     _fp(b, [_soupPoll(mine: [101])], others: {1: {101: 57, 102: 39, 103: 29}});
   }, (b) => PollDetailPage(session: makeSession(b), pollId: 1), h: 844, act: (t) async {
-    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب التصويت'));
+    await _tapText(t, _tr('Oyu geri çek', 'Retract vote', 'سحب الصوت'));
     await _tapText(t, _tr('Geri çek', 'Retract', 'سحب'));
   }),
   _Shot('15-menu-puan_bos', (b) {

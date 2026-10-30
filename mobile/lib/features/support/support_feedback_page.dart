@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show niceDate;
 import '../polls/anket_style.dart';
+import '../polls/anket_widgets.dart';
 import 'support_common.dart';
 
 /// Geri bildirim formu + gönderdiklerim listesi (imleçli).
@@ -24,6 +25,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   late String _category = const ['BUG', 'SUGGESTION', 'COMPLAINT', 'PRAISE'].contains(widget.initialCategory) ? widget.initialCategory : 'BUG';
   bool _busy = false;
   String? _formError;
+  int _tab = 0; // 0 form, 1 gonderdiklerim
 
   final List<Map<String, dynamic>> _mine = [];
   int? _next;
@@ -94,7 +96,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
       _subject.clear();
       _message.clear();
       supportSnack(context, context.l10n.supportFeedbackThanks, BuToastKind.success);
-      setState(() => _busy = false);
+      setState(() {
+        _busy = false;
+        _tab = 1;
+      });
       _loadMine(reset: true);
     } catch (e) {
       if (!mounted) return;
@@ -127,6 +132,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
       onRefresh: () => _loadMine(reset: true),
       bottomInset: 24,
       slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
+            child: AnketTabs(labels: [l.supportSend, l.p13FeedbackMine], index: _tab, onChanged: (i) => setState(() => _tab = i)),
+          ),
+        ),
+        if (_tab == 0)
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
@@ -180,8 +192,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
             ]),
           ),
         ),
-        SliverToBoxAdapter(child: SupportHeading(l.p13FeedbackMine, padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 10))),
-        ..._mineSlivers(),
+        if (_tab == 1) ...[
+          SliverToBoxAdapter(child: SupportHeading(l.p13FeedbackMine, padding: const EdgeInsetsDirectional.fromSTEB(24, 8, 24, 10))),
+          ..._mineSlivers(),
+        ],
       ],
     );
   }

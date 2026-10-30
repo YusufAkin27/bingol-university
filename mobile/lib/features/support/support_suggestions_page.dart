@@ -196,14 +196,54 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                 child: SizedBox(
                   width: double.infinity,
                   child: Column(children: [
-                    const AnketArtView(AnketArt.idea, size: 112),
+                    SizedBox(
+                      width: 128,
+                      height: 120,
+                      child: Stack(alignment: Alignment.center, children: [
+                        const AnketArtView(AnketArt.idea, size: 112),
+                        PositionedDirectional(
+                          end: 6,
+                          bottom: 6,
+                          child: ExcludeSemantics(
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
+                              child: Icon(LucideIcons.messageSquare, size: 16, color: t.onPr),
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
                     const SizedBox(height: 12),
                     Semantics(
                       header: true,
                       child: Text(l.supportNoSuggestions, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
                     ),
                     const SizedBox(height: 20),
-                    BuButton(label: l.p13SugAdd, icon: LucideIcons.plus, onPressed: _add),
+                    Semantics(
+                      button: true,
+                      label: l.p13SugAdd,
+                      excludeSemantics: true,
+                      onTap: _add,
+                      child: Ink(
+                        decoration: BoxDecoration(gradient: t.hero, borderRadius: BuRadius.bMd),
+                        child: InkWell(
+                          borderRadius: BuRadius.bMd,
+                          onTap: _add,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 54),
+                            child: Center(
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(LucideIcons.plus, size: 18, color: t.onMedia),
+                                const SizedBox(width: 8),
+                                Text(l.p13SugAdd, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                              ]),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ]),
                 ),
               ),

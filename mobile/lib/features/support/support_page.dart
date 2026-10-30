@@ -134,7 +134,7 @@ class _SupportPageState extends State<SupportPage> {
               child: SupportNote(icon: LucideIcons.triangleAlert, text: l.supportTooManyRequests),
             ),
           ),
-        SliverToBoxAdapter(child: SupportHeading(l.destekFaqHeading)),
+        SliverToBoxAdapter(child: SupportHeading(l.p13SuppFaqHeading)),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),

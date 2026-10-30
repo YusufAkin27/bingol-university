@@ -335,7 +335,7 @@ void main() {
       await settle(t, const Duration(milliseconds: 900));
       await t.tap(find.text('Talebi kapat'));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.byType(BuDialog), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
       await t.tap(find.text('Vazgeç'));
       await settle(t, const Duration(milliseconds: 500));
       expect(b.requests.where((r) => r.contains('/close')), isEmpty);
@@ -371,7 +371,7 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(FeedbackPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      await t.tap(find.text('Gönder'));
+      await t.tap(find.text('Gönder').last);
       await settle(t, const Duration(milliseconds: 400));
       expect(find.text('Konu ve mesaj alanlarını doldurun.'), findsOneWidget);
       await t.tap(find.text('Öneri'));
@@ -379,7 +379,7 @@ void main() {
       await t.enterText(find.byType(TextField).last, 'Merhaba');
       await t.pump();
       expect(find.text('7 / 1000'), findsOneWidget);
-      await t.tap(find.text('Gönder'));
+      await t.tap(find.text('Gönder').last);
       await settle(t, const Duration(milliseconds: 700));
       expect((b.bodies['POST /feedback'] as Map)['category'], 'SUGGESTION');
       await unmount(t);

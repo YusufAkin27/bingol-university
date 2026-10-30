@@ -92,29 +92,60 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     final l = context.l10n;
     final ok = await BuDialog.show<bool>(
       context,
-      builder: (ctx) => BuDialog(
-        title: l.supportCloseTicketTitle,
-        message: l.supportCloseTicketBody,
-        icon: LucideIcons.lock,
-        destructive: true,
-        content: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const SizedBox(height: 8),
-          BuButton(label: l.supportClose, icon: LucideIcons.circleCheck, onPressed: () => Navigator.of(ctx).pop(true)),
-          const SizedBox(height: 8),
-          Material(
-            color: ctx.bu.sf2,
-            borderRadius: BuRadius.bMd,
-            child: InkWell(
-              borderRadius: BuRadius.bMd,
-              onTap: () => Navigator.of(ctx).pop(false),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 52),
-                child: Center(child: Text(l.supportCancel, style: Theme.of(ctx).textTheme.titleMedium!.copyWith(color: ctx.bu.ink, fontWeight: FontWeight.w700))),
+      builder: (ctx) {
+        final t = ctx.bu;
+        final tx = Theme.of(ctx).textTheme;
+        return Dialog(
+          backgroundColor: t.sf3,
+          surfaceTintColor: t.sf3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(24, 28, 24, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Center(
+                child: ExcludeSemantics(
+                  child: Container(
+                    width: 76,
+                    height: 76,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: t.soft.withValues(alpha: .55), shape: BoxShape.circle),
+                    child: Container(
+                      width: 54,
+                      height: 54,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                      child: Icon(LucideIcons.lock, size: 24, color: t.pr),
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              Semantics(
+                header: true,
+                child: Text(l.supportCloseTicketTitle, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(height: 8),
+              Text(l.supportCloseTicketBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+              const SizedBox(height: 20),
+              BuButton(label: l.supportClose, icon: LucideIcons.circleCheck, onPressed: () => Navigator.of(ctx).pop(true)),
+              const SizedBox(height: 8),
+              Material(
+                color: t.sf2,
+                borderRadius: BuRadius.bMd,
+                child: InkWell(
+                  borderRadius: BuRadius.bMd,
+                  onTap: () => Navigator.of(ctx).pop(false),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    child: Center(child: Text(l.supportCancel, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+                  ),
+                ),
+              ),
+            ]),
           ),
-        ]),
-      ),
+        );
+      },
     );
     if (ok != true || !mounted) return;
     setState(() => _closing = true);
@@ -266,6 +297,18 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return d == null ? '' : '${d.year}-${d.month}-${d.day}';
   }
 
+  /// Ayıraç metni: bugünse "Bugün, 14 Mayıs", değilse "14 Mayıs 2024".
+  String _dayLabel(Map<String, dynamic> m) {
+    final d = DateTime.tryParse('${m['createdAt'] ?? ''}')?.toLocal();
+    if (d == null) return niceDate(m['createdAt'] as String?, context: context);
+    final now = DateTime.now();
+    if (d.year == now.year && d.month == now.month && d.day == now.day) {
+      final loc = Localizations.localeOf(context).toString();
+      return '${context.l10n.p13SuppToday}, ${DateFormat('d MMMM', loc).format(d)}';
+    }
+    return niceDate(m['createdAt'] as String?, context: context);
+  }
+
   /// Gün ayırıcı hap ("14 Mayıs 2024").
   Widget _dayChip(Map<String, dynamic> m) {
     final t = context.bu;
@@ -275,7 +318,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         child: Container(
           padding: const EdgeInsetsDirectional.symmetric(horizontal: 14, vertical: 5),
           decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-          child: Text(niceDate(m['createdAt'] as String?, context: context),
+          child: Text(_dayLabel(m),
               style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
         ),
       ),

@@ -1,3 +1,5 @@
+import 'package:bu_kampus/features/polls/poll_detail_page.dart';
+import 'package:bu_kampus/features/polls/poll_list_page.dart';
 import 'package:bu_kampus/features/support/support_feedback_page.dart';
 import 'package:bu_kampus/features/support/support_new_ticket_page.dart';
 import 'package:bu_kampus/features/support/support_page.dart';
@@ -99,13 +101,19 @@ void main() {
       for (final s in ['Hata', 'Öneri', 'Şikâyet', 'Teşekkür']) {
         expect(find.text(s), findsWidgets, reason: s);
       }
+      // Form kendi ekraninda: gonderdiklerim ayri gorunum (sekme).
+      expect(find.text('Planlandı'), findsNothing);
+      await t.tap(find.text('Gönderdiklerim'));
+      await settle(t, const Duration(milliseconds: 500));
       expect(find.text('Planlandı'), findsOneWidget);
       expect(find.text('Tamamlandı'), findsOneWidget);
+      await t.tap(find.text('Gönder').first);
+      await settle(t, const Duration(milliseconds: 500));
       await t.tap(find.text('Şikâyet').first);
       await t.enterText(find.byType(TextField).first, 'B');
       await t.enterText(find.byType(TextField).at(1), 'M');
       await t.pump();
-      await t.tap(find.text('Gönder'));
+      await t.tap(find.text('Gönder').last);
       await settle(t, const Duration(milliseconds: 600));
       expect((b.bodies['POST /feedback'] as Map)['category'], 'COMPLAINT');
       await unmount(t);
@@ -133,6 +141,30 @@ void main() {
       expect(find.text('95'), findsOneWidget);
       expect(b.requests, contains('PUT /suggestions/2/vote'));
       await unmount(t);
+    });
+
+    testWidgets('gercek akista (push) tum bu sayfalarda ust cubukta geri oku var', (t) async {
+      final b = _backend();
+      fakePolls(b, count: 1);
+      final session = makeSession(b);
+      final pages = <Widget Function()>[
+        () => SupportPage(session: session),
+        () => NewTicketPage(session: session),
+        () => FeedbackPage(session: session),
+        () => SuggestionsPage(session: session),
+        () => PollListPage(session: session),
+        () => PollDetailPage(session: session, pollId: 1),
+      ];
+      for (final build in pages) {
+        await t.pumpWidget(p00App(
+          Scaffold(body: Builder(builder: (c) => TextButton(onPressed: () => Navigator.push(c, MaterialPageRoute<void>(builder: (_) => build())), child: const Text('git')))),
+          scaffold: false,
+        ));
+        await t.tap(find.text('git'));
+        await settle(t, const Duration(milliseconds: 700));
+        expect(find.byType(BackButton), findsOneWidget, reason: build().runtimeType.toString());
+        await unmount(t);
+      }
     });
   });
 }

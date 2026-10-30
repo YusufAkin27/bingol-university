@@ -113,7 +113,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
         _editing = false;
         _resetSelection();
       });
-      BuToast.show(context, context.l10n.pollVoteRetracted, kind: BuToastKind.success, actionLabel: context.l10n.commonClose);
+      final inv = Theme.of(context).brightness == Brightness.light ? BuTokens.dark : BuTokens.light;
+      BuToast.show(context, context.l10n.pollVoteRetracted,
+          kind: BuToastKind.success, actionLabel: context.l10n.commonClose, actionColor: inv.tint(4).fg);
     } catch (e) {
       if (mounted) await _fail(e);
     } finally {
@@ -486,7 +488,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 constraints: const BoxConstraints(minHeight: 54),
                 child: Center(
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(LucideIcons.pencil, size: 18, color: t.bg),
+                    Icon(LucideIcons.refreshCw, size: 18, color: t.bg),
                     const SizedBox(width: 10),
                     Flexible(child: Text(l.pollChangeVote, style: tx.titleMedium!.copyWith(color: t.bg, fontWeight: FontWeight.w800))),
                   ]),
@@ -501,7 +503,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
           style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size(0, 48)),
           onPressed: _busy ? null : _retract,
           icon: const Icon(LucideIcons.undo2, size: 18),
-          label: Text(l.pollRetractTitle, style: tx.titleSmall!.copyWith(color: t.danger, fontWeight: FontWeight.w800)),
+          label: Text(l.pollRetractTitle,
+              style: tx.titleSmall!.copyWith(
+                  color: t.danger, fontWeight: FontWeight.w800, decoration: TextDecoration.underline, decorationColor: t.danger)),
         ),
       ),
     ];

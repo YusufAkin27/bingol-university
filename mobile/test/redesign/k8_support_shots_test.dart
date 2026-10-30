@@ -126,7 +126,7 @@ final _shots = <_Shot>[
   _Shot('34-01_ana', (b) {
     _faq(b);
     _tickets(b);
-  }, (b) => SupportPage(session: makeSession(b)), h: 1190, act: (t) => _tapText(t, 'Şifremi unuttum, ne yapmalıyım?')),
+  }, (b) => SupportPage(session: makeSession(b)), h: 1320, act: (t) => _tapText(t, 'Şifremi unuttum, ne yapmalıyım?')),
   _Shot('34-02a_hiz_siniri_hata', (b) {
     b.on('/faq', <Object>[]);
     b.on('/support/tickets', {'code': 'RATE_LIMITED', 'message': ''}, status: 429);
@@ -194,8 +194,9 @@ final _shots35 = <_Shot>[
           {'id': 5, 'subject': 'Ring sefer saatleri güncellemesi', 'message': 'x', 'category': 'COMPLAINT', 'status': 'REJECTED', 'createdAt': '2026-09-15T10:00:00'},
         ],
         'nextCursor': 9,
-      }), (b) => FeedbackPage(session: makeSession(b)), h: 1500),
-  _Shot('35-02b_bos', (b) => b.on('/feedback/mine', _page([])), (b) => FeedbackPage(session: makeSession(b)), h: 844),
+      }), (b) => FeedbackPage(session: makeSession(b)), h: 1200, act: (t) => _tapText(t, _lang == 'tr' ? 'Gönderdiklerim' : (_lang == 'ar' ? 'ما أرسلته' : 'My submissions'))),
+  _Shot('35-02b_bos', (b) => b.on('/feedback/mine', _page([])), (b) => FeedbackPage(session: makeSession(b)), h: 600,
+      act: (t) => _tapText(t, _lang == 'tr' ? 'Gönderdiklerim' : (_lang == 'ar' ? 'ما أرسلته' : 'My submissions'))),
   _Shot('35-03_pano', _suggestions, (b) => SuggestionsPage(session: makeSession(b)), h: 900),
   _Shot('35-04a_bos', (b) => b.on('/suggestions', {'totalPages': 0, 'items': <Object>[]}), (b) => SuggestionsPage(session: makeSession(b)), h: 520),
   _Shot('35-04b_hata', (b) => b.fail('/suggestions'), (b) => SuggestionsPage(session: makeSession(b)), h: 520),

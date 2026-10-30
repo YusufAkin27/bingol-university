@@ -194,7 +194,7 @@ class _ClubOpenCard extends StatelessWidget {
                 ]),
             ]),
             const SizedBox(height: 12),
-            Text(poll.title, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, fontSize: 17, height: 1.3)),
+            Text(poll.title, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3)),
             if (poll.description != null) ...[
               const SizedBox(height: 6),
               Text(poll.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),

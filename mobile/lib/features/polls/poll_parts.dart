@@ -8,7 +8,7 @@ import 'poll_models.dart';
 /// 1-5 yıldız seçici. [value] null ise boş; [onChanged] null ise salt okunur.
 /// Dokunulabilir yıldız en az 48 dp hedef; seçilen yıldız hafifçe büyüyüp titreşir (hareket azaltılmışsa yalnız renk).
 class StarRating extends StatelessWidget {
-  const StarRating({super.key, required this.value, this.onChanged, this.size = 36, this.activeColor, this.inactiveColor});
+  const StarRating({super.key, required this.value, this.onChanged, this.size = 36, this.activeColor, this.inactiveColor, this.compact = false});
 
   final int? value;
   final ValueChanged<int>? onChanged;
@@ -18,11 +18,15 @@ class StarRating extends StatelessWidget {
   final Color? activeColor;
   final Color? inactiveColor;
 
+  /// true: yıldızlar arası dar (sola yaslı satır); dokunma yüksekliği yine 44 dp.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final gold = activeColor ?? anketGoldOf(context);
-    final cell = onChanged == null ? size + 8 : (size + 8 < 48 ? 48.0 : size + 8);
+    final cell = compact ? size + 6 : (onChanged == null ? size + 8 : (size + 8 < 48 ? 48.0 : size + 8));
+    final cellH = compact ? 44.0 : cell;
     final d = BuMotion.of(context, BuMotion.short);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -44,7 +48,7 @@ class StarRating extends StatelessWidget {
                     },
               child: SizedBox(
                 width: cell,
-                height: cell,
+                height: cellH,
                 child: AnimatedScale(
                   scale: value == i && onChanged != null ? 1.16 : 1,
                   duration: d,
@@ -239,7 +243,7 @@ class PollCard extends StatelessWidget {
               Text(poll.title,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, fontSize: 17, height: 1.3)),
+                  style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3)),
               if (poll.description != null) ...[
                 const SizedBox(height: 6),
                 Text(poll.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),

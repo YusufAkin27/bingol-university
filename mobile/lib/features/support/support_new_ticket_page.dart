@@ -91,7 +91,6 @@ class _NewTicketPageState extends State<NewTicketPage> {
                       maxLength: 2000,
                       minLines: 5,
                       maxLines: 10,
-                      counter: true,
                       soft: true,
                     ),
                     AnimatedSize(

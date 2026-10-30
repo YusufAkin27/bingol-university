@@ -71,6 +71,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
     final stars = StarRating(
       value: p.myRating,
       size: 30,
+      compact: rated,
       activeColor: t.pr,
       inactiveColor: rated ? t.pr.withValues(alpha: .25) : t.pr,
       onChanged: canRate && !_busy ? _rate : null,

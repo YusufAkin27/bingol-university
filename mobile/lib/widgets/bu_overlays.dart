@@ -328,6 +328,7 @@ abstract final class BuToast {
     BuToastKind kind = BuToastKind.info,
     String? actionLabel,
     VoidCallback? onAction,
+    Color? actionColor,
     Duration duration = const Duration(seconds: 3),
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -355,7 +356,7 @@ abstract final class BuToast {
               ],
             ),
           ),
-          action: actionLabel == null ? null : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),
+          action: actionLabel == null ? null : SnackBarAction(label: actionLabel, textColor: actionColor, onPressed: onAction ?? () {}),
         ),
       );
     buHaptic(kind == BuToastKind.error ? BuHaptic.light : BuHaptic.none);
