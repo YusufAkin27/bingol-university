@@ -10,6 +10,8 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
 import 'package:bu_kampus/features/news/news_detail_page.dart';
+import 'package:bu_kampus/features/news/news_list_page.dart';
+import 'package:bu_kampus/features/profile/saved_news_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
@@ -177,6 +179,20 @@ final _shots = <_Shot>[
   _Shot('s6b_arama_sonuc_yok', (b) => SearchPage(session: makeSession(b)), _searchBackend, after: (t, b) => _typeQ(t, 'xyz123')),
   _Shot('s6c_arama_hata', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(failStatus: 500), after: (t, b) => _typeQ(t, 'xyz123')),
   _Shot('s6d_arama_hiz_siniri', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(failStatus: 429), after: (t, b) => _typeQ(t, 'xyz123')),
+  _Shot('hb1_haber_liste', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', noImg: {1, 3})),
+  _Shot('hb2_duyuru_liste', (b) => NewsListPage(session: makeSession(b), initialType: 'DUYURU'), () => _hbBackend('DUYURU', noImg: {0, 1, 3, 4})),
+  _Shot('hb3_etkinlik_liste', (b) => NewsListPage(session: makeSession(b), initialType: 'ETKINLIK'), () => _hbBackend('ETKINLIK', noImg: {1, 3, 4})),
+  _Shot('hb4_bakim_sayfalama', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', count: 5, maintenance: true, totalPages: 3),
+      after: (t, b) async {
+    b.delay = const Duration(seconds: 4);
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -900));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Shot('hb5_favoriler', (b) => SavedNewsPage(session: makeSession(b)), _savedBackend),
+  _Shot('hb6a_favori_bos', (b) => SavedNewsPage(session: makeSession(b)), () => _savedBackend(empty: true)),
+  _Shot('hb6b_kategori_bos', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', empty: true)),
+  _Shot('hb6c_liste_hata', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', fail: true)),
+  _Shot('hb7_haber_yukleniyor', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER'), slow: true),
 ];
 
 String _ago(Duration d) => DateTime.now().subtract(d).toIso8601String();
@@ -298,6 +314,68 @@ Future<void> _pickTab(WidgetTester t, String label) async {
   await t.pump(const Duration(milliseconds: 600));
 }
 
+const _hbTitles = {
+  'HABER': [
+    'Mühendislik Fakültesi Yapay Zekâ ve İnovasyon Laboratuvarı Açıldı',
+    'Merkez Kütüphane 7/24 Çalışma Düzenine Geçti',
+    'TÜBİTAK 2209 Üniversite Öğrencileri Araştırma Projeleri Destek Programı',
+    'Ziraat Fakültesi Arıcılık ve Bal Üretimi Semineri Tamamlandı',
+    'Kariyer Geliştirme ve Mezunlarla İletişim Zirvesi Başlıyor',
+  ],
+  'DUYURU': [
+    '2026-2027 Güz Dönemi Ders Kayıt Duyurusu ve Danışman Onayları',
+    'Öğrenci İşleri Daire Başkanlığı Muafiyet Sınavı Takvimi',
+    'Erasmus+ Öğrenci Öğrenim ve Staj Hareketliliği Başvuruları',
+    'Yabancı Diller Yüksekokulu Muafiyet Sınav Yerleri Açıklandı',
+    'Sağlık Kültür ve Spor Daire Başkanlığı Burs ve Yemek Başvuruları',
+  ],
+  'ETKINLIK': [
+    'Yazılım Kulübü: Üniversite İçi Hackathon 2026',
+    'Münazara Kulübü Güz Dönemi Açılış Turnuvası ve Tanışma Etkinliği',
+    'Doğa Sporları ve Dağcılık: Çır Şelalesi Sonbahar Doğa Yürüyüşü',
+    'Müzik Kulübü: Kampüs Akustik Konseri ve Enstrüman Dinletisi',
+    'Tiyatro Kulübü Oyuncu Seçmeleri ve Doğaçlama Atölyesi',
+  ],
+};
+
+List<Map<String, dynamic>> _hbItems(String type, {int count = 5, Set<int> noImg = const {}}) => [
+      for (var i = 0; i < count; i++)
+        newsItem(i + 1,
+            type: type,
+            title: _hbTitles[type]![i % 5],
+            imageUrl: noImg.contains(i) ? null : 'https://img.invalid/n${i + 1}.jpg',
+            eventDate: type == 'ETKINLIK' ? '2026-11-${14 + i * 4}' : null),
+    ];
+
+FakeBackend _hbBackend(String type,
+        {int count = 5, Set<int> noImg = const {}, bool maintenance = false, int totalPages = 1, bool empty = false, bool fail = false}) {
+  final b = FakeBackend()
+    ..on('/news', {...newsPage(empty ? [] : _hbItems(type, count: count, noImg: noImg)), 'totalPages': totalPages})
+    ..on('/status', {
+      'NEWS': {'maintenance': maintenance},
+      'MENU': {'maintenance': false},
+    })
+    ..on('/bookmarks/news/ids', {'ids': [2]});
+  if (fail) b.fail('/news');
+  return b;
+}
+
+FakeBackend _savedBackend({bool empty = false, bool fail = false}) {
+  final b = FakeBackend()
+    ..on('/bookmarks', {
+      'items': empty
+          ? <Object>[]
+          : [
+              {'news': newsItem(1, type: 'HABER', title: _hbTitles['HABER']![0], imageUrl: 'https://img.invalid/n1.jpg')},
+              {'news': newsItem(2, type: 'DUYURU', title: _hbTitles['DUYURU']![2], imageUrl: null)},
+              {'news': newsItem(3, type: 'ETKINLIK', title: _hbTitles['ETKINLIK']![1], imageUrl: null, eventDate: '2026-11-18')},
+            ],
+      'nextCursor': null,
+    });
+  if (fail) b.fail('/bookmarks');
+  return b;
+}
+
 class _Variant {
   const _Variant(this.suffix, this.dark, this.scale);
   final String suffix;
@@ -415,7 +493,7 @@ void main() {
           // ignore: avoid_print
           print('YAZILDI ${f.path} ${image.width}x${image.height}');
         });
-        if (s.slow || s.file.startsWith('n6')) {
+        if (s.slow || (s.file.startsWith('n6') || s.file.startsWith('hb4'))) {
           for (var i = 0; i < 8; i++) {
             await tester.pump(const Duration(seconds: 2));
           }

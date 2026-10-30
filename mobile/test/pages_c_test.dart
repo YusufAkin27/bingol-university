@@ -116,8 +116,9 @@ final kPageCases = <PageCase>[
     ])),
     empty: (b) => b.on('/bookmarks', _page([])),
     marker: 'Kayıtlı haber bir',
-    emptyMarker: 'Henüz kaydettiğiniz bir haber yok. Haberlerdeki yer imi simgesine dokunun.',
+    emptyMarker: 'Henüz kaydettiğiniz bir haber yok.',
     failKeys: ['/bookmarks'],
+    checkLoading: false, // iskelet (K3)
   ),
   PageCase(
     'SettingsPage',
@@ -198,6 +199,7 @@ final kPageCases = <PageCase>[
     marker: 'Okunmuş bildirim',
     emptyMarker: 'Henüz bildiriminiz yok',
     failKeys: ['/notifications'],
+    checkLoading: false, // iskelet (K3)
   ),
   PageCase(
     'SearchPage',
@@ -257,6 +259,7 @@ final kPageCases = <PageCase>[
     marker: 'Şifremi nasıl değiştiririm?',
     emptyMarker: 'Henüz destek talebiniz yok.',
     failKeys: ['/faq', '/support/tickets'],
+    checkLoading: false, // iskelet (P13)
   ),
   PageCase(
     'FeedbackPage',
@@ -299,6 +302,7 @@ final kPageCases = <PageCase>[
     marker: 'Karanlık tema geliştirilsin ve başlık biraz uzun olsun',
     emptyMarker: 'Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.',
     failKeys: ['/suggestions'],
+    checkLoading: false, // iskelet (P13)
   ),
   PageCase(
     'SupportTicketPage',
@@ -318,6 +322,7 @@ final kPageCases = <PageCase>[
     }),
     marker: 'Yardımcı olalım.',
     failKeys: ['/support/tickets/5'],
+    checkLoading: false, // iskelet (P13)
   ),
   PageCase(
     'NewTicketPage',
@@ -338,8 +343,9 @@ final kPageCases = <PageCase>[
     ]),
     empty: (b) => b.on('/menu', <Object>[]),
     marker: 'Mercimek çorbası',
-    emptyMarker: 'Bu ay için yemek listesi henüz yayınlanmadı.',
+    emptyMarker: 'Yemek listesi yok.',
     failKeys: ['/menu'],
+    checkLoading: false, // iskelet (K3)
   ),
 ];
 

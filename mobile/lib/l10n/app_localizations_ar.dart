@@ -8574,4 +8574,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p17PickDateHelp => 'اختر التاريخ';
+
+  @override
+  String get p20ProfileTitle => 'الملف الشخصي';
+
+  @override
+  String get p20AboutNoBio => 'لم تتم إضافة سيرة ذاتية.';
+
+  @override
+  String get p20AcademicInfo => 'المعلومات الأكاديمية';
+
+  @override
+  String get p20AvatarHidden =>
+      'تم إخفاء صورة ملفك الشخصي بسبب الإشراف. ستظهر الأحرف الأولى من اسمك حتى ترفع صورة تلتزم بقواعد الحرم.';
+
+  @override
+  String get p20BlockInfo => 'لن ترى منشورات هذا الشخص ولن تتمكن من مراسلته.';
+
+  @override
+  String get p20ReportSendHint => 'يمكنك وصف الموقف باختصار...';
+
+  @override
+  String get p20PrefPollsSub => 'استطلاعات الطلاب والموظفين';
+
+  @override
+  String get p20PrefAcademicSub => 'إعلانات القسم والكلية والاختبارات';
+
+  @override
+  String get p20PrefDetailHead =>
+      'أدر الأنواع الفرعية لكل فئة على حدة. عند إيقاف المفتاح الرئيسي تُكتم الأنواع الفرعية التابعة له.';
+
+  @override
+  String get p20PrefDetailSub => 'الفئات الفرعية وأنواع الإشعارات';
+
+  @override
+  String get p20PrefOffTag => 'معطل';
+
+  @override
+  String get p20PrefMsgGroupSub => 'المراسلة الفورية';
+
+  @override
+  String get p20PrefEventsGroupSub => 'التقويم واللقاءات';
+
+  @override
+  String get p20PrefClubsGroupSub => 'نشاط المجتمعات';
+
+  @override
+  String get p20PrefSubDirect => 'المحادثات الخاصة الفردية';
+
+  @override
+  String get p20PrefSubGroup => 'محادثات مجموعات المقررات والنوادي';
+
+  @override
+  String get p20PrefSubEventReminder => 'قبل ساعة من البدء';
+
+  @override
+  String get p20PrefSubEventUpdate => 'تحديثات التاريخ أو الوقت أو المكان';
+
+  @override
+  String get p20PrefSubEventAdmission => 'موافقات المشاركة في فعاليات النادي';
+
+  @override
+  String get p20PrefSubClubPost => 'الإعلانات والصور التي تشاركها النوادي';
+
+  @override
+  String get p20PrefSubClubRole => 'صلاحيات الإدارة والعضوية';
+
+  @override
+  String get p20PrefSubClubJoin => 'طلبات الانضمام وردودها';
+
+  @override
+  String get p20PrefLoadFail => 'تعذر التحميل';
+
+  @override
+  String get p20PrefTapRetry => 'اضغط لإعادة المحاولة.';
+
+  @override
+  String p20PrefRemSub(String m) {
+    return 'تنبيه محلي قبل بدء المحاضرة بـ $m د';
+  }
+
+  @override
+  String get p20QuietPickHelp => 'اختر الوقت';
+
+  @override
+  String get p20ThemeSystemSub => 'حسب إعدادات الجهاز';
+
+  @override
+  String get p20HalfDay => 'نصف يوم';
+
+  @override
+  String get p20AllDay => 'طوال اليوم';
+
+  @override
+  String p20RangeDays(String n) {
+    return '$n أيام';
+  }
+
+  @override
+  String p20RangeWeeks(String n) {
+    return '$n أسابيع';
+  }
+
+  @override
+  String get p20RemDaySub => 'تذكير قبل الاختبار بيوم';
+
+  @override
+  String get p20RemHourSub => 'إشعار قبل الاختبار بساعة';
 }

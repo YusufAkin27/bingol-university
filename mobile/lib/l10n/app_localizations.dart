@@ -15714,6 +15714,204 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tarih seçin'**
   String get p17PickDateHelp;
+
+  /// No description provided for @p20ProfileTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil'**
+  String get p20ProfileTitle;
+
+  /// No description provided for @p20AboutNoBio.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biyografi belirtilmemiş.'**
+  String get p20AboutNoBio;
+
+  /// No description provided for @p20AcademicInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik bilgiler'**
+  String get p20AcademicInfo;
+
+  /// No description provided for @p20AvatarHidden.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafın moderasyon nedeniyle gizlendi. Kampüs kurallarına uygun yeni bir portre yükleyene kadar adının baş harfleri görüntülenir.'**
+  String get p20AvatarHidden;
+
+  /// No description provided for @p20BlockInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.'**
+  String get p20BlockInfo;
+
+  /// No description provided for @p20ReportSendHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Durumu kısaca açıklayabilirsiniz...'**
+  String get p20ReportSendHint;
+
+  /// No description provided for @p20PrefPollsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğrenci ve personel anketleri'**
+  String get p20PrefPollsSub;
+
+  /// No description provided for @p20PrefAcademicSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm, fakülte ve sınav duyuruları'**
+  String get p20PrefAcademicSub;
+
+  /// No description provided for @p20PrefDetailHead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategorilere ait alt bildirim türlerini tek tek yönetin. Ana anahtarı kapattığınızda ilgili alt bildirimler sessize alınır.'**
+  String get p20PrefDetailHead;
+
+  /// No description provided for @p20PrefDetailSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alt kategoriler ve bildirim türleri'**
+  String get p20PrefDetailSub;
+
+  /// No description provided for @p20PrefOffTag.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devre dışı'**
+  String get p20PrefOffTag;
+
+  /// No description provided for @p20PrefMsgGroupSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anlık haberleşme'**
+  String get p20PrefMsgGroupSub;
+
+  /// No description provided for @p20PrefEventsGroupSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim ve buluşmalar'**
+  String get p20PrefEventsGroupSub;
+
+  /// No description provided for @p20PrefClubsGroupSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk hareketleri'**
+  String get p20PrefClubsGroupSub;
+
+  /// No description provided for @p20PrefSubDirect.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birebir özel sohbetler'**
+  String get p20PrefSubDirect;
+
+  /// No description provided for @p20PrefSubGroup.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders ve kulüp grup konuşmaları'**
+  String get p20PrefSubGroup;
+
+  /// No description provided for @p20PrefSubEventReminder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlamadan 1 saat önce'**
+  String get p20PrefSubEventReminder;
+
+  /// No description provided for @p20PrefSubEventUpdate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih, saat veya konum güncellemeleri'**
+  String get p20PrefSubEventUpdate;
+
+  /// No description provided for @p20PrefSubEventAdmission.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp etkinlik katılım onayları'**
+  String get p20PrefSubEventAdmission;
+
+  /// No description provided for @p20PrefSubClubPost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüplerin paylaştığı duyuru ve fotoğraflar'**
+  String get p20PrefSubClubPost;
+
+  /// No description provided for @p20PrefSubClubRole.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetim ve üyelik yetkilendirmeleri'**
+  String get p20PrefSubClubRole;
+
+  /// No description provided for @p20PrefSubClubJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım istekleri ve yanıtları'**
+  String get p20PrefSubClubJoin;
+
+  /// No description provided for @p20PrefLoadFail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi'**
+  String get p20PrefLoadFail;
+
+  /// No description provided for @p20PrefTapRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden denemek için dokunun.'**
+  String get p20PrefTapRetry;
+
+  /// No description provided for @p20PrefRemSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders başlamadan {m} dk önce yerel alarm/bildirim'**
+  String p20PrefRemSub(String m);
+
+  /// No description provided for @p20QuietPickHelp.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat seçin'**
+  String get p20QuietPickHelp;
+
+  /// No description provided for @p20ThemeSystemSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz ayarlarına göre otomatik'**
+  String get p20ThemeSystemSub;
+
+  /// No description provided for @p20HalfDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarım gün'**
+  String get p20HalfDay;
+
+  /// No description provided for @p20AllDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam gün'**
+  String get p20AllDay;
+
+  /// No description provided for @p20RangeDays.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} gün'**
+  String p20RangeDays(String n);
+
+  /// No description provided for @p20RangeWeeks.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} hafta'**
+  String p20RangeWeeks(String n);
+
+  /// No description provided for @p20RemDaySub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınavdan bir gün önce hatırlat'**
+  String get p20RemDaySub;
+
+  /// No description provided for @p20RemHourSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav saatinden bir saat önce bildir'**
+  String get p20RemHourSub;
 }
 
 class _AppLocalizationsDelegate

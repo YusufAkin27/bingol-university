@@ -199,10 +199,9 @@ class IcerikBadge extends StatelessWidget {
     final t = context.bu;
     final bg = tint?.bg ?? (soft ? t.soft : t.pr);
     final fg = tint?.fg ?? (soft ? t.onSoft : t.onPr);
+    // Genişlik içeriğe göre (Wrap/Column içinde şeritlenmez); yükseklik yazı ölçeğiyle büyür.
     return Container(
-      constraints: const BoxConstraints(minHeight: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
       child: Text(text,
           maxLines: 1,
@@ -270,8 +269,11 @@ class IcerikTabs extends StatelessWidget {
     this.icons,
     this.keyPrefix,
     this.semanticLabel,
+    this.raised = false,
   });
 
+  /// true: seçili parça beyaz yüzey + marka rengi yazı (referans 13); false: marka tonlu gösterge.
+  final bool raised;
   final List<String> labels;
   final int index;
   final ValueChanged<int> onChanged;
@@ -305,9 +307,9 @@ class IcerikTabs extends StatelessWidget {
                     heightFactor: 1,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: t.soft,
+                        color: raised ? t.sf : t.soft,
                         borderRadius: BorderRadius.circular(BuRadius.pill),
-                        border: Border.all(color: t.pr.withValues(alpha: .22)),
+                        border: Border.all(color: raised ? t.bd : t.pr.withValues(alpha: .22)),
                       ),
                     ),
                   ),
@@ -336,13 +338,13 @@ class IcerikTabs extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               if (icons != null && i < icons!.length) ...[
-                                Icon(icons![i], size: 16, color: i == index ? t.onSoft : t.mut),
+                                Icon(icons![i], size: 16, color: i == index ? (raised ? t.pr : t.onSoft) : t.mut),
                                 const SizedBox(width: 6),
                               ],
                               AnimatedDefaultTextStyle(
                                 duration: BuMotion.of(context, BuMotion.short),
                                 style: tx.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.w700, color: i == index ? t.onSoft : t.mut),
+                                    fontWeight: FontWeight.w700, color: i == index ? (raised ? t.pr : t.onSoft) : t.mut),
                                 child: Text(labels[i], maxLines: 1),
                               ),
                             ]),
@@ -436,6 +438,86 @@ class IcerikListSkeleton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "Daha fazla yükleniyor" satırı: beyaz hap kart, küçük çember + metin (sayfalama).
+class IcerikLoadMore extends StatelessWidget {
+  const IcerikLoadMore({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Semantics(
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill), border: Border.all(color: t.bd)),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr)),
+            const SizedBox(width: 10),
+            Flexible(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Liste hata kartı: bulut-kapalı simge + kırmızı uyarı noktası, başlık, açıklama, "Yeniden dene".
+class IcerikErrorCard extends StatelessWidget {
+  const IcerikErrorCard({super.key, required this.title, required this.body, required this.retryLabel, required this.onRetry});
+
+  final String title;
+  final String body;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return IcerikCard(
+      shadow: false,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ExcludeSemantics(
+          child: Center(
+            child: Stack(clipBehavior: Clip.none, children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                child: Icon(LucideIcons.cloudOff, size: 28, color: t.onSoft),
+              ),
+              PositionedDirectional(
+                end: -8,
+                top: -6,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
+                  child: Icon(LucideIcons.x, size: 13, color: t.onPr),
+                ),
+              ),
+            ]),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Semantics(
+          liveRegion: true,
+          child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+        ),
+        const SizedBox(height: 6),
+        Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+        const SizedBox(height: 18),
+        BuButton(label: retryLabel, icon: LucideIcons.refreshCw, onPressed: onRetry),
+      ]),
     );
   }
 }

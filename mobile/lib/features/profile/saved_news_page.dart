@@ -109,7 +109,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
   BuViewState get _view {
     if (_items.isEmpty) {
       if (_loading) return BuViewState.loading;
-      if (_error != null) return BuViewState.error;
+      if (_error != null) return BuViewState.ready; // hata kartı listede çizilir
       return BuViewState.empty;
     }
     return BuViewState.ready;
@@ -121,6 +121,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
     final t = context.bu;
     return BuPageScaffold(
       title: l.icerikFavorites,
+      large: false,
       state: _view,
       error: _error,
       onRetry: _reload,
@@ -129,25 +130,36 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
       bottomInset: MediaQuery.paddingOf(context).bottom + 24,
       loading: const IcerikListSkeleton(featured: false, count: 5),
       empty: BuEmptyState(
-        illustration: BuIllustration.heart,
-        title: l.p05SavedEmptyTitle,
-        message: l.profileSavedEmpty,
+        icon: LucideIcons.bookmark,
+        title: l.p05SavedEmptyTitle2,
+        message: l.p05SavedEmptyBody2,
+        actionLabel: l.p05SavedDiscover,
+        onAction: () => Navigator.maybePop(context),
       ),
       slivers: [
+        if (_items.isEmpty && _error != null)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            sliver: SliverToBoxAdapter(
+              child: IcerikErrorCard(
+                  title: l.p05ListErrorTitle, body: l.p05ListErrorBody, retryLabel: l.commonRetry, onRetry: _reload),
+            ),
+          )
+        else ...[
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
             child: Row(children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.bookmarkCheck, size: 14, color: t.onSoft),
+                  Icon(Icons.bookmark, size: 15, color: t.pr),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       _hasMore ? l.profileNewsCountMore('${_items.length}') : l.icerikSavedCount('${_items.length}'),
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft),
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink),
                     ),
                   ),
                 ]),
@@ -172,7 +184,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
                     child: NewsTile(
                       item: n,
                       saved: !_leaving.contains(id),
-                      thumbSize: 76,
+                      thumbSize: 72,
                       showSource: false,
                       onToggleSave: () => _remove(n),
                       onTap: () => Navigator.push(
@@ -189,6 +201,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
           ),
         ),
         SliverToBoxAdapter(child: _footer()),
+        ],
       ],
     );
   }

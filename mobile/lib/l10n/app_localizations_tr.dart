@@ -8631,4 +8631,113 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p17PickDateHelp => 'Tarih seçin';
+
+  @override
+  String get p20ProfileTitle => 'Profil';
+
+  @override
+  String get p20AboutNoBio => 'Biyografi belirtilmemiş.';
+
+  @override
+  String get p20AcademicInfo => 'Akademik bilgiler';
+
+  @override
+  String get p20AvatarHidden =>
+      'Profil fotoğrafın moderasyon nedeniyle gizlendi. Kampüs kurallarına uygun yeni bir portre yükleyene kadar adının baş harfleri görüntülenir.';
+
+  @override
+  String get p20BlockInfo =>
+      'Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.';
+
+  @override
+  String get p20ReportSendHint => 'Durumu kısaca açıklayabilirsiniz...';
+
+  @override
+  String get p20PrefPollsSub => 'Öğrenci ve personel anketleri';
+
+  @override
+  String get p20PrefAcademicSub => 'Bölüm, fakülte ve sınav duyuruları';
+
+  @override
+  String get p20PrefDetailHead =>
+      'Kategorilere ait alt bildirim türlerini tek tek yönetin. Ana anahtarı kapattığınızda ilgili alt bildirimler sessize alınır.';
+
+  @override
+  String get p20PrefDetailSub => 'Alt kategoriler ve bildirim türleri';
+
+  @override
+  String get p20PrefOffTag => 'Devre dışı';
+
+  @override
+  String get p20PrefMsgGroupSub => 'Anlık haberleşme';
+
+  @override
+  String get p20PrefEventsGroupSub => 'Takvim ve buluşmalar';
+
+  @override
+  String get p20PrefClubsGroupSub => 'Topluluk hareketleri';
+
+  @override
+  String get p20PrefSubDirect => 'Birebir özel sohbetler';
+
+  @override
+  String get p20PrefSubGroup => 'Ders ve kulüp grup konuşmaları';
+
+  @override
+  String get p20PrefSubEventReminder => 'Başlamadan 1 saat önce';
+
+  @override
+  String get p20PrefSubEventUpdate => 'Tarih, saat veya konum güncellemeleri';
+
+  @override
+  String get p20PrefSubEventAdmission => 'Kulüp etkinlik katılım onayları';
+
+  @override
+  String get p20PrefSubClubPost =>
+      'Kulüplerin paylaştığı duyuru ve fotoğraflar';
+
+  @override
+  String get p20PrefSubClubRole => 'Yönetim ve üyelik yetkilendirmeleri';
+
+  @override
+  String get p20PrefSubClubJoin => 'Katılım istekleri ve yanıtları';
+
+  @override
+  String get p20PrefLoadFail => 'Yüklenemedi';
+
+  @override
+  String get p20PrefTapRetry => 'Yeniden denemek için dokunun.';
+
+  @override
+  String p20PrefRemSub(String m) {
+    return 'Ders başlamadan $m dk önce yerel alarm/bildirim';
+  }
+
+  @override
+  String get p20QuietPickHelp => 'Saat seçin';
+
+  @override
+  String get p20ThemeSystemSub => 'Cihaz ayarlarına göre otomatik';
+
+  @override
+  String get p20HalfDay => 'Yarım gün';
+
+  @override
+  String get p20AllDay => 'Tam gün';
+
+  @override
+  String p20RangeDays(String n) {
+    return '$n gün';
+  }
+
+  @override
+  String p20RangeWeeks(String n) {
+    return '$n hafta';
+  }
+
+  @override
+  String get p20RemDaySub => 'Sınavdan bir gün önce hatırlat';
+
+  @override
+  String get p20RemHourSub => 'Sınav saatinden bir saat önce bildir';
 }

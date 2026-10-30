@@ -209,17 +209,15 @@ class _NewsListPageState extends State<NewsListPage> {
     return switch (i) { 0 => l.newsTypeNews, 1 => l.newsTypeAnnouncement, _ => l.newsTypeEvent };
   }
 
-  BuViewState get _view {
-    if (!_loaded && _error == null) return BuViewState.loading;
-    if (_error != null && !_loaded) return BuViewState.error;
-    return _items.isEmpty ? BuViewState.empty : BuViewState.ready;
-  }
+  /// Hata ve boş durum kartları listenin içinde çizilir (sekme şeridi görünür kalır).
+  BuViewState get _view => (!_loaded && _error == null) ? BuViewState.loading : BuViewState.ready;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     return BuPageScaffold(
       title: l.icerikNewsTitle,
+      large: false,
       state: _view,
       error: _error,
       onRetry: _reload,
@@ -228,12 +226,12 @@ class _NewsListPageState extends State<NewsListPage> {
       bottomInset: MediaQuery.paddingOf(context).bottom + 16,
       actions: [
         IcerikIconButton(
+            key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
+        IcerikIconButton(
             key: const ValueKey('news-favorites'),
             icon: LucideIcons.bookmark,
             label: l.icerikFavorites,
             onTap: _openFavorites),
-        IcerikIconButton(
-            key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
         const SizedBox(width: 8),
       ],
       bottom: PreferredSize(
@@ -245,6 +243,7 @@ class _NewsListPageState extends State<NewsListPage> {
             icons: _tabIcons,
             index: _tab,
             keyPrefix: 'news-tab-',
+            raised: true,
             semanticLabel: l.icerikNewsTypeTabs,
             onChanged: _selectTab,
           ),
@@ -254,23 +253,45 @@ class _NewsListPageState extends State<NewsListPage> {
           ? Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if (_maintenance) IcerikNotice(text: l.icerikMaintenance),
+                if (_maintenance) IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.triangleAlert),
                 StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.only(top: 8)),
               ]),
             )
           : null,
-      loading: const IcerikListSkeleton(),
-      empty: BuEmptyState(illustration: BuIllustration.document, title: l.icerikNewsEmpty, message: l.p05NewsEmptyBody),
+      loading: const IcerikListSkeleton(featured: false),
       slivers: _slivers(),
     );
   }
 
   List<Widget> _slivers() {
-    if (_items.isEmpty) return const [];
-    final first = _items.first;
-    final img = first['imageUrl'] as String?;
-    final featured = img != null && img.isNotEmpty;
-    final rest = featured ? _items.skip(1).toList() : _items;
+    final l = context.l10n;
+    if (_error != null && !_loaded) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          sliver: SliverToBoxAdapter(
+            child: IcerikErrorCard(
+                title: l.p05ListErrorTitle, body: l.p05ListErrorBody, retryLabel: l.commonRetry, onRetry: _reload),
+          ),
+        ),
+      ];
+    }
+    if (_items.isEmpty) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          sliver: SliverToBoxAdapter(
+            child: IcerikCard(
+              shadow: false,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: BuEmptyState(
+                  illustration: BuIllustration.document, title: l.icerikNewsEmpty, message: l.p05NewsEmptyBody, compact: true),
+            ),
+          ),
+        ),
+      ];
+    }
+    final rest = _items;
     return [
       SliverSemantics(
         container: true,
@@ -279,33 +300,18 @@ class _NewsListPageState extends State<NewsListPage> {
         sliver: BuStaggerScope(
           key: ValueKey('$_tab-$_gen'),
           child: SliverMainAxisGroup(slivers: [
-            if (featured)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                sliver: SliverToBoxAdapter(
-                  child: BuStaggerItem(
-                    index: 0,
-                    child: NewsFeaturedCard(
-                      item: first,
-                      saved: _savedIds.contains((first['id'] as num).toInt()),
-                      onToggleSave: () => _toggleSave(first),
-                      onTap: () => _open(first),
-                    ),
-                  ),
-                ),
-              ),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(20, featured ? 0 : 4, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
               sliver: SliverList.separated(
                 itemCount: rest.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, i) {
                   final n = rest[i];
                   return BuStaggerItem(
-                    index: i + (featured ? 1 : 0),
+                    index: i,
                     child: NewsTile(
                       item: n,
-                      showType: false,
+                      thumbSize: 72,
                       saved: _savedIds.contains((n['id'] as num).toInt()),
                       onToggleSave: () => _toggleSave(n),
                       onTap: () => _open(n),
@@ -332,7 +338,7 @@ class _NewsListPageState extends State<NewsListPage> {
       );
     }
     if (_loading && _page > 0) {
-      return const IcerikListSkeleton(featured: false, count: 1, padding: EdgeInsets.fromLTRB(20, 12, 20, 0));
+      return IcerikLoadMore(text: context.l10n.p05NewsLoadingMore);
     }
     return const SizedBox(height: 4);
   }

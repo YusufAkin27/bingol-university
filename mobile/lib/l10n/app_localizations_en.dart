@@ -8665,4 +8665,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p17PickDateHelp => 'Select date';
+
+  @override
+  String get p20ProfileTitle => 'Profile';
+
+  @override
+  String get p20AboutNoBio => 'No biography provided.';
+
+  @override
+  String get p20AcademicInfo => 'Academic info';
+
+  @override
+  String get p20AvatarHidden =>
+      'Your profile photo was hidden by moderation. Your initials are shown until you upload a photo that follows campus rules.';
+
+  @override
+  String get p20BlockInfo =>
+      'You will not see this person\'s posts and cannot message them.';
+
+  @override
+  String get p20ReportSendHint => 'You can briefly describe the situation...';
+
+  @override
+  String get p20PrefPollsSub => 'Student and staff polls';
+
+  @override
+  String get p20PrefAcademicSub => 'Department, faculty and exam notices';
+
+  @override
+  String get p20PrefDetailHead =>
+      'Manage the sub-types of each category one by one. Turning off the main switch silences the related sub-types.';
+
+  @override
+  String get p20PrefDetailSub => 'Sub-categories and notification types';
+
+  @override
+  String get p20PrefOffTag => 'Off';
+
+  @override
+  String get p20PrefMsgGroupSub => 'Instant messaging';
+
+  @override
+  String get p20PrefEventsGroupSub => 'Calendar and meetups';
+
+  @override
+  String get p20PrefClubsGroupSub => 'Community activity';
+
+  @override
+  String get p20PrefSubDirect => 'One-to-one private chats';
+
+  @override
+  String get p20PrefSubGroup => 'Course and club group chats';
+
+  @override
+  String get p20PrefSubEventReminder => '1 hour before it starts';
+
+  @override
+  String get p20PrefSubEventUpdate => 'Date, time or place updates';
+
+  @override
+  String get p20PrefSubEventAdmission => 'Club event attendance approvals';
+
+  @override
+  String get p20PrefSubClubPost => 'Announcements and photos shared by clubs';
+
+  @override
+  String get p20PrefSubClubRole => 'Management and membership roles';
+
+  @override
+  String get p20PrefSubClubJoin => 'Join requests and replies';
+
+  @override
+  String get p20PrefLoadFail => 'Could not load';
+
+  @override
+  String get p20PrefTapRetry => 'Tap to try again.';
+
+  @override
+  String p20PrefRemSub(String m) {
+    return 'Local alarm/notification $m min before class';
+  }
+
+  @override
+  String get p20QuietPickHelp => 'Select time';
+
+  @override
+  String get p20ThemeSystemSub => 'Follows your device settings';
+
+  @override
+  String get p20HalfDay => 'Half day';
+
+  @override
+  String get p20AllDay => 'All day';
+
+  @override
+  String p20RangeDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String p20RangeWeeks(String n) {
+    return '$n weeks';
+  }
+
+  @override
+  String get p20RemDaySub => 'Remind one day before the exam';
+
+  @override
+  String get p20RemHourSub => 'Notify one hour before the exam';
 }

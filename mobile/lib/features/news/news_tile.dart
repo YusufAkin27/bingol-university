@@ -7,8 +7,8 @@ import 'icerik_parts.dart';
 
 /// Tür rozeti tonu: haber marka tonu (null), duyuru kehribar, etkinlik yeşil.
 BuTint? newsTypeTint(BuTokens t, String? type) => switch (type) {
-      'DUYURU' || 'ANNOUNCEMENT' => t.tint(2),
-      'ETKINLIK' || 'EVENT' => t.tint(1),
+      'DUYURU' || 'ANNOUNCEMENT' => t.tint(3),
+      'ETKINLIK' || 'EVENT' => t.tint(2),
       _ => null,
     };
 
@@ -113,18 +113,23 @@ class NewsTile extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final type = item['type'] as String?;
     final date = newsDateLabel(context, item);
-    final meta = showSource ? '${newsSourceHost(item)} · $date' : date;
+    final meta = showSource ? '$date • ${newsSourceHost(item)}' : date;
     final hasSave = onToggleSave != null;
     final tint = newsTypeTint(t, type);
     final img = item['imageUrl'] as String?;
     final id = (item['id'] as num?)?.toInt();
-    Widget thumb = IcerikThumb(
-      url: img,
-      size: thumbSize,
-      radius: 14,
-      fallbackIcon: newsTypeIcon(type),
-      tint: tint ?? BuTint(t.soft, t.onSoft),
-    );
+    final evDate = type == 'ETKINLIK' ? DateTime.tryParse((item['eventDate'] as String?) ?? '') : null;
+    final noImg = img == null || img.isEmpty;
+    // Görselsiz etkinlik: tarih etiketli yeşil karo ("18 KAS"); diğerleri tür simgeli karo.
+    Widget thumb = (noImg && evDate != null)
+        ? _EventDateTile(date: evDate, size: thumbSize, tint: tint ?? BuTint(t.soft, t.onSoft))
+        : IcerikThumb(
+            url: img,
+            size: thumbSize,
+            radius: 14,
+            fallbackIcon: newsTypeIcon(type),
+            tint: tint ?? BuTint(t.soft, t.onSoft),
+          );
     if (id != null && img != null && img.isNotEmpty) thumb = Hero(tag: 'news-img-$id', child: thumb);
     return IcerikCard(
       onTap: onTap,
@@ -151,18 +156,12 @@ class NewsTile extends StatelessWidget {
                     ),
                   Text(
                     (item['title'] as String?) ?? '',
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.3, color: t.ink),
                   ),
                   const SizedBox(height: 6),
-                  Row(children: [
-                    Icon(LucideIcons.clock, size: 13, color: t.mut),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                    ),
-                  ]),
+                  Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
             ),
@@ -219,7 +218,7 @@ class NewsFeaturedCard extends StatelessWidget {
     return BuPressable(
       scale: .98,
       child: DecoratedBox(
-        decoration: BoxDecoration(borderRadius: r, boxShadow: BuElevation.of(context, 2)),
+        decoration: BoxDecoration(borderRadius: r, boxShadow: BuElevation.of(context, 1)),
         child: ClipRRect(
           borderRadius: r,
           child: SizedBox(
@@ -303,7 +302,7 @@ class _SaveIcon extends StatelessWidget {
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
     final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.mut);
     final icon = Icon(
-      saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
+      saved ? Icons.bookmark : LucideIcons.bookmark,
       key: ValueKey(saved),
       size: 22,
       color: fg,
@@ -345,6 +344,31 @@ class _SaveIcon extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Görselsiz etkinlik karosu: takvim simgesi + "18 KAS" (etkinlik tarihi).
+class _EventDateTile extends StatelessWidget {
+  const _EventDateTile({required this.date, required this.size, required this.tint});
+
+  final DateTime date;
+  final double size;
+  final BuTint tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final tx = Theme.of(context).textTheme;
+    final label = '${date.day} ${trUpper(newsMonthName(context, date.month)).characters.take(3)}';
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(LucideIcons.calendar, size: size * .34, color: tint.fg),
+        const SizedBox(height: 4),
+        Text(label, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, color: tint.fg)),
+      ]),
     );
   }
 }
