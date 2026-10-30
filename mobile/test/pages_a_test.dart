@@ -377,9 +377,9 @@ void main() {
 
     testWidgets('http store url butonu gostermez', (tester) async {
       await tester.pumpWidget(buildApp(const UpdateRequiredScreen(storeUrl: 'http://x.example')));
-      expect(find.text('Mağazada aç'), findsNothing);
+      expect(find.text('Güncelle'), findsNothing);
       await tester.pumpWidget(buildApp(const UpdateRequiredScreen(storeUrl: 'https://x.example')));
-      expect(find.text('Mağazada aç'), findsOneWidget);
+      expect(find.text('Güncelle'), findsOneWidget);
     });
 
     testWidgets('UpdateNotice kapat geri cagrisini calistirir', (tester) async {
@@ -387,7 +387,7 @@ void main() {
       await tester.pumpWidget(buildApp(Scaffold(
           body: UpdateNotice(latest: null, storeUrl: null, onClose: () => closed = true))));
       expect(find.text('Yeni sürüm mevcut.'), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close));
+      await tester.tap(find.byTooltip('Kapat'));
       expect(closed, isTrue);
     });
   });
@@ -653,7 +653,8 @@ void main() {
       await tester.pumpWidget(buildApp(shell()));
       await settle(tester, const Duration(seconds: 1));
       for (final label in ['Keşfet', 'Sohbet', 'Kulüpler', 'Profil', 'Ana Sayfa']) {
-        await tester.tap(find.bySemanticsLabel(label).first);
+        // M3 NavigationBar etikete konum metni ekler ("Keşfet\nTab 2 of 5"): önek eşleşmesi.
+        await tester.tap(find.bySemanticsLabel(RegExp('^$label')).first);
         await settle(tester, const Duration(milliseconds: 800));
         noErr(tester);
       }

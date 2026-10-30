@@ -516,7 +516,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(BuSkeleton), findsWidgets); // iskelet (dönen çember yok)
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Selam'), findsOneWidget);
       expect(find.text('Çevrimiçi'), findsOneWidget);
@@ -578,8 +578,11 @@ void main() {
         }),
         size: kPhoneSmall,
       );
-      expect(find.text('Bu kullanıcıyla mesajlaşamazsınız.'), findsNothing);
-      expect(find.byType(TextField), findsWidgets); // composer kilitli değil
+      // Engellenen kişiyle birebir sohbette yazma alanı yerine "Engeli kaldır" çubuğu çıkar.
+      expect(find.byKey(const ValueKey('chatBlockedBar')), findsOneWidget);
+      expect(find.text('Engellediğiniz kişiyle mesajlaşamazsınız.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('chatUnblockButton')), findsOneWidget);
+      expect(find.byType(TextField), findsNothing); // composer yok
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1119,10 +1122,12 @@ void main() {
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
       expect(find.text('Katıldığım etkinlik'), findsNothing); // iskelet gorunur
+      expect(find.byType(BuSkeleton), findsWidgets);
       await settle(tester, const Duration(seconds: 2));
-      await _reveal(tester, find.text('Resmi'));
+      // Resmi öğe artık rozetsiz tek satır (başlık + ok).
+      await _reveal(tester, find.text('Resmi duyuru etkinliği'));
       expect(find.text('Katıldığım etkinlik'), findsOneWidget);
-      expect(find.text('Resmi'), findsOneWidget);
+      expect(find.text('Resmi duyuru etkinliği'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1176,6 +1181,9 @@ void main() {
       be.fail('/events/5/rsvp');
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
       expect(find.text('Katılıyorum'), findsNothing);
+      // Küçük ekranda kart düğmesi görünüm dışında kalır: önce görünür kıl.
+      await tester.ensureVisible(find.text('Katıl').first);
+      await tester.pump();
       await tester.tap(find.text('Katıl').first);
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.requests.any((r) => r.startsWith('PUT /events/5/rsvp')), isTrue);
@@ -1251,7 +1259,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(BuSkeleton), findsWidgets); // iskelet (dönen çember yok)
       await settle(tester, const Duration(seconds: 2));
       expect(find.text(_longTitle), findsOneWidget);
       _noErrors(tester);

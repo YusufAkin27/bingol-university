@@ -85,13 +85,15 @@ void main() {
     expect(find.text('Menu nerede?'), findsOneWidget);
   });
 
-  testWidgets('Sozlesme sekmesi belgeyi degistirir', (tester) async {
+  // Yeni tasarimda belge sayfasinda sekme seridi yok: belge secimi liste sayfasindan yapilir.
+  testWidgets('Sozlesme listesinden secilen belge acilir', (tester) async {
     useScreen(tester, kPhoneMedium);
-    await tester.pumpWidget(buildApp(LegalDocPage(session: makeSession(_backend()), type: 'TERMS')));
+    await tester.pumpWidget(buildApp(LegalListPage(session: makeSession(_backend()))));
     await tester.pumpAndSettle();
-    expect(find.text('Metin.'), findsOneWidget);
+    expect(find.text('Kullanim Kosullari'), findsOneWidget);
     await tester.tap(find.text('Gizlilik'));
     await tester.pumpAndSettle();
     expect(find.text('Gizlilik metni.'), findsOneWidget);
+    expect(find.text('Metin.'), findsNothing);
   });
 }

@@ -27,6 +27,8 @@ import 'package:bu_kampus/features/support/support_suggestions_page.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -270,7 +272,7 @@ void main() {
       var retried = 0;
       await tester.pumpWidget(buildApp(AccessBlockedScreen(onRetry: () => retried++)));
       expect(find.textContaining('Bu cihaza veya ağa erişim kapatıldı'), findsOneWidget);
-      await tester.tap(find.text('Tekrar dene'));
+      await tester.tap(find.text('Yeniden dene'));
       expect(retried, 1);
     });
   });
@@ -297,10 +299,11 @@ void main() {
       PlatformDispatcher.instance.onError = prevPlatform;
       ErrorWidget.builder = prevBuilder;
       expect(handled, isTrue);
-      expect(fallback.runtimeType.toString(), '_ErrorView');
+      expect(fallback.runtimeType.toString(), 'RenderErrorView');
       await tester.pumpWidget(MaterialApp(home: fallback));
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.byType(TextButton), findsOneWidget);
+      expect(find.byIcon(LucideIcons.triangleAlert), findsOneWidget);
+      // Ağaçta yerelleştirme yok: metin cihaz dilinden gelir, bu yüzden tek dokunulabilir eylem (yeniden dene) sayılır.
+      expect(find.byType(InkWell), findsOneWidget);
     });
   });
 }

@@ -732,7 +732,7 @@ class _BuSearchFieldState extends State<BuSearchField> {
               builder: (context, v, _) => v.text.isEmpty
                   ? const SizedBox(width: 12)
                   : IconButton(
-                      tooltip: context.l10n.commonClose,
+                      tooltip: context.l10n.searchClear,
                       onPressed: () {
                         _c.clear();
                         widget.onChanged?.call('');

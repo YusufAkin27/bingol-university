@@ -75,6 +75,7 @@ final kPageCases = <PageCase>[
       ..on('/me/summary', {'communities': 2, 'events': 3, 'bookmarks': 4}),
     marker: 'Ayşe Yılmaz',
     failKeys: ['/users/me'],
+    checkLoading: false, // iskelet kart (UI-N1)
   ),
   PageCase(
     'MyClubsPage',
@@ -127,8 +128,9 @@ final kPageCases = <PageCase>[
       ..on('/users/me', {'id': 1, 'language': 'tr', 'showEmail': true})
       ..on('/notifications/preferences',
           {'news': true, 'announcements': true, 'events': false, 'communities': true, 'messages': true}),
-    marker: 'Haberler',
-    failKeys: ['/users/me', '/notifications/preferences'],
+    // Bildirim anahtarları artık "Bildirim tercihleri" sayfasında (NotificationPrefsPage senaryosu); ayarlar sayfası
+    // profil okunamazsa hata ekranı değil varsayılanlarla açılır (aşağıdaki "yükleme hatası" testi).
+    marker: 'E-postamı diğerlerine göster',
     checkLoading: false,
   ),
   PageCase(
@@ -281,6 +283,11 @@ final kPageCases = <PageCase>[
     emptyMarker: 'Henüz geri bildirim göndermediniz.',
     failKeys: ['/feedback/mine'],
     checkLoading: false,
+    // Sayfa "Gönder" sekmesiyle açılır; liste "Gönderdiklerim" sekmesindedir.
+    act: (tester) async {
+      await tester.tap(find.text('Gönderdiklerim'));
+      await tester.pump();
+    },
   ),
   PageCase(
     'SuggestionsPage',
@@ -436,6 +443,23 @@ void main() {
       }
     });
   }
+
+  group('SettingsPage yükleme hatası', () {
+    for (final mode in ['500', 'ağ']) {
+      testWidgets('profil okunamazsa ($mode) sayfa çökmeden varsayılanlarla açılır', (tester) async {
+        final b = FakeBackend();
+        mode == '500' ? b.fail('/users/me') : b.network('/users/me');
+        mode == '500' ? b.fail('/notifications/preferences') : b.network('/notifications/preferences');
+        useScreen(tester, kPhoneMedium);
+        await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
+        await settle(tester, const Duration(seconds: 2));
+        expect(find.text('Ayarlar'), findsWidgets);
+        expect(find.text('E-postamı diğerlerine göster'), findsWidgets);
+        noErr(tester);
+        await unmount(tester);
+      });
+    }
+  });
 
   group('SettingsPage etkileşim', () {
     FakeBackend backend() => FakeBackend()

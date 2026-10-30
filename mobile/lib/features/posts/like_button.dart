@@ -196,7 +196,8 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
         onTap: _toggle,
         radius: 24,
         child: SizedBox(
-          width: size + 10,
+          // En az 44x44 dokunma hedefi (erişilebilirlik); kalp başlangıç kenarına hizalı kalır.
+          width: math.max(size + 10, 44),
           height: 44,
           child: Align(
             alignment: AlignmentDirectional.centerStart,

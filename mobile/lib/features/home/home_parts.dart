@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -71,6 +73,10 @@ class HomeQuickTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tn = tone.tint(t);
+    // Etiket kutusu en az 30 dp; iki satırın (sıkıştırılmış 1,3x ölçekte) yüksekliğinden küçük olamaz, yoksa taşar.
+    final labelStyle = Theme.of(context).textTheme.labelSmall!;
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+    final labelBoxH = math.max(30.0, 2 * scaler.scale(labelStyle.fontSize ?? 11) * 1.15 + 1);
     // Sabit boyutlu kutu: çok büyük yazı ölçeğinde taşmasın.
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,
@@ -93,7 +99,7 @@ class HomeQuickTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 30,
+                height: labelBoxH,
                 child: Center(
                   // Çok sözcüklü etiket iki satıra sarar; tek sözcük asla ortadan bölünmez (küçülür).
                   child: Column(mainAxisSize: MainAxisSize.min, children: [

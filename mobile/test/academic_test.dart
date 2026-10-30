@@ -361,9 +361,9 @@ void main() {
 
     testWidgets('serbest metin olduğu gibi gösterilir; değişmediyse gönderilmez', (tester) async {
       final b = await open(tester);
-      expect(find.text('Eski Serbest Fakülte'), findsOneWidget);
+      // Yeni tasarımda fakülte ayrı gösterilmez (yalnız bölüm + sınıf seçilir); serbest metin bölümde olduğu gibi durur.
       expect(find.text('Eski Serbest Bölüm'), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField).first, 'Ayşe Y.');
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('edit-name')), matching: find.byType(TextField)), 'Ayşe Y.');
       await tester.tap(find.text('Kaydet').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['PATCH /users/me'] as Map;
@@ -401,8 +401,8 @@ void main() {
       expect(find.text('Fakülte seçin'), findsNothing);
       await tester.tap(find.text('Eski Serbest Bölüm'));
       await pickFromSearch(tester, 'biyo', 'Biyoloji');
-      expect(find.text('Eski Serbest Fakülte'), findsNothing);
-      expect(find.text('Fen-Edebiyat Fakültesi'), findsOneWidget);
+      expect(find.text('Eski Serbest Bölüm'), findsNothing);
+      expect(find.text('Biyoloji'), findsOneWidget);
       await tester.tap(find.text('Kaydet').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['PATCH /users/me'] as Map;
@@ -449,7 +449,8 @@ void main() {
       await tester.pumpWidget(
           buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+      expect(find.text('Bilgisayar Mühendisliği • 3. sınıf'), findsOneWidget);
+      expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -461,8 +462,10 @@ void main() {
           await tester.pumpWidget(
               buildApp(PrivacyDataPage(session: makeSession(b)), brightness: br, size: size));
           await settle(tester);
-          expect(find.text('Profil görünürlüğü'), findsOneWidget);
-          expect(find.text('Verilerim ve hesap', skipOffstage: false), findsOneWidget);
+          expect(find.text(trUpper('Profil görünürlüğü')), findsOneWidget);
+          // Liste tembel kurulur: alttaki satır küçük ekranda kaydırılınca oluşur.
+          await tester.scrollUntilVisible(find.text('Verilerim ve hesap'), 300, scrollable: find.byType(Scrollable).first);
+          expect(find.text('Verilerim ve hesap'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);
         });

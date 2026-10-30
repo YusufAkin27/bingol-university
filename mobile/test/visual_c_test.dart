@@ -355,7 +355,8 @@ void main() {
       await tester.enterText(find.byType(TextField).first, 'sonuc');
       await tester.pump(const Duration(milliseconds: 500));
       await settle(tester);
-      expect(find.bySemanticsLabel('Aramayı temizle'), findsOneWidget);
+      // Temizle düğmesi IconButton.tooltip ile etiketli (anlamsal ağaçta `tooltip`).
+      expect(find.byTooltip('Aramayı temizle'), findsOneWidget);
       expect(find.text('Gönderi', skipOffstage: false), findsWidgets);
       final all = tester.getSemantics(find.text('Tümü'));
       expect(all.getSemanticsData().flagsCollection.isSelected, ui.Tristate.isTrue);
@@ -390,10 +391,17 @@ void main() {
       kPageCases.firstWhere((c) => c.name == 'MenuPage').full(b2);
       await tester.pumpWidget(buildApp(MenuPage(session: makeSession(b2))));
       await settle(tester);
-      // Gün gezgini düğmeleri IconButton.tooltip ile etiketli (anlamsal ağaçta `tooltip`).
-      expect(find.byTooltip('Önceki gün'), findsOneWidget);
-      expect(find.byTooltip('Sonraki gün'), findsOneWidget);
-      expect(tester.getSemantics(find.byKey(const ValueKey('yemek_day_prev'))).tooltip, 'Önceki gün');
+      // Yeni tasarımda gün gezgini yatay gün şeridi: her gün "Pazartesi 3" etiketli düğme, seçili olan işaretli.
+      final chips = find.byWidgetPredicate((w) => w.key is ValueKey && '${(w.key as ValueKey).value}'.startsWith('yemek_day_'));
+      expect(chips, findsWidgets);
+      var selected = 0;
+      for (final e in chips.evaluate()) {
+        final data = tester.getSemantics(find.byElementPredicate((x) => x == e)).getSemanticsData();
+        expect(data.flagsCollection.isButton, isTrue);
+        expect(data.label, matches(RegExp(r'^\S+ \d+$')));
+        if (data.flagsCollection.isSelected == ui.Tristate.isTrue) selected++;
+      }
+      expect(selected, 1);
       await unmount(tester);
       h.dispose();
     });

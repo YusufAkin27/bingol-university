@@ -284,7 +284,7 @@ void main() {
     testWidgets('mağaza adresi yokken de "Tekrar kontrol et" vardır', (tester) async {
       var n = 0;
       await tester.pumpWidget(buildApp(UpdateRequiredScreen(storeUrl: null, onRetry: () => n++)));
-      expect(find.text('Mağazada aç'), findsNothing);
+      expect(find.text('Güncelle'), findsNothing);
       expect(find.byKey(const ValueKey('update-recheck')), findsOneWidget);
       await tester.tap(find.text('Tekrar kontrol et'));
       expect(n, 1);
@@ -292,7 +292,7 @@ void main() {
 
     testWidgets('mağaza adresi varken ikisi de görünür; onRetry yoksa düğme yok', (tester) async {
       await tester.pumpWidget(buildApp(UpdateRequiredScreen(storeUrl: 'https://x.example/app', onRetry: () {})));
-      expect(find.text('Mağazada aç'), findsOneWidget);
+      expect(find.text('Güncelle'), findsOneWidget);
       expect(find.text('Tekrar kontrol et'), findsOneWidget);
       await tester.pumpWidget(buildApp(const UpdateRequiredScreen(storeUrl: 'https://x.example/app')));
       expect(find.text('Tekrar kontrol et'), findsNothing);

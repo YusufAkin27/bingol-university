@@ -382,18 +382,23 @@ class PostMenuButton extends StatelessWidget {
     final mine = post.mine || post.author.id == session.userId;
     if (mine && !post.canEdit && !post.canDelete) return const SizedBox(width: 10);
     final t = context.bu;
+    // Görünen daire 40 dp; dokunma hedefi 48x48 (erişilebilirlik): daire arkada, düğme üstte tam boyda.
     return SizedBox.square(
-      dimension: 44,
-      child: Center(
-        child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: active ? t.soft : Colors.transparent, shape: BoxShape.circle),
-          child: IconButton(
+      dimension: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: active ? t.soft : Colors.transparent, shape: BoxShape.circle),
+          ),
+          IconButton(
             key: const ValueKey('post-menu-button'),
             tooltip: context.l10n.postComposeMore,
             padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
             icon: Icon(Icons.more_horiz, size: 24, color: active ? t.onSoft : t.ink),
             onPressed: () => showPostActions(context,
                 session: session,
@@ -404,7 +409,7 @@ class PostMenuButton extends StatelessWidget {
                 cardContext: cardKey?.currentContext,
                 onOpenChanged: onOpenChanged),
           ),
-        ),
+        ],
       ),
     );
   }

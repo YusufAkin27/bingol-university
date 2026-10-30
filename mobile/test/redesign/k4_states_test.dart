@@ -96,7 +96,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('postMenu.root')), warnIfMissed: false);
+      // Menü dışında (sol kenar) bir noktaya dokunarak kapat; merkez noktası menü kartına denk gelebilir.
+      await tester.tapAt(const Offset(20, 300));
       await tester.pump(const Duration(milliseconds: 300));
       // Ikinci kart baskasinin: uzun basma.
       final second = find.byKey(const ValueKey('discover-post-999'));

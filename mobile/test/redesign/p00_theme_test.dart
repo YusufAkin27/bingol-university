@@ -45,7 +45,7 @@ void main() {
       expect(tx.bodyMedium!.fontFamily, 'Inter');
       expect(tx.bodyMedium!.color, BuTokens.light.ink);
       // Her rol ailesi kendi icinde azalan.
-      expect(sizes.sublist(0, 6), orderedEquals([...sizes.sublist(0, 6)]..sort((a, b) => b.compareTo(a))));
+      expect(sizes.sublist(0, 6), orderedEquals([...sizes.sublist(0, 6)]..sort((a, b) => (b as num).compareTo(a as num))));
       expect(sizes[14], greaterThanOrEqualTo(11), reason: 'en kucuk etiket 11 dp altina inmez');
     });
 

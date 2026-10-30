@@ -445,7 +445,8 @@ void main() {
     testWidgets('Etkinlik eylem cubugu ekrani kaplamaz ${size.width.toInt()}', (tester) async {
       captureErrors();
       await pumpVisual(tester, EventDetailPage(session: makeSession(_eventDetailBe()), eventId: 5), size: size, scale: 1.5);
-      final r = tester.getRect(find.widgetWithText(InkWell, 'Katıl').first);
+      // "Katıl" düğmesi artık BuPressable (EtkinlikActionButton); anahtarıyla bulunur.
+      final r = tester.getRect(find.byKey(const ValueKey('detail-join')));
       expect(r.height, lessThan(110));
       expect(r.bottom, greaterThan(size.height - 140));
       expectNoErrors(tester);

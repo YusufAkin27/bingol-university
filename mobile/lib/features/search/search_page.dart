@@ -1070,9 +1070,10 @@ class _TabChipsState extends State<_TabChips> {
         child: Row(children: [
           for (var i = 0; i < widget.labels.length; i++) ...[
             if (i > 0) const SizedBox(width: 8),
+            // "button" burada yazılmaz: BuPressable zaten düğme bayrağı koyar; iki düğme bayrağı birleşemez ve
+            // seçili durum etiketten ayrı bir düğümde kalırdı.
             Semantics(
               key: _keys[i],
-              button: true,
               selected: i == widget.selected,
               child: BuPressable(
                 onTap: () => widget.onSelected(i),
