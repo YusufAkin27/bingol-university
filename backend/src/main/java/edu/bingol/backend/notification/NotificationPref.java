@@ -25,6 +25,13 @@ public class NotificationPref {
     @Column(columnDefinition = "boolean not null default true")
     private boolean academicAnnouncements = true;
 
+    /**
+     * Sohbet mesaj metni onizlemesi push govdesinde (ve kilit ekraninda) gorunsun mu (V890). Varsayilan KAPALI:
+     * metin Google/Apple push sunucularindan gecer; yalniz kullanici acikca isterse gonderilir.
+     */
+    @Column(columnDefinition = "boolean not null default false")
+    private boolean messagePreview = false;
+
     /** Sessiz saatler: gunun dakikasi (0-1439); varsayilan 22:00-07:00, kullanici saat diliminde. */
     private boolean quietEnabled = false;
     private int quietStart = 1320;

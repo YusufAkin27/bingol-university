@@ -474,6 +474,24 @@ class AuthServiceTest {
     }
 
     @Test
+    void logoutWithFcmTokenAlsoReleasesTheDeviceRecord() {
+        when(refresh.peekUserId("rt-1")).thenReturn(7L);
+
+        auth.logout("rt-1", " fcm-token-xyz ");
+
+        verify(refresh).revoke("rt-1");
+        verify(sessions).deviceLoggedOut(7L, "fcm-token-xyz");
+    }
+
+    @Test
+    void logoutWithoutFcmTokenKeepsOldBehaviour() {
+        auth.logout("rt-1");
+
+        verify(refresh).revoke("rt-1");
+        verify(sessions, never()).deviceLoggedOut(any(), anyString());
+    }
+
+    @Test
     void logoutAllRevokesEverySession() {
         auth.logoutAll(7L);
 

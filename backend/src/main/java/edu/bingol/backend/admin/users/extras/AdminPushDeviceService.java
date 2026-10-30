@@ -4,6 +4,8 @@ import edu.bingol.backend.admin.users.extras.UserExtrasDtos.PushDeviceInfo;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.notification.Device;
 import edu.bingol.backend.notification.DeviceRepository;
+import edu.bingol.backend.notification.outbox.PushOutbox;
+import edu.bingol.backend.notification.outbox.PushOutboxRepository;
 import edu.bingol.backend.user.UserRepository;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -25,9 +27,32 @@ public class AdminPushDeviceService {
         this.users = users;
     }
 
+    /** Cihaz basina son push denemesinin sonucu icin (kuyruk kapaliysa/yoksa bos kalir). */
+    private PushOutboxRepository outbox;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setOutbox(PushOutboxRepository outbox) {
+        this.outbox = outbox;
+    }
+
+    /**
+     * Kullanicinin FCM cihazlari + her cihaz icin kuyruktaki SON push'un durumu (`lastPushStatus` SENT/DEAD/FAILED/...,
+     * `lastPushErrorCode` ornek UNREGISTERED, THIRD_PARTY_AUTH_ERROR; icerik/token YOK). "Bana bildirim gelmiyor"
+     * sikayetinde cihazin kayitli mi, son gonderimin neden dustugu buradan okunur (SENT 7, DEAD 30 gun saklanir).
+     */
     public List<PushDeviceInfo> list(Long userId) {
         Targets.existing(users, userId);
-        return devices.findByUserIdOrderByUpdatedAtDesc(userId).stream().map(AdminPushDeviceService::view).toList();
+        List<Device> mine = devices.findByUserIdOrderByUpdatedAtDesc(userId);
+        java.util.Map<Long, PushOutbox> last = new java.util.HashMap<>();
+        if (outbox != null && !mine.isEmpty()) {
+            try {
+                outbox.latestForDevices(mine.stream().map(Device::getId).toList())
+                        .forEach(o -> last.put(o.getDeviceId(), o));
+            } catch (RuntimeException e) {
+                // teshis ek bilgidir; kuyruk okunamazsa liste yine doner
+            }
+        }
+        return mine.stream().map(d -> view(d, last.get(d.getId()))).toList();
     }
 
     /** Cihaz kaydini siler (kullanici bir sonraki acilista yeniden kaydeder). Baska kullanicinin cihazi 404. */
@@ -50,8 +75,15 @@ public class AdminPushDeviceService {
     }
 
     static PushDeviceInfo view(Device d) {
+        return view(d, null);
+    }
+
+    static PushDeviceInfo view(Device d, PushOutbox lastPush) {
         return new PushDeviceInfo(d.getId(), d.getPlatform(), d.getAppVersion(), d.getLocale(), tail(d.getFcmToken()),
                 d.getCreatedAt() == null ? null : d.getCreatedAt().toString(),
-                d.getLastSeenAt() == null ? null : d.getLastSeenAt().toString());
+                d.getLastSeenAt() == null ? null : d.getLastSeenAt().toString(),
+                lastPush == null ? null : lastPush.getStatus().name(), lastPush == null ? null : lastPush.getErrorCode(),
+                lastPush == null ? null : (lastPush.getSentAt() != null ? lastPush.getSentAt() : lastPush.getCreatedAt())
+                        .toString());
     }
 }

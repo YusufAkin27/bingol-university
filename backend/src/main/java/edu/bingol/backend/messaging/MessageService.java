@@ -335,60 +335,105 @@ public class MessageService {
                 "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
         Long convId = conv.getId();
         try {
-            fanout.execute(() -> notifyOffline(senderId, convId, title, preview, data, candidates));
+            boolean optInOnly = !pushPreview && previewOptIn;
+            fanout.execute(() -> notifyOffline(senderId, convId, title, preview, optInOnly, data, candidates));
         } catch (RejectedExecutionException e) {
             log.warn("Bildirim kuyrugu dolu, mesaj {} icin bildirim atlandi", m.getId());
         }
     }
 
+    /**
+     * `app.push.message-preview-optin` (varsayilan true): onizleme metni, yalnizca "mesaj onizlemesi" tercihini
+     * ACMIS alicilarin push govdesine girer (notification_pref.message_preview, varsayilan kapali). Global
+     * `message-preview=true` ise herkese gider (eski davranis).
+     */
+    private boolean previewOptIn;
+
+    @Autowired(required = false)
+    void setPreviewOptIn(@Value("${app.push.message-preview-optin:true}") boolean optIn) {
+        this.previewOptIn = optIn;
+    }
+
     /** Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj"). */
     private String previewOf(Message m) {
-        if (!pushPreview) {
+        if (!pushPreview && !previewOptIn) {
             return null;
         }
         String body = m.getBody();
+        if (body == null) {
+            return null;
+        }
         return body.isEmpty() ? "📷" // yalniz gorsel
                 : body.length() > PUSH_PREVIEW ? body.substring(0, PUSH_PREVIEW) + "…" : body;
     }
 
     /**
-     * Cevrimdisi alicilara bildirim (asenkron; hata gondericiyi etkilemez). Cevrimici olanlara yalniz canli WS olayi gider.
-     * Sohbeti su an goruntuleyene hicbir sey yazilmaz; uygulamasi on planda olana yalniz uygulama ici kayit (push yok);
-     * askidaki/silinmis hesaba bildirim yok. Presence/viewing/foreground tek MGET'lerle okunur.
+     * `app.push.message-skip-foreground`: true ise uygulamasi ON PLANDA olan VE canli WS baglantisi olan aliciya push
+     * gonderilmez (yalniz uygulama ici kayit). Varsayilan false: mesaj push'u neredeyse her zaman gider; on plandaki
+     * istemci kendisi bastirir (acik sohbet) ya da mesaj kimligiyle tekillestirerek uygulama ici serit gosterir.
+     */
+    private boolean skipForegroundPush;
+
+    @Autowired(required = false)
+    void setSkipForegroundPush(@Value("${app.push.message-skip-foreground:false}") boolean skip) {
+        this.skipForegroundPush = skip;
+    }
+
+    /**
+     * Alicilara bildirim (asenkron; hata gondericiyi etkilemez). Karar tablosu (alici basina):
+     * <ul>
+     *   <li>Sohbeti su an goruntuluyor VE canli WS baglantisi var -> hicbir sey (mesaj zaten ekranda, kutu satiri da yok).
+     *       `viewing:` anahtari TTL'lidir (45 sn); uygulama oldurulurse anahtar bir sure kalir, bu yuzden WS de aranir.</li>
+     *   <li>Diger her durum -> push GIDER. "Cevrimici" (WS bagli) olmak yetmez: arka plana alinan uygulamanin soketi
+     *       OS tarafindan donduruldugunda sunucu ~30-60 sn "cevrimici" gorur; o pencerede push atlanirsa mesaj hic
+     *       gelmezdi. `message-skip-foreground=true` ise yalniz on planda + WS bagliyken push atlanir.</li>
+     * </ul>
+     * Askidaki/silinmis hesaba bildirim yok. Presence/viewing/foreground tek MGET'lerle okunur.
      */
     private void notifyOffline(Long senderId, Long conversationId, String groupTitle, String preview,
-                               Map<String, String> data, List<Long> candidates) {
+                               boolean previewOptInOnly, Map<String, String> data, List<Long> candidates) {
         try {
             Set<Long> online = presence.onlineAmong(candidates);
             Set<Long> viewing = presence.viewingAmong(candidates, conversationId);
-            List<Long> offline = candidates.stream().filter(id -> !online.contains(id) && !viewing.contains(id)).toList();
-            if (offline.isEmpty()) {
+            List<Long> targets = candidates.stream()
+                    .filter(id -> !(viewing.contains(id) && online.contains(id))).toList();
+            if (targets.isEmpty()) {
                 return;
             }
             Set<Long> inactive = new java.util.HashSet<>();
-            users.findAllById(offline).forEach(u -> {
+            users.findAllById(targets).forEach(u -> {
                 if (!u.isActive()) {
                     inactive.add(u.getId());
                 }
             });
-            Set<Long> foreground = presence.foregroundAmong(offline);
+            Set<Long> foreground = skipForegroundPush ? presence.foregroundAmong(targets) : Set.of();
             User sender = users.findById(senderId).orElse(null);
             String senderName = sender == null ? "Yeni mesaj" : sender.getDisplayName();
             String title = groupTitle == null ? senderName : groupTitle + " - " + senderName;
             // Gonderen avatari (on plan push karti): yalniz gizlilik ayari alicinin gormesine izin veriyorsa
             String avatar = sender == null ? null : sender.getAvatarUrl();
             Set<Long> avatarOk = avatar == null || avatarVisibility == null ? Set.of()
-                    : avatarVisibility.viewersAmong(senderId, offline,
+                    : avatarVisibility.viewersAmong(senderId, targets,
                             edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
             Set<Long> related = avatarOk.isEmpty() ? Set.of() : blocks.hiddenFrom(senderId);
-            for (Long id : offline) {
+            for (Long id : targets) {
                 if (!inactive.contains(id)) {
+                    boolean push = !(foreground.contains(id) && online.contains(id));
+                    Map<String, String> extra = new java.util.HashMap<>();
+                    if (sender != null && sender.getDisplayName() != null) {
+                        extra.put("senderName", sender.getDisplayName());
+                    }
+                    if (groupTitle != null) {
+                        extra.put("conversationTitle", groupTitle);
+                    }
                     if (avatarOk.contains(id) && !related.contains(id)) {
                         // Avatar yalniz push yukunde; bildirim kutusuna (kalici data) yazilmaz
-                        notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id),
-                                Map.of("senderAvatarUrl", avatar));
+                        extra.put("senderAvatarUrl", avatar);
+                    }
+                    if (previewOptInOnly) {
+                        notifications.sendNewMessage(id, title, preview, true, data, push, extra);
                     } else {
-                        notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id));
+                        notifications.sendNewMessage(id, title, preview, data, push, extra);
                     }
                 }
             }
@@ -465,6 +510,10 @@ public class MessageService {
             if (receipts != null) {
                 receipts.onRead(userId, conversationId, oldRead, oldDelivered, lastMessageId);
             }
+        }
+        if (lastMessageId >= conv.getLastMessageId()) {
+            // Sohbet sonuna kadar okundu: kutudaki "conv:<id>" satiri da okunur (sayac/rozet/"N yeni mesaj" sismesin)
+            notifications.markConversationRead(userId, conversationId);
         }
     }
 

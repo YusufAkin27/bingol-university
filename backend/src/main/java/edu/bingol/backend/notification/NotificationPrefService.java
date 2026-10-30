@@ -74,6 +74,7 @@ public class NotificationPrefService {
         });
         if (r.polls() != null) p.setPolls(r.polls());
         if (r.academicAnnouncements() != null) p.setAcademicAnnouncements(r.academicAnnouncements());
+        if (r.messagePreview() != null) p.setMessagePreview(r.messagePreview());
         p.setQuietEnabled(qen);
         p.setQuietStart(qs);
         p.setQuietEnd(qe);

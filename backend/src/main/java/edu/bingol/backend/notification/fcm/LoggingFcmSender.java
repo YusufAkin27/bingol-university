@@ -11,6 +11,23 @@ public class LoggingFcmSender implements FcmSender {
 
     private static final Logger log = LoggerFactory.getLogger(LoggingFcmSender.class);
 
+    /** Neden kapali: NO_CREDENTIALS (kimlik girilmemis) ya da INIT_FAILED:<hata sinifi> (kimlik var ama baslatilamadi). */
+    private final String reason;
+
+    public LoggingFcmSender() {
+        this("NO_CREDENTIALS");
+    }
+
+    public LoggingFcmSender(String reason) {
+        this.reason = reason;
+    }
+
+    /** Yonetici durum ucu icin: sessiz kalmasin diye kapali olma nedeni (sir icermez). */
+    @Override
+    public FcmCheck check(boolean dryRun) {
+        return new FcmCheck(false, false, null, reason);
+    }
+
     @Override
     public List<String> send(Collection<String> tokens, String title, String body, Map<String, String> data) {
         log.debug("[FCM kapali] {} cihaza gonderilmedi", tokens.size());

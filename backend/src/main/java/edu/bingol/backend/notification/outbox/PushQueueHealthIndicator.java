@@ -18,9 +18,12 @@ public class PushQueueHealthIndicator implements HealthIndicator {
     private static final Status WARN = new Status("WARN");
 
     private final PushOutboxService outbox;
+    private final org.springframework.beans.factory.ObjectProvider<PushOutboxWorker> worker;
 
-    public PushQueueHealthIndicator(PushOutboxService outbox) {
+    public PushQueueHealthIndicator(PushOutboxService outbox,
+                                    org.springframework.beans.factory.ObjectProvider<PushOutboxWorker> worker) {
         this.outbox = outbox;
+        this.worker = worker;
     }
 
     @Override
@@ -31,6 +34,11 @@ public class PushQueueHealthIndicator implements HealthIndicator {
         b.withDetail("pending", s.pending() + s.failed()).withDetail("sending", s.sending()).withDetail("dead", s.dead());
         if (s.oldestPendingAgeSeconds() != null) {
             b.withDetail("oldestPendingAgeSeconds", s.oldestPendingAgeSeconds());
+        }
+        PushOutboxWorker w = worker.getIfAvailable();
+        if (w != null && !w.errorCodeCounts().isEmpty()) {
+            // Surec basindan beri FCM hata kodlari (ornek THIRD_PARTY_AUTH_ERROR = APNs anahtari eksik/yanlis)
+            b.withDetail("errorCodes", w.errorCodeCounts());
         }
         return b.build();
     }

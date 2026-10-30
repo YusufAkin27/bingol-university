@@ -151,10 +151,16 @@ public class PushDispatcher {
             SendResult r = fcm.deliver(chunk, message);
             List<String> invalid = r.invalid() == null ? List.of() : r.invalid();
             List<String> retryable = r.retryable() == null ? List.of() : r.retryable();
+            List<String> permanent = r.permanent() == null ? List.of() : r.permanent();
             if (!invalid.isEmpty()) {
                 devices.deleteByFcmTokenIn(invalid);
             }
-            delivered.addAndGet(Math.max(0, chunk.size() - invalid.size() - retryable.size()));
+            if (!permanent.isEmpty()) {
+                recordFailure(permanent.size() + " cihaz icin kalici FCM hatasi (" + String.join(",",
+                        permanent.stream().map(t -> r.codes() == null ? "?" : r.codes().getOrDefault(t, "?"))
+                                .distinct().toList()) + ")");
+            }
+            delivered.addAndGet(Math.max(0, chunk.size() - invalid.size() - retryable.size() - permanent.size()));
             if (!retryable.isEmpty()) {
                 scheduleRetry(new ArrayList<>(retryable), message, attempt);
             }

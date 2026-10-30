@@ -130,6 +130,19 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
+    void messagePreviewDefaultsOffAndCanBeTurnedOn() {
+        stubSave();
+        assertFalse(prefSvc.get(1L).messagePreview());
+
+        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, true));
+        assertTrue(v.messagePreview());
+
+        // eski istemci (alan yok): degismez
+        PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null));
+        assertFalse(w.messagePreview()); // stubSave her seferinde varsayilan satir doner; null alan degeri degistirmez
+    }
+
+    @Test
     void pollsAndAcademicFlagsDefaultOnAndUpdateIndependently() {
         stubSave();
         PrefsView d = prefSvc.get(1L);

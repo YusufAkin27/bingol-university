@@ -98,6 +98,57 @@ class PushOutboxErrorCodeTest {
     }
 
     @Test
+    void permanentErrorIsDeadWithCodeNotSentAndKeepsTheDevice() {
+        Device a = device(1, "tokA");
+        when(devices.findAllById(any())).thenReturn(List.of(a));
+        PushOutboxWorker w = new PushOutboxWorker(mock(PushOutboxRepository.class), devices, new FakeFcmSender() {
+            @Override
+            public SendResult deliver(Collection<String> tokens, PushMessage m) {
+                // iOS: APNs anahtari yuklenmemis -> THIRD_PARTY_AUTH_ERROR (kalici; token gecerli)
+                return new SendResult(List.of(), List.of(), Map.of("tokA", "THIRD_PARTY_AUTH_ERROR"), List.copyOf(tokens));
+            }
+        }, json, new SimpleMeterRegistry(), mock(SchedulerLock.class), false, 500, 3, 24);
+        PushOutbox r = row(a);
+
+        w.process(List.of(r), Instant.now());
+
+        assertThat(r.getStatus()).isEqualTo(PushOutboxStatus.DEAD); // eskiden "SENT" sayilirdi
+        assertThat(r.getErrorCode()).isEqualTo("THIRD_PARTY_AUTH_ERROR");
+        assertThat(w.errorCodeCounts()).containsEntry("THIRD_PARTY_AUTH_ERROR", 1L);
+        org.mockito.Mockito.verify(devices, org.mockito.Mockito.never()).deleteByFcmTokenIn(any());
+    }
+
+    @Test
+    void differentPayloadGroupsAreAllSentWhenProcessedTogether() {
+        Device a = device(1, "tokA");
+        Device b = device(2, "tokB");
+        Device c = device(3, "tokC");
+        when(devices.findAllById(any())).thenReturn(List.of(a, b, c));
+        List<PushOutbox> rows = new java.util.ArrayList<>();
+        for (Device d : List.of(a, b, c)) {
+            PushOutbox o = row(d);
+            o.setPayloadJson(json.writeValueAsString(PushMessage.simple("T" + d.getId(), "B", Map.of("type", "MESSAGE"), null)));
+            rows.add(o);
+        }
+
+        worker.process(rows, Instant.now());
+
+        assertThat(rows).allMatch(r -> r.getStatus() == PushOutboxStatus.SENT);
+        assertThat(fcm.messages()).hasSize(3);
+    }
+
+    @Test
+    void ttlSecondsSurvivesQueueSerialization() {
+        PushMessage m = new PushMessage("T", "B", Map.of("type", "MESSAGE"), "conv:1", "conv:1", "chat", "MESSAGE", 3, true,
+                604_800);
+        PushMessage back = json.readValue(json.writeValueAsString(m), PushMessage.class);
+        assertThat(back.ttlSeconds()).isEqualTo(604_800);
+        // ttl alanindan once yazilmis kuyruk satiri (eski surum) hala okunur
+        PushMessage old = json.readValue("{\"title\":\"T\",\"body\":\"B\",\"data\":{},\"highPriority\":true}", PushMessage.class);
+        assertThat(old.ttlSeconds()).isNull();
+    }
+
+    @Test
     void expiredAndMissingDeviceGetOwnCodes() {
         Device a = device(1, "tokA");
         when(devices.findAllById(any())).thenReturn(List.of(a));

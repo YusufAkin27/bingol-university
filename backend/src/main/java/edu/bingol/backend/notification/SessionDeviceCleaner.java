@@ -1,6 +1,7 @@
 package edu.bingol.backend.notification;
 
 import edu.bingol.backend.accessban.AccessBlockedEvent;
+import edu.bingol.backend.auth.token.DeviceLoggedOutEvent;
 import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,16 @@ public class SessionDeviceCleaner {
         } catch (RuntimeException ex) {
             // Giris akisini bozmaz; kayitlar 60 gunluk temizlikte de duser.
             log.warn("Cihaz kayitlari silinemedi (user {}): {}", e.userId(), ex.toString());
+        }
+    }
+
+    /** Cikis (istemci FCM token'ini gonderdiyse): yalniz bu kullanicinin o token kaydi silinir. */
+    @EventListener
+    public void onDeviceLoggedOut(DeviceLoggedOutEvent e) {
+        try {
+            devices.deleteByFcmTokenAndUserId(e.fcmToken(), e.userId());
+        } catch (RuntimeException ex) {
+            log.warn("Cikis yapan cihaz kaydi silinemedi (user {}): {}", e.userId(), ex.toString());
         }
     }
 

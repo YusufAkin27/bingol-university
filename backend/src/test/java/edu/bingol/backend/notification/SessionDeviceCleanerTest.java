@@ -28,4 +28,12 @@ class SessionDeviceCleanerTest {
 
         verify(devices, never()).deleteAllByUser(anyLong());
     }
+
+    @Test
+    void logoutWithTokenDeletesOnlyThatUsersTokenRecord() {
+        cleaner.onDeviceLoggedOut(new edu.bingol.backend.auth.token.DeviceLoggedOutEvent(7L, "tok-abc"));
+
+        verify(devices).deleteByFcmTokenAndUserId("tok-abc", 7L);
+        verify(devices, never()).deleteAllByUser(anyLong());
+    }
 }

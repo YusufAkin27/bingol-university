@@ -71,7 +71,7 @@ public final class NotificationDtos {
     /** Yanit: 5 ana bayrak (eski istemciler yalniz bunlari okur) + sessiz saatler + alt tur bayraklari. */
     public record PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
                             boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                            boolean polls, boolean academicAnnouncements) {
+                            boolean polls, boolean academicAnnouncements, boolean messagePreview) {
         public static PrefsView of(NotificationPref p) {
             return of(p, Map.of());
         }
@@ -83,18 +83,26 @@ public final class NotificationDtos {
                 all.put(s.name(), s.flagBacked() ? s.flag(p) : overrides.getOrDefault(s.name(), true));
             }
             return new PrefsView(p.isNews(), p.isAnnouncements(), p.isEvents(), p.isMessages(), p.isCommunities(),
-                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements());
+                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements(), p.isMessagePreview());
         }
     }
 
     /** Kismi guncelleme: null alan degismez (eski 5 bayrakli istemciler geriye uyumlu). */
     public record PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                               Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                              Boolean polls, Boolean academicAnnouncements) {
-        /** Eski 7 alanli kurucu (polls / academicAnnouncements degismez). */
+                              Boolean polls, Boolean academicAnnouncements, Boolean messagePreview) {
+        /** Eski 7 alanli kurucu (polls / academicAnnouncements / messagePreview degismez). */
         public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                            Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
-            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null);
+            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null, null);
+        }
+
+        /** Eski 9 alanli kurucu (messagePreview degismez). */
+        public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
+                           Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                           Boolean polls, Boolean academicAnnouncements) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, polls,
+                    academicAnnouncements, null);
         }
     }
 }

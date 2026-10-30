@@ -24,9 +24,15 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     @Modifying
     void deleteByFcmTokenAndUserId(String fcmToken, Long userId);
 
+    /**
+     * Eski token temizligi. Kullanici uygulamayi hala kullaniyorsa (`app_user.last_seen_at` taze) cihaz kaydi KORUNUR:
+     * istemci kaydi yenilemeyi unutsa bile aktif kullanici sessizce push'suz kalmasin (gecersiz token FCM'de zaten
+     * UNREGISTERED ile silinir).
+     */
     @Transactional
     @Modifying
-    @Query("DELETE FROM Device d WHERE d.lastSeenAt < :cutoff")
+    @Query("DELETE FROM Device d WHERE d.lastSeenAt < :cutoff AND NOT EXISTS "
+            + "(SELECT 1 FROM User u WHERE u.id = d.userId AND u.lastSeenAt >= :cutoff)")
     int deleteStale(@Param("cutoff") java.time.Instant cutoff);
 
     /** Tek cihaz kurali: yeni mobil giriste kullanicinin onceki cihaz kayitlari silinir. */

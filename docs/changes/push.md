@@ -131,3 +131,62 @@ Yönetici panelinde (`/admin/push/ops`) FCM durumu, kuyruk, cihaz özeti, bildir
 - **API:** `PrefsView`/`PrefsUpdate` yeni `polls`, `academicAnnouncements` (güncellemede null = değişmez; 7 alanlı eski kurucu korunur). `NotificationSubtype` yeni `POLL` ve `ACADEMIC_ANNOUNCEMENT` (`flagBacked()`): alt tur satırı tutulmaz, değer sütundan okunur/yazılır; `PrefsView.subtypes` bunları yansıtır.
 - **Gönderim:** koşul **ana tür bayrağı VE kendi bayrağı**dır (tekil: `doSend`; toplu: `CASE` ifadesinde `polls` = `p.polls AND p.announcements`, `academic_announcements` = `p.academic_announcements AND p.announcements`; kulüp anketi tekil yolda `communities` + `polls`). Bu sayede sütunların DEFAULT TRUE olması ana bayrağı önceden kapatmış kullanıcıların davranışını değiştirmez, V880'de geri doldurma (UPDATE) gerekmez. Toplu yollar (`broadcastLocalized`, `sendBulk`) yeni `prefColumn` parametresi alır; `insertForAll/insertForLang/tokensForBroadcast*/allowing` sorgularının `CASE`i bu iki sütunu tanır. Test: `PollAcademicPrefsTest`.
 - **Sohbet push avatarı:** `sendNewMessage(..., pushExtra)`: `senderAvatarUrl` yalnız push yüküne eklenir, `notification.data` JSON'una yazılmaz. `AvatarVisibility.viewersAmong` SHARED_CONTEXT için tek toplu sorgu (`SharedContextRepository.viewersSharingWith`) kullanır. `PollNotifier` (genel anket `"polls"`, tekil/kulüp anketi `POLL` alt türü) ve `AnnouncementNotifier` (`"academic_announcements"`) buna geçti. Bildirim `type`ı değişmedi (`ANNOUNCEMENT`/`COMMUNITY`), mobil gösterimi etkilenmez.
+
+## P1: "bildirim gelmiyor / anlık gelmiyor" düzeltmeleri + bildirim tasarımı sunucu tarafı (V896)
+
+**Kök nedenler (kod okunarak):**
+1. Mesaj push'u, alıcı "çevrimiçi" (WS bağlı) ya da `fg:` (90 sn) / `viewing:` (45 sn) anahtarı varsa gönderilmiyordu; arka plana alınan/öldürülen uygulamada bu bayat anahtarlar ve donmuş soket yüzünden 30-90 sn mesaj push'suz kalıyordu.
+2. Sohbet başına 20 sn pencere (`message-window-seconds`) içindeki 2. mesaja push yoktu; tüm türlerle paylaşılan dakikada 10 push sınırı sohbet mesajlarını sessizce düşürüyordu.
+3. FCM `collapse_key` her sohbet için `conv:<id>` gönderiliyordu: FCM çevrimdışı cihazda en çok 4 farklı anahtara izin verir, fazlası tanımsızdır (telefon kapalıyken biriken mesajlar düşebilir).
+4. Kalıcı FCM hatası (`THIRD_PARTY_AUTH_ERROR` = APNs anahtarı yok/yanlış, `INVALID_ARGUMENT`) yalnız log'lanıp kayıt "SENT" sayılıyordu: iOS kullanıcıları için push hiç gitmese bile panelde başarılı görünürdü.
+5. Sohbet okununca bildirim satırı hiç okunmuyordu: sayaç ömür boyu büyüyor, push gövdesi sürekli "57 yeni mesaj" oluyor, rozet şişiyordu.
+6. Çıkışta `DELETE /api/devices/{token}` erişim jetonu bitmişse 401 verip sessizce başarısız olabiliyordu; `POST /api/devices` ile aynı saatte-30 sayacını paylaşıyordu (429 = kayıt düşer = push yok).
+7. Push yükünde TTL yoktu.
+
+**Mesaj push karar tablosu (alıcı başına, `MessageService.notifyOffline`):**
+- gönderen, sessize alınmış (`muted`), yapışkan arşiv, engel ilişkisi, askıdaki/silinmiş hesap -> bildirim yok (değişmedi);
+- sohbeti görüntülüyor (`viewing:`) **VE** canlı WS bağlantısı var -> hiçbir şey (mesaj zaten ekranda). `viewing:` tek başına yetmez (uygulama sohbet açıkken öldürülürse 45 sn bayat kalır);
+- diğer **her** durumda push GİDER: çevrimiçi/ön plan/arka plan fark etmez. Ön plandaki istemci push'u kendisi bastırır ya da gösterir (aşağıda "Mobil için gerekenler"). Eski davranışa dönmek için `app.push.message-skip-foreground=true` (yalnız ön planda + WS bağlıyken push atlanır, kutu satırı yazılır). Bayat `fg:` bayrağına WS yokken asla güvenilmez.
+- `app.push.message-window-seconds` varsayılanı **0** (pencere yok; her mesaj kendi push'unu alır, Android `tag` / iOS `apns-collapse-id` aynı sohbetin bildirimini cihazda tek satıra indirir). Kutu satırı sayacı ve "N yeni mesaj" gövdesi korunur. Mesajlara ayrı dakikalık sınır: `app.push.max-messages-per-minute` (60); genel `max-per-minute` (10) sayacını artık tüketmez.
+- Sohbet sonuna kadar okununca (`POST /api/conversations/{id}/read` imleci son mesaja ulaşınca) o sohbetin `conv:<id>` kutu satırı okundu olur; sonraki mesaj yeni satır (sayaç 1, gövde "Yeni mesaj") açar.
+
+**FCM yükü (`FirebaseFcmSender`):**
+- Android: `notification` bloğu + `data`; `priority=HIGH` (mesaj, SYSTEM, EVENT_ADMISSION), notification `priority=HIGH`, `channel_id`, `tag` (= `collapseKey` ya da `threadId`), `notification_count` (= rozet), **`ttl`**; FCM `collapse_key` **artık gönderilmez** (madde 3). Yalnız `data` mesajı gönderilmez: `notification` bloğu sayesinde uygulama öldürülmüşken de Google Play Hizmetleri bildirimi kendisi gösterir.
+- APNs: `apns-push-type=alert`, `apns-priority` 10/5, **`apns-expiration`** (= şimdi + TTL), `apns-collapse-id` (<=64 bayt), `thread-id`, `category`, `mutable-content=1`, `sound=default`, rozet; sosyal bildirimlerde (beğeni/takip) `interruption-level=passive`.
+- TTL: mesaj/SYSTEM 7 gün, haber/duyuru/kulüp 3 gün, etkinlik ve sosyal 1 gün, etkinlik hatırlatması 6 saat.
+- Yük 4096 bayt sınırı `PushPayload.fit` ile korunur (sözleşme anahtarları kırpılmaz).
+- Kalıcı hata (THIRD_PARTY_AUTH_ERROR, INVALID_ARGUMENT yük hatası, PERMISSION_DENIED...) artık `SendResult.permanent`: kuyruk kaydı **DEAD + `error_code`** olur (cihaz kaydı SİLİNMEZ), sağlık `pushQueue.details.errorCodes` ve yönetici hata listesinde görünür; düzeltme (ör. APNs anahtarı yüklendi) sonrası `POST /api/admin/push/outbox/retry-dead` ile yeniden denenir. (Yukarıdaki "kalıcı hata SENT sayılır" notu geçersizdir.)
+- Kuyruk işleyicisi farklı yüklü grupları (alıcı başına farklı sohbet bildirimi) 4 iş parçacığıyla eşzamanlı gönderir (500 üyeli grupta ardışık gönderim dakikalar sürerdi).
+
+**Yeni push `data` anahtarları (hepsi isteğe bağlı, eskiler aynı):**
+
+| Anahtar | Açıklama |
+|---|---|
+| `tag` | Android bildirim etiketi (= `collapseKey`, yoksa `threadId`). Yerel bildirim kuran istemci aynı etiketi kullanmalıdır |
+| `badge` | okunmamış bildirim sayısı (string; tek kullanıcıya giden bildirimlerde) |
+| `senderName` | (MESSAGE) gönderenin görünen adı |
+| `conversationTitle` | (MESSAGE, grup/oda) grup adı; başlık "Grup - Gönderen" biçimindedir |
+| `senderAvatarUrl` | (MESSAGE) mevcut: gizlilik izin veriyorsa; yalnız push yükünde, kutu `data`'sında yok |
+| `messageId`, `conversationType` | mevcut; ön plan tekilleştirmesi için `messageId` kullanın |
+
+Android kanal kimlikleri **değişmedi** (`chat`, `event`, `announcement`, `poll`, `social`; tek yerde `PushMessages.CHANNEL_*`). Daha ince kanal ayrımı (ör. `academic`, `community`, `system`) için istemci yeni kanalları önce yayınlamalıdır; eski sürümde olmayan kanal kimliği Android'de "Diğer" varsayılan kanalına düşer (başlık üstü bildirim kaybolur). Bu yüzden sunucu şimdilik yalnız yukarıdaki beş kimliği gönderir.
+
+**Mesaj önizlemesi (KVKK):** varsayılan DEĞİŞMEDİ: push gövdesi sabit "Yeni mesaj" + gönderen adı; kutu tablosuna metin asla yazılmaz. Yeni: kullanıcı tercihi `messagePreview` (`GET/PUT /api/notifications/preferences`, `notification_pref.message_preview`, **V896**, varsayılan false). Açıksa o kullanıcının push gövdesine mesajın ilk 100 karakteri girer (metin Google/Apple push sunucularından geçer; bu yüzden yalnız kullanıcı isterse). `app.push.message-preview=true` (global) eski davranıştır ve tercihi aşar; `app.push.message-preview-optin=false` tercih yolunu kapatır. Görsel-yalnız mesaj "📷".
+
+**Cihaz kaydı / çıkış:**
+- `POST /api/devices` sınırı saatte 120 (eski 30; 429 kaydı düşürüp push'suz bırakabilirdi), `DELETE` ayrı sayaç (saatte 60).
+- `POST /api/auth/logout` gövdesine isteğe bağlı **`fcmToken`** eklendi: `{"refreshToken":"…","fcmToken":"…"}`. Verilirse sunucu o cihazın push kaydını (yalnız o kullanıcıya aitse) siler; erişim jetonu süresi dolmuş olsa bile çıkış yapan kullanıcının bildirimi telefonda kalmaz. Eski istemci (yalnız `refreshToken`) aynen çalışır.
+- Yeni mobil girişte kullanıcının TÜM cihaz kayıtları silinir (tek cihaz kuralı, mevcut davranış): giriş sonrası istemci token'ı **mutlaka yeniden kaydetmelidir**, "daha önce kaydettim" önbelleği kullanmamalıdır.
+- `QuietSql` saat dilimi boşsa `Europe/Istanbul` varsayar (NULL saat dilimi toplu sorguda satırı sessizce eliyordu).
+
+**Yönetici teşhisi:** `GET /api/admin/users/{id}/push-devices` her cihaz için son kuyruk kaydını gösterir: `lastPushStatus` (SENT/DEAD/FAILED/PENDING/...), `lastPushErrorCode` (UNREGISTERED, THIRD_PARTY_AUTH_ERROR...), `lastPushAt`; yük/token yok (SENT 7, DEAD 30 gün saklanır). "Cihaz kaydı hiç yok" = istemci kaydolmuyor; "DEAD + UNREGISTERED" = token geçersizleşmiş; "DEAD + THIRD_PARTY_AUTH_ERROR" = APNs anahtarı sorunu. Süreç başından beri hata kodu sayaçları: `GET /actuator/health` içinde `pushQueue.details.errorCodes`.
+
+**Mobil için gerekenler (P2'ye):**
+1. Her açılışta, her `onTokenRefresh`'te **ve her girişten sonra** `POST /api/devices` çağırın (başarısızsa sonra yeniden deneyin; 204 dışını yutmayın). Giriş sunucuda eski kayıtları siler.
+2. Çıkışta `POST /api/auth/logout` gövdesine `fcmToken` ekleyin (ve eskisi gibi `DELETE /api/devices/{token}` deneyin).
+3. Ön plandayken gelen MESSAGE push'u (`onMessage`): `conversationId` açık sohbetse yok sayın; değilse mesaj kimliğiyle (`data.messageId`) WS'ten gelenle tekilleştirip uygulama içi şerit gösterin. Sunucu artık WS bağlı/ön planda olanlara da push gönderir (güvenlik ağı).
+4. Android kanallarını (`chat`, `event`, `announcement`, `poll`, `social`) uygulama açılışında oluşturun (kanal yoksa bildirim "Diğer" kanalına düşer, başlık üstü olmaz) ve `default_notification_channel_id` meta-verisini `announcement` yapın. Android 13+ `POST_NOTIFICATIONS` izni.
+5. Yerel bildirim kurarsanız `tag` olarak `data.tag` kullanın; sohbet dokunuşu `conversationId` ile açılır. Rozet için `data.badge` okunabilir.
+6. Bildirim ayarlarına "Mesaj önizlemesi" anahtarı: `PUT /api/notifications/preferences {"messagePreview":true|false}` (varsayılan kapalı; açıklama: "mesaj metni kilit ekranında görünür, Google/Apple sunucularından geçer").
+7. Pil/otomatik başlatma: Xiaomi/Oppo/Huawei/Vivo'da kaydırarak kapatma uygulamayı "zorla durdurur" ve FCM hiç teslim edilmez (sunucudan çözülemez); ilk açılışta üreticiye özel "otomatik başlat / pil kısıtlamasız" yönlendirmesi önerilir.
+8. iOS: `UIBackgroundModes=remote-notification` ve APNs anahtarı Firebase'de olmalı (aksi halde kuyrukta `THIRD_PARTY_AUTH_ERROR` birikir).

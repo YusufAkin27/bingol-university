@@ -81,4 +81,25 @@ class PushGateTest {
         assertTrue(PushGate.OPEN.allowMessagePush(1L, "x"));
         assertTrue(PushGate.OPEN.allowMessagePush(1L, "x"));
     }
+
+    @Test
+    void separateMessageCapDoesNotConsumeTheGeneralCounter() {
+        PushGate gate = new PushGate(new MemStore(), 0, 2, 4);
+
+        for (int i = 0; i < 4; i++) {
+            assertTrue(gate.allowMessagePush(1L, "conv:" + i));
+        }
+        assertFalse(gate.allowMessagePush(1L, "conv:9")); // mesaj siniri doldu
+        assertTrue(gate.allowGeneralPush(1L)); // genel sayac bos
+        assertTrue(gate.allowGeneralPush(1L));
+        assertFalse(gate.allowGeneralPush(1L));
+    }
+
+    @Test
+    void zeroWindowMeansNoDebounce() {
+        PushGate gate = new PushGate(new MemStore(), 0, 100, 100);
+
+        assertTrue(gate.allowMessagePush(1L, "conv:5"));
+        assertTrue(gate.allowMessagePush(1L, "conv:5"));
+    }
 }

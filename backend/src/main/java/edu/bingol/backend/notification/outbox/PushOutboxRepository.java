@@ -34,6 +34,11 @@ public interface PushOutboxRepository extends JpaRepository<PushOutbox, Long> {
             + "AND (o.leaseUntil IS NULL OR o.leaseUntil < :now)")
     int recoverStale(@Param("now") Instant now);
 
+    /** Her cihaz icin en son kuyruk kaydi (yonetici teshisi: kullanici cihazlari). */
+    @Query("SELECT o FROM PushOutbox o WHERE o.id IN (SELECT MAX(o2.id) FROM PushOutbox o2 "
+            + "WHERE o2.deviceId IN :ids GROUP BY o2.deviceId)")
+    List<PushOutbox> latestForDevices(@Param("ids") Collection<Long> deviceIds);
+
     long countByStatus(PushOutboxStatus status);
 
     long countByStatusAndSentAtAfter(PushOutboxStatus status, Instant after);

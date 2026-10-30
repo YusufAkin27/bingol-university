@@ -41,6 +41,11 @@ public class SessionService {
         events.publishEvent(new SessionsRevokedEvent(userId, null, false, n > 0));
     }
 
+    /** Cikis yapan cihazin push kaydi silinsin diye olay yayinlar (notification modulu dinler). */
+    public void deviceLoggedOut(Long userId, String fcmToken) {
+        events.publishEvent(new DeviceLoggedOutEvent(userId, fcmToken));
+    }
+
     /**
      * Oturum (authTimeMs'de acilmis) sonradan "tum cihazlardan cik"/sifre degisimi ya da (mobil icin) tek cihaz
      * kuraliyla iptal edildi mi? authTime bilinmiyorsa (eski token, 0) false: eski oturumlar kendi sureleriyle biter.

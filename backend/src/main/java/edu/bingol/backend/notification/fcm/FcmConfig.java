@@ -34,8 +34,10 @@ public class FcmConfig {
             return new FirebaseFcmSender(in);
         } catch (IOException | RuntimeException e) {
             // Kimlik icerigi log'a girmesin: yalnizca hata turu yazilir.
-            log.warn("FCM baslatilamadi ({}): push devre disi", e.getClass().getSimpleName());
-            return new LoggingFcmSender();
+            // Uretimde bu satir "kimsede push yok" demektir: ERROR seviyesi, panelde fcm/status `error` alani.
+            log.error("FCM BASLATILAMADI ({}): push TAMAMEN devre disi; FCM_CREDENTIALS_JSON/FILE kontrol edin",
+                    e.getClass().getSimpleName());
+            return new LoggingFcmSender("INIT_FAILED:" + e.getClass().getSimpleName());
         }
     }
 

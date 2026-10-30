@@ -22,6 +22,13 @@ public class FcmHealthIndicator implements HealthIndicator {
                 .withDetail("delivered", dispatcher.deliveredCount())
                 .withDetail("failures", dispatcher.failureCount())
                 .withDetail("retries", dispatcher.retryCount());
+        if (!dispatcher.fcmEnabled()) {
+            // kapali nedeni: NO_CREDENTIALS | INIT_FAILED:<hata sinifi> (sir icermez)
+            String why = dispatcher.fcmCheck(false).error();
+            if (why != null) {
+                b.withDetail("disabledReason", why);
+            }
+        }
         if (dispatcher.lastFailureAt() != null) {
             b.withDetail("lastFailureAt", dispatcher.lastFailureAt().toString());
         }

@@ -421,7 +421,16 @@ public class AuthService {
     }
 
     public void logout(String refreshToken) {
+        logout(refreshToken, null);
+    }
+
+    /** fcmToken verilirse o cihazin push kaydi da silinir (cikis yapan kullanicinin bildirimi telefonda kalmasin). */
+    public void logout(String refreshToken, String fcmToken) {
+        Long userId = fcmToken == null || fcmToken.isBlank() ? null : refresh.peekUserId(refreshToken);
         refresh.revoke(refreshToken);
+        if (userId != null) {
+            sessions.deviceLoggedOut(userId, fcmToken.trim());
+        }
     }
 
     /** Tum cihazlardaki oturumlari kapatir (refresh token'lar + eski access token'lar). */

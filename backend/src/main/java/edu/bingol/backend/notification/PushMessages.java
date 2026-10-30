@@ -27,10 +27,33 @@ final class PushMessages {
         Map<String, String> data = new java.util.LinkedHashMap<>(payload);
         data.put("channelId", channel);
         data.put("threadId", thread);
+        // `tag`: Android'de ayni etiketli bildirim yenisiyle degisir (sohbet basina tek bildirim); istemci yerel
+        // bildirim kurarsa ayni etiketi kullanmalidir.
+        data.put("tag", collapseKey != null ? collapseKey : thread);
         if (collapseKey != null) {
             data.put("collapseKey", collapseKey);
         }
-        return new PushMessage(title, body, data, collapseKey, thread, channel, type.name(), badge, urgent);
+        if (badge != null) {
+            data.put("badge", String.valueOf(badge));
+        }
+        return new PushMessage(title, body, data, collapseKey, thread, channel, type.name(), badge, urgent,
+                ttlSeconds(type, subtype));
+    }
+
+    /**
+     * Cihaz cevrimdisiyken bildirimin saklanma suresi (sn). Gec ulasmasi anlamsiz olanlar kisa tutulur
+     * (etkinlik hatirlatmasi 6 sa, begeni/takip 1 gun); sohbet ve sistem 7 gun (telefon kapaliyken gelen mesajlar
+     * acilinca ulassin); digerleri 3 gun.
+     */
+    static int ttlSeconds(NotificationType type, NotificationSubtype subtype) {
+        if (subtype == NotificationSubtype.EVENT_REMINDER) {
+            return 6 * 3600;
+        }
+        return switch (type) {
+            case MESSAGE, SYSTEM -> 7 * 86_400;
+            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, EVENT -> 86_400;
+            case NEWS, ANNOUNCEMENT, COMMUNITY -> 3 * 86_400;
+        };
     }
 
     static PushMessage of(NotificationType type, String title, String body, Map<String, String> payload,

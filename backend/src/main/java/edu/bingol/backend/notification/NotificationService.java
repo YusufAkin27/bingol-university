@@ -69,6 +69,18 @@ public class NotificationService {
                 RecipientGuard.ALLOW_ALL);
     }
 
+    /**
+     * Kullanici sohbeti okudu: o sohbetin okunmamis bildirim satiri okundu olur. Yoksa satir sonsuza dek okunmamis
+     * kalir, sayaci (`groupCount`) her mesajla buyur ve push govdesi hep "N yeni mesaj" olurdu; rozet de sismis kalirdi.
+     */
+    public void markConversationRead(Long userId, Long conversationId) {
+        try {
+            notifications.markReadByCollapseKey(userId, "conv:" + conversationId, Instant.now());
+        } catch (RuntimeException e) {
+            log.warn("Sohbet bildirimi okundu yapilamadi (kullanici {}): {}", userId, e.toString());
+        }
+    }
+
     /** Hazir metinle tek kullaniciya (icerik zaten dilden bagimsizsa: haber basligi, kullanici girdisi vb.). */
     public void send(Long userId, NotificationType type, String title, String body, Map<String, String> data) {
         // Geriye uyumluluk: ayni konusmanin mesajlari otomatik gruplanir.
@@ -105,24 +117,34 @@ public class NotificationService {
      */
     public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data, boolean push,
                                Map<String, String> pushExtra) {
+        sendNewMessage(userId, title, pushPreview, false, data, push, pushExtra);
+    }
+
+    /**
+     * previewRequiresOptIn=true: `pushPreview` yalnizca alicinin "mesaj onizlemesi" tercihi (notification_pref.
+     * message_preview) aciksa push govdesine girer; kapaliysa govde sabit "Yeni mesaj" olur (varsayilan, KVKK).
+     */
+    public void sendNewMessage(Long userId, String title, String pushPreview, boolean previewRequiresOptIn,
+                               Map<String, String> data, boolean push, Map<String, String> pushExtra) {
         String stored = i18n.msg("notif.message.new", i18n.langOf(userId));
         String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
         NotificationSubtype sub = data == null || data.get("conversationType") == null ? null
                 : "GROUP".equals(data.get("conversationType")) ? NotificationSubtype.MESSAGE_GROUP
                 : NotificationSubtype.MESSAGE_DIRECT;
         doSend(userId, NotificationType.MESSAGE, sub, key, title, stored,
-                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra);
+                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra,
+                previewRequiresOptIn);
     }
 
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
-        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null);
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null, false);
     }
 
     private void doSend(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                         String title, String body, String pushBody, Map<String, String> data, boolean push,
-                        Map<String, String> pushExtra) {
+                        Map<String, String> pushExtra, boolean previewRequiresOptIn) {
         try {
             // Askidaki/silinmis hesaba bildirim yok (SYSTEM = hesap/moderasyon bildirimleri istisna).
             if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
@@ -171,11 +193,15 @@ public class NotificationService {
             }
             String pTitle = title;
             String pBody = pushBody;
+            if (previewRequiresOptIn && (pref == null || !pref.isMessagePreview())) {
+                pBody = body; // onizleme izni yok: sabit "Yeni mesaj"
+            }
             if (type == NotificationType.MESSAGE) {
                 if (!gate.allowMessagePush(userId, key == null ? "msg" : key)) {
                     return; // ayni sohbet pencerede / dakikalik ust sinir
                 }
-                if (count > 1) {
+                // Onizleme izni olan kullanici son mesajin metnini gorur; digerleri "N yeni mesaj"
+                if (count > 1 && java.util.Objects.equals(pBody, body)) {
                     pBody = i18n.msg("notif.message.many", i18n.langOf(userId), String.valueOf(count));
                 }
             } else {

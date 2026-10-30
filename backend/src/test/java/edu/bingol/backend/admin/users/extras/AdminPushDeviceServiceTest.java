@@ -54,6 +54,28 @@ class AdminPushDeviceServiceTest {
     }
 
     @Test
+    void listShowsLastPushStatusAndErrorCodePerDeviceWithoutContent() {
+        edu.bingol.backend.notification.outbox.PushOutboxRepository outbox =
+                mock(edu.bingol.backend.notification.outbox.PushOutboxRepository.class);
+        service.setOutbox(outbox);
+        when(users.findById(5L)).thenReturn(Optional.of(new User()));
+        when(devices.findByUserIdOrderByUpdatedAtDesc(5L)).thenReturn(List.of(device(1, 5, TOKEN), device(2, 5, TOKEN + "x")));
+        edu.bingol.backend.notification.outbox.PushOutbox dead = new edu.bingol.backend.notification.outbox.PushOutbox();
+        dead.setDeviceId(1L);
+        dead.setStatus(edu.bingol.backend.notification.outbox.PushOutboxStatus.DEAD);
+        dead.setErrorCode("THIRD_PARTY_AUTH_ERROR");
+        dead.setPayloadJson("{\"title\":\"GIZLI BASLIK\"}");
+        when(outbox.latestForDevices(List.of(1L, 2L))).thenReturn(List.of(dead));
+
+        List<PushDeviceInfo> out = service.list(5L);
+
+        assertEquals("DEAD", out.get(0).lastPushStatus());
+        assertEquals("THIRD_PARTY_AUTH_ERROR", out.get(0).lastPushErrorCode());
+        assertEquals(null, out.get(1).lastPushStatus()); // hic push denenmemis cihaz
+        assertFalse(out.toString().contains("GIZLI BASLIK"));
+    }
+
+    @Test
     void shortTokensRevealAtMostAQuarter() {
         assertEquals("", AdminPushDeviceService.tail(null));
         assertEquals("", AdminPushDeviceService.tail(""));

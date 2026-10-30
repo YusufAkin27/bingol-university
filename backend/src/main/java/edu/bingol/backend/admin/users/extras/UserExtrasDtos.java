@@ -29,7 +29,14 @@ public final class UserExtrasDtos {
 
     /** FCM cihazi: token ASLA tam donmez, yalniz son 6 karakter. */
     public record PushDeviceInfo(Long id, String platform, String appVersion, String locale, String tokenTail,
-                                 String createdAt, String lastSeenAt) {}
+                                 String createdAt, String lastSeenAt, String lastPushStatus, String lastPushErrorCode,
+                                 String lastPushAt) {
+        /** Eski 7 alanli kurucu (son push sonucu yok). */
+        public PushDeviceInfo(Long id, String platform, String appVersion, String locale, String tokenTail,
+                              String createdAt, String lastSeenAt) {
+            this(id, platform, appVersion, locale, tokenTail, createdAt, lastSeenAt, null, null, null);
+        }
+    }
 
     public record NotificationRow(Long id, String type, String subtype, String title, String body, boolean read,
                                   int groupCount, String createdAt, String readAt) {}

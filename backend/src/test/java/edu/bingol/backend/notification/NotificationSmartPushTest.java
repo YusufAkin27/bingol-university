@@ -212,4 +212,80 @@ class NotificationSmartPushTest {
         assertNotNull(follow.data().get("channelId"));
         assertNull(admission.data().get("collapseKey"));
     }
+
+    // ---- P1: push yuku, onizleme izni, sohbet okununca, dakikalik sinirlar ----
+
+    @Test
+    void payloadCarriesTagBadgeTtlAndNoCollapseSideEffects() {
+        when(notifications.countByUserIdAndReadAtIsNull(1L)).thenReturn(4L);
+
+        svc.sendNewMessage(1L, "Ali", null, CONV, true, Map.of("senderName", "Ali"));
+
+        PushMessage m = fcm.messages().get(0);
+        assertEquals("conv:5", m.data().get("tag"));
+        assertEquals("4", m.data().get("badge"));
+        assertEquals("Ali", m.data().get("senderName"));
+        assertEquals(7 * 86_400, m.ttlSeconds());
+        assertEquals(Integer.valueOf(4), m.badge());
+    }
+
+    @Test
+    void ttlIsShortForRemindersAndSocial() {
+        assertEquals(6 * 3600, PushMessages.ttlSeconds(NotificationType.EVENT, NotificationSubtype.EVENT_REMINDER));
+        assertEquals(86_400, PushMessages.ttlSeconds(NotificationType.POST_LIKE, null));
+        assertEquals(3 * 86_400, PushMessages.ttlSeconds(NotificationType.NEWS, null));
+        assertEquals(7 * 86_400, PushMessages.ttlSeconds(NotificationType.SYSTEM, null));
+    }
+
+    @Test
+    void previewRequiringOptInIsHiddenUntilTheUserTurnsItOn() {
+        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
+
+        svc.sendNewMessage(1L, "Ali", "gizli metin", true, CONV, true, null); // tercih satiri yok -> kapali
+        assertEquals("Yeni mesaj", fcm.messages().get(0).body());
+
+        NotificationPref p = NotificationPref.defaults(1L);
+        p.setMessagePreview(true);
+        when(prefs.findById(1L)).thenReturn(Optional.of(p));
+        svc.sendNewMessage(1L, "Ali", "gizli metin", true, Map.of("conversationId", "6", "conversationType", "DIRECT"),
+                true, null);
+        assertEquals("gizli metin", fcm.messages().get(1).body());
+    }
+
+    @Test
+    void globalPreviewPathIgnoresTheOptInPreference() {
+        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
+
+        svc.sendNewMessage(1L, "Ali", "gizli metin", CONV, true, null); // eski sozlesme: arayan karar verir
+
+        assertEquals("gizli metin", fcm.messages().get(0).body());
+    }
+
+    @Test
+    void messagesAreNotDebouncedByDefaultWindowAndHaveTheirOwnMinuteCap() {
+        PushGate gate = new PushGate(store, 0, 2, 5); // pencere yok; genel sinir 2, mesaj siniri 5
+        PushDispatcher dispatcher = new PushDispatcher(fcm, devices, Runnable::run, (task, ms) -> { });
+        NotificationService s2 = new NotificationService(notifications, prefs, subtypePrefs, devices, dispatcher, i18n,
+                gate, guard);
+        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
+        when(i18n.msg(org.mockito.ArgumentMatchers.eq("notif.message.many"), org.mockito.ArgumentMatchers.eq(Lang.TR),
+                org.mockito.ArgumentMatchers.any(Object[].class))).thenReturn("N yeni mesaj");
+
+        for (int i = 0; i < 4; i++) {
+            s2.sendNewMessage(1L, "Ali", null, CONV);
+        }
+        assertEquals(4, fcm.messages().size()); // ayni sohbetin art arda 4 mesaji da push aldi
+
+        // genel sayac mesajlarca tuketilmedi: haber push'u hala gider
+        s2.send(1L, NotificationType.ANNOUNCEMENT, "T", "B", Map.of());
+        assertEquals(5, fcm.messages().size());
+    }
+
+    @Test
+    void markConversationReadClosesTheConvRow() {
+        svc.markConversationRead(1L, 5L);
+
+        verify(notifications).markReadByCollapseKey(org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.eq("conv:5"), any(Instant.class));
+    }
 }

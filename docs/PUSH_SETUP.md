@@ -68,13 +68,16 @@ iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (pl
 | `enabled=false` | `FCM_CREDENTIALS_JSON`/`FILE` boş ya da geçersiz |
 | Android geliyor, iOS gelmiyor | APNs anahtarı Firebase'e yüklenmemiş / bundle id uyuşmuyor |
 | `failures` artıyor | FCM kotası/ağ; 3 yeniden denemeden sonra vazgeçilir |
+| iOS kullanıcılarına hiç gitmiyor, panelde hata yok gibi | APNs anahtarı eksik/yanlış: `GET /actuator/health` > `pushQueue.details.errorCodes` içinde `THIRD_PARTY_AUTH_ERROR`; Yönetici > Push işlemleri hata listesinde aynı kod. Anahtarı yükledikten sonra `POST /api/admin/push/outbox/retry-dead` |
+| Tek bir kullanıcıya gitmiyor | `GET /api/admin/users/{id}/push-devices`: cihaz kaydı var mı, `lastPushStatus`/`lastPushErrorCode` ne. Kayıt yoksa istemci kaydolmuyordur (girişte kayıtlar silinir, yeniden kayıt şart); `UNREGISTERED` ise token geçersizleşmiştir (uygulama yeniden açılınca yenilenir) |
+| Uygulama kapalıyken mesaj geç geliyor | Android üreticisinde (Xiaomi/Oppo/Huawei/Vivo) "kaydırarak kapatma" uygulamayı zorla durdurur, FCM teslim etmez; kullanıcı otomatik başlatmayı/pil kısıtlamasızlığı açmalı. Sunucu tarafında: yüksek öncelik + `ttl` gönderilir, mesaj push'u çevrimiçilik durumundan bağımsızdır |
 | Bildirim kutusunda var, push yok | Sessiz saat, tercih kapalı ya da cihaz kaydı yok |
 
 ## Akıllı bildirim ve doğrulama
 
 - Kimlik doğrulaması: yönetici olarak `POST /api/admin/push/fcm/validate` (kuru çalıştırma, cihaza gitmez). `validated=true` kimlik+proje+yetkinin geçerli olduğunu gösterir; `error` kodu (`UNAUTHENTICATED`, `PERMISSION_DENIED`...) nedeni verir. `GET .../status` yalnız kimliğin yüklenip yüklenmediğini ve Firebase proje kimliğini söyler.
 - Android kanalları: `chat`, `event`, `announcement`, `poll`, `social`; sohbet bastırma için istemci `PUT/DELETE /api/conversations/{id}/viewing` ve `PUT /api/devices/{fcmToken}/state` çağırır. Ayrıntı: `docs/changes/push.md`.
-- Ayarlar: `app.push.message-window-seconds` (20), `app.push.max-per-minute` (10), `app.push.message-preview` (false).
+- Ayarlar: `app.push.message-window-seconds` (0), `app.push.max-per-minute` (10), `app.push.max-messages-per-minute` (60), `app.push.message-skip-foreground` (false), `app.push.message-preview` (false; global), `app.push.message-preview-optin` (true; kullanıcı tercihi `messagePreview`). Ayrıntı: `docs/changes/push.md` "P1".
 
 ## 6. `google-services.json` API anahtarını kısıtlama (Google Cloud Console)
 

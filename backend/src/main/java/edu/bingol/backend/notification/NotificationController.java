@@ -49,7 +49,9 @@ public class NotificationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void registerDevice(@Valid @RequestBody DeviceRequest r) {
         Long uid = CurrentUser.id();
-        limiter.check("dev-reg:" + uid, 30, Duration.ofHours(1));
+        // Uygulama her acilista/token yenilemede kaydolur: dar sinir (eski 30/sa) 429 ile kaydi dusurup kullaniciyi
+        // push'suz birakabilirdi. Silme sayaci ayri tutulur.
+        limiter.check("dev-reg:" + uid, 120, Duration.ofHours(1));
         devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale());
     }
 
@@ -62,7 +64,7 @@ public class NotificationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unregisterDevice(@PathVariable String token) {
         Long uid = CurrentUser.id();
-        limiter.check("dev-reg:" + uid, 30, Duration.ofHours(1));
+        limiter.check("dev-unreg:" + uid, 60, Duration.ofHours(1));
         devices.unregister(uid, token);
     }
 

@@ -93,23 +93,24 @@ public class FirebaseFcmSender implements FcmSender {
         List<String> all = new ArrayList<>(tokens);
         List<String> invalid = new ArrayList<>();
         List<String> retryable = new ArrayList<>();
+        List<String> permanent = new ArrayList<>();
         Map<String, String> codes = new java.util.HashMap<>();
         for (int i = 0; i < all.size(); i += BATCH) {
             List<String> batch = all.subList(i, Math.min(i + BATCH, all.size()));
             try {
                 BatchResponse res = messaging.sendEachForMulticast(toMulticast(batch, m));
-                collect(batch, res.getResponses(), invalid, retryable, codes);
+                collect(batch, res.getResponses(), invalid, retryable, permanent, codes);
             } catch (FirebaseMessagingException | RuntimeException e) {
                 log.warn("FCM toplu gonderimi basarisiz: {}", FcmErrorDetail.of(e));
                 retryable.addAll(batch);
                 batch.forEach(t -> codes.put(t, "UNAVAILABLE"));
             }
         }
-        return new SendResult(invalid, retryable, codes);
+        return new SendResult(invalid, retryable, codes, permanent);
     }
 
     private static void collect(List<String> batch, List<SendResponse> responses, List<String> invalid,
-                                List<String> retryable, Map<String, String> codes) {
+                                List<String> retryable, List<String> permanent, Map<String, String> codes) {
         for (int j = 0; j < responses.size(); j++) {
             SendResponse r = responses.get(j);
             if (r.isSuccessful() || r.getException() == null) {
@@ -126,7 +127,14 @@ public class FirebaseFcmSender implements FcmSender {
                     retryable.add(batch.get(j));
                     codes.put(batch.get(j), code);
                 }
-                default -> log.warn("FCM kalici hata: {}", ex.getMessagingErrorCode());
+                default -> {
+                    // THIRD_PARTY_AUTH_ERROR (APNs anahtari yok/yanlis), INVALID_ARGUMENT (yuk), yetki hatalari...
+                    // Eskiden yalniz log'lanip "gonderildi" sayiliyordu; simdi hata koduyla kaydedilir.
+                    permanent.add(batch.get(j));
+                    codes.put(batch.get(j), ex.getMessagingErrorCode() == null ? "UNKNOWN"
+                            : ex.getMessagingErrorCode().name());
+                    log.warn("FCM kalici hata: {}", ex.getMessagingErrorCode());
+                }
             }
         }
     }
@@ -141,26 +149,35 @@ public class FirebaseFcmSender implements FcmSender {
                 .build();
     }
 
-    private static AndroidConfig android(PushMessage m) {
+    static AndroidConfig android(PushMessage m) {
         AndroidNotification.Builder n = AndroidNotification.builder().setSound("default");
         if (m.channelId() != null) {
             n.setChannelId(m.channelId());
         }
+        // `tag`: ayni sohbetin yeni bildirimi eskisinin yerine gecer (cihazda). FCM `collapse_key` KASITLI gonderilmez:
+        // cevrimdisi cihazda >4 farkli anahtar tanimsiz davranis uretir ve mesaj dusurebilir.
         if (m.collapseKey() != null) {
             n.setTag(m.collapseKey());
         } else if (m.threadId() != null) {
             n.setTag(m.threadId());
         }
+        if (m.badge() != null && m.badge() >= 0) {
+            n.setNotificationCount(m.badge()); // baslatici rozeti (destekleyen Android'lerde)
+        }
+        if (m.highPriority()) {
+            n.setPriority(AndroidNotification.Priority.HIGH); // kanal onceligi olmayan eski surumlerde baslik ustu bildirim
+            n.setDefaultVibrateTimings(true);
+        }
         AndroidConfig.Builder b = AndroidConfig.builder()
                 .setPriority(m.highPriority() ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL)
                 .setNotification(n.build());
-        if (m.collapseKey() != null) {
-            b.setCollapseKey(m.collapseKey());
+        if (m.ttlSeconds() != null && m.ttlSeconds() >= 0) {
+            b.setTtl(m.ttlSeconds() * 1000L);
         }
         return b.build();
     }
 
-    private static ApnsConfig apns(PushMessage m) {
+    static ApnsConfig apns(PushMessage m) {
         Aps.Builder aps = Aps.builder().setSound("default").setMutableContent(true);
         if (m.badge() != null) {
             aps.setBadge(m.badge());
@@ -171,10 +188,17 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.category() != null) {
             aps.setCategory(m.category());
         }
+        if (!m.highPriority() && "social".equals(m.channelId())) {
+            aps.putCustomData("interruption-level", "passive"); // begeni/takip: ekrani uyandirmaz
+        }
         ApnsConfig.Builder b = ApnsConfig.builder()
                 .putHeader("apns-push-type", "alert")
                 .putHeader("apns-priority", m.highPriority() ? "10" : "5")
                 .setAps(aps.build());
+        if (m.ttlSeconds() != null && m.ttlSeconds() >= 0) {
+            // APNs son gecerlilik: mutlak UNIX zamani (sn); 0 = bir kez dene, saklama
+            b.putHeader("apns-expiration", String.valueOf(java.time.Instant.now().getEpochSecond() + m.ttlSeconds()));
+        }
         if (m.collapseKey() != null && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
             b.putHeader("apns-collapse-id", m.collapseKey());
         }

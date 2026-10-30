@@ -44,6 +44,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         return markReadAt(userId, ids, Instant.now());
     }
 
+    /** Belirli birlesme anahtarli (ornek `conv:5`) okunmamis satirlari okundu yapar (sohbet okununca). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL AND n.collapseKey = :key")
+    int markReadByCollapseKey(@Param("uid") Long userId, @Param("key") String collapseKey, @Param("now") Instant now);
+
     @Transactional
     @Modifying
     @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL")

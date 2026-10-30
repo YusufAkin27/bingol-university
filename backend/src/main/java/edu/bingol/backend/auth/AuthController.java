@@ -8,6 +8,7 @@ import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.dto.LoginRequest;
 import edu.bingol.backend.auth.dto.MessageResponse;
+import edu.bingol.backend.auth.dto.LogoutRequest;
 import edu.bingol.backend.auth.dto.RefreshRequest;
 import edu.bingol.backend.auth.dto.RegisterRequest;
 import edu.bingol.backend.auth.dto.ResetPasswordRequest;
@@ -194,8 +195,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@Valid @RequestBody RefreshRequest r) {
-        auth.logout(r.refreshToken());
+    public void logout(@Valid @RequestBody LogoutRequest r) {
+        auth.logout(r.refreshToken(), r.fcmToken());
     }
 
     @PostMapping("/logout-all")

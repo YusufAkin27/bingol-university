@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 /**
  * Push yigilmasini onler: ayni sohbet icin pencere (debounce) ve kullanici basina dakikalik ust sinir.
  * Uygulama ici kayit bundan etkilenmez, yalniz push atlanir. Redis erisilemezse acik (push gider).
+ * Sohbet mesajlarinin kendi (daha yuksek) dakikalik siniri vardir ve diger turlerin sayacini tuketmez; mesaj penceresi
+ * varsayilan olarak kapalidir (0): her mesaj kendi push'unu alir, Android `tag` / iOS `apns-collapse-id` ayni sohbetin
+ * bildirimini cihazda tek satira indirir.
  */
 @Component
 public class PushGate {
@@ -28,23 +31,32 @@ public class PushGate {
     }
 
     /** Hicbir sinir uygulamaz (birim testler). */
-    public static final PushGate OPEN = new PushGate((Store) null, 0, 0);
+    public static final PushGate OPEN = new PushGate((Store) null, 0, 0, 0);
 
     private final Store store;
     private final Duration window;
     private final int maxPerMinute;
+    /** Mesaj push'u icin ayri dakikalik sinir; 0 ise mesajlar genel sayaci paylasir (eski davranis). */
+    private final int maxMessagesPerMinute;
 
     @Autowired
     public PushGate(ObjectProvider<StringRedisTemplate> redis,
-                    @Value("${app.push.message-window-seconds:20}") int windowSeconds,
-                    @Value("${app.push.max-per-minute:10}") int maxPerMinute) {
-        this(redis.getIfAvailable() == null ? null : new RedisStore(redis.getIfAvailable()), windowSeconds, maxPerMinute);
+                    @Value("${app.push.message-window-seconds:0}") int windowSeconds,
+                    @Value("${app.push.max-per-minute:10}") int maxPerMinute,
+                    @Value("${app.push.max-messages-per-minute:60}") int maxMessagesPerMinute) {
+        this(redis.getIfAvailable() == null ? null : new RedisStore(redis.getIfAvailable()), windowSeconds, maxPerMinute,
+                maxMessagesPerMinute);
     }
 
     public PushGate(Store store, int windowSeconds, int maxPerMinute) {
+        this(store, windowSeconds, maxPerMinute, 0);
+    }
+
+    public PushGate(Store store, int windowSeconds, int maxPerMinute, int maxMessagesPerMinute) {
         this.store = store;
         this.window = Duration.ofSeconds(Math.max(0, windowSeconds));
         this.maxPerMinute = maxPerMinute;
+        this.maxMessagesPerMinute = Math.max(0, maxMessagesPerMinute);
     }
 
     /**
@@ -58,6 +70,9 @@ public class PushGate {
         try {
             if (!window.isZero() && !store.setIfAbsent("pushwin:" + userId + ":" + conversationKey, window)) {
                 return false;
+            }
+            if (maxMessagesPerMinute > 0) {
+                return store.incr("pushmsgcap:" + userId, Duration.ofMinutes(1)) <= maxMessagesPerMinute;
             }
             return underCap(userId);
         } catch (RuntimeException e) {

@@ -56,6 +56,12 @@ public class PushOutboxWorker {
     private final int batchSize;
     private final int maxAttempts;
     private final Duration maxAge;
+    /** Farkli yuklu gruplari es zamanli gondermek icin (FCM cagrisi G/C bagimlidir). */
+    private final ExecutorService sendPool = Executors.newFixedThreadPool(4, r -> {
+        Thread t = new Thread(r, "push-outbox-send");
+        t.setDaemon(true);
+        return t;
+    });
     private final ExecutorService nudgeExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "push-outbox-nudge");
         t.setDaemon(true);
@@ -170,8 +176,21 @@ public class PushOutboxWorker {
                 groups.computeIfAbsent(r.getPayloadJson(), k -> new ArrayList<>()).add(r);
             }
         }
-        for (Map.Entry<String, List<PushOutbox>> g : groups.entrySet()) {
-            sendGroup(g.getKey(), g.getValue(), byId, now);
+        if (groups.size() <= 1) {
+            groups.forEach((payload, list) -> sendGroup(payload, list, byId, now));
+        } else {
+            // Alici basina farkli yuk (sohbet mesajlari): her grup ayri FCM cagrisi. Ardisik gonderim 500 uyeli bir
+            // grupta dakikalarca surerdi; sinirli esdegerlikle gonderilir (gruplar ayri satirlari degistirir).
+            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
+            groups.forEach((payload, list) -> tasks.add(() -> {
+                sendGroup(payload, list, byId, now);
+                return null;
+            }));
+            try {
+                sendPool.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         repo.saveAll(rows);
     }
@@ -194,6 +213,7 @@ public class PushOutboxWorker {
                 SendResult res = fcm.deliver(byToken.keySet(), message);
                 Set<String> invalid = new HashSet<>(res.invalid() == null ? List.of() : res.invalid());
                 Set<String> retry = new HashSet<>(res.retryable() == null ? List.of() : res.retryable());
+                Set<String> permanent = new HashSet<>(res.permanent() == null ? List.of() : res.permanent());
                 Map<String, String> codes = res.codes() == null ? Map.of() : res.codes();
                 if (!invalid.isEmpty()) {
                     devices.deleteByFcmTokenIn(invalid);
@@ -201,6 +221,9 @@ public class PushOutboxWorker {
                 byToken.forEach((token, list) -> list.forEach(r -> {
                     if (invalid.contains(token)) {
                         dead(r, "UNREGISTERED: cihaz kaydi silindi", codes.getOrDefault(token, "UNREGISTERED"));
+                    } else if (permanent.contains(token)) {
+                        // THIRD_PARTY_AUTH_ERROR (APNs anahtari), INVALID_ARGUMENT vb.: gonderilmedi, "SENT" sayilmaz
+                        dead(r, "kalici FCM hatasi", codes.getOrDefault(token, "PERMANENT"));
                     } else if (retry.contains(token)) {
                         failed(r, "gecici FCM hatasi", now, codes.getOrDefault(token, "UNAVAILABLE"));
                     } else {
@@ -216,7 +239,25 @@ public class PushOutboxWorker {
         }
     }
 
+    /** Surec basindan beri hata kodu sayaclari (saglik gostergesi / teshis; kalici degil). */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.LongAdder> errorCodes =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private void countError(String code) {
+        if (code != null) {
+            errorCodes.computeIfAbsent(code, k -> new java.util.concurrent.atomic.LongAdder()).increment();
+        }
+    }
+
+    /** Hata kodu -> adet (surec basindan beri; en cok 50 kod). */
+    public Map<String, Long> errorCodeCounts() {
+        Map<String, Long> out = new java.util.TreeMap<>();
+        errorCodes.forEach((k, v) -> out.put(k, v.sum()));
+        return out;
+    }
+
     private void failed(PushOutbox r, String error, Instant now, String errorCode) {
+        countError(errorCode);
         r.markFailed(error, now, maxAttempts);
         r.setErrorCode(errorCode);
         metrics.counter("push.outbox.failed").increment();
@@ -227,6 +268,7 @@ public class PushOutboxWorker {
     }
 
     private void dead(PushOutbox r, String reason, String errorCode) {
+        countError(errorCode);
         r.markDead(reason);
         r.setErrorCode(errorCode);
         metrics.counter("push.outbox.dead").increment();
@@ -239,5 +281,6 @@ public class PushOutboxWorker {
     @PreDestroy
     void shutdown() {
         nudgeExecutor.shutdown();
+        sendPool.shutdown();
     }
 }

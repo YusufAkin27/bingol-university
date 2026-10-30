@@ -2,6 +2,7 @@ package edu.bingol.backend.messaging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -270,7 +271,7 @@ class MessageServiceTest {
         ArgumentCaptor<List<Long>> to = ArgumentCaptor.forClass(List.class);
         verify(bus).publish(eq("messages"), to.capture(), any(MessageView.class));
         assertEquals(List.of(ME, PEER), to.getValue());
-        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any(), eq(true)); // onizleme kapali: metin yok
+        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any(), eq(true), any()); // onizleme kapali: metin yok
     }
 
     @Test
@@ -284,7 +285,7 @@ class MessageServiceTest {
         assertEquals(CONV, draft.getValue().getConversationId());
         assertEquals(ME, draft.getValue().getSenderId());
         assertEquals("c1", draft.getValue().getClientId());
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any(), eq(true));
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any(), eq(true), any());
     }
 
     @Test
@@ -296,7 +297,7 @@ class MessageServiceTest {
         withPreview.send(ME, CONV, "a".repeat(150), "c9");
 
         ArgumentCaptor<String> prev = ArgumentCaptor.forClass(String.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any(), eq(true));
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any(), eq(true), any());
         assertEquals(101, prev.getValue().length()); // 100 karakter + "..."
     }
 
@@ -313,12 +314,13 @@ class MessageServiceTest {
     }
 
     @Test
-    void onlineRecipientGetsNoPushNotification() {
+    void onlineButNotViewingRecipientStillGetsPush() {
+        // WS acik gorunse de uygulama arka planda donmus olabilir (sunucu 30-60 sn "cevrimici" gorur): push gitmeli
         when(presence.onlineAmong(any())).thenReturn(Set.of(PEER));
 
         service.send(ME, CONV, "selam", "c1");
 
-        verifyNoInteractions(notifications);
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
     }
 
     @Test
@@ -370,14 +372,14 @@ class MessageServiceTest {
 
         verify(notifications, never()).sendBulk(any(), any(), anyString(), anyString(), any());
         for (Long id : others) {
-            verify(notifications).sendNewMessage(eq(id), anyString(), any(), any(), eq(true)); // her aliciya kendi tercihiyle
+            verify(notifications).sendNewMessage(eq(id), anyString(), any(), any(), eq(true), any()); // her aliciya kendi tercihiyle
         }
-        verify(notifications, never()).sendNewMessage(eq(ME), anyString(), any(), any(), anyBoolean());
+        verify(notifications, never()).sendNewMessage(eq(ME), anyString(), any(), any(), anyBoolean(), any());
     }
 
     @Test
-    void recipientViewingThisConversationGetsNoNotificationAtAll() {
-        when(presence.onlineAmong(any())).thenReturn(Set.of());
+    void recipientViewingThisConversationWithLiveSocketGetsNoNotificationAtAll() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of(PEER));
         when(presence.viewingAmong(any(), eq(CONV))).thenReturn(Set.of(PEER));
 
         service.send(ME, CONV, "selam", "c1");
@@ -386,13 +388,84 @@ class MessageServiceTest {
     }
 
     @Test
-    void foregroundRecipientGetsInAppRowButNoPush() {
+    void staleViewingKeyWithoutSocketDoesNotSwallowThePush() {
+        // Uygulama sohbet acikken oldurulduyse `viewing:` anahtari 45 sn daha kalir; WS yoksa push gitmeli
         when(presence.onlineAmong(any())).thenReturn(Set.of());
+        when(presence.viewingAmong(any(), eq(CONV))).thenReturn(Set.of(PEER));
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+    }
+
+    @Test
+    void foregroundRecipientIsStillPushedByDefault() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of(PEER));
         when(presence.foregroundAmong(any())).thenReturn(Set.of(PEER));
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(false));
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+    }
+
+    @Test
+    void skipForegroundSettingKeepsForegroundSocketUsersInboxOnly() {
+        service.setSkipForegroundPush(true);
+        when(presence.onlineAmong(any())).thenReturn(Set.of(PEER));
+        when(presence.foregroundAmong(any())).thenReturn(Set.of(PEER));
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(false), any());
+    }
+
+    @Test
+    void foregroundFlagWithoutSocketIsNeverTrustedEvenWhenSkipIsOn() {
+        service.setSkipForegroundPush(true);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+        when(presence.foregroundAmong(any())).thenReturn(Set.of(PEER)); // 90 sn'lik bayat anahtar
+
+        service.send(ME, CONV, "selam", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+    }
+
+    @Test
+    void pushExtrasCarrySenderNameAndGroupTitleButNotAvatarWithoutVisibility() {
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "selam", "c1");
+
+        ArgumentCaptor<Map<String, String>> extra = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), extra.capture());
+        assertEquals("Ali", extra.getValue().get("senderName"));
+        assertNull(extra.getValue().get("senderAvatarUrl"));
+    }
+
+    @Test
+    void optInPreviewModePassesPreviewWithOptInFlag() {
+        service.setPreviewOptIn(true);
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "gizli metin", "c1");
+
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), eq("gizli metin"), eq(true), any(), eq(true), any());
+    }
+
+    @Test
+    void readingToTheEndMarksTheConversationNotificationRead() {
+        when(members.advanceRead(CONV, ME, 50L)).thenReturn(1);
+
+        service.markRead(ME, CONV, 50L);
+        verify(notifications).markConversationRead(ME, CONV);
+    }
+
+    @Test
+    void readingBeforeTheEndKeepsTheNotificationUnread() {
+        when(members.advanceRead(CONV, ME, 40L)).thenReturn(1);
+
+        service.markRead(ME, CONV, 40L);
+        verify(notifications, never()).markConversationRead(anyLong(), anyLong());
     }
 
     @Test
@@ -429,7 +502,7 @@ class MessageServiceTest {
         service.send(ME, CONV, "selam", "c1");
 
         ArgumentCaptor<Map<String, String>> d = ArgumentCaptor.forClass(Map.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), d.capture(), eq(true));
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), d.capture(), eq(true), any());
         assertEquals("DIRECT", d.getValue().get("conversationType"));
     }
 
@@ -640,7 +713,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true));
+        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
     }
 
     @Test
