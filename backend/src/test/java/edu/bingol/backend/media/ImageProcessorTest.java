@@ -179,4 +179,24 @@ class ImageProcessorTest {
         }
         ex.shutdown();
     }
+
+    @Test
+    void chatThumbCoversSquareCropAtBubbleSize() throws Exception {
+        // 4:3 -> kisa kenar 720 (uzun 960); balon 224 dp x DPR 3 = 672 px kare kirpma icin yeter
+        ProcessedImage c = proc.process(ImageFixtures.encode(ImageFixtures.gradient(2000, 1500), "jpg"), ImageKind.CHAT);
+        assertEquals(1600, c.width());
+        assertEquals(960, decode(c.thumb()).getWidth());
+        assertEquals(960, c.thumbEdge());
+        // 2:1 -> uzun kenar 1280 ile sinirli
+        ProcessedImage wide = proc.process(ImageFixtures.encode(ImageFixtures.gradient(2400, 1200), "jpg"), ImageKind.CHAT);
+        assertEquals(1280, wide.thumbEdge());
+        // kucuk kaynak buyutulmez
+        ProcessedImage small = proc.process(ImageFixtures.encode(ImageFixtures.gradient(400, 600), "jpg"), ImageKind.CHAT);
+        assertEquals(600, small.thumbEdge());
+        // diger turler degismedi
+        ProcessedImage av = proc.process(ImageFixtures.encode(ImageFixtures.gradient(2000, 1000), "jpg"), ImageKind.AVATAR);
+        assertEquals(320, av.thumbEdge());
+        assertEquals(1280, ImageProcessor.chatThumbEdge(3000, 1000, 320));
+        assertEquals(720, ImageProcessor.chatThumbEdge(720, 720, 320));
+    }
 }

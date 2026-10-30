@@ -420,7 +420,7 @@ public class PrivateMediaStore {
         write(bucket, key, img.data());
         write(bucket, thumbKey, img.thumb());
         return new PrivateMedia(bucket, key, thumbKey, img.width(), img.height(), img.data().length,
-                img.contentType());
+                img.contentType(), img.thumbEdge());
     }
 
     /**

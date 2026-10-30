@@ -191,6 +191,7 @@ public class MessageAttachmentService {
             a.setUploaderId(userId);
             a.setStorageKey(pm.key());
             a.setThumbKey(pm.thumbKey());
+            a.setThumbEdge(pm.thumbEdge() > 0 ? pm.thumbEdge() : null);
             a.setWidth(pm.width());
             a.setHeight(pm.height());
             a.setBytes(pm.bytes());

@@ -8,7 +8,15 @@ package edu.bingol.backend.messaging.media;
  */
 public record AttachmentView(Long id, String kind, Integer width, Integer height, long bytes, String contentType,
                              boolean removed, String url, String thumbUrl, boolean viewOnce, boolean viewed,
-                             Integer durationMs, long sizeBytes) {
+                             Integer durationMs, long sizeBytes, Integer thumbEdge) {
+
+    /** Eski 13 alanli kurucu: `thumbEdge` bilinmiyor (null = eski kayit, istemci 320 px varsayar). */
+    public AttachmentView(Long id, String kind, Integer width, Integer height, long bytes, String contentType,
+                          boolean removed, String url, String thumbUrl, boolean viewOnce, boolean viewed,
+                          Integer durationMs, long sizeBytes) {
+        this(id, kind, width, height, bytes, contentType, removed, url, thumbUrl, viewOnce, viewed, durationMs,
+                sizeBytes, null);
+    }
 
     public AttachmentView(Long id, String kind, int width, int height, long bytes, String contentType,
                           boolean removed, String url, String thumbUrl) {
@@ -38,12 +46,12 @@ public record AttachmentView(Long id, String kind, Integer width, Integer height
         if (!a.isViewOnce()) {
             return new AttachmentView(a.getId(), a.getKind(), dim(a, a.getWidth()), dim(a, a.getHeight()), a.getBytes(),
                     a.getContentType(), false, base, a.getThumbKey() == null ? null : base + "/thumb", false, false,
-                    a.getDurationMs(), a.getBytes());
+                    a.getDurationMs(), a.getBytes(), a.isVideo() ? null : a.getThumbEdge());
         }
         boolean sender = a.getUploaderId().equals(viewerId);
         boolean openable = viewerId != null && !sender && !viewed && a.getPurgedAt() == null;
         return new AttachmentView(a.getId(), a.getKind(), dim(a, a.getWidth()), dim(a, a.getHeight()), a.getBytes(),
-                a.getContentType(), false, openable ? base : null, null, true, viewed, a.getDurationMs(), a.getBytes());
+                a.getContentType(), false, openable ? base : null, null, true, viewed, a.getDurationMs(), a.getBytes(), null);
     }
 
     /** Gonderenin gorunumunden aliciya: tek gosterimlik ek acilabilir (henuz acmadi). */
@@ -52,7 +60,7 @@ public record AttachmentView(Long id, String kind, Integer width, Integer height
             return this;
         }
         return new AttachmentView(id, kind, width, height, bytes, contentType, false, base(conversationId, id), null,
-                true, false, durationMs, sizeBytes);
+                true, false, durationMs, sizeBytes, null);
     }
 
     private static String base(Long conversationId, Long attachmentId) {

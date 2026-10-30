@@ -1877,6 +1877,10 @@
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
+          "thumbEdge" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "thumbUrl" : {
             "type" : [ "string", "null" ]
           },

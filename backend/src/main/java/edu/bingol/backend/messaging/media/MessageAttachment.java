@@ -45,6 +45,9 @@ public class MessageAttachment {
     @Column(nullable = false)
     private int height;
 
+    /** Kucuk resmin gercek uzun kenari (px); null = eski kayit (320 px varsayilir). Istemci balon kaynagini bununla secer. */
+    private Integer thumbEdge;
+
     @Column(nullable = false)
     private long bytes;
 

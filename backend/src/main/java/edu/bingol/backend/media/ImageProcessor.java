@@ -35,6 +35,12 @@ public class ImageProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(ImageProcessor.class);
     private static final int MIN_QUALITY = 40;
+    /**
+     * Sohbet gorseli kucuk resmi: balon SABIT KARE (~224 dp, BoxFit.cover = merkezden kirpma) oldugundan kucuk resmin
+     * KISA kenari ~720 px (224 dp x DPR 3.2) olmali; uzun kenar 1280 px ile sinirli (veri). 320 px bulaniklastirirdi.
+     */
+    static final int CHAT_THUMB_SHORT = 720;
+    static final int CHAT_THUMB_LONG_CAP = 1280;
     private static final int MIN_EDGE = 64;
     private static final int MAX_DIMENSION = 30_000;
 
@@ -160,10 +166,17 @@ public class ImageProcessor {
                         "Görsel yeterince sıkıştırılamadı. Daha basit veya küçük bir görsel deneyin.");
             }
             // Gonderi gorseli onizlemesi en az 480 px (akis kartlari icin)
-            int thumbDim = kind == ImageKind.FEED ? Math.max(props.thumbDimension(), 480) : props.thumbDimension();
+            // Sohbet gorseli balonda ~250 dp x DPR (~750-900 px) cizilir: 320 px'lik kucuk resim bulaniklastirirdi
+            int thumbDim = switch (kind) {
+                case FEED -> Math.max(props.thumbDimension(), 480);
+                case CHAT -> chatThumbEdge(main.getWidth(), main.getHeight(), props.thumbDimension());
+                default -> props.thumbDimension();
+            };
             BufferedImage thumb = scaleTo(main, thumbDim);
-            return new ProcessedImage(out, encode(thumb, alpha, 0.8f), main.getWidth(), main.getHeight(),
-                    alpha ? "image/png" : "image/jpeg", alpha ? "png" : "jpg");
+            float thumbQ = kind == ImageKind.CHAT ? 0.82f : 0.8f;
+            return new ProcessedImage(out, encode(thumb, alpha, thumbQ), main.getWidth(), main.getHeight(),
+                    alpha ? "image/png" : "image/jpeg", alpha ? "png" : "jpg",
+                    Math.max(thumb.getWidth(), thumb.getHeight()));
         } catch (ApiException e) {
             throw e;
         } catch (IOException | RuntimeException e) {
@@ -190,6 +203,14 @@ public class ImageProcessor {
             r.dispose();
         }
         return null;
+    }
+
+    /** Sohbet kucuk resminin uzun kenari: kisa kenar {@link #CHAT_THUMB_SHORT}'e yetecek kadar, en cok {@link #CHAT_THUMB_LONG_CAP}. */
+    static int chatThumbEdge(int w, int h, int minEdge) {
+        int longE = Math.max(w, h);
+        int shortE = Math.max(1, Math.min(w, h));
+        long need = Math.round((double) CHAT_THUMB_SHORT * longE / shortE);
+        return (int) Math.max(minEdge, Math.min(CHAT_THUMB_LONG_CAP, need));
     }
 
     private static ApiException corrupt() {
