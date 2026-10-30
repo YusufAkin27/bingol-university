@@ -1,5 +1,8 @@
 /// Hangi GET uçları diske yazılır ve ne kadar süre geçerlidir.
 ///
+/// Taze tutma süresi ([freshFor]): önbellekteki yanıt bu süreden genç ise AĞA HİÇ GİDİLMEZ (ekranlar her açılışta
+/// aynı veriyi yeniden çekmesin); süre dolunca ETag/304 ile doğrulanır. Kullanıcı çekip yenilerse (`force`) süre yok sayılır.
+///
 /// Karar: yalnız herkese açık ya da kullanıcının kendi "listeleme/profil" verisi diske gider.
 /// Diske YAZILMAYANLAR: sohbet mesajları ve sohbet listesi (son mesaj önizlemesi içerir),
 /// auth uçları, doğrulama/QR kodları, destek talepleri, engellenenler, veri dışa aktarma,
@@ -32,6 +35,34 @@ class CachePolicy {
     (RegExp(r'^/discover($|/)'), _hour * 12),
     (RegExp(r'^/posts($|/)'), _hour * 12),
   ];
+
+  /// Sabit veri (akademik katalog, sözleşmeler, SSS, kategoriler): günde bir doğrulanır.
+  static const staticFresh = Duration(hours: 24);
+
+  /// Günlük veri (menü, haber/duyuru, etkinlik/kulüp listeleri): 20 dk. Canlı veri (sohbet, bildirim, özet,
+  /// takvim/sınav, favori, profil) için TANIMSIZ: her açılışta doğrulanır.
+  static const dailyFresh = Duration(minutes: 20);
+
+  static final List<(RegExp, Duration)> _fresh = [
+    (RegExp(r'^/catalog/'), staticFresh),
+    (RegExp(r'^/faq($|/)'), staticFresh),
+    (RegExp(r'^/legal($|/(?!acceptance-status))'), staticFresh), // onay durumu canlı: her seferinde sorulur
+    (RegExp(r'^/communities/categories$'), staticFresh),
+    (RegExp(r'^/menu($|/)'), dailyFresh),
+    (RegExp(r'^/news($|/)'), dailyFresh),
+    (RegExp(r'^/events/(featured|calendar)$'), dailyFresh),
+    (RegExp(r'^/events$'), dailyFresh),
+    (RegExp(r'^/communities$'), dailyFresh),
+  ];
+
+  /// Ağa gitmeden doğrudan sunulabilecek süre; canlı uçlar için null.
+  static Duration? freshFor(String path) {
+    final p = _pathOnly(path);
+    for (final (re, d) in _fresh) {
+      if (re.hasMatch(p)) return d;
+    }
+    return null;
+  }
 
   /// Bayat veri hiçbir koşulda sunulmayan uçlar (anlık doğruluk gerekir ya da yoklama niteliğinde).
   static final RegExp _noStale = RegExp(

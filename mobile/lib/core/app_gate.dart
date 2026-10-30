@@ -91,7 +91,8 @@ class ConnectivityHint {
   static void reportNetworkError() => network.value++;
 }
 
-/// Açılış kapısı: sürüm/bakım/banner + çevrimdışı şeridi. MaterialApp.builder içinde kullanılır.
+/// Açılış kapısı: sürüm/bakım/banner. MaterialApp.builder içinde kullanılır. Pasif "internet yok" şeridi YOK
+/// (çevrimdışıyken kayıtlı veri sessizce gösterilir); bağlantı geri gelince sunucu durumu bir kez yeniden sorulur.
 class AppGate extends StatefulWidget {
   const AppGate({super.key, required this.api, required this.child});
 
@@ -109,58 +110,40 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   GateDecision _d = const GateDecision();
   DateTime? _lastCheck;
   bool _noticeVisible = false;
-  bool _offline = false;
   String? _dismissedBanner; // kapatılan duyuru metni (metin değişince yeniden görünür)
   bool _checking = false;
-  Timer? _probe;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    ConnectivityHint.network.addListener(_ping);
+    widget.api.connectivity.reconnects.addListener(_onReconnect);
     Analytics.instance.appOpen();
     _check();
-    _startProbe();
+  }
+
+  /// Çevrimdışından çıkıldı: bakım/sürüm bilgisi bir kez tazelenir (olay tabanlı, yoklama yok).
+  void _onReconnect() {
+    if (mounted) _check();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    ConnectivityHint.network.removeListener(_ping);
-    _probe?.cancel();
+    widget.api.connectivity.reconnects.removeListener(_onReconnect);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState s) {
     if (s == AppLifecycleState.resumed) {
-      _startProbe();
+      widget.api.outbox?.nudge(); // bekleyen mesajlar hemen denenir
       final last = _lastCheck;
       if (last == null || DateTime.now().difference(last) >= _minGap) _check();
       Analytics.instance.appOpen();
     } else if (s == AppLifecycleState.paused) {
-      _probe?.cancel();
       Analytics.instance.flush();
     }
-  }
-
-  void _startProbe() {
-    _probe?.cancel();
-    _probe = Timer.periodic(const Duration(seconds: 20), (_) => _ping());
-  }
-
-  Future<void> _ping() async {
-    try {
-      await widget.api.get('/status');
-      _setOffline(false);
-    } on ApiError catch (e) {
-      _setOffline(e.isNetwork);
-    } catch (_) {}
-  }
-
-  void _setOffline(bool v) {
-    if (mounted && v != _offline) setState(() => _offline = v);
   }
 
   Future<Map<String, dynamic>?> _getMap(String path) async {
@@ -168,8 +151,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
       final r = await widget.api.get(path);
       return r is Map<String, dynamic> ? r : null;
     } catch (e) {
-      if (e is ApiError && e.isNetwork) _setOffline(true);
-      return null; // Ağ yoksa uygulama çalışmaya devam eder.
+      return null; // Ağ yoksa uygulama çalışmaya devam eder (sessizce).
     }
   }
 
@@ -182,7 +164,6 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
         _getMap('/app/version?platform=${DeviceIdentity.platform == 'ios' ? 'ios' : 'android'}&version=${Uri.encodeQueryComponent(appVersion)}'),
         _getMap('/app/info'),
       ]);
-      if (r[0] != null || r[1] != null) _setOffline(false);
       // Ağ yokken zorunlu güncelleme kapısı kendiliğinden açılmasın: önceki karar korunur.
       if (r[0] == null && r[1] == null && _d.kind == GateKind.updateRequired) return;
       final d = decideGate(r[0], r[1]);
@@ -224,7 +205,6 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
     }
     final l = context.l10n;
     final strips = <Widget>[
-      if (_offline) TopStrip(icon: LucideIcons.cloudOff, text: l.cevrimdisiInternetYok, danger: true, trailingText: l.cevrimdisiKayitliVeri),
       if (_d.maintenance)
         GateNoticeStrip(
           icon: LucideIcons.wrench,

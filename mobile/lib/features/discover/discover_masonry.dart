@@ -342,8 +342,8 @@ class DiscoverEmptyCard extends StatelessWidget {
   }
 }
 
-/// Hata / çevrimdışı (referans 12/3): ince gri şerit ("İnternet bağlantısı yok · Kayıtlı veriler gösteriliyor", yalnız ağ
-/// hatasında) + sunucuya ulaşılamadı kartı ve Yeniden dene.
+/// Hata / çevrimdışı (referans 12/3): sunucuya ulaşılamadı kartı ve Yeniden dene (kayıtlı veri yoksa gösterilir).
+/// Pasif "internet yok" şeridi YOK.
 class DiscoverErrorCard extends StatelessWidget {
   const DiscoverErrorCard({super.key, required this.offline, required this.onRetry});
 
@@ -358,25 +358,6 @@ class DiscoverErrorCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
       child: Column(children: [
-        if (offline)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: DecoratedBox(
-              key: const ValueKey('discoverOfflineStrip'),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 32),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(LucideIcons.wifiOff, size: 14, color: t.mut),
-                    BuGap.w6,
-                    Flexible(child: Text(l.p14OfflineStrip, textAlign: TextAlign.center, style: tt.labelSmall?.copyWith(color: t.ink))),
-                  ]),
-                ),
-              ),
-            ),
-          ),
         DecoratedBox(
           key: const ValueKey('discoverError'),
           decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.xl), boxShadow: BuElevation.of(context, 1)),

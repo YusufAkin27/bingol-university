@@ -95,6 +95,7 @@ class Session extends ChangeNotifier {
       final r = await _storage.read(key: 'refresh');
       if (a != null && r != null) {
         api.tokens = Tokens(a, r);
+        userId ??= jwtSubjectId(a); // çevrimdışı açılışta /auth/me gelmese de sohbet kendi mesajlarını doğru çizer
         await _loadMe();
         return;
       }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
@@ -79,6 +80,19 @@ class ApiResponse {
   final DateTime? cachedAt;
 }
 
+/// JWT `sub` (kullanıcı kimliği); imza doğrulanmaz (yalnız çevrimdışı açılışta "mesaj benim mi" kararı için). Çözülemezse null.
+int? jwtSubjectId(String jwt) {
+  try {
+    final parts = jwt.split('.');
+    if (parts.length != 3) return null;
+    final json = jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
+    final sub = json is Map ? json['sub'] : null;
+    return sub is num ? sub.toInt() : int.tryParse('$sub');
+  } catch (_) {
+    return null;
+  }
+}
+
 class Tokens {
   Tokens(this.access, this.refresh);
 
@@ -112,8 +126,16 @@ class ApiClient {
   /// Bağlantı durumu: her yanıt/ağ hatası buraya bildirilir.
   final ConnectivityService connectivity;
 
-  /// Çevrimdışı sohbet metin mesajı kuyruğu (null ise yazma kuyruğu kapalı).
+  /// Çevrimdışı sohbet mesajı kuyruğu (null ise yazma kuyruğu kapalı).
   Outbox? outbox;
+
+  /// Kullanıcıya özel yerel veri temizliği (çıkış/hesap değişimi): mesaj kaydı, görsel önbelleği vb. buraya
+  /// eklenir. Hatalar yutulur.
+  final List<Future<void> Function()> onUserDataCleared = [];
+
+  /// Bir kullanıcı engellendi (`POST /users/{id}/block`): engellenenin mesajları cihazda kalmasın diye yerel
+  /// mesaj kaydı bu kancayla silinir (sohbetler bir sonraki açılışta sunucudan, engel süzgeciyle dolar).
+  final List<Future<void> Function()> onBlockedUser = [];
 
   /// GET'te ağ/5xx hatasından sonra tek yeniden denemeden önceki bekleme.
   final Duration retryDelay;
@@ -160,8 +182,11 @@ class ApiClient {
   }
   static const _maxCache = 100;
 
-  /// Bellek önbelleği toplam gövde tavanı (bayt); aşılınca en eski girdiler atılır.
-  static const _maxCacheBytes = 6 * 1024 * 1024;
+  /// Bellek önbelleği toplam gövde tavanı (bayt); aşılınca en eski girdiler atılır (diskte kalır).
+  static const _maxCacheBytes = 3 * 1024 * 1024;
+
+  /// Bu boyuttan büyük JSON gövdesi ana izolatı yormasın diye ayrı izolatta çözülür.
+  static const isolateDecodeBytes = 256 * 1024;
 
   /// Bayat yanıt hazırken ağı bekleme süresi: yavaş ağda önbelleğe hızla düşülür.
   static const _staleTimeout = Duration(seconds: 8);
@@ -171,9 +196,34 @@ class ApiClient {
   final _cache = <String, _CacheEntry>{}; // LinkedHashMap: ekleme sırası = LRU sırası
   DateTime? _lastNetHint;
 
+  /// Yazma isteği (POST/PUT/PATCH/DELETE) sonrası ilgili kaynak grubunun "taze" sayılma anı sıfırlanır
+  /// (ilk yol parçası: `/events/5/rsvp` -> `events`); yeni GET ağdan doğrulanır.
+  final _invalidatedAt = <String, DateTime>{};
+
+  static String _segment(String path) {
+    final p = path.startsWith('/') ? path.substring(1) : path;
+    final end = p.indexOf(RegExp(r'[/?]'));
+    return end < 0 ? p : p.substring(0, end);
+  }
+
+  /// [CachePolicy.freshFor] süresi içindeki ve aynı takvim gününe ait (menü/etkinlik "bugün" kayıtları) yanıt.
+  bool _isFresh(String path, _CacheEntry c) {
+    final ttl = CachePolicy.freshFor(path);
+    if (ttl == null) return false;
+    final now = DateTime.now();
+    if (now.difference(c.cachedAt) >= ttl || c.cachedAt.isAfter(now)) return false;
+    if (ttl == CachePolicy.dailyFresh) {
+      final a = c.cachedAt.toLocal(), b = now;
+      if (a.year != b.year || a.month != b.month || a.day != b.day) return false;
+    }
+    final inv = _invalidatedAt[_segment(path)];
+    return inv == null || c.cachedAt.isAfter(inv);
+  }
+
   void clearCache() {
     _cache.clear();
     _cacheBytes = 0;
+    _invalidatedAt.clear();
     final d = diskCache;
     if (d != null) unawaited(d.clear());
   }
@@ -214,13 +264,14 @@ class ApiClient {
     if (d == null || CachePolicy.diskTtl(path) == null) return null;
     final e = await d.read(key);
     if (e == null) return null;
-    return _CacheEntry(e.etag, e.body, e.headers, cachedAt: e.cachedAt);
+    return _CacheEntry(e.etag, e.body, e.headers, cachedAt: e.cachedAt, bytes: e.size);
   }
 
-  Future<dynamic> get(String path) async => (await getResponse(path)).body;
+  /// [force]: kullanıcı çekip yeniledi; taze önbellek süresi yok sayılıp ağdan doğrulanır (ETag/304 yine geçerli).
+  Future<dynamic> get(String path, {bool force = false}) async => (await getResponse(path, force: force)).body;
 
   /// Başlıklara da ihtiyaç duyan GET'ler için (sayfalama imleci vb.).
-  Future<ApiResponse> getResponse(String path) => _sendFull('GET', path);
+  Future<ApiResponse> getResponse(String path, {bool force = false}) => _sendFull('GET', path, force: force);
 
   /// Yetkili ikili GET (ör. tek gösterimlik görsel). Önbelleğe ALINMAZ ve ağ hatasında YENİDEN DENENMEZ:
   /// ilk başarılı istek içeriği tüketebilir. Yalnız 401'de bir kez yenileyip tekrar dener (içerik henüz sunulmadı).
@@ -267,7 +318,7 @@ class ApiClient {
       (await _sendFull(method, path, body: body, auth: auth)).body;
 
   Future<ApiResponse> _sendFull(String method, String path,
-      {Object? body, bool auth = true, bool retried = false, bool retriedTransient = false}) async {
+      {Object? body, bool auth = true, bool retried = false, bool retriedTransient = false, bool force = false}) async {
     final isGet = method == 'GET';
     final req = http.Request(method, Uri.parse('$apiBase$path'));
     _baseHeaders(req);
@@ -283,6 +334,11 @@ class ApiClient {
     final cacheKey = _cacheKey(path, authed);
     final diskTtl = isGet && diskCache != null ? CachePolicy.diskTtl(path) : null;
     final cached = isGet ? await _lookup(cacheKey, path) : null;
+    // Taze önbellek: ağa hiç gidilmez (günlük/sabit veri her ekran açılışında yeniden çekilmesin).
+    if (isGet && !force && cached != null && _isFresh(path, cached)) {
+      _putMemory(cacheKey, cached); // LRU'da en yeni
+      return ApiResponse(cached.body, cached.headers);
+    }
     final etag = cached?.etag;
     if (etag != null && etag.isNotEmpty) req.headers['If-None-Match'] = etag;
     // Bayat yanıt elimizdeyse: kısa zaman aşımı, yeniden deneme yok (ağ yoksa hemen önbellek).
@@ -332,7 +388,17 @@ class ApiClient {
       if (diskTtl != null) unawaited(diskCache!.touch(cacheKey, diskTtl));
       return ApiResponse(cached.body, cached.headers);
     }
-    final decoded = _decode(res);
+    final decoded = res.statusCode == 200 && res.bodyBytes.length > isolateDecodeBytes
+        ? await _decodeLarge(res)
+        : _decode(res);
+    if (!isGet && res.statusCode >= 200 && res.statusCode < 300) {
+      _invalidatedAt[_segment(path)] = DateTime.now();
+      if (method == 'POST' && RegExp(r'^/users/\d+/block$').hasMatch(path)) {
+        for (final f in List.of(onBlockedUser)) {
+          unawaited(f().catchError((Object _) {}));
+        }
+      }
+    }
     if (isGet && res.statusCode == 200) {
       final tag = res.headers['etag'];
       if (tag != null && tag.isNotEmpty) {
@@ -376,6 +442,18 @@ class ApiClient {
     _lastNetHint = now;
     ConnectivityHint.reportNetworkError();
   }
+
+  /// Büyük gövde: JSON çözümü ayrı izolatta (ana izolat kare atlamasın). Hata olursa ana izolatta dener.
+  Future<dynamic> _decodeLarge(http.Response res) async {
+    final bytes = res.bodyBytes;
+    try {
+      return await Isolate.run(() => _parseJson(bytes));
+    } catch (_) {
+      return _decode(res);
+    }
+  }
+
+  static dynamic _parseJson(List<int> bytes) => jsonDecode(utf8.decode(bytes, allowMalformed: true));
 
   dynamic _decode(http.Response res) {
     final text = utf8.decode(res.bodyBytes, allowMalformed: true);
@@ -441,6 +519,9 @@ class ApiClient {
       clearCache(); // bellek + disk
       final ob = outbox;
       if (ob != null) unawaited(ob.clear()); // bekleyen mesajlar başka hesaba sızmasın
+      for (final f in List.of(onUserDataCleared)) {
+        unawaited(f().catchError((Object _) {})); // mesaj kaydı, görsel önbelleği...
+      }
     }
     tokens = t;
     await onTokensChanged?.call(t);

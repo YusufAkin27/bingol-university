@@ -44,6 +44,21 @@ Yeni ekran yalnızca kendi `features/<alan>/` klasöründe yazılır; ortak bile
 
 `ApiClient`, kimlikli/kimliksiz GET yanıtlarını bellekte **LRU** (en çok 100 kayıt) önbelleğe alır; anahtar = dil + yetkili mi + yol, yani kullanıcıya ve dile özeldir. Sonraki istekte `If-None-Match` gönderilir; `304` gelirse önbellekteki gövde kullanılır (aynı yanıt başlıklarıyla, örn. `X-Next-Cursor`). Çıkışta `clearCache()` çağrılır. Test: `test/api_cache_test.dart`.
 
+### 4.2 Çevrimdışı deneyim ve önbellek tavanları (M1, 2026-10-30)
+
+Kullanıcı kararı: çevrimdışıyken **pasif bilgi şeritleri YOK** ("İnternet bağlantısı yok", "Kayıtlı veriler gösteriliyor", "N mesaj gönderilecek", "Son güncelleme"). Kayıtlı veri sessizce gösterilir, arka planda yenilenir, yenilenemezse sessiz kalınır; kayıt yoksa mevcut hata ekranı ("Yüklenemedi, tekrar dene") kalır. Bakım ve güncelleme şeritleri (sunucu kaynaklı) kalır. Yalnız kullanıcı eylemi anında kısa toast ("İnternet bağlantısı yok": düzenle/sil/tepki).
+
+| Veri | Taze süre (ağa gidilmez) | Sonra | Tavan |
+|---|---|---|---|
+| Akademik katalog, SSS, sözleşmeler (`/legal*`, onay durumu hariç), kulüp kategorileri | 24 sa | ETag/304 | disk 30 gün |
+| Menü, haber/duyuru, etkinlik listesi/takvimi/öne çıkan, kulüp listesi | 20 dk (aynı takvim günü) | ETag/304 | disk 1-7 gün |
+| Sohbet, bildirim, özet, profil, ders programı, sınav, favori | yok (her açılışta doğrulanır, 304 ucuz) | ETag/304 | disk (beyaz liste) |
+
+- `force: true` (çekip yenile) taze süreyi yok sayar; POST/PUT/PATCH/DELETE ilgili kaynak grubunun (ilk yol parçası) taze süresini sıfırlar. Çıkışta (`setTokens(null)`) bellek + JSON diski + mesaj kaydı + görsel diski + kuyruk silinir.
+- Tavanlar: ETag LRU bellek 100 kayıt / 3 MB; JSON disk önbelleği 16 MB, kayıt başına 512 KB, 400 kayıt; görsel disk önbelleği (`DiskNetworkImage`, `BuImage`) 150 MB (açılışta ve her 40 yazmada budama, zamanlayıcı yok); çözümlenmiş görsel belleği 200 adet / 80 MB; 256 KB üstü JSON ayrı izolatta çözülür.
+- **Mesaj kaydı** (`core/cache/message_cache.dart`): sohbet başına son 20 mesaj (`c<id>.json`) + sohbet listesi ilk 50 satır (`list.json`), toplam 50 sohbet / 3 MB. Yazma 1,5 sn geciktirilir ve toplanır; arka plana giderken boşaltılır (`CacheLifecycleFlusher`). Sohbet açılışı: önce kayıt (anlık), sonra ağ sayfası ile birleşir (id/clientId tekilleştirme; düzenlenen/silinen sunucudan). Tek gösterimlik ekin URL'si/içeriği hiç yazılmaz; silinen/kaldırılan mesaj iskelet olarak yazılır; engelleme/ayrılma/silmede sohbet kaydı silinir; okunmamış sayacı kayda yazılmaz. Dosyalar uygulama sandbox'ındadır, ayrıca şifrelenmez (bkz. `docs/design/SORULAR.md` M1).
+- **Sessiz gönderme kuyruğu** (`core/outbox/`): metin ve fotoğraf/video mesajı çevrimdışıyken normal "gönderiliyor" (saat) görünür; ekler `outbox_media/` altına kopyalanır (200 MB tavan). Tetikleyiciler: bağlantı geri gelince, STOMP yeniden bağlanınca, uygulama öne gelince, geri çekilme zamanlayıcısı. Aynı `clientId` ile gönderildiği için çift mesaj olmaz. Kalıcı hata (4xx, 5 sunucu hatası, 24 sa) → balonda "Gönderilemedi · Yeniden dene". Testler: `test/m1_*.dart`.
+
 ## 5. Gerçek zamanlı özellikler ve cihaz yetenekleri
 
 - **Gerçek zamanlı sohbet:** `core/realtime/` (`stomp_client.dart`, `stomp_frame.dart`, `chat_realtime.dart`) ham WebSocket üzerinden STOMP konuşur (`web_socket_channel`). CONNECT'te Bearer gönderilir; mesaj/okundu/yazıyor/mesaj-olayı/hata kuyruklarına abone olunur, kopmada üstel geri çekilmeyle yeniden bağlanır ve boşluk `?after=` ile kapatılır. Sohbet ekranı yanıt, düzenleme, silme, tepki, sessize alma/arşiv ve okunmamış rozetini destekler (`features/chat/`). Sözleşme: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) bölüm 4.

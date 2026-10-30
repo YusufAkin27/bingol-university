@@ -138,9 +138,9 @@ class _EventsPageState extends State<EventsPage> {
     ];
   }
 
-  Future<List<Map<String, dynamic>>> _fetchMonth(DateTime m) async {
+  Future<List<Map<String, dynamic>>> _fetchMonth(DateTime m, {bool force = false}) async {
     final res = await widget.session.api
-        .getResponse('/events/calendar?month=${_ym(m)}');
+        .getResponse('/events/calendar?month=${_ym(m)}', force: force);
     if (res.fromCache) {
       _calStale[_ym(m)] = res.cachedAt;
     } else {
@@ -165,7 +165,7 @@ class _EventsPageState extends State<EventsPage> {
     }
     try {
       final m = _month;
-      final items = await _fetchMonth(m);
+      final items = await _fetchMonth(m, force: silent);
       if (!mounted || gen != _gen) return;
       setState(() {
         _rsvpState.clear(); // takvim öğesi RSVP için tek kaynak
@@ -228,7 +228,7 @@ class _EventsPageState extends State<EventsPage> {
       });
     }
     try {
-      final r = await widget.session.api.getResponse(_feedPath(key));
+      final r = await widget.session.api.getResponse(_feedPath(key), force: silent);
       final res = r.body;
       if (!mounted || gen != f.gen) return;
       setState(() {
@@ -643,7 +643,6 @@ class _EventsPageState extends State<EventsPage> {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           sliver: SliverList.list(children: [
-            if (stale != null) _offlineStrip(),
             _errorCard(cached: stale != null),
           ]),
         ),
@@ -690,31 +689,6 @@ class _EventsPageState extends State<EventsPage> {
           ),
         ),
         slivers: slivers,
-      ),
-    );
-  }
-
-  /// Çevrimdışı şeridi: önbellekten gelen veri gösteriliyor.
-  Widget _offlineStrip() {
-    final t = context.bu;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Semantics(
-        container: true,
-        liveRegion: true,
-        child: Container(
-          key: const ValueKey('events-offline'),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(14)),
-          child: Row(children: [
-            ExcludeSemantics(child: Icon(LucideIcons.wifiOff, size: 18, color: t.pr)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(context.l10n.p14OfflineStrip,
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
-            ),
-          ]),
-        ),
       ),
     );
   }
@@ -1003,7 +977,6 @@ class _EventsPageState extends State<EventsPage> {
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         sliver: SliverList.list(children: [
-          if (stale != null) _offlineStrip(),
           _calendarCard(),
           if (note != null) ...[const SizedBox(height: 12), _noteRow(note)],
           if (items.isEmpty) ...[
@@ -1113,7 +1086,6 @@ class _EventsPageState extends State<EventsPage> {
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         sliver: SliverList.list(children: [
-          if (stale != null) _offlineStrip(),
           if (_tab == 1)
             Padding(
               padding: const EdgeInsets.only(bottom: 14),

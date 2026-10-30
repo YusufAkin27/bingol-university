@@ -8,7 +8,10 @@ import 'package:path_provider/path_provider.dart';
 
 /// Diskten okunan önbellek kaydı.
 class DiskCacheEntry {
-  DiskCacheEntry(this.body, this.headers, this.cachedAt);
+  DiskCacheEntry(this.body, this.headers, this.cachedAt, {this.size = 0});
+
+  /// Diskteki dosya boyutu (bellek tavanı hesabı için).
+  final int size;
 
   final dynamic body;
   final Map<String, String> headers;
@@ -145,7 +148,7 @@ class DiskCache {
           };
           _index.remove(key);
           _index[key] = m; // en yeni kullanılan sona
-          return DiskCacheEntry(j['b'], headers, DateTime.fromMillisecondsSinceEpoch(m.cachedAt));
+          return DiskCacheEntry(j['b'], headers, DateTime.fromMillisecondsSinceEpoch(m.cachedAt), size: m.size);
         } catch (_) {
           await _drop(key); // dosya yok/bozuk
           return null;

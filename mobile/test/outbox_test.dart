@@ -111,7 +111,7 @@ void main() {
     expect(ob.items, isEmpty);
   });
 
-  test('5xx en fazla 8 kez denenir, sonra failed', () async {
+  test('5xx en fazla 5 kez denenir, sonra failed', () async {
     final ob = make(sender: (i) async => throw ApiError(503, 'DOWN', ''));
     ob.enqueue(conversationId: 1, clientId: 'a', text: 'x');
     for (var i = 0; i < 8; i++) {
@@ -119,7 +119,7 @@ void main() {
       await ob.drain();
     }
     expect(ob.items.single.status, OutboxStatus.failed);
-    expect(ob.items.single.serverFails, 8);
+    expect(ob.items.single.serverFails, 5);
   });
 
   test('tavan: en cok 100 oge; asinca en eski atilir', () {

@@ -4,7 +4,6 @@ library;
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:bu_kampus/core/connectivity/offline_banner.dart';
 import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/core/push/push_banner.dart';
@@ -91,16 +90,8 @@ final _scenes = <_Scene>[
   _Scene('03_bakim', () => MaintenanceScreen(onRetry: () {})),
   _Scene('04_baglanti_yok', () => OfflineScreen(onRetry: () {})),
   _Scene('05_erisim_kapali', () => AccessBlockedScreen(onRetry: () {})),
-  _Scene(
-    '06_serit_cevrimdisi',
-    () => Builder(
-      builder: (c) => _home(top: [
-        TopStrip(icon: LucideIcons.cloudOff, text: c.l10n.cevrimdisiInternetYok, danger: true, trailingText: c.l10n.cevrimdisiKayitliVeri),
-        TopStrip(icon: LucideIcons.refreshCw, text: c.l10n.cevrimdisiBekleyenMesaj('3'), actionLabel: c.l10n.cevrimdisiYenidenDene, onAction: () {}),
-        StaleLabel(cachedAt: DateTime.now().subtract(const Duration(minutes: 30)), padding: const EdgeInsets.fromLTRB(16, 16, 16, 4)),
-      ]),
-    ),
-  ),
+  // 06_serit_cevrimdisi KALDIRILDI (kullanici karari 2026-10-30): pasif "Internet baglantisi yok / Kayitli veriler
+  // gosteriliyor / N mesaj gonderilecek / Son guncelleme" seritleri artik yok; bakim ve guncelleme seritleri (07) kalir.
   _Scene(
     '07_serit_bakim_duyuru',
     () => Builder(
@@ -114,7 +105,6 @@ final _scenes = <_Scene>[
           kind: GateNoticeKind.announcement,
           onClose: () {},
         ),
-        StaleLabel(cachedAt: DateTime.now(), padding: const EdgeInsets.fromLTRB(20, 12, 20, 0)),
       ]),
     ),
   ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/cache/message_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
@@ -106,11 +107,23 @@ class _ChatTabState extends State<ChatTab> {
   String get _path =>
       '/conversations?size=30${_archived ? '&archived=true' : ''}';
 
+  /// Liste önce cihazdaki kayıttan (anlık), sonra sunucudan yüklenir (stale-while-revalidate). Sunucuya
+  /// ulaşılamazsa kayıtlı liste SESSİZCE kalır; hata ekranı yalnız gösterilecek hiçbir şey yokken çıkar.
   Future<void> _load({bool silent = false}) async {
     final my = ++_seq;
-    if (!silent) setState(() => _loading = true);
+    if (!silent && _items.isEmpty && !_archived) {
+      final cached = await MessageCache.instance.readConversations();
+      if (!mounted || my != _seq) return;
+      if (cached.isNotEmpty && _items.isEmpty) {
+        setState(() {
+          _items.addAll(cached);
+          _loading = false;
+        });
+      }
+    }
+    if (!silent && _items.isEmpty) setState(() => _loading = true);
     try {
-      final res = await widget.session.api.get(_path);
+      final res = await widget.session.api.get(_path, force: silent);
       final page = _parse(res);
       if (!mounted || my != _seq) return;
       setState(() {
@@ -121,15 +134,22 @@ class _ChatTabState extends State<ChatTab> {
         _error = null;
         _loading = false;
       });
+      _persistList();
       _refreshBadge();
     } catch (e) {
       if (!mounted || my != _seq) return;
       setState(() {
-        // Yenilemede eldeki liste korunur; yalnızca boşken hata ekranı gösterilir.
-        _error = e;
+        // Eldeki (kayıtlı) liste korunur; yalnızca boşken hata ekranı gösterilir.
+        _error = _items.isEmpty ? e : null;
         _loading = false;
       });
     }
+  }
+
+  /// İlk 50 sohbet cihaza yazılır (yazma MessageCache'te geciktirilir/toplanır); arşiv görünümü yazılmaz.
+  void _persistList() {
+    if (_archived) return;
+    MessageCache.instance.saveConversations(_items);
   }
 
   Future<void> _loadMore() async {
@@ -225,6 +245,7 @@ class _ChatTabState extends State<ChatTab> {
         ..removeAt(i)
         ..insert(0, row);
     });
+    _persistList();
     _scheduleBadge();
   }
 
@@ -381,6 +402,8 @@ class _ChatTabState extends State<ChatTab> {
         _items.removeWhere((x) => x['id'] == id);
         _removing.remove(id);
       });
+      unawaited(MessageCache.instance.removeConversation(id));
+      _persistList();
       _syncBadgeLocal();
       _scheduleBadge();
     } catch (e) {
@@ -500,13 +523,6 @@ class _ChatTabState extends State<ChatTab> {
                 onSelect: (i) => setState(() => _filter = i),
               ),
             ),
-            if (_error != null && !_loading && _items.isNotEmpty)
-              SliverToBoxAdapter(
-                child: BuOfflineBanner(
-                  margin: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
-                  onRetry: _load,
-                ),
-              ),
             ..._bodySlivers(t),
           ],
         ),

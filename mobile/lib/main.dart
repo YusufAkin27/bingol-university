@@ -10,11 +10,14 @@ import 'core/analytics.dart';
 import 'core/api.dart';
 import 'core/app_gate.dart';
 import 'core/app_hooks.dart';
+import 'core/cache/cache_lifecycle.dart';
 import 'core/cache/disk_cache.dart';
+import 'core/cache/image_disk_cache.dart';
+import 'core/cache/message_cache.dart';
 import 'core/connectivity/connectivity_service.dart';
-import 'core/connectivity/offline_banner.dart';
 import 'core/crash/crash_reporter.dart';
 import 'core/outbox/outbox.dart';
+import 'core/outbox/outbox_uploader.dart';
 import 'core/locale_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -115,6 +118,7 @@ Future<void> _bootstrap() async {
   unawaited(Future<void>.delayed(const Duration(seconds: 8), CrashReporter.instance.flush));
   outbox.attach(api, connectivity);
   final session = Session(api);
+  _wireOfflineStorage(api, outbox, session);
   final theme = ThemeController();
   unawaited(theme.load());
   final localeCtl = LocaleController(onResolved: (c) => session.api.lang = c);
@@ -135,14 +139,42 @@ Future<void> _bootstrap() async {
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
   hooks.attach(session);
   unawaited(session.restore());
-  runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl, outbox: outbox));
+  runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl));
+}
+
+/// Çevrimdışı depolama bağları (hepsi olay tabanlı, yoklama yok):
+/// - bekleyen mesajlar: bağlantı geri gelince (ConnectivityService), STOMP yeniden bağlanınca ve uygulama öne gelince gider;
+/// - STOMP'tan gelen/giden mesajlar kaydı olan sohbetlere eklenir, herkes için silinenler kayıtta iskelete iner;
+/// - çıkış/hesap değişimi/silme: mesaj kaydı + görsel önbelleği silinir (ApiClient.setTokens(null));
+/// - arka plana giderken geciktirilmiş yazımlar diske boşaltılır; çözümlenmiş görsel belleği tavanlanır.
+void _wireOfflineStorage(ApiClient api, Outbox outbox, Session session) {
+  outbox.uploader = outboxUploaderFor(session);
+  MessageCache.instance = MessageCache(); // diskli örnekler (varsayılanları yalnız bellek/pasif)
+  ImageDiskCache.instance = ImageDiskCache();
+  final rt = session.realtime;
+  if (rt != null) {
+    rt.connected.listen((on) {
+      if (on) unawaited(outbox.nudge());
+    });
+    rt.messages.listen((m) {
+      final cid = (m['conversationId'] as num?)?.toInt();
+      if (cid != null) unawaited(MessageCache.instance.upsertMessage(cid, m));
+    });
+    rt.deletedMessages.listen((e) => unawaited(MessageCache.instance.markGone(e.conversationId, e.messageId)));
+  }
+  api.onUserDataCleared
+    ..add(MessageCache.instance.clear)
+    ..add(ImageDiskCache.instance.clear);
+  api.onBlockedUser.add(MessageCache.instance.clear);
+  applyImageCacheLimits();
+  CacheLifecycleFlusher([
+    MessageCache.instance.flush,
+    () async => api.diskCache?.flush(),
+  ]).attach();
 }
 
 class BingolApp extends StatelessWidget {
-  BingolApp({super.key, required this.session, required this.themeController, this.push, this.localeController, this.outbox});
-
-  /// Çevrimdışı mesaj kuyruğu (null ise bekleyen mesaj şeridi gösterilmez).
-  final Outbox? outbox;
+  BingolApp({super.key, required this.session, required this.themeController, this.push, this.localeController});
 
   final LocaleController? localeController;
 
@@ -174,12 +206,7 @@ class BingolApp extends StatelessWidget {
         theme: BuTheme.light(),
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
-        builder: (context, child) => AppGate(
-          api: session.api,
-          child: outbox == null || child == null
-              ? child
-              : OfflineBanner(outbox: outbox!, connectivity: session.api.connectivity, child: child),
-        ),
+        builder: (context, child) => AppGate(api: session.api, child: child),
         home: ListenableBuilder(
           listenable: Listenable.merge([session, session.accessBlocked]),
           builder: (context, _) => session.accessBlocked.value

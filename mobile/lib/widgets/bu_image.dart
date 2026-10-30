@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/cache/image_disk_cache.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import 'bu_widgets.dart';
@@ -55,13 +56,12 @@ class BuImage extends StatelessWidget {
     } else {
       final w = width != null && width!.isFinite ? width! : MediaQuery.sizeOf(context).width;
       final px = (w * dpr).ceil().clamp(1, maxDecodeWidth);
-      child = Image.network(
-        full,
-        headers: headers,
+      // Disk destekli ağ görseli: çevrimdışıyken daha önce görülen görseller yine görünür (tavanlı disk önbelleği).
+      child = Image(
+        image: ResizeImage.resizeIfNeeded(px, null, DiskNetworkImage(full, headers: headers)),
         width: width,
         height: height,
         fit: fit,
-        cacheWidth: px,
         gaplessPlayback: true,
         excludeFromSemantics: semanticLabel == null,
         semanticLabel: semanticLabel,

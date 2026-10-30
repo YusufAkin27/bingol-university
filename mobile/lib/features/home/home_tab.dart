@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -73,10 +72,6 @@ class _HomeTabState extends State<HomeTab> {
     _load();
   }
 
-  /// Yanıt önbellekten (bayat) geldiyse sunucudan alındığı an; aksi halde null.
-  DateTime? _staleInfoAt;
-  DateTime? _staleMenuAt;
-
   void _apply(int gen, VoidCallback f) {
     if (mounted && gen == _gen) setState(f);
   }
@@ -102,15 +97,13 @@ class _HomeTabState extends State<HomeTab> {
         final r = res.body;
         _apply(gen, () {
           _info = r is Map<String, dynamic> ? r : null;
-          _staleInfoAt = res.fromCache ? res.cachedAt : null;
         });
       }),
       step(() async {
-        final res = await api.getResponse('/menu/today');
+        final res = await api.getResponse('/menu/today', force: _force);
         final r = res.body;
         _apply(gen, () {
           _today = r is Map<String, dynamic> ? r : null;
-          _staleMenuAt = res.fromCache ? res.cachedAt : null;
         });
       }),
       step(() async {
@@ -138,7 +131,7 @@ class _HomeTabState extends State<HomeTab> {
 
   /// `GET /events/featured`: yaklaşan etkinlikler içinde en çok katılımcılı olan. 204/boş gövde -> null (boş durum).
   Future<void> _loadFeatured(int gen) async {
-    final r = await _s.api.get('/events/featured');
+    final r = await _s.api.get('/events/featured', force: _force);
     final best = r is Map ? Map<String, dynamic>.from(r) : null;
     final prev = best?['attendeesPreview'];
     final pl = prev is Map ? prev['avatars'] : prev;
@@ -203,7 +196,7 @@ class _HomeTabState extends State<HomeTab> {
       _newsFailed = false;
     });
     try {
-      final r = await _s.api.get('/news?type=$_homeNewsType&page=0&size=5') as Map<String, dynamic>;
+      final r = await _s.api.get('/news?type=$_homeNewsType&page=0&size=5', force: _force) as Map<String, dynamic>;
       final l = List<Map<String, dynamic>>.from(r['items'] as List);
       _apply(gen, () => _news = l);
     } catch (_) {
@@ -222,11 +215,19 @@ class _HomeTabState extends State<HomeTab> {
     } catch (_) {}
   }
 
+  /// Çekip yenileme sürerken taze önbellek süresi yok sayılır (ETag/304 ile ağdan doğrulanır).
+  bool _force = false;
+
   Future<void> _reload() async {
-    // Görünür olmuş tembel bölüm de tazelenir; yenileme hepsini bekler.
-    await _load();
-    if (!mounted) return;
-    if (_newsRequested) await Future.wait([_loadNews(), _loadStatus()]);
+    _force = true;
+    try {
+      // Görünür olmuş tembel bölüm de tazelenir; yenileme hepsini bekler.
+      await _load();
+      if (!mounted) return;
+      if (_newsRequested) await Future.wait([_loadNews(), _loadStatus()]);
+    } finally {
+      _force = false;
+    }
   }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -344,7 +345,6 @@ class _HomeTabState extends State<HomeTab> {
           ]),
         ),
       _header(context, afterBanner: banners.isNotEmpty),
-      StaleLabel(cachedAt: _staleInfoAt ?? _staleMenuAt),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: HomeSearchBox(hint: context.l10n.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),

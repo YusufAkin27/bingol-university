@@ -39,14 +39,15 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('hata: Sunucuya ulasilamadi karti + Yeniden dene; ag hatasinda cevrimdisi seridi, 500\'de serit yok', (tester) async {
+    testWidgets('hata: Sunucuya ulasilamadi karti + Yeniden dene; ag hatasinda da pasif cevrimdisi seridi YOK', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend()..network('/feed');
       b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Keşfet'), findsOneWidget); // baslik hata durumunda da var
-      expect(find.byKey(const ValueKey('discoverOfflineStrip')), findsOneWidget);
+      expect(find.byKey(const ValueKey('discoverOfflineStrip')), findsNothing);
+      expect(find.textContaining('İnternet bağlantısı yok'), findsNothing);
       expect(find.text('Sunucuya ulaşılamadı'), findsOneWidget);
       expect(find.byKey(const ValueKey('discoverRetry')), findsOneWidget);
       await tester.pumpWidget(const SizedBox());

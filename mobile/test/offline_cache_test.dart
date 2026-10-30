@@ -201,7 +201,7 @@ void main() {
       final api = make(MockClient((r) async => fail ? jr(500, {'code': 'X'}) : jr(200, {'a': 2}, h: {'etag': '"1"'})));
       await api.get('/news');
       fail = true;
-      final res = await api.getResponse('/news');
+      final res = await api.getResponse('/news', force: true);
       expect(res.fromCache, isTrue);
       expect(res.body, {'a': 2});
     });
@@ -231,9 +231,9 @@ void main() {
     test('getSwr: once onbellek, sonra ag', () async {
       var n = 0;
       final api = make(MockClient((r) async => jr(200, {'n': ++n}, h: {'etag': '"e$n"'})));
-      await api.get('/news');
+      await api.get('/notifications');
       final order = <String>[];
-      final res = await api.getSwr('/news', onCached: (c) => order.add('cache:${(c.body as Map)['n']}'));
+      final res = await api.getSwr('/notifications', onCached: (c) => order.add('cache:${(c.body as Map)['n']}'));
       order.add('net:${(res.body as Map)['n']}');
       expect(order, ['cache:1', 'net:2']);
     });

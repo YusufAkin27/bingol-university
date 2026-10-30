@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -104,9 +103,6 @@ class _NewsListPageState extends State<NewsListPage> {
     await _fetch(gen);
   }
 
-  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
-  DateTime? _staleAt;
-
   Future<void> _refresh() async {
     _loadStatus();
     _loadSavedIds();
@@ -127,7 +123,7 @@ class _NewsListPageState extends State<NewsListPage> {
       if (!replace) _error = null;
     });
     try {
-      final res = await widget.session.api.getResponse('/news?type=$_type&page=$_page&size=$_pageSize');
+      final res = await widget.session.api.getResponse('/news?type=$_type&page=$_page&size=$_pageSize', force: replace);
       final r = res.body as Map<String, dynamic>;
       final fresh = <Map<String, dynamic>>[
         for (final e in (r['items'] as List? ?? [])) e as Map<String, dynamic>,
@@ -139,7 +135,6 @@ class _NewsListPageState extends State<NewsListPage> {
         if (replace) _items.clear();
         _items.addAll(fresh);
         _page = next;
-        _staleAt = res.fromCache ? res.cachedAt : null;
         _hasMore = next < total;
         _loaded = true;
         _loading = false;
@@ -249,13 +244,10 @@ class _NewsListPageState extends State<NewsListPage> {
           ),
         ),
       ),
-      banner: (_maintenance || _staleAt != null)
+      banner: _maintenance
           ? Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if (_maintenance) IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.triangleAlert),
-                StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.only(top: 8)),
-              ]),
+              child: IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.triangleAlert),
             )
           : null,
       loading: const IcerikListSkeleton(featured: false),

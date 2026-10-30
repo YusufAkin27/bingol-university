@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -37,9 +36,6 @@ class _MenuPageState extends State<MenuPage> {
   Object? _error;
   int _reqId = 0;
 
-  /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
-  DateTime? _staleAt;
-
   Map<int, MenuDay> get _menus => _byMonth[_monthParam(_month)] ?? const {};
 
   @override
@@ -65,7 +61,7 @@ class _MenuPageState extends State<MenuPage> {
     }
     try {
       final api = widget.session.api;
-      final resp = await api.getResponse('/menu?month=${_monthParam(month)}');
+      final resp = await api.getResponse('/menu?month=${_monthParam(month)}', force: silent);
       final res = resp.body;
       var maintenance = false;
       try {
@@ -84,7 +80,6 @@ class _MenuPageState extends State<MenuPage> {
       if (!mounted || id != _reqId) return;
       setState(() {
         _byMonth[_monthParam(month)] = map;
-        _staleAt = resp.fromCache ? resp.cachedAt : null;
         _maintenance = maintenance;
         _loading = false;
         _error = null;
@@ -132,7 +127,6 @@ class _MenuPageState extends State<MenuPage> {
               padding: const EdgeInsets.only(top: 12),
               child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
             ),
-            if (!_loading) StaleLabel(cachedAt: _staleAt, padding: const EdgeInsets.fromLTRB(20, 8, 20, 0)),
             Expanded(child: _body(t)),
           ],
         ],

@@ -234,6 +234,8 @@ class BuErrorState extends StatelessWidget {
   }
 }
 
+/// TASARIM SİSTEMİ BİLEŞENİ - uygulama ekranlarında KULLANILMAZ: pasif "internet yok / kayıtlı veriler" şeritleri
+/// kullanıcı kararıyla (2026-10-30) kaldırıldı; çevrimdışıyken kayıtlı veri sessizce gösterilir. Galeri/test için kalır.
 /// İnce çevrimdışı şeridi: "İnternet bağlantısı yok" + (isteğe bağlı) "Kayıtlı veriler gösteriliyor" + yeniden dene.
 /// Ekranın üstüne (gövdenin başına) koyun; içerik silinmez, eski veri sunulur.
 class BuOfflineBanner extends StatelessWidget {

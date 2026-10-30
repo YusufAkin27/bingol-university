@@ -101,7 +101,7 @@ class _ClubsTabState extends State<ClubsTab> {
       });
     }
     try {
-      final res = await widget.session.api.get(_path(null));
+      final res = await widget.session.api.get(_path(null), force: silent);
       if (!mounted || gen != _gen) return;
       final list = _parse(res);
       setState(() {

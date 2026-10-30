@@ -20,7 +20,7 @@ void main() {
       return jr(200, {'a': 1}, h: {'etag': '"v1"'});
     }));
     expect(await api.get('/news'), {'a': 1});
-    expect(await api.get('/news'), {'a': 1});
+    expect(await api.get('/news', force: true), {'a': 1}); // cekip yenile: taze suresi yok sayilir
     expect(seen, [null, '"v1"']);
   });
 

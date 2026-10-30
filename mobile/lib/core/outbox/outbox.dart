@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../api.dart';
 import '../closed_conversations.dart';
@@ -10,7 +12,90 @@ import '../connectivity/connectivity_service.dart';
 
 enum OutboxStatus { pending, failed }
 
-/// Kuyruktaki tek sohbet metin mesajı. Sunucu `(konuşma, gönderen, clientId)` tekrarını yeni mesaj saymaz,
+/// Kuyruktaki mesajın yerel diske kopyalanmış tek eki (fotoğraf/video). Dosyalar `outbox_media/` altındadır;
+/// yükleme yalnız bağlantı varken yapılır, `attId` yüklenince tutulur (mesaj gönderimi düşerse yeniden yüklenmez).
+class OutboxMedia {
+  OutboxMedia({
+    required this.kind,
+    required this.file,
+    required this.mime,
+    this.poster,
+    this.width,
+    this.height,
+    this.durationMs,
+    this.size = 0,
+    this.attId,
+  });
+
+  /// `image` | `video`
+  final String kind;
+  final String file;
+  final String mime;
+
+  /// Video önizleme karesi dosya adı (yoksa null).
+  final String? poster;
+  final int? width;
+  final int? height;
+  final int? durationMs;
+  final int size;
+  int? attId;
+
+  bool get isVideo => kind == 'video';
+
+  Map<String, dynamic> toJson() => {
+        'k': kind,
+        'f': file,
+        'm': mime,
+        if (poster != null) 'p': poster,
+        if (width != null) 'w': width,
+        if (height != null) 'h': height,
+        if (durationMs != null) 'd': durationMs,
+        's': size,
+        if (attId != null) 'i': attId,
+      };
+
+  static OutboxMedia? fromJson(Object? j) {
+    if (j is! Map) return null;
+    final k = j['k'], f = j['f'], m = j['m'];
+    if (k is! String || f is! String || m is! String) return null;
+    return OutboxMedia(
+      kind: k,
+      file: f,
+      mime: m,
+      poster: j['p'] is String ? j['p'] as String : null,
+      width: j['w'] is int ? j['w'] as int : null,
+      height: j['h'] is int ? j['h'] as int : null,
+      durationMs: j['d'] is int ? j['d'] as int : null,
+      size: j['s'] is int ? j['s'] as int : 0,
+      attId: j['i'] is int ? j['i'] as int : null,
+    );
+  }
+}
+
+/// Kuyruğa alınacak ekin ham kaynağı (bellek baytı ya da var olan dosya yolu). Kuyruk bunu kendi dizinine kopyalar.
+class OutboxMediaSource {
+  OutboxMediaSource({
+    required this.kind,
+    required this.mime,
+    this.bytes,
+    this.path,
+    this.poster,
+    this.width,
+    this.height,
+    this.durationMs,
+  }) : assert(bytes != null || path != null);
+
+  final String kind;
+  final String mime;
+  final Uint8List? bytes;
+  final String? path;
+  final Uint8List? poster;
+  final int? width;
+  final int? height;
+  final int? durationMs;
+}
+
+/// Kuyruktaki tek sohbet mesajı (metin ve/veya ekler). Sunucu `(konuşma, gönderen, clientId)` tekrarını yeni mesaj saymaz,
 /// bu yüzden aynı öğeyi yeniden göndermek çift mesaj üretmez.
 class OutboxItem {
   OutboxItem({
@@ -24,6 +109,8 @@ class OutboxItem {
     this.serverFails = 0,
     this.nextAttemptAt = 0,
     this.errorCode,
+    this.media = const [],
+    this.viewOnce = false,
   });
 
   final String clientId;
@@ -31,6 +118,10 @@ class OutboxItem {
   final String text;
   final int createdAt; // epoch ms
   final int? replyToMessageId;
+
+  /// Yerel diskteki ekler (boşsa salt metin mesajı).
+  final List<OutboxMedia> media;
+  final bool viewOnce;
   OutboxStatus status;
 
   /// Tüm başarısız denemeler (geri çekilmeyi belirler).
@@ -52,6 +143,8 @@ class OutboxItem {
         'f': serverFails,
         'x': nextAttemptAt,
         if (errorCode != null) 'e': errorCode,
+        if (media.isNotEmpty) 'md': [for (final m in media) m.toJson()],
+        if (viewOnce) 'o': true,
       };
 
   static OutboxItem? fromJson(Object? j) {
@@ -59,6 +152,7 @@ class OutboxItem {
     final c = j['c'], v = j['v'], t = j['t'], a = j['a'];
     if (c is! String || v is! int || t is! String || a is! int) return null;
     final s = j['s'];
+    final md = j['md'];
     return OutboxItem(
       clientId: c,
       conversationId: v,
@@ -70,6 +164,12 @@ class OutboxItem {
       serverFails: j['f'] is int ? j['f'] as int : 0,
       nextAttemptAt: j['x'] is int ? j['x'] as int : 0,
       errorCode: j['e'] is String ? j['e'] as String : null,
+      media: [
+        if (md is List)
+          for (final e in md)
+            if (OutboxMedia.fromJson(e) != null) OutboxMedia.fromJson(e)!,
+      ],
+      viewOnce: j['o'] == true,
     );
   }
 }
@@ -116,9 +216,17 @@ class SecureOutboxStore implements OutboxStore {
 
 typedef OutboxSender = Future<Object?> Function(OutboxItem item);
 
-/// Çevrimdışı sohbet mesajı kuyruğu: yalnız METİN (yanıt dahil). Medya kuyruğa alınmaz (büyük + yükleme aşamalı).
+/// Bir eki yükler; `file` yerel dosya, `poster` (video) önizleme dosyası. Ek kimliğini döner.
+typedef OutboxMediaUploader = Future<int> Function(OutboxItem item, OutboxMedia media, File file, File? poster);
+
+/// Sessiz çevrimdışı gönderme kuyruğu: metin (yanıt dahil) ve fotoğraf/video mesajları.
 ///
-/// - Kalıcı (uygulama kapansa da kalır), en çok [maxItems] öğe, [maxAge]'den eski olanlar atılır.
+/// Kullanıcıya hiçbir "bekliyor/kuyrukta" bilgisi verilmez: mesaj normal "gönderiliyor" görünür, bağlantı gelince
+/// (bağlantı dinleyicisi, STOMP yeniden bağlanma, uygulama öne gelme) kendiliğinden gider ve tik olur. Yalnız KALICI
+/// başarısızlıkta ([OutboxStatus.failed]: 4xx, [maxServerFails] sunucu hatası, [maxAge] aşımı) balonda "Gönderilemedi".
+///
+/// - Kalıcı (uygulama kapansa da kalır), en çok [maxItems] öğe; [maxAge]'den eski bekleyenler `failed` olur,
+///   [dropAfter]'dan eskiler silinir. Ekler `outbox_media/` altında diskte, toplam [maxMediaBytes] ile sınırlıdır.
 /// - Gönderim sırası korunur; ağ hatasında kuyruğun başında durur (sıra bozulmaz), üstel geri çekilmeyle tekrar dener.
 /// - 4xx (doğrulama vb.) kalıcı hata: öğe `failed` olur, elle [retry]/[remove] beklenir.
 /// - Periyodik yoklama yok: yalnızca "bir sonraki deneme" zamanlayıcısı ve bağlantı geri geldiğinde tetikleme.
@@ -126,15 +234,24 @@ class Outbox extends ChangeNotifier {
   Outbox({
     OutboxStore? store,
     this.maxItems = 100,
-    this.maxAge = const Duration(days: 7),
-    this.maxServerFails = 8,
+    this.maxAge = const Duration(hours: 24),
+    this.dropAfter = const Duration(days: 7),
+    this.maxServerFails = 5,
     this.maxTextLength = 2000,
+    this.maxMediaBytes = 200 * 1024 * 1024,
+    Future<Directory> Function()? mediaDirProvider,
     DateTime Function()? now,
     this.autoSchedule = true,
     OutboxSender? sender,
   })  : _store = store ?? const SecureOutboxStore(),
         _now = now ?? DateTime.now,
+        _mediaDirProvider = mediaDirProvider ?? _defaultMediaDir,
         _sender = sender;
+
+  static Future<Directory> _defaultMediaDir() async {
+    final base = await getApplicationSupportDirectory();
+    return Directory('${base.path}${Platform.pathSeparator}outbox_media');
+  }
 
   static final RegExp _messagesPath = RegExp(r'^/conversations/(\d+)/messages$');
 
@@ -142,10 +259,17 @@ class Outbox extends ChangeNotifier {
   final DateTime Function() _now;
   final int maxItems;
   final Duration maxAge;
+  final Duration dropAfter;
+  final int maxMediaBytes;
+  final Future<Directory> Function() _mediaDirProvider;
   final int maxServerFails;
   final int maxTextLength;
   final bool autoSchedule;
   OutboxSender? _sender;
+
+  /// Ek yükleyici (main bağlar): dosyayı `POST /conversations/{id}/media` ile yükler, ek kimliğini döner.
+  /// null ise ekli öğeler gönderilmez (bekler).
+  OutboxMediaUploader? uploader;
 
   final List<OutboxItem> _items = [];
   final _deliveries = StreamController<OutboxDelivery>.broadcast();
@@ -182,7 +306,17 @@ class Outbox extends ChangeNotifier {
           'text': i.text,
           'clientId': i.clientId,
           if (i.replyToMessageId != null) 'replyToMessageId': i.replyToMessageId,
+          if (i.media.isNotEmpty) 'attachmentIds': [for (final m in i.media) m.attId],
+          if (i.media.isNotEmpty && i.viewOnce) 'viewOnce': true,
         });
+  }
+
+  /// Uygulama öne geldi / STOMP yeniden bağlandı: geri çekilmeyi atlayıp hemen dener (olay tabanlı; yoklama yok).
+  Future<void> nudge() {
+    for (final e in _items) {
+      if (e.status == OutboxStatus.pending) e.nextAttemptAt = 0;
+    }
+    return drain();
   }
 
   void _onReconnect() {
@@ -213,18 +347,156 @@ class Outbox extends ChangeNotifier {
     _items.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     _prune();
     await _save();
+    unawaited(_sweepOrphanFiles());
     notifyListeners();
     unawaited(drain());
   }
 
   void _prune() {
-    final cutoff = _now().millisecondsSinceEpoch - maxAge.inMilliseconds;
-    _items.removeWhere((e) => e.createdAt < cutoff);
+    final now = _now().millisecondsSinceEpoch;
+    final drop = now - dropAfter.inMilliseconds;
+    final expire = now - maxAge.inMilliseconds;
+    final gone = _items.where((e) => e.createdAt < drop).toList();
+    for (final e in gone) {
+      _items.remove(e);
+      _deleteFiles(e);
+    }
+    // 24 saati geçen bekleyen mesaj artık gönderilmez: kalıcı hata (kullanıcı "Gönderilemedi" görür).
+    for (final e in _items) {
+      if (e.status == OutboxStatus.pending && e.createdAt < expire) {
+        e.status = OutboxStatus.failed;
+        e.errorCode = 'EXPIRED';
+      }
+    }
     while (_items.length > maxItems) {
       // Önce kalıcı hatalı en eskiyi, yoksa en eski bekleyeni at.
       final i = _items.indexWhere((e) => e.status == OutboxStatus.failed);
-      _items.removeAt(i >= 0 ? i : 0);
+      final removed = _items.removeAt(i >= 0 ? i : 0);
+      _deleteFiles(removed);
     }
+  }
+
+  // ---------- Ek dosyaları ----------
+
+  Directory? _mediaDir;
+
+  Future<Directory> _ensureMediaDir() async {
+    final d = _mediaDir ??= await _mediaDirProvider();
+    await d.create(recursive: true);
+    return d;
+  }
+
+  File _mediaFile(Directory d, String name) => File('${d.path}${Platform.pathSeparator}$name');
+
+  void _deleteFiles(OutboxItem it) {
+    if (it.media.isEmpty) return;
+    unawaited(() async {
+      try {
+        final d = await _ensureMediaDir();
+        for (final m in it.media) {
+          for (final n in [m.file, if (m.poster != null) m.poster!]) {
+            final f = _mediaFile(d, n);
+            if (await f.exists()) await f.delete();
+          }
+        }
+      } catch (_) {}
+    }());
+  }
+
+  /// Kuyrukta olmayan artık dosyaları siler (çökme sonrası).
+  Future<void> _sweepOrphanFiles() async {
+    try {
+      final d = await _ensureMediaDir();
+      final known = <String>{
+        for (final it in _items)
+          for (final m in it.media) ...[m.file, if (m.poster != null) m.poster!],
+      };
+      await for (final e in d.list()) {
+        if (e is! File) continue;
+        if (!known.contains(e.uri.pathSegments.last)) await e.delete();
+      }
+    } catch (_) {}
+  }
+
+  /// Kuyruktaki ek dosyalarının toplam boyutu.
+  int get mediaBytes => _items.fold<int>(0, (a, e) => a + e.media.fold<int>(0, (b, m) => b + m.size));
+
+  /// Öğenin ek dosyası (önizleme/geri yükleme için); yoksa null.
+  Future<File?> mediaFileOf(OutboxMedia m, {bool poster = false}) async {
+    final name = poster ? m.poster : m.file;
+    if (name == null) return null;
+    try {
+      final f = _mediaFile(await _ensureMediaDir(), name);
+      return await f.exists() ? f : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Fotoğraf/video mesajını kuyruğa alır: ekler uygulama diskine kopyalanır (galeri/önbellek dosyası silinse de
+  /// kalır). Disk tavanı ([maxMediaBytes]) aşılırsa ya da kopyalama başarısızsa false (mesaj "Gönderilemedi" olur).
+  Future<bool> enqueueMedia({
+    required int conversationId,
+    required String clientId,
+    required String text,
+    required List<OutboxMediaSource> sources,
+    int? replyToMessageId,
+    bool viewOnce = false,
+  }) async {
+    if (sources.isEmpty || contains(clientId) || text.length > maxTextLength) return false;
+    final written = <OutboxMedia>[];
+    try {
+      final d = await _ensureMediaDir();
+      var add = 0;
+      for (var i = 0; i < sources.length; i++) {
+        final s = sources[i];
+        final ext = s.kind == 'video' ? 'mp4' : (s.mime == 'image/png' ? 'png' : (s.mime == 'image/webp' ? 'webp' : 'jpg'));
+        final name = '${clientId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}_$i.$ext';
+        final f = _mediaFile(d, name);
+        if (s.bytes != null) {
+          await f.writeAsBytes(s.bytes!, flush: true);
+        } else {
+          await File(s.path!).copy(f.path);
+        }
+        final size = await f.length();
+        add += size;
+        String? posterName;
+        if (s.poster != null && s.poster!.isNotEmpty) {
+          posterName = '${name}_p.jpg';
+          await _mediaFile(d, posterName).writeAsBytes(s.poster!, flush: true);
+        }
+        written.add(OutboxMedia(
+          kind: s.kind,
+          file: name,
+          mime: s.mime,
+          poster: posterName,
+          width: s.width,
+          height: s.height,
+          durationMs: s.durationMs,
+          size: size,
+        ));
+      }
+      if (mediaBytes + add > maxMediaBytes) throw const FileSystemException('quota');
+    } catch (_) {
+      _deleteFiles(OutboxItem(clientId: clientId, conversationId: conversationId, text: '', createdAt: 0, media: written));
+      return false;
+    }
+    final now = _now().millisecondsSinceEpoch;
+    _items.add(OutboxItem(
+      clientId: clientId,
+      conversationId: conversationId,
+      text: text,
+      createdAt: now,
+      replyToMessageId: replyToMessageId,
+      media: written,
+      viewOnce: viewOnce,
+      nextAttemptAt: now + backoff(1).inMilliseconds,
+    ));
+    _prune();
+    unawaited(_save());
+    notifyListeners();
+    _scheduleNext();
+    return true;
   }
 
   Future<void> _save() async {
@@ -282,6 +554,8 @@ class Outbox extends ChangeNotifier {
   }
 
   Future<void> remove(String clientId) async {
+    final it = byClientId(clientId);
+    if (it != null) _deleteFiles(it);
     _items.removeWhere((e) => e.clientId == clientId);
     await _save();
     notifyListeners();
@@ -290,9 +564,14 @@ class Outbox extends ChangeNotifier {
   /// Oturum kapanışı/hesap silme: bütün bekleyen mesajlar silinir.
   Future<void> clear() async {
     _timer?.cancel();
+    final old = List.of(_items);
     _items.clear();
+    for (final e in old) {
+      _deleteFiles(e);
+    }
     await _save();
     notifyListeners();
+    unawaited(_sweepOrphanFiles());
   }
 
   /// Bekleyenleri sırayla göndermeyi dener (eşzamanlı çağrılar tek çalışmaya birleşir).
@@ -301,6 +580,12 @@ class Outbox extends ChangeNotifier {
     if (send == null || _draining) return;
     _draining = true;
     try {
+      final failedBefore = failedCount;
+      _prune(); // 24 saati geçenler kalıcı hata olur
+      if (failedCount != failedBefore) {
+        await _save();
+        notifyListeners();
+      }
       final blocked = <int>{}; // sırası bozulmasın: sorunlu konuşmanın sonraki mesajları beklesin
       for (final it in List.of(_items)) {
         if (it.status != OutboxStatus.pending || blocked.contains(it.conversationId)) continue;
@@ -309,8 +594,9 @@ class Outbox extends ChangeNotifier {
           continue;
         }
         try {
-          final res = await send(it);
+          final res = await _deliver(it, send);
           _items.removeWhere((e) => e.clientId == it.clientId);
+          _deleteFiles(it);
           _deliveries.add(OutboxDelivery(it, res));
           await _save();
           notifyListeners();
@@ -330,6 +616,34 @@ class Outbox extends ChangeNotifier {
     } finally {
       _draining = false;
       _scheduleNext();
+    }
+  }
+
+  /// Ekleri (varsa) yükler, sonra mesajı gönderir. Yükleme kimliği kalıcı yazılır: gönderim düşerse yeniden yüklenmez.
+  Future<Object?> _deliver(OutboxItem it, OutboxSender send) async {
+    for (final m in it.media) {
+      if (m.attId != null) continue;
+      final up = uploader;
+      final d = await _ensureMediaDir();
+      final f = _mediaFile(d, m.file);
+      if (up == null || !await f.exists()) {
+        throw ApiError(400, 'MEDIA_LOST', ''); // dosya yok: kalıcı hata
+      }
+      final p = m.poster == null ? null : _mediaFile(d, m.poster!);
+      m.attId = await up(it, m, f, p != null && await p.exists() ? p : null);
+      await _save();
+    }
+    try {
+      return await send(it);
+    } on ApiError catch (e) {
+      // Sunucu yüklenmiş eki artık tanımıyor (yetim temizliği): bir sonraki denemede yeniden yüklenir.
+      if ((e.status == 400 || e.status == 404 || e.status == 410) && e.code.startsWith('ATTACHMENT')) {
+        for (final m in it.media) {
+          m.attId = null;
+        }
+        throw ApiError(0, 'NETWORK', '');
+      }
+      rethrow;
     }
   }
 

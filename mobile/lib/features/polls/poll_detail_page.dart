@@ -156,7 +156,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
         onRetry: _load,
         onRefresh: _load,
         loading: const _DetailSkeleton(),
-        banner: p != null && _error != null ? BuOfflineBanner(message: l.pollStale, showCachedHint: false) : null,
         bottomInset: voting ? 16 : 32,
         bottomBar: voting ? _voteBar(p) : null,
         slivers: p == null ? const [] : [SliverToBoxAdapter(child: _content(t, p))],
