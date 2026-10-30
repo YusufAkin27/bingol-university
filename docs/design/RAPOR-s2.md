@@ -41,3 +41,11 @@ Aktarma klasoru: `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin `
 - Halusinasyonlar: baslik "Duyuru Detayi", uctan uca sifreleme/ozel ses satirlari, CANLI/Resmi etiketleri, "Simule" sekmeleri, "180 Katilimci".
 - Kalan kusurlar: kulup ekraninda logo uzerinde yesil nokta; birebirde engelleme satiri "Mehmet Kaya'yi Engelle" olarak uzun; uyeler sayfasinda hata/bos satirlari liste altinda birlikte gorunuyor (ayri ekran yerine); uye cikarma diyalogunun arka plani kisaltilmis.
 - Not: PNG'ler render'dir (bkz. 21). Ek: Stitch hesabinda yalniz S2 grubu kullanildi, kota hatasi (Generation limited) gorulmedi.
+
+## 46 - Akademik diyaloglar ve secici (4 ekran, `C:\bu_design\stitch\46-akademik-diyaloglar-secici\`)
+- Proje: "BU Kampus Academic Dialogs" (Stitch otomatik adi) - https://stitch.withgoogle.com/u/1/projects/2140596356051805801
+- Uretilen: yeni donem diyalogu (Donem + Baslangic/Bitis tarihi, iki hata satiri, Vazgec/Ekle), ders silme onayi (Dersi sil + sinav ve donem metinleri alt kutuda), M3 tarih secici (Kasim 2026, 12 secili, Vazgec/Sec), M3 saat secici (Baslangic saati, 10:00); secili gun/saat marka kirmizisi, mor yok; 4/4.
+- Duzeltilen (1 tur): "Bingol Universitesi Akademik Takvim" alt basligi, "ZORUNLU" etiketi, kapat X, "GERI ALINAMAZ ISLEM" kutusu, "VARYANT A/B / Onizle / Prototip" etiketleri, "Guz Vize" / "Ders Saati" / "BLM-201 ders baslangic blogu" etiketleri, OO/OS anahtari ve "Ekle ->" oku silindi.
+- Halusinasyonlar: ek uyari kutusu, varyant etiketleri, ders kodu etiketi.
+- Kalan kusurlar: tarih seciciyi "TARIH SECIN" (buyuk harf) basligi; ders silme ekraninda Sil/Vazgec dugmeleri dikey sirali (istem yan yana "Vazgec, Sil" diyordu); sinav ve donem metinleri iki satir halinde tek gri kutuda.
+- Not: Stitch zip'indeki screen.png yine 28 baytlik "FIFE Image failed to fetch" cikti (zip bir kez daha denendi); screen.png = code.html'in 390x844 render'i, `export.zip` icindeki PNG'ler bozuk.
