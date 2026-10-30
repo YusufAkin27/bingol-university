@@ -44,7 +44,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [36-etkinlik-listeleri.md](36-etkinlik-listeleri.md) | 6 | 72, 73 | [x] eksik: Düzelt ve Yeniden Gönder dügmesi, fazla alt basliklar (bkz RAPOR-s4) |
 | [37-etkinlik-liste-durumlari-diyaloglar.md](37-etkinlik-liste-durumlari-diyaloglar.md) | 6 | 72 (durumlar), A36, A42 | [x] eksik: iptal diyalogu toast örnekleri bulanık (bkz RAPOR-s4) |
 | [38-etkinlik-detay-durumlari.md](38-etkinlik-detay-durumlari.md) | 6 | 74 (RSVP/kontenjan durumları) | [x] eksik: 2 ekranda kapak görseli yok, kayıtlar kapalı tutarsız (bkz RAPOR-s4) |
-| [39-etkinlik-istek-ve-yoklama.md](39-etkinlik-istek-ve-yoklama.md) | 6 | 74 (istek/yoklama), A37 | [ ] |
+| [39-etkinlik-istek-ve-yoklama.md](39-etkinlik-istek-ve-yoklama.md) | 6 | 74 (istek/yoklama), A37 | [x] 6 ekran (s1; istem S4'ten), 1 tur duzeltildi; eksik: kapak foto tabelasi, bekleyen karti bulanik, kucuk fazla metinler (RAPOR-s1) |
 | [40-etkinlik-olustur-duzenle.md](40-etkinlik-olustur-duzenle.md) | 6 | 75, A39, A40, A41, A43 | [x] |
 | [41-etkinlik-organizator-ayar-istek.md](41-etkinlik-organizator-ayar-istek.md) | 6 | 76, 77 | [x] |
 | [42-etkinlik-qr-yoklama-listesi.md](42-etkinlik-qr-yoklama-listesi.md) | 5 | 78, 79 | [x] |
