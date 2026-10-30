@@ -3,8 +3,10 @@ package edu.bingol.bu_kampus
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -83,13 +85,36 @@ class MainActivity : FlutterActivity() {
             "cancelAll" -> safe(result) { LocalReminderStore.cancelAll(this) }
             "setChannelNames" -> safe(result) {
                 val m = call.argument<Map<String, String>>("names") ?: return@safe
-                Channels.setNames(this, m)
+                Channels.setNames(this, m, call.argument<Map<String, String>>("descriptions") ?: emptyMap())
             }
             "notificationsAllowed" -> {
                 val nm = getSystemService(NotificationManager::class.java)
                 val ok = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) nm?.areNotificationsEnabled() ?: true else true
                 result.success(ok)
             }
+            // Yardim ekrani: izin + kapatilmis kanallar + uretici (pil/otomatik baslatma metni icin).
+            "pushDiagnostics" -> {
+                val nm = getSystemService(NotificationManager::class.java)
+                result.success(
+                    mapOf(
+                        "enabled" to (nm?.areNotificationsEnabled() ?: true),
+                        "blocked" to Channels.blocked(this),
+                        "manufacturer" to (Build.MANUFACTURER ?: ""),
+                        "sdk" to Build.VERSION.SDK_INT
+                    )
+                )
+            }
+            "openNotificationSettings" -> result.success(
+                startSettings(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                    else appDetails()
+                ) || startSettings(appDetails())
+            )
+            // Pil/otomatik baslatma: REQUEST_IGNORE_BATTERY_OPTIMIZATIONS izni KULLANILMAZ (Play politikasi); yalniz ayar sayfasi acilir.
+            "openBatterySettings" -> result.success(
+                startSettings(appDetails()) || startSettings(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            )
             "takeLaunchPayload" -> {
                 val p = launchPayload
                 launchPayload = null
@@ -97,6 +122,17 @@ class MainActivity : FlutterActivity() {
             }
             else -> result.notImplemented()
         }
+    }
+
+    private fun appDetails() =
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+
+    private fun startSettings(i: Intent): Boolean = try {
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(i)
+        true
+    } catch (_: Exception) {
+        false
     }
 
     private fun safe(result: MethodChannel.Result, block: () -> Unit) {

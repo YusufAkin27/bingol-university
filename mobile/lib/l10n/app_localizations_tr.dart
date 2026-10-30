@@ -8960,4 +8960,113 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p20GradeLevel => 'Sınıf Düzeyi';
+
+  @override
+  String get p21ChanChatDesc =>
+      'Birebir ve grup sohbet mesajları. Ses ve titreşimle gelir.';
+
+  @override
+  String get p21ChanEventDesc =>
+      'Etkinlik hatırlatmaları, değişiklikler ve katılım sonuçları.';
+
+  @override
+  String get p21ChanAnnouncementDesc =>
+      'Haber, duyuru, kulüp ve sistem bildirimleri.';
+
+  @override
+  String get p21ChanSocialDesc => 'Beğeni ve takip bildirimleri. Sessiz gelir.';
+
+  @override
+  String get p21ChanPollDesc => 'Yeni anketler ve sonuçları.';
+
+  @override
+  String get p21ChanAcademicDesc =>
+      'Ders ve sınav saatinden önceki yerel hatırlatmalar.';
+
+  @override
+  String get p21HelpTitle => 'Bildirimler çalışmıyor mu?';
+
+  @override
+  String get p21HelpLink => 'Bildirimler çalışmıyor mu?';
+
+  @override
+  String get p21HelpAllGood => 'Bu cihazda her şey yolunda görünüyor.';
+
+  @override
+  String get p21HelpSomeIssue =>
+      'Bildirim almanızı engelleyen bir şey var. Aşağıdaki adımlara bakın.';
+
+  @override
+  String get p21HelpPermTitle => 'Bildirim izni';
+
+  @override
+  String get p21HelpPermOk => 'Uygulama bildirimleri açık.';
+
+  @override
+  String get p21HelpPermOff =>
+      'Bildirimler sistem ayarlarından kapatılmış. Açmadan bildirim alamazsınız.';
+
+  @override
+  String get p21HelpChanTitle => 'Bildirim kategorileri';
+
+  @override
+  String get p21HelpChanChat =>
+      'Mesajlar kategorisi sistem ayarlarından kapatılmış. Açın, yoksa yeni mesaj bildirimi gelmez.';
+
+  @override
+  String get p21HelpChanOther =>
+      'Bazı bildirim kategorileri sistem ayarlarından kapatılmış. İstediklerinizi açın.';
+
+  @override
+  String get p21HelpDeviceTitle => 'Bu cihazın kaydı';
+
+  @override
+  String get p21HelpDeviceOk => 'Cihazınız bildirim göndermemiz için kayıtlı.';
+
+  @override
+  String get p21HelpDeviceBad =>
+      'Cihazınız henüz kayıtlı değil. İnternet bağlantınızı kontrol edip yeniden kaydedin.';
+
+  @override
+  String get p21HelpDeviceUnsupported =>
+      'Bu sürümde anlık bildirim yapılandırılmamış.';
+
+  @override
+  String get p21HelpDeviceRetry => 'Yeniden kaydet';
+
+  @override
+  String get p21HelpBatteryTitle => 'Pil ve arka plan';
+
+  @override
+  String get p21HelpBatteryOem =>
+      'Telefonunuz pili korumak için uygulamayı kapatabilir. Uygulama kapalıyken bildirim gelmiyorsa pil ayarlarında BÜ Kampüs için kısıtlamayı kaldırın, varsa Otomatik başlatma iznini açın ve uygulamayı son uygulamalardan kilitleyin.';
+
+  @override
+  String get p21HelpBatteryGeneric =>
+      'Uygulama kapalıyken bildirim gelmiyorsa pil ayarlarında BÜ Kampüs için kısıtlamayı kaldırın. Uygulamayı son uygulamalardan kaydırarak kapatmak bazı telefonlarda bildirimleri durdurur.';
+
+  @override
+  String get p21HelpBatteryOpen => 'Pil ayarlarını aç';
+
+  @override
+  String get p21HelpFooter =>
+      'Sessiz saatler ve bildirim tercihleri de bildirimi engelleyebilir. Bunları Bildirim tercihlerinden kontrol edin.';
+
+  @override
+  String get p22SaveGalleryTitle => 'Fotoğrafları galeriye kaydet';
+
+  @override
+  String get p22SaveGalleryDesc =>
+      'Sohbette aldığın ve gönderdiğin fotoğraflar galerine kaydedilir; tek gösterimlik fotoğraflar kaydedilmez.';
+
+  @override
+  String get p22SaveGalleryCloud =>
+      'Galerin bulut yedeklemesi açıksa fotoğraflar oraya da gidebilir.';
+
+  @override
+  String get p22SaveDeniedToast =>
+      'Fotoğraflar galeriye kaydedilemedi: izin verilmedi. Ayarlardan izin verebilirsin.';
+
+  @override
+  String get p22OpenSettings => 'Ayarlar';
 }

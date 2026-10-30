@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/permissions/permission_service.dart';
+import '../../core/push/push_health.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -13,6 +14,7 @@ import '../academic/academic_widgets.dart';
 import '../academic/akad_widgets.dart';
 import '../academic/reminder_settings_page.dart';
 import '../academic/reminders.dart';
+import '../notifications/push_help_page.dart';
 
 /// Tasarımdaki aç/kapat anahtarı (46x28, beyaz topuz).
 class PrefSwitch extends StatelessWidget {
@@ -262,7 +264,7 @@ class NotificationPrefsGroup extends StatefulWidget {
   State<NotificationPrefsGroup> createState() => _NotificationPrefsGroupState();
 }
 
-class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
+class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with WidgetsBindingObserver {
   late final _PrefsStore _store = _PrefsStore(widget.session)..addListener(_onChange);
   String _pushStatus = '...';
   int? _leadMin;
@@ -280,12 +282,9 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _store.load();
-    if (widget.showPushCard) {
-      _readPushStatus(widget.push).then((s) {
-        if (mounted) setState(() => _pushStatus = s);
-      });
-    }
+    _refreshPushStatus();
     ReminderService.store.load().then((v) {
       if (mounted) setState(() => _leadMin = v.classLeadMin);
     }).catchError((_) {});
@@ -293,8 +292,43 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _store.dispose();
     super.dispose();
+  }
+
+  void _refreshPushStatus() {
+    if (!widget.showPushCard) return;
+    _readPushStatus(widget.push).then((s) {
+      if (mounted) setState(() => _pushStatus = s);
+    });
+  }
+
+  /// Sistem ayarlarından dönünce push kartı güncellenir (izin açılmış/kapatılmış olabilir).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshPushStatus();
+  }
+
+  void _openPushHelp() => Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(builder: (_) => PushHelpPage(source: SystemPushHealthSource(widget.push))),
+      );
+
+  Widget _helpLink() {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton.icon(
+          onPressed: _openPushHelp,
+          icon: Icon(LucideIcons.circleHelp, size: 18, color: t.pr),
+          label: Text(context.l10n.p21HelpLink, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
+        ),
+      ),
+    );
   }
 
   static TimeOfDay _parse(String? s, TimeOfDay fallback) {
@@ -363,7 +397,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
         ),
       );
     }
-    final note = '${l.pushNotGranted} • ${l.pushNotConfigured}';
+    final note = _pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushNotGranted;
     return _card(
       bar: t.pr,
       child: Padding(
@@ -457,7 +491,11 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
     final prefs = _store.prefs;
     final children = <Widget>[];
     // Yukleme hatasinda push karti cizilmez (referans: yalniz hata satiri + "Bu cihazda").
-    if (widget.showPushCard && !(err != null && prefs == null)) children.add(_pushCard());
+    if (widget.showPushCard && !(err != null && prefs == null)) {
+      children
+        ..add(_pushCard())
+        ..add(_helpLink());
+    }
     if (err != null && prefs == null) {
       children.add(Padding(
         padding: EdgeInsets.zero,

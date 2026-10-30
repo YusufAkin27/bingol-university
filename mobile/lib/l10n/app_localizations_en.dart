@@ -8992,4 +8992,115 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p20GradeLevel => 'Grade Level';
+
+  @override
+  String get p21ChanChatDesc =>
+      'Direct and group chat messages. Arrive with sound and vibration.';
+
+  @override
+  String get p21ChanEventDesc =>
+      'Event reminders, changes and attendance results.';
+
+  @override
+  String get p21ChanAnnouncementDesc =>
+      'News, announcements, club and system notifications.';
+
+  @override
+  String get p21ChanSocialDesc =>
+      'Like and follow notifications. Delivered silently.';
+
+  @override
+  String get p21ChanPollDesc => 'New polls and their results.';
+
+  @override
+  String get p21ChanAcademicDesc =>
+      'Local reminders before your classes and exams.';
+
+  @override
+  String get p21HelpTitle => 'Notifications not working?';
+
+  @override
+  String get p21HelpLink => 'Notifications not working?';
+
+  @override
+  String get p21HelpAllGood => 'Everything looks fine on this device.';
+
+  @override
+  String get p21HelpSomeIssue =>
+      'Something is preventing you from receiving notifications. See the steps below.';
+
+  @override
+  String get p21HelpPermTitle => 'Notification permission';
+
+  @override
+  String get p21HelpPermOk => 'App notifications are on.';
+
+  @override
+  String get p21HelpPermOff =>
+      'Notifications are turned off in system settings. You will not receive any until you turn them on.';
+
+  @override
+  String get p21HelpChanTitle => 'Notification categories';
+
+  @override
+  String get p21HelpChanChat =>
+      'The Messages category is turned off in system settings. Turn it on or you will not get new message notifications.';
+
+  @override
+  String get p21HelpChanOther =>
+      'Some notification categories are turned off in system settings. Turn on the ones you want.';
+
+  @override
+  String get p21HelpDeviceTitle => 'This device registration';
+
+  @override
+  String get p21HelpDeviceOk =>
+      'Your device is registered so we can send notifications.';
+
+  @override
+  String get p21HelpDeviceBad =>
+      'Your device is not registered yet. Check your internet connection and register again.';
+
+  @override
+  String get p21HelpDeviceUnsupported =>
+      'Push notifications are not configured in this version.';
+
+  @override
+  String get p21HelpDeviceRetry => 'Register again';
+
+  @override
+  String get p21HelpBatteryTitle => 'Battery and background';
+
+  @override
+  String get p21HelpBatteryOem =>
+      'Your phone may shut the app down to save battery. If notifications do not arrive while the app is closed, remove the restriction for BÜ Kampüs in battery settings, allow Autostart if your phone has it, and lock the app in recent apps.';
+
+  @override
+  String get p21HelpBatteryGeneric =>
+      'If notifications do not arrive while the app is closed, remove the battery restriction for BÜ Kampüs in battery settings. Swiping the app away from recent apps stops notifications on some phones.';
+
+  @override
+  String get p21HelpBatteryOpen => 'Open battery settings';
+
+  @override
+  String get p21HelpFooter =>
+      'Quiet hours and notification preferences can also block a notification. Check them in Notification preferences.';
+
+  @override
+  String get p22SaveGalleryTitle => 'Save photos to gallery';
+
+  @override
+  String get p22SaveGalleryDesc =>
+      'Photos you receive and send in chats are saved to your gallery; view-once photos are never saved.';
+
+  @override
+  String get p22SaveGalleryCloud =>
+      'If your gallery has cloud backup turned on, the photos may be uploaded there too.';
+
+  @override
+  String get p22SaveDeniedToast =>
+      'Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.';
+
+  @override
+  String get p22OpenSettings => 'Settings';
 }

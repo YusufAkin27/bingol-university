@@ -24,7 +24,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <application
         android:label="@string/app_name"
-        android:name="${applicationName}"
+        android:name=".BuApplication"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="false"

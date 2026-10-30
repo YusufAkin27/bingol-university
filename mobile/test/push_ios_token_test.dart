@@ -43,7 +43,7 @@ void main() {
     expect(t, 'tok');
   });
 
-  test('Android: APNs beklenmez, tek deneme', () async {
+  test('Android: APNs beklenmez, ilk basarida durur', () async {
     var apnsCalls = 0;
     final t = await fetchPushToken(
       isIOS: false,
@@ -56,5 +56,20 @@ void main() {
     );
     expect(t, 'a');
     expect(apnsCalls, 0);
+  });
+
+  test('Android: gecici hatada (Play Hizmetleri/ag) 3 kez dener, sonra basarir', () async {
+    var n = 0;
+    final t = await fetchPushToken(
+      isIOS: false,
+      apns: () async => null,
+      fcm: () async {
+        if (++n < 3) throw Exception('SERVICE_NOT_AVAILABLE');
+        return 'tok';
+      },
+      delay: d,
+    );
+    expect(t, 'tok');
+    expect(n, 3);
   });
 }

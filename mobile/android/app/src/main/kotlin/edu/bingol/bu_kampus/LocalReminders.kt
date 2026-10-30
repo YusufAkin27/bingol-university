@@ -124,32 +124,90 @@ object LocalReminderStore {
 }
 
 object Channels {
-    // Varsayilan (Turkce) adlar; Dart acilista setNames ile kullanicinin diline gunceller.
-    private val names = mutableMapOf(
+    /** Marka kirmizisi (#F73B2E); bildirim vurgusu ve isik rengi. res/values/colors.xml notification_accent ile ayni. */
+    const val ACCENT = 0xFFF73B2E.toInt()
+
+    private const val PREFS = "bu_channels"
+
+    // Kimlikler SUNUCU sozlesmesiyle ayni (PushMessages: chat/event/announcement/poll/social); academic yerel hatirlatma.
+    // Varsayilan (Turkce) adlar; Dart acilista/on plana donuste setNames ile kullanicinin diline gunceller ve
+    // SharedPreferences'a yazar: uygulama kapaliyken FCM sureci Application.onCreate'te kanallari son dille kurar.
+    private val defaultNames = mapOf(
         "chat" to "Mesajlar", "event" to "Etkinlikler", "announcement" to "Duyurular ve haberler",
         "social" to "Sosyal (begeni, takip)", "poll" to "Anketler", "academic" to "Ders ve sinav hatirlatmalari"
     )
+    private val defaultDescs = mapOf(
+        "chat" to "Birebir ve grup sohbet mesajlari.", "event" to "Etkinlik hatirlatmalari ve degisiklikler.",
+        "announcement" to "Haber, duyuru, kulup ve sistem bildirimleri.", "social" to "Begeni ve takip bildirimleri.",
+        "poll" to "Yeni anketler ve sonuclari.", "academic" to "Ders ve sinav saatinden onceki hatirlatmalar."
+    )
+
+    // Onem (kanal olusturulunca sabitlenir; kullanici sistem ayarindan degistirebilir, kod dusuremez):
+    // mesaj = HIGH (ses + titresim + baslik ustu), duyuru/etkinlik/anket = DEFAULT (ses), sosyal = LOW (sessiz).
     private val importance = mapOf(
         "chat" to NotificationManager.IMPORTANCE_HIGH, "event" to NotificationManager.IMPORTANCE_DEFAULT,
         "announcement" to NotificationManager.IMPORTANCE_DEFAULT, "social" to NotificationManager.IMPORTANCE_LOW,
         "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH
     )
 
-    fun setNames(c: Context, n: Map<String, String>) {
-        n.forEach { (k, v) -> if (names.containsKey(k) && v.isNotBlank()) names[k] = v }
+    /** Kullanici bunlari sistem ayarindan kapatirsa bildirim gelmez; yardim ekrani uyarir. (social bilincli kapatilabilir.) */
+    private val critical = listOf("chat", "event", "announcement")
+
+    private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    fun setNames(c: Context, n: Map<String, String>, d: Map<String, String> = emptyMap()) {
+        val e = prefs(c).edit()
+        n.forEach { (k, v) -> if (defaultNames.containsKey(k) && v.isNotBlank()) e.putString("n_$k", v) }
+        d.forEach { (k, v) -> if (defaultDescs.containsKey(k) && v.isNotBlank()) e.putString("d_$k", v) }
+        e.apply()
         ensure(c)
     }
 
-    // Idempotent: var olan kanalin yalniz adi guncellenir, kullanicinin sistem ayari korunur.
+    // Idempotent: var olan kanalin yalniz adi/aciklamasi guncellenir, kullanicinin sistem ayari (onem, ses) korunur.
     fun ensure(c: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             val nm = c.getSystemService(NotificationManager::class.java) ?: return
-            names.forEach { (id, name) ->
-                nm.createNotificationChannel(NotificationChannel(id, name, importance[id] ?: NotificationManager.IMPORTANCE_DEFAULT))
+            val p = prefs(c)
+            defaultNames.forEach { (id, defName) ->
+                val ch = NotificationChannel(
+                    id,
+                    p.getString("n_$id", null) ?: defName,
+                    importance[id] ?: NotificationManager.IMPORTANCE_DEFAULT
+                )
+                ch.description = p.getString("d_$id", null) ?: defaultDescs[id]
+                when (id) {
+                    "chat" -> {
+                        ch.enableVibration(true)
+                        ch.enableLights(true)
+                        ch.lightColor = ACCENT
+                        ch.setShowBadge(true)
+                    }
+                    "social" -> ch.setShowBadge(false)
+                }
+                nm.createNotificationChannel(ch)
             }
         } catch (_: Exception) {
         }
+    }
+
+    /** Kullanicinin sistem ayarindan tamamen kapattigi onemli kanallar (Android 8+). */
+    fun blocked(c: Context): List<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return emptyList()
+        return try {
+            val nm = c.getSystemService(NotificationManager::class.java) ?: return emptyList()
+            critical.filter { nm.getNotificationChannel(it)?.importance == NotificationManager.IMPORTANCE_NONE }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+}
+
+/** Surec FCM ile (uygulama kapaliyken) baslasa bile kanallar hazir olsun: sistem bildirimi dogru kanaldan/sesle gosterir. */
+class BuApplication : android.app.Application() {
+    override fun onCreate() {
+        super.onCreate()
+        Channels.ensure(this)
     }
 }
 
@@ -179,6 +237,8 @@ class ReminderReceiver : BroadcastReceiver() {
                 .setContentText(intent.getStringExtra("body"))
                 .setStyle(Notification.BigTextStyle().bigText(intent.getStringExtra("body")))
                 .setContentIntent(tap)
+                .setColor(Channels.ACCENT)
+                .setCategory(Notification.CATEGORY_REMINDER)
                 .setAutoCancel(true)
             nm.notify(group.hashCode() * 31 + id, b.build())
         } catch (_: Exception) {

@@ -16308,6 +16308,192 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sınıf Düzeyi'**
   String get p20GradeLevel;
+
+  /// No description provided for @p21ChanChatDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birebir ve grup sohbet mesajları. Ses ve titreşimle gelir.'**
+  String get p21ChanChatDesc;
+
+  /// No description provided for @p21ChanEventDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik hatırlatmaları, değişiklikler ve katılım sonuçları.'**
+  String get p21ChanEventDesc;
+
+  /// No description provided for @p21ChanAnnouncementDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haber, duyuru, kulüp ve sistem bildirimleri.'**
+  String get p21ChanAnnouncementDesc;
+
+  /// No description provided for @p21ChanSocialDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni ve takip bildirimleri. Sessiz gelir.'**
+  String get p21ChanSocialDesc;
+
+  /// No description provided for @p21ChanPollDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni anketler ve sonuçları.'**
+  String get p21ChanPollDesc;
+
+  /// No description provided for @p21ChanAcademicDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders ve sınav saatinden önceki yerel hatırlatmalar.'**
+  String get p21ChanAcademicDesc;
+
+  /// No description provided for @p21HelpTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler çalışmıyor mu?'**
+  String get p21HelpTitle;
+
+  /// No description provided for @p21HelpLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler çalışmıyor mu?'**
+  String get p21HelpLink;
+
+  /// No description provided for @p21HelpAllGood.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazda her şey yolunda görünüyor.'**
+  String get p21HelpAllGood;
+
+  /// No description provided for @p21HelpSomeIssue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim almanızı engelleyen bir şey var. Aşağıdaki adımlara bakın.'**
+  String get p21HelpSomeIssue;
+
+  /// No description provided for @p21HelpPermTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim izni'**
+  String get p21HelpPermTitle;
+
+  /// No description provided for @p21HelpPermOk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama bildirimleri açık.'**
+  String get p21HelpPermOk;
+
+  /// No description provided for @p21HelpPermOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler sistem ayarlarından kapatılmış. Açmadan bildirim alamazsınız.'**
+  String get p21HelpPermOff;
+
+  /// No description provided for @p21HelpChanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim kategorileri'**
+  String get p21HelpChanTitle;
+
+  /// No description provided for @p21HelpChanChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlar kategorisi sistem ayarlarından kapatılmış. Açın, yoksa yeni mesaj bildirimi gelmez.'**
+  String get p21HelpChanChat;
+
+  /// No description provided for @p21HelpChanOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bazı bildirim kategorileri sistem ayarlarından kapatılmış. İstediklerinizi açın.'**
+  String get p21HelpChanOther;
+
+  /// No description provided for @p21HelpDeviceTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazın kaydı'**
+  String get p21HelpDeviceTitle;
+
+  /// No description provided for @p21HelpDeviceOk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazınız bildirim göndermemiz için kayıtlı.'**
+  String get p21HelpDeviceOk;
+
+  /// No description provided for @p21HelpDeviceBad.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazınız henüz kayıtlı değil. İnternet bağlantınızı kontrol edip yeniden kaydedin.'**
+  String get p21HelpDeviceBad;
+
+  /// No description provided for @p21HelpDeviceUnsupported.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sürümde anlık bildirim yapılandırılmamış.'**
+  String get p21HelpDeviceUnsupported;
+
+  /// No description provided for @p21HelpDeviceRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden kaydet'**
+  String get p21HelpDeviceRetry;
+
+  /// No description provided for @p21HelpBatteryTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Pil ve arka plan'**
+  String get p21HelpBatteryTitle;
+
+  /// No description provided for @p21HelpBatteryOem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefonunuz pili korumak için uygulamayı kapatabilir. Uygulama kapalıyken bildirim gelmiyorsa pil ayarlarında BÜ Kampüs için kısıtlamayı kaldırın, varsa Otomatik başlatma iznini açın ve uygulamayı son uygulamalardan kilitleyin.'**
+  String get p21HelpBatteryOem;
+
+  /// No description provided for @p21HelpBatteryGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama kapalıyken bildirim gelmiyorsa pil ayarlarında BÜ Kampüs için kısıtlamayı kaldırın. Uygulamayı son uygulamalardan kaydırarak kapatmak bazı telefonlarda bildirimleri durdurur.'**
+  String get p21HelpBatteryGeneric;
+
+  /// No description provided for @p21HelpBatteryOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Pil ayarlarını aç'**
+  String get p21HelpBatteryOpen;
+
+  /// No description provided for @p21HelpFooter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz saatler ve bildirim tercihleri de bildirimi engelleyebilir. Bunları Bildirim tercihlerinden kontrol edin.'**
+  String get p21HelpFooter;
+
+  /// No description provided for @p22SaveGalleryTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafları galeriye kaydet'**
+  String get p22SaveGalleryTitle;
+
+  /// No description provided for @p22SaveGalleryDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbette aldığın ve gönderdiğin fotoğraflar galerine kaydedilir; tek gösterimlik fotoğraflar kaydedilmez.'**
+  String get p22SaveGalleryDesc;
+
+  /// No description provided for @p22SaveGalleryCloud.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galerin bulut yedeklemesi açıksa fotoğraflar oraya da gidebilir.'**
+  String get p22SaveGalleryCloud;
+
+  /// No description provided for @p22SaveDeniedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflar galeriye kaydedilemedi: izin verilmedi. Ayarlardan izin verebilirsin.'**
+  String get p22SaveDeniedToast;
+
+  /// No description provided for @p22OpenSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarlar'**
+  String get p22OpenSettings;
 }
 
 class _AppLocalizationsDelegate

@@ -8899,4 +8899,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p20GradeLevel => 'المستوى الدراسي';
+
+  @override
+  String get p21ChanChatDesc =>
+      'رسائل المحادثات الفردية والجماعية. تصل بصوت واهتزاز.';
+
+  @override
+  String get p21ChanEventDesc => 'تذكيرات الفعاليات والتغييرات ونتائج الحضور.';
+
+  @override
+  String get p21ChanAnnouncementDesc =>
+      'إشعارات الأخبار والإعلانات والأندية والنظام.';
+
+  @override
+  String get p21ChanSocialDesc => 'إشعارات الإعجاب والمتابعة. تصل بصمت.';
+
+  @override
+  String get p21ChanPollDesc => 'الاستطلاعات الجديدة ونتائجها.';
+
+  @override
+  String get p21ChanAcademicDesc => 'تذكيرات محلية قبل المحاضرات والامتحانات.';
+
+  @override
+  String get p21HelpTitle => 'الإشعارات لا تعمل؟';
+
+  @override
+  String get p21HelpLink => 'الإشعارات لا تعمل؟';
+
+  @override
+  String get p21HelpAllGood => 'كل شيء يبدو سليماً على هذا الجهاز.';
+
+  @override
+  String get p21HelpSomeIssue =>
+      'هناك ما يمنعك من تلقي الإشعارات. راجع الخطوات أدناه.';
+
+  @override
+  String get p21HelpPermTitle => 'إذن الإشعارات';
+
+  @override
+  String get p21HelpPermOk => 'إشعارات التطبيق مفعّلة.';
+
+  @override
+  String get p21HelpPermOff =>
+      'الإشعارات معطّلة من إعدادات النظام. لن تصلك أي إشعارات قبل تفعيلها.';
+
+  @override
+  String get p21HelpChanTitle => 'فئات الإشعارات';
+
+  @override
+  String get p21HelpChanChat =>
+      'فئة الرسائل معطّلة من إعدادات النظام. فعّلها وإلا لن تصلك إشعارات الرسائل الجديدة.';
+
+  @override
+  String get p21HelpChanOther =>
+      'بعض فئات الإشعارات معطّلة من إعدادات النظام. فعّل ما تريده.';
+
+  @override
+  String get p21HelpDeviceTitle => 'تسجيل هذا الجهاز';
+
+  @override
+  String get p21HelpDeviceOk => 'جهازك مسجّل ليتمكن الخادم من إرسال الإشعارات.';
+
+  @override
+  String get p21HelpDeviceBad =>
+      'جهازك غير مسجّل بعد. تحقق من اتصال الإنترنت ثم سجّله مجدداً.';
+
+  @override
+  String get p21HelpDeviceUnsupported =>
+      'الإشعارات الفورية غير مهيأة في هذا الإصدار.';
+
+  @override
+  String get p21HelpDeviceRetry => 'إعادة التسجيل';
+
+  @override
+  String get p21HelpBatteryTitle => 'البطارية والخلفية';
+
+  @override
+  String get p21HelpBatteryOem =>
+      'قد يغلق هاتفك التطبيق لتوفير البطارية. إذا لم تصل الإشعارات والتطبيق مغلق، أزل القيود عن BÜ Kampüs في إعدادات البطارية، وفعّل التشغيل التلقائي إن وُجد، وثبّت التطبيق في التطبيقات الأخيرة.';
+
+  @override
+  String get p21HelpBatteryGeneric =>
+      'إذا لم تصل الإشعارات والتطبيق مغلق، أزل قيود البطارية عن BÜ Kampüs في إعدادات البطارية. إغلاق التطبيق بالسحب من التطبيقات الأخيرة يوقف الإشعارات في بعض الهواتف.';
+
+  @override
+  String get p21HelpBatteryOpen => 'فتح إعدادات البطارية';
+
+  @override
+  String get p21HelpFooter =>
+      'قد تمنع ساعات الهدوء وتفضيلات الإشعارات وصول الإشعار أيضاً. تحقق منها في تفضيلات الإشعارات.';
+
+  @override
+  String get p22SaveGalleryTitle => 'حفظ الصور في المعرض';
+
+  @override
+  String get p22SaveGalleryDesc =>
+      'تُحفظ الصور التي تستلمها وترسلها في المحادثات في معرض هاتفك، ولا تُحفظ الصور ذات العرض لمرة واحدة.';
+
+  @override
+  String get p22SaveGalleryCloud =>
+      'إذا كان النسخ الاحتياطي السحابي لمعرضك مفعّلاً فقد تُرفع الصور إليه أيضاً.';
+
+  @override
+  String get p22SaveDeniedToast =>
+      'تعذّر حفظ الصور في المعرض لأن الإذن غير ممنوح. يمكنك السماح به من الإعدادات.';
+
+  @override
+  String get p22OpenSettings => 'الإعدادات';
 }

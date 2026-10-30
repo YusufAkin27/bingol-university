@@ -101,6 +101,8 @@ Future<void> _bootstrap() async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   }
   installErrorHandling();
+  // Push: Firebase + arka plan/kapalı işleyicisi oturumdan bağımsız, runApp'ten önce kaydedilir (bkz. PushService.prepare).
+  unawaited(PushService.prepare());
   unawaited(ErrorLog.instance.init());
   await CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
   await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır

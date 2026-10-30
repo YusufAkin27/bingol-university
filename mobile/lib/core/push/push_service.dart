@@ -16,13 +16,16 @@ import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
 import 'push_api.dart';
 import 'push_banner.dart';
+import 'push_registrar.dart';
 import 'push_router.dart';
 
 const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.3');
 
-/// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır).
-/// Sunucu `notification` bloklu mesaj gönderdiği için sistem bildirimi kendisi gösterir; burada yalnız
-/// Firebase hazırlanır (yük işlenmez, UI/oturuma dokunulmaz). Dokunuş [PushService] ile yönlendirilir.
+/// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır) ve
+/// `main()` içinde ([PushService.prepare]) oturumdan bağımsız kaydedilir.
+/// Sunucu her zaman `notification` bloklu (+ Android kanal/etiket) mesaj gönderdiği için uygulama kapalıyken
+/// bildirimi SİSTEM gösterir (işleyici gerekmez); işleyici yalnız ileride veri-yüklü mesaj gelirse Firebase'i
+/// hazır tutar (yük işlenmez, UI/oturuma dokunulmaz). Dokunuş [PushService] ile yönlendirilir.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -32,7 +35,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 /// FCM jetonunu alır. iOS'ta APNs belirteci (anahtar/izin/imza hazırsa) birkaç saniye içinde gelir; gelmeden
 /// FCM jetonu istenirse eklenti `apns-token-not-set` fırlatır veya null döner. Bu yüzden önce APNs beklenir
-/// ([attempts] x [delay]), sonra jeton alınır; hata/null olursa sınırlı sayıda yeniden denenir. Hâlâ yoksa null
+/// ([attempts] x [delay]), sonra jeton alınır; hata/null olursa (her platformda) 3 kez denenir. Hâlâ yoksa null
 /// döner (APNs anahtarı/imza yok): uygulama etkilenmez, jeton sonradan `onTokenRefresh` ile gelir.
 @visibleForTesting
 Future<String?> fetchPushToken({
@@ -50,7 +53,9 @@ Future<String?> fetchPushToken({
       await Future<void>.delayed(delay);
     }
   }
-  final tries = isIOS ? 3 : 1;
+  // Android'de de birkaç deneme: Play Hizmetleri/ağ o an hazır değilse getToken hata verir ve (jeton
+  // değişmediği için) onTokenRefresh da tetiklenmez; tek deneme jetonu sunucuya hiç ulaştırmayabiliyordu.
+  const tries = 3;
   for (var i = 0; i < tries; i++) {
     try {
       final t = await fcm();
@@ -95,22 +100,34 @@ bool showPushBanner(
 /// FCM kaydı + ön plan şeridi + dokunuşla yönlendirme. Firebase yapılandırılmamışsa
 /// (GoogleService-Info.plist yok) sessizce devre dışı kalır; uygulama etkilenmez.
 class PushService with WidgetsBindingObserver {
-  PushService(this.session, {ActiveConversation? active})
+  PushService(this.session, {ActiveConversation? active, PushRegistrar? registrar})
       : active = active ?? ActiveConversation.instance,
-        _api = PushApi(session.api);
+        _api = PushApi(session.api) {
+    this.registrar = registrar ?? PushRegistrar(send: _send);
+  }
 
   final Session session;
   final ActiveConversation active;
   final PushApi _api;
+
+  /// Jeton -> `POST /devices` kaydı (yeniden deneme + tazeleme).
+  late final PushRegistrar registrar;
   ViewingSignaler? _viewing;
   bool _observing = false;
 
   bool _initTried = false;
   bool _enabled = false;
+  bool _active = false; // onSignedIn çalıştı, onSignedOut henüz çalışmadı
+  bool _permDenied = false;
+  bool _refreshing = false;
+  bool _initialHandled = false;
   String? _token;
   StreamSubscription? _refreshSub, _fgSub, _openSub;
 
   bool get enabled => _enabled;
+
+  /// Bildirim izni (OS) verilmemiş mi (son kontrole göre).
+  bool get permissionDenied => _permDenied;
 
   /// main.dart'ın AppLifecycleHooks listelerine bağlar. Örnek:
   /// `push.attach(onSignedIn: hooks.onSignedIn, onSignedOut: hooks.onSignedOut);`
@@ -121,17 +138,29 @@ class PushService with WidgetsBindingObserver {
     onSignedOut.add(() => this.onSignedOut());
   }
 
-  Future<bool> _ensureInit() async {
-    if (_initTried) return _enabled;
-    _initTried = true;
+  static Future<bool>? _prepare;
+
+  /// Firebase'i hazırlar ve arka plan/kapalı işleyicisini KAYDEDER. `main()` içinde `runApp`'ten önce çağrılır
+  /// (FlutterFire kuralı: işleyici üst düzey olmalı ve uygulama açılışında, oturumdan bağımsız kaydedilmeli);
+  /// birden çok çağrı tek iş yapar. Firebase yapılandırılmamışsa false döner, uygulama etkilenmez.
+  static Future<bool> prepare() => _prepare ??= _doPrepare();
+
+  static Future<bool> _doPrepare() async {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return false;
     try {
       await Firebase.initializeApp();
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-      _enabled = true;
+      return true;
     } catch (e) {
       debugPrint('Push devre disi (Firebase yapilandirilmamis): ${e.runtimeType}');
+      return false;
     }
+  }
+
+  Future<bool> _ensureInit() async {
+    if (_initTried) return _enabled;
+    _initTried = true;
+    _enabled = await prepare();
     return _enabled;
   }
 
@@ -155,11 +184,22 @@ class PushService with WidgetsBindingObserver {
   }
 
   Future<void> onSignedIn() async {
+    _active = true;
     PushRouter.session = session;
     unawaited(_attachReminderTaps());
+    unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
     if (!await _ensureInit()) return;
     try {
       final fm = FirebaseMessaging.instance;
+      // Dinleyiciler ve soğuk açılış yönlendirmesi izin/jetondan ÖNCE: izin sayfası bekleniyorsa, izin
+      // reddedildiyse ya da ağ yavaşsa bile bildirime dokunuşla açılış kaybolmasın.
+      // Ön planda sistem şeridi yerine uygulama içi şerit gösteriyoruz (iOS; Android zaten göstermez).
+      await fm.setForegroundNotificationPresentationOptions(alert: false, badge: false, sound: false);
+      _fgSub ??= FirebaseMessaging.onMessage.listen(_showBanner);
+      _openSub ??= FirebaseMessaging.onMessageOpenedApp.listen((m) => _open(m.data));
+      _startForegroundTracking();
+      unawaited(_openInitialMessage(fm));
+
       // İlk giriş izin sayfası henüz gösterilmediyse sistem istemini o sayfa yönetir (çift istem olmaz);
       // izin verilince sayfa onSignedIn'i yeniden çağırır.
       final cur = await fm.getNotificationSettings();
@@ -167,31 +207,63 @@ class PushService with WidgetsBindingObserver {
         return;
       }
       final perm = await fm.requestPermission();
-      if (perm.authorizationStatus == AuthorizationStatus.denied) return;
-      // Ön planda sistem şeridi yerine uygulama içi şerit gösteriyoruz.
-      await fm.setForegroundNotificationPresentationOptions(alert: false, badge: false, sound: false);
-
-      // Yenileme dinleyicisi jetondan ONCE: iOS'ta FCM jetonu APNs belirteci gelince sonradan da oluşabilir.
-      // ignore: deprecated_member_use
-      _refreshSub ??= fm.onTokenRefresh.listen(_register, onError: (_) {});
-      // iOS: APNs belirteci gelmeden FCM jetonu istenirse null/hata döner; [fetchPushToken] bekler ve yeniden dener.
-      final token = await fetchPushToken(
-        isIOS: Platform.isIOS,
-        apns: fm.getAPNSToken,
-        // Yeni register()/onRegistered FCM jetonu değil Firebase Installation ID verir; sunucu FCM jetonu bekler.
-        // ignore: deprecated_member_use
-        fcm: fm.getToken,
-      );
-      if (token != null) await _register(token);
-
-      _fgSub ??= FirebaseMessaging.onMessage.listen(_showBanner);
-      _openSub ??= FirebaseMessaging.onMessageOpenedApp.listen((m) => _open(m.data));
-      _startForegroundTracking();
-      unawaited(_syncChannelNames());
-      final initial = await fm.getInitialMessage(); // soğuk açılış
-      if (initial != null) _open(initial.data);
+      _permDenied = perm.authorizationStatus == AuthorizationStatus.denied;
+      // İzin yoksa jeton kaydedilmez (sunucu boşuna göndermesin); kullanıcı sistem ayarından açıp uygulamaya
+      // dönünce [refresh] jetonu kaydeder.
+      if (_permDenied) return;
+      await _fetchAndRegister(fm);
     } catch (e) {
       debugPrint('Push baslatilamadi: ${e.runtimeType}');
+    }
+  }
+
+  /// Soğuk açılış (bildirime dokunarak açıldı): süreç başına yalnız bir kez yönlendirir.
+  Future<void> _openInitialMessage(FirebaseMessaging fm) async {
+    if (_initialHandled) return;
+    _initialHandled = true;
+    try {
+      final initial = await fm.getInitialMessage();
+      if (initial != null) _open(initial.data);
+    } catch (_) {}
+  }
+
+  /// FCM jetonunu alıp kaydeder; yenilenme dinleyicisi jetondan ÖNCE bağlanır (iOS'ta jeton APNs belirteci
+  /// gelince sonradan da oluşabilir).
+  Future<void> _fetchAndRegister(FirebaseMessaging fm) async {
+    // ignore: deprecated_member_use
+    _refreshSub ??= fm.onTokenRefresh.listen((t) {
+      if (!_permDenied) unawaited(_register(t));
+    }, onError: (_) {});
+    final token = await fetchPushToken(
+      isIOS: Platform.isIOS,
+      apns: fm.getAPNSToken,
+      // Yeni register()/onRegistered FCM jetonu değil Firebase Installation ID verir; sunucu FCM jetonu bekler.
+      // ignore: deprecated_member_use
+      fcm: fm.getToken,
+      delay: Platform.isIOS ? const Duration(milliseconds: 500) : const Duration(seconds: 2),
+    );
+    if (token != null) await _register(token);
+  }
+
+  /// Ön plana dönüşte ve yardım ekranından: izin sonradan verildiyse jetonu kaydeder; kayıt eskidiyse
+  /// (sunucu `lastSeenAt`, sürüm, dil) ya da önceki deneme başarısızsa yeniler. Hızlı çağrılar birleşir.
+  Future<void> refresh({bool force = false}) async {
+    if (!_enabled || !_active || _refreshing || session.state != SessionState.signedIn) return;
+    _refreshing = true;
+    try {
+      unawaited(_syncChannelNames()); // dil değişmiş olabilir
+      final fm = FirebaseMessaging.instance;
+      final st = (await fm.getNotificationSettings()).authorizationStatus;
+      _permDenied = st == AuthorizationStatus.denied;
+      final ok = st == AuthorizationStatus.authorized || st == AuthorizationStatus.provisional;
+      if (!ok) return;
+      if (!force && !registrar.needsRefresh) return;
+      if (force) registrar.reset();
+      await _fetchAndRegister(fm);
+    } catch (_) {
+      // sessiz: bir sonraki ön plana dönüşte yeniden denenir
+    } finally {
+      _refreshing = false;
     }
   }
 
@@ -216,9 +288,10 @@ class PushService with WidgetsBindingObserver {
     active.setForeground(fg);
     final t = _token;
     if (t != null && session.state == SessionState.signedIn) unawaited(_api.setState(t, fg));
+    if (fg) unawaited(refresh());
   }
 
-  /// Kanal adları kullanıcının dilinde (Android; kanal başına sistem ayarı adı). Hata sessizdir.
+  /// Kanal adları + açıklamaları kullanıcının dilinde (Android; kanal başına sistem ayarı adı). Hata sessizdir.
   Future<void> _syncChannelNames() async {
     if (kIsWeb || !Platform.isAndroid) return;
     try {
@@ -231,7 +304,15 @@ class PushService with WidgetsBindingObserver {
           'social': l.bildirimmobilKanalSocial,
           'poll': l.bildirimmobilKanalPoll,
           'academic': l.bildirimmobilKanalAcademic,
-        }
+        },
+        'descriptions': {
+          'chat': l.p21ChanChatDesc,
+          'event': l.p21ChanEventDesc,
+          'announcement': l.p21ChanAnnouncementDesc,
+          'social': l.p21ChanSocialDesc,
+          'poll': l.p21ChanPollDesc,
+          'academic': l.p21ChanAcademicDesc,
+        },
       });
     } on MissingPluginException {
       // platform kodu yok
@@ -239,6 +320,9 @@ class PushService with WidgetsBindingObserver {
   }
 
   Future<void> onSignedOut() async {
+    if (!_active) return; // kanca iki kez (beforeSignOut + durum değişimi) gelebilir
+    _active = false;
+    _permDenied = false;
     _viewing?.stop();
     _viewing = null;
     if (_observing) {
@@ -247,27 +331,22 @@ class PushService with WidgetsBindingObserver {
     }
     // Kullanıcıya özel yerel hatırlatmalar çıkışta silinir (başka hesapta görünmesin).
     unawaited(LocalReminders.instance.cancelAll());
-    final t = _token;
+    final t = _token ?? registrar.token;
     _token = null;
+    registrar.reset();
     await _refreshSub?.cancel();
     await _fgSub?.cancel();
     await _openSub?.cancel();
     _refreshSub = _fgSub = _openSub = null;
-    if (t == null) return;
     // Oturum zorla kapandıysa (başka cihaz) token yok: sunucu kaydı zaten silmiştir.
-    if (session.api.tokens == null) {
-      if (_enabled) {
-        try {
-          // ignore: deprecated_member_use
-          await FirebaseMessaging.instance.deleteToken();
-        } catch (_) {}
-      }
-      return;
+    if (t != null && session.api.tokens != null) {
+      try {
+        // Çıkışta belirteç oturum kapanmadan silinmeli; token yoksa sessizce geçer.
+        await _api.unregister(t);
+      } catch (_) {}
     }
-    try {
-      // Çıkışta belirteç oturum kapanmadan silinmeli; token yoksa sessizce geçer.
-      await _api.unregister(t);
-    } catch (_) {}
+    // Jeton her durumda geçersiz kılınır (kayıt başarısız/eksik olsa bile sunucudaki eski kayıt FCM
+    // UNREGISTERED ile temizlenir; bu cihaz çıkış yapmış kullanıcının bildirimini almaz).
     if (_enabled) {
       try {
         // ignore: deprecated_member_use
@@ -276,15 +355,17 @@ class PushService with WidgetsBindingObserver {
     }
   }
 
+  /// [PushRegistrar.send]: oturum açıkken `POST /devices` (+ ön plan durumu).
+  Future<void> _send(String token) async {
+    if (session.state != SessionState.signedIn) throw StateError('signed out');
+    await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion);
+    unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz
+  }
+
   Future<void> _register(String token) async {
     if (session.state != SessionState.signedIn) return;
     _token = token;
-    try {
-      await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion);
-      unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz
-    } catch (_) {
-      // Ağ hatasında bir sonraki açılışta yeniden denenir.
-    }
+    await registrar.register(token);
   }
 
   void _showBanner(RemoteMessage m) => handleForeground(
