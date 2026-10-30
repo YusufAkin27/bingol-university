@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
+import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu_widgets.dart';
 
-/// Etkinlik kapağı: ağdan yükler (küçültülmüş çözümleme), yüklenirken/hatada yumuşak yer tutucu gösterir.
-/// [url] boşsa hiçbir şey çizmez; çağıran kendi yer tutucusunu kullanır.
+/// Etkinlik kapağı: ağdan yükler (küçültülmüş çözümleme), yüklenirken/hatada yumuşak yer tutucu gösterir,
+/// yüklenince solarak belirir. [url] boşsa hiçbir şey çizmez; çağıran kendi yer tutucusunu kullanır.
 class EventCoverImage extends StatelessWidget {
   const EventCoverImage({super.key, required this.url, this.cacheWidth = 800, this.fit = BoxFit.cover});
 
@@ -22,20 +23,27 @@ class EventCoverImage extends StatelessWidget {
     final t = context.bu;
     Widget holder() => ColoredBox(
           color: t.soft,
-          child: Center(child: Icon(LucideIcons.image, size: 25, color: t.onSoft.withValues(alpha: .6))),
+          child: Center(child: Icon(LucideIcons.image, size: 26, color: t.onSoft.withValues(alpha: .6))),
         );
     final dbg = debugProvider;
     if (dbg != null) {
       return Image(image: dbg(url), fit: fit, width: double.infinity, height: double.infinity);
     }
+    final fade = BuMotion.of(context, BuMotion.medium);
     return Image.network(
       url,
       fit: fit,
       cacheWidth: cacheWidth,
       gaplessPlayback: true,
+      excludeFromSemantics: true,
       width: double.infinity,
       height: double.infinity,
-      loadingBuilder: (_, child, p) => p == null ? child : holder(),
+      frameBuilder: (context, child, frame, sync) => sync
+          ? child
+          : Stack(fit: StackFit.expand, children: [
+              if (frame == null) holder(),
+              AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: fade, curve: BuMotion.decelerate, child: child),
+            ]),
       errorBuilder: (_, __, ___) => holder(),
     );
   }

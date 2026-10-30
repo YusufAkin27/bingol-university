@@ -119,21 +119,14 @@ Future<void> _covers(WidgetTester tester) async {
 
 
 class _Scn {
-  const _Scn(this.file, this.backend, this.page, {this.after, this.height = 844, this.delay = false});
+  const _Scn(this.file, this.backend, this.page, {this.after, this.height = 844});
   final String file;
   final FakeBackend Function() backend;
   final Widget Function(FakeBackend b) page;
   final Future<void> Function(WidgetTester t)? after;
   final double height;
-  final bool delay;
 }
 
-Future<void> _tapText(WidgetTester t, String text, {bool last = false}) async {
-  final f = last ? find.text(text).last : find.text(text).first;
-  await t.ensureVisible(f);
-  await t.tap(f);
-  await settle(t, const Duration(milliseconds: 500));
-}
 
 
 Widget _app(Widget home, bool dark, GlobalKey key, double scale) {
@@ -260,14 +253,13 @@ void main() {
         final b = sc.backend();
         final key = GlobalKey();
         // Gecikmeli senaryoda yanit gelmez: iskelet gorunur.
-        if (sc.delay) b.delay = const Duration(seconds: 3);
         await tester.pumpWidget(_app(sc.page(b), v.$2, key, v.$3));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
           await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
           await precacheImage(const AssetImage('assets/branding/default_group.png'), ctx);
         });
-        await settle(tester, sc.delay ? const Duration(milliseconds: 300) : const Duration(milliseconds: 1200));
+        await settle(tester, const Duration(milliseconds: 1200));
         if (sc.after != null) {
           await sc.after!(tester);
           await settle(tester, const Duration(milliseconds: 700));
@@ -284,7 +276,6 @@ void main() {
           print('YAZILDI ${f.path} ${image.width}x${image.height}');
         });
         await unmount(tester);
-        if (sc.delay) await tester.pump(const Duration(seconds: 25));
       });
     }
   }
