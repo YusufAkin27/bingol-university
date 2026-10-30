@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/push/push_router.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -232,12 +233,10 @@ class ChatlistAvatar extends StatelessWidget {
             fallback,
             ClipRRect(
               borderRadius: BorderRadius.circular(radius),
-              child: Image.network(
-                full,
-                headers: headers ?? authHeadersFor(url),
+              child: Image(
+                image: persistentNetworkImage(full, headers: headers ?? authHeadersFor(url), cacheWidth: px),
                 width: size,
                 height: size,
-                cacheWidth: px,
                 fit: BoxFit.cover,
                 gaplessPlayback: true,
                 frameBuilder: (c, child, frame, sync) =>

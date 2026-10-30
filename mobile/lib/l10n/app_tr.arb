@@ -4614,5 +4614,7 @@
   "p22SaveDeniedToast": "Fotoğraflar galeriye kaydedilemedi: izin verilmedi. Ayarlardan izin verebilirsin.",
   "p22OpenSettings": "Ayarlar",
   "p21PreviewTitle": "Bildirimde mesaj önizlemesi",
-  "p21PreviewSub": "Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir."
+  "p21PreviewSub": "Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.",
+  "p26PrefNeedsAnnouncements": "Duyurular kapalıyken bildirim gelmez",
+  "p26PrefPollsNeedsParents": "Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez"
 }

@@ -16506,6 +16506,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.'**
   String get p21PreviewSub;
+
+  /// No description provided for @p26PrefNeedsAnnouncements.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular kapalıyken bildirim gelmez'**
+  String get p26PrefNeedsAnnouncements;
+
+  /// No description provided for @p26PrefPollsNeedsParents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez'**
+  String get p26PrefPollsNeedsParents;
 }
 
 class _AppLocalizationsDelegate

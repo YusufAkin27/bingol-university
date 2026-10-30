@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api.dart';
+import '../core/cache/image_disk_cache.dart';
 import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_elevation.dart';
@@ -425,11 +426,10 @@ class BuAvatar extends StatelessWidget {
               height: size,
               child: Stack(fit: StackFit.expand, children: [
                 fallback,
-                Image.network(full,
-                    headers: headers,
+                Image(
+                    image: persistentNetworkImage(full, headers: headers, cacheWidth: px),
                     width: size,
                     height: size,
-                    cacheWidth: px,
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     // Fotoğraf gelince varsayılan görselin üstüne yumuşakça belirir.

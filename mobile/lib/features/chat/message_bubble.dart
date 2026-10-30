@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'bubble_text_meta.dart';
@@ -770,11 +771,16 @@ class _AttachmentImage extends StatelessWidget {
           if (thumb == null)
             withOverlay(ColoredBox(color: t.sf2))
           else
-            Image.network(
-              chatMediaUrl(thumb),
-              headers: headers,
+            Image(
+              // Yalnız normal/kalıcı ekler diske yazılır; tek gösterimlik ve kaldırılmış ekler asla (savunma: bu
+              // bileşene normalde zaten gelmezler). Yetkili başlıklar korunur.
+              image: persistentNetworkImage(
+                chatMediaUrl(thumb),
+                headers: headers,
+                cacheWidth: decode,
+                persist: !isViewOnceAttachment(attachment) && attachment['removed'] != true,
+              ),
               fit: BoxFit.cover,
-              cacheWidth: decode,
               filterQuality: FilterQuality.medium,
               gaplessPlayback: true,
               // İlk kareye kadar (bağlantı + indirme) iskelet; kare gelince renk zemin üstünde belirir.

@@ -426,28 +426,45 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     );
   }
 
+  /// Ana bayrağa bağlı satırlar (backend kuralı): "Duyurular" kapalıyken genel anket ve akademik duyuru
+  /// bildirimi gelmez; kulüp anketi için ayrıca "Topluluklar" gerekir.
+  bool _lockedByParent(String key) => (key == 'polls' || key == 'academicAnnouncements') && _store.prefs?['announcements'] != true;
+
+  /// Bağımlılık notu: satır pasifken (ya da anket için Topluluklar kapalıyken) açıklamanın yerine geçer.
+  String? _dependencyNote(String key) {
+    final l = context.l10n;
+    if (key == 'academicAnnouncements' && _lockedByParent(key)) return l.p26PrefNeedsAnnouncements;
+    if (key == 'polls' && (_lockedByParent(key) || _store.prefs?['communities'] != true)) return l.p26PrefPollsNeedsParents;
+    return null;
+  }
+
   Widget _toggleRow(String key, {bool last = false}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final sub = _prefSub(context, key);
+    final locked = _lockedByParent(key);
+    final sub = _dependencyNote(key) ?? _prefSub(context, key);
     final on = _store.prefs![key] == true;
     return Column(children: [
-      MergeSemantics(
-        child: InkWell(
-          onTap: () => _store.set(key, !on),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
-            child: Row(children: [
-              AkadIconTile(icon: _prefIcon(key), bg: t.sf2, fg: t.mut, size: 40, radius: 12, iconSize: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_prefLabel(context, key), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                  if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                ]),
-              ),
-              Switch(value: on, onChanged: (v) => _store.set(key, v)),
-            ]),
+      // Pasif satır: soluk, dokunulamaz (anahtar da kapalı gibi tepki vermez).
+      Opacity(
+        opacity: locked ? .5 : 1,
+        child: MergeSemantics(
+          child: InkWell(
+            onTap: locked ? null : () => _store.set(key, !on),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
+              child: Row(children: [
+                AkadIconTile(icon: _prefIcon(key), bg: t.sf2, fg: t.mut, size: 40, radius: 12, iconSize: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_prefLabel(context, key), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                    if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  ]),
+                ),
+                Switch(value: on, onChanged: locked ? null : (v) => _store.set(key, v)),
+              ]),
+            ),
           ),
         ),
       ),

@@ -2822,5 +2822,7 @@
   "p22SaveDeniedToast": "Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.",
   "p22OpenSettings": "Settings",
   "p21PreviewTitle": "Message preview in notifications",
-  "p21PreviewSub": "When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown."
+  "p21PreviewSub": "When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown.",
+  "p26PrefNeedsAnnouncements": "No notifications while Announcements is off",
+  "p26PrefPollsNeedsParents": "No poll notifications while Announcements or Clubs is off"
 }

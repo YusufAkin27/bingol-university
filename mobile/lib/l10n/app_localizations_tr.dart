@@ -9076,4 +9076,12 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p21PreviewSub =>
       'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.';
+
+  @override
+  String get p26PrefNeedsAnnouncements =>
+      'Duyurular kapalıyken bildirim gelmez';
+
+  @override
+  String get p26PrefPollsNeedsParents =>
+      'Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez';
 }

@@ -207,3 +207,13 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
   @override
   String toString() => 'DiskNetworkImage("$url", scale: $scale)';
 }
+
+/// Kalıcı (normal) ağ görseli için sağlayıcı: [persist] true ise diske yazan [DiskNetworkImage], değilse
+/// diske HİÇ dokunmayan `NetworkImage` (tek gösterimlik / gizli / süresi dolan içerik asla önbelleğe yazılmaz).
+/// [cacheWidth] verilirse çözümleme genişliği sınırlanır (`Image.network(cacheWidth:)` ile aynı).
+/// Yetkili adreslerde [headers] korunur. Aynı adres her zaman aynı içeriktir: sunucu dosya adını her yüklemede
+/// yeniden üretir (UUID), bu yüzden avatar/görsel değişince adres de değişir ve eski önbellek kullanılmaz.
+ImageProvider persistentNetworkImage(String url, {Map<String, String>? headers, int? cacheWidth, bool persist = true}) {
+  if (persist) return ResizeImage.resizeIfNeeded(cacheWidth, null, DiskNetworkImage(url, headers: headers));
+  return ResizeImage.resizeIfNeeded(cacheWidth, null, NetworkImage(url, headers: headers));
+}

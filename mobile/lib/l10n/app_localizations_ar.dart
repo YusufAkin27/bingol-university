@@ -9013,4 +9013,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get p21PreviewSub =>
       'عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.';
+
+  @override
+  String get p26PrefNeedsAnnouncements => 'لن تصلك إشعارات عند إيقاف الإعلانات';
+
+  @override
+  String get p26PrefPollsNeedsParents =>
+      'لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية';
 }
