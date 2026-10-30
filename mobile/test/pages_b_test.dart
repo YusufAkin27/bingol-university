@@ -918,7 +918,8 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(build(makeSession(be)), size: kPhoneMedium));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(BuSkeleton), findsWidgets); // iskelet (dönen çember yok)
+      expect(find.byType(CircularProgressIndicator), findsNothing);
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Satranç'), findsOneWidget);
       _noErrors(tester);
@@ -1034,6 +1035,8 @@ void main() {
 
     testWidgets('sekmeler: etkinlikler ve uyeler', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);
+      // Küçük ekranda kapak + kimlik alanı sabit sekme çubuğunu ilk görünümün altına iter: kaydırarak görünür kıl.
+      await tester.scrollUntilVisible(find.text('Etkinlikler'), 200, scrollable: find.byType(Scrollable).first);
       await tester.tap(find.text('Etkinlikler'));
       await settle(tester, const Duration(milliseconds: 300));
       _noErrors(tester);

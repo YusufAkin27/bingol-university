@@ -71,7 +71,7 @@ void main() {
       await settle(t, const Duration(milliseconds: 400));
       expect(find.text('Sifremi unuttum'), findsNothing);
       expect(find.text('Uygulama acilmiyor'), findsOneWidget);
-      expect(find.text('Sürüm 2.0.2'), findsOneWidget);
+      expect(find.text('Sürüm 2.0.3'), findsOneWidget);
       await unmount(t);
     });
 

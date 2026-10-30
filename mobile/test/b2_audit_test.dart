@@ -203,10 +203,10 @@ void main() {
           ClubDetailPage(session: makeSession(b), communityId: 7, imageService: _FakeImages()),
           size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byTooltip('Görsel ekle'));
+      await tester.tap(find.text('Görsel ekle'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('clubPostTextRequired')), findsOneWidget);
-      await tester.tap(find.byTooltip('Paylaş'));
+      await tester.tap(find.text('Paylaş'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Görselle paylaşmak için bir yazı da ekleyin.'), findsOneWidget);
       expect(b.requests.where((r) => r.startsWith('POST') || r.contains('upload')), isEmpty);
@@ -223,7 +223,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.enterText(find.byType(TextField).first, 'Merhaba kulüp');
       await tester.pump();
-      await tester.tap(find.byTooltip('Paylaş'));
+      await tester.tap(find.text('Paylaş'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.bodies['POST /communities/7/posts'], {'text': 'Merhaba kulüp'});
       await unmount(tester);

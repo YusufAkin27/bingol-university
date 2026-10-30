@@ -88,6 +88,7 @@ final kPageCases = <PageCase>[
     marker: 'Yazılım Kulübü',
     emptyMarker: 'Henüz bir kulübün yok',
     failKeys: ['/me/communities'],
+    checkLoading: false, // iskelet (K7)
   ),
   PageCase(
     'MyEventsPage',

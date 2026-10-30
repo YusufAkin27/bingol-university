@@ -23,7 +23,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 import '../support/fake_app.dart';
@@ -45,7 +44,7 @@ enum _Img { ok, hang, err }
 enum _Vid { ok, fail }
 
 class _Board {
-  const _Board(this.file, this.build, {this.height = 844, this.img = _Img.ok, this.after, this.settleMs = 1000, this.video = _Vid.ok, this.perms});
+  const _Board(this.file, this.build, {this.height = 844, this.img = _Img.ok, this.after, this.settleMs = 1000, this.video = _Vid.ok});
   final String file;
   final Widget Function() build;
   final double height;
@@ -53,7 +52,6 @@ class _Board {
   final Future<void> Function(WidgetTester t)? after;
   final int settleMs;
   final _Vid video;
-  final bool? perms;
 }
 
 class _Variant {

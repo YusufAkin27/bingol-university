@@ -35,7 +35,7 @@ const _h = 844.0;
 String _lang = 'tr';
 
 class _Shot {
-  const _Shot(this.file, this.build, {this.after, this.recent, this.slow = false, this.height = _h});
+  const _Shot(this.file, this.build, {this.after, this.recent, this.slow = false});
   final String file;
   final Widget Function(FakeBackend b) build;
   final Future<void> Function(WidgetTester t)? after;
@@ -45,7 +45,7 @@ class _Shot {
 
   /// true: yanit gecikir (yukleniyor durumu).
   final bool slow;
-  final double height;
+  final double height = _h;
 }
 
 Map<String, dynamic> _n(int i, {String type = 'HABER', String? title, bool img = true, String? eventDate}) => newsItem(

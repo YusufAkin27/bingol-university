@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -141,32 +140,6 @@ Future<ByteData?> _shot(WidgetTester tester, String view, _Cfg c) async {
     File('${dir.path}/${view}__${c.name}.png').writeAsBytesSync(png.buffer.asUint8List());
     return raw!;
   });
-}
-
-/// Metin dikdörtgeninin arka plan parlaklığı (metin pikselleri hariç ortalama); WCAG kontrastı beyaz metne göre.
-double _contrastWithWhite(ByteData raw, Size screen, Rect r) {
-  const scale = 2;
-  final w = (screen.width * scale).round();
-  double sum = 0;
-  var n = 0;
-  for (var y = (r.top * scale).floor(); y < (r.bottom * scale).ceil(); y += 2) {
-    for (var x = (r.left * scale).floor(); x < (r.right * scale).ceil(); x += 2) {
-      if (x < 0 || x >= w || y < 0) continue;
-      final o = (y * w + x) * 4;
-      if (o + 3 >= raw.lengthInBytes) continue;
-      final rr = raw.getUint8(o), g = raw.getUint8(o + 1), b = raw.getUint8(o + 2);
-      if (rr > 235 && g > 235 && b > 235) continue; // beyaz metin
-      double lin(int v) {
-        final s = v / 255;
-        return s <= .03928 ? s / 12.92 : math.pow((s + .055) / 1.055, 2.4).toDouble();
-      }
-
-      sum += .2126 * lin(rr) + .7152 * lin(g) + .0722 * lin(b);
-      n++;
-    }
-  }
-  final l = n == 0 ? 0.0 : sum / n;
-  return 1.05 / (l + .05);
 }
 
 Rect _rect(WidgetTester t, Finder f) => t.getRect(f.first);
