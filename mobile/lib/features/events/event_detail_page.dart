@@ -64,6 +64,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
   @override
   void initState() {
     super.initState();
+    _codeCtl.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
@@ -501,7 +504,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
   /// Altta sabit eylem çubuğu (yalnız herkese açık katılımda).
   /// Katıldıysa "Katılımdan ayrıl"; değilse "İlgileniyorum" + "Katıl". Kapalı/dolu durumda ilgili düğme pasiftir.
   Widget? _actionBar() {
-    if (_approval) return null;
+    if (_approval) {
+      // İstek reddedildiyse sayfa altında tam genişlik koyu "Etkinlikleri keşfet" düğmesi.
+      if (_rsvp == 'REJECTED' && !_manage) {
+        return Et2BottomBar(
+          child: EtkinlikInkButton(
+            key: const ValueKey('et2-browse'),
+            label: context.l10n.eventListDiscover,
+            icon: LucideIcons.compass,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session))),
+          ),
+        );
+      }
+      return null;
+    }
     final l = context.l10n;
     final ev = _ev!;
     final closed = eventIsClosed(ev);
@@ -510,15 +526,21 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final rsvp = _rsvp;
     final full = cap != null && going >= cap && rsvp != 'GOING';
     if (rsvp == 'GOING') {
+      final t = context.bu;
       return Et2BottomBar(
-        child: EtkinlikActionButton(
-          key: const ValueKey('detail-leave'),
-          label: l.eventFormLeaveTitle,
-          icon: LucideIcons.calendarX,
-          big: true,
-          grey: true,
-          onTap: _rsvpBusy ? null : _leave,
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          EtkinlikActionButton(
+            key: const ValueKey('detail-leave'),
+            label: l.eventFormLeaveTitle,
+            icon: LucideIcons.calendarX,
+            iconColor: t.danger,
+            big: true,
+            grey: true,
+            onTap: _rsvpBusy ? null : _leave,
+          ),
+          const SizedBox(height: 8),
+          Text(l.p15LeaveHint, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+        ]),
       );
     }
     final interested = rsvp == 'INTERESTED';
@@ -529,10 +551,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
           child: EtkinlikActionButton(
             key: const ValueKey('detail-interested'),
             label: l.eventFormInterested,
-            icon: interested ? LucideIcons.star : LucideIcons.star,
+            icon: interested ? Icons.star_rounded : LucideIcons.star, // seçiliyken dolu yıldız
             big: true,
             selected: interested,
-            onTap: (_rsvpBusy || closed) ? null : (interested ? _unInterested : () => _join('INTERESTED')),
+            // Kayıtlar kapalıyken önceden ilgilenen kullanıcı ilgisini geri alabilir.
+            onTap: _rsvpBusy ? null : (interested ? _unInterested : (closed ? null : () => _join('INTERESTED'))),
           ),
         ),
         const SizedBox(width: 10),
@@ -627,13 +650,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ]),
             ),
           ]),
-          const SizedBox(height: 14),
-          EtkinlikInkButton(
-            key: const ValueKey('et2-browse'),
-            label: l.eventListDiscover,
-            icon: LucideIcons.compass,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session))),
-          ),
         ]),
       );
     }
@@ -656,7 +672,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  Widget _iconRow(IconData icon, String title, {String? sub, Widget? trailing}) {
+  Widget _iconRow(IconData icon, String title, {String? sub, Widget? trailing, bool strike = false, Widget? subWidget}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Row(children: [
@@ -671,8 +687,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-          if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
+          Text(title,
+              style: tx.titleSmall!.copyWith(
+                  fontWeight: FontWeight.w700, color: strike ? t.mut : t.ink, decoration: strike ? TextDecoration.lineThrough : null)),
+          if (subWidget != null) subWidget else if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
         ]),
       ),
       if (trailing != null) trailing,
@@ -726,6 +744,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         aspectRatio: 16 / 9,
         child: Stack(fit: StackFit.expand, children: [
           if (cover != null) EventCoverImage(url: cover, cacheWidth: 1000) else const EventCoverFallback(),
+          if (cancelled) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .4))),
           if (!cancelled && closed)
             PositionedDirectional(
               start: 12,
@@ -798,20 +817,32 @@ class _EventDetailPageState extends State<EventDetailPage> {
             LucideIcons.calendarDays,
             '${_fmtDate(context, 'd MMMM y', starts)} · ${ends == null ? _hm(starts) : '${_hm(starts)} - ${_hm(ends)}'}',
             sub: _fmtDate(context, 'EEEE', starts),
+            strike: cancelled,
+            subWidget: cancelled
+                ? Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(LucideIcons.calendarX, size: 13, color: t.danger),
+                    const SizedBox(width: 4),
+                    Text(l.p15WontHappen, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+                  ])
+                : null,
           ),
         if (location != null && location.isNotEmpty) ...[
           if (starts != null) const SizedBox(height: 10),
           _iconRow(LucideIcons.mapPin, location),
         ],
-        const SizedBox(height: 14),
-        _capacityBlock(going: going, interested: interested, cap: cap, full: full, closed: closed),
+        if (!cancelled) ...[
+          const SizedBox(height: 14),
+          _capacityBlock(going: going, interested: interested, cap: cap, full: full, closed: closed),
+        ],
       ]),
     );
 
     final Widget chat = _chatRow(member: member);
 
+    final rejectedRequest = _approval && !_manage && !cancelled && rsvp == 'REJECTED';
     return [
       cover0,
+      if (rejectedRequest) ...[const SizedBox(height: 12), _requestCard()],
       const SizedBox(height: 12),
       info,
       if (cancelled) ...[
@@ -830,7 +861,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(l.p15CancelledNotice, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger))),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.p15CancelledNotice, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.danger)),
+                const SizedBox(height: 2),
+                Text(l.p15CancelledBody, style: tx.bodyMedium!.copyWith(color: t.danger.withValues(alpha: .85))),
+              ]),
+            ),
           ]),
         ),
       ],
@@ -842,7 +879,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 : (eventRejectReason(ev) == null ? '' : l.evcRejectReason(eventRejectReason(ev)!)),
             style: tx.bodySmall!.copyWith(color: t.mut)),
       ],
-      if (_approval && !_manage && !cancelled && !pendingReview && !rejected && rsvp != 'GOING') ...[
+      if (_manage && !cancelled) ...[
+        const SizedBox(height: 12),
+        _manageBlock(),
+      ],
+      if (_approval && !_manage && !cancelled && !pendingReview && !rejected && rsvp != 'GOING' && rsvp != 'REJECTED') ...[
         const SizedBox(height: 12),
         _requestCard(),
       ],
@@ -869,10 +910,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (_approval && rsvp == 'GOING' && !cancelled) ...[
         const SizedBox(height: 12),
         Et2GreyButton(key: const ValueKey('detail-leave-approval'), label: l.eventFormLeaveTitle, icon: LucideIcons.calendarX, onPressed: _rsvpBusy ? null : _leave),
-      ],
-      if (_manage) ...[
-        const SizedBox(height: 16),
-        _manageBlock(),
       ],
     ];
   }
@@ -944,7 +981,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final locked = _approval && !member;
+    // Katılmamış kullanıcıya: istek ile katılımda ya da kayıtlar kapalıyken sohbet kilitli (sunucu da RSVP'siz 403 verir).
+    final locked = !member && (_approval || eventIsClosed(_ev!));
     return BuCard(
       key: ValueKey(locked ? 'et2-chat-locked' : 'detail-chat'),
       radius: 20,
@@ -966,7 +1004,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
             Text(locked ? l.p15ChatLockedSub : l.p15ChatSub, style: tx.bodySmall!.copyWith(color: t.mut)),
           ]),
         ),
-        if (!locked)
+        if (locked)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: t.mut.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.pill)),
+            child: Text(l.p15LockedBadge, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+          )
+        else
           Container(
             width: 36,
             height: 36,
@@ -1055,7 +1099,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
           if (_enterCode) ...[
             const SizedBox(height: 14),
-            Text(l.eventFormCheckInCode, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            Row(children: [
+              Expanded(child: Text(l.eventFormCheckInCode, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+              Text(l.p15CodeChars('${_codeCtl.text.length}'), style: tx.labelSmall!.copyWith(color: t.mut)),
+            ]),
             Text(l.eventFormEnterOrganizerCode, style: tx.bodySmall!.copyWith(color: t.mut)),
             const SizedBox(height: 8),
             TextField(
@@ -1077,6 +1124,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 hintStyle: tx.titleMedium!.copyWith(color: t.mut.withValues(alpha: .6), letterSpacing: 2),
                 filled: true,
                 fillColor: t.sf2,
+                suffixIcon: _codeCtl.text.isEmpty
+                    ? null
+                    : IconButton(
+                        key: const ValueKey('detail-code-clear'),
+                        tooltip: l.p15ClearField,
+                        icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+                        onPressed: () {
+                          _codeCtl.clear();
+                          if (_codeError != null) setState(() => _codeError = null);
+                        },
+                      ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
               ),
             ),
@@ -1150,7 +1208,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             Et2NavRow(
               icon: LucideIcons.userCheck,
               title: l.etkinlik2ManageRequests,
-              sub: pending == 0 ? l.etkinlik2ManageNoPending : null,
+              sub: pending == 0 ? l.etkinlik2ManageNoPending : l.etkinlik2ManagePending('$pending'),
               badge: pending > 0 ? l.etkinlik2ManagePending('$pending') : null,
               onTap: _openRequests,
             ),
@@ -1158,12 +1216,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
             top: _approval,
             icon: LucideIcons.clipboardCheck,
             title: l.etkinlik2ManageAttendance,
+            sub: total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
             onTap: _openAttendance,
           ),
           Et2NavRow(
             top: true,
             icon: LucideIcons.settings,
             title: l.etkinlik2ManageSettings,
+            sub: l.p15SettingsSub,
             onTap: _openSettings,
           ),
         ]),

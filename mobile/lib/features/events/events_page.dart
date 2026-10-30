@@ -352,8 +352,12 @@ class _EventsPageState extends State<EventsPage> {
   bool get _isPastMonth => DateTime(_month.year, _month.month + 1)
       .isBefore(DateTime(_today.year, _today.month + 1));
 
-  bool get _isCurrentView =>
-      _month.year == _today.year && _month.month == _today.month && _selected == null;
+  /// "Bugün" yalnız bugünden başka bir ay ya da gün seçilince görünür.
+  bool get _showToday {
+    final otherMonth = _month.year != _today.year || _month.month != _today.month;
+    final otherDay = _selected != null && _selected != _today;
+    return otherMonth || otherDay;
+  }
 
   /// Ay dışından süren etkinliklerin günü ay sınırına çekilir (sunucu `date` alanıyla uyumlu).
   DateTime _effDay(Map<String, dynamic> e) {
@@ -640,7 +644,7 @@ class _EventsPageState extends State<EventsPage> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           sliver: SliverList.list(children: [
             if (stale != null) _offlineStrip(),
-            _errorCard(),
+            _errorCard(cached: stale != null),
           ]),
         ),
       ];
@@ -716,7 +720,7 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   /// "Yüklenemedi, tekrar dene" kartı.
-  Widget _errorCard() {
+  Widget _errorCard({bool cached = false}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
@@ -736,7 +740,7 @@ class _EventsPageState extends State<EventsPage> {
         const SizedBox(height: 14),
         Text(l.p14ErrorTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
         const SizedBox(height: 6),
-        Text(l.p14ErrorBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+        Text(cached ? l.p14ErrorBodyCache : l.p14ErrorBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         const SizedBox(height: 18),
         BuButton(
           key: const ValueKey('events-retry'),
@@ -797,7 +801,7 @@ class _EventsPageState extends State<EventsPage> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                  child: Icon(LucideIcons.shieldUser, size: 24, color: t.pr),
+                  child: Icon(Icons.shield, size: 26, color: t.pr),
                 ),
               ),
               const SizedBox(width: 14),
@@ -809,7 +813,7 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(height: 14),
             Text(l.evcEmptyBody, style: Theme.of(context).textTheme.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
             const SizedBox(height: 18),
-            EtkinlikInkButton(label: l.evcBrowseClubs, icon: LucideIcons.users, onTap: _browseClubs),
+            SizedBox(width: double.infinity, child: EtkinlikInkButton(label: l.evcBrowseClubs, icon: LucideIcons.users, onTap: _browseClubs)),
           ]),
         );
       }
@@ -818,7 +822,7 @@ class _EventsPageState extends State<EventsPage> {
         icon: LucideIcons.calendarPlus,
         title: l.eventListEmptyCreated,
         body: l.p14EmptyCreatedBody2,
-        action: EtkinlikInkButton(label: l.eventListCreate, icon: LucideIcons.circlePlus, onTap: _create),
+        action: SizedBox(width: double.infinity, child: EtkinlikInkButton(label: l.eventListCreate, icon: LucideIcons.circlePlus, onTap: _create)),
       );
     }
     final past = _sub == 1;
@@ -875,18 +879,18 @@ class _EventsPageState extends State<EventsPage> {
                 ),
               ),
             ),
-            if (!_isCurrentView)
+            if (_showToday)
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
                 onPressed: _goToday,
                 child: Text(l.p14Today, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700)),
               ),
-            BuIconButton(
+            _BareChevron(
               icon: buDirIcon(context, LucideIcons.chevronLeft),
               tooltip: l.eventListPrevMonth,
               onTap: _month.isBefore(DateTime(_today.year - 1, _today.month)) ? null : () => _goMonth(-1),
             ),
-            BuIconButton(
+            _BareChevron(
               icon: buDirIcon(context, LucideIcons.chevronRight),
               tooltip: l.eventListNextMonth,
               onTap: () => _goMonth(1),
@@ -901,7 +905,7 @@ class _EventsPageState extends State<EventsPage> {
                 child: Text(trUpper(eventDayShortOf(context, i)),
                     textAlign: TextAlign.center,
                     maxLines: 1,
-                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: i == 7 ? t.pr : t.mut, letterSpacing: ar ? 0 : .4)),
+                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut, letterSpacing: ar ? 0 : .4)),
               ),
             ),
         ]),
@@ -986,19 +990,43 @@ class _EventsPageState extends State<EventsPage> {
     final note = _isPastMonth
         ? context.l10n.eventListPastMonth
         : (_truncated.contains(_ym(_month)) ? context.l10n.eventListTruncated : null);
+    // Seçili gün boşsa: seçili günden sonraki günler "Yaklaşan diğer günler" altında kart olarak sürer (çıkmaz yok).
+    final others = <Map<String, dynamic>>[];
+    if (_selected != null && items.isEmpty) {
+      final sel = _selected!;
+      for (final e in _monthItems) {
+        if (_effDay(e).isAfter(sel)) others.add(e);
+      }
+      others.sort((a, b) => _effDay(a).compareTo(_effDay(b)));
+    }
     return [
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         sliver: SliverList.list(children: [
           if (stale != null) _offlineStrip(),
-          if (note != null) _noteRow(note),
           _calendarCard(),
+          if (note != null) ...[const SizedBox(height: 12), _noteRow(note)],
           if (items.isEmpty) ...[
             if (_selected != null) _dayHeader(_selected!, 0),
             _emptyForTab(),
           ],
+          if (others.isNotEmpty) _otherDaysHeader(others.length),
         ]),
       ),
+      if (others.isNotEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList.builder(
+            itemCount: others.length,
+            itemBuilder: (_, i) => BuStaggerItem(
+              index: i,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: others[i]['source'] == 'OFFICIAL' ? _officialRow(others[i]) : _card(others[i], _Mode.discover, _effDay(others[i])),
+              ),
+            ),
+          ),
+        ),
       if (items.isNotEmpty)
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1021,6 +1049,30 @@ class _EventsPageState extends State<EventsPage> {
           ),
         ),
     ];
+  }
+
+  /// "Yaklaşan diğer günler" başlığı + etkinlik sayısı rozeti.
+  Widget _otherDaysHeader(int count) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 22, 4, 12),
+      child: Semantics(
+        header: true,
+        child: Row(children: [
+          Expanded(
+            child: Text(l.p14UpcomingOther, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+            child: Text(l.p14EventCount(count), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+          ),
+        ]),
+      ),
+    );
   }
 
   Widget _dayHeader(DateTime d, int count) {
@@ -1071,7 +1123,7 @@ class _EventsPageState extends State<EventsPage> {
                 onSelected: _setSub,
               ),
             )
-          else
+          else if (f.items.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
               child: Text(l.eventListCreatedHint,
@@ -1326,6 +1378,7 @@ class _EventsPageState extends State<EventsPage> {
       key: ValueKey('ev-card-$id'),
       padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 6, 14),
       radius: 20,
+      color: past ? t.mut.withValues(alpha: .06) : null,
       onTap: () => _open(ev),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1371,6 +1424,21 @@ class _EventsPageState extends State<EventsPage> {
                     ])),
               ],
             )
+          else if (past)
+            PopupMenuButton<String>(
+              tooltip: l.eventListOptions,
+              icon: Icon(LucideIcons.ellipsis, size: 20, color: t.mut),
+              onSelected: (_) => _open(ev),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                    value: 'detail',
+                    child: Row(children: [
+                      Icon(LucideIcons.arrowRight, size: 18, color: t.ink),
+                      const SizedBox(width: 10),
+                      Text(l.p14Detail),
+                    ])),
+              ],
+            )
           else
             const SizedBox(width: 10),
         ]),
@@ -1395,9 +1463,14 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(height: 12),
             if (past)
               Row(children: [
-                EventStatusTag(l.p14Attended, tone: EventTone.neutral, icon: LucideIcons.circleCheck),
-                const Spacer(),
-                EtkinlikDetailLink(label: l.p14Detail, onTap: () => _open(ev)),
+                Flexible(
+                  child: Wrap(spacing: 8, runSpacing: 6, children: [
+                    EventStatusTag(l.p14Attended, tone: EventTone.neutral, icon: LucideIcons.circleCheck),
+                    EventStatusTag(l.p14Completed, tone: EventTone.neutral),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                EtkinlikDetailLink(label: l.p14Detail, onTap: () => _open(ev), muted: true),
               ])
             else
               EtkinlikActionButton(
@@ -1649,7 +1722,7 @@ class _PlusButton extends StatelessWidget {
 
 
 
-/// Yükleniyor iskeleti: (Keşfet'te) takvim kartı + etkinlik kartları; küçük "Yükleniyor" etiketi.
+/// Yükleniyor iskeleti: (Keşfet'te) takvim kartı (seçili gün dahil) + etkinlik kartları (avatar yığını + tek düğme); küçük "Yükleniyor" etiketi.
 class _EventSkeleton extends StatelessWidget {
   const _EventSkeleton({this.count = 3, this.padding = const EdgeInsets.fromLTRB(16, 8, 16, 0), this.calendar = false});
 
@@ -1693,9 +1766,22 @@ class _EventSkeleton extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      for (var c = 0; c < 7; c++) r == 0 ? const BuSkeleton(width: 28, height: 10, radius: 5) : const BuSkeleton.circle(36),
+                      for (var c = 0; c < 7; c++)
+                        r == 0
+                            ? const BuSkeleton(width: 28, height: 10, radius: 5)
+                            : (r == 2 && c == 3)
+                                ? Container(width: 36, height: 36, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle))
+                                : const BuSkeleton.circle(36),
                     ]),
                   ),
+                const SizedBox(height: 6),
+                const Row(children: [
+                  BuSkeleton.circle(8),
+                  SizedBox(width: 8),
+                  BuSkeleton(width: 110, height: 12, radius: 6),
+                  Spacer(),
+                  BuSkeleton(width: 70, height: 12, radius: 6),
+                ]),
               ])),
               const SizedBox(height: 18),
             ],
@@ -1718,13 +1804,48 @@ class _EventSkeleton extends StatelessWidget {
                   ]),
                   SizedBox(height: 14),
                   Row(children: [
-                    Expanded(child: BuSkeleton(height: 44, radius: 14)),
-                    SizedBox(width: 10),
-                    Expanded(child: BuSkeleton(height: 44, radius: 14)),
+                    BuSkeleton.circle(26),
+                    SizedBox(width: 4),
+                    BuSkeleton.circle(26),
+                    SizedBox(width: 4),
+                    BuSkeleton.circle(26),
+                    Spacer(),
+                    BuSkeleton(width: 110, height: 44, radius: 14),
                   ]),
                 ])),
               ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Takvim başlığı oku: çerçevesiz, yalnız chevron (48 dp hedef).
+class _BareChevron extends StatelessWidget {
+  const _BareChevron({required this.icon, required this.tooltip, required this.onTap});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: tooltip,
+      enabled: onTap != null,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        child: BuPressable(
+          onTap: onTap,
+          enabled: onTap != null,
+          haptic: BuHaptic.selection,
+          scale: .9,
+          child: SizedBox(width: 44, height: 48, child: Center(child: Icon(icon, size: 22, color: onTap == null ? t.mut.withValues(alpha: .4) : t.ink))),
         ),
       ),
     );

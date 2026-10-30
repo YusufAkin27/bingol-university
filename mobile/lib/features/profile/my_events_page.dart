@@ -288,7 +288,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
           : null;
     }
     return switch (e['myRsvp']) {
-      'GOING' => EventStatusTag(l.profilyardEventGoing, tone: EventTone.brand, dot: true),
+      'GOING' => _GoingPill(l.profilyardEventGoing),
       'INTERESTED' => EventStatusTag(l.profilyardEventInterested, tone: EventTone.brand, icon: LucideIcons.star),
       'REQUESTED' || 'PENDING' => EventStatusTag(l.profilyardEventRequested, tone: EventTone.neutral, icon: LucideIcons.hourglass),
       _ => null,
@@ -320,7 +320,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
 
     return BuCard(
       key: ValueKey('my-ev-$id'),
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 6, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 10, 12),
       radius: 20,
       onTap: () => _open(e),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -434,7 +434,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
           ),
         ],
         Padding(
-          padding: const EdgeInsetsDirectional.only(end: 2, top: 6),
+          padding: const EdgeInsetsDirectional.only(end: 8, top: 6),
           child: Row(children: [
             if (tag != null) Flexible(child: tag),
             const Spacer(),
@@ -455,5 +455,31 @@ class _MyEventsPageState extends State<MyEventsPage> {
       const SizedBox(width: 6),
       Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut))),
     ]);
+  }
+}
+
+/// "Katılıyorum" hapı: açık mavi zemin + yeşil nokta.
+class _GoingPill extends StatelessWidget {
+  const _GoingPill(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(999)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        ),
+      ]),
+    );
   }
 }

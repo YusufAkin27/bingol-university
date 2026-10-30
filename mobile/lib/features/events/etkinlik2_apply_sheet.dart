@@ -60,6 +60,7 @@ class _ApplySheetState extends State<_ApplySheet> {
     return InputDecoration(
       counterText: '',
       hintText: hint,
+      hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut),
       filled: true,
       fillColor: t.sf2,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -87,7 +88,7 @@ class _ApplySheetState extends State<_ApplySheet> {
           minLines: 2,
           maxLines: 4,
           style: tx.bodyLarge!.copyWith(color: t.ink),
-          decoration: _dec(context),
+          decoration: _dec(context, hint: l.p15AnswerHint),
           onChanged: (_) {
             if (_error != null) setState(() => _error = null);
           },
@@ -105,7 +106,7 @@ class _ApplySheetState extends State<_ApplySheet> {
         minLines: 1,
         maxLines: 3,
         style: tx.bodyLarge!.copyWith(color: t.ink),
-        decoration: _dec(context),
+        decoration: _dec(context, hint: l.p15NoteHint),
       ),
       if (_error != null) ...[
         const SizedBox(height: 12),

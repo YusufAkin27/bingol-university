@@ -184,7 +184,7 @@ class EtkinlikDateBlock extends StatelessWidget {
 
 /// Kart içi eylem düğmesi (Katıl / İlgileniyorum / Detay): 48 dp, 14 köşe, simge + etiket.
 class EtkinlikActionButton extends StatelessWidget {
-  const EtkinlikActionButton({super.key, required this.label, required this.onTap, this.icon, this.primary = false, this.busy = false, this.grey = false, this.trailing, this.big = false, this.selected = false});
+  const EtkinlikActionButton({super.key, required this.label, required this.onTap, this.icon, this.primary = false, this.busy = false, this.grey = false, this.trailing, this.big = false, this.selected = false, this.iconColor});
 
   final String label;
   final VoidCallback? onTap;
@@ -202,6 +202,9 @@ class EtkinlikActionButton extends StatelessWidget {
 
   /// Daha yüksek (54 dp) alt çubuk düğmesi.
   final bool big;
+
+  /// Simge rengi (varsayılan: yazı rengi).
+  final Color? iconColor;
 
   /// Seçili (tonal dolgu + kalın çerçeve): "İlgileniyorum" seçiliyken.
   final bool selected;
@@ -232,7 +235,7 @@ class EtkinlikActionButton extends StatelessWidget {
             if (busy)
               SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
             else if (icon != null)
-              Icon(icon, size: 18, color: fg),
+              Icon(icon, size: 18, color: off ? fg : (iconColor ?? fg)),
             if (busy || icon != null) const SizedBox(width: 8),
             Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg))),
             if (trailing != null) ...[const SizedBox(width: 8), Icon(trailing, size: 18, color: fg)],

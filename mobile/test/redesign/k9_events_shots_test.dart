@@ -219,7 +219,16 @@ Future<void> _loadFonts(bool arabic) async {
 
 String get _todayDay => '${DateTime.now().day}';
 
+FakeBackend _lastB = FakeBackend();
+
 final _scns = <_Scn>[
+  _Scn('37c_cevrimdisi', () => _lastB = (_full()..on('/events/calendar*', _calendar(), headers: {'x-truncated': 'false', 'etag': '"v1"'})), (b) => _events(b), after: (t) async {
+    // Yanıtlar önbellekte iken ağ kesilir: sekme değişip dönünce Keşfet önbellekten gelir.
+    _lastB.offline = true;
+    await _tapText(t, _l.eventListTabMine);
+    await _tapText(t, _l.eventListTabDiscover);
+    await settle(t, const Duration(milliseconds: 600));
+  }),
   _Scn('36a_kesfet_gun', _full, (b) => _events(b), after: (t) async {
     await t.tap(find.descendant(of: find.byKey(const ValueKey('events-calendar')), matching: find.text(_todayDay)).last);
     await settle(t, const Duration(milliseconds: 500));
