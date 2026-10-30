@@ -226,7 +226,7 @@ class TtInfoCard extends StatelessWidget {
           ),
           if (pill != null) ...[
             const SizedBox(width: 8),
-            ConstrainedBox(constraints: const BoxConstraints(maxWidth: 110), child: AkadPill(pill!, bg: t.sf2, fg: t.ink)),
+            ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: AkadPill(pill!, bg: t.sf2, fg: t.ink)),
           ],
         ]),
       ),
