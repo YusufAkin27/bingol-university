@@ -272,11 +272,11 @@ final _boards = <_Board>[
   _Board('N06b_rehber_yukleniyor', () => ContactsMatchPage(session: makeSession(FakeBackend(delay: const Duration(seconds: 3))), permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted}), provider: _FakeContacts(['a@bingol.edu.tr'])), settleMs: 300),
   _Board('V01_gorsel', () => _viewer()),
   _Board('V02_gorsel_kaydedildi', () => _viewer(), after: (t) async {
-    await t.tap(find.text('İndir'));
+    await t.tap(find.byIcon(LucideIcons.download));
     await t.pump(const Duration(milliseconds: 400));
   }),
   _Board('V02b_gorsel_kaydedilemedi', () => _viewer(saveFails: true), after: (t) async {
-    await t.tap(find.text('İndir'));
+    await t.tap(find.byIcon(LucideIcons.download));
     await t.pump(const Duration(milliseconds: 400));
   }),
   _Board('V02c_gorsel_yukleniyor', () => _viewer(), img: _Img.hang, settleMs: 700),
