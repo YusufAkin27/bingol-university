@@ -304,12 +304,12 @@ class Session extends ChangeNotifier {
   Future<void> signOut({bool remote = true}) async {
     if (_forcing) return;
     final refresh = api.tokens?.refresh;
+    final fcm = pushToken?.call(); // kancalar jetonu sıfırlamadan önce okunur
     // Önce yerel kancalar (push token silme); token geçerliyken, kısa zaman aşımıyla.
     if (remote) {
       for (final h in List.of(beforeSignOut)) {
         try {
           await h().timeout(const Duration(seconds: 5));
-    final fcm = pushToken?.call(); // kancalar jetonu sıfırlamadan önce okunur
         } catch (_) {}
       }
     }
