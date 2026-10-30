@@ -21,25 +21,22 @@ const _albums = [
   GalleryAlbum(id: 'dl', name: 'Download', count: 56),
 ];
 
-Widget _chrome(bool rec, {bool flash = false}) => Builder(
+Widget _chrome(bool rec, {SohbetyFlashMode flash = SohbetyFlashMode.off}) => Builder(
       builder: (c) => SohbetyCameraChrome(
         recording: rec,
-        timer: '0:12 / 1:00',
+        timer: '0:12',
         progress: .2,
-        flashOn: flash,
+        flash: flash,
         onClose: () {},
         onFlash: () {},
-        onGallery: () {},
         onFlip: () {},
         onPhoto: () {},
         onVideoStart: () {},
         onVideoEnd: () {},
         closeLabel: 'Kapat',
         flashLabel: 'Flaş',
-        galleryLabel: 'Galeri',
         flipLabel: 'Kamerayı çevir',
         shutterLabel: rec ? 'Kaydı durdur' : 'Fotoğraf çek',
-        hint: 'Dokun: fotoğraf · Basılı tut: video',
       ),
     );
 
@@ -96,9 +93,10 @@ void main() {
     );
   });
 
-  testWidgets('kamera denetimleri (hazir/kayit/flas acik) matris: tasma yok', (tester) async {
+  testWidgets('kamera denetimleri (hazir/kayit/flas otomatik-acik) matris: tasma yok', (tester) async {
     await p00Matrix(tester, () => _chrome(false), scaffold: false);
-    await p00Matrix(tester, () => _chrome(false, flash: true), scaffold: false);
+    await p00Matrix(tester, () => _chrome(false, flash: SohbetyFlashMode.auto), scaffold: false);
+    await p00Matrix(tester, () => _chrome(false, flash: SohbetyFlashMode.on), scaffold: false);
     await p00Matrix(tester, () => _chrome(true), scaffold: false);
   });
 

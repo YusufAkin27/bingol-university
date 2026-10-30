@@ -679,7 +679,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('kamera kisayolu: video cek -> onizleme (tek gonderimlik dugmesi yok) -> yukle', (tester) async {
+    testWidgets('+ -> KAMERA karosu: video cek -> onizleme (tek gonderimlik dugmesi yok) -> yukle', (tester) async {
       final comp = FakeCompressor()
         ..infoResult = _origBig()
         ..compressResult = _compressed();
@@ -695,7 +695,9 @@ void main() {
           return fakeVideoPick('cam1');
         }),
       );
-      await tester.tap(find.byKey(const ValueKey('cameraShortcut')));
+      await tester.tap(find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('cameraTile')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(opened, 1);
       expect(find.byKey(const ValueKey('onceButton_0')), findsNothing); // videoda tek gönderimlik yok
@@ -899,7 +901,8 @@ void main() {
             _msg(1, 11, 'Merhaba'),
           ]);
           await _pump(tester, _detail(makeSession(be)), b: b, size: size);
-          expect(find.text('Kısa'), findsOneWidget);
+          // Sabit kare medya (224 dp) görünür alanı kaplar: liste tembel, yalnız görünen balonlar kurulur.
+          expect(find.byType(MessageBubble), findsWidgets);
           _ok(tester);
           await unmount(tester);
         });

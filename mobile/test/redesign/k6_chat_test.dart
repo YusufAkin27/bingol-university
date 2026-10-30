@@ -64,11 +64,12 @@ void main() {
     expect(find.text('Çevrimiçi'), findsOneWidget);
     expect(find.byKey(const ValueKey('onlineDot')), findsOneWidget);
     expect(find.byKey(const ValueKey('roomPageChip')), findsNothing);
-    for (final k in ['attachButton', 'cameraShortcut', 'composerField', 'sendButton']) {
+    for (final k in ['attachButton', 'composerField', 'sendButton']) {
       expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
     }
+    expect(find.byKey(const ValueKey('cameraShortcut')), findsNothing); // Q1: sohbet barinda kamera ikonu yok
     expect(find.byTooltip('Ekle'), findsOneWidget);
-    expect(find.byTooltip('Kamera'), findsOneWidget);
+    expect(find.byTooltip('Kamera'), findsNothing);
     expect(find.byTooltip('Menü'), findsOneWidget);
     await unmount(t);
     _ok(t);

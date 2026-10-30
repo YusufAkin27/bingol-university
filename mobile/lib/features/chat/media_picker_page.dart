@@ -44,7 +44,6 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   List<GalleryAlbum> _albums = const [];
   GalleryAlbum? _album;
   LibraryAccess? _access;
-  Uint8List? _firstThumb;
   bool _loading = true;
   bool _more = true;
   bool _busy = false;
@@ -135,12 +134,6 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         _page++;
         if (next.length < widget.pageSize) _more = false;
       });
-      // Kamera ekranındaki galeri kısayolu için en yeni öğenin küçük resmi.
-      if (_page == 1 && next.isNotEmpty && gen == _gen) {
-        unawaited(widget.library.thumb(next.first, 144).then((b) {
-          if (mounted && gen == _gen && b != null) setState(() => _firstThumb = b);
-        }).catchError((_) {}));
-      }
     } catch (_) {
       if (mounted && gen == _gen) setState(() => _more = false);
     } finally {
@@ -196,7 +189,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
 
   Future<void> _camera() async {
     final launcher = widget.openCamera;
-    final pick = launcher != null ? await launcher(context) : await openMediaCamera(context, galleryThumb: _firstThumb);
+    final pick = launcher != null ? await launcher(context) : await openMediaCamera(context);
     if (pick == null || !mounted) return;
     if (_tryAdd(pick)) await _preview();
   }

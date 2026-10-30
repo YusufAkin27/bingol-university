@@ -15,18 +15,16 @@ import 'sohbety_widgets.dart';
 /// Kamerayı açıp bir öğe (fotoğraf ya da video) döndüren işlev; testlerde sahtesi verilir.
 typedef MediaCameraLauncher = Future<MediaPick?> Function(BuildContext context);
 
-/// [galleryThumb]: galeri kısayolunda gösterilecek en yeni galeri öğesinin küçük resmi (yoksa simge).
-Future<MediaPick?> openMediaCamera(BuildContext context, {Uint8List? galleryThumb}) => Navigator.push<MediaPick>(
+Future<MediaPick?> openMediaCamera(BuildContext context) => Navigator.push<MediaPick>(
       context,
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => MediaCameraPage(galleryThumb: galleryThumb)),
+      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const MediaCameraPage()),
     );
 
-/// Uygulama içi kamera: dokununca fotoğraf, basılı tutunca video (en çok 60 sn, sayaçlı).
+/// Uygulama içi sade kamera: dokununca fotoğraf, basılı tutunca video (en çok 60 sn, yalnız süre sayacı).
+/// Kullanıcı kararı 2026-10-30: odak çerçevesi/ipucu/galeri küçük resmi yok; dokunarak odak ve iki parmakla
+/// yakınlaştırma sessiz çalışır (ekranda gösterge çizilmez).
 class MediaCameraPage extends StatefulWidget {
-  const MediaCameraPage({super.key, this.galleryThumb});
-
-  /// Galeri kısayolu küçük resmi (en yeni galeri öğesi).
-  final Uint8List? galleryThumb;
+  const MediaCameraPage({super.key});
 
   @override
   State<MediaCameraPage> createState() => _MediaCameraPageState();
@@ -41,7 +39,8 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
   bool _denied = false;
   bool _recording = false;
   bool _busy = false;
-  bool _flash = false;
+  SohbetyFlashMode _flash = SohbetyFlashMode.off;
+  double _zoom = 1, _minZoom = 1, _maxZoom = 1, _zoomBase = 1;
   int _secs = 0;
   Timer? _tick;
   int _n = 0;
@@ -92,23 +91,60 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     await old?.dispose();
     await c.initialize();
     if (!mounted) return;
-    if (_flash) {
-      try {
-        await c.setFlashMode(FlashMode.torch);
-      } catch (_) {}
+    try {
+      _minZoom = await c.getMinZoomLevel();
+      _maxZoom = await c.getMaxZoomLevel();
+    } catch (_) {
+      _minZoom = _maxZoom = 1;
     }
+    _zoom = _minZoom;
+    await _applyFlash(c);
+    if (!mounted) return;
     setState(() => _ready = true);
   }
 
-  /// Flaş: kapalı <-> sürekli (fener; fotoğrafta da videoda da yanar).
+  /// Ön kamerada flaş donanımı yoktur: düğme gizlenir.
+  bool get _hasFlash => _cams.isNotEmpty && _cams[_cam].lensDirection != CameraLensDirection.front;
+
+  Future<void> _applyFlash(CameraController c, {bool video = false}) async {
+    if (!_hasFlash) return;
+    final mode = switch (_flash) {
+      SohbetyFlashMode.off => FlashMode.off,
+      // Videoda çekim flaşı olmaz: yalnız "açık" fener olarak yanar.
+      SohbetyFlashMode.auto => video ? FlashMode.off : FlashMode.auto,
+      SohbetyFlashMode.on => video ? FlashMode.torch : FlashMode.always,
+    };
+    try {
+      await c.setFlashMode(mode);
+    } catch (_) {}
+  }
+
+  /// Flaş: kapalı -> otomatik -> açık -> kapalı (tek dokunuş).
   Future<void> _toggleFlash() async {
     final c = _ctl;
-    if (c == null || !_ready) return;
-    final next = !_flash;
+    if (c == null || !_ready || _recording) return;
+    setState(() => _flash = SohbetyFlashMode.values[(_flash.index + 1) % SohbetyFlashMode.values.length]);
+    await _applyFlash(c);
+  }
+
+  /// Dokunarak odak: sessiz, yalnız sistem odağı (ekrana işaret çizilmez).
+  Future<void> _focusAt(TapUpDetails d, Size size) async {
+    final c = _ctl;
+    if (c == null || !_ready || size.isEmpty) return;
+    final p = Offset((d.localPosition.dx / size.width).clamp(0.0, 1.0), (d.localPosition.dy / size.height).clamp(0.0, 1.0));
     try {
-      await c.setFlashMode(next ? FlashMode.torch : FlashMode.off);
-      if (mounted) setState(() => _flash = next);
+      await c.setFocusPoint(p);
+      await c.setExposurePoint(p);
     } catch (_) {}
+  }
+
+  void _zoomUpdate(ScaleUpdateDetails d) {
+    final c = _ctl;
+    if (c == null || !_ready || d.pointerCount < 2 || _maxZoom <= _minZoom) return;
+    final z = (_zoomBase * d.scale).clamp(_minZoom, _maxZoom);
+    if ((z - _zoom).abs() < .02) return;
+    _zoom = z;
+    c.setZoomLevel(z).catchError((_) {});
   }
 
   Future<void> _flip() async {
@@ -146,6 +182,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     final c = _ctl;
     if (c == null || !_ready || _busy || _recording) return;
     try {
+      await _applyFlash(c, video: true);
       await c.startVideoRecording();
     } catch (_) {
       return;
@@ -170,6 +207,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     final secs = _secs;
     try {
       final f = await c.stopVideoRecording();
+      _applyFlash(c);
       if (!mounted) return;
       final path = f.path;
       Uint8List? poster;
@@ -215,21 +253,8 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: t.scrim,
+      backgroundColor: Colors.black,
       body: Stack(children: [
-        // Önizleme gelene kadar koyu radyal zemin (marka tonu hafif sızar).
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -.16),
-                radius: .85,
-                colors: [Color.alphaBlend(t.pr.withValues(alpha: .10), t.sf2.withValues(alpha: .35)), t.scrim],
-                stops: const [0, .75],
-              ),
-            ),
-          ),
-        ),
         Positioned.fill(
           child: _denied
               ? Center(
@@ -251,7 +276,16 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
                   ),
                 )
               : (_ready && c != null)
-                  ? _cover(context, c)
+                  ? LayoutBuilder(
+                      builder: (_, box) => GestureDetector(
+                        key: const ValueKey('cameraPreview'),
+                        behavior: HitTestBehavior.opaque,
+                        onTapUp: (d) => _focusAt(d, box.biggest),
+                        onScaleStart: (_) => _zoomBase = _zoom,
+                        onScaleUpdate: _zoomUpdate,
+                        child: _cover(context, c),
+                      ),
+                    )
                   : Center(
                       child: ExcludeSemantics(
                         child: Icon(LucideIcons.camera, size: 44, color: t.onMedia.withValues(alpha: .35)),
@@ -262,24 +296,21 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
           Positioned.fill(
             child: SohbetyCameraChrome(
               recording: _recording,
-              timer: '${formatMediaDuration(_secs * 1000)} / ${formatMediaDuration(VideoService.maxDurationMs)}',
+              timer: formatMediaDuration(_secs * 1000),
               progress: _secs * 1000 / VideoService.maxDurationMs,
-              galleryThumb: widget.galleryThumb,
-              flashOn: _flash,
+              flash: _flash,
+              showFlash: _hasFlash,
+              canFlip: _cams.length > 1,
               onClose: () => Navigator.pop(context),
               onFlash: _toggleFlash,
-              // Galeri: kamerayı kapatıp çağıran akışa döner.
-              onGallery: () => Navigator.pop(context),
               onFlip: _flip,
               onPhoto: _photo,
               onVideoStart: _startVideo,
               onVideoEnd: _stopVideo,
               closeLabel: l.chatMiscClose,
               flashLabel: l.sohbetyFlash,
-              galleryLabel: l.chatMiscGallery,
               flipLabel: l.chatMiscFlipCamera,
               shutterLabel: _recording ? l.sohbetyStopRec : l.sohbetyTakePhoto,
-              hint: l.chatMiscCameraHint,
             ),
           ),
       ]),

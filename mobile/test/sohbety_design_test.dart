@@ -1,4 +1,5 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
+import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/forward_sheet.dart';
@@ -19,60 +20,149 @@ Widget _wrap(Widget child, {required bool rtl}) =>
 void main() {
   setUpAll(loadTestFonts);
 
-  group('SohbetyCameraChrome', () {
+  group('SohbetyCameraChrome (sade kamera, Q1)', () {
+    SohbetyCameraChrome chrome({
+      required bool rec,
+      SohbetyFlashMode flash = SohbetyFlashMode.off,
+      bool showFlash = true,
+      bool canFlip = true,
+      List<String>? log,
+    }) =>
+        SohbetyCameraChrome(
+          recording: rec,
+          timer: '0:07',
+          flash: flash,
+          showFlash: showFlash,
+          canFlip: canFlip,
+          onClose: () => log?.add('close'),
+          onFlash: () => log?.add('flash'),
+          onFlip: () => log?.add('flip'),
+          onPhoto: () => log?.add('photo'),
+          onVideoStart: () => log?.add('vstart'),
+          onVideoEnd: () => log?.add('vend'),
+          closeLabel: 'Kapat',
+          flashLabel: 'Flaş',
+          flipLabel: 'Kamerayı çevir',
+          shutterLabel: rec ? 'Kaydı durdur' : 'Fotoğraf çek',
+        );
+
     for (final b in Brightness.values) {
       for (final rtl in [false, true]) {
         for (final rec in [false, true]) {
           testWidgets('taşma yok ${b.name} rtl=$rtl kayıt=$rec', (tester) async {
             useScreen(tester, kPhoneSmall);
-            var photo = 0, flash = 0, gallery = 0, closed = 0;
+            final log = <String>[];
             await tester.pumpWidget(buildApp(
-              _wrap(
-                  Scaffold(
-                    backgroundColor: const Color(0xFF0E1220),
-                    body: SohbetyCameraChrome(
-                      recording: rec,
-                      timer: '0:07',
-                      flashOn: false,
-                      onClose: () => closed++,
-                      onFlash: () => flash++,
-                      onGallery: () => gallery++,
-                      onFlip: () {},
-                      onPhoto: () => photo++,
-                      onVideoStart: () {},
-                      onVideoEnd: () {},
-                      closeLabel: 'Kapat',
-                      flashLabel: 'Flaş',
-                      galleryLabel: 'Galeri',
-                      flipLabel: 'Kamerayı çevir',
-                      shutterLabel: rec ? 'Kaydı durdur' : 'Fotoğraf çek',
-                      hint: 'Dokun: fotoğraf · Basılı tut: video',
-                    ),
-                  ),
-                  rtl: rtl),
+              _wrap(Scaffold(backgroundColor: Colors.black, body: chrome(rec: rec, log: log)), rtl: rtl),
               brightness: b,
               size: kPhoneSmall,
             ));
             expect(tester.takeException(), isNull);
-            // Ipucu yalniz hazir halde (kayit halinde yok).
-            expect(find.text('Dokun: fotoğraf · Basılı tut: video'), rec ? findsNothing : findsOneWidget);
-            expect(find.text('0:07'), rec ? findsOneWidget : findsNothing);
             await tester.tap(find.byKey(const ValueKey('shutter')));
             if (rec) {
-              // Kayıt halinde (Stitch 25): yalnız kapat + sayaç + durdur; flaş/galeri/çevir yok.
+              // Kayıtta yalnız sayaç + deklanşör halkası: kapat/flaş/çevir yok.
               expect(find.byTooltip('Flaş'), findsNothing);
-              expect(find.byTooltip('Galeri'), findsNothing);
+              expect(find.byTooltip('Kapat'), findsNothing);
+              expect(find.byTooltip('Kamerayı çevir'), findsNothing);
+              expect(find.text('0:07'), findsOneWidget);
             } else {
               await tester.tap(find.byTooltip('Flaş'));
-              await tester.tap(find.byTooltip('Galeri'));
+              await tester.tap(find.byTooltip('Kamerayı çevir'));
+              await tester.tap(find.byTooltip('Kapat'));
+              expect(find.text('0:07'), findsNothing);
             }
-            await tester.tap(find.byTooltip('Kapat'));
-            expect([photo, flash, gallery, closed], [rec ? 0 : 1, rec ? 0 : 1, rec ? 0 : 1, 1]);
-            expect(tester.getSize(find.byKey(const ValueKey('shutter'))), rec ? const Size(96, 96) : const Size(80, 80)); // Stitch 25: hazır 80, kayıt halkası 96
+            expect(log, rec ? ['vend'] : ['photo', 'flash', 'flip', 'close']);
+            expect(tester.getSize(find.byKey(const ValueKey('shutter'))), rec ? const Size(96, 96) : const Size(80, 80));
           });
         }
       }
     }
+
+    testWidgets('sade: odak çerçevesi, ipucu metni ve galeri küçük resmi YOK; yalnız kapat/flaş/deklanşör/çevir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(Scaffold(backgroundColor: Colors.black, body: chrome(rec: false)), size: kPhoneMedium));
+      expect(find.text('Dokun: fotoğraf · Basılı tut: video'), findsNothing);
+      expect(find.byKey(const ValueKey('cameraGallery')), findsNothing);
+      expect(find.byType(Image), findsNothing);
+      expect(find.byTooltip('Galeri'), findsNothing);
+      for (final k in ['cameraClose', 'cameraFlash', 'shutter', 'cameraFlip']) {
+        expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
+      }
+      // Ekranda hiç metin yok (etiketler yalnız erişilebilirlik/ipucu).
+      expect(find.byType(Text), findsNothing);
+      // Konum: kapat solda, flaş sağda, çevir deklanşörün yanında (sağında), deklanşör ortada.
+      final close = tester.getCenter(find.byKey(const ValueKey('cameraClose')));
+      final flash = tester.getCenter(find.byKey(const ValueKey('cameraFlash')));
+      final shut = tester.getCenter(find.byKey(const ValueKey('shutter')));
+      final flip = tester.getCenter(find.byKey(const ValueKey('cameraFlip')));
+      expect(close.dx, lessThan(60));
+      expect(flash.dx, greaterThan(kPhoneMedium.width - 60));
+      expect((shut.dx - kPhoneMedium.width / 2).abs(), lessThan(1));
+      expect(flip.dx, greaterThan(shut.dx + 40));
+      expect(flip.dx, lessThan(shut.dx + 140));
+      expect(flip.dy, closeTo(shut.dy, 2));
+    });
+
+    testWidgets('RTL: kapat sağa, flaş sola, çevir deklanşörün soluna aynalanır', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          _wrap(Scaffold(backgroundColor: Colors.black, body: chrome(rec: false)), rtl: true),
+          size: kPhoneMedium));
+      final close = tester.getCenter(find.byKey(const ValueKey('cameraClose')));
+      final flash = tester.getCenter(find.byKey(const ValueKey('cameraFlash')));
+      final shut = tester.getCenter(find.byKey(const ValueKey('shutter')));
+      final flip = tester.getCenter(find.byKey(const ValueKey('cameraFlip')));
+      expect(close.dx, greaterThan(kPhoneMedium.width - 60));
+      expect(flash.dx, lessThan(60));
+      expect(flip.dx, lessThan(shut.dx - 40));
+    });
+
+    testWidgets('flaş yoksa (ön kamera) düğme gizli; tek kamerada çevir gizli', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          Scaffold(backgroundColor: Colors.black, body: chrome(rec: false, showFlash: false, canFlip: false)),
+          size: kPhoneMedium));
+      expect(find.byKey(const ValueKey('cameraFlash')), findsNothing);
+      expect(find.byKey(const ValueKey('cameraFlip')), findsNothing);
+      expect(find.byKey(const ValueKey('cameraClose')), findsOneWidget);
+    });
+
+    testWidgets('flaş durumları: kapalı/otomatik/açık simgesi ve etiket (A rozeti yalnız otomatikte)', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      for (final m in SohbetyFlashMode.values) {
+        await tester.pumpWidget(buildApp(Scaffold(backgroundColor: Colors.black, body: chrome(rec: false, flash: m)), size: kPhoneMedium));
+        expect(find.byKey(const ValueKey('flashAutoBadge')), m == SohbetyFlashMode.auto ? findsOneWidget : findsNothing);
+        expect(find.byTooltip('Flaş'), findsOneWidget);
+      }
+    });
+
+    testWidgets('dokunma hedefleri 48 dp ve etiketli', (tester) async {
+      final h = tester.ensureSemantics();
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(Scaffold(backgroundColor: Colors.black, body: chrome(rec: false)), size: kPhoneMedium));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      h.dispose();
+    });
+
+    testWidgets('kamera sayfası: izin/kamera yok -> sade kart + Kapat (odak çerçevesi/ipucu yok)', (tester) async {
+      final prev = PermissionService.instance;
+      PermissionService.instance = FakePermissionService(
+          initial: {AppPermission.camera: PermState.granted, AppPermission.microphone: PermState.granted});
+      addTearDown(() => PermissionService.instance = prev);
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(const MediaCameraPage(), size: kPhoneMedium));
+      await tester.pump();
+      // availableCameras platform kanalini gercek zamanda bekler (kanal yok -> hata -> kart).
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Kamera kullanılamıyor.'), findsOneWidget);
+      expect(find.text('Kapat'), findsOneWidget);
+      expect(find.byKey(const ValueKey('shutter')), findsNothing);
+      expect(find.text('Dokun: fotoğraf · Basılı tut: video'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await unmount(tester);
+    });
   });
 
   group('NewChatPage yeni tasarım', () {

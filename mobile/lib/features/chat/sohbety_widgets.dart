@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -411,61 +410,71 @@ class SohbetyTabs extends StatelessWidget {
   }
 }
 
-/// Kamera ekranı (koyu): kapat / flaş (ya da kayıt sayacı), odak çerçevesi, ipucu, galeri / deklanşör / çevir.
-/// Önizleme arkada sayfa tarafından çizilir; bu katman yalnız denetimleri taşır (Stitch 25: kamera + kayıt durumu).
+/// Kamera flaş durumu: tek dokunuşla kapalı -> otomatik -> açık döner.
+enum SohbetyFlashMode { off, auto, on }
+
+/// Kamera ekranı (koyu, sade): sol üstte kapat, sağ üstte flaş (tek dokunuşla dönen küçük simge),
+/// altta ortada deklanşör ve yanında ön/arka kamera çevirme. Odak çerçevesi, ipucu metni ve galeri küçük
+/// resmi YOK (kullanıcı kararı 2026-10-30). Kayıtta yalnız küçük kırmızı süre sayacı ve deklanşör halkası kalır.
+/// Önizleme arkada sayfa tarafından çizilir; bu katman yalnız denetimleri taşır.
 class SohbetyCameraChrome extends StatelessWidget {
   const SohbetyCameraChrome({
     super.key,
     required this.recording,
     required this.timer,
-    required this.flashOn,
+    required this.flash,
     required this.onClose,
     required this.onFlash,
-    required this.onGallery,
     required this.onFlip,
     required this.onPhoto,
     required this.onVideoStart,
     required this.onVideoEnd,
     required this.closeLabel,
     required this.flashLabel,
-    required this.galleryLabel,
     required this.flipLabel,
     required this.shutterLabel,
-    required this.hint,
     this.progress = 0,
-    this.galleryThumb,
+    this.showFlash = true,
+    this.canFlip = true,
   });
 
   final bool recording;
 
-  /// Kayıt sayacı metni ("0:12 / 1:00").
+  /// Kayıt süresi metni ("0:12").
   final String timer;
-  final bool flashOn;
+  final SohbetyFlashMode flash;
   final VoidCallback onClose;
   final VoidCallback onFlash;
-  final VoidCallback onGallery;
   final VoidCallback onFlip;
   final VoidCallback onPhoto;
   final VoidCallback onVideoStart;
   final VoidCallback onVideoEnd;
   final String closeLabel;
   final String flashLabel;
-  final String galleryLabel;
   final String flipLabel;
   final String shutterLabel;
-  final String hint;
 
   /// Kayıt halkasının dolum oranı (0-1): geçen süre / en uzun süre.
   final double progress;
 
-  /// Galeri kısayolu küçük resmi (en yeni galeri öğesi); yoksa simge.
-  final Uint8List? galleryThumb;
+  /// Cihazda/kamerada flaş yoksa (ör. ön kamera) düğme gizlenir.
+  final bool showFlash;
 
-  /// Üst köşelerdeki 44 dp yarı saydam daire düğmesi (dokunma alanı 48 dp).
-  Widget _glass(BuildContext context,
-      {required Widget child, required String label, required VoidCallback onTap, Key? key, bool wide = false}) {
+  /// Tek kamera varsa çevirme düğmesi gizlenir.
+  final bool canFlip;
+
+  /// Yarı saydam koyu dairesel düğme (44 dp görünür, 48 dp dokunma alanı).
+  Widget _round(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap,
+      required Key key,
+      bool? toggled,
+      Widget? badge}) {
+    final t = context.bu;
     return Semantics(
       button: true,
+      toggled: toggled,
       label: label,
       excludeSemantics: true,
       child: Tooltip(
@@ -474,11 +483,21 @@ class SohbetyCameraChrome extends StatelessWidget {
           key: key,
           onTap: onTap,
           haptic: BuHaptic.selection,
-          child: wide
-              ? ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  child: Center(widthFactor: 1, heightFactor: 1, child: child))
-              : SizedBox(width: 48, height: 48, child: Center(child: child)),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.scrim.withValues(alpha: .45), shape: BoxShape.circle),
+                child: Stack(alignment: Alignment.center, children: [
+                  Icon(icon, size: 22, color: t.onMedia),
+                  if (badge != null) badge,
+                ]),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -489,9 +508,8 @@ class SohbetyCameraChrome extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final pad = MediaQuery.paddingOf(context);
-    final dim = t.scrim.withValues(alpha: .4);
     return Stack(children: [
-      // Okunurluk için üst/alt karartma (referans: primary/70 -> saydam -> primary/80).
+      // Okunurluk için çok hafif üst/alt karartma (şekil çizmez).
       Positioned.fill(
         child: IgnorePointer(
           child: DecoratedBox(
@@ -499,62 +517,57 @@ class SohbetyCameraChrome extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [t.scrim.withValues(alpha: .6), t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .7)],
-                stops: const [0, .45, 1],
+                colors: [t.scrim.withValues(alpha: .35), t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .45)],
+                stops: const [0, .3, 1],
               ),
             ),
           ),
         ),
       ),
-      if (!recording)
-        const Positioned.fill(child: IgnorePointer(child: Center(child: _FocusReticle()))),
       Positioned.fill(
         child: Column(children: [
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(16, pad.top + 12, 16, 0),
+            padding: EdgeInsetsDirectional.fromSTEB(12, pad.top + 8, 12, 0),
             child: SizedBox(
               height: 48,
               child: Stack(alignment: Alignment.center, children: [
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: _glass(context,
-                      label: closeLabel,
-                      onTap: onClose,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(color: dim, shape: BoxShape.circle),
-                        child: Icon(LucideIcons.x, size: 24, color: t.onMedia),
-                      )),
-                ),
                 if (!recording)
                   Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: _round(context,
+                        key: const ValueKey('cameraClose'),
+                        icon: LucideIcons.x,
+                        label: closeLabel,
+                        onTap: onClose),
+                  ),
+                if (!recording && showFlash)
+                  Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: _glass(context,
+                    child: _round(context,
+                        key: const ValueKey('cameraFlash'),
+                        icon: flash == SohbetyFlashMode.off ? LucideIcons.zapOff : LucideIcons.zap,
                         label: flashLabel,
+                        toggled: flash != SohbetyFlashMode.off,
                         onTap: onFlash,
-                        wide: true,
-                        child: AnimatedContainer(
-                          duration: BuMotion.of(context, BuMotion.short),
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(color: flashOn ? t.pr : dim, borderRadius: BuRadius.bPill),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(LucideIcons.zap, size: 20, color: flashOn ? t.onPr : t.onMedia),
-                            BuGap.w6,
-                            Text(flashLabel,
-                                maxLines: 1,
-                                style: tx.labelMedium!.copyWith(
-                                    color: flashOn ? t.onPr : t.onMedia, fontWeight: FontWeight.w600, letterSpacing: .2)),
-                          ]),
-                        )),
+                        badge: flash == SohbetyFlashMode.auto
+                            ? PositionedDirectional(
+                                end: 6,
+                                bottom: 5,
+                                child: ExcludeSemantics(
+                                  child: Text('A',
+                                      key: const ValueKey('flashAutoBadge'),
+                                      style: tx.labelSmall!.copyWith(
+                                          color: t.onMedia, fontWeight: FontWeight.w800, fontSize: 11, height: 1)),
+                                ),
+                              )
+                            : null),
                   ),
                 if (recording)
                   Container(
                     key: const ValueKey('recPill'),
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), borderRadius: BuRadius.bPill),
+                    height: 32,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .55), borderRadius: BuRadius.bPill),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       _PulseDot(color: t.pr),
                       BuGap.w8,
@@ -563,7 +576,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                           style: tx.labelLarge!.copyWith(
                               color: t.onMedia,
                               fontWeight: FontWeight.w600,
-                              letterSpacing: .5,
+                              letterSpacing: .4,
                               fontFeatures: const [FontFeature.tabularFigures()])),
                     ]),
                   ),
@@ -571,27 +584,12 @@ class SohbetyCameraChrome extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          if (!recording)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: t.scrim.withValues(alpha: .6),
-                  borderRadius: BuRadius.bPill,
-                  border: Border.all(color: t.onMedia.withValues(alpha: .1)),
-                ),
-                child: Text(hint,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.labelMedium!.copyWith(color: t.onMedia.withValues(alpha: .9), fontWeight: FontWeight.w500)),
-              ),
-            ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, pad.bottom + (recording ? 48 : 24)),
-            child: recording ? _recordingBar(context) : _idleBar(context),
+            padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, pad.bottom + 28),
+            child: SizedBox(
+              height: 96,
+              child: recording ? _recordingBar(context) : _idleBar(context),
+            ),
           ),
         ]),
       ),
@@ -600,9 +598,8 @@ class SohbetyCameraChrome extends StatelessWidget {
 
   Widget _recordingBar(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      Semantics(
+    return Center(
+      child: Semantics(
         button: true,
         label: shutterLabel,
         excludeSemantics: true,
@@ -615,13 +612,13 @@ class SohbetyCameraChrome extends StatelessWidget {
             width: 96,
             height: 96,
             child: CustomPaint(
-              painter: _RecRing(progress.clamp(0.0, 1.0), t.pr, t.onMedia.withValues(alpha: .2)),
+              painter: _RecRing(progress.clamp(0.0, 1.0), t.pr, t.onMedia.withValues(alpha: .25)),
               child: Center(
                 child: Container(
                   width: 64,
                   height: 64,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .12), shape: BoxShape.circle),
                   child: Container(
                     width: 28,
                     height: 28,
@@ -633,151 +630,55 @@ class SohbetyCameraChrome extends StatelessWidget {
           ),
         ),
       ),
-      BuGap.h12,
-      Text(shutterLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: tx.labelLarge!.copyWith(
-              color: t.onMedia,
-              fontWeight: FontWeight.w600,
-              letterSpacing: .2,
-              shadows: [Shadow(color: t.scrim.withValues(alpha: .5), blurRadius: 4, offset: const Offset(0, 1))])),
-    ]);
+    );
   }
 
   Widget _idleBar(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final cap = tx.labelMedium!.copyWith(color: t.onMedia.withValues(alpha: .8), fontWeight: FontWeight.w500);
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(
-        width: 88,
-        child: Column(children: [
-          Semantics(
-            button: true,
-            label: galleryLabel,
-            excludeSemantics: true,
-            child: Tooltip(
-              message: galleryLabel,
-              child: BuPressable(
-                key: const ValueKey('cameraGallery'),
-                onTap: onGallery,
-                haptic: BuHaptic.selection,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: t.nav,
-                      borderRadius: BuRadius.bSm,
-                      border: Border.all(color: t.onMedia.withValues(alpha: .2)),
-                    ),
-                    child: galleryThumb == null
-                        ? Icon(LucideIcons.image, size: 22, color: t.onNav)
-                        : Image.memory(galleryThumb!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 144),
-                  ),
-                ),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      const Expanded(child: SizedBox()),
+      Semantics(
+        button: true,
+        label: shutterLabel,
+        excludeSemantics: true,
+        child: GestureDetector(
+          key: const ValueKey('shutter'),
+          behavior: HitTestBehavior.opaque,
+          onTap: onPhoto,
+          onLongPressStart: (_) => onVideoStart(),
+          onLongPressEnd: (_) => onVideoEnd(),
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: t.onMedia, width: 3.5),
               ),
-            ),
-          ),
-          BuGap.h6,
-          Text(galleryLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: cap),
-        ]),
-      ),
-      Expanded(
-        child: Center(
-          child: Semantics(
-            button: true,
-            label: shutterLabel,
-            excludeSemantics: true,
-            child: GestureDetector(
-              key: const ValueKey('shutter'),
-              onTap: onPhoto,
-              onLongPressStart: (_) => onVideoStart(),
-              onLongPressEnd: (_) => onVideoEnd(),
-              child: SizedBox(
-                width: 80,
-                height: 80,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: t.onMedia, width: 3.5),
-                    boxShadow: [BoxShadow(color: t.scrim.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
-                  ),
-                  child: Center(
-                    child: Container(width: 66, height: 66, decoration: BoxDecoration(color: t.onMedia, shape: BoxShape.circle)),
-                  ),
-                ),
+              child: Center(
+                child: Container(width: 64, height: 64, decoration: BoxDecoration(color: t.onMedia, shape: BoxShape.circle)),
               ),
             ),
           ),
         ),
       ),
-      SizedBox(
-        width: 88,
-        child: Column(children: [
-          _glass(context,
-              label: flipLabel,
-              onTap: onFlip,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: t.scrim.withValues(alpha: .4),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: t.onMedia.withValues(alpha: .1)),
+      Expanded(
+        child: canFlip
+            ? Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 20),
+                  child: _round(context,
+                      key: const ValueKey('cameraFlip'),
+                      icon: LucideIcons.switchCamera,
+                      label: flipLabel,
+                      onTap: onFlip),
                 ),
-                child: Icon(LucideIcons.switchCamera, size: 24, color: t.onMedia),
-              )),
-          BuGap.h6,
-          Text(flipLabel, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: cap),
-        ]),
+              )
+            : const SizedBox(),
       ),
     ]);
   }
-}
-
-/// Odak çerçevesi: 192 dp, dört köşe ayracı + orta nokta (yalnız görsel).
-class _FocusReticle extends StatelessWidget {
-  const _FocusReticle();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return ExcludeSemantics(
-      child: SizedBox(
-        width: 192,
-        height: 192,
-        child: CustomPaint(painter: _ReticlePainter(t.onMedia.withValues(alpha: .8), t.onMedia.withValues(alpha: .7))),
-      ),
-    );
-  }
-}
-
-class _ReticlePainter extends CustomPainter {
-  _ReticlePainter(this.line, this.dot);
-  final Color line;
-  final Color dot;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = line
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    const a = 20.0;
-    final w = size.width, h = size.height;
-    canvas.drawPath(Path()..moveTo(0, a)..lineTo(0, 0)..lineTo(a, 0), p);
-    canvas.drawPath(Path()..moveTo(w - a, 0)..lineTo(w, 0)..lineTo(w, a), p);
-    canvas.drawPath(Path()..moveTo(0, h - a)..lineTo(0, h)..lineTo(a, h), p);
-    canvas.drawPath(Path()..moveTo(w - a, h)..lineTo(w, h)..lineTo(w, h - a), p);
-    canvas.drawCircle(Offset(w / 2, h / 2), 3, Paint()..color = dot);
-  }
-
-  @override
-  bool shouldRepaint(_ReticlePainter old) => old.line != line || old.dot != dot;
 }
 
 /// Kayıt halkası: 4 dp iz + yukarıdan saat yönünde dolan marka renkli yay.

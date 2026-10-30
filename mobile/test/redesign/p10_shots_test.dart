@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/core/permissions/permission_service.dart';
+import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/media_library.dart';
 import 'package:bu_kampus/features/chat/media_pick.dart';
 import 'package:bu_kampus/features/chat/media_picker_page.dart';
@@ -149,30 +151,26 @@ Future<void> _select(WidgetTester t, List<int> ids) async {
   }
 }
 
-Widget _cameraChrome(BuildContext c, bool rec) => Scaffold(
-      backgroundColor: c.bu.scrim,
+Widget _cameraChrome(BuildContext c, bool rec, {SohbetyFlashMode flash = SohbetyFlashMode.off}) => Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(children: [
         Positioned.fill(child: Image.memory(p10Photo(2, w: 360, h: 640), fit: BoxFit.cover)),
         Positioned.fill(
           child: SohbetyCameraChrome(
             recording: rec,
-            timer: '0:12 / 1:00',
+            timer: '0:12',
             progress: .2,
-            galleryThumb: p10Photo(4, w: 96, h: 96),
-            flashOn: false,
+            flash: flash,
             onClose: () {},
             onFlash: () {},
-            onGallery: () {},
             onFlip: () {},
             onPhoto: () {},
             onVideoStart: () {},
             onVideoEnd: () {},
             closeLabel: c.l10n.chatMiscClose,
             flashLabel: c.l10n.sohbetyFlash,
-            galleryLabel: c.l10n.chatMiscGallery,
             flipLabel: c.l10n.chatMiscFlipCamera,
             shutterLabel: rec ? c.l10n.sohbetyStopRec : c.l10n.sohbetyTakePhoto,
-            hint: c.l10n.chatMiscCameraHint,
           ),
         ),
       ]),
@@ -233,6 +231,9 @@ final _boards = <_Board>[
   }),
   _Board('05_kamera', () => Builder(builder: (c) => _cameraChrome(c, false))),
   _Board('05b_kamera_kayit', () => Builder(builder: (c) => _cameraChrome(c, true))),
+  _Board('05c_kamera_flas_otomatik', () => Builder(builder: (c) => _cameraChrome(c, false, flash: SohbetyFlashMode.auto))),
+  _Board('05d_kamera_flas_acik', () => Builder(builder: (c) => _cameraChrome(c, false, flash: SohbetyFlashMode.on))),
+  _Board('05e_kamera_izin_yok', () => const MediaCameraPage()),
   _Board('06_video_hazirlama', _videoBoard),
 ];
 
@@ -248,7 +249,12 @@ void main() {
     if (modes.contains('x13')) ('_x1.3', false, 1.3),
   ];
 
-  setUpAll(() => _loadFonts(_lang == 'ar'));
+  setUpAll(() async {
+    await _loadFonts(_lang == 'ar');
+    // 05e: gercek kamera sayfasi; izinler verili, kamera yok -> "kullanilamiyor" karti.
+    PermissionService.instance = FakePermissionService(
+        initial: {AppPermission.camera: PermState.granted, AppPermission.microphone: PermState.granted});
+  });
 
   for (final v in variants) {
     for (final b in _boards) {

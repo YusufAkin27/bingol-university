@@ -372,16 +372,16 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
     }
 
-    testWidgets('yazma cubugu (ref 20): + ve kamera tonal daire, ortada metin kutusu, ayri gonder; bos iken devre disi', (tester) async {
+    testWidgets('yazma cubugu (Q1): + , ortada metin kutusu, ayri gonder; kamera ikonu YOK; bos iken devre disi', (tester) async {
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(3));
       expect(find.byKey(const ValueKey('viewOnceToggle')), findsNothing);
       expect(find.byTooltip('Görsel gönder'), findsNothing);
       final plus = tester.getRect(find.byKey(const ValueKey('attachButton')));
-      final cam = tester.getRect(find.byKey(const ValueKey('cameraShortcut')));
+      expect(find.byKey(const ValueKey('cameraShortcut')), findsNothing); // Q1: sohbet barinda kamera ikonu yok
+      expect(find.byTooltip('Kamera'), findsNothing);
       final field = tester.getRect(find.byKey(const ValueKey('composerField')));
       final send = tester.getRect(find.byKey(const ValueKey('sendButton')));
-      expect(cam.left, greaterThanOrEqualTo(plus.right - 1)); // artı, sonra kamera (ayrı daireler)
-      expect(field.left, greaterThanOrEqualTo(cam.right - 1)); // ortada metin kutusu
+      expect(field.left, greaterThanOrEqualTo(plus.right - 1)); // artı, sonra metin kutusu
       expect(send.left, greaterThanOrEqualTo(field.right)); // gönder düğmesi kutunun dışında, sağda
       expect(find.ancestor(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(TextField)), findsNothing);
       expect(find.descendant(of: find.byType(TextField), matching: find.byKey(const ValueKey('sendButton'))), findsNothing);
@@ -403,13 +403,16 @@ void main() {
       _ok(tester);
     });
 
-    testWidgets('kamera kisayolu kamerayi acar, sonra onizleme', (tester) async {
+    testWidgets('+ acilinca KAMERA karosu var; dokununca kamera acilir, cekilen foto onizlemeye gider', (tester) async {
       var opened = 0;
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(1), camera: (c) async {
         opened++;
         return fakePhotoPick('c1');
       });
-      await _tap(tester, find.byKey(const ValueKey('cameraShortcut')));
+      await _tap(tester, find.byKey(const ValueKey('attachButton')));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(const ValueKey('cameraTile')), findsOneWidget);
+      await _tap(tester, find.byKey(const ValueKey('cameraTile')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(opened, 1);
       expect(find.byType(MediaPreviewPage), findsOneWidget);

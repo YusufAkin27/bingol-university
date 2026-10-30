@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart' show VideoPlayerController;
 
 import '../../core/api.dart';
+import '../../core/cache/message_cache.dart';
 import '../../core/closed_conversations.dart';
 import '../../core/locale_controller.dart';
 import '../../core/outbox/outbox.dart';
@@ -38,8 +39,8 @@ import 'media_camera_page.dart';
 import 'media_library.dart';
 import 'media_pick.dart';
 import 'media_picker_page.dart';
-import 'media_preview_page.dart';
 import 'message_bubble.dart';
+import 'photo_autosave.dart';
 
 /// "Video hazırlanıyor… %N" penceresi (Stitch 25-6; iptal edilebilir). Kapatmayı çağıran yapar.
 class _VideoPrepareDialog extends StatelessWidget {
@@ -320,6 +321,28 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (dirty) setState(() {});
   }
 
+  /// Kuyruktaki fotoğraf/video mesajlarının önizleme baytları (görsel: dosya, video: poster); yeniden açılışta
+  /// balon yerel önizlemeyle çizilsin diye `_boot` içinde setState'ten önce yüklenir.
+  final _obThumbs = <String, List<Uint8List?>>{};
+
+  Future<void> _loadOutboxThumbs() async {
+    final ob = _outbox;
+    if (ob == null) return;
+    for (final it in List.of(ob.items)) {
+      if (it.conversationId != _cid || it.media.isEmpty || it.viewOnce || _obThumbs.containsKey(it.clientId)) continue;
+      final list = <Uint8List?>[];
+      for (final m in it.media) {
+        try {
+          final f = await ob.mediaFileOf(m, poster: m.isVideo);
+          list.add(f == null ? null : await f.readAsBytes());
+        } catch (_) {
+          list.add(null);
+        }
+      }
+      _obThumbs[it.clientId] = list;
+    }
+  }
+
   /// Sohbet yeniden açıldığında kuyrukta bekleyen/hatalı mesajları balon olarak geri getirir.
   void _restoreOutboxBubbles() {
     final ob = _outbox;
@@ -327,7 +350,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     for (final it in ob.items) {
       if (it.conversationId != _cid) continue;
       if (_msgs.any((m) => m['clientId'] == it.clientId)) continue;
-      _msgs.add(<String, dynamic>{
+      final bubble = <String, dynamic>{
         'id': null,
         'clientId': it.clientId,
         'senderId': _myId,
@@ -337,7 +360,32 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         '_state': it.status == OutboxStatus.failed ? 'failed' : 'pending',
         '_queued': true,
         '_seq': _seq++,
-      });
+      };
+      if (it.media.isNotEmpty) {
+        if (it.viewOnce) {
+          bubble['_viewOnce'] = true; // tek gösterimlikte yerel önizleme de tutulmaz
+        } else {
+          final thumbs = _obThumbs[it.clientId] ?? const <Uint8List?>[];
+          bubble['_localItems'] = [
+            for (var i = 0; i < it.media.length; i++)
+              {
+                'bytes': i < thumbs.length ? thumbs[i] : null,
+                'video': it.media[i].isVideo,
+                'durationMs': it.media[i].durationMs,
+              }
+          ];
+          if (thumbs.isNotEmpty && thumbs.first != null) bubble['_bytes'] = thumbs.first;
+          final first = it.media.first;
+          if (first.isVideo && it.media.length == 1) {
+            bubble
+              ..['_isVideo'] = true
+              ..['_durationMs'] = first.durationMs
+              ..['_vw'] = first.width
+              ..['_vh'] = first.height;
+          }
+        }
+      }
+      _msgs.add(bubble);
     }
   }
 
@@ -399,6 +447,26 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _loading = true;
       _error = null;
     });
+    // Önce cihazdaki son mesajlar (anlık çizim); engellenmiş sohbette kayıt kullanılmaz.
+    var shownCached = false;
+    await _loadOutboxThumbs();
+    if (!_blocked) {
+      final cached = await MessageCache.instance.readMessages(_cid);
+      if (!mounted) return;
+      if (cached.isNotEmpty) {
+        shownCached = true;
+        setState(() {
+          _msgs
+            ..clear()
+            ..addAll(cached);
+          _restoreOutboxBubbles();
+          _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
+          // Sunucu yanıtı gelmezse eskiyi yüklemek için en eski kayıtlı mesajdan devam edilir.
+          _beforeCursor = (cached.last['id'] as num?)?.toInt();
+          _loading = false;
+        });
+      }
+    }
     try {
       final results = await Future.wait<dynamic>([
         _api.get('/conversations/$_cid/messages?size=30'),
@@ -416,6 +484,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _beforeCursor = (page['nextCursor'] as num?)?.toInt();
         _loading = false;
       });
+      _persist();
       _markRead();
       _scheduleDelivered();
       _startTimer();
@@ -423,11 +492,30 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _startRealtime();
     } catch (e) {
       if (!mounted) return;
+      if (shownCached) {
+        // Sunucuya ulaşılamadı: kayıtlı mesajlar sessizce kalır; bağlantı gelince poll/STOMP boşluğu kapatır.
+        _startTimer();
+        _startRealtime();
+        return;
+      }
       setState(() {
         _error = e;
         _loading = false;
       });
     }
+  }
+
+  /// En yeni ~20 sunucu mesajını cihaza yazar (yazma MessageCache'te geciktirilir ve toplanır).
+  void _persist() {
+    if (_blocked) return;
+    final top = <Map<String, dynamic>>[];
+    for (final m in _msgs) {
+      if (m['id'] == null) continue;
+      top.add(m);
+      if (top.length >= 25) break;
+    }
+    if (top.isEmpty) return;
+    MessageCache.instance.saveMessages(_cid, top);
   }
 
   Future<void> _loadDetail() async {
@@ -512,6 +600,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_polling || _loading || _error != null || !mounted) return;
     _tick++;
     if (_rtOn && !force && _tick % 5 != 0) return;
+    // Çevrimdışıyken her 4 sn'de ölü ağa vurma (pil): yaklaşık 30 sn'de bir dener; bağlantı gelince STOMP/öne gelme
+    // `force` ile hemen tetikler.
+    if (!force && !_api.connectivity.online && _tick % 8 != 0) return;
     _polling = true;
     try {
       var added = false;
@@ -723,6 +814,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (old['status'] != null && _rankOf(old['status']) > _rankOf(m['status'])) {
           m['status'] = old['status'];
         }
+        // Gönderenin yerel görseli: sunucu görseli gelene dek balonda net önizleme kalır (flaş/bulanıklık yok).
+        if (old['_bytes'] is Uint8List && old['_localItems'] is List && (old['_localItems'] as List).length < 2) {
+          m['_ph'] = old['_bytes'];
+        }
         _msgs[idx] = m;
       } else {
         _msgs.add(m);
@@ -733,6 +828,27 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       }
     }
     _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
+    _persist();
+    unawaited(_autoSaveReceived(incoming));
+  }
+
+  /// Gelen fotoğrafları (ayar açıksa) galeriye kaydeder; kendi mesajlarım gönderimde kaydedilir (bkz. [_sendRest]).
+  Future<void> _autoSaveReceived(List<Map<String, dynamic>> incoming) async {
+    try {
+      final res = await PhotoAutoSave.instance.considerReceived(incoming,
+          headers: _authHeaders, isMine: (m) => _isMine(m) || m['_state'] != null, blocked: _blocked);
+      if (res.contains(AutoSaveResult.denied)) await _autoSaveDenied();
+    } catch (_) {}
+  }
+
+  /// Galeri izni yok: tek seferlik bilgi + Ayarlar'a yönlendirme (ayar sessizce kapatılmaz).
+  Future<void> _autoSaveDenied() async {
+    if (!mounted || !await PhotoAutoSave.instance.takeDeniedNotice() || !mounted) return;
+    BuToast.show(context, context.l10n.p22SaveDeniedToast,
+        kind: BuToastKind.warning,
+        actionLabel: context.l10n.p22OpenSettings,
+        onAction: () => unawaited(PermissionService.instance.openSettings()),
+        duration: const Duration(seconds: 6));
   }
 
   int _key(Map<String, dynamic> m) =>
@@ -807,6 +923,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _transmit(Map<String, dynamic> local) async {
     final cid = local['clientId'] as String;
     final uploads = _uploadsOf(local);
+    // Bağlantı yok: fotoğraf/video yerel kuyruğa alınır, bağlantı gelince kendiliğinden yüklenip gider.
+    // Balon normal "gönderiliyor" görünür (bekliyor/kuyrukta metni yok).
+    if (uploads.isNotEmpty && !_api.connectivity.online && await _queueMedia(local)) return;
     try {
       for (final u in uploads) {
         if (u['attId'] != null) continue;
@@ -845,6 +964,48 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  /// Hazırlanmış ekleri uygulama diskine kopyalayıp kalıcı gönderme kuyruğuna alır. Başarısızsa false.
+  Future<bool> _queueMedia(Map<String, dynamic> local) async {
+    final ob = _outbox;
+    if (ob == null) return false;
+    final sources = <OutboxMediaSource>[];
+    for (final u in _uploadsOf(local)) {
+      final img = u['image'] as PreparedImage?;
+      final vid = u['video'] as PreparedVideo?;
+      if (img != null) {
+        sources.add(OutboxMediaSource(kind: 'image', mime: img.mime, bytes: img.bytes));
+      } else if (vid != null) {
+        sources.add(OutboxMediaSource(
+          kind: 'video',
+          mime: 'video/mp4',
+          bytes: vid.bytes,
+          path: vid.bytes == null ? vid.path : null,
+          poster: vid.poster,
+          width: vid.width,
+          height: vid.height,
+          durationMs: vid.durationMs,
+        ));
+      }
+    }
+    if (sources.isEmpty) return false;
+    final ok = await ob.enqueueMedia(
+      conversationId: _cid,
+      clientId: '${local['clientId']}',
+      text: (local['text'] as String?) ?? '',
+      replyToMessageId: (local['replyToMessageId'] as num?)?.toInt(),
+      viewOnce: local['_viewOnce'] == true,
+      sources: sources,
+    );
+    if (ok && mounted) {
+      setState(() {
+        local['_state'] = 'pending';
+        local['_queued'] = true;
+        local['_error'] = null;
+      });
+    }
+    return ok;
+  }
+
   List<Map<String, dynamic>> _uploadsOf(Map<String, dynamic> local) =>
       (local['_uploads'] as List?)?.cast<Map<String, dynamic>>() ??
       const <Map<String, dynamic>>[];
@@ -864,6 +1025,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (ids.isNotEmpty && local['_viewOnce'] == true) 'viewOnce': true,
       });
       if (!mounted) return;
+      // Gönderilen fotoğraflar (tek gösterimlik değil) yerel baytlardan galeriye kaydedilir.
+      if (local['_viewOnce'] != true) {
+        final sent = res is Map ? (res['attachments'] as List? ?? const []).whereType<Map>().toList() : const <Map>[];
+        for (final u in _uploadsOf(local)) {
+          final img = u['image'] as PreparedImage?;
+          final aid = (u['attId'] as num?)?.toInt();
+          if (img == null || aid == null || sent.any((a) => (a['id'] as num?)?.toInt() == aid && a['viewOnce'] == true)) continue;
+          unawaited(PhotoAutoSave.instance.saveSent(aid, img.bytes).then((r) {
+            if (r == AutoSaveResult.denied) return _autoSaveDenied();
+          }));
+        }
+      }
       setState(() => _merge([Map<String, dynamic>.from(res as Map)]));
       _changed = true;
       _markRead();
@@ -888,7 +1061,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       });
       return;
     }
-    // Ağ yok ve mesaj çevrimdışı kuyruğa alındı: kırmızı hata değil, "bekliyor" (bağlantı gelince gider).
+    // Ağ yok, fotoğraf/video yüklenemedi: yerel kuyruğa alınır (balon "gönderiliyor" kalır).
+    if (e is ApiError &&
+        e.isNetwork &&
+        _uploadsOf(local).isNotEmpty &&
+        !(_outbox?.contains('${local['clientId']}') ?? false)) {
+      unawaited(_queueMedia(local).then((ok) {
+        if (!ok && mounted) {
+          setState(() {
+            local['_state'] = 'failed';
+            local['_error'] = null;
+          });
+        }
+      }));
+      return;
+    }
+    // Ağ yok ve mesaj çevrimdışı kuyruğa alındı: kırmızı hata değil, normal "gönderiliyor" (bağlantı gelince gider).
     if (e is ApiError && e.isNetwork && (_outbox?.contains('${local['clientId']}') ?? false)) {
       setState(() {
         local['_state'] = 'pending';
@@ -921,16 +1109,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   // ---------- Medya (galeri / kamera / önizleme) ----------
 
-  /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir.
-  /// Medya kuyruğa alınmaz: çevrimdışıyken göndermeye kalkınca bilgi verilir.
-  bool _mediaBlockedOffline() {
-    if (_api.connectivity.online) return false;
-    _toast(context.l10n.cevrimdisiMedyaBaglanti);
-    return true;
-  }
-
+  /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir. Çevrimdışıyken de seçilebilir:
+  /// fotoğraf/video yerel kuyruğa alınır ve bağlantı gelince kendiliğinden gider.
   Future<void> _openGallery() async {
-    if (_mediaBlockedOffline()) return;
     final plan = await Navigator.push<MediaSendPlan>(
       context,
       MaterialPageRoute(
@@ -940,19 +1121,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           openCamera: widget.openCamera,
         ),
       ),
-    );
-    if (plan == null || !mounted) return;
-    await _sendPlan(plan);
-  }
-
-  /// Yazı alanındaki kamera kısayolu: kamera -> önizleme -> gönder.
-  Future<void> _openCameraShortcut() async {
-    if (_mediaBlockedOffline()) return;
-    final pick = await (widget.openCamera ?? openMediaCamera)(context);
-    if (pick == null || !mounted) return;
-    final plan = await Navigator.push<MediaSendPlan>(
-      context,
-      MaterialPageRoute(builder: (_) => MediaPreviewPage(picks: [pick])),
     );
     if (plan == null || !mounted) return;
     await _sendPlan(plan);
@@ -1255,7 +1423,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         m['reactions'] = prevList;
         m['myReaction'] = prevMine;
       });
-      _toast(errorText(e));
+      _toastError(e);
     }
   }
 
@@ -1296,7 +1464,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _input.clear();
       });
     } catch (e) {
-      _toast(errorText(e));
+      _toastError(e);
     }
   }
 
@@ -1316,7 +1484,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         m['replyTo'] = null;
       });
     } catch (e) {
-      _toast(errorText(e));
+      _toastError(e);
     }
   }
 
@@ -1369,6 +1537,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
       ]),
     );
+  }
+
+  /// Çevrimdışıyken kullanıcı eylemi (düzenle/sil/tepki/engelle...) için kısa "bağlantı yok"; diğer hatalar sunucu metniyle.
+  void _toastError(Object e) {
+    _toast(e is ApiError && e.isNetwork ? context.l10n.cevrimdisiInternetYok : errorText(e));
   }
 
   void _toast(String msg, {BuToastKind kind = BuToastKind.info}) {
@@ -1849,6 +2022,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               icon: LucideIcons.logOut);
           if (!ok) return;
           await _api.post('/conversations/$_cid/leave');
+          unawaited(MessageCache.instance.removeConversation(_cid));
           if (mounted) Navigator.pop(context, true);
         case 'block':
           if (pid == null) return;
@@ -1857,6 +2031,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               icon: LucideIcons.ban);
           if (!ok) return;
           await _api.post('/users/$pid/block');
+          unawaited(MessageCache.instance.removeConversation(_cid)); // engellenen kişiyle mesaj kaydı cihazda kalmaz
           _changed = true;
           if (mounted) setState(() => _conv['blocked'] = true);
           _toast(l.chatDetailUserBlocked);
@@ -1870,7 +2045,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               title: l.chatDetailReportUser);
       }
     } catch (e) {
-      _toast(errorText(e));
+      _toastError(e);
     }
   }
 
@@ -2637,7 +2812,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       setState(() => _conv['blocked'] = false);
       _toast(context.l10n.chatDetailUserUnblocked);
     } catch (e) {
-      if (mounted) _toast(errorText(e));
+      if (mounted) _toastError(e);
     }
   }
 
@@ -2807,11 +2982,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   icon: LucideIcons.plus,
                   label: l.chatDetailAdd,
                   onTap: _openGallery),
-              _roundTool(t,
-                  key: const ValueKey('cameraShortcut'),
-                  icon: LucideIcons.camera,
-                  label: l.chatDetailCamera,
-                  onTap: _openCameraShortcut),
               const SizedBox(width: 4),
             ] else
               const SizedBox(width: 4),
