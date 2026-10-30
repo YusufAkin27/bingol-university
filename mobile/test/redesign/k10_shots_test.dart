@@ -1,6 +1,7 @@
 @Tags(['store-shots'])
 library;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -26,6 +27,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import 'p10_images.dart';
 import 'p00_support.dart';
 
 /// K10 (Stitch 43-45) ekran goruntuleri: akademik giris, ders programi, formlar, sinavlar, takvim, duyuru, hatirlatma.
@@ -100,7 +102,7 @@ FakeAcademic _calendar(FakeBackend b) {
 }
 
 class _Scene {
-  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 844, this.settleMs = 900, this.perm, this.share = true});
+  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 844, this.settleMs = 900, this.perm, this.share = true, this.before});
   final String file;
   final Widget Function(FakeBackend b) build;
   final void Function(FakeBackend b)? setup;
@@ -110,6 +112,7 @@ class _Scene {
   final int settleMs;
   final PermState? perm;
   final bool share;
+  final Future<void> Function(WidgetTester t)? before;
 }
 
 Future<void> _tapText(WidgetTester t, String text, {int skip = 0}) async {
@@ -146,6 +149,81 @@ Future<void> _tapOpener(WidgetTester t) async {
   await t.tap(find.text('ACAC'));
   await settle(t, const Duration(milliseconds: 900));
 }
+
+/// `Image.network` icin sahte HTTP istemcisi: her istege ayni fotografi doner (ag yok).
+class _PhotoClient implements HttpClient {
+  _PhotoClient(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async => _PhotoRequest(bytes);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _PhotoRequest implements HttpClientRequest {
+  _PhotoRequest(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  HttpHeaders get headers => _NoHeaders();
+
+  @override
+  Future<HttpClientResponse> close() async => _PhotoResponse(bytes);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _NoHeaders implements HttpHeaders {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _PhotoResponse extends Stream<List<int>> implements HttpClientResponse {
+  _PhotoResponse(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  int get statusCode => 200;
+
+  @override
+  int get contentLength => bytes.length;
+
+  @override
+  HttpClientResponseCompressionState get compressionState => HttpClientResponseCompressionState.notCompressed;
+
+  @override
+  StreamSubscription<List<int>> listen(void Function(List<int> event)? onData, {Function? onError, void Function()? onDone, bool? cancelOnError}) =>
+      Stream<List<int>>.value(bytes).listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Ag gorselleri icin gercek bir fotograf (renk gecisli PNG) yukler.
+Future<void> _seedPhoto(WidgetTester t, String path, {int seed = 1}) async {
+  final bytes = Uint8List.fromList(p10Photo(seed, w: 600, h: 600));
+  debugNetworkImageHttpClientProvider = () => _PhotoClient(bytes);
+}
+
+final _postsJson = {
+  'items': [
+    for (var i = 1; i <= 6; i++)
+      {
+        'id': i,
+        'text': 'Kısa metin',
+        'media': [
+          {'id': i, 'type': 'IMAGE', 'url': 'https://img.invalid/$i.jpg', 'thumbUrl': 'https://img.invalid/t$i.jpg'}
+        ],
+      }
+  ],
+  'nextCursor': null,
+};
 
 const _mehmet = {
   'id': 2,
@@ -242,6 +320,18 @@ final _scenes = <_Scene>[
     await t.tap(find.text(_l.acadTimeAdd));
     await settle(t, const Duration(milliseconds: 600));
   }),
+  _Scene('06d_yeni_donem_hatalar', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: _thu, after: (t) async {
+    await _tapText(t, '2026-2027 Güz');
+    await _tapText(t, _l.acadTimeAddSemester);
+    for (var i = 0; i < 2; i++) {
+      await t.tap(find.text(_l.acadSelect).first);
+      await settle(t, const Duration(milliseconds: 700));
+      await t.tap(find.descendant(of: find.byType(DatePickerDialog), matching: find.text(_l.acadSelect)));
+      await settle(t, const Duration(milliseconds: 700));
+    }
+    await t.tap(find.text(_l.acadTimeAdd));
+    await settle(t, const Duration(milliseconds: 600));
+  }),
   _Scene('06c_tarih_secici', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: _thu, after: (t) async {
     await _tapText(t, '2026-2027 Güz');
     await _tapText(t, _l.acadTimeAddSemester);
@@ -268,10 +358,19 @@ final _scenes = <_Scene>[
     await t.tap(find.byKey(const ValueKey('profile-more')));
     await settle(t, const Duration(milliseconds: 800));
   }),
+  _Scene('47j_profil_gonderili', (b) => UserProfilePage(session: makeSession(b), userId: 2, initialName: 'Mehmet Kaya'), setup: (b) {
+    _profileBe(b);
+    b.on('/users/2/posts', _postsJson);
+  }, height: 1800),
+  _Scene('47k_profil_seni_takip_ediyor', (b) => UserProfilePage(session: makeSession(b), userId: 2, initialName: 'Mehmet Kaya'),
+      setup: (b) => _profileBe(b, profile: {..._mehmet, 'followsMe': true, 'followedByMe': false}, online: false, lastSeen: DateTime.now().toIso8601String()), height: 900),
   _Scene('47g_profil_avatar', (b) => UserProfilePage(session: makeSession(b), userId: 2, initialName: 'Mehmet Kaya', initialAvatarUrl: '/files/a.png'),
+      before: (t) => _seedPhoto(t, '/files/a.png'),
       setup: (b) => _profileBe(b, profile: {..._mehmet, 'avatarUrl': '/files/a.png'}), after: (t) async {
     await t.tap(find.byKey(const Key('profile-avatar')));
     await settle(t, const Duration(milliseconds: 800));
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 500))); // gorsel cozumleme
+    await settle(t, const Duration(milliseconds: 500));
   }),
   _Scene('47h_profil_iskelet', (b) => UserProfilePage(session: makeSession(b), userId: 2), setup: (b) {
     _profileBe(b);
@@ -503,6 +602,7 @@ void main() {
         final b = FakeBackend();
         _lastBackend = b;
         s.setup?.call(b);
+        if (s.before != null) await s.before!(tester);
         final key = GlobalKey();
         await tester.pumpWidget(RepaintBoundary(key: key, child: p00App(s.build(b), lang: lang, dark: v.$2, scale: v.$3, scaffold: false)));
         await settle(tester, Duration(milliseconds: s.settleMs));
@@ -522,6 +622,7 @@ void main() {
           print('YAZILDI ${f.path} ${image.width}x${image.height}');
         });
         await unmount(tester);
+        debugNetworkImageHttpClientProvider = null;
         for (var i = 0; i < 4; i++) {
           await tester.pump(const Duration(seconds: 7));
         }

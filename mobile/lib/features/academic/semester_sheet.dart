@@ -296,7 +296,7 @@ class _NewSemesterDialog extends StatefulWidget {
 class _NewSemesterDialogState extends State<_NewSemesterDialog> {
   final _name = TextEditingController();
   DateTime? _start, _end;
-  String? _error;
+  List<String> _errors = const [];
 
   @override
   void dispose() {
@@ -314,10 +314,12 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
   void _submit() {
     final l = context.l10n;
     final n = _name.text.trim();
-    if (n.isEmpty || _start == null || _end == null) {
-      setState(() => _error = l.acadTimeSemesterNeedAll);
-    } else if (!_end!.isAfter(_start!)) {
-      setState(() => _error = l.acadTimeSemesterEndAfter);
+    final errs = <String>[
+      if (n.isEmpty || _start == null || _end == null) l.acadTimeSemesterNeedAll,
+      if (_start != null && _end != null && !_end!.isAfter(_start!)) l.acadTimeSemesterEndAfter,
+    ];
+    if (errs.isNotEmpty) {
+      setState(() => _errors = errs);
     } else {
       Navigator.pop(context, (name: n, start: _start!, end: _end!));
     }
@@ -374,7 +376,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
               if (d != null && mounted) setState(() => _end = DateTime.utc(d.year, d.month, d.day));
             },
           ),
-          if (_error != null)
+          if (_errors.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Semantics(
@@ -382,10 +384,16 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.onSoft))),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    for (final e in _errors)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(e, style: tx.bodySmall!.copyWith(color: t.onSoft))),
+                        ]),
+                      ),
                   ]),
                 ),
               ),
@@ -394,7 +402,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             AkadTonalButton(label: l.acadTimeCancel, compact: true, onPressed: () => Navigator.pop(context)),
             const SizedBox(width: 10),
-            BuButton(label: l.acadTimeAdd, compact: true, onPressed: _submit),
+            AkadFilledButton(label: l.acadTimeAdd, compact: true, onPressed: _submit),
           ]),
         ]),
       ),

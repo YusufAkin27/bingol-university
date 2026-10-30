@@ -135,11 +135,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } catch (_) {
       if (mounted && _presence != null) setState(() => _presence = null);
     }
+    // Profil yaniti `blockedByMe` tasiyorsa onu kullan; yoksa engel listesini sayfalayarak (en cok 5 sayfa) tara.
+    final byMe = _p?['blockedByMe'];
+    if (byMe is bool) {
+      if (mounted && byMe != _blocked) setState(() => _blocked = byMe);
+      return;
+    }
     try {
-      final r = await api.get('/users/me/blocks?limit=50');
-      final list = r is List ? r : (r is Map ? (r['items'] as List? ?? const []) : const []);
-      final b = list.any((u) => u is Map && (u['id'] as num?)?.toInt() == widget.userId);
-      if (mounted && b != _blocked) setState(() => _blocked = b);
+      String? cursor;
+      var found = false;
+      for (var page = 0; page < 5 && !found; page++) {
+        final q = 'limit=50${cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}'}';
+        final r = await api.getResponse('/users/me/blocks?$q');
+        final body = r.body;
+        final list = body is List ? body : (body is Map ? (body['items'] as List? ?? const []) : const []);
+        found = list.any((u) => u is Map && (u['id'] as num?)?.toInt() == widget.userId);
+        final next = r.headers['x-next-cursor'];
+        cursor = (next == null || next.isEmpty) ? null : next;
+        if (cursor == null) break;
+      }
+      if (mounted && found != _blocked) setState(() => _blocked = found);
     } catch (_) {}
   }
 
@@ -274,8 +289,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final tx = Theme.of(context).textTheme;
     await BuSheet.show<void>(
       context,
-      title: l.icerikUserMenu,
-      subtitle: _name,
       builder: (c) {
         Widget item(Key key, IconData icon, String label, VoidCallback onTap, {bool danger = false}) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -305,6 +318,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
             );
         return Column(children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Semantics(header: true, child: Text(l.icerikUserMenu, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+                  Text(_name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                ]),
+              ),
+              IconButton(
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                tooltip: l.commonCancel,
+                style: IconButton.styleFrom(backgroundColor: t.sf2),
+                icon: Icon(LucideIcons.x, size: 18, color: t.ink),
+                onPressed: () => Navigator.pop(c),
+              ),
+            ]),
+          ),
           item(const ValueKey('profile-menu-block'), _blocked ? LucideIcons.lockOpen : LucideIcons.ban, _blocked ? l.profileUnblock : l.profileBlock, _toggleBlock,
               danger: true),
           item(const ValueKey('profile-menu-report'), LucideIcons.flag, l.profileReportUser, _report),
@@ -318,7 +349,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final showMenu = _p != null && !_self;
+    final showMenu = !_self && (_p != null || _error == null);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
@@ -342,7 +373,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     tooltip: l.icerikUserMenu,
                     icon: Icon(LucideIcons.ellipsis, size: 22, color: t.ink),
-                    onPressed: _openMenu,
+                    onPressed: _p == null ? null : _openMenu,
                   ),
               ]),
             ),
@@ -495,22 +526,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  /// 96 dp avatar: fotoğraf varsa BuAvatar, yoksa baş harfli koyu daire (referans); çevrimiçi noktası.
+  /// 96 dp avatar: fotoğraf varsa BuAvatar, yoksa baş harfli koyu daire (referans); sağ altta durum noktası
+  /// (çevrimiçi yeşil, çevrimdışı gri; durum bilinmiyorsa nokta yok).
   Widget _avatarFace(BuTokens t, {required bool online}) {
-    if (fileUrl(_avatar) != null) return BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar), online: online);
+    final known = _presence != null && !_blocked;
+    final face = fileUrl(_avatar) != null
+        ? BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar))
+        : Container(
+            width: 96,
+            height: 96,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+            child: Text(initialsOf(_name), style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800, color: t.bg)),
+          );
     return Stack(clipBehavior: Clip.none, children: [
-      Container(
-        width: 96,
-        height: 96,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
-        child: Text(initialsOf(_name), style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800, color: t.bg)),
-      ),
-      if (online)
+      face,
+      if (known)
         PositionedDirectional(
           end: 2,
           bottom: 2,
-          child: Container(width: 20, height: 20, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3))),
+          child: Container(width: 20, height: 20, decoration: BoxDecoration(color: online ? t.ok : t.mut.withValues(alpha: .6), shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3))),
         ),
     ]);
   }
@@ -604,7 +639,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final rows = <Widget>[
       if (faculty.isNotEmpty || !_self) _tile(t, LucideIcons.landmark, l.profileFaculty, faculty),
       if (dept.isNotEmpty || !_self) _tile(t, LucideIcons.bookOpen, l.profileDepartment, dept),
-      if (grade.isNotEmpty || !_self) _tile(t, LucideIcons.graduationCap, l.profileGrade, grade),
+      if (grade.isNotEmpty || !_self) _tile(t, LucideIcons.graduationCap, lockedAll ? l.p20GradeLevel : l.profileGrade, grade),
       if (email.isNotEmpty) _tile(t, LucideIcons.atSign, l.profileEmail, email),
     ];
     if (rows.isEmpty && bio.isEmpty) return const SizedBox.shrink();
@@ -653,7 +688,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
         child: Row(children: [
-          AkadIconTile(icon: icon, bg: t.sf, fg: t.ink, size: 36, radius: 10, iconSize: 18),
+          if (hidden) Icon(icon, size: 20, color: t.mut) else AkadIconTile(icon: icon, bg: t.sf, fg: t.ink, size: 36, radius: 10, iconSize: 18),
           const SizedBox(width: 12),
           if (hidden) ...[
             Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
@@ -683,7 +718,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _card(
               child: Column(children: [
-                const BuSkeleton.circle(96),
+                Stack(alignment: Alignment.center, children: [
+                  const BuSkeleton.circle(96),
+                  Icon(LucideIcons.user, size: 28, color: t.mut.withValues(alpha: .5)),
+                ]),
                 const SizedBox(height: 14),
                 const BuSkeleton(width: 160, height: 18, radius: 9),
                 const SizedBox(height: 8),
@@ -716,6 +754,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 BuSkeleton(width: 200, height: 10, radius: 5),
               ]),
             ),
+            const SizedBox(height: 14),
+            _card(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Row(children: [
+                  BuSkeleton(width: 96, height: 14, radius: 7),
+                  Spacer(),
+                  BuSkeleton(width: 56, height: 14, radius: 7),
+                ]),
+                const SizedBox(height: 14),
+                for (var r = 0; r < 2; r++) ...[
+                  if (r > 0) const SizedBox(height: 8),
+                  const Row(children: [
+                    Expanded(child: BuSkeleton(height: 92, radius: 12)),
+                    SizedBox(width: 8),
+                    Expanded(child: BuSkeleton(height: 92, radius: 12)),
+                    SizedBox(width: 8),
+                    Expanded(child: BuSkeleton(height: 92, radius: 12)),
+                  ]),
+                ],
+              ]),
+            ),
           ]),
         ),
       ),
@@ -739,6 +798,11 @@ class _AvatarViewer extends StatelessWidget {
     return Scaffold(
       backgroundColor: t.scrim,
       body: Stack(children: [
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(gradient: RadialGradient(radius: .85, colors: [BuTokens.light.ink.withValues(alpha: .55), t.scrim])),
+          ),
+        ),
         Center(
           child: InteractiveViewer(
             minScale: 1,
@@ -750,7 +814,8 @@ class _AvatarViewer extends StatelessWidget {
                 child: Image.network(url,
                     headers: headers,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(LucideIcons.imageOff, color: t.onMedia.withValues(alpha: .54), size: 43)),
+                    errorBuilder: (_, __, ___) => ColoredBox(
+                        color: t.onMedia.withValues(alpha: .08), child: Center(child: Icon(LucideIcons.imageOff, color: t.onMedia.withValues(alpha: .54), size: 43)))),
               ),
             ),
           ),

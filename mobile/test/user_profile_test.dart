@@ -77,9 +77,9 @@ void main() {
     await _open(tester, be);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
     // Gizlenmiş (null) alanlar kilit ikonlu "Gizli" olarak görünür; değer sızmaz.
-    expect(find.text('Akademik bilgiler'), findsOneWidget);
+    expect(find.text('Akademik Bilgiler'), findsOneWidget);
     expect(find.text('Fakülte'), findsOneWidget);
-    expect(find.text('Sınıf'), findsOneWidget);
+    expect(find.text('Sınıf Düzeyi'), findsOneWidget);
     expect(find.text('Gizli'), findsNWidgets(3));
     expect(find.text('E-posta'), findsNothing);
     _ok(tester);

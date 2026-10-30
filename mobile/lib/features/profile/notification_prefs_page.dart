@@ -363,11 +363,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
         ),
       );
     }
-    final note = switch (_pushStatus) {
-      'notGranted' => l.pushNotGranted,
-      'notConfigured' => l.pushNotConfigured,
-      _ => null,
-    };
+    final note = '${l.pushNotGranted} • ${l.pushNotConfigured}';
     return _card(
       bar: t.pr,
       child: Padding(
@@ -386,10 +382,8 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
             alignment: AlignmentDirectional.centerStart,
             child: BuButton(label: l.p20RemOpenSettings, icon: LucideIcons.settings, compact: true, onPressed: () => PermissionService.instance.openSettings()),
           ),
-          if (note != null) ...[
-            const SizedBox(height: 10),
-            Text(note, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
-          ],
+          const SizedBox(height: 10),
+          Text(note, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
         ]),
       ),
     );
@@ -462,10 +456,11 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
     final err = _store.error;
     final prefs = _store.prefs;
     final children = <Widget>[];
-    if (widget.showPushCard) children.add(_pushCard());
+    // Yukleme hatasinda push karti cizilmez (referans: yalniz hata satiri + "Bu cihazda").
+    if (widget.showPushCard && !(err != null && prefs == null)) children.add(_pushCard());
     if (err != null && prefs == null) {
       children.add(Padding(
-        padding: EdgeInsets.only(top: widget.showPushCard ? 14 : 0),
+        padding: EdgeInsets.zero,
         child: Semantics(
           button: true,
           container: true,
@@ -508,7 +503,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> {
       children
         ..add(_label(l.profil1WhatSection, top: widget.showPushCard ? 22 : 0))
         ..add(Opacity(
-          opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .8 : 1,
+          opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
           child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
       if (hasSubs) {

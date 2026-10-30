@@ -170,10 +170,10 @@ void main() {
       final h = tester.ensureSemantics();
       expect(
         tester.getSemantics(find.text('Spam veya reklam')),
-        matchesSemantics(label: 'Spam veya reklam', hasCheckedState: true, isChecked: true, isInMutuallyExclusiveGroup: true, isButton: true, hasTapAction: true, hasEnabledState: true, isEnabled: true),
+        matchesSemantics(label: 'Spam veya reklam', hasCheckedState: true, isChecked: false, isInMutuallyExclusiveGroup: true, isButton: true, hasTapAction: true, hasEnabledState: true, isEnabled: true),
       );
       h.dispose();
-      await tester.tap(find.text('Vazgeç'));
+      await tester.tap(find.byTooltip('Vazgeç')); // kapat (X)
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Gönderiyi şikâyet et'), findsNothing);
       _noErr(tester);

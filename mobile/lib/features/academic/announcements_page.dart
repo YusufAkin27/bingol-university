@@ -276,7 +276,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
             Text(_when(l, a.publishAt), style: tx.labelMedium!.copyWith(color: t.mut)),
           ]),
           const SizedBox(height: 12),
-          Text(a.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, fontSize: 17, color: t.ink)),
+          Text(a.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
           if (a.body.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(a.body, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),

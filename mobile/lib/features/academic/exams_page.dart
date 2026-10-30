@@ -316,7 +316,7 @@ class _ExamsPageState extends State<ExamsPage> {
                     AkadPill(cd, bg: soon ? t.pr : t.soft, fg: soon ? t.onPr : t.onSoft, icon: soon ? LucideIcons.zap : LucideIcons.hourglass),
                 ]),
                 const SizedBox(height: 10),
-                Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: ink)),
+                Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: ink)),
                 const SizedBox(height: 4),
                 line(past ? LucideIcons.circleCheck : (today ? LucideIcons.clock : LucideIcons.calendar), dateText,
                     color: past ? t.mut : (today ? t.pr : t.ink), bold: today && !past),

@@ -142,7 +142,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                 header: true,
                 liveRegion: true,
                 child: Text('${monthNameL(l, _month.month)} ${_month.year}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: t.ink)),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
               ),
             ),
             _navButton(t, LucideIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),

@@ -779,7 +779,7 @@ class AkadTitle extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Expanded(
           child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            Text(text, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: muted ? t.mut : t.ink)),
+            Text(text, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.ink)),
             if (count != null)
               Container(
                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -835,6 +835,38 @@ class AkadTonalButton extends StatelessWidget {
                     text,
                   ]),
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Marka dolu düğme, [AkadTonalButton] ile aynı yükseklik/yarıçap (diyalog eylem çiftleri için).
+class AkadFilledButton extends StatelessWidget {
+  const AkadFilledButton({super.key, required this.label, required this.onPressed, this.compact = false, this.height = 48});
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool compact;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: BuPressable(
+        onTap: onPressed,
+        haptic: BuHaptic.selection,
+        child: Container(
+          constraints: BoxConstraints(minHeight: height),
+          padding: EdgeInsets.symmetric(horizontal: compact ? 22 : 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bMd),
+          child: Text(label, textAlign: TextAlign.center, maxLines: 1, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onPr)),
         ),
       ),
     );

@@ -139,7 +139,7 @@ class _SheetBody extends StatefulWidget {
 }
 
 class _SheetBodyState extends State<_SheetBody> {
-  String _reason = ReportSheet.reasons.first.$1;
+  String? _reason; // onsecim yok: yanlis neden gonderilmesin
   final _details = TextEditingController();
   bool _busy = false;
   String? _error;
@@ -156,7 +156,7 @@ class _SheetBodyState extends State<_SheetBody> {
       _error = null;
     });
     try {
-      await widget.send(_reason, _details.text.trim());
+      await widget.send(_reason!, _details.text.trim());
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
@@ -213,7 +213,8 @@ class _SheetBodyState extends State<_SheetBody> {
               padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
               child: Text(l.reportDetailsHint, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
             ),
-            TextField(
+            Stack(children: [
+              TextField(
               controller: _details,
               maxLength: 250,
               maxLines: 3,
@@ -222,22 +223,24 @@ class _SheetBodyState extends State<_SheetBody> {
               style: tx.bodyMedium!.copyWith(color: t.ink),
               decoration: InputDecoration(
                 hintText: l.p20ReportSendHint,
-                counterText: '${_details.text.length}/250',
+                counterText: '',
                 filled: true,
                 fillColor: t.sf2,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                contentPadding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.pr, width: 2)),
               ),
-            ),
+              ),
+              PositionedDirectional(end: 14, bottom: 8, child: IgnorePointer(child: Text('${_details.text.length}/250', style: tx.labelSmall!.copyWith(color: t.mut)))),
+            ]),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.danger)),
               ),
             const SizedBox(height: 14),
-            BuButton(label: l.reportSend, icon: LucideIcons.send, busy: _busy, onPressed: _busy ? null : _submit),
+            BuButton(label: l.reportSend, icon: LucideIcons.send, busy: _busy, onPressed: (_busy || _reason == null) ? null : _submit),
           ],
         ),
       ),

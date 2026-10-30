@@ -416,7 +416,7 @@ class BuComponentThemes {
         headerBackgroundColor: Colors.transparent,
         headerForegroundColor: t.ink,
         dividerColor: t.bd,
-        todayForegroundColor: WidgetStatePropertyAll(t.pr),
+        todayForegroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.onPr : t.pr),
         todayBorder: BorderSide(color: t.pr),
         dayForegroundColor: WidgetStateProperty.resolveWith((s) {
           if (s.contains(WidgetState.selected)) return t.onPr;

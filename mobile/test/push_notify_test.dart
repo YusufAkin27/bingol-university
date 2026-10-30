@@ -269,25 +269,31 @@ void main() {
           'communities': true,
           'messages': true,
           'polls': true,
-          'subtypes': {'POST_MENTION': true, 'USER_FOLLOW': false},
+          'subtypes': {'MESSAGE_DIRECT': true, 'EVENT_UPDATE': false, 'POST_MENTION': true, 'USER_FOLLOW': false},
         });
       await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b))));
       await tester.pumpAndSettle();
-      expect(find.text('Etiketlenmeler'), findsNothing); // ayrıntılı tercihler kapalı başlar
-      await tester.ensureVisible(find.text('Ayrıntılı tercihler'));
+      expect(find.text('Kişisel mesajlar'), findsNothing); // ayrıntılı tercihler ayrı sayfada
+      expect(find.text('Anketler'), findsOneWidget);
+      expect(find.text('Akademik duyurular'), findsNothing); // sunucu göndermedi
+      await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(find.text('Ders ve sınav hatırlatmaları'), findsOneWidget);
       await tester.tap(find.text('Ayrıntılı tercihler'));
       await tester.pumpAndSettle();
-      expect(find.text('Etiketlenmeler'), findsOneWidget);
-      expect(find.text('Yeni takipçiler'), findsOneWidget);
-      expect(find.text('Gönderi beğenileri'), findsNothing);
-      expect(find.text('Anketler'), findsOneWidget);
-      expect(find.text('Akademik duyurular'), findsNothing);
-      expect(find.text('Ders ve sınav hatırlatmaları'), findsOneWidget);
+      expect(find.text('Kişisel mesajlar'), findsOneWidget);
+      expect(find.text('Etkinlik değişiklikleri'), findsOneWidget);
+      // Kaldırılan türler (bahsetme, takip) çizilmez.
+      expect(find.text('Etiketlenmeler'), findsNothing);
+      expect(find.text('Yeni takipçiler'), findsNothing);
 
-      await tester.tap(find.text('Yeni takipçiler'));
+      await tester.tap(find.text('Etkinlik değişiklikleri'));
+      await tester.pumpAndSettle();
+      expect(b.bodies['PUT /notifications/preferences'], isNull); // satır metni değil, anahtar dokunulur
+      await tester.tap(find.byType(Switch).at(3));
       await tester.pumpAndSettle();
       expect(b.bodies['PUT /notifications/preferences'], {
-        'subtypes': {'USER_FOLLOW': true}
+        'subtypes': {'EVENT_UPDATE': true}
       });
     });
 
