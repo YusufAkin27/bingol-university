@@ -54,7 +54,8 @@ void main() {
               size: kPhoneSmall,
             ));
             expect(tester.takeException(), isNull);
-            expect(find.text('Dokun: fotoğraf · Basılı tut: video'), findsOneWidget);
+            // Ipucu yalniz hazir halde (kayit halinde yok).
+            expect(find.text('Dokun: fotoğraf · Basılı tut: video'), rec ? findsNothing : findsOneWidget);
             expect(find.text('0:07'), rec ? findsOneWidget : findsNothing);
             await tester.tap(find.byKey(const ValueKey('shutter')));
             if (rec) {
@@ -96,7 +97,7 @@ void main() {
           expect(find.text('Rehberden kişi bul'), findsOneWidget);
           await tester.tap(find.text('Yeni grup'));
           await tester.pump();
-          await tester.enterText(find.byType(TextField).first, 'al');
+          await tester.enterText(find.byType(TextField).last, 'al');
           await tester.pump(const Duration(milliseconds: 350));
           await settle(tester, const Duration(milliseconds: 400));
           await tester.tap(find.text('Ali Veli'));
@@ -118,7 +119,7 @@ void main() {
       await settle(tester);
       await tester.tap(find.text('Yeni grup'));
       await tester.pump();
-      await tester.enterText(find.byType(TextField).first, 'al');
+      await tester.enterText(find.byType(TextField).last, 'al');
       await tester.pump(const Duration(milliseconds: 350));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Ali Veli'));
@@ -135,7 +136,7 @@ void main() {
       final backend = be()..on('/conversations', {'id': 5, 'type': 'DIRECT', 'peer': {'id': 11, 'displayName': 'Ali Veli'}});
       await tester.pumpWidget(buildApp(NewChatPage(session: makeSession(backend)), size: kPhoneMedium));
       await settle(tester);
-      await tester.enterText(find.byType(TextField).first, 'al');
+      await tester.enterText(find.byType(TextField).last, 'al');
       await tester.pump(const Duration(milliseconds: 350));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Sohbet başlat'), findsNWidgets(2));
@@ -191,9 +192,10 @@ void main() {
               size: kPhoneSmall));
           await settle(tester);
           expect(find.text('İlet'), findsOneWidget);
-          expect(find.text('Kişi'), findsOneWidget);
+          expect(find.text('Bireysel sohbet'), findsOneWidget);
           expect(find.text('Kulüp'), findsOneWidget);
           expect(find.text('Etkinlik'), findsOneWidget);
+          expect(find.text('En fazla 5 sohbet seçilebilir.'), findsOneWidget);
           await tester.tap(find.byKey(const ValueKey('fwd-1')));
           await tester.tap(find.byKey(const ValueKey('fwd-2')));
           await tester.pump();

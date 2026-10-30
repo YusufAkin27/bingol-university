@@ -44,14 +44,101 @@ class ChatdRoundButton extends StatelessWidget {
           ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round, color: t.onMedia))
           : Icon(icon, size: 22),
       style: IconButton.styleFrom(
-        backgroundColor: t.scrim.withValues(alpha: .4),
+        backgroundColor: kChatdNavy,
         foregroundColor: t.onMedia,
-        disabledBackgroundColor: t.scrim.withValues(alpha: .4),
+        disabledBackgroundColor: kChatdNavy,
         disabledForegroundColor: t.onMedia.withValues(alpha: .85),
         minimumSize: const Size(48, 48),
         fixedSize: const Size(48, 48),
         padding: EdgeInsets.zero,
       ),
+    );
+  }
+}
+
+/// Üst çubuk hapı: lacivert zemin, isteğe bağlı simge + metin ("2 / 5", "İndir", "Tek gösterimlik").
+class ChatdBarPill extends StatelessWidget {
+  const ChatdBarPill({super.key, required this.label, this.icon, this.iconWidget, this.onTap, this.busy = false, this.color, this.semanticsLabel});
+
+  final String label;
+  final IconData? icon;
+  final Widget? iconWidget;
+  final VoidCallback? onTap;
+  final bool busy;
+  final Color? color;
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final content = Row(mainAxisSize: MainAxisSize.min, children: [
+      if (busy)
+        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round, color: t.onMedia))
+      else if (iconWidget != null)
+        iconWidget!
+      else if (icon != null)
+        Icon(icon, size: 16, color: t.onMedia),
+      if (busy || icon != null || iconWidget != null) const SizedBox(width: 8),
+      Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800))),
+    ]);
+    final box = Container(
+      constraints: const BoxConstraints(minHeight: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(color: color ?? kChatdNavy, borderRadius: BuRadius.bPill),
+      child: content,
+    );
+    if (onTap == null) {
+      return Semantics(label: semanticsLabel ?? label, excludeSemantics: true, child: box);
+    }
+    // En az 48 dp dokunma alanı: görsel hap 36 dp, etrafı şeffaf pay.
+    return Semantics(
+      button: true,
+      label: semanticsLabel ?? label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: busy ? null : onTap,
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48), child: Center(widthFactor: 1, child: box)),
+      ),
+    );
+  }
+}
+
+/// Koyu zeminde durum kartı (tek gösterimlik: tüketildi / kendi gönderdiğim / ağ hatası): ince çerçeveli yuvarlak kart.
+class ChatdNoteCard extends StatelessWidget {
+  const ChatdNoteCard({super.key, required this.text, this.icon, this.actionLabel, this.onAction});
+
+  final String text;
+  final IconData? icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: t.onMedia.withValues(alpha: .05),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: t.onMedia.withValues(alpha: .12)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Semantics(
+          liveRegion: true,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (icon != null) ...[Padding(padding: const EdgeInsets.only(top: 1), child: Icon(icon, size: 18, color: t.onMedia.withValues(alpha: .7))), const SizedBox(width: 10)],
+            Expanded(child: Text(text, style: tx.bodyMedium!.copyWith(color: t.onMedia.withValues(alpha: .88), height: 1.45))),
+          ]),
+        ),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(height: 14),
+          ChatdGlassButton(label: actionLabel!, onPressed: onAction!),
+        ],
+      ]),
     );
   }
 }
@@ -292,16 +379,8 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
     final screenW = MediaQuery.sizeOf(context).width;
     // Yakınlaştırma payı için ekranın ~2 katı genişlikte çözülür (tam çözünürlük belleğe açılmaz).
     final cacheW = (screenW * dpr * 2).ceil().clamp(512, 2400);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onDoubleTapDown: (d) => _focal = d.localPosition,
-      onDoubleTap: _toggleZoom,
-      child: InteractiveViewer(
-        transformationController: _tc,
-        minScale: 1,
-        maxScale: 5,
-        child: Center(
-          child: Image.network(
+    // Görsel, kenar boşluklu yuvarlatılmış kart olarak durur (referans 26).
+    final image = Image.network(
             chatMediaUrl(widget.url),
             key: ValueKey(_attempt),
             headers: widget.headers,
@@ -327,7 +406,19 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
               actionLabel: l.chatMiscRetry,
               onAction: () => setState(() => _attempt++),
             ),
-          ),
+          );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onDoubleTapDown: (d) => _focal = d.localPosition,
+      onDoubleTap: _toggleZoom,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: InteractiveViewer(
+          transformationController: _tc,
+          minScale: 1,
+          maxScale: 5,
+          child: Align(alignment: Alignment.topCenter, child: ClipRRect(borderRadius: BorderRadius.circular(20), child: image)),
         ),
       ),
     );

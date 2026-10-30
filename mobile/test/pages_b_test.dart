@@ -803,7 +803,7 @@ void main() {
       });
 
     Future<void> search(WidgetTester tester) async {
-      await tester.enterText(find.byType(TextField).first, 'al');
+      await tester.enterText(find.byType(TextField).last, 'al');
       await tester.pump(const Duration(milliseconds: 350));
       await settle(tester, const Duration(milliseconds: 400));
     }
@@ -814,6 +814,8 @@ void main() {
           final s = makeSession(full());
           await _pump(tester, NewChatPage(session: s), b: b, size: size);
           expect(find.textContaining('en az 2 karakter'), findsOneWidget);
+          await tester.tap(find.text('Yeni grup'));
+          await tester.pump();
           await search(tester);
           expect(find.text('Ali Veli'), findsOneWidget);
           await tester.tap(find.text('Ali Veli'));
@@ -866,6 +868,8 @@ void main() {
     testWidgets('grup adi bos -> hata, yazilirken debounce zamanlayicisi dispose edilir', (tester) async {
       final s = makeSession(full());
       await _pump(tester, NewChatPage(session: s), size: kPhoneSmall);
+      await tester.tap(find.text('Yeni grup'));
+      await tester.pump();
       await search(tester);
       await tester.tap(find.text('Ali Veli'));
       await tester.pump();
@@ -875,7 +879,7 @@ void main() {
       await tester.pump();
       expect(find.text('Grup adı girin.'), findsOneWidget);
       // Bekleyen debounce ile kapat: zamanlayıcı kalmamalı.
-      await tester.enterText(find.byType(TextField).first, 'ali');
+      await tester.enterText(find.byType(TextField).last, 'ali');
       await unmount(tester);
       _noErrors(tester);
     });

@@ -46,7 +46,11 @@ class MessageBubble extends StatelessWidget {
     this.onOpenGallery,
     this.highlight,
     this.onSenderTap,
+    this.highlighted = false,
   });
+
+  /// Arama/alıntı atlama vurgusu: baloncuğun çevresine 2 dp marka rengi çerçeve çizer.
+  final bool highlighted;
 
   final Map<String, dynamic> message;
   final bool mine;
@@ -307,7 +311,7 @@ class MessageBubble extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: mediaStyle ? 0 : 14, vertical: mediaStyle ? 0 : 9),
       decoration: BoxDecoration(
         color: onceLocked ? BuTokens.light.ink : (softPill ? t.soft : (oncePill && !mine && !ghost ? t.sf2 : bodyColor)),
-        border: (mine || ghost) ? null : Border.all(color: t.bd),
+        border: highlighted ? Border.all(color: t.pr, width: 2) : ((mine || ghost) ? null : Border.all(color: t.bd)),
         // Mantıksal köşeler: sağdan sola düzende kuyruk köşesi de aynalanır.
         borderRadius: BorderRadiusDirectional.only(
           topStart: r,

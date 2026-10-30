@@ -214,7 +214,7 @@ void main() {
     testWidgets('alicida onizleme yok; dokununca goruntuleyici, kapaninca Acildi', (tester) async {
       final be = _backend([_onceIn(7)])..onBytes('/conversations/1/media/50', _png, once: true);
       await _pump(tester, _detail(makeSession(be)));
-      expect(find.text('Tek gösterimlik fotoğraf'), findsOneWidget);
+      expect(find.text('Fotoğraf · Açmak için dokun'), findsOneWidget);
       expect(contentImages(), findsNothing);
       await tester.tap(find.byKey(const ValueKey('viewOnceCard')));
       await settle(tester, const Duration(milliseconds: 600));
@@ -422,7 +422,7 @@ void main() {
 
     testWidgets('gorsel/tek gosterimlik mesajda Ilet gizli', (tester) async {
       await _pump(tester, _detail(makeSession(fwd())));
-      await tester.longPress(find.text('Tek gösterimlik fotoğraf'));
+      await tester.longPress(find.text('Fotoğraf · Açmak için dokun'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byKey(_card), findsOneWidget);
       expect(find.text('İlet'), findsNothing);
