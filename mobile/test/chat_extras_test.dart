@@ -251,17 +251,21 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('goruntuleyici: ag hatasi uyari + yeniden dene; 403 kendi fotografim', (tester) async {
+    testWidgets('goruntuleyici: ag hatasinda yalniz ikon + uyari metni (yeniden dene yok); 403 kendi fotografim', (tester) async {
       final be = FakeBackend()..network('/conversations/1/media/50');
       final s = makeSession(be);
       await tester.pumpWidget(buildApp(ViewOnceViewer(api: s.api, conversationId: 1, attachmentId: 50)));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.textContaining('yeniden açılamayabilir'), findsOneWidget);
-      expect(find.text('Yeniden dene'), findsOneWidget);
-      be.fail('/conversations/1/media/50', status: 403, code: 'MEDIA_VIEW_ONCE_OWN');
-      await tester.tap(find.text('Yeniden dene'));
+      // Sunucu içeriği ilk istekte tükettiği için yeniden deneme sunulmaz (referans 26).
+      expect(find.text('Yeniden dene'), findsNothing);
+      await unmount(tester);
+
+      final own = FakeBackend()..fail('/conversations/1/media/50', status: 403, code: 'MEDIA_VIEW_ONCE_OWN');
+      await tester.pumpWidget(buildApp(ViewOnceViewer(api: makeSession(own).api, conversationId: 1, attachmentId: 50)));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.textContaining('Kendi gönderdiğiniz'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsNothing);
       await unmount(tester);
     });
 
