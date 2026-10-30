@@ -24,3 +24,6 @@ Not: Stitch kok adresleri `https://stitch.withgoogle.com/u/1/projects/<ID>`. Akt
 - Halusinasyonlar: kapak fotosunda afis ("SPRING JAM 24"), "Merkez Kampus", hashtag, harita karti, "Zorunlu" etiketi, "Resmi Kulup", goruntulenme sayaci, hava metni, QR kapi gorevlisi metni.
 - Kalan eksik: "Kayitlar acik" ve "Katiliyor" ekranlarinda kapak gorseli yuklenmedi (gri "img" yer tutucu); Katiliyor'da "Katilimdan ayril" dugmesi sayfa sonunda (sticky degil); Kayitlar kapali ekraninda iki pasif dugme yerine tek "Kayitlar Kapandi", "Kontenjan Dolu/Doldu" etiketi (34/50) tutarsiz, uydurma "kapilar 13:30" bilgi kutusu; Iptal edildi'de "Duzenleyen" satiri kirik, "Program Bilgileri" bolumu; Kayitlar kapali ve Kontenjan dolu ekranlarinda "⋯" rapor menusu yalniz ikon (acik menu gosterilmedi).
 - Not: ilk export'ta (duzeltmeden once) PNG'ler gecersiz geldi; son export (g38b) gecerli PNG + code.html.
+
+## 39 - Etkinlik istek ve yoklama (S1'e devredildi)
+- Bolum degisikligi mesaji gelmeden istem (Visual reference + ortak onsoz + 39 istemi) /u/1/ hesabinda gonderildi: https://stitch.withgoogle.com/u/1/projects/14656969913782186140 . Uretim baslatildi, S4 tarafindan kontrol/duzeltme/export YAPILMADI; INDEX satiri [ ] birakildi. S1 isterse bu projeyi kullanabilir (tekrar istem gondermeden) ya da yenisini acar.
