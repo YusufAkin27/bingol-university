@@ -3,7 +3,6 @@ import 'dart:ui' show ImageFilter;
 
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
@@ -2419,16 +2418,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
               id == null
                   ? row
-                  : ValueListenableBuilder<int?>(
-                      valueListenable: _hi,
-                      child: row,
-                      builder: (c, hi, child) => _FocusFrame(
-                        key: _rowKeys.putIfAbsent(id, GlobalKey.new),
-                        color: t.pr,
-                        active: hi == id,
-                        child: child,
-                      ),
-                    ),
+                  : KeyedSubtree(
+                      key: _rowKeys.putIfAbsent(id, GlobalKey.new),
+                      child: row),
             ]);
           },
         ));
@@ -2507,9 +2499,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final id = (m['id'] as num?)?.toInt();
     final reply = m['replyTo'] is Map ? m['replyTo'] as Map : null;
     final replyId = (reply?['id'] as num?)?.toInt();
-    return MessageBubble(
+    Widget make(bool hl) => MessageBubble(
       message: m,
       mine: mine,
+      highlighted: hl,
       senderName: (!mine && !_direct && first)
           ? _nameOf((m['senderId'] as num?)?.toInt())
           : null,
@@ -2545,6 +2538,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       onOpenViewOnce: (a) => _openViewOnce(m, a),
       highlight: (_searching && _query.isNotEmpty) ? _query : null,
       onReact: (e) => _react(m, e),
+    );
+    if (preview || id == null) return make(false);
+    // Atlama vurgusu (2 dp çerçeve) yalnız bu mesajı yeniler.
+    return ValueListenableBuilder<int?>(
+      valueListenable: _hi,
+      builder: (c, hi, _) => make(hi == id),
     );
   }
 
@@ -2823,80 +2822,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         ),
       ]),
     );
-  }
-}
-
-/// Aranan/atlanan mesajın baloncuğuna 2 dp'lik çerçeve çizer (satır şeridi yerine). Çerçeve, çocuk
-/// ağacındaki ilk geniş (> 40 dp) köşeli kutuya (baloncuk gövdesi) oturur; bulunamazsa çizilmez.
-class _FocusFrame extends SingleChildRenderObjectWidget {
-  const _FocusFrame(
-      {super.key, required this.color, required this.active, super.child});
-
-  final Color color;
-  final bool active;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderFocusFrame(color, active);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderFocusFrame renderObject) {
-    renderObject
-      ..color = color
-      ..active = active;
-  }
-}
-
-class _RenderFocusFrame extends RenderProxyBox {
-  _RenderFocusFrame(this._color, this._active);
-
-  Color _color;
-  bool _active;
-
-  set color(Color v) {
-    if (v == _color) return;
-    _color = v;
-    markNeedsPaint();
-  }
-
-  set active(bool v) {
-    if (v == _active) return;
-    _active = v;
-    markNeedsPaint();
-  }
-
-  Rect? _bubbleRect() {
-    Rect? found;
-    void visit(RenderObject o) {
-      if (found != null) return;
-      if (o is RenderDecoratedBox && o.hasSize && o.size.width > 40) {
-        final d = o.decoration;
-        if (d is BoxDecoration && d.borderRadius != null) {
-          found = MatrixUtils.transformRect(
-              o.getTransformTo(this), Offset.zero & o.size);
-          return;
-        }
-      }
-      o.visitChildren(visit);
-    }
-
-    child?.visitChildren(visit);
-    return found;
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    super.paint(context, offset);
-    if (!_active) return;
-    final r = _bubbleRect();
-    if (r == null) return;
-    context.canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            r.shift(offset).inflate(1), const Radius.circular(20)),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..color = _color);
   }
 }
 
