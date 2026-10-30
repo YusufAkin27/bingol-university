@@ -39,7 +39,7 @@ Toplam istem: **51** dosya, **292** ekran. Her istem en çok 6 ekran içerir. İ
 | [31-anket-liste-olustur.md](31-anket-liste-olustur.md) | 6 | 61, 65, A30, A31 | [x] |
 | [32-anket-detay-oy-turleri.md](32-anket-detay-oy-turleri.md) | 6 | 66 (oy türleri) | [ ] üretildi (op3), düzeltme bekliyor: başlıklar İngilizce (Poll Details, Club Poll Vote), 'Genel Kampüs' çipi, Merkezi Kütüphane görseli; Stitch kotası doldu |
 | [33-anket-detay-durumlari.md](33-anket-detay-durumlari.md) | 6 | 66 (durumlar), A34 | [x] 6 ekran (s3), 1 tur duzeltildi; eksik: 'Gizli ve Dogrulanmis Oy' basligi (gizli oy notunda), kapanan ekranda yuzdeler 68/22/10 (istemdeki 126/128 ile ayni degil), 'Anket 12 Mayis 2024' dipnotu, geri cek ekraninda amber bant bulanik (RAPOR-s3) |
-| [34-destek-talepler.md](34-destek-talepler.md) | 6 | 67, 68, 69, A35 | [ ] |
+| [34-destek-talepler.md](34-destek-talepler.md) | 6 | 67, 68, 69, A35 | [x] 6 ekran (s3), 1 tur duzeltildi; eksik: acik talep ekraninda 'Talebi kapat' menusu acik gosterilmiyor, SSS/bos durum metinleri kisaltilmis ('...'), destek ekibi mesaji beyaz ama kendi mesaj kirmizi (RAPOR-s3) |
 | [35-destek-geri-bildirim-oneri.md](35-destek-geri-bildirim-oneri.md) | 5 | 70, 71 | [ ] |
 | [36-etkinlik-listeleri.md](36-etkinlik-listeleri.md) | 6 | 72, 73 | [x] eksik: Düzelt ve Yeniden Gönder dügmesi, fazla alt basliklar (bkz RAPOR-s4) |
 | [37-etkinlik-liste-durumlari-diyaloglar.md](37-etkinlik-liste-durumlari-diyaloglar.md) | 6 | 72 (durumlar), A36, A42 | [x] eksik: iptal diyalogu toast örnekleri bulanık (bkz RAPOR-s4) |

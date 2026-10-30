@@ -23,3 +23,10 @@ Aktarma klasoru: `C:\bu_design\stitch\<NN>-<ad>\` (export.zip + her ekran icin c
 - Duzeltilen (1 tur, 6 ekrana birden): paylas ikonu + avatar, "Anket Detayi" basliklari, kulup rozet/adlari, "Resmi Ogrenci Anketi", Rektorluk, kutuphane/kampus adlari, kapak gorselleri, "Yorumlar (19)" baglantisi, "Kriter" satirlari, "Ornek Anket Formu" karti, yildiz dagilim tablosu, bildirim anahtari; soru ve secenekler tum ekranlarda yemek anketine sabitlendi.
 - Halusinasyonlar: uydurma anket konulari (Bahar gezisi, Tiyatro, Kutuphane saatleri), kulup/rektorluk etiketleri, yorum sayaci, avatar+paylas.
 - Kalan eksik: gizli oy notunun basliginda "Gizli ve Dogrulanmis Oy" ifadesi; kapanan ekranda yuzdeler/oy sayilari (68/22/10, 87+28+13) istemdeki "128 katilim" ile ayni degil, "12 Mayis 2024" dipnotu; amber bayat bant diyalog ekraninda bulanik.
+
+## 34 - Destek talepler (6 ekran, `C:\bu_design\stitch\34-destek-talepler\`)
+- Proje: **BU Kampus S3-34-35** - https://stitch.withgoogle.com/u/1/projects/2091958414762298808 (35 koordinator karariyla S1'e devredildi, bu projede uretilmedi)
+- Uretilen: destek ana sayfasi (SSS arama/cipler/akordeon, taleplerim durum haplari, Destek talebi olustur, Geri bildirim + Oneri panosu), bos/hata/hiz siniri durumlari, yeni talep formu (+ dogrulama + toast), acik talep sohbeti, kapali talep, talebi kapat diyalogu.
+- Duzeltilen (1 tur, 6 ekrana birden): avatar + (i) simgesi, "Sikca Sorulan Sorular"/"Destek Talebi Olustur"/"Talep Detayi" basliklari, "Nasil yardimci olabiliriz? 7/24 Kampus Masasi" karti, cagri merkezi telefon numarasi, "Bilgi Islem Daire Baskanligi" dipnotu, bilet kodlari (#TK-...), ataç simgesi, "Cozumlendi" karti, ikon adlarinin metin gorunmesi, bildirim/e-posta bilgi kutusu.
+- Halusinasyonlar: telefon/cagri merkezi, 7/24 hero karti, bilet kodlari, ataç (dosya eki), kurum dipnotu, ikon fontu metni.
+- Kalan eksik: acik talepte "Talebi kapat" menusu acik cizilmedi; bos durum aciklamalari "..." ile kesik; yalniz render ile denetlendi.
