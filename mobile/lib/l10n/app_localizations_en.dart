@@ -8773,4 +8773,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p20RemHourSub => 'Notify one hour before the exam';
+
+  @override
+  String get p13SugSortTop => 'Most voted';
+
+  @override
+  String get p13SugAdd => 'Add suggestion';
+
+  @override
+  String get p13SugApprovalNote =>
+      'Suggestions are published after administrator approval.';
+
+  @override
+  String get p13SugVoteHint => 'Tap to vote';
+
+  @override
+  String get p13SugVoted => 'Your vote is saved';
+
+  @override
+  String get p04PostsEmptyBody => 'Photos you share are listed here.';
+
+  @override
+  String get p04PostsLoadFail => 'Could not load, try again';
+
+  @override
+  String get p04FeedErrTitle => 'Could not reach the server';
+
+  @override
+  String get p04FeedErrBody =>
+      'Check your connection or browse the offline cache.';
+
+  @override
+  String get p09ForwardDirect => 'Direct chat';
+
+  @override
+  String get p03HomeBrandSub => 'Independent student app';
+
+  @override
+  String get p03HomeQuickTitle => 'Quick Access';
+
+  @override
+  String get p03HomeQuickEvents => 'Events';
+
+  @override
+  String get p03HomeQuickSchedule => 'Timetable';
+
+  @override
+  String get p03HomeFeaturedNews => 'Featured News';
+
+  @override
+  String get p03HomeUpcoming => 'Upcoming Event';
+
+  @override
+  String get p03HomeMealHeroTitle => 'Meal Menu of the Day';
+
+  @override
+  String p03HomeLunchCount(String n) {
+    return 'Lunch • $n dishes';
+  }
+
+  @override
+  String get p03HomeMenuDetail => 'Menu Details';
+
+  @override
+  String p03HomeHosts(String club) {
+    return 'Hosted by $club';
+  }
+
+  @override
+  String get p04CropCenter => 'Center';
+
+  @override
+  String get p04SrcSizeTitle => 'File is too large';
 }

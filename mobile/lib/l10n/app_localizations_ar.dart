@@ -8681,4 +8681,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p20RemHourSub => 'إشعار قبل الاختبار بساعة';
+
+  @override
+  String get p13SugSortTop => 'الأكثر تصويتًا';
+
+  @override
+  String get p13SugAdd => 'إضافة اقتراح';
+
+  @override
+  String get p13SugApprovalNote => 'تُنشر الاقتراحات بعد موافقة المسؤول.';
+
+  @override
+  String get p13SugVoteHint => 'اضغط للتصويت';
+
+  @override
+  String get p13SugVoted => 'تم حفظ صوتك';
+
+  @override
+  String get p04PostsEmptyBody => 'تظهر الصور التي تشاركها هنا.';
+
+  @override
+  String get p04PostsLoadFail => 'تعذّر التحميل، حاول مجددًا';
+
+  @override
+  String get p04FeedErrTitle => 'تعذّر الوصول إلى الخادم';
+
+  @override
+  String get p04FeedErrBody =>
+      'تحقق من اتصالك أو تصفّح الذاكرة المؤقتة دون اتصال.';
+
+  @override
+  String get p09ForwardDirect => 'محادثة فردية';
+
+  @override
+  String get p03HomeBrandSub => 'تطبيق طلابي مستقل';
+
+  @override
+  String get p03HomeQuickTitle => 'وصول سريع';
+
+  @override
+  String get p03HomeQuickEvents => 'الفعاليات';
+
+  @override
+  String get p03HomeQuickSchedule => 'جدول الدروس';
+
+  @override
+  String get p03HomeFeaturedNews => 'أبرز الأخبار';
+
+  @override
+  String get p03HomeUpcoming => 'الفعالية القادمة';
+
+  @override
+  String get p03HomeMealHeroTitle => 'قائمة طعام اليوم';
+
+  @override
+  String p03HomeLunchCount(String n) {
+    return 'غداء • $n أصناف';
+  }
+
+  @override
+  String get p03HomeMenuDetail => 'تفاصيل القائمة';
+
+  @override
+  String p03HomeHosts(String club) {
+    return 'تنظّمه $club';
+  }
+
+  @override
+  String get p04CropCenter => 'توسيط';
+
+  @override
+  String get p04SrcSizeTitle => 'حجم الملف كبير';
 }

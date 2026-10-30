@@ -2,23 +2,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/crash/crash_reporter.dart';
 import '../../core/app_gate.dart' show appVersion;
+import '../../core/crash/crash_reporter.dart';
 import '../../core/locale_controller.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../academic/reminder_settings_page.dart';
+import '../../widgets/bu.dart';
 import '../chat/contacts_match_page.dart';
 import '../support/support_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
-import '../../core/typography.dart';
+import 'profil2_widgets.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
 
+/// Ayarlar (Stitch 49-1, 49-6): GÖRÜNÜM (dil), BİLDİRİMLER, GİZLİLİK VE HESAP; tonlu simge karolu gruplu kartlar.
+/// Tema seçimi Profil sekmesindedir.
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.session, required this.themeController, this.push, this.localeController});
 
@@ -68,26 +68,17 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _logoutAll() async {
-    final t = context.bu;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text(context.l10n.settingsLogoutAllTitle, style: BuType.title.copyWith(color: t.ink)),
-        content: Text(context.l10n.settingsLogoutAllBody,
-            style: BuType.body.copyWith(height: 1.4, color: t.mut)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: Text(context.l10n.commonCancel, style: BuType.bodyStrong.copyWith(color: t.mut))),
-          TextButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: Text(context.l10n.settingsLogoutAllConfirm, style: BuType.bodyStrong.copyWith(color: t.danger))),
-        ],
-      ),
+    final l = context.l10n;
+    final ok = await BuDialog.confirm(
+      context,
+      title: l.settingsLogoutAllTitle,
+      message: l.settingsLogoutAllBody,
+      confirmLabel: l.settingsLogoutAllConfirm,
+      cancelLabel: l.commonCancel,
+      destructive: true,
+      icon: LucideIcons.logOut,
     );
-    if (ok != true) return;
+    if (!ok) return;
     try {
       // Session.logoutAll henüz yoksa uç doğrudan çağrılır.
       await widget.session.api.post('/auth/logout-all');
@@ -113,13 +104,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _toast(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
-
-  int get _modeIndex => switch (widget.themeController.mode) {
-        ThemeMode.system => 0,
-        ThemeMode.light => 1,
-        ThemeMode.dark => 2,
-      };
+  void _toast(String m, {BuToastKind kind = BuToastKind.info}) => BuToast.show(context, m, kind: kind);
 
   Future<void> _patch(Map<String, dynamic> body, VoidCallback rollback) async {
     try {
@@ -127,38 +112,28 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       if (!mounted) return;
       setState(rollback);
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
+  /// Dil seçici (Stitch 49-6): Sistem / Türkçe / English / العربية; seçili satır tonlu + onay işareti.
   Future<void> _pickLang() async {
     final lc = _lc;
     if (lc == null) return;
-    final t = context.bu;
-    final l10n = context.l10n;
-    final options = <(String, String)>[
-      ('system', l10n.languageSystem),
-      for (final e in _langNames.entries) (e.key, e.value),
+    final l = context.l10n;
+    final options = <(String, String, String, IconData)>[
+      ('system', l.languageSystem, l.p19LangSystemDesc, LucideIcons.smartphone),
+      ('tr', _langNames['tr']!, 'Uygulama dili Türkçe', LucideIcons.languages),
+      ('en', _langNames['en']!, 'Interface and notifications in English', LucideIcons.globe),
+      ('ar', _langNames['ar']!, 'الواجهة والإشعارات باللغة العربية', LucideIcons.earth),
     ];
-    final chosen = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: t.sf,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 16),
-          Text(l10n.settingsLanguageHint, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
-          const SizedBox(height: 8),
-          for (final o in options)
-            ListTile(
-              title: Text(o.$2, style: BuType.bodyStrong.copyWith(color: t.ink)),
-              selected: o.$1 == lc.pref,
-              trailing: o.$1 == lc.pref ? Icon(LucideIcons.check, color: t.pr) : null,
-              onTap: () => Navigator.pop(ctx, o.$1),
-            ),
-          const SizedBox(height: 8),
-        ]),
-      ),
+    final chosen = await BuSheet.show<String>(
+      context,
+      title: l.settingsLanguage,
+      subtitle: l.settingsLanguageHint,
+      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
+        for (final o in options) _LangOption(id: o.$1, name: o.$2, desc: o.$3, icon: o.$4, selected: o.$1 == lc.pref),
+      ]),
     );
     if (chosen == null || chosen == lc.pref) return;
     await lc.set(chosen);
@@ -176,164 +151,193 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
-  Widget _label(String s) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-        child: Text(s, style: BuType.label.copyWith(letterSpacing: .5, color: context.bu.mut)),
-      );
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final l10n = context.l10n;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final lc = _lc;
-    final langName = lc == null
-        ? ''
-        : (lc.pref == 'system' ? l10n.languageSystem : (_langNames[lc.pref] ?? lc.pref));
+    final langName = lc == null ? '' : (lc.pref == 'system' ? l.languageSystem : (_langNames[lc.pref] ?? lc.pref));
     final pushText = switch (_pushStatus) {
-      'notConfigured' => l10n.pushNotConfigured,
-      'on' => l10n.pushOn,
-      'off' => l10n.pushOff,
-      'notGranted' => l10n.pushNotGranted,
+      'notConfigured' => l.pushNotConfigured,
+      'on' => l.pushOn,
+      'off' => l.pushOff,
+      'notGranted' => l.pushNotGranted,
       _ => _pushStatus,
     };
+    final blue = t.tint(1);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l10n.settingsTitle, onBack: () => Navigator.pop(context)),
+          BuHeader(title: l.settingsTitle, onBack: () => Navigator.pop(context)),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 32),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
-                _label(l10n.settingsSectionAppearance),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ListenableBuilder(
-                    listenable: widget.themeController,
-                    builder: (_, __) => BuSegmented(
-                      items: [l10n.themeSystem, l10n.themeLight, l10n.themeDark],
-                      index: _modeIndex,
-                      onChanged: (i) => widget.themeController
-                          .set(const [ThemeMode.system, ThemeMode.light, ThemeMode.dark][i]),
-                    ),
+                P2SectionLabel(l.settingsSectionAppearance),
+                BuGroup(dividerIndent: 66, children: [
+                  BuSettingsTile(
+                    key: const ValueKey('settings-language'),
+                    icon: LucideIcons.languages,
+                    title: l.settingsLanguage,
+                    subtitle: l.settingsLanguageHint,
+                    value: langName,
+                    tint: blue,
+                    onTap: _lc != null ? _pickLang : null,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: BuGroup(children: [
-                    BuMenuRow(
-                      icon: LucideIcons.globe,
-                      label: l10n.settingsLanguage,
-                      onTap: _lc != null ? _pickLang : null,
-                      // Flexible: dar ekranda sağdaki metin kısalır, satır taşmaz.
-                      trailing: Flexible(
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 4),
-                          child: Text(langName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.label.copyWith(color: t.mut)),
-                        ),
+                ]),
+                P2SectionLabel(l.settingsSectionNotifications, top: 18),
+                BuGroup(dividerIndent: 66, children: [
+                  BuSettingsTile(
+                    key: const ValueKey('settings-notif-prefs'),
+                    icon: LucideIcons.bell,
+                    title: l.profil1Notifications,
+                    onTap: () => _push(NotificationPrefsPage(session: widget.session)),
+                  ),
+                  BuSettingsTile(
+                    key: const ValueKey('settings-push'),
+                    icon: LucideIcons.bellRing,
+                    title: l.pushPermission,
+                    tint: blue,
+                    trailing: Flexible(
+                      child: P2Pill(
+                        text: pushText,
+                        tone: _pushStatus == 'on' ? P2PillTone.ok : P2PillTone.mute,
+                        dot: _pushStatus == 'on',
                       ),
                     ),
-                  ]),
-                ),
-                _label(l10n.settingsSectionNotifications),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: NotificationPrefsGroup(session: widget.session),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: BuGroup(children: [
-                    // Akademik: ders/sınav yerel hatırlatmaları (docs: lib/features/academic).
-                    BuMenuRow(
-                      icon: LucideIcons.alarmClock,
-                      label: l10n.profileReminders,
-                      onTap: () => _push(ReminderSettingsPage(session: widget.session)),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: BuGroup(children: [
-                    BuMenuRow(
-                      icon: LucideIcons.bellRing,
-                      label: l10n.pushPermission,
-                      showChevron: false,
-                      onTap: () => _toast(_pushStatus == 'on'
-                          ? l10n.pushOnToast
-                          : l10n.pushStatusToast(pushText)),
-                      trailing: Flexible(
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 4),
-                          child: Text(pushText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.label.copyWith(color: t.mut)),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                _label(l10n.settingsSectionPrivacy),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: BuGroup(children: [
-                    PrefSwitchRow(
-                        label: l10n.settingsShowEmail,
-                        value: _showEmail,
-                        onChanged: _loaded ? _toggleEmail : null),
-                    BuMenuRow(
-                        icon: LucideIcons.contact,
-                        label: l10n.settingsFindContacts,
-                        onTap: () => _push(ContactsMatchPage(session: widget.session))),
-                    BuMenuRow(
-                        icon: LucideIcons.shield,
-                        label: l10n.settingsPrivacyData,
-                        onTap: () => _push(PrivacyDataPage(session: widget.session))),
-                    BuMenuRow(
-                        icon: LucideIcons.circleQuestionMark,
-                        label: l10n.settingsSupport,
-                        onTap: () => _push(SupportPage(session: widget.session))),
-                    BuMenuRow(
-                        icon: LucideIcons.logOut,
-                        label: l10n.settingsLogoutAll,
-                        danger: true,
-                        showChevron: false,
-                        onTap: _logoutAll),
-                  ]),
-                ),
-                // Anonim hata raporu: açık/kapalı anahtarı + ne gönderildiğini anlatan gizlilik metni.
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ListenableBuilder(
-                    listenable: _crash,
-                    builder: (_, __) => BuGroup(children: [
-                      PrefSwitchRow(
-                          key: const ValueKey('crashReportsSwitch'),
-                          label: l10n.settingsCrashReports,
-                          value: _crash.enabled,
-                          onChanged: (v) => _crash.setEnabled(v)),
-                    ]),
+                    onTap: () => _toast(_pushStatus == 'on' ? l.pushOnToast : l.pushStatusToast(pushText)),
                   ),
+                ]),
+                P2SectionLabel(l.settingsSectionPrivacy, top: 18),
+                ListenableBuilder(
+                  listenable: _crash,
+                  builder: (_, __) => BuGroup(dividerIndent: 66, children: [
+                    BuSettingsTile.toggle(
+                      key: const ValueKey('settings-show-email'),
+                      icon: LucideIcons.atSign,
+                      title: l.settingsShowEmail,
+                      value: _showEmail,
+                      tint: blue,
+                      onChanged: _loaded ? _toggleEmail : null,
+                    ),
+                    BuSettingsTile(
+                      icon: LucideIcons.contact,
+                      title: l.settingsFindContacts,
+                      tint: blue,
+                      onTap: () => _push(ContactsMatchPage(session: widget.session)),
+                    ),
+                    BuSettingsTile(
+                      icon: LucideIcons.shield,
+                      title: l.settingsPrivacyData,
+                      tint: blue,
+                      onTap: () => _push(PrivacyDataPage(session: widget.session)),
+                    ),
+                    BuSettingsTile(
+                      icon: LucideIcons.circleQuestionMark,
+                      title: l.settingsSupport,
+                      onTap: () => _push(SupportPage(session: widget.session)),
+                    ),
+                    // Anonim hata raporu: açık/kapalı anahtarı.
+                    BuSettingsTile.toggle(
+                      key: const ValueKey('crashReportsSwitch'),
+                      icon: LucideIcons.bug,
+                      title: l.settingsCrashReports,
+                      subtitle: l.p19CrashReportsShort,
+                      value: _crash.enabled,
+                      tint: blue,
+                      onChanged: (v) => _crash.setEnabled(v),
+                    ),
+                    BuSettingsTile(
+                      key: const ValueKey('settings-logout-all'),
+                      icon: LucideIcons.logOut,
+                      title: l.settingsLogoutAll,
+                      danger: true,
+                      trailing: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.danger)),
+                      onTap: _logoutAll,
+                    ),
+                  ]),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
-                  child: Text(l10n.settingsCrashReportsDesc,
-                      key: const ValueKey('crashReportsDesc'),
-                      style: BuType.caption.copyWith(color: t.mut, height: 1.4)),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(l.settingsVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
                 ),
-                const SizedBox(height: 18),
-                Center(child: Text(l10n.settingsVersion(appVersion), style: BuType.caption.copyWith(color: t.mut))),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dil seçeneği satırı: simge karosu, ad, açıklama, sağda seçim halkası/onay.
+class _LangOption extends StatelessWidget {
+  const _LangOption({required this.id, required this.name, required this.desc, required this.icon, required this.selected});
+
+  final String id;
+  final String name;
+  final String desc;
+  final IconData icon;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        inMutuallyExclusiveGroup: true,
+        label: '$name. $desc',
+        excludeSemantics: true,
+        child: Material(
+          color: selected ? t.soft : t.sf2,
+          borderRadius: BuRadius.bMd,
+          child: InkWell(
+            key: ValueKey('lang-$id'),
+            borderRadius: BuRadius.bMd,
+            onTap: () => Navigator.pop(context, id),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 64),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 14, 8),
+                child: Row(children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bSm),
+                    child: Icon(icon, size: 20, color: selected ? t.pr : t.ink),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Text(name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                      const SizedBox(height: 1),
+                      Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                    ]),
+                  ),
+                  const SizedBox(width: 10),
+                  selected
+                      ? Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+                          child: Icon(LucideIcons.check, size: 15, color: t.onPr),
+                        )
+                      : Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(color: t.bd.withValues(alpha: .6), shape: BoxShape.circle),
+                        ),
+                ]),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

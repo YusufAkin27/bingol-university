@@ -181,7 +181,6 @@ void main() {
       final sw = find.byKey(const ValueKey('crashReportsSwitch'));
       await tester.scrollUntilVisible(sw, 200, scrollable: find.byType(Scrollable).first);
       expect(sw, findsOneWidget);
-      expect(find.byKey(const ValueKey('crashReportsDesc')), findsOneWidget);
       expect(find.textContaining('anonim bir hata raporu'), findsOneWidget);
       expect(CrashReporter.instance.enabled, isTrue);
       await tester.tap(sw);

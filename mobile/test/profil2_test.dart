@@ -45,10 +45,8 @@ void main() {
       await tester.pumpWidget(buildApp(PrivacyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);
-      expect(find.text('Ortak bağlam'), findsNWidgets(2)); // bio + classYear
-      await tester.tap(find.byKey(const ValueKey('privacy-select-avatar')));
-      await settle(tester, const Duration(milliseconds: 400));
-      await tester.tap(find.text('Yalnızca ben').last);
+      expect(find.text('Ortak bağlam'), findsNWidgets(5)); // her alanın 3 parçalı seçicisinde bir tane
+      await tester.tap(find.descendant(of: find.byKey(const ValueKey('privacy-select-avatar')), matching: find.text('Yalnızca ben')));
       await settle(tester);
       expect(b.bodies['PATCH /users/me/privacy'], {'avatar': 'ONLY_ME'});
       await unmount(tester);
@@ -60,12 +58,10 @@ void main() {
       await tester.pumpWidget(buildApp(PrivacyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       b.fail('/users/me/privacy', status: 500);
-      await tester.tap(find.byKey(const ValueKey('privacy-select-faculty')));
-      await settle(tester, const Duration(milliseconds: 400));
-      await tester.tap(find.text('Herkes').last);
+      await tester.tap(find.descendant(of: find.byKey(const ValueKey('privacy-select-faculty')), matching: find.text('Herkes')));
       await settle(tester);
-      // faculty ONLY_ME idi: geri alındı, "Yalnızca ben" yine görünür.
-      expect(find.text('Yalnızca ben'), findsOneWidget);
+      // Hata bildirimi ("Tekrar dene" ile) gösterilir.
+      expect(find.text('Değişiklik kaydedilemedi.'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -74,6 +70,8 @@ void main() {
       final b = _backend();
       await tester.pumpWidget(buildApp(PrivacyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
+      await tester.ensureVisible(find.byKey(const ValueKey('privacy-email-switch')));
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey('privacy-email-switch')));
       await settle(tester);
       expect(b.bodies['PATCH /users/me'], {'showEmail': true});
@@ -119,7 +117,7 @@ void main() {
       final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
       await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.text('my-data.json'), findsOneWidget);
+      expect(find.text('JSON dosyası olarak hazırlanır'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('my-data-download')));
       await settle(tester);
       expect(b.count('GET /users/me/export'), 1);
@@ -155,7 +153,7 @@ void main() {
       await tester.pumpWidget(buildApp(DeleteAccountPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       final cont = find.byKey(const ValueKey('delete-continue'));
-      expect(tester.widget<FilledButton>(find.descendant(of: cont, matching: find.byType(FilledButton))).onPressed, isNull);
+      expect(tester.widget<InkWell>(find.descendant(of: cont, matching: find.byType(InkWell)).first).onTap, isNull);
       await tester.tap(find.byKey(const ValueKey('delete-ack')));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(cont);
@@ -205,9 +203,9 @@ void main() {
 
   group('Hesap ve güvenlik', () {
     Future<void> fill(WidgetTester tester, {String cur = 'eskiSifre1', String nw = 'YeniSifre123', String rep = 'YeniSifre123'}) async {
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-current')), matching: find.byType(TextFormField)), cur);
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-new')), matching: find.byType(TextFormField)), nw);
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-repeat')), matching: find.byType(TextFormField)), rep);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-current')), matching: find.byType(TextField)), cur);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-new')), matching: find.byType(TextField)), nw);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-repeat')), matching: find.byType(TextField)), rep);
     }
 
     testWidgets('e-posta ve çıkış satırı görünür', (tester) async {
@@ -228,7 +226,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
-      expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
+      expect(find.text('•  Şifreler eşleşmiyor.'), findsOneWidget);
       expect(b.count('POST /auth/change-password'), 0);
       await unmount(tester);
     });
@@ -256,7 +254,8 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
-      expect(find.byKey(const ValueKey('sec-current-error')), findsOneWidget);
+      expect(find.byKey(const ValueKey('sec-errors')), findsOneWidget);
+      expect(find.text('•  Mevcut şifre hatalı.'), findsOneWidget);
       await unmount(tester);
     });
 

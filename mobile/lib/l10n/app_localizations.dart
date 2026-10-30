@@ -15912,6 +15912,138 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sınav saatinden bir saat önce bildir'**
   String get p20RemHourSub;
+
+  /// No description provided for @p13SugSortTop.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok oy'**
+  String get p13SugSortTop;
+
+  /// No description provided for @p13SugAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öneri ekle'**
+  String get p13SugAdd;
+
+  /// No description provided for @p13SugApprovalNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öneriler yönetici onayından sonra yayımlanır.'**
+  String get p13SugApprovalNote;
+
+  /// No description provided for @p13SugVoteHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy vermek için dokun'**
+  String get p13SugVoteHint;
+
+  /// No description provided for @p13SugVoted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyunu kaydettin'**
+  String get p13SugVoted;
+
+  /// No description provided for @p04PostsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaştığın fotoğraflar burada listelenir.'**
+  String get p04PostsEmptyBody;
+
+  /// No description provided for @p04PostsLoadFail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p04PostsLoadFail;
+
+  /// No description provided for @p04FeedErrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuya ulaşılamadı'**
+  String get p04FeedErrTitle;
+
+  /// No description provided for @p04FeedErrBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantınızı kontrol edin veya çevrimdışı önbelleğe göz atın.'**
+  String get p04FeedErrBody;
+
+  /// No description provided for @p09ForwardDirect.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bireysel sohbet'**
+  String get p09ForwardDirect;
+
+  /// No description provided for @p03HomeBrandSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağımsız öğrenci uygulaması'**
+  String get p03HomeBrandSub;
+
+  /// No description provided for @p03HomeQuickTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Erişim'**
+  String get p03HomeQuickTitle;
+
+  /// No description provided for @p03HomeQuickEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler'**
+  String get p03HomeQuickEvents;
+
+  /// No description provided for @p03HomeQuickSchedule.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders Programı'**
+  String get p03HomeQuickSchedule;
+
+  /// No description provided for @p03HomeFeaturedNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öne Çıkan Haberler'**
+  String get p03HomeFeaturedNews;
+
+  /// No description provided for @p03HomeUpcoming.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan Etkinlik'**
+  String get p03HomeUpcoming;
+
+  /// No description provided for @p03HomeMealHeroTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Yemek Menüsü'**
+  String get p03HomeMealHeroTitle;
+
+  /// No description provided for @p03HomeLunchCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğle Yemeği • {n} çeşit'**
+  String p03HomeLunchCount(String n);
+
+  /// No description provided for @p03HomeMenuDetail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Menü Detayı'**
+  String get p03HomeMenuDetail;
+
+  /// No description provided for @p03HomeHosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'{club} Düzenliyor'**
+  String p03HomeHosts(String club);
+
+  /// No description provided for @p04CropCenter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortala'**
+  String get p04CropCenter;
+
+  /// No description provided for @p04SrcSizeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosya boyutu yüksek'**
+  String get p04SrcSizeTitle;
 }
 
 class _AppLocalizationsDelegate

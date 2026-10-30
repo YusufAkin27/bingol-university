@@ -157,12 +157,13 @@ void main() {
 
   testWidgets('Takip listesi: followsMe etiketleri alan varsa; yoksa yok; arama suzer', (tester) async {
     await _pump(tester, FollowListPage(session: makeSession(_follow(followsMe: true)), userId: 7, followers: true, name: 'Ayşe Demir'));
-    expect(find.text('Takipçiler 128'), findsOneWidget);
+    expect(find.text('Takipçiler'), findsOneWidget);
+    expect(find.text('128'), findsOneWidget); // sekme sayaç rozeti
     expect(find.text('Takip edilenler'), findsOneWidget);
     expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
     expect(find.text('Seni takip ediyor'), findsOneWidget);
     expect(find.text('Takip et'), findsNWidgets(2));
-    expect(find.text('Takiptesin'), findsOneWidget);
+    expect(find.text('Takipte'), findsOneWidget); // Emre: düğme "Takipte"
     await tester.enterText(find.byType(TextField), 'selin');
     await tester.pump();
     expect(find.text('Selin Kaya'), findsOneWidget);

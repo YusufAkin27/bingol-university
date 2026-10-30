@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import 'blocked_users_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
@@ -13,8 +10,8 @@ import 'profil2_widgets.dart';
 /// Gizlilik değerleri (sunucu sözleşmesi: EVERYONE | SHARED_CONTEXT | ONLY_ME).
 const kPrivacyValues = ['EVERYONE', 'SHARED_CONTEXT', 'ONLY_ME'];
 
-/// Ayarlar > Gizlilik: alan bazlı profil görünürlüğü, e-posta anahtarı, engellenenler.
-/// Veri indirme ve hesap silme [MyDataPage] altındadır.
+/// Gizlilik ve engellenenler (Stitch 49-3): alan bazlı profil görünürlüğü (3 parçalı seçici), e-posta anahtarı,
+/// engellenenler satırı, Verilerim ve hesap. Veri indirme ve hesap silme [MyDataPage] altındadır.
 class PrivacyDataPage extends StatefulWidget {
   const PrivacyDataPage({super.key, required this.session});
 
@@ -26,6 +23,13 @@ class PrivacyDataPage extends StatefulWidget {
 
 class _PrivacyDataPageState extends State<PrivacyDataPage> {
   static const _fields = ['avatar', 'bio', 'faculty', 'department', 'classYear'];
+  static const _icons = {
+    'avatar': LucideIcons.circleUser,
+    'bio': LucideIcons.fileText,
+    'faculty': LucideIcons.landmark,
+    'department': LucideIcons.graduationCap,
+    'classYear': LucideIcons.columns3,
+  };
 
   final Map<String, String> _vis = {for (final f in _fields) f: 'EVERYONE'};
   final Set<String> _saving = {};
@@ -33,6 +37,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
   bool _avatarHidden = false;
   bool _loaded = false;
   Object? _error;
+  String? _blockedCount;
 
   @override
   void initState() {
@@ -40,7 +45,8 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     _load();
   }
 
-  void _toast(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _toast(String m, {String? actionLabel, VoidCallback? onAction}) =>
+      BuToast.show(context, m, kind: BuToastKind.error, actionLabel: actionLabel, onAction: onAction);
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
@@ -62,12 +68,26 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
         // E-posta tercihi okunamazsa varsayılanla devam edilir.
       }
       if (mounted) setState(() => _loaded = true);
+      _loadBlockedCount();
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
   }
 
-  /// Seçim anında kaydedilir; hata olursa eski değere dönülür.
+  /// Engellenen sayısı: tek sayfa (100) yeterliyse tam sayı, devamı varsa "100+"; alınamazsa gösterilmez.
+  Future<void> _loadBlockedCount() async {
+    try {
+      final r = await widget.session.api.getResponse('/users/me/blocks?limit=100');
+      final body = r.body;
+      final list = body is List ? body : (body is Map ? (body['items'] as List? ?? const []) : const []);
+      final next = r.headers['x-next-cursor'];
+      if (mounted) setState(() => _blockedCount = (next == null || next.isEmpty) ? '${list.length}' : '${list.length}+');
+    } catch (_) {
+      // Sayı opsiyoneldir.
+    }
+  }
+
+  /// Seçim anında kaydedilir; hata olursa eski değere dönülür ve "Tekrar dene" sunulur.
   Future<void> _setVis(String field, String value) async {
     final old = _vis[field]!;
     if (old == value) return;
@@ -77,10 +97,10 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     });
     try {
       await widget.session.api.patch('/users/me/privacy', {field: value});
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() => _vis[field] = old);
-      _toast(errorText(e));
+      _toast(context.l10n.profil2SaveFailed, actionLabel: context.l10n.profileRetry, onAction: () => _setVis(field, value));
     } finally {
       if (mounted) setState(() => _saving.remove(field));
     }
@@ -91,10 +111,10 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     setState(() => _showEmail = v);
     try {
       await widget.session.api.patch('/users/me', {'showEmail': v});
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() => _showEmail = old);
-      _toast(errorText(e));
+      _toast(context.l10n.profil2SaveFailed, actionLabel: context.l10n.profileRetry, onAction: () => _setEmail(v));
     }
   }
 
@@ -111,11 +131,12 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     Widget body;
     if (_error != null) {
-      body = ErrorView(error: _error!, onRetry: _load);
+      body = BuErrorState(error: _error, onRetry: _load);
     } else if (!_loaded) {
-      body = const LoadingView();
+      body = const BuSkeletonList(itemCount: 5, padding: EdgeInsets.fromLTRB(20, 12, 20, 20));
     } else {
       final labels = {
         'avatar': l.profil2FieldAvatar,
@@ -127,96 +148,92 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
       body = ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          Text(l.profil2PrivacyIntro, style: BuType.body.copyWith(color: t.mut, height: 1.45)),
-          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(l.profil2PrivacyIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+          ),
+          const SizedBox(height: 16),
           P2SectionLabel(l.profil2VisibilitySection),
           BuGroup(children: [
             for (final f in _fields)
-              _VisibilityRow(
+              Padding(
                 key: ValueKey('privacy-row-$f'),
-                fieldKey: f,
-                label: labels[f]!,
-                value: _vis[f]!,
-                options: [for (final v in kPrivacyValues) (v, _visLabel(v))],
-                busy: _saving.contains(f),
-                onChanged: (v) => _setVis(f, v),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    P2IconTile(icon: _icons[f]!, tint: t.tint(1)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(labels[f]!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                    ),
+                  ]),
+                  const SizedBox(height: 10),
+                  P2Segment3(
+                    key: ValueKey('privacy-select-$f'),
+                    label: labels[f],
+                    labels: [for (final v in kPrivacyValues) _visLabel(v)],
+                    index: kPrivacyValues.indexOf(_vis[f]!),
+                    onChanged: (i) => _setVis(f, kPrivacyValues[i]),
+                  ),
+                ]),
               ),
           ]),
-          if (_avatarHidden)
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: Icon(LucideIcons.triangleAlert, size: 16, color: P2Tones.of(context).dng),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(l.profil2AvatarModerated,
-                        key: const ValueKey('privacy-avatar-moderated'),
-                        style: BuType.label.copyWith(color: P2Tones.of(context).dng, fontWeight: FontWeight.w500, height: 1.45)),
-                  ),
-                ],
-              ),
+          if (_avatarHidden) ...[
+            const SizedBox(height: 12),
+            P2NoticeCard(
+              key: const ValueKey('privacy-avatar-moderated'),
+              lines: [l.profil2AvatarModerated],
+              icon: LucideIcons.triangleAlert,
+              compact: true,
             ),
+          ],
           Padding(
-            padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(children: [
-                      TextSpan(text: '${l.profil2SharedHintLead} ', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
-                      TextSpan(text: l.profil2SharedHintBody),
-                    ]),
-                    style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w500, height: 1.45),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          BuGroup(children: [
-            MergeSemantics(
-              child: P2Row(
-                icon: LucideIcons.mail,
-                title: l.profil2ShowEmail,
-                subtitle: l.profil2ShowEmailSub,
-                onTap: () => _setEmail(!_showEmail),
-                trailing: ExcludeSemantics(
-                  child: P2Switch(key: const ValueKey('privacy-email-switch'), value: _showEmail, onChanged: _setEmail),
+            padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: '${l.profil2SharedHintLead} ', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
+                    TextSpan(text: l.profil2SharedHintBody),
+                  ]),
+                  style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45),
                 ),
               ),
+            ]),
+          ),
+          const SizedBox(height: 16),
+          BuGroup(children: [
+            BuSettingsTile.toggle(
+              key: const ValueKey('privacy-email-switch'),
+              icon: LucideIcons.atSign,
+              title: l.profil2ShowEmail,
+              subtitle: l.profil2ShowEmailSub,
+              value: _showEmail,
+              tint: t.tint(1),
+              onChanged: _setEmail,
             ),
           ]),
-          const SizedBox(height: 18),
-          P2SectionLabel(l.profil2BlockedSection),
-          BuGroup(children: [
-            P2Row(
+          P2SectionLabel(l.profil2BlockedSection, top: 20),
+          BuGroup(dividerIndent: 66, children: [
+            BuSettingsTile(
               icon: LucideIcons.ban,
-              title: l.profilePrefsBlockedUsers,
-              chevron: true,
+              title: l.profil2BlockedSection,
+              value: _blockedCount,
+              tint: t.tint(1),
               onTap: () => _push(BlockedUsersPage(session: widget.session)),
             ),
-          ]),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
-            child: Text(l.profil2BlockedHint, style: BuType.label.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
-          ),
-          const SizedBox(height: 18),
-          BuGroup(children: [
-            P2Row(
+            BuSettingsTile(
               icon: LucideIcons.download,
               title: l.profil2MyDataRow,
-              chevron: true,
+              tint: t.tint(1),
               onTap: () => _push(MyDataPage(session: widget.session)),
             ),
           ]),
@@ -230,94 +247,6 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
           BuHeader(title: l.profil2PrivacyTitle, onBack: () => Navigator.pop(context)),
           Expanded(child: body),
         ],
-      ),
-    );
-  }
-}
-
-/// Etiket + açılır seçici (150 px); büyük yazıda seçici etiketin altına iner.
-class _VisibilityRow extends StatelessWidget {
-  const _VisibilityRow({
-    super.key,
-    required this.fieldKey,
-    required this.label,
-    required this.value,
-    required this.options,
-    required this.onChanged,
-    this.busy = false,
-  });
-
-  final String fieldKey;
-  final String label;
-  final String value;
-  final List<(String, String)> options;
-  final ValueChanged<String> onChanged;
-  final bool busy;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final current = options.firstWhere((o) => o.$1 == value, orElse: () => options.first).$2;
-    final selector = PopupMenuButton<String>(
-      key: ValueKey('privacy-select-$fieldKey'),
-      tooltip: label,
-      onSelected: onChanged,
-      color: t.sf,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd)),
-      itemBuilder: (_) => [
-        for (final o in options)
-          PopupMenuItem<String>(
-            value: o.$1,
-            child: Row(
-              children: [
-                Expanded(child: Text(o.$2, style: BuType.bodyStrong.copyWith(color: t.ink))),
-                if (o.$1 == value) Icon(LucideIcons.check, size: 16, color: t.pr),
-              ],
-            ),
-          ),
-      ],
-      child: Semantics(
-        button: true,
-        label: label,
-        value: current,
-        child: ExcludeSemantics(
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 110, maxWidth: 150),
-            padding: const EdgeInsetsDirectional.only(start: 12, end: 10),
-            decoration: BoxDecoration(
-              color: t.sf,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: t.bd, width: 1.5),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(current,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                ),
-                const SizedBox(width: 6),
-                busy
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Icon(LucideIcons.chevronDown, size: 18, color: t.mut),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    final labelText = Text(label, style: BuType.bodyStrong.copyWith(color: t.ink));
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 44),
-        child: p2BigText(context)
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [labelText, const SizedBox(height: 6), selector],
-              )
-            : Row(children: [Expanded(child: labelText), const SizedBox(width: 12), selector]),
       ),
     );
   }

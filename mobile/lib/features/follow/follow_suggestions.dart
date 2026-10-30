@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
-import '../posts/social_api.dart';
+import '../../widgets/bu.dart';
 import '../posts/social_models.dart';
-import 'follow_list_page.dart';
+import 'follow_widgets.dart';
+
+/// Öneri satırı: kişi + (API verirse) öneri nedeni ve sınıf.
+class _Suggestion {
+  const _Suggestion(this.user, {this.reason, this.classYear});
+
+  final SocialUser user;
+  final String? reason;
+  final int? classYear;
+}
 
 /// "Önerilen kişiler" (`GET /users/me/follow-suggestions`) satırları. Yükleniyor/hata/boş durumlarını kendisi yönetir.
 /// [shrink] true iken kaydırılmaz, içeriği kadar yer kaplar (başka listenin içinde).
@@ -24,7 +29,7 @@ class FollowSuggestionsList extends StatefulWidget {
 }
 
 class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
-  List<SocialUser>? _items;
+  List<_Suggestion>? _items;
   Object? _error;
 
   @override
@@ -36,8 +41,19 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
   Future<void> _load() async {
     setState(() => _error = null);
     try {
-      final r = await SocialApi(widget.session).followSuggestions(size: widget.limit);
-      if (mounted) setState(() => _items = r);
+      final r = await widget.session.api.get('/users/me/follow-suggestions?size=${widget.limit}');
+      final list = <_Suggestion>[];
+      for (final m in socialItems(r)) {
+        final y = m['classYear'] ?? m['grade'];
+        final n = y is num ? y.toInt() : int.tryParse('${y ?? ''}');
+        final reason = m['reason'];
+        list.add(_Suggestion(
+          SocialUser.fromJson(m),
+          reason: reason is String && reason.trim().isNotEmpty ? reason.trim() : null,
+          classYear: n != null && n > 0 && n <= 6 ? n : null,
+        ));
+      }
+      if (mounted) setState(() => _items = list);
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -45,25 +61,47 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final items = _items;
+    final bottom = widget.shrink ? 8.0 : MediaQuery.paddingOf(context).bottom + 24;
+    final pad = EdgeInsets.fromLTRB(20, widget.shrink ? 8 : 12, 20, bottom);
+
+    final Widget child;
     if (_error != null && items == null) {
-      return widget.shrink
-          ? Padding(padding: const EdgeInsets.all(16), child: ErrorView(error: _error!, onRetry: _load))
-          : ErrorView(error: _error!, onRetry: _load);
+      child = FollowStatusCard(
+        error: true,
+        icon: LucideIcons.wifiOff,
+        title: l.p18FollowErrorTitle,
+        message: errorText(_error!),
+        onRetry: _load,
+      );
+    } else if (items == null) {
+      child = FollowSkeletonCard(count: widget.shrink ? 2 : 3);
+    } else if (items.isEmpty) {
+      child = FollowStatusCard(
+        icon: LucideIcons.userSearch,
+        title: l.followSuggestionsEmpty,
+        message: l.followFeedHint,
+      );
+    } else {
+      child = FollowCard(children: [
+        for (var i = 0; i < items.length; i++)
+          BuStaggerItem(
+            index: i,
+            child: FollowPersonRow(
+              session: widget.session,
+              user: items[i].user,
+              reason: items[i].reason,
+              classLabel: items[i].classYear == null ? null : l.p18ClassYear('${items[i].classYear}'),
+            ),
+          ),
+      ]);
     }
-    if (items == null) {
-      return Padding(
-          padding: const EdgeInsets.all(24), child: Center(child: widget.shrink ? const CircularProgressIndicator() : const LoadingView()));
-    }
-    if (items.isEmpty) {
-      return EmptyView(icon: LucideIcons.users, text: context.l10n.followSuggestionsEmpty);
-    }
-    return ListView.builder(
-      shrinkWrap: widget.shrink,
-      physics: widget.shrink ? const NeverScrollableScrollPhysics() : null,
-      padding: EdgeInsets.fromLTRB(16, 4, 16, widget.shrink ? 8 : MediaQuery.of(context).padding.bottom + 24),
-      itemCount: items.length,
-      itemBuilder: (_, i) => SocialUserTile(session: widget.session, user: items[i]),
+
+    return BuStaggerScope(
+      child: widget.shrink
+          ? Padding(padding: pad, child: child)
+          : SingleChildScrollView(padding: pad, child: child),
     );
   }
 }
@@ -94,20 +132,27 @@ class FollowingEmptyPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
           child: Column(children: [
-            Icon(LucideIcons.users, size: 32, color: t.mut),
-            const SizedBox(height: 10),
+            const BuIllustrationView(BuIllustration.club, size: 96),
+            const SizedBox(height: 8),
             Text(context.l10n.followFeedHint,
-                textAlign: TextAlign.center, style: BuType.body.copyWith(color: t.mut)),
+                textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
           ]),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Text(context.l10n.followSuggestionsTitle, style: BuType.heading.copyWith(color: t.ink)),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+            child: Semantics(
+              header: true,
+              child: Text(context.l10n.followSuggestionsTitle, style: tx.titleMedium!.copyWith(color: t.ink)),
+            ),
+          ),
         ),
         FollowSuggestionsList(session: session, shrink: true, limit: 8),
       ],

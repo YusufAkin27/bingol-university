@@ -3,27 +3,30 @@ import 'package:flutter/material.dart';
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
-import '../../widgets/academic_picker.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../auth/auth_widgets.dart';
-import 'profil_widgets.dart';
-import '../../core/typography.dart';
+import '../../widgets/academic_pickers.dart';
+import '../../widgets/bu.dart';
+import 'profil2_widgets.dart';
 
+/// Profili düzenle (Stitch 48-4/5/6): avatar + "Fotoğrafı değiştir", ad soyad, hakkımda, bölüm/sınıf,
+/// salt okunur kurumsal e-posta, e-posta anahtarı, sabit "Kaydet". Çıkarken kaydedilmemiş değişiklik sorulur.
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key, required this.session, required this.profile});
+  const EditProfilePage({super.key, required this.session, required this.profile, this.images});
 
   final Session session;
   final Map<String, dynamic> profile;
+
+  /// Test için sahte seçici; verilmezse gerçek [ImageService].
+  final ImageService? images;
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _form = GlobalKey<FormState>();
+  static const _bioMax = 300;
+
   late final _name = TextEditingController(text: widget.profile['displayName'] as String? ?? '');
   late final _bio = TextEditingController(text: widget.profile['bio'] as String? ?? '');
   late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
@@ -41,16 +44,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final String? _g0 = _gradeOf(widget.profile);
   late final bool _e0 = _showEmail;
 
+  String? _nameError;
   String? _departmentError;
   bool _busy = false;
   bool _saved = false;
   bool _uploading = false;
   late String? _avatarUrl = widget.profile['avatarUrl'] as String?;
   bool _avatarChanged = false; // avatar anında sunucuda güncellenir; üst sayfa yenilensin
-  final _images = ImageService();
+  late final ImageService _images = widget.images ?? ImageService();
   String? _error;
+  String? _photoError;
 
   static String? _nonEmpty(String? s) => (s == null || s.isEmpty) ? null : s;
+
   /// Sınıf kimliği: yeni `grade` alanı; yoksa eski sayısal `classYear` (1..6) kimliğe çevrilir.
   static String? _gradeOf(Map<String, dynamic> p) {
     final g = p['grade'];
@@ -63,11 +69,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool get _academicChanged => _faculty != _f0 || _department != _d0;
 
   bool get _dirty =>
-      _name.text != _n0 ||
-      _bio.text != _b0 ||
-      _academicChanged ||
-      _grade != _g0 ||
-      _showEmail != _e0;
+      _name.text != _n0 || _bio.text != _b0 || _academicChanged || _grade != _g0 || _showEmail != _e0;
 
   @override
   void initState() {
@@ -87,14 +89,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _save() async {
-    if (_busy || !_form.currentState!.validate()) return;
-    if (_academicChanged && ((_faculty ?? '').isEmpty || (_department ?? '').isEmpty)) {
-      setState(() => _departmentError = context.l10n.profileDeptRequired);
+    if (_busy || _uploading) return;
+    final l = context.l10n;
+    String? nameErr;
+    String? deptErr;
+    if (_name.text.trim().length < 2) nameErr = l.profileNameMin;
+    if (_academicChanged && ((_faculty ?? '').isEmpty || (_department ?? '').isEmpty)) deptErr = l.profileDeptRequired;
+    if (nameErr != null || deptErr != null) {
+      setState(() {
+        _nameError = nameErr;
+        _departmentError = deptErr;
+      });
       return;
     }
     setState(() {
       _busy = true;
       _error = null;
+      _nameError = null;
       _departmentError = null;
     });
     try {
@@ -119,200 +130,166 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  /// Çıkış onayı (Stitch 48-6): ortada kart, "Düzenlemeye devam et" (koyu) + "Vazgeç ve çık" (kırmızı yazı).
   Future<bool> _confirmDiscard() async {
     final r = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.profileDiscardTitle),
-        content: Text(ctx.l10n.profileDiscardBody),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.profileKeepEditing)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.profileDiscardExit)),
-        ],
-      ),
+      builder: (ctx) {
+        final t = ctx.bu;
+        final tx = Theme.of(ctx).textTheme;
+        final l = ctx.l10n;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Container(
+            decoration: BoxDecoration(color: t.sf3, borderRadius: BorderRadius.circular(BuRadius.xl)),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Center(
+                child: ExcludeSemantics(
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.errorContainer, shape: BoxShape.circle),
+                    child: Icon(LucideIcons.triangleAlert, size: 26, color: t.danger),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Semantics(
+                header: true,
+                child: Text(l.profileDiscardTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              ),
+              const SizedBox(height: 8),
+              Text(l.profileDiscardBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                key: const ValueKey('discard-keep'),
+                onPressed: () => Navigator.pop(ctx, false),
+                style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, 52)),
+                icon: const Icon(LucideIcons.pencil, size: 18),
+                label: Text(l.profileKeepEditing),
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                key: const ValueKey('discard-exit'),
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(backgroundColor: t.sf2, foregroundColor: t.danger, minimumSize: const Size(0, 52)),
+                icon: const Icon(LucideIcons.trash2, size: 18),
+                label: Text(l.profileDiscardExit),
+              ),
+            ]),
+          ),
+        );
+      },
     );
     return r == true;
   }
 
-  InputDecoration _deco(BuildContext context, {String? hint}) {
-    final bu = context.bu;
-    OutlineInputBorder b(Color c) =>
-        OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: c, width: 1.5));
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: BuType.body.copyWith(color: bu.mut),
-      counterText: '',
-      filled: true,
-      fillColor: bu.sf,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: b(bu.bd),
-      enabledBorder: b(bu.bd),
-      focusedBorder: b(bu.pr),
-      disabledBorder: b(bu.bd),
-      errorBorder: b(bu.danger),
-      focusedErrorBorder: b(bu.danger),
-    );
-  }
+  // ---------------------------------------------------------------------------------------------------------------
+  // Fotoğraf
 
-  Widget _label(String t) {
-    final bu = context.bu;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
-      child: Text(t,
-          style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: bu.ink)),
-    );
-  }
-
-  Widget _avatar() {
-    final bu = context.bu;
-    final url = fileUrl(_avatarUrl);
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final initials = Container(
-      width: 70,
-      height: 70,
-      alignment: Alignment.center,
-      color: bu.soft,
-      child: Text(
-        initialsOf(_name.text),
-        style: BuType.display.copyWith(fontSize: 24, color: dark ? bu.onSoft : bu.pr),
-      ),
-    );
-    final hasPhoto = _avatarUrl != null && _avatarUrl!.isNotEmpty;
-    return Row(
-      children: [
-        SizedBox(
-          width: 76,
-          height: 76,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: bu.sf, width: 3),
-                  boxShadow: dark
-                      ? null
-                      : const [
-                          BoxShadow(color: Color(0x59171E33), blurRadius: 24, offset: Offset(0, 10), spreadRadius: -12)
-                        ],
-                ),
-                child: ClipOval(
-                  child: url == null
-                      ? initials
-                      : Image.network(url,
-                          width: 70, height: 70, fit: BoxFit.cover, errorBuilder: (_, __, ___) => initials),
-                ),
-              ),
-              if (_uploading)
-                Container(
-                  width: 76,
-                  height: 76,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black45),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
-                    ),
-                  ),
-                ),
-              PositionedDirectional(
-                end: -8,
-                bottom: -8,
-                child: Semantics(
-                  button: true,
-                  label: context.l10n.profileChangePhotoSemantic,
-                  child: GestureDetector(
-                    onTap: _pickAvatar,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: bu.pr,
-                        border: Border.all(color: bu.bg, width: 3),
+  Widget _avatar(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Column(children: [
+      SizedBox(
+        width: 104,
+        height: 104,
+        child: Stack(clipBehavior: Clip.none, children: [
+          PositionedDirectional(
+            start: 4,
+            top: 4,
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
+              child: ClipOval(
+                child: Stack(fit: StackFit.expand, children: [
+                  BuAvatar(name: _name.text, url: _avatarUrl, size: 90),
+                  if (_uploading)
+                    ColoredBox(
+                      color: t.scrim.withValues(alpha: .55),
+                      child: Center(
+                        child: SizedBox(
+                          width: 34,
+                          height: 34,
+                          child: CircularProgressIndicator(strokeWidth: 3, color: t.onMedia),
+                        ),
                       ),
-                      child: Icon(LucideIcons.camera, size: 18, color: bu.onPr),
                     ),
-                  ),
-                ),
+                ]),
               ),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InkWell(
+          PositionedDirectional(
+            end: 0,
+            bottom: 0,
+            child: Semantics(
+              button: true,
+              label: l.profileChangePhotoSemantic,
+              excludeSemantics: true,
+              child: GestureDetector(
+                key: const ValueKey('avatar-camera'),
                 onTap: _pickAvatar,
-                borderRadius: BorderRadius.circular(8),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(_uploading ? context.l10n.profileUploading : context.l10n.profileChangePhoto,
-                        style: BuType.bodyStrong.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: bu.pr)),
-                  ),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: t.pr, border: Border.all(color: t.bg, width: 3)),
+                  child: Icon(LucideIcons.camera, size: 16, color: t.onPr),
                 ),
               ),
-              if (hasPhoto)
-                InkWell(
-                  onTap: (_uploading || _busy) ? null : _removeAvatar,
-                  borderRadius: BorderRadius.circular(8),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(context.l10n.profil1Remove,
-                          style: BuType.bodyStrong.copyWith(fontSize: 13, color: bu.mut)),
-                    ),
-                  ),
-                ),
-            ],
+            ),
+          ),
+        ]),
+      ),
+      InkWell(
+        onTap: _uploading ? null : _pickAvatar,
+        borderRadius: BuRadius.bXs,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          child: Center(
+            widthFactor: 1,
+            child: Text(_uploading ? l.profileUploading : l.profileChangePhoto,
+                style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: _uploading ? t.mut : t.pr)),
           ),
         ),
-      ],
-    );
+      ),
+      if (_photoError != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 4),
+          child: P2PhotoError(_photoError!),
+        ),
+    ]);
   }
 
   Future<void> _pickAvatar() async {
     if (_uploading || _busy) return;
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) {
-        final bu = ctx.bu;
-        Widget row(IconData icon, String label, String value, {bool danger = false}) => ListTile(
-              leading: Icon(icon, color: danger ? bu.danger : bu.ink),
-              title: Text(label,
-                  style: BuType.bodyStrong.copyWith(color: danger ? bu.danger : bu.ink)),
-              onTap: () => Navigator.pop(ctx, value),
-            );
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: bu.bd, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 8),
-              row(LucideIcons.image, ctx.l10n.profilePickGallery, 'gallery'),
-              row(LucideIcons.camera, ctx.l10n.profileTakePhoto, 'camera'),
-              if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                row(LucideIcons.trash2, ctx.l10n.profileRemovePhoto, 'remove', danger: true),
-              const SizedBox(height: 8),
-            ],
+    final l = context.l10n;
+    final hasPhoto = _avatarUrl != null && _avatarUrl!.isNotEmpty;
+    final choice = await BuSheet.show<String>(
+      context,
+      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
+        BuListTile(
+          leading: const Icon(LucideIcons.image),
+          title: l.profilePickGallery,
+          onTap: () => Navigator.pop(ctx, 'gallery'),
+        ),
+        BuListTile(
+          leading: const Icon(LucideIcons.camera),
+          title: l.profileTakePhoto,
+          onTap: () => Navigator.pop(ctx, 'camera'),
+        ),
+        if (hasPhoto)
+          BuListTile(
+            leading: Icon(LucideIcons.trash2, color: ctx.bu.danger),
+            title: l.profileRemovePhoto,
+            danger: true,
+            onTap: () => Navigator.pop(ctx, 'remove'),
           ),
-        );
-      },
+      ]),
     );
     if (choice == null || !mounted) return;
     if (choice == 'remove') return _removeAvatar();
@@ -323,6 +300,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() {
       _uploading = true;
       _error = null;
+      _photoError = null;
     });
     try {
       final prepared = await _images.pickPrepared(source, avatar: true);
@@ -341,7 +319,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!mounted) return;
       setState(() {
         _uploading = false;
-        _error = _uploadError(e);
+        _photoError = _uploadError(e);
       });
     }
   }
@@ -350,6 +328,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() {
       _uploading = true;
       _error = null;
+      _photoError = null;
     });
     try {
       await widget.session.api.delete('/users/me/avatar');
@@ -363,7 +342,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!mounted) return;
       setState(() {
         _uploading = false;
-        _error = errorText(e);
+        _photoError = errorText(e);
       });
     }
   }
@@ -383,9 +362,57 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return errorText(e);
   }
 
+  // ---------------------------------------------------------------------------------------------------------------
+  // Seçiciler
+
+  Future<void> _pickDepartment() async {
+    if (_busy) return;
+    if (_catalog.state == CatalogState.error) {
+      _catalog.retry();
+      return;
+    }
+    if (!_catalog.ready) return;
+    final r = await showDepartmentPicker(context, catalog: _catalog, selectedFaculty: _faculty, selected: _department);
+    if (r == null || !mounted) return;
+    setState(() {
+      // Bölüm seçilince fakülte otomatik dolar.
+      _faculty = r.faculty.name;
+      _department = r.name;
+      _departmentError = null;
+    });
+  }
+
+  Future<void> _pickGrade() async {
+    if (_busy) return;
+    if (_catalog.state == CatalogState.error) {
+      _catalog.retry();
+      return;
+    }
+    if (!_catalog.ready) return;
+    final r = await showGradeSheet(context, grades: _catalog.grades, selected: _grade);
+    if (r == null || !mounted) return;
+    setState(() => _grade = r);
+  }
+
+  String? _gradeName(BuildContext context) {
+    if ((_grade ?? '').isEmpty) return null;
+    for (final g in _catalog.grades) {
+      if (g.id == _grade) {
+        final loc = gradeLabelL(context.l10n, g.id);
+        return loc == g.id ? g.name : loc;
+      }
+    }
+    return _grade;
+  }
+
+  // ---------------------------------------------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
-    final bu = context.bu;
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final email = (widget.profile['email'] as String?) ?? widget.session.email ?? '';
     return PopScope(
       // Avatar anında sunucuya yazıldığından, değiştiyse üst sayfaya "true" ile dönülür.
       canPop: _saved || (!_dirty && !_avatarChanged),
@@ -399,132 +426,291 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
       },
       child: Scaffold(
-        backgroundColor: bu.bg,
+        backgroundColor: t.bg,
         body: Column(
           children: [
-            BuHeader(title: context.l10n.profileEditTitle, onBack: () => Navigator.maybePop(context)),
+            BuHeader(title: l.profileEditTitle, onBack: () => Navigator.maybePop(context)),
             Expanded(
-              child: Form(
-                key: _form,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  children: [
-                    if (_error != null) Notice(_error!),
-                    _avatar(),
-                    const SizedBox(height: 22),
-                    _label(context.l10n.profileFullName),
-                    TextFormField(
-                      controller: _name,
-                      maxLength: 80,
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (_) => setState(() {}),
-                      style: BuType.bodyStrong.copyWith(color: bu.ink),
-                      validator: (v) =>
-                          (v == null || v.trim().length < 2) ? context.l10n.profileNameMin : null,
-                      decoration: _deco(context),
-                    ),
-                    const SizedBox(height: 12),
-                    AcademicFields(
-                      catalog: _catalog,
-                      faculty: _faculty,
-                      department: _department,
-                      grade: _grade,
-                      enabled: !_busy,
-                      departmentError: _departmentError,
-                      onChanged: (f, d, g) => setState(() {
-                        _faculty = f;
-                        _department = d;
-                        _grade = g;
-                        _departmentError = null;
-                      }),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: _label(context.l10n.profileAbout)),
-                        Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 4, bottom: 6),
-                          child: Text('${_bio.text.characters.length} / 300',
-                              style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: bu.mut)),
-                        ),
-                      ],
-                    ),
-                    TextFormField(
-                      controller: _bio,
-                      maxLength: 300,
-                      maxLines: 4,
-                      minLines: 3,
-                      onChanged: (_) => setState(() {}),
-                      style: BuType.body.copyWith(height: 1.4, color: bu.ink),
-                      decoration: _deco(context, hint: context.l10n.profileBioHint),
-                    ),
-                    const SizedBox(height: 12),
-                    _label(context.l10n.profil1CorpEmail),
-                    TextFormField(
-                      initialValue: (widget.profile['email'] as String?) ?? '',
-                      readOnly: true,
-                      style: BuType.body.copyWith(fontSize: 15, color: bu.mut),
-                      decoration: _deco(context).copyWith(
-                        fillColor: bu.sf2,
-                        suffixIcon: Icon(LucideIcons.lock, size: 18, color: bu.mut),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                children: [
+                  if (_error != null) ...[P2NoticeCard(lines: [_error!]), const SizedBox(height: 12)],
+                  _avatar(context),
+                  const SizedBox(height: 12),
+                  BuCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      P2FieldLabel(l.profileFullName, icon: LucideIcons.user),
+                      _TextBox(
+                        key: const ValueKey('edit-name'),
+                        controller: _name,
+                        maxLength: 80,
+                        error: _nameError,
+                        capitalization: TextCapitalization.words,
+                        onChanged: (_) => setState(() => _nameError = null),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    ProfilCard(children: [
-                      ProfilToggleRow(
-                        label: context.l10n.profileShowEmail,
-                        value: _showEmail,
-                        onChanged: (v) => setState(() => _showEmail = v),
+                      const SizedBox(height: 16),
+                      P2FieldLabel(
+                        l.profileAbout,
+                        icon: LucideIcons.fileText,
+                        trailing: Text('${_bio.text.characters.length}/$_bioMax',
+                            style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                      ),
+                      _TextBox(
+                        key: const ValueKey('edit-bio'),
+                        controller: _bio,
+                        maxLength: _bioMax,
+                        minLines: 3,
+                        maxLines: 5,
+                        hint: l.profileBioHint,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: 20),
+                      P2Heading(l.p19AcademicInfo, icon: LucideIcons.graduationCap),
+                      ListenableBuilder(
+                        listenable: _catalog,
+                        builder: (context, _) {
+                          final loading = _catalog.state == CatalogState.loading || _catalog.state == CatalogState.idle;
+                          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
+                              child: Text(l.pickDepartment, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                            ),
+                            _SelectBox(
+                              key: const ValueKey('edit-department'),
+                              text: _department,
+                              placeholder: loading ? l.pickLoading : l.pickSelectDepartment,
+                              error: _departmentError,
+                              onTap: _pickDepartment,
+                            ),
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
+                              child: Text(l.pickGrade, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                            ),
+                            _SelectBox(
+                              key: const ValueKey('edit-grade'),
+                              text: _gradeName(context),
+                              placeholder: l.pickSelectGrade,
+                              onTap: _pickGrade,
+                            ),
+                          ]);
+                        },
                       ),
                     ]),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  BuCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      P2FieldLabel(
+                        l.profil1CorpEmail,
+                        icon: LucideIcons.shieldCheck,
+                        trailing: P2Pill(text: l.profil2SecVerified, icon: LucideIcons.lock),
+                      ),
+                      Semantics(
+                        label: '${l.profil1CorpEmail}: $email',
+                        excludeSemantics: true,
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 52),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+                          child: Row(children: [
+                            Icon(LucideIcons.mail, size: 18, color: t.mut),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink)),
+                            ),
+                          ]),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      MergeSemantics(
+                        child: InkWell(
+                          onTap: () => setState(() => _showEmail = !_showEmail),
+                          borderRadius: BuRadius.bSm,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(children: [
+                              Expanded(
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text(l.profileShowEmail, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                                  const SizedBox(height: 2),
+                                  Text(l.p19ShowEmailDesc, style: tx.bodySmall!.copyWith(color: t.mut)),
+                                ]),
+                              ),
+                              const SizedBox(width: 12),
+                              Switch(
+                                key: const ValueKey('edit-show-email'),
+                                value: _showEmail,
+                                onChanged: (v) => setState(() => _showEmail = v),
+                              ),
+                            ]),
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ],
               ),
             ),
-            SafeArea(
-              top: false,
-              minimum: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: Theme.of(context).brightness == Brightness.dark
-                          ? null
-                          : const [
-                              BoxShadow(
-                                  color: Color(0x99C62A20), blurRadius: 26, offset: Offset(0, 14), spreadRadius: -12)
-                            ],
-                    ),
-                    child: FilledButton(
-                      onPressed: _busy ? null : _save,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: bu.pr,
-                        foregroundColor: bu.onPr,
-                        disabledBackgroundColor: bu.pr,
-                        disabledForegroundColor: bu.onPr,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                        textStyle: BuType.heading.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      child: _busy
-                          ? SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.4, color: bu.onPr),
-                            )
-                          : Text(context.l10n.profileSave),
-                    ),
-                  ),
-                ),
+            Container(
+              decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + MediaQuery.paddingOf(context).bottom),
+              child: BuButton(
+                key: const ValueKey('edit-save'),
+                label: l.profileSave,
+                icon: LucideIcons.save,
+                busy: _busy,
+                onPressed: (_busy || _uploading) ? null : _save,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+/// Fotoğraf hatası: kırmızı zeminli tek satır.
+class P2PhotoError extends StatelessWidget {
+  const P2PhotoError(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => P2NoticeCard(lines: [text], compact: true, icon: LucideIcons.imageOff);
+}
+
+/// Dolgulu (sf2) metin kutusu: odakta marka çerçevesi, hatada kırmızı çerçeve + uyarı simgesi + altında hata satırı.
+class _TextBox extends StatelessWidget {
+  const _TextBox({
+    super.key,
+    required this.controller,
+    this.maxLength,
+    this.minLines,
+    this.maxLines = 1,
+    this.hint,
+    this.error,
+    this.capitalization = TextCapitalization.none,
+    this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final int? maxLength;
+  final int? minLines;
+  final int maxLines;
+  final String? hint;
+  final String? error;
+  final TextCapitalization capitalization;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final hasError = error != null;
+    OutlineInputBorder b(Color c, [double w = 0]) => OutlineInputBorder(
+          borderRadius: BuRadius.bMd,
+          borderSide: w == 0 ? BorderSide.none : BorderSide(color: c, width: w),
+        );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TextField(
+        controller: controller,
+        maxLength: maxLength,
+        minLines: minLines,
+        maxLines: maxLines,
+        textCapitalization: capitalization,
+        onChanged: onChanged,
+        style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.4),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
+          counterText: '',
+          filled: true,
+          fillColor: hasError ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: .45) : t.sf2,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: b(t.sf2),
+          enabledBorder: hasError ? b(t.danger, 1.5) : b(t.sf2),
+          focusedBorder: b(hasError ? t.danger : t.pr, 2),
+          suffixIcon: hasError ? Icon(LucideIcons.circleAlert, size: 18, color: t.danger) : null,
+        ),
+      ),
+      if (hasError)
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
+          child: Semantics(
+            liveRegion: true,
+            child: Row(children: [
+              Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
+              const SizedBox(width: 6),
+              Expanded(child: Text(error!, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+            ]),
+          ),
+        ),
+    ]);
+  }
+}
+
+/// Açılır seçici görünümlü kutu (sf2 dolgu + aşağı ok).
+class _SelectBox extends StatelessWidget {
+  const _SelectBox({super.key, required this.text, required this.placeholder, required this.onTap, this.error});
+
+  final String? text;
+  final String placeholder;
+  final String? error;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final has = text != null && text!.isNotEmpty;
+    final hasError = error != null;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Semantics(
+        button: true,
+        child: Material(
+          color: hasError ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: .45) : t.sf2,
+          borderRadius: BuRadius.bMd,
+          child: InkWell(
+            borderRadius: BuRadius.bMd,
+            onTap: onTap,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 52),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BuRadius.bMd,
+                border: hasError ? Border.all(color: t.danger, width: 1.5) : null,
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Text(has ? text! : placeholder,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.bodyLarge!.copyWith(color: has ? t.ink : t.mut)),
+                ),
+                const SizedBox(width: 8),
+                if (hasError) ...[Icon(LucideIcons.circleAlert, size: 18, color: t.danger), const SizedBox(width: 8)],
+                Icon(LucideIcons.chevronDown, size: 18, color: t.mut),
+              ]),
+            ),
+          ),
+        ),
+      ),
+      if (hasError)
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
+          child: Semantics(
+            liveRegion: true,
+            child: Row(children: [
+              Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
+              const SizedBox(width: 6),
+              Expanded(child: Text(error!, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+            ]),
+          ),
+        ),
+    ]);
   }
 }

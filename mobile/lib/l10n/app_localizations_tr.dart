@@ -8740,4 +8740,76 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p20RemHourSub => 'Sınav saatinden bir saat önce bildir';
+
+  @override
+  String get p13SugSortTop => 'En çok oy';
+
+  @override
+  String get p13SugAdd => 'Öneri ekle';
+
+  @override
+  String get p13SugApprovalNote =>
+      'Öneriler yönetici onayından sonra yayımlanır.';
+
+  @override
+  String get p13SugVoteHint => 'Oy vermek için dokun';
+
+  @override
+  String get p13SugVoted => 'Oyunu kaydettin';
+
+  @override
+  String get p04PostsEmptyBody => 'Paylaştığın fotoğraflar burada listelenir.';
+
+  @override
+  String get p04PostsLoadFail => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String get p04FeedErrTitle => 'Sunucuya ulaşılamadı';
+
+  @override
+  String get p04FeedErrBody =>
+      'Bağlantınızı kontrol edin veya çevrimdışı önbelleğe göz atın.';
+
+  @override
+  String get p09ForwardDirect => 'Bireysel sohbet';
+
+  @override
+  String get p03HomeBrandSub => 'Bağımsız öğrenci uygulaması';
+
+  @override
+  String get p03HomeQuickTitle => 'Hızlı Erişim';
+
+  @override
+  String get p03HomeQuickEvents => 'Etkinlikler';
+
+  @override
+  String get p03HomeQuickSchedule => 'Ders Programı';
+
+  @override
+  String get p03HomeFeaturedNews => 'Öne Çıkan Haberler';
+
+  @override
+  String get p03HomeUpcoming => 'Yaklaşan Etkinlik';
+
+  @override
+  String get p03HomeMealHeroTitle => 'Günün Yemek Menüsü';
+
+  @override
+  String p03HomeLunchCount(String n) {
+    return 'Öğle Yemeği • $n çeşit';
+  }
+
+  @override
+  String get p03HomeMenuDetail => 'Menü Detayı';
+
+  @override
+  String p03HomeHosts(String club) {
+    return '$club Düzenliyor';
+  }
+
+  @override
+  String get p04CropCenter => 'Ortala';
+
+  @override
+  String get p04SrcSizeTitle => 'Dosya boyutu yüksek';
 }

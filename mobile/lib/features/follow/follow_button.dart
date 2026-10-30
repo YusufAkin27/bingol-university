@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../posts/social_api.dart';
 
 /// Takip Et / Takipten Çık düğmesi. İyimser günceller (PUT/DELETE `/users/{id}/follow`), hata olursa geri alır.
@@ -45,14 +45,16 @@ class _FollowButtonState extends State<FollowButton> {
       _followed = want;
     });
     widget.onChanged?.call(want);
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    buHaptic(want ? BuHaptic.light : BuHaptic.selection);
     final api = SocialApi(widget.session);
     try {
       await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
     } catch (e) {
-      if (mounted) setState(() => _followed = !want);
+      if (mounted) {
+        setState(() => _followed = !want);
+        BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      }
       widget.onChanged?.call(!want);
-      messenger?.showSnackBar(SnackBar(content: Text(errorText(e))));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -69,7 +71,7 @@ class _FollowButtonState extends State<FollowButton> {
         key: const ValueKey('followButton'),
         label: _followed ? context.l10n.followButtonFollowing : context.l10n.followButtonFollow,
         icon: _followed ? LucideIcons.userCheck : LucideIcons.userPlus,
-        kind: _followed ? BuButtonKind.outline : BuButtonKind.primary,
+        kind: _followed ? BuButtonKind.soft : BuButtonKind.primary,
         compact: widget.compact,
         onPressed: _busy ? null : _toggle,
       ),

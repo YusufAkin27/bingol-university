@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../posts/post_models.dart' show PostPage, postAuthHeaders;
 import '../posts/social_models.dart';
-import '../profile/user_profile_page.dart';
-import '../profile/profil_widgets.dart' show ProfilCard;
 import '../profile/profily_widgets.dart';
-import 'follow_button.dart';
+import '../profile/user_profile_page.dart';
+import 'follow_widgets.dart';
 
 /// Takipçiler / Takip edilenler listesi (imleçli).
 Future<void> openFollowList(BuildContext context, Session session,
@@ -37,6 +33,7 @@ class FollowListPage extends StatefulWidget {
 class _Tab {
   final items = <SocialUser>[];
   final followsMe = <int, bool>{}; // yalnız API alanı gelirse dolar
+  final classYear = <int, int>{}; // yalnız API alanı gelirse dolar (`classYear` / `grade`)
   String? cursor;
   int? total;
   bool loading = false;
@@ -59,9 +56,11 @@ class _FollowListPageState extends State<FollowListPage> {
   void initState() {
     super.initState();
     _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
+      if (_scroll.hasClients && _scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
     });
     _load(_tab);
+    // Öbür sekmenin sayacı da görünsün diye sessizce önden yüklenir.
+    _load(1 - _tab, silent: true);
   }
 
   @override
@@ -76,12 +75,16 @@ class _FollowListPageState extends State<FollowListPage> {
     final q = 'size=30${cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}'}';
     final res = await widget.session.api.get('/users/${widget.userId}/$path?$q');
     final page = PostPage.parse(res, SocialUser.fromJson);
-    // `followsMe` henüz her sürümde yok: yalnız alan varsa ve bool ise kaydedilir.
+    // `followsMe` / `classYear` henüz her sürümde yok: yalnız alan varsa ve türü uygunsa kaydedilir.
     if (res is Map && res['items'] is List) {
       for (final e in (res['items'] as List).whereType<Map>()) {
         final id = e['id'] ?? e['userId'];
+        if (id is! num) continue;
         final v = e['followsMe'];
-        if (id is num && v is bool) st.followsMe[id.toInt()] = v;
+        if (v is bool) st.followsMe[id.toInt()] = v;
+        final y = e['classYear'] ?? e['grade'];
+        final n = y is num ? y.toInt() : int.tryParse('${y ?? ''}');
+        if (n != null && n > 0 && n <= 6) st.classYear[id.toInt()] = n;
       }
     }
     return page;
@@ -107,7 +110,8 @@ class _FollowListPageState extends State<FollowListPage> {
     } catch (e) {
       if (!mounted || gen != st.gen) return;
       setState(() {
-        st.error = e;
+        // Sessiz ön yükleme hatası kullanıcıya gösterilmez; sekmeye geçince yeniden denenir.
+        if (!silent) st.error = e;
         st.loading = false;
       });
     }
@@ -143,16 +147,13 @@ class _FollowListPageState extends State<FollowListPage> {
     if (!_tabs[i].loaded) _load(i);
   }
 
-  String _label(int i) {
-    final l = context.l10n;
-    final total = _tabs[i].total;
-    if (total == null) return i == 0 ? l.followersTitle : l.followingTitle;
-    return i == 0 ? l.profilyardFollowersTab('$total') : l.profilyardFollowingTab('$total');
+  FollowRelation _relation(SocialUser u, _Tab st) {
+    if (st.followsMe[u.id] == true) return u.followedByMe ? FollowRelation.mutual : FollowRelation.followsYou;
+    return u.followedByMe ? FollowRelation.following : FollowRelation.none;
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final l = context.l10n;
     final st = _cur;
     final name = (widget.name ?? '').trim();
@@ -160,86 +161,88 @@ class _FollowListPageState extends State<FollowListPage> {
     final shown = q.isEmpty
         ? st.items
         : st.items.where((u) => '${u.displayName} ${u.department ?? ''}'.toLowerCase().contains(q)).toList();
-    Widget body;
+
+    // Sekmeler ve arama her durumda görünür; durum (iskelet / hata / boş / liste) altında değişir.
+    final Widget body;
     if (st.loading) {
-      body = const LoadingView();
+      body = const FollowSkeletonCard(count: 5);
     } else if (st.error != null && st.items.isEmpty) {
-      body = ErrorView(error: st.error!, onRetry: () => _load(_tab));
-    } else if (st.items.isEmpty) {
-      body = ListView(children: [
-        const SizedBox(height: 120),
-        EmptyView(icon: LucideIcons.users, text: _tab == 0 ? l.followersEmpty : l.followingEmpty),
-      ]);
-    } else {
-      body = RefreshIndicator(
-        onRefresh: () => _load(_tab, silent: true),
-        child: ListView(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 24),
-          children: [
-            if (shown.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: Text(l.profilyardFollowNoMatch, style: BuType.body.copyWith(color: t.mut))),
-              )
-            else
-              ProfilCard(children: [for (final u in shown) _row(u, st)]),
-            if (st.more) const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
-          ],
-        ),
+      body = FollowStatusCard(
+        error: true,
+        icon: LucideIcons.wifiOff,
+        title: l.p18FollowErrorTitle,
+        message: errorText(st.error!),
+        onRetry: () => _load(_tab),
       );
+    } else if (st.items.isEmpty) {
+      body = FollowStatusCard(
+        icon: _tab == 0 ? LucideIcons.users : LucideIcons.userPlus,
+        title: _tab == 0 ? l.followersEmpty : l.followingEmpty,
+        message: _tab == 0 ? l.p18FollowersEmptyBody : l.p18FollowingEmptyBody,
+      );
+    } else if (shown.isEmpty) {
+      body = FollowStatusCard(
+        icon: LucideIcons.userSearch,
+        title: l.profilyardFollowNoMatch,
+        message: l.p18FollowNoMatchBody,
+      );
+    } else {
+      final total = st.total ?? st.items.length;
+      body = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (q.isEmpty) FollowSectionLabel(_tab == 0 ? l.p18AllFollowers('$total') : l.p18AllFollowing('$total')),
+        FollowCard(children: [
+          for (var i = 0; i < shown.length; i++)
+            BuStaggerItem(
+              index: i,
+              child: FollowPersonRow(
+                session: widget.session,
+                user: shown[i],
+                relation: _relation(shown[i], st),
+                classLabel: st.classYear[shown[i].id] == null ? null : l.p18ClassYear('${st.classYear[shown[i].id]}'),
+              ),
+            ),
+        ]),
+        if (st.more) const Padding(padding: EdgeInsets.only(top: 12), child: FollowSkeletonCard(count: 2)),
+      ]);
     }
+
     return Scaffold(
-      backgroundColor: t.bg,
+      backgroundColor: context.bu.bg,
       body: Column(children: [
         BuHeader(
           title: name.isEmpty ? (widget.followers ? l.followersTitle : l.followingTitle) : name,
-          onBack: () => Navigator.pop(context),
+          onBack: () => Navigator.maybePop(context),
         ),
-        const SizedBox(height: 8),
-        ProfilyTabs(labels: [_label(0), _label(1)], index: _tab, onChanged: _switch),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: ProfilySearchField(
-            controller: _search,
-            hint: l.commonSearchHint,
-            label: _tab == 0 ? l.profilyardFollowersSearch : l.profilyardFollowingSearch,
-            onChanged: (v) => setState(() => _query = v),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => _load(_tab, silent: true),
+            child: BuStaggerScope(
+              child: ListView(
+                controller: _scroll,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.paddingOf(context).bottom + 24),
+                children: [
+                  FollowTabs(
+                    labels: [l.followersTitle, l.followingTitle],
+                    counts: [_tabs[0].total, _tabs[1].total],
+                    index: _tab,
+                    onChanged: _switch,
+                  ),
+                  const SizedBox(height: 12),
+                  ProfilySearchField(
+                    controller: _search,
+                    hint: _tab == 0 ? l.profilyardFollowersSearch : l.profilyardFollowingSearch,
+                    label: _tab == 0 ? l.profilyardFollowersSearch : l.profilyardFollowingSearch,
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
+                  const SizedBox(height: 16),
+                  body,
+                ],
+              ),
+            ),
           ),
         ),
-        Expanded(child: body),
       ]),
-    );
-  }
-
-  Widget _row(SocialUser u, _Tab st) {
-    final l = context.l10n;
-    final self = u.id == widget.session.userId;
-    final fm = st.followsMe[u.id];
-    final Widget? pill = fm == null
-        ? null
-        : (fm && u.followedByMe
-            ? ProfilyPill(l.profilyardFollowMutual, tone: ProfilyTone.green, small: true)
-            : (fm && !u.followedByMe ? ProfilyPill(l.profilyardFollowsYou, tone: ProfilyTone.red, small: true) : null));
-    return Semantics(
-      container: true,
-      label: u.displayName,
-      child: ProfilyRow(
-        minHeight: 72,
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
-        onTap: () => openUserProfile(context, widget.session, userId: u.id, name: u.displayName, avatarUrl: u.avatarUrl),
-        child: Row(children: [
-          BuAvatar(name: u.displayName, url: u.avatarUrl, size: 44, headers: postAuthHeaders(widget.session)),
-          const SizedBox(width: 12),
-          Expanded(child: ProfilyTitleBlock(title: u.displayName, sub: u.department, pill: pill)),
-          if (!self)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 8),
-              child: ProfilyFollowButton(session: widget.session, userId: u.id, followed: u.followedByMe),
-            ),
-        ]),
-      ),
     );
   }
 }
@@ -254,38 +257,27 @@ class SocialUserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final self = user.id == session.userId;
     return Semantics(
       container: true,
       label: user.displayName,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => openUserProfile(context, session,
-            userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(children: [
-            BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(user.displayName,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                if ((user.department ?? '').isNotEmpty)
-                  Text(user.department!,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(color: t.mut)),
-              ]),
+      child: ProfilyRow(
+        minHeight: 68,
+        padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
+        onTap: () =>
+            openUserProfile(context, session, userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
+        child: Row(children: [
+          BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
+          const SizedBox(width: 12),
+          Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: user.department)),
+          if (trailing != null)
+            trailing!
+          else if (!self)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: ProfilyFollowButton(session: session, userId: user.id, followed: user.followedByMe),
             ),
-            if (trailing != null)
-              trailing!
-            else if (!self)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 8),
-                child: FollowButton(session: session, userId: user.id, followed: user.followedByMe),
-              ),
-          ]),
-        ),
+        ]),
       ),
     );
   }
