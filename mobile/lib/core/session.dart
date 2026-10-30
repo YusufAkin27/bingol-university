@@ -48,6 +48,10 @@ class Session extends ChangeNotifier {
 
   /// Çıkışta (token hâlâ geçerliyken) çalışır: örn. FCM cihaz kaydını silme. Hatalar yutulur.
   final List<Future<void> Function()> beforeSignOut = [];
+
+  /// Bu cihazın FCM jetonu (PushService bağlar). Çıkış isteğine eklenir: erişim jetonu süresi dolmuş olsa bile
+  /// sunucu cihaz kaydını siler ve çıkış yapan kullanıcının bildirimi telefonda kalmaz.
+  String? Function()? pushToken;
   final _storage = const FlutterSecureStorage();
 
   /// Başka cihazda giriş yapıldı bilgisi: giriş ekranında bir kez gösterilir, kapatılınca silinir.
@@ -305,6 +309,7 @@ class Session extends ChangeNotifier {
       for (final h in List.of(beforeSignOut)) {
         try {
           await h().timeout(const Duration(seconds: 5));
+    final fcm = pushToken?.call(); // kancalar jetonu sıfırlamadan önce okunur
         } catch (_) {}
       }
     }
@@ -313,7 +318,7 @@ class Session extends ChangeNotifier {
     } catch (_) {}
     if (remote && refresh != null) {
       try {
-        await api.post('/auth/logout', {'refreshToken': refresh}, false);
+        await api.post('/auth/logout', {'refreshToken': refresh, if (fcm != null && fcm.isNotEmpty) 'fcmToken': fcm}, false);
       } catch (_) {
         // Çıkış yerelde her durumda tamamlanır.
       }

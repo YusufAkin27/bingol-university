@@ -104,6 +104,7 @@ class PushService with WidgetsBindingObserver {
       : active = active ?? ActiveConversation.instance,
         _api = PushApi(session.api) {
     this.registrar = registrar ?? PushRegistrar(send: _send);
+    session.pushToken = () => _token ?? this.registrar.token;
   }
 
   final Session session;
@@ -163,6 +164,8 @@ class PushService with WidgetsBindingObserver {
     _enabled = await prepare();
     return _enabled;
   }
+
+  final _seenMessageIds = <String>{}; // ön plan şeridi tekilleştirmesi (son 60 mesaj)
 
   bool _tapBridge = false;
 
@@ -380,6 +383,13 @@ class PushService with WidgetsBindingObserver {
     // Kapatma/yeniden açma durumu, sohbet açıkken şerit bastırılsa bile işlenir (bant canlı görünsün).
     ClosedConversations.instance.applyPushData(data);
     if (active.shouldSuppress(data)) return false;
+    // Aynı mesaj push'u iki kez gelirse (yeniden deneme / çoklu yol) şerit tekrar çıkmaz (data.messageId, sunucu yükünde).
+    final mid = '${data['messageId'] ?? ''}';
+    if (mid.isNotEmpty) {
+      if (_seenMessageIds.contains(mid)) return false;
+      _seenMessageIds.add(mid);
+      if (_seenMessageIds.length > 60) _seenMessageIds.remove(_seenMessageIds.first);
+    }
     final type = '${data['type'] ?? ''}'.toUpperCase();
     if (type == 'MESSAGE' || data['conversationId'] != null) {
       session.badges.conversationsDirty.value++; // sohbet listesi/okunmamış sayacı yenilenir

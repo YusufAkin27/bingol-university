@@ -2820,5 +2820,7 @@
   "p22SaveGalleryDesc": "Photos you receive and send in chats are saved to your gallery; view-once photos are never saved.",
   "p22SaveGalleryCloud": "If your gallery has cloud backup turned on, the photos may be uploaded there too.",
   "p22SaveDeniedToast": "Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.",
-  "p22OpenSettings": "Settings"
+  "p22OpenSettings": "Settings",
+  "p21PreviewTitle": "Message preview in notifications",
+  "p21PreviewSub": "When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown."
 }

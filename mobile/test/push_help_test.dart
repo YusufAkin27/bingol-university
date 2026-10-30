@@ -129,4 +129,29 @@ void main() {
     expect(find.byType(PushHelpPage), findsOneWidget);
     expect(find.textContaining('Bildirim izni'), findsWidgets);
   });
+
+  testWidgets('Bildirim tercihleri: mesaj onizlemesi anahtari yalniz sunucu gonderirse gorunur ve kismi govde yollar', (tester) async {
+    tester.view.physicalSize = const Size(1170, 3200);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final prevPerm = PermissionService.instance;
+    PermissionService.instance = FakePermissionService(initial: {AppPermission.notifications: PermState.granted});
+    addTearDown(() => PermissionService.instance = prevPerm);
+    final base = {'news': true, 'announcements': true, 'events': true, 'communities': true, 'messages': true};
+
+    final none = FakeBackend()..on('/notifications/preferences', base);
+    await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(none))));
+    await tester.pumpAndSettle();
+    expect(find.text('Bildirimde mesaj önizlemesi'), findsNothing);
+
+    final b = FakeBackend()..on('/notifications/preferences', {...base, 'messagePreview': false});
+    await tester.pumpWidget(buildApp(NotificationPrefsPage(key: const ValueKey('second'), session: makeSession(b))));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Bildirimde mesaj önizlemesi'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Bildirimde mesaj önizlemesi'), findsOneWidget);
+    await tester.tap(find.text('Bildirimde mesaj önizlemesi'));
+    await tester.pumpAndSettle();
+    expect(b.bodies['PUT /notifications/preferences'], {'messagePreview': true});
+  });
 }

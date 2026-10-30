@@ -16494,6 +16494,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Ayarlar'**
   String get p22OpenSettings;
+
+  /// No description provided for @p21PreviewTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimde mesaj önizlemesi'**
+  String get p21PreviewTitle;
+
+  /// No description provided for @p21PreviewSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.'**
+  String get p21PreviewSub;
 }
 
 class _AppLocalizationsDelegate

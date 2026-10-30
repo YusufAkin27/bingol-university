@@ -9006,4 +9006,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p22OpenSettings => 'الإعدادات';
+
+  @override
+  String get p21PreviewTitle => 'معاينة الرسالة في الإشعار';
+
+  @override
+  String get p21PreviewSub =>
+      'عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.';
 }

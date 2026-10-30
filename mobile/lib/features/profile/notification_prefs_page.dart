@@ -117,6 +117,7 @@ IconData _prefIcon(String key) => switch (key) {
       'communities' => LucideIcons.users,
       'polls' => LucideIcons.chartColumn,
       'academicAnnouncements' => LucideIcons.graduationCap,
+      'messagePreview' => LucideIcons.eye,
       _ => LucideIcons.bell,
     };
 
@@ -131,6 +132,7 @@ String _prefLabel(BuildContext context, String key) {
     'messages' => l.profilePrefsNotifMessages,
     'polls' => l.profilePrefsNotifPolls,
     'academicAnnouncements' => l.profilePrefsNotifAcademic,
+    'messagePreview' => l.p21PreviewTitle,
     'MESSAGE_DIRECT' => l.profil1SubMsgDirect,
     'MESSAGE_GROUP' => l.profil1SubMsgGroup,
     'EVENT_REMINDER' => l.profil1SubEventReminder,
@@ -154,6 +156,7 @@ String? _prefSub(BuildContext context, String key) {
     'communities' => l.profil1ClubsSub,
     'polls' => l.p20PrefPollsSub,
     'academicAnnouncements' => l.p20PrefAcademicSub,
+    'messagePreview' => l.p21PreviewSub,
     _ => null,
   };
 }
@@ -544,6 +547,12 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
           child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
+      // Kilit ekranında mesaj metni (KVKK: varsayılan kapalı; yalnız sunucu `messagePreview` gönderdiyse görünür).
+      if (prefs.containsKey('messagePreview')) {
+        children
+          ..add(const SizedBox(height: 14))
+          ..add(_card(child: _toggleRow('messagePreview', last: true)));
+      }
       if (hasSubs) {
         children
           ..add(const SizedBox(height: 14))

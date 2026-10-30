@@ -4612,5 +4612,7 @@
   "p22SaveGalleryDesc": "Sohbette aldığın ve gönderdiğin fotoğraflar galerine kaydedilir; tek gösterimlik fotoğraflar kaydedilmez.",
   "p22SaveGalleryCloud": "Galerin bulut yedeklemesi açıksa fotoğraflar oraya da gidebilir.",
   "p22SaveDeniedToast": "Fotoğraflar galeriye kaydedilemedi: izin verilmedi. Ayarlardan izin verebilirsin.",
-  "p22OpenSettings": "Ayarlar"
+  "p22OpenSettings": "Ayarlar",
+  "p21PreviewTitle": "Bildirimde mesaj önizlemesi",
+  "p21PreviewSub": "Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir."
 }
