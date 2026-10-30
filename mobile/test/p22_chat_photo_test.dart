@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:bu_kampus/core/cache/image_disk_cache.dart';
 import 'package:bu_kampus/features/chat/chat_media.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:bu_kampus/features/chat/photo_autosave.dart';
@@ -113,7 +114,7 @@ void main() {
         final rz = tester.widget<Image>(im).image as ResizeImage;
         expect(rz.width, greaterThanOrEqualTo(224 * 3));
         expect(rz.width, lessThanOrEqualTo(1600));
-        expect((rz.imageProvider as NetworkImage).url, endsWith('/thumb'));
+        expect((rz.imageProvider as DiskNetworkImage).url, endsWith('/thumb'));
         expect(tester.widget<Image>(im).filterQuality, FilterQuality.medium);
         expect(tester.widget<Image>(im).fit, BoxFit.cover);
       }
@@ -122,7 +123,7 @@ void main() {
     testWidgets('eski mesaj (thumbEdge yok) ana gorseli kullanir; bulanik 320 px thumb kullanilmaz', (tester) async {
       await pumpBubble(tester, msg([_att(2, w: 1200, h: 1600)]), kPhoneMedium);
       final rz = tester.widget<Image>(networkImages()).image as ResizeImage;
-      expect((rz.imageProvider as NetworkImage).url, isNot(endsWith('/thumb')));
+      expect((rz.imageProvider as DiskNetworkImage).url, isNot(endsWith('/thumb')));
       expect(rz.width, 672);
     });
 
