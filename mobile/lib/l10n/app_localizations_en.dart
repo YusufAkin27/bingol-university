@@ -6917,7 +6917,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errEmailAliasNotAllowed =>
-      'A + tag cannot be used in the email address. Enter your address without it.';
+      'A + tag cannot be used in the email address.';
 
   @override
   String get errPasswordTooLong =>
@@ -7499,8 +7499,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p02TipTitle => 'Tip';
 
   @override
-  String p02FacultyCount(String n) {
-    return '$n departments';
+  String p02FacultyCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n departments',
+      one: '1 department',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -8653,4 +8659,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p13SuppBoardSub => 'Share ideas for new features';
+
+  @override
+  String get p02IdLabel => 'Email / Student No';
+
+  @override
+  String get p17PickDateHelp => 'Select date';
 }

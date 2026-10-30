@@ -81,7 +81,7 @@ class PostCard extends StatefulWidget {
 
 /// Kartın ortak yüzeyi: beyaz, 20 köşe, hafif gölge (koyu temada tonal, çizgisiz).
 class _CardSurface extends StatelessWidget {
-  const _CardSurface({required this.child});
+  const _CardSurface({super.key, required this.child});
 
   final Widget child;
 
@@ -100,6 +100,8 @@ class _CardSurface extends StatelessWidget {
 
 class _PostCardState extends State<PostCard> {
   final _like = LikeController();
+  final _cardKey = GlobalKey();
+  bool _menuOpen = false;
 
   Post get p => widget.post;
 
@@ -124,6 +126,7 @@ class _PostCardState extends State<PostCard> {
     final mine = p.mine || p.author.id == widget.session.userId;
     final hasMenu = !(mine && !p.canEdit && !p.canDelete);
     return _CardSurface(
+      key: _cardKey,
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.xl, BuSpace.xl, BuSpace.xl, BuSpace.lg),
         child: Column(
@@ -179,8 +182,17 @@ class _PostCardState extends State<PostCard> {
                 if (hasMenu)
                   Align(
                     alignment: AlignmentDirectional.topEnd,
-                    child: _MoreButton(
-                        session: widget.session, post: p, onChanged: widget.onChanged, onDeleted: widget.onDeleted),
+                    child: PostMenuButton(
+                      session: widget.session,
+                      post: p,
+                      onChanged: widget.onChanged,
+                      onDeleted: widget.onDeleted,
+                      active: _menuOpen,
+                      cardKey: _cardKey,
+                      onOpenChanged: (v) {
+                        if (mounted) setState(() => _menuOpen = v);
+                      },
+                    ),
                   ),
               ],
             ),
@@ -211,31 +223,6 @@ class _PostCardState extends State<PostCard> {
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Başlıktaki ⋯ düğmesi (koyu mürekkep, 44 dp hedef); menü [showPostActions] ile açılır.
-class _MoreButton extends StatelessWidget {
-  const _MoreButton({required this.session, required this.post, required this.onChanged, required this.onDeleted});
-
-  final Session session;
-  final Post post;
-  final ValueChanged<Post> onChanged;
-  final ValueChanged<int> onDeleted;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 44,
-      child: IconButton(
-        key: const ValueKey('post-menu-button'),
-        tooltip: context.l10n.postComposeMore,
-        padding: EdgeInsets.zero,
-        icon: Icon(Icons.more_horiz, size: 24, color: context.bu.ink),
-        onPressed: () => showPostActions(context,
-            session: session, post: post, onEdited: onChanged, onDeleted: () => onDeleted(post.id)),
       ),
     );
   }

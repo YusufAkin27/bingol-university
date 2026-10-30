@@ -2101,7 +2101,7 @@
   "clubMgmtCategoryNone": "Not selected",
   "clubMgmtCategoryInactive": "{name} (no longer in use)",
   "clubMgmtCategoryInvalid": "The selected category is not valid. Choose another one from the list.",
-  "errEmailAliasNotAllowed": "A + tag cannot be used in the email address. Enter your address without it.",
+  "errEmailAliasNotAllowed": "A + tag cannot be used in the email address.",
   "errPasswordTooLong": "The password is too long: at most 72 bytes (Turkish and Arabic characters take more than one byte).",
   "errPayloadTooLarge": "The data you sent is too large. Try a smaller file or shorter text.",
   "errUploadBusy": "Another upload is in progress or the server is busy. Please wait a moment and try again.",
@@ -2279,7 +2279,7 @@
   "p02LoginBusy": "Signing in…",
   "p02PwStrengthTitle": "Password strength",
   "p02TipTitle": "Tip",
-  "p02FacultyCount": "{n} departments",
+  "p02FacultyCount": "{n, plural, =1{1 department} other{{n} departments}}",
   "p02PendingTitle": "Verify your email",
   "p02PendingBody": "Your account must be verified before you can sign in.",
   "p02ReplacedTitle": "Session ended",
@@ -2667,5 +2667,7 @@
   "p13SuppFaqNoMatchBody": "No results match your search.",
   "p13SuppTicketsEmptyBody": "You have no active or past support records.",
   "p13SuppFeedbackSub": "Rate your app experience",
-  "p13SuppBoardSub": "Share ideas for new features"
+  "p13SuppBoardSub": "Share ideas for new features",
+  "p02IdLabel": "Email / Student No",
+  "p17PickDateHelp": "Select date"
 }

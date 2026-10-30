@@ -6855,7 +6855,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errEmailAliasNotAllowed =>
-      'لا يمكن استخدام وسم + في عنوان البريد الإلكتروني. أدخل عنوانك بدون علامة +.';
+      'لا يمكن استخدام وسم + في عنوان البريد الإلكتروني.';
 
   @override
   String get errPasswordTooLong =>
@@ -7426,8 +7426,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p02TipTitle => 'نصيحة';
 
   @override
-  String p02FacultyCount(String n) {
-    return '$n أقسام';
+  String p02FacultyCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n قسم',
+      many: '$n قسمًا',
+      few: '$n أقسام',
+      two: 'قسمان',
+      one: 'قسم واحد',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -8559,4 +8568,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p13SuppBoardSub => 'شارك أفكارك للميزات الجديدة';
+
+  @override
+  String get p02IdLabel => 'البريد / رقم الطالب';
+
+  @override
+  String get p17PickDateHelp => 'اختر التاريخ';
 }

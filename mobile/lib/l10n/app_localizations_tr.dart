@@ -6888,7 +6888,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get errEmailAliasNotAllowed =>
-      'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.';
+      'E-posta adresinde + etiketi kullanılamaz.';
 
   @override
   String get errPasswordTooLong =>
@@ -7468,7 +7468,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p02TipTitle => 'İpucu';
 
   @override
-  String p02FacultyCount(String n) {
+  String p02FacultyCount(int n) {
     return '$n Bölüm';
   }
 
@@ -8625,4 +8625,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p13SuppBoardSub => 'Yeni özellik fikirlerinizi iletin';
+
+  @override
+  String get p02IdLabel => 'E-posta / Öğrenci No';
+
+  @override
+  String get p17PickDateHelp => 'Tarih seçin';
 }

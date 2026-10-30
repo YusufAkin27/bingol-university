@@ -2101,7 +2101,7 @@
   "clubMgmtCategoryNone": "غير محدد",
   "clubMgmtCategoryInactive": "{name} (غير مستخدم)",
   "clubMgmtCategoryInvalid": "الفئة المحددة غير صالحة. اختر فئة أخرى من القائمة.",
-  "errEmailAliasNotAllowed": "لا يمكن استخدام وسم + في عنوان البريد الإلكتروني. أدخل عنوانك بدون علامة +.",
+  "errEmailAliasNotAllowed": "لا يمكن استخدام وسم + في عنوان البريد الإلكتروني.",
   "errPasswordTooLong": "كلمة المرور طويلة جدًا: الحد الأقصى 72 بايت (الأحرف التركية والعربية تشغل أكثر من بايت).",
   "errPayloadTooLarge": "حجم البيانات المرسلة كبير جدًا. جرّب ملفًا أصغر أو نصًا أقصر.",
   "errUploadBusy": "هناك عملية رفع أخرى قيد التنفيذ أو الخادم مشغول. انتظر قليلًا ثم حاول مرة أخرى.",
@@ -2279,7 +2279,7 @@
   "p02LoginBusy": "جارٍ تسجيل الدخول…",
   "p02PwStrengthTitle": "قوة كلمة المرور",
   "p02TipTitle": "نصيحة",
-  "p02FacultyCount": "{n} أقسام",
+  "p02FacultyCount": "{n, plural, =1{قسم واحد} =2{قسمان} few{{n} أقسام} many{{n} قسمًا} other{{n} قسم}}",
   "p02PendingTitle": "تحقق من بريدك الإلكتروني",
   "p02PendingBody": "يجب التحقق من حسابك قبل تسجيل الدخول.",
   "p02ReplacedTitle": "انتهت الجلسة",
@@ -2667,5 +2667,7 @@
   "p13SuppFaqNoMatchBody": "لا توجد نتائج تطابق بحثك.",
   "p13SuppTicketsEmptyBody": "ليس لديك أي سجل دعم نشط أو سابق.",
   "p13SuppFeedbackSub": "قيّم تجربتك مع التطبيق",
-  "p13SuppBoardSub": "شارك أفكارك للميزات الجديدة"
+  "p13SuppBoardSub": "شارك أفكارك للميزات الجديدة",
+  "p02IdLabel": "البريد / رقم الطالب",
+  "p17PickDateHelp": "اختر التاريخ"
 }

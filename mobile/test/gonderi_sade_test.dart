@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bu_kampus/core/platform/image_service.dart' show ImageSource;
+import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_api.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
@@ -61,6 +62,7 @@ void main() {
       await tester.pumpWidget(buildApp(ComposePostPage(
         session: s,
         uploader: up,
+        cropPhoto: (c, b, spec) async => CropOutcome.cropped(b),
         pickPhoto: (src) async {
           asked.add(src);
           return Uint8List.fromList(kFakePng);
@@ -92,11 +94,10 @@ void main() {
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
       expect(find.byKey(const ValueKey('composePicker')), findsNothing);
       expect(_shareEnabled(tester), isTrue);
-      // Kaldir: tekrar zorunlu duruma doner.
-      await tester.tap(find.byKey(const ValueKey('composeRemove')));
-      await tester.pump();
-      expect(find.byKey(const ValueKey('composePicker')), findsOneWidget);
-      expect(_shareEnabled(tester), isFalse);
+      // Fotografi degistir / yeniden kirp dugmeleri var, kaldir yok (referans 10).
+      expect(find.byKey(const ValueKey('composeChange')), findsOneWidget);
+      expect(find.byKey(const ValueKey('composeRecrop')), findsOneWidget);
+      expect(find.byKey(const ValueKey('composeRemove')), findsNothing);
       noErr(tester);
     });
 

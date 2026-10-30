@@ -3751,7 +3751,7 @@
     }
   },
   "clubMgmtCategoryInvalid": "Seçilen kategori geçerli değil. Listeden başka bir kategori seç.",
-  "errEmailAliasNotAllowed": "E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.",
+  "errEmailAliasNotAllowed": "E-posta adresinde + etiketi kullanılamaz.",
   "errPasswordTooLong": "Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).",
   "errPayloadTooLarge": "Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.",
   "errUploadBusy": "Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.",
@@ -4000,7 +4000,7 @@
   "@p02FacultyCount": {
     "placeholders": {
       "n": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4457,5 +4457,7 @@
   "p13SuppFaqNoMatchBody": "Arama kriterlerinize uygun sonuç bulunamadı.",
   "p13SuppTicketsEmptyBody": "Aktif veya geçmiş bir destek kaydınız bulunmuyor.",
   "p13SuppFeedbackSub": "Uygulama deneyiminizi puanlayın",
-  "p13SuppBoardSub": "Yeni özellik fikirlerinizi iletin"
+  "p13SuppBoardSub": "Yeni özellik fikirlerinizi iletin",
+  "p02IdLabel": "E-posta / Öğrenci No",
+  "p17PickDateHelp": "Tarih seçin"
 }

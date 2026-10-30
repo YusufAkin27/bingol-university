@@ -12712,7 +12712,7 @@ abstract class AppLocalizations {
   /// No description provided for @errEmailAliasNotAllowed.
   ///
   /// In tr, this message translates to:
-  /// **'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.'**
+  /// **'E-posta adresinde + etiketi kullanılamaz.'**
   String get errEmailAliasNotAllowed;
 
   /// No description provided for @errPasswordTooLong.
@@ -13721,7 +13721,7 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{n} Bölüm'**
-  String p02FacultyCount(String n);
+  String p02FacultyCount(int n);
 
   /// No description provided for @p02PendingTitle.
   ///
@@ -15702,6 +15702,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeni özellik fikirlerinizi iletin'**
   String get p13SuppBoardSub;
+
+  /// No description provided for @p02IdLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta / Öğrenci No'**
+  String get p02IdLabel;
+
+  /// No description provided for @p17PickDateHelp.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih seçin'**
+  String get p17PickDateHelp;
 }
 
 class _AppLocalizationsDelegate
