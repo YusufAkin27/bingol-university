@@ -22,6 +22,7 @@ import 'core/locale_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/device_identity.dart';
+import 'core/platform/fresh_install.dart';
 import 'core/error_log.dart';
 import 'core/nav.dart';
 import 'core/push/push_service.dart';
@@ -109,6 +110,7 @@ Future<void> _bootstrap() async {
   unawaited(ErrorLog.instance.init());
   await CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
   await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır
+  await FreshInstallGuard.run(); // iOS: yeniden kurulumda Keychain'de kalan eski oturum jetonlarını siler (Session.restore'dan önce)
   final connectivity = ConnectivityService.instance;
   final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);
   final outbox = Outbox();

@@ -19,8 +19,8 @@ import 'package:flutter/services.dart';
 /// ```
 /// Kurallar: `id` grup içinde benzersiz (int, 31 bit); geçmiş zamanlı kayıtlar sessizce atlanır; en çok
 /// [maxPerGroup] kayıt (en yakınlar tutulur); hiçbir metot exception sızdırmaz. Android: AlarmManager
-/// (yaklaşık zaman, tam alarm izni gerekmez) + açılışta yeniden kurma alıcısı. iOS'ta native kod yoksa
-/// no-op (desteklenmez, uygulama etkilenmez). Dokunuşta `payload`, [PushRouter] ile aynı anahtarlarla
+/// (yaklaşık zaman, tam alarm izni gerekmez) + açılışta yeniden kurma alıcısı. iOS: UNUserNotificationCenter
+/// (`ios/Runner/BuNativeBridge.swift`); native kod yoksa no-op (uygulama etkilenmez). Dokunuşta `payload`, [PushRouter] ile aynı anahtarlarla
 /// (targetType/targetId...) yönlendirilir; tanınmayan yük Bildirimler listesine düşer.
 /// Aynı yöntem kanalı eski `ReminderService` (academic/reminders.dart) için de çalışır
 /// (`bu_kampus/academic` -> `replaceReminders` = 'academic' grubu).

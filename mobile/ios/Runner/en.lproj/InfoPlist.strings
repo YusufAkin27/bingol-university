@@ -1,0 +1,9 @@
+/* BU Kampus - English (en) system strings. Also the fallback for unsupported device languages (development region). */
+"CFBundleDisplayName" = "BU Kampus";
+"CFBundleName" = "BU Kampus";
+"NSCameraUsageDescription" = "The camera is used to scan QR codes for event check-in, to take a profile photo, and to send photos or videos in chat. Images are uploaded only when you send them.";
+"NSMicrophoneUsageDescription" = "The microphone is used only to record sound while you shoot a video in chat. Sound is never shared until you send the video.";
+"NSPhotoLibraryUsageDescription" = "Your photo library is accessed so you can choose a photo or video for your profile, clubs, events, chats and posts. Only what you select is uploaded.";
+"NSPhotoLibraryAddUsageDescription" = "Permission is needed so you can save photos and videos from chats to your photo library when you choose to.";
+"NSContactsUsageDescription" = "To help you find people in your contacts who use the app, the e-mail addresses of your contacts are hashed (SHA-256) on your device and only those hashes are sent to the server for matching. Names, phone numbers and raw e-mail addresses are never sent, and the hashes are not stored.";
+"NSLocalNetworkUsageDescription" = "Used only in development and test builds to reach a test server on your local network. The store version does not access devices on your local network.";

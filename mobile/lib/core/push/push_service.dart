@@ -14,6 +14,7 @@ import '../closed_conversations.dart';
 import '../session.dart';
 import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
+import 'icon_badge.dart';
 import 'push_api.dart';
 import 'push_banner.dart';
 import 'push_registrar.dart';
@@ -114,6 +115,7 @@ class PushService with WidgetsBindingObserver {
   /// Jeton -> `POST /devices` kaydı (yeniden deneme + tazeleme).
   late final PushRegistrar registrar;
   ViewingSignaler? _viewing;
+  final IconBadge _iconBadge = IconBadge(); // iOS simge rozeti = okunmamış bildirim sayısı
   bool _observing = false;
 
   bool _initTried = false;
@@ -191,6 +193,7 @@ class PushService with WidgetsBindingObserver {
     PushRouter.session = session;
     unawaited(_attachReminderTaps());
     unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
+    _iconBadge.attach(session.badges.notifications); // iOS: push'un bıraktığı eski rozet düzeltilir, okununca düşer
     if (!await _ensureInit()) return;
     try {
       final fm = FirebaseMessaging.instance;
@@ -326,6 +329,7 @@ class PushService with WidgetsBindingObserver {
     if (!_active) return; // kanca iki kez (beforeSignOut + durum değişimi) gelebilir
     _active = false;
     _permDenied = false;
+    _iconBadge.detach(); // rozeti sıfırla (başka hesabın sayısı kalmasın)
     _viewing?.stop();
     _viewing = null;
     if (_observing) {

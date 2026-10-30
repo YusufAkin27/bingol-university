@@ -1,0 +1,9 @@
+/* BÜ Kampüs - Türkçe (tr) sistem metinleri. Info.plist'teki varsayılanlarla aynı tutulur. */
+"CFBundleDisplayName" = "BÜ Kampüs";
+"CFBundleName" = "BÜ Kampüs";
+"NSCameraUsageDescription" = "Kamera; etkinlik yoklaması için QR kodu okumak, profil fotoğrafı çekmek ve sohbette fotoğraf/video göndermek için kullanılır. Görüntüler yalnızca siz gönderdiğinizde sunucuya yüklenir.";
+"NSMicrophoneUsageDescription" = "Mikrofon yalnızca sohbette video çekerken sesin kaydedilmesi için kullanılır. Ses, siz göndermeden paylaşılmaz.";
+"NSPhotoLibraryUsageDescription" = "Profil, kulüp ve etkinlik görseli ile sohbet ve gönderi için fotoğraf veya video seçebilmeniz amacıyla fotoğraf kitaplığınıza erişilir. Yalnızca seçtikleriniz yüklenir.";
+"NSPhotoLibraryAddUsageDescription" = "Sohbetteki fotoğraf ve videoları, istediğinizde fotoğraf kitaplığınıza kaydedebilmeniz için izin gerekir.";
+"NSContactsUsageDescription" = "Rehberinizdeki kişilerden uygulamayı kullananları bulabilmeniz için kişilerin e-posta adresleri cihazınızda özetlenir (SHA-256) ve eşleştirme için yalnızca bu özetler sunucuya gönderilir. Adlar, telefon numaraları ve ham e-posta adresleri gönderilmez, özetler saklanmaz.";
+"NSLocalNetworkUsageDescription" = "Yalnızca geliştirme ve test sürümlerinde, yerel ağdaki test sunucusuna bağlanmak için kullanılır. Mağaza sürümü yerel ağdaki cihazlara erişmez.";

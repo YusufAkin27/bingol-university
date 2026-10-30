@@ -14,6 +14,12 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>tr</string>
+		<string>en</string>
+		<string>ar</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>BÜ Kampüs</string>
 	<key>CFBundlePackageType</key>
@@ -24,6 +30,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -57,11 +65,13 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -76,16 +86,16 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Etkinlik yoklaması için QR kodu taramak ve profil fotoğrafı çekmek amacıyla kamerayı kullanırız.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Profil, kulüp ve etkinlik görseli seçebilmeniz için fotoğraf arşivinize erişiriz.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Görselleri fotoğraf arşivinize kaydedebilmemiz için izin gerekir.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için e-posta adreslerini cihazınızda özetleyip eşleştiririz; rehberiniz sunucuya gönderilmez.</string>
+	<string>Kamera; etkinlik yoklaması için QR kodu okumak, profil fotoğrafı çekmek ve sohbette fotoğraf/video göndermek için kullanılır. Görüntüler yalnızca siz gönderdiğinizde sunucuya yüklenir.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Sesli ve görüntülü mesaj kaydedebilmeniz için mikrofonu kullanırız.</string>
+	<string>Mikrofon yalnızca sohbette video çekerken sesin kaydedilmesi için kullanılır. Ses, siz göndermeden paylaşılmaz.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil, kulüp ve etkinlik görseli ile sohbet ve gönderi için fotoğraf veya video seçebilmeniz amacıyla fotoğraf kitaplığınıza erişilir. Yalnızca seçtikleriniz yüklenir.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Sohbetteki fotoğraf ve videoları, istediğinizde fotoğraf kitaplığınıza kaydedebilmeniz için izin gerekir.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Rehberinizdeki kişilerden uygulamayı kullananları bulabilmeniz için kişilerin e-posta adresleri cihazınızda özetlenir (SHA-256) ve eşleştirme için yalnızca bu özetler sunucuya gönderilir. Adlar, telefon numaraları ve ham e-posta adresleri gönderilmez, özetler saklanmaz.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Geliştirme sunucusuna bağlanmak için yerel ağ erişimi gerekir.</string>
+	<string>Yalnızca geliştirme ve test sürümlerinde, yerel ağdaki test sunucusuna bağlanmak için kullanılır. Mağaza sürümü yerel ağdaki cihazlara erişmez.</string>
 </dict>
 </plist>

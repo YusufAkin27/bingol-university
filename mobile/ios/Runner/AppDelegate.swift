@@ -18,5 +18,9 @@ import UserNotifications
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    // Yerel hatirlatmalar (bu_kampus/notify) + simge rozeti (bu_kampus/badge): bkz. BuNativeBridge.swift.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BuNativeBridge") {
+      BuNativeBridge.register(with: registrar)
+    }
   }
 }
