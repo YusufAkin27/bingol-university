@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
 
-/// Akademik takvim: ay görünümü + o aydaki önemli tarihler; sıradaki önemli tarihler.
+/// Akademik takvim (Stitch 45): ay kartı (noktalar, bugün, seçili gün), ayın önemli tarihleri ve sıradaki önemli tarihler.
 class AcademicCalendarPage extends StatefulWidget {
   const AcademicCalendarPage({super.key, required this.session});
 
@@ -77,164 +76,271 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
+    final l = context.l10n;
+    final err = _error;
+    final maintenance = err is ApiError && err.status == 503;
     return AcademicScaffold(
-      title: context.l10n.acadCalTitle,
-      child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
-        children: [
-          AkadCard(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-            child: Column(children: [
-              _monthHeader(t),
-              _grid(t),
-            ]),
-          ),
-          const SizedBox(height: 14),
-          ..._list(t),
-        ],
+      title: l.acadCalTitle,
+      child: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          children: [
+            if (maintenance) ...[AkadNoticeCard(text: err.message.isNotEmpty ? err.message : l.acadMaintenance), const SizedBox(height: 14)],
+            _monthCard(),
+            const SizedBox(height: 20),
+            ..._list(maintenance),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _monthHeader(BuTokens t) {
-    final l = context.l10n;
-    Widget nav(IconData icon, String tip, VoidCallback onTap) => Semantics(
-          button: true,
-          label: tip,
-          child: Tooltip(
-            message: tip,
-            excludeFromSemantics: true,
+  Widget _navButton(BuTokens t, IconData icon, String tip, VoidCallback onTap) => Semantics(
+        button: true,
+        label: tip,
+        excludeSemantics: true,
+        onTap: onTap,
+        child: Tooltip(
+          message: tip,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 4, right: 4),
             child: Material(
-              color: t.bg,
-              shape: const CircleBorder(),
+              color: t.sf,
+              shape: CircleBorder(side: BorderSide(color: t.bd.withValues(alpha: .7))),
               child: InkWell(
                 customBorder: const CircleBorder(),
                 onTap: onTap,
-                child: SizedBox(width: 44, height: 44, child: Icon(buDirIcon(context, icon), size: 18, color: t.ink)),
+                child: SizedBox(width: 44, height: 44, child: Icon(buDirIcon(context, icon), size: 20, color: t.ink)),
               ),
             ),
           ),
-        );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(children: [
-        nav(LucideIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),
-        Expanded(
-          child: Semantics(
-            header: true,
-            liveRegion: true,
-            child: Text('${monthNameL(l, _month.month)} ${_month.year}',
-                textAlign: TextAlign.center, style: BuType.heading.copyWith(fontSize: 16, fontWeight: FontWeight.w800, color: t.ink)),
-          ),
         ),
-        nav(LucideIcons.chevronRight, l.acadCalNext, () => _shift(1)),
+      );
+
+  Widget _monthCard() {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final today = istanbulWall(academicClock());
+    return AkadCard(
+      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 4, end: 0, bottom: 10),
+          child: Row(children: [
+            Icon(LucideIcons.calendarDays, size: 24, color: t.pr),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Semantics(
+                header: true,
+                liveRegion: true,
+                child: Text('${monthNameL(l, _month.month)} ${_month.year}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: t.ink)),
+              ),
+            ),
+            _navButton(t, LucideIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),
+            _navButton(t, LucideIcons.chevronRight, l.acadCalNext, () => _shift(1)),
+          ]),
+        ),
+        _grid(t, today),
+        const SizedBox(height: 12),
+        _legend(t, tx, l, today),
       ]),
     );
   }
 
-  Widget _grid(BuTokens t) {
-    final first = _month;
-    final daysIn = DateTime.utc(_month.year, _month.month + 1, 0).day;
-    final lead = first.weekday - 1;
-    final rows = ((lead + daysIn) / 7).ceil();
-    final today = istanbulWall(academicClock());
+  Widget _grid(BuTokens t, DateTime today) {
     final l = context.l10n;
+    final lead = _month.weekday - 1;
+    final daysIn = DateTime.utc(_month.year, _month.month + 1, 0).day;
+    final rows = ((lead + daysIn) / 7).ceil();
     return Column(children: [
       Row(children: [
         for (var i = 0; i < 7; i++)
           Expanded(
             child: Center(
               child: ExcludeSemantics(
-                child: FittedBox(fit: BoxFit.scaleDown, child: Text(dayShortL(l, i + 1), style: BuType.label.copyWith(fontSize: 11, fontWeight: FontWeight.w700, color: t.mut))),
+                child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(dayShortL(l, i + 1), style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
               ),
             ),
           ),
       ]),
-      const SizedBox(height: 4),
+      const SizedBox(height: 6),
       for (var r = 0; r < rows; r++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 2),
-          child: Row(children: [
-            for (var c = 0; c < 7; c++) ...[
-              if (c > 0) const SizedBox(width: 2),
-              Expanded(child: _cell(t, r * 7 + c - lead + 1, daysIn, today)),
-            ],
-          ]),
-        ),
+        Row(children: [
+          for (var c = 0; c < 7; c++) Expanded(child: _cell(t, DateTime.utc(_month.year, _month.month, r * 7 + c - lead + 1), today, c >= 5)),
+        ]),
     ]);
   }
 
-  Widget _cell(BuTokens t, int day, int daysIn, DateTime today) {
-    if (day < 1 || day > daysIn) return const SizedBox(height: 44);
-    final date = DateTime.utc(_month.year, _month.month, day);
-    final evs = _events.where((e) => e.coversDay(date)).toList();
-    // Çok günlü aralıklar (sınav haftası, tatil) gün zeminini boyar; tek günlükler nokta olur.
-    final ranges = evs.where((e) => e.endDay.isAfter(e.startDay)).toList();
-    final dots = evs.where((e) => !e.endDay.isAfter(e.startDay)).take(3).toList();
-    final isToday = today.year == date.year && today.month == date.month && today.day == day;
-    final sel = _selected == date;
+  Widget _cell(BuTokens t, DateTime date, DateTime today, bool weekend) {
+    final inMonth = date.month == _month.month;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final rangeColor = ranges.isEmpty ? null : eventKindColor(ranges.first.kind);
-    final bg = sel ? t.pr : (rangeColor != null ? akadTint(context, rangeColor) : null);
-    final fg = sel ? t.onPr : (rangeColor != null ? akadOnTint(context, rangeColor) : t.ink);
+    final evs = inMonth ? _events.where((e) => e.coversDay(date)).toList() : const <AcademicEvent>[];
+    final isToday = today.year == date.year && today.month == date.month && today.day == date.day;
+    final sel = _selected == date;
+    final has = evs.isNotEmpty;
+    final Color? bg = sel ? t.ink : (isToday ? t.soft : null);
+    final Color fg = sel
+        ? t.bg
+        : !inMonth
+            ? t.mut.withValues(alpha: .4)
+            : has || isToday
+                ? t.pr
+                : (weekend ? t.mut : t.ink);
+    void tap() => setState(() => _selected = sel ? null : date);
     return Semantics(
       button: true,
       selected: sel,
-      label: '$day ${monthNameL(l, date.month)}${isToday ? ', ${l.acadCalToday}' : ''}${evs.isEmpty ? '' : ', ${l.acadCalEventCount(evs.length.toString())}'}',
+      label: '${date.day} ${monthNameL(l, date.month)}${isToday ? ', ${l.acadCalToday}' : ''}${has ? ', ${l.acadCalEventCount(evs.length.toString())}' : ''}',
       excludeSemantics: true,
-      onTap: () => setState(() => _selected = sel ? null : date),
+      onTap: tap,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => setState(() => _selected = sel ? null : date),
+        borderRadius: BorderRadius.circular(16),
+        onTap: inMonth ? tap : null,
         child: Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-            border: isToday ? Border.all(color: t.pr, width: 1.5) : null,
-          ),
+          height: 56,
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('$day', style: BuType.bodyStrong.copyWith(fontSize: 14, fontWeight: rangeColor != null || sel ? FontWeight.w700 : FontWeight.w600, color: fg)),
-            SizedBox(
-              height: 6,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                for (final e in dots)
-                  Container(
-                      width: 5,
-                      height: 5,
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      decoration: BoxDecoration(color: sel ? t.onPr : akadOnTint(context, eventKindColor(e.kind)), shape: BoxShape.circle)),
-              ]),
+            MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.2,
+              child: Text('${date.day}', style: tx.titleSmall!.copyWith(fontWeight: sel || isToday || has ? FontWeight.w800 : FontWeight.w500, color: fg)),
             ),
+            const SizedBox(height: 3),
+            Container(width: 5, height: 5, decoration: BoxDecoration(color: has ? (sel ? t.soft : t.pr) : Colors.transparent, shape: BoxShape.circle)),
           ]),
         ),
       ),
     );
   }
 
-  List<Widget> _list(BuTokens t) {
-    if (_loading && _events.isEmpty) return [const SizedBox(height: 160, child: LoadingView())];
-    if (_error != null && _events.isEmpty) return [SizedBox(height: 260, child: AcademicErrorView(error: _error!, onRetry: _load))];
-    final l = context.l10n;
-    final shown = (_selected == null ? _events : _events.where((e) => e.coversDay(_selected!)).toList())
-      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
-    return [
-      AkadSection(_selected == null ? l.acadCalMonthHeading(monthNameL(l, _month.month)) : fmtWallDateL(l, _selected!)),
-      if (shown.isEmpty)
-        Padding(
-          padding: const EdgeInsetsDirectional.only(start: 6),
-          child: Text(_selected == null ? l.acadCalNoMonth : l.acadCalNoDay, style: BuType.body.copyWith(color: t.mut)),
-        )
-      else
-        _eventGroup(t, shown),
-      if (_selected == null && _next.isNotEmpty) ...[
-        const SizedBox(height: 14),
-        AkadSection(l.acadCalNextHeading),
-        _eventGroup(t, _next),
+  Widget _legend(BuTokens t, TextTheme tx, AppLocalizations l, DateTime today) {
+    Widget item(Color c, String text) => Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+        ]);
+    final todayText = '${today.day} ${monthNameL(l, today.month)}';
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      spacing: 16,
+      runSpacing: 6,
+      children: [
+        item(t.pr, l.p20CalToday(todayText)),
+        Row(mainAxisSize: MainAxisSize.min, children: [item(t.ink, l.p20CalSelected), const SizedBox(width: 14), item(t.pr, l.p20CalImportant)]),
       ],
-    ];
+    );
   }
+
+  List<Widget> _list(bool maintenance) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    if (_loading && _events.isEmpty) {
+      return [
+        Semantics(
+          label: l.commonLoading,
+          liveRegion: true,
+          child: const BuSkeletonScope(
+            child: Column(children: [
+              BuSkeleton(height: 110, radius: 20),
+              SizedBox(height: 12),
+              BuSkeleton(height: 110, radius: 20),
+            ]),
+          ),
+        ),
+      ];
+    }
+    if (_error != null && _events.isEmpty && !maintenance) {
+      return [AkadErrorCard(title: l.sistemuiErrorTitle, message: errorText(_error!), onRetry: _load, retryLabel: l.acadRetry)];
+    }
+    final sel = _selected;
+    final dayEvents = sel == null ? const <AcademicEvent>[] : (_events.where((e) => e.coversDay(sel)).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt)));
+    final monthEvents = [..._events]..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    final out = <Widget>[];
+    if (sel != null) {
+      out.add(_dayCard(t, tx, l, sel, dayEvents));
+      for (final e in dayEvents) {
+        out.add(const SizedBox(height: 12));
+        out.add(_eventCard(e));
+      }
+    } else if (monthEvents.isNotEmpty) {
+      out.add(Row(children: [
+        Expanded(child: Semantics(header: true, child: Text(l.acadCalMonthHeading(monthNameL(l, _month.month)), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+        const SizedBox(width: 8),
+        AkadPill(l.acadCalEventCount(monthEvents.length.toString()), bg: t.sf2, fg: t.mut),
+      ]));
+      for (final e in monthEvents) {
+        out.add(const SizedBox(height: 12));
+        out.add(_eventCard(e));
+      }
+    }
+    if (sel != null || monthEvents.isEmpty) {
+      if (_next.isNotEmpty) {
+        out
+          ..add(const SizedBox(height: 24))
+          ..add(Semantics(header: true, child: Text(l.acadCalNextHeading, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))));
+        for (final e in _next) {
+          out
+            ..add(const SizedBox(height: 12))
+            ..add(_eventCard(e, nextStyle: true));
+        }
+      }
+      if (sel == null && monthEvents.isEmpty && !_loading) {
+        out
+          ..add(const SizedBox(height: 20))
+          ..add(_emptyMonth(t, tx, l));
+      }
+    }
+    return out;
+  }
+
+  Widget _dayCard(BuTokens t, TextTheme tx, AppLocalizations l, DateTime day, List<AcademicEvent> evs) {
+    final longDate = DateFormat('d MMMM y, EEEE', Localizations.localeOf(context).toString()).format(day);
+    return Semantics(
+      container: true,
+      child: AkadCard(
+        padding: const EdgeInsets.all(16),
+        child: Row(children: [
+          AkadIconTile(icon: evs.isEmpty ? LucideIcons.calendarX : LucideIcons.calendarDays, bg: t.sf2, fg: t.mut, size: 56, radius: 16, iconSize: 26),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(longDate, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+              const SizedBox(height: 2),
+              Text(evs.isEmpty ? l.acadCalNoDay : l.acadCalEventCount(evs.length.toString()),
+                  style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _emptyMonth(BuTokens t, TextTheme tx, AppLocalizations l) => Semantics(
+        container: true,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bLg),
+          child: Row(children: [
+            AkadIconTile(icon: LucideIcons.calendarCheck, bg: t.sf, fg: t.ink, size: 48, radius: 12),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(akadUpper(context, monthNameL(l, _month.month)),
+                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: l.localeName == 'ar' ? 0 : .8, color: t.mut)),
+                Text(l.acadCalNoMonth, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+              ]),
+            ),
+          ]),
+        ),
+      );
 
   String _range(AppLocalizations l, AcademicEvent e) {
     final s = e.startDay, en = e.endDay;
@@ -243,44 +349,54 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     return '${fmtWallDateL(l, s)} - ${fmtWallDateL(l, en)}';
   }
 
-  Widget _eventGroup(BuTokens t, List<AcademicEvent> events) => AkadCard(
-        padding: EdgeInsets.zero,
-        child: Column(children: [
-          for (var i = 0; i < events.length; i++) ...[
-            if (i > 0) const AkadDivider(),
-            _eventRow(t, events[i]),
-          ],
-        ]),
-      );
+  IconData _kindIcon(String k) => switch (k) {
+        'DONEM_BASLANGIC' => LucideIcons.graduationCap,
+        'DERS_KAYIT' => LucideIcons.userCheck,
+        'VIZE' || 'FINAL' || 'BUT' => LucideIcons.clipboardList,
+        'RESMI_TATIL' => LucideIcons.flag,
+        'TATIL' => LucideIcons.sun,
+        _ => LucideIcons.calendar,
+      };
 
-  Widget _eventRow(BuTokens t, AcademicEvent e) {
+  /// Önemli tarih kartı: tür etiketi + aralık, başlık, açıklama. [nextStyle]: sağda yalnız tür etiketi + tarih satırı altta.
+  Widget _eventCard(AcademicEvent e, {bool nextStyle = false}) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final kind = eventKindLabelL(l, e.kind);
     final range = _range(l, e);
     final color = eventKindColor(e.kind);
-    final tint = akadTint(context, color);
-    final on = akadOnTint(context, color);
-    final sd = e.startDay;
-    Widget sub(String s) => Text(s, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: t.mut));
+    final dark = e.kind == 'DONEM_BASLANGIC';
+    final chip = AkadPill(kind, bg: dark ? t.ink : akadTint(context, color), fg: dark ? t.bg : akadOnTint(context, color), icon: _kindIcon(e.kind));
+    final note = [if (e.scopeDepartment != null) e.scopeDepartment!, if (e.note != null) e.note!].join(' · ');
+    final w = e.startDay;
+    final longDay = DateFormat('d MMMM y, EEEE', Localizations.localeOf(context).toString()).format(w);
     return Semantics(
       container: true,
       label: '$kind: ${e.title}. $range',
       excludeSemantics: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(children: [
-          AkadDateTile(month: monthNameL(l, sd.month), day: sd.day, bg: tint, fg: on, width: 50, height: 50, daySize: 18),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
-              sub(range),
-              if (e.scopeDepartment != null) sub(e.scopeDepartment!),
-              if (e.note != null) sub(e.note!),
-            ]),
-          ),
-          const SizedBox(width: 8),
-          ConstrainedBox(constraints: const BoxConstraints(maxWidth: 104), child: AkadPill(kind, bg: tint, fg: on)),
+      child: AkadCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            ConstrainedBox(constraints: BoxConstraints(maxWidth: nextStyle ? 400 : 150), child: chip),
+            if (!nextStyle) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.calendar, size: 14, color: t.pr)),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(range, maxLines: 2, textAlign: TextAlign.end, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+                ]),
+              ),
+            ],
+          ]),
+          const SizedBox(height: 10),
+          Text(e.title, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+          if (nextStyle)
+            Padding(padding: const EdgeInsets.only(top: 4), child: Text(e.endDay == e.startDay ? longDay : range, style: tx.bodyMedium!.copyWith(color: t.mut)))
+          else if (note.isNotEmpty)
+            Padding(padding: const EdgeInsets.only(top: 4), child: Text(note, style: tx.bodyMedium!.copyWith(color: t.mut))),
         ]),
       ),
     );

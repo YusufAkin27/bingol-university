@@ -67,7 +67,7 @@ class AkadChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.onSoft : t.ink;
+    final fg = selected ? t.bg : t.ink;
     void tap() {
       buHaptic(BuHaptic.selection);
       onTap?.call();
@@ -93,24 +93,28 @@ class AkadChip extends StatelessWidget {
       onTap: onTap,
       child: BuPressable(
         scale: .95,
-        child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          curve: BuMotion.standard,
-          decoration: ShapeDecoration(
-            color: selected ? t.soft : t.sf,
-            shape: StadiumBorder(side: BorderSide(color: selected ? t.pr.withValues(alpha: .5) : t.bd)),
-          ),
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              excludeFromSemantics: true,
-              onTap: onTap == null ? null : tap,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
-                  child: Center(widthFactor: expand ? null : 1, child: text),
+        child: Padding(
+          // expand: görsel hap 2 dp içeriden, anlamsal/dokunma alanı hücrenin tamamı (7 gün sütunu).
+          padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 0),
+          child: AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            curve: BuMotion.standard,
+            decoration: ShapeDecoration(
+              color: selected ? t.ink : t.sf,
+              shape: StadiumBorder(side: BorderSide(color: selected ? t.ink : t.bd)),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                customBorder: const StadiumBorder(),
+                excludeFromSemantics: true,
+                onTap: onTap == null ? null : tap,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
+                    child: Center(widthFactor: expand ? null : 1, child: text),
+                  ),
                 ),
               ),
             ),
@@ -123,11 +127,14 @@ class AkadChip extends StatelessWidget {
 
 /// Küçük hap etiket (Resmi, Yeni, Vize...).
 class AkadPill extends StatelessWidget {
-  const AkadPill(this.text, {super.key, required this.bg, required this.fg, this.icon});
+  const AkadPill(this.text, {super.key, required this.bg, required this.fg, this.icon, this.dot = false});
 
   final String text;
   final Color bg, fg;
   final IconData? icon;
+
+  /// Başta küçük renkli nokta (durum etiketleri).
+  final bool dot;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -135,6 +142,7 @@ class AkadPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (dot) ...[ExcludeSemantics(child: Container(width: 6, height: 6, decoration: BoxDecoration(color: fg, shape: BoxShape.circle))), const SizedBox(width: 6)],
           if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fg)), const SizedBox(width: 4)],
           Flexible(
             child: Text(text,
@@ -282,19 +290,56 @@ class AkadLabel extends StatelessWidget {
       );
 }
 
-/// Tema (dolu, çerçeveli, odakta 2 dp marka) metin alanı biçimi; yalnız ipucu/hata ve sayaç gizleme ekler.
+//// Referanstaki alan biçimi: dolu (sf2) yüzey, çerçevesiz; odakta 2 dp marka, hatada tehlike çizgisi.
 InputDecoration akadInput(BuildContext context, {String? hint, String? error, bool tall = false, String? label}) {
+  final t = context.bu;
+  OutlineInputBorder b(Color c, double w) => OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: c, width: w));
   return InputDecoration(
-    labelText: label,
     hintText: hint,
     errorText: error,
     counterText: '',
-    floatingLabelBehavior: label == null ? null : FloatingLabelBehavior.auto,
-    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: tall ? 16 : 16),
+    filled: true,
+    fillColor: t.sf2,
+    hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    enabledBorder: b(Colors.transparent, 0),
+    disabledBorder: b(Colors.transparent, 0),
+    focusedBorder: b(t.pr, 2),
+    errorBorder: b(t.danger, 1.5),
+    focusedErrorBorder: b(t.danger, 2),
   );
 }
 
-/// Etiketli metin alanı (yüzen etiket; hata altında kırmızı).
+/// Alan etiketi: alanın üstünde, küçük ve kalın (referans).
+class AkadFieldLabel extends StatelessWidget {
+  const AkadFieldLabel(this.text, {super.key, this.color, this.trailing});
+
+  final String text;
+  final Color? color;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final label = Text(text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: color ?? t.mut));
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
+      child: trailing == null ? label : Row(children: [Expanded(child: label), trailing!]),
+    );
+  }
+}
+
+class _Star extends StatelessWidget {
+  const _Star();
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(child: Text('*', style: TextStyle(color: context.bu.danger, fontWeight: FontWeight.w800)));
+}
+
+/// Etiketi üstte, dolu yüzeyli metin alanı (simge başta).
 class AkadTextField extends StatelessWidget {
   const AkadTextField({
     super.key,
@@ -308,8 +353,10 @@ class AkadTextField extends StatelessWidget {
     this.maxLines = 1,
     this.icon,
     this.onChanged,
+    this.requiredMark = false,
   });
 
+  final bool requiredMark; // etiketin sonunda kırmızı yıldız
   final String label;
   final TextEditingController controller;
   final String? hint, error;
@@ -320,62 +367,165 @@ class AkadTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   @override
-  Widget build(BuildContext context) => TextField(
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tall = (maxLines ?? 1) > 1;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      AkadFieldLabel(label, color: error != null ? t.danger : null, trailing: requiredMark ? const _Star() : null),
+      TextField(
         controller: controller,
         maxLength: maxLength,
         minLines: minLines,
         maxLines: maxLines,
         textCapitalization: capitalization,
         onChanged: onChanged,
-        style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: context.bu.ink),
-        decoration: akadInput(context, hint: hint, error: error, label: label, tall: (maxLines ?? 1) > 1).copyWith(
-          prefixIcon: icon == null ? null : Icon(icon, size: 18),
-          alignLabelWithHint: (maxLines ?? 1) > 1,
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink),
+        decoration: akadInput(context, hint: hint, error: error, tall: tall).copyWith(
+          prefixIcon: icon == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 14, end: 10),
+                  child: Align(
+                      widthFactor: 1,
+                      heightFactor: tall ? 3.2 : 1,
+                      alignment: tall ? AlignmentDirectional.topStart : Alignment.center,
+                      child: Icon(icon, size: 18, color: t.mut)),
+                ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+          suffixIcon: error == null ? null : Icon(LucideIcons.circleAlert, size: 18, color: t.danger),
         ),
-      );
+      ),
+    ]);
+  }
 }
 
-/// Dokununca seçici açan alan (tarih/saat): metin alanı görünümünde, yüzen etiketli.
+/// Dokununca seçici açan alan (tarih/saat/liste): metin alanı görünümünde, etiketi üstte.
 class AkadPicker extends StatelessWidget {
-  const AkadPicker({super.key, required this.label, required this.icon, required this.onTap, this.value, this.hint, this.compact = false});
+  const AkadPicker({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.value,
+    this.hint,
+    this.compact = false,
+    this.leading,
+    this.bold = false,
+    this.error = false,
+    this.requiredMark = false,
+  });
 
+  final bool requiredMark;
   final String label;
-  final IconData icon;
-  final bool compact; // dar sütun: simgesiz, 12 dp iç boşluk
+  final IconData icon; // sondaki simge
+  final IconData? leading; // baştaki simge
+  final bool compact;
+  final bool bold; // değer kalın (saat alanları)
+  final bool error; // kırmızı çerçeve
   final String? value, hint;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final shown = value ?? hint ?? '';
-    return Semantics(
-      button: true,
-      label: label,
-      value: shown,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: BuPressable(
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      AkadFieldLabel(label, color: error ? t.danger : null, trailing: requiredMark ? const _Star() : null),
+      Semantics(
+        button: true,
+        label: label,
+        value: shown,
+        excludeSemantics: true,
         onTap: onTap,
-        haptic: BuHaptic.selection,
-        scale: .98,
-        child: InputDecorator(
-          isEmpty: false,
-          decoration: InputDecoration(
-            labelText: label,
-            floatingLabelBehavior: FloatingLabelBehavior.always,
-            contentPadding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: 16),
-            suffixIcon: compact ? null : Icon(icon, size: 18),
+        child: BuPressable(
+          onTap: onTap,
+          haptic: BuHaptic.selection,
+          scale: .98,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 52),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: t.sf2,
+              borderRadius: BuRadius.bMd,
+              border: error ? Border.all(color: t.danger, width: 1.5) : null,
+            ),
+            child: Row(children: [
+              if (leading != null) ...[Icon(leading, size: 18, color: t.mut), const SizedBox(width: 10)],
+              Expanded(
+                child: Text(shown,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink, fontWeight: bold && value != null ? FontWeight.w700 : null)),
+              ),
+              const SizedBox(width: 8),
+              Icon(icon, size: 18, color: error ? t.danger : t.mut),
+            ]),
           ),
-          child: Text(shown,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink)),
         ),
       ),
+    ]);
+  }
+}
+
+/// Yuvarlak köşeli simge karosu (kart başlarında).
+class AkadIconTile extends StatelessWidget {
+  const AkadIconTile({super.key, required this.icon, required this.bg, required this.fg, this.size = 48, this.radius = 14, this.iconSize});
+
+  final IconData icon;
+  final Color bg, fg;
+  final double size, radius;
+  final double? iconSize;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(radius)),
+          child: Icon(icon, size: iconSize ?? size * .46, color: fg),
+        ),
+      );
+}
+
+/// Kart içi ortalı boş durum kutusu: yuvarlak simge + başlık + açıklama (+ eylem).
+class AkadEmptyBox extends StatelessWidget {
+  const AkadEmptyBox({super.key, required this.icon, required this.title, this.message, this.action, this.iconColor});
+
+  final IconData icon;
+  final String title;
+  final String? message;
+  final Widget? action;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+      child: Column(children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
+          child: Icon(icon, size: 22, color: iconColor ?? t.mut),
+        ),
+        const SizedBox(height: 12),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        if (message != null) ...[
+          const SizedBox(height: 4),
+          Text(message!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+        ],
+        if (action != null) ...[const SizedBox(height: 14), action!],
+      ]),
     );
   }
 }
 
-/// Anahtar satırı (başlık + isteğe bağlı alt yazı + temalı Switch).
+// Anahtar satırı (başlık + isteğe bağlı alt yazı + temalı Switch).
 class AkadSwitchRow extends StatelessWidget {
   const AkadSwitchRow({super.key, required this.title, this.subtitle, required this.value, required this.onChanged});
 
@@ -501,4 +651,153 @@ class _DashedRRect extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashedRRect old) => old.color != color || old.radius != radius;
+}
+
+/// Üstte tam genişlik kehribar şerit ("Güncellenemedi, son veriler gösteriliyor.").
+class AkadStaleStrip extends StatelessWidget {
+  const AkadStaleStrip({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        color: t.warnSoft,
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
+        child: Row(children: [
+          ExcludeSemantics(child: Icon(LucideIcons.cloudOff, size: 16, color: t.onWarnSoft)),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft))),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Kehribar bilgi kartı (bakım notu): simge karosu + metin.
+class AkadNoticeCard extends StatelessWidget {
+  const AkadNoticeCard({super.key, required this.text, this.icon = LucideIcons.wrench});
+
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bLg),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: t.sf.withValues(alpha: .7), shape: BoxShape.circle),
+            child: ExcludeSemantics(child: Icon(icon, size: 18, color: t.onWarnSoft)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.onWarnSoft))),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Hata kartı: kırmızı simge + başlık + açıklama + "Yeniden dene".
+class AkadErrorCard extends StatelessWidget {
+  const AkadErrorCard({super.key, required this.title, this.message, required this.onRetry, required this.retryLabel});
+
+  final String title, retryLabel;
+  final String? message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: AkadCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+              child: ExcludeSemantics(child: Icon(LucideIcons.circleAlert, size: 20, color: t.onSoft)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                if (message != null) ...[const SizedBox(height: 4), Text(message!, style: tx.bodyMedium!.copyWith(color: t.mut))],
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 14),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: BuButton(label: retryLabel, icon: LucideIcons.rotateCw, compact: true, onPressed: onRetry),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Büyük bölüm başlığı (ör. "Günlük akış", "Derslerim [6]"): isteğe bağlı sayaç balonu ve sağda yardımcı.
+class AkadTitle extends StatelessWidget {
+  const AkadTitle(this.text, {super.key, this.count, this.chip, this.trailing, this.muted = false});
+
+  final String text;
+  final int? count;
+  final String? chip; // başlık yanında gri hap (gün adı)
+  final Widget? trailing;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      header: true,
+      child: Row(children: [
+        Flexible(
+          flex: 5,
+          child: Text(text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: muted ? t.mut : t.ink)),
+        ),
+        if (count != null) ...[
+          const SizedBox(width: 8),
+          Container(
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: muted ? t.sf2 : t.soft, borderRadius: BuRadius.bPill),
+            child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.onSoft)),
+          ),
+        ],
+        if (chip != null) ...[
+          const SizedBox(width: 8),
+          Flexible(flex: 4, child: AkadPill(chip!, bg: t.sf2, fg: t.mut)),
+        ],
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          Expanded(flex: 4, child: Align(alignment: AlignmentDirectional.centerEnd, child: trailing)),
+        ] else
+          const Spacer(),
+      ]),
+    );
+  }
 }

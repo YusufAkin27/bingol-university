@@ -148,15 +148,15 @@ void main() {
       expect(f.courses.length, 2);
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.text('Sıradaki ders'), findsOneWidget);
-      expect(find.textContaining('Veri Yapıları · 1 sa sonra'), findsOneWidget);
-      expect(find.text('B-204'), findsOneWidget);
+      expect(find.textContaining('SIRADAK'), findsOneWidget);
+      expect(find.text('1 sa sonra'), findsOneWidget);
+      expect(find.text('Derslik B-204'), findsOneWidget);
       expect(find.text('Dr. Ayşe Yılmaz'), findsWidgets);
       expect(find.text('2026-2027 Güz'), findsOneWidget);
       // Çarşamba sekmesi
       await tester.tap(find.text('Çar'));
       await tester.pump();
-      expect(find.text('13:00'), findsOneWidget);
+      expect(find.text('13:00 - 14:50'), findsOneWidget);
       // Salı: ders yok
       await tester.tap(find.text('Sal'));
       await tester.pump();
@@ -238,7 +238,7 @@ void main() {
       final f = fakeAcademic(b)..conflictOnce = true;
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await tester.tap(find.byTooltip('Ders ekle'));
+      await tester.tap(find.text('İlk dersini ekle'));
       await settle(tester);
       await tester.enterText(find.byType(TextField).first, 'Kimya');
       await toBottom(tester, 'Dersi ekle');
@@ -257,7 +257,7 @@ void main() {
       final f = fakeAcademic(b)..addCourse('Fizik', 1, '09:00', '10:50');
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await tester.tap(find.text('Fizik').first);
+      await tester.tap(find.text('Fizik').at(1)); // sıradaki ders kartı değil, gün akışındaki kart
       await settle(tester);
       await tester.tap(find.byTooltip('Dersi sil'));
       await settle(tester);
@@ -274,7 +274,7 @@ void main() {
       fakeAcademic(b).addCourse('Fizik', 1, '09:00', '10:50');
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await tester.tap(find.byTooltip('Takvime aktar (.ics)'));
+      await tester.tap(find.text('Takvime aktar (.ics)'));
       await settle(tester);
       expect(platform.shared, contains('SUMMARY:Fizik'));
       await unmount(tester);
@@ -326,9 +326,6 @@ void main() {
       await settle(tester);
       expect(find.text('Fizik Final'), findsOneWidget);
       expect(find.textContaining('Profilinde bölüm bilgisi yok'), findsOneWidget);
-      await tester.tap(find.text('Tümü'));
-      await settle(tester);
-      expect(b.requests, contains('GET /exams/official?scope=all'));
       await unmount(tester);
     });
 
@@ -402,6 +399,8 @@ void main() {
       await settle(tester); // kisa liste: sonraki sayfa kendiliginden istenir
       expect(b.requests.any((r) => r.contains('cursor=3')), isTrue);
       expect(find.text('Duyuru 5'), findsOneWidget);
+      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.text('Duyuru 5'));
       await settle(tester);
       expect(find.text('Tam metin Duyuru 5'), findsOneWidget);
@@ -433,7 +432,8 @@ void main() {
       await settle(tester);
       expect(find.text('Ders programı'), findsOneWidget);
       expect(find.text('Sıradaki: Fizik 10:00'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('3 okunmamış'), 200, scrollable: find.byType(Scrollable).first);
+      expect(find.text('3 okunmamış'), findsOneWidget);
       expect(platform.calls, greaterThan(0)); // acilista hatirlatmalar kuruldu
       await unmount(tester);
     });

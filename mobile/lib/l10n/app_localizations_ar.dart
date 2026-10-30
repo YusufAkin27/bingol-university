@@ -8521,4 +8521,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p19LogoutAllSub => 'يغلق جلسات الهاتف والمتصفح الأخرى المفتوحة.';
+
+  @override
+  String get p05NewsLoadingMore => 'جارٍ تحميل أخبار أقدم...';
+
+  @override
+  String get p05SavedDiscover => 'استكشف الأخبار';
+
+  @override
+  String get p05SavedEmptyTitle2 => 'لا توجد أخبار محفوظة بعد.';
+
+  @override
+  String get p05SavedEmptyBody2 =>
+      'يمكنك حفظ الأخبار التي تعجبك بالنقر على أيقونة العلامة.';
+
+  @override
+  String get p05ListErrorTitle => 'تعذّر التحميل، حاول مرة أخرى';
+
+  @override
+  String get p05ListErrorBody =>
+      'حدثت مشكلة أثناء الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
+
+  @override
+  String get p13SuppLoadFailed => 'تعذّر التحميل';
+
+  @override
+  String get p13SuppFaqEmptyBody => 'لم تتم إضافة مقالات لهذه الفئة بعد.';
+
+  @override
+  String get p13SuppFaqNoMatchBody => 'لا توجد نتائج تطابق بحثك.';
+
+  @override
+  String get p13SuppTicketsEmptyBody => 'ليس لديك أي سجل دعم نشط أو سابق.';
+
+  @override
+  String get p13SuppFeedbackSub => 'قيّم تجربتك مع التطبيق';
+
+  @override
+  String get p13SuppBoardSub => 'شارك أفكارك للميزات الجديدة';
 }

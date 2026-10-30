@@ -4395,7 +4395,7 @@
   "p23MinTwo": "En az 2 kişi",
   "p23PrivacyShort": "Rehberiniz sunucuya gönderilmez.",
   "p26OnceCaption": "Bu fotoğrafı yalnızca bir kez görebilirsin.",
-  "p09BlockNamed": "{name} engelle",
+  "p09BlockNamed": "{name} Engelle",
   "@p09BlockNamed": {"placeholders": {"name": {"type": "String"}}},
   "p09MemberOptions": "Üye seçenekleri",
   "p09MemberRemoved": "{name} gruptan çıkarıldı",
@@ -4445,5 +4445,17 @@
   "p19ShowEmailDesc": "Profilinizi ziyaret eden öğrenciler e-posta adresinizi görebilir.",
   "p19LangSystemDesc": "Cihazınızın varsayılan dilini kullanır",
   "p19CrashReportsShort": "Uygulama hata verdiğinde anonim bir hata raporu gönderilir.",
-  "p19LogoutAllSub": "Diğer açık telefon ve tarayıcı oturumlarını kapatır."
+  "p19LogoutAllSub": "Diğer açık telefon ve tarayıcı oturumlarını kapatır.",
+  "p05NewsLoadingMore": "Daha eski haberler yükleniyor...",
+  "p05SavedDiscover": "Haberleri Keşfet",
+  "p05SavedEmptyTitle2": "Henüz kaydettiğiniz bir haber yok.",
+  "p05SavedEmptyBody2": "Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.",
+  "p05ListErrorTitle": "Yüklenemedi, tekrar dene",
+  "p05ListErrorBody": "Sunucuyla bağlantı kurulurken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.",
+  "p13SuppLoadFailed": "Yüklenemedi",
+  "p13SuppFaqEmptyBody": "Bu kategori için henüz makale eklenmedi.",
+  "p13SuppFaqNoMatchBody": "Arama kriterlerinize uygun sonuç bulunamadı.",
+  "p13SuppTicketsEmptyBody": "Aktif veya geçmiş bir destek kaydınız bulunmuyor.",
+  "p13SuppFeedbackSub": "Uygulama deneyiminizi puanlayın",
+  "p13SuppBoardSub": "Yeni özellik fikirlerinizi iletin"
 }

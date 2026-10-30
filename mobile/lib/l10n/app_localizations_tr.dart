@@ -8430,7 +8430,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String p09BlockNamed(String name) {
-    return '$name engelle';
+    return '$name Engelle';
   }
 
   @override
@@ -8585,4 +8585,44 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p19LogoutAllSub =>
       'Diğer açık telefon ve tarayıcı oturumlarını kapatır.';
+
+  @override
+  String get p05NewsLoadingMore => 'Daha eski haberler yükleniyor...';
+
+  @override
+  String get p05SavedDiscover => 'Haberleri Keşfet';
+
+  @override
+  String get p05SavedEmptyTitle2 => 'Henüz kaydettiğiniz bir haber yok.';
+
+  @override
+  String get p05SavedEmptyBody2 =>
+      'Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.';
+
+  @override
+  String get p05ListErrorTitle => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String get p05ListErrorBody =>
+      'Sunucuyla bağlantı kurulurken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.';
+
+  @override
+  String get p13SuppLoadFailed => 'Yüklenemedi';
+
+  @override
+  String get p13SuppFaqEmptyBody => 'Bu kategori için henüz makale eklenmedi.';
+
+  @override
+  String get p13SuppFaqNoMatchBody =>
+      'Arama kriterlerinize uygun sonuç bulunamadı.';
+
+  @override
+  String get p13SuppTicketsEmptyBody =>
+      'Aktif veya geçmiş bir destek kaydınız bulunmuyor.';
+
+  @override
+  String get p13SuppFeedbackSub => 'Uygulama deneyiminizi puanlayın';
+
+  @override
+  String get p13SuppBoardSub => 'Yeni özellik fikirlerinizi iletin';
 }

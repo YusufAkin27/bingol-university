@@ -137,7 +137,7 @@ void main() {
     await settle(tester);
     expect(find.text('Dönem seç'), findsOneWidget);
     expect(find.text('2026-2027 Güz'), findsOneWidget);
-    expect(find.text('Resmi'), findsOneWidget);
+    expect(find.text('Güncel'), findsOneWidget);
     expect(find.text('Yeni dönem ekle'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await unmount(tester);
@@ -148,14 +148,9 @@ void main() {
     final b = _backend();
     await tester.pumpWidget(_app(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    expect(find.text('Pazartesi, bugün'), findsNothing); // sesli etiket Semantics'te; baslik Text.rich
-    expect(find.textContaining('Pazartesi, bugün'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget); // 2 Kasim pazartesi
-    expect(find.text('8'), findsOneWidget); // pazar
-    expect(find.byTooltip('Takvime aktar (.ics)'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Takvime aktar'), 300, scrollable: find.byType(Scrollable).first);
-    expect(find.text('Takvime aktar'), findsOneWidget);
-    expect(find.text('Ders ekle'), findsOneWidget);
+    expect(find.text('Pzt, bugün'), findsOneWidget); // secili gun hapi
+    expect(find.text('Takvime aktar (.ics)'), findsOneWidget);
+    expect(find.text('Ders ekle'), findsOneWidget); // yuzen dugme
     await unmount(tester);
   });
 
@@ -164,8 +159,8 @@ void main() {
     final b = _backend();
     await tester.pumpWidget(_app(ExamsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    expect(find.text('YAKLAŞAN'), findsOneWidget);
-    expect(find.text('GEÇMİŞ'), findsOneWidget);
+    expect(find.text('Yaklaşan'), findsOneWidget);
+    expect(find.text('Geçmiş'), findsOneWidget);
     expect(find.text('Geçti'), findsOneWidget);
     expect(find.text('2 gün kaldı'), findsOneWidget);
     await unmount(tester);
@@ -177,7 +172,7 @@ void main() {
     await tester.pumpWidget(_app(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
     expect(find.text('Sabitlenmiş'), findsWidgets);
-    expect(find.text('Yeni'), findsWidgets);
+    expect(find.text('Okunmamış'), findsWidgets);
     await unmount(tester);
   });
 }

@@ -8613,4 +8613,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p19LogoutAllSub =>
       'Closes your other open phone and browser sessions.';
+
+  @override
+  String get p05NewsLoadingMore => 'Loading older news...';
+
+  @override
+  String get p05SavedDiscover => 'Explore News';
+
+  @override
+  String get p05SavedEmptyTitle2 => 'You have no saved news yet.';
+
+  @override
+  String get p05SavedEmptyBody2 =>
+      'You can save news you like by tapping the bookmark icon.';
+
+  @override
+  String get p05ListErrorTitle => 'Could not load, try again';
+
+  @override
+  String get p05ListErrorBody =>
+      'There was a problem connecting to the server. Please check your internet connection.';
+
+  @override
+  String get p13SuppLoadFailed => 'Could not load';
+
+  @override
+  String get p13SuppFaqEmptyBody =>
+      'No articles have been added for this category yet.';
+
+  @override
+  String get p13SuppFaqNoMatchBody => 'No results match your search.';
+
+  @override
+  String get p13SuppTicketsEmptyBody =>
+      'You have no active or past support records.';
+
+  @override
+  String get p13SuppFeedbackSub => 'Rate your app experience';
+
+  @override
+  String get p13SuppBoardSub => 'Share ideas for new features';
 }

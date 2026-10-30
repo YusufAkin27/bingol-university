@@ -15376,7 +15376,7 @@ abstract class AppLocalizations {
   /// No description provided for @p09BlockNamed.
   ///
   /// In tr, this message translates to:
-  /// **'{name} engelle'**
+  /// **'{name} Engelle'**
   String p09BlockNamed(String name);
 
   /// No description provided for @p09MemberOptions.
@@ -15630,6 +15630,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Diğer açık telefon ve tarayıcı oturumlarını kapatır.'**
   String get p19LogoutAllSub;
+
+  /// No description provided for @p05NewsLoadingMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha eski haberler yükleniyor...'**
+  String get p05NewsLoadingMore;
+
+  /// No description provided for @p05SavedDiscover.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haberleri Keşfet'**
+  String get p05SavedDiscover;
+
+  /// No description provided for @p05SavedEmptyTitle2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kaydettiğiniz bir haber yok.'**
+  String get p05SavedEmptyTitle2;
+
+  /// No description provided for @p05SavedEmptyBody2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.'**
+  String get p05SavedEmptyBody2;
+
+  /// No description provided for @p05ListErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p05ListErrorTitle;
+
+  /// No description provided for @p05ListErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuyla bağlantı kurulurken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edin.'**
+  String get p05ListErrorBody;
+
+  /// No description provided for @p13SuppLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi'**
+  String get p13SuppLoadFailed;
+
+  /// No description provided for @p13SuppFaqEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kategori için henüz makale eklenmedi.'**
+  String get p13SuppFaqEmptyBody;
+
+  /// No description provided for @p13SuppFaqNoMatchBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama kriterlerinize uygun sonuç bulunamadı.'**
+  String get p13SuppFaqNoMatchBody;
+
+  /// No description provided for @p13SuppTicketsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktif veya geçmiş bir destek kaydınız bulunmuyor.'**
+  String get p13SuppTicketsEmptyBody;
+
+  /// No description provided for @p13SuppFeedbackSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama deneyiminizi puanlayın'**
+  String get p13SuppFeedbackSub;
+
+  /// No description provided for @p13SuppBoardSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni özellik fikirlerinizi iletin'**
+  String get p13SuppBoardSub;
 }
 
 class _AppLocalizationsDelegate

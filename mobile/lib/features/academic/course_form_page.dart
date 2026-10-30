@@ -22,8 +22,8 @@ class _SessionDraft {
   CourseSession toSession() => CourseSession(id: id, dayOfWeek: day, start: hhmm(start), end: hhmm(end), room: room.text);
 }
 
-/// Ders ekle / düzenle. Başarıda `true` ile kapanır (liste yenilenir).
-/// Üstte canlı önizleme kartı, renk seçici, oturum panelleri (gün çipleri + saat seçiciler + sınıf) ve not.
+/// Ders ekle / düzenle (Stitch 44). Başarıda `true` ile kapanır (liste yenilenir).
+/// Üstte ders bilgileri + renk, ardından oturum kartları (gün çipleri, saatler, derslik) ve not.
 class CourseFormPage extends StatefulWidget {
   const CourseFormPage({
     super.key,
@@ -54,7 +54,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
   late final List<_SessionDraft> _sessions;
   bool _busy = false;
   String? _nameError;
-  String? _sessionError;
+  final Set<int> _endErrors = {}; // bitişi başlangıçtan önce olan oturumlar
+  bool _selfConflict = false;
 
   bool get _editing => widget.course != null;
 
@@ -87,32 +88,76 @@ class _CourseFormPageState extends State<CourseFormPage> {
     return r == null ? null : r.hour * 60 + r.minute;
   }
 
-  String _describe(CourseSession s) => '${acadDayName(context.l10n, s.dayOfWeek.clamp(1, 7))} ${s.start}-${s.end}';
+  /// Çakışma diyaloğu: başlık, giriş metni, çakışan ders kartları; `true` = "Yine de kaydet".
+  Future<bool> _conflictDialog({List<CourseConflict> conflicts = const [], bool own = false, String? serverMessage}) async {
+    final l = context.l10n;
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final r = await BuDialog.show<bool>(
+      context,
+      builder: (ctx) => BuDialog(
+        title: l.acadTimeConflictTitle,
+        icon: LucideIcons.triangleAlert,
+        message: serverMessage ?? l.p17ConflictIntro,
+        content: serverMessage != null
+            ? null
+            : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (final c in conflicts.take(3))
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        Icon(LucideIcons.clock, size: 14, color: t.mut),
+                        const SizedBox(width: 6),
+                        Expanded(
+                            child: Text('${acadDayShort(l, c.session.dayOfWeek.clamp(1, 7))} ${c.session.start}-${c.session.end}',
+                                style: tx.bodySmall!.copyWith(color: t.mut))),
+                      ]),
+                      if (c.session.room != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Row(children: [
+                            Icon(LucideIcons.mapPin, size: 14, color: t.mut),
+                            const SizedBox(width: 6),
+                            Expanded(child: Text(c.session.room!, style: tx.bodySmall!.copyWith(color: t.mut))),
+                          ]),
+                        ),
+                    ]),
+                  ),
+                if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
+              ]),
+        actions: [
+          BuDialogAction(label: l.acadCancel, onPressed: () => Navigator.pop(ctx, false)),
+          BuDialogAction(label: l.acadTimeSaveAnyway, kind: BuDialogActionKind.primary, onPressed: () => Navigator.pop(ctx, true)),
+        ],
+      ),
+    );
+    return r == true;
+  }
 
   Future<void> _save({bool force = false}) async {
     final l = context.l10n;
     final name = _name.text.trim();
+    final sessions = [for (final s in _sessions) s.toSession()];
+    final bad = <int>{for (var i = 0; i < sessions.length; i++) if (sessions[i].endMin <= sessions[i].startMin) i};
     setState(() {
       _nameError = name.isEmpty ? l.acadTimeNameRequired : null;
-      _sessionError = null;
+      _endErrors
+        ..clear()
+        ..addAll(bad);
+      _selfConflict = false;
     });
-    if (name.isEmpty) return;
-    final sessions = [for (final s in _sessions) s.toSession()];
-    for (final s in sessions) {
-      if (s.endMin <= s.startMin) {
-        setState(() => _sessionError = l.acadTimeEndAfterStart);
-        return;
-      }
-    }
+    if (name.isEmpty || bad.isNotEmpty) return;
     if (!force) {
       final conflicts = findConflicts(widget.allCourses, sessions, excludeCourseId: widget.course?.id);
       final own = selfConflicts(sessions);
       if (conflicts.isNotEmpty || own.isNotEmpty) {
-        final lines = [
-          for (final c in conflicts.take(3)) '${c.course.name} (${_describe(c.session)})',
-          if (own.isNotEmpty) l.acadTimeOwnConflict,
-        ];
-        final go = await confirmDialog(context, title: l.acadTimeConflictTitle, text: l.acadTimeConflictText(lines.join('\n')), action: l.acadTimeSaveAnyway);
+        if (own.isNotEmpty) setState(() => _selfConflict = true);
+        final go = await _conflictDialog(conflicts: conflicts, own: own.isNotEmpty);
         if (!go || !mounted) return;
         return _save(force: true);
       }
@@ -139,8 +184,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
       if (!mounted) return;
       setState(() => _busy = false);
       if (e.status == 409 && e.code == 'COURSE_CONFLICT') {
-        final l = context.l10n;
-        final go = await confirmDialog(context, title: l.acadTimeConflictTitle, text: l.acadTimeConflictServerText(e.message), action: l.acadTimeSaveAnyway);
+        final go = await _conflictDialog(serverMessage: e.message);
         if (go && mounted) return _save(force: true);
         return;
       }
@@ -171,23 +215,17 @@ class _CourseFormPageState extends State<CourseFormPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    return BuPageScaffold(
+    return AcademicScaffold(
       title: _editing ? l.acadTimeEditCourse : l.acadTimeNewCourse,
-      large: false,
       actions: [
         if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadTimeDeleteCourse, onTap: _busy ? null : _delete),
-        const SizedBox(width: 12),
       ],
-      bottomBar: AkadBottomBar(children: [
-        AkadButton(label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn, busy: _busy, onPressed: _busy ? null : () => _save()),
-      ]),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
+          AkadCard(
+            padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              _preview(t),
-              const SizedBox(height: 20),
               AkadTextField(
                 label: l.acadTimeCourseName,
                 controller: _name,
@@ -200,141 +238,103 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   if (_nameError != null) setState(() => _nameError = null);
                 },
               ),
-              const SizedBox(height: 14),
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(
-                  child: AkadTextField(
-                      label: l.acadTimeCourseCode, controller: _code, maxLength: 20, capitalization: TextCapitalization.characters, hint: 'BIL201'),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AkadTextField(
-                    label: l.akademik2Instructor,
-                    controller: _instructor,
-                    maxLength: 120,
-                    capitalization: TextCapitalization.words,
-                    hint: l.acadTimeInstructorHint,
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 18),
-              AkadLabel(l.acadTimeColor),
-              Row(children: [for (final k in _paletteKeys) Expanded(child: _swatch(t, k))]),
-              AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.short),
-                alignment: Alignment.topCenter,
-                child: _color == null
-                    ? Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
-                        child: Text(l.acadTimeColorAuto, style: tx.bodySmall!.copyWith(color: t.mut)))
-                    : const SizedBox(width: double.infinity),
-              ),
-              const SizedBox(height: 22),
-              Semantics(header: true, child: Text(l.akademik2CourseHours, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-              const SizedBox(height: 12),
-              AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.medium),
-                curve: BuMotion.standard,
-                alignment: Alignment.topCenter,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  for (var i = 0; i < _sessions.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    _sessionBlock(t, i),
-                  ],
-                ]),
-              ),
-              if (_sessionError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_sessionError!, style: tx.bodySmall!.copyWith(color: t.danger))),
-                    ]),
-                  ),
-                ),
-              if (_sessions.length < 12) ...[
-                const SizedBox(height: 12),
-                AkadDashedButton(
-                  label: l.akademik2AddDay,
-                  icon: LucideIcons.plus,
-                  onPressed: () => setState(() {
-                    final last = _sessions.last;
-                    _sessions.add(_SessionDraft(day: last.day % 7 + 1, start: last.start, end: last.end));
-                  }),
-                ),
-              ],
-              const SizedBox(height: 22),
+              const SizedBox(height: 16),
               AkadTextField(
-                label: l.acadTimeNote,
-                controller: _note,
-                maxLength: 500,
-                minLines: 2,
-                maxLines: 4,
-                capitalization: TextCapitalization.sentences,
-                hint: l.acadTimeNoteHint,
+                  label: l.acadTimeCourseCode, controller: _code, maxLength: 20, capitalization: TextCapitalization.characters, hint: 'BIL201', icon: LucideIcons.hash),
+              const SizedBox(height: 16),
+              AkadTextField(
+                label: l.acadTimeInstructor,
+                controller: _instructor,
+                maxLength: 120,
+                capitalization: TextCapitalization.words,
+                hint: l.acadTimeInstructorHint,
+                icon: LucideIcons.idCard,
               ),
+              const SizedBox(height: 16),
+              AkadFieldLabel(l.acadTimeColor,
+                  trailing: _color == null
+                      ? null
+                      : Text(l.p17ColorSelected(acadColorName(l, _color!)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr))),
+              Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
+              const SizedBox(height: 4),
+              Row(children: [
+                Icon(LucideIcons.info, size: 14, color: t.mut),
+                const SizedBox(width: 6),
+                Expanded(child: Text(l.acadTimeColorAuto, style: tx.bodySmall!.copyWith(color: t.mut))),
+              ]),
             ]),
           ),
-        ),
-      ],
-    );
-  }
-
-  /// Canlı önizleme: yazdıkça ders kartı nasıl görünecek.
-  Widget _preview(BuTokens t) {
-    final tx = Theme.of(context).textTheme;
-    return ExcludeSemantics(
-      child: ListenableBuilder(
-        listenable: Listenable.merge([_name, _code, _instructor]),
-        builder: (context, _) {
-          final color = courseColor(_color);
-          final name = _name.text.trim();
-          final meta = [if (_code.text.trim().isNotEmpty) _code.text.trim(), if (_instructor.text.trim().isNotEmpty) _instructor.text.trim()].join(' · ');
-          final when = {for (final s in _sessions) '${acadDayShort(context.l10n, s.day.clamp(1, 7))} ${hhmm(s.start)}'}.join(' · ');
-          return Container(
-            decoration: BoxDecoration(color: akadTint(context, color), borderRadius: BuRadius.bLg),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 14, 12),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(akadUpper(context, context.l10n.p17PreviewHint),
-                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: akadOnTint(context, color), letterSpacing: 0.6)),
-                  const SizedBox(height: 4),
-                  Text(name.isEmpty ? context.l10n.acadTimeCourseName : name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: name.isEmpty ? t.mut : t.ink)),
-                  if (meta.isNotEmpty) Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                  if (when.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(children: [
-                      Icon(LucideIcons.clock, size: 13, color: akadOnTint(context, color)),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(when, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.ink))),
-                    ]),
-                  ],
+          const SizedBox(height: 20),
+          Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: AkadTitle(l.acadTimeDaysAndTimes)),
+          const SizedBox(height: 12),
+          AnimatedSize(
+            duration: BuMotion.of(context, BuMotion.medium),
+            curve: BuMotion.standard,
+            alignment: Alignment.topCenter,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (var i = 0; i < _sessions.length; i++) ...[
+                if (i > 0) const SizedBox(height: 12),
+                _sessionBlock(t, i),
+              ],
+            ]),
+          ),
+          if (_selfConflict)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Semantics(
+                liveRegion: true,
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l.acadTimeOwnConflict, style: tx.bodySmall!.copyWith(color: t.danger))),
                 ]),
               ),
-              PositionedDirectional(
-                start: 0,
-                top: 0,
-                bottom: 0,
-                width: 6,
-                child: AnimatedContainer(duration: BuMotion.of(context, BuMotion.medium), color: color),
+            ),
+          if (_sessions.length < 12) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              button: true,
+              container: true,
+              child: AkadCard(
+                onTap: () => setState(() {
+                  final last = _sessions.last;
+                  _sessions.add(_SessionDraft(day: last.day % 7 + 1, start: last.start, end: last.end));
+                }),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(LucideIcons.circlePlus, size: 20, color: t.mut),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text(l.acadTimeAddSession, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut))),
+                ]),
               ),
-            ]),
-          );
-        },
+            ),
+          ],
+          const SizedBox(height: 20),
+          AkadCard(
+            padding: const EdgeInsets.all(16),
+            child: AkadTextField(
+              label: l.acadTimeNote,
+              controller: _note,
+              maxLength: 500,
+              minLines: 3,
+              maxLines: 5,
+              capitalization: TextCapitalization.sentences,
+              hint: l.acadTimeNoteHint,
+              icon: LucideIcons.textAlignStart,
+            ),
+          ),
+          const SizedBox(height: 24),
+          BuButton(
+            label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn,
+            icon: LucideIcons.circleCheck,
+            busy: _busy,
+            onPressed: _busy ? null : () => _save(),
+          ),
+        ],
       ),
     );
   }
-
-  /// Tasarımdaki 6 renk; ders başka bir renkteyse o da eklenir.
-  List<String> get _paletteKeys => [..._akadPalette, if (_color != null && !_akadPalette.contains(_color)) _color!];
 
   Widget _swatch(BuTokens t, String k) {
     final l = context.l10n;
@@ -362,19 +362,18 @@ class _CourseFormPageState extends State<CourseFormPage> {
               child: AnimatedContainer(
                 duration: BuMotion.of(context, BuMotion.short),
                 curve: BuMotion.standard,
-                width: sel ? 40 : 34,
-                height: sel ? 40 : 34,
+                width: 28,
+                height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
-                  border: Border.all(color: sel ? t.ink : t.sf, width: sel ? 3 : 2),
-                  boxShadow: [BoxShadow(color: t.bd, spreadRadius: 1)],
+                  border: Border.all(color: sel ? t.ink : Colors.transparent, width: 2),
                 ),
                 child: AnimatedScale(
                   scale: sel ? 1 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
-                  child: Icon(LucideIcons.check, size: 18, color: t.onMedia),
+                  child: Icon(LucideIcons.check, size: 15, color: t.onMedia),
                 ),
               ),
             ),
@@ -388,25 +387,29 @@ class _CourseFormPageState extends State<CourseFormPage> {
     final s = _sessions[i];
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 14),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bLg),
+    final endBad = _endErrors.contains(i);
+    return AkadCard(
+      padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (_sessions.length > 1)
-          Row(children: [
-            Expanded(child: Text(l.acadTimeSessionN((i + 1).toString()), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700))),
-            IconButton(
-              tooltip: l.acadTimeRemoveSession,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: Icon(LucideIcons.x, size: 18, color: t.mut),
-              onPressed: () => setState(() => _sessions.removeAt(i).room.dispose()),
-            ),
-          ])
-        else
-          const SizedBox(height: 4),
         Row(children: [
-          for (var d = 1; d <= 7; d++) ...[
-            if (d > 1) const SizedBox(width: 4),
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l.acadTimeSessionN((i + 1).toString()), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+          if (_sessions.length > 1)
+            TextButton.icon(
+              style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+              onPressed: () => setState(() {
+                _sessions.removeAt(i).room.dispose();
+                _endErrors.clear();
+              }),
+              icon: const Icon(LucideIcons.trash2, size: 16),
+              label: Text(l.acadTimeRemoveSession, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+            ),
+        ]),
+        const SizedBox(height: 12),
+        AkadFieldLabel(l.p17WeekDay),
+        Row(children: [
+          for (var d = 1; d <= 7; d++)
             Expanded(
               child: AkadChip(
                 label: acadDayShort(l, d),
@@ -416,14 +419,16 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 onTap: () => setState(() => s.day = d),
               ),
             ),
-          ],
         ]),
         const SizedBox(height: 14),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: AkadPicker(
               icon: LucideIcons.clock,
-              label: l.akademik2Start,
+              leading: LucideIcons.clock,
+              bold: true,
+              compact: true,
+              label: l.acadTimeStartTime,
               value: hhmm(s.start),
               onTap: () async {
                 final m = await _pickTime(s.start);
@@ -432,6 +437,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                     final len = s.end - s.start;
                     s.start = m;
                     if (s.end <= m) s.end = (m + (len > 0 ? len : 50)).clamp(0, 23 * 60 + 59);
+                    _endErrors.remove(i);
                   });
                 }
               },
@@ -441,21 +447,39 @@ class _CourseFormPageState extends State<CourseFormPage> {
           Expanded(
             child: AkadPicker(
               icon: LucideIcons.clock,
-              label: l.akademik2End,
+              leading: LucideIcons.clock,
+              bold: true,
+              compact: true,
+              error: endBad,
+              label: l.acadTimeEndTime,
               value: hhmm(s.end),
               onTap: () async {
                 final m = await _pickTime(s.end);
-                if (m != null && mounted) setState(() => s.end = m);
+                if (m != null && mounted) {
+                  setState(() {
+                    s.end = m;
+                    _endErrors.remove(i);
+                  });
+                }
               },
             ),
           ),
         ]),
+        if (endBad)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Semantics(
+              liveRegion: true,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 14, color: t.danger)),
+                const SizedBox(width: 6),
+                Expanded(child: Text(l.acadTimeEndAfterStart, style: tx.bodySmall!.copyWith(color: t.danger))),
+              ]),
+            ),
+          ),
         const SizedBox(height: 14),
-        AkadTextField(label: l.akademik2RoomShort, controller: s.room, maxLength: 60, hint: 'B-204', icon: LucideIcons.mapPin),
+        AkadTextField(label: l.acadFormRoom, controller: s.room, maxLength: 60, hint: l.acadTimeRoomHint, icon: LucideIcons.doorOpen),
       ]),
     );
   }
 }
-
-/// Renk seçicide gösterilen tasarım paleti.
-const _akadPalette = ['red', 'blue', 'green', 'orange', 'purple', 'teal'];

@@ -101,7 +101,7 @@ void main() {
               brightness: b,
               size: size));
           await settle(tester);
-          expect(find.text('Sıradaki sınav'), findsOneWidget);
+          expect(find.textContaining('SIRADAK'), findsOneWidget);
           expect(find.text('Güz: Ara sınavlar başlıyor'), findsOneWidget);
           await tester.scrollUntilVisible(find.text('Ara sınavlar'), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text('Yaklaşan tarihler'), findsOneWidget);

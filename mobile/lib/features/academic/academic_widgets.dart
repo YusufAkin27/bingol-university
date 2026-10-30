@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../profile/edit_profile_page.dart';
 import 'akad_widgets.dart';
 
 /// Akademik sayfaların ortak iskeleti: başlık + gövde (+ alta sabit eylem çubuğu).
 /// Yeni sayfalar büyük başlıklı [BuPageScaffold] kullanır; bu iskelet gövdesi kendi kaydırmasını yöneten sayfalar içindir.
 class AcademicScaffold extends StatelessWidget {
-  const AcademicScaffold({super.key, required this.title, required this.child, this.actions = const [], this.subtitle, this.bottomBar});
+  const AcademicScaffold(
+      {super.key, required this.title, required this.child, this.actions = const [], this.subtitle, this.bottomBar, this.floatingActionButton});
 
   final String title;
   final String? subtitle;
@@ -18,17 +21,20 @@ class AcademicScaffold extends StatelessWidget {
   /// Alta sabitlenen eylem çubuğu (içerik altına [AkadBottomBar.reserve] boşluk bırakır).
   final Widget? bottomBar;
 
+  /// Yüzen eylem düğmesi (ör. Ders ekle).
+  final Widget? floatingActionButton;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Scaffold(
       backgroundColor: t.bg,
+      floatingActionButton: floatingActionButton,
       body: Stack(
         children: [
           Column(
             children: [
               _AkadHeader(title: title, subtitle: subtitle, actions: actions),
-              const SizedBox(height: 8),
               Expanded(child: child),
             ],
           ),
@@ -39,7 +45,7 @@ class AcademicScaffold extends StatelessWidget {
   }
 }
 
-/// Üst başlık: tonal yuvarlak geri düğmesi + başlık (headlineSmall) + sağda eylemler.
+//// Üst başlık (referans): yüzey renkli çubuk, düz geri oku, başlık ve sağda eylemler.
 class _AkadHeader extends StatelessWidget {
   const _AkadHeader({required this.title, required this.actions, this.subtitle});
 
@@ -51,30 +57,41 @@ class _AkadHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 12, 20, 0),
-      child: Row(children: [
-        BuIconButton(icon: LucideIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            MediaQuery.withClampedTextScaling(
-              maxScaleFactor: 1.35,
-              child: Semantics(
-                header: true,
-                child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(color: t.ink)),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf, boxShadow: BuElevation.of(context, 1)),
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 12, 0),
+        child: SizedBox(
+          height: 56,
+          child: Row(children: [
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              tooltip: context.l10n.commonBack,
+              icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+              onPressed: () => Navigator.maybePop(context),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: 1.3,
+                child: Semantics(
+                  header: true,
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                    if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  ]),
+                ),
               ),
             ),
-            if (subtitle != null) Text(subtitle!, style: tx.bodySmall!.copyWith(color: t.mut)),
+            for (final a in actions) ...[const SizedBox(width: 8), a],
           ]),
         ),
-        for (final a in actions) ...[const SizedBox(width: 8), a],
-      ]),
+      ),
     );
   }
 }
 
-/// 503 (bakım) için bakım görünümü; diğer hatalarda [BuErrorState] (ağ yoksa "Bağlantı yok").
+// 503 (bakım) için bakım görünümü; diğer hatalarda [BuErrorState] (ağ yoksa "Bağlantı yok").
 class AcademicErrorView extends StatelessWidget {
   const AcademicErrorView({super.key, required this.error, required this.onRetry});
 
@@ -230,5 +247,38 @@ class PickerField extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// "Profili düzenle": profili çekip düzenleme sayfasını açar (bölüm eksik uyarıları).
+Future<void> openEditProfile(BuildContext context, Session session) async {
+  try {
+    final p = await session.api.get('/users/me') as Map<String, dynamic>;
+    if (!context.mounted) return;
+    await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EditProfilePage(session: session, profile: p)));
+  } catch (e) {
+    if (context.mounted) academicToast(context, errorText(e), kind: BuToastKind.error);
+  }
+}
+
+/// Kart biçimli hata görünümü: 503 bakım notu, diğerleri hata kartı ("Yeniden dene").
+class AcademicErrorViewCard extends StatelessWidget {
+  const AcademicErrorViewCard({super.key, required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final e = error;
+    final l = context.l10n;
+    if (e is ApiError && e.status == 503) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        AkadNoticeCard(text: e.message.isNotEmpty ? e.message : l.acadMaintenance),
+        const SizedBox(height: 12),
+        Align(alignment: AlignmentDirectional.centerEnd, child: BuButton(label: l.acadRetry, compact: true, kind: BuButtonKind.soft, onPressed: onRetry)),
+      ]);
+    }
+    return AkadErrorCard(title: l.sistemuiErrorTitle, message: errorText(e), onRetry: onRetry, retryLabel: l.acadRetry);
   }
 }

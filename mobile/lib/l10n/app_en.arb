@@ -2655,5 +2655,17 @@
   "p19ShowEmailDesc": "Students who visit your profile can see your email address.",
   "p19LangSystemDesc": "Uses your device default language",
   "p19CrashReportsShort": "An anonymous crash report is sent when the app hits an error.",
-  "p19LogoutAllSub": "Closes your other open phone and browser sessions."
+  "p19LogoutAllSub": "Closes your other open phone and browser sessions.",
+  "p05NewsLoadingMore": "Loading older news...",
+  "p05SavedDiscover": "Explore News",
+  "p05SavedEmptyTitle2": "You have no saved news yet.",
+  "p05SavedEmptyBody2": "You can save news you like by tapping the bookmark icon.",
+  "p05ListErrorTitle": "Could not load, try again",
+  "p05ListErrorBody": "There was a problem connecting to the server. Please check your internet connection.",
+  "p13SuppLoadFailed": "Could not load",
+  "p13SuppFaqEmptyBody": "No articles have been added for this category yet.",
+  "p13SuppFaqNoMatchBody": "No results match your search.",
+  "p13SuppTicketsEmptyBody": "You have no active or past support records.",
+  "p13SuppFeedbackSub": "Rate your app experience",
+  "p13SuppBoardSub": "Share ideas for new features"
 }

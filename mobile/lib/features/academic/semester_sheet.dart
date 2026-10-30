@@ -88,38 +88,29 @@ class _SemesterSheetState extends State<SemesterSheet> {
     final l = context.l10n;
     return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 12, 8),
+        padding: const EdgeInsetsDirectional.fromSTEB(24, 4, 20, 12),
         child: Row(children: [
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(l.akademik2SemesterTitle, style: tx.titleLarge!.copyWith(color: t.ink)),
+              child: Text(l.akademik2SemesterTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
             ),
           ),
-          BuIconButton(
-            icon: LucideIcons.x,
-            tooltip: l.acadTimeClose,
-            onTap: () => Navigator.pop(context, _changed ? const SemesterAction(changed: true) : null),
-          ),
+          if (!_loading && _error == null && _items.isNotEmpty) AkadPill(l.p17SemesterCount(_items.length.toString()), bg: t.sf2, fg: t.mut),
         ]),
       ),
       Flexible(child: _body()),
-      if (!_loading && _error == null)
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            BuButton(label: l.acadTimeAddSemester, icon: LucideIcons.plus, kind: BuButtonKind.soft, busy: _busy, onPressed: _create),
-            if (_official != null) ...[
-              const SizedBox(height: 8),
-              BuButton(
-                label: l.acadTimeOfficial('${_official!['name'] ?? l.acadTimeOfficialDefault}'),
-                icon: LucideIcons.landmark,
-                kind: BuButtonKind.outline,
-                onPressed: _busy ? null : () => _run(widget.api.semesterFromOfficial),
-              ),
-            ],
-          ]),
-        ),
+      Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          if (!_loading && _error == null) BuButton(label: l.acadTimeAddSemester, icon: LucideIcons.circlePlus, busy: _busy, onPressed: _create),
+          const SizedBox(height: 4),
+          TextButton(
+              style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48)),
+              onPressed: () => Navigator.pop(context, _changed ? const SemesterAction(changed: true) : null),
+              child: Text(l.acadTimeClose, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        ]),
+      ),
     ]);
   }
 
@@ -132,20 +123,22 @@ class _SemesterSheetState extends State<SemesterSheet> {
         container: true,
         child: const BuSkeletonScope(
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, 4, 20, 8),
+            padding: EdgeInsetsDirectional.fromSTEB(16, 4, 16, 8),
             child: Column(children: [
-              BuSkeleton(height: 72, radius: 20),
-              SizedBox(height: 8),
-              BuSkeleton(height: 72, radius: 20),
-              SizedBox(height: 8),
-              BuSkeleton(height: 72, radius: 20),
+              BuSkeleton(height: 96, radius: 20),
+              SizedBox(height: 12),
+              BuSkeleton(height: 96, radius: 20),
+              SizedBox(height: 12),
+              BuSkeleton(height: 96, radius: 20),
             ]),
           ),
         ),
       );
     }
     if (_error != null) return BuErrorState(error: _error, onRetry: _load, compact: true);
-    if (_items.isEmpty) {
+    final officialName = '${_official?['name'] ?? ''}';
+    final showOfficial = _official != null && !_items.any((s) => s.name == officialName);
+    if (_items.isEmpty && !showOfficial) {
       return BuEmptyState(
         illustration: BuIllustration.calendar,
         title: context.l10n.p17SemestersEmptyTitle,
@@ -153,12 +146,37 @@ class _SemesterSheetState extends State<SemesterSheet> {
         compact: true,
       );
     }
-    return ListView.separated(
+    return ListView(
       shrinkWrap: true,
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 4),
-      itemCount: _items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (c, i) => _row(t, _items[i]),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 4),
+      children: [
+        for (final s in _items) ...[_row(t, s), const SizedBox(height: 12)],
+        if (showOfficial) _officialRow(t),
+      ],
+    );
+  }
+
+  Widget _radio(BuTokens t, bool on) => AnimatedContainer(
+        duration: BuMotion.of(context, BuMotion.short),
+        width: 24,
+        height: 24,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: on ? t.pr : t.mut, width: 2)),
+        child: on ? Container(width: 12, height: 12, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)) : null,
+      );
+
+  Widget _action(BuTokens t, {required IconData icon, required String label, required VoidCallback? onTap, bool danger = false}) {
+    final color = danger ? t.danger : t.ink;
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        foregroundColor: color,
+        textStyle: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+      ),
+      onPressed: onTap,
+      icon: Icon(icon, size: 16, color: color),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 
@@ -167,97 +185,104 @@ class _SemesterSheetState extends State<SemesterSheet> {
     final tx = Theme.of(context).textTheme;
     final active = s.id == widget.activeId;
     final range = s.startDate != null && s.endDate != null ? '${acadDate(context, s.startDate!)} - ${acadDate(context, s.endDate!)}' : null;
-    final official = _official != null && '${_official!['name'] ?? ''}'.isNotEmpty && '${_official!['name']}' == s.name;
-    void pick() => Navigator.pop(context, SemesterAction(semesterId: s.id, changed: _changed));
+    void pick() {
+      buHaptic(BuHaptic.selection);
+      Navigator.pop(context, SemesterAction(semesterId: s.id, changed: _changed));
+    }
+
     return Semantics(
       container: true,
       selected: active,
       child: AnimatedContainer(
         duration: BuMotion.of(context, BuMotion.short),
         decoration: BoxDecoration(
-          color: active ? t.soft : t.sf,
+          color: active ? t.sf2 : t.sf,
           borderRadius: BuRadius.bLg,
-          border: Border.all(color: active ? t.pr.withValues(alpha: .5) : t.bd, width: active ? 1.5 : 1),
+          border: Border.all(color: active ? t.bd : t.bd.withValues(alpha: .6)),
         ),
-        child: Material(
-          type: MaterialType.transparency,
-          borderRadius: BuRadius.bLg,
-          clipBehavior: Clip.antiAlias,
-          child: Row(children: [
-            Expanded(
-              child: InkWell(
-                onTap: () {
-                  buHaptic(BuHaptic.selection);
-                  pick();
-                },
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 72),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 14, top: 10, bottom: 10, end: 4),
-                    child: Row(children: [
-                      AnimatedSwitcher(
-                        duration: BuMotion.of(context, BuMotion.short),
-                        child: active
-                            ? Container(
-                                key: const ValueKey('on'),
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                                child: Icon(LucideIcons.check, size: 16, color: t.onPr),
-                              )
-                            : Container(
-                                key: const ValueKey('off'),
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bd, width: 2)),
-                              ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(s.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: active ? t.onSoft : t.ink)),
-                          if (range != null) Text(range, style: tx.bodySmall!.copyWith(color: active ? t.onSoft : t.mut)),
-                          if (s.current || official)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Wrap(spacing: 6, runSpacing: 4, children: [
-                                if (s.current) AkadPill(l.acadTimeCurrent, bg: active ? t.sf : t.soft, fg: t.onSoft),
-                                if (official) AkadPill(l.akademik2OfficialTag, bg: t.okSoft, fg: t.ok),
-                              ]),
-                            ),
-                        ]),
-                      ),
-                    ]),
-                  ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          InkWell(
+            borderRadius: BuRadius.bLg,
+            onTap: pick,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 6),
+              child: Row(children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(color: active ? t.pr : t.sf2, shape: BoxShape.circle),
+                  child: Icon(active ? LucideIcons.check : LucideIcons.history, size: 16, color: active ? t.onPr : t.mut),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                      Text(s.name, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                      if (s.current) AkadPill(l.acadTimeCurrent, bg: t.tint(1).bg, fg: t.tint(1).fg, dot: true),
+                    ]),
+                    if (range != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(range, style: tx.bodySmall!.copyWith(color: t.mut))),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                _radio(t, active),
+              ]),
             ),
-            if (!s.current)
-              IconButton(
-                tooltip: l.acadTimeMakeCurrent,
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                icon: Icon(LucideIcons.badgeCheck, size: 20, color: t.mut),
-                onPressed: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id)),
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
+            child: Row(children: [
+              if (!s.current)
+                Flexible(
+                    child: _action(t,
+                        icon: LucideIcons.star, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id)))),
+              const Spacer(),
+              Flexible(
+                child: _action(t, icon: LucideIcons.trash2, label: l.acadTimeDeleteSemester, danger: true, onTap: _busy
+                    ? null
+                    : () async {
+                        final ok = await confirmDialog(context,
+                            title: l.acadTimeDeleteSemester, text: l.acadTimeDeleteSemesterText(s.name), action: l.acadTimeDelete, danger: true);
+                        if (ok) await _run(() => widget.api.deleteSemester(s.id));
+                      }),
               ),
-            IconButton(
-              tooltip: l.acadTimeDeleteSemester,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: Icon(LucideIcons.trash2, size: 19, color: t.mut),
-              onPressed: _busy
-                  ? null
-                  : () async {
-                      final ok = await confirmDialog(context,
-                          title: l.acadTimeDeleteSemester, text: l.acadTimeDeleteSemesterText(s.name), action: l.acadTimeDelete, danger: true);
-                      if (ok) await _run(() => widget.api.deleteSemester(s.id));
-                    },
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  /// Akademik takvimin resmi dönemi: "Güncel dönem yap" ile dönem olarak eklenir.
+  Widget _officialRow(BuTokens t) {
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final name = '${_official!['name'] ?? l.acadTimeOfficialDefault}';
+    return Container(
+      decoration: BoxDecoration(color: t.soft.withValues(alpha: .55), borderRadius: BuRadius.bLg),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 6),
+          child: Row(children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+              child: Icon(LucideIcons.graduationCap, size: 16, color: t.onSoft),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l.acadTimeOfficial(name), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+            const SizedBox(width: 8),
+            _radio(t, false),
           ]),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _action(t, icon: LucideIcons.arrowLeftRight, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(widget.api.semesterFromOfficial)),
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -318,7 +343,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           AkadPicker(
             icon: LucideIcons.calendar,
             label: l.acadTimeStartDate,
-            hint: l.acadTimeStartDate,
+            hint: l.acadSelect,
             value: _start == null ? null : acadDate(context, _start!),
             onTap: () async {
               final d = await _pick(_start, l.acadTimeStartDate);
@@ -329,7 +354,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           AkadPicker(
             icon: LucideIcons.calendar,
             label: l.acadTimeEndDate,
-            hint: l.acadTimeEndDate,
+            hint: l.acadSelect,
             value: _end == null ? null : acadDate(context, _end!),
             onTap: () async {
               final d = await _pick(_end ?? _start, l.acadTimeEndDate);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
@@ -32,7 +33,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
   int _start = 10 * 60;
   int? _end;
   bool _busy = false;
-  String? _error;
+  List<String> _errors = const [];
 
   bool get _editing => widget.exam != null;
 
@@ -75,9 +76,12 @@ class _ExamFormPageState extends State<ExamFormPage> {
 
   Future<void> _save() async {
     final l = context.l10n;
-    if (_title.text.trim().isEmpty) return setState(() => _error = l.acadFormErrTitle);
-    if (_day == null) return setState(() => _error = l.acadFormErrDate);
-    if (_end != null && _end! <= _start) return setState(() => _error = l.acadFormErrEnd);
+    final errs = <String>[
+      if (_title.text.trim().isEmpty) l.acadFormErrTitle,
+      if (_day == null) l.acadFormErrDate,
+      if (_end != null && _end! <= _start) l.acadFormErrEnd,
+    ];
+    if (errs.isNotEmpty) return setState(() => _errors = errs);
     final body = {
       'title': _title.text.trim(),
       'type': _type,
@@ -89,7 +93,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
     };
     setState(() {
       _busy = true;
-      _error = null;
+      _errors = const [];
     });
     try {
       if (_editing) {
@@ -102,11 +106,27 @@ class _ExamFormPageState extends State<ExamFormPage> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = errorText(e);
+          _errors = [errorText(e)];
         });
       }
     }
   }
+
+  /// Ders seçimi: alt sayfada "Yok" + dersler.
+  Future<void> _pickCourse() async {
+    final l = context.l10n;
+    final r = await BuSheet.show<int>(
+      context,
+      title: l.acadFormCourseOpt,
+      builder: (c) => Column(children: [
+        BuListTile(title: l.acadFormNone, selected: _courseId == null, onTap: () => Navigator.pop(c, -1)),
+        for (final co in widget.courses) BuListTile(title: _courseLabel(co), selected: _courseId == co.id, onTap: () => Navigator.pop(c, co.id)),
+      ]),
+    );
+    if (r != null && mounted) setState(() => _courseId = r < 0 ? null : r);
+  }
+
+  String _courseLabel(Course c) => c.code == null ? c.name : '${c.code} ${c.name}';
 
   Future<void> _delete() async {
     final l = context.l10n;
@@ -120,7 +140,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = errorText(e);
+          _errors = [errorText(e)];
         });
       }
     }
@@ -130,51 +150,46 @@ class _ExamFormPageState extends State<ExamFormPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return BuPageScaffold(
-      title: _editing ? l.acadFormEdit : l.acadExamsAdd,
-      large: false,
+    final tx = Theme.of(context).textTheme;
+    final course = widget.courses.where((c) => c.id == _courseId).firstOrNull;
+    return AcademicScaffold(
+      title: _editing ? l.acadFormEdit : l.acadFormNew,
       actions: [
         if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete),
-        const SizedBox(width: 12),
       ],
-      bottomBar: AkadBottomBar(children: [
-        AkadButton(label: _editing ? l.acadSave : l.acadFormAdd, busy: _busy, onPressed: _busy ? null : _save),
-      ]),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
+          AkadCard(
+            padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.medium),
-                curve: BuMotion.standard,
-                alignment: Alignment.topCenter,
-                child: _error == null ? const SizedBox(width: double.infinity) : _errorBanner(t),
-              ),
               AkadTextField(
-                label: l.akademik2ExamTitle,
+                label: l.acadFormTitleLabel,
+                requiredMark: true,
                 controller: _title,
                 maxLength: 120,
                 capitalization: TextCapitalization.sentences,
                 hint: l.acadFormTitleHint,
-                icon: LucideIcons.fileText,
               ),
-              const SizedBox(height: 14),
-              AkadLabel(l.acadFormType),
-              Wrap(spacing: 8, runSpacing: 0, children: [
+              const SizedBox(height: 16),
+              AkadFieldLabel(l.acadFormType),
+              Wrap(spacing: 8, children: [
                 for (final k in examTypes) AkadChip(label: examTypeLabelL(l, k), selected: _type == k, onTap: () => setState(() => _type = k)),
               ]),
               if (widget.courses.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                AkadLabel(l.akademik2Course),
-                Wrap(spacing: 8, runSpacing: 0, children: [
-                  AkadChip(label: l.acadFormNone, selected: _courseId == null, onTap: () => setState(() => _courseId = null)),
-                  for (final c in widget.courses) AkadChip(label: c.name, selected: _courseId == c.id, onTap: () => setState(() => _courseId = c.id)),
-                ]),
+                const SizedBox(height: 16),
+                AkadPicker(
+                  label: l.acadFormCourseOpt,
+                  icon: LucideIcons.chevronDown,
+                  value: course == null ? null : _courseLabel(course),
+                  hint: l.acadFormNone,
+                  onTap: _pickCourse,
+                ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               AkadPicker(
                 icon: LucideIcons.calendar,
+                requiredMark: true,
                 label: l.acadFormExamDate,
                 hint: l.acadFormPickDate,
                 value: _day == null ? null : fmtWallDateL(l, _day!),
@@ -190,12 +205,13 @@ class _ExamFormPageState extends State<ExamFormPage> {
                   if (d != null && mounted) setState(() => _day = DateTime.utc(d.year, d.month, d.day));
                 },
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Expanded(
                   child: AkadPicker(
                     icon: LucideIcons.clock,
-                    label: l.akademik2Start,
+                    compact: true,
+                    label: l.acadFormStartTime,
                     value: hhmm(_start),
                     onTap: () async {
                       final m = await _pickTime(_start);
@@ -207,8 +223,9 @@ class _ExamFormPageState extends State<ExamFormPage> {
                 Expanded(
                   child: AkadPicker(
                     icon: LucideIcons.clock,
-                    label: l.akademik2EndOptional,
-                    hint: l.acadFormEndHint,
+                    compact: true,
+                    label: l.acadFormEndHint,
+                    hint: l.acadSelect,
                     value: _end == null ? null : hhmm(_end!),
                     onTap: () async {
                       final m = await _pickTime(_end ?? _start + 90);
@@ -217,36 +234,53 @@ class _ExamFormPageState extends State<ExamFormPage> {
                   ),
                 ),
               ]),
-              const SizedBox(height: 14),
-              AkadTextField(label: l.akademik2Place, controller: _room, maxLength: 60, hint: l.acadFormRoomHint, icon: LucideIcons.mapPin),
-              const SizedBox(height: 14),
-              AkadTextField(label: l.acadFormNote, controller: _note, maxLength: 500, minLines: 2, maxLines: 4, hint: l.acadFormNoteHint),
+              const SizedBox(height: 16),
+              AkadTextField(label: l.acadFormRoom, controller: _room, maxLength: 60, hint: l.acadFormRoomHint, icon: LucideIcons.doorOpen),
+              const SizedBox(height: 16),
+              AkadTextField(label: l.acadFormNote, controller: _note, maxLength: 500, minLines: 3, maxLines: 5, hint: l.acadFormNoteHint),
             ]),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _errorBanner(BuTokens t) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Semantics(
-        liveRegion: true,
-        container: true,
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 18, color: cs.onErrorContainer)),
-              const SizedBox(width: 10),
-              Expanded(child: Text(_error!, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: cs.onErrorContainer, fontWeight: FontWeight.w600))),
-            ]),
+          AnimatedSize(
+            duration: BuMotion.of(context, BuMotion.medium),
+            curve: BuMotion.standard,
+            alignment: Alignment.topCenter,
+            child: _errors.isEmpty ? const SizedBox(width: double.infinity) : Padding(padding: const EdgeInsets.only(top: 16), child: _errorBox(t, tx, l)),
           ),
-        ),
+          const SizedBox(height: 16),
+          BuButton(
+            label: _editing ? l.acadSave : l.acadFormAdd,
+            icon: _editing ? LucideIcons.circleCheck : LucideIcons.calendarPlus,
+            busy: _busy,
+            onPressed: _busy ? null : _save,
+          ),
+        ],
       ),
     );
   }
+
+  Widget _errorBox(BuTokens t, TextTheme tx, AppLocalizations l) => Semantics(
+        liveRegion: true,
+        container: true,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(LucideIcons.circleAlert, size: 18, color: t.onSoft),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
+            ]),
+            const SizedBox(height: 8),
+            for (final e in _errors)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(e, style: tx.bodyMedium!.copyWith(color: t.onSoft))),
+                ]),
+              ),
+          ]),
+        ),
+      );
 }
