@@ -63,8 +63,7 @@ import 'app_localizations_tr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,8 +71,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -85,8 +83,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -1202,8 +1199,7 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
-  String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+  String acadExamsSemanticCd(String type, String title, String date, String countdown);
 
   /// No description provided for @acadOfficialSemantic.
   ///
@@ -1215,8 +1211,7 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}, {room}'**
-  String acadOfficialSemanticRoom(
-      String type, String title, String date, String room);
+  String acadOfficialSemanticRoom(String type, String title, String date, String room);
 
   /// No description provided for @acadExamsProfileIncomplete.
   ///
@@ -1846,8 +1841,7 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
-  String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+  String acadTimeSlotSemantic(String name, String day, String start, String end);
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -15132,10 +15126,303 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n} gün'**
   String p03NotifShortDay(String n);
+
+  /// No description provided for @p05SearchLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} beğeni'**
+  String p05SearchLikes(String n);
+
+  /// No description provided for @p05SearchErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi'**
+  String get p05SearchErrorTitle;
+
+  /// No description provided for @p05SearchErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama sonuçları alınırken bir bağlantı hatası oluştu.'**
+  String get p05SearchErrorBody;
+
+  /// No description provided for @p13PollDistribution.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenek Dağılımı'**
+  String get p13PollDistribution;
+
+  /// No description provided for @p13PollWinnerOption.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanan Seçenek'**
+  String get p13PollWinnerOption;
+
+  /// No description provided for @p13PollRatingSummary.
+  ///
+  /// In tr, this message translates to:
+  /// **'Puanlama özeti'**
+  String get p13PollRatingSummary;
+
+  /// No description provided for @p13PollOutOf5.
+  ///
+  /// In tr, this message translates to:
+  /// **'5 üzerinden'**
+  String get p13PollOutOf5;
+
+  /// No description provided for @p13MenuRated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değerlendirmeniz kaydedildi. Teşekkürler!'**
+  String get p13MenuRated;
+
+  /// No description provided for @p04CropProfileTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı kırp'**
+  String get p04CropProfileTitle;
+
+  /// No description provided for @p04CropPostTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi fotoğrafı'**
+  String get p04CropPostTitle;
+
+  /// No description provided for @p04CropLogoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp logosu'**
+  String get p04CropLogoTitle;
+
+  /// No description provided for @p04CropCoverTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapak fotoğrafı'**
+  String get p04CropCoverTitle;
+
+  /// No description provided for @p04CropChatTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet görseli'**
+  String get p04CropChatTitle;
+
+  /// No description provided for @p04CropHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürükle ve yakınlaştır'**
+  String get p04CropHint;
+
+  /// No description provided for @p04CropRotate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Döndür'**
+  String get p04CropRotate;
+
+  /// No description provided for @p04CropReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıfırla'**
+  String get p04CropReset;
+
+  /// No description provided for @p04CropScale.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf ölçeği'**
+  String get p04CropScale;
+
+  /// No description provided for @p04CropCrop.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kırp'**
+  String get p04CropCrop;
+
+  /// No description provided for @p04CropError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf işlenemedi. Başka bir fotoğraf dene.'**
+  String get p04CropError;
+
+  /// No description provided for @p04CropPreviewProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilde böyle görünecek'**
+  String get p04CropPreviewProfile;
+
+  /// No description provided for @p04CropPreviewFeed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akışta böyle görünecek'**
+  String get p04CropPreviewFeed;
+
+  /// No description provided for @p04CropPreviewTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizleme'**
+  String get p04CropPreviewTitle;
+
+  /// No description provided for @p04CropPreviewClubPage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp sayfası'**
+  String get p04CropPreviewClubPage;
+
+  /// No description provided for @p04CropPreviewClubCard.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp kartı'**
+  String get p04CropPreviewClubCard;
+
+  /// No description provided for @p04CropRemoveCover.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapağı kaldır'**
+  String get p04CropRemoveCover;
+
+  /// No description provided for @p04SrcTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf'**
+  String get p04SrcTitle;
+
+  /// No description provided for @p04SrcGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden seç'**
+  String get p04SrcGallery;
+
+  /// No description provided for @p04SrcCamera.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çek'**
+  String get p04SrcCamera;
+
+  /// No description provided for @p04SrcRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı kaldır'**
+  String get p04SrcRemove;
+
+  /// No description provided for @p04Recrop.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden kırp'**
+  String get p04Recrop;
+
+  /// No description provided for @p04PostNotFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi bulunamadı (silinmiş veya gizlenmiş olabilir)'**
+  String get p04PostNotFound;
+
+  /// No description provided for @p04PostSharing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılıyor...'**
+  String get p04PostSharing;
+
+  /// No description provided for @p04PostPhotoNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel seçilmedi'**
+  String get p04PostPhotoNone;
+
+  /// No description provided for @p04PostFormatHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'4:5 dikey format önerilir'**
+  String get p04PostFormatHint;
+
+  /// No description provided for @p04ContentWarning.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik uyarısı'**
+  String get p04ContentWarning;
+
+  /// No description provided for @p23AddPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi ekle'**
+  String get p23AddPeople;
+
+  /// No description provided for @p23Selected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilen katılımcılar'**
+  String get p23Selected;
+
+  /// No description provided for @p23MinTwo.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 2 kişi'**
+  String get p23MinTwo;
+
+  /// No description provided for @p23PrivacyShort.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberiniz sunucuya gönderilmez.'**
+  String get p23PrivacyShort;
+
+  /// No description provided for @p26OnceCaption.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu fotoğrafı yalnızca bir kez görebilirsin.'**
+  String get p26OnceCaption;
+
+  /// No description provided for @p09BlockNamed.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} engelle'**
+  String p09BlockNamed(String name);
+
+  /// No description provided for @p09MemberOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye seçenekleri'**
+  String get p09MemberOptions;
+
+  /// No description provided for @p09MemberRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} gruptan çıkarıldı'**
+  String p09MemberRemoved(String name);
+
+  /// No description provided for @p09MediaLoading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yükleniyor...'**
+  String get p09MediaLoading;
+
+  /// No description provided for @p09MediaEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılan fotoğraflar ve videolar burada görünür.'**
+  String get p09MediaEmptyBody;
+
+  /// No description provided for @p09MediaErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hata oluştu'**
+  String get p09MediaErrorTitle;
+
+  /// No description provided for @p09MediaErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Medya yüklenemedi.'**
+  String get p09MediaErrorBody;
+
+  /// No description provided for @p09ClubPageSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler ve projeler'**
+  String get p09ClubPageSub;
+
+  /// No description provided for @p09MembersLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye listesi alınamadı.'**
+  String get p09MembersLoadFailed;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -15144,27 +15431,26 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['ar', 'en', 'tr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ar', 'en', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'en':
-      return AppLocalizationsEn();
-    case 'tr':
-      return AppLocalizationsTr();
+    case 'ar': return AppLocalizationsAr();
+    case 'en': return AppLocalizationsEn();
+    case 'tr': return AppLocalizationsTr();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

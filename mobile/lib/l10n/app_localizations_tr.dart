@@ -33,8 +33,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get commonSomethingWentWrong => 'Bir şeyler ters gitti';
 
   @override
-  String get configError =>
-      'Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
+  String get configError => 'Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
 
   @override
   String get exitAgainHint => 'Çıkmak için tekrar geri basın';
@@ -58,8 +57,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get updateRequiredTitle => 'Güncelleme gerekli';
 
   @override
-  String get updateRequiredBody =>
-      'Uygulamayı kullanmaya devam etmek için yeni sürüme güncellemeniz gerekiyor.';
+  String get updateRequiredBody => 'Uygulamayı kullanmaya devam etmek için yeni sürüme güncellemeniz gerekiyor.';
 
   @override
   String get updateAvailable => 'Yeni sürüm mevcut.';
@@ -73,8 +71,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get accessBlockedTitle => 'Erişim kapatıldı';
 
   @override
-  String get accessBlockedBody =>
-      'Bu cihaza veya ağa erişim kapatıldı. Hatalı olduğunu düşünüyorsan destek ile iletişime geç.';
+  String get accessBlockedBody => 'Bu cihaza veya ağa erişim kapatıldı. Hatalı olduğunu düşünüyorsan destek ile iletişime geç.';
 
   @override
   String get settingsTitle => 'Ayarlar';
@@ -148,8 +145,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsLogoutAllTitle => 'Tüm cihazlardan çıkış';
 
   @override
-  String get settingsLogoutAllBody =>
-      'Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.';
+  String get settingsLogoutAllBody => 'Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.';
 
   @override
   String get settingsLogoutAllConfirm => 'Çıkış yap';
@@ -166,8 +162,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get loginSubtitle => 'Okul e-postanızla giriş yapın.';
 
   @override
-  String get loginReplacedNotice =>
-      'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.';
+  String get loginReplacedNotice => 'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.';
 
   @override
   String get loginPasswordRequired => 'Şifrenizi girin.';
@@ -241,8 +236,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get authUnverifiedNotice =>
-      'E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.';
+  String get authUnverifiedNotice => 'E-postanı doğrula. Giriş yapabilmek için hesabının doğrulanması gerekir.';
 
   @override
   String get authUseOtherAccount => 'Başka hesapla giriş yap';
@@ -278,8 +272,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authSelectGrade => 'Sınıfınızı seçin.';
 
   @override
-  String get authDepartmentsLoadFailed =>
-      'Bölüm listesi yüklenemedi. Yeniden deneyin.';
+  String get authDepartmentsLoadFailed => 'Bölüm listesi yüklenemedi. Yeniden deneyin.';
 
   @override
   String get authNameRequired => 'Adınızı ve soyadınızı girin.';
@@ -512,8 +505,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadSelect => 'Seç';
 
   @override
-  String get acadMaintenance =>
-      'Akademik hizmetler bakımda. Daha sonra tekrar deneyin.';
+  String get acadMaintenance => 'Akademik hizmetler bakımda. Daha sonra tekrar deneyin.';
 
   @override
   String get acadMyDept => 'Bölümüm';
@@ -579,8 +571,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadExamsTabOfficial => 'Resmi program';
 
   @override
-  String get acadExamsEmptyMine =>
-      'Kişisel sınav eklemedin.\nVize, final ya da quiz tarihlerini buradan takip et.';
+  String get acadExamsEmptyMine => 'Kişisel sınav eklemedin.\nVize, final ya da quiz tarihlerini buradan takip et.';
 
   @override
   String get acadExamsUpcoming => 'Yaklaşan';
@@ -597,8 +588,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+  String acadExamsSemanticCd(String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -608,18 +598,15 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String acadOfficialSemanticRoom(
-      String type, String title, String date, String room) {
+  String acadOfficialSemanticRoom(String type, String title, String date, String room) {
     return '$type: $title. $date, $room';
   }
 
   @override
-  String get acadExamsProfileIncomplete =>
-      'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.';
+  String get acadExamsProfileIncomplete => 'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.';
 
   @override
-  String get acadExamsEmptyOfficial =>
-      'Henüz yayınlanmış resmi sınav programı yok.';
+  String get acadExamsEmptyOfficial => 'Henüz yayınlanmış resmi sınav programı yok.';
 
   @override
   String get acadFormErrTitle => 'Sınav başlığı gerekli.';
@@ -702,8 +689,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadAnnReadAll => 'Tümünü okundu işaretle';
 
   @override
-  String get acadAnnEmptyMine =>
-      'Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.';
+  String get acadAnnEmptyMine => 'Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.';
 
   @override
   String get acadAnnEmptyAll => 'Henüz duyuru yok.';
@@ -891,8 +877,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get acadTimeEmptyText =>
-      'Henüz ders eklemedin.\nHaftalık programını oluşturmak için derslerini ekle.';
+  String get acadTimeEmptyText => 'Henüz ders eklemedin.\nHaftalık programını oluşturmak için derslerini ekle.';
 
   @override
   String get acadTimeAddFirst => 'İlk dersini ekle';
@@ -962,8 +947,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeStatusDone => 'Bitti';
 
   @override
-  String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+  String acadTimeSlotSemantic(String name, String day, String start, String end) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -1082,8 +1066,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeSemester => 'Dönem';
 
   @override
-  String get acadTimeNoSemester =>
-      'Henüz dönem yok. Bir dönem ekleyerek derslerini düzenleyebilirsin.';
+  String get acadTimeNoSemester => 'Henüz dönem yok. Bir dönem ekleyerek derslerini düzenleyebilirsin.';
 
   @override
   String get acadTimeAddSemester => 'Yeni dönem ekle';
@@ -1132,8 +1115,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeSemesterNeedAll => 'Ad ve iki tarih de gerekli.';
 
   @override
-  String get acadTimeSemesterEndAfter =>
-      'Bitiş tarihi başlangıçtan sonra olmalı.';
+  String get acadTimeSemesterEndAfter => 'Bitiş tarihi başlangıçtan sonra olmalı.';
 
   @override
   String get acadTimeAdd => 'Ekle';
@@ -1142,8 +1124,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeRemindersTitle => 'Hatırlatmalar';
 
   @override
-  String get acadTimeRemindersIntro =>
-      'Bildirimler cihazında zamanlanır; internet gerekmez. Ders programın veya sınavların değişince yenilenir.';
+  String get acadTimeRemindersIntro => 'Bildirimler cihazında zamanlanır; internet gerekmez. Ders programın veya sınavların değişince yenilenir.';
 
   @override
   String get acadTimeClassReminder => 'Ders hatırlatması';
@@ -1198,8 +1179,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatDetailVideoTooLong => 'Video en fazla 60 saniye olabilir';
 
   @override
-  String get chatDetailVideoTooLarge =>
-      'Video çok büyük, daha kısa bir video seçin';
+  String get chatDetailVideoTooLarge => 'Video çok büyük, daha kısa bir video seçin';
 
   @override
   String get chatDetailVideoUnsupported => 'Bu cihazda video gönderilemiyor.';
@@ -1208,16 +1188,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatDetailVideoFailed => 'Video hazırlanamadı.';
 
   @override
-  String get chatDetailVideosSplit =>
-      'Videolar büyük olduğu için birden fazla mesaj olarak gönderilecek';
+  String get chatDetailVideosSplit => 'Videolar büyük olduğu için birden fazla mesaj olarak gönderilecek';
 
   @override
-  String get chatDetailImageTooLarge =>
-      'Görsel çok büyük, daha küçük bir görsel seçin.';
+  String get chatDetailImageTooLarge => 'Görsel çok büyük, daha küçük bir görsel seçin.';
 
   @override
-  String get chatDetailImageTypes =>
-      'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.';
+  String get chatDetailImageTypes => 'Yalnızca JPEG, PNG veya WebP görseller gönderilebilir.';
 
   @override
   String get chatDetailImageUnreadable => 'Görsel okunamadı.';
@@ -1531,8 +1508,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatInfoDeleteConvGroup => 'Gruptan çıkıp bu sohbeti sileceksin.';
 
   @override
-  String get chatInfoDeleteConvDirect =>
-      'Bu sohbet yalnızca senin için silinecek. Karşı taraf etkilenmez.';
+  String get chatInfoDeleteConvDirect => 'Bu sohbet yalnızca senin için silinecek. Karşı taraf etkilenmez.';
 
   @override
   String get chatInfoUser => 'Kullanıcı';
@@ -1638,12 +1614,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatInfoRemovePhoto => 'Fotoğrafı kaldır';
 
   @override
-  String get chatInfoImageTooLarge =>
-      'Görsel çok büyük, daha küçük bir görsel seçin.';
+  String get chatInfoImageTooLarge => 'Görsel çok büyük, daha küçük bir görsel seçin.';
 
   @override
-  String get chatInfoImageTypeOnly =>
-      'Yalnızca JPEG, PNG veya WebP görseller kullanılabilir.';
+  String get chatInfoImageTypeOnly => 'Yalnızca JPEG, PNG veya WebP görseller kullanılabilir.';
 
   @override
   String get chatInfoTitle => 'Sohbet bilgisi';
@@ -1902,8 +1876,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscContactsFind => 'Rehberden kişi bul';
 
   @override
-  String get chatMiscContactsRationale =>
-      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
+  String get chatMiscContactsRationale => 'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
 
   @override
   String get chatMiscContactsSubtitle => 'Bingöl Üniversitesi kişileri';
@@ -1912,8 +1885,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscContactsPermTitle => 'Rehber izni gerekli';
 
   @override
-  String get chatMiscContactsPermText =>
-      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
+  String get chatMiscContactsPermText => 'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
 
   @override
   String get chatMiscContactsPermAction => 'İzin ver';
@@ -1922,15 +1894,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscContactsNoneTitle => 'Eşleşen kişi yok';
 
   @override
-  String get chatMiscContactsNoneText =>
-      'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
+  String get chatMiscContactsNoneText => 'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
 
   @override
   String get chatMiscContactsSearchHint => 'Kişilerde ara';
 
   @override
-  String get chatMiscContactsTruncated =>
-      'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.';
+  String get chatMiscContactsTruncated => 'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.';
 
   @override
   String get chatMiscContactsNoSearchMatch => 'Aramanla eşleşen kişi yok.';
@@ -1944,8 +1914,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscMessage => 'Mesaj';
 
   @override
-  String get chatMiscContactsPrivacy =>
-      'Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
+  String get chatMiscContactsPrivacy => 'Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
 
   @override
   String get chatMiscGroupMax => 'Gruba en çok 50 kişi eklenebilir.';
@@ -2008,8 +1977,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscChatNotFound => 'Sohbet bulunamadı.';
 
   @override
-  String get chatMiscGalleryRationale =>
-      'Galerindeki fotoğraf ve videoları gösterebilmemiz için erişim izni gerekir.';
+  String get chatMiscGalleryRationale => 'Galerindeki fotoğraf ve videoları gösterebilmemiz için erişim izni gerekir.';
 
   @override
   String get chatMiscVideoMax60 => 'Video en fazla 60 saniye olabilir';
@@ -2049,12 +2017,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get chatMiscCameraRationale =>
-      'Fotoğraf ve video çekebilmeniz için kameraya erişmemiz gerekir.';
+  String get chatMiscCameraRationale => 'Fotoğraf ve video çekebilmeniz için kameraya erişmemiz gerekir.';
 
   @override
-  String get chatMiscMicRationale =>
-      'Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.';
+  String get chatMiscMicRationale => 'Video kaydederken sesi de alabilmemiz için mikrofona erişmemiz gerekir.';
 
   @override
   String get chatMiscPhotoFailed => 'Fotoğraf çekilemedi.';
@@ -2072,8 +2038,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscFlipCamera => 'Kamerayı çevir';
 
   @override
-  String get chatMiscOnceToast =>
-      'Tek gönderimlik: alıcı yalnızca bir kez görebilir';
+  String get chatMiscOnceToast => 'Tek gönderimlik: alıcı yalnızca bir kez görebilir';
 
   @override
   String get chatMiscAddCaption => 'Açıklama ekle…';
@@ -2085,16 +2050,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscOnceGone => 'Bu fotoğraf artık görüntülenemez.';
 
   @override
-  String get chatMiscOnceOwn =>
-      'Kendi gönderdiğiniz tek gösterimlik fotoğrafı açamazsınız.';
+  String get chatMiscOnceOwn => 'Kendi gönderdiğiniz tek gösterimlik fotoğrafı açamazsınız.';
 
   @override
-  String get chatMiscOnceNetwork =>
-      'Fotoğraf yüklenemedi. Bağlantınızı kontrol edin. Tek gösterimlik olduğu için yeniden açılamayabilir.';
+  String get chatMiscOnceNetwork => 'Fotoğraf yüklenemedi. Bağlantınızı kontrol edin. Tek gösterimlik olduğu için yeniden açılamayabilir.';
 
   @override
-  String get chatMiscOnceShowFailed =>
-      'Fotoğraf gösterilemedi. Tek gösterimlik olduğu için yeniden açılamayabilir.';
+  String get chatMiscOnceShowFailed => 'Fotoğraf gösterilemedi. Tek gösterimlik olduğu için yeniden açılamayabilir.';
 
   @override
   String get chatMiscOnceTitle => 'Tek gösterimlik';
@@ -2139,8 +2101,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubImageTooLarge => 'Görsel çok büyük.';
 
   @override
-  String get clubImageUnsupported =>
-      'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
+  String get clubImageUnsupported => 'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
 
   @override
   String get clubImageUnreadable => 'Görsel okunamadı.';
@@ -2158,8 +2119,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubChatClosed => 'Kulüp sohbeti şu an kapalı.';
 
   @override
-  String get clubChatPreparing =>
-      'Kulüp sohbeti hazırlanıyor, biraz sonra tekrar dene.';
+  String get clubChatPreparing => 'Kulüp sohbeti hazırlanıyor, biraz sonra tekrar dene.';
 
   @override
   String get clubChat => 'Kulüp sohbeti';
@@ -2304,8 +2264,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubRoleModerator => 'Moderatör';
 
   @override
-  String get clubDeleteBody =>
-      'Üyeler, etkinlikler ve sohbet silinir. Bu işlem geri alınamaz.';
+  String get clubDeleteBody => 'Üyeler, etkinlikler ve sohbet silinir. Bu işlem geri alınamaz.';
 
   @override
   String clubDeleteTypeName(String name) {
@@ -2316,8 +2275,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubNameHint => 'Kulüp adı';
 
   @override
-  String get clubOwnerCannotLeave =>
-      'Kulüp sahibi ayrılamaz. Önce sahipliği devret ya da kulübü sil.';
+  String get clubOwnerCannotLeave => 'Kulüp sahibi ayrılamaz. Önce sahipliği devret ya da kulübü sil.';
 
   @override
   String get clubCannotLeaveTitle => 'Kulüpten ayrılamazsın';
@@ -2426,8 +2384,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubMgmtPendingTitle => 'Kulübün onaya gönderildi';
 
   @override
-  String get clubMgmtPendingBody =>
-      'Yöneticiler incelediğinde kulüp yayına girecek. Durumu Kulüplerim bölümünden izleyebilirsin.';
+  String get clubMgmtPendingBody => 'Yöneticiler incelediğinde kulüp yayına girecek. Durumu Kulüplerim bölümünden izleyebilirsin.';
 
   @override
   String get clubMgmtOk => 'Tamam';
@@ -2436,8 +2393,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubMgmtImageTooLarge => 'Görsel çok büyük.';
 
   @override
-  String get clubMgmtImageUnsupported =>
-      'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
+  String get clubMgmtImageUnsupported => 'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
 
   @override
   String get clubMgmtImageUnreadable => 'Görsel okunamadı.';
@@ -2458,8 +2414,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubMgmtCategoryMax => 'Kategori en fazla 40 karakter olabilir.';
 
   @override
-  String get clubMgmtSavedWithWarning =>
-      'Kulüp kaydedildi ancak kapak ya da katılım soruları kaydedilemedi.';
+  String get clubMgmtSavedWithWarning => 'Kulüp kaydedildi ancak kapak ya da katılım soruları kaydedilemedi.';
 
   @override
   String get clubMgmtEditTitle => 'Kulübü düzenle';
@@ -2495,8 +2450,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubMgmtPrivate => 'Gizli';
 
   @override
-  String get clubMgmtPrivateHint =>
-      'Kulüp içeriğini yalnızca üyeler görür; katılım onayla olur.';
+  String get clubMgmtPrivateHint => 'Kulüp içeriğini yalnızca üyeler görür; katılım onayla olur.';
 
   @override
   String get clubMgmtPublicHint => 'Kulüp Keşfet listesinde görünür.';
@@ -2511,8 +2465,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clubMgmtApprovalPolicy => 'Onaylı';
 
   @override
-  String get clubMgmtApprovalHint =>
-      'Katılmak isteyenler başvuru gönderir, sen onaylarsın.';
+  String get clubMgmtApprovalHint => 'Katılmak isteyenler başvuru gönderir, sen onaylarsın.';
 
   @override
   String get clubMgmtOpenHint => 'Herkes doğrudan katılabilir.';
@@ -2718,36 +2671,31 @@ class AppLocalizationsTr extends AppLocalizations {
   String get permNotificationsTitle => 'Bildirimler';
 
   @override
-  String get permNotificationsText =>
-      'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.';
+  String get permNotificationsText => 'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.';
 
   @override
   String get permContactsTitle => 'Rehber';
 
   @override
-  String get permContactsText =>
-      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.';
+  String get permContactsText => 'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.';
 
   @override
   String get permCameraTitle => 'Kamera';
 
   @override
-  String get permCameraText =>
-      'QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.';
+  String get permCameraText => 'QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.';
 
   @override
   String get permMicrophoneTitle => 'Mikrofon';
 
   @override
-  String get permMicrophoneText =>
-      'Ses ve görüntü kaydı yapabilmeniz için mikrofona erişmemiz gerekir.';
+  String get permMicrophoneText => 'Ses ve görüntü kaydı yapabilmeniz için mikrofona erişmemiz gerekir.';
 
   @override
   String get permPhotosTitle => 'Fotoğraflar';
 
   @override
-  String get permPhotosText =>
-      'Fotoğraf seçip paylaşabilmeniz için galerinize erişmemiz gerekir.';
+  String get permPhotosText => 'Fotoğraf seçip paylaşabilmeniz için galerinize erişmemiz gerekir.';
 
   @override
   String get permContinue => 'Devam';
@@ -2770,8 +2718,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get permPageTitle => 'Birkaç izin';
 
   @override
-  String get permPageIntro =>
-      'Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar’dan da değiştirebilirsiniz.';
+  String get permPageIntro => 'Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar’dan da değiştirebilirsiniz.';
 
   @override
   String get permStart => 'Başla';
@@ -2789,8 +2736,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get permAllow => 'İzin ver';
 
   @override
-  String get coreErrNetwork =>
-      'Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.';
+  String get coreErrNetwork => 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.';
 
   @override
   String get coreErrTooMany => 'Çok fazla deneme. Lütfen biraz bekleyin.';
@@ -2802,8 +2748,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get coreIdEmpty => 'Okul numaranızı veya e-posta adresinizi girin.';
 
   @override
-  String get coreIdDomain =>
-      'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.';
+  String get coreIdDomain => 'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.';
 
   @override
   String get coreIdNumber => 'Okul numarasını kontrol edin.';
@@ -2818,15 +2763,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get coreOpen => 'Aç';
 
   @override
-  String get eventFormJoinFull =>
-      'Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.';
+  String get eventFormJoinFull => 'Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.';
 
   @override
   String get eventFormLeaveTitle => 'Katılımdan ayrıl';
 
   @override
-  String get eventFormLeaveMessage =>
-      'Bu etkinlik Etkinliklerim listenden çıkarılacak.';
+  String get eventFormLeaveMessage => 'Bu etkinlik Etkinliklerim listenden çıkarılacak.';
 
   @override
   String get eventFormLeaveConfirm => 'Ayrıl';
@@ -2841,8 +2784,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventFormCancelTitle => 'Etkinliği iptal et';
 
   @override
-  String get eventFormCancelMessage =>
-      'Bu etkinlik tüm katılımcılar için iptal edilecek.';
+  String get eventFormCancelMessage => 'Bu etkinlik tüm katılımcılar için iptal edilecek.';
 
   @override
   String get eventFormCancelAction => 'İptal et';
@@ -2925,8 +2867,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventFormInterestedShort => 'İlgileniyor';
 
   @override
-  String get eventFormFullHint =>
-      'Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.';
+  String get eventFormFullHint => 'Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.';
 
   @override
   String get eventFormChat => 'Etkinlik sohbeti';
@@ -2959,8 +2900,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventFormCodeFailed => 'Kod alınamadı.';
 
   @override
-  String get eventFormQrHelp =>
-      'Katılımcılar bu QR kodunu uygulamadan taratır.';
+  String get eventFormQrHelp => 'Katılımcılar bu QR kodunu uygulamadan taratır.';
 
   @override
   String get eventFormCodeShortLived => 'Kod kısa süre geçerlidir.';
@@ -3007,19 +2947,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventFormTakePhoto => 'Fotoğraf çek';
 
   @override
-  String get eventFormImgTooLarge =>
-      'Görsel çok büyük, daha küçük bir görsel seçin.';
+  String get eventFormImgTooLarge => 'Görsel çok büyük, daha küçük bir görsel seçin.';
 
   @override
-  String get eventFormImgUnsupported =>
-      'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
+  String get eventFormImgUnsupported => 'Yalnızca JPEG, PNG veya WebP görseller yüklenebilir.';
 
   @override
   String get eventFormImgUnreadable => 'Görsel okunamadı.';
 
   @override
-  String get eventFormImgPickFail =>
-      'Görsel seçilemedi. İzinleri kontrol edin.';
+  String get eventFormImgPickFail => 'Görsel seçilemedi. İzinleri kontrol edin.';
 
   @override
   String get eventFormTitleTooShort => 'Başlık en az 3 karakter olmalı.';
@@ -3028,8 +2965,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventFormEndBeforeStart => 'Bitiş, başlangıçtan sonra olmalı.';
 
   @override
-  String get eventFormCapInvalid =>
-      'Kontenjan 1 veya daha büyük bir sayı olmalı.';
+  String get eventFormCapInvalid => 'Kontenjan 1 veya daha büyük bir sayı olmalı.';
 
   @override
   String eventFormCoverRemoveFail(String reason) {
@@ -3134,15 +3070,13 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get eventListFull =>
-      'Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.';
+  String get eventListFull => 'Kontenjan doldu. \"İlgileniyorum\" ile takipte kalabilirsin.';
 
   @override
   String get eventListLeaveTitle => 'Katılımdan ayrıl';
 
   @override
-  String get eventListLeaveMsg =>
-      'Bu etkinlik Etkinliklerim listenden çıkarılacak.';
+  String get eventListLeaveMsg => 'Bu etkinlik Etkinliklerim listenden çıkarılacak.';
 
   @override
   String get eventListLeave => 'Ayrıl';
@@ -3160,8 +3094,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventListCancelTitle => 'Etkinliği iptal et';
 
   @override
-  String get eventListCancelMsg =>
-      'Bu etkinlik tüm katılımcılar için iptal edilecek.';
+  String get eventListCancelMsg => 'Bu etkinlik tüm katılımcılar için iptal edilecek.';
 
   @override
   String get eventListCancelConfirm => 'İptal et';
@@ -3188,8 +3121,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventListPastMonth => 'Geçmiş ay: yalnızca görüntüleme.';
 
   @override
-  String get eventListTruncated =>
-      'Bu ayın tamamı gösterilemiyor; bazı etkinlikler listede yok.';
+  String get eventListTruncated => 'Bu ayın tamamı gösterilemiyor; bazı etkinlikler listede yok.';
 
   @override
   String get eventListUpcoming => 'Yaklaşan';
@@ -3198,8 +3130,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventListPast => 'Geçmiş';
 
   @override
-  String get eventListCreatedHint =>
-      'Oluşturduğun etkinlikleri buradan yönetebilirsin.';
+  String get eventListCreatedHint => 'Oluşturduğun etkinlikleri buradan yönetebilirsin.';
 
   @override
   String get eventListEmptyUpcoming => 'Katılacağın bir etkinlik yok.';
@@ -3411,8 +3342,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeMaintenanceDefault => 'Sistem bakımda.';
 
   @override
-  String get homeSourceUnreachable =>
-      'Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.';
+  String get homeSourceUnreachable => 'Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.';
 
   @override
   String get homeSearchHint => 'Haber, kulüp, etkinlik ara';
@@ -3633,8 +3563,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get discoverNoCategory => 'Bu kategoride henüz içerik yok.';
 
   @override
-  String get discoverDeptHint =>
-      'Bölümünü profilinden seçersen bölümündeki gönderileri burada görürsün.';
+  String get discoverDeptHint => 'Bölümünü profilinden seçersen bölümündeki gönderileri burada görürsün.';
 
   @override
   String get discoverDeptEmpty => 'Bölümünden henüz gönderi yok.';
@@ -3658,15 +3587,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get discoverNews => 'Haberler';
 
   @override
-  String get discoverSourceMaint =>
-      'Kaynak site şu an bakımda. Veriler güncel olmayabilir.';
+  String get discoverSourceMaint => 'Kaynak site şu an bakımda. Veriler güncel olmayabilir.';
 
   @override
   String get menuTitle => 'Yemek listesi';
 
   @override
-  String get menuStale =>
-      'Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.';
+  String get menuStale => 'Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.';
 
   @override
   String get menuPrevMonth => 'Önceki ay';
@@ -3757,8 +3684,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
-  String get searchPrompt =>
-      'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.';
+  String get searchPrompt => 'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.';
 
   @override
   String get searchRecent => 'SON ARAMALAR';
@@ -3775,8 +3701,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get searchTooMany =>
-      'Çok fazla istek gönderildi, birkaç saniye bekleyin.';
+  String get searchTooMany => 'Çok fazla istek gönderildi, birkaç saniye bekleyin.';
 
   @override
   String get followButtonUnfollow => 'Takipten çık';
@@ -3818,8 +3743,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get qrScanTitle => 'QR kodu tara';
 
   @override
-  String get qrCameraRationale =>
-      'QR kodu okutabilmek için kameraya erişmemiz gerekir.';
+  String get qrCameraRationale => 'QR kodu okutabilmek için kameraya erişmemiz gerekir.';
 
   @override
   String get qrManualLabel => 'Kodu elle gir';
@@ -3828,15 +3752,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get qrConfirm => 'Onayla';
 
   @override
-  String get qrCameraDenied =>
-      'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.';
+  String get qrCameraDenied => 'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.';
 
   @override
   String get qrGrantCamera => 'Kamera izni ver';
 
   @override
-  String get qrDeniedSettings =>
-      'Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir ya da kodu elle girebilirsiniz.';
+  String get qrDeniedSettings => 'Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir ya da kodu elle girebilirsiniz.';
 
   @override
   String get qrCameraFailed => 'Kamera açılamadı. Kodu elle girebilirsiniz.';
@@ -3986,8 +3908,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pollBlockedNotOpen => 'Bu anket henüz açılmadı.';
 
   @override
-  String get pollBlockedAlreadyVoted =>
-      'Oyunuz kaydedildi; bu ankette oy değiştirilemez.';
+  String get pollBlockedAlreadyVoted => 'Oyunuz kaydedildi; bu ankette oy değiştirilemez.';
 
   @override
   String get pollBlockedDefault => 'Bu ankette oy veremezsiniz.';
@@ -4061,8 +3982,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pollResultsAfterClose => 'Sonuçlar anket kapanınca görünecek.';
 
   @override
-  String get pollHintRanked =>
-      'Tercih sırasına göre dokunun: ilk dokunduğunuz en çok tercih ettiğinizdir.';
+  String get pollHintRanked => 'Tercih sırasına göre dokunun: ilk dokunduğunuz en çok tercih ettiğinizdir.';
 
   @override
   String pollHintMax(String n) {
@@ -4147,8 +4067,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeErrImageTooLarge => 'Görsel çok büyük.';
 
   @override
-  String get postComposeErrImageUnsupported =>
-      'Bu görsel biçimi desteklenmiyor.';
+  String get postComposeErrImageUnsupported => 'Bu görsel biçimi desteklenmiyor.';
 
   @override
   String get postComposeErrImageUnreadable => 'Görsel okunamadı.';
@@ -4172,12 +4091,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeErrMediaInvalid => 'Medya geçersiz, yeniden yükle.';
 
   @override
-  String get postComposeErrProfanity =>
-      'Bu alanda uygunsuz ifade kullanılamaz. Lütfen metni düzenleyin.';
+  String get postComposeErrProfanity => 'Bu alanda uygunsuz ifade kullanılamaz. Lütfen metni düzenleyin.';
 
   @override
-  String get postComposeErrRate =>
-      'Çok hızlı paylaşım yapıyorsun, biraz bekle.';
+  String get postComposeErrRate => 'Çok hızlı paylaşım yapıyorsun, biraz bekle.';
 
   @override
   String get postComposeErrFileTooLarge => 'Dosya çok büyük.';
@@ -4186,8 +4103,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeErrGeneric => 'Bir sorun oluştu, tekrar dene.';
 
   @override
-  String get postComposeErrVideoUnsupported =>
-      'Bu cihazda video hazırlanamıyor.';
+  String get postComposeErrVideoUnsupported => 'Bu cihazda video hazırlanamıyor.';
 
   @override
   String get postComposeErrCancelled => 'İptal edildi.';
@@ -4232,8 +4148,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeBlockTitle => 'Kullanıcı engellensin mi?';
 
   @override
-  String get postComposeBlockBody =>
-      'Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.';
+  String get postComposeBlockBody => 'Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.';
 
   @override
   String get postComposeBlock => 'Engelle';
@@ -4248,8 +4163,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeTextEmpty => 'Metin boş olamaz.';
 
   @override
-  String get postComposeProfanityFallback =>
-      'Metin uygunsuz ifadeler içeriyor.';
+  String get postComposeProfanityFallback => 'Metin uygunsuz ifadeler içeriyor.';
 
   @override
   String get postComposeHint => 'Ne düşünüyorsun?';
@@ -4271,12 +4185,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get postComposeInvalidRetry =>
-      'Medya geçersiz, yeniden yüklenecek. Paylaş düğmesine tekrar dokun.';
+  String get postComposeInvalidRetry => 'Medya geçersiz, yeniden yüklenecek. Paylaş düğmesine tekrar dokun.';
 
   @override
-  String get postComposeNetworkDraftKept =>
-      'Bağlantı yok. Taslağın korundu, tekrar dene.';
+  String get postComposeNetworkDraftKept => 'Bağlantı yok. Taslağın korundu, tekrar dene.';
 
   @override
   String get postComposeShared => 'Paylaşıldı';
@@ -4285,8 +4197,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeDiscardTitle => 'Taslağı silmek istiyor musun?';
 
   @override
-  String get postComposeDiscardBody =>
-      'Yazdıkların ve seçtiğin medya silinecek.';
+  String get postComposeDiscardBody => 'Yazdıkların ve seçtiğin medya silinecek.';
 
   @override
   String get postComposeContinue => 'Devam';
@@ -4485,8 +4396,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postViewHideReplies => 'Yanıtları gizle';
 
   @override
-  String get postViewCommentsLoadFailed =>
-      'Yorumlar yüklenemedi · Yeniden dene';
+  String get postViewCommentsLoadFailed => 'Yorumlar yüklenemedi · Yeniden dene';
 
   @override
   String get postViewCommentsLoading => 'Yorumlar yükleniyor';
@@ -4626,8 +4536,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postViewMore => 'Daha fazla';
 
   @override
-  String get postViewFeedEmpty =>
-      'Henüz gönderi yok. İlk gönderiyi sen paylaş!';
+  String get postViewFeedEmpty => 'Henüz gönderi yok. İlk gönderiyi sen paylaş!';
 
   @override
   String postViewCommentsWithCount(String n) {
@@ -4653,8 +4562,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileDiscardTitle => 'Değişiklikler kaydedilmedi';
 
   @override
-  String get profileDiscardBody =>
-      'Çıkarsanız yaptığınız değişiklikler kaybolacak.';
+  String get profileDiscardBody => 'Çıkarsanız yaptığınız değişiklikler kaybolacak.';
 
   @override
   String get profileKeepEditing => 'Düzenlemeye devam et';
@@ -4681,12 +4589,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileRemovePhoto => 'Fotoğrafı kaldır';
 
   @override
-  String get profilePhotoTooLargeHint =>
-      'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.';
+  String get profilePhotoTooLargeHint => 'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.';
 
   @override
-  String get profilePhotoUnsupported =>
-      'Yalnızca JPG, PNG veya WebP fotoğraflar yüklenebilir.';
+  String get profilePhotoUnsupported => 'Yalnızca JPG, PNG veya WebP fotoğraflar yüklenebilir.';
 
   @override
   String get profilePhotoUnreadable => 'Seçilen dosya okunamadı.';
@@ -4838,8 +4744,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileReminders => 'Ders ve sınav hatırlatmaları';
 
   @override
-  String get profileSavedEmpty =>
-      'Henüz kaydettiğiniz bir haber yok. Haberlerdeki yer imi simgesine dokunun.';
+  String get profileSavedEmpty => 'Henüz kaydettiğiniz bir haber yok. Haberlerdeki yer imi simgesine dokunun.';
 
   @override
   String get profileRetry => 'Yeniden dene';
@@ -4877,8 +4782,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilePrefsDataCopied => 'Verileriniz panoya kopyalandı';
 
   @override
-  String get profilePrefsExportLimit =>
-      'Günde en fazla 3 kez veri indirebilirsiniz.';
+  String get profilePrefsExportLimit => 'Günde en fazla 3 kez veri indirebilirsiniz.';
 
   @override
   String get profilePrefsBlockedUsers => 'Engellenen kullanıcılar';
@@ -4905,8 +4809,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilePrefsDeleteAccountTitle => 'Hesabı sil';
 
   @override
-  String get profilePrefsDeleteAccountBody =>
-      'Hesabınız ve kişisel verileriniz silinecek. Bu işlem geri alınamaz. Onaylamak için şifrenizi girin.';
+  String get profilePrefsDeleteAccountBody => 'Hesabınız ve kişisel verileriniz silinecek. Bu işlem geri alınamaz. Onaylamak için şifrenizi girin.';
 
   @override
   String get profilePrefsPassword => 'Şifre';
@@ -5155,8 +5058,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get supportStatusOpen => 'Açık';
 
   @override
-  String get supportTooManyRequests =>
-      'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.';
+  String get supportTooManyRequests => 'Çok fazla istek gönderdiniz. Lütfen biraz bekleyip tekrar deneyin.';
 
   @override
   String get supportLabelCategory => 'KATEGORİ';
@@ -5243,15 +5145,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get supportAddSuggestion => 'Öneri ekle';
 
   @override
-  String get supportNoSuggestions =>
-      'Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.';
+  String get supportNoSuggestions => 'Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.';
 
   @override
   String get supportCloseTicketTitle => 'Talebi kapat';
 
   @override
-  String get supportCloseTicketBody =>
-      'Bu talep kapatılacak ve yeni yanıt yazamayacaksınız. Devam edilsin mi?';
+  String get supportCloseTicketBody => 'Bu talep kapatılacak ve yeni yanıt yazamayacaksınız. Devam edilsin mi?';
 
   @override
   String get supportCancel => 'Vazgeç';
@@ -5356,8 +5256,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get authForgotSub =>
-      'Okul e-postanızı girin, size 6 haneli bir kod gönderelim.';
+  String get authForgotSub => 'Okul e-postanızı girin, size 6 haneli bir kod gönderelim.';
 
   @override
   String get authBackToLogin => 'Girişe dön';
@@ -5366,8 +5265,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authChangeEmail => 'E-postayı değiştir';
 
   @override
-  String get authNewPwSub =>
-      'Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.';
+  String get authNewPwSub => 'Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.';
 
   @override
   String get authRuleLen => 'En az 8 karakter';
@@ -5385,8 +5283,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get welcomeHeadline => 'Kampüs artık\ncebinizde';
 
   @override
-  String get welcomeSub =>
-      'Duyurular, yemek listesi, kulüpler ve etkinlikler tek uygulamada.';
+  String get welcomeSub => 'Duyurular, yemek listesi, kulüpler ve etkinlikler tek uygulamada.';
 
   @override
   String get welcomeNews => 'Haberler ve duyurular';
@@ -5398,8 +5295,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get welcomeClubs => 'Kulüpler ve etkinlikler';
 
   @override
-  String get welcomeNote =>
-      'Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir.';
+  String get welcomeNote => 'Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir.';
 
   @override
   String get welcomeLanguage => 'Dil';
@@ -5492,8 +5388,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2PrivacyTitle => 'Gizlilik ve engellenenler';
 
   @override
-  String get profil2PrivacyIntro =>
-      'Profilini kimlerin görebileceğini alan alan seç. Kendi profilini her zaman tam görürsün.';
+  String get profil2PrivacyIntro => 'Profilini kimlerin görebileceğini alan alan seç. Kendi profilini her zaman tam görürsün.';
 
   @override
   String get profil2VisibilitySection => 'Profil görünürlüğü';
@@ -5526,8 +5421,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SharedHintLead => 'Ortak bağlam:';
 
   @override
-  String get profil2SharedHintBody =>
-      'ortak kulüp, sohbet veya etkinliğin olduğu kişiler.';
+  String get profil2SharedHintBody => 'ortak kulüp, sohbet veya etkinliğin olduğu kişiler.';
 
   @override
   String get profil2ShowEmail => 'E-postamı profilimde göster';
@@ -5539,12 +5433,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2BlockedSection => 'Engellenenler';
 
   @override
-  String get profil2BlockedHint =>
-      'Engellediğin kişiler seni göremez, sana yazamaz.';
+  String get profil2BlockedHint => 'Engellediğin kişiler seni göremez, sana yazamaz.';
 
   @override
-  String get profil2AvatarModerated =>
-      'Profil fotoğrafın moderasyon nedeniyle gizlendi.';
+  String get profil2AvatarModerated => 'Profil fotoğrafın moderasyon nedeniyle gizlendi.';
 
   @override
   String get profil2SaveFailed => 'Değişiklik kaydedilemedi.';
@@ -5556,8 +5448,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2DataTitle => 'Verilerim';
 
   @override
-  String get profil2DataIntro =>
-      'KVKK kapsamında uygulamada sakladığımız kişisel verilerinin bir kopyasını indirebilirsin.';
+  String get profil2DataIntro => 'KVKK kapsamında uygulamada sakladığımız kişisel verilerinin bir kopyasını indirebilirsin.';
 
   @override
   String get profil2DataFileSub => 'JSON dosyası olarak hazırlanır';
@@ -5581,8 +5472,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2DataItemSupport => 'Destek ve geri bildirim kayıtların';
 
   @override
-  String get profil2DataLimit =>
-      'Günde en fazla 3 kez indirebilirsin. Dosyayı güvenli sakla, içinde kişisel bilgiler var.';
+  String get profil2DataLimit => 'Günde en fazla 3 kez indirebilirsin. Dosyayı güvenli sakla, içinde kişisel bilgiler var.';
 
   @override
   String get profil2DataOther => 'Diğer';
@@ -5594,34 +5484,28 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2DelWarnLead => 'Bu işlem geri alınamaz.';
 
   @override
-  String get profil2DelWarnBody =>
-      'Hesabın anonimleştirilir ve bir daha giriş yapamazsın.';
+  String get profil2DelWarnBody => 'Hesabın anonimleştirilir ve bir daha giriş yapamazsın.';
 
   @override
   String get profil2DelWhatHappens => 'Neler olur';
 
   @override
-  String get profil2DelItem1 =>
-      'Adın, e-postan, fotoğrafın ve profil bilgilerin silinir. Hesap Silinmiş kullanıcı olarak kalır.';
+  String get profil2DelItem1 => 'Adın, e-postan, fotoğrafın ve profil bilgilerin silinir. Hesap Silinmiş kullanıcı olarak kalır.';
 
   @override
-  String get profil2DelItem2 =>
-      'Bildirimlerin, kayıtlı haberlerin, cihaz kayıtların ve tercihlerin silinir.';
+  String get profil2DelItem2 => 'Bildirimlerin, kayıtlı haberlerin, cihaz kayıtların ve tercihlerin silinir.';
 
   @override
-  String get profil2DelItem3 =>
-      'Kulüp üyeliklerin ve etkinlik katılımların kaldırılır.';
+  String get profil2DelItem3 => 'Kulüp üyeliklerin ve etkinlik katılımların kaldırılır.';
 
   @override
   String get profil2DelItem4 => 'Tüm cihazlardaki oturumların kapanır.';
 
   @override
-  String get profil2DelBackupHint =>
-      'Dilersen silmeden önce verilerini indirebilirsin.';
+  String get profil2DelBackupHint => 'Dilersen silmeden önce verilerini indirebilirsin.';
 
   @override
-  String get profil2DelAck =>
-      'Hesabımın kalıcı olarak silineceğini ve geri alınamayacağını anladım.';
+  String get profil2DelAck => 'Hesabımın kalıcı olarak silineceğini ve geri alınamayacağını anladım.';
 
   @override
   String get profil2Continue => 'Devam et';
@@ -5630,8 +5514,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2DelConfirmTitle => 'Silmeyi onayla';
 
   @override
-  String get profil2DelConfirmBody =>
-      'Devam etmek için şifreni gir. Hesabın hemen anonimleştirilir ve tüm cihazlardan çıkış yapılır.';
+  String get profil2DelConfirmBody => 'Devam etmek için şifreni gir. Hesabın hemen anonimleştirilir ve tüm cihazlardan çıkış yapılır.';
 
   @override
   String get profil2SecTitle => 'Hesap ve güvenlik';
@@ -5664,8 +5547,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SecRepeatHint => 'Yeni şifreyi tekrarlayın';
 
   @override
-  String get profil2SecPwRule =>
-      '8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.';
+  String get profil2SecPwRule => '8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.';
 
   @override
   String get profil2SecPwButton => 'Şifreyi güncelle';
@@ -5680,8 +5562,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SecWrongCurrent => 'Mevcut şifre hatalı.';
 
   @override
-  String get profil2SecFailed =>
-      'Şifre güncellenemedi. Lütfen daha sonra tekrar deneyin.';
+  String get profil2SecFailed => 'Şifre güncellenemedi. Lütfen daha sonra tekrar deneyin.';
 
   @override
   String get profil2SecUpdated => 'Şifren güncellendi.';
@@ -5891,8 +5772,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get gonderiDiscardTitle => 'Gönderiden vazgeçilsin mi?';
 
   @override
-  String get gonderiDiscardBody =>
-      'Seçtiğin fotoğraf ve yazdıkların silinecek.';
+  String get gonderiDiscardBody => 'Seçtiğin fotoğraf ve yazdıkların silinecek.';
 
   @override
   String get gonderiDiscardYes => 'Vazgeç';
@@ -5953,12 +5833,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get anketScopeMenu => 'Yemek';
 
   @override
-  String get anketSecretNote =>
-      'Oyunuz gizli. Seçiminizi yalnızca siz görürsünüz; yöneticiler dahil kimse kimin ne seçtiğini göremez.';
+  String get anketSecretNote => 'Oyunuz gizli. Seçiminizi yalnızca siz görürsünüz; yöneticiler dahil kimse kimin ne seçtiğini göremez.';
 
   @override
-  String get anketSecretVoteNote =>
-      'Oyunuz gizli kalır, kimse kimin ne seçtiğini göremez.';
+  String get anketSecretVoteNote => 'Oyunuz gizli kalır, kimse kimin ne seçtiğini göremez.';
 
   @override
   String get anketMineBadge => 'Seçiminiz';
@@ -6039,8 +5917,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get icerikFavorites => 'Favori haberler';
 
   @override
-  String get icerikMaintenance =>
-      'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.';
+  String get icerikMaintenance => 'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.';
 
   @override
   String get icerikOpenSource => 'Kaynak sitede aç';
@@ -6060,8 +5937,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get icerikSavedMoreTitle => 'Daha fazla haberi kaydet';
 
   @override
-  String get icerikSavedMoreBody =>
-      'Haber detayındaki işaretle haberleri buraya ekleyebilirsin.';
+  String get icerikSavedMoreBody => 'Haber detayındaki işaretle haberleri buraya ekleyebilirsin.';
 
   @override
   String get icerikSavedList => 'Favoriler';
@@ -6185,26 +6061,22 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get sistemuiPermNotifText =>
-      'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.';
+  String get sistemuiPermNotifText => 'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.';
 
   @override
-  String get sistemuiPermContactsText =>
-      'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.';
+  String get sistemuiPermContactsText => 'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.';
 
   @override
   String get sistemuiPermCameraTitle => 'Kamera ve galeri';
 
   @override
-  String get sistemuiPermCameraText =>
-      'QR kod okutmak, fotoğraf çekmek ve paylaşmak için.';
+  String get sistemuiPermCameraText => 'QR kod okutmak, fotoğraf çekmek ve paylaşmak için.';
 
   @override
   String get sistemuiOfflineTitle => 'Bağlantı yok';
 
   @override
-  String get sistemuiOfflineBody =>
-      'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.';
+  String get sistemuiOfflineBody => 'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.';
 
   @override
   String get sistemuiErrorTitle => 'Bir şeyler ters gitti';
@@ -6213,12 +6085,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sistemuiMaintTitle => 'Sistem bakımda';
 
   @override
-  String get sistemuiMaintBody =>
-      'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.';
+  String get sistemuiMaintBody => 'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.';
 
   @override
-  String get sistemuiMaintBand =>
-      'Bazı özellikler geçici olarak kullanılamayabilir.';
+  String get sistemuiMaintBand => 'Bazı özellikler geçici olarak kullanılamayabilir.';
 
   @override
   String sistemuiUpdateVersions(String current, String required) {
@@ -6232,8 +6102,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sistemuiQrHint => 'QR kodunu çerçevenin içine getir';
 
   @override
-  String get sistemuiQrNotice =>
-      'Yoklama etkinlik saatinde açılır. Organizatörün gösterdiği kodu okut.';
+  String get sistemuiQrNotice => 'Yoklama etkinlik saatinde açılır. Organizatörün gösterdiği kodu okut.';
 
   @override
   String get sistemuiQrOr => 'veya';
@@ -6245,15 +6114,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sistemuiQrSubmit => 'Yoklamayı gönder';
 
   @override
-  String get profilyardBlockedNote =>
-      'Engellediğin kişiler profilini göremez, sana mesaj yazamaz ve seni takip edemez.';
+  String get profilyardBlockedNote => 'Engellediğin kişiler profilini göremez, sana mesaj yazamaz ve seni takip edemez.';
 
   @override
   String get profilyardBlockedEmptyTitle => 'Kimseyi engellemedin';
 
   @override
-  String get profilyardBlockedEmptyBody =>
-      'Rahatsız edici bir kullanıcıyı profilinden engelleyebilirsin.';
+  String get profilyardBlockedEmptyBody => 'Rahatsız edici bir kullanıcıyı profilinden engelleyebilirsin.';
 
   @override
   String profilyardUnblockOf(String name) {
@@ -6288,8 +6155,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilyardClubsEmptyTitle => 'Henüz bir kulübün yok';
 
   @override
-  String get profilyardClubsEmptyBody =>
-      'Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.';
+  String get profilyardClubsEmptyBody => 'Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.';
 
   @override
   String get profilyardClubsDiscover => 'Kulüpleri keşfet';
@@ -6324,8 +6190,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilyardEventsEmptyTitle => 'Henüz etkinliğin yok';
 
   @override
-  String get profilyardEventsEmptyBody =>
-      'Etkinliklere göz at ya da kendi etkinliğini oluştur.';
+  String get profilyardEventsEmptyBody => 'Etkinliklere göz at ya da kendi etkinliğini oluştur.';
 
   @override
   String profilyardFollowersTab(String count) {
@@ -6356,8 +6221,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilyardFollowNoMatch => 'Eşleşen kişi yok.';
 
   @override
-  String get profilyardFbIntro =>
-      'Uygulamayı geliştirmemize yardım et. Önerini, karşılaştığın hatayı ya da düşüncelerini yaz.';
+  String get profilyardFbIntro => 'Uygulamayı geliştirmemize yardım et. Önerini, karşılaştığın hatayı ya da düşüncelerini yaz.';
 
   @override
   String get profilyardFbType => 'Tür';
@@ -6430,8 +6294,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2JoinPolicyLabel => 'Katılım';
 
   @override
-  String get etkinlik2PolicyApprovalHint =>
-      'İstek ile seçersen katılımcıları sen onaylarsın.';
+  String get etkinlik2PolicyApprovalHint => 'İstek ile seçersen katılımcıları sen onaylarsın.';
 
   @override
   String get etkinlik2FormClub => 'Kulüp adına (isteğe bağlı)';
@@ -6452,8 +6315,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2ChatAutoTitle => 'Etkinlik sohbeti otomatik açılır';
 
   @override
-  String get etkinlik2ChatAutoBody =>
-      'Katılanlar ve sen sohbete girersiniz. İstek ile katılımda yalnızca onaylananlar girer.';
+  String get etkinlik2ChatAutoBody => 'Katılanlar ve sen sohbete girersiniz. İstek ile katılımda yalnızca onaylananlar girer.';
 
   @override
   String get etkinlik2CapacityOptional => 'Kontenjan (isteğe bağlı)';
@@ -6476,8 +6338,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2SendRequest => 'Katılma isteği gönder';
 
   @override
-  String get etkinlik2RequestHint =>
-      'Organizatör onaylayınca etkinlik sohbetine girersin.';
+  String get etkinlik2RequestHint => 'Organizatör onaylayınca etkinlik sohbetine girersin.';
 
   @override
   String get etkinlik2RequestSent => 'İstek gönderildi';
@@ -6501,8 +6362,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2RejectedTitle => 'İsteğin reddedildi';
 
   @override
-  String get etkinlik2RejectedBody =>
-      'Organizatör bu etkinlik için isteğini kabul etmedi.';
+  String get etkinlik2RejectedBody => 'Organizatör bu etkinlik için isteğini kabul etmedi.';
 
   @override
   String get etkinlik2RequestSentToast => 'Katılma isteğin gönderildi.';
@@ -6552,8 +6412,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2ReqNoLimit => 'Kontenjan sınırı yok';
 
   @override
-  String get etkinlik2ReqFullBanner =>
-      'Kontenjan doldu; yeni istekler onaylanamaz. Yer açmak için kontenjanı artır.';
+  String get etkinlik2ReqFullBanner => 'Kontenjan doldu; yeni istekler onaylanamaz. Yer açmak için kontenjanı artır.';
 
   @override
   String etkinlik2ReqPendingHeader(String n) {
@@ -6617,15 +6476,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get etkinlik2SettingsRegOpen => 'Kayıtlar açık';
 
   @override
-  String get etkinlik2SettingsRegHint =>
-      'Kapatırsan yeni istek ve katılım alınmaz.';
+  String get etkinlik2SettingsRegHint => 'Kapatırsan yeni istek ve katılım alınmaz.';
 
   @override
   String get etkinlik2SettingsChatOpen => 'Etkinlik sohbeti açık';
 
   @override
-  String get etkinlik2SettingsChatHint =>
-      'Kapatırsan mesajlar durur, geçmiş saklanır.';
+  String get etkinlik2SettingsChatHint => 'Kapatırsan mesajlar durur, geçmiş saklanır.';
 
   @override
   String get etkinlik2SettingsDanger => 'Tehlikeli bölge';
@@ -6762,12 +6619,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get evcClubRequiredHint => 'Önce bir kulüp seç.';
 
   @override
-  String get evcEmptyTitle =>
-      'Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın';
+  String get evcEmptyTitle => 'Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın';
 
   @override
-  String get evcEmptyBody =>
-      'Etkinlikler kulüpler adına açılır. Bir kulübün yöneticisi olduğunda burada etkinlik oluşturabilirsin.';
+  String get evcEmptyBody => 'Etkinlikler kulüpler adına açılır. Bir kulübün yöneticisi olduğunda burada etkinlik oluşturabilirsin.';
 
   @override
   String get evcBrowseClubs => 'Kulüplere göz at';
@@ -6776,8 +6631,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get evcSubmittedTitle => 'Onaya gönderildi';
 
   @override
-  String get evcSubmittedBody =>
-      'Etkinliğin admin onayından sonra yayınlanacak. Durumunu Oluşturduklarım sekmesinden takip edebilirsin.';
+  String get evcSubmittedBody => 'Etkinliğin admin onayından sonra yayınlanacak. Durumunu Oluşturduklarım sekmesinden takip edebilirsin.';
 
   @override
   String get evcOk => 'Tamam';
@@ -6794,8 +6648,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get evcErrClubRequired =>
-      'Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.';
+  String get evcErrClubRequired => 'Etkinlik bir kulüp adına oluşturulmalı. Bir kulüp seç.';
 
   @override
   String get evcErrForbidden => 'Bu kulüp adına etkinlik oluşturma yetkin yok.';
@@ -6858,8 +6711,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get evdErrEndBeforeStart => 'Bitiş, başlangıçtan sonra olmalı.';
 
   @override
-  String get evdEndAdjusted =>
-      'Bitiş, başlangıçtan 1 saat sonrasına otomatik ayarlandı.';
+  String get evdEndAdjusted => 'Bitiş, başlangıçtan 1 saat sonrasına otomatik ayarlandı.';
 
   @override
   String evdDescCounter(String count, String max) {
@@ -6883,40 +6735,31 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get clubMgmtCategoryInvalid =>
-      'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.';
+  String get clubMgmtCategoryInvalid => 'Seçilen kategori geçerli değil. Listeden başka bir kategori seç.';
 
   @override
-  String get errEmailAliasNotAllowed =>
-      'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.';
+  String get errEmailAliasNotAllowed => 'E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.';
 
   @override
-  String get errPasswordTooLong =>
-      'Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).';
+  String get errPasswordTooLong => 'Şifre çok uzun: en fazla 72 bayt olabilir (Türkçe ve Arapça karakterler birden çok bayt tutar).';
 
   @override
-  String get errPayloadTooLarge =>
-      'Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.';
+  String get errPayloadTooLarge => 'Gönderilen veri çok büyük. Daha küçük bir dosya ya da daha kısa bir metin deneyin.';
 
   @override
-  String get errUploadBusy =>
-      'Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.';
+  String get errUploadBusy => 'Başka bir yüklemeniz sürüyor ya da sunucu yoğun. Biraz bekleyip tekrar deneyin.';
 
   @override
-  String get errUploadQuota =>
-      'Çok fazla yükleme yaptınız. Biraz sonra tekrar deneyin.';
+  String get errUploadQuota => 'Çok fazla yükleme yaptınız. Biraz sonra tekrar deneyin.';
 
   @override
-  String get errMailQuota =>
-      'Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.';
+  String get errMailQuota => 'Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.';
 
   @override
-  String get errServiceBusy =>
-      'Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.';
+  String get errServiceBusy => 'Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.';
 
   @override
-  String get errLegalReaccept =>
-      'Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.';
+  String get errLegalReaccept => 'Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.';
 
   @override
   String coreErrRetryAfterSec(String n) {
@@ -6929,8 +6772,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get clubPostTextRequired =>
-      'Görselle paylaşmak için bir yazı da ekleyin.';
+  String get clubPostTextRequired => 'Görselle paylaşmak için bir yazı da ekleyin.';
 
   @override
   String get etkinlik2QrExpired => 'Süresi doldu, yenileniyor…';
@@ -6942,12 +6784,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get legalReacceptTitle => 'Sözleşmeler güncellendi';
 
   @override
-  String get legalReacceptIntro =>
-      'Kullanım koşulları ve gizlilik metinlerinde değişiklik yaptık. Uygulamayı kullanmaya devam etmek için güncellenen belgeleri okuyup kabul etmeniz gerekiyor.';
+  String get legalReacceptIntro => 'Kullanım koşulları ve gizlilik metinlerinde değişiklik yaptık. Uygulamayı kullanmaya devam etmek için güncellenen belgeleri okuyup kabul etmeniz gerekiyor.';
 
   @override
-  String get legalReacceptIntroSoft =>
-      'Bazı belgelerin yeni sürümü yayımlandı. Şimdi inceleyip kabul edebilir ya da daha sonraya bırakabilirsiniz; ilerleyen günlerde kabul etmeniz gerekecek.';
+  String get legalReacceptIntroSoft => 'Bazı belgelerin yeni sürümü yayımlandı. Şimdi inceleyip kabul edebilir ya da daha sonraya bırakabilirsiniz; ilerleyen günlerde kabul etmeniz gerekecek.';
 
   @override
   String get legalReacceptListTitle => 'Güncellenen belgeler';
@@ -6965,12 +6805,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get legalReacceptTypeRules => 'Topluluk Kuralları';
 
   @override
-  String get legalReacceptNoteExplicit =>
-      'İsteğe bağlı açık rıza izinleri bu onaydan ayrıdır; bu işlemle verilmiş sayılmaz.';
+  String get legalReacceptNoteExplicit => 'İsteğe bağlı açık rıza izinleri bu onaydan ayrıdır; bu işlemle verilmiş sayılmaz.';
 
   @override
-  String get legalReacceptCheck =>
-      'Güncellenen belgeleri okudum ve kabul ediyorum';
+  String get legalReacceptCheck => 'Güncellenen belgeleri okudum ve kabul ediyorum';
 
   @override
   String get legalReacceptAccept => 'Kabul et';
@@ -6985,8 +6823,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get legalReacceptDeclineTitle => 'Kabul etmeden devam edilemez';
 
   @override
-  String get legalReacceptDeclineBody =>
-      'Güncel sözleşmeleri kabul etmezseniz uygulamayı kullanamazsınız. Hesabınızı silebilir ya da çıkış yapıp daha sonra tekrar karar verebilirsiniz.';
+  String get legalReacceptDeclineBody => 'Güncel sözleşmeleri kabul etmezseniz uygulamayı kullanamazsınız. Hesabınızı silebilir ya da çıkış yapıp daha sonra tekrar karar verebilirsiniz.';
 
   @override
   String get legalReacceptDeleteAccount => 'Hesabımı sil';
@@ -6995,19 +6832,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get legalReacceptSignOut => 'Çıkış yap';
 
   @override
-  String get legalReacceptOutdated =>
-      'Belgeler yeniden güncellendi. Lütfen yeni sürümleri inceleyip tekrar kabul edin.';
+  String get legalReacceptOutdated => 'Belgeler yeniden güncellendi. Lütfen yeni sürümleri inceleyip tekrar kabul edin.';
 
   @override
   String get authVerifyPasswordLabel => 'Kayıtta belirlediğiniz şifre';
 
   @override
-  String get authVerifyPasswordNote =>
-      'Güvenlik için, kayıt sırasında girdiğiniz şifreyi yeniden girin.';
+  String get authVerifyPasswordNote => 'Güvenlik için, kayıt sırasında girdiğiniz şifreyi yeniden girin.';
 
   @override
-  String get authVerifyPasswordRequired =>
-      'Kayıtta belirlediğiniz şifreyi girin.';
+  String get authVerifyPasswordRequired => 'Kayıtta belirlediğiniz şifreyi girin.';
 
   @override
   String get chatClosedBanner => 'Bu sohbet yönetici tarafından kapatıldı.';
@@ -7019,26 +6853,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatModRemovedMsg => 'Bu mesaj kaldırıldı';
 
   @override
-  String get errCertificateRevoked =>
-      'Bu sertifika yönetici tarafından iptal edildi.';
+  String get errCertificateRevoked => 'Bu sertifika yönetici tarafından iptal edildi.';
 
   @override
   String get clubUnavailable => 'Kulüp şu an kullanılamıyor.';
 
   @override
-  String get profil2DelItemUsage =>
-      'Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.';
+  String get profil2DelItemUsage => 'Cihaz, IP ve kullanım (analitik) kayıtların anında silinir.';
 
   @override
-  String get profil2DelItemClubOwner =>
-      'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.';
+  String get profil2DelItemClubOwner => 'Sahibi olduğun kulüpler yönetici üyeye devredilir; aday yoksa kulüp kapatılır.';
 
   @override
   String get settingsCrashReports => 'Hata raporu gönder';
 
   @override
-  String get settingsCrashReportsDesc =>
-      'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.';
+  String get settingsCrashReportsDesc => 'Uygulama hata verdiğinde veya kapandığında anonim bir hata raporu BÜ Kampüs sunucusuna gönderilir: uygulama sürümü, işletim sistemi, hata türü ve kişisel veri içermeyen teknik bir yığın izi. E-posta, şifre, mesaj içeriği veya kimliğiniz gönderilmez; üçüncü taraf hizmete aktarılmaz. İstediğiniz zaman kapatabilirsiniz.';
 
   @override
   String get welcomeChipNews => 'Haberler';
@@ -7059,24 +6889,19 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authResetDoneTitle => 'Şifreniz güncellendi';
 
   @override
-  String get authResetDoneBody =>
-      'Yeni şifrenizle giriş yapabilirsiniz. Diğer cihazlardaki oturumlar kapatıldı.';
+  String get authResetDoneBody => 'Yeni şifrenizle giriş yapabilirsiniz. Diğer cihazlardaki oturumlar kapatıldı.';
 
   @override
-  String get authTrustAcademic =>
-      'Bölümünüz, size uygun duyuru ve kulüpleri göstermek için kullanılır.';
+  String get authTrustAcademic => 'Bölümünüz, size uygun duyuru ve kulüpleri göstermek için kullanılır.';
 
   @override
-  String get authTrustName =>
-      'Adınız profilinizde ve sohbetlerde diğer öğrencilere görünür.';
+  String get authTrustName => 'Adınız profilinizde ve sohbetlerde diğer öğrencilere görünür.';
 
   @override
-  String get authTrustPassword =>
-      'Şifreniz yalnızca özeti alınarak saklanır; kimse göremez.';
+  String get authTrustPassword => 'Şifreniz yalnızca özeti alınarak saklanır; kimse göremez.';
 
   @override
-  String get authTrustCode =>
-      'E-posta gelmediyse gereksiz (spam) klasörünü de kontrol edin.';
+  String get authTrustCode => 'E-posta gelmediyse gereksiz (spam) klasörünü de kontrol edin.';
 
   @override
   String get authTrustSecure => 'Bağlantınız şifreli ve güvenlidir.';
@@ -7102,8 +6927,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p05SearchIdleTitle => 'Kampüste ara';
 
   @override
-  String get p05SearchNoResultsBody =>
-      'Farklı bir kelime deneyin veya yazımı kontrol edin.';
+  String get p05SearchNoResultsBody => 'Farklı bir kelime deneyin veya yazımı kontrol edin.';
 
   @override
   String get p05Source => 'Kaynak';
@@ -7146,12 +6970,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16QrCopied => 'Kod kopyalandı';
 
   @override
-  String get p16ReqNoneBody =>
-      'Yeni katılma istekleri geldiğinde burada görünür.';
+  String get p16ReqNoneBody => 'Yeni katılma istekleri geldiğinde burada görünür.';
 
   @override
-  String get p16AttEmptyBody =>
-      'Katılımcılar etkinliğe katıldıkça burada listelenir.';
+  String get p16AttEmptyBody => 'Katılımcılar etkinliğe katıldıkça burada listelenir.';
 
   @override
   String get p16AttFilterEmpty => 'Bu süzgece uyan kimse yok.';
@@ -7192,8 +7014,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p10SourceCameraHint => 'Fotoğraf çek ya da video kaydet';
 
   @override
-  String get p10PrivacyNote =>
-      'Yalnızca seçtiğin öğelere erişilir; galerinin tamamı uygulamaya açılmaz.';
+  String get p10PrivacyNote => 'Yalnızca seçtiğin öğelere erişilir; galerinin tamamı uygulamaya açılmaz.';
 
   @override
   String get p10PickedHeader => 'Seçilenler';
@@ -7202,8 +7023,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p10EmptyTitle => 'Henüz bir şey seçmedin';
 
   @override
-  String get p10EmptyBody =>
-      'Yukarıdan fotoğraf, video ya da kamerayı seçerek başla.';
+  String get p10EmptyBody => 'Yukarıdan fotoğraf, video ya da kamerayı seçerek başla.';
 
   @override
   String get p10Preview => 'Önizle';
@@ -7240,57 +7060,46 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p14EmptyMonthBody =>
-      'Başka bir aya göz at; yeni etkinlikler eklendikçe burada görünür.';
+  String get p14EmptyMonthBody => 'Başka bir aya göz at; yeni etkinlikler eklendikçe burada görünür.';
 
   @override
   String get p14EmptyDayBody => 'Başka bir gün seç ya da tüm ayı gör.';
 
   @override
-  String get p14EmptyUpcomingBody =>
-      'Kulüplerin etkinliklerine katıl; katıldıkların burada toplanır.';
+  String get p14EmptyUpcomingBody => 'Kulüplerin etkinliklerine katıl; katıldıkların burada toplanır.';
 
   @override
-  String get p14EmptyPastBody =>
-      'Katıldığın etkinlikler bittikten sonra burada saklanır.';
+  String get p14EmptyPastBody => 'Katıldığın etkinlikler bittikten sonra burada saklanır.';
 
   @override
-  String get p14EmptyCreatedBody =>
-      'Kulübün adına bir etkinlik oluştur; başvuruları ve yoklamayı buradan yönet.';
+  String get p14EmptyCreatedBody => 'Kulübün adına bir etkinlik oluştur; başvuruları ve yoklamayı buradan yönet.';
 
   @override
   String get p13SuppAskTitle => 'Size nasıl yardımcı olabiliriz?';
 
   @override
-  String get p13SuppAskBody =>
-      'Sık sorulan sorulara göz atın ya da destek ekibine yazın.';
+  String get p13SuppAskBody => 'Sık sorulan sorulara göz atın ya da destek ekibine yazın.';
 
   @override
-  String get p13TicketIntro =>
-      'Sorununuzu kısaca anlatın; destek ekibi en kısa sürede yanıt verecek.';
+  String get p13TicketIntro => 'Sorununuzu kısaca anlatın; destek ekibi en kısa sürede yanıt verecek.';
 
   @override
-  String get p13TicketsEmptyHint =>
-      'Bir sorun yaşarsanız yeni bir talep oluşturabilirsiniz.';
+  String get p13TicketsEmptyHint => 'Bir sorun yaşarsanız yeni bir talep oluşturabilirsiniz.';
 
   @override
-  String get p13FeedbackEmptyHint =>
-      'Gönderdiğiniz öneri ve hata bildirimleri burada listelenir.';
+  String get p13FeedbackEmptyHint => 'Gönderdiğiniz öneri ve hata bildirimleri burada listelenir.';
 
   @override
   String get p13SugEmptyTitle => 'Fikirler burada toplanır';
 
   @override
-  String get p13PollEmptyOpenHint =>
-      'Yeni anketler açıldığında burada görünür.';
+  String get p13PollEmptyOpenHint => 'Yeni anketler açıldığında burada görünür.';
 
   @override
-  String get p13PollEmptyMineHint =>
-      'Bir ankete oy verdiğinizde burada listelenir.';
+  String get p13PollEmptyMineHint => 'Bir ankete oy verdiğinizde burada listelenir.';
 
   @override
-  String get p13PollEmptyClosedHint =>
-      'Sona eren anketlerin sonuçları burada saklanır.';
+  String get p13PollEmptyClosedHint => 'Sona eren anketlerin sonuçları burada saklanır.';
 
   @override
   String get p13Rate1 => 'Çok kötü';
@@ -7352,12 +7161,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p11TypeRatingHint => '1-5 yıldızla puanlanır';
 
   @override
-  String get p11RequestsEmptyBody =>
-      'Yeni katılma istekleri geldiğinde burada görünecek.';
+  String get p11RequestsEmptyBody => 'Yeni katılma istekleri geldiğinde burada görünecek.';
 
   @override
-  String get p06EmptyNoneBody =>
-      'Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.';
+  String get p06EmptyNoneBody => 'Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.';
 
   @override
   String p06NoMatchBody(String q) {
@@ -7368,8 +7175,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p06ResetSearch => 'Aramayı sıfırla';
 
   @override
-  String get p06ArchiveEmptyBody =>
-      'Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.';
+  String get p06ArchiveEmptyBody => 'Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.';
 
   @override
   String get p06BackToChats => 'Sohbetlere dön';
@@ -7378,8 +7184,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p06LoadFailedTitle => 'Yüklenemedi, tekrar dene';
 
   @override
-  String get p06LoadFailedBody =>
-      'Sohbet listesi güncellenirken bir bağlantı hatası oluştu. Lütfen bağlantınızı kontrol edin.';
+  String get p06LoadFailedBody => 'Sohbet listesi güncellenirken bir bağlantı hatası oluştu. Lütfen bağlantınızı kontrol edin.';
 
   @override
   String get p06MenuDeleteChat => 'Sohbeti sil';
@@ -7408,8 +7213,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p01ConfigTitle => 'Yapılandırma hatası';
 
   @override
-  String get p01ConfigBody =>
-      'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
+  String get p01ConfigBody => 'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
 
   @override
   String get p01ConfigCode => 'HATA KODU • BUILD_ENV';
@@ -7452,8 +7256,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p02WelcomeMenuSub => 'Günlük kalori ve detaylı öğün içerikleri.';
 
   @override
-  String get p02WelcomeClubsSub =>
-      'Topluluklar, atölyeler ve katılım yoklaması.';
+  String get p02WelcomeClubsSub => 'Topluluklar, atölyeler ve katılım yoklaması.';
 
   @override
   String get p02BrandSub => 'Bağımsız öğrenci uygulaması';
@@ -7476,8 +7279,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p02PendingTitle => 'E-postanı doğrula';
 
   @override
-  String get p02PendingBody =>
-      'Giriş yapabilmek için hesabının doğrulanması gerekir.';
+  String get p02PendingBody => 'Giriş yapabilmek için hesabının doğrulanması gerekir.';
 
   @override
   String get p02ReplacedTitle => 'Oturum sonlandırıldı';
@@ -7524,12 +7326,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p03NotifEmptyBody =>
-      'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.';
+  String get p03NotifEmptyBody => 'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.';
 
   @override
-  String get p03NotifUnreadEmptyBody =>
-      'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.';
+  String get p03NotifUnreadEmptyBody => 'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.';
 
   @override
   String get p03NotifLoadFailed => 'Yüklenemedi, tekrar dene';
@@ -7547,8 +7347,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p03HomeEventsTitle => 'Yaklaşan Etkinlikler';
 
   @override
-  String get p03HomeNoEventBody =>
-      'Şu anda planlanmış aktif bir kulüp etkinliği bulunmuyor.';
+  String get p03HomeNoEventBody => 'Şu anda planlanmış aktif bir kulüp etkinliği bulunmuyor.';
 
   @override
   String get p05NewsOpenSource => 'Kaynak sayfada aç';
@@ -7557,8 +7356,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p05NewsErrorTitle => 'Bir şeyler ters gitti';
 
   @override
-  String get p05NewsErrorBody =>
-      'İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.';
+  String get p05NewsErrorBody => 'İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.';
 
   @override
   String p05SearchCountFor(String q) {
@@ -7602,40 +7400,34 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p11PendingInfoTitle => 'Başvuru değerlendiriliyor';
 
   @override
-  String get p11PendingInfoBody =>
-      'Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.';
+  String get p11PendingInfoBody => 'Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.';
 
   @override
   String get p11LockPrivateTitle => 'Bu kulüp özeldir';
 
   @override
-  String get p11LockPrivateBody =>
-      'Gönderileri ve üye listesini yalnızca onaylı üyeler görebilir.';
+  String get p11LockPrivateBody => 'Gönderileri ve üye listesini yalnızca onaylı üyeler görebilir.';
 
   @override
   String get p11LockMembersTitle => 'İçerikler yalnızca üyelere açık';
 
   @override
-  String get p11LockMembersBody =>
-      'Kulüp paylaşımları, isteğin onaylandıktan sonra görüntülenebilir.';
+  String get p11LockMembersBody => 'Kulüp paylaşımları, isteğin onaylandıktan sonra görüntülenebilir.';
 
   @override
   String get p11LockBannedTitle => 'İçerik görüntülenemiyor';
 
   @override
-  String get p11LockBannedBody =>
-      'Erişim kısıtlandığı için kulüp içeriği gizlendi.';
+  String get p11LockBannedBody => 'Erişim kısıtlandığı için kulüp içeriği gizlendi.';
 
   @override
   String get p11BannedTitle => 'Kulüpten uzaklaştırıldın';
 
   @override
-  String get p11BannedBody =>
-      'Bu kulübe katılamaz ve etkinliklerine başvuramazsın.';
+  String get p11BannedBody => 'Bu kulübe katılamaz ve etkinliklerine başvuramazsın.';
 
   @override
-  String get p11ApprovalNote =>
-      'Katılma isteğin yöneticiler tarafından onaylandıktan sonra kulüp içeriği açılır.';
+  String get p11ApprovalNote => 'Katılma isteğin yöneticiler tarafından onaylandıktan sonra kulüp içeriği açılır.';
 
   @override
   String get p11PostPinSub => 'Kulüp sayfasının en üstüne yerleştir';
@@ -7661,12 +7453,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p11ClearSearch => 'Aramayı temizle';
 
   @override
-  String get p11RequestsEmptyAll =>
-      'Kulübüne gelen tüm başvurular yanıtlandı ya da henüz yeni başvuru yapılmadı.';
+  String get p11RequestsEmptyAll => 'Kulübüne gelen tüm başvurular yanıtlandı ya da henüz yeni başvuru yapılmadı.';
 
   @override
-  String get p11LoadErrorBody =>
-      'Bağlantı hatası oluştu. Bilgiler sunucudan alınamadı.';
+  String get p11LoadErrorBody => 'Bağlantı hatası oluştu. Bilgiler sunucudan alınamadı.';
 
   @override
   String get p12LogoAdd => 'Logo ekle';
@@ -7687,8 +7477,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p12QuestionPlaceholder => 'Sorunu yaz...';
 
   @override
-  String get p12ConsentNote =>
-      'Kulüp oluşturarak topluluk ilkelerine ve öğrenci kurallarına uymayı kabul edersin.';
+  String get p12ConsentNote => 'Kulüp oluşturarak topluluk ilkelerine ve öğrenci kurallarına uymayı kabul edersin.';
 
   @override
   String get p12PartialTitle => 'Kısmi kayıt uyarısı';
@@ -7739,12 +7528,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p15ErrBannerBody =>
-      'Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.';
+  String get p15ErrBannerBody => 'Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.';
 
   @override
-  String get p15ErrHint =>
-      'Gerekli alanlar düzeltildiğinde oluşturma düğmesi otomatik olarak aktifleşir.';
+  String get p15ErrHint => 'Gerekli alanlar düzeltildiğinde oluşturma düğmesi otomatik olarak aktifleşir.';
 
   @override
   String p15ErrLocked(String n) {
@@ -7775,12 +7562,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p15PickerInfoTitle => 'Yetki bilgilendirmesi';
 
   @override
-  String get p15PickerInfoBody =>
-      'Yönetici veya moderatör olduğun kulüplerde etkinlik hemen yayınlanır. Etkinlik yetkisi olan üyelerin etkinliği admin onayından sonra yayınlanır.';
+  String get p15PickerInfoBody => 'Yönetici veya moderatör olduğun kulüplerde etkinlik hemen yayınlanır. Etkinlik yetkisi olan üyelerin etkinliği admin onayından sonra yayınlanır.';
 
   @override
-  String get p15PickerEmptyBody =>
-      'Yönetici veya moderatör yetkisine sahip olduğun bir kulüp bulunmuyor.';
+  String get p15PickerEmptyBody => 'Yönetici veya moderatör yetkisine sahip olduğun bir kulüp bulunmuyor.';
 
   @override
   String get p15RefreshPerms => 'Yetkileri yenile';
@@ -7804,8 +7589,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16ReqFullTitle => 'Kontenjan doldu';
 
   @override
-  String get p16ReqFullBody =>
-      'Yeni istekler onaylanamaz. Yer açmak için kontenjanı artırabilir veya katılımcı listesini güncelleyebilirsin.';
+  String get p16ReqFullBody => 'Yeni istekler onaylanamaz. Yer açmak için kontenjanı artırabilir veya katılımcı listesini güncelleyebilirsin.';
 
   @override
   String get p16ReqRaiseQuota => 'Kontenjanı artır';
@@ -7825,8 +7609,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16ReqBackToEvent => 'Etkinlik detayına dön';
 
   @override
-  String get p16ReqEmptyBody =>
-      'Tüm katılım istekleri yanıtlandı veya yeni başvuru henüz gelmedi.';
+  String get p16ReqEmptyBody => 'Tüm katılım istekleri yanıtlandı veya yeni başvuru henüz gelmedi.';
 
   @override
   String p16SetApproved(String n) {
@@ -7837,8 +7620,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16SetOpenSub => 'Kayıt olan herkes doğrudan onaylanır.';
 
   @override
-  String get p16SetApprovalSub =>
-      'Her katılımcı isteği yönetici onayından geçer.';
+  String get p16SetApprovalSub => 'Her katılımcı isteği yönetici onayından geçer.';
 
   @override
   String get p16SetCapLabel => 'Kontenjan (kişi)';
@@ -7875,8 +7657,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16QrRefreshing => 'Yenileniyor…';
 
   @override
-  String get p16QrErrBody =>
-      'Sunucu ile bağlantı kurulamadı veya oturum zaman aşımına uğradı.';
+  String get p16QrErrBody => 'Sunucu ile bağlantı kurulamadı veya oturum zaman aşımına uğradı.';
 
   @override
   String get p16QrCopyBtn => 'Kopyala';
@@ -7888,8 +7669,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p16AttWaiting => 'Bekliyor';
 
   @override
-  String get p16AttFilterEmptyBody =>
-      'Bu filtreye uygun katılımcı kaydı bulunamadı.';
+  String get p16AttFilterEmptyBody => 'Bu filtreye uygun katılımcı kaydı bulunamadı.';
 
   @override
   String p16AttMarkedToast(String name, String method) {
@@ -7929,31 +7709,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p17NoSemesterTitle => 'Henüz dönem yok';
 
   @override
-  String get p17NoSemesterBody =>
-      'Bir dönem ekleyerek derslerini düzenleyebilirsin.';
+  String get p17NoSemesterBody => 'Bir dönem ekleyerek derslerini düzenleyebilirsin.';
 
   @override
   String get p17NoCourseTitle => 'Henüz ders eklemedin';
 
   @override
-  String get p17NoCourseBody =>
-      'Haftalık ders programını oluşturmak için ilk dersini kaydet.';
+  String get p17NoCourseBody => 'Haftalık ders programını oluşturmak için ilk dersini kaydet.';
 
   @override
-  String get p17DayFreeBody =>
-      'Günü dinlenmeye, kütüphanede çalışmaya ya da kampüste kahveye ayırabilirsin!';
+  String get p17DayFreeBody => 'Günü dinlenmeye, kütüphanede çalışmaya ya da kampüste kahveye ayırabilirsin!';
 
   @override
-  String get p17TodayDoneBody =>
-      'Günün tüm derslerini tamamladın, iyi dinlenmeler.';
+  String get p17TodayDoneBody => 'Günün tüm derslerini tamamladın, iyi dinlenmeler.';
 
   @override
-  String get p17WeekDoneBody =>
-      'Haftalık program bitti. Gelecek haftaya hazırsın!';
+  String get p17WeekDoneBody => 'Haftalık program bitti. Gelecek haftaya hazırsın!';
 
   @override
-  String get p17OutOfRangeBody =>
-      'Seçilen gün akademik takvim dışında kalıyor.';
+  String get p17OutOfRangeBody => 'Seçilen gün akademik takvim dışında kalıyor.';
 
   @override
   String get p17LoadErrTitle => 'Ders programı yüklenirken bir sorun oluştu.';
@@ -7970,19 +7744,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p17ExamDetail => 'Detay';
 
   @override
-  String get p17ExamsNoUpcomingBody =>
-      'Tebrikler! Şu an için yaklaşan vize, final veya quiz bulunmuyor.';
+  String get p17ExamsNoUpcomingBody => 'Tebrikler! Şu an için yaklaşan vize, final veya quiz bulunmuyor.';
 
   @override
   String get p17ExamsEmptyMineTitle => 'Kişisel sınav eklemedin.';
 
   @override
-  String get p17ExamsEmptyMineBody =>
-      'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.';
+  String get p17ExamsEmptyMineBody => 'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.';
 
   @override
-  String get p17OfficialEmptyBody =>
-      'Bölümün sınav programı açıklandığında burada listelenecek.';
+  String get p17OfficialEmptyBody => 'Bölümün sınav programı açıklandığında burada listelenecek.';
 
   @override
   String get p17CourseInfoSemantic => 'Ders bilgileri';
@@ -7997,19 +7768,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20HubNoDeptTitle => 'Profilinde bölüm bilgisi yok';
 
   @override
-  String get p20HubNoDeptBody =>
-      'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.';
+  String get p20HubNoDeptBody => 'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.';
 
   @override
-  String get p20HubTimetableEmptyBody =>
-      'Haftalık akışını takip etmek ve sınıf takvimini oluşturmak için derslerini ekle.';
+  String get p20HubTimetableEmptyBody => 'Haftalık akışını takip etmek ve sınıf takvimini oluşturmak için derslerini ekle.';
 
   @override
   String get p20HubExamBadge => 'Vize & Final';
 
   @override
-  String get p20HubExamEmptyBody =>
-      'Tebrikler! Takviminde şu an için planlanmış bir vize veya final görünmüyor.';
+  String get p20HubExamEmptyBody => 'Tebrikler! Takviminde şu an için planlanmış bir vize veya final görünmüyor.';
 
   @override
   String get p20HubCalEmptySub => 'Dönem içi işlem aralıkları tamamlandı';
@@ -8018,8 +7786,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20HubAnnEmptyTitle => 'Okunmamış duyuru yok';
 
   @override
-  String get p20HubAnnEmptyBody =>
-      'Bölüm sekreterliği veya danışmanından yeni bir bildirim paylaşıldığında burada listelenecek.';
+  String get p20HubAnnEmptyBody => 'Bölüm sekreterliği veya danışmanından yeni bir bildirim paylaşıldığında burada listelenecek.';
 
   @override
   String get p20HubDateTime => 'Tarih & saat';
@@ -8042,19 +7809,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20AnnFooterTitle => 'Bölümünle ilgili başka duyuru yok.';
 
   @override
-  String get p20AnnFooterBody =>
-      'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.';
+  String get p20AnnFooterBody => 'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.';
 
   @override
-  String get p20AnnLinkErrBody =>
-      'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.';
+  String get p20AnnLinkErrBody => 'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.';
 
   @override
   String get p20RemPermTitle => 'Bildirim izni verilmedi';
 
   @override
-  String get p20RemPermBody =>
-      'Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.';
+  String get p20RemPermBody => 'Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.';
 
   @override
   String get p20RemOpenSettings => 'Ayarlardan aç';
@@ -8076,15 +7840,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p13PollAvgTitle => 'Ortalama Memnuniyet';
 
   @override
-  String get p13PollChangeNote =>
-      'Oy verdikten sonra fikrinizi değiştirebilirsiniz.';
+  String get p13PollChangeNote => 'Oy verdikten sonra fikrinizi değiştirebilirsiniz.';
 
   @override
   String get p13PollClosingSoon => 'Bitiyor';
 
   @override
-  String get p13PollClubEmptyBody =>
-      'Kulüp yöneticileri henüz oylamaya sunulmuş bir gündem paylaşmadı.';
+  String get p13PollClubEmptyBody => 'Kulüp yöneticileri henüz oylamaya sunulmuş bir gündem paylaşmadı.';
 
   @override
   String get p13PollDateTime => 'Tarih ve saat';
@@ -8093,19 +7855,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p13PollEditMode => 'Oyu değiştirme modu';
 
   @override
-  String get p13PollEditNote =>
-      'Seçiminizi değiştirdiğinizde önceki oyunuz otomatik olarak iptal edilir ve yeni tercihiniz işlenir.';
+  String get p13PollEditNote => 'Seçiminizi değiştirdiğinizde önceki oyunuz otomatik olarak iptal edilir ve yeni tercihiniz işlenir.';
 
   @override
   String get p13PollEmptyClosedBody => 'Sonuçlanan oylamalar arşive taşınır.';
 
   @override
-  String get p13PollEmptyMineBody =>
-      'Oy kullandığınız anketler burada toplanır.';
+  String get p13PollEmptyMineBody => 'Oy kullandığınız anketler burada toplanır.';
 
   @override
-  String get p13PollEmptyOpenBody =>
-      'Yeni anketler açıldığında burada listelenecektir.';
+  String get p13PollEmptyOpenBody => 'Yeni anketler açıldığında burada listelenecektir.';
 
   @override
   String get p13PollErrBody => 'Sunucu bağlantısı kurulamadı';
@@ -8143,8 +7902,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p13PollRankReset =>
-      'Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.';
+  String get p13PollRankReset => 'Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.';
 
   @override
   String get p13PollRankTap => 'Seçmek için dokunun';
@@ -8153,8 +7911,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p13PollRateCta => 'Puanla';
 
   @override
-  String get p13PollSecretBody =>
-      'Kimliğiniz hiçbir yönetici, kulüp temsilcisi veya öğrenci tarafından görüntülenemez.';
+  String get p13PollSecretBody => 'Kimliğiniz hiçbir yönetici, kulüp temsilcisi veya öğrenci tarafından görüntülenemez.';
 
   @override
   String p13PollSelectedCount(String n, String max) {
@@ -8177,12 +7934,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p13PollTypeSingleHint => 'Yalnızca tek bir seçenek belirlenebilir';
 
   @override
-  String get p13PollVisAfterCloseSub =>
-      'Süre dolana kadar hiçbir veri gösterilmez';
+  String get p13PollVisAfterCloseSub => 'Süre dolana kadar hiçbir veri gösterilmez';
 
   @override
-  String get p13PollVisAfterVoteSub =>
-      'Kullanıcı oyunu kullandıktan sonra açılır';
+  String get p13PollVisAfterVoteSub => 'Kullanıcı oyunu kullandıktan sonra açılır';
 
   @override
   String get p13PollVisAlwaysSub => 'Tüm oylar canlı olarak izlenebilir';
@@ -8253,8 +8008,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p13PollNoMoreActive => 'Bu kulübün başka aktif anketi yok.';
 
   @override
-  String get p13PollNoMoreBody =>
-      'Topluluk kararları ve etkinlik tercihleri burada yayımlanır.';
+  String get p13PollNoMoreBody => 'Topluluk kararları ve etkinlik tercihleri burada yayımlanır.';
 
   @override
   String get p04DiscoverSub => 'Kampüsün nabzını ve anlık paylaşımları yakala';
@@ -8286,8 +8040,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p11UnavailableBody =>
-      'Bu topluluk geçici olarak dondurulmuştur veya inceleme altındadır.';
+  String get p11UnavailableBody => 'Bu topluluk geçici olarak dondurulmuştur veya inceleme altındadır.';
 
   @override
   String get p11UnderReview => 'İncelemede';
@@ -8296,11 +8049,163 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p12ConsentBold => 'topluluk ilkelerine';
 
   @override
-  String get p03NotifLoadFailedBody =>
-      'Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.';
+  String get p03NotifLoadFailedBody => 'Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.';
 
   @override
   String p03NotifShortDay(String n) {
     return '$n gün';
   }
+
+  @override
+  String p05SearchLikes(String n) {
+    return '$n beğeni';
+  }
+
+  @override
+  String get p05SearchErrorTitle => 'Yüklenemedi';
+
+  @override
+  String get p05SearchErrorBody => 'Arama sonuçları alınırken bir bağlantı hatası oluştu.';
+
+  @override
+  String get p13PollDistribution => 'Seçenek Dağılımı';
+
+  @override
+  String get p13PollWinnerOption => 'Kazanan Seçenek';
+
+  @override
+  String get p13PollRatingSummary => 'Puanlama özeti';
+
+  @override
+  String get p13PollOutOf5 => '5 üzerinden';
+
+  @override
+  String get p13MenuRated => 'Değerlendirmeniz kaydedildi. Teşekkürler!';
+
+  @override
+  String get p04CropProfileTitle => 'Fotoğrafı kırp';
+
+  @override
+  String get p04CropPostTitle => 'Gönderi fotoğrafı';
+
+  @override
+  String get p04CropLogoTitle => 'Kulüp logosu';
+
+  @override
+  String get p04CropCoverTitle => 'Kapak fotoğrafı';
+
+  @override
+  String get p04CropChatTitle => 'Sohbet görseli';
+
+  @override
+  String get p04CropHint => 'Sürükle ve yakınlaştır';
+
+  @override
+  String get p04CropRotate => 'Döndür';
+
+  @override
+  String get p04CropReset => 'Sıfırla';
+
+  @override
+  String get p04CropScale => 'Fotoğraf ölçeği';
+
+  @override
+  String get p04CropCrop => 'Kırp';
+
+  @override
+  String get p04CropError => 'Fotoğraf işlenemedi. Başka bir fotoğraf dene.';
+
+  @override
+  String get p04CropPreviewProfile => 'Profilde böyle görünecek';
+
+  @override
+  String get p04CropPreviewFeed => 'Akışta böyle görünecek';
+
+  @override
+  String get p04CropPreviewTitle => 'Önizleme';
+
+  @override
+  String get p04CropPreviewClubPage => 'Kulüp sayfası';
+
+  @override
+  String get p04CropPreviewClubCard => 'Kulüp kartı';
+
+  @override
+  String get p04CropRemoveCover => 'Kapağı kaldır';
+
+  @override
+  String get p04SrcTitle => 'Fotoğraf';
+
+  @override
+  String get p04SrcGallery => 'Galeriden seç';
+
+  @override
+  String get p04SrcCamera => 'Fotoğraf çek';
+
+  @override
+  String get p04SrcRemove => 'Fotoğrafı kaldır';
+
+  @override
+  String get p04Recrop => 'Yeniden kırp';
+
+  @override
+  String get p04PostNotFound => 'Gönderi bulunamadı (silinmiş veya gizlenmiş olabilir)';
+
+  @override
+  String get p04PostSharing => 'Paylaşılıyor...';
+
+  @override
+  String get p04PostPhotoNone => 'Görsel seçilmedi';
+
+  @override
+  String get p04PostFormatHint => '4:5 dikey format önerilir';
+
+  @override
+  String get p04ContentWarning => 'İçerik uyarısı';
+
+  @override
+  String get p23AddPeople => 'Kişi ekle';
+
+  @override
+  String get p23Selected => 'Seçilen katılımcılar';
+
+  @override
+  String get p23MinTwo => 'En az 2 kişi';
+
+  @override
+  String get p23PrivacyShort => 'Rehberiniz sunucuya gönderilmez.';
+
+  @override
+  String get p26OnceCaption => 'Bu fotoğrafı yalnızca bir kez görebilirsin.';
+
+  @override
+  String p09BlockNamed(String name) {
+    return '$name engelle';
+  }
+
+  @override
+  String get p09MemberOptions => 'Üye seçenekleri';
+
+  @override
+  String p09MemberRemoved(String name) {
+    return '$name gruptan çıkarıldı';
+  }
+
+  @override
+  String get p09MediaLoading => 'Yükleniyor...';
+
+  @override
+  String get p09MediaEmptyBody => 'Paylaşılan fotoğraflar ve videolar burada görünür.';
+
+  @override
+  String get p09MediaErrorTitle => 'Hata oluştu';
+
+  @override
+  String get p09MediaErrorBody => 'Medya yüklenemedi.';
+
+  @override
+  String get p09ClubPageSub => 'Etkinlikler ve projeler';
+
+  @override
+  String get p09MembersLoadFailed => 'Üye listesi alınamadı.';
 }
