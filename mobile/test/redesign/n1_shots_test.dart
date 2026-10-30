@@ -97,12 +97,12 @@ void _follow(FakeBackend b) {
     ..on('/users/7/following*', {'items': _people(offset: 2), 'nextCursor': null, 'total': 94});
 }
 
-Map<String, dynamic> _profile({String name = 'Elif Yıldız'}) => {
+Map<String, dynamic> _profile({String name = 'Elif Yıldız', String dept = 'Bilgisayar Mühendisliği'}) => {
       'id': 1,
       'displayName': name,
       'email': 'elif.yildiz@bingol.edu.tr',
       'faculty': 'Mühendislik Fakültesi',
-      'department': 'Bilgisayar Mühendisliği',
+      'department': dept,
       'grade': '3',
       'bio': _s('Bilgisayar mühendisliği öğrencisiyim. Kampüs kütüphanesinde ve inovasyon kulübünde aktifim.',
           'I am a computer engineering student.', 'أنا طالب هندسة حاسوب.'),
@@ -181,7 +181,7 @@ final _shots = <_Shot>[
   _Shot('09_profil_duzenle', (b, s) => EditProfilePage(session: s, profile: _profile()), height: 1000),
   _Shot('10_profil_duzenle_hatalar', (b, s) => EditProfilePage(
         session: s,
-        profile: _profile(name: 'E'),
+        profile: _profile(name: 'E', dept: ''),
         cropPhoto: _failCrop,
       ), height: 1100, after: (t) async {
     await t.tap(find.byKey(const ValueKey('avatar-camera')));
@@ -242,6 +242,32 @@ final _shots = <_Shot>[
   }, after: (t) async {
     await t.tap(find.byKey(const ValueKey('my-data-download')));
     await t.pump(const Duration(milliseconds: 600));
+  }),
+  _Shot('20b_verilerim_toast_sinir', (b, s) => MyDataPage(session: s), height: 1000, setup: (b) {
+    kExportClipboardTtl = Duration.zero;
+    var n = 0;
+    b.handlers.add((req, path) {
+      if (req.method != 'GET' || path != '/users/me/export') return null;
+      n++;
+      return n == 1
+          ? const FakeResult.json({'profile': {'id': 1}})
+          : FakeResult.json({'code': 'RATE_LIMITED', 'message': _s('Günde en fazla 3 kez veri indirebilirsiniz.', 'You can download your data up to 3 times a day.', 'يمكنك تنزيل بياناتك 3 مرات يوميًا.')}, status: 429);
+    });
+  }, after: (t) async {
+    // Test ortaminda pano kanali yanitsiz kalir: sahte pano.
+    String? clip;
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
+      if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': clip};
+      return null;
+    });
+    await t.tap(find.byKey(const ValueKey('my-data-download')));
+    await t.pump(const Duration(milliseconds: 300));
+    await t.pump(const Duration(milliseconds: 300));
+    await t.tap(find.byKey(const ValueKey('my-data-download')));
+    await t.pump(const Duration(milliseconds: 300));
+    await t.pump(const Duration(milliseconds: 300));
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
   }),
   _Shot('21_hesabi_sil', (b, s) => DeleteAccountPage(session: s), height: 900),
   _Shot('22_hesabi_sil_onayli', (b, s) => DeleteAccountPage(session: s), height: 900, after: (t) async {

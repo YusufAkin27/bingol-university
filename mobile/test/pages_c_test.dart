@@ -138,6 +138,7 @@ final kPageCases = <PageCase>[
         {'news': true, 'announcements': false, 'events': false, 'communities': true, 'messages': true}),
     marker: 'Duyurular',
     failKeys: ['/notifications/preferences'],
+    checkLoading: false, // iskelet (K10)
   ),
   PageCase(
     'BlockedUsersPage',
@@ -541,6 +542,8 @@ void main() {
     testWidgets('sunucu hatasında sayfa açık kalır ve hata gösterilir', (tester) async {
       final b = FakeBackend()..fail('/reports');
       await openSheet(tester, b);
+      await tester.tap(find.text('Taciz veya zorbalık')); // onsecim yok: once neden secilir
+      await tester.pump();
       await tester.tap(find.text('Gönder'));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('Bir sorun oluştu. Lütfen tekrar deneyin.'), findsOneWidget);
@@ -647,7 +650,7 @@ void main() {
         ..fail('/users/me');
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EditProfilePage(
-          session: makeSession(b), profile: const {'displayName': 'Ayşe', 'language': 'tr'})));
+          session: makeSession(b), profile: const {'displayName': 'Ayşe', 'department': 'Bilgisayar Mühendisliği', 'faculty': 'Mühendislik Fakültesi', 'language': 'tr'})));
       await settle(tester);
       await tester.tap(find.text('Kaydet').last);
       await settle(tester);

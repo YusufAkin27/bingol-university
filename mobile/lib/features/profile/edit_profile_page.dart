@@ -56,6 +56,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _images = ImageService();
   String? _error;
   String? _photoError;
+  int _uploadSeq = 0; // "İptal": sonucu yok sayılan yüklemeyi ayırt eder
+
+  bool get _hasFormErrors => _nameError != null || _departmentError != null || _photoError != null;
 
   static String? _nonEmpty(String? s) => (s == null || s.isEmpty) ? null : s;
 
@@ -96,7 +99,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     String? nameErr;
     String? deptErr;
     if (_name.text.trim().length < 2) nameErr = l.profileNameMin;
-    if (_academicChanged && ((_faculty ?? '').isEmpty || (_department ?? '').isEmpty)) deptErr = l.profileDeptRequired;
+    if ((_department ?? '').isEmpty) deptErr = l.profileDeptRequired;
     if (nameErr != null || deptErr != null) {
       setState(() {
         _nameError = nameErr;
@@ -151,10 +154,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
               Center(
                 child: ExcludeSemantics(
                   child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
+                  ),
+                ),
+              ),
+              Center(
+                child: ExcludeSemantics(
+                  child: Container(
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.errorContainer, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.triangleAlert, size: 26, color: t.danger),
+                    // Dolu uyarı üçgeni (Lucide'de dolgulu varyant yok).
+                    child: Icon(Icons.warning_rounded, size: 30, color: t.danger),
                   ),
                 ),
               ),
@@ -213,14 +227,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   BuAvatar(name: _name.text, url: _avatarUrl, size: 90),
                   if (_uploading)
                     ColoredBox(
-                      color: t.scrim.withValues(alpha: .55),
-                      child: Center(
-                        child: SizedBox(
-                          width: 34,
-                          height: 34,
+                      color: t.scrim.withValues(alpha: .6),
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
                           child: CircularProgressIndicator(strokeWidth: 3, color: t.onMedia),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Text(l.profileUploading,
+                            maxLines: 1,
+                            style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                      ]),
                     ),
                 ]),
               ),
@@ -247,18 +265,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ]),
       ),
-      InkWell(
-        onTap: _uploading ? null : _pickAvatar,
-        borderRadius: BuRadius.bXs,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          child: Center(
-            widthFactor: 1,
-            child: Text(_uploading ? l.profileUploading : l.profileChangePhoto,
-                style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: _uploading ? t.mut : t.pr)),
+      if (_uploading || _photoError != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+            _PhotoChip(
+              key: const ValueKey('photo-change'),
+              icon: LucideIcons.camera,
+              label: l.p19PhotoChange,
+              onTap: _uploading ? null : _pickAvatar,
+            ),
+            _PhotoChip(
+              key: const ValueKey('photo-cancel'),
+              icon: LucideIcons.x,
+              label: l.p19Cancel,
+              danger: true,
+              onTap: _cancelPhoto,
+            ),
+          ]),
+        )
+      else
+        InkWell(
+          onTap: _pickAvatar,
+          borderRadius: BuRadius.bXs,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Center(
+              widthFactor: 1,
+              child: Text(l.profileChangePhoto, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
+            ),
           ),
         ),
-      ),
       if (_photoError != null)
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 4),
@@ -276,7 +313,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     await _uploadAvatar(choice == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
   }
 
+  /// "İptal": bekleyen yüklemenin sonucu yok sayılır, hata temizlenir.
+  void _cancelPhoto() => setState(() {
+        _uploadSeq++;
+        _uploading = false;
+        _photoError = null;
+      });
+
   Future<void> _uploadAvatar(ImageSource source) async {
+    final seq = ++_uploadSeq;
     setState(() {
       _uploading = true;
       _error = null;
@@ -288,20 +333,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final bytes = crop != null
           ? await crop(source)
           : await pickAndCrop(context, CropSpec.profile(previewName: _name.text.trim()), source: source);
+      if (seq != _uploadSeq) return;
       if (bytes == null) {
         if (mounted) setState(() => _uploading = false);
         return; // kullanıcı vazgeçti
       }
       final prepared = await _images.prepare(bytes, avatar: true);
       final r = await MultipartUploader(widget.session).upload('/users/me/avatar', prepared);
-      if (!mounted) return;
+      if (!mounted || seq != _uploadSeq) return;
       setState(() {
         if (r is Map && r['avatarUrl'] is String) _avatarUrl = r['avatarUrl'] as String;
         _avatarChanged = true;
         _uploading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || seq != _uploadSeq) return;
       setState(() {
         _uploading = false;
         _photoError = _uploadError(e);
@@ -420,6 +466,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
+                  if (_hasFormErrors) ...[
+                    P2NoticeCard(
+                      key: const ValueKey('edit-form-errors'),
+                      title: l.p19FormErrTitle,
+                      lines: [l.p19FormErrBody],
+                      icon: LucideIcons.circleAlert,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   if (_error != null) ...[P2NoticeCard(lines: [_error!]), const SizedBox(height: 12)],
                   _avatar(context),
                   const SizedBox(height: 12),
@@ -697,5 +752,43 @@ class _SelectBox extends StatelessWidget {
           ),
         ),
     ]);
+  }
+}
+
+/// Fotoğraf çipi (Fotoğrafı değiştir / İptal): gri hap, 48 dp hedef.
+class _PhotoChip extends StatelessWidget {
+  const _PhotoChip({super.key, required this.icon, required this.label, required this.onTap, this.danger = false});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final fg = danger ? t.danger : t.ink;
+    return Opacity(
+      opacity: onTap == null ? .5 : 1,
+      child: Material(
+        color: t.sf2,
+        borderRadius: BuRadius.bPill,
+        child: InkWell(
+          borderRadius: BuRadius.bPill,
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, size: 16, color: fg),
+                const SizedBox(width: 8),
+                Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

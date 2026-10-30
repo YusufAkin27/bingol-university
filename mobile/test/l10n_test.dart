@@ -85,7 +85,9 @@ void main() {
         Scaffold(bottomNavigationBar: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: badge)),
         Locale(code),
       ));
-      expect(find.bySemanticsLabel(expected[code]![0]), findsOneWidget);
+      // M3 NavigationBar etikete konum metni ekler ("Ana Sayfa
+Tab 1 of 5"): etiketle başlayan düğüm aranır.
+      expect(find.bySemanticsLabel(RegExp('^${RegExp.escape(expected[code]![0])}')), findsOneWidget);
       expect(tester.takeException(), isNull);
       h.dispose();
     });

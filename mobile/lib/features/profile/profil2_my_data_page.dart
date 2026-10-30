@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,21 @@ import '../../widgets/bu.dart';
 import 'legal_pages.dart';
 import 'profil2_delete_account_page.dart';
 import 'profil2_widgets.dart';
+
+/// Panoya konan KVKK verisi bu süre sonra (pano hâlâ aynı metni tutuyorsa) panodan silinir.
+/// Kişisel veri panoda kalmasın diye; paylaşım paketi (dosya/sheet) eklenene dek geçici çözümdür.
+Duration kExportClipboardTtl = const Duration(seconds: 30);
+
+void _clearClipboardLater(String text) {
+  Timer(kExportClipboardTtl, () async {
+    try {
+      final cur = await Clipboard.getData(Clipboard.kTextPlain);
+      if (cur?.text == text) await Clipboard.setData(const ClipboardData(text: ''));
+    } catch (_) {
+      // Pano okunamazsa sessizce geçilir.
+    }
+  });
+}
 
 /// Verilerim (Stitch 08-1/2): KVKK veri indirme (`GET /users/me/export`, günde 3), aydınlatma metni, hesap silme girişi.
 class MyDataPage extends StatefulWidget {
@@ -35,8 +51,10 @@ class _MyDataPageState extends State<MyDataPage> {
     try {
       final data = await widget.session.api.get('/users/me/export');
       const enc = JsonEncoder.withIndent('  ');
-      await Clipboard.setData(ClipboardData(text: enc.convert(data)));
-      if (mounted) BuToast.show(context, context.l10n.profilePrefsDataCopied, kind: BuToastKind.success);
+      final text = enc.convert(data);
+      await Clipboard.setData(ClipboardData(text: text));
+      _clearClipboardLater(text);
+      if (mounted) BuToast.show(context, context.l10n.p19DataCopied30, kind: BuToastKind.success);
     } catch (e) {
       if (!mounted) return;
       if (e is ApiError && e.status == 429) {

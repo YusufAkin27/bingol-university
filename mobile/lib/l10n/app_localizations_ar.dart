@@ -8850,4 +8850,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p15ClearField => 'مسح';
+
+  @override
+  String get p18SecPrefs => 'تفضيلات التطبيق';
+
+  @override
+  String get p18SecAccount => 'الحساب والأمان';
+
+  @override
+  String get p18SecAbout => 'حول والدعم';
+
+  @override
+  String get p18CounterClubs => 'عضويات الأندية';
+
+  @override
+  String get p18CounterEvents => 'المشاركة في الفعاليات';
+
+  @override
+  String get p18ClearSearch => 'مسح البحث';
+
+  @override
+  String p18NavUnread(String n) {
+    return '$n غير مقروءة';
+  }
+
+  @override
+  String get p19DataCopied30 =>
+      'تم نسخ بياناتك إلى الحافظة وستُمسح بعد 30 ثانية';
+
+  @override
+  String get p19PushOffShort => 'متوقف';
+
+  @override
+  String get p19SaveFailedSub => 'حدث خطأ في الاتصال.';
+
+  @override
+  String get p19FormErrTitle => 'هناك حقول تحتاج إلى تصحيح';
+
+  @override
+  String get p19FormErrBody =>
+      'يرجى التحقق من صورة ملفك والحقول المطلوبة المحددة.';
+
+  @override
+  String get p19PhotoChange => 'تغيير الصورة';
+
+  @override
+  String get p19Cancel => 'إلغاء';
+
+  @override
+  String get p20GradeLevel => 'المستوى الدراسي';
 }

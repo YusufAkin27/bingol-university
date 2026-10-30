@@ -165,6 +165,12 @@ class _SettingsPageState extends State<SettingsPage> {
       'notGranted' => l.pushNotGranted,
       _ => _pushStatus,
     };
+    // Hap kısa metin taşır (tek satır); uzun açıklama dokununca bildirimde.
+    final pillText = switch (_pushStatus) {
+      'on' => l.pushOn,
+      'notGranted' => l.pushNotGranted,
+      _ => l.p19PushOffShort,
+    };
     final blue = t.tint(1);
     return Scaffold(
       backgroundColor: t.bg,
@@ -202,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     tint: blue,
                     trailing: Flexible(
                       child: P2Pill(
-                        text: pushText,
+                        text: pillText,
                         tone: _pushStatus == 'on' ? P2PillTone.ok : P2PillTone.mute,
                         dot: _pushStatus == 'on',
                       ),

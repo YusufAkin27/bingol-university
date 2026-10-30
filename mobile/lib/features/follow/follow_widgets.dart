@@ -64,8 +64,8 @@ class FollowTabs extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Flexible(
               child: Text(labels[i],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
                   style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.ink : t.mut)),
             ),
             if (n != null) ...[
@@ -331,7 +331,15 @@ class FollowStatusCard extends StatelessWidget {
     this.message,
     this.error = false,
     this.onRetry,
+    this.actionLabel,
+    this.actionIcon,
+    this.onAction,
   });
+
+  /// Boş durumdaki ikincil eylem (örn. "Aramayı temizle").
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final VoidCallback? onAction;
 
   final IconData icon;
   final String title;
@@ -346,8 +354,8 @@ class FollowStatusCard extends StatelessWidget {
     final circle = Container(
       width: error ? 48 : 64,
       height: error ? 48 : 64,
-      decoration: BoxDecoration(color: error ? t.soft : t.sf2, shape: BoxShape.circle),
-      child: Icon(icon, size: error ? 22 : 28, color: error ? t.onSoft : t.mut),
+      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+      child: Icon(icon, size: error ? 22 : 28, color: t.onSoft),
     );
     if (error) {
       return BuCard(
@@ -372,7 +380,9 @@ class FollowStatusCard extends StatelessWidget {
         ]),
       );
     }
-    return BuCard(
+    return SizedBox(
+        width: double.infinity,
+        child: BuCard(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         ExcludeSemantics(child: circle),
@@ -386,8 +396,12 @@ class FollowStatusCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 6),
             child: Text(message!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
           ),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(height: 16),
+          BuButton(key: const ValueKey('follow-action'), label: actionLabel!, icon: actionIcon, kind: BuButtonKind.soft, compact: true, onPressed: onAction),
+        ],
       ]),
-    );
+    ));
   }
 }
 

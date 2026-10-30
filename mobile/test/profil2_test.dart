@@ -4,6 +4,7 @@ import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -112,8 +113,58 @@ void main() {
   });
 
   group('Verilerim', () {
+    testWidgets('KVKK verisi panoya konur ve süre sonunda panodan silinir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      String? clip;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
+        if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': clip};
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      final old = kExportClipboardTtl;
+      kExportClipboardTtl = const Duration(seconds: 5);
+      addTearDown(() => kExportClipboardTtl = old);
+      final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
+      await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey('my-data-download')));
+      await settle(tester);
+      expect(clip, contains('"profile"'));
+      expect(find.textContaining('30 saniye'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+      expect(clip, '');
+      await unmount(tester);
+    });
+
+    testWidgets('pano başka metne dönüştüyse silinmez', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      String? clip;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
+        if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': clip};
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      final old = kExportClipboardTtl;
+      kExportClipboardTtl = const Duration(seconds: 5);
+      addTearDown(() => kExportClipboardTtl = old);
+      final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
+      await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey('my-data-download')));
+      await settle(tester);
+      clip = 'kullanici baska bir sey kopyaladi';
+      await tester.pump(const Duration(seconds: 6));
+      expect(clip, 'kullanici baska bir sey kopyaladi');
+      await unmount(tester);
+    });
+
     testWidgets('indir düğmesi export çağırır', (tester) async {
       useScreen(tester, kPhoneMedium);
+      final old = kExportClipboardTtl;
+      kExportClipboardTtl = Duration.zero;
+      addTearDown(() => kExportClipboardTtl = old);
       final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
       await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
@@ -121,6 +172,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('my-data-download')));
       await settle(tester);
       expect(b.count('GET /users/me/export'), 1);
+      await tester.pump();
       await unmount(tester);
     });
 

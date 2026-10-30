@@ -8639,7 +8639,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20AboutNoBio => 'Biyografi belirtilmemiş.';
 
   @override
-  String get p20AcademicInfo => 'Akademik bilgiler';
+  String get p20AcademicInfo => 'Akademik Bilgiler';
 
   @override
   String get p20AvatarHidden =>
@@ -8911,4 +8911,53 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p15ClearField => 'Temizle';
+
+  @override
+  String get p18SecPrefs => 'Uygulama tercihleri';
+
+  @override
+  String get p18SecAccount => 'Hesap & Güvenlik';
+
+  @override
+  String get p18SecAbout => 'Hakkında & Destek';
+
+  @override
+  String get p18CounterClubs => 'Kulüp Üyeliği';
+
+  @override
+  String get p18CounterEvents => 'Etkinlik Katılımı';
+
+  @override
+  String get p18ClearSearch => 'Aramayı temizle';
+
+  @override
+  String p18NavUnread(String n) {
+    return '$n okunmamış';
+  }
+
+  @override
+  String get p19DataCopied30 =>
+      'Verileriniz panoya kopyalandı; 30 saniye sonra panodan silinir';
+
+  @override
+  String get p19PushOffShort => 'Kapalı';
+
+  @override
+  String get p19SaveFailedSub => 'Bağlantı hatası oluştu.';
+
+  @override
+  String get p19FormErrTitle => 'Formda düzeltilmesi gereken alanlar var';
+
+  @override
+  String get p19FormErrBody =>
+      'Lütfen profil fotoğrafınızı ve işaretlenen zorunlu alanları kontrol edin.';
+
+  @override
+  String get p19PhotoChange => 'Fotoğrafı değiştir';
+
+  @override
+  String get p19Cancel => 'İptal';
+
+  @override
+  String get p20GradeLevel => 'Sınıf Düzeyi';
 }

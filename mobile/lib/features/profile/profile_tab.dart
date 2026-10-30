@@ -239,183 +239,153 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ],
           const SizedBox(height: 12),
+          // Referanstaki iki sayaç: Kulüp Üyeliği / Etkinlik Katılımı.
           BuStaggerItem(
             index: 2,
-            child: IntrinsicHeight(
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                  Expanded(
-                    child: _StatTile(
-                      accent: true,
-                      count: _clubs,
-                      label: l.profileMyClubs,
-                      onTap: () => _go(MyClubsPage(session: widget.session)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatTile(
-                      accent: false,
-                      count: _events,
-                      label: l.profileMyEvents,
-                      onTap: () => _go(MyEventsPage(session: widget.session)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatTile(
-                      accent: false,
-                      count: _saved,
-                      label: l.profileSaved,
-                      onTap: () => _go(SavedNewsPage(session: widget.session)),
-                    ),
-                  ),
-                ])),
+            child: _StatRow(
+              tiles: [
+                _StatTile(
+                  accent: true,
+                  count: _clubs,
+                  label: l.p18CounterClubs,
+                  onTap: () => _go(MyClubsPage(session: widget.session)),
+                ),
+                _StatTile(
+                  accent: false,
+                  count: _events,
+                  label: l.p18CounterEvents,
+                  onTap: () => _go(MyEventsPage(session: widget.session)),
+                ),
+              ],
+            ),
           ),
           BuStaggerItem(
             index: 3,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ProfilSection(l.profil1SecContent),
-                  ProfilCard(children: [
-                    ProfilRow(
-                      icon: LucideIcons.newspaper,
-                      label: l.profileMyPosts,
-                      onTap: () => _go(UserPostsPage(session: widget.session)),
-                    ),
-                    ProfilRow(
-                      icon: LucideIcons.userPlus,
-                      tint: t.tint(4),
-                      label: l.profileSuggested,
-                      onTap: () =>
-                          _go(FollowSuggestionsPage(session: widget.session)),
-                    ),
-                  ]),
-                ]),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              ProfilSection(l.profil1SecContent),
+              ProfilCard(children: [
+                ProfilRow(
+                  icon: LucideIcons.newspaper,
+                  label: l.profileMyPosts,
+                  onTap: () => _go(UserPostsPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.bookmark,
+                  tint: t.tint(4),
+                  label: l.profileSaved,
+                  value: _saved,
+                  onTap: () => _go(SavedNewsPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.userPlus,
+                  tint: t.tint(4),
+                  label: l.profileSuggested,
+                  onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
+                ),
+              ]),
+            ]),
           ),
           BuStaggerItem(
             index: 4,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ProfilSection(l.profil1SecAccount),
-                  ProfilCard(children: [
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              ProfilSection(l.p18SecPrefs),
+              ListenableBuilder(
+                listenable: Listenable.merge([widget.themeController, if (_lc != null) _lc!]),
+                builder: (context, _) {
+                  final lc = _lc;
+                  final l10n = context.l10n;
+                  final langName =
+                      lc == null ? '' : (lc.pref == 'system' ? l10n.languageSystem : (_langNames[lc.pref] ?? lc.pref));
+                  return ProfilCard(children: [
                     ProfilRow(
-                      icon: LucideIcons.keyRound,
-                      tint: t.tint(3),
-                      label: l.profil1AccountSecurity,
-                      onTap: () =>
-                          _go(AccountSecurityPage(session: widget.session)),
+                      icon: LucideIcons.graduationCap,
+                      tint: t.tint(2),
+                      label: l10n.profileAcademic,
+                      onTap: () => _go(AcademicHubPage(session: widget.session)),
                     ),
                     ProfilRow(
-                      icon: LucideIcons.lock,
+                      icon: LucideIcons.bell,
+                      label: l10n.profil1Notifications,
+                      onTap: () => _go(NotificationPrefsPage(session: widget.session)),
+                    ),
+                    ProfilRow(
+                      icon: LucideIcons.contact,
+                      tint: t.tint(4),
+                      label: l10n.settingsFindContacts,
+                      onTap: () => _go(ContactsMatchPage(session: widget.session)),
+                    ),
+                    ProfilRow(
+                      icon: LucideIcons.globe,
                       tint: t.tint(1),
-                      label: l.profil1PrivacyBlocked,
-                      onTap: () =>
-                          _go(PrivacyDataPage(session: widget.session)),
+                      label: l10n.settingsLanguage,
+                      value: langName,
+                      onTap: lc != null ? _pickLang : null,
                     ),
                     ProfilRow(
-                      icon: LucideIcons.download,
+                      icon: LucideIcons.moon,
                       tint: t.tint(5),
-                      label: l.profil1MyData,
-                      onTap: () => _go(MyDataPage(session: widget.session)),
+                      label: l10n.profil1Theme,
+                      value: _modeName(_modeId()),
+                      onTap: _pickTheme,
                     ),
-                  ]),
-                ]),
+                  ]);
+                },
+              ),
+            ]),
           ),
           BuStaggerItem(
             index: 5,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ProfilSection(l.profil1SecApp),
-                  ListenableBuilder(
-                    listenable: Listenable.merge(
-                        [widget.themeController, if (_lc != null) _lc!]),
-                    builder: (context, _) {
-                      final lc = _lc;
-                      final l10n = context.l10n;
-                      final langName = lc == null
-                          ? ''
-                          : (lc.pref == 'system'
-                              ? l10n.languageSystem
-                              : (_langNames[lc.pref] ?? lc.pref));
-                      return ProfilCard(children: [
-                        ProfilRow(
-                          icon: LucideIcons.graduationCap,
-                          tint: t.tint(2),
-                          label: l10n.profileAcademic,
-                          onTap: () =>
-                              _go(AcademicHubPage(session: widget.session)),
-                        ),
-                        ProfilRow(
-                          icon: LucideIcons.bell,
-                          label: l10n.profil1Notifications,
-                          onTap: () => _go(
-                              NotificationPrefsPage(session: widget.session)),
-                        ),
-                        ProfilRow(
-                          icon: LucideIcons.contact,
-                          tint: t.tint(4),
-                          label: l10n.settingsFindContacts,
-                          onTap: () =>
-                              _go(ContactsMatchPage(session: widget.session)),
-                        ),
-                        ProfilRow(
-                          icon: LucideIcons.globe,
-                          tint: t.tint(1),
-                          label: l10n.settingsLanguage,
-                          value: langName,
-                          chevron: false,
-                          onTap: lc != null ? _pickLang : null,
-                        ),
-                        ProfilRow(
-                          icon: LucideIcons.moon,
-                          tint: t.tint(5),
-                          label: l10n.profil1Theme,
-                          value: _modeName(_modeId()),
-                          chevron: false,
-                          onTap: _pickTheme,
-                        ),
-                      ]);
-                    },
-                  ),
-                ]),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              ProfilSection(l.p18SecAccount),
+              ProfilCard(children: [
+                ProfilRow(
+                  icon: LucideIcons.keyRound,
+                  tint: t.tint(3),
+                  label: l.profil1AccountSecurity,
+                  onTap: () => _go(AccountSecurityPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.lock,
+                  tint: t.tint(1),
+                  label: l.profil1PrivacyBlocked,
+                  onTap: () => _go(PrivacyDataPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.download,
+                  tint: t.tint(5),
+                  label: l.profil1MyData,
+                  onTap: () => _go(MyDataPage(session: widget.session)),
+                ),
+              ]),
+            ]),
           ),
           BuStaggerItem(
             index: 6,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ProfilSection(l.profil1SecSupport),
-                  ProfilCard(children: [
-                    ProfilRow(
-                      icon: LucideIcons.circleQuestionMark,
-                      tint: t.tint(1),
-                      label: l.profil1Support,
-                      onTap: () => _go(SupportPage(session: widget.session)),
-                    ),
-                    ProfilRow(
-                      icon: LucideIcons.fileText,
-                      tint: t.tint(5),
-                      label: l.profil1Legal,
-                      onTap: () => _go(LegalListPage(session: widget.session)),
-                    ),
-                  ]),
-                  const SizedBox(height: 14),
-                  _SignOutButton(
-                      label: l.profileSignOut, onTap: _confirmSignOut),
-                ]),
-          ),
-          const SizedBox(height: 20),
-          Center(
-            child: Text(l.settingsVersion(appVersion),
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium!
-                    .copyWith(color: t.mut)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              ProfilSection(l.p18SecAbout),
+              ProfilCard(children: [
+                ProfilRow(
+                  icon: LucideIcons.circleQuestionMark,
+                  tint: t.tint(1),
+                  label: l.profil1Support,
+                  onTap: () => _go(SupportPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.fileText,
+                  tint: t.tint(5),
+                  label: l.profil1Legal,
+                  onTap: () => _go(LegalListPage(session: widget.session)),
+                ),
+                ProfilRow(
+                  icon: LucideIcons.info,
+                  tint: t.tint(1),
+                  label: l.settingsVersion(appVersion),
+                  chevron: false,
+                ),
+              ]),
+              const SizedBox(height: 14),
+              _SignOutButton(label: l.profileSignOut, onTap: _confirmSignOut),
+            ]),
           ),
         ],
       ),
@@ -593,6 +563,31 @@ class _SignOutButton extends StatelessWidget {
           ]),
         ),
       ),
+    );
+  }
+}
+
+/// Sayaç karoları: yan yana; büyük yazı ölçeğinde (etiket küçük puntoya inmesin diye) alt alta.
+class _StatRow extends StatelessWidget {
+  const _StatRow({required this.tiles});
+
+  final List<Widget> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final big = MediaQuery.textScalerOf(context).scale(10) > 12;
+    if (big) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < tiles.length; i++) ...[if (i > 0) const SizedBox(height: 10), tiles[i]],
+      ]);
+    }
+    return IntrinsicHeight(
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < tiles.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: tiles[i]),
+        ],
+      ]),
     );
   }
 }

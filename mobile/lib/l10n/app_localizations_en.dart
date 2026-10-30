@@ -8673,7 +8673,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20AboutNoBio => 'No biography provided.';
 
   @override
-  String get p20AcademicInfo => 'Academic info';
+  String get p20AcademicInfo => 'Academic Info';
 
   @override
   String get p20AvatarHidden =>
@@ -8943,4 +8943,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p15ClearField => 'Clear';
+
+  @override
+  String get p18SecPrefs => 'App preferences';
+
+  @override
+  String get p18SecAccount => 'Account & security';
+
+  @override
+  String get p18SecAbout => 'About & support';
+
+  @override
+  String get p18CounterClubs => 'Club memberships';
+
+  @override
+  String get p18CounterEvents => 'Event participation';
+
+  @override
+  String get p18ClearSearch => 'Clear search';
+
+  @override
+  String p18NavUnread(String n) {
+    return '$n unread';
+  }
+
+  @override
+  String get p19DataCopied30 =>
+      'Your data was copied to the clipboard; it is cleared after 30 seconds';
+
+  @override
+  String get p19PushOffShort => 'Off';
+
+  @override
+  String get p19SaveFailedSub => 'A connection error occurred.';
+
+  @override
+  String get p19FormErrTitle => 'Some fields need fixing';
+
+  @override
+  String get p19FormErrBody =>
+      'Please check your profile photo and the marked required fields.';
+
+  @override
+  String get p19PhotoChange => 'Change photo';
+
+  @override
+  String get p19Cancel => 'Cancel';
+
+  @override
+  String get p20GradeLevel => 'Grade Level';
 }

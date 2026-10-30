@@ -2773,5 +2773,21 @@
   },
   "p15LeaveHint": "يمكنك تغيير حالة مشاركتك في أي وقت.",
   "p15SettingsSub": "نوع المشاركة والسعة والتسجيل",
-  "p15ClearField": "مسح"
+  "p15ClearField": "مسح",
+  "p18SecPrefs": "تفضيلات التطبيق",
+  "p18SecAccount": "الحساب والأمان",
+  "p18SecAbout": "حول والدعم",
+  "p18CounterClubs": "عضويات الأندية",
+  "p18CounterEvents": "المشاركة في الفعاليات",
+  "p18ClearSearch": "مسح البحث",
+  "p18NavUnread": "{n} غير مقروءة",
+  "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
+  "p19DataCopied30": "تم نسخ بياناتك إلى الحافظة وستُمسح بعد 30 ثانية",
+  "p19PushOffShort": "متوقف",
+  "p19SaveFailedSub": "حدث خطأ في الاتصال.",
+  "p19FormErrTitle": "هناك حقول تحتاج إلى تصحيح",
+  "p19FormErrBody": "يرجى التحقق من صورة ملفك والحقول المطلوبة المحددة.",
+  "p19PhotoChange": "تغيير الصورة",
+  "p19Cancel": "إلغاء",
+  "p20GradeLevel": "المستوى الدراسي"
 }

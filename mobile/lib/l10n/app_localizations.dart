@@ -15730,7 +15730,7 @@ abstract class AppLocalizations {
   /// No description provided for @p20AcademicInfo.
   ///
   /// In tr, this message translates to:
-  /// **'Akademik bilgiler'**
+  /// **'Akademik Bilgiler'**
   String get p20AcademicInfo;
 
   /// No description provided for @p20AvatarHidden.
@@ -16218,6 +16218,96 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Temizle'**
   String get p15ClearField;
+
+  /// No description provided for @p18SecPrefs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama tercihleri'**
+  String get p18SecPrefs;
+
+  /// No description provided for @p18SecAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap & Güvenlik'**
+  String get p18SecAccount;
+
+  /// No description provided for @p18SecAbout.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hakkında & Destek'**
+  String get p18SecAbout;
+
+  /// No description provided for @p18CounterClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp Üyeliği'**
+  String get p18CounterClubs;
+
+  /// No description provided for @p18CounterEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik Katılımı'**
+  String get p18CounterEvents;
+
+  /// No description provided for @p18ClearSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı temizle'**
+  String get p18ClearSearch;
+
+  /// No description provided for @p18NavUnread.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} okunmamış'**
+  String p18NavUnread(String n);
+
+  /// No description provided for @p19DataCopied30.
+  ///
+  /// In tr, this message translates to:
+  /// **'Verileriniz panoya kopyalandı; 30 saniye sonra panodan silinir'**
+  String get p19DataCopied30;
+
+  /// No description provided for @p19PushOffShort.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı'**
+  String get p19PushOffShort;
+
+  /// No description provided for @p19SaveFailedSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı hatası oluştu.'**
+  String get p19SaveFailedSub;
+
+  /// No description provided for @p19FormErrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Formda düzeltilmesi gereken alanlar var'**
+  String get p19FormErrTitle;
+
+  /// No description provided for @p19FormErrBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lütfen profil fotoğrafınızı ve işaretlenen zorunlu alanları kontrol edin.'**
+  String get p19FormErrBody;
+
+  /// No description provided for @p19PhotoChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı değiştir'**
+  String get p19PhotoChange;
+
+  /// No description provided for @p19Cancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get p19Cancel;
+
+  /// No description provided for @p20GradeLevel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınıf Düzeyi'**
+  String get p20GradeLevel;
 }
 
 class _AppLocalizationsDelegate

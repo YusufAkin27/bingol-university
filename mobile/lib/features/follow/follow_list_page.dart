@@ -185,6 +185,12 @@ class _FollowListPageState extends State<FollowListPage> {
         icon: LucideIcons.userSearch,
         title: l.profilyardFollowNoMatch,
         message: l.p18FollowNoMatchBody,
+        actionLabel: l.p18ClearSearch,
+        actionIcon: LucideIcons.delete,
+        onAction: () => setState(() {
+          _search.clear();
+          _query = '';
+        }),
       );
     } else {
       final total = st.total ?? st.items.length;

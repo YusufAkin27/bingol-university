@@ -5,7 +5,6 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import '../../core/typography.dart';
 import 'profil_widgets.dart' show ProfilCard;
 import 'profily_widgets.dart';
 
@@ -182,7 +181,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
                     ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.pr))
                     : Text(context.l10n.profilePrefsUnblock,
                         textAlign: TextAlign.center,
-                        style: BuType.bodyStrong.copyWith(fontSize: 13.5, fontWeight: FontWeight.w700, color: t.pr)),
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
               ),
             ),
           ),

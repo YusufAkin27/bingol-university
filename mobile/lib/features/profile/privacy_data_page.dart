@@ -45,8 +45,53 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     _load();
   }
 
-  void _toast(String m, {String? actionLabel, VoidCallback? onAction}) =>
-      BuToast.show(context, m, kind: BuToastKind.error, actionLabel: actionLabel, onAction: onAction);
+  /// Kompakt hata bildirimi: kırmızı simge + başlık/alt başlık + "Tekrar dene" + kapat.
+  void _saveFailed(VoidCallback retry) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final m = ScaffoldMessenger.of(context);
+    m.hideCurrentSnackBar();
+    m.showSnackBar(SnackBar(
+      key: const ValueKey('privacy-save-failed'),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: t.ink,
+      duration: const Duration(seconds: 6),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      shape: RoundedRectangleBorder(borderRadius: BuRadius.bMd),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
+      content: Row(children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(color: t.danger.withValues(alpha: .25), shape: BoxShape.circle),
+          child: Icon(LucideIcons.triangleAlert, size: 18, color: t.danger),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(l.profil2SaveFailed,
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w700)),
+            Text(l.p19SaveFailedSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.bg.withValues(alpha: .75))),
+          ]),
+        ),
+        TextButton.icon(
+          style: TextButton.styleFrom(foregroundColor: t.bg, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 10)),
+          onPressed: () {
+            m.hideCurrentSnackBar();
+            retry();
+          },
+          icon: const Icon(LucideIcons.refreshCw, size: 16),
+          label: Text(l.profileRetry),
+        ),
+        IconButton(
+          tooltip: l.commonClose,
+          onPressed: m.hideCurrentSnackBar,
+          icon: Icon(LucideIcons.x, size: 18, color: t.bg.withValues(alpha: .8)),
+        ),
+      ]),
+    ));
+  }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
@@ -100,7 +145,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _vis[field] = old);
-      _toast(context.l10n.profil2SaveFailed, actionLabel: context.l10n.profileRetry, onAction: () => _setVis(field, value));
+      _saveFailed(() => _setVis(field, value));
     } finally {
       if (mounted) setState(() => _saving.remove(field));
     }
@@ -114,7 +159,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _showEmail = old);
-      _toast(context.l10n.profil2SaveFailed, actionLabel: context.l10n.profileRetry, onAction: () => _setEmail(v));
+      _saveFailed(() => _setEmail(v));
     }
   }
 
