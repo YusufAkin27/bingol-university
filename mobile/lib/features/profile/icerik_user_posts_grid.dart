@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart' show LucideIcons;
+
+import '../../widgets/bu.dart';
 import '../news/icerik_parts.dart';
 import '../posts/post_api.dart';
 import '../posts/post_models.dart';
@@ -73,7 +72,7 @@ class _IcerikUserPostsGridState extends State<IcerikUserPostsGrid> {
               TextButton(
                 key: const ValueKey('profile-posts-all'),
                 onPressed: () => openUserPosts(context, widget.session, userId: widget.userId, name: widget.name),
-                child: Text(context.l10n.postViewSeeAll, style: BuType.label.copyWith(color: t.pr)),
+                child: Text(context.l10n.postViewSeeAll, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.pr)),
               ),
           ]),
         ),
@@ -109,26 +108,26 @@ class _Tile extends StatelessWidget {
       button: true,
       label: context.l10n.icerikOpenPost,
       excludeSemantics: true,
-      child: GestureDetector(
+      child: BuPressable(
         key: ValueKey('profile-post-${post.id}'),
+        scale: .96,
         onTap: () => openPostDetail(context, session, post.id, initial: post),
-        child: Stack(fit: StackFit.expand, children: [
-          ColoredBox(color: t.sf2),
-          if (m != null)
-            Image.network(m.thumbUrl ?? m.url,
-                headers: postAuthHeaders(session),
-                cacheWidth: 400,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)))
-          else
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(post.text ?? '',
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.caption.copyWith(color: t.ink, height: 1.3)),
-            ),
-        ]),
+        child: ClipRRect(
+          borderRadius: BuRadius.bXs,
+          child: Stack(fit: StackFit.expand, children: [
+            ColoredBox(color: t.sf2),
+            if (m != null)
+              BuImage(m.thumbUrl ?? m.url, headers: postAuthHeaders(session), maxDecodeWidth: 400)
+            else
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(post.text ?? '',
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.ink, height: 1.3)),
+              ),
+          ]),
+        ),
       ),
     );
   }

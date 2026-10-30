@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
 import '../../core/locale_controller.dart';
 
 import '../../core/session.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 
 /// Profil alt sayfaları için ortak imleçli liste iskeleti (başlık + yenile + sonsuz kaydırma).
 class ProfilePagedList extends StatefulWidget {
@@ -40,11 +38,21 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
   bool _hasMore = true;
   bool _loading = false;
   Object? _error;
+  final _scroll = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(() {
+      if (_scroll.hasClients && _scroll.position.pixels > _scroll.position.maxScrollExtent - 300) _loadMore();
+    });
     _loadMore();
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
   }
 
   @override
@@ -90,64 +98,72 @@ class _ProfilePagedListState extends State<ProfilePagedList> {
       _error = e;
       _hasMore = false;
     }
-    if (mounted) setState(() => _loading = false);
+    if (!mounted) return;
+    setState(() => _loading = false);
+    // İlk sayfa ekranı doldurmuyorsa kaydırma olayı gelmez: sonraki sayfayı kendimiz iste.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent < 300) _loadMore();
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    Widget body;
+    final l = context.l10n;
+    final List<Widget> body;
     if (_items.isEmpty) {
-      body = _loading
-          ? const LoadingView()
-          : _error != null
-              ? ErrorView(error: _error!, onRetry: _reload)
-              : EmptyView(icon: widget.emptyIcon, text: widget.emptyText);
-    } else {
-      body = RefreshIndicator(
-        color: t.pr,
-        onRefresh: _reload,
-        child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-          itemCount: _items.length + 1,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, i) {
-            if (i == _items.length) {
-              if (_error != null) {
-                return Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Center(
-                    child: BuButton(
-                      label: context.l10n.profileRetry,
-                      compact: true,
-                      kind: BuButtonKind.outline,
-                      onPressed: () {
-                        setState(() => _hasMore = true);
-                        _loadMore();
-                      },
-                    ),
-                  ),
-                );
-              }
-              if (!_hasMore) return const SizedBox.shrink();
-              WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
-              );
-            }
-            return widget.itemBuilder(context, _items[i]);
-          },
+      body = [
+        SliverToBoxAdapter(
+          child: _loading
+              ? const BuSkeletonList(shrinkWrap: true, itemCount: 6)
+              : SizedBox(
+                  height: 360,
+                  child: _error != null
+                      ? BuErrorState(error: _error, onRetry: _reload)
+                      : BuEmptyState(icon: widget.emptyIcon, title: widget.emptyText),
+                ),
         ),
-      );
+      ];
+    } else {
+      body = [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          sliver: SliverList.separated(
+            itemCount: _items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) => BuStaggerItem(index: i, child: widget.itemBuilder(context, _items[i])),
+          ),
+        ),
+        if (_error != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Center(
+                child: BuButton(
+                  label: l.profileRetry,
+                  compact: true,
+                  kind: BuButtonKind.outline,
+                  onPressed: () {
+                    setState(() => _hasMore = true);
+                    _loadMore();
+                  },
+                ),
+              ),
+            ),
+          )
+        else if (_hasMore)
+          const SliverToBoxAdapter(child: BuSkeletonList(shrinkWrap: true, itemCount: 1)),
+      ];
     }
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
-        children: [
-          BuHeader(title: widget.title, onBack: () => Navigator.pop(context)),
-          if (widget.header != null) widget.header!,
-          Expanded(child: body),
+    return BuStaggerScope(
+      child: BuPageScaffold(
+        title: widget.title,
+        controller: _scroll,
+        onRefresh: _reload,
+        bottomInset: MediaQuery.paddingOf(context).bottom + 28,
+        slivers: [
+          if (widget.header != null) SliverToBoxAdapter(child: widget.header!),
+          ...body,
         ],
       ),
     );

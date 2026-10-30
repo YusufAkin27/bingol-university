@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
+import '../../core/theme/bu_motion.dart';
+import '../../widgets/bu_overlays.dart' show BuToast;
 import '../chat/chat_tab.dart';
 import '../clubs/clubs_tab.dart';
 import '../discover/discover_tab.dart';
@@ -22,7 +24,9 @@ abstract final class AppTab {
   static const home = 0, discover = 1, chat = 2, clubs = 3, profile = 4;
 }
 
-/// Giriş yapılmış kullanıcının kabuğu: sekmeler IndexedStack'te (konum ve veri kaybolmaz) + yüzen gezinme.
+/// Giriş yapılmış kullanıcının kabuğu: sekmeler TEMBEL kurulur (ilk karede yalnız ana sekme; diğerleri ilk
+/// seçimde kurulur, sonra IndexedStack'te canlı kalır: konum ve veri kaybolmaz) + M3 alt gezinme.
+/// Sekme geçişi "fade-through" (kısa soluklaşma + hafif ölçek; yalnız seçilen sekme animasyonlanır).
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.session, required this.themeController});
 
@@ -33,8 +37,12 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   int _tab = 0;
+  // Bir kez açılmış sekmeler (tembel kurulum; kapanınca da canlı kalır).
+  final Set<int> _built = {AppTab.home};
+  late final AnimationController _fade = AnimationController(vsync: this, duration: BuMotion.medium, value: 1);
+  late final Animation<double> _fadeIn = CurvedAnimation(parent: _fade, curve: BuMotion.emphasizedDecelerate);
   Timer? _poll;
   StreamSubscription<Map<String, dynamic>>? _msgSub;
   final _discoverType = ValueNotifier<String?>(null);
@@ -61,6 +69,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     _msgSub?.cancel();
     s.realtime?.stop();
     _discoverType.dispose();
+    _fade.dispose();
     super.dispose();
   }
 
@@ -69,7 +78,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     final v = shellTabRequest.value;
     if (v == null) return;
     shellTabRequest.value = null;
-    if (mounted && v >= 0 && v <= AppTab.profile) setState(() => _tab = v);
+    if (mounted && v >= 0 && v <= AppTab.profile) _select(v);
   }
 
   @override
@@ -103,7 +112,21 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           MaterialPageRoute<void>(builder: (_) => NewsListPage(session: s, initialType: newsType)));
       return;
     }
-    setState(() => _tab = i);
+    _select(i);
+  }
+
+  /// Sekmeyi seçer: ilk seçimde kurar, geçişte fade-through oynatır ("animasyonları azalt" ise anlık).
+  void _select(int i) {
+    if (i == _tab) return;
+    setState(() {
+      _tab = i;
+      _built.add(i);
+    });
+    if (BuMotion.reduced(context)) {
+      _fade.value = 1;
+    } else {
+      _fade.forward(from: 0);
+    }
   }
 
   DateTime? _lastBack;
@@ -117,7 +140,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       return;
     }
     if (_tab != AppTab.home) {
-      setState(() => _tab = AppTab.home);
+      _select(AppTab.home);
       return;
     }
     final now = DateTime.now();
@@ -127,13 +150,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       return;
     }
     _lastBack = now;
-    final m = ScaffoldMessenger.of(context);
-    m.hideCurrentSnackBar();
-    m.showSnackBar(SnackBar(
-      content: Text(context.l10n.exitAgainHint),
-      duration: const Duration(seconds: 2),
-      behavior: SnackBarBehavior.floating,
-    ));
+    BuToast.show(context, context.l10n.exitAgainHint, duration: const Duration(seconds: 2));
   }
 
   @override
@@ -145,17 +162,37 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     );
   }
 
+  Widget _tabBody(int i) {
+    switch (i) {
+      case AppTab.home:
+        return HomeTab(session: s, onOpenTab: _go);
+      case AppTab.discover:
+        return DiscoverTab(session: s, typeRequest: _discoverType);
+      case AppTab.chat:
+        return ChatTab(session: s);
+      case AppTab.clubs:
+        return ClubsTab(session: s);
+      default:
+        return ProfileTab(session: s, themeController: widget.themeController);
+    }
+  }
+
   Widget _scaffold() {
     return Scaffold(
       extendBody: true,
       body: IndexedStack(
         index: _tab,
         children: [
-          HomeTab(session: s, onOpenTab: _go),
-          DiscoverTab(session: s, typeRequest: _discoverType),
-          ChatTab(session: s),
-          ClubsTab(session: s),
-          ProfileTab(session: s, themeController: widget.themeController),
+          for (var i = 0; i <= AppTab.profile; i++)
+            // Kurulmamış sekme boş kalır: ağ isteği/ağaç maliyeti ilk seçime ertelenir.
+            if (_built.contains(i))
+              _TabFade(
+                key: ValueKey('tab-$i'),
+                animation: i == _tab ? _fadeIn : null,
+                child: _tabBody(i),
+              )
+            else
+              const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: FloatingNav(
@@ -165,6 +202,26 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
           if (i == AppTab.chat) _refreshBadges();
         },
         chatBadge: s.badges.chat,
+      ),
+    );
+  }
+}
+
+/// Seçilen sekmeyi soluklaştırıp hafifçe ölçekler; animasyon yoksa/bittiğinde ek katman oluşmaz.
+class _TabFade extends StatelessWidget {
+  const _TabFade({super.key, required this.child, this.animation});
+
+  final Widget child;
+  final Animation<double>? animation;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = animation ?? const AlwaysStoppedAnimation<double>(1);
+    return FadeTransition(
+      opacity: Tween<double>(begin: .0, end: 1).animate(a),
+      child: ScaleTransition(
+        scale: Tween<double>(begin: .985, end: 1).animate(a),
+        child: child,
       ),
     );
   }

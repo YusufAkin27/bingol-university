@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'notification_prefs_page.dart' show PrefSwitch;
 
-/// P9 profil tasarımındaki ortak parçalar (kart, satır, bölüm başlığı, anahtar satırı).
+/// Profil ortak parçaları (kart, satır, bölüm başlığı, anahtar satırı, seçim sayfası). P0 bileşenleri üstüne kurulu;
+/// dış imzalar eskisiyle aynıdır (hesap, bildirim, etkinlik, kulüp sayfaları kullanır).
 
-/// Tasarımdaki mavi ikon tonu (#2F4FA8); koyu temada okunur açık ton.
-Color profilBlue(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark ? const Color(0xFF9DB4F0) : const Color(0xFF2F4FA8);
+/// Mavi ikon tonu (tasarım sistemindeki mavi kategori rengi; açık/koyu temaya göre okunur ton).
+Color profilBlue(BuildContext context) => context.bu.tint(1).fg;
 
-/// Başlık altı sessiz ikon zemini: sayfa zemini rengi (kart üstünde hafif çukur).
-Color _tile(BuildContext context) => context.bu.bg;
-
-/// Yumuşak gölgeli 20 px köşeli kart; satırlar ince çizgiyle ayrılır.
+/// Katmanlı kart ([BuCard], ince çizgi + 20 dp köşe); satırlar simge karosunun hizasından başlayan çizgiyle ayrılır.
 class ProfilCard extends StatelessWidget {
   const ProfilCard({super.key, required this.children, this.margin});
 
@@ -24,37 +19,23 @@ class ProfilCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: margin,
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: t.bd),
-        boxShadow: dark
-            ? null
-            : const [BoxShadow(color: Color(0x40171E33), blurRadius: 18, offset: Offset(0, 6), spreadRadius: -12)],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
-        child: Material(
-          color: Colors.transparent,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
-                children[i],
-              ],
-            ],
-          ),
-        ),
+    final card = BuCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
+            children[i],
+          ],
+        ],
       ),
     );
+    return margin == null ? card : Padding(padding: margin!, child: card);
   }
 }
 
-/// Bölüm başlığı: küçük, büyük harfli, soluk.
+/// Bölüm başlığı: küçük, büyük harfli, soluk (ekran okuyucuda başlık).
 class ProfilSection extends StatelessWidget {
   const ProfilSection(this.text, {super.key, this.top = 16});
 
@@ -64,35 +45,47 @@ class ProfilSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final lang = Localizations.localeOf(context).languageCode;
     // İngilizce dışında (tr; testte varsayılan yerel de) Türkçe büyük harf kuralı; Arapçada harf büyümez.
-    final up = Localizations.localeOf(context).languageCode == 'en' ? text.toUpperCase() : trUpper(text);
+    final up = lang == 'en' ? text.toUpperCase() : trUpper(text);
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 6, bottom: 8, top: top),
       child: Semantics(
         header: true,
-        child: Text(up, style: BuType.label.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut)),
+        child: Text(up,
+            style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                fontWeight: FontWeight.w700, letterSpacing: lang == 'ar' ? 0 : .6, color: t.mut)),
       ),
     );
   }
 }
 
-/// 36x36 yuvarlatılmış ikon zemini.
+/// 36x36 yuvarlatılmış simge karosu: varsayılan marka tonu, [tint] ile kategori tonu, [danger] ile hata tonu.
 class ProfilIconTile extends StatelessWidget {
-  const ProfilIconTile({super.key, required this.icon, this.color});
+  const ProfilIconTile({super.key, required this.icon, this.color, this.tint, this.danger = false});
 
   final IconData icon;
+
+  /// Yalnız simge rengi (eski kullanım); karo zemini [tint]/marka tonundan gelir.
   final Color? color;
+  final BuTint? tint;
+  final bool danger;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(color: _tile(context), borderRadius: BorderRadius.circular(12)),
-        child: ExcludeSemantics(child: Icon(icon, size: 18, color: color ?? context.bu.pr)),
-      );
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.soft);
+    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.pr));
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bSm),
+      child: ExcludeSemantics(child: Icon(icon, size: 19, color: fg)),
+    );
+  }
 }
 
-/// Menü satırı: ikon zemini + başlık (+ alt yazı) + sağda değer/ok.
+/// Menü satırı: simge karosu + başlık (+ alt yazı) + sağda değer/ok. Dokununca hafif titreşim.
 class ProfilRow extends StatelessWidget {
   const ProfilRow({
     super.key,
@@ -105,6 +98,7 @@ class ProfilRow extends StatelessWidget {
     this.danger = false,
     this.blue = false,
     this.chevron = true,
+    this.tint,
   });
 
   final IconData icon;
@@ -117,20 +111,29 @@ class ProfilRow extends StatelessWidget {
   final bool blue;
   final bool chevron;
 
+  /// Karo rengi (örn. `context.bu.tint(2)`); verilmezse [blue] ya da marka tonu.
+  final BuTint? tint;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final c = danger ? t.danger : t.ink;
-    final tone = danger ? t.danger : (blue ? profilBlue(context) : t.pr);
+    final tone = tint ?? (blue ? t.tint(1) : null);
     return InkWell(
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              buHaptic(BuHaptic.selection);
+              onTap!();
+            },
       child: Container(
         // Tüm satırlar aynı yükseklikte; yazı ölçeği büyüse de metin tek satırda kalır.
         constraints: const BoxConstraints(minHeight: 60),
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Row(
           children: [
-            ProfilIconTile(icon: icon, color: tone),
+            ProfilIconTile(icon: icon, tint: tone, danger: danger),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -141,13 +144,13 @@ class ProfilRow extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: c)),
+                      style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: c)),
                   if (sub != null)
                     Text(sub!,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.ellipsis,
-                        style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
+                        style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
             ),
@@ -159,7 +162,7 @@ class ProfilRow extends StatelessWidget {
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.ellipsis,
-                    style: BuType.bodyStrong.copyWith(fontSize: 13.5, color: t.mut)),
+                    style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
               ),
             ],
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -198,6 +201,7 @@ class ProfilToggleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return MergeSemantics(
       child: Semantics(
         child: InkWell(
@@ -216,8 +220,8 @@ class ProfilToggleRow extends StatelessWidget {
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.ellipsis,
-                          style: BuType.bodyStrong.copyWith(fontSize: 14.5, color: t.ink)),
-                      if (sub != null) Text(sub!, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
+                          style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                      if (sub != null) Text(sub!, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),
                 ),
@@ -232,35 +236,30 @@ class ProfilToggleRow extends StatelessWidget {
   }
 }
 
-/// Seçim sayfası (dil/tema): başlık + işaretli seçenekler. Seçilen değeri döndürür.
+/// Seçim sayfası (dil/tema): tutamaçlı alt sayfa ([BuSheet]), işaretli seçenekler. Seçilen değeri döndürür.
 Future<String?> showProfilChoiceSheet(
   BuildContext context, {
   required String title,
   required List<(String, String)> options,
   required String selected,
 }) {
-  final t = context.bu;
-  return showModalBottomSheet<String>(
-    context: context,
-    backgroundColor: t.sf,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-    builder: (ctx) => SafeArea(
-      child: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 16),
-          Text(title, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink)),
-          const SizedBox(height: 8),
-          for (final o in options)
-            ListTile(
-              title: Text(o.$2, style: BuType.bodyStrong.copyWith(color: t.ink)),
-              selected: o.$1 == selected,
-              trailing: o.$1 == selected ? Icon(LucideIcons.check, color: t.pr) : null,
-              onTap: () => Navigator.pop(ctx, o.$1),
-            ),
-          const SizedBox(height: 8),
-        ]),
-      ),
+  return BuSheet.show<String>(
+    context,
+    title: title,
+    builder: (ctx) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final o in options)
+          BuListTile(
+            title: o.$2,
+            selected: o.$1 == selected,
+            trailing: o.$1 == selected ? Icon(LucideIcons.check, color: ctx.bu.pr) : null,
+            onTap: () {
+              buHaptic(BuHaptic.selection);
+              Navigator.pop(ctx, o.$1);
+            },
+          ),
+      ],
     ),
   );
 }
