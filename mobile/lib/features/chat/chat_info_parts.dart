@@ -407,6 +407,9 @@ class ChatInfoSectionHead extends StatelessWidget {
   }
 }
 
+/// Onay penceresi düzeni: ortalı (üye çıkar 24-5), simge başlığın yanında (ayrıl 22-3), simge üstte solda (sohbeti sil 22-2).
+enum ChatConfirmLayout { centered, iconBeside, iconAbove }
+
 /// Onay penceresi (referans A20): üstte 56 dp tonlu simge, ortalı başlık ve gövde, yan yana iki düğme.
 /// [bold] gövdede kalın yazılacak parça (ad). `true` dönerse onaylandı.
 Future<bool> showChatInfoConfirm(
@@ -418,6 +421,7 @@ Future<bool> showChatInfoConfirm(
   required String confirmLabel,
   required String cancelLabel,
   IconData? confirmIcon,
+  ChatConfirmLayout layout = ChatConfirmLayout.centered,
 }) async {
   final t = context.bu;
   final ok = await showDialog<bool>(
@@ -432,17 +436,8 @@ Future<bool> showChatInfoConfirm(
         constraints: const BoxConstraints(maxWidth: 330),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ChatInfoIconDot(icon: icon, size: 56, iconSize: 28, danger: true),
-            const SizedBox(height: 12),
-            Semantics(
-              header: true,
-              child: Text(title,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600, height: 1.33)),
-            ),
-            const SizedBox(height: 4),
-            _boldBody(c, body, bold),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            ..._confirmHead(c, layout, icon, title, body, bold),
             const SizedBox(height: 20),
             Row(children: [
               Expanded(child: _DialogButton(label: cancelLabel, onTap: () => Navigator.pop(c, false))),
@@ -457,18 +452,51 @@ Future<bool> showChatInfoConfirm(
   return ok == true;
 }
 
-Widget _boldBody(BuildContext c, String body, String? bold) {
+List<Widget> _confirmHead(BuildContext c, ChatConfirmLayout layout, IconData icon, String title, String body, String? bold) {
+  final t = c.bu;
+  final titleStyle = Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600, height: 1.33);
+  switch (layout) {
+    case ChatConfirmLayout.centered:
+      return [
+        Center(child: ChatInfoIconDot(icon: icon, size: 56, iconSize: 28, danger: true)),
+        const SizedBox(height: 12),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: titleStyle)),
+        const SizedBox(height: 4),
+        _boldBody(c, body, bold, TextAlign.center),
+      ];
+    case ChatConfirmLayout.iconBeside:
+      return [
+        Row(children: [
+          ChatInfoIconDot(icon: icon, size: 48, iconSize: 24, danger: true),
+          const SizedBox(width: 16),
+          Expanded(child: Semantics(header: true, child: Text(title, style: titleStyle))),
+        ]),
+        const SizedBox(height: 16),
+        _boldBody(c, body, bold, TextAlign.start),
+      ];
+    case ChatConfirmLayout.iconAbove:
+      return [
+        Align(alignment: AlignmentDirectional.centerStart, child: ChatInfoIconDot(icon: icon, size: 48, iconSize: 24, danger: true)),
+        const SizedBox(height: 16),
+        Semantics(header: true, child: Text(title, style: titleStyle)),
+        const SizedBox(height: 8),
+        _boldBody(c, body, bold, TextAlign.start),
+      ];
+  }
+}
+
+Widget _boldBody(BuildContext c, String body, String? bold, TextAlign align) {
   final t = c.bu;
   final base = chatInfoBody14(c, color: t.mut);
   final i = (bold == null || bold.isEmpty) ? -1 : body.indexOf(bold);
-  if (i < 0) return Text(body, textAlign: TextAlign.center, style: base);
+  if (i < 0) return Text(body, textAlign: align, style: base);
   return Text.rich(
     TextSpan(style: base, children: [
       TextSpan(text: body.substring(0, i)),
       TextSpan(text: bold, style: base.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
       TextSpan(text: body.substring(i + bold!.length)),
     ]),
-    textAlign: TextAlign.center,
+    textAlign: align,
   );
 }
 

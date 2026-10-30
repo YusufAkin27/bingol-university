@@ -2727,5 +2727,28 @@
   "p03HomeMenuDetail": "تفاصيل القائمة",
   "p03HomeHosts": "تنظّمه {club}",
   "p04CropCenter": "توسيط",
-  "p04SrcSizeTitle": "حجم الملف كبير"
+  "p04SrcSizeTitle": "حجم الملف كبير",
+  "p18ProfileTitle": "ملفي",
+  "p18Edit": "تعديل",
+  "p18ProfileLoadFailed": "تعذّر التحميل، حاول مرة أخرى",
+  "p15PercentFull": "{n}% ممتلئ",
+  "@p15PercentFull": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ChatSub": "تعرّف على المشاركين والمنظّم",
+  "p15ChatLockedSub": "متاح للمشاركين المعتمدين فقط",
+  "p15AboutTitle": "عن الفعالية",
+  "p15AttOpenHint": "امسح رمز QR في القاعة أو أدخل الرمز الذي أعلنه المنظّم لتسجيل حضورك.",
+  "p15CheckedInBody": "تم تسجيل حضورك في الفعالية.",
+  "p15CancelledNotice": "تم إلغاء هذه الفعالية.",
+  "p15StatusInterested": "مهتم",
+  "p15AttendeesLine": "{going} مشارك · {interested} مهتم",
+  "@p15AttendeesLine": {
+    "placeholders": {
+      "going": {"type": "String"},
+      "interested": {"type": "String"}
+    }
+  }
 }

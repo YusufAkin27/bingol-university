@@ -8752,4 +8752,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p04SrcSizeTitle => 'حجم الملف كبير';
+
+  @override
+  String get p18ProfileTitle => 'ملفي';
+
+  @override
+  String get p18Edit => 'تعديل';
+
+  @override
+  String get p18ProfileLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
+
+  @override
+  String p15PercentFull(String n) {
+    return '$n% ممتلئ';
+  }
+
+  @override
+  String get p15ChatSub => 'تعرّف على المشاركين والمنظّم';
+
+  @override
+  String get p15ChatLockedSub => 'متاح للمشاركين المعتمدين فقط';
+
+  @override
+  String get p15AboutTitle => 'عن الفعالية';
+
+  @override
+  String get p15AttOpenHint =>
+      'امسح رمز QR في القاعة أو أدخل الرمز الذي أعلنه المنظّم لتسجيل حضورك.';
+
+  @override
+  String get p15CheckedInBody => 'تم تسجيل حضورك في الفعالية.';
+
+  @override
+  String get p15CancelledNotice => 'تم إلغاء هذه الفعالية.';
+
+  @override
+  String get p15StatusInterested => 'مهتم';
+
+  @override
+  String p15AttendeesLine(String going, String interested) {
+    return '$going مشارك · $interested مهتم';
+  }
 }

@@ -7,10 +7,12 @@ import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
+import '../media_crop/media_crop.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_info_media.dart';
 import 'chat_info_members.dart';
 import 'chat_info_parts.dart';
+import 'chat_sheet_parts.dart';
 import 'chat_media_viewer.dart';
 import 'chatlist_widgets.dart';
 import 'sohbety_add_members.dart';
@@ -225,25 +227,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   }
 
   Future<void> _muteSheet() async {
-    final l = context.l10n;
-    final pick = await BuSheet.show<String>(
-      context,
-      title: l.chatInfoMuteNotifications,
-      builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
-        BuListTile(
-            title: l.chatInfoMute8h,
-            leading: const Icon(LucideIcons.bellOff),
-            onTap: () => Navigator.pop(c, '480')),
-        BuListTile(
-            title: l.chatInfoMute1w,
-            leading: const Icon(LucideIcons.bellOff),
-            onTap: () => Navigator.pop(c, '10080')),
-        BuListTile(
-            title: l.chatInfoMuteForever,
-            leading: const Icon(LucideIcons.bellOff),
-            onTap: () => Navigator.pop(c, 'forever')),
-      ]),
-    );
+    final pick = await showChatMuteSheet(context, chatName: _title);
     if (pick == null || !mounted) return;
     await _applyMute(pick);
   }
@@ -313,6 +297,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         title: l.chatInfoLeaveTitle,
         body: l.chatInfoLeaveBody,
         confirmLabel: l.chatInfoLeave,
+        confirmIcon: LucideIcons.logOut,
+        layout: ChatConfirmLayout.iconBeside,
         cancelLabel: l.chatInfoCancel)) {
       return;
     }
@@ -395,11 +381,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   // ---- grup adı / fotoğrafı (yalnız kullanıcı grubu yöneticisi) ----
 
   Future<void> _rename() async {
-    final name = await showDialog<String>(
-        context: context,
-        barrierColor: context.bu.ink.withValues(alpha: .4),
-        builder: (_) =>
-            _RenameDialog(initial: (_conv['title'] as String?) ?? ''));
+    final name = await showChatRenameDialog(context, initial: (_conv['title'] as String?) ?? '');
     if (name == null || !mounted) return;
     try {
       final res = await _api.patch('/conversations/$_cid', {'title': name});
@@ -412,59 +394,55 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     }
   }
 
+  /// Grup fotoğrafı (22-6): kaynak sayfası (Galeriden seç / Fotoğraf çek / kaldır) + 1:1 daire kırpma.
   Future<void> _avatarSheet() async {
     final has = _avatarUrl != null;
-    final l = context.l10n;
-    final pick = await BuSheet.show<String>(
-      context,
-      title: l.chatInfoChangePhoto,
-      builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
-        BuListTile(
-            title: l.chatInfoPickGallery,
-            leading: const Icon(LucideIcons.image),
-            onTap: () => Navigator.pop(c, 'pick')),
-        if (has)
-          BuListTile(
-              title: l.chatInfoRemovePhoto,
-              leading: const Icon(LucideIcons.trash2),
-              danger: true,
-              onTap: () => Navigator.pop(c, 'remove')),
-      ]),
-    );
-    if (pick == null || !mounted) return;
-    try {
-      if (pick == 'remove') {
-        await _api.delete('/conversations/$_cid/avatar');
-        if (mounted) setState(() => _merge({'avatarUrl': null}));
-        return;
-      }
-      PreparedImage? img;
+    String? error;
+    while (mounted) {
+      final tok = _api.tokens?.access;
+      final au = _avatarUrl;
+      final src = await showChatPhotoSheet(context,
+          name: _title,
+          avatarUrl: au,
+          headers: (tok != null && au != null && au.startsWith('/api/')) ? {'Authorization': 'Bearer $tok'} : null,
+          removable: has,
+          error: error);
+      if (src == null || !mounted) return;
+      error = null;
       try {
-        img = await (widget.pickAvatar ??
-            () => ImageService()
-                .pickPrepared(ImageSource.gallery, avatar: true))();
+        if (src == PhotoSource.remove) {
+          await _api.delete('/conversations/$_cid/avatar');
+          if (mounted) setState(() => _merge({'avatarUrl': null}));
+          return;
+        }
+        PreparedImage? img;
+        if (widget.pickAvatar != null) {
+          img = await widget.pickAvatar!();
+        } else {
+          final bytes = await pickAndCrop(context, CropSpec.profile(previewName: _title),
+              source: src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
+          if (bytes != null) img = await ImageService().prepare(bytes, avatar: true);
+        }
+        if (img == null || !mounted) return;
+        final path = '/conversations/$_cid/avatar';
+        final res = await (widget.uploadAvatar ??
+            (p, i) => putMultipartImage(widget.session, p, i))(path, img);
+        if (!mounted) return;
+        setState(() {
+          _avatarVersion++;
+          if (res is Map && res['avatarUrl'] != null) {
+            _merge({'avatarUrl': res['avatarUrl']});
+          }
+        });
+        return;
       } on ImageException catch (e) {
         if (!mounted) return;
-        _toast(
-            e.code == 'TOO_LARGE'
-                ? context.l10n.chatInfoImageTooLarge
-                : context.l10n.chatInfoImageTypeOnly,
-            kind: BuToastKind.error);
+        // Biçim/boyut hatası: kaynak sayfası uyarıyla yeniden açılır.
+        error = e.code == 'TOO_LARGE' ? context.l10n.chatInfoImageTooLarge : context.l10n.chatInfoImageTypeOnly;
+      } catch (e) {
+        _toast(errorText(e), kind: BuToastKind.error);
         return;
       }
-      if (img == null || !mounted) return;
-      final path = '/conversations/$_cid/avatar';
-      final res = await (widget.uploadAvatar ??
-          (p, i) => putMultipartImage(widget.session, p, i))(path, img);
-      if (!mounted) return;
-      setState(() {
-        _avatarVersion++;
-        if (res is Map && res['avatarUrl'] != null) {
-          _merge({'avatarUrl': res['avatarUrl']});
-        }
-      });
-    } catch (e) {
-      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -1045,86 +1023,5 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       }
     }
     return l.chatInfoMutedLabel;
-  }
-}
-
-/// Grup adı penceresi (Stitch 24-2 gizli modal): başlık + kapat, "Grup adı" etiketi, alan, Vazgeç/Kaydet.
-class _RenameDialog extends StatefulWidget {
-  const _RenameDialog({required this.initial});
-
-  final String initial;
-
-  @override
-  State<_RenameDialog> createState() => _RenameDialogState();
-}
-
-class _RenameDialogState extends State<_RenameDialog> {
-  late final _ctl = TextEditingController(text: widget.initial);
-
-  @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final v = _ctl.text.trim();
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Dialog(
-      backgroundColor: dark ? t.sf3 : t.sf,
-      surfaceTintColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(kChatInfoMargin),
-      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 384),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(l.chatInfoGroupName,
-                      style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-                ),
-              ),
-              IconButton(
-                tooltip: l.commonClose,
-                onPressed: () => Navigator.pop(context),
-                icon: Icon(LucideIcons.x, size: 22, color: t.mut),
-              ),
-            ]),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _ctl,
-              autofocus: true,
-              maxLength: 60,
-              onChanged: (_) => setState(() {}),
-              cursorColor: t.pr,
-              style: chatInfoBody14(context, color: t.ink).copyWith(fontSize: 15),
-              decoration: InputDecoration(
-                hintText: l.chatInfoGroupName,
-                counterText: '',
-                filled: true,
-                fillColor: t.sf2,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: const OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide.none),
-                enabledBorder: const OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide(color: t.pr, width: 2)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(child: BuButton(label: l.chatInfoCancel, kind: BuButtonKind.soft, onPressed: () => Navigator.pop(context))),
-              const SizedBox(width: 8),
-              Expanded(child: BuButton(label: l.chatInfoSave, onPressed: v.isEmpty ? null : () => Navigator.pop(context, v))),
-            ]),
-          ]),
-        ),
-      ),
-    );
   }
 }

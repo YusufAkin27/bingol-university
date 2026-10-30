@@ -2727,5 +2727,28 @@
   "p03HomeMenuDetail": "Menu Details",
   "p03HomeHosts": "Hosted by {club}",
   "p04CropCenter": "Center",
-  "p04SrcSizeTitle": "File is too large"
+  "p04SrcSizeTitle": "File is too large",
+  "p18ProfileTitle": "My profile",
+  "p18Edit": "Edit",
+  "p18ProfileLoadFailed": "Could not load, try again",
+  "p15PercentFull": "{n}% full",
+  "@p15PercentFull": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ChatSub": "Meet the attendees and the organizer",
+  "p15ChatLockedSub": "Only open to approved attendees",
+  "p15AboutTitle": "About the event",
+  "p15AttOpenHint": "Scan the QR code in the hall or enter the code the organizer announced to record your attendance.",
+  "p15CheckedInBody": "Your attendance has been recorded.",
+  "p15CancelledNotice": "This event has been cancelled.",
+  "p15StatusInterested": "Interested",
+  "p15AttendeesLine": "{going} going · {interested} interested",
+  "@p15AttendeesLine": {
+    "placeholders": {
+      "going": {"type": "String"},
+      "interested": {"type": "String"}
+    }
+  }
 }

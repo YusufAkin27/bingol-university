@@ -4,18 +4,22 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
-import 'sohbety_sheet.dart';
-import 'sohbety_widgets.dart';
+import '../../widgets/bu.dart';
+import 'chat_info_parts.dart';
+import 'chat_sheet_parts.dart';
+import 'chatlist_widgets.dart';
 
-/// Gruba üye ekleme seçici: kişi ara (en az 2 karakter), çoklu seç.
+/// Gruba üye ekleme seçici (Stitch 22-4): kişi ara (en az 2 karakter), çoklu seç, seçilenler çip olarak üstte.
 /// Dönüş: seçilen kullanıcı kimlikleri; vazgeçilirse null.
 Future<List<int>?> showAddMembersSheet(BuildContext context, Session session,
     {required Set<int> exclude, required int max}) {
-  return showSohbetySheet<List<int>>(
-      context, (c) => AddMembersSheet(session: session, exclude: exclude, max: max));
+  return BuSheet.show<List<int>>(
+    context,
+    scrollable: false,
+    maxHeightFactor: .9,
+    padding: const EdgeInsets.symmetric(horizontal: kChatInfoMargin),
+    builder: (c) => AddMembersSheet(session: session, exclude: exclude, max: max),
+  );
 }
 
 class AddMembersSheet extends StatefulWidget {
@@ -35,7 +39,9 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
   Timer? _debounce;
   int _seq = 0;
   List<Map<String, dynamic>> _results = [];
-  final _selected = <int>[];
+
+  /// Seçilenler (sıralı); çip için kullanıcı kaydı da tutulur (arama değişse de kalır).
+  final _selected = <int, Map<String, dynamic>>{};
   bool _loading = false;
   Object? _error;
   bool _limit = false;
@@ -93,14 +99,15 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
     }
   }
 
-  void _toggle(int id) {
+  void _toggle(Map<String, dynamic> u) {
+    final id = (u['id'] as num).toInt();
     setState(() {
-      if (_selected.remove(id)) {
+      if (_selected.remove(id) != null) {
         _limit = false;
       } else if (_selected.length >= widget.max) {
         _limit = true;
       } else {
-        _selected.add(id);
+        _selected[id] = u;
         _limit = false;
       }
     });
@@ -108,67 +115,128 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
+    final l = context.l10n;
     final n = _selected.length;
-    return SohbetySheetFrame(
-      title: context.l10n.sohbetyAddMember,
-      search: SohbetyField(
-          hint: context.l10n.chatMiscUserSearchHint,
-          controller: _q,
-          autofocus: true,
-          onChanged: _onQuery),
-      note: _limit
-          ? Text(context.l10n.chatMiscGroupMax,
-              style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: t.danger))
-          : null,
-      body: _body(t),
-      footer: SohbetyButton(
-        label: n == 0
-            ? context.l10n.sohbetyAddMember
-            : context.l10n.sohbetyAddCount(n.toString()),
-        onPressed: n == 0 ? null : () => Navigator.pop(context, List<int>.from(_selected)),
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      ChatSheetHeader(title: l.sohbetyAddMember),
+      if (n > 0) ...[
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final u in _selected.values) ...[
+                _SelectedChip(user: u, onRemove: () => _toggle(u)),
+                const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ),
+      ],
+      const SizedBox(height: 4),
+      ChatSheetSearch(hint: l.chatMiscUserSearchHint, controller: _q, autofocus: true, onChanged: _onQuery),
+      const SizedBox(height: 8),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ChatSheetHint(l.chatMiscGroupMax, warn: _limit),
       ),
-    );
+      const SizedBox(height: 4),
+      Expanded(child: _body()),
+      const SizedBox(height: 8),
+      BuButton(
+        label: n == 0 ? l.sohbetyAddMember : l.sohbetyAddCount(n.toString()),
+        icon: LucideIcons.userPlus,
+        onPressed: n == 0 ? null : () => Navigator.pop(context, _selected.keys.toList()),
+      ),
+    ]);
   }
 
-  Widget _body(BuTokens t) {
+  Widget _body() {
+    final l = context.l10n;
     if (_q.text.trim().length < 2) {
-      return EmptyView(icon: LucideIcons.search, text: context.l10n.chatMiscSearchMin);
+      return BuEmptyState(illustration: BuIllustration.search, title: l.chatMiscSearchMin, compact: true);
     }
-    if (_loading && _results.isEmpty) return const LoadingView();
-    if (_error != null) {
-      return ErrorView(error: _error!, onRetry: () => _run(_last));
-    }
+    if (_loading && _results.isEmpty) return const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 5);
+    if (_error != null) return BuErrorState(error: _error!, onRetry: () => _run(_last), compact: true);
     if (_results.isEmpty) {
-      return EmptyView(icon: LucideIcons.userX, text: context.l10n.chatMiscNoMatchPeople);
+      return BuEmptyState(illustration: BuIllustration.search, title: l.chatMiscNoMatchPeople, compact: true);
     }
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+    return ListView.builder(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      children: [
-        SohbetyCard(children: [
-          for (final u in _results)
-            SohbetyRow(
-              key: ValueKey('add-${u['id']}'),
-              minHeight: 64,
-              onTap: () => _toggle((u['id'] as num).toInt()),
-              child: Row(children: [
-                SohbetyAvatar(
-                    name: '${u['displayName'] ?? ''}',
-                    url: u['avatarUrl']?.toString(),
-                    size: 44),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SohbetyTexts(
-                      title: '${u['displayName'] ?? ''}',
-                      sub: (u['department'] ?? u['faculty'] ?? '').toString()),
-                ),
-                const SizedBox(width: 8),
-                SohbetyCheck(on: _selected.contains((u['id'] as num).toInt())),
-              ]),
+      itemCount: _results.length,
+      itemBuilder: (context, i) {
+        final u = _results[i];
+        final id = (u['id'] as num).toInt();
+        final name = '${u['displayName'] ?? ''}';
+        final sub = (u['department'] ?? u['faculty'] ?? '').toString();
+        return Semantics(
+          button: true,
+          selected: _selected.containsKey(id),
+          child: InkWell(
+            key: ValueKey('add-$id'),
+            onTap: () => _toggle(u),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 70),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                child: Row(children: [
+                  ChatlistAvatar(name: name, url: u['avatarUrl']?.toString(), size: 52, circle: true),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context)),
+                      if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoBody12(context)),
+                    ]),
+                  ),
+                  const SizedBox(width: 8),
+                  ChatSheetCheck(on: _selected.containsKey(id), filledOff: true),
+                ]),
+              ),
             ),
-        ]),
-      ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Seçilen kişi çipi: soluk kırmızı zemin, küçük avatar, ad, kaldırma işareti.
+class _SelectedChip extends StatelessWidget {
+  const _SelectedChip({required this.user, required this.onRemove});
+
+  final Map<String, dynamic> user;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final name = '${user['displayName'] ?? ''}';
+    return Semantics(
+      button: true,
+      label: '$name, ${context.l10n.chatInfoRemove}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onRemove,
+        child: Center(
+          child: Container(
+            height: 40,
+            padding: const EdgeInsetsDirectional.only(start: 6, end: 10),
+            decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              ChatlistAvatar(name: name, url: user['avatarUrl']?.toString(), size: 28, circle: true),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft)),
+              ),
+              const SizedBox(width: 6),
+              Icon(LucideIcons.x, size: 16, color: t.onSoft),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }

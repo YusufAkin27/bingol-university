@@ -16044,6 +16044,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Dosya boyutu yüksek'**
   String get p04SrcSizeTitle;
+
+  /// No description provided for @p18ProfileTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilim'**
+  String get p18ProfileTitle;
+
+  /// No description provided for @p18Edit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle'**
+  String get p18Edit;
+
+  /// No description provided for @p18ProfileLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p18ProfileLoadFailed;
+
+  /// No description provided for @p15PercentFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'%{n} dolu'**
+  String p15PercentFull(String n);
+
+  /// No description provided for @p15ChatSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılarla ve organizatörle tanış'**
+  String get p15ChatSub;
+
+  /// No description provided for @p15ChatLockedSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca onaylanan katılımcılara açıktır'**
+  String get p15ChatLockedSub;
+
+  /// No description provided for @p15AboutTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik hakkında'**
+  String get p15AboutTitle;
+
+  /// No description provided for @p15AttOpenHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklamanın alınması için salondaki QR kodunu tara ya da organizatörün duyurduğu kodu gir.'**
+  String get p15AttOpenHint;
+
+  /// No description provided for @p15CheckedInBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliğe katılımın kaydedildi.'**
+  String get p15CheckedInBody;
+
+  /// No description provided for @p15CancelledNotice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik iptal edildi.'**
+  String get p15CancelledNotice;
+
+  /// No description provided for @p15StatusInterested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlgileniyor'**
+  String get p15StatusInterested;
+
+  /// No description provided for @p15AttendeesLine.
+  ///
+  /// In tr, this message translates to:
+  /// **'{going} kişi katılıyor · {interested} ilgileniyor'**
+  String p15AttendeesLine(String going, String interested);
 }
 
 class _AppLocalizationsDelegate

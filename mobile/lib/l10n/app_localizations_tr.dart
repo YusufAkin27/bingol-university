@@ -8812,4 +8812,45 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p04SrcSizeTitle => 'Dosya boyutu yüksek';
+
+  @override
+  String get p18ProfileTitle => 'Profilim';
+
+  @override
+  String get p18Edit => 'Düzenle';
+
+  @override
+  String get p18ProfileLoadFailed => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String p15PercentFull(String n) {
+    return '%$n dolu';
+  }
+
+  @override
+  String get p15ChatSub => 'Katılımcılarla ve organizatörle tanış';
+
+  @override
+  String get p15ChatLockedSub => 'Yalnızca onaylanan katılımcılara açıktır';
+
+  @override
+  String get p15AboutTitle => 'Etkinlik hakkında';
+
+  @override
+  String get p15AttOpenHint =>
+      'Yoklamanın alınması için salondaki QR kodunu tara ya da organizatörün duyurduğu kodu gir.';
+
+  @override
+  String get p15CheckedInBody => 'Etkinliğe katılımın kaydedildi.';
+
+  @override
+  String get p15CancelledNotice => 'Bu etkinlik iptal edildi.';
+
+  @override
+  String get p15StatusInterested => 'İlgileniyor';
+
+  @override
+  String p15AttendeesLine(String going, String interested) {
+    return '$going kişi katılıyor · $interested ilgileniyor';
+  }
 }

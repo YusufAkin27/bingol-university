@@ -4519,5 +4519,28 @@
   "p03HomeHosts": "{club} Düzenliyor",
   "@p03HomeHosts": {"placeholders": {"club": {"type": "String"}}},
   "p04CropCenter": "Ortala",
-  "p04SrcSizeTitle": "Dosya boyutu yüksek"
+  "p04SrcSizeTitle": "Dosya boyutu yüksek",
+  "p18ProfileTitle": "Profilim",
+  "p18Edit": "Düzenle",
+  "p18ProfileLoadFailed": "Yüklenemedi, tekrar dene",
+  "p15PercentFull": "%{n} dolu",
+  "@p15PercentFull": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15ChatSub": "Katılımcılarla ve organizatörle tanış",
+  "p15ChatLockedSub": "Yalnızca onaylanan katılımcılara açıktır",
+  "p15AboutTitle": "Etkinlik hakkında",
+  "p15AttOpenHint": "Yoklamanın alınması için salondaki QR kodunu tara ya da organizatörün duyurduğu kodu gir.",
+  "p15CheckedInBody": "Etkinliğe katılımın kaydedildi.",
+  "p15CancelledNotice": "Bu etkinlik iptal edildi.",
+  "p15StatusInterested": "İlgileniyor",
+  "p15AttendeesLine": "{going} kişi katılıyor · {interested} ilgileniyor",
+  "@p15AttendeesLine": {
+    "placeholders": {
+      "going": {"type": "String"},
+      "interested": {"type": "String"}
+    }
+  }
 }

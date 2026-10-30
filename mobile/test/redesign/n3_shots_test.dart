@@ -1,7 +1,6 @@
 @Tags(['store-shots'])
 library;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -10,6 +9,9 @@ import 'package:bu_kampus/features/chat/chat_info_members.dart';
 import 'package:bu_kampus/features/chat/chat_info_media.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_parts.dart';
+import 'package:bu_kampus/features/chat/chat_sheet_parts.dart';
+import 'package:bu_kampus/features/chat/forward_sheet.dart';
+import 'package:bu_kampus/features/chat/sohbety_add_members.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
@@ -56,14 +58,12 @@ List<Map<String, dynamic>> _msgs(int n, {Set<int> videos = const {}}) => [
     ];
 
 class _Sc {
-  _Sc(this.file, this.height, this.build, {this.messages, this.after, this.members = const [], this.failMembers = false, this.fail = false});
+  _Sc(this.file, this.height, this.build, {this.messages, this.after, this.fail = false});
   final String file;
   final double height;
   final Widget Function(FakeBackend be) build;
   final Map<String, dynamic>? messages;
   final Future<void> Function(WidgetTester t)? after;
-  final List<Map<String, dynamic>> members;
-  final bool failMembers;
   final bool fail;
 }
 
@@ -131,7 +131,92 @@ ChatMediaGridPage _grid(FakeBackend be, {bool load = true}) {
   return ChatMediaGridPage(feed: feed, headers: const {}, onOpen: (i) {});
 }
 
+/// Acilista verilen islevi calistirip bos bir sohbet zemini birakir (alt sayfa/diyalog ekran goruntuleri).
+class _Opener extends StatefulWidget {
+  const _Opener(this.open);
+  final void Function(BuildContext context) open;
+
+  @override
+  State<_Opener> createState() => _OpenerState();
+}
+
+class _OpenerState extends State<_Opener> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.open(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(backgroundColor: context.bu.bg, body: const SizedBox.expand());
+}
+
+final _convs = {
+  'items': [
+    {'id': 1, 'type': 'CLUB', 'title': 'Mühendislik Fakültesi 3. Sınıf', 'memberCount': 324},
+    {'id': 2, 'type': 'GROUP', 'title': 'Yazılım Kulübü Yönetim', 'memberCount': 18},
+    {'id': 3, 'type': 'EVENT', 'title': 'Doğa Sporları ve Dağcılık', 'memberCount': 89},
+    {'id': 4, 'type': 'DIRECT', 'peer': {'id': 4, 'displayName': 'Zeynep Kaya', 'avatarUrl': '/files/avatars/u4.jpg'}},
+    {'id': 5, 'type': 'DIRECT', 'peer': {'id': 5, 'displayName': 'Mehmet Demir', 'avatarUrl': '/files/avatars/u5.jpg'}},
+  ],
+  'nextCursor': null,
+};
+
+final _people = {
+  'items': [
+    for (final e in [('Zeynep Kaya', 41), ('Emre Demir', 42), ('Büşra Çelik', 43), ('Caner Yıldız', 44), ('Seda Öztürk', 45)])
+      {'id': e.$2, 'displayName': e.$1, 'department': 'Bilgisayar Mühendisliği', 'avatarUrl': '/files/avatars/u${e.$2}.jpg'},
+  ],
+  'nextCursor': null,
+};
+
 final _scenarios = <_Sc>[
+  _Sc('07_ilet', 844, (be) => _Opener((c) => showForwardSheet(c, makeSession(be).api)), after: (t) async {
+    await t.tap(find.byKey(const ValueKey('fwd-1')));
+    await t.tap(find.byKey(const ValueKey('fwd-2')));
+    await settle(t, const Duration(milliseconds: 300));
+  }),
+  _Sc('08_sessize', 844, (be) => _Opener((c) => showChatMuteSheet(c, chatName: 'Ahmet Yılmaz ile sohbet')), after: (t) async {
+    await t.tap(find.text(lookupAppLocalizations(Locale(_lang)).chatInfoMute1w));
+    await settle(t, const Duration(milliseconds: 300));
+  }),
+  _Sc('09_uye_ekle', 844, (be) => _Opener((c) => showAddMembersSheet(c, makeSession(be), exclude: {1}, max: 49)), after: (t) async {
+    await t.enterText(find.byType(TextField), 'ey');
+    await t.pump(const Duration(milliseconds: 400));
+    await settle(t, const Duration(milliseconds: 400));
+    await t.tap(find.byKey(const ValueKey('add-41')));
+    await t.tap(find.byKey(const ValueKey('add-42')));
+    await settle(t, const Duration(milliseconds: 300));
+  }),
+  _Sc('10_grup_adi', 844, (be) => _Opener((c) => showChatRenameDialog(c, initial: 'Kampüs Fotoğrafçıları'))),
+  _Sc('10b_grup_adi_bos', 844, (be) => _Opener((c) => showChatRenameDialog(c, initial: '')), ),
+  _Sc('11_grup_foto', 844,
+      (be) => _Opener((c) => showChatPhotoSheet(c, name: 'Kampüs Fotoğrafçıları', avatarUrl: '/files/avatars/u21.jpg', removable: true, error: c.l10n.chatInfoImageTypeOnly))),
+  _Sc('12_ayril', 844, (be) => _Opener((c) {
+        final l = c.l10n;
+        showChatInfoConfirm(c,
+            icon: LucideIcons.logOut,
+            title: l.chatInfoLeaveTitle,
+            body: l.chatInfoLeaveBody,
+            confirmLabel: l.chatInfoLeave,
+            confirmIcon: LucideIcons.logOut,
+            layout: ChatConfirmLayout.iconBeside,
+            cancelLabel: l.chatInfoCancel);
+      })),
+  _Sc('12b_sil', 844, (be) => _Opener((c) {
+        final l = c.l10n;
+        showChatInfoConfirm(c,
+            icon: LucideIcons.trash2,
+            title: l.chatInfoDeleteConvTitle,
+            body: l.chatInfoDeleteConvDirect,
+            confirmLabel: l.chatInfoDelete,
+            confirmIcon: LucideIcons.trash2,
+            layout: ChatConfirmLayout.iconAbove,
+            cancelLabel: l.chatInfoCancel);
+      })),
+
   _Sc('01_birebir', 844, (be) => _info(be, _direct), messages: {'items': _msgs(12, videos: {2}), 'nextCursor': null}),
   _Sc('01b_birebir_sessiz', 844, (be) => _info(be, {..._direct, 'muted': true, 'mutedForever': true, 'blocked': false}),
       messages: {'items': _msgs(12), 'nextCursor': null}),
@@ -229,6 +314,8 @@ void main() {
         } else if (sc.messages != null) {
           be.on('/conversations/5/messages?size=40', sc.messages);
         }
+        be.on('/conversations*', _convs);
+        be.on('/users/search*', _people);
         be.on('/users/11', {'id': 11, 'displayName': 'Mehmet Kaya', 'department': 'Bilgisayar Mühendisliği', 'classYear': 3});
         final key = GlobalKey();
         await tester.pumpWidget(_app(sc.build(be), v.$2, key, v.$3));

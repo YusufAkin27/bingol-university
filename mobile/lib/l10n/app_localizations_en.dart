@@ -8845,4 +8845,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p04SrcSizeTitle => 'File is too large';
+
+  @override
+  String get p18ProfileTitle => 'My profile';
+
+  @override
+  String get p18Edit => 'Edit';
+
+  @override
+  String get p18ProfileLoadFailed => 'Could not load, try again';
+
+  @override
+  String p15PercentFull(String n) {
+    return '$n% full';
+  }
+
+  @override
+  String get p15ChatSub => 'Meet the attendees and the organizer';
+
+  @override
+  String get p15ChatLockedSub => 'Only open to approved attendees';
+
+  @override
+  String get p15AboutTitle => 'About the event';
+
+  @override
+  String get p15AttOpenHint =>
+      'Scan the QR code in the hall or enter the code the organizer announced to record your attendance.';
+
+  @override
+  String get p15CheckedInBody => 'Your attendance has been recorded.';
+
+  @override
+  String get p15CancelledNotice => 'This event has been cancelled.';
+
+  @override
+  String get p15StatusInterested => 'Interested';
+
+  @override
+  String p15AttendeesLine(String going, String interested) {
+    return '$going going · $interested interested';
+  }
 }

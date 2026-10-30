@@ -283,7 +283,11 @@ void main() {
     expect(find.text('8 saat'), findsOneWidget);
     expect(find.text('1 hafta'), findsOneWidget);
     expect(find.text('Her zaman'), findsOneWidget);
+    await tester.tap(find.text('1 hafta'));
     await tester.tap(find.text('8 saat'));
+    await tester.pump();
+    expect(be.count('PUT /conversations/5/mute'), 0); // seçim tek başına göndermez
+    await tester.tap(find.widgetWithText(BuButton, 'Sessize al'));
     await settle(tester);
     expect(be.bodies['PUT /conversations/5/mute'], {'durationMinutes': 480});
     expect(find.text('Sessiz · 8 saat sonra açılır'), findsOneWidget);
@@ -539,6 +543,7 @@ void main() {
     await tester.tap(find.byTooltip('Fotoğrafı değiştir'));
     await settle(tester);
     expect(find.text('Fotoğrafı kaldır'), findsNothing);
+    expect(find.text('Fotoğraf çek'), findsOneWidget);
     await tester.tap(find.text('Galeriden seç'));
     await settle(tester);
     expect(uploads, ['/conversations/5/avatar']);
