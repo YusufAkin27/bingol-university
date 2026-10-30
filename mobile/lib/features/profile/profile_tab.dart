@@ -69,6 +69,8 @@ class _ProfileTabState extends State<ProfileTab> {
       final p =
           await widget.session.api.get('/users/me') as Map<String, dynamic>;
       if (!mounted || gen != _gen) return;
+      final av = p['avatarUrl'];
+      widget.session.avatarUrl.value = av is String && av.isNotEmpty ? av : null; // alt gezinme Profil sekmesi avatarı
       setState(() {
         _profile = p;
         _error = null;

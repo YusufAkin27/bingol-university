@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/widgets/bu_default_avatar.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
 
 Widget host(Widget child) =>
@@ -59,17 +60,43 @@ void main() {
     expect(n, 1);
   });
 
-  testWidgets('BuAvatar görselsiz varsayılan görseli gösterir', (tester) async {
+  testWidgets('BuAvatar görselsiz varsayılan görseli gösterir (baş harf yok)', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe Yılmaz')));
     expect(find.text('AY'), findsNothing);
-    expect(find.byType(Image), findsOneWidget);
-    final img = tester.widget<Image>(find.byType(Image));
-    expect((img.image as AssetImage).assetName, 'assets/branding/default_avatar.png');
+    expect(find.byType(Text), findsNothing);
+    expect(find.byType(Image), findsNothing);
+    expect(find.byType(BuDefaultAvatar), findsOneWidget);
+    expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isFalse);
   });
 
   testWidgets('BuAvatar group: varsayılan grup görseli', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Grup', group: true)));
-    final img = tester.widget<Image>(find.byType(Image));
-    expect((img.image as AssetImage).assetName, 'assets/branding/default_group.png');
+    expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isTrue);
+  });
+
+  testWidgets('BuAvatar fotoğraf yüklenemezse varsayılan görsel altta kalır', (tester) async {
+    await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: '/files/yok.jpg', size: 40)));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(BuDefaultAvatar), findsOneWidget);
+    expect(find.byType(Text), findsNothing);
+  });
+
+  test('BuDefaultAvatar varyantı kararlı ve 6 değerden biri; aynı ad aynı renk', () {
+    expect(BuDefaultAvatar.variantFor('Ayşe Yılmaz'), BuDefaultAvatar.variantFor('  ayşe yılmaz '));
+    expect(BuDefaultAvatar.variantFor(null), 0);
+    final seen = {for (var i = 0; i < 60; i++) BuDefaultAvatar.variantFor('kişi $i')};
+    expect(seen.length, BuDefaultAvatar.variantCount);
+    expect(seen.every((v) => v >= 0 && v < BuDefaultAvatar.variantCount), isTrue);
+  });
+
+  testWidgets('BuDefaultAvatar dekoratif: anlamsal düğüm üretmez, 24-96 dp boyutlarda taşmaz', (tester) async {
+    final h = tester.ensureSemantics();
+    await tester.pumpWidget(host(Row(children: [
+      for (final s in [24.0, 36.0, 44.0, 96.0])
+        BuDefaultAvatar(seed: 'x$s', size: s),
+    ])));
+    expect(tester.takeException(), isNull);
+    expect(find.bySemanticsLabel(RegExp('.')), findsNothing);
+    h.dispose();
   });
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:flutter/foundation.dart';
+import 'package:bu_kampus/widgets/bu_default_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -68,30 +69,41 @@ void main() {
   setUpAll(loadTestFonts);
 
   for (final name in ['hata', 'gelmiyor']) {
-    testWidgets('ChatlistAvatar: url dolu ama gorsel yuklenemez ($name) ise bas harfli tonlu kare kalir', (tester) async {
+    testWidgets('ChatlistAvatar: url dolu ama gorsel yuklenemez ($name) ise varsayilan profil gorseli kalir', (tester) async {
       debugNetworkImageHttpClientProvider = name == 'hata' ? () => _FailingClient() : () => _HangingClient();
       await tester.pumpWidget(buildApp(const Center(child: ChatlistAvatar(name: 'Zeynep Demir', url: '/files/p1.jpg'))));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('ZD'), findsOneWidget);
+      expect(find.byType(BuDefaultAvatar), findsOneWidget);
+      expect(find.text('ZD'), findsNothing);
       expect(tester.getSize(find.byType(ChatlistAvatar)), const Size(52, 52));
       expect(tester.takeException(), isNull);
       debugNetworkImageHttpClientProvider = null;
     });
   }
 
-  testWidgets('ChatlistAvatar: url yoksa bas harfli kare', (tester) async {
+  testWidgets('ChatlistAvatar: url yoksa varsayilan profil gorseli (bas harf yok)', (tester) async {
     await tester.pumpWidget(buildApp(const Center(child: ChatlistAvatar(name: 'Berkan Yildiz'))));
     await settle(tester, const Duration(milliseconds: 200));
-    expect(find.text('BY'), findsOneWidget);
+    expect(find.byType(BuDefaultAvatar), findsOneWidget);
+    expect(find.text('BY'), findsNothing);
+    expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isFalse);
   });
 
-  testWidgets('ChatlistAvatar circle: 28 dp yuvarlak bas harfli gonderen avatari', (tester) async {
+  testWidgets('ChatlistAvatar group: grup varsayilan gorseli; foto yuklenirken varsayilan altta', (tester) async {
+    debugNetworkImageHttpClientProvider = () => _HangingClient();
+    await tester.pumpWidget(buildApp(const Center(child: ChatlistAvatar(name: 'Robotik Kulubu', group: true, url: '/files/g.jpg'))));
+    await settle(tester, const Duration(milliseconds: 300));
+    expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isTrue);
+    debugNetworkImageHttpClientProvider = null;
+  });
+
+  testWidgets('ChatlistAvatar circle: 28 dp yuvarlak varsayilan gorselli gonderen avatari', (tester) async {
     await tester.pumpWidget(buildApp(const Center(child: ChatlistAvatar(name: 'Ahmet Demir', size: 28, circle: true))));
     await settle(tester, const Duration(milliseconds: 200));
-    expect(find.text('AD'), findsOneWidget);
+    expect(find.text('AD'), findsNothing);
     expect(tester.getSize(find.byType(ChatlistAvatar)), const Size(28, 28));
-    final box = tester.widget<Container>(find.ancestor(of: find.text('AD'), matching: find.byType(Container)).first);
-    expect((box.decoration! as BoxDecoration).borderRadius, BorderRadius.circular(14));
+    final clip = tester.widget<ClipRRect>(find.ancestor(of: find.byType(BuDefaultAvatar), matching: find.byType(ClipRRect)).first);
+    expect(clip.borderRadius, BorderRadius.circular(14));
     expect(tester.takeException(), isNull);
   });
 

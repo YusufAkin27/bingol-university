@@ -85,6 +85,10 @@ class Session extends ChangeNotifier {
   String? displayName;
   String? email;
 
+  /// Kullanıcının kendi profil fotoğrafı (alt gezinmedeki Profil sekmesi avatarı). Kabuk açılışta, profil sekmesi
+  /// ve profil düzenleme fotoğraf değişince günceller; çıkışta temizlenir. Null: fotoğraf yok (varsayılan görsel).
+  final avatarUrl = ValueNotifier<String?>(null);
+
   Future<void> restore() async {
     try {
       final a = await _storage.read(key: 'access');
@@ -294,6 +298,7 @@ class Session extends ChangeNotifier {
       userId = null;
       displayName = null;
       email = null;
+      avatarUrl.value = null;
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
     } finally {
@@ -329,6 +334,7 @@ class Session extends ChangeNotifier {
     userId = null;
     displayName = null;
     email = null;
+    avatarUrl.value = null;
     _set(SessionState.signedOut);
   }
 

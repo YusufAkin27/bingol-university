@@ -341,7 +341,7 @@ void main() {
       expect(find.byIcon(LucideIcons.checkCheck), findsNWidgets(2));
       final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
       expect(read.color, isNot(equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color)));
-      // Tüm sohbet avatarları 52 dp; fotoğrafsızlar baş harfli daire, fotoğraflılar tam daire BuAvatar.
+      // Tüm sohbet avatarları 52 dp; fotoğrafsızlar varsayılan görselli, fotoğraflılar tam daire BuAvatar.
       final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);
       for (final a in avatars) {

@@ -526,19 +526,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  /// 96 dp avatar: fotoğraf varsa BuAvatar, yoksa baş harfli koyu daire (referans); sağ altta durum noktası
+  /// 96 dp avatar: fotoğraf varsa foto, yoksa varsayılan profil görseli; sağ altta durum noktası
   /// (çevrimiçi yeşil, çevrimdışı gri; durum bilinmiyorsa nokta yok).
   Widget _avatarFace(BuTokens t, {required bool online}) {
     final known = _presence != null && !_blocked;
-    final face = fileUrl(_avatar) != null
-        ? BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar))
-        : Container(
-            width: 96,
-            height: 96,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
-            child: Text(initialsOf(_name), style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800, color: t.bg)),
-          );
+    // Fotoğraf yoksa/yüklenemezse BuAvatar varsayılan profil görselini gösterir (baş harfli daire kalktı).
+    final face = BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar));
     return Stack(clipBehavior: Clip.none, children: [
       face,
       if (known)

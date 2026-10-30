@@ -9,6 +9,7 @@ import '../core/theme/bu_elevation.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import '../core/typography.dart';
+import 'bu_default_avatar.dart';
 import 'bu_pressable.dart';
 
 export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
@@ -374,7 +375,8 @@ class BuBadge extends StatelessWidget {
   }
 }
 
-/// Baş harfli ya da görselli avatar. [square] true: yuvarlatılmış kare (kulüp/grup).
+/// Görselli avatar. Fotoğraf yoksa / yüklenirken / yüklenemezse VARSAYILAN PROFİL GÖRSELİ ([BuDefaultAvatar]) görünür
+/// (baş harf yok; renk ad/seed'den kararlı). [square] true: yuvarlatılmış kare (kulüp/grup).
 /// [online] true ise sağ altta yeşil çevrimiçi noktası çizilir.
 class BuAvatar extends StatelessWidget {
   const BuAvatar({
@@ -389,6 +391,7 @@ class BuAvatar extends StatelessWidget {
     this.online = false,
   });
 
+  /// Yalnız varsayılan görselin renk varyantı için (kişi her yerde aynı rengi alır).
   final String? name;
   final String? url;
 
@@ -408,12 +411,8 @@ class BuAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final radius = BorderRadius.circular(square ? size * .34 : size);
-    final fallback = Image.asset(
-      group ? 'assets/branding/default_group.png' : 'assets/branding/default_avatar.png',
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-    );
+    // Varsayılan görsel HER ZAMAN altta durur: gerçek fotoğraf yüklenemezse (hata/yavaş ağ) o kalır.
+    final fallback = BuDefaultAvatar(seed: name, size: size, group: group);
     final full = fileUrl(url);
     // Küçük avatar için tam çözünürlüklü görseli belleğe açma.
     final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
@@ -421,25 +420,29 @@ class BuAvatar extends StatelessWidget {
       borderRadius: radius,
       child: full == null
           ? fallback
-          : DecoratedBox(
-              decoration: BoxDecoration(color: t.sf2),
-              child: Image.network(full,
-                  headers: headers,
-                  width: size,
-                  height: size,
-                  cacheWidth: px,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  // Görsel gelince yumuşakça belirir (yer tutucu `sf2`).
-                  frameBuilder: (context, child, frame, sync) => sync
-                      ? child
-                      : AnimatedOpacity(
-                          opacity: frame == null ? 0 : 1,
-                          duration: BuMotion.of(context, BuMotion.medium),
-                          curve: BuMotion.decelerate,
-                          child: child,
-                        ),
-                  errorBuilder: (_, __, ___) => fallback),
+          : SizedBox(
+              width: size,
+              height: size,
+              child: Stack(fit: StackFit.expand, children: [
+                fallback,
+                Image.network(full,
+                    headers: headers,
+                    width: size,
+                    height: size,
+                    cacheWidth: px,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    // Fotoğraf gelince varsayılan görselin üstüne yumuşakça belirir.
+                    frameBuilder: (context, child, frame, sync) => sync
+                        ? child
+                        : AnimatedOpacity(
+                            opacity: frame == null ? 0 : 1,
+                            duration: BuMotion.of(context, BuMotion.medium),
+                            curve: BuMotion.decelerate,
+                            child: child,
+                          ),
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+              ]),
             ),
     );
     if (!online) return img;

@@ -1,4 +1,6 @@
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,8 +21,10 @@ void main() {
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(Icon), findsNWidgets(5));
+    expect(find.byKey(const ValueKey('nav-pill')), findsOneWidget);
+    // 4 simge sekmesi + Profil sekmesinde avatar (simge yok).
+    expect(find.byType(Icon), findsNWidgets(4));
+    expect(find.byType(ChatlistAvatar), findsOneWidget);
     for (final l in _labels) {
       expect(find.text(l), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(l)), findsWidgets);
@@ -74,7 +78,70 @@ void main() {
     expect(scale.scale, 0);
   });
 
-  testWidgets('M3 NavigationBar: secili indeks onChanged ile izlenir', (tester) async {
+  testWidgets('secili sekme degisince kayan gosterge hizasi izler', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(0);
+    addTearDown(badge.dispose);
+    await tester.pumpWidget(StatefulBuilder(
+      builder: (c, set) => _nav(_idx, (i) => set(() => _idx = i), badge, kPhoneMedium, Brightness.light),
+    ));
+    AlignmentDirectional al() => tester.widget<AnimatedAlign>(find.byKey(const ValueKey('nav-indicator'))).alignment as AlignmentDirectional;
+    for (final i in [0, 4, 2]) {
+      await tester.tap(find.byKey(ValueKey('nav-$i')));
+      await tester.pump();
+      expect(al().start, closeTo(-1 + 2 * i / 4, 1e-9), reason: 'sekme $i');
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+  });
+
+  testWidgets('semantik: secili durumu, rozetli etiket, sekme sirasi ipucu', (tester) async {
+    final h = tester.ensureSemantics();
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(5);
+    addTearDown(badge.dispose);
+    await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
+    await tester.pump(const Duration(milliseconds: 400));
+    final home = tester.getSemantics(find.byKey(const ValueKey('nav-0')));
+    expect(home.flagsCollection.isSelected.toBoolOrNull(), isTrue);
+    expect(home.label, 'Ana Sayfa');
+    final chat = tester.getSemantics(find.byKey(const ValueKey('nav-2')));
+    expect(chat.label, 'Sohbet, 5 okunmamış');
+    expect(chat.flagsCollection.isSelected.toBoolOrNull(), isFalse);
+    expect(chat.hint, isNotEmpty);
+    h.dispose();
+  });
+
+  testWidgets('profil sekmesi: foto yoksa varsayilan gorsel, foto adresi gelince guncellenir', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(0);
+    final url = ValueNotifier<String?>(null);
+    addTearDown(badge.dispose);
+    addTearDown(url.dispose);
+    await tester.pumpWidget(buildApp(
+      Scaffold(bottomNavigationBar: FloatingNav(index: 4, onChanged: (_) {}, chatBadge: badge, avatarUrl: url, avatarName: 'Elif Yıldız')),
+      size: kPhoneMedium,
+    ));
+    expect(find.byType(BuDefaultAvatar), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+    url.value = '/files/avatars/me.jpg';
+    await tester.pump();
+    // Foto yuklenirken/hata verirse varsayilan gorsel altta kalir.
+    expect(find.byType(BuDefaultAvatar), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('klavye acikken cubuk gizlenir', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(0);
+    addTearDown(badge.dispose);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('nav-pill')), findsNothing);
+  });
+
+  testWidgets('secili indeks onChanged ile izlenir (gosterge konumu)', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
@@ -85,7 +152,8 @@ void main() {
       await tester.tap(find.text(_labels[i]));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
-      expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, i, reason: 'sekme $i');
+      final al = tester.widget<AnimatedAlign>(find.byKey(const ValueKey('nav-indicator'))).alignment as AlignmentDirectional;
+      expect(al.start, closeTo(-1 + 2 * i / 4, 1e-9), reason: 'sekme $i');
     }
   });
 
@@ -124,7 +192,7 @@ void main() {
         ));
         await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
-        expect(tester.getSize(find.byType(NavigationBar)).height, closeTo(FloatingNav.height, 1.5));
+        expect(tester.getSize(find.byKey(const ValueKey('nav-pill'))).height, closeTo(FloatingNav.height, 1.5));
       });
     }
   }

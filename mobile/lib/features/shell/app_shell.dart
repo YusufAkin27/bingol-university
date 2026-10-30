@@ -58,6 +58,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     shellTabRequest.addListener(_onTabRequest);
     WidgetsBinding.instance.addPostFrameCallback((_) => _onTabRequest());
     _refreshBadges();
+    _loadAvatar();
     _poll = Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
   }
 
@@ -102,6 +103,16 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
       final m = await s.api.get('/me/summary') as Map<String, dynamic>;
       s.badges.notifications.value = (m['unreadNotifications'] as num?)?.toInt() ?? 0;
       s.badges.chat.value = (m['unreadMessages'] as num?)?.toInt() ?? 0;
+    } catch (_) {}
+  }
+
+  /// Alt gezinmedeki Profil sekmesi avatarı için kendi fotoğraf adresi (sessiz; hata varsayılan görseli korur).
+  Future<void> _loadAvatar() async {
+    try {
+      final m = await s.api.get('/users/me');
+      if (m is! Map) return;
+      final av = m['avatarUrl'];
+      s.avatarUrl.value = av is String && av.isNotEmpty ? av : null;
     } catch (_) {}
   }
 
@@ -195,13 +206,18 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
               const SizedBox.shrink(),
         ],
       ),
-      bottomNavigationBar: FloatingNav(
-        index: _tab,
-        onChanged: (i) {
-          _go(i);
-          if (i == AppTab.chat) _refreshBadges();
-        },
-        chatBadge: s.badges.chat,
+      bottomNavigationBar: ListenableBuilder(
+        listenable: s,
+        builder: (context, _) => FloatingNav(
+          index: _tab,
+          onChanged: (i) {
+            _go(i);
+            if (i == AppTab.chat) _refreshBadges();
+          },
+          chatBadge: s.badges.chat,
+          avatarUrl: s.avatarUrl,
+          avatarName: s.displayName,
+        ),
       ),
     );
   }

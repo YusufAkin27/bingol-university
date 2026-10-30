@@ -129,13 +129,13 @@ void main() {
       final b = _backend();
       await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
-      // Profil ve Kulupler sekmeleri henuz kurulmadi: profil/kulup istekleri yok.
-      expect(b.requests.any((r) => r.contains('/users/me')), isFalse, reason: b.requests.join('\n'));
+      // Profil ve Kulupler sekmeleri henuz kurulmadi. Kabuk yalniz alt gezinme avatari icin TEK sessiz GET /users/me atar.
+      expect(b.requests.where((r) => r.contains('GET /users/me')).length, 1, reason: b.requests.join('\n'));
       expect(find.byType(ProfileTab), findsNothing);
       await tester.tap(find.text('Profil'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(ProfileTab), findsOneWidget);
-      expect(b.requests.any((r) => r.contains('/users/me')), isTrue);
+      expect(b.requests.where((r) => r.contains('GET /users/me')).length, 2);
       final n = b.requests.where((r) => r.contains('GET /users/me')).length;
       // Ana sayfaya don, tekrar profil: yeniden kurulmaz (istek sayisi artmaz).
       await tester.tap(find.text('Ana Sayfa'));
@@ -144,6 +144,18 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.where((r) => r.contains('GET /users/me')).length, n);
       expect(tester.takeException(), isNull);
+      await unmount(tester);
+    });
+
+    testWidgets('alt gezinme Profil avatari: kabuk /users/me avatarUrl degerini oturuma yazar, cikista temizlenir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = _backend()..on('/users/me', {'id': 1, 'displayName': 'Ayşe', 'avatarUrl': '/files/avatars/1.jpg'});
+      final s = makeSession(b);
+      await tester.pumpWidget(buildApp(AppShell(session: s, themeController: ThemeController())));
+      await settle(tester, const Duration(seconds: 1));
+      expect(s.avatarUrl.value, '/files/avatars/1.jpg');
+      expect(find.byKey(const ValueKey('nav-4')), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byType(Image)), findsOneWidget);
       await unmount(tester);
     });
 
@@ -156,7 +168,9 @@ void main() {
       await tester.tap(find.text('Keşfet'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, 1);
+      final al = tester.widget<AnimatedAlign>(find.byKey(const ValueKey('nav-indicator')));
+      expect(al.alignment, const AlignmentDirectional(-.5, 0));
+      expect(al.duration, Duration.zero); // animasyonlari azalt: kayma anlik
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

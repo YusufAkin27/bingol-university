@@ -147,7 +147,7 @@ class ChatlistSegment extends StatelessWidget {
   }
 }
 
-/// Satır avatarı: 52 dp yuvarlatılmış kare; fotoğraf varsa foto, yoksa baş harfli tonlu kare.
+/// Satır avatarı: 52 dp yuvarlatılmış kare; fotoğraf varsa foto, yoksa varsayılan profil görseli ([BuDefaultAvatar]).
 /// [badge] kulüp/etkinlik odası için köşe işareti, [online] çevrimiçi noktası.
 class ChatlistAvatar extends StatelessWidget {
   const ChatlistAvatar({
@@ -200,6 +200,7 @@ class ChatlistAvatar extends StatelessWidget {
   /// true: işaret üst başta (kulüp), false: alt sonda (etkinlik).
   final bool badgeAtTop;
 
+  /// Baş harfler (yedek avatar artık baş harf çizmez; başka yerlerde metin için kullanılabilir).
   static String initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return '?';
@@ -212,19 +213,15 @@ class ChatlistAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final radius = circle ? size / 2 : size * .34;
-    // Baş harfli tonlu kare her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.
-    final tint = t.tint(name.runes.fold<int>(0, (a, r) => (a + r) % 9973));
-    final initialsTile = Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(radius)),
-      child: Text(initials(name), style: (size < 40 ? Theme.of(context).textTheme.labelSmall! : Theme.of(context).textTheme.titleMedium!).copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
+    // Varsayılan profil görseli her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.
+    final fallback = ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BuDefaultAvatar(seed: name, size: size, group: group),
     );
     final full = fileUrl(url);
     final Widget base;
     if (full == null) {
-      base = ExcludeSemantics(child: initialsTile);
+      base = ExcludeSemantics(child: fallback);
     } else {
       final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
       base = ExcludeSemantics(
@@ -232,7 +229,7 @@ class ChatlistAvatar extends StatelessWidget {
           width: size,
           height: size,
           child: Stack(fit: StackFit.expand, children: [
-            initialsTile,
+            fallback,
             ClipRRect(
               borderRadius: BorderRadius.circular(radius),
               child: Image.network(
@@ -245,7 +242,7 @@ class ChatlistAvatar extends StatelessWidget {
                 gaplessPlayback: true,
                 frameBuilder: (c, child, frame, sync) =>
                     sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
-                // Yüklenemezse alttaki baş harfli kare kalır.
+                // Yüklenemezse alttaki varsayılan görsel kalır.
                 errorBuilder: (c, e, st) => const SizedBox.shrink(),
               ),
             ),

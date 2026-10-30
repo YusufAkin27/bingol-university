@@ -16,7 +16,7 @@ import '../../widgets/bu.dart';
   return (tint.bg, tint.fg);
 }
 
-/// Baş harfli tonlu daire; fotoğraf varsa onu gösterir.
+/// Kulüp sayfalarındaki kişi avatarı (yorum yazarı, üye, başvuran): fotoğraf varsa o, yoksa varsayılan profil görseli.
 class KulupAvatar extends StatelessWidget {
   const KulupAvatar({super.key, required this.name, this.url, this.size = 42});
 
@@ -25,28 +25,7 @@ class KulupAvatar extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) {
-    if (url != null && url!.isNotEmpty) return BuAvatar(name: name, url: url, size: size);
-    final (bg, fg) = kulupTone(context, name);
-    final tx = Theme.of(context).textTheme;
-    final style = size >= 64 ? tx.titleLarge! : (size >= 40 ? tx.titleSmall! : tx.labelMedium!);
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-        // Büyük yazı ölçeğinde baş harfler daireden taşmasın.
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(initialsOf(name), maxLines: 1, style: style.copyWith(fontWeight: FontWeight.w800, color: fg)),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuAvatar(name: name, url: url, size: size);
 }
 
 /// Rol etiketi (Yönetici / Moderatör): marka tonlu hap, 24 dp yükseklik, isteğe bağlı simge.

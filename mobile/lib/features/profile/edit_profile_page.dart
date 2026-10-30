@@ -343,6 +343,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!mounted || seq != _uploadSeq) return;
       setState(() {
         if (r is Map && r['avatarUrl'] is String) _avatarUrl = r['avatarUrl'] as String;
+        widget.session.avatarUrl.value = _avatarUrl;
         _avatarChanged = true;
         _uploading = false;
       });
@@ -366,6 +367,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!mounted) return;
       setState(() {
         _avatarUrl = null;
+        widget.session.avatarUrl.value = null;
         _avatarChanged = true;
         _uploading = false;
       });

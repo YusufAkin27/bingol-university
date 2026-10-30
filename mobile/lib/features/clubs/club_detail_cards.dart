@@ -308,16 +308,7 @@ class ClubComposer extends StatelessWidget {
             ),
           Row(
             children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                  child: (selfName ?? '').trim().isEmpty
-                      ? Icon(LucideIcons.user, size: 20, color: t.ink)
-                      : Center(child: Text(initialsOf(selfName), style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
-                ),
-              ),
+              BuAvatar(name: selfName, size: 44),
               const SizedBox(width: 12),
               Expanded(
                 child: Container(

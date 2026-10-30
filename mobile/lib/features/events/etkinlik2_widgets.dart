@@ -676,7 +676,7 @@ String et2Name(Object? v) {
 }
 
 
-/// Baş harfli yuvarlatılmış kare avatar (kimliğe göre kategori tonu). [url] varsa fotoğraf.
+/// Yuvarlatılmış kare kişi avatarı: [url] varsa fotoğraf, yoksa varsayılan profil görseli (N4: baş harf kalktı).
 class Et2Initials extends StatelessWidget {
   const Et2Initials({super.key, required this.name, this.size = 48, this.seed = 0, this.url, this.tint, this.radius});
 
@@ -689,23 +689,9 @@ class Et2Initials extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final r = radius ?? size * .33;
-    if (url != null && url!.isNotEmpty) {
-      return ClipRRect(borderRadius: BorderRadius.circular(r), child: BuAvatar(name: name, url: url, size: size, square: true));
-    }
-    final c = tint ?? t.tint(seed);
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: c.bg, borderRadius: BorderRadius.circular(r)),
-        child: Text(initialsOf(name),
-            maxLines: 1,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: c.fg, fontSize: size * .34)),
-      ),
-    );
+    // Fotoğraf yoksa/yüklenemezse varsayılan profil görseli (baş harf yok); [tint]/[seed] eski imza için kalır.
+    return ClipRRect(borderRadius: BorderRadius.circular(r), child: BuAvatar(name: name, url: url, size: size, square: true));
   }
 }
 

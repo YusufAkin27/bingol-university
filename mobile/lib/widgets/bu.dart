@@ -8,6 +8,7 @@
 library;
 
 export '../core/theme/bu_design.dart';
+export 'bu_default_avatar.dart';
 export 'bu_hero.dart';
 export 'bu_illustrations.dart';
 export 'bu_image.dart';
