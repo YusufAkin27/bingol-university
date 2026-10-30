@@ -1,6 +1,8 @@
 package edu.bingol.backend.support.faq;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.cache.CacheService;
+import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.common.SlicePaging;
 import edu.bingol.backend.i18n.Lang;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -13,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.type.TypeReference;
 
 /** Sik sorulan sorular: herkese acik okuma, yonetici duzenleme. */
 @RestController
@@ -47,16 +51,29 @@ public class FaqController {
         }
     }
 
+    private static final TypeReference<List<FaqGroup>> GROUPS = new TypeReference<>() { };
+
     private final FaqRepository repo;
+    private CacheService cache = CacheService.passthrough();
 
     public FaqController(FaqRepository repo) {
         this.repo = repo;
+    }
+
+    /** Sunucu onbellegi `faq` ad alani; SSS yazmasi (FaqItem varlik olaylari) gecersiz kilar. */
+    @Autowired(required = false)
+    void setCache(CacheService cache) {
+        this.cache = cache;
     }
 
     /** GET /api/faq (herkese acik) — kategoriye gore gruplu, istek dilinde; o dilde icerik yoksa Turkce. */
     @GetMapping("/faq")
     public List<FaqGroup> list() {
         Lang lang = Lang.of(LocaleContextHolder.getLocale());
+        return cache.get("faq", "l:" + lang.code(), CacheTier.STABLE, GROUPS, () -> publicGroups(lang));
+    }
+
+    private List<FaqGroup> publicGroups(Lang lang) {
         List<FaqItem> items = repo.findByLangAndPublishedTrueOrderByCategoryAscSortOrderAscIdAsc(lang.code());
         if (items.isEmpty() && lang != Lang.TR) {
             items = repo.findByLangAndPublishedTrueOrderByCategoryAscSortOrderAscIdAsc(Lang.TR.code());

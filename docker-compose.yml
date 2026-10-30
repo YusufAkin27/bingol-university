@@ -129,6 +129,8 @@ services:
       # Uretimde "prod" (zorunlu ayarlar acilista dogrulanir); bos = profilsiz yerel davranis
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       INITIAL_FILL: ${INITIAL_FILL:-true}
+      # Sunucu onbellegi acil kapatma (false: her istek veritabanina gider); bkz. docs/PERFORMANCE.md
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
       SWAGGER_UI_ENABLED: ${SWAGGER_UI_ENABLED:-false}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:8090}
       # T21: mesaj sifreleme ana anahtarlari (bos = uyarili gelistirme anahtari; bkz. docs/ENCRYPTION.md)

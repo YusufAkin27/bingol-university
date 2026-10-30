@@ -1,6 +1,8 @@
 package edu.bingol.backend.menu;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +19,7 @@ import lombok.Setter;
  * (menuDate, itemKey) anahtari sayesinde satir yeniden yazilsa bile kalori korunur.
  */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "menu_item_calorie", uniqueConstraints = @UniqueConstraint(columnNames = {"menuDate", "itemKey"}))
 @Getter
 @Setter

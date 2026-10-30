@@ -54,12 +54,12 @@ public class LegalController {
     /** Guncel tum belgelerin ozeti. */
     @GetMapping("/legal")
     public List<LegalSummary> list() {
-        return legal.current(lang()).stream().map(LegalSummary::of).toList();
+        return legal.summaries(lang());
     }
 
     @GetMapping("/legal/{type}")
     public LegalContent get(@PathVariable String type) {
-        LegalContent c = LegalContent.of(legal.current(type(type), lang()));
+        LegalContent c = legal.content(type(type), lang());
         return new LegalContent(c.type(), c.version(), c.title(), legal.render(c.content()), c.lang(), c.publishedAt());
     }
 

@@ -24,7 +24,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Kategori yasam dongusu (H2): ekle / pasifle / sil / kullanimda sil 409 / sira / sinir / herkese acik liste. */
-@SpringBootTest
+// Sunucu onbellegi KAPALI: test tek (geri alinan) islem icinde yazip hemen okur; onbellek gecersiz kilma commit sonrasi calisir.
+// Onbellek davranisi ayri: CommunityCategoryCacheTest / CacheEndToEndTest.
+@SpringBootTest(properties = "app.cache.enabled=false")
 @Transactional
 class CommunityCategoryServiceTest {
 

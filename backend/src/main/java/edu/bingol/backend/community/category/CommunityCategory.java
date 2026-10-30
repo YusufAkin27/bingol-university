@@ -1,6 +1,8 @@
 package edu.bingol.backend.community.category;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,6 +14,7 @@ import lombok.Setter;
 
 /** Yonetici panelinden yonetilen kulup kategorisi. community.category bu tablonun key degerini tasir. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "community_category")
 @Getter
 @Setter

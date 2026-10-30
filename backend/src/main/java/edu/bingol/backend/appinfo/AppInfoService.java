@@ -1,6 +1,8 @@
 package edu.bingol.backend.appinfo;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.cache.CacheService;
+import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.i18n.Lang;
 import java.time.Instant;
 import java.util.List;
@@ -8,8 +10,10 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
 
 @Service
 public class AppInfoService {
@@ -31,15 +35,29 @@ public class AppInfoService {
 
     public record VersionCheck(boolean updateRequired, boolean updateAvailable, String latestVersion, String storeUrl) {}
 
+    private static final TypeReference<Map<String, String>> SETTINGS = new TypeReference<>() { };
+
     private final AppSettingRepository repo;
+    private CacheService cache = CacheService.passthrough();
 
     public AppInfoService(AppSettingRepository repo) {
         this.repo = repo;
     }
 
+    /** Sunucu onbellegi `appinfo` ad alani; ayar yazmasi (AppSetting varlik olayi) gecersiz kilar. */
+    @Autowired(required = false)
+    void setCache(CacheService cache) {
+        this.cache = cache;
+    }
+
+    /** Herkese acik okuma yollari icin (app/info, surum kontrolu): onbellekli ayar haritasi. Yonetici `all()` kullanir. */
+    private Map<String, String> publicSettings() {
+        return cache.get("appinfo", "all", CacheTier.STABLE, SETTINGS, this::all);
+    }
+
     /** Herkese acik bilgi; banner ve bakim mesaji istenen dilde (yoksa tr). Bos degerler null doner. */
     public AppInfo info(Lang lang) {
-        Map<String, String> s = all();
+        Map<String, String> s = publicSettings();
         return new AppInfo(
                 nz(s.get("app_name")), nz(s.get("website")), nz(s.get("contact_email")), nz(s.get("support_email")),
                 nz(s.get("phone")), nz(s.get("address")),
@@ -60,7 +78,7 @@ public class AppInfoService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_VERSION", "Geçersiz sürüm numarası.");
         }
         String p = platform.toLowerCase();
-        Map<String, String> s = all();
+        Map<String, String> s = publicSettings();
         String min = s.getOrDefault("min_version_" + p, "0");
         String latest = s.getOrDefault("latest_version_" + p, min);
         return new VersionCheck(compare(version, min) < 0, compare(version, latest) < 0, latest,

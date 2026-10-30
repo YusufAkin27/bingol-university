@@ -1,6 +1,8 @@
 package edu.bingol.backend.appinfo;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -10,6 +12,7 @@ import lombok.Setter;
 
 /** Yoneticinin duzenleyebildigi uygulama ayari (anahtar-deger). Anahtarlar migration ile tohumlanir. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "app_setting")
 @Getter
 @Setter

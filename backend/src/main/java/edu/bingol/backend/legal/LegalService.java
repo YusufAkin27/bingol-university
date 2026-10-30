@@ -1,9 +1,13 @@
 package edu.bingol.backend.legal;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.cache.CacheService;
+import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.legal.LegalDtos.AcceptanceView;
 import edu.bingol.backend.legal.LegalDtos.ConsentItem;
+import edu.bingol.backend.legal.LegalDtos.LegalContent;
+import edu.bingol.backend.legal.LegalDtos.LegalSummary;
 import edu.bingol.backend.legal.LegalDtos.PendingConsent;
 import edu.bingol.backend.legal.LegalDtos.PublishRequest;
 import edu.bingol.backend.legal.LegalDtos.Translation;
@@ -14,9 +18,11 @@ import java.util.List;
 import java.util.Map;
 import edu.bingol.backend.appinfo.AppSetting;
 import edu.bingol.backend.appinfo.AppSettingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Surumlu sozlesmeler ve kullanici onaylari. Surum ve onay takibi tr belge uzerinden yapilir;
@@ -28,6 +34,9 @@ public class LegalService {
     private final DocumentRepository docs;
     private final AcceptanceRepository acceptances;
     private final AppSettingRepository settings;
+    private CacheService readCache = CacheService.passthrough();
+    private static final TypeReference<List<LegalSummary>> SUMMARIES = new TypeReference<>() { };
+    private static final TypeReference<LegalContent> CONTENT = new TypeReference<>() { };
 
     /** Yer tutucu anahtari -> app_setting anahtari; listede olmayanlar "legal." onekiyle aranir. */
     static final Map<String, String> SETTING_KEYS = Map.of(
@@ -41,6 +50,24 @@ public class LegalService {
         this.docs = docs;
         this.acceptances = acceptances;
         this.settings = settings;
+    }
+
+    /** Sunucu onbellegi `legal` ad alani; yeni surum yayini (LegalDocument varlik olaylari) gecersiz kilar. */
+    @Autowired(required = false)
+    void setCache(CacheService cache) {
+        this.readCache = cache;
+    }
+
+    /** Herkese acik liste ozeti (dil basina onbellekli). */
+    public List<LegalSummary> summaries(Lang lang) {
+        return readCache.get("legal", "s:" + lang.code(), CacheTier.STABLE, SUMMARIES,
+                () -> current(lang).stream().map(LegalSummary::of).toList());
+    }
+
+    /** Herkese acik belge icerigi, yer tutucular DOLDURULMAMIS (dil + tur basina onbellekli); sunumda {@link #render}. */
+    public LegalContent content(LegalType type, Lang lang) {
+        return readCache.get("legal", "c:" + type.name() + ":" + lang.code(), CacheTier.STABLE, CONTENT,
+                () -> LegalContent.of(current(type, lang)));
     }
 
     /** Sunum aninda {{...}} yer tutucularini yonetici ayarlariyla doldurur (veritabanindaki metin degismez). */

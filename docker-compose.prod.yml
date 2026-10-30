@@ -171,6 +171,8 @@ services:
       # Doluysa: DEK'i bu ana anahtar kimligiyle (ornek k1) sarili gonderi videolari aktif anahtarla yeniden yazilir
       MEDIA_RESEAL_KEY_ID: ${MEDIA_RESEAL_KEY_ID:-}
       INITIAL_FILL: ${INITIAL_FILL:-true}
+      # Sunucu onbellegi acil kapatma (false: her istek veritabanina gider); bkz. docs/PERFORMANCE.md
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
       SWAGGER_UI_ENABLED: "false"
       TZ: Europe/Istanbul
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}

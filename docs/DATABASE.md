@@ -149,6 +149,7 @@ Kod taraması (`opsFor*().set/add/increment`): tüm anahtarların TTL'i vardır 
 - `alert state` (`SystemAlertService.STATE_KEY`, tek anahtar).
 - `rl:*`: `increment` sonra `expire` iki adım; çökme anında TTL'siz kalabilir ama `RateLimiter` `getExpire<0` ise yeniden TTL koyar (kendini onarır). `vc:att:*` ve `PushGate.incr` aynı kalıpta, ilk artışta TTL; bir çökme penceresi riski çok küçük, anahtar başına bayt düzeyinde.
 - `presence:*`, `lastseen:*`, `seen:*`, `act:*`, `rt:*`, `rtu:*`, `pwchg:*`, `rolechg:*`, `reg:*`, `vc:*` TTL'lidir.
+- `cache:<ad>:<sürüm>:<anahtar>` (sunucu okuma önbelleği, C1) TTL'lidir (en çok `stable-ttl`+`stale-ttl` ≈ 7 sa; tek kayıt ≤256 KB); `cache:<ad>:v` sürüm sayacı 7 gün TTL. Kişisel veri içermez; yeni önbellek kullanımı da TTL'siz anahtar yazmamalıdır. Ayrıntı: `docs/PERFORMANCE.md` "Sunucu önbelleği".
 
 20k kullanıcıda bellek tahmini: `rt:*` + `rtu:*` ~20k×2×(~200 B) ≈ 8 MB; presence/lastseen ≈ 6k×2×100 B ≈ 1 MB; `rl:*` anlık yüzlerce; toplam **<50 MB** (prod sınırı 200 MB).
 

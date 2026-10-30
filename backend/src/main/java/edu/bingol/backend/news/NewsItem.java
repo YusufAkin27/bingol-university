@@ -1,5 +1,7 @@
 package edu.bingol.backend.news;
 
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -7,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "news_item", indexes = {
         @Index(columnList = "type, publishedDate"),
         @Index(columnList = "publishedDate")

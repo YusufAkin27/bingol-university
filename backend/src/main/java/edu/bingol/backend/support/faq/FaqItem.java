@@ -1,6 +1,8 @@
 package edu.bingol.backend.support.faq;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Getter
 @Setter
 public class FaqItem {

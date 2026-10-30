@@ -1,6 +1,8 @@
 package edu.bingol.backend.legal;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,6 +15,7 @@ import lombok.Setter;
 
 /** Bir sozlesmenin belirli dil ve surumdeki metni. Surum numarasi dillerde ortaktir; tr belge esastir. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Getter
 @Setter
 public class LegalDocument {

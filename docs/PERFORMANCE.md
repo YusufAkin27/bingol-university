@@ -174,3 +174,46 @@ export MODE=remote BASE=https://staging.ornek.net JWT_SECRET='<staging-sirri>' S
 export PSQL_CMD='ssh vps "docker compose -f docker-compose.prod.yml exec -T postgres psql -U bingol -d bingol"' K6_CMD='k6 run'
 bash scripts/perf/load/run-load.sh            # sonuç: docs/perf-results/<tarih>/SUMMARY.md
 ```
+
+
+## Sunucu önbelleği (C1)
+
+Okuma ağırlıklı, **herkese aynı cevabı veren** uçlar veritabanına her istekte gitmesin diye servis katmanında önbelleklenir. Kod: `common/cache/` (`CacheService`, `CacheTier`, `CacheInvalidationListener`), ayarlar `app.cache.*` (`CacheProperties`), HTTP başlıkları `config/PublicCacheInterceptor`.
+
+### Mimari
+- **L1** JVM içi (LRU, en çok `l1-max-entries`=1000, tazelik `l1-ttl`=15 sn) + **L2** Redis üzerinde JSON (`cache:<ad>:<sürüm>:<anahtar>`, her kayıt TTL'li; `cache:<ad>:v` sürüm sayacı 7 gün TTL). Redis yoksa/hatadaysa yalnız L1 + yükleyici (10 sn L2 atlanır); istek asla düşmez.
+- **Tek uçuş (single-flight)**: aynı anahtar için aynı anda tek yükleyici çalışır, diğerleri sonucu bekler (thundering herd yok; `load-wait` 10 sn, aşılırsa kendi yükler).
+- **Stale-while-error**: yükleyici sunucu/altyapı hatası verirse (DB_TIMEOUT 503, bağlantı havuzu vb.) süresi dolmuş kayıt `stale-ttl`=1 sa içinde sunulur. İstemci hatası (4xx `ApiException`) maskelenmez; **geçersiz kılınmış kayıt asla bayat sunulmaz** (gizlenen haber hata anında bile görünmez).
+- **Geçersiz kılma**: ad alanı sürümü artar (INCR) + L1 temizlenir; commit'ten SONRA çalışır (`afterCommit`), geri alınan işlemde çalışmaz. Yükleme sırasında olan geçersiz kılma o yüklemenin sonucunu önbelleğe sokmaz (eski sürüm anahtarı). Her açılışta (`ApplicationReadyEvent`) tüm ad alanları geçersiz kılınır: Redis kayıtları yeniden dağıtımdan sağ çıkar, **migration ile (SQL) değişen veri (ör. sözleşme metni) bayat kalmaz**.
+- **Yazma yolu güvencesi**: `CacheInvalidationListener` (JPA `@EntityListeners`) ilgili varlıkta her ekleme/güncelleme/silmede ad alanını geçersiz kılar. Yönetici ucu, senkron işi, toplu işlem, dev tohum fark etmez; elle `invalidate` çağrısı unutulamaz. Kapsam dışı: JPQL `@Modifying`/JdbcTemplate yazımları (şu an bu tablolarda yalnız `DocumentRepository.deactivate`, hemen ardından `save` var). Yeni önbelleklenen veri = varlığa `@EntityListeners` + `CacheInvalidationListener.NAMESPACES` + `CacheService.NAMESPACES`.
+- **Güvenlik**: ad alanı ve anahtar beyaz listeyle sınırlı (`[A-Za-z0-9:_.,=@-]{1,160}`; uygunsuzsa önbellek atlanır), anahtar yalnız doğrulanmış değerlerden (dil kodu, enum, sınırlı sayı, `YearMonth`) üretilir; kullanıcı arama metni (`q`) ASLA anahtar olmaz. Kişisel veri önbelleğe girmez (yalnız kurum ayarları, haber/menü/SSS/sözleşme metni, kategori adı). Tek kayıt `max-entry-bytes`=256 KB'ı aşarsa önbelleğe alınmaz. Rate limit, kimlik doğrulama, erişim engeli filtreleri **önbellekten önce** çalışır (önbellek yalnız servis sonucu seviyesinde).
+- **Gözlem**: Micrometer `bu.cache.requests{ns,result}` (`hit_l1`, `hit_l2`, `hit_wait`, `miss`, `stale`, `error`, `bypass`, `invalidate`, `oversize`, `l2_corrupt`, `wait_fallback`); DEBUG günlüğü `cache <ad> <sonuç>`. Prometheus'ta isabet oranı: `sum(rate(bu_cache_requests_total{result=~"hit.*"}[5m])) / sum(rate(bu_cache_requests_total{result=~"hit.*|miss"}[5m]))`.
+- **Acil kapatma**: `CACHE_ENABLED=false` (veya `app.cache.enabled=false`): her istek yükleyiciye (DB) gider, HTTP önbellek başlıkları eklenmez. Yönetici "önbelleği temizle" ucu YOKTUR (gerek yok: yazmalar otomatik geçersiz kılar, açılışta tam temizlik).
+
+### Envanter
+| Uç | Sınıf | Sunucu TTL | Anahtar | Geçersiz kılan yazma yolları | HTTP (`Cache-Control`) |
+|---|---|---|---|---|---|
+| `GET /api/news` (ilk 21 sayfa, `q` boş) | GÜNLÜK | 20 dk | `news:list:<tür\|all>:<sayfa>:<boyut>` | `NewsSyncService.syncType`/`retryMissingContent` (kayıt ekleme/güncelleme), `AdminNewsController.setHidden`, `NewsBulkService.run` | public 60 sn, swr 120 |
+| `GET /api/news/{id}` (yalnız bulunan) | GÜNLÜK | 20 dk | `news:d:<id>` | aynı (gizleme anında 404) | public 300 sn |
+| `GET /api/news?q=…`, derin sayfa | CANLI/kullanıcı girdisi | yok | - | - | 60 sn (ETag) |
+| `GET /api/menu?month=`, `/menu/today` | GÜNLÜK | 20 dk (yok sonucu 60 sn) | `menu:m:<yyyy-MM>`, `menu:d:<tarih>` | `MenuSyncService.sync`, `MenuCalorieService.applyDay/applyBulk` (`menu_item_calorie`), `MenuAdminService.setImage/deleteImage`, `MenuBulkService.delete` | public 300 sn |
+| `GET /api/status` | KISA | 5 dk | `status:v:<dil>` | `StatusService.markOk/markMaintenance` (`SyncStatus`) | public 30 sn |
+| `GET /api/app/info`, `/api/app/version` | SABİT | 6 sa | `appinfo:all` (ayar haritası; dil yalnız projeksiyon) | `AppInfoService.set` (`PUT /api/admin/settings/{key}`) | public 60 sn |
+| `GET /api/legal`, `/api/legal/{type}` | SABİT | 6 sa | `legal:s:<dil>`, `legal:c:<TÜR>:<dil>` (yer tutucular önbellekte HAM, sunumda doldurulur; mevcut 60 sn ayar önbelleği korunur) | `LegalService.publish` (yeni sürüm) | public 600 sn |
+| `GET /api/faq` | SABİT | 6 sa | `faq:l:<dil>` | `FaqController` create/update/delete, `FeedbackAdminService.reorderFaq` | public 600 sn |
+| `GET /api/communities/categories` (giriş gerekli, herkese aynı) | KISA | 5 dk | `categories:l:<dil>`, `categories:v` | `CommunityCategoryService` CRUD/sıralama; kulüp (`Community`) ekleme/güncelleme/silme (sayılar) | private 60 sn (Authorization var) |
+| `GET /api/catalog/academic`, `/catalog/departments` | SABİT (zaten bellekte, classpath JSON) | - | - | - | mevcut: public 1 gün |
+
+Authorization başlığı olan istekte `public` YOKTUR: `private, max-age=N` döner (paylaşımlı önbellek/CDN'e girmez). `Vary: Accept-Language` her zaman. Başlıklar yalnız GET + 200 yanıtlara ve `WebConfig` ETag filtresinin kapsadığı yollara eklenir (gövde tamponlu → başlık commit öncesi yazılır); 304 yolu da artık servis önbelleğinden beslenir (DB yok).
+
+**Önbelleğe ALINMAYANLAR (bilinçli):** mesajlar, bildirimler, profil, üyelik/RSVP/oy durumu, okunmamış sayaçları, engel/gölge-engel filtreli her şey, `GET /api/events*` (kullanıcıya özel `myRsvp`/gizlilik; `events/featured` dahil), kulüp listesi/detayı (üyelik alanları), anketler (oy durumu), akademik takvim/sınav/duyuru akışı (kitle/bölüm filtreli), arama, `/api/legal/consents*`/`acceptance-status`. Bunların kullanıcıdan bağımsız alt parçaları ileride ayrıca önbelleklenebilir.
+
+### Beklenen yük azalması (TAHMİN, ölçülmedi)
+Ana sayfa/açılış yolundaki çağrılar (`app/info`, `status`, `menu/today`, `news` ilk sayfa, `faq`, `categories`) kullanıcıdan bağımsız olduğundan, TTL penceresi içinde istek sayısından bağımsız olarak **ad alanı/anahtar başına ~1 DB turu** kalır (20 dk'da bir, yazmada bir). 20k kullanıcı ve açılış başına ~5 bu tür çağrı varsayımıyla bu uçların DB sorgusunun **%95+ azalması** beklenir; toplam DB yükündeki payı (mesajlaşma/bildirim/yazma yolları baskın) bu varsayımla ~%10-25 aralığındadır. Gerçek etki için `bu_cache_requests_total` ve `pg_stat_statements` (önce/sonra) karşılaştırılmalıdır.
+
+### Riskler ve dağıtım notları
+- Çok örnekli çalışmada başka örneğin geçersiz kılması en geç `l1-ttl` (15 sn) sonra görülür (L2 sürümü anında). Tek örnekte yoktur.
+- HTTP tarafı: yönetici değişikliği (haber gizleme, menü kalorisi) tarayıcı/CDN'de en geç `max-age` (30-600 sn) sonra yansır; sunucuda anında.
+- Redis belleği: kayıtlar küçük (haber sayfası ~10 KB, sözleşme ≤256 KB, toplam tahmini <10 MB) ve TTL'li; `volatile-lru` politikasıyla uyumlu. Redis dolarsa L2 yazması hata verir → L1'e düşer.
+- Bayat göstermek yerine hata tercih edilen durumlar: geçersiz kılınmış kayıt, 4xx. Kaynak sitede değişiklik olursa mevcut "bakımda" mekanizması (eski veri sunulur) aynen sürer.
+- Dağıtım: yeni ortam değişkeni zorunlu değil (`CACHE_ENABLED` isteğe bağlı, compose'a eklendi). Deploy sonrası ilk istekler soğuktur (tüm ad alanları açılışta temizlenir); migration ile veri değişimi ek işlem gerektirmez.

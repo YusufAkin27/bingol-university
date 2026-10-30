@@ -1,7 +1,9 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "community")
 @Getter
 @Setter

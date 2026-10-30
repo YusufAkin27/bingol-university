@@ -18,15 +18,17 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
     private final AdminPermissionInterceptor adminPermission;
     private final ActivityInterceptor activity;
     private final DeviceSeenInterceptor deviceSeen;
+    private final PublicCacheInterceptor publicCache;
 
     public ApiWebMvcConfig(AuditInterceptor audit, AdminGuardInterceptor adminGuard,
                            AdminPermissionInterceptor adminPermission, ActivityInterceptor activity,
-                           DeviceSeenInterceptor deviceSeen) {
+                           DeviceSeenInterceptor deviceSeen, PublicCacheInterceptor publicCache) {
         this.audit = audit;
         this.adminGuard = adminGuard;
         this.adminPermission = adminPermission;
         this.activity = activity;
         this.deviceSeen = deviceSeen;
+        this.publicCache = publicCache;
     }
 
     @Override
@@ -39,5 +41,9 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(activity).addPathPatterns("/api/**");
         // Kullanici engeli (ikinci savunma) + cihaz/IP gecmisi; yonetici uclari haric
         registry.addInterceptor(deviceSeen).addPathPatterns("/api/**").excludePathPatterns("/api/admin/**");
+        // Herkese ayni cevap veren okuma uclarina HTTP onbellek basligi (yol beyaz listesi PublicCacheInterceptor icinde)
+        registry.addInterceptor(publicCache).addPathPatterns("/api/news", "/api/news/*", "/api/menu", "/api/menu/*",
+                "/api/status", "/api/app/info", "/api/app/version", "/api/faq", "/api/legal", "/api/legal/*",
+                "/api/communities/categories");
     }
 }

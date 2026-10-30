@@ -1,6 +1,8 @@
 package edu.bingol.backend.community.category;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.cache.CacheService;
+import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityRepository;
 import edu.bingol.backend.community.Texts;
@@ -16,11 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
 
 /** Kulup kategorileri: herkese acik liste, yonetici CRUD + siralama, kulup yazma yolunda dogrulama. */
 @Service
@@ -28,8 +33,12 @@ public class CommunityCategoryService {
 
     private static final Pattern KEY = Pattern.compile("^[a-z0-9][a-z0-9-]{0,39}$");
 
+    private static final TypeReference<List<PublicCategory>> PUBLIC_LIST = new TypeReference<>() { };
+    private static final TypeReference<String> VERSION = new TypeReference<>() { };
+
     private final CommunityCategoryRepository repo;
     private final CommunityRepository communities;
+    private CacheService cache = CacheService.passthrough();
 
     /** En cok kac AKTIF kategori olabilir (pasifler sayilmaz). */
     @Value("${app.community.max-categories:20}")
@@ -40,6 +49,12 @@ public class CommunityCategoryService {
         this.communities = communities;
     }
 
+    /** Sunucu onbellegi `categories` ad alani; kategori ve kulup varlik olaylari (sayilar dahil) gecersiz kilar. */
+    @Autowired(required = false)
+    void setCache(CacheService cache) {
+        this.cache = cache;
+    }
+
     void setMaxActive(int v) { // testler icin
         this.maxActive = v;
     }
@@ -47,9 +62,13 @@ public class CommunityCategoryService {
     // ---- herkese acik ----
 
     /** Yalniz aktifler, sira + id; ad istek dilinde (en/ar bossa tr). Sayi: kesfette gorunen kulup. */
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     public List<PublicCategory> listActive() {
         Lang lang = Lang.of(LocaleContextHolder.getLocale());
+        return cache.get("categories", "l:" + lang.code(), CacheTier.SHORT, PUBLIC_LIST, () -> loadActive(lang));
+    }
+
+    private List<PublicCategory> loadActive(Lang lang) {
         Map<String, Long> counts = new HashMap<>();
         for (Object[] r : communities.categoryCounts(Community.Status.ACTIVE, Community.Visibility.PUBLIC)) {
             counts.put((String) r[0], ((Number) r[1]).longValue());
@@ -61,10 +80,12 @@ public class CommunityCategoryService {
     }
 
     /** Degisince degisen basit surum: en yeni guncelleme + toplam satir. */
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     public String version() {
-        long max = repo.findAll().stream().mapToLong(c -> c.getUpdatedAt().toEpochMilli()).max().orElse(0L);
-        return max + "-" + repo.count();
+        return cache.get("categories", "v", CacheTier.SHORT, VERSION, () -> {
+            long max = repo.findAll().stream().mapToLong(c -> c.getUpdatedAt().toEpochMilli()).max().orElse(0L);
+            return max + "-" + repo.count();
+        });
     }
 
     private static String name(CommunityCategory c, Lang lang) {

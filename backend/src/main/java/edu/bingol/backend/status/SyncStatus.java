@@ -1,6 +1,8 @@
 package edu.bingol.backend.status;
 
 import jakarta.persistence.Column;
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,6 +13,7 @@ import lombok.Setter;
 
 /** Her veri kaynagi (NEWS, MENU) icin son senkronizasyon durumu. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Getter
 @Setter
 public class SyncStatus {
