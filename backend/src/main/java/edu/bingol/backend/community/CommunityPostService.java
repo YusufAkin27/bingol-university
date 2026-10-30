@@ -176,13 +176,20 @@ public class CommunityPostService {
     private List<PostView> views(List<CommunityPost> list, Actor a, boolean mod) {
         Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         Map<Long, User> authors = communities.usersById(list.stream().map(CommunityPost::getAuthorId).toList());
+        // Yazar rol etiketi: yazarlarin aktif uyelik rolleri tek sorguda (artik uye olmayan = etiket yok)
+        Map<Long, String> roles = new java.util.HashMap<>();
+        if (!list.isEmpty()) {
+            members.findByCommunityIdAndUserIdIn(list.get(0).getCommunityId(),
+                    list.stream().map(CommunityPost::getAuthorId).distinct().toList()).stream()
+                    .filter(CommunityMember::isActive).forEach(m -> roles.put(m.getUserId(), m.getRole().name()));
+        }
         return list.stream().map(p -> {
             User u = authors.get(p.getAuthorId());
             return new PostView(p.getId(), p.getCommunityId(), p.getAuthorId(),
                     u == null ? "Kullanıcı" : u.getDisplayName(),
                     u == null || hideAvatar.contains(p.getAuthorId()) ? null : u.getAvatarUrl(),
                     p.getContent(), p.getImageUrl(), p.isPinned(), p.getCreatedAt(),
-                    mod || p.getAuthorId().equals(a.id()));
+                    mod || p.getAuthorId().equals(a.id()), roles.get(p.getAuthorId()));
         }).toList();
     }
 

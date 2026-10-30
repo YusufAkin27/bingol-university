@@ -41,3 +41,14 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 - Performans ölçümü: `scripts/perf/perf-api.js` + [PERFORMANCE.md](PERFORMANCE.md).
 - Duman/uçtan uca betikleri: sohbet özellikleri/görselleri/grupları, kulüp, etkinlik, şifreleme, medya saldırıları, moderasyon vb. (`scripts/`).
 - Belgeler: [DEPLOY.md](DEPLOY.md), [PUSH_SETUP.md](PUSH_SETUP.md), [MOBILE_PUSH.md](MOBILE_PUSH.md), `docs/changes/` notları.
+
+### B1: mobil tasarım isteklerinin backend karşılığı (opsiyonel alanlar, migration yok)
+
+- **Anket:** `GET /api/polls` yanıtına `totalCount` ve `openCount`.
+- **Sohbet:** `lastMessage.senderName` (grup/kulüp/etkinlik), `peer.online` (birebir; toplu Redis okuması); sohbet push `data`sına `senderAvatarUrl` (gizlilik + engel uyumlu).
+- **Kulüp:** üye/başvuru satırlarında `department`, `classYear` (profil gizliliğine uyar) ve `requestedAt`; gönderilerde `authorRole`; `/me/communities` bekleyen kulüp satırında `requestedAt`. Gönderi beğenisi (`likeCount/liked`) beğeni modeli olmadığı için eklenmedi.
+- **Etkinlik:** `checkin-code` yanıtına 6 karakterli `manualCode` (check-in kabul eder, ek hız sınırı); katılım isteği satırlarında `email` (yalnız yönetici) ve `classYear`; `EventView.communityLogoUrl`.
+- **Arama:** `SearchHit` COMMUNITY için `memberCount/category/myStatus`, POSTS için `likeCount` (toplu sorgu).
+- Ayrıntı: `MOBILE_API_GUIDE.md` "Tasarım uygulaması için eklenen opsiyonel alanlar (B1)".
+- **B1 (devam):** takip listesi/öneri `classYear`; `/me/blocks` `X-Total-Count`; arama EVENT `startsAt/endsAt`; sohbet `peer` ve üye satırı `department/classYear`; takvim `pendingCount`; `EventView.cancelReason/rejectReason` (yalnız yönetici); `GET /users/me` `avatarHidden`.
+- **B1 (devam 2):** bildirim tercihleri `polls` + `academicAnnouncements` (V880, `notification_pref` iki sütun; anket ve bölüm duyurusu gönderimleri bu bayraklara bakar); `GET /users/{id}` `blockedByMe`; `GET /events/{id}` `chatAccess`.

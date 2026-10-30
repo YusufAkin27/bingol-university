@@ -2,6 +2,7 @@ package edu.bingol.backend.poll;
 
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationSubtype;
 import edu.bingol.backend.notification.NotificationType;
 import jakarta.annotation.PreDestroy;
 import java.time.Clock;
@@ -75,7 +76,7 @@ public class PollNotifier {
                 polls.markClosingNotified(p.getId(), now);
             }
             if (p.getScope() == Poll.Scope.GLOBAL && !p.hasAudience()) {
-                notifications.broadcastLocalized(NotificationType.ANNOUNCEMENT,
+                notifications.broadcastLocalized(NotificationType.ANNOUNCEMENT, "polls",
                         lang -> i18n.msg("notif.poll.opened.title", lang),
                         lang -> i18n.msg("notif.poll.opened.body", lang, p.getTitle()), data(p));
             } else {
@@ -121,7 +122,7 @@ public class PollNotifier {
         NotificationType type = p.getScope() == Poll.Scope.COMMUNITY ? NotificationType.COMMUNITY : NotificationType.ANNOUNCEMENT;
         Map<String, String> data = data(p);
         for (Long uid : userIds) {
-            notifications.sendTemplated(uid, type, key, data, p.getTitle());
+            notifications.sendTemplated(uid, type, NotificationSubtype.POLL, key, data, p.getTitle());
         }
     }
 

@@ -69,6 +69,43 @@ public class CommunityService {
         this.categoryService = s;
     }
 
+    /** Profil gizlilik karari (bolum / sinif alanlari); yoksa (testler) alanlar gonderilmez. */
+    private edu.bingol.backend.profile.privacy.AvatarVisibility visibility;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setVisibility(edu.bingol.backend.profile.privacy.AvatarVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    /** Uye satirina eklenen profil bilgisi: bolum + sinif (gizlilik ayarina gore bakana acik olanlar). */
+    public record ProfileExtra(String department, Short classYear) {
+        public static final ProfileExtra NONE = new ProfileExtra(null, null);
+    }
+
+    /**
+     * Tek gizlilik sorgusuyla (N+1 yok) bakanin gorebildigi bolum/sinif. `hide` = engel iliskisi olanlar (hicbiri gorunmez).
+     * KVKK: gizlilik ayari kapali olan alan hic doldurulmaz.
+     */
+    public Map<Long, ProfileExtra> profileExtras(Long viewerId, Collection<User> us, Set<Long> hide) {
+        Map<Long, ProfileExtra> out = new HashMap<>();
+        if (visibility == null || us.isEmpty()) {
+            return out;
+        }
+        var fields = java.util.EnumSet.of(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
+                edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+        var vis = visibility.visibleOwners(viewerId, us.stream().map(User::getId).toList(), fields);
+        for (User u : us) {
+            if (hide.contains(u.getId())) {
+                continue;
+            }
+            Long id = u.getId();
+            out.put(id, new ProfileExtra(
+                    vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT).contains(id) ? u.getDepartment() : null,
+                    vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR).contains(id) ? u.getClassYear() : null));
+        }
+        return out;
+    }
+
     private String category(String raw, String current) {
         return categoryService == null ? Texts.blankToNull(raw) : categoryService.resolveForWrite(raw, current);
     }
@@ -398,14 +435,14 @@ public class CommunityService {
     public CursorPage<MemberView> members(Actor a, Long id, Long cursor, int size) {
         Community c = loadVisible(a, id);
         requireReadable(a, c);
-        return memberPage(id, CommunityMember.Status.ACTIVE, blockedFor(a), blockedFor(a), cursor, size);
+        return memberPage(a.id(), id, CommunityMember.Status.ACTIVE, blockedFor(a), blockedFor(a), cursor, size);
     }
 
     @Transactional(readOnly = true)
     public CursorPage<MemberView> requests(Actor a, Long id, Long cursor, int size) {
         load(id);
         permissions.require(a, id, ClubPermission.MANAGE_MEMBERS);
-        return memberPage(id, CommunityMember.Status.PENDING, Set.of(-1L), blockedFor(a), cursor, size);
+        return memberPage(a.id(), id, CommunityMember.Status.PENDING, Set.of(-1L), blockedFor(a), cursor, size);
     }
 
     @Transactional
@@ -541,6 +578,15 @@ public class CommunityService {
         return s;
     }
 
+    /** Topluluk id -> kayit (etkinlik listelerinde ad + logo icin tek sorgu). */
+    public Map<Long, Community> byIds(Collection<Long> ids) {
+        Map<Long, Community> m = new HashMap<>();
+        if (!ids.isEmpty()) {
+            communities.findAllById(ids).forEach(c -> m.put(c.getId(), c));
+        }
+        return m;
+    }
+
     /** Topluluk id -> ad (etkinlik listelerinde gostermek icin). */
     public Map<Long, String> namesById(Collection<Long> ids) {
         Map<Long, String> m = new HashMap<>();
@@ -559,16 +605,19 @@ public class CommunityService {
     // ---- ic yardimcilar ----
 
     /** `hideAvatar`: goruntuleyenle engel iliskisi olanlarin avatari gosterilmez (golge engel). */
-    private CursorPage<MemberView> memberPage(Long cid, CommunityMember.Status status, Set<Long> excluded,
+    private CursorPage<MemberView> memberPage(Long viewerId, Long cid, CommunityMember.Status status, Set<Long> excluded,
                                               Set<Long> hideAvatar, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
         List<CommunityMember> rows = members.page(cid, status, Paging.ascStart(cursor), excluded, PageRequest.of(0, s + 1));
         return Paging.map(rows, s, CommunityMember::getId, items -> {
             Map<Long, User> u = usersById(items.stream().map(CommunityMember::getUserId).toList());
+            Map<Long, ProfileExtra> extras = profileExtras(viewerId, u.values(), hideAvatar);
             return items.stream().map(m -> {
                 User x = u.get(m.getUserId());
+                ProfileExtra pe = extras.getOrDefault(m.getUserId(), ProfileExtra.NONE);
                 return new MemberView(m.getUserId(), x == null ? "Kullanıcı" : x.getDisplayName(),
-                        x == null || hideAvatar.contains(m.getUserId()) ? null : x.getAvatarUrl(), m.getRole(), m.getJoinedAt());
+                        x == null || hideAvatar.contains(m.getUserId()) ? null : x.getAvatarUrl(), m.getRole(), m.getJoinedAt(),
+                        pe.department(), pe.classYear());
             }).toList();
         });
     }
@@ -598,7 +647,8 @@ public class CommunityService {
             out.add(new CommunityView(c.getId(), c.getName(), c.getSlug(), hideDesc ? null : c.getDescription(), c.getCategory(),
                     c.getCoverUrl(), c.getJoinPolicy(), c.getVisibility(), c.getStatus(), c.getOwnerId(),
                     counts.getOrDefault(c.getId(), 0L), m == null ? "NONE" : m.getStatus().name(),
-                    m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt(), c.getLogoUrl()));
+                    m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt(), c.getLogoUrl(),
+                    c.getStatus() == Community.Status.PENDING_REVIEW ? c.getCreatedAt() : null));
         }
         return out;
     }

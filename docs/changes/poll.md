@@ -22,3 +22,7 @@ Paket `edu.bingol.backend.poll`, migration `V330__polls.sql` (önek `pol330_`), 
 - Menü anketi için bir gün = bir anket (`UNIQUE menu_date`); öğün ayrımı yok (menü modülü günlük tek satır tutar). Silinmeden aynı gün yeniden oluşturulamaz.
 - `RANKED` yüzdesi 1. tercih sayısına göredir; sıralama için `score` (Borda) kullanın.
 - Kapanış işi PostgreSQL/H2 farkı gerektirmez; ancak `FOR UPDATE` kilidi ve kısmi indeksler gerçek PostgreSQL'de `scripts/smoke-poll.sh` ile doğrulanır.
+
+## B1: liste sayaçları
+
+`GET /api/polls` yanıtı (`PollPage`) iki opsiyonel alan taşır: `totalCount` (istenen `scope` için toplam kayıt) ve `openCount` (kullanıcıya görünen açık anket sayısı). Tek `COUNT` sorgusu (`PollRepository.countOpen/countClosed/countMine/countOfCommunity`); açık/kapanan sayımlarında kulüp üyeliği ve hedef kitle (fakülte/bölüm/sınıf, küçük harf+kırpılmış karşılaştırma) SQL'de uygulanır, bu yüzden sayı liste süzgeciyle uyumludur (yönetim istisnası olan kendi hedefli anketleri sayıma dahil değildir). Migration yok.

@@ -118,3 +118,11 @@ Sunucu ve mobil istemci uygulanmıştır (mobil: `lib/core/closed_conversations.
 - **Canlı olay:** gizleme/kalıcı silme aktif üyelere `/user/queue/message-events` `{type:"deleted", messageId}` olarak gelir (mevcut "herkes için sil" olayıyla aynı biçim). Geri gösterme için olay YOKTUR; istemci listeyi yeniden çekince mesaj normal görünür.
 - **Bildirimler (SYSTEM türü, `data`: `conversationId`, `targetType=CONVERSATION`, `targetId`, `event` = `CONVERSATION_CLOSED` | `CONVERSATION_REOPENED` | `CONVERSATION_REMOVED`):** sohbet kapatılınca/açılınca tüm aktif üyelere, gruptan çıkarılan üyeye gönderilir.
 - **Grupta çıkarılma:** yönetici üyeyi gruptan çıkarırsa kullanıcının üyeliği `left_at` ile kapanır (kendi ayrılmasıyla aynı); sohbet listesinden kaybolur.
+
+## B1: sohbet listesi alanları ve push avatarı
+
+- `ConversationView.lastMessage.senderName`: grup/kulüp/etkinlik sohbetlerinde son mesajı gönderenin adı (engelli gönderen ve birebir sohbette gönderilmez). Gönderen adları liste sayfası için tek `findAllById` ile yüklenir.
+- `ConversationView.peer.online`: yalnız birebir sohbette karşı tarafın çevrimiçi durumu; `PresenceService.onlineAmong` ile tek MGET (N+1 yok), Redis erişilemezse `false`, engel ilişkisinde alan yok. `UserSummary.online` ve `MessageView.senderName` `NON_NULL` olduğundan diğer yanıtlarda görünmez.
+- Sohbet push/uygulama içi bildirim `data`sına `senderAvatarUrl`: `AvatarVisibility.viewersAmong` (tek ayar sorgusu) ile alıcının avatarı görmesine izin veriliyorsa ve engel yoksa eklenir. Migration yok, yeni hata kodu yok.
+
+Ek (B1): `UserSummary` (`peer`) ve `MemberView` (`GET /conversations/{id}`) `department`/`classYear` taşır; `AvatarVisibility.visibleOwners` ile tek sorguda (DEPARTMENT/CLASS_YEAR alanı bakana kapalıysa veya engel varsa gönderilmez, `NON_NULL`).

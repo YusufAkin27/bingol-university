@@ -161,7 +161,8 @@ public class ClubJoinFormService {
             page.items().forEach(m -> byUser.put(m.userId(), answerViews(qs, raw.getOrDefault(m.userId(), List.of()))));
         }
         List<JoinRequestView> items = page.items().stream().map(m -> new JoinRequestView(m.userId(), m.displayName(),
-                m.avatarUrl(), m.role(), m.joinedAt(), withAnswers ? byUser.get(m.userId()) : null)).toList();
+                m.avatarUrl(), m.role(), m.joinedAt(), withAnswers ? byUser.get(m.userId()) : null, m.department(),
+                m.classYear(), m.joinedAt())).toList();
         return new CursorPage<>(items, page.nextCursor());
     }
 

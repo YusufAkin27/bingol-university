@@ -90,3 +90,10 @@ Yeni hata kodu eklenmedi.
 - **Hata kodları** (tr/en/ar `i18n/community*.properties`): `COMMUNITY_CATEGORY_LIMIT` (409, `{0}`=sınır), `COMMUNITY_CATEGORY_IN_USE` (409, `{0}`=kulüp sayısı), `COMMUNITY_CATEGORY_INVALID` (400), `COMMUNITY_CATEGORY_NOT_FOUND` (404), `COMMUNITY_CATEGORY_KEY_TAKEN` (409), `COMMUNITY_CATEGORY_ORDER_INVALID` (400). Ayar: `app.community.max-categories` (20).
 - Yönetici uçları: `docs/ADMIN_API.md` "Kulüp kategorileri". Web: `/admin/community-categories`.
 - **Mobil**: `/communities/categories` disk önbelleği TTL'i 30 günden **1 güne** indirilmeli (ETag/304 ile zaten ucuz); yanıttaki `X-Categories-Version` değişince yeniden çekilebilir.
+
+## B1: üye/başvuru/gönderi alanları
+
+- `MemberView` (`/members`, `/members/search`) ve `JoinRequestView` (`/requests`) satırlarına `department`, `classYear` (profil gizlilik ayarı `DEPARTMENT`/`CLASS_YEAR` bakana izin veriyorsa; tek `AvatarVisibility.visibleOwners` sorgusu; engel ilişkisinde `null`). `JoinRequestView.requestedAt` = başvuru zamanı (`joinedAt`, PENDING kaydın oluşma anı).
+- `PostView.authorRole` (`OWNER|ADMIN|MODERATOR|MEMBER`): sayfadaki yazarların aktif üyelik rolü tek sorguda (`findByCommunityIdAndUserIdIn`); aktif üye değilse alan yok (`NON_NULL`). Kulüp gönderilerinde beğeni modeli olmadığından `likeCount/liked` eklenmedi.
+- `CommunityView.requestedAt`: yalnız `PENDING_REVIEW` kulüpte (= `createdAt`), `NON_NULL`; `/api/me/communities` bekleyen satırı için.
+- `SearchHit` COMMUNITY: `memberCount` (aktif üye sayısı, toplu), `category`, `myStatus` (`ACTIVE|PENDING|NONE`; BANNED `NONE` gösterilir). POSTS için `likeCount` (`post.like_count` sayacı).

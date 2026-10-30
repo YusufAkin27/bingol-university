@@ -578,6 +578,34 @@ class PollServiceTest {
         assertEquals(1, voteService.vote(member(match), p.id(), pick(optionId(p, 0))).totalVotes());
     }
 
+    @Test
+    void listReturnsTotalAndOpenCountsMatchingTheVisibleSet() {
+        User creator = user();
+        User match = user("Muhendislik", "Bilgisayar Muhendisligi", "2");
+        User other = user("Fen", "Matematik", "1");
+        PollPage m0 = service.list(member(match), "open", null, 1);
+        PollPage o0 = service.list(member(other), "open", null, 1);
+        assertEquals(m0.totalCount(), m0.openCount());
+
+        R plain = new R();
+        create(admin(creator), plain);
+        R targeted = new R();
+        targeted.audience = new Audience(null, "Bilgisayar Muhendisligi", null);
+        create(admin(creator), targeted);
+
+        PollPage m1 = service.list(member(match), "open", null, 1);
+        PollPage o1 = service.list(member(other), "open", null, 1);
+        assertEquals(m0.openCount() + 2, m1.openCount());
+        assertEquals(m1.openCount(), m1.totalCount());
+        assertEquals(o0.openCount() + 1, o1.openCount()); // hedef kitle disi olan hedefli anketi saymaz
+        // kapanan sekmesi: toplam, sayfa boyundan bagimsiz
+        assertEquals(service.list(member(match), "closed", null, 1).totalCount(),
+                service.list(member(match), "closed", null, 50).totalCount());
+        assertEquals(m1.openCount(), service.list(member(match), "closed", null, 1).openCount());
+        // olusturduklarim sayisi
+        assertTrue(service.list(member(creator), "mine", null, 1).totalCount() >= 2);
+    }
+
     // ---------- yemek menusu ----------
 
     @Test

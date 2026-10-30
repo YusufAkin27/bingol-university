@@ -276,7 +276,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
                 return new ApplicantView(x.getId(), x.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
                         u == null || hideAvatar.contains(x.getUserId()) ? null : u.getAvatarUrl(),
                         u == null ? null : u.getDepartment(), x.getStatus(),
-                        x.getNote(), x.answers(), x.getQueuedAt(), x.getCreatedAt(), x.getUpdatedAt());
+                        x.getNote(), x.answers(), x.getQueuedAt(), x.getCreatedAt(), x.getUpdatedAt(),
+                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getEmail(),
+                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getClassYear());
             }).toList();
         });
     }

@@ -27,7 +27,7 @@ public class PostSearchProvider implements SearchProvider {
             + "AND u.status = 'ACTIVE' "
             + "AND EXISTS (SELECT 1 FROM post_media pm WHERE pm.post_id = p.id AND pm.kind = 'IMAGE' AND pm.hidden_at IS NULL) ";
 
-    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, "
+    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, "
             + "(SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.kind = 'IMAGE' AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) AS media_id "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "WHERE " + VISIBLE_SQL + "AND p.body IS NOT NULL "
@@ -60,7 +60,7 @@ public class PostSearchProvider implements SearchProvider {
             Long mediaId = (Long) rs.getObject("media_id");
             return new SearchHit(SearchType.POSTS, rs.getLong("id"), rs.getString("display_name"),
                     snippet(rs.getString("body")), mediaId == null ? null : "/api/posts/media/" + mediaId + "?thumb=true",
-                    rs.getString("created"));
+                    rs.getString("created"), null, null, null, (long) rs.getInt("like_count"));
         }, q, SearchQuery.likePattern(q), viewer, viewer, q, Math.max(1, limit), Math.max(0, offset));
     }
 

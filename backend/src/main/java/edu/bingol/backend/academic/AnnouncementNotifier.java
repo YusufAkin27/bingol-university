@@ -85,7 +85,7 @@ public class AnnouncementNotifier {
                 data.put("value", String.valueOf(id));
                 data.put("announcementId", String.valueOf(id));
                 int sent = notifications.sendBulk(users, NotificationType.ANNOUNCEMENT, rs.getString("title"),
-                        body.length() > 140 ? body.substring(0, 140) + "…" : body, data);
+                        body.length() > 140 ? body.substring(0, 140) + "…" : body, data, "academic_announcements");
                 log.info("Duyuru {} bildirimi: hedef={} kayit={}", id, users.size(), sent);
             }, id);
         } catch (RuntimeException e) {

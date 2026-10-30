@@ -16,18 +16,41 @@ public final class ProfileDtos {
     /** Kendi profilim: her alan gorunur. */
     public record ProfileView(Long id, String email, String displayName, String faculty, String department,
                               Short classYear, String bio, String avatarUrl, boolean showEmail, Role role,
-                              String language, String createdAt, String grade) {
+                              String language, String createdAt, String grade,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean avatarHidden) {
+        /** avatarHidden yok (null): yalnizca GET /users/me doldurur. */
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
-                    u.getCreatedAt().toString(), u.getGrade());
+                    u.getCreatedAt().toString(), u.getGrade(), null);
+        }
+
+        /** Profil fotografi moderasyonla gizlendi mi (mobil bilgi karti). */
+        public ProfileView withAvatarHidden(boolean hidden) {
+            return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
+                    role, language, createdAt, grade, hidden);
         }
     }
 
     /** Baskasinin profili: e-posta yalnizca sahibi izin verdiyse. */
     public record PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                                 String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
-                                Boolean followedByMe, Boolean followsMe) {
+                                Boolean followedByMe, Boolean followsMe,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean blockedByMe) {
+        /** 12 alanli kurucu (blockedByMe yok): yalniz GET /users/{id} doldurur. */
+        public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
+                             String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
+                             Boolean followedByMe, Boolean followsMe) {
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followerCount,
+                    followingCount, followedByMe, followsMe, null);
+        }
+
+        /** Istek sahibi bu kullaniciyi engellemis mi (yalniz baskasinin profilinde, oturumlu istekte). */
+        public PublicProfile withBlockedByMe(boolean blocked) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    followerCount, followingCount, followedByMe, followsMe, blocked);
+        }
+
         /** Takip alanlari olmadan (yalniz profil ucu doldurur; digerlerinde null). */
         public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                              String bio, String avatarUrl, String email) {
@@ -44,7 +67,7 @@ public final class ProfileDtos {
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe, boolean followsMe) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
-                    following, followedByMe, followsMe);
+                    following, followedByMe, followsMe, blockedByMe);
         }
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe) {

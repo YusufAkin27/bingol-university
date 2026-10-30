@@ -12,7 +12,9 @@ public enum NotificationSubtype {
     COMMUNITY_JOIN(NotificationType.COMMUNITY),
     POST_LIKE(NotificationType.POST_LIKE), POST_COMMENT(NotificationType.POST_COMMENT),
     COMMENT_REPLY(NotificationType.COMMENT_REPLY),
-    POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW);
+    POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW),
+    // Kendi bayragi olanlar (notification_pref.polls / academic_announcements, V880): ana tur bayragindan bagimsizdir
+    POLL(NotificationType.ANNOUNCEMENT), ACADEMIC_ANNOUNCEMENT(NotificationType.ANNOUNCEMENT);
 
     private final NotificationType parent;
 
@@ -22,6 +24,20 @@ public enum NotificationSubtype {
 
     public NotificationType parent() {
         return parent;
+    }
+
+    /** Alt tur bayragi notification_pref'te ayri sutunda tutuluyor mu (alt tur satiri degil). */
+    public boolean flagBacked() {
+        return this == POLL || this == ACADEMIC_ANNOUNCEMENT;
+    }
+
+    /** flagBacked alt turler icin kullanicinin bayragi; digerleri icin true. */
+    public boolean flag(NotificationPref p) {
+        return switch (this) {
+            case POLL -> p.isPolls();
+            case ACADEMIC_ANNOUNCEMENT -> p.isAcademicAnnouncements();
+            default -> true;
+        };
     }
 
     /** Gecersiz ad icin null doner. */

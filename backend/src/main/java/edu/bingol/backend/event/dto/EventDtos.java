@@ -49,14 +49,40 @@ public final class EventDtos {
 
     /**
      * myRsvp: GOING | INTERESTED | PENDING (katilim istegi onay bekliyor) | REJECTED | null. interestedCount yalnizca
-     * detayda doludur. joinPolicy: OPEN | APPROVAL. pendingCount yalnizca yonetene (canManage) dolu, digerlerinde null.
+     * detayda doludur. communityLogoUrl: kulup etkinliginde kulubun logosu (yoksa null). cancelReason / rejectReason: yalniz yonetene (canManage) ve
+     * yonetici iptal/gizleme (CANCELLED/HIDDEN) ya da inceleme reddi (REJECTED) varsa dolu, aksi halde alan gonderilmez. joinPolicy: OPEN | APPROVAL. pendingCount yalnizca yonetene (canManage) dolu, digerlerinde null.
      */
     public record EventView(Long id, String title, String description, Instant startsAt, Instant endsAt,
                             String location, String coverUrl, Integer capacity, int goingCount,
                             Long interestedCount, Long communityId, String communityName, Long createdBy,
                             String organizerName, UserEvent.Status status, EventRsvp.Status myRsvp,
                             boolean canManage, Instant createdAt, boolean registrationClosed,
-                            EventAdmission.Mode joinPolicy, OrganizerView organizer, Long pendingCount) {
+                            EventAdmission.Mode joinPolicy, OrganizerView organizer, Long pendingCount,
+                            String communityLogoUrl,
+                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String cancelReason,
+                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String rejectReason,
+                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String chatAccess) {
+        /** Eski 25 alanli kurucu (chatAccess yok). */
+        public EventView(Long id, String title, String description, Instant startsAt, Instant endsAt,
+                         String location, String coverUrl, Integer capacity, int goingCount,
+                         Long interestedCount, Long communityId, String communityName, Long createdBy,
+                         String organizerName, UserEvent.Status status, EventRsvp.Status myRsvp,
+                         boolean canManage, Instant createdAt, boolean registrationClosed,
+                         EventAdmission.Mode joinPolicy, OrganizerView organizer, Long pendingCount,
+                         String communityLogoUrl, String cancelReason, String rejectReason) {
+            this(id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount, interestedCount,
+                    communityId, communityName, createdBy, organizerName, status, myRsvp, canManage, createdAt,
+                    registrationClosed, joinPolicy, organizer, pendingCount, communityLogoUrl, cancelReason,
+                    rejectReason, null);
+        }
+
+        /** chatAccess: OPEN (odaya girebilir) | MEMBERS (katilimci olmak gerekir) | LOCKED (kapali/bitmis); yalniz detayda. */
+        public EventView withChatAccess(String access) {
+            return new EventView(id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount,
+                    interestedCount, communityId, communityName, createdBy, organizerName, status, myRsvp, canManage,
+                    createdAt, registrationClosed, joinPolicy, organizer, pendingCount, communityLogoUrl, cancelReason,
+                    rejectReason, access);
+        }
     }
 
     public record RsvpRequest(@NotNull EventRsvp.Status status) {
@@ -78,7 +104,16 @@ public final class EventDtos {
     public record CalendarItem(String source, Long id, String title, LocalDate date, Instant startsAt,
                                Instant endsAt, String location, String url, String imageUrl, Long communityId,
                                EventRsvp.Status myRsvp, Integer goingCount, Long interestedCount, Integer capacity,
-                               UserEvent.Status status, String communityName) {
+                               UserEvent.Status status, String communityName,
+                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long pendingCount) {
+        /** pendingCount (bekleyen katilim istegi) yalniz etkinligi yonetene dolu; digerlerinde alan gonderilmez. */
+        public CalendarItem(String source, Long id, String title, LocalDate date, Instant startsAt,
+                            Instant endsAt, String location, String url, String imageUrl, Long communityId,
+                            EventRsvp.Status myRsvp, Integer goingCount, Long interestedCount, Integer capacity,
+                            UserEvent.Status status, String communityName) {
+            this(source, id, title, date, startsAt, endsAt, location, url, imageUrl, communityId, myRsvp, goingCount,
+                    interestedCount, capacity, status, communityName, null);
+        }
     }
 
     public record AttendeeAvatar(Long userId, String displayName, String avatarUrl) {
@@ -88,7 +123,8 @@ public final class EventDtos {
     public record AttendeePreview(long goingCount, long interestedCount, List<AttendeeAvatar> avatars) {
     }
 
-    public record CheckinCode(String code, String qrPayload, Instant expiresAt, int validForSeconds) {
+    /** manualCode: 6 karakterli kisa omurlu elle giris kodu (QR ile ayni pencerede gecerli; check-in `code` alanina yazilir). */
+    public record CheckinCode(String code, String qrPayload, Instant expiresAt, int validForSeconds, String manualCode) {
     }
 
     public record CheckinRequest(@NotBlank @Size(max = 200) String code) {

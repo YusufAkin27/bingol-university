@@ -78,6 +78,22 @@ public class ConversationService {
 
     private ReceiptService receipts;
 
+    /** Profil gizlilik karari (bolum/sinif); yoksa alanlar gonderilmez. */
+    private edu.bingol.backend.profile.privacy.AvatarVisibility visibility;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setVisibility(edu.bingol.backend.profile.privacy.AvatarVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    /** Birebir karsi tarafin cevrimici noktasi (tek MGET; yoksa alan gonderilmez). */
+    private edu.bingol.backend.messaging.ws.PresenceService presence;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPresence(edu.bingol.backend.messaging.ws.PresenceService presence) {
+        this.presence = presence;
+    }
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setReceipts(ReceiptService receipts) {
         this.receipts = receipts;
@@ -177,9 +193,25 @@ public class ConversationService {
         Map<Long, User> byId = users.findAllById(active.stream().map(ConversationMember::getUserId).toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
         Set<Long> hidden = blocks.hiddenFrom(me); // engel iliskisi olanin avatari gorunmez
+        Set<Long> deptOk = Set.of();
+        Set<Long> yearOk = Set.of();
+        if (visibility != null && !byId.isEmpty()) {
+            var vis = visibility.visibleOwners(me, byId.keySet(), java.util.EnumSet.of(
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR));
+            deptOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT);
+            yearOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+        }
+        final Set<Long> deptVisible = deptOk;
+        final Set<Long> yearVisible = yearOk;
         List<MemberView> list = active.stream().filter(m -> byId.containsKey(m.getUserId()))
-                .map(m -> new MemberView(m.getUserId(), byId.get(m.getUserId()).getDisplayName(),
-                        hidden.contains(m.getUserId()) ? null : byId.get(m.getUserId()).getAvatarUrl(), m.getRole().name())).toList();
+                .map(m -> {
+                    Long uid = m.getUserId();
+                    boolean shown = !hidden.contains(uid);
+                    return new MemberView(uid, byId.get(uid).getDisplayName(), shown ? byId.get(uid).getAvatarUrl() : null,
+                            m.getRole().name(), shown && deptVisible.contains(uid) ? byId.get(uid).getDepartment() : null,
+                            shown && yearVisible.contains(uid) ? byId.get(uid).getClassYear() : null);
+                }).toList();
         return new ConversationDetail(views(me, List.of(c)).get(0), list);
     }
 
@@ -423,6 +455,20 @@ public class ConversationService {
         List<Long> peerIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT)
                 .map(c -> peerOf(membersBy.getOrDefault(c.getId(), List.of()), me)).filter(java.util.Objects::nonNull).toList();
         Map<Long, User> peers = users.findAllById(peerIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
+        // Birebir karsi tarafin cevrimici durumu: tek toplu okuma (N+1 yok); Redis yoksa bos kume
+        Set<Long> onlinePeers = presence == null ? Set.of() : presence.onlineAmong(peerIds);
+        // Birebir karsi tarafin bolum/sinifi: tek gizlilik sorgusu (alan kapaliysa gonderilmez)
+        Set<Long> deptOk = Set.of();
+        Set<Long> yearOk = Set.of();
+        if (visibility != null && !peerIds.isEmpty()) {
+            var vis = visibility.visibleOwners(me, peerIds, java.util.EnumSet.of(
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR));
+            deptOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT);
+            yearOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+        }
+        final Set<Long> deptVisible = deptOk;
+        final Set<Long> yearVisible = yearOk;
         // Golge engel: goruntuleyene gorunur son mesaj (bastirilmis mesajlar alicida yok sayilir)
         Map<Long, Long> keyBy = new HashMap<>();
         for (Conversation c : page) {
@@ -437,6 +483,22 @@ public class ConversationService {
         // Son mesajim ise makbuz durumu: uyeler zaten yuklu, ek sorgu yalniz askidaki kullanici denetimi
         Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), membersBy,
                 page.stream().collect(Collectors.toMap(Conversation::getId, c -> c.getType() == Conversation.Type.DIRECT)));
+        // Grup/kulup/etkinlik onizlemesi icin son mesaji gonderenlerin adlari: tek toplu yukleme
+        Set<Long> directIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT).map(Conversation::getId)
+                .collect(Collectors.toSet());
+        Set<Long> senderIds = new java.util.HashSet<>();
+        for (Conversation c : page) {
+            Message lm = keyBy.get(c.getId()) == null ? null : lastMessages.get(keyBy.get(c.getId()));
+            if (lm != null && !directIds.contains(c.getId()) && lm.getSenderId() != null) {
+                senderIds.add(lm.getSenderId());
+            }
+        }
+        Map<Long, String> senderNames = new HashMap<>();
+        if (!senderIds.isEmpty()) {
+            for (User u : users.findAllById(senderIds)) {
+                senderNames.put(u.getId(), u.getDisplayName());
+            }
+        }
         Map<Long, Long> unread = new HashMap<>();
         for (Object[] row : messages.unreadCounts(me, ids, MessageRepository.excludedSenders(related))) {
             unread.put((Long) row[0], ((Number) row[1]).longValue());
@@ -451,7 +513,9 @@ public class ConversationService {
             Long peerId = direct ? peerOf(ms, me) : null;
             UserSummary peer = peerId == null || !peers.containsKey(peerId) ? null
                     : related.contains(peerId) ? new UserSummary(peerId, peers.get(peerId).getDisplayName(), null) // engel: avatar yok
-                    : UserSummary.of(peers.get(peerId));
+                    : UserSummary.of(peers.get(peerId)).withOnline(onlinePeers.contains(peerId)).withProfile(
+                            deptVisible.contains(peerId) ? peers.get(peerId).getDepartment() : null,
+                            yearVisible.contains(peerId) ? peers.get(peerId).getClassYear() : null);
             Message last = keyBy.get(c.getId()) == null ? null : lastMessages.get(keyBy.get(c.getId()));
             // Gruba sonradan katilan, katilmadan onceki son mesaji onizlemede de gormez (gecmisle tutarli).
             Instant joined = ms.stream().filter(m -> m.getUserId().equals(me)).map(ConversationMember::getJoinedAt)
@@ -461,7 +525,9 @@ public class ConversationService {
             MessageView lastView = last == null || last.getId() <= clearedUpTo
                     || (!direct && last.getCreatedAt().isBefore(joined)) ? null
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me))
-                    .withAttachments(lastAtt.get(last.getId())).withStatus(lastStatus.get(last.getId()));
+                    .withAttachments(lastAtt.get(last.getId())).withStatus(lastStatus.get(last.getId()))
+                    .withSenderName(direct || related.contains(last.getSenderId()) && !last.getSenderId().equals(me) ? null
+                            : senderNames.get(last.getSenderId()));
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();

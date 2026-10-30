@@ -37,9 +37,19 @@ public class ProfileController {
         this.limiter = limiter;
     }
 
+    /** Moderasyonla gizlenen avatar bayragi icin (yoksa alan gonderilmez). */
+    private edu.bingol.backend.profile.privacy.PrivacyService privacy;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPrivacy(edu.bingol.backend.profile.privacy.PrivacyService privacy) {
+        this.privacy = privacy;
+    }
+
     @GetMapping("/users/me")
     public ProfileView me() {
-        return ProfileView.of(profiles.get(CurrentUser.id()));
+        Long uid = CurrentUser.id();
+        ProfileView v = ProfileView.of(profiles.get(uid));
+        return privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
     }
 
     @PatchMapping("/users/me")

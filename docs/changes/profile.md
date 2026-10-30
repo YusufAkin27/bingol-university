@@ -70,3 +70,10 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - **`GET /api/users/me/export`**: yeni bölümler `bookmarks`, `communityMemberships`, `communityPosts`, `eventRsvps`, `eventAttendance`, `createdEvents`, `mailCampaigns`, `feedbackVotes`, `conversationMemberships` (`export/ExtraExporters`). Bir bölüm hata verirse çıktı 500 olmaz; o bölümde `{"error":"SECTION_UNAVAILABLE"}` görünür.
 - **`GET /api/app/info`**: `operatorName` (`legal.controller.name`) ve `kvkkEmail` (`legal.controller.email`) alanları eklendi (ayar boşsa `null`; adres/kimlik gelmez). Web hesap silme sayfası "Geliştirici" satırını buradan okur.
 - **Sözleşme yeniden onayı**: bkz. `docs/LEGAL_NOTES.md` bölüm 8 (`GET /api/legal/acceptance-status`, `POST /api/legal/accept`, 403 `LEGAL_REACCEPT_REQUIRED`).
+
+## B1: profil ve engeller
+
+- `GET /api/users/me`: `avatarHidden` (`ProfilePrivacy.avatarHidden`, moderasyon bayrağı); diğer `ProfileView` dönen uçlarda alan yoktur.
+- `GET /api/users/me/blocks`: `X-Total-Count` başlığı (`UserBlockRepository.countByBlockerId`, PK öneki).
+- Takip listeleri ve `follow-suggestions`: `classYear` (`PublicProfileMapper` gizliliğiyle).
+- `GET /api/users/{id}`: `PublicProfile.blockedByMe` (`NON_NULL`; başkasının profilinde `BlockService.hasBlocked` tek yönlü PK araması; karşı tarafın engeli sızdırılmaz; kendi profilimde yok).

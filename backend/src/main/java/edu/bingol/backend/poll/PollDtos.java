@@ -34,7 +34,8 @@ public final class PollDtos {
                            String voteBlockedReason, boolean canManage, MyVote myVote, boolean resultsVisible,
                            List<Result> results, Integer totalVotes, Turnout turnout, Double average, Integer ratingCount) {}
 
-    public record PollPage(List<PollView> items, Long nextCursor) {}
+    /** totalCount = bu kapsamdaki toplam kayit; openCount = sekme rozeti icin acik anket sayisi (ikisi de sayfadan bagimsiz). */
+    public record PollPage(List<PollView> items, Long nextCursor, Long totalCount, Long openCount) {}
 
     /** Olusturma: tum alanlar metin/null; dogrulama PollService'te (tutarli POLL_INVALID mesajlari). */
     public record CreateRequest(String title, String description, String type, String scope, Long communityId,

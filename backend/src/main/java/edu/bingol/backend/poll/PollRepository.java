@@ -132,4 +132,57 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
 
     @Query("SELECT COALESCE(SUM(p.voterCount), 0) FROM Poll p")
     long totalVoters();
+
+    // ---- Liste sayaclari (sekme rozetleri / arsiv sayisi): tek COUNT; hedef kitle SQL'de eslenir ----
+
+    /** Acik anket sayisi (uyelik + hedef kitle); `all` = hedef kitle suzgeci yok (sistem yoneticisi). */
+    @Query("""
+            SELECT COUNT(p) FROM Poll p WHERE p.status = :open
+              AND p.opensAt <= :now AND (p.closesAt IS NULL OR p.closesAt > :now)
+              AND (p.scope <> :community OR p.communityId IN :communityIds)
+              AND (:all = TRUE OR ((p.audienceFaculty IS NULL OR LOWER(TRIM(p.audienceFaculty)) = :fac)
+                   AND (p.audienceDepartment IS NULL OR LOWER(TRIM(p.audienceDepartment)) = :dep)
+                   AND (p.audienceGrade IS NULL OR LOWER(TRIM(p.audienceGrade)) = :grade)))
+            """)
+    long countOpenQuery(@Param("now") Instant now, @Param("communityIds") Collection<Long> communityIds,
+                        @Param("open") Poll.Status open, @Param("community") Poll.Scope community,
+                        @Param("all") boolean all, @Param("fac") String fac, @Param("dep") String dep,
+                        @Param("grade") String grade);
+
+    default long countOpen(Instant now, Collection<Long> communityIds, boolean all, String fac, String dep, String grade) {
+        return countOpenQuery(now, communityIds, Poll.Status.OPEN, Poll.Scope.COMMUNITY, all, fac, dep, grade);
+    }
+
+    /** Kapanmis anket sayisi (uyelik + hedef kitle). */
+    @Query("""
+            SELECT COUNT(p) FROM Poll p
+            WHERE (p.status = :closed OR (p.status = :open AND p.closesAt IS NOT NULL AND p.closesAt <= :now))
+              AND (p.scope <> :community OR p.communityId IN :communityIds)
+              AND (:all = TRUE OR ((p.audienceFaculty IS NULL OR LOWER(TRIM(p.audienceFaculty)) = :fac)
+                   AND (p.audienceDepartment IS NULL OR LOWER(TRIM(p.audienceDepartment)) = :dep)
+                   AND (p.audienceGrade IS NULL OR LOWER(TRIM(p.audienceGrade)) = :grade)))
+            """)
+    long countClosedQuery(@Param("now") Instant now, @Param("communityIds") Collection<Long> communityIds,
+                          @Param("open") Poll.Status open, @Param("closed") Poll.Status closed,
+                          @Param("community") Poll.Scope community, @Param("all") boolean all,
+                          @Param("fac") String fac, @Param("dep") String dep, @Param("grade") String grade);
+
+    default long countClosed(Instant now, Collection<Long> communityIds, boolean all, String fac, String dep, String grade) {
+        return countClosedQuery(now, communityIds, Poll.Status.OPEN, Poll.Status.CLOSED, Poll.Scope.COMMUNITY, all, fac, dep, grade);
+    }
+
+    /** Olusturduklarim + oy verdiklerim sayisi. */
+    @Query("""
+            SELECT COUNT(p) FROM Poll p
+            WHERE p.createdBy = :uid OR p.id IN (SELECT b.pollId FROM PollBallot b WHERE b.userId = :uid)
+            """)
+    long countMine(@Param("uid") Long userId);
+
+    @Query("SELECT COUNT(p) FROM Poll p WHERE p.communityId = :communityId AND (:includeDraft = TRUE OR p.status <> :draft)")
+    long countOfCommunityQuery(@Param("communityId") Long communityId, @Param("includeDraft") boolean includeDraft,
+                               @Param("draft") Poll.Status draft);
+
+    default long countOfCommunity(Long communityId, boolean includeDraft) {
+        return countOfCommunityQuery(communityId, includeDraft, Poll.Status.DRAFT);
+    }
 }

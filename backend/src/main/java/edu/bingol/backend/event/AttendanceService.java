@@ -70,7 +70,8 @@ public class AttendanceService {
         requireActive(e);
         requireWindow(e, now);
         String code = codes.generate(eventId, now);
-        return new CheckinCode(code, "bingol-checkin:" + code, codes.expiresAt(now), CheckinCodeService.MAX_VALID_SECONDS);
+        return new CheckinCode(code, "bingol-checkin:" + code, codes.expiresAt(now), CheckinCodeService.MAX_VALID_SECONDS,
+                codes.generateManual(eventId, now));
     }
 
     /** Katilimci QR kodunu okutur. Idempotent: ikinci okutma mevcut kaydi aynen dondurur. */

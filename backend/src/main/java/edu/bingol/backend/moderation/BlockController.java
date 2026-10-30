@@ -59,6 +59,9 @@ public class BlockController {
                     User u = byId.get(b.getBlockedId());
                     return new BlockedUser(u.getId(), u.getDisplayName(), null); // engel iliskisinde avatar gorunmez
                 }).toList();
-        return SlicePaging.respond(slice, items);
+        ResponseEntity<List<BlockedUser>> res = SlicePaging.respond(slice, items);
+        // Toplam engel sayisi ("Engellenenler (N)"): govde duz dizi kaldigindan baslikta
+        return ResponseEntity.status(res.getStatusCode()).headers(res.getHeaders())
+                .header("X-Total-Count", String.valueOf(blocks.blockedCount(CurrentUser.id()))).body(res.getBody());
     }
 }

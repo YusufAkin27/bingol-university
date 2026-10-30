@@ -49,7 +49,8 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
             LEFT JOIN notification_pref p ON p.user_id = u.id
             WHERE COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
-                                     WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
+                                     WHEN 'communities' THEN p.communities
+                                     WHEN 'polls' THEN p.polls WHEN 'academic_announcements' THEN p.academic_announcements ELSE TRUE END, TRUE)
               AND """ + QuietSql.NOT_QUIET, nativeQuery = true)
     List<String> tokensForBroadcast(@Param("col") String prefColumn);
 
@@ -60,7 +61,8 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
             LEFT JOIN notification_pref p ON p.user_id = u.id
             WHERE COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
-                                     WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
+                                     WHEN 'communities' THEN p.communities
+                                     WHEN 'polls' THEN p.polls WHEN 'academic_announcements' THEN p.academic_announcements ELSE TRUE END, TRUE)
               AND """ + QuietSql.NOT_QUIET, nativeQuery = true)
     List<String> tokensForBroadcastLang(@Param("col") String prefColumn, @Param("lang") String lang);
 

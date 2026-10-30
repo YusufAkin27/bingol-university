@@ -29,7 +29,9 @@ public class EventSearchProvider implements SearchProvider {
     public List<SearchHit> search(String q, int limit) {
         return events.search(Texts.likePattern(q), Math.max(1, limit)).stream()
                 .map(e -> new SearchHit(SearchType.EVENT, e.getId(), e.getTitle(), snippet(e.getDescription()),
-                        e.getCoverUrl(), e.getStartsAt().atZone(ZoneId.of("Europe/Istanbul")).toLocalDate().toString()))
+                        e.getCoverUrl(), e.getStartsAt().atZone(ZoneId.of("Europe/Istanbul")).toLocalDate().toString(),
+                        null, null, null, null, e.getStartsAt().toString(),
+                        e.getEndsAt() == null ? null : e.getEndsAt().toString()))
                 .toList();
     }
 

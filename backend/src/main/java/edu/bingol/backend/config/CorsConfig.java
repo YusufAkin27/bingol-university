@@ -29,7 +29,7 @@ public class CorsConfig {
         c.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         c.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept-Language"));
         // Panel dosya adini (CSV), ETag'i, sayfalama imlecini, kirpilma bayragini ve Retry-After'i okuyabilsin
-        c.setExposedHeaders(List.of("Content-Disposition", "ETag", "X-Next-Cursor", "X-Truncated", "Retry-After", "X-Export-Receipt-Id"));
+        c.setExposedHeaders(List.of("Content-Disposition", "ETag", "X-Next-Cursor", "X-Total-Count", "X-Truncated", "Retry-After", "X-Export-Receipt-Id"));
         c.setAllowCredentials(false);
         c.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();

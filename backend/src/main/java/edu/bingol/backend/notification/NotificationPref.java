@@ -1,5 +1,6 @@
 package edu.bingol.backend.notification;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -18,6 +19,11 @@ public class NotificationPref {
     private boolean events = true;
     private boolean messages = true;
     private boolean communities = true;
+    /** Anket bildirimleri ve akademik (bolum) duyurular: V880; ana turden bagimsiz kendi bayraklari. */
+    @Column(columnDefinition = "boolean not null default true")
+    private boolean polls = true;
+    @Column(columnDefinition = "boolean not null default true")
+    private boolean academicAnnouncements = true;
 
     /** Sessiz saatler: gunun dakikasi (0-1439); varsayilan 22:00-07:00, kullanici saat diliminde. */
     private boolean quietEnabled = false;

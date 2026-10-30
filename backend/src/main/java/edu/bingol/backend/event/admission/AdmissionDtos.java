@@ -30,10 +30,13 @@ public final class AdmissionDtos {
                                   Instant createdAt, Instant updatedAt) {
     }
 
-    /** Organizatorun gordugu basvuru. */
+    /**
+     * Organizatorun gordugu basvuru. `email` yalniz etkinligi yonetebilene (bu uc zaten yalniz onlara acik) ve engel
+     * iliskisi yoksa dolu; `classYear` profildeki sinif (1..6); `createdAt` basvuru/istek zamani.
+     */
     public record ApplicantView(Long id, Long userId, String displayName, String avatarUrl, String department,
                                 Status status, String note, List<String> answers, Instant queuedAt,
-                                Instant createdAt, Instant updatedAt) {
+                                Instant createdAt, Instant updatedAt, String email, Short classYear) {
     }
 
     public enum Action { ACCEPT, REJECT, WAITLIST }

@@ -40,16 +40,27 @@ public class FollowService {
         }
     }
 
+    /** classYear: profil gizlilik ayarina gore (bakana kapaliysa null). */
     public record UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
-                           boolean followsMe) {
+                           boolean followsMe, Short classYear) {
+        public UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
+                        boolean followsMe) {
+            this(id, displayName, avatarUrl, department, followedByMe, followsMe, null);
+        }
+
         public UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe) {
-            this(id, displayName, avatarUrl, department, followedByMe, false);
+            this(id, displayName, avatarUrl, department, followedByMe, false, null);
         }
     }
 
     public record UserPage(List<UserItem> items, String nextCursor) {}
 
-    public record Suggestion(Long id, String displayName, String avatarUrl, String department, String reason) {}
+    public record Suggestion(Long id, String displayName, String avatarUrl, String department, String reason,
+                             Short classYear) {
+        public Suggestion(Long id, String displayName, String avatarUrl, String department, String reason) {
+            this(id, displayName, avatarUrl, department, reason, null);
+        }
+    }
 
     private final JdbcTemplate jdbc;
     private final UserFollowRepository follows;
@@ -190,7 +201,7 @@ public class FollowService {
             if (p != null) {
                 boolean self = id.equals(viewer);
                 out.add(new UserItem(p.id(), p.displayName(), p.avatarUrl(), p.department(),
-                        !self && mine.contains(id), !self && theirs.contains(id)));
+                        !self && mine.contains(id), !self && theirs.contains(id), p.classYear()));
             }
         }
         return out;
@@ -226,7 +237,7 @@ public class FollowService {
         for (Object[] r : rows) {
             PublicProfile p = byId.get((Long) r[0]);
             if (p != null) {
-                out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1]));
+                out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear()));
             }
         }
         return out;

@@ -144,7 +144,28 @@ public class PollService {
         boolean more = accepted.size() > n;
         List<Poll> page = more ? accepted.subList(0, n) : accepted;
         Long next = more ? page.get(page.size() - 1).getId() : (exhausted ? null : c);
-        return new PollPage(assembler.views(page, actor, false), next);
+        long openCount = countOpen(actor, me, cidList, now);
+        long total = switch (s) {
+            case "open" -> openCount;
+            case "closed" -> polls.countClosed(now, cidList, actor.admin(), audNorm(me == null ? null : me.getFaculty()),
+                    audNorm(me == null ? null : me.getDepartment()), audNorm(me == null ? null : me.getGrade()));
+            case "mine" -> polls.countMine(actor.id());
+            default -> {
+                Long cid = parseId(s.substring("community:".length()));
+                yield polls.countOfCommunity(cid, access.isClubManager(cid, actor));
+            }
+        };
+        return new PollPage(assembler.views(page, actor, false), next, total, openCount);
+    }
+
+    private long countOpen(Actor actor, User me, List<Long> cidList, Instant now) {
+        return polls.countOpen(now, cidList, actor.admin(), audNorm(me == null ? null : me.getFaculty()),
+                audNorm(me == null ? null : me.getDepartment()), audNorm(me == null ? null : me.getGrade()));
+    }
+
+    /** Hedef kitle karsilastirmasi icin kucuk harf/kirpilmis deger; bos profil alani hicbir kitleyle eslesmesin diye ayirici deger. */
+    private static String audNorm(String v) {
+        return v == null || v.isBlank() ? "#none#" : v.trim().toLowerCase(Locale.ROOT);
     }
 
     // ---------- olusturma ----------

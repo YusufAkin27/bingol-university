@@ -1673,6 +1673,10 @@
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "createdAt" : {
             "format" : "date-time",
             "type" : [ "string", "null" ]
@@ -1681,6 +1685,9 @@
             "type" : [ "string", "null" ]
           },
           "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
             "type" : [ "string", "null" ]
           },
           "id" : {
@@ -2696,6 +2703,10 @@
             "enum" : [ "GOING", "INTERESTED", "PENDING", "REJECTED" ],
             "type" : [ "string", "null" ]
           },
+          "pendingCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
           "source" : {
             "type" : [ "string", "null" ]
           },
@@ -3112,6 +3123,9 @@
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
+          "manualCode" : {
+            "type" : [ "string", "null" ]
+          },
           "qrPayload" : {
             "type" : [ "string", "null" ]
           },
@@ -3367,6 +3381,13 @@
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
           "displayName" : {
             "type" : [ "string", "null" ]
           },
@@ -3456,6 +3477,10 @@
           "ownerId" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "requestedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
           },
           "slug" : {
             "type" : [ "string", "null" ]
@@ -5227,13 +5252,22 @@
           "canManage" : {
             "type" : [ "boolean", "null" ]
           },
+          "cancelReason" : {
+            "type" : [ "string", "null" ]
+          },
           "capacity" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
+          "chatAccess" : {
+            "type" : [ "string", "null" ]
+          },
           "communityId" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "communityLogoUrl" : {
+            "type" : [ "string", "null" ]
           },
           "communityName" : {
             "type" : [ "string", "null" ]
@@ -5295,6 +5329,9 @@
           },
           "registrationClosed" : {
             "type" : [ "boolean", "null" ]
+          },
+          "rejectReason" : {
+            "type" : [ "string", "null" ]
           },
           "startsAt" : {
             "format" : "date-time",
@@ -6252,10 +6289,21 @@
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
           "displayName" : {
             "type" : [ "string", "null" ]
           },
           "joinedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "requestedAt" : {
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
@@ -7238,6 +7286,9 @@
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
+          "senderName" : {
+            "type" : [ "string", "null" ]
+          },
           "status" : {
             "type" : [ "string", "null" ]
           },
@@ -7249,6 +7300,13 @@
       "MessagingDtosMemberView" : {
         "properties" : {
           "avatarUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "department" : {
             "type" : [ "string", "null" ]
           },
           "displayName" : {
@@ -8527,6 +8585,14 @@
           "nextCursor" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "openCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "totalCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -8840,6 +8906,9 @@
       },
       "PrefsUpdate" : {
         "properties" : {
+          "academicAnnouncements" : {
+            "type" : [ "boolean", "null" ]
+          },
           "announcements" : {
             "type" : [ "boolean", "null" ]
           },
@@ -8853,6 +8922,9 @@
             "type" : [ "boolean", "null" ]
           },
           "news" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "polls" : {
             "type" : [ "boolean", "null" ]
           },
           "quietHours" : {
@@ -8872,6 +8944,9 @@
       },
       "PrefsView" : {
         "properties" : {
+          "academicAnnouncements" : {
+            "type" : [ "boolean", "null" ]
+          },
           "announcements" : {
             "type" : [ "boolean", "null" ]
           },
@@ -8885,6 +8960,9 @@
             "type" : [ "boolean", "null" ]
           },
           "news" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "polls" : {
             "type" : [ "boolean", "null" ]
           },
           "quietHours" : {
@@ -9024,6 +9102,9 @@
       },
       "ProfileView" : {
         "properties" : {
+          "avatarHidden" : {
+            "type" : [ "boolean", "null" ]
+          },
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
@@ -9117,6 +9198,9 @@
           },
           "bio" : {
             "type" : [ "string", "null" ]
+          },
+          "blockedByMe" : {
+            "type" : [ "boolean", "null" ]
           },
           "classYear" : {
             "format" : "int32",
@@ -10641,13 +10725,33 @@
       },
       "SearchHit" : {
         "properties" : {
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
           "date" : {
+            "type" : [ "string", "null" ]
+          },
+          "endsAt" : {
             "type" : [ "string", "null" ]
           },
           "imageUrl" : {
             "type" : [ "string", "null" ]
           },
+          "likeCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "memberCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "myStatus" : {
+            "type" : [ "string", "null" ]
+          },
           "snippet" : {
+            "type" : [ "string", "null" ]
+          },
+          "startsAt" : {
             "type" : [ "string", "null" ]
           },
           "targetId" : {
@@ -11205,6 +11309,10 @@
         "properties" : {
           "avatarUrl" : {
             "type" : [ "string", "null" ]
+          },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           },
           "department" : {
             "type" : [ "string", "null" ]
@@ -12396,6 +12504,10 @@
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "department" : {
             "type" : [ "string", "null" ]
           },
@@ -12496,12 +12608,22 @@
           "avatarUrl" : {
             "type" : [ "string", "null" ]
           },
+          "classYear" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
           "displayName" : {
             "type" : [ "string", "null" ]
           },
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "online" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },

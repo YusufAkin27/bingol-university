@@ -34,11 +34,15 @@ public final class CommunityDtos {
             Visibility visibility) {
     }
 
-    /** myStatus: NONE | ACTIVE | PENDING | BANNED; myRole: uye degilse null. */
+    /**
+     * myStatus: NONE | ACTIVE | PENDING | BANNED; myRole: uye degilse null. requestedAt: yalniz inceleme bekleyen
+     * (PENDING_REVIEW) kulupte basvuru zamani ("3 gun once"); aksi halde alan gonderilmez.
+     */
     public record CommunityView(Long id, String name, String slug, String description, String category,
                                 String coverUrl, JoinPolicy joinPolicy, Visibility visibility, Status status,
                                 Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt,
-                                String logoUrl) {
+                                String logoUrl,
+                                @JsonInclude(JsonInclude.Include.NON_NULL) Instant requestedAt) {
     }
 
     /** Kesfette gorunen (ACTIVE + PUBLIC) kulup sayisiyla kategori. */
@@ -48,13 +52,20 @@ public final class CommunityDtos {
     /** Bekleyen istek satiri; answers yalnizca ?include=answers ile dolar (aksi halde alan hic gonderilmez). */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record JoinRequestView(Long userId, String displayName, String avatarUrl, Role role, Instant joinedAt,
-                                  List<AnswerView> answers) {
+                                  List<AnswerView> answers, String department, Short classYear, Instant requestedAt) {
     }
 
     public record JoinResult(String status) {
     }
 
-    public record MemberView(Long userId, String displayName, String avatarUrl, Role role, Instant joinedAt) {
+    /**
+     * department / classYear: kullanicinin profil gizlilik ayarina gore (bakana kapaliysa null); sinif 1..6 (Short).
+     */
+    public record MemberView(Long userId, String displayName, String avatarUrl, Role role, Instant joinedAt,
+                             String department, Short classYear) {
+        public MemberView(Long userId, String displayName, String avatarUrl, Role role, Instant joinedAt) {
+            this(userId, displayName, avatarUrl, role, joinedAt, null, null);
+        }
     }
 
     public record RoleRequest(@NotNull Role role) {
@@ -63,8 +74,15 @@ public final class CommunityDtos {
     public record CreatePostRequest(@NotBlank @Size(max = 2000) String text, @Size(max = 300) String imageUrl) {
     }
 
+    /** authorRole: yazarin kulup ici rolu (OWNER | ADMIN | MODERATOR | MEMBER); artik uye degilse null (gonderilmez). */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PostView(Long id, Long communityId, Long authorId, String authorName, String authorAvatarUrl,
-                           String text, String imageUrl, boolean pinned, Instant createdAt, boolean canDelete) {
+                           String text, String imageUrl, boolean pinned, Instant createdAt, boolean canDelete,
+                           String authorRole) {
+        public PostView(Long id, Long communityId, Long authorId, String authorName, String authorAvatarUrl,
+                        String text, String imageUrl, boolean pinned, Instant createdAt, boolean canDelete) {
+            this(id, communityId, authorId, authorName, authorAvatarUrl, text, imageUrl, pinned, createdAt, canDelete, null);
+        }
     }
 
     public record ReviewRequest(@Size(max = 300) String reason) {

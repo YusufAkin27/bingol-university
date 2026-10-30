@@ -15,7 +15,8 @@ public interface NotificationPrefRepository extends JpaRepository<NotificationPr
             WHERE u.id IN (:ids) AND u.status = 'ACTIVE'
               AND COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
-                                     WHEN 'communities' THEN p.communities ELSE TRUE END, TRUE)
+                                     WHEN 'communities' THEN p.communities
+                                     WHEN 'polls' THEN p.polls WHEN 'academic_announcements' THEN p.academic_announcements ELSE TRUE END, TRUE)
             """, nativeQuery = true)
     List<Long> allowing(@Param("ids") Collection<Long> userIds, @Param("col") String prefColumn);
 }

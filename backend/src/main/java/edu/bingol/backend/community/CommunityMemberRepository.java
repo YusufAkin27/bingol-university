@@ -52,6 +52,9 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
     List<Object[]> countByCommunity(@Param("ids") Collection<Long> communityIds,
                                     @Param("status") CommunityMember.Status status);
 
+    /** Bir topluluktaki verilen kullanicilarin uyelik kayitlari (yazar rol etiketi icin tek sorgu). */
+    List<CommunityMember> findByCommunityIdAndUserIdIn(Long communityId, Collection<Long> userIds);
+
     /** Verilen topluluklardaki benim uyelik kayitlarim. */
     List<CommunityMember> findByUserIdAndCommunityIdIn(Long userId, Collection<Long> communityIds);
 }

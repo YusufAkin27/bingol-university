@@ -130,6 +130,26 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
+    void pollsAndAcademicFlagsDefaultOnAndUpdateIndependently() {
+        stubSave();
+        PrefsView d = prefSvc.get(1L);
+        assertTrue(d.polls());
+        assertTrue(d.academicAnnouncements());
+
+        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, false, null));
+        assertFalse(v.polls());
+        assertTrue(v.academicAnnouncements());
+        assertTrue(v.announcements()); // ana tur bayragi degismez
+        assertFalse(v.subtypes().get("POLL")); // alt tur gorunumu ayni bayragi yansitir
+
+        // alt tur anahtariyla da ayni sutun yazilir; alt tur satiri uretilmez
+        PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null,
+                Map.of("academic_announcement", false), null, null));
+        assertFalse(w.academicAnnouncements());
+        verify(subs, never()).save(any(NotificationSubtypePref.class));
+    }
+
+    @Test
     void quietHoursAndSubtypesAreStored() {
         stubSave();
         PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null,

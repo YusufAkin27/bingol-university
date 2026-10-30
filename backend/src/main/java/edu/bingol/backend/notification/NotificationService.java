@@ -119,7 +119,10 @@ public class NotificationService {
                 return;
             }
             NotificationPref pref = prefs.findById(userId).orElse(null);
-            if (!enabled(pref, type) || !subtypeEnabled(userId, type, subtype)) {
+            boolean allowed = subtype != null && subtype.flagBacked()
+                    ? pref == null || subtype.flag(pref) // kendi bayragi olan alt tur: ana tur bayragina bakilmaz
+                    : enabled(pref, type) && subtypeEnabled(userId, type, subtype);
+            if (!allowed) {
                 return;
             }
             String key = collapseKey == null ? null : truncate(collapseKey, 120);
@@ -194,6 +197,13 @@ public class NotificationService {
      * Sablon anahtariyla (`<key>.title` ve `<key>.body`), alicinin kayitli dilinde. Argumanlar icerik kaynakli
      * metinlerdir (topluluk adi, etkinlik basligi...) ve cevrilmez.
      */
+    public void sendTemplated(Long userId, NotificationType type, NotificationSubtype subtype, String key,
+                              Map<String, String> data, String... args) {
+        Lang lang = i18n.langOf(userId);
+        send(userId, type, subtype, null, i18n.msg(key + ".title", lang, (Object[]) args),
+                i18n.msg(key + ".body", lang, (Object[]) args), data);
+    }
+
     public void sendTemplated(Long userId, NotificationType type, String key, Map<String, String> data, String... args) {
         Lang lang = i18n.langOf(userId);
         NotificationSubtype sub = NotificationTemplates.find(key).map(NotificationTemplates.Template::subtype).orElse(null);
@@ -225,13 +235,19 @@ public class NotificationService {
     /** Her dil icin ayri metinle toplu gonderim (ornek: "3 yeni haber" / "3 new news items"). */
     public void broadcastLocalized(NotificationType type, Function<Lang, String> title, Function<Lang, String> body,
                                    Map<String, String> data) {
+        broadcastLocalized(type, type.prefColumn(), title, body, data);
+    }
+
+    /** prefColumn: turun varsayilan tercih sutunu yerine baska bir bayrak (ornek "polls", "academic_announcements"). */
+    public void broadcastLocalized(NotificationType type, String prefColumn, Function<Lang, String> title,
+                                   Function<Lang, String> body, Map<String, String> data) {
         for (Lang lang : Lang.values()) {
             try {
                 String t = title.apply(lang);
                 String b = body == null ? null : body.apply(lang);
                 notifications.insertForLang(type.name(), truncate(t, 200), truncate(b, 500), toJson(data),
-                        type.prefColumn(), lang.code());
-                push(devices.tokensForBroadcastLang(type.prefColumn(), lang.code()), t, b, type, null, data, 1, null, null);
+                        prefColumn, lang.code());
+                push(devices.tokensForBroadcastLang(prefColumn, lang.code()), t, b, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu bildirim ({}) gonderilemedi: {}", lang, e.toString());
             }
@@ -244,12 +260,18 @@ public class NotificationService {
      */
     public int sendBulk(Collection<Long> userIds, NotificationType type, String title, String body,
                         Map<String, String> data) {
+        return sendBulk(userIds, type, title, body, data, type.prefColumn());
+    }
+
+    /** prefColumn: turun varsayilan tercih sutunu yerine baska bir bayrak (ornek "academic_announcements"). */
+    public int sendBulk(Collection<Long> userIds, NotificationType type, String title, String body,
+                        Map<String, String> data, String prefColumn) {
         int total = 0;
         List<Long> all = new ArrayList<>(userIds);
         for (int i = 0; i < all.size(); i += CHUNK) {
             List<Long> chunk = all.subList(i, Math.min(i + CHUNK, all.size()));
             try {
-                List<Long> allowed = prefs.allowing(chunk, type.prefColumn());
+                List<Long> allowed = prefs.allowing(chunk, prefColumn);
                 if (allowed.isEmpty()) {
                     continue;
                 }
@@ -265,7 +287,7 @@ public class NotificationService {
                 }
                 notifications.saveAll(rows);
                 total += rows.size();
-                push(devices.tokensForUsers(allowed, type.prefColumn()), title, body, type, null, data, 1, null, null);
+                push(devices.tokensForUsers(allowed, prefColumn), title, body, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu gonderim parcasi basarisiz: {}", e.toString());
             }

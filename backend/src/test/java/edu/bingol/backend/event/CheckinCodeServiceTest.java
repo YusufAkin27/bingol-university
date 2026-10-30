@@ -71,6 +71,46 @@ class CheckinCodeServiceTest {
     }
 
     @Test
+    void manualCodeIsSixSafeCharsAndVerifies() {
+        String m = codes.generateManual(7, t0);
+
+        assertEquals(6, m.length());
+        assertTrue(m.matches("[ABCDEFGHJKLMNPQRSTUVWXYZ2-9]{6}"), m);
+        assertTrue(CheckinCodeService.looksManual(m));
+        assertTrue(codes.verify(7, m, t0));
+        assertTrue(codes.verify(7, m, t0.plusSeconds(59)));
+        assertFalse(codes.verify(7, m, t0.plusSeconds(60)));
+    }
+
+    @Test
+    void manualCodeToleratesCaseAndSeparators() {
+        String m = codes.generateManual(7, t0);
+
+        assertTrue(codes.verify(7, m.toLowerCase(java.util.Locale.ROOT), t0));
+        assertTrue(codes.verify(7, m.substring(0, 3) + "-" + m.substring(3), t0));
+        assertTrue(codes.verify(7, " " + m + " ", t0));
+    }
+
+    @Test
+    void manualCodeIsBoundToEventAndWindowAndSecret() {
+        String m = codes.generateManual(7, t0);
+
+        assertFalse(codes.verify(8, m, t0));
+        assertFalse(codes.verify(7, m, t0.minusSeconds(60))); // gelecekteki pencerenin kodu
+        assertFalse(codes.verify(7, "AAAAAA", t0));
+        assertFalse(codes.verify(7, "ABC", t0));
+        CheckinCodeService other =
+                new CheckinCodeService(new JwtProperties("another-secret-another-secret-123456", 15, 30));
+        assertFalse(other.verify(7, m, t0));
+    }
+
+    @Test
+    void qrPayloadIsNotManual() {
+        assertFalse(CheckinCodeService.looksManual(codes.generate(7, t0)));
+        assertFalse(CheckinCodeService.looksManual(null));
+    }
+
+    @Test
     void differentSecretProducesDifferentCodes() {
         CheckinCodeService other =
                 new CheckinCodeService(new JwtProperties("another-secret-another-secret-123456", 15, 30));

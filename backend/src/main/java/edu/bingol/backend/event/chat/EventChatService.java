@@ -210,6 +210,25 @@ public class EventChatService implements EventChatHooks {
         return e.getCommunityId() != null && communities.can(a, e.getCommunityId(), ClubPermission.MANAGE_EVENTS);
     }
 
+    /**
+     * Etkinlik detayi icin sohbet erisimi: LOCKED (etkinlik yayinda degil / sohbet suresi bitti / oda kapali ya da hic
+     * kurulmamis ve yonetici degil), OPEN (odaya girebilir: GOING, olusturan, ortak organizator, kulup yetkilisi),
+     * MEMBERS (katilimci olunca acilir). Yalniz tek etkinlik (detay) icin cagrilir.
+     */
+    @Transactional(readOnly = true)
+    public String chatAccess(Actor a, Long eventId) {
+        UserEvent e = events.loadVisible(a, eventId);
+        if (e.getStatus() != UserEvent.Status.ACTIVE || e.getEndsAt().plus(Duration.ofDays(closeDays)).isBefore(Instant.now())) {
+            return "LOCKED";
+        }
+        RoomInfo info = rooms.find(RoomKind.EVENT, eventId).orElse(null);
+        boolean manage = events.canManage(a, e);
+        if (info == null ? !manage : info.closed()) {
+            return "LOCKED";
+        }
+        return eligible(a, e) ? "OPEN" : "MEMBERS";
+    }
+
     private void requireOpenable(UserEvent e) {
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_OPEN", "Etkinlik henüz yayında değil.");

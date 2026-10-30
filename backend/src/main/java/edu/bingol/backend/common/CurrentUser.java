@@ -18,6 +18,12 @@ public final class CurrentUser {
         return id;
     }
 
+    /** Giris yoksa null (401 firlatmaz; arama gibi kisisellestirmenin istege bagli oldugu yerler icin). */
+    public static Long idOrNull() {
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        return a != null && a.getPrincipal() instanceof Long id ? id : null;
+    }
+
     public static boolean isAdmin() {
         Authentication a = SecurityContextHolder.getContext().getAuthentication();
         return a != null && a.getAuthorities().stream().anyMatch(g -> g.getAuthority().equals("ROLE_ADMIN"));

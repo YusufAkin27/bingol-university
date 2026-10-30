@@ -148,3 +148,11 @@ Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). 
 - **Kullanıcı tarafı davranış değişikliği:** `event_certificate` artık iptal edilebilir (V690: `revoked_at/by/reason`). İptal edilmiş sertifika `GET /api/certificates/verify/{code}` içinde `valid:false` döner ve `GET /api/events/{id}/certificate` `409 CERTIFICATE_REVOKED` verir (mobil: yeni hata kodu genel hata olarak gösterilir).
 - Yönetici yoklama düzeltmesi "yok" yaparsa sertifika doğrulaması geçersiz döner (kayıt silinmez); tekrar "var" yapılırsa geçerli olur.
 - Yeni hata kodları `i18n/eventadmin*.properties` (basename'e `i18n/eventadmin` eklendi).
+
+## B1: yoklama kısa kodu, istek satırı alanları, kulüp logosu
+
+- `GET /api/events/{id}/checkin-code` yanıtına `manualCode`: 6 karakter (`CheckinCodeService.MANUAL_ALPHABET`, 30 bit), `HMAC(key,"manual:"+eventId+"."+pencere)` ile türetilir (QR imzasından üretilemez); QR ile aynı 30 sn'lik pencere mantığı (güncel + önceki pencere). `POST /events/{id}/check-in` `code` alanında hem eski `eventId.pencere.imza` jetonunu hem kısa kodu kabul eder (nokta içermeyen 6 simge = kısa kod; küçük harf/boşluk/tire tolere edilir). Kısa kod için kullanıcı+etkinlik başına ek sınır dakikada 8 (`checkin-manual:`), genel sınır (dakikada 20) aynen. Durumsuz olduğundan migration yok; RSVP/GOING/pencere kuralları değişmedi.
+- `ApplicantView` (`GET /events/{id}/requests`, `/applications`): `email` (yalnız `requireManager` geçen çağıran; engel ilişkisinde `null`) ve `classYear`. KVKK: e-posta yalnız etkinliği yönetene gider, başka uç/yanıtta yeni e-posta alanı yok.
+- `EventView.communityLogoUrl`: kulüp etkinliğinde kulüp logosu (`CommunityService.byIds` ile ad ve logo tek sorguda).
+
+Ek (B1): `CalendarItem.pendingCount` (yalnız `manageableIds` içindeki etkinlik; toplu `pendingCounts`), `EventView.cancelReason` (= `moderationReason`, CANCELLED/HIDDEN) ve `EventView.rejectReason` (= `reviewNote`, REJECTED) yalnız yönetene; hepsi `NON_NULL`. Arama `SearchHit` EVENT: `startsAt`/`endsAt`.

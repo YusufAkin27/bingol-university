@@ -66,6 +66,28 @@ class ShadowBlockProfileTest {
     }
 
     @Test
+    void blockedByMeReflectsOnlyMyOwnBlockAndIsAbsentOnOwnProfile() {
+        User t = user(2L);
+        when(users.findById(2L)).thenReturn(Optional.of(t));
+        when(blocks.isBlocked(1L, 2L)).thenReturn(true);
+        when(blocks.hasBlocked(1L, 2L)).thenReturn(true);
+        assertEquals(Boolean.TRUE, service.publicProfile(1L, 2L).blockedByMe());
+
+        when(blocks.hasBlocked(1L, 2L)).thenReturn(false); // karsi taraf beni engelledi: sizdirilmaz
+        assertEquals(Boolean.FALSE, service.publicProfile(1L, 2L).blockedByMe());
+
+        User other = user(5L);
+        when(users.findById(5L)).thenReturn(Optional.of(other));
+        when(mapper.map(1L, other)).thenReturn(PublicProfile.of(other));
+        assertEquals(Boolean.FALSE, service.publicProfile(1L, 5L).blockedByMe());
+
+        User me = user(1L);
+        when(users.findById(1L)).thenReturn(Optional.of(me));
+        when(mapper.map(1L, me)).thenReturn(PublicProfile.of(me));
+        assertNull(service.publicProfile(1L, 1L).blockedByMe()); // kendi profilim: alan yok
+    }
+
+    @Test
     void unblockedProfileStillUsesMapperAndSuspendedIs404() {
         User u = user(3L);
         when(users.findById(3L)).thenReturn(Optional.of(u));

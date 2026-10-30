@@ -57,6 +57,16 @@ public class BlockService {
         return blocks.findByBlockerIdOrderByCreatedAtDescBlockedIdDesc(userId, pageable);
     }
 
+    /** a, b'yi engellemis mi (tek yon; PK aramasi). */
+    public boolean hasBlocked(Long a, Long b) {
+        return blocks.existsByBlockerIdAndBlockedId(a, b);
+    }
+
+    /** Engelledigim kullanici sayisi (PK onekli tek COUNT). */
+    public long blockedCount(Long userId) {
+        return blocks.countByBlockerId(userId);
+    }
+
     public List<UserBlock> blockedBy(Long userId) {
         return blocks.findByBlockerIdOrderByCreatedAtDesc(userId);
     }

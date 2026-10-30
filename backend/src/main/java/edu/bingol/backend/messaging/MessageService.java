@@ -118,6 +118,14 @@ public class MessageService {
         this.receipts = receipts;
     }
 
+    /** Push yukundeki gonderen avatari icin profil gizlilik karari (yoksa avatar gonderilmez). */
+    private edu.bingol.backend.profile.privacy.AvatarVisibility avatarVisibility;
+
+    @Autowired(required = false)
+    void setAvatarVisibility(edu.bingol.backend.profile.privacy.AvatarVisibility avatarVisibility) {
+        this.avatarVisibility = avatarVisibility;
+    }
+
     @Autowired(required = false)
     void setAttachments(MessageAttachmentService attachments) {
         this.attachments = attachments;
@@ -364,11 +372,23 @@ public class MessageService {
                 }
             });
             Set<Long> foreground = presence.foregroundAmong(offline);
-            String senderName = users.findById(senderId).map(User::getDisplayName).orElse("Yeni mesaj");
+            User sender = users.findById(senderId).orElse(null);
+            String senderName = sender == null ? "Yeni mesaj" : sender.getDisplayName();
             String title = groupTitle == null ? senderName : groupTitle + " - " + senderName;
+            // Gonderen avatari (on plan push karti): yalniz gizlilik ayari alicinin gormesine izin veriyorsa
+            String avatar = sender == null ? null : sender.getAvatarUrl();
+            Set<Long> avatarOk = avatar == null || avatarVisibility == null ? Set.of()
+                    : avatarVisibility.viewersAmong(senderId, offline,
+                            edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
+            Set<Long> related = avatarOk.isEmpty() ? Set.of() : blocks.hiddenFrom(senderId);
             for (Long id : offline) {
                 if (!inactive.contains(id)) {
-                    notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id));
+                    Map<String, String> perUser = data;
+                    if (avatarOk.contains(id) && !related.contains(id)) {
+                        perUser = new java.util.HashMap<>(data);
+                        perUser.put("senderAvatarUrl", avatar);
+                    }
+                    notifications.sendNewMessage(id, title, preview, perUser, !foreground.contains(id));
                 }
             }
         } catch (RuntimeException e) {

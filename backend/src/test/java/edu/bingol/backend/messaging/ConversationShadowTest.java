@@ -68,6 +68,41 @@ class ConversationShadowTest {
     }
 
     @Test
+    void directPeerOnlineFlagComesFromBulkPresenceAndIsHiddenWhenBlocked() {
+        edu.bingol.backend.messaging.ws.PresenceService presence = mock(edu.bingol.backend.messaging.ws.PresenceService.class);
+        service.setPresence(presence);
+        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of(2L));
+        when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
+
+        assertEquals(Boolean.TRUE, service.detail(1L, 5L).conversation().peer().online());
+
+        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of());
+        assertEquals(Boolean.FALSE, service.detail(1L, 5L).conversation().peer().online());
+
+        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of(2L));
+        when(blocks.hiddenFrom(1L)).thenReturn(Set.of(2L));
+        assertNull(service.detail(1L, 5L).conversation().peer().online()); // engelli: durum sizmaz
+    }
+
+    @Test
+    void groupLastMessageCarriesSenderNameButDirectDoesNot() {
+        Message m = new Message();
+        m.setId(90L);
+        m.setConversationId(5L);
+        m.setSenderId(2L);
+        m.setBody("Toplanti 5te");
+        m.setCreatedAt(java.time.Instant.now());
+        conv.setLastMessageId(90L);
+        when(messages.findAllById(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(m));
+        when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
+
+        assertNull(service.detail(1L, 5L).conversation().lastMessage().senderName()); // birebir: onek yok
+
+        conv.setType(Conversation.Type.GROUP);
+        assertEquals("U2", service.detail(1L, 5L).conversation().lastMessage().senderName());
+    }
+
+    @Test
     void unblockedPeerKeepsAvatar() {
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
 

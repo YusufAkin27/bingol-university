@@ -70,7 +70,8 @@ public final class NotificationDtos {
 
     /** Yanit: 5 ana bayrak (eski istemciler yalniz bunlari okur) + sessiz saatler + alt tur bayraklari. */
     public record PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
-                            boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
+                            boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                            boolean polls, boolean academicAnnouncements) {
         public static PrefsView of(NotificationPref p) {
             return of(p, Map.of());
         }
@@ -79,14 +80,21 @@ public final class NotificationDtos {
         public static PrefsView of(NotificationPref p, Map<String, Boolean> overrides) {
             Map<String, Boolean> all = new LinkedHashMap<>();
             for (NotificationSubtype s : NotificationSubtype.values()) {
-                all.put(s.name(), overrides.getOrDefault(s.name(), true));
+                all.put(s.name(), s.flagBacked() ? s.flag(p) : overrides.getOrDefault(s.name(), true));
             }
             return new PrefsView(p.isNews(), p.isAnnouncements(), p.isEvents(), p.isMessages(), p.isCommunities(),
-                    QuietHoursView.of(p), all);
+                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements());
         }
     }
 
     /** Kismi guncelleme: null alan degismez (eski 5 bayrakli istemciler geriye uyumlu). */
     public record PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
-                              Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes) {}
+                              Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                              Boolean polls, Boolean academicAnnouncements) {
+        /** Eski 7 alanli kurucu (polls / academicAnnouncements degismez). */
+        public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
+                           Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null);
+        }
+    }
 }

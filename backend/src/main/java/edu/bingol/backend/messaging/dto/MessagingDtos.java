@@ -66,9 +66,29 @@ public final class MessagingDtos {
 
     // --- yanitlar ---
 
-    public record UserSummary(Long id, String displayName, String avatarUrl) {
+    /** `online`: yalniz konusma listesindeki birebir karsi tarafta dolu (diger yerlerde null = gonderilmez). */
+    /**
+     * `department`/`classYear`: yalniz konusma listesindeki birebir karsi tarafta, profil gizlilik ayari bakana izin
+     * veriyorsa dolar (yoksa gonderilmez).
+     */
+    public record UserSummary(Long id, String displayName, String avatarUrl,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean online,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String department,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Short classYear) {
+        public UserSummary(Long id, String displayName, String avatarUrl) {
+            this(id, displayName, avatarUrl, null, null, null);
+        }
+
         public static UserSummary of(User u) {
-            return new UserSummary(u.getId(), u.getDisplayName(), u.getAvatarUrl());
+            return new UserSummary(u.getId(), u.getDisplayName(), u.getAvatarUrl(), null, null, null);
+        }
+
+        public UserSummary withOnline(boolean value) {
+            return new UserSummary(id, displayName, avatarUrl, value, department, classYear);
+        }
+
+        public UserSummary withProfile(String dept, Short year) {
+            return new UserSummary(id, displayName, avatarUrl, online, dept, year);
         }
     }
 
@@ -85,7 +105,17 @@ public final class MessagingDtos {
                               boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
                               boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
                               String myReaction, List<AttachmentView> attachments,
-                              String status) {
+                              String status,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName) {
+        /** `senderName` yalniz konusma listesi onizlemesinde (grup/kulup/etkinlik) dolar; diger yerlerde gonderilmez. */
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments, String status) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, status, null);
+        }
+
         public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                            boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
                            boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
@@ -105,14 +135,19 @@ public final class MessagingDtos {
         /** Makbuz durumu (SENT | DELIVERED | READ); yalniz istek sahibinin kendi mesajlarinda dolu. */
         public MessageView withStatus(String s) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName);
+        }
+
+        public MessageView withSenderName(String name) {
+            return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name);
         }
 
         /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
         public MessageView withAttachments(List<AttachmentView> list) {
             return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    List.copyOf(list), status);
+                    List.copyOf(list), status, senderName);
         }
 
         public static MessageView of(Message m) {
@@ -135,7 +170,7 @@ public final class MessagingDtos {
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine, attachments, status);
+                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName);
         }
 
         public MessageView withoutReplyPreview() {
@@ -185,7 +220,14 @@ public final class MessagingDtos {
                                    String createdAt, boolean muted, String mutedUntil, boolean archived,
                                    boolean mutedForever, Long communityId, Long eventId, String avatarUrl) {}
 
-    public record MemberView(Long userId, String displayName, String avatarUrl, String role) {}
+    /** `department`/`classYear`: profil gizlilik ayari bakana izin veriyorsa (yoksa gonderilmez). */
+    public record MemberView(Long userId, String displayName, String avatarUrl, String role,
+                             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String department,
+                             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Short classYear) {
+        public MemberView(Long userId, String displayName, String avatarUrl, String role) {
+            this(userId, displayName, avatarUrl, role, null, null);
+        }
+    }
 
     public record ConversationDetail(ConversationView conversation, List<MemberView> members) {}
 

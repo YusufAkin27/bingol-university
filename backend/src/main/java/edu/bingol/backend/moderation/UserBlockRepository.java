@@ -15,6 +15,8 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, UserBlock.
 
     boolean existsByBlockerIdAndBlockedId(Long blockerId, Long blockedId);
 
+    long countByBlockerId(Long blockerId);
+
     /** a ile b arasinda herhangi bir yonde engel var mi. */
     @Query("SELECT COUNT(b) > 0 FROM UserBlock b WHERE (b.blockerId = :a AND b.blockedId = :b) OR (b.blockerId = :b AND b.blockedId = :a)")
     boolean existsBetween(@Param("a") Long a, @Param("b") Long b);

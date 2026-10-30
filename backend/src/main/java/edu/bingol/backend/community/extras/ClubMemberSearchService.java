@@ -56,10 +56,13 @@ public class ClubMemberSearchService {
         Set<Long> hideAvatar = communities.blockedFor(a);
         return Paging.map(rows, s, CommunityMember::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(CommunityMember::getUserId).toList());
+            Map<Long, CommunityService.ProfileExtra> extras = communities.profileExtras(a.id(), users.values(), hideAvatar);
             return items.stream().map(m -> {
                 User u = users.get(m.getUserId());
+                CommunityService.ProfileExtra pe = extras.getOrDefault(m.getUserId(), CommunityService.ProfileExtra.NONE);
                 return new MemberView(m.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null || hideAvatar.contains(m.getUserId()) ? null : u.getAvatarUrl(), m.getRole(), m.getJoinedAt());
+                        u == null || hideAvatar.contains(m.getUserId()) ? null : u.getAvatarUrl(), m.getRole(), m.getJoinedAt(),
+                        pe.department(), pe.classYear());
             }).toList();
         });
     }

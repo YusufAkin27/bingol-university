@@ -434,24 +434,24 @@ class AcademicServiceTest {
                 null, null, null, true, true));
         org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
                 org.mockito.ArgumentMatchers.eq(edu.bingol.backend.notification.NotificationType.ANNOUNCEMENT),
-                org.mockito.ArgumentMatchers.eq("Bildirimli"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyMap());
+                org.mockito.ArgumentMatchers.eq("Bildirimli"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
         assertNotNull(ann.adminGet(a.id()).notifiedAt());
         notifier.dispatchDue();
         ann.update(null, a.id(), new AnnouncementRequest("Bildirimli 2", null, null, null, null, null, null, null, null, null, null));
         org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap());
+                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
 
         // zamanlanmis notify: zamani gelince tarama gonderir
         ann.create(null, new AnnouncementRequest("Sonra", "Govde", null, null, null, false, "2026-11-02T11:00", null, null, true, true));
         notifier.dispatchDue();
         org.mockito.Mockito.verify(notifications, org.mockito.Mockito.never()).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sonra"), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap());
+                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
         new AnnouncementNotifier(jdbc, notifications, Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC)).dispatchDue();
         org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sonra"), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap());
+                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
     }
 
     // ---------------- KVKK ----------------

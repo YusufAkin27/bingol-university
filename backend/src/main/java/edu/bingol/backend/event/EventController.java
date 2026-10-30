@@ -102,9 +102,19 @@ public class EventController {
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
+    /** Detayda sohbet erisimi (chatAccess); sohbet modulu yoksa alan gonderilmez. */
+    private edu.bingol.backend.event.chat.EventChatService chat;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setChat(edu.bingol.backend.event.chat.EventChatService chat) {
+        this.chat = chat;
+    }
+
     @GetMapping("/events/{id}")
     public EventView get(@PathVariable Long id) {
-        return events.get(Actor.current(), id);
+        Actor a = Actor.current();
+        EventView v = events.get(a, id);
+        return chat == null ? v : v.withChatAccess(chat.chatAccess(a, id));
     }
 
     @PatchMapping("/events/{id}")
@@ -227,6 +237,10 @@ public class EventController {
         Actor a = Actor.current();
         // Kod tahmini/kaba kuvvet denemelerine karsi siki limit
         limiter.check("checkin:user:" + a.id(), 20, Duration.ofMinutes(1));
+        if (CheckinCodeService.looksManual(r.code())) {
+            // Kisa kod daha az entropilidir: kullanici + etkinlik basina ek siki sinir
+            limiter.check("checkin-manual:" + a.id() + ":" + id, 8, Duration.ofMinutes(1));
+        }
         return attendance.checkIn(a, id, r.code(), Instant.now());
     }
 

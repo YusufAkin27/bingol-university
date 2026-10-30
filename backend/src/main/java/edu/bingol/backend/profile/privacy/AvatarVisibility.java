@@ -100,6 +100,31 @@ public class AvatarVisibility {
         return out;
     }
 
+    /**
+     * Tek sahibin alani, verilen bakanlardan hangilerine acik (bildirim yukleri icin: tek ayar sorgusu; yalniz alan
+     * SHARED_CONTEXT ise bakan basina ortak-baglam sorgusu).
+     */
+    public Set<Long> viewersAmong(Long ownerId, Collection<Long> viewers, Field field) {
+        Set<Long> out = new HashSet<>();
+        ProfilePrivacy p = privacy.findById(ownerId).orElse(null);
+        if (p == null) {
+            out.addAll(viewers);
+            return out;
+        }
+        if (field == Field.AVATAR && p.isAvatarHidden()) {
+            return out;
+        }
+        for (Long v : viewers) {
+            Audience a = field.of(p);
+            boolean ok = a == Audience.SHARED_CONTEXT ? shared.sharedWith(v, Set.of(ownerId)).contains(ownerId)
+                    : allowed(a, v.equals(ownerId), false);
+            if (ok) {
+                out.add(v);
+            }
+        }
+        return out;
+    }
+
     public Set<Long> visibleOwners(Long viewerId, Collection<Long> owners, Field field) {
         return visibleOwners(viewerId, owners, Set.of(field)).get(field);
     }

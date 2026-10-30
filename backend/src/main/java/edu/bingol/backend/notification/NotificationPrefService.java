@@ -51,13 +51,14 @@ public class NotificationPrefService {
             }
         }
         Map<NotificationSubtype, Boolean> subs = new HashMap<>();
+        Map<NotificationSubtype, Boolean> flagSubs = new HashMap<>(); // kendi bayragi olan alt turler
         if (r.subtypes() != null) {
             for (Map.Entry<String, Boolean> e : r.subtypes().entrySet()) {
                 NotificationSubtype s = NotificationSubtype.parse(e.getKey());
                 if (s == null || e.getValue() == null) {
                     throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_SUBTYPE", "Bilinmeyen bildirim alt türü.");
                 }
-                subs.put(s, e.getValue());
+                (s.flagBacked() ? flagSubs : subs).put(s, e.getValue());
             }
         }
 
@@ -66,6 +67,13 @@ public class NotificationPrefService {
         if (r.events() != null) p.setEvents(r.events());
         if (r.messages() != null) p.setMessages(r.messages());
         if (r.communities() != null) p.setCommunities(r.communities());
+        // polls / academicAnnouncements: ust duzey alan, ayni anda alt tur anahtari da gelirse ust duzey kazanir
+        flagSubs.forEach((s, v) -> {
+            if (s == NotificationSubtype.POLL) p.setPolls(v);
+            if (s == NotificationSubtype.ACADEMIC_ANNOUNCEMENT) p.setAcademicAnnouncements(v);
+        });
+        if (r.polls() != null) p.setPolls(r.polls());
+        if (r.academicAnnouncements() != null) p.setAcademicAnnouncements(r.academicAnnouncements());
         p.setQuietEnabled(qen);
         p.setQuietStart(qs);
         p.setQuietEnd(qe);

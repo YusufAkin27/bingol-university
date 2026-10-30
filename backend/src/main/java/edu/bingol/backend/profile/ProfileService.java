@@ -90,14 +90,18 @@ public class ProfileService {
         if (!u.isActive()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
-        if (!viewerId.equals(targetId) && blocks.isBlocked(viewerId, targetId)) {
-            // Golge engel: 404 degil; sohbet gecmisinde ad gerekebilir. Tek tutarli "bos profil" (foto/bilgi/e-posta yok)
-            return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null);
+        boolean self = viewerId.equals(targetId);
+        if (!self && blocks.isBlocked(viewerId, targetId)) {
+            // Golge engel: 404 degil; sohbet gecmisinde ad gerekebilir. Tek tutarli "bos profil" (foto/bilgi/e-posta yok).
+            // blockedByMe yalniz benim engelimi gosterir; karsi tarafin beni engellemesi sizdirilmaz (false).
+            return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null)
+                    .withBlockedByMe(blocks.hasBlocked(viewerId, targetId));
         }
         PublicProfile view = mapper.map(viewerId, u);
         // Kendi e-postam showEmail ayarindan bagimsiz gorunur
-        view = viewerId.equals(targetId) ? withEmail(view, u.getEmail()) : view;
-        return withFollow(view, viewerId, targetId);
+        view = self ? withEmail(view, u.getEmail()) : view;
+        view = withFollow(view, viewerId, targetId);
+        return self ? view : view.withBlockedByMe(false);
     }
 
     private static PublicProfile withEmail(PublicProfile p, String email) {

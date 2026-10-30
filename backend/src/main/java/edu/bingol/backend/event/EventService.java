@@ -532,6 +532,9 @@ public class EventService {
         Map<Long, Long> interested = interestedCounts(ids);
         Map<Long, String> names = communities.namesById(
                 rows.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList());
+        Set<Long> manageable = manageableIds(rows, a);
+        Map<Long, Long> pending = admission == null || manageable.isEmpty() ? new HashMap<>()
+                : new HashMap<>(admission.pendingCounts(manageable));
         LocalDate first = month.atDay(1);
         List<CalendarItem> out = new ArrayList<>();
         for (UserEvent e : rows) {
@@ -539,7 +542,8 @@ public class EventService {
             out.add(new CalendarItem("USER", e.getId(), e.getTitle(), day.isBefore(first) ? first : day,
                     e.getStartsAt(), e.getEndsAt(), e.getLocation(), null, e.getCoverUrl(), e.getCommunityId(),
                     mine.get(e.getId()), e.getGoingCount(), interested.getOrDefault(e.getId(), 0L), e.getCapacity(),
-                    e.getStatus(), e.getCommunityId() == null ? null : names.get(e.getCommunityId())));
+                    e.getStatus(), e.getCommunityId() == null ? null : names.get(e.getCommunityId()),
+                    manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null));
         }
         return out;
     }
@@ -717,7 +721,7 @@ public class EventService {
 
     /** Organizator mi: ADMIN, olusturan veya bagli toplulugun MODERATOR+'si. */
     public boolean canManage(Actor a, UserEvent e) {
-        if (a.admin() || e.getCreatedBy().equals(a.id())) {
+        if (a.admin() || a.id().equals(e.getCreatedBy())) {
             return true;
         }
         if (coOrganizers != null && coOrganizers.isCoOrganizer(e.getId(), a.id())) {
@@ -851,8 +855,8 @@ public class EventService {
         List<Long> ids = list.stream().map(UserEvent::getId).toList();
         Map<Long, EventRsvp.Status> mine = myRsvps(a, ids);
         Map<Long, Long> interested = detail ? interestedCounts(ids) : Map.of();
-        Map<Long, String> communityNames = communities.namesById(
-                list.stream().map(UserEvent::getCommunityId).filter(x -> x != null).toList());
+        Map<Long, Community> clubs = communities.byIds(
+                list.stream().map(UserEvent::getCommunityId).filter(x -> x != null).distinct().toList());
         Map<Long, User> organizers = communities.usersById(list.stream().map(UserEvent::getCreatedBy).toList());
         Set<Long> manageable = manageableIds(list, a);
         Map<Long, edu.bingol.backend.event.admission.EventAdmission.Mode> policies =
@@ -866,14 +870,19 @@ public class EventService {
             out.add(new EventView(e.getId(), e.getTitle(), e.getDescription(), e.getStartsAt(), e.getEndsAt(),
                     e.getLocation(), e.getCoverUrl(), e.getCapacity(), e.getGoingCount(),
                     detail ? interested.getOrDefault(e.getId(), 0L) : null,
-                    e.getCommunityId(), e.getCommunityId() == null ? null : communityNames.get(e.getCommunityId()),
+                    e.getCommunityId(), e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null : clubs.get(e.getCommunityId()).getName(),
                     e.getCreatedBy(),
                     o == null ? null : o.getDisplayName(), e.getStatus(), mine.get(e.getId()),
                     manageable.contains(e.getId()), e.getCreatedAt(), e.isRegistrationClosed(),
                     policies.getOrDefault(e.getId(), edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN),
                     new EventDtos.OrganizerView(e.getCreatedBy(), o == null ? null : o.getDisplayName(),
                             o == null || hideAvatar.contains(e.getCreatedBy()) ? null : o.getAvatarUrl()),
-                    manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null));
+                    manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null,
+                    e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null
+                            : clubs.get(e.getCommunityId()).getLogoUrl(),
+                    manageable.contains(e.getId()) && (e.getStatus() == UserEvent.Status.CANCELLED
+                            || e.getStatus() == UserEvent.Status.HIDDEN) ? e.getModerationReason() : null,
+                    manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null));
         }
         return out;
     }
@@ -886,7 +895,7 @@ public class EventService {
         Set<Long> out = new HashSet<>();
         List<UserEvent> rest = new ArrayList<>();
         for (UserEvent e : list) {
-            if (a.admin() || e.getCreatedBy().equals(a.id())) {
+            if (a.admin() || a.id().equals(e.getCreatedBy())) {
                 out.add(e.getId());
             } else {
                 rest.add(e);
