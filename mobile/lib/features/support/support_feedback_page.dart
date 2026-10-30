@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
-import '../../l10n/app_localizations.dart';
-import '../profile/profily_widgets.dart';
-import 'destek_widgets.dart';
+import '../../widgets/bu.dart';
+import '../../widgets/common.dart' show niceDate;
+import '../polls/anket_style.dart';
 import 'support_common.dart';
-import '../../core/typography.dart';
 
 /// Geri bildirim formu + gönderdiklerim listesi (imleçli).
 class FeedbackPage extends StatefulWidget {
@@ -25,7 +21,7 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final _subject = TextEditingController();
   final _message = TextEditingController();
-  late String _category = const ['SUGGESTION', 'BUG'].contains(widget.initialCategory) ? widget.initialCategory : 'OTHER';
+  late String _category = const ['BUG', 'SUGGESTION', 'COMPLAINT', 'PRAISE'].contains(widget.initialCategory) ? widget.initialCategory : 'BUG';
   bool _busy = false;
   String? _formError;
 
@@ -80,6 +76,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final m = _message.text.trim();
     if (s.isEmpty || m.isEmpty) {
       setState(() => _formError = context.l10n.supportFillFields);
+      buHaptic(BuHaptic.light);
       return;
     }
     setState(() {
@@ -96,7 +93,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       if (!mounted) return;
       _subject.clear();
       _message.clear();
-      supportSnack(context, context.l10n.supportFeedbackThanks);
+      supportSnack(context, context.l10n.supportFeedbackThanks, BuToastKind.success);
       setState(() => _busy = false);
       _loadMine(reset: true);
     } catch (e) {
@@ -111,123 +108,213 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(children: [
-        BuHeader(title: l.supportFeedbackTitle, onBack: () => Navigator.pop(context)),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => _loadMine(reset: true),
-            child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 24), children: [
-              Text(l.profilyardFbIntro, style: BuType.body.copyWith(fontSize: 13.5, height: 1.45, color: t.mut)),
-              SupportLabel(l.profilyardFbType, form: true),
-              Row(children: [
-                for (final (i, o) in _types(l).indexed) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  Expanded(
-                    child: ProfilyTypeChip(
-                      label: o.$2,
-                      icon: o.$3,
-                      selected: _category == o.$1,
-                      onTap: () => setState(() => _category = o.$1),
+    final label = tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800);
+    Widget caption(String text) => Padding(
+          padding: const EdgeInsets.only(top: 18, bottom: 8),
+          child: Semantics(header: true, child: Text(text, style: label)),
+        );
+    final types = {
+      'BUG': l.supportFbBug,
+      'SUGGESTION': l.supportFbSuggestion,
+      'COMPLAINT': l.supportFbComplaint,
+      'PRAISE': l.supportFbPraise,
+    };
+    return BuPageScaffold(
+      title: l.supportFeedbackTitle,
+      large: false,
+      onRefresh: () => _loadMine(reset: true),
+      bottomInset: 24,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.profilyardFbIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+              const SizedBox(height: 12),
+              BuCard(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    caption(l.profilyardFbType),
+                    SupportCategoryChips(options: types, value: _category, onChanged: (v) => setState(() => _category = v)),
+                    caption(l.profilyardFbTitle),
+                    SupportField(controller: _subject, hint: l.profilyardFbTitleHint, label: l.profilyardFbTitle, maxLength: 80, soft: true),
+                    caption(l.profilyardFbMessage),
+                    SupportField(
+                      controller: _message,
+                      hint: l.profilyardFbMessageHint,
+                      label: l.profilyardFbMessage,
+                      maxLength: 1000,
+                      minLines: 5,
+                      maxLines: 8,
+                      counter: true,
+                      soft: true,
                     ),
-                  ),
-                ],
-              ]),
-              SupportLabel(l.profilyardFbTitle, form: true),
-              ProfilyField(controller: _subject, hint: l.profilyardFbTitleHint, label: l.profilyardFbTitle, maxLength: 80),
-              SupportLabel(l.profilyardFbMessage, form: true),
-              ProfilyField(
-                controller: _message,
-                hint: l.profilyardFbMessageHint,
-                label: l.profilyardFbMessage,
-                maxLength: 1000,
-                minLines: 5,
-                maxLines: 8,
-                counter: true,
-              ),
-              if (_formError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(_formError!, style: BuType.caption.copyWith(color: t.danger)),
+                    AnimatedSize(
+                      duration: BuMotion.of(context, BuMotion.medium),
+                      curve: BuMotion.emphasized,
+                      alignment: Alignment.topCenter,
+                      child: _formError == null
+                          ? const SizedBox(width: double.infinity)
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Semantics(
+                                liveRegion: true,
+                                container: true,
+                                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger)),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(_formError!, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4))),
+                                ]),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    BuButton(label: l.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
+                  ]),
                 ),
-              SupportLabel(l.supportLabelMine, form: true),
-              ..._mineList(context, t),
+              ),
             ]),
           ),
         ),
-        DestekBottomBar(
-          child: ProfilyPrimaryButton(label: l.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
-        ),
-      ]),
+        SliverToBoxAdapter(child: SupportHeading(l.p13FeedbackMine, padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 10))),
+        ..._mineSlivers(),
+      ],
     );
   }
 
-  /// Tasarımdaki üç tür çipi (Öneri / Hata / Diğer).
-  List<(String, String, IconData)> _types(AppLocalizations l) => [
-        ('SUGGESTION', l.supportFbSuggestion, LucideIcons.lightbulb),
-        ('BUG', l.supportFbBug, LucideIcons.triangleAlert),
-        ('OTHER', l.supportCatOther, LucideIcons.messageCircle),
-      ];
-
-  List<Widget> _mineList(BuildContext context, BuTokens t) {
+  List<Widget> _mineSlivers() {
+    final l = context.l10n;
+    final t = context.bu;
     if (_loadingMine) {
-      return [const Padding(padding: EdgeInsets.all(24), child: LoadingView())];
+      return const [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+            child: BuSkeletonScope(
+              child: Column(children: [
+                BuSkeleton(height: 112, radius: 20),
+                SizedBox(height: 12),
+                BuSkeleton(height: 112, radius: 20),
+              ]),
+            ),
+          ),
+        ),
+      ];
     }
     if (_mineError != null && _mine.isEmpty) {
-      // Sabit yükseklik dar ekranda taşıyordu: en az 200, gerekirse içeriği kadar.
       return [
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 200),
-          child: ErrorView(error: _mineError!, onRetry: () => _loadMine(reset: true)),
-        )
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SupportLoadError(
+              title: l.p13SuppLoadFailed,
+              body: errorText(_mineError!),
+              retryLabel: l.supportRetry,
+              onRetry: () => _loadMine(reset: true),
+            ),
+          ),
+        ),
       ];
     }
     if (_mine.isEmpty) {
       return [
-        SizedBox(
-            height: 160,
-            child: EmptyView(icon: LucideIcons.messageCircle, text: context.l10n.supportNoFeedback))
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SupportEmptyCard(icon: LucideIcons.info, title: l.supportNoFeedback, body: l.p13FeedbackEmptyHint),
+          ),
+        ),
       ];
     }
     return [
-      for (final f in _mine)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: BuCard(
-            padding: const EdgeInsets.all(14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(
-                  child: Text('${f['subject'] ?? ''}',
-                      style: BuType.bodyStrong.copyWith(color: t.ink)),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        sliver: SliverList.separated(
+          itemCount: _mine.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (_, i) => BuStaggerItem(index: i, child: _FeedbackTile(item: _mine[i])),
+        ),
+      ),
+      if (_next != null)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
+            child: Material(
+              color: t.sf2,
+              borderRadius: BuRadius.bMd,
+              child: InkWell(
+                borderRadius: BuRadius.bMd,
+                onTap: _more ? null : _loadMine,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 56),
+                  child: Center(
+                    child: _more
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4))
+                        : Row(mainAxisSize: MainAxisSize.min, children: [
+                            Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                            const SizedBox(width: 6),
+                            Icon(LucideIcons.chevronDown, size: 18, color: t.ink),
+                          ]),
+                  ),
                 ),
-                const SizedBox(width: 8),
-                SupportFeedbackPill(f['status'] as String?),
-              ]),
-              const SizedBox(height: 2),
-              Text('${supportFeedbackCategories(context.l10n)[f['category']] ?? context.l10n.supportCatOther} · ${niceDate(f['createdAt'] as String?)}',
-                  style: BuType.caption.copyWith(color: t.mut)),
-              const SizedBox(height: 6),
-              Text('${f['message'] ?? ''}', style: BuType.caption.copyWith(height: 1.4, color: t.ink)),
-              if ((f['adminResponse'] as String?)?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-                  child: Text('${f['adminResponse']}', style: BuType.caption.copyWith(height: 1.4, color: t.onSoft)),
-                ),
-              ],
-            ]),
+              ),
+            ),
           ),
         ),
-      if (_next != null)
-        Center(
-          child: BuButton(
-              label: context.l10n.supportMore, kind: BuButtonKind.outline, compact: true, busy: _more, onPressed: _loadMine),
-        ),
     ];
+  }
+}
+
+/// Gönderilen geri bildirim kartı: tür çipi + durum hapı, başlık, tarih; varsa yönetici yanıtı.
+class _FeedbackTile extends StatelessWidget {
+  const _FeedbackTile({required this.item});
+
+  final Map<String, dynamic> item;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final cs = Theme.of(context).colorScheme;
+    final resp = item['adminResponse'] as String?;
+    final catKey = item['category'] as String?;
+    final cat = supportFeedbackCategories(l)[catKey] ?? l.supportCatOther;
+    final (catBg, catFg) = switch (catKey) {
+      'BUG' => (t.soft, t.onSoft),
+      'SUGGESTION' => (t.tint(1).bg, t.tint(1).fg),
+      'COMPLAINT' => (cs.errorContainer, t.danger),
+      _ => (t.sf2, t.mut),
+    };
+    final date = niceDate(item['createdAt'] as String?, context: context);
+    return BuCard(
+      padding: const EdgeInsetsDirectional.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            AnketPill(cat, bg: catBg, fg: catFg, small: true),
+            const Spacer(),
+            SupportFeedbackPill(item['status'] as String?, dark: true),
+          ]),
+          const SizedBox(height: 12),
+          Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
+          const SizedBox(height: 10),
+          Row(children: [
+            Icon(LucideIcons.calendar, size: 15, color: t.mut),
+            const SizedBox(width: 8),
+            Text(date, style: tx.bodySmall!.copyWith(color: t.mut)),
+          ]),
+          if (resp != null && resp.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SupportStaffReply(text: resp),
+          ],
+        ]),
+      ),
+    );
   }
 }

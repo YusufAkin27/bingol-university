@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme.dart';
-import '../../core/typography.dart';
+import '../../widgets/bu.dart';
 
 /// Destek tasarımı (Ds1-Ds5) ortak bileşenleri. Renkler `context.bu`; sabit ton yok.
 
-/// Tasarımdaki .card: 20 px köşe, 1 px çizgi, yumuşak gölge.
+/// Çizgili beyaz kart: 20 dp köşe, ince çizgi. Üzerindeki `InkWell` dalgaları görünsün diye `Material` üzerindedir.
 class DestekCard extends StatelessWidget {
   const DestekCard({super.key, required this.child, this.padding, this.clip = false});
 
@@ -16,21 +15,16 @@ class DestekCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Container(
-      padding: padding,
+    return Material(
+      color: t.sf,
       clipBehavior: clip ? Clip.antiAlias : Clip.none,
-      decoration: BoxDecoration(
-        color: t.sf,
-        border: Border.all(color: t.bd),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x14171E33), blurRadius: 18, spreadRadius: -12, offset: Offset(0, 6))],
-      ),
-      child: child,
+      shape: RoundedRectangleBorder(borderRadius: BuRadius.bLg, side: BorderSide(color: t.bd)),
+      child: padding == null ? child : Padding(padding: padding!, child: child),
     );
   }
 }
 
-/// Tasarımdaki .chip: 44 px yükseklik, 22 px köşe; seçiliyken yumuşak kırmızı zemin + kırmızı çizgi.
+/// Süzgeç çipi (kategori, sözleşme türü): hap, seçiliyken marka tonu; `BuChip` ile aynı görünüm.
 class DestekChip extends StatelessWidget {
   const DestekChip({super.key, required this.label, required this.selected, required this.onTap});
 
@@ -39,32 +33,7 @@ class DestekChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        color: selected ? t.soft : t.sf,
-        shape: StadiumBorder(side: BorderSide(color: selected ? t.pr : t.bd, width: 1.5)),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          excludeFromSemantics: true,
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-              child: Center(
-                widthFactor: 1,
-                child: Text(label, style: BuType.label.copyWith(color: selected ? t.onSoft : t.ink)),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuChip(label: label, selected: selected, onTap: onTap);
 }
 
 /// Yatay kayan çip sırası (taşmaz; RTL'de doğru yönde başlar).
@@ -96,8 +65,7 @@ class DestekBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
@@ -106,7 +74,10 @@ class DestekBottomBar extends StatelessWidget {
           colors: [t.bg, t.bg.withValues(alpha: 0)],
         ),
       ),
-      child: child,
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(20, 16, 20, 16 + MediaQuery.paddingOf(context).bottom),
+        child: child,
+      ),
     );
   }
 }

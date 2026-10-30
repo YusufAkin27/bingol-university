@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import 'destek_widgets.dart';
+import '../../widgets/bu.dart';
 import 'support_common.dart';
-import '../../core/typography.dart';
 
 /// Yeni destek talebi formu. Başarıda `true` ile döner.
 class NewTicketPage extends StatefulWidget {
@@ -21,7 +18,7 @@ class NewTicketPage extends StatefulWidget {
 class _NewTicketPageState extends State<NewTicketPage> {
   final _subject = TextEditingController();
   final _message = TextEditingController();
-  String _category = 'TECHNICAL';
+  String _category = 'ACCOUNT';
   bool _busy = false;
   String? _error;
 
@@ -37,6 +34,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
     final m = _message.text.trim();
     if (s.isEmpty || m.isEmpty) {
       setState(() => _error = context.l10n.supportFillFields);
+      buHaptic(BuHaptic.light);
       return;
     }
     setState(() {
@@ -46,7 +44,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
     try {
       await widget.session.api.post('/support/tickets', {'category': _category, 'subject': s, 'message': m});
       if (!mounted) return;
-      supportSnack(context, context.l10n.supportTicketReceived);
+      supportSnack(context, context.l10n.supportTicketReceived, BuToastKind.success);
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -60,30 +58,70 @@ class _NewTicketPageState extends State<NewTicketPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(children: [
-        BuHeader(title: context.l10n.supportNewTicketTitle, onBack: () => Navigator.pop(context)),
-        Expanded(
-          child: ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
-            SupportLabel(context.l10n.supportLabelCategory, form: true),
-            SupportChoices(
-                options: supportTicketCategories(context.l10n), value: _category, onChanged: (v) => setState(() => _category = v)),
-            SupportLabel(context.l10n.supportLabelSubject, form: true),
-            SupportField(controller: _subject, hint: context.l10n.supportHintSubject, maxLength: 120),
-            SupportLabel(context.l10n.supportLabelMessage, form: true),
-            SupportField(controller: _message, hint: context.l10n.supportHintIssue, maxLength: 2000, minLines: 5, maxLines: 10),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(_error!, style: BuType.caption.copyWith(color: t.danger)),
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final label = tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .6);
+    Widget caption(String text) => Padding(
+          padding: const EdgeInsets.only(top: 18, bottom: 8),
+          child: Semantics(header: true, child: Text(text, style: label)),
+        );
+    return BuPageScaffold(
+      title: l.supportNewTicketTitle,
+      large: false,
+      bottomInset: 24,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              BuCard(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    caption(l.supportLabelCategory),
+                    SupportCategoryChips(options: supportTicketCategories(l), value: _category, onChanged: (v) => setState(() => _category = v)),
+                    caption(l.supportLabelSubject),
+                    SupportField(controller: _subject, hint: l.supportHintSubject, label: l.supportLabelSubject, maxLength: 120, soft: true),
+                    caption(l.supportLabelMessage),
+                    SupportField(
+                      controller: _message,
+                      hint: l.supportHintIssue,
+                      label: l.supportLabelMessage,
+                      maxLength: 2000,
+                      minLines: 5,
+                      maxLines: 10,
+                      counter: true,
+                      soft: true,
+                    ),
+                    AnimatedSize(
+                      duration: BuMotion.of(context, BuMotion.medium),
+                      curve: BuMotion.emphasized,
+                      alignment: Alignment.topCenter,
+                      child: _error == null
+                          ? const SizedBox(width: double.infinity)
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 14),
+                              child: Semantics(
+                                liveRegion: true,
+                                container: true,
+                                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger)),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4))),
+                                ]),
+                              ),
+                            ),
+                    ),
+                  ]),
+                ),
               ),
-          ]),
+              const SizedBox(height: 20),
+              BuButton(label: l.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
+            ]),
+          ),
         ),
-        DestekBottomBar(
-          child: BuButton(label: context.l10n.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
-        ),
-      ]),
+      ],
     );
   }
 }
