@@ -1,5 +1,6 @@
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/auth/forgot_password_page.dart';
+import 'package:bu_kampus/features/auth/widgets/auth_ref.dart';
 import 'package:bu_kampus/features/auth/login_page.dart';
 import 'package:bu_kampus/features/auth/new_password_page.dart';
 import 'package:bu_kampus/features/auth/otp_code_boxes.dart';
@@ -9,6 +10,7 @@ import 'package:bu_kampus/features/auth/reset_success_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/news/news_detail_page.dart';
+import 'package:bu_kampus/features/news/news_list_page.dart';
 import 'package:bu_kampus/features/news/news_tile.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
@@ -21,7 +23,7 @@ SemanticsHandle sem(WidgetTester t) => t.ensureSemantics();
 
 /// Tembel (görünür olunca yüklenen) Gündem bölümüne kadar kaydırır.
 Future<void> toNews(WidgetTester tester) async {
-  await tester.scrollUntilVisible(find.text('Duyurular'), 300, scrollable: find.byType(Scrollable).first);
+  await tester.scrollUntilVisible(find.text('Öne Çıkan Haberler'), 300, scrollable: find.byType(Scrollable).first);
   await settle(tester, const Duration(seconds: 1));
 }
 
@@ -99,7 +101,7 @@ void main() {
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('E-posta veya şifre hatalı.'), findsOneWidget);
-      expect(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed, isNotNull);
+      expect(tester.widget<RefButton>(find.widgetWithText(RefButton, 'Giriş yap')).onPressed, isNotNull);
       noErr(tester);
     });
 
@@ -136,6 +138,7 @@ void main() {
       expect(find.byType(ForgotPasswordPage), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Geri'));
       await settle(tester, const Duration(milliseconds: 500));
+      await tester.ensureVisible(find.text('Kayıt ol'));
       await tester.tap(find.text('Kayıt ol'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(RegisterPage), findsOneWidget);
@@ -207,7 +210,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(NewPasswordPage), findsOneWidget);
       expect(find.text('Yeni şifre'), findsOneWidget);
-      expect(find.byType(TextFormField), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(2));
       noOld();
       await unmount(tester);
       noErr(tester);
@@ -218,6 +221,7 @@ void main() {
     testWidgets('verify: eksik kod hata, geri sayim biter ve yeniden gonder dugmesi cikar', (tester) async {
       final b = newB();
       await tester.pumpWidget(buildApp(VerifyCodePage(session: makeSession(b, signedIn: false), email: 'a@bingol.edu.tr')));
+      await tester.ensureVisible(find.text('Doğrula'));
       await tester.tap(find.text('Doğrula'));
       await tester.pump();
       expect(find.text('6 haneli kodu girin.'), findsOneWidget);
@@ -260,6 +264,7 @@ void main() {
       expect(b.count('POST /auth/verify-email'), 0);
       await tester.enterText(find.byType(TextFormField).first, 'Sifre1234');
       await tester.pump();
+      await tester.ensureVisible(find.text('Doğrula'));
       await tester.tap(find.text('Doğrula'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.count('POST /auth/verify-email'), 1);
@@ -303,12 +308,15 @@ void main() {
       await tester.tap(find.text('git'));
       await settle(tester, const Duration(milliseconds: 500));
       final f = find.byType(TextFormField);
-      expect(f, findsOneWidget);
+      expect(f, findsNWidgets(2));
       await tester.enterText(f.at(0), 'kisa');
+      await tester.ensureVisible(find.text('Şifreyi güncelle'));
       await tester.tap(find.text('Şifreyi güncelle'));
       await tester.pump();
       expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
       await tester.enterText(f.at(0), 'Sifre1234');
+      await tester.enterText(f.at(1), 'Sifre1234');
+      await tester.ensureVisible(find.text('Şifreyi güncelle'));
       await tester.tap(find.text('Şifreyi güncelle'));
       await settle(tester, const Duration(milliseconds: 800));
       // Başarı ekranı: çizilen tik + "Şifreniz güncellendi"; tek eylem girişe (kök ekrana) döner.
@@ -324,11 +332,11 @@ void main() {
     testWidgets('forgot: gecersiz e-posta reddedilir; gecerli e-posta kod ekranina gider', (tester) async {
       final b = newB();
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: makeSession(b, signedIn: false))));
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await tester.pump();
       expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
-      await tester.tap(find.byType(FilledButton));
+      await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(ResetCodePage), findsOneWidget);
       await unmount(tester);
@@ -411,17 +419,19 @@ void main() {
       final b = newB()
         ..delay = const Duration(milliseconds: 200)
         ..on('/news/1', {'id': 1, 'content': 'Gövde metni.', 'url': 'https://www.bingol.edu.tr/x'});
+      useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewsDetailPage(session: makeSession(b), item: newsItem(1), saved: false)));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing); // iskelet (K3)
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Gövde metni.'), findsOneWidget);
-      expect(find.text('Kaynak sitede aç'), findsOneWidget);
+      expect(find.text('Kaynak sayfada aç'), findsOneWidget);
       noErr(tester);
     });
 
     testWidgets('detail: 500 -> hata + yeniden dene icerigi getirir', (tester) async {
       final b = newB()..fail('/news/1');
+      useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewsDetailPage(session: makeSession(b), item: newsItem(1), saved: false)));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Yeniden dene'), findsOneWidget);
@@ -514,10 +524,10 @@ void main() {
       full(b);
       await tester.pumpWidget(buildApp(home()));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing); // iskelet (K3)
       await settle(tester, const Duration(seconds: 2));
       await toNews(tester);
-      expect(find.text('Duyurular'), findsOneWidget);
+      expect(find.text('Öne Çıkan Haberler'), findsOneWidget);
       noErr(tester);
     });
 
@@ -538,11 +548,12 @@ void main() {
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Yeniden dene'), findsNothing);
       await toNews(tester);
-      expect(find.text('Duyurular'), findsOneWidget);
+      expect(find.text('Öne Çıkan Haberler'), findsOneWidget);
       noErr(tester);
     });
 
     testWidgets('bos durum: yaklasan etkinlik yok ve haber yok metinleri', (tester) async {
+      useScreen(tester, const Size(390, 2400));
       final b = newB();
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 1));
@@ -559,29 +570,24 @@ void main() {
       await toNews(tester);
       expect(find.text('İçerik yüklenemedi.'), findsOneWidget);
       b.on('/news*', newsPage([newsItem(9)]));
-      await tester.tap(find.text('Tekrar dene'));
+      await tester.tap(find.text('Yeniden dene'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Haber başlığı 9'), findsOneWidget);
       noErr(tester);
     });
 
-    testWidgets('Tumu baglantisi onOpenTab cagirir', (tester) async {
+    testWidgets('Tumu baglantisi haber listesini acar', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = newB();
       full(b);
-      int? tab;
-      String? type;
-      await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {
-        tab = i;
-        type = newsType;
-      }))));
+      await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 1));
       await toNews(tester);
       final all = find.text('Tümü');
-      await tester.ensureVisible(all.last);
-      await tester.tap(all.last);
-      expect(tab, 1);
-      expect(type, 'DUYURU');
+      await tester.ensureVisible(all.first);
+      await tester.tap(all.first);
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(NewsListPage), findsOneWidget);
       noErr(tester);
     });
 

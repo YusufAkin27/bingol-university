@@ -1,5 +1,6 @@
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
+import 'package:bu_kampus/features/auth/widgets/auth_ref.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept_page.dart';
 import 'package:bu_kampus/features/profile/legal_pages.dart';
@@ -183,11 +184,11 @@ void main() {
       // Açık rıza ayrı: bilgi notu
       expect(find.textContaining('açık rıza'), findsOneWidget);
 
-      final accept = find.widgetWithText(FilledButton, 'Kabul et');
-      expect(tester.widget<FilledButton>(accept).onPressed, isNull);
+      final accept = find.widgetWithText(RefButton, 'Kabul et');
+      expect(tester.widget<RefButton>(accept).onPressed, isNull);
       await tester.tap(find.byKey(const ValueKey('legalReacceptAck')));
       await tester.pump();
-      expect(tester.widget<FilledButton>(accept).onPressed, isNotNull);
+      expect(tester.widget<RefButton>(accept).onPressed, isNotNull);
       await tester.tap(accept);
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.count('POST /legal/accept'), 1);
@@ -270,7 +271,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('legalReacceptAck')));
       await tester.pump();
-      await tester.tap(find.widgetWithText(FilledButton, 'Kabul et'));
+      await tester.tap(find.widgetWithText(RefButton, 'Kabul et'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.textContaining('yeniden güncellendi'), findsOneWidget);
       expect(find.byType(LegalReacceptPage), findsOneWidget);

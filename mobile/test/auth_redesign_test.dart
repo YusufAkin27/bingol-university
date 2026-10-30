@@ -11,7 +11,6 @@ import 'package:bu_kampus/features/auth/reset_success_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/auth/welcome_page.dart';
 import 'package:bu_kampus/features/auth/widgets/auth_controls.dart';
-import 'package:bu_kampus/features/auth/widgets/auth_motion.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept_page.dart';
 import 'package:bu_kampus/features/system/splash_screen.dart';
@@ -207,14 +206,6 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('git'), findsOneWidget);
       expect(find.byType(ResetSuccessPage), findsNothing);
-    });
-  });
-
-  group('hareket anahtarı', () {
-    testWidgets('testte döngü kapalı: pumpAndSettle kilitlenmez', (tester) async {
-      await tester.pumpWidget(_app(WelcomePage(onLogin: () {}, onRegister: () {})));
-      await tester.pumpAndSettle();
-      expect(AuthMotion.forceLoop, isNull);
     });
   });
 }

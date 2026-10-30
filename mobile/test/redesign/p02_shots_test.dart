@@ -16,6 +16,8 @@ import 'package:bu_kampus/features/auth/reset_code_page.dart';
 import 'package:bu_kampus/features/auth/reset_success_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/auth/welcome_page.dart';
+import 'package:bu_kampus/features/legal/legal_reaccept.dart';
+import 'package:bu_kampus/features/legal/legal_reaccept_page.dart';
 import 'package:bu_kampus/features/profile/legal_pages.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/academic_pickers.dart';
@@ -154,6 +156,12 @@ const _termsBody = '''## 1. Genel Hükümler ve Amaç
 
 Kullanıcı dilediği an **Ayarlar** menüsünden hesabını silebilir.''';
 
+LegalReaccept _reaccept(bool enforced) => LegalReaccept(
+    const [LegalItem('TERMS', 3), LegalItem('PRIVACY', 3), LegalItem('KVKK', 3), LegalItem('COMMUNITY_RULES', 3)],
+    enforced: enforced);
+
+void _titles(FakeBackend b, Session s) => b.on('/legal', _legalDocs);
+
 final _shots = <_Shot>[
   _Shot('01_karsilama', (b, s) => WelcomePage(onLogin: () {}, onRegister: () {})),
   _Shot('02_giris_hatali_alanlar', (b, s) => LoginPage(session: s), after: (t, s) async {
@@ -209,6 +217,8 @@ final _shots = <_Shot>[
     await _type(t, 1, 'elif.yildiz@bingol.edu.tr');
     await _tapDevam(t);
     await _type(t, 0, 'kampus2026');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await t.pump(const Duration(milliseconds: 300));
   }),
   _Shot('09_dogrulama_kodu', (b, s) => VerifyCodePage(session: s..rememberCredentials('ad.soyad@bingol.edu.tr', 'Kampus2026'), email: 'ad.soyad@bingol.edu.tr'),
       setup: (b, s) => b.fail('/auth/verify-email', status: 400, code: 'INVALID_CODE', message: 'Kod hatalı veya süresi dolmuş.'),
@@ -244,6 +254,16 @@ final _shots = <_Shot>[
     await _tapText(t, _l.pickSelectGrade);
     await t.pump(const Duration(milliseconds: 500));
   }),
+  _Shot('10e_bolum_secici_secili', (b, s) => RegisterPage(session: s), setup: _cat, after: (t, s) async {
+    await _pickDept(t, 'Matematik');
+    await _tapText(t, 'Matematik');
+    await t.pump(const Duration(milliseconds: 500));
+  }),
+  _Shot('11b_sinif_secici_secili', (b, s) => RegisterPage(session: s), setup: _cat, after: (t, s) async {
+    await _step1(t);
+    await _tapText(t, _l.acadGradeN('2'));
+    await t.pump(const Duration(milliseconds: 500));
+  }),
   _Shot('12_sifre_unuttum_gonderildi', (b, s) => ForgotPasswordPage(session: s),
       setup: (b, s) => b.on('/auth/forgot-password', {}), after: (t, s) async {
     await _type(t, 0, '226051015');
@@ -266,6 +286,12 @@ final _shots = <_Shot>[
     await t.tap(find.text(_l.authUpdatePassword));
     await t.pump(const Duration(milliseconds: 500));
   }),
+  _Shot('14b_yeni_sifre_guclu', (b, s) => NewPasswordPage(session: s, email: 'ad.soyad@bingol.edu.tr', resetToken: 't'), after: (t, s) async {
+    await _type(t, 0, 'Kampus2026!');
+    await _type(t, 1, 'Kampus2026!');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await t.pump(const Duration(milliseconds: 300));
+  }),
   _Shot('15_sifre_guncellendi', (b, s) => const ResetSuccessPage()),
   _Shot('16a_sifre_unuttum_sure_doldu', (b, s) => ForgotPasswordPage(session: s),
       setup: (b, s) => ForgotPasswordPage.expiredNotice.value = true),
@@ -283,6 +309,24 @@ final _shots = <_Shot>[
     await t.tap(find.text(_l.authSendCode));
     await t.pump(const Duration(milliseconds: 800));
     await t.pump(const Duration(milliseconds: 800));
+  }),
+  _Shot('21_yeniden_onay_zorunlu', (b, s) => LegalReacceptPage(session: s, state: _reaccept(true)), setup: _titles),
+  _Shot('22_yeniden_onay_ertelenebilir', (b, s) => LegalReacceptPage(session: s, state: _reaccept(false)),
+      setup: (b, s) {
+        _titles(b, s);
+        b.fail('/legal/accept', status: 409, code: 'VERSION_OUTDATED', message: 'eski');
+      }, after: (t, s) async {
+    await t.tap(find.byKey(const ValueKey('legalReacceptAck')));
+    await t.pump();
+    await t.tap(find.text(_l.legalReacceptAccept));
+    await t.pump(const Duration(milliseconds: 600));
+    await t.tap(find.byKey(const ValueKey('legalReacceptAck')));
+    await t.pump();
+  }),
+  _Shot('23_yeniden_onay_reddet', (b, s) => LegalReacceptPage(session: s, state: _reaccept(true)), setup: _titles, after: (t, s) async {
+    await t.ensureVisible(find.text(_l.legalReacceptDecline));
+    await t.tap(find.text(_l.legalReacceptDecline));
+    await t.pump(const Duration(milliseconds: 600));
   }),
   _Shot('17_sozlesme_liste', (b, s) => LegalListPage(session: s), setup: (b, s) => b.on('/legal', _legalDocs)),
   _Shot('18_sozlesme_okuyucu', (b, s) => LegalDocPage(session: s, type: 'TERMS'), setup: (b, s) {

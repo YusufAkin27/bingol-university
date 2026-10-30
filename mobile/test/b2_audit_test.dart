@@ -6,6 +6,7 @@ import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/auth_widgets.dart';
+import 'package:bu_kampus/features/auth/widgets/auth_controls.dart';
 import 'package:bu_kampus/features/clubs/club_detail_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/posts/social_api.dart';
@@ -152,7 +153,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.'), findsOneWidget);
+      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -169,11 +170,11 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.count('/auth/register'), 1);
       expect(find.text('Adım 2/3'), findsOneWidget);
-      expect(find.text('E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.'), findsOneWidget);
+      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
       // E-posta değişince hata kalkar.
       await tester.enterText(find.byType(TextFormField).at(1), 'ayse2@bingol.edu.tr');
       await tester.pump();
-      expect(find.text('E-posta adresinde + etiketi kullanılamaz. Adresinizi + işareti olmadan yazın.'), findsNothing);
+      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsNothing);
       await unmount(tester);
     });
   });
@@ -299,21 +300,18 @@ void main() {
   });
 
   group('Erişilebilirlik: kontrast ve dokunma hedefi (L34, L35)', () {
-    testWidgets('PasswordStrength / PasswordRule AA belirteçlerini kullanır', (tester) async {
+    testWidgets('AuthPasswordGuide: durum rengi AA belirteçlerini kullanır (danger / ok)', (tester) async {
       Future<Color?> labelColor(String pw, Brightness br) async {
-        await tester.pumpWidget(buildApp(Scaffold(body: PasswordStrength(password: pw)), brightness: br));
+        await tester.pumpWidget(buildApp(Scaffold(body: AuthPasswordGuide(password: pw)), brightness: br));
         await tester.pumpAndSettle(); // AnimatedTheme geçişi
         final label = {'Zayıf', 'Orta', 'Güçlü'}.map((s) => find.text(s)).firstWhere((f) => f.evaluate().isNotEmpty);
         return tester.widget<Text>(label).style?.color;
       }
 
       expect(await labelColor('abc', Brightness.light), BuTokens.light.danger);
-      expect(await labelColor('abcdefg1', Brightness.light), const Color(0xFF8A5200));
-      expect(await labelColor('abcdefg1', Brightness.dark), const Color(0xFFFFC66B));
+      expect(await labelColor('abcdefg1', Brightness.light), BuTokens.light.danger);
       expect(await labelColor('Abcdefghijk1!', Brightness.light), BuTokens.light.ok);
-
-      await tester.pumpWidget(buildApp(const Scaffold(body: PasswordRule(ok: true, label: 'kural'))));
-      expect(tester.widget<Text>(find.text('kural')).style?.color, BuTokens.light.ok);
+      expect(await labelColor('Abcdefghijk1!', Brightness.dark), BuTokens.dark.ok);
     });
 
     for (final rtl in [false, true]) {

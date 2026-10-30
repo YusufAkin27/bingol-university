@@ -47,11 +47,16 @@ class RefPage extends StatelessWidget {
                 child: Row(
                   children: [
                     if (showBack)
-                      IconButton(
-                        tooltip: context.l10n.authBack,
-                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                        icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink, size: 24),
-                        onPressed: onBack ?? () => Navigator.maybePop(context),
+                      Semantics(
+                        button: true,
+                        label: context.l10n.authBack,
+                        excludeSemantics: true,
+                        onTap: onBack ?? () => Navigator.maybePop(context),
+                        child: IconButton(
+                          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                          icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink, size: 24),
+                          onPressed: onBack ?? () => Navigator.maybePop(context),
+                        ),
                       ),
                     const Spacer(),
                     if (trailing != null) Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: trailing),
@@ -328,7 +333,7 @@ class RefNote extends StatelessWidget {
   }
 }
 
-enum RefButtonKind { primary, secondary, warn }
+enum RefButtonKind { primary, secondary, warn, danger, soft }
 
 /// Ana eylem: 56 dp, 20 dp yuvarlak; etiket + sonda ok; yüklenirken çember + [busyLabel].
 class RefButton extends StatelessWidget {
@@ -358,6 +363,8 @@ class RefButton extends StatelessWidget {
       RefButtonKind.primary => (t.pr, t.onPr),
       RefButtonKind.warn => (t.warn, dark ? t.bg : t.onMedia),
       RefButtonKind.secondary => (t.sf, t.ink),
+      RefButtonKind.danger => (Theme.of(context).colorScheme.error, Theme.of(context).colorScheme.onError),
+      RefButtonKind.soft => (t.tint(1).bg, t.tint(1).fg),
     };
     final disabled = onPressed == null && !busy;
     final faded = busy || disabled;
@@ -505,7 +512,7 @@ class RefTextField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.label,
-    required this.icon,
+    this.icon,
     this.hint,
     this.helper,
     this.validator,
@@ -530,7 +537,9 @@ class RefTextField extends StatefulWidget {
 
   final TextEditingController controller;
   final String label;
-  final IconData icon;
+
+  /// Soldaki simge; null ise simgesiz alan.
+  final IconData? icon;
   final String? hint;
   final String? helper;
 
@@ -675,7 +684,8 @@ class _RefTextFieldState extends State<RefTextField> {
         errorBorder: InputBorder.none,
         focusedErrorBorder: InputBorder.none,
         disabledBorder: InputBorder.none,
-        contentPadding: EdgeInsets.zero,
+        // Dokunma/anlam hedefi >= 44 dp olsun diye yatay çizgiler dışında dikey boşluk.
+        contentPadding: EdgeInsets.symmetric(vertical: widget.innerLabel ? 6 : 12),
         counterText: '',
         hintText: widget.hint,
         hintStyle: tx.bodyLarge!.copyWith(color: t.mut.withValues(alpha: .7)),
@@ -708,8 +718,10 @@ class _RefTextFieldState extends State<RefTextField> {
           ),
           child: Row(
             children: [
-              Icon(widget.icon, size: 22, color: iconColor),
-              const SizedBox(width: 12),
+              if (widget.icon != null) ...[
+                Icon(widget.icon, size: 22, color: iconColor),
+                const SizedBox(width: 12),
+              ],
               Expanded(
                 child: widget.innerLabel
                     ? Column(
@@ -738,11 +750,6 @@ class _RefTextFieldState extends State<RefTextField> {
             ],
           ),
         ),
-        if (!hasError && widget.helper != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-            child: Text(widget.helper!, style: tx.bodySmall!.copyWith(color: t.mut)),
-          ),
         AnimatedSize(
           duration: const Duration(milliseconds: 180),
           alignment: Alignment.topCenter,
@@ -760,6 +767,11 @@ class _RefTextFieldState extends State<RefTextField> {
                 )
               : const SizedBox(width: double.infinity),
         ),
+        if (widget.helper != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
+            child: Text(widget.helper!, style: tx.bodySmall!.copyWith(color: t.mut)),
+          ),
       ],
     );
   }
@@ -782,10 +794,12 @@ class RefPasswordField extends StatefulWidget {
     this.onCard = false,
     this.forceError,
     this.labelAction,
+    this.showIcon = true,
   });
 
   final TextEditingController controller;
   final String? label;
+  final bool showIcon;
   final String? hint;
   final Widget? labelAction;
   final String? Function(String?)? validator;
@@ -812,7 +826,7 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
       controller: widget.controller,
       label: widget.label ?? context.l10n.authPasswordLabel,
       hint: widget.hint,
-      icon: LucideIcons.lock,
+      icon: widget.showIcon ? LucideIcons.lock : null,
       obscureText: _hidden,
       autocorrect: false,
       validator: widget.validator,
@@ -853,6 +867,7 @@ class RefIdentifierField extends StatelessWidget {
     this.onCard = false,
     this.forceError,
     this.helper = true,
+    this.label,
   });
 
   final TextEditingController controller;
@@ -864,13 +879,16 @@ class RefIdentifierField extends StatelessWidget {
   final String? forceError;
   final bool helper;
 
+  /// Etiket (varsayılan: okul e-postanız).
+  final String? label;
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (context, value, _) => RefTextField(
         controller: controller,
-        label: context.l10n.authIdHint,
+        label: label ?? context.l10n.authIdHint,
         helper: helper ? context.l10n.authIdHelper : null,
         icon: LucideIcons.atSign,
         enabled: enabled,

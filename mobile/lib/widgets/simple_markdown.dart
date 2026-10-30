@@ -236,7 +236,7 @@ TextSpan _inline(String text, TextStyle base, BuTokens t) {
     if (m.group(1) != null) {
       spans.add(TextSpan(text: m.group(1), style: const TextStyle(fontWeight: FontWeight.w700)));
     } else if (m.group(2) != null) {
-      spans.add(TextSpan(text: m.group(2), style: TextStyle(backgroundColor: t.sf2, fontFamily: 'monospace')));
+      spans.add(TextSpan(text: m.group(2), style: TextStyle(backgroundColor: t.sf2, fontFamily: 'monospace', fontFamilyFallback: const ['Roboto Mono', 'Courier New', 'Inter'])));
     } else {
       spans.add(TextSpan(text: m.group(3), style: const TextStyle(fontStyle: FontStyle.italic)));
     }

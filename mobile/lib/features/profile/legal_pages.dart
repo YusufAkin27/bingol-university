@@ -186,32 +186,39 @@ class _FailedRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    // Büyük yazı ölçeğinde düğme alt satıra iner (kelime ortadan bölünmesin).
+    final large = MediaQuery.textScalerOf(context).scale(14) > 16;
+    final icon = Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+      child: Icon(LucideIcons.cloudOff, size: 22, color: t.pr),
+    );
+    final text = Text(context.l10n.p01LgLoadFailed, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700));
+    final retry = BuButton(label: context.l10n.pickRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(24), boxShadow: BuElevation.of(context, 1)),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-            child: Icon(LucideIcons.cloudOff, size: 22, color: t.pr),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(context.l10n.p01LgLoadFailed, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-          ),
-          const SizedBox(width: 8),
-          BuButton(label: context.l10n.pickRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
-        ],
-      ),
+      child: large
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [icon, const SizedBox(width: 12), Expanded(child: text)]),
+                const SizedBox(height: 12),
+                Align(alignment: AlignmentDirectional.centerEnd, child: retry),
+              ],
+            )
+          : Row(children: [icon, const SizedBox(width: 12), Expanded(child: text), const SizedBox(width: 8), retry]),
     );
   }
 }
 
+String _ltr(String s) => s.isEmpty ? s : '\u2066$s\u2069';
+
 /// "Sürüm 2 · 1 Ocak 2026"; yayın tarihi yoksa yalnız "Sürüm 2" (sondaki " ·" kalmaz).
 String _versionLine(BuildContext context, Map<String, dynamic> d) {
-  final date = niceDate(d['publishedAt'] as String?);
+  // Tarih parçası her dilde soldan sağa (LRI ... PDI): Arapça satırda bidi sırası bozulmasın.
+  final date = _ltr(niceDate(d['publishedAt'] as String?));
   final v = '${d['version']}';
   return date.isEmpty ? context.l10n.profileVersion(v) : context.l10n.profileVersionDate(v, date);
 }
@@ -242,7 +249,7 @@ class _LegalDocPageState extends State<LegalDocPage> {
         future: _future,
         builder: (context, snap) {
           final d = snap.data;
-          final date = d == null ? '' : niceDate((d['effectiveAt'] ?? d['publishedAt']) as String?);
+          final date = d == null ? '' : _ltr(niceDate((d['effectiveAt'] ?? d['publishedAt']) as String?));
           return Column(
             children: [
               BuHeader(

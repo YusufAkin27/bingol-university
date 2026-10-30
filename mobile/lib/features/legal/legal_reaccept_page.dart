@@ -3,14 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../auth/widgets/auth_art.dart';
-import '../auth/widgets/auth_controls.dart';
-import '../auth/widgets/auth_fields.dart';
+import '../../widgets/bu.dart';
 import '../auth/widgets/auth_motion.dart';
-import '../auth/widgets/auth_shell.dart';
+import '../auth/widgets/auth_ref.dart';
 import '../profile/legal_pages.dart';
 import '../profile/profil2_delete_account_page.dart';
 import 'legal_reaccept.dart';
@@ -162,49 +157,70 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
 
   Future<void> _decline() async {
     final l = context.l10n;
-    final t = context.bu;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (sheet) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l.legalReacceptDeclineTitle, style: BuType.title.copyWith(color: t.ink)),
-            const SizedBox(height: 10),
-            Text(l.legalReacceptDeclineBody, style: BuType.body.copyWith(color: t.mut, height: 1.4)),
-            const SizedBox(height: 18),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: t.danger,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(52),
+      backgroundColor: Colors.transparent,
+      builder: (sheet) {
+        final t = sheet.bu;
+        final tx = Theme.of(sheet).textTheme;
+        return DecoratedBox(
+          decoration: BoxDecoration(color: t.sf3, borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2)))),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                      child: Icon(LucideIcons.triangleAlert, size: 30, color: t.pr),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Semantics(
+                    header: true,
+                    child: Text(l.legalReacceptDeclineTitle,
+                        textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(l.legalReacceptDeclineBody,
+                      textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+                  const SizedBox(height: 20),
+                  RefButton(
+                    label: l.legalReacceptDeleteAccount,
+                    kind: RefButtonKind.danger,
+                    icon: LucideIcons.trash2,
+                    onPressed: () {
+                      Navigator.pop(sheet);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => DeleteAccountPage(session: widget.session)));
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  RefButton(
+                    label: l.legalReacceptSignOut,
+                    kind: RefButtonKind.secondary,
+                    icon: LucideIcons.logOut,
+                    onPressed: () {
+                      Navigator.pop(sheet);
+                      widget.session.signOut();
+                    },
+                  ),
+                  RefLink(label: l.p01LgReview, muted: true, onPressed: () => Navigator.pop(sheet)),
+                ],
               ),
-              onPressed: () {
-                Navigator.pop(sheet);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => DeleteAccountPage(session: widget.session)),
-                );
-              },
-              child: Text(l.legalReacceptDeleteAccount),
             ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              onPressed: () {
-                Navigator.pop(sheet);
-                widget.session.signOut();
-              },
-              child: Text(l.legalReacceptSignOut),
-            ),
-            TextButton(onPressed: () => Navigator.pop(sheet), child: Text(l.commonCancel)),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -212,41 +228,79 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final enforced = widget.state.enforced;
     return PopScope(
       canPop: false, // engelleyici ekran: geri tuşu kapatmaz
-      child: AuthShell(
-        art: AuthArtKind.shield,
-        title: l.legalReacceptTitle,
-        subtitle: enforced ? l.legalReacceptIntro : l.legalReacceptIntroSoft,
-        body: [
-          AuthFeedbackSlot(error: _error),
-          Text(l.legalReacceptListTitle, style: BuType.label.copyWith(color: t.mut, fontSize: 12.5, fontWeight: FontWeight.w800, letterSpacing: .4)),
-          const SizedBox(height: 10),
-          for (final i in widget.state.items) ...[
-            _DocCard(title: _label(i), version: l.profileVersion('${i.version}'), onTap: _busy ? null : () => _open(i)),
-            const SizedBox(height: 10),
+      child: RefPage(
+        showBack: false,
+        children: [
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+              child: Icon(LucideIcons.shieldCheck, size: 24, color: t.pr),
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (_error != null) ...[
+            RefBanner(_error!, key: ValueKey('reaccept-error-$_error'), tone: RefTone.warn, boldText: true),
+            const SizedBox(height: 16),
           ],
-          const SizedBox(height: 4),
+          RefHeading(title: l.legalReacceptTitle, subtitle: enforced ? l.legalReacceptIntro : l.legalReacceptIntroSoft),
+          const SizedBox(height: 24),
+          Text(l.legalReacceptListTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var n = 0; n < widget.state.items.length; n++) ...[
+                  if (n > 0) Divider(height: 1, indent: 20, endIndent: 20, color: t.bd),
+                  _DocRow(
+                    type: widget.state.items[n].type,
+                    title: _label(widget.state.items[n]),
+                    version: l.profileVersion('${widget.state.items[n].version}'),
+                    onTap: _busy ? null : () => _open(widget.state.items[n]),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
           // Açık rıza (EXPLICIT_CONSENT) ayrıdır: bu onayla verilmiş sayılmaz.
-          AuthTrustNote(l.legalReacceptNoteExplicit, icon: LucideIcons.info),
-          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
+            child: Text(l.legalReacceptNoteExplicit, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.5)),
+          ),
+          const SizedBox(height: 20),
           _AckCard(value: _ack, enabled: !_busy, label: l.legalReacceptCheck, onChanged: (v) => setState(() => _ack = v)),
-        ],
-        bottom: [
-          AuthPrimaryButton(onPressed: (_busy || !_ack) ? null : _accept, busy: _busy, label: l.legalReacceptAccept),
-          if (!enforced) Center(child: AuthTextAction(label: l.legalReacceptLater, onPressed: _busy ? null : _later)),
-          Center(child: AuthTextAction(label: l.legalReacceptDecline, muted: true, onPressed: _busy ? null : _decline)),
+          const SizedBox(height: 16),
+          RefButton(
+            label: l.legalReacceptAccept,
+            icon: LucideIcons.circleCheck,
+            busy: _busy,
+            onPressed: (_busy || !_ack) ? null : _accept,
+          ),
+          if (!enforced) ...[
+            const SizedBox(height: 10),
+            RefButton(label: l.legalReacceptLater, kind: RefButtonKind.soft, onPressed: _busy ? null : _later),
+          ],
+          Center(child: RefLink(label: l.legalReacceptDecline, color: enforced ? t.pr : t.mut, onPressed: _busy ? null : _decline)),
         ],
       ),
     );
   }
 }
 
-/// Güncellenen belge kartı: sol simge karosu, başlık, sürüm hapı, sağda ok.
-class _DocCard extends StatelessWidget {
-  const _DocCard({required this.title, required this.version, required this.onTap});
+/// Güncellenen belge satırı: tonlu simge karosu, başlık, sürüm, sağda ok.
+class _DocRow extends StatelessWidget {
+  const _DocRow({required this.type, required this.title, required this.version, required this.onTap});
 
+  final String type;
   final String title;
   final String version;
   final VoidCallback? onTap;
@@ -254,44 +308,41 @@ class _DocCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final (icon, tint) = switch (type) {
+      'TERMS' => (LucideIcons.gavel, t.tint(0)),
+      'PRIVACY' => (LucideIcons.shield, t.tint(1)),
+      'KVKK' => (LucideIcons.lockKeyhole, t.tint(0)),
+      'COMMUNITY_RULES' => (LucideIcons.users, t.tint(1)),
+      _ => (LucideIcons.fileText, t.tint(1)),
+    };
     return Semantics(
       button: true,
-      child: Material(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(kAuthRadius),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(kAuthRadius),
-          onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 64),
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(kAuthRadius),
-              border: Border.all(color: t.bd),
-            ),
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-                  child: Icon(LucideIcons.fileText, size: 20, color: t.pr),
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
+                  child: Icon(icon, size: 22, color: tint.fg),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: BuType.bodyStrong.copyWith(color: t.ink, fontSize: 15.5, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(999)),
-                        child: Text(version, style: BuType.caption.copyWith(color: t.mut, fontSize: 11.5, fontWeight: FontWeight.w600)),
-                      ),
+                      Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      Text(version, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
               ],
             ),
@@ -302,7 +353,7 @@ class _DocCard extends StatelessWidget {
   }
 }
 
-/// Onay kartı: tüm satır dokunulur; kutu dolarken yaylanır ve hafif titreşim verir.
+/// Onay kartı: tüm satır dokunulur; kutu dolarken hafif titreşim verir.
 class _AckCard extends StatelessWidget {
   const _AckCard({required this.value, required this.enabled, required this.label, required this.onChanged});
 
@@ -314,50 +365,40 @@ class _AckCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Semantics(
       checked: value,
-      inMutuallyExclusiveGroup: false,
-      child: Material(
-        color: value ? t.soft : t.sf,
-        borderRadius: BorderRadius.circular(kAuthRadius),
-        child: InkWell(
-          key: const ValueKey('legalReacceptAck'),
-          borderRadius: BorderRadius.circular(kAuthRadius),
-          onTap: enabled
-              ? () {
-                  authHaptic(AuthHaptic.tap);
-                  onChanged(!value);
-                }
-              : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(kAuthRadius),
-              border: Border.all(color: value ? t.pr : t.bd, width: value ? 1.6 : 1.2),
-            ),
-            child: Row(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutBack,
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(9),
-                    color: value ? t.pr : Colors.transparent,
-                    border: Border.all(color: value ? t.pr : t.mut, width: 2),
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20)),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            key: const ValueKey('legalReacceptAck'),
+            borderRadius: BorderRadius.circular(20),
+            onTap: enabled
+                ? () {
+                    authHaptic(AuthHaptic.tap);
+                    onChanged(!value);
+                  }
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: value ? t.pr : t.sf2,
+                    ),
+                    child: value ? Icon(LucideIcons.check, size: 18, color: t.onPr) : null,
                   ),
-                  child: AnimatedScale(
-                    scale: value ? 1 : 0,
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutBack,
-                    child: Icon(LucideIcons.check, size: 16, color: t.onPr),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(label, style: BuType.body.copyWith(color: t.ink, height: 1.4, fontSize: 14.5, fontWeight: FontWeight.w600))),
-              ],
+                  const SizedBox(width: 14),
+                  Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.4))),
+                ],
+              ),
             ),
           ),
         ),

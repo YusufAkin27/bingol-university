@@ -91,7 +91,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(l.p02FacultyCount('${g.$2.length}'), style: tx.labelMedium!.copyWith(color: t.mut)),
+                        Text(l.p02FacultyCount(g.$2.length), style: tx.labelMedium!.copyWith(color: t.mut)),
                       ],
                     ),
                     const SizedBox(height: 8),

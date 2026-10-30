@@ -250,6 +250,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 18),
             RefIdentifierField(
+              label: l.p02IdLabel,
               controller: _email,
               enabled: !_busy,
               validator: _validateRegisterId,
@@ -269,6 +270,7 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: _password,
               label: l.authPasswordMin8,
               innerLabel: true,
+              showIcon: false,
               enabled: !_busy,
               validator: newPasswordValidator(context),
               autofillHints: const [AutofillHints.newPassword],

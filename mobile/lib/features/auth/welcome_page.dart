@@ -107,17 +107,17 @@ class _LangPill extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   onTap: c == cur ? null : () => lc.set(c),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 28),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 24),
                     child: Container(
                       alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       decoration: BoxDecoration(
                         color: c == cur ? t.pr : Colors.transparent,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         c.toUpperCase(),
-                        style: tx.labelMedium!.copyWith(color: c == cur ? t.onPr : t.mut, fontWeight: FontWeight.w800),
+                        style: tx.labelSmall!.copyWith(color: c == cur ? t.onPr : t.mut, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
