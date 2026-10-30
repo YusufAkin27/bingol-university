@@ -122,3 +122,6 @@ Dosyalar `<storage.dir>/_private/<kova>/<uuid>.jpg|png` (+ `-t`); `FileControlle
 
 ### Testler
 `PostVideoCipherTest` (sınır boyutları, Range, kurcalama/kesme/yanlış bağlam, sarma, rotasyon), `VideoTranscoderTest` (komut oluşturma, ffprobe ayrıştırma, ffmpeg yok, zaman aşımı + gerçek süreç öldürme), `TranscodeServiceTest` (durum geçişleri, orijinalin korunması, poster, yetim dosya yok, worker eşzamanlılık/yarış, eski video şifreleme, yeniden sarma), `PostMediaSealedVideoTest` (yükleme/Range/geriye uyum, CDN imza + origin ucu + yönlendirme), `PostMediaTranscodeRepositoryTest` (H2 JPQL), `TranscodeMigrationTest` (V360 dosyası). Gerçek ffmpeg ile uçtan uca: `scripts/media-transcode-e2e.sh` (Docker, kısa örnek videoyu dönüştürür ve codec/boyutu doğrular).
+
+## Sohbet kucuk resmi (P3)
+`ImageKind.CHAT` icin kucuk resim 320 px degil: kisa kenar ~720 px, uzun kenar en cok 1280 px (`ImageProcessor.CHAT_THUMB_SHORT/LONG_CAP`; kaynak kucukse buyutulmez, kalite 0.82). Gercek uzun kenar `ProcessedImage.thumbEdge` -> `PrivateMedia.thumbEdge` -> `message_attachment.thumb_edge` (V890) -> `AttachmentView.thumbEdge`. Istemci bu degerle balonda kucuk resmin yeterli olup olmadigina karar verir (bkz. docs/changes/messaging.md).

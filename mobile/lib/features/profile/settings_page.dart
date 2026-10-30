@@ -10,6 +10,7 @@ import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
 import '../chat/contacts_match_page.dart';
+import '../chat/photo_autosave.dart';
 import '../support/support_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
@@ -38,6 +39,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _showEmail = false;
   bool _loaded = false;
+  bool _saveToGallery = true; // p22: sohbet fotoğraflarını galeriye kaydet (varsayılan açık)
   String _pushStatus = '...'; // 'notConfigured' | 'on' | 'off' | 'notGranted'
 
   CrashReporter get _crash => CrashReporter.instance;
@@ -49,6 +51,9 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _loadProfile();
     _loadPushStatus();
+    PhotoAutoSave.instance.enabled().then((v) {
+      if (mounted) setState(() => _saveToGallery = v);
+    });
   }
 
   Future<void> _loadPushStatus() async {
@@ -264,6 +269,25 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: _logoutAll,
                     ),
                   ]),
+                ),
+                const SizedBox(height: 14),
+                BuGroup(dividerIndent: 66, children: [
+                  BuSettingsTile.toggle(
+                      key: const ValueKey('settings-save-to-gallery'),
+                      icon: LucideIcons.imageDown,
+                      title: l.p22SaveGalleryTitle,
+                      subtitle: l.p22SaveGalleryDesc,
+                      value: _saveToGallery,
+                      tint: blue,
+                      onChanged: (v) {
+                        setState(() => _saveToGallery = v);
+                        PhotoAutoSave.instance.setEnabled(v);
+                      },
+                    ),
+                ]),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+                  child: Text(l.p22SaveGalleryCloud, key: const ValueKey('settings-save-to-gallery-note'), style: tx.bodySmall!.copyWith(color: t.mut)),
                 ),
                 const SizedBox(height: 20),
                 Center(

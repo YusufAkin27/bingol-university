@@ -17,8 +17,8 @@ export 'chat_media.dart' show chatMediaUrl;
 
 String _two(int n) => n.toString().padLeft(2, '0');
 
-/// Medya baloncuğunun içerik genişliği (dp): ekranın %78'i - iç boşluk, 150-248 arası.
-double _mediaWidth(double maxW) => (maxW - 8).clamp(150.0, 248.0);
+/// Medya baloncuğunun kenarı (dp): SABİT KARE ~224 (kullanıcı kararı 2026-10-30), dar ekranda sınırlı; bkz. [chatMediaSide].
+double _mediaWidth(double maxW) => chatMediaSide(maxW);
 
 /// Sohbet baloncuğu. Durumsuzdur; tüm veri ve geri çağrılar sayfadan gelir.
 ///
@@ -118,9 +118,8 @@ class MessageBubble extends StatelessWidget {
     final ghost = deleted || removed;
     final adminRemoved = ghost && isAdminRemovedText(m['text'] as String?);
     final failed = state == 'failed';
-    final queued = state == 'pending' && m['_queued'] == true;
     // Giden baloncuk marka kırmızısı (t.pr) üstünde t.onPr; gelen baloncuk yüzey (t.sf). Silinen/kaldırılan:
-    // soluk zemin; gönderilemedi: yumuşak kırmızı; kuyrukta: soluk (referans 19).
+    // soluk zemin; gönderilemedi: yumuşak kırmızı. Çevrimdışı kuyruktaki mesaj normal "gönderiliyor" görünür.
     final Color bodyColor;
     final Color fg;
     if (ghost) {
@@ -129,14 +128,11 @@ class MessageBubble extends StatelessWidget {
     } else if (mine && failed) {
       bodyColor = t.soft;
       fg = t.onSoft;
-    } else if (mine && queued) {
-      bodyColor = t.sf2;
-      fg = t.ink;
     } else {
       bodyColor = mine ? t.pr : t.sf;
       fg = mine ? t.onPr : t.ink;
     }
-    final solidMine = mine && !ghost && !failed && !queued;
+    final solidMine = mine && !ghost && !failed;
     final metaColor = solidMine ? t.onPr.withValues(alpha: .75) : (adminRemoved ? t.onSoft.withValues(alpha: .8) : t.mut);
     final d = DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
     final reply = m['replyTo'] is Map ? Map<String, dynamic>.from(m['replyTo'] as Map) : null;
@@ -247,6 +243,7 @@ class MessageBubble extends StatelessWidget {
         attachment: atts.first,
         headers: authHeaders,
         maxW: w,
+        placeholder: m['_ph'] as Uint8List?,
         radius: BorderRadius.zero,
         onTap: () => onOpenImage(atts.first),
         overlay: (!showText && hasMeta)
@@ -268,7 +265,7 @@ class MessageBubble extends StatelessWidget {
               headers: authHeaders,
               maxW: w,
               side: cell,
-              sideH: cols == 2 ? 84 : cell,
+              sideH: cell,
               radius: chatdCellRadius(i, cols, shown.length),
               more: (i == cap - 1 && atts.length > cap) ? atts.length - cap + 1 : 0,
               onTap: () => open(i),
@@ -385,15 +382,6 @@ class MessageBubble extends StatelessWidget {
                     ),
                 ]),
               ),
-            ),
-          if (state == 'pending' && m['_queued'] == true)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.hourglass, size: 12, color: t.mut),
-                const SizedBox(width: 4),
-                Text(context.l10n.cevrimdisiBekliyor, key: const ValueKey('queued-label'), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
-              ]),
             ),
           if (state == 'failed')
             GestureDetector(
@@ -603,7 +591,8 @@ class _LocalMedia extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final width = _mediaWidth(maxW);
-    final height = video && ratio != null ? (width / ratio!).clamp(104.0, 380.0) : 200.0;
+    final height = width; // sabit kare
+    final decodeW = (width * MediaQuery.devicePixelRatioOf(context)).ceil().clamp(160, 1600);
     Widget spinner() {
       final p = progress;
       if (p == null) {
@@ -631,7 +620,7 @@ class _LocalMedia extends StatelessWidget {
         width: width,
         height: height,
         child: Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
-          if (bytes != null) Image.memory(bytes!, fit: BoxFit.cover, cacheWidth: 720, gaplessPlayback: true) else ColoredBox(color: t.sf2),
+          if (bytes != null) Image.memory(bytes!, fit: BoxFit.cover, cacheWidth: decodeW, filterQuality: FilterQuality.medium, gaplessPlayback: true) else ColoredBox(color: t.sf2),
           if (uploading) ColoredBox(color: t.scrim.withValues(alpha: .34)) else if (video) ColoredBox(color: t.scrim.withValues(alpha: .14)),
           Center(
             child: uploading
@@ -674,10 +663,10 @@ class _LocalGrid extends StatelessWidget {
               borderRadius: chatdCellRadius(i, cols, shown.length),
               child: SizedBox(
                 width: cell,
-                height: cols == 2 ? 84 : cell,
+                height: cell,
                 child: Stack(fit: StackFit.expand, children: [
                   if (shown[i]['bytes'] is Uint8List)
-                    Image.memory(shown[i]['bytes'] as Uint8List, fit: BoxFit.cover, cacheWidth: 360, gaplessPlayback: true)
+                    Image.memory(shown[i]['bytes'] as Uint8List, fit: BoxFit.cover, cacheWidth: (cell * MediaQuery.devicePixelRatioOf(context)).ceil().clamp(160, 1600), filterQuality: FilterQuality.medium, gaplessPlayback: true)
                   else
                     ColoredBox(color: t.sf2),
                   if (uploading) ColoredBox(color: t.scrim.withValues(alpha: .3)),
@@ -710,7 +699,11 @@ class _AttachmentImage extends StatelessWidget {
     this.radius,
     this.more = 0,
     this.overlay,
+    this.placeholder,
   });
+
+  /// Gönderenin yerel (hazırlanmış) görsel baytları: sunucu görseli gelene dek altta durur.
+  final Uint8List? placeholder;
 
   /// Görsel yüklendikten (ya da hata verdikten) sonra üstüne bindirilen öğe (saat hapı).
   final Widget? overlay;
@@ -734,18 +727,16 @@ class _AttachmentImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final w = (attachment['width'] as num?)?.toDouble() ?? 0;
-    final h = (attachment['height'] as num?)?.toDouble() ?? 0;
-    // Görsel oranını koru (dikey/yatay), çok uzun görselleri sınırla.
-    final ratio = (w > 0 && h > 0) ? (w / h).clamp(.55, 2.0) : 1.2;
-    final width = side ?? maxW.clamp(150.0, 248.0);
-    final height = sideH ?? side ?? (width / ratio).clamp(104.0, 380.0);
+    // SABİT KARE (boyut/oran bilinmeden yerleşir: kaydırmada yükseklik zıplamaz); BoxFit.cover merkezden kırpar.
+    final width = side ?? maxW;
+    final height = sideH ?? side ?? width;
     final video = isVideoAttachment(attachment);
-    // Videoda `url` akış adresidir (görsel değil): önizleme yalnız `thumbUrl` (poster) olabilir.
-    final thumb = (video ? attachment['thumbUrl'] : (attachment['thumbUrl'] ?? attachment['url'])) as String?;
+    // Kaynak: kutu x DPR'yi karşılayan en küçük (thumbUrl yeterliyse o, değilse ana görsel); videoda yalnız poster.
+    final src = pickChatImageSource(attachment, boxW: width, boxH: height, dpr: dpr);
+    final thumb = src?.path;
     final hidden = attachment['removed'] == true || (thumb == null && !video);
     final durationMs = (attachment['durationMs'] as num?)?.toInt();
-    final decode = (width * dpr).ceil().clamp(160, 900);
+    final decode = src?.decodeWidth ?? (width * dpr).ceil().clamp(160, 1600);
 
     Widget withOverlay(Widget w) => overlay == null ? w : Stack(fit: StackFit.expand, children: [w, overlay!]);
 
@@ -787,20 +778,29 @@ class _AttachmentImage extends StatelessWidget {
               filterQuality: FilterQuality.medium,
               gaplessPlayback: true,
               // İlk kareye kadar (bağlantı + indirme) iskelet; kare gelince renk zemin üstünde belirir.
-              frameBuilder: (c, child, frame, sync) => sync
-                  ? withOverlay(child)
-                  : frame == null
-                      ? ChatdSkeleton(showLabel: side == null && height >= 90)
-                      : withOverlay(ColoredBox(
-                          color: t.sf2,
-                          child: TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: 1),
-                            duration: BuMotion.of(c, BuMotion.medium),
-                            curve: BuMotion.decelerate,
-                            builder: (c, v, ch) => Opacity(opacity: v, child: ch),
-                            child: child,
-                          ),
-                        )),
+              frameBuilder: (c, child, frame, sync) {
+                if (sync) return withOverlay(child);
+                // Gönderenin yerel önizlemesi (sunucu yanıtına geçişte): iskelet/flaş yok, net kare üstünde belirir.
+                final ph = placeholder == null
+                    ? null
+                    : Image.memory(placeholder!, fit: BoxFit.cover, cacheWidth: decode, filterQuality: FilterQuality.medium, gaplessPlayback: true);
+                if (frame == null) {
+                  return ph == null ? ChatdSkeleton(showLabel: side == null && height >= 90) : withOverlay(ph);
+                }
+                return withOverlay(ColoredBox(
+                  color: t.sf2,
+                  child: Stack(fit: StackFit.expand, children: [
+                    if (ph != null) ph,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: BuMotion.of(c, BuMotion.medium),
+                      curve: BuMotion.decelerate,
+                      builder: (c, v, ch) => Opacity(opacity: v, child: ch),
+                      child: child,
+                    ),
+                  ]),
+                ));
+              },
               errorBuilder: (c, e, s) => withOverlay(ColoredBox(
                 color: t.sf2,
                 // Videoda oynat simgesi zaten ortada: kırık görsel simgesi onunla üst üste binmesin.
