@@ -335,8 +335,9 @@ class _NewChatPageState extends State<NewChatPage> {
             if (_createError != null) setState(() => _createError = null);
           },
           decoration: InputDecoration(
-            hintText: l.chatMiscGroupName,
+            hintText: l.p23GroupNameHint,
             hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
+            prefixIcon: Icon(LucideIcons.notebookPen, size: 18, color: t.mut),
             counterText: '',
             isDense: true,
             filled: true,
@@ -362,7 +363,7 @@ class _NewChatPageState extends State<NewChatPage> {
       return [
         Center(
           child: Column(children: [
-            NcTile(icon: LucideIcons.listFilter, bg: t.sf2, fg: t.mut, size: 56),
+            NcTile(icon: LucideIcons.textSearch, bg: t.sf2, fg: t.mut, size: 56),
             const SizedBox(height: 14),
             Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(LucideIcons.info, size: 15, color: t.mut),
@@ -466,6 +467,11 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 10),
-        child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w700)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w700)),
+          // Kırmızı zorunlu noktası: en az 2 kişi seçilmeli.
+          const SizedBox(width: 6),
+          Container(width: 6, height: 6, decoration: BoxDecoration(color: context.bu.pr, shape: BoxShape.circle)),
+        ]),
       );
 }

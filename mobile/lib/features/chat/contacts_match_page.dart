@@ -177,7 +177,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       case _Phase.needPermission:
         return _scroll([
           NcStateCard(
-            icon: LucideIcons.userSearch,
+            icon: LucideIcons.fileSearch,
             title: l.chatMiscContactsPermTitle,
             text: l.chatMiscContactsPermText,
             children: [
@@ -220,15 +220,14 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         const SizedBox(height: 12),
       ],
       if (_all.isEmpty)
-        NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoneTitle, text: l.chatMiscContactsNoneText)
+        NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoneTitle, text: l.p23NoneText)
       else if (list.isEmpty && searching)
         NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoSearchMatch)
       else ...[
         NcLabel(trUpper(l.chatMiscContactsCount(list.length.toString()))),
         for (final m in list) ...[_row(t, m), const SizedBox(height: 12)],
       ],
-      const SizedBox(height: 4),
-      _PrivacyNote(),
+      if (_all.isNotEmpty) ...[const SizedBox(height: 4), _PrivacyNote()],
     ]);
   }
 

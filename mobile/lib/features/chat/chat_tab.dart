@@ -8,7 +8,9 @@ import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'chat_detail_page.dart';
+import 'chat_info_parts.dart' show ChatConfirmLayout, showChatInfoConfirm;
 import 'chat_media.dart';
+import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatd_parts.dart' show kChatdNavy;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
@@ -355,7 +357,19 @@ class _ChatTabState extends State<ChatTab> {
   Future<void> _delete(Map<String, dynamic> c) async {
     final id = (c['id'] as num).toInt();
     final group = _type(c) == 'GROUP';
-    if (!await confirmDeleteConversation(context, group: group)) return;
+    final l = context.l10n;
+    // Silme onayı (referans 22-2): üstte simge, ortalı başlık ve gövde, yan yana iki düğme.
+    final ok = await showChatInfoConfirm(
+      context,
+      icon: LucideIcons.trash2,
+      title: l.chatInfoDeleteConvTitle,
+      body: group ? l.chatInfoDeleteConvGroup : l.chatInfoDeleteConvDirect,
+      confirmLabel: l.chatInfoDelete,
+      confirmIcon: LucideIcons.trash2,
+      cancelLabel: l.chatInfoCancel,
+      layout: ChatConfirmLayout.iconAbove,
+    );
+    if (!ok) return;
     if (!mounted) return;
     setState(() => _removing.add(id)); // satır animasyonla daralır
     try {
@@ -392,7 +406,7 @@ class _ChatTabState extends State<ChatTab> {
     if (choice == null || !mounted) return;
     switch (choice) {
       case 'mute':
-        final pick = await pickMuteDuration(context);
+        final pick = await showChatMuteSheet(context, chatName: _title(context, c));
         if (pick == null || !mounted) return;
         if (pick == 'forever') {
           await _mute(c, forever: true);

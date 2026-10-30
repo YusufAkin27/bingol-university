@@ -428,7 +428,12 @@ void main() {
       await longPress(tester, 'Ali Veli');
       await tester.tap(find.byKey(const ValueKey('act-mute')));
       await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('8 saat'), findsOneWidget); // varsayılan seçili süre
+      await tester.tap(find.text('1 hafta'));
+      await tester.pump();
       await tester.tap(find.text('8 saat'));
+      await tester.pump();
+      await tester.tap(find.text('Sessize al')); // referans 22-1: süre seçilir, sonra "Sessize al" ile onaylanır
       await settle(tester, const Duration(milliseconds: 400));
       expect(be.requests, contains('PUT /conversations/1/mute'));
       expect(be.bodies['PUT /conversations/1/mute'], {'durationMinutes': 480});

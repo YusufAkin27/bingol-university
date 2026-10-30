@@ -212,7 +212,18 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
           final ar = v.aspectRatio > 0 ? v.aspectRatio : 16 / 9;
           final playing = v.isPlaying;
           return Stack(alignment: Alignment.center, children: [
-            Center(child: RepaintBoundary(child: AspectRatio(aspectRatio: ar, child: VideoPlayer(c)))),
+            // Dikey videolar ekranı doldurur ve üst çubuğun arkasına uzanır (referans 26); yatay videolar sığdırılır.
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: ar < 1
+                    ? FittedBox(
+                        fit: BoxFit.cover,
+                        clipBehavior: Clip.hardEdge,
+                        child: SizedBox(width: v.size.width > 0 ? v.size.width : 720, height: v.size.height > 0 ? v.size.height : 1280, child: VideoPlayer(c)),
+                      )
+                    : Center(child: AspectRatio(aspectRatio: ar, child: VideoPlayer(c))),
+              ),
+            ),
             if (v.isBuffering) const ChatdRing(icon: LucideIcons.play),
             // Orta düğme her zaman görünür: oynarken "duraklat", duraklayınca "oynat" (referans 26).
             Semantics(
@@ -221,7 +232,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
               child: Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: t.scrim.withValues(alpha: .5)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Color.alphaBlend(t.onMedia.withValues(alpha: .18), t.scrim).withValues(alpha: .82)),
                 child: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 44, color: t.onMedia),
               ),
             ),

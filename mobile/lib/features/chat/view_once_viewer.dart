@@ -38,7 +38,6 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   MemoryImage? _image;
   String? _error;
   IconData _errorIcon = LucideIcons.circleAlert;
-  bool _network = false;
   bool _loading = true;
   bool _consumed = false;
 
@@ -59,7 +58,6 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     setState(() {
       _loading = true;
       _error = null;
-      _network = false;
     });
     try {
       final bytes = await widget.api.getBytes(
@@ -75,7 +73,6 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _network = e.isNetwork;
         _errorIcon = switch (e.status) {
           410 => LucideIcons.eyeOff,
           403 => LucideIcons.lock,
@@ -168,7 +165,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       return SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(24, 24, 24, bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ChatdNoteCard(text: err, icon: _errorIcon, actionLabel: _network ? l.chatMiscRetry : null, onAction: _network ? _load : null),
+          ChatdNoteCard(text: err, icon: _errorIcon),
         ]),
       );
     }

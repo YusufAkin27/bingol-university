@@ -96,31 +96,3 @@ class _ActionRow extends StatelessWidget {
     );
   }
 }
-
-/// Sessize alma süresi: '480' (8 saat), '10080' (1 hafta), 'forever'; vazgeçilirse null.
-Future<String?> pickMuteDuration(BuildContext context) {
-  final l = context.l10n;
-  return BuSheet.show<String>(
-    context,
-    title: l.chatInfoMute,
-    builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
-      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMute8h, onTap: () => Navigator.pop(c, '480')),
-      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMute1w, onTap: () => Navigator.pop(c, '10080')),
-      _ActionRow(icon: LucideIcons.bellOff, label: l.chatInfoMuteForever, onTap: () => Navigator.pop(c, 'forever')),
-    ]),
-  );
-}
-
-/// Silme onayı (yanlışlıkla silmeyi önler). Yalnızca "Sil" true döndürür.
-Future<bool> confirmDeleteConversation(BuildContext context, {required bool group}) {
-  final l = context.l10n;
-  return BuDialog.confirm(
-    context,
-    title: l.chatInfoDeleteConvTitle,
-    message: group ? l.chatInfoDeleteConvGroup : l.chatInfoDeleteConvDirect,
-    confirmLabel: l.chatInfoDelete,
-    cancelLabel: l.chatInfoCancel,
-    destructive: true,
-    icon: LucideIcons.trash2,
-  );
-}

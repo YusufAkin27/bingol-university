@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gal/gal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -37,8 +38,9 @@ import '../support/store_shots_images.dart';
 const _dpr = 2.5;
 
 String _lang = 'tr';
+AppLocalizations get _l => lookupAppLocalizations(Locale(_lang));
 
-enum _Img { ok, hang }
+enum _Img { ok, hang, err }
 
 enum _Vid { ok, fail }
 
@@ -71,6 +73,19 @@ class _HangClient implements HttpClient {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
+
+class _ErrClient implements HttpClient {
+  @override
+  bool autoUncompress = true;
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async => throw const SocketException('yok');
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async => throw const SocketException('yok');
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+GalException _gal(GalExceptionType t) => GalException(type: t, platformException: PlatformException(code: 'x'), stackTrace: StackTrace.empty);
 
 class _FakeVideoPlatform extends VideoPlayerPlatform {
   _FakeVideoPlatform(this.mode);
@@ -224,12 +239,12 @@ List<ChatMediaItem> _items({bool videoAt2 = false}) => [
       const ChatMediaItem(url: '/files/m5.jpg', thumbUrl: '/files/m5.jpg'),
     ];
 
-Widget _viewer({int index = 1, bool videoAt2 = false, bool saveFails = false}) => ChatMediaViewer(
+Widget _viewer({int index = 1, bool videoAt2 = false, Object? saveError}) => ChatMediaViewer(
       items: _items(videoAt2: videoAt2),
       headers: const {},
       initialIndex: index,
       saveImage: (u, h) async {
-        if (saveFails) throw UnsupportedError('x');
+        if (saveError != null) throw saveError;
       },
       saveVideo: (u, h) async {},
     );
@@ -254,19 +269,19 @@ final _boards = <_Board>[
   _Board('N01_yeni_sohbet', _newChat),
   _Board('N02_arama_sonuclari', _newChat, after: (t) => _type(t, 'mehmet')),
   _Board('N02b_arama_bos', () => _newChat(empty: true), after: (t) => _type(t, 'zzz')),
-  _Board('N03_yeni_grup', _newChat, after: (t) async {
-    await t.tap(find.text('Yeni grup'));
+  _Board('N03_yeni_grup', _newChat, height: 1000, after: (t) async {
+    await t.tap(find.text(_l.sohbetyNewGroup));
     await settle(t, const Duration(milliseconds: 400));
     await _type(t, 'mehmet');
     await t.tap(find.text('Mehmet Kaya'));
     await t.pump();
     await t.tap(find.text('Mehmet Demir'));
     await t.pump();
-    await t.tap(find.text('Grubu oluştur'));
+    await t.tap(find.text(_l.chatMiscCreateGroup));
     await settle(t, const Duration(milliseconds: 400));
   }),
   _Board('N04_rehber_izin', () => ContactsMatchPage(session: makeSession(FakeBackend()), permissions: FakePermissionService()), after: (t) async {
-    await t.tap(find.text('Şimdi değil'));
+    await t.tap(find.text(_l.permNotNow));
   }),
   _Board('N05_rehber_hazir', () => _contactsReady(truncated: true), height: 960),
   _Board('N06_rehber_bos', () => _contactsReady(none: true)),
@@ -276,10 +291,19 @@ final _boards = <_Board>[
     await t.tap(find.byIcon(LucideIcons.download));
     await t.pump(const Duration(milliseconds: 400));
   }),
-  _Board('V02b_gorsel_kaydedilemedi', () => _viewer(saveFails: true), after: (t) async {
+  _Board('V02b_gorsel_kaydedilemedi', () => _viewer(saveError: Exception('x')), after: (t) async {
     await t.tap(find.byIcon(LucideIcons.download));
     await t.pump(const Duration(milliseconds: 400));
   }),
+  _Board('V02d_galeri_izni_yok', () => _viewer(saveError: _gal(GalExceptionType.accessDenied)), after: (t) async {
+    await t.tap(find.byIcon(LucideIcons.download));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Board('V02e_alan_yok', () => _viewer(saveError: _gal(GalExceptionType.notEnoughSpace)), after: (t) async {
+    await t.tap(find.byIcon(LucideIcons.download));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Board('V02f_gorsel_yuklenemedi', () => _viewer(), img: _Img.err, settleMs: 700),
   _Board('V02c_gorsel_yukleniyor', () => _viewer(), img: _Img.hang, settleMs: 700),
   _Board('V03_video_poster', () => _viewer(index: 2, videoAt2: true)),
   _Board('V04_video_oynuyor', _player),
@@ -331,6 +355,7 @@ void main() {
         debugNetworkImageHttpClientProvider = switch (b.img) {
           _Img.ok => () => StoreImageHttpClient(),
           _Img.hang => () => _HangClient(),
+          _Img.err => () => _ErrClient(),
         };
         final previous = VideoPlayerPlatform.instance;
         VideoPlayerPlatform.instance = _FakeVideoPlatform(b.video);
