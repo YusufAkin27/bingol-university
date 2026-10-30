@@ -31,6 +31,8 @@ import 'chat_media_viewer.dart';
 import 'chat_video_player.dart';
 import 'forward_sheet.dart';
 import 'view_once_viewer.dart';
+import 'sohbety_widgets.dart'
+    show SohbetyNoticeCard, SohbetyNoticeKind, SohbetyVideoPrepareCard;
 import 'message_actions.dart';
 import 'media_camera_page.dart';
 import 'media_library.dart';
@@ -39,7 +41,7 @@ import 'media_picker_page.dart';
 import 'media_preview_page.dart';
 import 'message_bubble.dart';
 
-/// "Video hazırlanıyor… %N" penceresi (iptal edilebilir). Kapatmayı çağıran yapar.
+/// "Video hazırlanıyor… %N" penceresi (Stitch 25-6; iptal edilebilir). Kapatmayı çağıran yapar.
 class _VideoPrepareDialog extends StatelessWidget {
   const _VideoPrepareDialog({required this.progress, required this.cancel});
 
@@ -48,20 +50,22 @@ class _VideoPrepareDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     return PopScope(
       canPop: false,
-      child: ValueListenableBuilder<double>(
-        valueListenable: progress,
-        builder: (c, v, _) => BuDialog(
-          key: const ValueKey('videoPrepare'),
-          title: c.l10n.chatDetailVideoPreparing('${(v * 100).round()}'),
-          content: LinearProgressIndicator(
-              value: v > 0 ? v : null, color: t.pr, backgroundColor: t.sf2),
-          actions: [
-            BuDialogAction(
-                label: c.l10n.chatDetailCancel, onPressed: cancel.cancel),
-          ],
+      child: Dialog(
+        key: const ValueKey('videoPrepare'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: ValueListenableBuilder<double>(
+          valueListenable: progress,
+          builder: (c, v, _) => SohbetyVideoPrepareCard(
+            title: c.l10n.chatDetailVideoPreparing('${(v * 100).round()}'),
+            subtitle: c.l10n.p10VideoPrepareSub,
+            cancelLabel: c.l10n.chatDetailCancel,
+            onCancel: cancel.cancel,
+            progress: v > 0 ? v : null,
+          ),
         ),
       ),
     );
@@ -348,6 +352,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _deliverySub?.cancel();
     _outbox?.removeListener(_onOutboxChanged);
     ClosedConversations.instance.removeListener(_onClosedChanged);
+    for (final tm in _noticeTimers.values) {
+      tm.cancel();
+    }
     _hi.dispose();
     _showDown.dispose();
     _newBelow.dispose();
@@ -977,7 +984,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           prepared, (u) => (u['video'] as PreparedVideo?)?.sizeBytes ?? 0);
       if (parts.length > 1 && !splitNotified) {
         splitNotified = true;
-        _toast(lc.chatDetailVideosSplit);
+        _notice(lc.chatDetailVideosSplit, SohbetyNoticeKind.info);
       }
       for (var pi = 0; pi < parts.length; pi++) {
         final uploads = parts[pi];
@@ -1041,11 +1048,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (bytes == null) throw ImageException('EMPTY');
         return {'image': await _image.prepare(bytes)};
       } on ImageException catch (e) {
-        _toast(e.code == 'TOO_LARGE'
-            ? l.chatDetailImageTooLarge
-            : l.chatDetailImageTypes);
+        _notice(
+            e.code == 'TOO_LARGE'
+                ? l.chatDetailImageTooLarge
+                : l.chatDetailImageTypes,
+            SohbetyNoticeKind.error);
       } catch (_) {
-        _toast(l.chatDetailImageUnreadable);
+        _notice(l.chatDetailImageUnreadable, SohbetyNoticeKind.error);
       }
       return null;
     }
@@ -1054,7 +1063,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       path = await p.videoPath?.call();
     } catch (_) {}
     if (path == null) {
-      _toast(l.chatDetailVideoUnreadable);
+      _notice(l.chatDetailVideoUnreadable, SohbetyNoticeKind.error);
       return null;
     }
     if (!mounted) return null;
@@ -1068,11 +1077,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     ));
     PreparedVideo? prepared;
     String? error;
+    var errorKind = SohbetyNoticeKind.error;
     try {
       prepared = await _video.prepare(PickedVideo(path),
           onProgress: (v) => progress.value = v, cancel: cancel);
     } on VideoException catch (e) {
-      if (e.code != 'CANCELLED') error = _videoErrorText(l, e.code);
+      if (e.code != 'CANCELLED') {
+        error = _videoErrorText(l, e.code);
+        if (e.code == 'TOO_LONG') errorKind = SohbetyNoticeKind.warning;
+      }
     } catch (_) {
       error = _videoErrorText(l, 'FAILED');
     }
@@ -1080,7 +1093,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     progress.dispose();
     if (!mounted) return null;
     if (error != null) {
-      _toast(error);
+      _notice(error, errorKind);
       return null;
     }
     if (prepared == null) return null;
@@ -1317,6 +1330,46 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   // ---------- Yardımcılar ----------
+
+  /// Medya hazırlama bildirimleri (Stitch 25-6): yazma alanının üstünde yığılı, kapatılabilir kartlar.
+  final _notices = <({int id, String text, SohbetyNoticeKind kind})>[];
+  final _noticeTimers = <int, Timer>{};
+  int _noticeSeq = 0;
+
+  void _notice(String text, SohbetyNoticeKind kind) {
+    if (!mounted) return;
+    final id = ++_noticeSeq;
+    setState(() {
+      _notices.removeWhere((n) => n.text == text);
+      _notices.add((id: id, text: text, kind: kind));
+      if (_notices.length > 3) _notices.removeAt(0);
+    });
+    _noticeTimers[id] = Timer(const Duration(seconds: 6), () => _dropNotice(id));
+  }
+
+  void _dropNotice(int id) {
+    _noticeTimers.remove(id)?.cancel();
+    if (!mounted) return;
+    setState(() => _notices.removeWhere((n) => n.id == id));
+  }
+
+  Widget _noticeStack() {
+    if (_notices.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        for (final n in _notices)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SohbetyNoticeCard(
+                key: ValueKey('notice-${n.id}'),
+                message: n.text,
+                kind: n.kind,
+                onClose: () => _dropNotice(n.id)),
+          ),
+      ]),
+    );
+  }
 
   void _toast(String msg, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
@@ -1886,6 +1939,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         body: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
           Expanded(child: _body(t)),
+          _noticeStack(),
           _closed
               ? _closedBar(t)
               : _searching

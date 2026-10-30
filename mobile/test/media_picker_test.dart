@@ -372,17 +372,17 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
     }
 
-    testWidgets('uc ayri oge: + , metin kutusu (kamera kisayolu icinde), ayri gonder; bos iken devre disi', (tester) async {
+    testWidgets('yazma cubugu (ref 20): + ve kamera tonal daire, ortada metin kutusu, ayri gonder; bos iken devre disi', (tester) async {
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(3));
       expect(find.byKey(const ValueKey('viewOnceToggle')), findsNothing);
       expect(find.byTooltip('Görsel gönder'), findsNothing);
       final plus = tester.getRect(find.byKey(const ValueKey('attachButton')));
-      final field = tester.getRect(find.byKey(const ValueKey('composerField')));
       final cam = tester.getRect(find.byKey(const ValueKey('cameraShortcut')));
+      final field = tester.getRect(find.byKey(const ValueKey('composerField')));
       final send = tester.getRect(find.byKey(const ValueKey('sendButton')));
-      expect(plus.right + 8, lessThanOrEqualTo(field.left + 18)); // sol: artı, ortada alan
-      expect(cam.left, greaterThan(field.right - 1)); // kısayol alanın içinde sağda
-      expect(send.left, greaterThanOrEqualTo(cam.right + 8 - 1)); // gönder düğmesi kutunun dışında
+      expect(cam.left, greaterThanOrEqualTo(plus.right - 1)); // artı, sonra kamera (ayrı daireler)
+      expect(field.left, greaterThanOrEqualTo(cam.right - 1)); // ortada metin kutusu
+      expect(send.left, greaterThanOrEqualTo(field.right)); // gönder düğmesi kutunun dışında, sağda
       expect(find.ancestor(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(TextField)), findsNothing);
       expect(find.descendant(of: find.byType(TextField), matching: find.byKey(const ValueKey('sendButton'))), findsNothing);
       expect(tester.widget<GestureDetector>(find.byKey(const ValueKey('sendButton'))).onTap, isNull);
