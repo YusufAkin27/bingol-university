@@ -6,6 +6,7 @@ import 'package:bu_kampus/features/academic/exams_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
 import 'package:bu_kampus/features/academic/timetable_page.dart';
+import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -274,7 +275,7 @@ void main() {
       fakeAcademic(b).addCourse('Fizik', 1, '09:00', '10:50');
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await tester.tap(find.text('Takvime aktar (.ics)'));
+      await tester.tap(find.text(isolateIcs('Takvime aktar (.ics)')));
       await settle(tester);
       expect(platform.shared, contains('SUMMARY:Fizik'));
       await unmount(tester);

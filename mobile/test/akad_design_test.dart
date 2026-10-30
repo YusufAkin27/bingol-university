@@ -9,6 +9,7 @@ import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
 import 'package:bu_kampus/features/academic/semester_sheet.dart';
 import 'package:bu_kampus/features/academic/timetable_page.dart';
+import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -149,7 +150,7 @@ void main() {
     await tester.pumpWidget(_app(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
     expect(find.text('Pzt, bugün'), findsOneWidget); // secili gun hapi
-    expect(find.text('Takvime aktar (.ics)'), findsOneWidget);
+    expect(find.text(isolateIcs('Takvime aktar (.ics)')), findsOneWidget);
     expect(find.text('Ders ekle'), findsOneWidget); // yuzen dugme
     await unmount(tester);
   });

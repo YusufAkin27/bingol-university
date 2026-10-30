@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -230,22 +231,20 @@ class _SemesterSheetState extends State<SemesterSheet> {
           ),
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
-            child: Row(children: [
-              if (!s.current)
-                Flexible(
-                    child: _action(t,
-                        icon: LucideIcons.star, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id)))),
-              const Spacer(),
-              Flexible(
-                child: _action(t, icon: LucideIcons.trash2, label: l.acadTimeDeleteSemester, danger: true, onTap: _busy
+            child: Wrap(
+              alignment: s.current ? WrapAlignment.end : WrapAlignment.spaceBetween,
+              runAlignment: WrapAlignment.end,
+              children: [
+                if (!s.current) _action(t, icon: LucideIcons.star, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id))),
+                _action(t, icon: LucideIcons.trash2, label: l.acadTimeDeleteSemester, danger: true, onTap: _busy
                     ? null
                     : () async {
                         final ok = await confirmDialog(context,
                             title: l.acadTimeDeleteSemester, text: l.acadTimeDeleteSemesterText(s.name), action: l.acadTimeDelete, danger: true);
                         if (ok) await _run(() => widget.api.deleteSemester(s.id));
                       }),
-              ),
-            ]),
+              ],
+            ),
           ),
         ]),
       ),
@@ -307,14 +306,10 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
 
   Future<DateTime?> _pick(DateTime? initial, String help) {
     final now = DateTime.now();
-    return showDatePicker(
-      context: context,
-      initialDate: initial ?? now,
-      firstDate: DateTime(now.year - 2),
-      lastDate: DateTime(now.year + 3),
-      helpText: help,
-    );
+    return pickAcadDate(context, initial: initial ?? now, first: DateTime(now.year - 2), last: DateTime(now.year + 3), help: help);
   }
+
+  static String _fmt(DateTime d) => DateFormat('dd.MM.yyyy').format(d);
 
   void _submit() {
     final l = context.l10n;
@@ -332,30 +327,48 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return BuDialog(
-      title: l.acadTimeNewSemester,
-      icon: LucideIcons.calendarPlus,
-      content: SizedBox(
-        width: double.maxFinite,
+    final tx = Theme.of(context).textTheme;
+    return Dialog(
+      backgroundColor: t.sf3,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          AkadTextField(label: l.p17SemesterName, controller: _name, maxLength: 60, hint: l.acadTimeSemesterHint, capitalization: TextCapitalization.words),
-          const SizedBox(height: 12),
+          Row(children: [
+            AkadIconTile(icon: LucideIcons.calendarDays, bg: t.soft, fg: t.pr, size: 44, radius: 14, iconSize: 20),
+            const SizedBox(width: 12),
+            Expanded(child: Semantics(header: true, child: Text(l.acadTimeNewSemester, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+          ]),
+          const SizedBox(height: 18),
+          AkadTextField(
+            label: l.acadTimeSemester,
+            controller: _name,
+            maxLength: 60,
+            hint: l.acadTimeSemesterHint,
+            capitalization: TextCapitalization.words,
+            trailingIcon: LucideIcons.calendar,
+          ),
+          const SizedBox(height: 14),
           AkadPicker(
-            icon: LucideIcons.calendar,
+            icon: _start == null ? LucideIcons.calendar : LucideIcons.calendarCheck,
+            iconColor: t.pr,
             label: l.acadTimeStartDate,
             hint: l.acadSelect,
-            value: _start == null ? null : acadDate(context, _start!),
+            value: _start == null ? null : _fmt(_start!),
             onTap: () async {
               final d = await _pick(_start, l.acadTimeStartDate);
               if (d != null && mounted) setState(() => _start = DateTime.utc(d.year, d.month, d.day));
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           AkadPicker(
-            icon: LucideIcons.calendar,
+            icon: _end == null ? LucideIcons.calendar : LucideIcons.calendarCheck,
+            iconColor: t.pr,
             label: l.acadTimeEndDate,
             hint: l.acadSelect,
-            value: _end == null ? null : acadDate(context, _end!),
+            value: _end == null ? null : _fmt(_end!),
             onTap: () async {
               final d = await _pick(_end ?? _start, l.acadTimeEndDate);
               if (d != null && mounted) setState(() => _end = DateTime.utc(d.year, d.month, d.day));
@@ -363,22 +376,28 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           ),
           if (_error != null)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.only(top: 16),
               child: Semantics(
                 liveRegion: true,
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(_error!, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.danger))),
-                ]),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.onSoft))),
+                  ]),
+                ),
               ),
             ),
+          const SizedBox(height: 20),
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            AkadTonalButton(label: l.acadTimeCancel, compact: true, onPressed: () => Navigator.pop(context)),
+            const SizedBox(width: 10),
+            BuButton(label: l.acadTimeAdd, compact: true, onPressed: _submit),
+          ]),
         ]),
       ),
-      actions: [
-        BuDialogAction(label: l.acadTimeCancel, onPressed: () => Navigator.pop(context)),
-        BuDialogAction(label: l.acadTimeAdd, kind: BuDialogActionKind.primary, onPressed: _submit),
-      ],
     );
   }
 }

@@ -16,6 +16,11 @@ String _audience(AppLocalizations l, Announcement a) {
   return p.isEmpty ? l.acadAnnAudienceAll : p.join(' · ');
 }
 
+/// Kısa kapsam etiketi (çip kesilmesin): Bölüm / Fakülte / sınıf.
+String _shortScope(AppLocalizations l, Announcement a) => a.department != null
+    ? l.profileDepartment
+    : (a.faculty != null ? l.profileFaculty : _audience(l, a));
+
 /// "Bugün, 14:20" / "Dün, 09:45" / "12 Ekim 2026" (İstanbul saati).
 String _when(AppLocalizations l, DateTime? at) {
   if (at == null) return '';
@@ -301,7 +306,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     return Wrap(spacing: 6, runSpacing: 6, children: [
       if (a.pinned) AkadPill(l.acadAnnPinned, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.pin),
       if (!a.read) AkadPill(l.acadAnnUnread, bg: t.soft, fg: t.onSoft, dot: true),
-      if (all) AkadPill(audience, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.building2) else if (a.read && !a.pinned) AkadPill(audience, bg: t.sf2, fg: t.mut, icon: LucideIcons.folder),
+      if (all) AkadPill(audience, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.building2) else if (a.read && !a.pinned) AkadPill(_shortScope(l, a), bg: t.sf2, fg: t.mut, icon: LucideIcons.folder),
     ]);
   }
 }
@@ -448,6 +453,14 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
               if (a.pinned) AkadPill(l.acadAnnPinned, bg: t.soft, fg: t.onSoft, icon: LucideIcons.pin),
               AkadPill(_audience(l, a), bg: all ? t.tint(1).bg : t.sf2, fg: all ? t.tint(1).fg : t.mut),
             ]),
+            if ((a.faculty ?? a.department) != null) ...[
+              const SizedBox(height: 10),
+              Row(children: [
+                Icon(LucideIcons.graduationCap, size: 16, color: t.mut),
+                const SizedBox(width: 6),
+                Flexible(child: Text((a.faculty ?? a.department)!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
+              ]),
+            ],
             if (a.publishAt != null) ...[
               const SizedBox(height: 10),
               Row(children: [

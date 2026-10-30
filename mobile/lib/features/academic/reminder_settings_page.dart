@@ -245,13 +245,13 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
   Widget _examCard(BuTokens t, TextTheme tx, AppLocalizations l) => AkadCard(
         padding: EdgeInsets.zero,
         child: Column(children: [
-          _examRow(t, LucideIcons.calendar, l.acadTimeDayBefore, _permOk && _s.examDayBefore, (v) => _update(_s.copyWith(examDayBefore: v))),
+          _examRow(t, LucideIcons.calendar, l.acadTimeDayBefore, l.p20RemDaySub, _permOk && _s.examDayBefore, (v) => _update(_s.copyWith(examDayBefore: v))),
           const AkadDivider(),
-          _examRow(t, LucideIcons.timer, l.acadTimeHourBefore, _permOk && _s.examHourBefore, (v) => _update(_s.copyWith(examHourBefore: v))),
+          _examRow(t, LucideIcons.timer, l.acadTimeHourBefore, l.p20RemHourSub, _permOk && _s.examHourBefore, (v) => _update(_s.copyWith(examHourBefore: v))),
         ]),
       );
 
-  Widget _examRow(BuTokens t, IconData icon, String title, bool value, ValueChanged<bool> onChanged) => MergeSemantics(
+  Widget _examRow(BuTokens t, IconData icon, String title, String sub, bool value, ValueChanged<bool> onChanged) => MergeSemantics(
         child: InkWell(
           onTap: () {
             buHaptic(BuHaptic.selection);
@@ -262,7 +262,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
             child: Row(children: [
               AkadIconTile(icon: icon, bg: t.sf2, fg: t.ink, size: 40, radius: 20, iconSize: 18),
               const SizedBox(width: 14),
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  Text(sub, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+                ]),
+              ),
               Switch(value: value, onChanged: onChanged),
             ]),
           ),

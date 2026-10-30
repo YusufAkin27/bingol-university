@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
@@ -79,61 +80,66 @@ class _CourseFormPageState extends State<CourseFormPage> {
     super.dispose();
   }
 
-  Future<int?> _pickTime(int current) async {
-    final r = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: current ~/ 60, minute: current % 60),
-      builder: (c, child) => MediaQuery(data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true), child: child!),
-    );
-    return r == null ? null : r.hour * 60 + r.minute;
-  }
+  Future<int?> _pickTime(int current, String help) => pickAcadTime(context, current, help: help);
 
-  /// Çakışma diyaloğu: başlık, giriş metni, çakışan ders kartları; `true` = "Yine de kaydet".
+  /// Çakışma diyaloğu (referans): simge karosu + başlık, açıklama, çakışan ders kartları; `true` = "Yine de kaydet".
   Future<bool> _conflictDialog({List<CourseConflict> conflicts = const [], bool own = false, String? serverMessage}) async {
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final r = await BuDialog.show<bool>(
       context,
-      builder: (ctx) => BuDialog(
-        title: l.acadTimeConflictTitle,
-        icon: LucideIcons.triangleAlert,
-        message: serverMessage ?? l.p17ConflictIntro,
-        content: serverMessage != null
-            ? null
-            : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                for (final c in conflicts.take(3))
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                      const SizedBox(height: 4),
-                      Row(children: [
-                        Icon(LucideIcons.clock, size: 14, color: t.mut),
-                        const SizedBox(width: 6),
-                        Expanded(
-                            child: Text('${acadDayShort(l, c.session.dayOfWeek.clamp(1, 7))} ${c.session.start}-${c.session.end}',
-                                style: tx.bodySmall!.copyWith(color: t.mut))),
-                      ]),
-                      if (c.session.room != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Row(children: [
-                            Icon(LucideIcons.mapPin, size: 14, color: t.mut),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text(c.session.room!, style: tx.bodySmall!.copyWith(color: t.mut))),
-                          ]),
-                        ),
+      builder: (ctx) => Dialog(
+        backgroundColor: t.sf3,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              AkadIconTile(icon: LucideIcons.triangleAlert, bg: t.soft, fg: t.pr, size: 44, radius: 22, iconSize: 20),
+              const SizedBox(width: 12),
+              Expanded(child: Semantics(header: true, child: Text(l.acadTimeConflictTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+            ]),
+            const SizedBox(height: 14),
+            Text(serverMessage ?? l.p17ConflictIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+            if (serverMessage == null) ...[
+              const SizedBox(height: 12),
+              for (final c in conflicts.take(3))
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      Icon(LucideIcons.clock, size: 14, color: t.mut),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text('${acadDayShort(l, c.session.dayOfWeek.clamp(1, 7))} ${c.session.start}-${c.session.end}', style: tx.bodySmall!.copyWith(color: t.mut))),
                     ]),
-                  ),
-                if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
-              ]),
-        actions: [
-          BuDialogAction(label: l.acadCancel, onPressed: () => Navigator.pop(ctx, false)),
-          BuDialogAction(label: l.acadTimeSaveAnyway, kind: BuDialogActionKind.primary, onPressed: () => Navigator.pop(ctx, true)),
-        ],
+                    if (c.session.room != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Row(children: [
+                          Icon(LucideIcons.mapPin, size: 14, color: t.mut),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text(c.session.room!, style: tx.bodySmall!.copyWith(color: t.mut))),
+                        ]),
+                      ),
+                  ]),
+                ),
+              if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
+            ],
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: AkadTonalButton(label: l.acadCancel, onPressed: () => Navigator.pop(ctx, false))),
+              const SizedBox(width: 10),
+              Expanded(child: BuButton(label: l.acadTimeSaveAnyway, onPressed: () => Navigator.pop(ctx, true))),
+            ]),
+          ]),
+        ),
       ),
     );
     return r == true;
@@ -223,6 +229,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
+          if (_bandErrors().isNotEmpty) ...[_errorBand(t, tx, l), const SizedBox(height: 14)],
           AkadCard(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -336,6 +343,42 @@ class _CourseFormPageState extends State<CourseFormPage> {
     );
   }
 
+  /// Toplu doğrulama bandındaki satırlar (sınav formundaki bantla tutarlı).
+  List<String> _bandErrors() {
+    final l = context.l10n;
+    return [
+      if (_nameError != null) _nameError!,
+      if (_endErrors.isNotEmpty) l.acadTimeEndAfterStart,
+      if (_selfConflict) l.acadTimeOwnConflict,
+    ];
+  }
+
+  Widget _errorBand(BuTokens t, TextTheme tx, AppLocalizations l) => Semantics(
+        liveRegion: true,
+        container: true,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(LucideIcons.circleAlert, size: 18, color: t.onSoft),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
+            ]),
+            const SizedBox(height: 8),
+            for (final e in _bandErrors())
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(e, style: tx.bodyMedium!.copyWith(color: t.onSoft))),
+                ]),
+              ),
+          ]),
+        ),
+      );
+
   Widget _swatch(BuTokens t, String k) {
     final l = context.l10n;
     final sel = _color == k;
@@ -431,7 +474,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
               label: l.acadTimeStartTime,
               value: hhmm(s.start),
               onTap: () async {
-                final m = await _pickTime(s.start);
+                final m = await _pickTime(s.start, l.acadTimeStartTime);
                 if (m != null && mounted) {
                   setState(() {
                     final len = s.end - s.start;
@@ -454,7 +497,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
               label: l.acadTimeEndTime,
               value: hhmm(s.end),
               onTap: () async {
-                final m = await _pickTime(s.end);
+                final m = await _pickTime(s.end, l.acadTimeEndTime);
                 if (m != null && mounted) {
                   setState(() {
                     s.end = m;

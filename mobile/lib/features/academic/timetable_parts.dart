@@ -9,7 +9,10 @@ import 'reminders.dart';
 /// Ders programı sayfasının görsel parçaları (Stitch 43): dönem/aktar satırı, gün hapları, şu an/sıradaki ders kartları,
 /// günlük akış satırları, "Derslerim" kartları, boş durum kartları, iskelet. Durum ve veri `timetable_page.dart`'ta kalır.
 
-/// Dönem seçme düğmesi + .ics aktarma düğmesi (yan yana, beyaz kartlar).
+/// ".ics" gibi LTR parçayı RTL metin içinde ters dönmeyecek biçimde sarar (Unicode isolate).
+String isolateIcs(String s) => s.replaceAll('(.ics)', '\u2066(.ics)\u2069');
+
+/// Dönem seçme düğmesi + .ics aktarma düğmesi (yan yana, beyaz kartlar); büyük yazıda alt alta.
 class TtTopRow extends StatelessWidget {
   const TtTopRow({super.key, required this.name, required this.onPickSemester, required this.onExport});
 
@@ -21,6 +24,7 @@ class TtTopRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
+    final big = MediaQuery.textScalerOf(context).scale(14) / 14 > 1.15;
     Widget box({required VoidCallback onTap, required String semantic, required Widget child}) => Semantics(
           button: true,
           label: semantic,
@@ -28,41 +32,44 @@ class TtTopRow extends StatelessWidget {
           onTap: onTap,
           child: AkadCard(
             onTap: onTap,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 28), child: child),
           ),
         );
+    final sem = box(
+      onTap: onPickSemester,
+      semantic: '${l.acadTimePickSemester}: $name',
+      child: Row(children: [
+        Icon(LucideIcons.graduationCap, size: 18, color: t.pr),
+        const SizedBox(width: 8),
+        Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        const SizedBox(width: 4),
+        Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
+      ]),
+    );
+    final exp = box(
+      onTap: onExport,
+      semantic: l.acadTimeExportTooltip,
+      child: Row(children: [
+        Icon(LucideIcons.calendarArrowUp, size: 18, color: t.pr),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(isolateIcs(l.acadTimeExportTooltip), maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ),
+        ),
+      ]),
+    );
+    if (big) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [sem, const SizedBox(height: 8), exp]);
     return IntrinsicHeight(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Flexible(
-        flex: 5,
-        child: box(
-          onTap: onPickSemester,
-          semantic: '${l.acadTimePickSemester}: $name',
-          child: Row(children: [
-            Icon(LucideIcons.graduationCap, size: 18, color: t.pr),
-            const SizedBox(width: 8),
-            Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-            const SizedBox(width: 4),
-            Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
-          ]),
-        ),
-      ),
-      const SizedBox(width: 8),
-      Flexible(
-        flex: 4,
-        child: box(
-          onTap: onExport,
-          semantic: l.acadTimeExportTooltip,
-          child: Row(children: [
-            Icon(LucideIcons.calendarArrowUp, size: 18, color: t.pr),
-            const SizedBox(width: 8),
-            Expanded(
-                child: Text(l.acadTimeExportTooltip, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-          ]),
-        ),
-      ),
-    ]));
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Flexible(flex: 5, child: sem),
+        const SizedBox(width: 8),
+        Flexible(flex: 4, child: exp),
+      ]),
+    );
   }
 }
 
@@ -219,7 +226,7 @@ class TtInfoCard extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               if (label != null)
                 Text(akadUpper(context, label!),
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: l.localeName == 'ar' ? 0 : .6, color: t.mut)),
+                    maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: l.localeName == 'ar' ? 0 : .6, color: t.mut)),
               Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
               if (body != null) Text(body!, style: tx.bodySmall!.copyWith(color: t.mut)),
             ]),

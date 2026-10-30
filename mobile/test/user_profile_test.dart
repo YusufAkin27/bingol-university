@@ -1,6 +1,7 @@
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
+import 'package:bu_kampus/widgets/bu.dart' show BuSkeleton;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,7 +33,7 @@ Future<void> _open(WidgetTester tester, FakeBackend be,
 
 Future<void> _menu(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('profile-more')));
-  await tester.pump(const Duration(milliseconds: 300));
+  await settle(tester, const Duration(milliseconds: 800));
 }
 
 void _ok(WidgetTester tester) {
@@ -49,7 +50,8 @@ void main() {
     await tester.pumpWidget(
         buildApp(UserProfilePage(session: makeSession(be), userId: 2, initialName: 'Mehmet'), size: kPhoneMedium));
     await tester.pump();
-    expect(find.text('Mehmet'), findsWidgets);
+    expect(find.text('Profil'), findsOneWidget);
+    expect(find.byType(BuSkeleton), findsWidgets);
     expect(find.text('Hakkında'), findsNothing);
     await settle(tester);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
@@ -66,7 +68,7 @@ void main() {
     expect(find.text('Engelle'), findsNothing);
     await _menu(tester);
     expect(find.text('Engelle'), findsOneWidget);
-    expect(find.text('Raporla'), findsOneWidget);
+    expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
     await unmount(tester);
   });
 
@@ -75,7 +77,7 @@ void main() {
     await _open(tester, be);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
     // Gizlenmiş (null) alanlar kilit ikonlu "Gizli" olarak görünür; değer sızmaz.
-    expect(find.text('Hakkında'), findsOneWidget);
+    expect(find.text('Akademik bilgiler'), findsOneWidget);
     expect(find.text('Fakülte'), findsOneWidget);
     expect(find.text('Sınıf'), findsOneWidget);
     expect(find.text('Gizli'), findsNWidgets(3));
@@ -146,16 +148,17 @@ void main() {
     final be = _be();
     await _open(tester, be);
     await _menu(tester);
-    await tester.tap(find.text('Engelle'));
+    await tester.tap(find.byKey(const ValueKey('profile-menu-block')));
     await settle(tester);
     expect(find.text('Kullanıcı engellensin mi?'), findsOneWidget);
     expect(be.count('POST /users/2/block'), 0);
-    await tester.tap(find.widgetWithText(TextButton, 'Engelle'));
+    await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text('Engelle')));
     await settle(tester);
     expect(be.count('POST /users/2/block'), 1);
+    expect(find.text('Engeli kaldır'), findsWidgets); // sayfadaki dugme
     await _menu(tester);
-    expect(find.text('Engeli kaldır'), findsOneWidget);
-    await tester.tap(find.text('Engeli kaldır'));
+    expect(find.text('Engeli kaldır'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('profile-menu-block')));
     await settle(tester);
     expect(be.count('DELETE /users/2/block'), 1);
     await _menu(tester);
@@ -169,18 +172,22 @@ void main() {
         {'id': 2, 'displayName': 'Mehmet Kaya'}
       ]);
     await _open(tester, be);
-    await _menu(tester);
+    expect(find.text('Kullanıcı engellendi'), findsOneWidget); // uyari bandi
     expect(find.text('Engeli kaldır'), findsOneWidget);
+    expect(find.text('Mesaj gönder'), findsNothing);
+    await _menu(tester);
+    expect(find.text('Engeli kaldır'), findsWidgets);
     await unmount(tester);
   });
 
-  testWidgets('Raporla rapor sayfasını açar', (tester) async {
+  testWidgets('Şikâyet rapor sayfasını açar', (tester) async {
     final be = _be();
     await _open(tester, be);
     await _menu(tester);
-    await tester.tap(find.text('Raporla'));
+    await tester.tap(find.byKey(const ValueKey('profile-menu-report')));
     await settle(tester);
     expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
+    expect(find.text('Gönder'), findsOneWidget);
     await unmount(tester);
   });
 

@@ -98,7 +98,7 @@ const courseColorKeys = ['red', 'orange', 'amber', 'green', 'teal', 'blue', 'ind
 
 Color courseColor(String? key) => switch (key) {
       'red' => const Color(0xFFC62A20),
-      'orange' => const Color(0xFF8A5200),
+      'orange' => const Color(0xFFB84F08),
       'amber' => const Color(0xFFE5A400),
       'green' => const Color(0xFF1F7A4A),
       'teal' => const Color(0xFF0F6B66),

@@ -66,8 +66,8 @@ void main() {
             br: br,
             size: kPhoneSmall));
         await settle(tester);
-        expect(find.text('Profili düzenle'), findsOneWidget);
-        expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+        expect(find.text('Düzenle'), findsOneWidget);
+        expect(find.text('Bilgisayar Mühendisliği • 3. sınıf'), findsOneWidget);
         expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
         for (final s in ['Hesap ve güvenlik', 'Gizlilik ve engellenenler', 'Verilerim', 'Gönderilerim']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
@@ -90,13 +90,15 @@ void main() {
         expect(find.text('Anlık bildirimler'), findsOneWidget);
         // Test yerelinde (en) büyük harf kuralı İngilizcedir.
         expect(find.text('NELER BILDIRILSIN'), findsOneWidget);
-        await tester.tap(find.text('Ayrıntılı tercihler'));
-        await settle(tester);
-        await tester.scrollUntilVisible(find.text('Kulüp gönderileri'), 200, scrollable: find.byType(Scrollable).first);
-        expect(find.text('Kulüp gönderileri'), findsOneWidget);
-        await tester.scrollUntilVisible(find.text('Başlangıç'), 200, scrollable: find.byType(Scrollable).first);
+        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        await settle(tester, const Duration(milliseconds: 600));
         expect(find.text('23:00'), findsOneWidget);
         expect(find.text('07:00'), findsOneWidget);
+        await tester.tap(find.text('Ayrıntılı tercihler'));
+        await settle(tester);
+        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        await settle(tester, const Duration(milliseconds: 600));
+        expect(find.text('Kulüp gönderileri'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await unmount(tester);
       });
@@ -133,7 +135,8 @@ void main() {
     final b = backend();
     await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    await tester.scrollUntilVisible(find.text('Sessiz saatleri aç'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+    await settle(tester, const Duration(milliseconds: 600));
     await tester.tap(find.text('Sessiz saatleri aç'));
     await settle(tester);
     expect(b.bodies['PUT /notifications/preferences'], {
@@ -147,11 +150,10 @@ void main() {
     final b = backend();
     await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await settle(tester, const Duration(milliseconds: 600));
     await tester.tap(find.text('Ayrıntılı tercihler'));
     await settle(tester);
-    await tester.scrollUntilVisible(find.text('Kulüp gönderileri'), 200, scrollable: find.byType(Scrollable).first);
-    await tester.ensureVisible(find.text('Kulüp gönderileri'));
-    await tester.pump();
     await tester.tap(find.text('Kulüp gönderileri'));
     await settle(tester);
     // communities kapalı: PUT gitmemeli.

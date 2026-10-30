@@ -301,9 +301,42 @@ class AcadhubEmptyCard extends StatelessWidget {
               icon: emptyIcon,
               title: emptyTitle,
               message: emptyBody,
-              action: actionLabel == null ? null : BuButton(label: actionLabel!, icon: LucideIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: onAction),
+              action: actionLabel == null ? null : _WhitePill(label: actionLabel!, onTap: onAction),
             ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Boş kutu içindeki beyaz hap eylem ("+ Derslerini ekle"): beyaz zemin, kırmızı yazı, hafif gölge.
+class _WhitePill extends StatelessWidget {
+  const _WhitePill({required this.label, this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: BuPressable(
+        onTap: onTap,
+        haptic: BuHaptic.selection,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bPill, boxShadow: BuElevation.of(context, 1)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(LucideIcons.plus, size: 16, color: t.pr),
+            const SizedBox(width: 8),
+            Flexible(child: Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr))),
+          ]),
+        ),
       ),
     );
   }

@@ -30,6 +30,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
   DateTime? _selected;
   List<AcademicEvent> _events = [];
   List<AcademicEvent> _next = [];
+  String? _semester; // dönem adı (Sıradaki önemli tarihler başlığının sağında)
   bool _loading = true;
   Object? _error;
   int _gen = 0;
@@ -40,6 +41,10 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     _load();
     _api.nextEvents().then((v) {
       if (mounted) setState(() => _next = v);
+    }).catchError((_) {});
+    _api.semesters().then((r) {
+      final cur = r.items.where((x) => x.current).firstOrNull ?? r.items.firstOrNull;
+      if (mounted && cur != null) setState(() => _semester = cur.name);
     }).catchError((_) {});
   }
 
@@ -185,12 +190,12 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final isToday = today.year == date.year && today.month == date.month && today.day == date.day;
     final sel = _selected == date;
     final has = evs.isNotEmpty;
-    final Color? bg = sel ? t.ink : (isToday ? t.soft : null);
-    final Color fg = sel
-        ? t.bg
+    final Color? bg = sel ? t.ink : (isToday ? t.pr : null);
+    final Color fg = (sel || isToday)
+        ? (sel ? t.bg : t.onPr)
         : !inMonth
             ? t.mut.withValues(alpha: .4)
-            : has || isToday
+            : has
                 ? t.pr
                 : (weekend ? t.mut : t.ink);
     void tap() => setState(() => _selected = sel ? null : date);
@@ -203,18 +208,23 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: inMonth ? tap : null,
-        child: Container(
+        child: SizedBox(
           height: 56,
-          margin: const EdgeInsets.all(2),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
+          child: Center(
+            child: Container(
+          width: 46,
+          height: 52,
+          decoration: BoxDecoration(color: bg, shape: bg == null ? BoxShape.rectangle : BoxShape.rectangle, borderRadius: BorderRadius.circular(23)),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             MediaQuery.withClampedTextScaling(
               maxScaleFactor: 1.2,
               child: Text('${date.day}', style: tx.titleSmall!.copyWith(fontWeight: sel || isToday || has ? FontWeight.w800 : FontWeight.w500, color: fg)),
             ),
             const SizedBox(height: 3),
-            Container(width: 5, height: 5, decoration: BoxDecoration(color: has ? (sel ? t.soft : t.pr) : Colors.transparent, shape: BoxShape.circle)),
+            Container(width: 5, height: 5, decoration: BoxDecoration(color: has ? ((sel || isToday) ? t.soft : t.pr) : Colors.transparent, shape: BoxShape.circle)),
           ]),
+            ),
+          ),
         ),
       ),
     );
@@ -285,7 +295,10 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
       if (_next.isNotEmpty) {
         out
           ..add(const SizedBox(height: 24))
-          ..add(Semantics(header: true, child: Text(l.acadCalNextHeading, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))));
+          ..add(Row(children: [
+            Expanded(child: Semantics(header: true, child: Text(l.acadCalNextHeading, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+            if (_semester != null) ...[const SizedBox(width: 8), ConstrainedBox(constraints: const BoxConstraints(maxWidth: 120), child: Text(_semester!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut)))],
+          ]));
         for (final e in _next) {
           out
             ..add(const SizedBox(height: 12))
@@ -344,7 +357,11 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
 
   String _range(AppLocalizations l, AcademicEvent e) {
     final s = e.startDay, en = e.endDay;
-    final startText = e.allDay ? fmtWallDateL(l, s) : fmtInstantL(l, e.startsAt);
+    final w = istanbulWall(e.startsAt);
+    final midnight = w.hour == 0 && w.minute == 0;
+    final startText = e.allDay
+        ? fmtWallDateL(l, s)
+        : (midnight ? '${fmtWallDateL(l, s)} (${l.p20HalfDay})' : fmtInstantL(l, e.startsAt));
     if (en == s) return startText;
     return '${fmtWallDateL(l, s)} - ${fmtWallDateL(l, en)}';
   }
@@ -368,6 +385,8 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final color = eventKindColor(e.kind);
     final dark = e.kind == 'DONEM_BASLANGIC';
     final chip = AkadPill(kind, bg: dark ? t.ink : akadTint(context, color), fg: dark ? t.bg : akadOnTint(context, color), icon: _kindIcon(e.kind));
+    final days = e.endDay.difference(e.startDay).inDays + 1;
+    final span = days <= 1 ? (e.allDay ? l.p20AllDay : l.p20HalfDay) : (days >= 7 ? l.p20RangeWeeks((days / 7).round().toString()) : l.p20RangeDays(days.toString()));
     final note = [if (e.scopeDepartment != null) e.scopeDepartment!, if (e.note != null) e.note!].join(' · ');
     final w = e.startDay;
     final longDay = DateFormat('d MMMM y, EEEE', Localizations.localeOf(context).toString()).format(w);
@@ -379,7 +398,17 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            ConstrainedBox(constraints: BoxConstraints(maxWidth: nextStyle ? 400 : 150), child: chip),
+            ConstrainedBox(constraints: BoxConstraints(maxWidth: nextStyle ? 220 : 150), child: chip),
+            if (nextStyle) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  Icon(days > 1 ? LucideIcons.calendarDays : LucideIcons.clock, size: 14, color: t.mut),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(span, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
+                ]),
+              ),
+            ],
             if (!nextStyle) ...[
               const SizedBox(width: 8),
               Expanded(

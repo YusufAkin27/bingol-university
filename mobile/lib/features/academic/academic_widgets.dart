@@ -178,17 +178,97 @@ class MetaLine extends StatelessWidget {
   }
 }
 
-/// Onay diyaloğu (M3 [BuDialog]): `true` = onaylandı. [danger] kırmızı vurgu + çöp simgesi; [icon] ile ezilir.
-Future<bool> confirmDialog(BuildContext context, {required String title, required String text, required String action, bool danger = false, IconData? icon}) {
-  return BuDialog.confirm(
+/// Onay diyaloğu: `true` = onaylandı. [danger] iken referanstaki silme diyaloğu (pembe simge dairesi, ortalı başlık,
+/// yan yana "Vazgeç" + kırmızı eylem); aksi halde M3 [BuDialog].
+Future<bool> confirmDialog(BuildContext context, {required String title, required String text, required String action, bool danger = false, IconData? icon}) async {
+  if (!danger) {
+    return BuDialog.confirm(
+      context,
+      title: title,
+      message: text,
+      confirmLabel: action,
+      cancelLabel: context.l10n.acadCancel,
+      icon: icon ?? LucideIcons.triangleAlert,
+    );
+  }
+  final r = await BuDialog.show<bool>(
     context,
-    title: title,
-    message: text,
-    confirmLabel: action,
-    cancelLabel: context.l10n.acadCancel,
-    destructive: danger,
-    icon: icon ?? (danger ? LucideIcons.trash2 : LucideIcons.triangleAlert),
+    builder: (ctx) {
+      final t = ctx.bu;
+      final tx = Theme.of(ctx).textTheme;
+      return Dialog(
+        backgroundColor: t.sf3,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                child: ExcludeSemantics(child: Icon(icon ?? LucideIcons.trash2, size: 24, color: t.pr)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+            const SizedBox(height: 6),
+            Text(text, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+            const SizedBox(height: 20),
+            Row(children: [
+              Expanded(child: AkadTonalButton(label: ctx.l10n.acadCancel, onPressed: () => Navigator.pop(ctx, false))),
+              const SizedBox(width: 10),
+              Expanded(child: BuButton(label: action, icon: LucideIcons.trash2, onPressed: () => Navigator.pop(ctx, true))),
+            ]),
+          ]),
+        ),
+      );
+    },
   );
+  return r == true;
+}
+
+/// Marka renkli tarih seçici (M3): "Vazgeç" / "Seç"; seçilen gün ya da null.
+Future<DateTime?> pickAcadDate(BuildContext context, {required DateTime initial, required DateTime first, required DateTime last, String? help}) {
+  final l = context.l10n;
+  return showDatePicker(
+    context: context,
+    initialDate: initial.isBefore(first) ? first : (initial.isAfter(last) ? last : initial),
+    firstDate: first,
+    lastDate: last,
+    helpText: help ?? l.p17PickDateHelp,
+    cancelText: l.acadCancel,
+    confirmText: l.acadSelect,
+    builder: (c, child) => Theme(data: _pickerTheme(c), child: child!),
+  );
+}
+
+/// Seçici diyaloglarında "Seç" dolu marka düğmesi, "Vazgeç" koyu metin; gölge halkası yok.
+ThemeData _pickerTheme(BuildContext context) {
+  final t = context.bu;
+  final base = Theme.of(context);
+  final confirm = FilledButton.styleFrom(backgroundColor: t.pr, foregroundColor: t.onPr, minimumSize: const Size(72, 48));
+  final cancel = TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(72, 48));
+  return base.copyWith(
+    datePickerTheme: base.datePickerTheme.copyWith(elevation: 0, confirmButtonStyle: confirm, cancelButtonStyle: cancel),
+    timePickerTheme: base.timePickerTheme.copyWith(elevation: 0, confirmButtonStyle: confirm, cancelButtonStyle: cancel),
+  );
+}
+
+/// Marka renkli saat seçici (M3, 24 saat): seçilen dakika (0..1439) ya da null.
+Future<int?> pickAcadTime(BuildContext context, int current, {String? help}) async {
+  final l = context.l10n;
+  final r = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay(hour: current ~/ 60, minute: current % 60),
+    helpText: help,
+    cancelText: l.acadCancel,
+    confirmText: l.acadSelect,
+    builder: (c, child) => Theme(data: _pickerTheme(c), child: MediaQuery(data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true), child: child!)),
+  );
+  return r == null ? null : r.hour * 60 + r.minute;
 }
 
 /// Kısa bildirim ([BuToast]); varsayılan bilgi, hata için [kind] verin.

@@ -116,7 +116,7 @@ class _TimetablePageState extends State<TimetablePage> {
     final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
     if (!shared) {
       await Clipboard.setData(ClipboardData(text: ics));
-      if (mounted) academicToast(context, context.l10n.acadTimeExportCopied, kind: BuToastKind.success);
+      if (mounted) academicToast(context, isolateIcs(context.l10n.acadTimeExportCopied), kind: BuToastKind.success);
     }
   }
 
@@ -128,12 +128,21 @@ class _TimetablePageState extends State<TimetablePage> {
     return AcademicScaffold(
       title: l.acadTimeTitle,
       floatingActionButton: hasCourses
-          ? FloatingActionButton.extended(
-              heroTag: null,
-              tooltip: l.acadTimeAddCourse,
-              onPressed: () => _openForm(day: _day),
-              icon: const Icon(LucideIcons.plus),
-              label: Text(l.acadTimeAddCourse),
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: context.bu.pr.withValues(alpha: .3), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -4)]),
+              child: FloatingActionButton.extended(
+                heroTag: null,
+                elevation: 0,
+                focusElevation: 0,
+                hoverElevation: 0,
+                highlightElevation: 0,
+                tooltip: l.acadTimeAddCourse,
+                onPressed: () => _openForm(day: _day),
+                icon: const Icon(LucideIcons.plus),
+                label: Text(l.acadTimeAddCourse),
+              ),
             )
           : null,
       child: Column(children: [
@@ -203,7 +212,7 @@ class _TimetablePageState extends State<TimetablePage> {
           chip: dayName,
           trailing: list.isEmpty
               ? null
-              : Text(l.p17DayPlanned(list.length.toString()), maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)))),
+              : Text(l.p17DayPlanned(list.length.toString()), textAlign: TextAlign.end, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)))),
       const SizedBox(height: 12),
       if (outOfRange)
         _pad(TtInfoCard(icon: LucideIcons.calendarX, tileBg: t.sf2, tileFg: t.mut, title: l.acadTimeOutOfRange, body: l.p17OutOfRangeBody)),

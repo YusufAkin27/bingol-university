@@ -60,14 +60,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
     super.dispose();
   }
 
-  Future<int?> _pickTime(int current) async {
-    final r = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: current ~/ 60, minute: current % 60),
-      builder: (c, child) => MediaQuery(data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true), child: child!),
-    );
-    return r == null ? null : r.hour * 60 + r.minute;
-  }
+  Future<int?> _pickTime(int current, String help) => pickAcadTime(context, current, help: help);
 
   String _iso(int minutes) {
     final d = _day!;
@@ -195,13 +188,8 @@ class _ExamFormPageState extends State<ExamFormPage> {
                 value: _day == null ? null : fmtWallDateL(l, _day!),
                 onTap: () async {
                   final now = istanbulWall(academicClock());
-                  final d = await showDatePicker(
-                    context: context,
-                    initialDate: _day ?? DateTime(now.year, now.month, now.day),
-                    firstDate: DateTime(now.year - 1),
-                    lastDate: DateTime(now.year + 2),
-                    helpText: l.acadFormExamDate,
-                  );
+                  final d = await pickAcadDate(context,
+                      initial: _day ?? DateTime(now.year, now.month, now.day), first: DateTime(now.year - 1), last: DateTime(now.year + 2), help: l.acadFormExamDate);
                   if (d != null && mounted) setState(() => _day = DateTime.utc(d.year, d.month, d.day));
                 },
               ),
@@ -214,7 +202,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
                     label: l.acadFormStartTime,
                     value: hhmm(_start),
                     onTap: () async {
-                      final m = await _pickTime(_start);
+                      final m = await _pickTime(_start, l.acadFormStartTime);
                       if (m != null && mounted) setState(() => _start = m);
                     },
                   ),
@@ -228,7 +216,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
                     hint: l.acadSelect,
                     value: _end == null ? null : hhmm(_end!),
                     onTap: () async {
-                      final m = await _pickTime(_end ?? _start + 90);
+                      final m = await _pickTime(_end ?? _start + 90, l.acadFormEndTime);
                       if (m != null && mounted) setState(() => _end = m);
                     },
                   ),

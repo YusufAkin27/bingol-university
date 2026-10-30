@@ -354,8 +354,10 @@ class AkadTextField extends StatelessWidget {
     this.icon,
     this.onChanged,
     this.requiredMark = false,
+    this.trailingIcon,
   });
 
+  final IconData? trailingIcon; // alanın sonunda (kırmızı) simge
   final bool requiredMark; // etiketin sonunda kırmızı yıldız
   final String label;
   final TextEditingController controller;
@@ -392,7 +394,9 @@ class AkadTextField extends StatelessWidget {
                       child: Icon(icon, size: 18, color: t.mut)),
                 ),
           prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-          suffixIcon: error == null ? null : Icon(LucideIcons.circleAlert, size: 18, color: t.danger),
+          suffixIcon: error != null
+              ? Icon(LucideIcons.circleAlert, size: 18, color: t.danger)
+              : (trailingIcon == null ? null : Padding(padding: const EdgeInsetsDirectional.only(end: 14), child: Icon(trailingIcon, size: 18, color: t.pr))),
         ),
       ),
     ]);
@@ -413,8 +417,10 @@ class AkadPicker extends StatelessWidget {
     this.bold = false,
     this.error = false,
     this.requiredMark = false,
+    this.iconColor,
   });
 
+  final Color? iconColor; // sondaki simge rengi
   final bool requiredMark;
   final String label;
   final IconData icon; // sondaki simge
@@ -459,7 +465,7 @@ class AkadPicker extends StatelessWidget {
                     style: tx.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink, fontWeight: bold && value != null ? FontWeight.w700 : null)),
               ),
               const SizedBox(width: 8),
-              Icon(icon, size: 18, color: error ? t.danger : t.mut),
+              Icon(icon, size: 18, color: error ? t.danger : (iconColor ?? t.mut)),
             ]),
           ),
         ),
@@ -770,34 +776,67 @@ class AkadTitle extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return Semantics(
       header: true,
-      child: Row(children: [
-        Flexible(
-          flex: 5,
-          child: Text(text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: muted ? t.mut : t.ink)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(
+          child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            Text(text, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, fontSize: 20, color: muted ? t.mut : t.ink)),
+            if (count != null)
+              Container(
+                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                decoration: BoxDecoration(color: muted ? t.sf2 : t.soft, borderRadius: BuRadius.bPill),
+                child: Center(widthFactor: 1, child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.onSoft))),
+              ),
+            if (chip != null) AkadPill(chip!, bg: t.sf2, fg: t.mut),
+          ]),
         ),
-        if (count != null) ...[
-          const SizedBox(width: 8),
-          Container(
-            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: muted ? t.sf2 : t.soft, borderRadius: BuRadius.bPill),
-            child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.onSoft)),
-          ),
-        ],
-        if (chip != null) ...[
-          const SizedBox(width: 8),
-          Flexible(flex: 4, child: AkadPill(chip!, bg: t.sf2, fg: t.mut)),
-        ],
         if (trailing != null) ...[
           const SizedBox(width: 8),
-          Expanded(flex: 4, child: Align(alignment: AlignmentDirectional.centerEnd, child: trailing)),
-        ] else
-          const Spacer(),
+          ConstrainedBox(constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .4), child: trailing),
+        ],
       ]),
+    );
+  }
+}
+
+/// Gri tonlu ikincil düğme ("Vazgeç", "Mesaj gönder"): sf2 zemin, koyu yazı; isteğe bağlı simge ve yükseklik.
+class AkadTonalButton extends StatelessWidget {
+  const AkadTonalButton({super.key, required this.label, required this.onPressed, this.compact = false, this.icon, this.height = 48, this.busy = false});
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool compact, busy;
+  final IconData? icon;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final text = Text(label, maxLines: 1, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink));
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: busy ? null : onPressed,
+      child: BuPressable(
+        onTap: busy ? null : onPressed,
+        haptic: BuHaptic.selection,
+        child: Container(
+          constraints: BoxConstraints(minHeight: height),
+          padding: EdgeInsets.symmetric(horizontal: compact ? 22 : 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+          child: busy
+              ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.ink))
+              : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (icon != null) ...[Icon(icon, size: 18, color: t.ink), const SizedBox(width: 8)],
+                    text,
+                  ]),
+                ),
+        ),
+      ),
     );
   }
 }

@@ -252,12 +252,12 @@ void main() {
             expect(find.text('Mert Kaya'), findsOneWidget);
             expect(find.text('Takip et'), findsOneWidget);
             expect(find.text('Mesaj gönder'), findsOneWidget);
-            expect(find.textContaining('126 takipçi'), findsOneWidget);
-            expect(find.text('Gizli'), findsNWidgets(3));
+            expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '126');
+            expect(find.text('Gizli'), findsNWidgets(2)); // fakülte + sınıf (bölüm görünür)
             expect(find.text('GÖNDERİLER'), findsOneWidget);
-            await tester.tap(find.byTooltip('Diğer işlemler'));
-            await tester.pump(const Duration(milliseconds: 300));
-            expect(find.text('Raporla'), findsOneWidget);
+            await tester.tap(find.byKey(const ValueKey('profile-more')));
+            await tester.pump(const Duration(milliseconds: 500));
+            expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
             expect(find.text('Engelle'), findsOneWidget);
             _ok(tester);
             await unmount(tester);
@@ -279,7 +279,7 @@ void main() {
       expect(fe.count('PUT '), 0);
       expect(fe.count('follow-stats'), 0);
       expect(find.text('Takipte'), findsOneWidget);
-      expect(find.textContaining('6 takipçi'), findsOneWidget);
+      expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '6');
       // Karşı taraf da beni takip ediyor: takipleşme rozeti.
       expect(find.byKey(const ValueKey('followRelationPill')), findsOneWidget);
       expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
@@ -298,7 +298,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('followButton')));
       await settle(tester);
       expect(fe.count('DELETE /users/2/follow'), 1);
-      expect(find.textContaining('4 takipçi'), findsOneWidget);
+      expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '4');
       expect(find.text('Seni takip ediyor'), findsOneWidget);
       _ok(tester);
       await unmount(tester);
