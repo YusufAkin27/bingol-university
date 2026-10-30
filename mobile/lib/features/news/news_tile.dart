@@ -244,9 +244,15 @@ class NewsFeaturedCard extends StatelessWidget {
                 ),
                 // Dokunma yüzeyi: görselin üstünde; başlık/rozet/kaydet bunun üstüne çizilir.
                 Positioned.fill(
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(onTap: onTap, child: const SizedBox.expand()),
+                  child: Semantics(
+                    button: true,
+                    label: (item['title'] as String?) ?? '',
+                    excludeSemantics: true,
+                    onTap: onTap,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(onTap: onTap, child: const SizedBox.expand()),
+                    ),
                   ),
                 ),
                 PositionedDirectional(

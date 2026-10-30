@@ -36,7 +36,8 @@ String menuDishTitle(String s) {
       start = false;
     }
   }
-  return out.toString();
+  // Bağlaçlar küçük kalır: "Orman Kebabı ve Pirinç Pilavı".
+  return out.toString().replaceAll(' Ve ', ' ve ').replaceAll(' İle ', ' ile ');
 }
 
 /// Gün seçici: kaydırılabilir kısa gün kartları (hafta günü kısaltması + gün numarası).

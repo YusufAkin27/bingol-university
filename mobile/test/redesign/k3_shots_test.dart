@@ -193,6 +193,10 @@ final _shots = <_Shot>[
   _Shot('hb6b_kategori_bos', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', empty: true)),
   _Shot('hb6c_liste_hata', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER', fail: true)),
   _Shot('hb7_haber_yukleniyor', (b) => NewsListPage(session: makeSession(b)), () => _hbBackend('HABER'), slow: true),
+  _Shot('h3_ana_normal', (b) => Scaffold(body: HomeTab(session: makeSession(b)..displayName = 'Defne Kaya', onOpenTab: (i, {newsType}) {})),
+      _homeBackend, height: 1500),
+  _Shot('h4_ana_fotografli_resmi', (b) => Scaffold(body: HomeTab(session: makeSession(b)..displayName = 'Defne Kaya', onOpenTab: (i, {newsType}) {})),
+      () => _homeBackend(photo: true, official: true), height: 1500),
 ];
 
 String _ago(Duration d) => DateTime.now().subtract(d).toIso8601String();
@@ -375,6 +379,41 @@ FakeBackend _savedBackend({bool empty = false, bool fail = false}) {
   if (fail) b.fail('/bookmarks');
   return b;
 }
+
+FakeBackend _homeBackend({bool photo = false, bool official = false}) => FakeBackend()
+  ..on('/menu/today', {
+    'items': ['EZOGELİN ÇORBASI', 'ORMAN KEBABI VE PİRİNÇ PİLAVI', 'MEVSİM SALATA VE AYRAN', 'SÜTLAÇ'],
+    if (photo) 'imageUrl': 'https://img.invalid/menu.jpg',
+  })
+  ..on('/me/summary', {'unreadNotifications': 3, 'unreadMessages': 0, 'communities': 2, 'events': 1})
+  ..on('/news', {
+    'items': [
+      newsItem(1, type: 'HABER', title: 'Vize Haftası Kütüphane Gece Düzenlemesi', imageUrl: 'https://img.invalid/n1.jpg'),
+      newsItem(2, type: 'HABER', title: 'Bahar Kültür Şenlikleri Başlıyor', imageUrl: 'https://img.invalid/n2.jpg'),
+      newsItem(3, type: 'HABER', title: 'Mühendislik Fakültesi Yapay Zekâ Laboratuvarı Açıldı', imageUrl: null),
+    ],
+    'totalPages': 1,
+  })
+  ..on('/events/featured', official
+      ? {'id': 9, 'source': 'OFFICIAL', 'title': 'Kariyer Günleri', 'date': '2026-11-14', 'location': 'Kongre Merkezi'}
+      : {
+          'id': 4,
+          'source': 'USER',
+          'title': 'Kış Uykusu Film Gösterimi',
+          'startsAt': '2026-11-20T18:30:00',
+          'location': 'Amfi Tiyatro Alanı',
+          'communityName': 'BÜ Sinema Kulübü',
+          'goingCount': 340,
+          'capacity': 500,
+          'myRsvp': null,
+          'attendeesPreview': {
+            'avatars': [
+              {'userId': 1, 'displayName': 'Elif Aksoy'},
+              {'userId': 2, 'displayName': 'Burak Kaya'},
+              {'userId': 3, 'displayName': 'Mert Demir'},
+            ],
+          },
+        });
 
 class _Variant {
   const _Variant(this.suffix, this.dark, this.scale);

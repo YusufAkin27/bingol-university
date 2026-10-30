@@ -281,16 +281,16 @@ void main() {
         Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}));
 
     testWidgets('200: kapak, etiket, katilimci sayisi, RSVP', (tester) async {
-      useScreen(tester, kPhoneMedium);
+      useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()
         ..on('/events/featured', featured())
         ..on('/events/9/rsvp', {'myRsvp': 'GOING', 'goingCount': 43});
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
       expect(b.requests, contains('GET /events/featured'));
-      expect(find.text('En çok katılım'), findsOneWidget);
       expect(find.text('42 kişi katılıyor'), findsOneWidget);
-      expect(find.byType(EventCoverImage), findsOneWidget);
+      // Yeni ana sayfa kartı (referans 00): kapak görseli yok.
+      expect(find.byType(EventCoverImage), findsNothing);
       expect(find.text('Katılıyorum'), findsNothing);
       await tester.tap(find.text('Katıl'));
       await settle(tester, const Duration(milliseconds: 500));
@@ -306,18 +306,18 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('kapaksiz featured: hero kart, kapak widget yok', (tester) async {
-      useScreen(tester, kPhoneMedium);
+    testWidgets('kapaksiz featured: kapak widget yok', (tester) async {
+      useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()..on('/events/featured', featured(cover: null));
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('En çok katılım'), findsOneWidget);
+      expect(find.text('42 kişi katılıyor'), findsOneWidget);
       expect(find.byType(EventCoverImage), findsNothing);
       await unmount(tester);
     });
 
     testWidgets('204: bos durum', (tester) async {
-      useScreen(tester, kPhoneMedium);
+      useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()..on('/events/featured', null, status: 204);
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
@@ -327,7 +327,7 @@ void main() {
     });
 
     testWidgets('hata: bolum ici Tekrar dene, sayfa calismaya devam eder', (tester) async {
-      useScreen(tester, kPhoneMedium);
+      useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()
         ..fail('/events/featured')
         ..on('/menu/today', {'date': '2026-10-26', 'items': ['Pilav']});
@@ -339,7 +339,7 @@ void main() {
       await tester.tap(find.text('Tekrar dene'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Etkinlik yüklenemedi'), findsNothing);
-      expect(find.text('En çok katılım'), findsOneWidget);
+      expect(find.text('42 kişi katılıyor'), findsOneWidget);
       await unmount(tester);
     });
   });

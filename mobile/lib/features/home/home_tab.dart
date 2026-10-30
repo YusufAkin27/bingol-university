@@ -10,19 +10,19 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../academic/academic_hub_page.dart';
-import '../events/event_cover.dart';
 import '../events/event_detail_page.dart';
 import '../events/event_parts.dart';
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
 import '../menu/menu_page.dart';
+import '../menu/menu_parts.dart' show menuDishTitle;
 import '../menu/menu_photo.dart';
 import '../news/news_detail_page.dart';
-import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsTypeLabel;
+import '../news/news_list_page.dart';
+import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsTypeLabel, newsWeekdayName;
 import '../notifications/notifications_page.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
-import '../support/support_page.dart';
 import 'home_parts.dart';
 
 /// Ana sayfa: selamlama, arama, hızlı erişim, bugünün yemeği, (varsa) öne çıkan etkinlik, duyurular.
@@ -39,7 +39,7 @@ class HomeTab extends StatefulWidget {
 }
 
 /// Ana sayfada gösterilen liste türü (tasarım: yalnız "Duyurular").
-const _homeNewsType = 'DUYURU';
+const _homeNewsType = 'HABER';
 
 /// Öğle yemeği saatleri (yalnız öğle yemeği vardır; dilden bağımsız).
 const _lunchHours = '11:30 – 14:00';
@@ -203,7 +203,7 @@ class _HomeTabState extends State<HomeTab> {
       _newsFailed = false;
     });
     try {
-      final r = await _s.api.get('/news?type=$_homeNewsType&page=0&size=3') as Map<String, dynamic>;
+      final r = await _s.api.get('/news?type=$_homeNewsType&page=0&size=5') as Map<String, dynamic>;
       final l = List<Map<String, dynamic>>.from(r['items'] as List);
       _apply(gen, () => _news = l);
     } catch (_) {
@@ -346,63 +346,71 @@ class _HomeTabState extends State<HomeTab> {
       _header(context, afterBanner: banners.isNotEmpty),
       StaleLabel(cachedAt: _staleInfoAt ?? _staleMenuAt),
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         child: HomeSearchBox(hint: context.l10n.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
       ),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _quickAccess(context)),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 0), child: _mealCard(context)),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: _eventCard(context)),
+      Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _mealCard(context)),
+      Padding(padding: const EdgeInsets.fromLTRB(20, 22, 20, 0), child: _quickAccess(context)),
       _LazyOnce(onFirstBuild: _ensureNews, child: _newsSection(context)),
+      _eventSection(context),
     ];
   }
 
   Widget _newsSection(BuildContext context) {
+    final l = context.l10n;
     final news = _news;
     Widget list;
     if (news == null && (_newsLoading || !_newsFailed)) {
       list = const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
-        child: BuSkeletonScope(
-          child: Column(children: [
-            BuSkeleton(height: 72, radius: 20),
-            SizedBox(height: 10),
-            BuSkeleton(height: 72, radius: 20),
-          ]),
-        ),
+        child: BuSkeletonScope(child: BuSkeleton(height: 250, radius: 24)),
       );
     } else if (news == null) {
       list = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: HomeNewsStateCard(
-          emptyText: context.l10n.homeNoContent,
-          errorText: context.l10n.homeContentLoadFailed,
-          retryLabel: context.l10n.commonRetry,
+          emptyText: l.homeNoContent,
+          errorText: l.homeContentLoadFailed,
+          retryLabel: l.commonRetry,
           onRetry: _loadNews,
         ),
       );
     } else if (news.isEmpty) {
       list = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: HomeNewsStateCard(emptyText: context.l10n.homeNoContent),
+        child: HomeNewsStateCard(emptyText: l.homeNoContent),
       );
     } else {
-      list = Column(children: [
-        for (final n in news)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-            child: _newsRow(context, n),
-          ),
-      ]);
+      final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
+      list = SizedBox(
+        height: 150 + 122 * scale.clamp(1.0, 1.5),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: news.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, i) {
+            final n = news[i];
+            return HomeNewsCard(
+              title: (n['title'] as String?) ?? '',
+              tag: newsTypeLabel(context, n['type'] as String?),
+              dateText: newsLocalDate(context, n['publishedDate'] as String?),
+              imageUrl: n['imageUrl'] as String?,
+              onTap: () => _push(NewsDetailPage(session: _s, item: n)),
+            );
+          },
+        ),
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
           child: HomeSectionHeader(
-            title: context.l10n.anasayfaAnnouncements,
-            action: context.l10n.homeAll,
-            onAction: () => widget.onOpenTab(1, newsType: _homeNewsType),
+            title: l.p03HomeFeaturedNews,
+            action: l.homeAll,
+            onAction: () => _push(NewsListPage(session: _s)),
           ),
         ),
         list,
@@ -410,36 +418,19 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
+  /// Marka çubuğu (logo + BU KAMPÜS + zil + profil) ve selamlama.
   Widget _header(BuildContext context, {bool afterBanner = false}) {
     final t = context.bu;
     final l = context.l10n;
     final name = (_s.displayName ?? '').trim();
     return Padding(
       padding: EdgeInsets.fromLTRB(20, (afterBanner ? 0 : MediaQuery.of(context).padding.top) + 12, 20, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              button: true,
-              label: l.homeMyProfile,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => widget.onOpenTab(AppTab.profile),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_greeting(context), style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
-                    Text(name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ValueListenableBuilder<int>(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        HomeBrandHeader(
+          displayName: name.isEmpty ? null : name,
+          profileLabel: l.homeMyProfile,
+          onProfile: () => widget.onOpenTab(AppTab.profile),
+          bell: ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,
             builder: (_, n, __) => BuIconButton(
               icon: LucideIcons.bell,
@@ -448,34 +439,55 @@ class _HomeTabState extends State<HomeTab> {
               onTap: () => _push(NotificationsPage(session: _s)),
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 14),
+        Semantics(
+          button: true,
+          label: l.homeMyProfile,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => widget.onOpenTab(AppTab.profile),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_greeting(context), style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
+                Text(name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
+              ],
+            ),
+          ),
+        ),
+      ]),
     );
   }
 
-  String _eventWhen(BuildContext context, Map<String, dynamic> e) {
-    final d = DateTime.tryParse((e['startsAt'] as String?) ?? '')?.toLocal();
-    if (d == null) return '';
-    final hh = d.hour.toString().padLeft(2, '0');
-    final mm = d.minute.toString().padLeft(2, '0');
-    return '${d.day} ${newsMonthName(context, d.month)} · $hh:$mm';
+  /// "Yaklaşan Etkinlik" bölümü: başlık + kart (ya da boş/hata durumu).
+  Widget _eventSection(BuildContext context) {
+    final l = context.l10n;
+    final card = _eventCard(context);
+    final has = _event != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (has) HomeSectionHeader(title: l.p03HomeUpcoming, action: l.homeAll, onAction: () => _push(EventsPage(session: _s))),
+        card,
+      ]),
+    );
   }
 
   Widget _eventCard(BuildContext context) {
     final l = context.l10n;
     final e = _event;
     if (e == null && _eventFailed) {
-      return BuHeroCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _heroPill(LucideIcons.calendar, l.homeFeaturedEvent),
-            const SizedBox(height: 12),
-            Text(l.homeEventLoadFailedTitle, style: BuType.title.copyWith(height: 1.2)),
-            const SizedBox(height: 14),
-            _whitePill(l.commonRetryShort, _retryFeatured, busy: _eventRetrying),
-          ],
-        ),
+      return HomeEmptyCard(
+        title: l.p03HomeEventsTitle,
+        icon: LucideIcons.cloudOff,
+        headline: l.homeEventLoadFailedTitle,
+        body: '',
+        actionLabel: l.commonRetryShort,
+        onAction: _eventRetrying ? null : _retryFeatured,
       );
     }
     if (e == null) {
@@ -496,9 +508,45 @@ class _HomeTabState extends State<HomeTab> {
     final cap = (e['capacity'] as num?)?.toInt();
     final full = cap != null && going >= cap;
     final loc = (e['location'] as String?) ?? '';
-    final when = official ? newsLocalDate(context, e['date'] as String?) : _eventWhen(context, e);
-    final cover = official ? null : fileUrl(e['coverUrl'] as String?);
-    return GestureDetector(
+    final d = DateTime.tryParse((official ? e['date'] : e['startsAt']) as String? ?? '')?.toLocal();
+    final club = (e['communityName'] as String?)?.trim();
+    final hasTime = !official && d != null;
+    final when = d == null
+        ? null
+        : hasTime
+            ? '${newsWeekdayName(context, d.weekday)} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}'
+            : null;
+    Widget? footer;
+    if (!official) {
+      Widget action;
+      if (mine) {
+        action = BuButton(label: l.homeInMyEvents, icon: LucideIcons.check, kind: BuButtonKind.soft, compact: true, onPressed: _openMyEvents);
+      } else if (full) {
+        action = BuButton(label: l.homeFull, compact: true, kind: BuButtonKind.soft, onPressed: null);
+      } else if (e['registrationClosed'] == true) {
+        action = BuButton(label: l.homeRegClosed, compact: true, kind: BuButtonKind.soft, onPressed: null);
+      } else {
+        action = BuButton(label: l.homeJoin, compact: true, busy: _rsvpBusy, onPressed: id == null ? null : _join);
+      }
+      footer = Row(children: [
+        HomeAvatarStack(avatars: _avatars, total: going),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(going > 0 ? l.homeGoingCount(going.toString()) : l.homeBeFirst,
+              maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: context.bu.mut)),
+        ),
+        const SizedBox(width: 8),
+        action,
+      ]);
+    }
+    return HomeEventCard(
+      title: (e['title'] as String?) ?? '',
+      host: (!official && club != null && club.isNotEmpty) ? l.p03HomeHosts(club) : null,
+      month: d == null ? null : trUpper(newsMonthName(context, d.month)),
+      day: d == null ? null : '${d.day}',
+      whenLine: when,
+      location: loc,
+      footer: footer,
       onTap: id == null
           ? null
           : () => official
@@ -511,151 +559,45 @@ class _HomeTabState extends State<HomeTab> {
                   'url': e['url'],
                 }))
               : _push(EventDetailPage(session: _s, eventId: id)),
-      child: _heroShell(
-        cover,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(spacing: 8, runSpacing: 6, children: [
-              _heroPill(LucideIcons.calendar, official ? l.homeOfficialEvent : l.homeFeaturedEvent),
-              if (!official) _heroPill(LucideIcons.trendingUp, l.homeMostAttended),
-            ]),
-            const SizedBox(height: 10),
-            Text((e['title'] as String?) ?? '',
-                maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(height: 1.2)),
-            const SizedBox(height: 6),
-            Wrap(spacing: 14, runSpacing: 2, children: [
-              if (when.isNotEmpty) Text(when, style: BuType.caption),
-              if (loc.isNotEmpty)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: Text(loc, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption),
-                ),
-            ]),
-            const SizedBox(height: 14),
-            if (!official)
-              Row(children: [
-                if (_avatars.isNotEmpty)
-                  _AvatarStack(avatars: _avatars, total: going)
-                else
-                  Icon(LucideIcons.users, size: 14.5, color: context.bu.onMedia),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(going > 0 ? l.homeGoingCount(going.toString()) : l.homeBeFirst,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label),
-                ),
-                const SizedBox(width: 8),
-                if (mine)
-                  _whitePill(l.homeInMyEvents, _openMyEvents, check: true)
-                else if (full)
-                  _whitePill(l.homeFull, null)
-                else if (e['registrationClosed'] == true)
-                  _whitePill(l.homeRegClosed, null)
-                else
-                  _whitePill(l.homeJoin, id == null ? null : _join, busy: _rsvpBusy),
-              ]),
-          ],
-        ),
-      ),
     );
   }
 
-  /// Kapak varsa fotoğraf + koyu geçiş üstüne, yoksa kırmızı hero kart.
-  Widget _heroShell(String? cover, {required Widget child}) {
-    if (cover == null) return BuHeroCard(child: child);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(26),
-      child: Stack(
-        children: [
-          Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 900)),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [context.bu.scrim.withValues(alpha: .65), context.bu.scrim.withValues(alpha: .85)],
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-            child: DefaultTextStyle.merge(style: TextStyle(color: context.bu.onMedia), child: child),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _heroPill(IconData icon, String text) {
-    final t = context.bu;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .2), borderRadius: BorderRadius.circular(999)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 11.5, color: t.onMedia),
-        const SizedBox(width: 6),
-        Text(text, style: BuType.micro.copyWith(color: t.onMedia)),
-      ]),
-    );
-  }
-
-  Widget _whitePill(String label, VoidCallback? onTap, {bool busy = false, bool check = false}) {
-    final t = context.bu;
-    return Material(
-      color: t.onMedia.withValues(alpha: onTap == null ? .75 : 1),
-      shape: const StadiumBorder(),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: busy ? null : onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 44),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Center(
-              widthFactor: 1,
-              child: busy
-                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr))
-                  : Row(mainAxisSize: MainAxisSize.min, children: [
-                      if (check) ...[
-                        Icon(LucideIcons.check, size: 13.5, color: t.onSoft),
-                        const SizedBox(width: 4),
-                      ],
-                      Text(label, style: BuType.label.copyWith(color: t.onSoft)),
-                    ]),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Akademik / Yemek / Etkinlik / Destek.
+  /// Hızlı erişim: Haberler / Yemek / Etkinlikler / Kulüpler / Ders Programı (gerçek işlevler).
   Widget _quickAccess(BuildContext context) {
     final l = context.l10n;
+    final t = context.bu;
     final items = <(IconData, String, HomeTone, VoidCallback)>[
-      (LucideIcons.graduationCap, l.anasayfaQuickAcademic, HomeTone.red, () => _push(AcademicHubPage(session: _s))),
-      (LucideIcons.utensils, l.homeQuickFood, HomeTone.green, () => _push(MenuPage(session: _s))),
-      (LucideIcons.calendar, l.homeQuickEvent, HomeTone.blue, () => _push(EventsPage(session: _s))),
-      (LucideIcons.circleHelp, l.homeQuickSupport, HomeTone.amber, () => _push(SupportPage(session: _s))),
+      (LucideIcons.newspaper, l.icerikNewsTitle, HomeTone.red, () => _push(NewsListPage(session: _s))),
+      (LucideIcons.utensils, l.homeQuickFood, HomeTone.amber, () => _push(MenuPage(session: _s))),
+      (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.blue, () => _push(EventsPage(session: _s))),
+      (LucideIcons.users, l.navClubs, HomeTone.green, () => widget.onOpenTab(AppTab.clubs)),
+      (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.red, () => _push(AcademicHubPage(session: _s))),
     ];
-    return Row(
-      children: [
-        for (var i = 0; i < items.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(child: HomeQuickTile(icon: items[i].$1, label: items[i].$2, tone: items[i].$3, onTap: items[i].$4)),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 10),
+        child: Semantics(
+          header: true,
+          child: Text(l.p03HomeQuickTitle, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+        ),
+      ),
+      Row(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(child: HomeQuickTile(icon: items[i].$1, label: items[i].$2, tone: items[i].$3, onTap: items[i].$4)),
+          ],
         ],
-      ],
-    );
+      ),
+    ]);
   }
 
-  /// Bugünün (öğle) yemeği: fotoğrafsız kırmızı kart; fotoğraf varsa arka plan + koyu degrade.
+  /// Bugünün (öğle) yemeği: kırmızı vitrin kartı (fotoğraf varsa arka plan); liste yoksa boş durum kartı.
   Widget _mealCard(BuildContext context) {
+    final l = context.l10n;
     final today = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final items = today.items;
     if (items.isEmpty) {
-      final l = context.l10n;
       return HomeEmptyCard(
         title: l.p03HomeMealTitle,
         subtitle: l.yemekLunch,
@@ -667,27 +609,16 @@ class _HomeTabState extends State<HomeTab> {
     }
     return MenuPhotoGate(
       url: today.imageUrl,
-      builder: (context, photo) => HomeMealCard(
-        title: context.l10n.anasayfaMealLunch,
+      builder: (context, photo) => HomeMealHero(
+        chip: l.p03HomeLunchCount('${items.length}'),
+        title: l.p03HomeMealHeroTitle,
         time: _lunchHours,
-        text: items.isEmpty ? context.l10n.homeNoMenuToday : items.join(', '),
+        dishes: [for (final s in items) menuDishTitle(s)],
+        detailLabel: l.p03HomeMenuDetail,
         photo: photo,
-        photoLabel: context.l10n.menuPhotoLabel,
+        photoLabel: l.menuPhotoLabel,
         onTap: () => _push(MenuPage(session: _s)),
       ),
-    );
-  }
-
-  Widget _newsRow(BuildContext context, Map<String, dynamic> n) {
-    final type = n['type'] as String?;
-    final eventDate = type == 'ETKINLIK' ? n['eventDate'] as String? : null;
-    final dateText =
-        (eventDate != null && eventDate.isNotEmpty) ? fmtDate(eventDate) : fmtDate(n['publishedDate'] as String?);
-    final label = newsTypeLabel(context, type);
-    return HomeAnnouncementCard(
-      meta: dateText.isEmpty ? label : '$label · $dateText',
-      title: (n['title'] as String?) ?? '',
-      onTap: () => _push(NewsDetailPage(session: _s, item: n)),
     );
   }
 }
@@ -714,57 +645,4 @@ class _LazyOnceState extends State<_LazyOnce> {
 
   @override
   Widget build(BuildContext context) => widget.child;
-}
-
-/// Katılımcı avatar yığını (en çok 3) + kalan sayı.
-class _AvatarStack extends StatelessWidget {
-  const _AvatarStack({required this.avatars, required this.total});
-
-  final List<Map<String, dynamic>> avatars;
-  final int total;
-
-  static const _d = 26.0;
-  static const _step = 18.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final ring = t.pr;
-    final shown = avatars.take(3).toList();
-    final extra = total - shown.length;
-    final count = shown.length + (extra > 0 ? 1 : 0);
-    return SizedBox(
-      width: _d + _step * (count - 1),
-      height: _d,
-      child: Stack(
-        children: [
-          for (var i = 0; i < shown.length; i++)
-            PositionedDirectional(
-              start: i * _step,
-              child: Container(
-                width: _d,
-                height: _d,
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(shape: BoxShape.circle, color: ring),
-                child: BuAvatar(
-                    name: shown[i]['displayName'] as String?, url: shown[i]['avatarUrl'] as String?, size: _d - 4),
-              ),
-            ),
-          if (extra > 0)
-            PositionedDirectional(
-              start: shown.length * _step,
-              child: Container(
-                width: _d,
-                height: _d,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: t.ink, border: Border.all(color: ring, width: 2)),
-                child: Text(extra > 99 ? '99+' : '+$extra',
-                    maxLines: 1, style: BuType.micro.copyWith(color: t.bg)),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }

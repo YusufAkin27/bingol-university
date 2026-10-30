@@ -159,7 +159,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         if (!done) {
           bodyChild = const _ArticleSkeleton();
         } else if (snap.hasError) {
-          bodyChild = _NewsError(onRetry: () => setState(() => _detail = _fetch()));
+          bodyChild = _NewsError(onRetry: () => setState(() {
+            _detail = _fetch();
+          }));
         } else {
           bodyChild = _Article(content: hasText ? content : null);
         }
@@ -294,11 +296,20 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                             ])
                           else
                             Row(children: [
-                              badge,
-                              const Spacer(),
-                              Icon(LucideIcons.calendar, size: 15, color: t.mut),
-                              const SizedBox(width: 6),
-                              Text(published, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                              Flexible(child: badge),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                                  Icon(LucideIcons.calendar, size: 15, color: t.mut),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(published,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                                  ),
+                                ]),
+                              ),
                             ]),
                           const SizedBox(height: 14),
                           Semantics(
