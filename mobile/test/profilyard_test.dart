@@ -178,8 +178,11 @@ void main() {
     await _pump(tester, FeedbackPage(session: makeSession(_follow(followsMe: true))));
     expect(find.text('Öneri'), findsOneWidget);
     expect(find.text('Hata'), findsOneWidget);
-    expect(find.text('Diğer'), findsOneWidget);
-    expect(find.text('Gönder'), findsOneWidget);
+    expect(find.text('Şikâyet'), findsOneWidget);
+    expect(find.text('Teşekkür'), findsOneWidget);
+    // "Gönder" hem sekme etiketi (form | gönderdiklerim) hem form düğmesi.
+    expect(find.text('Gönder'), findsNWidgets(2));
+    expect(find.text('Gönderdiklerim'), findsWidgets);
     await tester.enterText(find.byType(TextField).last, 'Merhaba');
     await tester.pump();
     expect(find.text('7 / 1000'), findsOneWidget);
