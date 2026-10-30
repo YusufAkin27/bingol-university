@@ -156,7 +156,7 @@ void main() {
     final be = _be(_ev(policy: 'APPROVAL', capacity: 14));
     await _pump(tester, EventDetailPage(session: makeSession(be), eventId: 5), size: kPhoneMedium);
     expect(find.text('İstek ile katılım'), findsWidgets);
-    expect(find.textContaining('Etkinlik sohbeti · Onaylanınca açılır'), findsOneWidget);
+    expect(find.byKey(const ValueKey('et2-chat-locked')), findsOneWidget); // sohbet kilitli (onaylanınca açılır)
     expect(find.text('Katıl'), findsNothing); // alt çubuk yok
     be.on('/events/5', _ev(policy: 'APPROVAL', rsvp: 'PENDING', capacity: 14));
     be.on('/events/5/rsvp', {'myRsvp': 'PENDING', 'goingCount': 9, 'capacity': 14});
@@ -208,7 +208,7 @@ void main() {
     await _pump(tester, EventDetailPage(session: makeSession(be), eventId: 5), size: kPhoneMedium);
     await _reveal(tester, find.text('Katılım istekleri'));
     expect(find.text('Katılım istekleri'), findsOneWidget);
-    expect(find.text('3'), findsWidgets);
+    expect(find.text('3 bekleyen istek'), findsWidgets);
     expect(find.text('Yoklama kodu'), findsOneWidget);
     expect(find.text('Etkinlik ayarları'), findsOneWidget);
     _noErr(tester);

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'etkinlik2_widgets.dart';
 
 /// Katılma isteği formu cevapları.
@@ -16,11 +14,10 @@ class Etkinlik2ApplyAnswers {
 
 /// Organizatör soru tanımladıysa (400 `ANSWERS_REQUIRED`) cevapları toplar. İptalde `null`.
 Future<Etkinlik2ApplyAnswers?> showEtkinlik2ApplySheet(BuildContext context, List<String> questions) {
-  return showModalBottomSheet<Etkinlik2ApplyAnswers>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    backgroundColor: context.bu.sf,
+  return BuSheet.show<Etkinlik2ApplyAnswers>(
+    context,
+    title: context.l10n.etkinlik2SendRequest,
+    subtitle: context.l10n.etkinlik2RequestHint,
     builder: (c) => _ApplySheet(questions: questions),
   );
 }
@@ -36,8 +33,7 @@ class _ApplySheet extends StatefulWidget {
 
 class _ApplySheetState extends State<_ApplySheet> {
   final _note = TextEditingController();
-  late final List<TextEditingController> _answers =
-      [for (final _ in widget.questions) TextEditingController()];
+  late final List<TextEditingController> _answers = [for (final _ in widget.questions) TextEditingController()];
   String? _error;
 
   @override
@@ -59,49 +55,87 @@ class _ApplySheetState extends State<_ApplySheet> {
     Navigator.pop(context, Etkinlik2ApplyAnswers(note.isEmpty ? null : note, answers));
   }
 
+  InputDecoration _dec(BuildContext context, {String? hint}) {
+    final t = context.bu;
+    return InputDecoration(
+      counterText: '',
+      hintText: hint,
+      filled: true,
+      fillColor: t.sf2,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm + 2), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm + 2), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm + 2), borderSide: BorderSide(color: t.pr, width: 1.5)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(l.etkinlik2SendRequest, style: BuType.heading.copyWith(color: t.ink)),
-            const SizedBox(height: 12),
-            for (var i = 0; i < widget.questions.length; i++) ...[
-              Et2FieldLabel(widget.questions[i]),
-              TextField(
-                key: ValueKey('et2-answer-$i'),
-                controller: _answers[i],
-                maxLength: 500,
-                minLines: 1,
-                maxLines: 3,
-                style: BuType.body.copyWith(color: t.ink),
-                decoration: const InputDecoration(counterText: ''),
-              ),
-              const SizedBox(height: 10),
-            ],
-            Et2FieldLabel(l.etkinlik2NoteLabel),
-            TextField(
-              controller: _note,
-              maxLength: 500,
-              minLines: 1,
-              maxLines: 3,
-              style: BuType.body.copyWith(color: t.ink),
-              decoration: const InputDecoration(counterText: ''),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 8),
-              Text(_error!, style: BuType.label.copyWith(color: t.danger)),
-            ],
-            const SizedBox(height: 14),
-            BuButton(label: l.etkinlik2SendRequest, onPressed: _submit),
-          ]),
+    final tx = Theme.of(context).textTheme;
+    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (var i = 0; i < widget.questions.length; i++) ...[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6, top: 4),
+          child: Text(widget.questions[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
         ),
+        TextField(
+          key: ValueKey('et2-answer-$i'),
+          controller: _answers[i],
+          maxLength: 500,
+          minLines: 2,
+          maxLines: 4,
+          style: tx.bodyLarge!.copyWith(color: t.ink),
+          decoration: _dec(context),
+          onChanged: (_) {
+            if (_error != null) setState(() => _error = null);
+          },
+        ),
+        const SizedBox(height: 12),
+      ],
+      Padding(
+        padding: const EdgeInsets.only(bottom: 6, top: 4),
+        child: Text(l.etkinlik2NoteLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
       ),
-    );
+      TextField(
+        key: const ValueKey('et2-note'),
+        controller: _note,
+        maxLength: 500,
+        minLines: 1,
+        maxLines: 3,
+        style: tx.bodyLarge!.copyWith(color: t.ink),
+        decoration: _dec(context),
+      ),
+      if (_error != null) ...[
+        const SizedBox(height: 12),
+        Semantics(
+          liveRegion: true,
+          child: Container(
+            key: const ValueKey('et2-apply-error'),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.sm)),
+            child: Row(children: [
+              Icon(LucideIcons.circleAlert, size: 18, color: t.danger),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+            ]),
+          ),
+        ),
+      ],
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(
+          flex: 4,
+          child: Et2GreyButton(key: const ValueKey('et2-apply-cancel'), label: l.eventListDismiss, onPressed: () => Navigator.pop(context)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 7,
+          child: BuButton(key: const ValueKey('et2-apply-send'), label: l.etkinlik2SendRequest, onPressed: _submit),
+        ),
+      ]),
+      const SizedBox(height: 8),
+    ]);
   }
 }

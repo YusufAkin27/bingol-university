@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../chat/chat_detail_page.dart';
 import '../../widgets/report_sheet.dart';
@@ -19,11 +18,11 @@ import 'etkinlik2_qr_page.dart';
 import 'etkinlik2_requests_page.dart';
 import 'etkinlik2_settings_page.dart';
 import 'etkinlik2_widgets.dart';
+import 'etkinlik_parts.dart';
 import 'event_cover.dart';
 import 'event_form_page.dart';
 import 'event_parts.dart';
 import 'events_page.dart';
-import '../../core/typography.dart';
 
 /// Dile göre intl biçimi; yerel ayar verisi yoksa varsayılana düşer.
 String _fmtDate(BuildContext context, String pattern, DateTime d) {
@@ -32,13 +31,6 @@ String _fmtDate(BuildContext context, String pattern, DateTime d) {
   } catch (_) {
     return DateFormat(pattern).format(d);
   }
-}
-
-/// Kısa ay adı, büyük harf (Türkçede noktalı İ korunur).
-String _monthShortUpper(BuildContext context, DateTime d) {
-  final s = _fmtDate(context, 'MMM', d).replaceAll('.', '');
-  final isTr = Localizations.localeOf(context).languageCode == 'tr';
-  return (isTr ? s.replaceAll('i', 'İ') : s).toUpperCase();
 }
 
 /// Etkinlik detayı: bilgi, RSVP, yoklama, organizatör araçları ve etkinlik sohbeti.
@@ -57,7 +49,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Object? _error;
   bool _loading = true;
 
-  Map<String, dynamic>? _preview; // herkese açık: sayılar + en çok 8 avatar
   Map<String, dynamic>? _myAtt;
   List<Map<String, dynamic>> _attendance = []; // yalnızca organizatör: özet sayısı için
 
@@ -65,6 +56,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   bool _chatBusy = false;
   bool _checkBusy = false;
   bool _enterCode = false;
+  String? _codeError;
   final _codeCtl = TextEditingController();
 
   String get _path => '/events/${widget.eventId}';
@@ -122,10 +114,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
   /// İkincil veriler: hata verirse sayfa bozulmaz.
   Future<void> _loadExtras() async {
     final api = widget.session.api;
-    try {
-      final r = await api.get('$_path/attendees/preview');
-      if (mounted && r is Map) setState(() => _preview = Map<String, dynamic>.from(r));
-    } catch (_) {}
     if (_manage) {
       try {
         final r = await api.get('$_path/attendance');
@@ -143,9 +131,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   void _toast(String m) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(m)));
+    if (!mounted) return;
+    BuToast.show(context, m);
   }
 
   bool get _approval => _ev?['joinPolicy'] == 'APPROVAL';
@@ -239,6 +226,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       message: withdraw ? l.etkinlik2WithdrawMessage : l.eventFormLeaveMessage,
       confirmLabel: withdraw ? l.etkinlik2Withdraw : l.eventFormLeaveConfirm,
       danger: true,
+      icon: withdraw ? LucideIcons.undo2 : LucideIcons.calendarX,
     );
     if (!ok || !mounted) return;
     setState(() => _rsvpBusy = true);
@@ -279,6 +267,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             message: context.l10n.eventFormCancelMessage,
             confirmLabel: context.l10n.eventFormCancelAction,
             danger: true,
+            centered: true,
           );
           if (!ok || !mounted) return;
           await api.delete(_path);
@@ -328,45 +317,52 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (mounted) _loadExtras();
   }
 
-  Future<void> _checkIn() async {
-    await _submitCode(_codeCtl.text);
-  }
-
-  /// QR ile tara; kod başka bir etkinliğe aitse uyar.
-  Future<void> _scan() async {
-    final raw = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle)),
-    );
-    if (raw != null && mounted) await _submitCode(raw);
-  }
-
-  /// Kod biçimi "bingol-checkin:{etkinlikId}.{pencere}.{imza}"; önek elle girişte olmayabilir.
-  Future<void> _submitCode(String raw) async {
+  /// QR tarayıcı sayfasındaki doğrulama kancası: hata metni dönerse sayfada kalır, null = yoklama alındı.
+  Future<String?> _verifyScanned(String raw) async {
+    final l = context.l10n;
     var code = raw.trim();
     const prefix = 'bingol-checkin:';
     if (code.startsWith(prefix)) code = code.substring(prefix.length);
-    if (code.isEmpty || _checkBusy) return;
+    if (code.isEmpty) return l.eventListNotCode;
     final id = int.tryParse(code.split('.').first);
-    if (id != null && id != widget.eventId) {
-      _toast(context.l10n.eventFormWrongEventCode);
-      return;
-    }
-    setState(() => _checkBusy = true);
+    if (id == null) return l.eventListNotCode;
+    if (id != widget.eventId) return l.eventFormWrongEventCode;
     try {
       final r = await widget.session.api.post('$_path/check-in', {'code': code});
-      if (!mounted) return;
-      setState(() {
-        _myAtt = Map<String, dynamic>.from(r as Map);
+      if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
+      return null;
+    } catch (e) {
+      return errorText(e);
+    }
+  }
+
+  /// QR ile tara (doğrulama tarayıcı sayfasında yapılır).
+  Future<void> _scan() async {
+    await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle, onSubmit: _verifyScanned)),
+    );
+  }
+
+  /// Elle girilen kod: hata alanın altında kırmızı gösterilir.
+  Future<void> _checkIn() async {
+    if (_checkBusy) return;
+    final raw = _codeCtl.text.trim();
+    if (raw.isEmpty) return;
+    setState(() {
+      _checkBusy = true;
+      _codeError = null;
+    });
+    final err = await _verifyScanned(raw);
+    if (!mounted) return;
+    setState(() {
+      _checkBusy = false;
+      _codeError = err;
+      if (err == null) {
         _enterCode = false;
         _codeCtl.clear();
-      });
-      _toast(context.l10n.eventFormCheckedIn);
-    } catch (e) {
-      _toast(errorText(e));
-    } finally {
-      if (mounted) setState(() => _checkBusy = false);
-    }
+      }
+    });
   }
 
   Future<void> _openChat() async {
@@ -395,23 +391,48 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
+  void _report() => ReportSheet.show(context, widget.session,
+      targetType: 'EVENT', targetId: widget.eventId, title: context.l10n.eventFormReportEvent);
+
+  // ---- görünüm ----
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     Widget body;
     if (_loading) {
-      body = const LoadingView();
+      body = _DetailSkeleton(title: l.eventFormEventTitle);
     } else if (_ev == null && _error is ApiError && (_error as ApiError).status == 404) {
       body = Column(children: [
-        BuHeader(title: context.l10n.eventFormEventTitle, onBack: () => Navigator.pop(context)),
-        Expanded(child: EmptyView(icon: LucideIcons.calendarX, text: context.l10n.eventFormNotFound)),
+        BuHeader(title: l.eventFormEventTitle, onBack: () => Navigator.pop(context)),
+        Expanded(child: EmptyView(icon: LucideIcons.calendarX, text: l.eventFormNotFound)),
       ]);
     } else if (_ev == null) {
       body = ErrorView(error: _error ?? 'hata', onRetry: _load);
     } else {
       body = RefreshIndicator(
+        color: t.pr,
         onRefresh: () => _load(refresh: true),
-        child: ListView(padding: EdgeInsets.zero, children: _content(context)),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              centerTitle: true,
+              backgroundColor: t.bg,
+              scrolledUnderElevation: 0,
+              title: Text(l.eventFormEventTitle),
+              actions: [_menu(), const SizedBox(width: 4)],
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _content(context)),
+              ),
+            ),
+          ],
+        ),
       );
     }
     return Scaffold(
@@ -427,114 +448,199 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  /// Altta sabit eylem çubuğu (yalnız herkese açık katılımda): "Katıl" ya da "Etkinliklerimde" + "İlgileniyorum".
-  /// İstek ile katılımda eylemler içerikteki kartta durur (bkz. [_requestCard]).
-  Widget? _actionBar() {
-    if (_approval) return null;
+  /// Sağ üst "⋯": organizatörde yönetim menüsü, diğerlerinde "Etkinliği şikâyet et".
+  Widget _menu() {
     final t = context.bu;
-    final ev = _ev!;
+    final l = context.l10n;
+    final ev = _ev;
+    if (ev == null) return const SizedBox.shrink();
     final closed = eventIsClosed(ev);
-    final rsvp = _rsvp;
-    Widget main;
-    if (rsvp == 'GOING') {
-      main = EventJoinedChip(large: true, onTap: _openMine);
-    } else if (closed) {
-      main = BuButton(label: context.l10n.eventFormRegsClosed, icon: LucideIcons.lock, kind: BuButtonKind.soft);
-    } else {
-      main = BuButton(
-        label: context.l10n.eventFormJoin,
-        icon: LucideIcons.check,
-        busy: _rsvpBusy,
-        onPressed: _rsvpBusy ? null : () => _join('GOING'),
+    if (_manage && !eventIsCancelled(ev)) {
+      return PopupMenuButton<String>(
+        tooltip: l.eventFormManage,
+        icon: Icon(LucideIcons.ellipsis, color: t.ink),
+        onSelected: _manageAction,
+        itemBuilder: (_) => [
+          PopupMenuItem(
+              value: 'edit',
+              child: Row(children: [Icon(LucideIcons.pencil, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.eventFormEdit)])),
+          PopupMenuItem(
+              value: 'settings',
+              child: Row(children: [Icon(LucideIcons.settings, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.etkinlik2ManageSettings)])),
+          PopupMenuItem(
+              value: closed ? 'reopen' : 'close',
+              child: Row(children: [
+                Icon(closed ? LucideIcons.lockOpen : LucideIcons.lock, size: 18, color: t.ink),
+                const SizedBox(width: 12),
+                Text(closed ? l.eventFormReopenRegs : l.eventFormCloseRegs),
+              ])),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+              value: 'cancel',
+              child: Row(children: [
+                Icon(LucideIcons.trash2, size: 18, color: t.danger),
+                const SizedBox(width: 12),
+                Text(l.eventFormCancelAction, style: TextStyle(color: t.danger, fontWeight: FontWeight.w700)),
+              ])),
+        ],
       );
     }
-    final showInterest = rsvp != 'GOING' && !closed;
-    final narrow = MediaQuery.of(context).size.width < 360;
+    if (_manage) return const SizedBox.shrink();
+    return PopupMenuButton<String>(
+      tooltip: l.eventFormReport,
+      icon: Icon(LucideIcons.ellipsis, color: t.ink),
+      onSelected: (_) => _report(),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+            value: 'report',
+            child: Row(children: [Icon(LucideIcons.flag, size: 18, color: t.danger), const SizedBox(width: 12), Text(l.eventFormReportEvent)])),
+      ],
+    );
+  }
+
+  /// Altta sabit eylem çubuğu (yalnız herkese açık katılımda).
+  /// Katıldıysa "Katılımdan ayrıl"; değilse "İlgileniyorum" + "Katıl". Kapalı/dolu durumda ilgili düğme pasiftir.
+  Widget? _actionBar() {
+    if (_approval) return null;
+    final l = context.l10n;
+    final ev = _ev!;
+    final closed = eventIsClosed(ev);
+    final cap = (ev['capacity'] as num?)?.toInt();
+    final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
+    final rsvp = _rsvp;
+    final full = cap != null && going >= cap && rsvp != 'GOING';
+    if (rsvp == 'GOING') {
+      return Et2BottomBar(
+        child: EtkinlikActionButton(
+          key: const ValueKey('detail-leave'),
+          label: l.eventFormLeaveTitle,
+          icon: LucideIcons.calendarX,
+          big: true,
+          grey: true,
+          onTap: _rsvpBusy ? null : _leave,
+        ),
+      );
+    }
+    final interested = rsvp == 'INTERESTED';
     return Et2BottomBar(
       child: Row(children: [
-        Expanded(child: main),
-        if (showInterest) ...[
-          const SizedBox(width: 10),
-          rsvp == 'INTERESTED'
-              ? EventStatusTag(context.l10n.eventFormInterested, tone: EventTone.warn)
-              : Semantics(
-                  button: true,
-                  label: context.l10n.eventFormInterested,
-                  excludeSemantics: true,
-                  onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
-                  child: Material(
-                    color: t.sf,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18), side: BorderSide(color: t.bd, width: 1.5)),
-                    child: InkWell(
-                      customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      onTap: _rsvpBusy ? null : () => _join('INTERESTED'),
-                      child: Container(
-                        height: 56,
-                        constraints: const BoxConstraints(minWidth: 56),
-                        padding: EdgeInsets.symmetric(horizontal: narrow ? 0 : 16),
-                        child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(LucideIcons.star, size: 20, color: t.pr),
-                          if (!narrow) ...[
-                            const SizedBox(width: 8),
-                            Text(context.l10n.eventFormInterested,
-                                style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                          ],
-                        ]),
-                      ),
-                    ),
-                  ),
-                ),
-        ],
+        Expanded(
+          flex: 5,
+          child: EtkinlikActionButton(
+            key: const ValueKey('detail-interested'),
+            label: l.eventFormInterested,
+            icon: interested ? LucideIcons.star : LucideIcons.star,
+            big: true,
+            selected: interested,
+            onTap: (_rsvpBusy || closed) ? null : (interested ? _unInterested : () => _join('INTERESTED')),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 6,
+          child: EtkinlikActionButton(
+            key: const ValueKey('detail-join'),
+            label: l.eventFormJoin,
+            icon: (closed || full) ? LucideIcons.lock : LucideIcons.circleCheck,
+            primary: true,
+            big: true,
+            busy: _rsvpBusy && !interested,
+            onTap: (_rsvpBusy || closed || full) ? null : () => _join('GOING'),
+          ),
+        ),
       ]),
     );
+  }
+
+  /// "İlgileniyorum" seçiliyken tekrar dokunmak ilgiyi geri alır (onaysız; DELETE rsvp).
+  Future<void> _unInterested() async {
+    if (_rsvpBusy) return;
+    setState(() => _rsvpBusy = true);
+    try {
+      await widget.session.api.delete('$_path/rsvp');
+      if (mounted) setState(() => _rsvpBusy = false);
+      await _load(refresh: true);
+    } catch (e) {
+      if (mounted) setState(() => _rsvpBusy = false);
+      _toast(eventErrorText(e));
+    }
   }
 
   /// İstek ile katılım kartı: istek yok / gönderildi / reddedildi / kayıt kapalı.
   Widget _requestCard() {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final rsvp = _rsvp;
-    if (rsvp == 'GOING') {
-      return EventJoinedChip(large: true, onTap: _openMine);
-    }
+    if (rsvp == 'GOING') return const SizedBox.shrink();
     if (rsvp == 'PENDING') {
-      return BuCard(
-        padding: const EdgeInsets.all(12),
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(20)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
-              child: Icon(LucideIcons.clock, size: 20, color: t.ink),
+            ExcludeSemantics(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.warn.withValues(alpha: .18), shape: BoxShape.circle),
+                child: Icon(LucideIcons.hourglass, size: 22, color: t.onWarnSoft),
+              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.etkinlik2RequestSent, style: BuType.bodyStrong.copyWith(color: t.ink)),
-                Text(l.etkinlik2AwaitingReply, style: BuType.caption.copyWith(color: t.mut)),
+                Text(l.etkinlik2RequestSent, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft)),
+                Text(l.etkinlik2AwaitingReply, style: tx.bodyMedium!.copyWith(color: t.onWarnSoft.withValues(alpha: .85))),
               ]),
             ),
           ]),
-          const SizedBox(height: 10),
-          Et2GhostButton(
+          const SizedBox(height: 12),
+          Et2GreyButton(
             key: const ValueKey('et2-withdraw'),
             label: l.etkinlik2Withdraw,
-            busy: _rsvpBusy,
             onPressed: _rsvpBusy ? null : () => _leave(withdraw: true),
           ),
         ]),
       );
     }
     if (rsvp == 'REJECTED') {
-      return Et2Banner(icon: LucideIcons.circleX, title: l.etkinlik2RejectedTitle, text: l.etkinlik2RejectedBody);
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
+                child: Icon(LucideIcons.x, size: 22, color: t.onPr),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.etkinlik2RejectedTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+                const SizedBox(height: 2),
+                Text(l.etkinlik2RejectedBody, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.danger)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 14),
+          EtkinlikInkButton(
+            key: const ValueKey('et2-browse'),
+            label: l.eventListDiscover,
+            icon: LucideIcons.compass,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session))),
+          ),
+        ]),
+      );
     }
-    if (eventIsClosed(_ev!)) {
-      return BuButton(label: l.eventFormRegsClosed, icon: LucideIcons.lock, kind: BuButtonKind.soft);
-    }
+    if (eventIsClosed(_ev!)) return const SizedBox.shrink();
     return BuCard(
-      padding: const EdgeInsets.all(12),
+      radius: 20,
+      padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         BuButton(
           key: const ValueKey('et2-request-send'),
@@ -544,18 +650,39 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(2, 8, 2, 0),
-          child: Text(l.etkinlik2RequestHint, style: BuType.caption.copyWith(height: 1.4, color: t.mut)),
+          child: Text(l.etkinlik2RequestHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
         ),
       ]),
     );
   }
 
-  Widget _circleBtn(IconData icon, String label, VoidCallback? onTap) =>
-      Et2CircleButton(icon: icon, label: label, onTap: onTap);
+  Widget _iconRow(IconData icon, String title, {String? sub, Widget? trailing}) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Row(children: [
+      ExcludeSemantics(
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, size: 20, color: t.pr),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
+        ]),
+      ),
+      if (trailing != null) trailing,
+    ]);
+  }
 
   List<Widget> _content(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final ev = _ev!;
     final starts = DateTime.tryParse('${ev['startsAt']}')?.toLocal();
     final ends = DateTime.tryParse('${ev['endsAt']}')?.toLocal();
@@ -569,313 +696,284 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
     final interested = (ev['interestedCount'] as num?)?.toInt();
     final cap = (ev['capacity'] as num?)?.toInt();
-    final full = cap != null && going >= cap;
     final rsvp = _rsvp;
+    final full = cap != null && going >= cap && rsvp != 'GOING';
     final closed = eventIsClosed(ev);
     final cancelled = eventIsCancelled(ev);
-    final pad = MediaQuery.of(context).padding;
-    final policyTag = _approval ? l.etkinlik2PolicyApprovalTag : l.etkinlik2PolicyOpen;
-    final capSub = _approval
-        ? (closed ? l.eventFormRegsClosed : l.etkinlik2ApprovalByOrganizer)
-        : (closed
-            ? l.eventFormRegsClosed
-            : (full ? null : l.etkinlik2RegOpenSlots('${cap == null ? 0 : cap - going}')));
+    final pendingReview = eventIsPendingReview(ev);
+    final rejected = eventIsRejected(ev);
+    final member = rsvp == 'GOING' || _manage;
 
-    return [
-      // Kapak / gradyan hero
-      Container(
-        height: 250,
-        decoration: BoxDecoration(gradient: cover == null ? t.hero : null),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            if (cover != null) Positioned.fill(child: EventCoverImage(url: cover, cacheWidth: 1000)),
-            // Geri/menü düğmeleri ve tarih kutusu her kapakta okunur: üstte ve altta koyu geçiş.
-            if (cover != null)
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFF171E33).withValues(alpha: .45),
-                        const Color(0xFF171E33).withValues(alpha: 0),
-                        const Color(0xFF171E33).withValues(alpha: .65),
-                      ],
-                      stops: const [0, .38, 1],
-                    ),
-                  ),
-                ),
-              ),
-            if (cover == null) ...[
-              PositionedDirectional(end: -40, top: -50, child: _circle(200, .15)),
-              PositionedDirectional(start: 30, bottom: -70, child: _circle(160, .10)),
-            ],
+    // Durum hapları
+    final pills = <Widget>[
+      if (cancelled) EventStatusTag(l.eventFormCancelledPill, tone: EventTone.danger, icon: LucideIcons.circleX),
+      if (pendingReview) EventStatusTag(l.evcStatusPending, tone: EventTone.warn, icon: LucideIcons.hourglass),
+      if (rejected) EventStatusTag(l.evcStatusRejected, tone: EventTone.danger, icon: LucideIcons.circleAlert),
+      if (!cancelled && _approval) EventStatusTag(l.etkinlik2PolicyApprovalTag, tone: EventTone.brand),
+      if (!cancelled && rsvp == 'GOING') ...[
+        EventStatusTag(_approval ? l.etkinlik2ApprovedTag : l.eventFormInMine, tone: EventTone.ok, icon: LucideIcons.circleCheck),
+        EventStatusTag(l.eventFormGoingLabel, tone: EventTone.neutral, icon: LucideIcons.checkCheck),
+      ],
+      if (!cancelled && rsvp == 'INTERESTED') EventStatusTag(l.p15StatusInterested, tone: EventTone.warn, icon: LucideIcons.circleCheck),
+      if (!cancelled && closed) EventStatusTag(l.eventFormRegsClosed, tone: EventTone.neutral, icon: LucideIcons.lock),
+      if (!cancelled && !closed && !full && !_approval && rsvp == null && cap != null)
+        EventStatusTag(l.etkinlik2RegOpenSlots('${cap - going}'), tone: EventTone.brand, icon: LucideIcons.zap),
+    ];
+
+    final Widget cover0 = ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(fit: StackFit.expand, children: [
+          if (cover != null) EventCoverImage(url: cover, cacheWidth: 1000) else const EventCoverFallback(),
+          if (!cancelled && closed)
             PositionedDirectional(
-              start: 20,
-              top: pad.top + 12,
-              child: _circleBtn(buDirIcon(context, LucideIcons.arrowLeft), l.eventFormBack, () => Navigator.pop(context)),
+              start: 12,
+              top: 12,
+              child: _OverlayChip(label: l.eventFormRegsClosed, icon: LucideIcons.lock),
+            )
+          else if (!cancelled && full)
+            PositionedDirectional(
+              start: 12,
+              top: 12,
+              child: _OverlayChip(label: l.eventFormCapacityFull, icon: LucideIcons.ban, danger: true),
             ),
-            if (_manage && !cancelled)
-              PositionedDirectional(
-                end: 20,
-                top: pad.top + 12,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                      popupMenuTheme: PopupMenuThemeData(color: t.sf, surfaceTintColor: Colors.transparent)),
-                  child: PopupMenuButton<String>(
-                    tooltip: l.eventFormManage,
-                    onSelected: _manageAction,
-                    itemBuilder: (_) => [
-                      PopupMenuItem(value: 'edit', child: Text(l.eventFormEdit)),
-                      PopupMenuItem(value: 'settings', child: Text(l.etkinlik2ManageSettings)),
-                      PopupMenuItem(
-                          value: closed ? 'reopen' : 'close',
-                          child: Text(closed ? l.eventFormReopenRegs : l.eventFormCloseRegs)),
-                      PopupMenuItem(
-                          value: 'cancel', child: Text(l.eventFormCancelAction, style: TextStyle(color: t.danger))),
-                    ],
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                          color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-                      child: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
+        ]),
+      ),
+    );
+
+    final Widget info = BuCard(
+      radius: 20,
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (pills.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: Wrap(spacing: 8, runSpacing: 6, children: pills)),
+        Text('${ev['title'] ?? ''}',
+            style: tx.headlineSmall!.copyWith(
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+              color: cancelled ? t.mut : t.ink,
+              decoration: cancelled ? TextDecoration.lineThrough : null,
+            )),
+        if ((club != null && club.isNotEmpty) || orgName.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Semantics(
+            button: cid != null,
+            child: BuPressable(
+              onTap: cid == null
+                  ? null
+                  : () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
+              enabled: cid != null,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
+                child: Row(children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+                    child: Icon(LucideIcons.users, size: 16, color: t.bg),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(style: tx.bodyMedium!.copyWith(color: t.mut), children: [
+                        TextSpan(text: (club != null && club.isNotEmpty) ? '${l.eventFormOrganizedBy} ' : '${l.etkinlik2Organizer}: '),
+                        TextSpan(
+                            text: (club != null && club.isNotEmpty) ? club : orgName,
+                            style: TextStyle(fontWeight: FontWeight.w700, color: cid == null ? t.ink : t.pr)),
+                      ]),
                     ),
                   ),
-                ),
-              )
-            else if (!_manage)
-              PositionedDirectional(
-                end: 20,
-                top: pad.top + 12,
-                child: _circleBtn(
-                  LucideIcons.flag,
-                  l.eventFormReport,
-                  () => ReportSheet.show(context, widget.session,
-                      targetType: 'EVENT', targetId: widget.eventId, title: l.eventFormReportEvent),
-                ),
-              ),
-            if (starts != null)
-              PositionedDirectional(
-                start: 20,
-                bottom: 6,
-                child: Et2DateChip(month: _monthShortUpper(context, starts), day: '${starts.day}'),
-              ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Organizatör satırı + katılım türü etiketi
-          Container(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Row(children: [
-              BuAvatar(name: orgName, url: fileUrl(org?['avatarUrl'] as String?), size: 36),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  if (orgName.isNotEmpty)
-                    Text(orgName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                  Text(l.etkinlik2Organizer,
-                      style: BuType.caption.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                  if (cid != null) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
                 ]),
               ),
-              const SizedBox(width: 8),
-              Flexible(flex: 0, child: Et2Tag(policyTag)),
-            ]),
+            ),
           ),
-          const SizedBox(height: 6),
-          Wrap(spacing: 6, runSpacing: 6, children: [
-            if (cancelled) _Pill(l.eventFormCancelledPill, warn: true),
-            if (eventIsPendingReview(ev)) _Pill(l.evcStatusPending),
-            if (eventIsRejected(ev)) _Pill(l.evcStatusRejected, warn: true),
-            if (!cancelled && closed) _Pill(l.eventFormRegsClosed),
-            if (rsvp == 'GOING')
-              _Pill(l.eventFormInMine, ok: true)
-            else if (rsvp == 'INTERESTED')
-              _Pill(l.eventFormInterested),
-          ]),
-          if (eventIsPendingReview(ev) || eventIsRejected(ev)) ...[
-            const SizedBox(height: 8),
-            Text(
-                eventIsPendingReview(ev)
-                    ? l.evcInfoReview
-                    : (eventRejectReason(ev) == null ? '' : l.evcRejectReason(eventRejectReason(ev)!)),
-                style: BuType.caption.copyWith(color: t.mut)),
-          ],
-          if (rsvp == 'GOING' || rsvp == 'INTERESTED' || cancelled || closed) const SizedBox(height: 8),
-          Text('${ev['title'] ?? ''}',
-              // Detayda başlık kesilmez (sayfa kayar); tam metin her zaman okunur.
-              style: BuType.title.copyWith(fontSize: 24, fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
-          if (club != null && club.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: GestureDetector(
-                onTap: cid == null
-                    ? null
-                    : () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
-                child: Text.rich(TextSpan(style: BuType.caption.copyWith(color: t.mut), children: [
-                  TextSpan(text: '${l.eventFormOrganizedBy} '),
-                  TextSpan(
-                      text: club,
-                      style: TextStyle(
-                          fontWeight: cid == null ? FontWeight.w400 : FontWeight.w700,
-                          color: cid == null ? t.mut : t.pr)),
-                ])),
+        ],
+        const SizedBox(height: 14),
+        if (starts != null)
+          _iconRow(
+            LucideIcons.calendarDays,
+            '${_fmtDate(context, 'd MMMM y', starts)} · ${ends == null ? _hm(starts) : '${_hm(starts)} - ${_hm(ends)}'}',
+            sub: _fmtDate(context, 'EEEE', starts),
+          ),
+        if (location != null && location.isNotEmpty) ...[
+          if (starts != null) const SizedBox(height: 10),
+          _iconRow(LucideIcons.mapPin, location),
+        ],
+        const SizedBox(height: 14),
+        _capacityBlock(going: going, interested: interested, cap: cap, full: full, closed: closed),
+      ]),
+    );
+
+    final Widget chat = _chatRow(member: member);
+
+    return [
+      cover0,
+      const SizedBox(height: 12),
+      info,
+      if (cancelled) ...[
+        const SizedBox(height: 12),
+        Container(
+          key: const ValueKey('detail-cancelled'),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
+          child: Row(children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
+                child: Icon(LucideIcons.info, size: 20, color: t.onPr),
               ),
             ),
-        ]),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-        child: BuCard(
-          radius: 20,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-          child: Column(children: [
-            if (starts != null)
-              Et2InfoRow(
-                icon: LucideIcons.calendarDays,
-                title: _fmtDate(context, 'd MMMM y, EEEE', starts),
-                sub: ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}',
-              ),
-            if (location != null && location.isNotEmpty)
-              Et2InfoRow(icon: LucideIcons.mapPin, title: location, top: starts != null),
-            if (cap != null)
-              Et2InfoRow(
-                icon: LucideIcons.users,
-                title: full ? l.eventFormCapacityFull : l.eventFormCapacityCount(going.toString(), cap.toString()),
-                sub: capSub,
-                top: true,
-              )
-            else if (_approval)
-              Et2InfoRow(
-                icon: LucideIcons.users,
-                title: l.etkinlik2PolicyApprovalTag,
-                sub: closed ? l.eventFormRegsClosed : l.etkinlik2ApprovalByOrganizer,
-                top: true,
-              ),
-          ]),
-        ),
-      ),
-      if (desc != null && desc.trim().isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
-          child: Text(desc, style: BuType.body.copyWith(fontSize: 14.5, height: 1.55, color: t.ink)),
-        ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-        child: Row(children: [
-          if (_avatars.isNotEmpty) ...[
-            _avatarStack(),
             const SizedBox(width: 12),
-          ],
-          Expanded(
-            child: Text(
-              interested != null
-                  ? l.etkinlik2GoingInterested('$going', '$interested')
-                  : l.etkinlik2GoingOnly('$going'),
-              style: BuType.caption.copyWith(fontWeight: FontWeight.w600, color: t.mut),
-            ),
-          ),
-        ]),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (full && rsvp != 'GOING' && !_approval)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Text(l.eventFormFullHint, style: BuType.caption.copyWith(color: t.danger)),
-            ),
-          if (_approval && !_manage && !cancelled) ...[
-            _requestCard(),
-            const SizedBox(height: 10),
-          ],
-          if (rsvp == 'GOING') ...[_attendanceBlock(), const SizedBox(height: 10)],
-          if (!cancelled) _chatButton(),
-          if (rsvp == 'GOING' || rsvp == 'INTERESTED') ...[
+            Expanded(child: Text(l.p15CancelledNotice, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger))),
+          ]),
+        ),
+      ],
+      if (eventIsPendingReview(ev) || rejected) ...[
+        const SizedBox(height: 12),
+        Text(
+            eventIsPendingReview(ev)
+                ? l.evcInfoReview
+                : (eventRejectReason(ev) == null ? '' : l.evcRejectReason(eventRejectReason(ev)!)),
+            style: tx.bodySmall!.copyWith(color: t.mut)),
+      ],
+      if (_approval && !_manage && !cancelled && !pendingReview && !rejected && rsvp != 'GOING') ...[
+        const SizedBox(height: 12),
+        _requestCard(),
+      ],
+      if (rsvp == 'GOING' && !cancelled) ...[
+        const SizedBox(height: 12),
+        _attendanceBlock(),
+      ],
+      if (!cancelled) ...[
+        const SizedBox(height: 12),
+        chat,
+      ],
+      if (desc != null && desc.trim().isNotEmpty) ...[
+        const SizedBox(height: 12),
+        BuCard(
+          radius: 20,
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l.p15AboutTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
             const SizedBox(height: 8),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: _rsvpBusy ? null : _leave,
-                child: Text(l.eventFormManageJoin, style: BuType.label.copyWith(color: t.mut)),
-              ),
-            ),
-          ],
-          if (_manage) ...[
-            const SizedBox(height: 18),
-            _manageBlock(),
-          ],
-          const SizedBox(height: 32),
-        ]),
-      ),
+            Text(desc, style: tx.bodyMedium!.copyWith(height: 1.55, color: t.mut)),
+          ]),
+        ),
+      ],
+      if (_approval && rsvp == 'GOING' && !cancelled) ...[
+        const SizedBox(height: 12),
+        Et2GreyButton(key: const ValueKey('detail-leave-approval'), label: l.eventFormLeaveTitle, icon: LucideIcons.calendarX, onPressed: _rsvpBusy ? null : _leave),
+      ],
+      if (_manage) ...[
+        const SizedBox(height: 16),
+        _manageBlock(),
+      ],
     ];
   }
 
-  /// Etkinlik sohbeti: açık (herkese açıkta herkes; istek ile katılımda yalnız üye/organizatör) ya da kilitli.
-  Widget _chatButton() {
+  /// Kontenjan bloğu: "Kontenjan: 34 / 50" + doluluk + çubuk; sayaç satırı; doluysa uyarı.
+  Widget _capacityBlock({required int going, required int? interested, required int? cap, required bool full, required bool closed}) {
+    final t = context.bu;
     final l = context.l10n;
-    final member = _rsvp == 'GOING' || _manage;
-    if (_approval && !member) {
-      return Et2GhostButton(
-        key: const ValueKey('et2-chat-locked'),
-        label: l.etkinlik2ChatLocked,
-        icon: LucideIcons.lock,
-        locked: true,
-      );
-    }
-    return Et2GhostButton(
-      label: l.eventFormChat,
-      icon: LucideIcons.messageCircle,
-      busy: _chatBusy,
-      onPressed: _openChat,
+    final tx = Theme.of(context).textTheme;
+    final pct = cap == null || cap == 0 ? 0 : ((going / cap) * 100).round().clamp(0, 100);
+    final counts = interested != null ? l.etkinlik2GoingInterested('$going', '$interested') : l.etkinlik2GoingOnly('$going');
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (cap != null) ...[
+          Row(children: [
+            ExcludeSemantics(child: Icon(LucideIcons.users, size: 18, color: t.pr)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(l.eventFormCapacityCount('$going', '$cap'),
+                    style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              ),
+            ),
+            if (full)
+              EventStatusTag(l.eventFormCapacityFull, tone: EventTone.danger)
+            else
+              Text(l.p15PercentFull('$pct'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+          ]),
+          const SizedBox(height: 10),
+          Et2Progress(fraction: cap == 0 ? 1 : going / cap, height: 8),
+          const SizedBox(height: 10),
+        ],
+        Row(children: [
+          ExcludeSemantics(child: Icon(LucideIcons.users, size: 15, color: t.mut)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(counts, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+        ]),
+        if (full && !_approval)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(12)),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(LucideIcons.info, size: 16, color: t.mut),
+                const SizedBox(width: 8),
+                Expanded(child: Text(l.eventFormFullHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
+              ]),
+            ),
+          ),
+        if (_approval && !closed)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(children: [
+              Icon(LucideIcons.userCheck, size: 15, color: t.mut),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l.etkinlik2ApprovalByOrganizer, style: tx.bodySmall!.copyWith(color: t.mut))),
+            ]),
+          ),
+      ]),
     );
   }
 
-  Widget _circle(double s, double a) => Container(
-      width: s, height: s, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: a)));
-
-  List<Map<String, dynamic>> get _avatars => _list(_preview?['avatars']);
-
-  Widget _avatarStack() {
-    final shown = _avatars.take(8).toList();
-    final total = (_preview?['goingCount'] as num?)?.toInt() ?? (_ev?['goingCount'] as num? ?? 0).toInt();
-    final more = total - shown.length;
+  /// Etkinlik sohbeti: açık (herkese açıkta herkes; istek ile katılımda yalnız üye/organizatör) ya da kilitli.
+  Widget _chatRow({required bool member}) {
     final t = context.bu;
-    const size = 30.0;
-    return SizedBox(
-      height: size,
-      width: size + (shown.length - 1) * 20 + (more > 0 ? 34 : 0),
-      child: Stack(children: [
-        for (var i = 0; i < shown.length; i++)
-          PositionedDirectional(
-            start: i * 20.0,
-            child: Container(
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
-              child: BuAvatar(
-                  name: shown[i]['displayName'] as String?,
-                  url: fileUrl(shown[i]['avatarUrl'] as String?),
-                  size: size - 4),
-            ),
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final locked = _approval && !member;
+    return BuCard(
+      key: ValueKey(locked ? 'et2-chat-locked' : 'detail-chat'),
+      radius: 20,
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 10, 12),
+      onTap: locked || _chatBusy ? null : _openChat,
+      child: Row(children: [
+        ExcludeSemantics(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: locked ? t.sf2 : t.soft, borderRadius: BorderRadius.circular(14)),
+            child: Icon(locked ? LucideIcons.lock : LucideIcons.messagesSquare, size: 22, color: locked ? t.mut : t.pr),
           ),
-        if (more > 0)
-          PositionedDirectional(
-            start: shown.length * 20.0 + 6,
-            child: Container(
-              height: size,
-              alignment: Alignment.center,
-              child: Text('+$more', style: BuType.label.copyWith(color: t.mut)),
-            ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l.eventFormChat, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: locked ? t.mut : t.ink)),
+            Text(locked ? l.p15ChatLockedSub : l.p15ChatSub, style: tx.bodySmall!.copyWith(color: t.mut)),
+          ]),
+        ),
+        if (!locked)
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: _chatBusy
+                ? const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2))
+                : Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.ink),
           ),
       ]),
     );
@@ -883,58 +981,121 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
   Widget _attendanceBlock() {
     final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final att = _myAtt;
     if (att == null) return const SizedBox.shrink();
     if (att['present'] == true) {
       return Container(
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(23)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.circleCheck, size: 16, color: t.ok),
-          const SizedBox(width: 8),
-          Text(context.l10n.eventFormCheckedIn, style: BuType.bodyStrong.copyWith(color: t.ok)),
+        key: const ValueKey('detail-checked-in'),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(20)),
+        child: Row(children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle),
+            child: Icon(LucideIcons.check, size: 24, color: t.onPr),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.eventFormCheckedIn, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ok)),
+              Text(l.p15CheckedInBody, style: tx.bodyMedium!.copyWith(color: t.ok)),
+            ]),
+          ),
         ]),
       );
     }
-    if (att['checkInOpen'] != true) {
-      return Text(context.l10n.eventFormCheckInLater, style: BuType.caption.copyWith(color: t.mut));
-    }
-    if (!_enterCode) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        BuButton(label: context.l10n.eventFormScanQr, icon: LucideIcons.scanLine, busy: _checkBusy, onPressed: _scan),
-        const SizedBox(height: 8),
-        BuButton(
-            label: context.l10n.eventFormEnterCode,
-            icon: LucideIcons.qrCode,
-            kind: BuButtonKind.outline,
-            onPressed: () => setState(() => _enterCode = true)),
-      ]);
-    }
+    final open = att['checkInOpen'] == true;
     return BuCard(
+      key: const ValueKey('detail-attendance'),
+      radius: 20,
+      padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(context.l10n.eventFormEnterOrganizerCode,
-            style: BuType.label.copyWith(color: t.ink)),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _codeCtl,
-          autofocus: true,
-          textCapitalization: TextCapitalization.none,
-          autocorrect: false,
-          enableSuggestions: false,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _checkIn(),
-          style: BuType.bodyStrong.copyWith(color: t.ink),
-          decoration: InputDecoration(
-            hintText: context.l10n.eventFormCheckInCode,
-            hintStyle: TextStyle(color: t.mut),
-            filled: true,
-            fillColor: t.sf2,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        Row(children: [
+          if (open)
+            Container(width: 10, height: 10, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle))
+          else
+            ExcludeSemantics(
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: Icon(LucideIcons.clock, size: 20, color: t.ink),
+              ),
+            ),
+          SizedBox(width: open ? 10 : 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.etkinlik2AttendanceLabel, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              if (!open) Text(l.eventFormCheckInLater, style: tx.bodySmall!.copyWith(color: t.mut)),
+            ]),
           ),
-        ),
-        const SizedBox(height: 10),
-        BuButton(label: context.l10n.eventFormSendCheckIn, busy: _checkBusy, onPressed: _checkIn),
+        ]),
+        if (open) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(LucideIcons.info, size: 16, color: t.pr),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l.p15AttOpenHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          BuButton(key: const ValueKey('detail-scan'), label: l.eventFormScanQr, icon: LucideIcons.scanLine, onPressed: _scan),
+          const SizedBox(height: 8),
+          Et2GreyButton(
+            key: const ValueKey('detail-enter-code'),
+            label: l.eventFormEnterCode,
+            icon: LucideIcons.keyboard,
+            onPressed: () => setState(() => _enterCode = !_enterCode),
+          ),
+          if (_enterCode) ...[
+            const SizedBox(height: 14),
+            Text(l.eventFormCheckInCode, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            Text(l.eventFormEnterOrganizerCode, style: tx.bodySmall!.copyWith(color: t.mut)),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('detail-code-field'),
+              controller: _codeCtl,
+              autofocus: true,
+              textCapitalization: TextCapitalization.none,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.done,
+              onChanged: (_) {
+                if (_codeError != null) setState(() => _codeError = null);
+              },
+              onSubmitted: (_) => _checkIn(),
+              textAlign: TextAlign.center,
+              style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 2, color: t.ink),
+              decoration: InputDecoration(
+                hintText: 'K7M4QX',
+                hintStyle: tx.titleMedium!.copyWith(color: t.mut.withValues(alpha: .6), letterSpacing: 2),
+                filled: true,
+                fillColor: t.sf2,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            if (_codeError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Icon(LucideIcons.circleAlert, size: 16, color: t.danger),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(_codeError!, key: const ValueKey('detail-code-error'), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w600))),
+                  ]),
+                ),
+              ),
+            const SizedBox(height: 10),
+            EtkinlikInkButton(label: l.eventFormSendCheckIn, icon: LucideIcons.userCheck, onTap: _checkBusy ? () {} : _checkIn),
+          ],
+        ],
       ]),
     );
   }
@@ -942,36 +1103,63 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Widget _manageBlock() {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final present = _attendance.where((r) => r['present'] == true).length;
     final total = _attendance.length;
     final pending = (_ev?['pendingCount'] as num?)?.toInt() ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(l.etkinlik2ManageSection, style: BuType.heading.copyWith(color: t.ink)),
-      const SizedBox(height: 10),
       BuCard(
-        padding: EdgeInsets.zero,
-        child: Column(children: [
-          Et2NavRow(
+        radius: 20,
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Et2IconBox(LucideIcons.userCheck, size: 40, tint: t.tint(1)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.p16QrStatusTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                Text(total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
+                    key: const ValueKey('detail-att-summary'), style: tx.bodySmall!.copyWith(color: t.mut)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          Et2Progress(fraction: total == 0 ? 0 : present / total, height: 8),
+          const SizedBox(height: 12),
+          EtkinlikActionButton(
+            key: const ValueKey('detail-open-qr'),
+            label: l.eventFormCheckInCode,
             icon: LucideIcons.qrCode,
-            title: l.eventFormCheckInCode,
-            sub: total == 0 ? l.eventFormNoAttendance : l.etkinlik2PresentOf('$present', '$total'),
             onTap: _openQr,
           ),
+        ]),
+      ),
+      const SizedBox(height: 12),
+      BuCard(
+        radius: 20,
+        padding: EdgeInsets.zero,
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(l.etkinlik2ManageSection, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            ),
+          ),
+          if (_approval)
+            Et2NavRow(
+              icon: LucideIcons.userCheck,
+              title: l.etkinlik2ManageRequests,
+              sub: pending == 0 ? l.etkinlik2ManageNoPending : null,
+              badge: pending > 0 ? l.etkinlik2ManagePending('$pending') : null,
+              onTap: _openRequests,
+            ),
           Et2NavRow(
-            top: true,
+            top: _approval,
             icon: LucideIcons.clipboardCheck,
             title: l.etkinlik2ManageAttendance,
             onTap: _openAttendance,
           ),
-          if (_approval)
-            Et2NavRow(
-              top: true,
-              icon: LucideIcons.userCheck,
-              title: l.etkinlik2ManageRequests,
-              sub: pending == 0 ? l.etkinlik2ManageNoPending : l.etkinlik2ManagePending('$pending'),
-              badge: pending > 0 ? '$pending' : null,
-              onTap: _openRequests,
-            ),
           Et2NavRow(
             top: true,
             icon: LucideIcons.settings,
@@ -987,26 +1175,68 @@ class _EventDetailPageState extends State<EventDetailPage> {
   static String _hm(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill(this.text, {this.ok = false, this.warn = false});
+/// Kapak üstü yarı saydam hap ("Kayıtlar kapalı" / "Kontenjan doldu").
+class _OverlayChip extends StatelessWidget {
+  const _OverlayChip({required this.label, required this.icon, this.danger = false});
 
-  final String text;
-  final bool ok;
-  final bool warn;
+  final String label;
+  final IconData icon;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        decoration: BoxDecoration(
-            color: ok ? t.okSoft : (warn ? t.danger.withValues(alpha: .14) : t.soft),
-            borderRadius: BorderRadius.circular(999)),
-        child: Text(text,
-            style: BuType.micro.copyWith(color: ok ? t.ok : (warn ? t.danger : t.onSoft))),
-      ),
+    final bg = danger ? t.danger : BuTokens.light.sf.withValues(alpha: .95);
+    final fg = danger ? t.onPr : BuTokens.light.ink;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 14, color: fg),
+        const SizedBox(width: 6),
+        Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+      ]),
     );
+  }
+}
+
+/// Yükleniyor iskeleti: başlıklı çubuk + kapak + bilgi kartı.
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Column(children: [
+      BuHeader(title: title, onBack: () => Navigator.pop(context)),
+      Expanded(
+        child: BuSkeletonScope(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const AspectRatio(aspectRatio: 16 / 9, child: BuSkeleton(radius: 20)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+                child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  BuSkeleton(width: 120, height: 20, radius: 10),
+                  SizedBox(height: 12),
+                  BuSkeleton.line(height: 24),
+                  SizedBox(height: 12),
+                  BuSkeleton(height: 48, radius: 14),
+                  SizedBox(height: 14),
+                  BuSkeleton.line(width: 200, height: 16),
+                  SizedBox(height: 10),
+                  BuSkeleton.line(width: 160, height: 16),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    ]);
   }
 }
