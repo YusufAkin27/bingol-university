@@ -4,24 +4,17 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 import 'chat_media.dart';
 import 'media_pick.dart';
-import 'message_bubble.dart' show OnceBadge;
 
-const _kBg = Color(0xFF0E1322);
-
-/// Gönderim öncesi tam ekran önizleme: sayfa sayfa gezinme, küçük resim şeridi (kaldırma),
-/// açıklama alanı ve her fotoğrafta "tek gönderimlik" (1) düğmesi. Gönderince [MediaSendPlan] döner.
+/// Gönderim öncesi tam ekran önizleme (Stitch 25-4): sayfa sayfa gezinme, "1 / 3" sayacı, açıklama alanı,
+/// "Tek gönderimlik" hapı, küçük resim şeridi ve "N öğeyi gönder". Gönderince [MediaSendPlan] döner;
+/// kapatılırsa null (seçici seçimi korur). Medya sahnesi her temada koyudur.
 class MediaPreviewPage extends StatefulWidget {
-  const MediaPreviewPage({super.key, required this.picks, this.onChanged});
+  const MediaPreviewPage({super.key, required this.picks});
 
   final List<MediaPick> picks;
-
-  /// Öğe kaldırılınca kalan liste bildirilir (seçici senkron kalsın).
-  final ValueChanged<List<MediaPick>>? onChanged;
 
   @override
   State<MediaPreviewPage> createState() => _MediaPreviewPageState();
@@ -34,6 +27,14 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   final _caption = TextEditingController();
   final _full = <String, Future<Uint8List?>>{};
   int _index = 0;
+
+  /// Marka rengi: medya sahnesi koyu olsa da uygulamanın (açık/koyu) kırmızısı kullanılır.
+  Color _pr = const Color(0x00000000);
+  Color _onPr = const Color(0x00000000);
+
+  /// "Tek gönderimlik: alıcı yalnızca bir kez görebilir" bildirimi (kapatılabilir, kısa süre sonra kendiliğinden gider).
+  bool _note = false;
+  Timer? _noteOff;
 
   @override
   void dispose() {
@@ -51,46 +52,35 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
         return p.thumb(1080);
       });
 
-  /// Gönder düğmesini örtmesin diye SnackBar yerine sayfa içi kısa bildirim.
-  String? _note;
-  Timer? _noteOff;
-
-  void _toast(String msg) {
-    setState(() => _note = msg);
+  void _showNote() {
+    setState(() => _note = true);
     _noteOff?.cancel();
-    _noteOff = Timer(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _note = null);
+    _noteOff = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _note = false);
     });
+  }
+
+  void _hideNote() {
+    _noteOff?.cancel();
+    setState(() => _note = false);
   }
 
   void _toggleOnce(MediaPick p) {
     if (p.isVideo) return;
-    setState(() {
-      if (!_once.remove(p.key)) {
-        _once.add(p.key);
-        _toast(context.l10n.chatMiscOnceToast);
-      }
-    });
+    buHaptic(BuHaptic.light);
+    if (_once.contains(p.key)) {
+      setState(() => _once.remove(p.key));
+      _hideNote();
+    } else {
+      setState(() => _once.add(p.key));
+      _showNote();
+    }
   }
 
   void _goto(int i) {
+    buHaptic();
     setState(() => _index = i);
-    _page.animateToPage(i, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-  }
-
-  void _remove(int i) {
-    final p = _picks[i];
-    setState(() {
-      _picks.removeAt(i);
-      _once.remove(p.key);
-      if (_index >= _picks.length) _index = _picks.length - 1;
-    });
-    widget.onChanged?.call(List.of(_picks));
-    if (_picks.isEmpty) {
-      Navigator.pop(context);
-      return;
-    }
-    if (_page.hasClients) _page.jumpToPage(_index);
+    _page.animateToPage(i, duration: BuMotion.of(context, BuMotion.short), curve: BuMotion.standard);
   }
 
   void _send() {
@@ -103,195 +93,165 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
+    final outer = context.bu;
+    _pr = outer.pr;
+    _onPr = outer.onPr;
+    // Koyu belirteçler: medya sahnesi her temada koyu.
+    final dark = BuTheme.forLocale(Brightness.dark, Localizations.localeOf(context).languageCode);
     return Theme(
-      data: Theme.of(context).copyWith(brightness: Brightness.dark),
-      child: Scaffold(
-        backgroundColor: _kBg,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
-              child: Row(children: [
-                Semantics(
-                  button: true,
-                  label: l.chatMiscClose,
-                  child: GestureDetector(
-                    key: const ValueKey('previewClose'),
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.x, size: 20, color: Colors.white),
+      data: dark,
+      child: Builder(builder: (context) {
+        final t = context.bu;
+        return Scaffold(
+          backgroundColor: t.bg,
+          resizeToAvoidBottomInset: true,
+          body: Stack(children: [
+            // Üstte hafif marka parıltısı (referans: bulanık kırmızı halka).
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(0, -1.05),
+                      radius: .8,
+                      colors: [_pr.withValues(alpha: .16), _pr.withValues(alpha: 0)],
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Text('${_picks.isEmpty ? 0 : _index + 1}/${_picks.length}',
-                      key: const ValueKey('previewCounter'),
-                      textAlign: TextAlign.center,
-                      style: BuType.heading.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-                ),
-                SizedBox(
-                  width: 44,
-                  child: Text('${_picks.length}/10',
-                      key: const ValueKey('previewLimit'),
-                      textAlign: TextAlign.end,
-                      style: BuType.label.copyWith(color: const Color(0xFFC9CEDC))),
-                ),
-              ]),
-            ),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                decoration: BoxDecoration(color: const Color(0xFF171E33), borderRadius: BorderRadius.circular(20)),
-                clipBehavior: Clip.antiAlias,
-                child: PageView.builder(
-                  key: const ValueKey('previewPages'),
-                  controller: _page,
-                  itemCount: _picks.length,
-                  onPageChanged: (i) => setState(() => _index = i),
-                  itemBuilder: (c, i) => _pageFor(t, i),
-                ),
               ),
             ),
-            if (_note != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  key: const ValueKey('previewNote'),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), borderRadius: BorderRadius.circular(12)),
-                  child: Text(_note!, textAlign: TextAlign.center, style: BuType.label.copyWith(color: Colors.white)),
-                ),
-              ),
-            _strip(t),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Expanded(
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 48),
-                    padding: const EdgeInsetsDirectional.only(start: 18, end: 18),
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), borderRadius: BorderRadius.circular(24)),
-                    alignment: Alignment.center,
-                    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                      const Icon(LucideIcons.textAlignStart, size: 18, color: Color(0xFFD5D9E6)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          key: const ValueKey('previewCaption'),
-                          controller: _caption,
-                          minLines: 1,
-                          maxLines: 4,
-                          maxLength: 1000,
-                          buildCounter: (c, {required currentLength, required isFocused, maxLength}) => null,
-                          textCapitalization: TextCapitalization.sentences,
-                          style: BuType.body.copyWith(color: Colors.white, fontSize: 15),
-                          cursorColor: Colors.white,
-                          decoration: InputDecoration(
-                            isCollapsed: true,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            filled: false,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                            hintText: l.chatMiscAddCaption,
-                            hintStyle: BuType.body.copyWith(color: const Color(0xFFD5D9E6), fontSize: 15),
-                          ),
-                        ),
-                      ),
-                    ]),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Semantics(
-                  button: true,
-                  label: l.sohbetmedyaSendItems(_picks.length.toString()),
-                  child: GestureDetector(
-                    key: const ValueKey('previewSend'),
-                    onTap: _send,
-                    child: SizedBox(
-                      width: 52,
-                      height: 52,
-                      child: Stack(clipBehavior: Clip.none, children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: t.pr,
-                            shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .4), blurRadius: 20, offset: const Offset(0, 10), spreadRadius: -10)],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(Directionality.of(context) == TextDirection.rtl ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
-                              size: 22, color: t.onPr),
-                        ),
-                        PositionedDirectional(
-                          top: -4,
-                          end: -4,
-                          child: Container(
-                            constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(11),
-                              border: Border.all(color: _kBg, width: 2),
-                            ),
-                            child: Text('${_picks.length}',
-                                style: BuType.label.copyWith(color: t.pr, fontWeight: FontWeight.w800, height: 1.1)),
-                          ),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
+            SafeArea(
+              child: Column(children: [
+                _topBar(context),
+                Expanded(child: _canvas(context)),
+                _controls(context),
+                _strip(context),
+                _sendButton(context),
               ]),
             ),
           ]),
-        ),
+        );
+      }),
+    );
+  }
+
+  Widget _topBar(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
+      child: SizedBox(
+        height: 48,
+        child: Stack(alignment: Alignment.center, children: [
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Semantics(
+              button: true,
+              label: l.chatMiscClose,
+              excludeSemantics: true,
+              child: BuPressable(
+                key: const ValueKey('previewClose'),
+                onTap: () => Navigator.pop(context),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
+                      child: Icon(LucideIcons.x, size: 20, color: t.onMedia),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BuRadius.bPill),
+            child: Text('${_picks.isEmpty ? 0 : _index + 1} / ${_picks.length}',
+                key: const ValueKey('previewCounter'),
+                textDirection: TextDirection.ltr,
+                style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w600, letterSpacing: .6)),
+          ),
+        ]),
       ),
     );
   }
 
-  Widget _pageFor(BuTokens t, int i) {
+  /// 4:5 oranlı, 24 dp köşeli ana tuval; sığmazsa (klavye, küçük ekran) oranı koruyarak küçülür.
+  Widget _canvas(BuildContext context) {
+    final t = context.bu;
+    return LayoutBuilder(builder: (context, c) {
+      final maxW = c.maxWidth - 32;
+      final w = maxW < c.maxHeight * .8 ? maxW : c.maxHeight * .8;
+      return Center(
+        child: SizedBox(
+          width: w < 0 ? 0 : w,
+          height: w < 0 ? 0 : w / .8,
+          child: Container(
+            decoration: BoxDecoration(
+              color: t.scrim,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(fit: StackFit.expand, children: [
+              PageView.builder(
+                key: const ValueKey('previewPages'),
+                controller: _page,
+                itemCount: _picks.length,
+                onPageChanged: (i) => setState(() => _index = i),
+                itemBuilder: (c, i) => _pageFor(c, i),
+              ),
+              // Alttan koyulaşan örtü (referans: primary/90 -> saydam -> primary/30).
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [t.scrim.withValues(alpha: .6), t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .2)],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _pageFor(BuildContext context, int i) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final p = _picks[i];
-    final on = _once.contains(p.key);
     return Stack(fit: StackFit.expand, children: [
       FutureBuilder<Uint8List?>(
         future: _fullOf(p),
-        builder: (c, s) => s.data == null
-            ? const Center(child: CircularProgressIndicator(color: Colors.white54))
-            : Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
-                Image.memory(s.data!, fit: BoxFit.contain, gaplessPlayback: true),
-                if (p.isVideo)
-                  Center(
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.play, color: Colors.white, size: 23.5),
+        builder: (c, s) => AnimatedSwitcher(
+          duration: BuMotion.of(context, BuMotion.medium),
+          child: s.data == null
+              ? Center(
+                  key: const ValueKey('loading'),
+                  child: Icon(p.isVideo ? LucideIcons.video : LucideIcons.image, size: 36, color: t.onMedia.withValues(alpha: .4)),
+                )
+              : Stack(key: const ValueKey('ready'), alignment: Alignment.center, fit: StackFit.expand, children: [
+                  Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 1080),
+                  if (p.isVideo)
+                    Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(color: t.scrim.withValues(alpha: .55), shape: BoxShape.circle),
+                        child: Icon(LucideIcons.play, color: t.onMedia, size: 26),
+                      ),
                     ),
-                  ),
-              ]),
-      ),
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: 96,
-        child: IgnorePointer(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [_kBg.withValues(alpha: .85), _kBg.withValues(alpha: 0)],
-              ),
-            ),
-          ),
+                ]),
         ),
       ),
       if (p.isVideo)
@@ -299,156 +259,276 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
           start: 12,
           bottom: 12,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: _kBg.withValues(alpha: .78), borderRadius: BorderRadius.circular(999)),
-            child: Text(formatMediaDuration(p.durationMs), style: BuType.label.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-          ),
-        )
-      else
-        PositionedDirectional(
-          start: 12,
-          bottom: 12,
-          child: Semantics(
-            button: true,
-            toggled: on,
-            label: context.l10n.chatMiscOnceSendLabel,
-            excludeSemantics: true,
-            child: GestureDetector(
-              key: ValueKey('onceButton_$i'),
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _toggleOnce(p),
-              child: Container(
-                height: 44,
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: on ? t.pr : _kBg.withValues(alpha: .78),
-                ),
-                alignment: Alignment.center,
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const OnceBadge(color: Colors.white, size: 20, dashed: false),
-                  const SizedBox(width: 8),
-                  Text(context.l10n.chatMiscOnceSendLabel,
-                      style: BuType.label.copyWith(color: on ? t.onPr : Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
-                ]),
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BuRadius.bPill),
+            child: Text(formatMediaDuration(p.durationMs), style: tx.labelLarge!.copyWith(color: t.onMedia)),
           ),
         ),
     ]);
   }
 
-  Widget _strip(BuTokens t) {
-    final canAdd = _picks.length < 10;
+  /// Bildirim hapı + açıklama alanı + "Tek gönderimlik" hapı.
+  Widget _controls(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final cur = _picks.isEmpty ? null : _picks[_index.clamp(0, _picks.length - 1)];
+    final canOnce = cur != null && !cur.isVideo;
+    final on = cur != null && _once.contains(cur.key);
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.short),
+          alignment: Alignment.topCenter,
+          child: _note && on
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Center(
+                    child: Container(
+                      key: const ValueKey('previewNote'),
+                      padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 2, 0),
+                      decoration: BoxDecoration(color: t.scrim.withValues(alpha: .95), borderRadius: BuRadius.bPill),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: _pr)),
+                        BuGap.w8,
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(l.chatMiscOnceToast,
+                                style: tx.bodySmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w500)),
+                          ),
+                        ),
+                        Semantics(
+                          button: true,
+                          label: l.p10CloseNotice,
+                          excludeSemantics: true,
+                          child: BuPressable(
+                            key: const ValueKey('previewNoteClose'),
+                            onTap: _hideNote,
+                            child: SizedBox(
+                                width: 48, height: 40, child: Icon(LucideIcons.x, size: 16, color: t.onMedia.withValues(alpha: .7))),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+        Row(children: [
+          Expanded(child: _captionField(context)),
+          if (canOnce) ...[
+            BuGap.w8,
+            Semantics(
+              button: true,
+              toggled: on,
+              label: l.chatMiscOnceSendLabel,
+              excludeSemantics: true,
+              child: BuPressable(
+                key: ValueKey('onceButton_$_index'),
+                onTap: () => _toggleOnce(cur),
+                child: AnimatedContainer(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  constraints: const BoxConstraints(minHeight: 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: on ? _pr : t.scrim.withValues(alpha: .6),
+                    borderRadius: BuRadius.bPill,
+                    border: on ? null : Border.all(color: t.onMedia.withValues(alpha: .25)),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: on ? _onPr : t.onMedia, shape: BoxShape.circle),
+                      child: Text('1',
+                          style: tx.labelSmall!.copyWith(
+                              color: on ? _pr : t.scrim, fontWeight: FontWeight.w800, fontSize: 11, height: 1)),
+                    ),
+                    BuGap.w6,
+                    Text(l.chatMiscOnceSendLabel,
+                        maxLines: 1,
+                        style: tx.labelMedium!.copyWith(color: on ? _onPr : t.onMedia, fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+              ),
+            ),
+          ],
+        ]),
+      ]),
+    );
+  }
+
+  Widget _captionField(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
+      decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .95), borderRadius: BorderRadius.circular(24)),
+      alignment: Alignment.center,
+      child: Row(children: [
+        ExcludeSemantics(child: Icon(LucideIcons.messageSquareText, size: 18, color: t.scrim.withValues(alpha: .6))),
+        BuGap.w8,
+        Expanded(
+          child: TextField(
+            key: const ValueKey('previewCaption'),
+            controller: _caption,
+            minLines: 1,
+            maxLines: 4,
+            maxLength: 1000,
+            buildCounter: (c, {required currentLength, required isFocused, maxLength}) => null,
+            textCapitalization: TextCapitalization.sentences,
+            style: tx.bodyMedium!.copyWith(color: t.scrim),
+            cursorColor: _pr,
+            decoration: InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: false,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              hintText: l.chatMiscAddCaption,
+              hintStyle: tx.bodyMedium!.copyWith(color: t.scrim.withValues(alpha: .55)),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _strip(BuildContext context) {
     return SizedBox(
       height: 80,
       child: ListView.separated(
         key: const ValueKey('previewStrip'),
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-        itemCount: _picks.length + (canAdd ? 1 : 0),
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (c, i) {
-          if (i == _picks.length) {
-            return Semantics(
-              button: true,
-              label: context.l10n.sohbetmedyaAddMore,
-              child: GestureDetector(
-                key: const ValueKey('previewAdd'),
-                onTap: () => Navigator.pop(context),
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: CustomPaint(
-                    painter: _DashedRRect(Colors.white.withValues(alpha: .55)),
-                    child: const Center(child: Icon(LucideIcons.plus, size: 22, color: Colors.white)),
-                  ),
-                ),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
+        itemCount: _picks.length,
+        separatorBuilder: (_, __) => BuGap.w8,
+        itemBuilder: (c, i) => _StripThumb(
+          key: ValueKey('stripItem_${_picks[i].key}'),
+          index: i,
+          pick: _picks[i],
+          active: i == _index,
+          accent: _pr,
+          onTap: () => _goto(i),
+        ),
+      ),
+    );
+  }
+
+  Widget _sendButton(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final label = context.l10n.sohbetmedyaSendItems(_picks.length.toString());
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: BuPressable(
+          key: const ValueKey('previewSend'),
+          onTap: _send,
+          haptic: BuHaptic.light,
+          child: Container(
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _pr,
+              borderRadius: BuRadius.bMd,
+              boxShadow: [BoxShadow(color: t.scrim.withValues(alpha: .35), blurRadius: 20, offset: const Offset(0, 10), spreadRadius: -6)],
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.labelLarge!.copyWith(color: _onPr, fontWeight: FontWeight.w600, letterSpacing: .3)),
               ),
-            );
-          }
-          final p = _picks[i];
-          final active = i == _index;
-          return SizedBox(
-            width: 56,
-            height: 56,
-            child: Stack(clipBehavior: Clip.none, children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  key: ValueKey('previewThumb_$i'),
-                  onTap: () => _goto(i),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: active ? Colors.white : Colors.transparent, width: 2),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(fit: StackFit.expand, children: [
-                      FutureBuilder<Uint8List?>(
-                        future: p.thumb(200),
-                        builder: (c, s) => s.data == null
-                            ? const ColoredBox(color: Colors.white12)
-                            : Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 200),
-                      ),
-                      if (p.isVideo)
-                        PositionedDirectional(
-                          start: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(color: Colors.black.withValues(alpha: .65), borderRadius: BorderRadius.circular(8)),
-                            child: Text(formatMediaDuration(p.durationMs),
-                                style: BuType.micro.copyWith(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-                          ),
-                        ),
-                    ]),
-                  ),
-                ),
-              ),
-                PositionedDirectional(
-                  top: -6,
-                  end: -6,
-                  child: GestureDetector(
-                    key: ValueKey('previewRemove_$i'),
-                    onTap: () => _remove(i),
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.x, size: 10, color: Color(0xFF171E33)),
-                    ),
-                  ),
-                ),
+              BuGap.w8,
+              Transform.flip(flipX: rtl, child: Icon(LucideIcons.send, size: 20, color: _onPr)),
             ]),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Tasarımdaki kesikli çerçeveli "ekle" karosu.
-class _DashedRRect extends CustomPainter {
-  _DashedRRect(this.color);
-  final Color color;
+/// Şerit küçük resmi: 56 dp, 12 dp köşe; etkin olan kırmızı çerçeveli ve biraz büyük, diğerleri soluk.
+class _StripThumb extends StatefulWidget {
+  const _StripThumb(
+      {super.key, required this.index, required this.pick, required this.active, required this.onTap, required this.accent});
+
+  final int index;
+  final MediaPick pick;
+  final bool active;
+  final VoidCallback onTap;
+  final Color accent;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)));
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    for (final m in path.computeMetrics()) {
-      var d = 0.0;
-      while (d < m.length) {
-        canvas.drawPath(m.extractPath(d, d + 5), paint);
-        d += 9;
-      }
-    }
+  State<_StripThumb> createState() => _StripThumbState();
+}
+
+class _StripThumbState extends State<_StripThumb> {
+  late final Future<Uint8List?> _thumb = widget.pick.thumb(200);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final p = widget.pick;
+    final a = widget.active;
+    return Center(
+      child: GestureDetector(
+        key: ValueKey('previewThumb_${widget.index}'),
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: a ? 1.05 : 1,
+          duration: BuMotion.of(context, BuMotion.short),
+          child: AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(1),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: a ? widget.accent : widget.accent.withValues(alpha: 0), width: 3),
+            ),
+            child: ClipRRect(
+              borderRadius: BuRadius.bSm,
+              child: Stack(fit: StackFit.expand, children: [
+                FutureBuilder<Uint8List?>(
+                  future: _thumb,
+                  builder: (c, s) => s.data == null
+                      ? ColoredBox(color: t.onMedia.withValues(alpha: .12))
+                      : Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 200),
+                ),
+                if (!a) ColoredBox(color: t.scrim.withValues(alpha: .3)),
+                if (p.isVideo)
+                  PositionedDirectional(
+                    start: 3,
+                    bottom: 3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BuRadius.bPill),
+                      child: Text(formatMediaDuration(p.durationMs),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, fontSize: 10)),
+                    ),
+                  ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_DashedRRect old) => old.color != color;
 }

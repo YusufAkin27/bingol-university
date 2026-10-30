@@ -2756,5 +2756,22 @@
   "p23GroupNameHint": "E.g. Engineering Project Team...",
   "p23NoneText": "None of your contacts use the app with a Bingöl University email.",
   "p09GradeYear": "Year {n}",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "p14UpcomingOther": "Upcoming on other days",
+  "p14ErrorBodyCache": "There was a problem reaching the server. Showing the offline cache.",
+  "p14Completed": "Completed",
+  "p15LockedBadge": "Locked",
+  "p15CancelledBody": "Attendees are notified.",
+  "p15WontHappen": "Won't take place",
+  "p15AnswerHint": "Tell us briefly...",
+  "p15NoteHint": "Any extra note you'd like to share...",
+  "p15CodeChars": "{n} characters",
+  "@p15CodeChars": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15LeaveHint": "You can change your attendance status any time.",
+  "p15SettingsSub": "Join type, capacity and registration",
+  "p15ClearField": "Clear"
 }

@@ -7234,7 +7234,7 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count etkinlik',
+      other: '$count Etkinlik',
     );
     return '$_temp0';
   }
@@ -8831,7 +8831,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p15ChatSub => 'Katılımcılarla ve organizatörle tanış';
 
   @override
-  String get p15ChatLockedSub => 'Yalnızca onaylanan katılımcılara açıktır';
+  String get p15ChatLockedSub => 'Yalnızca onaylı katılımcılara özel';
 
   @override
   String get p15AboutTitle => 'Etkinlik hakkında';
@@ -8871,4 +8871,44 @@ class AppLocalizationsTr extends AppLocalizations {
   String p09GradeYear(String n) {
     return '$n. Sınıf';
   }
+
+  @override
+  String get p14UpcomingOther => 'Yaklaşan diğer günler';
+
+  @override
+  String get p14ErrorBodyCache =>
+      'Sunucuyla bağlantı kurulurken bir sorun oluştu. Çevrimdışı önbellek listeleniyor.';
+
+  @override
+  String get p14Completed => 'Tamamlandı';
+
+  @override
+  String get p15LockedBadge => 'Kilitli';
+
+  @override
+  String get p15CancelledBody => 'Katılımcılara bildirim gönderilir.';
+
+  @override
+  String get p15WontHappen => 'Gerçekleşmeyecek';
+
+  @override
+  String get p15AnswerHint => 'Kısaca bahset...';
+
+  @override
+  String get p15NoteHint => 'Varsa iletmek istediğin ek bir not...';
+
+  @override
+  String p15CodeChars(String n) {
+    return '$n karakter';
+  }
+
+  @override
+  String get p15LeaveHint =>
+      'İstediğin zaman katılım durumunu değiştirebilirsin.';
+
+  @override
+  String get p15SettingsSub => 'Katılım türü, kontenjan ve kayıtlar';
+
+  @override
+  String get p15ClearField => 'Temizle';
 }

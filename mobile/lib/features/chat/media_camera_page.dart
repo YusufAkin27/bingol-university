@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/video_service.dart';
-import '../../core/typography.dart';
+import '../../widgets/bu.dart';
 import 'chat_media.dart';
 import 'media_pick.dart';
 import 'sohbety_widgets.dart';
@@ -15,14 +15,18 @@ import 'sohbety_widgets.dart';
 /// Kamerayı açıp bir öğe (fotoğraf ya da video) döndüren işlev; testlerde sahtesi verilir.
 typedef MediaCameraLauncher = Future<MediaPick?> Function(BuildContext context);
 
-Future<MediaPick?> openMediaCamera(BuildContext context) => Navigator.push<MediaPick>(
+/// [galleryThumb]: galeri kısayolunda gösterilecek en yeni galeri öğesinin küçük resmi (yoksa simge).
+Future<MediaPick?> openMediaCamera(BuildContext context, {Uint8List? galleryThumb}) => Navigator.push<MediaPick>(
       context,
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const MediaCameraPage()),
+      MaterialPageRoute(fullscreenDialog: true, builder: (_) => MediaCameraPage(galleryThumb: galleryThumb)),
     );
 
 /// Uygulama içi kamera: dokununca fotoğraf, basılı tutunca video (en çok 60 sn, sayaçlı).
 class MediaCameraPage extends StatefulWidget {
-  const MediaCameraPage({super.key});
+  const MediaCameraPage({super.key, this.galleryThumb});
+
+  /// Galeri kısayolu küçük resmi (en yeni galeri öğesi).
+  final Uint8List? galleryThumb;
 
   @override
   State<MediaCameraPage> createState() => _MediaCameraPageState();
@@ -134,7 +138,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
       );
     } catch (_) {
       _busy = false;
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.chatMiscPhotoFailed)));
+      if (mounted) BuToast.show(context, context.l10n.chatMiscPhotoFailed, kind: BuToastKind.error);
     }
   }
 
@@ -185,27 +189,43 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
       _busy = false;
       if (mounted) {
         setState(() => _recording = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.chatMiscVideoSaveFailed)));
+        BuToast.show(context, context.l10n.chatMiscVideoSaveFailed, kind: BuToastKind.error);
       }
     }
+  }
+
+  /// Görüntüyü ekranı dolduracak biçimde (kırparak) çizer: tasarımda tam ekran vizör.
+  Widget _cover(BuildContext context, CameraController c) {
+    final size = MediaQuery.sizeOf(context);
+    final pa = 1 / c.value.aspectRatio;
+    final sa = size.width / size.height;
+    final scale = pa > sa ? pa / sa : sa / pa;
+    return ClipRect(
+      child: Transform.scale(
+        scale: scale,
+        child: Center(child: AspectRatio(aspectRatio: pa, child: CameraPreview(c))),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final c = _ctl;
     final l = context.l10n;
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1220),
+      backgroundColor: t.scrim,
       body: Stack(children: [
-        // Önizleme gelene kadar tasarımdaki koyu radyal zemin.
-        const Positioned.fill(
+        // Önizleme gelene kadar koyu radyal zemin (marka tonu hafif sızar).
+        Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: Alignment(0, -.16),
+                center: const Alignment(0, -.16),
                 radius: .85,
-                colors: [Color(0xFF2A3250), Color(0xFF0E1220)],
-                stops: [0, .7],
+                colors: [Color.alphaBlend(t.pr.withValues(alpha: .10), t.sf2.withValues(alpha: .35)), t.scrim],
+                stops: const [0, .75],
               ),
             ),
           ),
@@ -215,38 +235,53 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(l.chatMiscCameraUnavailable,
-                        textAlign: TextAlign.center,
-                        style: BuType.body.copyWith(color: Colors.white70)),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const BuIllustrationView(BuIllustration.lock, size: 112),
+                      BuGap.h16,
+                      Text(l.chatMiscCameraUnavailable,
+                          textAlign: TextAlign.center,
+                          style: tx.bodyLarge!.copyWith(color: t.onMedia.withValues(alpha: .85))),
+                      BuGap.h24,
+                      BuButton(
+                          label: l.chatMiscClose,
+                          kind: BuButtonKind.soft,
+                          compact: true,
+                          onPressed: () => Navigator.pop(context)),
+                    ]),
                   ),
                 )
               : (_ready && c != null)
-                  ? Center(
-                      child: AspectRatio(aspectRatio: 1 / c.value.aspectRatio, child: CameraPreview(c)),
-                    )
-                  : const Center(child: CircularProgressIndicator(color: Colors.white)),
+                  ? _cover(context, c)
+                  : Center(
+                      child: ExcludeSemantics(
+                        child: Icon(LucideIcons.camera, size: 44, color: t.onMedia.withValues(alpha: .35)),
+                      ),
+                    ),
         ),
-        Positioned.fill(
-          child: SohbetyCameraChrome(
-            recording: _recording,
-            timer: formatMediaDuration(_secs * 1000),
-            flashOn: _flash,
-            onClose: () => Navigator.pop(context),
-            onFlash: _toggleFlash,
-            // Galeri: kamerayı kapatıp seçiciye (galeriye) döner.
-            onGallery: () => Navigator.pop(context),
-            onFlip: _flip,
-            onPhoto: _photo,
-            onVideoStart: _startVideo,
-            onVideoEnd: _stopVideo,
-            closeLabel: l.chatMiscClose,
-            flashLabel: l.sohbetyFlash,
-            galleryLabel: l.chatMiscGallery,
-            flipLabel: l.chatMiscFlipCamera,
-            shutterLabel: _recording ? l.sohbetyStopRec : l.sohbetyTakePhoto,
-            hint: l.chatMiscCameraHint,
+        if (!_denied)
+          Positioned.fill(
+            child: SohbetyCameraChrome(
+              recording: _recording,
+              timer: '${formatMediaDuration(_secs * 1000)} / ${formatMediaDuration(VideoService.maxDurationMs)}',
+              progress: _secs * 1000 / VideoService.maxDurationMs,
+              galleryThumb: widget.galleryThumb,
+              flashOn: _flash,
+              onClose: () => Navigator.pop(context),
+              onFlash: _toggleFlash,
+              // Galeri: kamerayı kapatıp çağıran akışa döner.
+              onGallery: () => Navigator.pop(context),
+              onFlip: _flip,
+              onPhoto: _photo,
+              onVideoStart: _startVideo,
+              onVideoEnd: _stopVideo,
+              closeLabel: l.chatMiscClose,
+              flashLabel: l.sohbetyFlash,
+              galleryLabel: l.chatMiscGallery,
+              flipLabel: l.chatMiscFlipCamera,
+              shutterLabel: _recording ? l.sohbetyStopRec : l.sohbetyTakePhoto,
+              hint: l.chatMiscCameraHint,
+            ),
           ),
-        ),
       ]),
     );
   }

@@ -8811,4 +8811,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String p09GradeYear(String n) {
     return 'السنة $n';
   }
+
+  @override
+  String get p14UpcomingOther => 'فعاليات الأيام القادمة';
+
+  @override
+  String get p14ErrorBodyCache =>
+      'حدثت مشكلة أثناء الاتصال بالخادم. تُعرض النسخة المخزّنة دون اتصال.';
+
+  @override
+  String get p14Completed => 'اكتملت';
+
+  @override
+  String get p15LockedBadge => 'مقفل';
+
+  @override
+  String get p15CancelledBody => 'يتم إشعار المشاركين.';
+
+  @override
+  String get p15WontHappen => 'لن تقام';
+
+  @override
+  String get p15AnswerHint => 'أخبرنا باختصار...';
+
+  @override
+  String get p15NoteHint => 'أي ملاحظة إضافية تودّ إيصالها...';
+
+  @override
+  String p15CodeChars(String n) {
+    return '$n حرف';
+  }
+
+  @override
+  String get p15LeaveHint => 'يمكنك تغيير حالة مشاركتك في أي وقت.';
+
+  @override
+  String get p15SettingsSub => 'نوع المشاركة والسعة والتسجيل';
+
+  @override
+  String get p15ClearField => 'مسح';
 }

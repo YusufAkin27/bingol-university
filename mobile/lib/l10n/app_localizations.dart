@@ -13312,7 +13312,7 @@ abstract class AppLocalizations {
   /// No description provided for @p14EventCount.
   ///
   /// In tr, this message translates to:
-  /// **'{count, plural, other{{count} etkinlik}}'**
+  /// **'{count, plural, other{{count} Etkinlik}}'**
   String p14EventCount(int count);
 
   /// No description provided for @p14EmptyMonthBody.
@@ -16078,7 +16078,7 @@ abstract class AppLocalizations {
   /// No description provided for @p15ChatLockedSub.
   ///
   /// In tr, this message translates to:
-  /// **'Yalnızca onaylanan katılımcılara açıktır'**
+  /// **'Yalnızca onaylı katılımcılara özel'**
   String get p15ChatLockedSub;
 
   /// No description provided for @p15AboutTitle.
@@ -16146,6 +16146,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n}. Sınıf'**
   String p09GradeYear(String n);
+
+  /// No description provided for @p14UpcomingOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan diğer günler'**
+  String get p14UpcomingOther;
+
+  /// No description provided for @p14ErrorBodyCache.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuyla bağlantı kurulurken bir sorun oluştu. Çevrimdışı önbellek listeleniyor.'**
+  String get p14ErrorBodyCache;
+
+  /// No description provided for @p14Completed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlandı'**
+  String get p14Completed;
+
+  /// No description provided for @p15LockedBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kilitli'**
+  String get p15LockedBadge;
+
+  /// No description provided for @p15CancelledBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılara bildirim gönderilir.'**
+  String get p15CancelledBody;
+
+  /// No description provided for @p15WontHappen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerçekleşmeyecek'**
+  String get p15WontHappen;
+
+  /// No description provided for @p15AnswerHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısaca bahset...'**
+  String get p15AnswerHint;
+
+  /// No description provided for @p15NoteHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsa iletmek istediğin ek bir not...'**
+  String get p15NoteHint;
+
+  /// No description provided for @p15CodeChars.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} karakter'**
+  String p15CodeChars(String n);
+
+  /// No description provided for @p15LeaveHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstediğin zaman katılım durumunu değiştirebilirsin.'**
+  String get p15LeaveHint;
+
+  /// No description provided for @p15SettingsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım türü, kontenjan ve kayıtlar'**
+  String get p15SettingsSub;
+
+  /// No description provided for @p15ClearField.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temizle'**
+  String get p15ClearField;
 }
 
 class _AppLocalizationsDelegate

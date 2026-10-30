@@ -51,6 +51,12 @@ class PlannedMessage {
 
 const maxAttachmentsPerMessage = 10;
 
+/// Mesaja en çok seçilebilecek öğe sayısı (foto ve video karışık; sunucu kuralı).
+const kMaxPicks = 10;
+
+/// Videonun en uzun süresi (ms); sunucu kuralıyla aynı.
+const kMaxVideoMs = 60 * 1000;
+
 /// Mesaj başına video bayt toplamı sınırı (sunucu kuralı: 120 MB).
 const maxVideoBytesPerMessage = 120 * 1024 * 1024;
 

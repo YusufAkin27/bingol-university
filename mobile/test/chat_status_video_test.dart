@@ -578,7 +578,9 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerSend')));
+      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('previewSend')));
       await tester.pump();
     }
 
@@ -600,11 +602,13 @@ void main() {
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
         expect(find.text(l), findsNothing); // eski 4'lü menü yok, doğrudan galeri
       }
-      expect(find.text('Galeri'), findsOneWidget);
+      expect(find.text('Son eklenenler'), findsOneWidget);
       be.delay = const Duration(milliseconds: 500);
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerSend')));
+      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('previewSend')));
       await settle(tester, const Duration(milliseconds: 800)); // seçici kapanır, yükleme başlar
       // Yerel baloncuk: poster + dairesel ilerleme + süre hapı (yükleme sürerken).
       expect(find.byKey(const ValueKey('uploadProgress')), findsOneWidget);
@@ -695,7 +699,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       expect(opened, 1);
       expect(find.byKey(const ValueKey('onceButton_0')), findsNothing); // videoda tek gönderimlik yok
-      expect(find.text('1/1'), findsOneWidget);
+      expect(find.text('1 / 1'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('previewSend')));
       await settle(tester, const Duration(seconds: 2));
       final body = be.bodies['POST /conversations/1/messages'] as Map;

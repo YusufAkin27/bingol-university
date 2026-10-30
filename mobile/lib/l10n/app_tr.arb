@@ -3895,7 +3895,7 @@
   "p14ClearDay": "Tüm ay",
   "p14Ended": "Sona erdi",
   "p14Live": "Şimdi",
-  "p14EventCount": "{count, plural, other{{count} etkinlik}}",
+  "p14EventCount": "{count, plural, other{{count} Etkinlik}}",
   "@p14EventCount": {
     "placeholders": {
       "count": {
@@ -4530,7 +4530,7 @@
     }
   },
   "p15ChatSub": "Katılımcılarla ve organizatörle tanış",
-  "p15ChatLockedSub": "Yalnızca onaylanan katılımcılara açıktır",
+  "p15ChatLockedSub": "Yalnızca onaylı katılımcılara özel",
   "p15AboutTitle": "Etkinlik hakkında",
   "p15AttOpenHint": "Yoklamanın alınması için salondaki QR kodunu tara ya da organizatörün duyurduğu kodu gir.",
   "p15CheckedInBody": "Etkinliğe katılımın kaydedildi.",
@@ -4548,5 +4548,22 @@
   "p23GroupNameHint": "Örn. Mühendislik Proje Ekibi...",
   "p23NoneText": "Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.",
   "p09GradeYear": "{n}. Sınıf",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "p14UpcomingOther": "Yaklaşan diğer günler",
+  "p14ErrorBodyCache": "Sunucuyla bağlantı kurulurken bir sorun oluştu. Çevrimdışı önbellek listeleniyor.",
+  "p14Completed": "Tamamlandı",
+  "p15LockedBadge": "Kilitli",
+  "p15CancelledBody": "Katılımcılara bildirim gönderilir.",
+  "p15WontHappen": "Gerçekleşmeyecek",
+  "p15AnswerHint": "Kısaca bahset...",
+  "p15NoteHint": "Varsa iletmek istediğin ek bir not...",
+  "p15CodeChars": "{n} karakter",
+  "@p15CodeChars": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15LeaveHint": "İstediğin zaman katılım durumunu değiştirebilirsin.",
+  "p15SettingsSub": "Katılım türü, kontenjan ve kayıtlar",
+  "p15ClearField": "Temizle"
 }

@@ -93,7 +93,9 @@ void main() {
       final lib = FakeMediaLibrary.photos(5, videos: [FakeMediaLibrary.video('v1', ms: 12000)]);
       final res = <Object?>[];
       await _openHost(tester, () => _picker(lib), res);
-      expect(find.text('Galeri'), findsOneWidget);
+      expect(find.text('Son eklenenler'), findsOneWidget);
+      expect(find.text('KAMERA'), findsOneWidget);
+      expect(find.text('En fazla 10 öğe seçebilirsiniz. Video en fazla 60 saniye olabilir.'), findsOneWidget);
       final cam = tester.getRect(find.byKey(const ValueKey('cameraTile')));
       final first = tester.getRect(_tile('v1'));
       final second = tester.getRect(_tile('p1'));
@@ -101,7 +103,7 @@ void main() {
       expect(cam.top, first.top);
       expect(first.left, lessThan(second.left)); // sonra en yeni (v1), sonra p1
       expect(find.descendant(of: _tile('v1'), matching: find.text('0:12')), findsOneWidget);
-      expect(find.text('1 / 10 seçildi'), findsNothing);
+      expect(find.textContaining('1 / 10', findRichText: true), findsNothing);
       _ok(tester);
     });
 
@@ -128,10 +130,10 @@ void main() {
       expect(_badge('p1', '1'), findsOneWidget);
       expect(_badge('p2', '2'), findsOneWidget);
       expect(_badge('p3', '3'), findsOneWidget);
-      expect(find.text('3 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('3 / 10', findRichText: true), findsOneWidget);
       await _tap(tester, _tile('p2'));
       expect(_badge('p3', '2'), findsOneWidget);
-      expect(find.text('2 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('2 / 10', findRichText: true), findsOneWidget);
       _ok(tester);
     });
 
@@ -141,10 +143,10 @@ void main() {
       for (var i = 1; i <= 10; i++) {
         await _tap(tester, _tile('p$i'));
       }
-      expect(find.text('10 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('10 / 10', findRichText: true), findsOneWidget);
       await _tap(tester, _tile('p11'));
       expect(find.text('En fazla 10 öğe seçebilirsin'), findsOneWidget);
-      expect(find.text('10 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('10 / 10', findRichText: true), findsOneWidget);
       _ok(tester);
     });
 
@@ -154,7 +156,7 @@ void main() {
       await _tap(tester, _tile('v1'));
       await _tap(tester, _tile('v2'));
       await _tap(tester, _tile('p1'));
-      expect(find.text('3 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('3 / 10', findRichText: true), findsOneWidget);
       _ok(tester);
     });
 
@@ -174,11 +176,11 @@ void main() {
       await _tap(tester, find.byKey(const ValueKey('cameraTile')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('previewCounter')), findsOneWidget);
-      expect(find.text('1/1'), findsOneWidget);
+      expect(find.text('1 / 1'), findsOneWidget);
       // Önizlemeyi kapat: seçici açık kalır, kamera öğesi seçili.
       await _tap(tester, find.byKey(const ValueKey('previewClose')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('1 / 10 seçildi'), findsOneWidget);
+      expect(find.textContaining('1 / 10', findRichText: true), findsOneWidget);
       _ok(tester);
     });
 
@@ -243,35 +245,28 @@ void main() {
       await unmount(tester);
       await _openHost(tester, () => rtl(MediaPreviewPage(picks: [fakePhotoPick('a'), fakeVideoPick('v')])), [],
           b: Brightness.dark, size: const Size(320, 640));
-      expect(find.byKey(const ValueKey('previewAdd')), findsOneWidget);
+      expect(find.byKey(const ValueKey('previewThumb_1')), findsOneWidget);
       _ok(tester);
     });
   });
 
   group('Onizleme', () {
-    MediaPreviewPage preview(List<MediaPick> picks, {ValueChanged<List<MediaPick>>? onChanged}) =>
-        MediaPreviewPage(picks: picks, onChanged: onChanged);
+    MediaPreviewPage preview(List<MediaPick> picks) => MediaPreviewPage(picks: picks);
 
-    testWidgets('serit: gecis, kaldirma ve sayac', (tester) async {
-      final left = <List<MediaPick>>[];
-      await _openHost(
-          tester, () => preview([fakePhotoPick('a'), fakePhotoPick('b'), fakePhotoPick('c')], onChanged: left.add), []);
-      expect(find.text('1/3'), findsOneWidget);
+    testWidgets('serit: gecis ve sayac', (tester) async {
+      await _openHost(tester, () => preview([fakePhotoPick('a'), fakePhotoPick('b'), fakePhotoPick('c')]), []);
+      expect(find.text('1 / 3'), findsOneWidget);
+      expect(find.text('3 öğeyi gönder'), findsOneWidget);
       await _tap(tester, find.byKey(const ValueKey('previewThumb_2')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('3/3'), findsOneWidget);
-      await _tap(tester, find.byKey(const ValueKey('previewRemove_0')));
-      await settle(tester, const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('previewThumb_2')), findsNothing);
-      expect(find.text('2/2'), findsOneWidget);
-      expect(left.single.map((p) => p.key), ['b', 'c']);
+      expect(find.text('3 / 3'), findsOneWidget);
       _ok(tester);
     });
 
-    testWidgets('hepsi kaldirilinca sayfa kapanir', (tester) async {
+    testWidgets('kapatinca sayfa kapanir ve sonuc bos doner', (tester) async {
       final res = <Object?>[];
       await _openHost(tester, () => preview([fakePhotoPick('a')]), res);
-      await _tap(tester, find.byKey(const ValueKey('previewRemove_0')));
+      await _tap(tester, find.byKey(const ValueKey('previewClose')));
       await settle(tester, const Duration(milliseconds: 400));
       await settle(tester, const Duration(seconds: 2));
       expect(find.byKey(const ValueKey('previewPages')), findsNothing);
@@ -284,12 +279,14 @@ void main() {
       expect(find.byKey(const ValueKey('onceButton_0')), findsOneWidget);
       final onceRect = tester.getRect(find.byKey(const ValueKey('onceButton_0')));
       final pageRect = tester.getRect(find.byKey(const ValueKey('previewPages')));
-      expect(onceRect.left, greaterThanOrEqualTo(pageRect.left)); // görselin sol alt köşesi (tasarım)
-      expect(onceRect.bottom, lessThanOrEqualTo(pageRect.bottom));
-      expect(onceRect.center.dx, lessThan(pageRect.center.dx));
-      expect(onceRect.center.dy, greaterThan(pageRect.center.dy));
+      final capRect = tester.getRect(find.byKey(const ValueKey('previewCaption')));
+      expect(onceRect.top, greaterThanOrEqualTo(pageRect.bottom)); // referans: gorselin altinda, aciklama satirinda
+      expect(onceRect.left, greaterThan(capRect.left)); // aciklama alaninin yaninda
       await _tap(tester, find.byKey(const ValueKey('onceButton_0')));
       expect(find.text('Tek gönderimlik: alıcı yalnızca bir kez görebilir'), findsOneWidget);
+      await settle(tester, const Duration(milliseconds: 300));
+      await _tap(tester, find.byKey(const ValueKey('previewNoteClose')));
+      expect(find.text('Tek gönderimlik: alıcı yalnızca bir kez görebilir'), findsNothing);
       await _tap(tester, find.byKey(const ValueKey('previewThumb_1')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('onceButton_1')), findsNothing); // videoda yok

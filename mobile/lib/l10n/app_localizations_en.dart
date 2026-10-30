@@ -8904,4 +8904,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String p09GradeYear(String n) {
     return 'Year $n';
   }
+
+  @override
+  String get p14UpcomingOther => 'Upcoming on other days';
+
+  @override
+  String get p14ErrorBodyCache =>
+      'There was a problem reaching the server. Showing the offline cache.';
+
+  @override
+  String get p14Completed => 'Completed';
+
+  @override
+  String get p15LockedBadge => 'Locked';
+
+  @override
+  String get p15CancelledBody => 'Attendees are notified.';
+
+  @override
+  String get p15WontHappen => 'Won\'t take place';
+
+  @override
+  String get p15AnswerHint => 'Tell us briefly...';
+
+  @override
+  String get p15NoteHint => 'Any extra note you\'d like to share...';
+
+  @override
+  String p15CodeChars(String n) {
+    return '$n characters';
+  }
+
+  @override
+  String get p15LeaveHint => 'You can change your attendance status any time.';
+
+  @override
+  String get p15SettingsSub => 'Join type, capacity and registration';
+
+  @override
+  String get p15ClearField => 'Clear';
 }

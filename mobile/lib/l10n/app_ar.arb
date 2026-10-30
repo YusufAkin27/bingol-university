@@ -2756,5 +2756,22 @@
   "p23GroupNameHint": "مثال: فريق مشروع الهندسة...",
   "p23NoneText": "لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.",
   "p09GradeYear": "السنة {n}",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "p14UpcomingOther": "فعاليات الأيام القادمة",
+  "p14ErrorBodyCache": "حدثت مشكلة أثناء الاتصال بالخادم. تُعرض النسخة المخزّنة دون اتصال.",
+  "p14Completed": "اكتملت",
+  "p15LockedBadge": "مقفل",
+  "p15CancelledBody": "يتم إشعار المشاركين.",
+  "p15WontHappen": "لن تقام",
+  "p15AnswerHint": "أخبرنا باختصار...",
+  "p15NoteHint": "أي ملاحظة إضافية تودّ إيصالها...",
+  "p15CodeChars": "{n} حرف",
+  "@p15CodeChars": {
+    "placeholders": {
+      "n": {"type": "String"}
+    }
+  },
+  "p15LeaveHint": "يمكنك تغيير حالة مشاركتك في أي وقت.",
+  "p15SettingsSub": "نوع المشاركة والسعة والتسجيل",
+  "p15ClearField": "مسح"
 }

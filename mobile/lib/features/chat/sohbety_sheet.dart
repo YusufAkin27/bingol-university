@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
 
-/// Alt sayfa kabuğu (İlet, Üye ekle): tutamaç, başlık + kapat, arama, liste, alt eylem çubuğu.
-/// Tasarım: krem zemin, üst köşeler 28 px, ekranın ~%78'i.
+/// Alt sayfa kabuğu (İlet, Üye ekle): M3 alt sayfa zemini, 28 dp üst köşe, tonal katman.
+/// Elle çizilen tutamaç [SohbetySheetFrame] içindedir (tema `showDragHandle: false`).
 Future<T?> showSohbetySheet<T>(BuildContext context, WidgetBuilder builder) {
   final t = context.bu;
   return showModalBottomSheet<T>(
     context: context,
-    backgroundColor: t.bg,
-    barrierColor: const Color(0x80171E33),
+    backgroundColor: t.sf3,
+    barrierColor: t.scrim.withValues(alpha: .5),
     isScrollControlled: true,
     showDragHandle: false,
     clipBehavior: Clip.antiAlias,
-    shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+    shape: const RoundedRectangleBorder(borderRadius: BuRadius.topXl),
     builder: builder,
   );
 }
 
+/// Alt sayfa gövdesi (İlet, Üye ekle): tutamaç, başlık + kapat, arama, liste, alt eylem çubuğu. Ekranın ~%78'i.
 class SohbetySheetFrame extends StatelessWidget {
   const SohbetySheetFrame({
     super.key,
@@ -50,17 +49,18 @@ class SohbetySheetFrame extends StatelessWidget {
       child: SizedBox(
         height: h,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 5,
-              margin: const EdgeInsets.only(top: 10),
-              decoration:
-                  BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(3)),
+          ExcludeSemantics(
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(top: 10),
+                decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 8, 8),
             child: Row(children: [
               Expanded(
                 child: Semantics(
@@ -68,31 +68,20 @@ class SohbetySheetFrame extends StatelessWidget {
                   child: Text(title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: t.ink)),
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink)),
                 ),
               ),
-              const SizedBox(width: 12),
+              BuGap.w8,
               BuIconButton(
-                  icon: LucideIcons.x,
-                  tooltip: context.l10n.chatMiscClose,
-                  onTap: () => Navigator.maybePop(context)),
+                  icon: LucideIcons.x, tooltip: context.l10n.chatMiscClose, onTap: () => Navigator.maybePop(context)),
             ]),
           ),
           Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: search),
-          if (note != null)
-            Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 6), child: note),
+          if (note != null) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 6), child: note),
           Expanded(child: body),
           Container(
-            padding: EdgeInsets.fromLTRB(
-                16, 12, 16, 12 + (kb > 0 ? 0 : mq.padding.bottom)),
-            decoration: BoxDecoration(
-              color: t.sf,
-              border: Border(top: BorderSide(color: t.bd)),
-            ),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + (kb > 0 ? 0 : mq.padding.bottom)),
+            decoration: BoxDecoration(color: t.sf3, border: Border(top: BorderSide(color: t.bd))),
             child: footer,
           ),
         ]),
