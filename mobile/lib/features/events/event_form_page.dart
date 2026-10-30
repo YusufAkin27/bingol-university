@@ -9,6 +9,7 @@ import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_tab.dart';
+import '../media_crop/media_crop.dart';
 import 'etkinlik2_widgets.dart';
 import 'event_cover.dart';
 import 'event_detail_page.dart';
@@ -16,6 +17,9 @@ import 'event_parts.dart';
 
 /// Görsel seçici: kaynak verilir, hazırlanmış görsel (ya da iptalde null) döner. Testte değiştirilebilir.
 typedef CoverPicker = Future<PreparedImage?> Function(ImageSource source);
+
+/// Kapak kırpıcı: seçilen görseli 16:9 kırpma sayfasında açar (varsayılan [cropImage]). Testte değiştirilebilir.
+typedef CoverCropper = Future<CropOutcome?> Function(BuildContext context, Uint8List bytes, CropSpec spec);
 
 /// Kapak yükleyici: `PUT /events/{id}/cover`. Testte değiştirilebilir.
 typedef CoverUploader = Future<dynamic> Function(String path, PreparedImage image);
@@ -90,6 +94,7 @@ class EventFormPage extends StatefulWidget {
     this.communityId,
     this.pickCover,
     this.uploadCover,
+    this.cropCover,
     this.now,
   });
 
@@ -98,6 +103,7 @@ class EventFormPage extends StatefulWidget {
   final int? communityId;
   final CoverPicker? pickCover;
   final CoverUploader? uploadCover;
+  final CoverCropper? cropCover;
 
   /// Yalnız test amaçlı: "şimdi" kaynağı (varsayılan DateTime.now); zamana bağlı varsayılanları sabitler.
   final DateTime Function()? now;
@@ -110,6 +116,7 @@ class _EventFormPageState extends State<EventFormPage> {
   final _title = TextEditingController();
   final _desc = TextEditingController();
   final _place = TextEditingController();
+  final _placeFocus = FocusNode();
   final _cap = TextEditingController();
   late DateTime _start;
   late DateTime _end;
@@ -161,6 +168,10 @@ class _EventFormPageState extends State<EventFormPage> {
     _end = DateTime.tryParse('${e?['endsAt']}')?.toLocal() ?? _start.add(const Duration(hours: 2));
     _origStart = e == null ? null : _start;
     _desc.addListener(() => setState(() {})); // canlı sayaç
+    // Odak bırakılınca uzun mekân metni başa sarılır (ilk harf kesik görünmesin).
+    _placeFocus.addListener(() {
+      if (!_placeFocus.hasFocus) _place.selection = const TextSelection.collapsed(offset: 0);
+    });
   }
 
   @override
@@ -168,6 +179,7 @@ class _EventFormPageState extends State<EventFormPage> {
     _title.dispose();
     _desc.dispose();
     _place.dispose();
+    _placeFocus.dispose();
     _cap.dispose();
     super.dispose();
   }
@@ -195,14 +207,35 @@ class _EventFormPageState extends State<EventFormPage> {
       _clearCover();
       return;
     }
-    final source = choice as ImageSource;
+    var source = choice as ImageSource;
     try {
-      final img = await _pick(source);
-      if (img != null && mounted) {
+      while (true) {
+        final img = await _pick(source);
+        if (img == null || !mounted) return;
+        // 16:9 kırpma: "Fotoğrafı değiştir" yeni seçim açar, "Kapağı kaldır" kapağı siler, vazgeçmek hiçbir şey değiştirmez.
+        final crop = widget.cropCover ?? cropImage;
+        final title = _title.text.trim();
+        final out = await crop(
+          context,
+          img.bytes,
+          CropSpec.cover(previewTitle: title.isEmpty ? null : title, previewSubtitle: _clubName, allowRemove: has),
+        );
+        if (out == null || !mounted) return;
+        if (out.removed) {
+          _clearCover();
+          return;
+        }
+        if (out.changeRequested) {
+          source = ImageSource.gallery;
+          continue;
+        }
+        final bytes = out.bytes;
+        if (bytes == null) return;
         setState(() {
-          _picked = img;
+          _picked = PreparedImage(bytes, 'image/jpeg'); // kırpma çıktısı her zaman JPEG
           _removeCover = false;
         });
+        return;
       }
     } on ImageException catch (e) {
       if (!mounted) return;
@@ -334,6 +367,19 @@ class _EventFormPageState extends State<EventFormPage> {
       return DateFormat('E, d MMMM').format(d);
     }
   }
+
+  /// '14 May 2025' (dile göre kısa tarih).
+  String _shortDate(DateTime d) {
+    final loc = Localizations.localeOf(context).toString();
+    try {
+      return DateFormat('d MMM y', loc).format(d);
+    } catch (_) {
+      return DateFormat('d MMM y').format(d);
+    }
+  }
+
+  /// Özel bitiş çip etiketi: aynı gün ise saat, değilse 'tarih saat'.
+  String get _endLabel => _day(_end) == _day(_start) ? _hm(_end) : '${_shortDate(_end)} ${_hm(_end)}';
 
   /// 'Cum, 31 Ekim · 14:00 – 16:00' (çok günlüde iki tarih).
   String get _summary => _day(_start) == _day(_end)
@@ -874,6 +920,8 @@ class _EventFormPageState extends State<EventFormPage> {
       (l.evdChipWeekend, weekend),
       (l.evdChipNextWeek, nextWeek),
     ];
+    // Hızlı tarih tek seçimlidir: aynı güne denk gelen ilk çip (Bugün > Yarın > Hafta sonu > Gelecek hafta).
+    final dayIdx = dayChips.indexWhere((c) => c.$2 == sd);
     final customEnd = (dur != const Duration(hours: 1) && dur != const Duration(hours: 2) && dur != const Duration(hours: 4)) || _day(_end) != sd;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       // Seçili tarih/saat özeti ekran okuyucu içindir (görsel karşılığı çipler).
@@ -882,9 +930,10 @@ class _EventFormPageState extends State<EventFormPage> {
         LucideIcons.calendarDays,
         l.evdLabelDate,
         Wrap(spacing: 8, children: [
-          for (final c in dayChips) _Chip(label: c.$1, selected: sd == c.$2, onTap: locked ? null : () => _setStartDate(c.$2)),
+          for (var i = 0; i < dayChips.length; i++)
+            _Chip(label: dayChips[i].$1, selected: i == dayIdx, onTap: locked ? null : () => _setStartDate(dayChips[i].$2)),
           _Chip(
-            label: l.evdChipPickDate,
+            label: presetDate ? l.evdChipPickDate : _shortDate(_start),
             tone: _ChipTone.soft,
             selected: !presetDate,
             icon: LucideIcons.calendarPlus,
@@ -904,17 +953,17 @@ class _EventFormPageState extends State<EventFormPage> {
               // Bugünse geçmiş saat seçilemez.
               onTap: (locked || DateTime(sd.year, sd.month, sd.day, h.$1, h.$2).isBefore(_now())) ? null : () => _setStartTime(h.$1, h.$2),
             ),
-          _Chip(label: l.evdChipCustomTime, tone: _ChipTone.brand, selected: !presetTime, icon: LucideIcons.alarmClock, onTap: locked ? null : _pickCustomTime),
+          _Chip(label: presetTime ? l.evdChipCustomTime : _hm(_start), tone: _ChipTone.brand, selected: !presetTime, icon: LucideIcons.alarmClock, onTap: locked ? null : _pickCustomTime),
         ]),
       ),
       _section(
-        LucideIcons.timer,
+        LucideIcons.chartPie,
         l.evdLabelDuration,
         Wrap(spacing: 8, children: [
           _Chip(label: l.evdDur1h, selected: dur == const Duration(hours: 1), onTap: locked ? null : () => _setDuration(const Duration(hours: 1))),
           _Chip(label: l.evdDur2h, selected: dur == const Duration(hours: 2), onTap: locked ? null : () => _setDuration(const Duration(hours: 2))),
           _Chip(label: l.evdDurHalfDay, selected: dur == const Duration(hours: 4), onTap: locked ? null : () => _setDuration(const Duration(hours: 4))),
-          _Chip(label: l.evdChipCustomEnd, selected: customEnd, icon: LucideIcons.calendarDays, onTap: locked ? null : _pickEnd),
+          _Chip(label: customEnd ? _endLabel : l.evdChipCustomEnd, selected: customEnd, icon: LucideIcons.calendarDays, onTap: locked ? null : _pickEnd),
         ]),
       ),
       if (_endAdjusted && err == null)
@@ -1164,6 +1213,8 @@ class _EventFormPageState extends State<EventFormPage> {
               child: TextField(
                 key: const ValueKey('evc-place'),
                 controller: _place,
+                focusNode: _placeFocus,
+                maxLines: 1,
                 maxLength: 200,
                 enabled: !_busy,
                 style: tx.bodyLarge!.copyWith(color: t.ink),

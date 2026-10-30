@@ -336,7 +336,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: tagBlue ? tag.bg : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                decoration: BoxDecoration(color: tagBlue ? tag.bg : t.mut.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.pill)),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   ExcludeSemantics(child: Icon(tagIcon, size: 12, color: tagBlue ? tag.fg : t.mut)),
                   const SizedBox(width: 4),
@@ -350,6 +350,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
         ),
         Et2Toggle(
           key: ValueKey('et2-mark-$uid'),
+          thumbCheck: true,
           value: present,
           label: l.etkinlik2MarkSem(name),
           onChanged: _busy.contains(uid) ? null : (v) => _mark(r, v),

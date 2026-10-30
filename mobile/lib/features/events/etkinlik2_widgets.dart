@@ -134,8 +134,10 @@ class Et2Segment<T> extends StatelessWidget {
 
 /// Açma/kapama anahtarı (Material 3 Switch, 56x48 dokunma alanı). [label] erişilebilirlik adıdır.
 class Et2Toggle extends StatelessWidget {
-  const Et2Toggle({super.key, required this.value, required this.onChanged, required this.label});
+  const Et2Toggle({super.key, required this.value, required this.onChanged, required this.label, this.thumbCheck = false});
 
+  /// true: açıkken başparmakta küçük onay işareti (yoklama listesi).
+  final bool thumbCheck;
   final bool value;
   final ValueChanged<bool>? onChanged;
   final String label;
@@ -161,6 +163,9 @@ class Et2Toggle extends StatelessWidget {
             value: value,
             onChanged: onChanged == null ? null : flip,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            thumbIcon: thumbCheck
+                ? WidgetStateProperty.resolveWith((st) => st.contains(WidgetState.selected) ? Icon(LucideIcons.check, color: context.bu.pr) : null)
+                : null,
           ),
         ),
       ),
@@ -807,6 +812,53 @@ class Et2SectionTitle extends StatelessWidget {
               Text('($count)', style: tx.labelLarge!.copyWith(color: t.mut)),
           ],
         ]),
+      ),
+    );
+  }
+}
+
+
+/// Nötr gri dolgulu düğme (Vazgeç / geri dön): pembe tonal yerine soğuk gri zemin, koyu yazı. 48 dp.
+class Et2GreyButton extends StatelessWidget {
+  const Et2GreyButton({super.key, required this.label, required this.onPressed, this.icon, this.compact = false});
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+
+  /// true: içeriği kadar genişler (hap).
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      label: label,
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: BuPressable(
+        onTap: onPressed,
+        enabled: onPressed != null,
+        haptic: BuHaptic.selection,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: t.mut.withValues(alpha: .12),
+            borderRadius: BorderRadius.circular(compact ? BuRadius.pill : BuRadius.md),
+          ),
+          child: Row(
+            mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[Icon(icon, size: 18, color: t.ink), const SizedBox(width: 8)],
+              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+            ],
+          ),
+        ),
       ),
     );
   }

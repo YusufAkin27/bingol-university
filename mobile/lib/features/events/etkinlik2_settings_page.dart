@@ -594,10 +594,9 @@ class _CancelDialog extends StatelessWidget {
           const SizedBox(height: 20),
           Row(children: [
             Expanded(
-              child: BuButton(
+              child: Et2GreyButton(
                 key: const ValueKey('et2-cancel-no'),
                 label: cancelLabel,
-                kind: BuButtonKind.soft,
                 onPressed: () => Navigator.pop(context, false),
               ),
             ),

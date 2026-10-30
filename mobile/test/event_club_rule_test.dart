@@ -227,7 +227,7 @@ void main() {
       expect(find.byKey(const ValueKey('evd-error')), findsNothing);
       expect(find.text('Bugün'), findsOneWidget);
       expect(find.text('Gelecek hafta'), findsOneWidget);
-      expect(find.text('Özel saat'), findsOneWidget);
+      expect(find.text('11:00'), findsOneWidget); // özel saat çipi seçili saati gösterir
       await unmount(tester);
     });
 

@@ -5,6 +5,7 @@ import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/features/events/event_cover.dart';
 import 'package:bu_kampus/features/events/event_form_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
+import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:bu_kampus/features/events/etkinlik_parts.dart';
@@ -33,7 +34,7 @@ Map<String, dynamic> featured({String? cover = '/files/events/9.jpg', String? so
     };
 
 /// Formu bir "başlat" düğmesinden açar (pop çalışsın diye).
-Widget launcher(FakeBackend b, {Map<String, dynamic>? event, CoverPicker? pick, CoverUploader? up}) {
+Widget launcher(FakeBackend b, {Map<String, dynamic>? event, CoverPicker? pick, CoverUploader? up, CoverCropper? crop}) {
   // Oluşturma yalnız bir kulüp adına yapılır: tek yönetilen kulüp otomatik seçilir.
   if (event == null) b.on('/me/communities*', {'items': [{'id': 7, 'name': 'Robotik Topluluğu', 'myRole': 'OWNER', 'myStatus': 'ACTIVE'}]});
   final s = makeSession(b);
@@ -44,7 +45,14 @@ Widget launcher(FakeBackend b, {Map<String, dynamic>? event, CoverPicker? pick, 
           onPressed: () => Navigator.push(
             c,
             MaterialPageRoute(
-              builder: (_) => EventFormPage(session: s, event: event, pickCover: pick, uploadCover: up),
+              builder: (_) => EventFormPage(
+                session: s,
+                event: event,
+                pickCover: pick,
+                uploadCover: up,
+                // Varsayılan: kırpma sayfası atlanır, görsel olduğu gibi kabul edilir.
+                cropCover: crop ?? (c, bytes, spec) async => CropOutcome.cropped(bytes),
+              ),
             ),
           ),
           child: const Text('ac'),
@@ -100,6 +108,65 @@ void main() {
       expect(calls, ['/events/55/cover']);
       expect((b.bodies['POST /events'] as Map)['title'], 'Bahar Şenliği');
       expect(find.text('ac'), findsOneWidget); // form kapandı
+      await unmount(tester);
+    });
+
+    testWidgets('kapak 16:9 kirpma ile secilir: kirpici cover biciminde cagrilir, ciktisi yuklenir', (tester) async {
+      useScreen(tester, const Size(390, 1600));
+      final b = FakeBackend()..on('/events', {'id': 55});
+      CropSpec? seen;
+      final cropped = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0, 9, 9]);
+      final uploaded = <int>[];
+      await tester.pumpWidget(buildApp(launcher(b,
+          pick: (s) async => fakeImage(),
+          crop: (c, bytes, spec) async {
+            seen = spec;
+            return CropOutcome.cropped(cropped);
+          },
+          up: (path, img) async {
+            uploaded.addAll(img.bytes);
+            return {};
+          })));
+      await openForm(tester);
+      await tester.enterText(find.byKey(const ValueKey('evc-title')), 'Bahar Şenliği');
+      await pickCoverFlow(tester);
+      expect(seen, isNotNull);
+      expect(seen!.kind, CropKind.cover);
+      expect(seen!.previewTitle, 'Bahar Şenliği');
+      expect(seen!.previewSubtitle, 'Robotik Topluluğu');
+      await tester.ensureVisible(find.text('Etkinliği oluştur'));
+      await tester.pump();
+      await tester.tap(find.text('Etkinliği oluştur'));
+      await settle(tester, const Duration(seconds: 1));
+      expect(uploaded, cropped); // yüklenen bayt = kırpma çıktısı
+      await unmount(tester);
+    });
+
+    testWidgets('kirpmadan vazgecmek kapagi degistirmez', (tester) async {
+      useScreen(tester, const Size(390, 1600));
+      final b = FakeBackend();
+      await tester.pumpWidget(buildApp(launcher(b, pick: (s) async => fakeImage(), crop: (c, bytes, spec) async => null)));
+      await openForm(tester);
+      await pickCoverFlow(tester);
+      expect(find.text('Kapak fotoğrafı ekle'), findsOneWidget); // hâlâ boş
+      await unmount(tester);
+    });
+
+    testWidgets('kirpmada "Fotografi degistir": secici yeniden acilir', (tester) async {
+      useScreen(tester, const Size(390, 1600));
+      final b = FakeBackend();
+      var picks = 0;
+      var crops = 0;
+      await tester.pumpWidget(buildApp(launcher(b,
+          pick: (s) async {
+            picks++;
+            return fakeImage();
+          },
+          crop: (c, bytes, spec) async => ++crops == 1 ? const CropOutcome.change() : CropOutcome.cropped(bytes))));
+      await openForm(tester);
+      await pickCoverFlow(tester);
+      expect(picks, 2);
+      expect(find.byTooltip('Kapağı değiştir'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -285,7 +352,7 @@ void main() {
       await tester.pumpWidget(buildApp(EventsPage(session: makeSession(b))));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(EventCoverImage), findsNothing);
-      expect(find.byType(EtkinlikDateTile), findsOneWidget);
+      expect(find.byType(EtkinlikDateBlock), findsOneWidget);
       await unmount(tester);
     });
 

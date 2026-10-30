@@ -389,26 +389,12 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
         const SizedBox(height: 6),
         Text(l.p16ReqEmptyBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         const SizedBox(height: 20),
-        Semantics(
-          button: true,
+        Et2GreyButton(
+          key: const ValueKey('et2-req-back'),
           label: l.p16ReqBackToEvent,
-          excludeSemantics: true,
-          onTap: () => Navigator.pop(context, _changed),
-          child: BuPressable(
-            key: const ValueKey('et2-req-back'),
-            onTap: () => Navigator.pop(context, _changed),
-            haptic: BuHaptic.selection,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 18, color: t.ink),
-                const SizedBox(width: 8),
-                Flexible(child: Text(l.p16ReqBackToEvent, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-              ]),
-            ),
-          ),
+          icon: buDirIcon(context, LucideIcons.arrowLeft),
+          compact: true,
+          onPressed: () => Navigator.pop(context, _changed),
         ),
       ]),
     );

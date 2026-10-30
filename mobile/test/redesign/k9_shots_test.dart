@@ -101,7 +101,7 @@ FakeBackend _base({Duration delay = Duration.zero, int going = 12, int? cap = 50
   return b;
 }
 
-FakeBackend _requests({bool full = false, bool empty = false, Duration delay = Duration.zero}) {
+FakeBackend _requests({bool full = false, bool empty = false, Duration delay = Duration.zero, bool noAnswered = false}) {
   final b = full ? _base(delay: delay, going: 4, cap: 4) : _base(delay: delay, cap: empty ? null : 50);
   b.on('/events/5/requests?status=PENDING&size=50', {
     'items': empty
@@ -127,11 +127,11 @@ FakeBackend _requests({bool full = false, bool empty = false, Duration delay = D
     'nextCursor': null,
   });
   b.on('/events/5/requests?status=ACCEPTED&size=50', {
-    'items': [_applicant(31, 'Emre Kaya', dep: 'Bilgisayar Müh.'), _applicant(33, 'Selin Yılmaz', dep: 'İşletme')],
+    'items': noAnswered ? <Object>[] : [_applicant(31, 'Emre Kaya', dep: 'Bilgisayar Müh.'), _applicant(33, 'Selin Yılmaz', dep: 'İşletme')],
     'nextCursor': null,
   });
   b.on('/events/5/requests?status=REJECTED&size=50', {
-    'items': [_applicant(32, 'Mehmet Doğan', dep: 'Ziraat Fakültesi')],
+    'items': noAnswered ? <Object>[] : [_applicant(32, 'Mehmet Doğan', dep: 'Ziraat Fakültesi')],
     'nextCursor': null,
   });
   return b;
@@ -166,9 +166,9 @@ final _scenes = <_Scene>[
     await t.pump(const Duration(milliseconds: 600));
   }),
   _Scene('41e_istekler_dolu', () => _requests(full: true), (b) => Etkinlik2RequestsPage(session: makeSession(b), event: _ev(going: 4, capacity: 4))),
-  _Scene('41f_istekler_bos', () => _requests(empty: true), (b) => Etkinlik2RequestsPage(session: makeSession(b), event: _ev(capacity: null))),
+  _Scene('41f_istekler_bos', () => _requests(empty: true, noAnswered: true), (b) => Etkinlik2RequestsPage(session: makeSession(b), event: _ev(capacity: null))),
   _Scene('41g_istekler_hata', () {
-    final b = _requests(empty: true);
+    final b = _requests(empty: true, noAnswered: true);
     b.network('/events/5/requests?status=PENDING&size=50');
     return b;
   }, (b) => Etkinlik2RequestsPage(session: makeSession(b), event: _ev(capacity: null))),
@@ -290,7 +290,56 @@ Future<void> _fillForm(WidgetTester t) async {
   await t.pump();
 }
 
+Duration _nowShift = Duration.zero;
+DateTime _movingNow() => DateTime(2026, 10, 30, 10, 20).add(_nowShift);
+
+/// "Bitis tarihi sec" -> tarih tamam -> saat 09:00 (varsayilan baslangic 11:00'den once).
+Future<void> _pickEarlyEnd(WidgetTester t) async {
+  await t.ensureVisible(find.text('Bitiş tarihi seç'));
+  await t.pump();
+  await t.tap(find.text('Bitiş tarihi seç'));
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 600));
+  await t.tap(find.descendant(of: find.byType(DatePickerDialog), matching: find.byType(TextButton)).last);
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 600));
+  await t.tap(find.byIcon(Icons.keyboard_outlined));
+  await t.pump(const Duration(milliseconds: 400));
+  final fields = find.descendant(of: find.byType(TimePickerDialog), matching: find.byType(TextField));
+  await t.enterText(fields.at(0), '9');
+  await t.enterText(fields.at(1), '00');
+  await t.pump(const Duration(milliseconds: 300));
+  await t.tap(find.descendant(of: find.byType(TimePickerDialog), matching: find.byType(TextButton)).last);
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 600));
+}
+
 final _formScenes = <_Scene>[
+  _Scene('40k_bitis_hata', () {
+    _nowShift = Duration.zero;
+    return _formBe([_club(7, 'Müzik Kulübü', 'OWNER')]);
+  }, (b) => EventFormPage(session: makeSession(b), now: _movingNow), height: 1900, after: _pickEarlyEnd),
+  _Scene('40l_otomatik_ayarlandi', () {
+    _nowShift = Duration.zero;
+    return _formBe([_club(7, 'Müzik Kulübü', 'OWNER')]);
+  }, (b) => EventFormPage(session: makeSession(b), now: _movingNow), height: 1900, after: (t) async {
+    await _pickEarlyEnd(t);
+    await t.ensureVisible(find.text('14:00'));
+    await t.pump();
+    await t.tap(find.text('14:00'));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Scene('40m_gecmis_baslangic', () {
+    _nowShift = Duration.zero;
+    return _formBe([_club(7, 'Müzik Kulübü', 'OWNER')]);
+  }, (b) => EventFormPage(session: makeSession(b), now: _movingNow), height: 1900, after: (t) async {
+    _nowShift = const Duration(hours: 2);
+    await t.ensureVisible(find.text('1 saat'));
+    await t.pump();
+    await t.tap(find.text('1 saat'));
+    await t.pump(const Duration(milliseconds: 400));
+  }),
+  _Scene('40f_kulup_secici_bos', () => _formBe([]), (b) => EventFormPage(session: makeSession(b), now: _formNow)),
   _Scene('40a_form', () => _formBe([_club(7, 'Müzik Kulübü', 'OWNER')]), (b) => EventFormPage(session: makeSession(b), now: _formNow),
       height: 1900, after: _fillForm),
   _Scene('40c_dogrulama', () => _formBe([_club(7, 'Müzik Kulübü', 'OWNER'), _club(8, 'Tiyatro Kulübü', 'MODERATOR')]),
