@@ -40,6 +40,7 @@ class _Hit {
     this.category,
     this.myStatus,
     this.likes,
+    this.endsAt,
   });
 
   final String type; // NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, POSTS, USER
@@ -54,6 +55,7 @@ class _Hit {
   final String? category; // kulüp kategorisi
   final String? myStatus; // kulüp: ACTIVE (üye) | NONE/PENDING (değil)
   final int? likes; // gönderi beğeni sayısı
+  final String? endsAt; // etkinlik bitişi (saat aralığı için)
 }
 
 enum _Tab { all, news, club, event, post, person }
@@ -153,6 +155,7 @@ _Hit _hitFromSearch(Map h) => _Hit(
       category: h['category'] is String && (h['category'] as String).isNotEmpty ? h['category'] as String : null,
       myStatus: h['myStatus'] as String?,
       likes: (h['likeCount'] as num?)?.toInt(),
+      endsAt: h['endsAt'] as String?,
     );
 
 _Hit _hitFromUser(Map u, AppLocalizations l) {
@@ -634,7 +637,10 @@ class _SearchPageState extends State<SearchPage> {
     final d = paged ? _tabs[_tab] : null;
     final error = paged ? d?.error : _error;
     if (error != null) {
-      return BuErrorState(error: error, onRetry: () => paged ? _retryTab(_tab) : _run(_query));
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        children: [_SearchError(onRetry: () => paged ? _retryTab(_tab) : _run(_query))],
+      );
     }
     final visible = paged ? (d?.hits ?? const <_Hit>[]) : _hits;
     if (paged ? (d == null || !d.loaded) : (_loading && _hits.isEmpty)) {
@@ -776,12 +782,20 @@ class _SearchPageState extends State<SearchPage> {
     return const SizedBox(height: 4);
   }
 
-  /// Tarih "12 Ekim" (bu yıl) ya da "12 Ekim 2025".
-  String _shortDate(String? iso) {
-    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
-    if (d == null) return newsLocalDate(context, iso);
-    final base = '${d.day} ${newsMonthName(context, d.month)}';
-    return d.year == DateTime.now().year ? base : '$base ${d.year}';
+  /// Etkinlik saat aralığı "17:30 – 19:00" (bitiş yoksa yalnız başlangıç; saat bilgisi yoksa null).
+  String? _timeRange(_Hit h) {
+    String? hm(String? iso) {
+      final d = iso == null ? null : DateTime.tryParse(iso);
+      if (d == null || !iso!.contains('T')) return null;
+      final dl = d.isUtc ? d.toLocal() : d;
+      if (dl.hour == 0 && dl.minute == 0) return null;
+      return '${dl.hour.toString().padLeft(2, '0')}:${dl.minute.toString().padLeft(2, '0')}';
+    }
+
+    final a = hm(h.date);
+    if (a == null) return null;
+    final b = hm(h.endsAt);
+    return b == null ? a : '$a – $b';
   }
 
   /// Tek sonuç satırı (karta gömülü): türüne göre görünüm.
@@ -803,7 +817,7 @@ class _SearchPageState extends State<SearchPage> {
           sub = Row(children: [
             Icon(LucideIcons.clock, size: 13, color: t.mut),
             const SizedBox(width: 5),
-            Flexible(child: Text(_shortDate(h.date), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
+            Flexible(child: Text(newsLocalDate(context, h.date), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
           ]);
         }
       case _Tab.event:
@@ -820,7 +834,21 @@ class _SearchPageState extends State<SearchPage> {
                   Text('${d.day}', style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: t.pr)),
                 ]),
               );
-        if (snip.isNotEmpty) sub = Text(snip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut));
+        final time = _timeRange(h);
+        if (snip.isNotEmpty || time != null) {
+          sub = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (snip.isNotEmpty) Text(snip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+            if (time != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(children: [
+                  Icon(LucideIcons.alarmClock, size: 13, color: t.pr),
+                  const SizedBox(width: 5),
+                  Text(time, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                ]),
+              ),
+          ]);
+        }
       case _Tab.club:
         leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48, group: true);
         final sb = h.members != null ? l.clubMemberCount('${h.members}') : snip;
@@ -830,9 +858,9 @@ class _SearchPageState extends State<SearchPage> {
         leading = IcerikThumb(url: h.imageUrl, size: 56, radius: 12, fallbackIcon: LucideIcons.image, tint: _tintOf(t, h.type));
         if (h.likes != null) {
           sub = Row(children: [
-            Icon(LucideIcons.heart, size: 14, color: t.pr),
+            Icon(Icons.favorite, size: 15, color: t.pr),
             const SizedBox(width: 5),
-            Text('${h.likes}', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            Text(l.p05SearchLikes('${h.likes}'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
           ]);
         }
       case _Tab.person:
@@ -854,8 +882,7 @@ class _SearchPageState extends State<SearchPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text.rich(_highlight(headline, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(headline, style: base, maxLines: 2, overflow: TextOverflow.ellipsis),
               if (sub is! SizedBox) Padding(padding: const EdgeInsets.only(top: 3), child: sub),
             ]),
           ),
@@ -898,7 +925,7 @@ class _SearchPageState extends State<SearchPage> {
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text.rich(_highlight(h.title, _query, base, base.copyWith(color: t.onSoft, backgroundColor: t.soft)), maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(h.title, style: base, maxLines: 2, overflow: TextOverflow.ellipsis),
               if (h.category != null || h.members != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
@@ -954,7 +981,7 @@ class _SearchPageState extends State<SearchPage> {
                 const SizedBox(height: 8),
                 Row(children: [
                   if (h.likes != null) ...[
-                    Icon(LucideIcons.heart, size: 14, color: t.pr),
+                    Icon(Icons.favorite, size: 15, color: t.pr),
                     const SizedBox(width: 4),
                     Text('${h.likes}', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                     const SizedBox(width: 8),
@@ -995,8 +1022,8 @@ class _Pill extends StatelessWidget {
   }
 }
 
-/// Sonuç türü çipleri: seçili = mürekkep zemin (referans), yatay kaydırılır.
-class _TabChips extends StatelessWidget {
+/// Sonuç türü çipleri: seçili = mürekkep zemin (referans), yatay kaydırılır; seçili çip görünür kaydırılır.
+class _TabChips extends StatefulWidget {
   const _TabChips({required this.labels, required this.selected, required this.onSelected});
 
   final List<String> labels;
@@ -1004,76 +1031,112 @@ class _TabChips extends StatelessWidget {
   final ValueChanged<int> onSelected;
 
   @override
+  State<_TabChips> createState() => _TabChipsState();
+}
+
+class _TabChipsState extends State<_TabChips> {
+  late final List<GlobalKey> _keys = [for (final _ in widget.labels) GlobalKey()];
+
+  @override
+  void initState() {
+    super.initState();
+    _reveal();
+  }
+
+  @override
+  void didUpdateWidget(_TabChips old) {
+    super.didUpdateWidget(old);
+    if (old.selected != widget.selected) _reveal();
+  }
+
+  void _reveal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = _keys[widget.selected].currentContext;
+      if (!mounted || c == null) return;
+      Scrollable.ensureVisible(c, alignment: .5, duration: BuMotion.of(context, BuMotion.medium), curve: BuMotion.emphasized);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    // Tüm çipler (en çok 6) kurulur: ensureVisible her çipin bağlamına ihtiyaç duyar.
     return SizedBox(
       height: 56,
-      child: ListView.separated(
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        itemCount: labels.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final on = i == selected;
-          return Semantics(
-            button: true,
-            selected: on,
-            child: BuPressable(
-              onTap: () => onSelected(i),
-              child: AnimatedContainer(
-                duration: BuMotion.of(context, BuMotion.short),
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: on ? t.ink : t.sf,
-                  borderRadius: BorderRadius.circular(BuRadius.pill),
-                  border: Border.all(color: on ? t.ink : t.bd),
+        child: Row(children: [
+          for (var i = 0; i < widget.labels.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Semantics(
+              key: _keys[i],
+              button: true,
+              selected: i == widget.selected,
+              child: BuPressable(
+                onTap: () => widget.onSelected(i),
+                child: AnimatedContainer(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: i == widget.selected ? t.ink : t.sf,
+                    borderRadius: BorderRadius.circular(BuRadius.pill),
+                    border: Border.all(color: i == widget.selected ? t.ink : t.bd),
+                  ),
+                  child: Text(widget.labels[i],
+                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == widget.selected ? t.bg : t.ink)),
                 ),
-                child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: on ? t.bg : t.ink)),
               ),
             ),
-          );
-        },
+          ],
+        ]),
       ),
     );
   }
 }
 
-/// Büyük/küçük harf ve Türkçe i/İ/ı/I farkını yok sayan, uzunluğu koruyan sadeleştirme.
-String _fold(String s) {
-  final b = StringBuffer();
-  for (final u in s.runes) {
-    final c = String.fromCharCode(u);
-    b.write(switch (c) {
-      'İ' => 'i',
-      'I' => 'ı',
-      'ı' => 'ı',
-      _ => c.toLowerCase().length == c.length ? c.toLowerCase() : c,
-    });
-  }
-  return b.toString();
-}
+/// Arama hata kartı: simge karosu + başlık + açıklama + "Yeniden dene".
+class _SearchError extends StatelessWidget {
+  const _SearchError({required this.onRetry});
 
-/// [text] içinde [query] geçen yerleri [mark] stiliyle vurgular.
-TextSpan _highlight(String text, String query, TextStyle base, TextStyle mark) {
-  final q = query.trim();
-  if (q.length < 2) return TextSpan(text: text, style: base);
-  final ft = _fold(text);
-  final fq = _fold(q);
-  if (ft.length != text.length) return TextSpan(text: text, style: base);
-  final spans = <TextSpan>[];
-  var i = 0;
-  while (i < text.length) {
-    final at = ft.indexOf(fq, i);
-    if (at < 0) {
-      spans.add(TextSpan(text: text.substring(i)));
-      break;
-    }
-    if (at > i) spans.add(TextSpan(text: text.substring(i, at)));
-    spans.add(TextSpan(text: text.substring(at, at + fq.length), style: mark));
-    i = at + fq.length;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return BuCard(
+      radius: 20,
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
+              child: Icon(LucideIcons.wifiOff, size: 26, color: t.onSoft),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Semantics(
+              liveRegion: true,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.p05SearchErrorTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                const SizedBox(height: 4),
+                Text(l.p05SearchErrorBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+              ]),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, onPressed: onRetry),
+      ]),
+    );
   }
-  return TextSpan(style: base, children: spans);
 }

@@ -123,7 +123,7 @@ class _MenuPageState extends State<MenuPage> {
           if (_maintenance && !_loading)
             Padding(
               padding: const EdgeInsets.fromLTRB(_hPad, 4, _hPad, 0),
-              child: StaleBanner(text: context.l10n.menuStale),
+              child: StaleBanner(text: context.l10n.menuStale, icon: LucideIcons.triangleAlert),
             ),
           if (_loading && _byMonth.isEmpty) ...[
             const Expanded(child: MenuSkeleton()),

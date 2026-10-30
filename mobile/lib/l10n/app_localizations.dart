@@ -63,7 +63,8 @@ import 'app_localizations_tr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,7 +72,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -83,7 +85,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -1199,7 +1202,8 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
-  String acadExamsSemanticCd(String type, String title, String date, String countdown);
+  String acadExamsSemanticCd(
+      String type, String title, String date, String countdown);
 
   /// No description provided for @acadOfficialSemantic.
   ///
@@ -1211,7 +1215,8 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}, {room}'**
-  String acadOfficialSemanticRoom(String type, String title, String date, String room);
+  String acadOfficialSemanticRoom(
+      String type, String title, String date, String room);
 
   /// No description provided for @acadExamsProfileIncomplete.
   ///
@@ -1841,7 +1846,8 @@ abstract class AppLocalizations {
   ///
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
-  String acadTimeSlotSemantic(String name, String day, String start, String end);
+  String acadTimeSlotSemantic(
+      String name, String day, String start, String end);
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -15420,9 +15426,214 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Üye listesi alınamadı.'**
   String get p09MembersLoadFailed;
+
+  /// No description provided for @p10AlbumTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Albüm'**
+  String get p10AlbumTitle;
+
+  /// No description provided for @p10AlbumCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} albüm'**
+  String p10AlbumCount(String n);
+
+  /// No description provided for @p10ItemUnit.
+  ///
+  /// In tr, this message translates to:
+  /// **'öğe'**
+  String get p10ItemUnit;
+
+  /// No description provided for @p10LimitedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbete göndermek için kütüphanenden ek fotoğraflar seçebilirsin.'**
+  String get p10LimitedBody;
+
+  /// No description provided for @p10DeniedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.'**
+  String get p10DeniedBody;
+
+  /// No description provided for @p10GalleryEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeride fotoğraf ya da video yok.'**
+  String get p10GalleryEmpty;
+
+  /// No description provided for @p10SelCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} / {max}'**
+  String p10SelCount(String n, String max);
+
+  /// No description provided for @p10SelWord.
+  ///
+  /// In tr, this message translates to:
+  /// **'seçildi'**
+  String get p10SelWord;
+
+  /// No description provided for @p10TileSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçildi, sıra {n}'**
+  String p10TileSelected(String n);
+
+  /// No description provided for @p10VideoPrepareSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıkıştırılıyor ve önbelleğe alınıyor'**
+  String get p10VideoPrepareSub;
+
+  /// No description provided for @p10CloseNotice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimi kapat'**
+  String get p10CloseNotice;
+
+  /// No description provided for @p01LgReview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sözleşmeleri tekrar incele'**
+  String get p01LgReview;
+
+  /// No description provided for @p14ErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p14ErrorTitle;
+
+  /// No description provided for @p14ErrorBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuyla bağlantı kurulurken bir sorun oluştu.'**
+  String get p14ErrorBody;
+
+  /// No description provided for @p14OfflineStrip.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantısı yok · Kayıtlı veriler gösteriliyor'**
+  String get p14OfflineStrip;
+
+  /// No description provided for @p14EmptyUpcomingBody2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüsteki kulüp etkinliklerini inceleyip hemen katılabilirsin.'**
+  String get p14EmptyUpcomingBody2;
+
+  /// No description provided for @p14EmptyPastBody2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha önce katıldığın veya tamamlanan etkinlikler burada arşivlenir.'**
+  String get p14EmptyPastBody2;
+
+  /// No description provided for @p14EmptyCreatedBody2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübünle planladığın atölye, seminer veya buluşmaları buradan yönet.'**
+  String get p14EmptyCreatedBody2;
+
+  /// No description provided for @p14Detail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Detay'**
+  String get p14Detail;
+
+  /// No description provided for @p14Attended.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldın'**
+  String get p14Attended;
+
+  /// No description provided for @p14WithdrawRequest.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği geri çek'**
+  String get p14WithdrawRequest;
+
+  /// No description provided for @p14StatusGoing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılıyor'**
+  String get p14StatusGoing;
+
+  /// No description provided for @p18ClassYear.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n}. Sınıf'**
+  String p18ClassYear(String n);
+
+  /// No description provided for @p18FollowErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı hatası'**
+  String get p18FollowErrorTitle;
+
+  /// No description provided for @p18FollowersEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profiliniz aktifleştikçe arkadaşlarınız sizi burada takip etmeye başlayacak.'**
+  String get p18FollowersEmptyBody;
+
+  /// No description provided for @p18FollowingEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlginizi çeken öğrencileri ve kulüp üyelerini takip edin, kampüsteki paylaşımları kaçırmayın.'**
+  String get p18FollowingEmptyBody;
+
+  /// No description provided for @p18FollowNoMatchBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramanızla eşleşen kullanıcı bulunamadı. Yazımı kontrol edip tekrar arayabilirsiniz.'**
+  String get p18FollowNoMatchBody;
+
+  /// No description provided for @p18AllFollowers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm takipçiler ({n})'**
+  String p18AllFollowers(String n);
+
+  /// No description provided for @p18AllFollowing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip edilenler ({n})'**
+  String p18AllFollowing(String n);
+
+  /// No description provided for @p19AcademicInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik Bilgiler'**
+  String get p19AcademicInfo;
+
+  /// No description provided for @p19ShowEmailDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilinizi ziyaret eden öğrenciler e-posta adresinizi görebilir.'**
+  String get p19ShowEmailDesc;
+
+  /// No description provided for @p19LangSystemDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazınızın varsayılan dilini kullanır'**
+  String get p19LangSystemDesc;
+
+  /// No description provided for @p19CrashReportsShort.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama hata verdiğinde anonim bir hata raporu gönderilir.'**
+  String get p19CrashReportsShort;
+
+  /// No description provided for @p19LogoutAllSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer açık telefon ve tarayıcı oturumlarını kapatır.'**
+  String get p19LogoutAllSub;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -15431,26 +15642,27 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['ar', 'en', 'tr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar': return AppLocalizationsAr();
-    case 'en': return AppLocalizationsEn();
-    case 'tr': return AppLocalizationsTr();
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'tr':
+      return AppLocalizationsTr();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

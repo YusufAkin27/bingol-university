@@ -3,15 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 
-// Tasarım (P1/P1b) sabit ton renkleri.
-const _kRed = Color(0xFFC62A20);
-const _kShadow = Color(0x40171E33); // rgba(23,30,51,.25)
-
-/// Ana sayfa kart gölgesi: 0 6 18 -12.
-const List<BoxShadow> homeCardShadow = [
-  BoxShadow(color: _kShadow, blurRadius: 18, spreadRadius: -12, offset: Offset(0, 6)),
-];
-
 /// Yuvarlak (16) arama kutusu; dokununca arama sayfasına gider.
 class HomeSearchBox extends StatelessWidget {
   const HomeSearchBox({super.key, required this.hint, required this.onTap});
@@ -52,16 +43,19 @@ class HomeSearchBox extends StatelessWidget {
   }
 }
 
-/// Hızlı erişim karosu tonları (açık zemin, ön plan).
+/// Hızlı erişim karosu tonları: tema belirteçlerinden (açık/koyu kendiliğinden).
 enum HomeTone {
-  red(Color(0xFFFDE7E4), Color(0xFFC62A20)),
-  green(Color(0xFFE6F2EA), Color(0xFF1F7A4A)),
-  blue(Color(0xFFE8EDF8), Color(0xFF2F4FA8)),
-  amber(Color(0xFFFBEFD9), Color(0xFF8A5200));
+  red,
+  green,
+  blue,
+  amber;
 
-  const HomeTone(this.bg, this.fg);
-  final Color bg;
-  final Color fg;
+  BuTint tint(BuTokens t) => switch (this) {
+        HomeTone.red => BuTint(t.soft, t.onSoft),
+        HomeTone.green => t.tint(1),
+        HomeTone.blue => t.tint(0),
+        HomeTone.amber => t.tint(2),
+      };
 }
 
 /// 56x56 yuvarlak-kare ikon + etiket.
@@ -76,10 +70,9 @@ class HomeQuickTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    // Koyu temada ton zemini ön planın saydam hali; ön plan aydınlatılır (okunurluk).
-    final bg = dark ? tone.fg.withValues(alpha: .22) : tone.bg;
-    final fg = dark ? Color.lerp(tone.fg, Colors.white, .45)! : tone.fg;
+    final tn = tone.tint(t);
+    final bg = tn.bg;
+    final fg = tn.fg;
     // Sabit boyutlu kutu: çok büyük yazı ölçeğinde taşmasın.
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,
@@ -133,21 +126,23 @@ class HomeMealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final onPhoto = photo != null;
+    final fg = onPhoto ? t.onMedia : t.onPr;
     final head = Row(children: [
       Expanded(
         child: Text(title,
             maxLines: 2,
-            style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w700 : FontWeight.w600, color: Colors.white.withValues(alpha: onPhoto ? 1 : .9))),
+            style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w700 : FontWeight.w600, color: fg.withValues(alpha: onPhoto ? 1 : .9))),
       ),
       const SizedBox(width: 8),
       Text(time,
-          style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w600 : FontWeight.w400, color: Colors.white.withValues(alpha: onPhoto ? 1 : .9))),
+          style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w600 : FontWeight.w400, color: fg.withValues(alpha: onPhoto ? 1 : .9))),
     ]);
     final body = Text(text,
         maxLines: 4,
         overflow: TextOverflow.ellipsis,
-        style: BuType.title.copyWith(fontSize: 18, height: 1.3, color: Colors.white));
+        style: BuType.title.copyWith(fontSize: 18, height: 1.3, color: fg));
     final content = Padding(
       padding: EdgeInsetsDirectional.fromSTEB(16, onPhoto ? 14 : 16, 16, onPhoto ? 14 : 16),
       child: Column(
@@ -159,11 +154,11 @@ class HomeMealCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: _kRed.withValues(alpha: onPhoto ? .55 : .7), blurRadius: 26, spreadRadius: -14, offset: const Offset(0, 14))],
+        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: onPhoto ? .55 : .7), blurRadius: 26, spreadRadius: -14, offset: const Offset(0, 14))],
       ),
       child: Material(
-        color: _kRed,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: _kRed)),
+        color: t.pr,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.pr)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -171,14 +166,14 @@ class HomeMealCard extends StatelessWidget {
               ? content
               : Stack(children: [
                   Positioned.fill(child: Semantics(image: true, label: photoLabel, child: photo)),
-                  const Positioned.fill(
+                  Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          stops: [0, .4, .75, 1],
-                          colors: [Color(0x00171E33), Color(0x66171E33), Color(0xCC171E33), Color(0xF2171E33)],
+                          stops: const [0, .4, .75, 1],
+                          colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .4), t.scrim.withValues(alpha: .8), t.scrim.withValues(alpha: .95)],
                         ),
                       ),
                     ),
@@ -239,7 +234,7 @@ class HomeAnnouncementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return DecoratedBox(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: homeCardShadow),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
       child: Material(
         color: t.sf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.bd)),

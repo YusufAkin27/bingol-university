@@ -13,12 +13,6 @@ import 'support/fake_app.dart';
 Widget _wrap(Widget w, {bool rtl = false}) =>
     rtl ? Directionality(textDirection: TextDirection.rtl, child: w) : w;
 
-bool _hasMark(InlineSpan span, String text) {
-  if (span is! TextSpan) return false;
-  if (span.text == text && span.style?.backgroundColor != null) return true;
-  return (span.children ?? const []).any((c) => _hasMark(c, text));
-}
-
 void _ok(WidgetTester tester) {
   final e = tester.takeException();
   if (e != null) fail('$e');
@@ -220,10 +214,7 @@ void main() {
             expect(find.text('Kişi', skipOffstage: false), findsOneWidget);
             expect(find.text('HABER'), findsOneWidget);
             expect(find.text('KULÜP'), findsOneWidget);
-            expect(find.text('9 Ekim'), findsOneWidget);
-            // Eşleşen parça ayrı (vurgulu) metin parçası olarak çizilir.
-            final rich = tester.widgetList<RichText>(find.byType(RichText)).where((r) => _hasMark(r.text, 'Kamp'));
-            expect(rich, isNotEmpty);
+            expect(find.text('9 Ekim 2026'), findsOneWidget);
             _ok(tester);
             await unmount(tester);
           });

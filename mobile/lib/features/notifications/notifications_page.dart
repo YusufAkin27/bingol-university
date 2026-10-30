@@ -243,7 +243,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
     if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
     if (days == 1) return l.bildirimYesterday;
-    if (days < 7) return l.bildirimShortDay(days.toString());
+    if (days < 7) return l.p03NotifShortDay(days.toString());
     return newsLocalDate(context, iso);
   }
 
@@ -305,11 +305,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 constraints: const BoxConstraints(minHeight: 48),
                 alignment: AlignmentDirectional.centerEnd,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(l.notifMarkAll,
-                    maxLines: 2,
-                    textAlign: TextAlign.end,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+                child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [
+                  Icon(LucideIcons.checkCheck, size: 16, color: t.pr),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(l.notifMarkAll,
+                        maxLines: 2,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+                  ),
+                ]),
               ),
             ),
           )
@@ -457,7 +463,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
-        if (!_loading && !(failed && _items.isEmpty)) _filters(t),
+        if (!_loading) _filters(t),
         Expanded(child: body),
       ]),
     );
@@ -578,8 +584,13 @@ class _ErrorCard extends StatelessWidget {
             ),
           ),
         ]),
-        const SizedBox(height: 16),
-        BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, onPressed: onRetry),
+        const SizedBox(height: 10),
+        Text(l.p03NotifLoadFailedBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+        const SizedBox(height: 14),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
+        ),
       ]),
     );
   }

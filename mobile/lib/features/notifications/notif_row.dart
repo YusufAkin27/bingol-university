@@ -2,19 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Tasarım (P8/P10) ton çifti: açık temada pastel zemin + koyu ikon, koyu temada yarı saydam zemin + açık ikon.
-class NotifTone {
-  const NotifTone(this.lightBg, this.lightFg, this.darkFg);
+/// Bildirim türü tonu: tema belirteçlerinden (açık/koyu kendiliğinden).
+enum NotifTone {
+  red,
+  blue,
+  green,
+  amber;
 
-  final Color lightBg, lightFg, darkFg;
+  BuTint tint(BuildContext c) {
+    final t = c.bu;
+    return switch (this) {
+      NotifTone.red => BuTint(t.soft, t.onSoft),
+      NotifTone.blue => t.tint(0),
+      NotifTone.green => t.tint(1),
+      NotifTone.amber => t.tint(2),
+    };
+  }
 
-  static const red = NotifTone(Color(0xFFFDE7E4), Color(0xFFC62A20), Color(0xFFFF8A80));
-  static const blue = NotifTone(Color(0xFFE8EDF8), Color(0xFF2F4FA8), Color(0xFF9DB4F5));
-  static const green = NotifTone(Color(0xFFE6F2EA), Color(0xFF1F7A4A), Color(0xFF7FD6A4));
-  static const amber = NotifTone(Color(0xFFFBEFD9), Color(0xFF8A5200), Color(0xFFF2BC66));
-
-  Color fg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? darkFg : lightFg;
-  Color bg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? darkFg.withValues(alpha: .18) : lightBg;
+  Color fg(BuildContext c) => tint(c).fg;
+  Color bg(BuildContext c) => tint(c).bg;
 }
 
 /// Renkli ikon karosu (bildirim satırı ve akademik ekran ortak kullanır).
@@ -65,6 +71,10 @@ class NotifRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(20);
+    // Koyu daireli türlerde etiket mavi tonda (referans); diğerlerinde dairenin tonunda.
+    final chipTone = strong ? NotifTone.blue : tone;
+    final chipBg = chipTone.bg(context);
+    final chipFg = chipTone.fg(context);
     final circleBg = strong ? t.ink : tone.bg(context);
     final circleFg = strong ? t.bg : tone.fg(context);
     return Semantics(
@@ -118,11 +128,11 @@ class NotifRow extends StatelessWidget {
                           alignment: AlignmentDirectional.centerStart,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                            decoration: BoxDecoration(color: chipBg, borderRadius: BorderRadius.circular(BuRadius.pill)),
                             child: Text(typeLabel,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+                                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: chipFg)),
                           ),
                         ),
                       ),

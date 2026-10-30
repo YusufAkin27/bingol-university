@@ -330,7 +330,7 @@ class _HomeTabState extends State<HomeTab> {
           onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
           child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
         ),
-      if (_newsStale) StaleBanner(text: context.l10n.homeSourceUnreachable),
+      if (_newsStale) StaleBanner(text: context.l10n.homeSourceUnreachable, icon: LucideIcons.triangleAlert),
     ];
     return [
       if (banners.isNotEmpty)
@@ -538,7 +538,7 @@ class _HomeTabState extends State<HomeTab> {
                 if (_avatars.isNotEmpty)
                   _AvatarStack(avatars: _avatars, total: going)
                 else
-                  const Icon(LucideIcons.users, size: 14.5, color: Colors.white),
+                  Icon(LucideIcons.users, size: 14.5, color: context.bu.onMedia),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(going > 0 ? l.homeGoingCount(going.toString()) : l.homeBeFirst,
@@ -574,33 +574,37 @@ class _HomeTabState extends State<HomeTab> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: .65), Colors.black.withValues(alpha: .85)],
+                  colors: [context.bu.scrim.withValues(alpha: .65), context.bu.scrim.withValues(alpha: .85)],
                 ),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-            child: DefaultTextStyle.merge(style: const TextStyle(color: Colors.white), child: child),
+            child: DefaultTextStyle.merge(style: TextStyle(color: context.bu.onMedia), child: child),
           ),
         ],
       ),
     );
   }
 
-  Widget _heroPill(IconData icon, String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .2), borderRadius: BorderRadius.circular(999)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 11.5, color: Colors.white),
-          const SizedBox(width: 6),
-          Text(text, style: BuType.micro.copyWith(color: Colors.white)),
-        ]),
-      );
+  Widget _heroPill(IconData icon, String text) {
+    final t = context.bu;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .2), borderRadius: BorderRadius.circular(999)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 11.5, color: t.onMedia),
+        const SizedBox(width: 6),
+        Text(text, style: BuType.micro.copyWith(color: t.onMedia)),
+      ]),
+    );
+  }
 
   Widget _whitePill(String label, VoidCallback? onTap, {bool busy = false, bool check = false}) {
+    final t = context.bu;
     return Material(
-      color: Colors.white.withValues(alpha: onTap == null ? .75 : 1),
+      color: t.onMedia.withValues(alpha: onTap == null ? .75 : 1),
       shape: const StadiumBorder(),
       child: InkWell(
         customBorder: const StadiumBorder(),
@@ -612,14 +616,13 @@ class _HomeTabState extends State<HomeTab> {
             child: Center(
               widthFactor: 1,
               child: busy
-                  ? const SizedBox(
-                      width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: BuColors.red700))
+                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr))
                   : Row(mainAxisSize: MainAxisSize.min, children: [
-                      if (check) ...const [
-                        Icon(LucideIcons.check, size: 13.5, color: Color(0xFF8E1B13)),
-                        SizedBox(width: 4),
+                      if (check) ...[
+                        Icon(LucideIcons.check, size: 13.5, color: t.onSoft),
+                        const SizedBox(width: 4),
                       ],
-                      Text(label, style: BuType.label.copyWith(color: const Color(0xFF8E1B13))),
+                      Text(label, style: BuType.label.copyWith(color: t.onSoft)),
                     ]),
             ),
           ),
@@ -722,10 +725,11 @@ class _AvatarStack extends StatelessWidget {
 
   static const _d = 26.0;
   static const _step = 18.0;
-  static const _ring = Color(0xFFE8362B);
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
+    final ring = t.pr;
     final shown = avatars.take(3).toList();
     final extra = total - shown.length;
     final count = shown.length + (extra > 0 ? 1 : 0);
@@ -741,7 +745,7 @@ class _AvatarStack extends StatelessWidget {
                 width: _d,
                 height: _d,
                 padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: _ring),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: ring),
                 child: BuAvatar(
                     name: shown[i]['displayName'] as String?, url: shown[i]['avatarUrl'] as String?, size: _d - 4),
               ),
@@ -754,9 +758,9 @@ class _AvatarStack extends StatelessWidget {
                 height: _d,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: const Color(0xFF171E33), border: Border.all(color: _ring, width: 2)),
+                    shape: BoxShape.circle, color: t.ink, border: Border.all(color: ring, width: 2)),
                 child: Text(extra > 99 ? '99+' : '+$extra',
-                    maxLines: 1, style: BuType.micro.copyWith(color: Colors.white)),
+                    maxLines: 1, style: BuType.micro.copyWith(color: t.bg)),
               ),
             ),
         ],

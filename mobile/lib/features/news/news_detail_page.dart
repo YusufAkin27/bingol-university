@@ -182,9 +182,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     surfaceTintColor: t.bg,
                     scrolledUnderElevation: 0,
                     automaticallyImplyLeading: false,
-                    leadingWidth: 64,
+                    leadingWidth: 72,
                     leading: Padding(
-                      padding: const EdgeInsetsDirectional.only(start: 8),
+                      padding: const EdgeInsetsDirectional.only(start: 16),
                       child: IcerikIconButton(
                           icon: buDirIcon(context, LucideIcons.arrowLeft),
                           label: l.commonBack,
@@ -200,20 +200,21 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     actions: [
                       IcerikIconButton(
                         key: const ValueKey('news-save'),
-                        icon: _saved ? LucideIcons.bookmarkCheck : LucideIcons.bookmark,
+                        icon: _saved ? Icons.bookmark : LucideIcons.bookmark,
                         label: _saved ? l.newsSaveRemove : l.newsSaveAdd,
                         on: _saved,
                         toggled: _saved,
                         overlay: overlay,
                         onTap: _toggle,
                       ),
+                      const SizedBox(width: 8),
                       IcerikIconButton(
                           key: const ValueKey('news-share'),
-                          icon: LucideIcons.share,
+                          icon: LucideIcons.share2,
                           label: l.icerikShare,
                           overlay: overlay,
                           onTap: () => _share(url)),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                     ],
                     flexibleSpace: hasCover
                         ? FlexibleSpaceBar(
@@ -424,6 +425,8 @@ class _ArticleSkeleton extends StatelessWidget {
       child: const ExcludeSemantics(
         child: BuSkeletonScope(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [BuSkeleton.circle(32), SizedBox(width: 10), BuSkeleton.line(width: 140, height: 12)]),
+            SizedBox(height: 18),
             BuSkeleton.line(height: 14),
             SizedBox(height: 10),
             BuSkeleton.line(height: 14),
@@ -437,6 +440,8 @@ class _ArticleSkeleton extends StatelessWidget {
             BuSkeleton.line(height: 14),
             SizedBox(height: 10),
             BuSkeleton.line(width: 160, height: 14),
+            SizedBox(height: 22),
+            Row(children: [BuSkeleton.circle(32), SizedBox(width: 8), BuSkeleton.circle(32), Spacer(), BuSkeleton.line(width: 80, height: 12)]),
           ]),
         ),
       ),

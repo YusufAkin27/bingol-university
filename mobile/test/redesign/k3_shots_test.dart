@@ -156,7 +156,7 @@ final _shots = <_Shot>[
     await t.tap(find.byKey(const ValueKey('news-open-source')));
     await t.pump(const Duration(milliseconds: 500));
   }),
-  _Shot('d3_haber_yukleniyor', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(img: false)), _detailBackend, slow: true),
+  _Shot('d3_haber_yukleniyor', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem()), _detailBackend, slow: true),
   _Shot('d4_haber_hata', (b) => NewsDetailPage(session: makeSession(b), item: _newsItem(img: false)), () => _detailBackend()..fail('/news/1')),
   _Shot('s1_arama_bos', (b) => SearchPage(session: makeSession(b)), _searchBackend, recent: ['ders kayıt', 'robotik', 'yemek', 'Elif']),
   _Shot('s2_arama_tumu', (b) => SearchPage(session: makeSession(b)), () => _searchBackend(hits: _kulupHits, users: _people.take(1).toList()),
@@ -250,14 +250,14 @@ FakeBackend _searchBackend({List<Map<String, dynamic>> hits = const [], List<Map
   return b;
 }
 
-Map<String, dynamic> _user(int id, String name, String dept, {int? year, String? extra}) =>
+Map<String, dynamic> _user(int id, String name, String dept, {int? year}) =>
     {'id': id, 'displayName': name, 'department': dept, if (year != null) 'classYear': year};
 
 final _kulupHits = <Map<String, dynamic>>[
   _hit('NEWS', 1, 'Öğrenci Kulüpleri Tanıtım Günleri Başlıyor', date: '2026-10-24', img: 'https://img.invalid/n1.jpg'),
   _hit('NEWS', 2, 'Kulüp Etkinlik Başvuruları İçin Son Gün', date: '2026-10-20', img: 'https://img.invalid/n2.jpg'),
   _hit('ANNOUNCEMENT', 3, '2024-2025 Kulüp Tüzük Güncellemeleri Hakkında', date: '2026-10-18', snippet: 'Tüm aktif öğrenci topluluklarının yönergeleri...'),
-  _hit('EVENT', 4, 'Robotik ve Yapay Zekâ Tanışma Günü', date: '2026-10-28T17:30:00', snippet: 'Robotik Kulübü · Mühendislik Fakültesi'),
+  _hit('EVENT', 4, 'Robotik ve Yapay Zekâ Tanışma Günü', date: '2026-10-28T17:30:00', snippet: 'Robotik Kulübü · Mühendislik Fakültesi', extra: {'endsAt': '2026-10-28T19:00:00'}),
   _hit('COMMUNITY', 5, 'Robotik Kulübü', snippet: 'Otonom araçlar ve robot yarışmaları.', extra: {'memberCount': 128, 'category': 'Teknoloji'}),
   _hit('COMMUNITY', 6, 'Tiyatro ve Sahne Sanatları', snippet: 'Oyun atölyeleri.', extra: {'memberCount': 94, 'category': 'Kültür'}),
   _hit('POSTS', 7, 'Elif Yıldız', snippet: 'Kulüp standımızda yeni dönem kayıtları devam ediyor!', img: 'https://img.invalid/p7.jpg', extra: {'likeCount': 42}),
@@ -292,10 +292,8 @@ Future<void> _typeQ(WidgetTester t, String q) async {
 }
 
 Future<void> _pickTab(WidgetTester t, String label) async {
-  if (find.text(label).evaluate().isEmpty) {
-    await t.drag(find.text(lookupAppLocalizations(Locale(_lang)).searchAll).first, Offset(_lang == 'ar' ? 300 : -300, 0));
-    await t.pump(const Duration(milliseconds: 400));
-  }
+  await t.ensureVisible(find.text(label).first);
+  await t.pump(const Duration(milliseconds: 300));
   await t.tap(find.text(label).first);
   await t.pump(const Duration(milliseconds: 600));
 }
