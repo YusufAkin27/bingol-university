@@ -336,15 +336,12 @@ void main() {
             {'news': true, 'announcements': false, 'events': false, 'communities': true, 'messages': true});
       await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      final off = tester.getSemantics(find.text('Etkinlikler'));
-      expect(off.label, contains('Etkinlikler'));
-      expect(off.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isFalse);
-      final on = tester.getSemantics(find.text('Haberler'));
-      expect(on.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isTrue);
+      // E-posta anahtarı profilden gelen değerle (açık) durumlu okunur; hata raporu varsayılan açık.
+      final email = tester.getSemantics(find.text('E-postamı diğerlerine göster'));
+      expect(email.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isTrue);
+      final crash = tester.getSemantics(find.text('Hata raporu gönder'));
+      expect(crash.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isTrue);
       expect(find.bySemanticsLabel('Geri'), findsWidgets);
-      final seg = tester.getSemantics(find.text('Sistem'));
-      expect(seg.getSemanticsData().flagsCollection.isSelected, ui.Tristate.isTrue);
-      expect(seg.getSemanticsData().flagsCollection.isButton, isTrue);
       await unmount(tester);
       h.dispose();
     });

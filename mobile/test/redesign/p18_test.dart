@@ -66,9 +66,9 @@ void main() {
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Profili düzenle'), findsNothing);
+      expect(find.text('Düzenle'), findsNothing);
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Profili düzenle'), findsOneWidget);
+      expect(find.text('Düzenle'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
@@ -78,11 +78,11 @@ void main() {
       final b = _backend()..fail('/users/me', status: 500, code: 'SERVER_ERROR', message: 'x');
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Profili düzenle'), findsNothing);
+      expect(find.text('Düzenle'), findsNothing);
       b.on('/users/me', {'id': 1, 'displayName': 'Ayşe', 'department': 'X'});
       await tester.tap(find.byType(BuButton).first);
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Profili düzenle'), findsOneWidget);
+      expect(find.text('Düzenle'), findsOneWidget);
       await unmount(tester);
     });
 

@@ -17,6 +17,8 @@ import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
+import 'package:bu_kampus/features/profile/profile_tab.dart';
+import 'package:bu_kampus/features/shell/floating_nav.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +26,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../support/fake_app.dart';
@@ -61,19 +62,9 @@ class _Variant {
   final double scale;
 }
 
-/// Sahte seciciler: ya hata firlatir ya da hic tamamlanmaz (yukleniyor durumu).
-class _FakeImages extends ImageService {
-  _FakeImages({this.error, this.hang = false}) : super(picker: ImagePicker());
-
-  final ImageException? error;
-  final bool hang;
-
-  @override
-  Future<PreparedImage?> pickPrepared(ImageSource source, {bool avatar = false}) {
-    if (hang) return Completer<PreparedImage?>().future;
-    return Future<PreparedImage?>.error(error ?? ImageException('EMPTY'));
-  }
-}
+/// Sahte kirpma: ya hata firlatir ya da hic tamamlanmaz (yukleniyor durumu).
+Future<Uint8List?> _failCrop(ImageSource _) => Future<Uint8List?>.error(ImageException('TOO_LARGE'));
+Future<Uint8List?> _hangCrop(ImageSource _) => Completer<Uint8List?>().future;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Sahte veri
@@ -144,6 +135,20 @@ Future<void> _enter(WidgetTester t, Finder f, String text) async {
   await t.pump();
 }
 
+void _profileBase(FakeBackend b) {
+  b
+    ..on('/me/summary', {'unreadNotifications': 2, 'unreadMessages': 3, 'communities': 8, 'events': 19, 'bookmarks': 12})
+    ..on('/users/me', {..._profile(name: 'Defne Kaya'), 'email': 'defne.kaya@bingol.edu.tr', 'bio': '', 'showEmail': false})
+    ..on('/users/1', {'id': 1, 'followerCount': 128, 'followingCount': 94, 'followedByMe': false});
+}
+
+/// Profil sekmesi + yuzen hap gezinme (Profil secili).
+Widget _profileShell(Session s, {int index = 4, int badge = 3}) => Scaffold(
+      extendBody: true,
+      body: ProfileTab(session: s, themeController: ThemeController()),
+      bottomNavigationBar: FloatingNav(index: index, onChanged: (_) {}, chatBadge: ValueNotifier<int>(badge)),
+    );
+
 // ---------------------------------------------------------------------------------------------------------------
 
 final _shots = <_Shot>[
@@ -177,11 +182,12 @@ final _shots = <_Shot>[
   _Shot('10_profil_duzenle_hatalar', (b, s) => EditProfilePage(
         session: s,
         profile: _profile(name: 'E'),
-        images: _FakeImages(error: ImageException('TOO_LARGE')),
+        cropPhoto: _failCrop,
       ), height: 1100, after: (t) async {
     await t.tap(find.byKey(const ValueKey('avatar-camera')));
-    await t.pump(const Duration(milliseconds: 400));
-    await t.tap(find.byIcon(LucideIcons.image).first);
+    await t.pump(const Duration(seconds: 1));
+    await t.pump(const Duration(seconds: 1));
+    await t.tap(find.text(_s('Galeriden seç', 'Choose from gallery', 'اختيار من المعرض')).first);
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
     // bolum alani bos birakilarak dogrulama hatasi
@@ -191,11 +197,12 @@ final _shots = <_Shot>[
   _Shot('11_profil_duzenle_yukleniyor', (b, s) => EditProfilePage(
         session: s,
         profile: _profile(),
-        images: _FakeImages(hang: true),
+        cropPhoto: _hangCrop,
       ), height: 1000, after: (t) async {
     await t.tap(find.byKey(const ValueKey('avatar-camera')));
-    await t.pump(const Duration(milliseconds: 400));
-    await t.tap(find.byIcon(LucideIcons.image).first);
+    await t.pump(const Duration(seconds: 1));
+    await t.pump(const Duration(seconds: 1));
+    await t.tap(find.text(_s('Galeriden seç', 'Choose from gallery', 'اختيار من المعرض')).first);
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
   }, leaveLoading: true),
@@ -238,14 +245,20 @@ final _shots = <_Shot>[
   }),
   _Shot('21_hesabi_sil', (b, s) => DeleteAccountPage(session: s), height: 900),
   _Shot('22_hesabi_sil_onayli', (b, s) => DeleteAccountPage(session: s), height: 900, after: (t) async {
+    await t.scrollUntilVisible(find.byKey(const ValueKey('delete-ack')), 200, scrollable: find.byType(Scrollable).first);
+    await t.pump();
     await t.tap(find.byKey(const ValueKey('delete-ack')));
     await t.pump(const Duration(milliseconds: 300));
   }),
   _Shot('23_silmeyi_onayla', (b, s) => DeleteAccountPage(session: s), setup: (b) {
     b.handlers.add(_failOn('DELETE', '/users/me', 403, 'WRONG_PASSWORD', ''));
   }, after: (t) async {
+    await t.scrollUntilVisible(find.byKey(const ValueKey('delete-ack')), 200, scrollable: find.byType(Scrollable).first);
+    await t.pump();
     await t.tap(find.byKey(const ValueKey('delete-ack')));
     await t.pump(const Duration(milliseconds: 300));
+    await t.scrollUntilVisible(find.byKey(const ValueKey('delete-continue')), 200, scrollable: find.byType(Scrollable).first);
+    await t.pump();
     await t.tap(find.byKey(const ValueKey('delete-continue')));
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
@@ -253,6 +266,21 @@ final _shots = <_Shot>[
     await t.tap(find.byKey(const ValueKey('delete-submit')));
     await t.pump(const Duration(milliseconds: 600));
   }),
+  // ---- Profil sekmesi + gezinme
+  _Shot('30_profil', (b, s) => _profileShell(s), setup: _profileBase, height: 1500),
+  _Shot('31_profil_ust', (b, s) => _profileShell(s), setup: _profileBase),
+  _Shot('32_profil_yukleniyor', (b, s) => _profileShell(s), setup: (b) {
+    _profileBase(b);
+    b.delay = const Duration(seconds: 4);
+  }, leaveLoading: true),
+  _Shot('33_profil_hata', (b, s) => _profileShell(s),
+      setup: (b) => b.fail('/users/me', status: 500, code: 'SERVER_ERROR', message: 'Bağlantı koptu')),
+  _Shot('36_profil_alt', (b, s) => _profileShell(s), setup: _profileBase, after: (t) async {
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -4000));
+    await t.pump(const Duration(milliseconds: 600));
+  }),
+  _Shot('34_gezinme_ana', (b, s) => _profileShell(s, index: 0, badge: 7), setup: _profileBase),
+  _Shot('35_gezinme_sohbet', (b, s) => _profileShell(s, index: 2, badge: 0), setup: _profileBase),
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -350,7 +378,11 @@ void main() {
           // ignore: avoid_print
           print('YAZILDI ${f.path} ${image.width}x${image.height}');
         });
-        if (shot.leaveLoading) await tester.pump(const Duration(seconds: 90));
+        if (shot.leaveLoading) {
+          // Zincirleme istekler (profil -> istatistik) bitsin: bekleyen zamanlayici kalmasin.
+          await tester.pump(const Duration(seconds: 90));
+          await tester.pump(const Duration(seconds: 90));
+        }
         await unmount(tester);
         debugNetworkImageHttpClientProvider = null;
       });

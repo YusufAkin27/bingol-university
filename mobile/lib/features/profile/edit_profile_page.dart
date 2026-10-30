@@ -7,18 +7,20 @@ import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../widgets/academic_pickers.dart';
 import '../../widgets/bu.dart';
+import '../media_crop/media_crop.dart';
 import 'profil2_widgets.dart';
 
 /// Profili düzenle (Stitch 48-4/5/6): avatar + "Fotoğrafı değiştir", ad soyad, hakkımda, bölüm/sınıf,
 /// salt okunur kurumsal e-posta, e-posta anahtarı, sabit "Kaydet". Çıkarken kaydedilmemiş değişiklik sorulur.
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key, required this.session, required this.profile, this.images});
+  const EditProfilePage({super.key, required this.session, required this.profile, this.cropPhoto});
 
   final Session session;
   final Map<String, dynamic> profile;
 
-  /// Test için sahte seçici; verilmezse gerçek [ImageService].
-  final ImageService? images;
+  /// Test için: seç + 1:1 daire kırp işlemini değiştirir (kırpılmış bayt döner; null = vazgeçildi).
+  /// Verilmezse [pickAndCrop] ile `CropSpec.profile` kullanılır.
+  final CropPhotoPicker? cropPhoto;
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -51,7 +53,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool _uploading = false;
   late String? _avatarUrl = widget.profile['avatarUrl'] as String?;
   bool _avatarChanged = false; // avatar anında sunucuda güncellenir; üst sayfa yenilensin
-  late final ImageService _images = widget.images ?? ImageService();
+  final _images = ImageService();
   String? _error;
   String? _photoError;
 
@@ -267,33 +269,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _pickAvatar() async {
     if (_uploading || _busy) return;
-    final l = context.l10n;
     final hasPhoto = _avatarUrl != null && _avatarUrl!.isNotEmpty;
-    final choice = await BuSheet.show<String>(
-      context,
-      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
-        BuListTile(
-          leading: const Icon(LucideIcons.image),
-          title: l.profilePickGallery,
-          onTap: () => Navigator.pop(ctx, 'gallery'),
-        ),
-        BuListTile(
-          leading: const Icon(LucideIcons.camera),
-          title: l.profileTakePhoto,
-          onTap: () => Navigator.pop(ctx, 'camera'),
-        ),
-        if (hasPhoto)
-          BuListTile(
-            leading: Icon(LucideIcons.trash2, color: ctx.bu.danger),
-            title: l.profileRemovePhoto,
-            danger: true,
-            onTap: () => Navigator.pop(ctx, 'remove'),
-          ),
-      ]),
-    );
+    final choice = await showPhotoSourceSheet(context, removable: hasPhoto);
     if (choice == null || !mounted) return;
-    if (choice == 'remove') return _removeAvatar();
-    await _uploadAvatar(choice == 'camera' ? ImageSource.camera : ImageSource.gallery);
+    if (choice == PhotoSource.remove) return _removeAvatar();
+    await _uploadAvatar(choice == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
   }
 
   Future<void> _uploadAvatar(ImageSource source) async {
@@ -303,11 +283,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _photoError = null;
     });
     try {
-      final prepared = await _images.pickPrepared(source, avatar: true);
-      if (prepared == null) {
+      // Seç -> 1:1 daire kırp -> doğrula/sıkıştır -> yükle.
+      final crop = widget.cropPhoto;
+      final bytes = crop != null
+          ? await crop(source)
+          : await pickAndCrop(context, CropSpec.profile(previewName: _name.text.trim()), source: source);
+      if (bytes == null) {
         if (mounted) setState(() => _uploading = false);
         return; // kullanıcı vazgeçti
       }
+      final prepared = await _images.prepare(bytes, avatar: true);
       final r = await MultipartUploader(widget.session).upload('/users/me/avatar', prepared);
       if (!mounted) return;
       setState(() {

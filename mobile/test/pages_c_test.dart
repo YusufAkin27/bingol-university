@@ -442,22 +442,6 @@ void main() {
       ..on('/notifications/preferences',
           {'news': true, 'announcements': true, 'events': true, 'communities': true, 'messages': true});
 
-    testWidgets('tema segmenti ThemeController değerini değiştirir', (tester) async {
-      final tc = ThemeController();
-      final b = backend();
-      useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: tc)));
-      await settle(tester);
-      expect(tc.mode, ThemeMode.system);
-      await tester.tap(find.text('Koyu'));
-      await tester.pump();
-      expect(tc.mode, ThemeMode.dark);
-      await tester.tap(find.text('Açık'));
-      await tester.pump();
-      expect(tc.mode, ThemeMode.light);
-      await unmount(tester);
-    });
-
     Future<void> openDelete(WidgetTester tester, FakeBackend b) async {
       b.on('/users/me/privacy', {});
       useScreen(tester, kPhoneMedium);
@@ -472,6 +456,8 @@ void main() {
       await tester.tap(find.text('Gizlilik ve veriler'));
       await settle(tester, const Duration(milliseconds: 500));
       // Gizlilik > Verilerim ve hesap > Hesabımı sil > onay kutusu > Devam et > şifre alt sayfası.
+      await tester.scrollUntilVisible(find.text('Verilerim ve hesap'), 200, scrollable: find.byType(Scrollable).last);
+      await tester.pump();
       await tester.tap(find.text('Verilerim ve hesap'));
       await settle(tester, const Duration(milliseconds: 500));
       await tester.scrollUntilVisible(find.text('Hesabımı sil'), 200, scrollable: find.byType(Scrollable).first);

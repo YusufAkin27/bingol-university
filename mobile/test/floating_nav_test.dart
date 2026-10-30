@@ -19,10 +19,11 @@ void main() {
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
+    expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(Icon), findsNWidgets(5));
     for (final l in _labels) {
       expect(find.text(l), findsOneWidget);
-      expect(find.bySemanticsLabel(l), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(l)), findsWidgets);
     }
     h.dispose();
   });
@@ -35,33 +36,45 @@ void main() {
     final got = <int>[];
     await tester.pumpWidget(_nav(0, got.add, badge, kPhoneMedium, Brightness.light));
     for (var i = 0; i < 5; i++) {
-      await tester.tap(find.bySemanticsLabel(_labels[i]));
+      await tester.tap(find.text(_labels[i]));
       await tester.pump();
     }
     expect(got, [0, 1, 2, 3, 4]);
     h.dispose();
   });
 
-  testWidgets('rozet gorunur ve kaybolur', (tester) async {
+  testWidgets('rozet gorunur ve kaybolur; 99 ustu 99+', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
-    double scale() => tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale;
-    expect(scale(), 0);
+    expect(find.byKey(const ValueKey('nav-badge')), findsNothing);
     badge.value = 7;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(scale(), 1);
     expect(find.text('7'), findsOneWidget);
+    badge.value = 150;
+    await tester.pump();
+    expect(find.text('99+'), findsOneWidget);
     badge.value = 0;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(scale(), 0);
+    expect(find.byKey(const ValueKey('nav-badge')), findsNothing);
   });
 
-  testWidgets('animasyon bitince hap secili sekmenin altinda', (tester) async {
-    final h = tester.ensureSemantics();
+  testWidgets('secili sekme sohbetse rozet gizlenir (zaten acik)', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(5);
+    addTearDown(badge.dispose);
+    await tester.pumpWidget(_nav(2, (_) {}, badge, kPhoneMedium, Brightness.light));
+    await tester.pump(const Duration(milliseconds: 400));
+    final scale = tester.widget<AnimatedScale>(find
+        .ancestor(of: find.byKey(const ValueKey('nav-badge')), matching: find.byType(AnimatedScale))
+        .first);
+    expect(scale.scale, 0);
+  });
+
+  testWidgets('M3 NavigationBar: secili indeks onChanged ile izlenir', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
@@ -69,14 +82,11 @@ void main() {
       builder: (c, set) => _nav(_idx, (i) => set(() => _idx = i), badge, kPhoneMedium, Brightness.light),
     ));
     for (final i in [3, 1, 4, 0]) {
-      await tester.tap(find.bySemanticsLabel(_labels[i]));
+      await tester.tap(find.text(_labels[i]));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
-      final pill = tester.getCenter(find.byKey(const ValueKey('nav-pill'))).dx;
-      final icon = tester.getCenter(find.byType(Icon).at(i)).dx;
-      expect((pill - icon).abs() < 1.0, isTrue, reason: 'sekme $i');
+      expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, i, reason: 'sekme $i');
     }
-    h.dispose();
   });
 
   for (final size in kPhoneSizes) {
@@ -88,15 +98,18 @@ void main() {
         await tester.pumpWidget(_nav(2, (_) {}, badge, size, br));
         await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
-        // dokunma hedefi >= 44 dp
-        expect(tester.getSize(find.byType(GestureDetector).first).width >= 44, isTrue);
+        // dokunma hedefi >= 48 dp
+        for (var i = 0; i < 5; i++) {
+          final sz = tester.getSize(find.byKey(ValueKey('nav-$i')));
+          expect(sz.width >= 48 && sz.height >= 48, isTrue, reason: 'sekme $i $sz');
+        }
       });
     }
   }
 
   for (final br in [Brightness.light, Brightness.dark]) {
     for (final rtl in [false, true]) {
-      testWidgets('320 dp ${br.name} ${rtl ? "rtl" : "ltr"}: tasma yok, 68 dp yukseklik', (tester) async {
+      testWidgets('320 dp ${br.name} ${rtl ? "rtl" : "ltr"}: tasma yok, 68 dp yukseklik (yuzen hap)', (tester) async {
         const small = Size(320, 640);
         useScreen(tester, small);
         final badge = ValueNotifier<int>(120);
@@ -111,7 +124,7 @@ void main() {
         ));
         await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
-        expect(tester.getSize(find.byType(FloatingNav)).height, 84);
+        expect(tester.getSize(find.byType(NavigationBar)).height, closeTo(FloatingNav.height, 1.5));
       });
     }
   }
