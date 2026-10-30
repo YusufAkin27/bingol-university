@@ -4,6 +4,7 @@ import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/forward_sheet.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
 import 'package:bu_kampus/features/chat/sohbety_widgets.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -56,11 +57,17 @@ void main() {
             expect(find.text('Dokun: fotoğraf · Basılı tut: video'), findsOneWidget);
             expect(find.text('0:07'), rec ? findsOneWidget : findsNothing);
             await tester.tap(find.byKey(const ValueKey('shutter')));
-            await tester.tap(find.byTooltip('Flaş'));
-            await tester.tap(find.byTooltip('Galeri'));
+            if (rec) {
+              // Kayıt halinde (Stitch 25): yalnız kapat + sayaç + durdur; flaş/galeri/çevir yok.
+              expect(find.byTooltip('Flaş'), findsNothing);
+              expect(find.byTooltip('Galeri'), findsNothing);
+            } else {
+              await tester.tap(find.byTooltip('Flaş'));
+              await tester.tap(find.byTooltip('Galeri'));
+            }
             await tester.tap(find.byTooltip('Kapat'));
-            expect([photo, flash, gallery, closed], [1, 1, 1, 1]);
-            expect(tester.getSize(find.byKey(const ValueKey('shutter'))), const Size(84, 84));
+            expect([photo, flash, gallery, closed], [rec ? 0 : 1, rec ? 0 : 1, rec ? 0 : 1, 1]);
+            expect(tester.getSize(find.byKey(const ValueKey('shutter'))), rec ? const Size(96, 96) : const Size(80, 80)); // Stitch 25: hazır 80, kayıt halkası 96
           });
         }
       }
@@ -87,12 +94,11 @@ void main() {
           expect(find.text('Yeni grup'), findsOneWidget);
           expect(find.text('En fazla 50 kişi'), findsOneWidget);
           expect(find.text('Rehberden kişi bul'), findsOneWidget);
+          await tester.tap(find.text('Yeni grup'));
+          await tester.pump();
           await tester.enterText(find.byType(TextField).first, 'al');
           await tester.pump(const Duration(milliseconds: 350));
           await settle(tester, const Duration(milliseconds: 400));
-          expect(find.text('KİŞİLER'), findsOneWidget);
-          await tester.tap(find.text('Yeni grup'));
-          await tester.pump();
           await tester.tap(find.text('Ali Veli'));
           await tester.pump();
           await tester.tap(find.text(_long).first);
@@ -110,11 +116,11 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewChatPage(session: makeSession(backend)), size: kPhoneMedium));
       await settle(tester);
+      await tester.tap(find.text('Yeni grup'));
+      await tester.pump();
       await tester.enterText(find.byType(TextField).first, 'al');
       await tester.pump(const Duration(milliseconds: 350));
       await settle(tester, const Duration(milliseconds: 400));
-      await tester.tap(find.text('Yeni grup'));
-      await tester.pump();
       await tester.tap(find.text('Ali Veli'));
       await tester.pump();
       await tester.tap(find.text('Grubu oluştur'));
@@ -124,16 +130,20 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('birebir: tek kişi seçilince Sohbet başlat', (tester) async {
+    testWidgets('birebir: her satırda Sohbet başlat hapı; dokununca sohbet doğrudan açılır', (tester) async {
       useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(NewChatPage(session: makeSession(be())), size: kPhoneMedium));
+      final backend = be()..on('/conversations', {'id': 5, 'type': 'DIRECT', 'peer': {'id': 11, 'displayName': 'Ali Veli'}});
+      await tester.pumpWidget(buildApp(NewChatPage(session: makeSession(backend)), size: kPhoneMedium));
       await settle(tester);
       await tester.enterText(find.byType(TextField).first, 'al');
       await tester.pump(const Duration(milliseconds: 350));
       await settle(tester, const Duration(milliseconds: 400));
+      expect(find.text('Sohbet başlat'), findsNWidgets(2));
       await tester.tap(find.text('Ali Veli'));
       await tester.pump();
-      expect(find.text('Sohbet başlat'), findsOneWidget);
+      expect(backend.count('POST /conversations'), 1);
+      expect(backend.bodies['POST /conversations'], {'userId': 11});
+      await settle(tester, const Duration(milliseconds: 400));
       await unmount(tester);
     });
   });
@@ -198,41 +208,40 @@ void main() {
   group('ChatInfoPage yeni tasarım', () {
     for (final b in Brightness.values) {
       for (final rtl in [false, true]) {
-        testWidgets('grup + birebir tüm sekmeler taşma yok ${b.name} rtl=$rtl 320', (tester) async {
-          for (final direct in [false, true]) {
+        testWidgets('grup + birebir + oda tek sayfa taşma yok ${b.name} rtl=$rtl 320', (tester) async {
+          for (final kind in ['DIRECT', 'GROUP', 'CLUB']) {
             useScreen(tester, kPhoneSmall);
             final be = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
             await tester.pumpWidget(buildApp(
                 _wrap(
                     ChatInfoPage(
                       session: makeSession(be),
-                      conversation: direct
+                      conversation: kind == 'DIRECT'
                           ? {'id': 5, 'type': 'DIRECT', 'peer': {'id': 2, 'displayName': _long, 'department': _long}}
-                          : {'id': 5, 'type': 'CLUB', 'title': _long, 'memberCount': 128, 'admin': false},
+                          : {'id': 5, 'type': kind, 'title': _long, 'memberCount': 128, 'admin': kind == 'GROUP'},
                       members: [
                         for (var i = 1; i <= 6; i++)
                           {'userId': i, 'displayName': i == 2 ? _long : 'Üye $i', 'role': i == 2 ? 'ADMIN' : 'MEMBER', 'department': _long}
                       ],
                       subtitle: 'Çevrimiçi',
-                      onOpenRoom: direct ? null : () {},
+                      onOpenRoom: kind == 'CLUB' ? () {} : null,
                     ),
                     rtl: rtl),
                 brightness: b,
                 size: kPhoneSmall));
             await settle(tester);
-            expect(tester.takeException(), isNull);
-            for (final tab in direct ? ['Medya', 'Ayarlar'] : ['Üyeler', 'Medya', 'Ayarlar']) {
-              await tester.tap(find.descendant(of: find.byType(SohbetyTabs), matching: find.text(tab)));
-              await settle(tester);
-              expect(tester.takeException(), isNull, reason: '$tab direct=$direct');
-            }
+            expect(tester.takeException(), isNull, reason: kind);
+            // Sayfanın tamamı gezilir: alttaki kartlarda da taşma olmamalı.
+            await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+            await settle(tester);
+            expect(tester.takeException(), isNull, reason: '$kind alt');
             await unmount(tester);
           }
         });
       }
     }
 
-    testWidgets('grup başlığı: "Kulüp odası · 128 üye", Kulüp hızlı eylemi, baş harfli avatar', (tester) async {
+    testWidgets('kulüp odası başlığı: etiket, üye sayısı, Kulüp sayfasını aç, simge karosu', (tester) async {
       useScreen(tester, kPhoneMedium);
       final be = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
       await tester.pumpWidget(buildApp(
@@ -246,11 +255,11 @@ void main() {
           ),
           size: kPhoneMedium));
       await settle(tester);
-      expect(find.text('Kulüp odası · 128 üye'), findsOneWidget);
-      expect(find.text('Kulüp'), findsOneWidget);
-      expect(find.text('F'), findsOneWidget);
-      expect(find.text('Yönetici · Bilgisayar Müh.'), findsOneWidget);
-      expect(tester.getSize(find.byType(SohbetyAvatar).first), const Size(96, 96));
+      expect(find.text('Kulüp odası'), findsOneWidget);
+      expect(find.text('128 üye'), findsOneWidget);
+      expect(find.text('Kulüp sayfasını aç'), findsOneWidget);
+      expect(find.text('Bilgisayar Müh.'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.users), findsWidgets);
       await unmount(tester);
     });
   });

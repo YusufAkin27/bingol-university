@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../widgets/bu.dart';
+import 'chat_info_parts.dart';
 import 'chat_media_viewer.dart';
 import 'message_bubble.dart' show chatMediaUrl;
-import 'sohbety_widgets.dart';
 
 /// Sohbet görsellerini mesaj geçmişini sayfalayarak süzer (backend'de ayrı medya listesi yok).
 /// Her yüklemede en çok [batch] görsel toplanır, istek sayısı [maxRequestsPerLoad] ile sınırlıdır.
@@ -126,7 +124,8 @@ class ChatMediaFeed extends ChangeNotifier {
   }
 }
 
-/// Küçük kare görsel önizlemesi.
+/// Küçük kare görsel önizlemesi. Video: ortada oynat dairesi + sağ altta süre; [moreCount] doluysa
+/// üstte "+N" örtüsü (önizleme şeridinin son karosu).
 class ChatInfoThumb extends StatelessWidget {
   const ChatInfoThumb(
       {super.key,
@@ -134,7 +133,9 @@ class ChatInfoThumb extends StatelessWidget {
       required this.headers,
       required this.onTap,
       this.video = false,
-      this.durationMs});
+      this.durationMs,
+      this.radius = 12,
+      this.moreCount});
 
   final ChatMediaItem item;
   final Map<String, String> headers;
@@ -143,6 +144,12 @@ class ChatInfoThumb extends StatelessWidget {
   /// Video küçük resmi: oynat ikonu + süre hapı.
   final bool video;
   final int? durationMs;
+
+  /// Köşe yarıçapı (önizleme 12, tam ızgara 8).
+  final double radius;
+
+  /// Doluysa karonun üstüne "+N" örtüsü çizilir.
+  final int? moreCount;
 
   static String formatDuration(int ms) {
     final s = (ms / 1000).round();
@@ -153,50 +160,190 @@ class ChatInfoThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     return Semantics(
       button: true,
-      label: video
-          ? context.l10n.chatInfoOpenVideo
-          : context.l10n.chatInfoOpenImage,
-      child: GestureDetector(
+      label: video ? context.l10n.chatInfoOpenVideo : context.l10n.chatInfoOpenImage,
+      child: BuPressable(
         onTap: onTap,
+        scale: .97,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(radius),
           child: ColoredBox(
-          color: t.sf2,
-          child: Stack(fit: StackFit.expand, children: [
-            Image.network(
-              chatMediaUrl(item.thumbUrl ?? item.url),
-              headers: headers,
-              fit: BoxFit.cover,
-              cacheWidth: 360,
-              gaplessPlayback: true,
-              errorBuilder: (c, e, s) =>
-                  Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
-            ),
-            if (video) ...[
-              const Center(
-                  child: Icon(Icons.play_circle_fill_rounded,
-                      size: 27, color: Colors.white70)),
-              if (durationMs != null)
-                PositionedDirectional(
-                  start: 4,
-                  bottom: 4,
+            color: t.sf2,
+            child: Stack(fit: StackFit.expand, children: [
+              Image.network(
+                chatMediaUrl(item.thumbUrl ?? item.url),
+                headers: headers,
+                fit: BoxFit.cover,
+                cacheWidth: 360,
+                gaplessPlayback: true,
+                errorBuilder: (c, e, s) => Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+              ),
+              if (video) ...[
+                ColoredBox(color: t.scrim.withValues(alpha: .2)),
+                Center(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(8)),
-                    child: Text(formatDuration(durationMs!),
-                        style: BuType.micro.copyWith(color: Colors.white)),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
+                    child: Icon(LucideIcons.play, size: 16, color: t.onMedia),
                   ),
                 ),
+                if (durationMs != null)
+                  PositionedDirectional(
+                    end: 4,
+                    bottom: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BorderRadius.circular(4)),
+                      child: Text(formatDuration(durationMs!),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
+                    ),
+                  ),
+              ],
+              if (moreCount != null)
+                ColoredBox(
+                  color: t.scrim.withValues(alpha: .4),
+                  child: Center(
+                    child: Text('+$moreCount', style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Medya durum kartı (Stitch 24-6): yükleniyor / boş / hata.
+class _MediaStateCard extends StatelessWidget {
+  const _MediaStateCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 0),
+      child: ChatInfoCard(padding: const EdgeInsets.all(20), child: child));
+}
+
+class _MediaLoadingCard extends StatelessWidget {
+  const _MediaLoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return _MediaStateCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(context.l10n.p09MediaLoading,
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        BuSkeletonScope(
+          child: Row(children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                  child: AspectRatio(
+                      aspectRatio: 1,
+                      child: _SkeletonTile(icon: i == 1 ? LucideIcons.circlePlay : LucideIcons.image))),
             ],
           ]),
         ),
+      ]),
+    );
+  }
+}
+
+class _SkeletonTile extends StatelessWidget {
+  const _SkeletonTile({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Stack(fit: StackFit.expand, children: [
+      const BuSkeleton(radius: 8, height: 200),
+      Center(child: Icon(icon, size: 28, color: t.mut.withValues(alpha: .5))),
+    ]);
+  }
+}
+
+class _MediaEmptyCard extends StatelessWidget {
+  const _MediaEmptyCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return _MediaStateCard(
+      child: Column(children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+          child: Icon(LucideIcons.images, size: 32, color: t.mut),
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(context.l10n.chatInfoNoMedia, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
+        const SizedBox(height: 4),
+        Text(context.l10n.p09MediaEmptyBody, textAlign: TextAlign.center, style: chatInfoBody14(context)),
+      ]),
+    );
+  }
+}
+
+class _MediaErrorCard extends StatelessWidget {
+  const _MediaErrorCard({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return _MediaStateCard(
+      child: Column(children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), shape: BoxShape.circle),
+          child: Icon(LucideIcons.cloudOff, size: 32, color: t.danger),
+        ),
+        const SizedBox(height: 12),
+        Text(context.l10n.p09MediaErrorTitle, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
+        const SizedBox(height: 4),
+        Text(context.l10n.p09MediaErrorBody, textAlign: TextAlign.center, style: chatInfoBody14(context)),
+        const SizedBox(height: 16),
+        BuPressable(
+          scale: .98,
+          child: Material(
+            color: t.ink,
+            borderRadius: BuRadius.bMd,
+            child: InkWell(
+              borderRadius: BuRadius.bMd,
+              onTap: () {
+                buHaptic(BuHaptic.selection);
+                onRetry();
+              },
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(LucideIcons.refreshCw, size: 18, color: t.bg),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text(context.l10n.chatInfoRetry, style: chatInfoLabel14(context, color: t.bg))),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -259,69 +406,86 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
     });
   }
 
+  Widget _tail(BuildContext context) {
+    if (_f.items.isEmpty) return const SizedBox.shrink();
+    if (_f.moreError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(kChatInfoMargin),
+        child: Center(
+          child: BuButton(
+            label: context.l10n.chatInfoRetry,
+            icon: LucideIcons.refreshCw,
+            kind: BuButtonKind.outline,
+            compact: true,
+            onPressed: () => _f.load(),
+          ),
+        ),
+      );
+    }
+    if (!_f.more) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 0),
+      child: BuSkeletonScope(
+        child: Row(children: [
+          for (var i = 0; i < 3; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            const Expanded(child: AspectRatio(aspectRatio: 1, child: BuSkeleton(radius: 8, height: 200))),
+          ],
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final bottom = MediaQuery.paddingOf(context).bottom + 16;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        SohbetyHeader(
-            title: context.l10n.chatInfoMedia,
-            onBack: () => Navigator.maybePop(context)),
+        ChatInfoBar(title: context.l10n.chatInfoMedia),
         Expanded(
           child: ListenableBuilder(
-        listenable: _f,
-        builder: (context, _) => CustomScrollView(
-          controller: _scroll,
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 6,
-                  crossAxisSpacing: 6,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (c, i) => ChatInfoThumb(
-                      item: _f.items[i],
-                      video: _f.isVideo(_f.items[i]),
-                      durationMs: _f.videoMeta[_f.items[i].url],
-                      headers: widget.headers,
-                      onTap: () => widget.onOpen(i)),
-                  childCount: _f.items.length,
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: _f.moreError != null
-                  ? Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Center(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _f.load(),
-                          icon: const Icon(Icons.refresh),
-                          label: Text(context.l10n.chatInfoRetry),
+            listenable: _f,
+            builder: (context, _) {
+              final empty = _f.items.isEmpty;
+              return CustomScrollView(
+                controller: _scroll,
+                slivers: [
+                  if (empty)
+                    SliverToBoxAdapter(
+                      child: _f.loading
+                          ? const _MediaLoadingCard()
+                          : _f.error != null
+                              ? _MediaErrorCard(onRetry: () => _f.load(first: true))
+                              : const _MediaEmptyCard(),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 0),
+                      sliver: SliverGrid(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (c, i) => ChatInfoThumb(
+                              item: _f.items[i],
+                              video: _f.isVideo(_f.items[i]),
+                              durationMs: _f.videoMeta[_f.items[i].url],
+                              radius: 8,
+                              headers: widget.headers,
+                              onTap: () => widget.onOpen(i)),
+                          childCount: _f.items.length,
                         ),
                       ),
-                    )
-                  : (_f.more
-                      ? const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(
-                              child: SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2))),
-                        )
-                      : const SizedBox.shrink()),
-            ),
-            SliverToBoxAdapter(
-                child: SizedBox(
-                    height: MediaQuery.of(context).padding.bottom + 16)),
-          ],
-        ),
+                    ),
+                  SliverToBoxAdapter(child: _tail(context)),
+                  SliverToBoxAdapter(child: SizedBox(height: bottom)),
+                ],
+              );
+            },
           ),
         ),
       ]),

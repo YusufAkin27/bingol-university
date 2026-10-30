@@ -320,7 +320,7 @@ void main() {
         size: kPhoneMedium,
       ));
       await settle(tester);
-      await tester.tap(find.text('Ayşe Yılmaz'));
+      await tester.tap(find.text('Ayşe Yılmaz (Sen)'));
       await settle(tester);
       expect(find.byType(UserProfilePage), findsNothing);
       await tester.tap(find.text('Mehmet Kaya'));
@@ -348,7 +348,7 @@ void main() {
         size: kPhoneMedium,
       ));
       await settle(tester);
-      await tester.tap(find.text('Profil'));
+      await tester.tap(find.text('Profili görüntüle'));
       await settle(tester);
       expect(find.byType(UserProfilePage), findsOneWidget);
       await unmount(tester);

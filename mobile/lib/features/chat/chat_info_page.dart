@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/closed_conversations.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_info_media.dart';
 import 'chat_info_members.dart';
-import 'chat_info_tabs.dart';
+import 'chat_info_parts.dart';
 import 'chat_media_viewer.dart';
+import 'chatlist_widgets.dart';
 import 'sohbety_add_members.dart';
-import 'sohbety_widgets.dart';
 
-/// Sohbet bilgisi: avatar + başlık + hızlı eylemler, medya önizlemesi, üyeler, çıkış/engel/şikâyet.
+/// Sohbet bilgisi (Stitch 24): birebir, kullanıcı grubu ve kulüp/etkinlik odası için tek kaydırmalı sayfa.
 ///
 /// Sonuç: `Navigator.pop(context, 'search')` (sohbette ara), `'left'` (gruptan ayrıldı).
 /// Backend'de ayrı bir medya listesi yok; görseller mesaj geçmişi sayfalanarak süzülür ([ChatMediaFeed]).
@@ -38,10 +36,10 @@ class ChatInfoPage extends StatefulWidget {
   final Map<String, dynamic> conversation;
   final List<Map<String, dynamic>> members;
 
-  /// Başlık altındaki durum satırı (çevrimiçi / son görülme).
+  /// Çağıranın durum satırı (çevrimiçi / son görülme). Tasarımda bilgi sayfasında gösterilmez.
   final String? subtitle;
 
-  /// Kulüp/etkinlik odasında ilgili sayfayı açar; null ise düğme gösterilmez.
+  /// Kulüp/etkinlik odasında ilgili sayfayı açar; null ise satır gösterilmez.
   final VoidCallback? onOpenRoom;
   final SaveImage saveImage;
 
@@ -57,19 +55,19 @@ class ChatInfoPage extends StatefulWidget {
 }
 
 class _ChatInfoPageState extends State<ChatInfoPage> {
+  /// Medya şeridi için istenen görsel sayısı; birebirde 4 karo, grupta 3 karo çizilir.
   static const _previewCount = 9;
+
+  /// Üye önizlemesinde gösterilen satır sayısı (gerisi "Tümü" ile).
+  static const _memberPreview = 4;
 
   late final Map<String, dynamic> _conv =
       Map<String, dynamic>.from(widget.conversation);
   late final List<Map<String, dynamic>> _members = List.of(widget.members);
   late final ChatMediaFeed _feed;
+  Map<String, dynamic>? _profile;
+  bool _membersFailed = false;
   int _avatarVersion = 0;
-
-  static const _searchThreshold = 12;
-  final _scroll = ScrollController();
-  late InfoSection _active =
-      _type == 'DIRECT' ? InfoSection.media : InfoSection.members;
-  String _query = '';
 
   ApiClient get _api => widget.session.api;
   int get _cid => (_conv['id'] as num).toInt();
@@ -80,6 +78,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   bool get _admin => _userGroup && _conv['admin'] == true;
   bool get _blocked => _conv['blocked'] == true;
   bool get _muted => _conv['muted'] == true || _conv['mutedForever'] == true;
+  bool get _closed =>
+      _conv['closed'] == true || ClosedConversations.instance.isClosed(_cid);
   Map<String, dynamic>? get _peer => _conv['peer'] is Map
       ? Map<String, dynamic>.from(_conv['peer'] as Map)
       : null;
@@ -115,11 +115,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     });
     _feed.load(first: true, want: _previewCount);
     if (!_direct && _members.isEmpty) _loadMembers();
+    if (_direct && _peerId != null) _loadPeerProfile();
   }
 
   @override
   void dispose() {
-    _scroll.dispose();
     _feed.dispose();
     super.dispose();
   }
@@ -137,22 +137,42 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     return (m['senderName'] as String?) ?? context.l10n.chatInfoUser;
   }
 
-  Future<void> _loadMembers() async {
+  /// Karşı kişinin bölüm/sınıf bilgisi (sohbet özetinde yok); alınamazsa alt satır boş kalır.
+  Future<void> _loadPeerProfile() async {
     try {
-      final d = await _api.get('/conversations/$_cid');
+      final d = await _api.get('/users/$_peerId');
       if (!mounted || d is! Map) return;
-      final ms = (d['members'] as List? ?? const [])
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-      final c = d['conversation'];
+      setState(() => _profile = Map<String, dynamic>.from(d));
+    } catch (_) {}
+  }
+
+  /// Sunucudan üyeleri çeker ve yerel listeyi günceller; hata atar.
+  Future<List<Map<String, dynamic>>> _fetchMembers() async {
+    final d = await _api.get('/conversations/$_cid');
+    if (d is! Map) return _members;
+    final ms = (d['members'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    final c = d['conversation'];
+    if (mounted) {
       setState(() {
+        _membersFailed = false;
         _members
           ..clear()
           ..addAll(ms);
         if (c is Map) _merge(Map<String, dynamic>.from(c));
       });
-    } catch (_) {}
+    }
+    return List.of(_members);
+  }
+
+  Future<void> _loadMembers() async {
+    try {
+      await _fetchMembers();
+    } catch (_) {
+      if (mounted) setState(() => _membersFailed = true);
+    }
   }
 
   /// Sunucu cevabını yerel kopyaya ve (değiştirilebilirse) çağıranın haritasına yansıtır.
@@ -163,40 +183,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     } catch (_) {}
   }
 
-  void _toast(String text) {
+  void _toast(String text, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  }
-
-  Future<bool> _confirm(String title, String body, String action) async {
-    final t = context.bu;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        backgroundColor: t.sf,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title,
-            style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: t.ink)),
-        content: Text(body,
-            style: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.mut)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: Text(context.l10n.chatInfoCancel,
-                  style: TextStyle(color: t.mut))),
-          TextButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: Text(action,
-                  style: TextStyle(color: t.pr, fontWeight: FontWeight.w700))),
-        ],
-      ),
-    );
-    return ok == true;
+    BuToast.show(context, text, kind: kind);
   }
 
   // ---- medya ----
@@ -226,7 +215,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   // ---- eylemler ----
 
-  /// Anahtar: açıkken sessizi kaldırır, kapalıyken süre seçtirir.
+  /// Açıkken sessizi kaldırır, kapalıyken süre seçtirir.
   Future<void> _toggleMute() async {
     if (_muted) {
       await _applyMute('off');
@@ -236,33 +225,24 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   }
 
   Future<void> _muteSheet() async {
-    final t = context.bu;
-    final pick = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: t.bg,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (c) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          BuMenuRow(
-              icon: LucideIcons.bellOff,
-              label: context.l10n.chatInfoMute8h,
-              showChevron: false,
-              onTap: () => Navigator.pop(c, '480')),
-          BuMenuRow(
-              icon: LucideIcons.bellOff,
-              label: context.l10n.chatInfoMute1w,
-              showChevron: false,
-              onTap: () => Navigator.pop(c, '10080')),
-          BuMenuRow(
-              icon: LucideIcons.bellOff,
-              label: context.l10n.chatInfoMuteForever,
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'forever')),
-          const SizedBox(height: 8),
-        ]),
-      ),
+    final l = context.l10n;
+    final pick = await BuSheet.show<String>(
+      context,
+      title: l.chatInfoMuteNotifications,
+      builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
+        BuListTile(
+            title: l.chatInfoMute8h,
+            leading: const Icon(LucideIcons.bellOff),
+            onTap: () => Navigator.pop(c, '480')),
+        BuListTile(
+            title: l.chatInfoMute1w,
+            leading: const Icon(LucideIcons.bellOff),
+            onTap: () => Navigator.pop(c, '10080')),
+        BuListTile(
+            title: l.chatInfoMuteForever,
+            leading: const Icon(LucideIcons.bellOff),
+            onTap: () => Navigator.pop(c, 'forever')),
+      ]),
     );
     if (pick == null || !mounted) return;
     await _applyMute(pick);
@@ -304,7 +284,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ? context.l10n.chatInfoUnmuted
           : context.l10n.chatInfoMuted);
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -322,13 +302,18 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ? context.l10n.chatInfoUnarchived
           : context.l10n.chatInfoArchived);
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
   Future<void> _leave() async {
-    if (!await _confirm(context.l10n.chatInfoLeaveTitle,
-        context.l10n.chatInfoLeaveBody, context.l10n.chatInfoLeave)) {
+    final l = context.l10n;
+    if (!await showChatInfoConfirm(context,
+        icon: LucideIcons.logOut,
+        title: l.chatInfoLeaveTitle,
+        body: l.chatInfoLeaveBody,
+        confirmLabel: l.chatInfoLeave,
+        cancelLabel: l.chatInfoCancel)) {
       return;
     }
     try {
@@ -336,22 +321,27 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       if (!mounted) return;
       Navigator.pop(context, 'left');
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
   Future<void> _toggleBlock() async {
     final pid = _peerId;
     if (pid == null) return;
+    final l = context.l10n;
     try {
       if (_blocked) {
         await _api.delete('/users/$pid/block');
         if (!mounted) return;
         setState(() => _merge({'blocked': false}));
-        _toast(context.l10n.chatInfoUnblocked);
+        _toast(l.chatInfoUnblocked);
       } else {
-        if (!await _confirm(context.l10n.chatInfoBlockTitle,
-            context.l10n.chatInfoBlockBody, context.l10n.chatInfoBlock)) {
+        if (!await showChatInfoConfirm(context,
+            icon: LucideIcons.ban,
+            title: l.chatInfoBlockTitle,
+            body: l.chatInfoBlockBody,
+            confirmLabel: l.chatInfoBlock,
+            cancelLabel: l.chatInfoCancel)) {
           return;
         }
         await _api.post('/users/$pid/block');
@@ -360,7 +350,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         _toast(context.l10n.chatInfoBlocked);
       }
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -371,12 +361,18 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         targetType: 'USER', targetId: pid, title: context.l10n.chatInfoReportUser);
   }
 
+  /// Onay (Stitch 24-5) + çıkarma. Başarılıysa true; üye yerel listeden düşer.
   Future<bool> _removeMember(Map<String, dynamic> m) async {
-    final name = (m['displayName'] as String?) ?? context.l10n.chatInfoUser;
-    if (!await _confirm(
-        context.l10n.chatInfoRemoveMemberTitle,
-        context.l10n.chatInfoRemoveMemberBody(name),
-        context.l10n.chatInfoRemove)) {
+    final l = context.l10n;
+    final name = (m['displayName'] as String?) ?? l.chatInfoUser;
+    if (!await showChatInfoConfirm(context,
+        icon: LucideIcons.userMinus,
+        title: l.chatInfoRemoveMemberTitle,
+        body: l.chatInfoRemoveMemberBody(name),
+        bold: name,
+        confirmLabel: l.chatInfoRemove,
+        confirmIcon: LucideIcons.trash2,
+        cancelLabel: l.chatInfoCancel)) {
       return false;
     }
     try {
@@ -387,10 +383,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           _members.remove(m);
           _conv['memberCount'] = _members.length;
         });
+        _toast(context.l10n.p09MemberRemoved(name), kind: BuToastKind.success);
       }
       return true;
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
       return false;
     }
   }
@@ -400,6 +397,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Future<void> _rename() async {
     final name = await showDialog<String>(
         context: context,
+        barrierColor: context.bu.ink.withValues(alpha: .4),
         builder: (_) =>
             _RenameDialog(initial: (_conv['title'] as String?) ?? ''));
     if (name == null || !mounted) return;
@@ -410,36 +408,28 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ? Map<String, dynamic>.from(res)
           : {'title': name}));
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
   Future<void> _avatarSheet() async {
-    final t = context.bu;
     final has = _avatarUrl != null;
-    final pick = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: t.bg,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (c) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          BuMenuRow(
-              icon: LucideIcons.image,
-              label: context.l10n.chatInfoPickGallery,
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'pick')),
-          if (has)
-            BuMenuRow(
-                icon: LucideIcons.trash2,
-                label: context.l10n.chatInfoRemovePhoto,
-                danger: true,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'remove')),
-          const SizedBox(height: 8),
-        ]),
-      ),
+    final l = context.l10n;
+    final pick = await BuSheet.show<String>(
+      context,
+      title: l.chatInfoChangePhoto,
+      builder: (c) => Column(mainAxisSize: MainAxisSize.min, children: [
+        BuListTile(
+            title: l.chatInfoPickGallery,
+            leading: const Icon(LucideIcons.image),
+            onTap: () => Navigator.pop(c, 'pick')),
+        if (has)
+          BuListTile(
+              title: l.chatInfoRemovePhoto,
+              leading: const Icon(LucideIcons.trash2),
+              danger: true,
+              onTap: () => Navigator.pop(c, 'remove')),
+      ]),
     );
     if (pick == null || !mounted) return;
     try {
@@ -455,9 +445,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 .pickPrepared(ImageSource.gallery, avatar: true))();
       } on ImageException catch (e) {
         if (!mounted) return;
-        _toast(e.code == 'TOO_LARGE'
-            ? context.l10n.chatInfoImageTooLarge
-            : context.l10n.chatInfoImageTypeOnly);
+        _toast(
+            e.code == 'TOO_LARGE'
+                ? context.l10n.chatInfoImageTooLarge
+                : context.l10n.chatInfoImageTypeOnly,
+            kind: BuToastKind.error);
         return;
       }
       if (img == null || !mounted) return;
@@ -472,411 +464,570 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         }
       });
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
   // ---- üye ekleme (yalnız kullanıcı grubu yöneticisi) ----
 
-  Future<void> _addMembers() async {
+  /// Üye seçtirir ve ekler; güncel listeyi döner (iptal/hatada null).
+  Future<List<Map<String, dynamic>>?> _addMembers() async {
     final have = {
       for (final m in _members) (m['userId'] as num?)?.toInt() ?? -1,
     };
     final room = 50 - _members.length;
     if (room <= 0) {
       _toast(context.l10n.chatMiscGroupMax);
-      return;
+      return null;
     }
     final ids = await showAddMembersSheet(context, widget.session,
         exclude: have, max: room > 49 ? 49 : room);
-    if (ids == null || ids.isEmpty || !mounted) return;
+    if (ids == null || ids.isEmpty || !mounted) return null;
     try {
       await _api.post('/conversations/$_cid/members', {'userIds': ids});
       await _loadMembers();
-      if (!mounted) return;
-      _toast(context.l10n.sohbetyAddDone);
+      if (!mounted) return null;
+      _toast(context.l10n.sohbetyAddDone, kind: BuToastKind.success);
+      return List.of(_members);
     } catch (e) {
-      _toast(errorText(e));
+      _toast(errorText(e), kind: BuToastKind.error);
+      return null;
     }
+  }
+
+  void _openMembers() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChatMembersPage(
+          members: List.of(_members),
+          selfId: widget.session.userId,
+          onRemove: _admin ? _removeMember : null,
+          onAdd: _admin ? _addMembers : null,
+          onReload: _fetchMembers,
+          onOpenProfile: _openProfile,
+        ),
+      ),
+    );
+  }
+
+  void _openProfile(Map<String, dynamic> m) {
+    final id = (m['userId'] as num?)?.toInt() ?? (m['id'] as num?)?.toInt();
+    if (id == null || id == widget.session.userId) return;
+    openUserProfile(context, widget.session,
+        userId: id,
+        name: m['displayName'] as String?,
+        avatarUrl: m['avatarUrl'] as String?,
+        fromConversationId: _cid);
   }
 
   // ---- arayüz ----
 
-  List<InfoSection> get _sections => [
-        if (!_direct) InfoSection.members,
-        InfoSection.media,
-        InfoSection.settings,
-      ];
-
-  void _onSegment(InfoSection s) {
-    if (s != _active) setState(() => _active = s);
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final List<Widget> body;
+    if (_direct) {
+      body = _directBody(t);
+    } else if (_room) {
+      body = _roomBody(t);
+    } else {
+      body = _groupBody(t);
+    }
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        SohbetyHeader(
-            title: context.l10n.chatInfoTitle,
-            onBack: () => Navigator.maybePop(context)),
+        ChatInfoBar(title: context.l10n.chatInfoTitle),
         Expanded(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 220),
-            builder: (c, v, child) => Opacity(opacity: v, child: child),
-            child: CustomScrollView(
-              controller: _scroll,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Column(children: [
-                    if (_active == InfoSection.settings)
-                      _compactHeader(t)
-                    else ...[_header(t), _actions(t)],
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: InfoSegmentBar(
-                          sections: _sections,
-                          active: _active,
-                          onSelect: _onSegment),
-                    ),
-                    const SizedBox(height: 16),
-                  ]),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: switch (_active) {
-                      InfoSection.members => _membersTab(t),
-                      InfoSection.media => _mediaTab(t),
-                      InfoSection.settings => _settingsTab(t),
-                    },
-                  ),
-                ),
-                SliverToBoxAdapter(
-                    child: SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 32)),
-              ],
-            ),
+          child: ListView(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.paddingOf(context).bottom + 32),
+            children: body,
           ),
         ),
       ]),
     );
   }
 
-  /// Başlık altı satırları: birebirde bölüm (+ durum), grupta "tür · n üye".
-  List<String> get _subLines {
+  Widget _pad(Widget child) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kChatInfoMargin),
+      child: child);
+
+  Widget _gap(List<Widget> cards) => _pad(Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(height: 16),
+          cards[i],
+        ],
+      ]));
+
+  /// Ara · Sessize al · Arşivle.
+  Widget _quickRow({required bool dense}) {
     final l = context.l10n;
-    if (_direct) {
-      final dept =
-          (_peer?['department'] ?? _peer?['faculty'] ?? '').toString().trim();
-      final s = widget.subtitle;
-      return [
-        if (dept.isNotEmpty) dept,
-        if (s != null && s.isNotEmpty) s,
-      ];
-    }
-    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
-    final kind = switch (_type) {
-      'CLUB' => l.chatInfoClubRoom,
-      'EVENT' => l.chatInfoEventRoom,
-      _ => l.chatInfoGroup,
-    };
-    return [if (n > 0) '$kind · ${l.chatInfoMemberCount(n.toString())}' else kind];
+    final archived = _conv['archived'] == true;
+    return ChatInfoQuickRow(dense: dense, actions: [
+      ChatInfoQuickAction(
+          dense: dense,
+          icon: LucideIcons.search,
+          label: l.chatInfoSearch,
+          onTap: () => Navigator.pop(context, 'search')),
+      ChatInfoQuickAction(
+          dense: dense,
+          icon: _muted ? LucideIcons.bell : LucideIcons.bellOff,
+          label: _muted ? l.chatInfoUnmute : l.chatInfoMute,
+          onTap: _toggleMute),
+      ChatInfoQuickAction(
+          dense: dense,
+          icon: archived ? LucideIcons.archiveRestore : LucideIcons.archive,
+          label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
+          onTap: _toggleArchive),
+    ]);
   }
 
-  Widget _avatar(BuTokens t, double size, {bool ring = false}) {
+  Widget _bigAvatar({bool badge = false}) {
+    final t = context.bu;
     final tok = _api.tokens?.access;
     final au = _avatarUrl;
-    return SohbetyAvatar(
-      name: _title,
-      url: au,
-      size: size,
-      ring: ring,
-      headers: (tok != null && au != null && au.startsWith('/api/'))
-          ? {'Authorization': 'Bearer $tok'}
-          : null,
+    final avatar = DecoratedBox(
+      decoration: BoxDecoration(
+          shape: BoxShape.circle, boxShadow: BuElevation.of(context, 2)),
+      child: ChatlistAvatar(
+        name: _title,
+        url: au,
+        size: 96,
+        circle: true,
+        group: !_direct,
+        headers: (tok != null && au != null && au.startsWith('/api/'))
+            ? {'Authorization': 'Bearer $tok'}
+            : null,
+      ),
     );
-  }
-
-  /// Ayarlar sekmesinde küçük başlık: 56 px avatar + ad + alt satır.
-  Widget _compactHeader(BuTokens t) {
-    final subs = _subLines;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(children: [
-        _avatar(t, 56),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: t.ink)),
-                if (subs.isNotEmpty)
-                  Text(subs.first,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontFamily: 'Inter', fontSize: 13, color: t.mut)),
-              ]),
-        ),
-      ]),
-    );
-  }
-
-  Widget _header(BuTokens t) {
-    final subs = _subLines;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Column(children: [
-        Stack(clipBehavior: Clip.none, children: [
-          _avatar(t, 96, ring: true),
-          if (_admin)
-            PositionedDirectional(
-              end: -2,
-              bottom: -2,
+    if (!badge) return avatar;
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: Stack(clipBehavior: Clip.none, children: [
+        avatar,
+        PositionedDirectional(
+          end: -8,
+          bottom: -8,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
               child: Tooltip(
                 message: context.l10n.chatInfoChangePhoto,
-                child: Material(
-                  color: t.pr,
-                  shape: CircleBorder(side: BorderSide(color: t.bg, width: 3)),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: _avatarSheet,
-                    child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child:
-                            Icon(LucideIcons.camera, size: 14.5, color: t.onPr)),
+                child: BuPressable(
+                  onTap: _avatarSheet,
+                  haptic: BuHaptic.selection,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                        color: t.danger,
+                        shape: BoxShape.circle,
+                        boxShadow: BuElevation.of(context, 2)),
+                    child: Icon(LucideIcons.camera, size: 18, color: t.onPr),
                   ),
                 ),
               ),
             ),
-        ]),
-        SizedBox(height: _admin ? 4 : 12),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          if (_admin) const SizedBox(width: 44),
-          Flexible(
-              child: Text(_title,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      height: 1.25,
-                      color: t.ink))),
-          if (_admin)
-            SizedBox(
-              width: 44,
-              height: 44,
-              child: IconButton(
-                tooltip: context.l10n.chatInfoEditName,
-                padding: EdgeInsets.zero,
-                onPressed: _rename,
-                icon: Icon(LucideIcons.pencil, size: 18, color: t.mut),
-              ),
-            ),
-        ]),
-        for (final s in subs)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(s,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: t.mut)),
           ),
+        ),
       ]),
     );
   }
 
-  /// Hızlı eylemler: Ara, (birebirde) Profil, (odada) Kulüp/Etkinlik sayfası.
-  Widget _actions(BuTokens t) {
-    final roomLabel = _type == 'CLUB'
-        ? context.l10n.chatInfoClub
-        : context.l10n.chatInfoEvent;
-    final items = <Widget>[
-      _QuickAction(
-          icon: LucideIcons.search,
-          label: context.l10n.chatInfoSearch,
-          onTap: () => Navigator.pop(context, 'search')),
-      if (_direct && _peerId != null)
-        _QuickAction(
-            icon: LucideIcons.user,
-            label: context.l10n.sohbetyProfile,
-            onTap: () => _openProfile(_peer!)),
-      if (widget.onOpenRoom != null)
-        _QuickAction(
-            icon: LucideIcons.arrowUpRight,
-            label: roomLabel,
-            onTap: widget.onOpenRoom!),
+  TextStyle _nameStyle(BuTokens t) => Theme.of(context)
+      .textTheme
+      .headlineSmall!
+      .copyWith(fontSize: 22, fontWeight: FontWeight.w600, height: 1.27, color: t.ink);
+
+  // ---- Birebir ----
+
+  /// "Bölüm · 3. sınıf" (profilden); yoksa boş.
+  String get _directSub {
+    final p = _profile;
+    final dept = (p?['department'] ?? p?['faculty'] ?? _peer?['department'] ?? _peer?['faculty'] ?? '')
+        .toString()
+        .trim();
+    final year = (p?['classYear'] as num?)?.toInt();
+    return [
+      if (dept.isNotEmpty) dept,
+      if (year != null && year > 0) context.l10n.profileGradeYear(year.toString()),
+    ].join(' · ');
+  }
+
+  List<Widget> _directBody(BuTokens t) {
+    final l = context.l10n;
+    final sub = _directSub;
+    final name = (_peer?['displayName'] as String?) ?? _title;
+    final lang = l.localeName;
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 16, kChatInfoMargin, 24),
+        child: Column(children: [
+          _bigAvatar(),
+          const SizedBox(height: 12),
+          Text(_title, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: _nameStyle(t)),
+          if (sub.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(sub, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoBody14(context)),
+            ),
+        ]),
+      ),
+      _quickRow(dense: false),
+      const SizedBox(height: 24),
+      _gap([
+        if (_peerId != null)
+          ChatInfoRows(children: [
+            ChatInfoRow(
+                icon: LucideIcons.idCard,
+                label: l.chatInfoViewProfile,
+                onTap: () => _openProfile({'userId': _peerId, 'displayName': _title, 'avatarUrl': _peer?['avatarUrl']})),
+          ]),
+        _mediaCard(t, direct: true),
+        ChatInfoRows(children: [
+          ChatInfoRow(
+              icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
+              label: l.chatInfoMuteNotifications,
+              value: _muteStatus(),
+              onTap: _toggleMute),
+        ]),
+        ChatInfoRows(children: [
+          ChatInfoRow(
+              icon: LucideIcons.ban,
+              label: _blocked ? l.chatInfoUnblock : l.p09BlockNamed(chatInfoAccusative(name, lang)),
+              danger: true,
+              onTap: _toggleBlock),
+          ChatInfoRow(icon: LucideIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, onTap: _report),
+        ]),
+      ]),
     ];
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 20,
-          runSpacing: 12,
-          children: items),
+  }
+
+  // ---- Kullanıcı grubu ----
+
+  List<Widget> _groupBody(BuTokens t) {
+    final l = context.l10n;
+    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
+    final count = _members.length > n ? _members.length : n;
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 16, kChatInfoMargin, 20),
+        child: Column(children: [
+          _bigAvatar(badge: _admin),
+          SizedBox(height: _admin ? 6 : 16),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Flexible(
+              child: Text(_title,
+                  textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: _nameStyle(t)),
+            ),
+            if (_admin)
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: IconButton(
+                  tooltip: l.chatInfoEditName,
+                  padding: EdgeInsets.zero,
+                  onPressed: _rename,
+                  icon: Icon(LucideIcons.pencil, size: 20, color: t.mut),
+                ),
+              ),
+          ]),
+          if (count > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(l.chatInfoMemberCount(count.toString()), style: chatInfoLabel12(context, color: t.mut)),
+            ),
+        ]),
+      ),
+      _quickRow(dense: true),
+      const SizedBox(height: 24),
+      _gap([
+        if (_admin)
+          ChatInfoCard(
+            child: ChatInfoRow(
+              key: const ValueKey('info-add-member'),
+              icon: LucideIcons.userPlus,
+              label: l.sohbetyAddMember,
+              soft: true,
+              dotSize: 44,
+              iconSize: 24,
+              minHeight: 76,
+              padding: 16,
+              onTap: _addMembers,
+            ),
+          ),
+        _membersCard(t),
+        _mediaCard(t, direct: false),
+        if (_userGroup)
+          ChatInfoCard(
+            padding: const EdgeInsets.all(4),
+            child: ChatInfoRow(
+              icon: LucideIcons.logOut,
+              label: l.chatInfoLeaveChat,
+              danger: true,
+              chevronDanger: true,
+              dotSize: 40,
+              iconSize: 22,
+              minHeight: 72,
+              padding: 16,
+              onTap: _leave,
+            ),
+          ),
+      ]),
+    ];
+  }
+
+  // ---- Kulüp / etkinlik odası ----
+
+  List<Widget> _roomBody(BuTokens t) {
+    return [
+      _pad(_roomHeader(t)),
+      const SizedBox(height: 16),
+      _quickRow(dense: true),
+      const SizedBox(height: 16),
+      _gap([
+        _membersCard(t),
+        _mediaCard(t, direct: false),
+      ]),
+    ];
+  }
+
+  Widget _roomHeader(BuTokens t) {
+    final l = context.l10n;
+    final club = _type == 'CLUB';
+    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
+    final au = _avatarUrl;
+    final tok = _api.tokens?.access;
+    final tile = SizedBox(
+      width: 80,
+      height: 80,
+      child: Stack(clipBehavior: Clip.none, children: [
+        DecoratedBox(
+          decoration: BoxDecoration(borderRadius: BuRadius.bMd, boxShadow: BuElevation.of(context, 2)),
+          child: au != null
+              ? ChatlistAvatar(
+                  name: _title,
+                  url: au,
+                  size: 80,
+                  group: true,
+                  headers: (tok != null && au.startsWith('/api/')) ? {'Authorization': 'Bearer $tok'} : null)
+              : Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(color: club ? t.ink : t.pr, borderRadius: BuRadius.bMd),
+                  child: Icon(club ? LucideIcons.users : LucideIcons.calendarDays, size: 40, color: club ? t.bg : t.onPr),
+                ),
+        ),
+        if (!club && _closed)
+          PositionedDirectional(
+            end: -4,
+            bottom: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
+              child: Icon(LucideIcons.lock, size: 14, color: t.mut),
+            ),
+          ),
+      ]),
+    );
+    return ChatInfoCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Center(child: tile),
+        const SizedBox(height: 16),
+        Text(_title,
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.33)),
+        const SizedBox(height: 4),
+        Center(child: ChatInfoTag(club ? l.chatInfoClubRoom : l.chatInfoEventRoom, roomRed: !club)),
+        if (n > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(l.chatInfoMemberCount(n.toString()), textAlign: TextAlign.center, style: chatInfoBody14(context)),
+          ),
+        if (_closed) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bSm),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bXs),
+                child: Icon(LucideIcons.lockKeyhole, size: 22, color: t.ink),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l.chatInfoClosed, style: chatInfoTitle16(context).copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text(l.chatInfoClosedSub, style: chatInfoBody14(context)),
+                ]),
+              ),
+            ]),
+          ),
+        ],
+        if (widget.onOpenRoom != null) ...[
+          const SizedBox(height: 16),
+          _roomLink(t, club),
+        ],
+      ]),
     );
   }
 
-  // ---- Üyeler ----
-
-  Widget _membersTab(BuTokens t) {
-    final q = _query.trim().toLowerCase();
-    final shown = q.isEmpty
-        ? _members
-        : _members
-            .where((m) =>
-                ((m['displayName'] as String?) ?? '').toLowerCase().contains(q))
-            .toList();
-    final n = _members.length;
-    final rows = <Widget>[
-      if (_admin)
-        SohbetyRow(
-          key: const ValueKey('info-add-member'),
-          onTap: _addMembers,
-          child: Row(children: [
-            const SohbetyTile(icon: LucideIcons.plus),
-            const SizedBox(width: 12),
-            Expanded(
-                child: Text(context.l10n.sohbetyAddMember,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: t.pr))),
-          ]),
-        ),
-      for (final m in shown)
-        ChatMemberRow(
-          member: m,
-          selfId: widget.session.userId,
-          onTap: () => _openProfile(m),
-          onRemove: _admin &&
-                  (m['userId'] as num?)?.toInt() != widget.session.userId &&
-                  !isAdminRole(m)
-              ? () => _removeMember(m)
-              : null,
-        ),
-    ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SohbetyLabel(sohbetyUpper(
-          context,
-          n == 0
-              ? context.l10n.chatInfoMembers
-              : context.l10n.chatInfoMembersDot(n.toString()))),
-      if (n > _searchThreshold)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: SohbetyField(
-              hint: context.l10n.chatInfoSearchMember,
-              height: 48,
-              onChanged: (v) => setState(() => _query = v)),
-        ),
-      if (shown.isEmpty)
-        Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Text(
-                _members.isEmpty
-                    ? context.l10n.chatInfoNoMembers
-                    : context.l10n.chatInfoNoResults,
-                style: BuType.body.copyWith(color: t.mut))),
-      if (rows.isNotEmpty) SohbetyCard(children: rows),
-    ]);
-  }
-
-  // ---- Medya ----
-
-  Widget _mediaTab(BuTokens t) {
-    final f = _feed;
-    final has = f.items.isNotEmpty;
-    Widget body;
-    if (f.loading) {
-      body = const Padding(
-          padding: EdgeInsets.symmetric(vertical: 40), child: LoadingView());
-    } else if (f.error != null) {
-      body = Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: ErrorView(
-              error: f.error!,
-              onRetry: () => f.load(first: true, want: _previewCount)));
-    } else if (!has) {
-      body = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-          child: Text(context.l10n.chatInfoNoMedia,
-              style: BuType.body.copyWith(color: t.mut)));
-    } else {
-      final shown = f.items.take(_previewCount).toList();
-      body = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          crossAxisCount: 3,
-          mainAxisSpacing: 6,
-          crossAxisSpacing: 6,
-          children: [
-            for (var i = 0; i < shown.length; i++)
-              ChatInfoThumb(
-                  item: shown[i],
-                  video: f.isVideo(shown[i]),
-                  durationMs: f.videoMeta[shown[i].url],
-                  headers: _headers,
-                  onTap: () => _openViewer(i)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Semantics(
-          button: true,
-          child: Material(
-            color: t.sf,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(color: t.bd)),
-            child: InkWell(
-              customBorder: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-              onTap: _openAllMedia,
-              child: SizedBox(
-                height: 44,
-                child: Center(
-                  child: Text(context.l10n.chatInfoSeeAllMedia,
-                      style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: t.pr)),
-                ),
+  Widget _roomLink(BuTokens t, bool club) {
+    final l = context.l10n;
+    return Semantics(
+      button: true,
+      child: Material(
+        color: t.sf2,
+        borderRadius: BuRadius.bSm,
+        child: InkWell(
+          borderRadius: BuRadius.bSm,
+          onTap: widget.onOpenRoom,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bXs),
+                child: Icon(club ? LucideIcons.users : LucideIcons.calendarDays, size: 20, color: club ? t.ink : t.pr),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(club ? l.chatInfoOpenClubPage : l.chatInfoOpenEventPage, style: chatInfoTitle16(context)),
+                  if (club) Text(l.p09ClubPageSub, style: chatInfoBody12(context)),
+                ]),
+              ),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+            ]),
           ),
         ),
+      ),
+    );
+  }
+
+  // ---- Üyeler kartı ----
+
+  Widget _membersCard(BuTokens t) {
+    final l = context.l10n;
+    final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
+    final count = _members.length > n ? _members.length : n;
+    final shown = _members.take(_memberPreview).toList();
+    return ChatInfoCard(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ChatInfoSectionHead(
+          title: l.chatInfoMembers,
+          count: count > 0 ? '$count' : null,
+          actionLabel: _members.length > _memberPreview ? l.chatInfoAll : null,
+          onAction: _openMembers,
+        ),
+        if (shown.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: _membersFailed
+                ? Row(children: [
+                    Expanded(child: Text(l.p09MembersLoadFailed, style: chatInfoBody14(context))),
+                    BuButton(label: l.commonRetry, kind: BuButtonKind.text, compact: true, onPressed: _loadMembers),
+                  ])
+                : Text(l.chatInfoNoMembers, style: chatInfoBody14(context)),
+          )
+        else
+          for (var i = 0; i < shown.length; i++) ...[
+            if (i > 0) Divider(height: 1, thickness: 1, color: t.sf2),
+            ChatMemberRow(
+              member: shown[i],
+              selfId: widget.session.userId,
+              onTap: () => _openProfile(shown[i]),
+              onRemove: _admin &&
+                      (shown[i]['userId'] as num?)?.toInt() != widget.session.userId &&
+                      !isAdminRole(shown[i])
+                  ? () => _removeMember(shown[i])
+                  : null,
+            ),
+          ],
+      ]),
+    );
+  }
+
+  // ---- Medya kartı ----
+
+  Widget _mediaCard(BuTokens t, {required bool direct}) {
+    final l = context.l10n;
+    final f = _feed;
+    final n = f.items.length;
+    final total = '$n${f.more ? '+' : ''}';
+    final cols = direct ? 4 : 3;
+    final Widget body;
+    if (f.loading) {
+      body = BuSkeletonScope(
+        child: Row(children: [
+          for (var i = 0; i < cols; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            const Expanded(child: AspectRatio(aspectRatio: 1, child: BuSkeleton(radius: 12, height: 200))),
+          ],
+        ]),
+      );
+    } else if (f.error != null) {
+      body = Row(children: [
+        Expanded(child: Text(l.p09MediaErrorBody, style: chatInfoBody14(context))),
+        BuButton(
+            label: l.chatInfoRetry,
+            kind: BuButtonKind.text,
+            compact: true,
+            onPressed: () => f.load(first: true, want: _previewCount)),
       ]);
+    } else if (n == 0) {
+      body = Text(l.chatInfoNoMedia, style: chatInfoBody14(context));
+    } else {
+      final tiles = f.items.take(cols).toList();
+      // Birebir şerit: 4'ten fazla görselde son karo "+N" örtüsü taşır.
+      final overflow = direct && n > cols ? n - (cols - 1) : null;
+      body = GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        crossAxisCount: cols,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        children: [
+          for (var i = 0; i < tiles.length; i++)
+            ChatInfoThumb(
+              item: tiles[i],
+              video: f.isVideo(tiles[i]),
+              durationMs: f.videoMeta[tiles[i].url],
+              headers: _headers,
+              moreCount: overflow != null && i == cols - 1 ? overflow : null,
+              onTap: overflow != null && i == cols - 1 ? _openAllMedia : () => _openViewer(i),
+            ),
+        ],
+      );
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SohbetyLabel(sohbetyUpper(
-          context,
-          has
-              ? context.l10n
-                  .chatInfoMediaDot('${f.items.length}${f.more ? '+' : ''}')
-              : context.l10n.chatInfoMedia)),
-      body,
-    ]);
+    return ChatInfoCard(
+      padding: EdgeInsets.fromLTRB(direct ? 16 : 20, 12, direct ? 16 : 20, direct ? 16 : 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ChatInfoSectionHead(
+          title: direct && n > 0 ? l.chatInfoMediaDot(total) : l.chatInfoMedia,
+          count: !direct && n > 0 ? total : null,
+          actionLabel: n > 0 ? l.chatInfoSeeAllMedia : null,
+          largeAction: direct,
+          onAction: _openAllMedia,
+        ),
+        const SizedBox(height: 4),
+        body,
+      ]),
+    );
   }
 
   String _muteStatus() {
@@ -895,163 +1046,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     }
     return l.chatInfoMutedLabel;
   }
-
-  void _openProfile(Map<String, dynamic> m) {
-    final id = (m['userId'] as num?)?.toInt() ?? (m['id'] as num?)?.toInt();
-    if (id == null || id == widget.session.userId) return;
-    openUserProfile(context, widget.session,
-        userId: id,
-        name: m['displayName'] as String?,
-        avatarUrl: m['avatarUrl'] as String?,
-        fromConversationId: _cid);
-  }
-
-  // ---- Ayarlar ----
-
-  Widget _settingsTab(BuTokens t) {
-    final archived = _conv['archived'] == true;
-    final main = <Widget>[
-      _SettingsRow(
-        icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
-        label: context.l10n.chatInfoMuteNotifications,
-        sub: _muteStatus(),
-        toggled: _muted,
-        onTap: _toggleMute,
-      ),
-      _SettingsRow(
-        icon: LucideIcons.archive,
-        label: archived
-            ? context.l10n.chatInfoUnarchive
-            : context.l10n.chatInfoArchive,
-        onTap: _toggleArchive,
-      ),
-      if (_conv['closed'] == true)
-        _SettingsRow(
-            icon: LucideIcons.lock,
-            label: context.l10n.chatInfoClosed,
-            sub: context.l10n.chatInfoClosedSub),
-    ];
-    final danger = <Widget>[
-      if (_userGroup)
-        _SettingsRow(
-            icon: LucideIcons.logOut,
-            label: context.l10n.chatInfoLeaveChat,
-            danger: true,
-            onTap: _leave),
-      if (_direct)
-        _SettingsRow(
-            icon: LucideIcons.ban,
-            label: _blocked
-                ? context.l10n.chatInfoUnblock
-                : context.l10n.chatInfoBlock,
-            sub: _blocked ? null : context.l10n.chatInfoBlockBody,
-            danger: true,
-            onTap: _toggleBlock),
-      if (_direct)
-        _SettingsRow(
-            icon: LucideIcons.flag,
-            label: context.l10n.chatInfoReportUser,
-            danger: true,
-            onTap: _report),
-    ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SohbetyCard(children: main),
-      if (danger.isNotEmpty) ...[
-        const SizedBox(height: 16),
-        SohbetyCard(children: danger),
-      ],
-    ]);
-  }
 }
 
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow(
-      {required this.icon,
-      required this.label,
-      this.sub,
-      this.onTap,
-      this.toggled,
-      this.danger = false});
-
-  final IconData icon;
-  final String label;
-  final String? sub;
-  final VoidCallback? onTap;
-  final bool? toggled;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: onTap != null,
-      toggled: toggled,
-      child: SohbetyRow(
-        onTap: onTap,
-        child: Row(children: [
-          SohbetyTile(icon: icon, danger: danger),
-          const SizedBox(width: 12),
-          Expanded(
-            child: SohbetyTexts(
-                title: label,
-                sub: sub,
-                weight: FontWeight.w600,
-                color: danger ? t.danger : t.ink),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction(
-      {required this.icon, required this.label, required this.onTap});
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          width: 72,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: t.sf,
-                border: Border.all(color: t.bd),
-                boxShadow: sohbetyShadow,
-              ),
-              child: Icon(icon, size: 20, color: t.ink),
-            ),
-            const SizedBox(height: 6),
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: t.ink)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
+/// Grup adı penceresi (Stitch 24-2 gizli modal): başlık + kapat, "Grup adı" etiketi, alan, Vazgeç/Kaydet.
 class _RenameDialog extends StatefulWidget {
   const _RenameDialog({required this.initial});
 
@@ -1073,50 +1070,61 @@ class _RenameDialogState extends State<_RenameDialog> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final v = _ctl.text.trim();
-    return AlertDialog(
-      backgroundColor: t.sf,
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Dialog(
+      backgroundColor: dark ? t.sf3 : t.sf,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(context.l10n.chatInfoGroupName,
-          style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: t.ink)),
-      content: TextField(
-        controller: _ctl,
-        autofocus: true,
-        maxLength: 60,
-        onChanged: (_) => setState(() {}),
-        cursorColor: t.pr,
-        style: TextStyle(fontFamily: 'Inter', fontSize: 15, color: t.ink),
-        decoration: InputDecoration(
-          hintText: context.l10n.chatInfoGroupName,
-          filled: true,
-          fillColor: t.bg,
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: t.bd)),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: t.bd)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: t.pr)),
+      insetPadding: const EdgeInsets.all(kChatInfoMargin),
+      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 384),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(l.chatInfoGroupName,
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                ),
+              ),
+              IconButton(
+                tooltip: l.commonClose,
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(LucideIcons.x, size: 22, color: t.mut),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _ctl,
+              autofocus: true,
+              maxLength: 60,
+              onChanged: (_) => setState(() {}),
+              cursorColor: t.pr,
+              style: chatInfoBody14(context, color: t.ink).copyWith(fontSize: 15),
+              decoration: InputDecoration(
+                hintText: l.chatInfoGroupName,
+                counterText: '',
+                filled: true,
+                fillColor: t.sf2,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: const OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide.none),
+                enabledBorder: const OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide(color: t.pr, width: 2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(child: BuButton(label: l.chatInfoCancel, kind: BuButtonKind.soft, onPressed: () => Navigator.pop(context))),
+              const SizedBox(width: 8),
+              Expanded(child: BuButton(label: l.chatInfoSave, onPressed: v.isEmpty ? null : () => Navigator.pop(context, v))),
+            ]),
+          ]),
         ),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.chatInfoCancel,
-                style: TextStyle(color: t.mut))),
-        TextButton(
-            onPressed: v.isEmpty ? null : () => Navigator.pop(context, v),
-            child: Text(context.l10n.chatInfoSave,
-                style: TextStyle(
-                    color: v.isEmpty ? t.mut : t.pr, fontWeight: FontWeight.w700))),
-      ],
     );
   }
 }
