@@ -15,6 +15,7 @@ import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
 import 'package:bu_kampus/features/chat/view_once_viewer.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
