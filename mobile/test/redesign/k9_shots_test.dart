@@ -280,6 +280,8 @@ Future<void> _fillForm(WidgetTester t) async {
   await t.enterText(find.byKey(const ValueKey('evc-title')), 'Bahar Dönemi Akustik Kampüs Dinletisi');
   await t.enterText(find.byKey(const ValueKey('evc-desc')), 'Merkezi amfide gerçekleşecek akustik müzik dinletimize tüm öğrencilerimiz davetlidir. Katılım serbesttir.');
   await t.enterText(find.byKey(const ValueKey('evc-place')), 'Fen-Edebiyat Fakültesi Konferans Salonu');
+  FocusManager.instance.primaryFocus?.unfocus(); // odak bırakılınca uzun mekân başa sarılır
+  await t.pump();
   if (_lang == 'tr') {
     await t.ensureVisible(find.text('Yarın'));
     await t.pump();
@@ -315,6 +317,17 @@ Future<void> _pickEarlyEnd(WidgetTester t) async {
 }
 
 final _formScenes = <_Scene>[
+  _Scene('37f_onaya_gonderildi', () {
+    final b = _formBe([_club(8, 'İzinli Üye Kulübü', 'MEMBER', extra: {'canManageEvents': true})]);
+    b.on('/events', {'id': 77, 'status': 'PENDING_REVIEW'});
+    return b;
+  }, (b) => EventFormPage(session: makeSession(b), now: _formNow), height: 1900, after: (t) async {
+    await _fillForm(t);
+    await t.ensureVisible(find.byKey(const ValueKey('evc-submit')));
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('evc-submit')));
+    await t.pump(const Duration(milliseconds: 900));
+  }),
   _Scene('40k_bitis_hata', () {
     _nowShift = Duration.zero;
     return _formBe([_club(7, 'Müzik Kulübü', 'OWNER')]);

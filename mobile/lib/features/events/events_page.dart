@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
-import '../../core/connectivity/offline_banner.dart' show StaleLabel;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
+import '../clubs/clubs_tab.dart';
 import '../news/news_detail_page.dart';
 import '../platform/qr_scan_page.dart';
 import 'event_detail_page.dart';
@@ -79,9 +76,8 @@ class _EventsPageState extends State<EventsPage> {
   int _sub = 0; // Etkinliklerim: 0 Yaklaşan, 1 Geçmiş
   late final DateTime _today;
   late DateTime _month; // ayın 1'i
-  late DateTime _stripStart; // 7 günlük şeridin ilk günü
   DateTime? _selected;
-  bool _checkinBusy = false;
+  bool? _canCreate; // kulüp yöneticisi mi (Oluşturduklarım boş durumunda kart seçimi)
 
   final Map<String, List<Map<String, dynamic>>> _cache = {};
   final Set<String> _truncated = {}; // X-Truncated: true dönen aylar
@@ -110,7 +106,6 @@ class _EventsPageState extends State<EventsPage> {
     final n = DateTime.now();
     _today = DateTime(n.year, n.month, n.day);
     _month = DateTime(n.year, n.month);
-    _stripStart = _today;
     _tab = widget.initialTab.clamp(0, 2);
     _scroll.addListener(() {
       if (_tab != 0 &&
@@ -124,6 +119,7 @@ class _EventsPageState extends State<EventsPage> {
     } else {
       _loading = false;
       _loadFeed(_feedKey);
+      if (_tab == 2) _checkCanCreate();
     }
   }
 
@@ -158,7 +154,7 @@ class _EventsPageState extends State<EventsPage> {
     return [for (final e in _parse(res.body)) _norm(e)];
   }
 
-  /// Keşfet: takvim ayları (şerit 7 gün + seçili ay).
+  /// Keşfet: seçili ayın takvimi.
   Future<void> _load({bool silent = false}) async {
     final gen = ++_gen;
     if (!silent) {
@@ -168,19 +164,12 @@ class _EventsPageState extends State<EventsPage> {
       });
     }
     try {
-      final months = <DateTime>{_month};
-      for (var i = 0; i < 7; i++) {
-        final d = _stripStart.add(Duration(days: i));
-        months.add(DateTime(d.year, d.month));
-      }
-      final results = await Future.wait(months.map(_fetchMonth));
+      final m = _month;
+      final items = await _fetchMonth(m);
       if (!mounted || gen != _gen) return;
       setState(() {
-        var i = 0;
         _rsvpState.clear(); // takvim öğesi RSVP için tek kaynak
-        for (final m in months) {
-          _cache[_ym(m)] = results[i++];
-        }
+        _cache[_ym(m)] = items;
         _loading = false;
         _error = null;
       });
@@ -207,6 +196,13 @@ class _EventsPageState extends State<EventsPage> {
   bool _isPast(Map<String, dynamic> e) {
     final end = (e['_end'] as DateTime?) ?? (e['_start'] as DateTime?);
     return end != null && end.isBefore(DateTime.now());
+  }
+
+  bool _isLive(Map<String, dynamic> e) {
+    final s = e['_start'] as DateTime?;
+    final en = e['_end'] as DateTime?;
+    final now = DateTime.now();
+    return s != null && en != null && !now.isBefore(s) && now.isBefore(en);
   }
 
   /// Sunucu modu desteklemese bile Yaklaşan/Geçmiş ayrımı istemcide doğrulanır.
@@ -297,7 +293,19 @@ class _EventsPageState extends State<EventsPage> {
     } else {
       final f = _feeds[_feedKey]!;
       _loadFeed(_feedKey, silent: f.loaded);
+      if (_tab == 2) _checkCanCreate();
     }
+  }
+
+  /// Etkinlik açabileceği (yönetici/izinli) kulübü var mı? Yoksa boş durumda "kulübün yöneticisi olmalısın" kartı çıkar.
+  Future<void> _checkCanCreate() async {
+    if (_canCreate != null) return;
+    try {
+      final r = await widget.session.api.get('/me/communities?size=50');
+      final items = (r is Map ? r['items'] : null) as List? ?? const [];
+      final ok = items.whereType<Map>().any((c) => eventClubPublishMode(Map<String, dynamic>.from(c)) != null);
+      if (mounted) setState(() => _canCreate = ok);
+    } catch (_) {}
   }
 
   /// Katıldıktan sonra "Etkinliklerim" kısayolu.
@@ -317,37 +325,19 @@ class _EventsPageState extends State<EventsPage> {
     setState(() {
       _month = DateTime(_month.year, _month.month + delta);
       _selected = null;
-      final cur = _month.year == _today.year && _month.month == _today.month;
-      _stripStart = cur ? _today : _month;
     });
-    final stripMonths = <DateTime>{
-      _month,
-      for (var i = 0; i < 7; i++)
-        DateTime(_stripStart.add(Duration(days: i)).year,
-            _stripStart.add(Duration(days: i)).month),
-    }.where((m) => !_cache.containsKey(_ym(m))).toList();
-    if (stripMonths.isEmpty) return;
-    final gen = ++_gen;
+    if (_cache.containsKey(_ym(_month))) return;
+    await _load();
+  }
+
+  /// Bugünün ayına döner.
+  void _goToday() {
+    buHaptic(BuHaptic.selection);
     setState(() {
-      _loading = true;
-      _error = null;
+      _month = DateTime(_today.year, _today.month);
+      _selected = null;
     });
-    try {
-      final results = await Future.wait(stripMonths.map(_fetchMonth));
-      if (!mounted || gen != _gen) return;
-      setState(() {
-        for (var i = 0; i < stripMonths.length; i++) {
-          _cache[_ym(stripMonths[i])] = results[i];
-        }
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted || gen != _gen) return;
-      setState(() {
-        _error = e;
-        _loading = false;
-      });
-    }
+    _load(silent: _cache.containsKey(_ym(_month)));
   }
 
   void _pickDay(DateTime d) {
@@ -361,6 +351,9 @@ class _EventsPageState extends State<EventsPage> {
 
   bool get _isPastMonth => DateTime(_month.year, _month.month + 1)
       .isBefore(DateTime(_today.year, _today.month + 1));
+
+  bool get _isCurrentView =>
+      _month.year == _today.year && _month.month == _today.month && _selected == null;
 
   /// Ay dışından süren etkinliklerin günü ay sınırına çekilir (sunucu `date` alanıyla uyumlu).
   DateTime _effDay(Map<String, dynamic> e) {
@@ -405,6 +398,17 @@ class _EventsPageState extends State<EventsPage> {
     return s;
   }
 
+  /// Seçili güne (yoksa aya) göre süzülmüş, güne göre sıralı Keşfet öğeleri.
+  List<Map<String, dynamic>> _visibleDiscover() {
+    final sel = _selected;
+    return _monthItems.where((e) {
+      if (sel == null) return true;
+      final d = e['_day'] as DateTime;
+      return !d.isAfter(sel) && !(e['_endDay'] as DateTime).isBefore(sel);
+    }).toList()
+      ..sort((a, b) => _effDay(a).compareTo(_effDay(b)));
+  }
+
   // ---- katılım ----
 
   String? _myRsvp(Map<String, dynamic> e) {
@@ -427,7 +431,7 @@ class _EventsPageState extends State<EventsPage> {
     final oldGoing = _going(ev);
     final cap = (ev['capacity'] as num?)?.toInt();
     if (status == 'GOING' && cap != null && (oldGoing ?? 0) >= cap) {
-      _snack(context.l10n.eventListFull);
+      _toast(context.l10n.eventListFull, kind: BuToastKind.warning);
       return;
     }
     setState(() => _rsvpBusy.add(id));
@@ -444,13 +448,14 @@ class _EventsPageState extends State<EventsPage> {
             'myRsvp': (res is Map ? res['myRsvp'] as String? : null) ?? status,
             'goingCount': going
           });
+      buHaptic(BuHaptic.medium);
       showJoinedToast(context, _openMine);
     } catch (e) {
       if (mounted) {
         if (e is ApiError && e.code == 'EVENT_REGISTRATION_CLOSED') {
           setState(() => _closedIds.add(id));
         }
-        _snack(eventErrorTextL(context, e));
+        _toast(eventErrorTextL(context, e), kind: BuToastKind.error);
       }
     } finally {
       _rsvpBusy.remove(id);
@@ -467,6 +472,7 @@ class _EventsPageState extends State<EventsPage> {
       message: context.l10n.eventListLeaveMsg,
       confirmLabel: context.l10n.eventListLeave,
       danger: true,
+      icon: LucideIcons.calendarX,
     );
     if (!ok || !mounted) return;
     try {
@@ -478,9 +484,9 @@ class _EventsPageState extends State<EventsPage> {
         }
         _rsvpState[id] = {'myRsvp': null, 'goingCount': null};
       });
-      _snack(context.l10n.eventListLeft);
+      _toast(context.l10n.eventListLeft, kind: BuToastKind.success);
     } catch (e) {
-      if (mounted) _snack(eventErrorTextL(context, e));
+      if (mounted) _toast(eventErrorTextL(context, e), kind: BuToastKind.error);
     }
   }
 
@@ -500,10 +506,10 @@ class _EventsPageState extends State<EventsPage> {
           return;
         case 'close':
           await api.post('/events/$id/close', {});
-          if (mounted) _snack(context.l10n.eventListClosedDone);
+          if (mounted) _toast(context.l10n.eventListClosedDone, kind: BuToastKind.success);
         case 'reopen':
           await api.post('/events/$id/reopen', {});
-          if (mounted) _snack(context.l10n.eventListReopenedDone);
+          if (mounted) _toast(context.l10n.eventListReopenedDone, kind: BuToastKind.success);
         case 'cancel':
           final ok = await confirmEventDialog(
             context,
@@ -511,19 +517,21 @@ class _EventsPageState extends State<EventsPage> {
             message: context.l10n.eventListCancelMsg,
             confirmLabel: context.l10n.eventListCancelConfirm,
             danger: true,
+            icon: LucideIcons.triangleAlert,
+            centered: true,
           );
           if (!ok || !mounted) return;
           await api.delete('/events/$id');
-          if (mounted) _snack(context.l10n.eventListCancelledDone);
+          if (mounted) _toast(context.l10n.eventListCancelledDone, kind: BuToastKind.success);
       }
       if (mounted) _loadFeed('created', silent: true);
     } catch (e) {
       if (!mounted) return;
       if (eventIsNotFound(e)) {
         _dropEvent(id);
-        _snack(context.l10n.eventFormNotFound);
+        _toast(context.l10n.eventFormNotFound, kind: BuToastKind.error);
       } else {
-        _snack(eventSaveErrorText(context, e));
+        _toast(eventSaveErrorText(context, e), kind: BuToastKind.error);
       }
     }
   }
@@ -579,477 +587,540 @@ class _EventsPageState extends State<EventsPage> {
     }
   }
 
-  /// QR'ı tara (ya da elle kod gir); koddaki etkinlik kimliğiyle yoklama gönder.
+  /// QR'ı tara (ya da elle kod gir); koddaki etkinlik kimliğiyle yoklama gönderilir. Doğrulama tarayıcı sayfasında
+  /// yapılır: hata orada kalıp gösterilir, başarıda "Yoklaman alındı" gösterilip sayfa kapanır.
   /// Kod biçimi: "bingol-checkin:{etkinlikId}.{pencere}.{imza}" (elle girişte önek olmayabilir).
   Future<void> _scanCheckin() async {
-    if (_checkinBusy) return;
-    final raw = await Navigator.push<String>(
+    await Navigator.push<String>(
       context,
-      MaterialPageRoute(
-          builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle)),
+      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle, onSubmit: _verifyCheckin)),
     );
-    if (raw == null || !mounted) return;
+  }
+
+  Future<String?> _verifyCheckin(String raw) async {
+    final l = context.l10n;
     const prefix = 'bingol-checkin:';
-    final code = raw.trim().startsWith(prefix)
-        ? raw.trim().substring(prefix.length)
-        : raw.trim();
+    final code = raw.trim().startsWith(prefix) ? raw.trim().substring(prefix.length) : raw.trim();
     final id = int.tryParse(code.split('.').first);
-    if (id == null) {
-      _snack(context.l10n.eventListNotCode);
-      return;
-    }
-    setState(() => _checkinBusy = true);
+    if (id == null) return l.eventListNotCode;
     try {
       await widget.session.api.post('/events/$id/check-in', {'code': code});
-      if (mounted) _snack(context.l10n.eventListCheckedIn);
+      buHaptic(BuHaptic.medium);
+      return null;
     } catch (e) {
-      _snack(errorText(e));
-    } finally {
-      if (mounted) setState(() => _checkinBusy = false);
+      return errorText(e);
     }
   }
 
-  void _snack(String m) {
+  void _toast(String m, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(m)));
+    BuToast.show(context, m, kind: kind);
   }
 
   // ---- görünüm ----
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(
-        children: [
-          BuHeader(
-            title: context.l10n.eventListTitle,
-            onBack: () => Navigator.pop(context),
-            actions: [
-              BuIconButton(
-                  icon: LucideIcons.plus,
-                  tooltip: context.l10n.eventListCreate,
-                  filled: true,
-                  onTap: _create),
-              // Dar ekranda (ve büyük yazıda) yalnız simge: başlık harf ortasından kırılmasın.
-              if (MediaQuery.sizeOf(context).width < 380 || MediaQuery.textScalerOf(context).scale(10) > 11.5)
-                BuIconButton(
-                    icon: LucideIcons.scanLine,
-                    tooltip: context.l10n.eventListCheckin,
-                    onTap: _checkinBusy ? null : _scanCheckin)
-              else
-              Container(
-                decoration: BoxDecoration(
-                  color: t.pr,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                        color: t.pr.withValues(alpha: .35),
-                        blurRadius: 20,
-                        spreadRadius: -10,
-                        offset: const Offset(0, 10)),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  shape: const StadiumBorder(),
-                  child: InkWell(
-                    customBorder: const StadiumBorder(),
-                    onTap: _checkinBusy ? null : _scanCheckin,
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        _checkinBusy
-                            ? SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: t.onPr))
-                            : Icon(LucideIcons.scanLine,
-                                size: 18, color: t.onPr),
-                        const SizedBox(width: 8),
-                        Text(context.l10n.eventListCheckin,
-                            style: BuType.label.copyWith(
-                                color: t.onPr, fontWeight: FontWeight.w700)),
-                      ]),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+    final l = context.l10n;
+    final narrow = MediaQuery.sizeOf(context).width < 380 ||
+        MediaQuery.textScalerOf(context).scale(10) > 11.5;
+    final feed = _tab == 0 ? null : _feeds[_feedKey]!;
+
+    // Yükleniyor yalnız iskelet; hata/boş/hazır durumlar kendi kartlarıyla sliver olarak çizilir.
+    final loading = _tab == 0 ? _loading : (feed!.loading && !feed.loaded);
+    final Object? err = _tab == 0 ? _error : (feed!.loaded ? null : feed.error);
+    final DateTime? stale = _tab == 0 ? _calStale[_ym(_month)] : feed!.staleAt;
+
+    final List<Widget> slivers;
+    if (loading) {
+      slivers = const [];
+    } else if (err != null) {
+      slivers = [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          sliver: SliverList.list(children: [
+            if (stale != null) _offlineStrip(),
+            _errorCard(),
+          ]),
+        ),
+      ];
+    } else if (_tab == 0) {
+      slivers = _discoverSlivers(stale);
+    } else {
+      slivers = _feedSlivers(stale);
+    }
+
+    return BuStaggerScope(
+      child: BuPageScaffold(
+        title: l.eventListTitle,
+        large: false,
+        controller: _scroll,
+        onRefresh: _refresh,
+        bottomInset: 40,
+        state: loading ? BuViewState.loading : BuViewState.ready,
+        loading: _EventSkeleton(calendar: _tab == 0),
+        actions: [
+          _HeaderPill(
+            label: l.eventListCheckin,
+            icon: LucideIcons.scanLine,
+            compact: narrow,
+            onTap: _scanCheckin,
           ),
-          const SizedBox(height: 4),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refresh,
-              child: CustomScrollView(
-                controller: _scroll,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _PinnedBar(
-                      color: t.bg,
-                      child: _Seg(items: [
-                        context.l10n.eventListTabDiscover,
-                        context.l10n.eventListTabMine,
-                        context.l10n.eventListTabCreated
-                      ], index: _tab, onChanged: _setTab),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: StaleLabel(
-                      cachedAt: _tab == 0
-                          ? _calStale[_ym(_month)]
-                          : _feeds[_feedKey]?.staleAt,
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                    ),
-                  ),
-                  ..._tab == 0 ? _discoverSlivers() : _feedSlivers(),
-                  const SliverToBoxAdapter(child: SizedBox(height: kNavInset)),
-                ],
+          const SizedBox(width: 8),
+          _PlusButton(tooltip: l.eventListCreate, onTap: _create),
+          const SizedBox(width: 16),
+        ],
+        // Sabit segment çubuğu: büyük başlık daralsa da üç sekme hep görünür.
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 8),
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.15,
+              child: BuSegmented(
+                items: [l.eventListTabDiscover, l.eventListTabMine, l.eventListTabCreated],
+                index: _tab,
+                onChanged: _setTab,
               ),
             ),
           ),
-        ],
+        ),
+        slivers: slivers,
       ),
     );
   }
 
-  static const _pad = EdgeInsets.symmetric(horizontal: 20);
-
-  Widget _skeleton() {
+  /// Çevrimdışı şeridi: önbellekten gelen veri gösteriliyor.
+  Widget _offlineStrip() {
     final t = context.bu;
-    Widget block(double h, {double? w}) => Container(
-          height: h,
-          width: w,
-          decoration: BoxDecoration(
-              color: t.sf2, borderRadius: BorderRadius.circular(10)),
-        );
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-      sliver: SliverList.separated(
-        itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, __) => Semantics(
-          label: context.l10n.eventListLoading,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-                color: t.sf,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: t.bd)),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              block(110),
-              const SizedBox(height: 12),
-              block(16),
-              const SizedBox(height: 8),
-              block(12, w: 160),
-            ]),
-          ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Semantics(
+        container: true,
+        liveRegion: true,
+        child: Container(
+          key: const ValueKey('events-offline'),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(14)),
+          child: Row(children: [
+            ExcludeSemantics(child: Icon(LucideIcons.wifiOff, size: 18, color: t.pr)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(context.l10n.p14OfflineStrip,
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+            ),
+          ]),
         ),
       ),
     );
   }
 
-  Widget _stateBox(Widget child) =>
-      SliverToBoxAdapter(child: SizedBox(height: 360, child: child));
-
-  List<Widget> _discoverSlivers() {
+  /// "Yüklenemedi, tekrar dene" kartı.
+  Widget _errorCard() {
     final t = context.bu;
-    final busy = _busyDaySet();
-    final head = SliverToBoxAdapter(
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return BuCard(
+      key: const ValueKey('events-error'),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      radius: 20,
       child: Column(children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 12, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                    context.l10n.eventListMonthYear(
-                        eventMonthNameOf(context, _month.month),
-                        '${_month.year}'),
-                    style: BuType.bodyStrong.copyWith(color: t.mut)),
-              ),
-              IconButton(
-                tooltip: context.l10n.eventListPrevMonth,
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                icon: Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 18, color: t.ink),
-                onPressed:
-                    _month.isBefore(DateTime(_today.year - 1, _today.month))
-                        ? null
-                        : () => _goMonth(-1),
-              ),
-              IconButton(
-                tooltip: context.l10n.eventListNextMonth,
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                icon: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.ink),
-                onPressed: () => _goMonth(1),
-              ),
-            ],
+        ExcludeSemantics(
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: t.tint(1).bg, shape: BoxShape.circle),
+            child: Icon(LucideIcons.refreshCcwDot, size: 26, color: t.pr),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: Row(
-            children: [
-              for (var i = 0; i < 7; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(
-                    child: _dayCell(_stripStart.add(Duration(days: i)), busy)),
-              ],
-            ],
-          ),
+        const SizedBox(height: 14),
+        Text(l.p14ErrorTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        const SizedBox(height: 6),
+        Text(l.p14ErrorBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+        const SizedBox(height: 18),
+        BuButton(
+          key: const ValueKey('events-retry'),
+          label: l.commonRetry,
+          icon: LucideIcons.refreshCw,
+          onPressed: _tab == 0 ? () => _load() : () => _loadFeed(_feedKey),
         ),
       ]),
     );
-    if (_loading) return [head, _skeleton()];
-    if (_error != null) {
-      return [head, _stateBox(ErrorView(error: _error!, onRetry: _load))];
-    }
+  }
 
-    final rows = <Object>[]; // DateTime başlığı, not (String) ya da etkinlik
-    final sel = _selected;
-    final items = _monthItems.where((e) {
-      if (sel == null) return true;
-      final d = e['_day'] as DateTime;
-      return !d.isAfter(sel) && !(e['_endDay'] as DateTime).isBefore(sel);
-    }).toList()
-      ..sort((a, b) => _effDay(a).compareTo(_effDay(b)));
+  Widget _noteRow(String text) {
+    final t = context.bu;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: t.warnSoft,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: t.warn.withValues(alpha: .25)),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(LucideIcons.info, size: 18, color: t.onWarnSoft),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+            child: Text(text,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.onWarnSoft, height: 1.4, fontWeight: FontWeight.w500))),
+      ]),
+    );
+  }
+
+  /// Sekmeye göre boş durum.
+  Widget _emptyForTab() {
+    final l = context.l10n;
+    final t = context.bu;
+    if (_tab == 0) {
+      final day = _selected != null;
+      return EtkinlikEmptyCard(
+        key: const ValueKey('events-empty'),
+        icon: LucideIcons.calendarX,
+        title: day ? l.eventListEmptyDay : l.eventListEmptyMonth,
+        body: day ? null : l.p14EmptyMonthBody,
+      );
+    }
+    if (_tab == 2) {
+      if (_canCreate == false) {
+        return BuCard(
+          key: const ValueKey('events-nocreate'),
+          padding: const EdgeInsets.all(20),
+          radius: 20,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              ExcludeSemantics(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                  child: Icon(LucideIcons.shieldUser, size: 24, color: t.pr),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(l.evcEmptyTitle,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            Text(l.evcEmptyBody, style: Theme.of(context).textTheme.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+            const SizedBox(height: 18),
+            EtkinlikInkButton(label: l.evcBrowseClubs, icon: LucideIcons.users, onTap: _browseClubs),
+          ]),
+        );
+      }
+      return EtkinlikEmptyCard(
+        key: const ValueKey('events-empty'),
+        icon: LucideIcons.calendarPlus,
+        title: l.eventListEmptyCreated,
+        body: l.p14EmptyCreatedBody2,
+        action: EtkinlikInkButton(label: l.eventListCreate, icon: LucideIcons.circlePlus, onTap: _create),
+      );
+    }
+    final past = _sub == 1;
+    return EtkinlikEmptyCard(
+      key: const ValueKey('events-empty'),
+      icon: LucideIcons.calendarX,
+      title: past ? l.eventListEmptyPast : l.eventListEmptyUpcoming,
+      body: past ? l.p14EmptyPastBody2 : l.p14EmptyUpcomingBody2,
+      action: past
+          ? null
+          : BuButton(label: l.eventListDiscover, icon: LucideIcons.compass, onPressed: () => _setTab(0)),
+    );
+  }
+
+  void _browseClubs() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
+      );
+
+  // ---- Keşfet: takvim kartı ----
+
+  Widget _calendarCard() {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final first = DateTime(_month.year, _month.month);
+    final lead = first.weekday - 1; // Pzt = 0
+    final days = DateTime(_month.year, _month.month + 1, 0).day;
+    final rows = ((lead + days) / 7).ceil();
+    final gridStart = DateTime(first.year, first.month, 1 - lead);
+    final busy = _busyDaySet();
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return BuCard(
+      key: const ValueKey('events-calendar'),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      radius: 20,
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 8),
+          child: Row(children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: BuFadeThrough(
+                  duration: BuMotion.short,
+                  child: Align(
+                    key: ValueKey(_ym(_month)),
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(l.eventListMonthYear(eventMonthNameOf(context, _month.month), '${_month.year}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                  ),
+                ),
+              ),
+            ),
+            if (!_isCurrentView)
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                onPressed: _goToday,
+                child: Text(l.p14Today, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700)),
+              ),
+            BuIconButton(
+              icon: buDirIcon(context, LucideIcons.chevronLeft),
+              tooltip: l.eventListPrevMonth,
+              onTap: _month.isBefore(DateTime(_today.year - 1, _today.month)) ? null : () => _goMonth(-1),
+            ),
+            BuIconButton(
+              icon: buDirIcon(context, LucideIcons.chevronRight),
+              tooltip: l.eventListNextMonth,
+              onTap: () => _goMonth(1),
+            ),
+          ]),
+        ),
+        Row(children: [
+          for (var i = 1; i <= 7; i++)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(trUpper(eventDayShortOf(context, i)),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: i == 7 ? t.pr : t.mut, letterSpacing: ar ? 0 : .4)),
+              ),
+            ),
+        ]),
+        for (var r = 0; r < rows; r++)
+          Row(children: [
+            for (var c = 0; c < 7; c++) Expanded(child: _dayCell(DateTime(gridStart.year, gridStart.month, gridStart.day + r * 7 + c), busy)),
+          ]),
+      ]),
+    );
+  }
+
+  Widget _dayCell(DateTime d, Set<String> busy) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final inMonth = d.month == _month.month;
+    final on = _selected == d;
+    final today = d == _today;
+    final dot = inMonth && busy.contains(_ymd(d));
+    final fg = on ? t.onPr : (inMonth ? t.ink : t.mut.withValues(alpha: .45));
+    return Semantics(
+      button: true,
+      selected: on,
+      label: eventLongDateOf(context, d),
+      onTap: () => _pickDay(d),
+      child: ExcludeSemantics(
+        child: BuPressable(
+          scale: .92,
+          haptic: BuHaptic.selection,
+          onTap: () => _pickDay(d),
+          child: SizedBox(
+            height: 48,
+            child: Center(
+              child: AnimatedContainer(
+                duration: BuMotion.of(context, BuMotion.short),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: on ? t.pr : (today ? t.soft : Colors.transparent),
+                ),
+                child: Stack(alignment: Alignment.center, children: [
+                  Text('${d.day}',
+                      maxLines: 1,
+                      style: tx.bodyMedium!.copyWith(color: on ? fg : (today ? t.onSoft : fg), fontWeight: on || today ? FontWeight.w800 : FontWeight.w500)),
+                  if (dot)
+                    PositionedDirectional(
+                      bottom: 3,
+                      child: Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.onPr : t.pr),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---- listeler ----
+
+  List<Widget> _discoverSlivers(DateTime? stale) {
+    final items = _visibleDiscover();
+    final rows = <Object>[]; // DateTime başlığı ya da etkinlik
     DateTime? last;
+    final counts = <DateTime, int>{};
     for (final e in items) {
       final d = _effDay(e);
-      if (_selected == null && d != last) {
+      counts[d] = (counts[d] ?? 0) + 1;
+    }
+    for (final e in items) {
+      final d = _effDay(e);
+      if (_selected != null ? rows.isEmpty : d != last) {
         rows.add(d);
         last = d;
       }
       rows.add(e);
     }
-    final emptyText = _selected != null
-        ? context.l10n.eventListEmptyDay
-        : context.l10n.eventListEmptyMonth;
     final note = _isPastMonth
         ? context.l10n.eventListPastMonth
-        : (_truncated.contains(_ym(_month))
-            ? context.l10n.eventListTruncated
-            : null);
-    if (note != null) rows.insert(0, note);
-    if (items.isEmpty) {
-      return [
-        head,
-        if (note != null)
-          SliverToBoxAdapter(
-              child: Padding(padding: _pad, child: _noteRow(note))),
-        _stateBox(EmptyView(icon: LucideIcons.calendarX, text: emptyText))
-      ];
-    }
+        : (_truncated.contains(_ym(_month)) ? context.l10n.eventListTruncated : null);
     return [
-      head,
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-        sliver: SliverList.builder(
-          itemCount: rows.length,
-          itemBuilder: (_, i) {
-            final r = rows[i];
-            if (r is String) return _noteRow(r);
-            if (r is DateTime) {
-              return Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(2, 10, 0, 8),
-                child: Text(eventLongDateOf(context, r),
-                    style: BuType.label.copyWith(color: t.mut)),
-              );
-            }
-            final ev = r as Map<String, dynamic>;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: ev['source'] == 'OFFICIAL'
-                  ? _officialRow(ev)
-                  : _card(ev, _Mode.discover, _effDay(ev)),
-            );
-          },
-        ),
-      ),
-    ];
-  }
-
-  Widget _noteRow(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(children: [
-          Icon(LucideIcons.info, size: 12.5, color: context.bu.mut),
-          const SizedBox(width: 6),
-          Expanded(
-              child: Text(text,
-                  style: BuType.caption.copyWith(color: context.bu.mut))),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        sliver: SliverList.list(children: [
+          if (stale != null) _offlineStrip(),
+          if (note != null) _noteRow(note),
+          _calendarCard(),
+          if (items.isEmpty) ...[
+            if (_selected != null) _dayHeader(_selected!, 0),
+            _emptyForTab(),
+          ],
         ]),
-      );
-
-  List<Widget> _feedSlivers() {
-    final f = _feeds[_feedKey]!;
-    final mode =
-        _tab == 2 ? _Mode.created : (_sub == 1 ? _Mode.past : _Mode.upcoming);
-    final subs = _tab == 1
-        ? SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Wrap(spacing: 8, runSpacing: 8, children: [
-                BuChip(
-                    label: context.l10n.eventListUpcoming,
-                    selected: _sub == 0,
-                    onTap: () => _setSub(0)),
-                BuChip(
-                    label: context.l10n.eventListPast,
-                    selected: _sub == 1,
-                    onTap: () => _setSub(1)),
-              ]),
-            ),
-          )
-        : SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Text(context.l10n.eventListCreatedHint,
-                  style: BuType.caption.copyWith(color: context.bu.mut)),
-            ),
-          );
-    if (f.loading && !f.loaded) return [subs, _skeleton()];
-    if (f.error != null && !f.loaded) {
-      return [
-        subs,
-        _stateBox(
-            ErrorView(error: f.error!, onRetry: () => _loadFeed(_feedKey)))
-      ];
-    }
-    if (f.items.isEmpty) {
-      final text = switch (mode) {
-        _Mode.upcoming => context.l10n.eventListEmptyUpcoming,
-        _Mode.past => context.l10n.eventListEmptyPast,
-        _ => context.l10n.eventListEmptyCreated,
-      };
-      return [
-        subs,
-        _stateBox(
-            Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Flexible(child: EmptyView(icon: LucideIcons.calendarX, text: text)),
-          if (mode != _Mode.past)
-            BuButton(
-              label: mode == _Mode.created
-                  ? context.l10n.eventListCreate
-                  : context.l10n.eventListDiscover,
-              icon: mode == _Mode.created
-                  ? LucideIcons.plus
-                  : LucideIcons.compass,
-              compact: true,
-              onPressed: mode == _Mode.created ? _create : () => _setTab(0),
-            ),
-        ])),
-      ];
-    }
-    return [
-      subs,
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-        sliver: SliverList.builder(
-          itemCount: f.items.length + (f.more ? 1 : 0),
-          itemBuilder: (_, i) {
-            if (i >= f.items.length) {
-              return const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Center(child: CircularProgressIndicator()));
-            }
-            final ev = f.items[i];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _card(ev, mode, ev['_day'] as DateTime?),
-            );
-          },
-        ),
       ),
-    ];
-  }
-
-  Widget _dayCell(DateTime d, Set<String> busyDays) {
-    final t = context.bu;
-    final on = _selected == d;
-    final today = d == _today;
-    final dot = busyDays.contains(_ymd(d));
-    return GestureDetector(
-      onTap: () => _pickDay(d),
-      child: Container(
-        height: 68,
-        decoration: BoxDecoration(
-          color: on ? t.pr : t.sf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-              color: on ? t.pr : (today ? t.pr.withValues(alpha: .6) : t.bd),
-              width: today && !on ? 1.5 : 1),
-        ),
-        // Büyük yazı ölçeğinde gün sayısı satıra bölünmesin/taşmasın: içerik hücreye sığacak kadar küçülür.
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(eventDayShortOf(context, d.weekday),
-                    maxLines: 1,
-                    softWrap: false,
-                    style: BuType.micro.copyWith(color: on ? t.onPr : t.mut)),
-                const SizedBox(height: 4),
-                Text('${d.day}',
-                    maxLines: 1,
-                    softWrap: false,
-                    style: BuType.title
-                        .copyWith(color: on ? t.onPr : (today ? t.pr : t.ink))),
-                const SizedBox(height: 3),
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: dot ? (on ? t.onPr : t.pr) : Colors.transparent,
-                  ),
+      if (items.isNotEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList.builder(
+            itemCount: rows.length,
+            itemBuilder: (_, i) {
+              final r = rows[i];
+              if (r is DateTime) {
+                return _dayHeader(r, _selected != null ? items.length : (counts[r] ?? 0));
+              }
+              final ev = r as Map<String, dynamic>;
+              return BuStaggerItem(
+                index: i,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ev['source'] == 'OFFICIAL' ? _officialRow(ev) : _card(ev, _Mode.discover, _effDay(ev)),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
+    ];
+  }
+
+  Widget _dayHeader(DateTime d, int count) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 22, 4, 12),
+      child: Semantics(
+        header: true,
+        child: Row(children: [
+          ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle))),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(eventLongDateOf(context, d),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          ),
+          if (count > 0) ...[
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Text(l.p14EventCount(count), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+            ),
+          ],
+        ]),
       ),
     );
+  }
+
+  List<Widget> _feedSlivers(DateTime? stale) {
+    final f = _feeds[_feedKey]!;
+    final l = context.l10n;
+    final mode = _tab == 2 ? _Mode.created : (_sub == 1 ? _Mode.past : _Mode.upcoming);
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+        sliver: SliverList.list(children: [
+          if (stale != null) _offlineStrip(),
+          if (_tab == 1)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: EtkinlikSubChips(
+                labels: [l.eventListUpcoming, l.eventListPast],
+                selected: _sub,
+                onSelected: _setSub,
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
+              child: Text(l.eventListCreatedHint,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: context.bu.mut, height: 1.4)),
+            ),
+          if (f.items.isEmpty) _emptyForTab(),
+        ]),
+      ),
+      if (f.items.isNotEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList.builder(
+            itemCount: f.items.length + (f.more ? 1 : 0),
+            itemBuilder: (_, i) {
+              if (i >= f.items.length) return const _EventSkeleton(count: 1, padding: EdgeInsets.zero);
+              final ev = f.items[i];
+              return BuStaggerItem(
+                index: i,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _card(ev, mode, ev['_day'] as DateTime?),
+                ),
+              );
+            },
+          ),
+        ),
+    ];
   }
 
   /// Kaynak siteden gelen resmi etkinlik: sade satır.
   Widget _officialRow(Map<String, dynamic> ev) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final day = _effDay(ev);
     return BuCard(
       radius: 20,
+      padding: const EdgeInsets.all(14),
       onTap: () => _open(ev),
       child: Row(children: [
-        EtkinlikDateTile(
-            month: eventMonthShortOf(context, day.month),
-            day: '${day.day}',
-            tone: etkinlikToneOf((ev['id'] as num).toInt())),
+        EtkinlikDateBlock(month: eventMonthShortOf(context, day.month), day: '${day.day}'),
         const SizedBox(width: 14),
         Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            BuBadge(context.l10n.eventListOfficial, soft: true),
-            const SizedBox(height: 6),
-            Text('${ev['title'] ?? ''}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: BuType.bodyStrong.copyWith(color: t.ink)),
-          ]),
+          child: Text('${ev['title'] ?? ''}',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink, height: 1.25)),
         ),
         const SizedBox(width: 6),
-        Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
+        Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
       ]),
     );
   }
@@ -1062,329 +1133,599 @@ class _EventsPageState extends State<EventsPage> {
     ];
   }
 
-  Widget _card(Map<String, dynamic> ev, _Mode mode, DateTime? day) {
+  Widget _meta(IconData icon, String text, {int maxLines = 1}) {
     final t = context.bu;
-    final id = (ev['id'] as num).toInt();
+    return Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: ExcludeSemantics(child: Icon(icon, size: 15, color: t.mut)),
+      ),
+      const SizedBox(width: 6),
+      Flexible(
+        child: Text(text,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
+      ),
+    ]);
+  }
+
+  Widget _clubLine(String? org, {Color? color}) {
+    final t = context.bu;
+    if (org == null || org.isEmpty) return const SizedBox.shrink();
+    final c = color ?? t.pr;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      ExcludeSemantics(child: Icon(LucideIcons.users, size: 13, color: c)),
+      const SizedBox(width: 6),
+      Flexible(
+        child: Text(org,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: c)),
+      ),
+    ]);
+  }
+
+  Widget _card(Map<String, dynamic> ev, _Mode mode, DateTime? day) {
+    return switch (mode) {
+      _Mode.discover => _discoverCard(ev, day),
+      _Mode.upcoming => _mineCard(ev, day, past: false),
+      _Mode.past => _mineCard(ev, day, past: true),
+      _Mode.created => _createdCard(ev, day),
+    };
+  }
+
+  String _timeOf(Map<String, dynamic> ev) {
     final start = ev['_start'] as DateTime?;
     final end = ev['_end'] as DateTime?;
+    if (start == null) return '';
+    // LRM: Arapça (RTL) düzende saat aralığı ters dizilmesin.
+    return end != null ? '‎${eventHm(start)} – ${eventHm(end)}' : eventHm(start);
+  }
+
+  // ---- Keşfet kartı ----
+
+  Widget _discoverCard(Map<String, dynamic> ev, DateTime? day) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final id = (ev['id'] as num).toInt();
+    final my = _myRsvp(ev);
+    final going = _going(ev) ?? 0;
+    final cap = (ev['capacity'] as num?)?.toInt();
+    final place = (ev['location'] as String?)?.trim();
+    final org = (ev['communityName'] as String?)?.trim();
+    final time = _timeOf(ev);
+    final cancelled = eventIsCancelled(ev);
+    final closed = eventIsClosed(ev) || _closedIds.contains(id);
+    final past = _isPastMonth;
+    final full = cap != null && going >= cap && my != 'GOING';
+    final live = !cancelled && !past && _isLive(ev);
+    final busy = _rsvpBusy.contains(id);
+
+    Widget? tag;
+    if (cancelled) {
+      tag = EventStatusTag(l.eventListCancelled, tone: EventTone.danger);
+    } else if (closed) {
+      tag = EventStatusTag(l.eventListRegClosedTag, tone: EventTone.neutral);
+    } else if (full) {
+      tag = EventStatusTag(l.eventFormCapacityFull, tone: EventTone.danger);
+    } else if (live) {
+      tag = EventStatusTag(l.p14Live, tone: EventTone.brand, icon: LucideIcons.radio);
+    }
+
+    final Widget actions;
+    if (cancelled || past || closed || full) {
+      actions = Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: EtkinlikDetailLink(label: l.p14Detail, onTap: () => _open(ev)),
+      );
+    } else if (my == 'GOING') {
+      actions = Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: EtkinlikPill(label: l.eventListInMine, icon: LucideIcons.calendarCheck, bg: t.okSoft, fg: t.ok, onTap: _openMine),
+      );
+    } else {
+      actions = Row(children: [
+        Expanded(
+          child: EtkinlikActionButton(
+            key: ValueKey('ev-join-$id'),
+            label: l.eventListJoin,
+            icon: LucideIcons.circleCheck,
+            primary: true,
+            busy: busy,
+            onTap: busy ? null : () => _join(ev, 'GOING'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: EtkinlikActionButton(
+            key: ValueKey('ev-interested-$id'),
+            label: l.eventListInterested,
+            icon: my == 'INTERESTED' ? LucideIcons.star : LucideIcons.star,
+            onTap: (busy || my == 'INTERESTED') ? null : () => _join(ev, 'INTERESTED'),
+          ),
+        ),
+      ]);
+    }
+
+    return BuCard(
+      key: ValueKey('ev-card-$id'),
+      padding: const EdgeInsets.all(16),
+      radius: 20,
+      onTap: () => _open(ev),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          EtkinlikDateBlock(
+            month: day == null ? '' : eventMonthShortOf(context, day.month),
+            day: day == null ? '' : '${day.day}',
+            tone: (cancelled || past) ? EtkinlikBlockTone.grey : EtkinlikBlockTone.brand,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: _clubLine(org))),
+                if (tag != null) ...[const SizedBox(width: 8), tag],
+              ]),
+              const SizedBox(height: 4),
+              Text('${ev['title'] ?? ''}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.titleLarge!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                    color: cancelled ? t.mut : t.ink,
+                    decoration: cancelled ? TextDecoration.lineThrough : null,
+                  )),
+              const SizedBox(height: 8),
+              Wrap(spacing: 16, runSpacing: 4, children: [
+                if (time.isNotEmpty) _meta(LucideIcons.clock, time),
+                if (place != null && place.isNotEmpty) _meta(LucideIcons.mapPin, place, maxLines: 2),
+              ]),
+              const SizedBox(height: 4),
+              _meta(LucideIcons.users, l.eventListAttendeeCount('$going')),
+            ]),
+          ),
+        ]),
+        const SizedBox(height: 14),
+        BuFadeThrough(
+          duration: BuMotion.short,
+          child: KeyedSubtree(key: ValueKey('${my ?? '-'}$busy$closed$full'), child: actions),
+        ),
+      ]),
+    );
+  }
+
+  // ---- Etkinliklerim kartı (Yaklaşan / Geçmiş) ----
+
+  Widget _mineCard(Map<String, dynamic> ev, DateTime? day, {required bool past}) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final id = (ev['id'] as num).toInt();
     final my = _myRsvp(ev);
     final going = _going(ev) ?? 0;
     final place = (ev['location'] as String?)?.trim();
     final org = (ev['communityName'] as String?)?.trim();
-    final time = start == null
-        ? ''
-        : (end != null
-            ? '${eventHm(start)} – ${eventHm(end)}'
-            : eventHm(start));
-    final sub = [
-      if (time.isNotEmpty) time,
-      if (place != null && place.isNotEmpty) place,
-    ].join(' · ');
+    final time = _timeOf(ev);
     final cancelled = eventIsCancelled(ev);
-    final closed = eventIsClosed(ev) || _closedIds.contains(id);
-    final past = mode == _Mode.past || (mode == _Mode.discover && _isPastMonth);
+    final live = !past && !cancelled && _isLive(ev);
+    final tone = (past || cancelled) ? EtkinlikBlockTone.grey : EtkinlikBlockTone.blue;
 
-    Widget? tag;
-    if (mode == _Mode.created) {
-      tag = cancelled
-          ? EventStatusTag(context.l10n.eventListCancelled,
-              tone: EventTone.danger)
-          : eventIsPendingReview(ev)
-              ? EventStatusTag(context.l10n.evcStatusPending,
-                  tone: EventTone.warn)
-              : eventIsRejected(ev)
-                  ? EventStatusTag(context.l10n.evcStatusRejected,
-                      tone: EventTone.danger)
-                  : (closed
-              ? EventStatusTag(context.l10n.eventListRegClosedTag,
-                  tone: EventTone.warn)
-              : EventStatusTag(context.l10n.eventListOpen));
-    } else if (cancelled) {
-      tag = EventStatusTag(context.l10n.eventListCancelled,
-          tone: EventTone.danger);
+    Widget? pill;
+    if (cancelled) {
+      pill = EventStatusTag(l.eventListCancelled, tone: EventTone.danger);
+    } else if (!past) {
+      pill = my == 'INTERESTED'
+          ? EventStatusTag(l.eventListInterested, tone: EventTone.warn, icon: LucideIcons.star)
+          : EventStatusTag(l.p14StatusGoing, tone: EventTone.brand, dot: true);
     }
 
-    final bottom = switch (mode) {
-      _Mode.discover =>
-        _discoverActions(ev, my, going, closed, cancelled, past, id),
-      _Mode.created => Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: _createdBar(ev, going, cancelled, closed)),
-      _ => Padding(
-          padding: const EdgeInsets.only(top: 10), child: _mineBar(ev, going)),
-    };
-
     return BuCard(
+      key: ValueKey('ev-card-$id'),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 6, 14),
       radius: 20,
-      padding: const EdgeInsets.all(14),
       onTap: () => _open(ev),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          EtkinlikDateTile(
-              month: day == null ? '' : eventMonthShortOf(context, day.month),
-              day: day == null ? '' : '${day.day}',
-              tone: etkinlikToneOf(id)),
-          const SizedBox(width: 14),
+          EtkinlikDateBlock(
+            month: day == null ? '' : eventMonthShortOf(context, day.month),
+            day: day == null ? '' : '${day.day}',
+            tone: tone,
+            size: 52,
+          ),
+          const SizedBox(width: 12),
           Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              if (org != null && org.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 3),
-                        decoration: BoxDecoration(
-                            color: t.soft,
-                            borderRadius: BorderRadius.circular(999)),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(LucideIcons.users, size: 10, color: t.onSoft),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(org,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: BuType.micro.copyWith(color: t.onSoft)),
-                          ),
-                        ]),
-                      ),
-                    ),
-                  ]),
-                ),
-              Text('${ev['title'] ?? ''}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: BuType.heading.copyWith(
-                      color: t.ink, fontSize: 15, fontWeight: FontWeight.w700)),
-              if (sub.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(sub,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: _clubLine(org, color: past ? t.mut : t.pr))),
+                  if (pill != null) ...[const SizedBox(width: 6), pill],
+                ]),
+                const SizedBox(height: 4),
+                Text('${ev['title'] ?? ''}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.titleMedium!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                        color: (past || cancelled) ? t.mut : t.ink,
+                        decoration: cancelled ? TextDecoration.lineThrough : null)),
+              ]),
+            ),
+          ),
+          if (!past && !cancelled)
+            PopupMenuButton<String>(
+              tooltip: l.eventListOptions,
+              icon: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
+              onSelected: (_) => _leave(ev),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                    value: 'leave',
+                    child: Row(children: [
+                      Icon(LucideIcons.logOut, size: 18, color: t.danger),
+                      const SizedBox(width: 10),
+                      Text(l.eventListLeaveTitle),
+                    ])),
+              ],
+            )
+          else
+            const SizedBox(width: 10),
+        ]),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 10),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const SizedBox(height: 12),
+            if (past)
+              Wrap(spacing: 16, runSpacing: 4, children: [
+                if (time.isNotEmpty) _meta(LucideIcons.clock, '$time (${l.p14Ended})'),
+                if (place != null && place.isNotEmpty) _meta(LucideIcons.mapPin, place),
+              ])
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(color: t.tint(1).bg.withValues(alpha: .55), borderRadius: BorderRadius.circular(12)),
+                child: Wrap(spacing: 16, runSpacing: 6, children: [
+                  if (time.isNotEmpty) _meta(LucideIcons.clock, time),
+                  if (place != null && place.isNotEmpty) _meta(LucideIcons.mapPin, place, maxLines: 2),
+                ]),
+              ),
+            const SizedBox(height: 12),
+            if (past)
+              Row(children: [
+                EventStatusTag(l.p14Attended, tone: EventTone.neutral, icon: LucideIcons.circleCheck),
+                const Spacer(),
+                EtkinlikDetailLink(label: l.p14Detail, onTap: () => _open(ev)),
+              ])
+            else
+              EtkinlikActionButton(
+                label: l.p14Detail,
+                grey: true,
+                trailing: buDirIcon(context, LucideIcons.arrowRight),
+                onTap: () => _open(ev),
+              ),
+            if (live || going == 0) const SizedBox.shrink(),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ---- Oluşturduklarım kartı ----
+
+  Widget _createdCard(Map<String, dynamic> ev, DateTime? day) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final id = (ev['id'] as num).toInt();
+    final going = _going(ev) ?? 0;
+    final org = (ev['communityName'] as String?)?.trim();
+    final cancelled = eventIsCancelled(ev);
+    final closed = eventIsClosed(ev) || _closedIds.contains(id);
+    final pendingReview = eventIsPendingReview(ev);
+    final rejected = eventIsRejected(ev);
+    final reason = rejected ? eventRejectReason(ev) : null;
+    final time = _timeOf(ev);
+    final place = (ev['location'] as String?)?.trim();
+    final pending = [ev['pendingRequestCount'], ev['pendingRequests'], ev['pendingCount']].whereType<num>().firstOrNull?.toInt();
+
+    final Widget status;
+    if (cancelled) {
+      status = EventStatusTag(l.eventListCancelled, tone: EventTone.danger, icon: LucideIcons.calendarX);
+    } else if (pendingReview) {
+      status = EventStatusTag(l.evcStatusPending, tone: EventTone.warn, icon: LucideIcons.hourglass);
+    } else if (rejected) {
+      status = EventStatusTag(l.evcStatusRejected, tone: EventTone.danger, icon: LucideIcons.circleAlert);
+    } else if (closed) {
+      status = EventStatusTag(l.eventListRegClosedTag, tone: EventTone.warn, icon: LucideIcons.lock);
+    } else {
+      status = EventStatusTag(l.eventListOpen, dot: true);
+    }
+    final tone = (rejected || cancelled) ? EtkinlikBlockTone.grey : EtkinlikBlockTone.blue;
+
+    return BuCard(
+      key: ValueKey('ev-card-$id'),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 8, 14),
+      radius: 20,
+      onTap: () => _open(ev),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          status,
+          const SizedBox(width: 10),
+          Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: _clubLine(org, color: t.mut))),
+          if (!cancelled)
+            PopupMenuButton<String>(
+              tooltip: l.eventListOptions,
+              onSelected: (a) => _manage(ev, a),
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: t.tint(1).bg, shape: BoxShape.circle),
+                child: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
+              ),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                    value: 'edit',
+                    child: Row(children: [
+                      Icon(LucideIcons.pencil, size: 18, color: t.ink),
+                      const SizedBox(width: 12),
+                      Text(l.eventListEdit),
+                    ])),
+                PopupMenuItem(
+                    value: closed ? 'reopen' : 'close',
+                    child: Row(children: [
+                      Icon(closed ? LucideIcons.lockOpen : LucideIcons.lock, size: 18, color: t.ink),
+                      const SizedBox(width: 12),
+                      Text(closed ? l.eventListReopen : l.eventListClose),
+                    ])),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                    value: 'cancel',
+                    child: Row(children: [
+                      Icon(LucideIcons.circleX, size: 18, color: t.danger),
+                      const SizedBox(width: 12),
+                      Text(l.eventListCancelConfirm, style: TextStyle(color: t.danger, fontWeight: FontWeight.w600)),
+                    ])),
+              ],
+            )
+          else
+            const SizedBox(width: 8),
+        ]),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const SizedBox(height: 6),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              EtkinlikDateBlock(
+                month: day == null ? '' : eventMonthShortOf(context, day.month),
+                day: day == null ? '' : '${day.day}',
+                tone: tone,
+                size: 52,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('${ev['title'] ?? ''}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: BuType.caption.copyWith(color: t.mut, fontSize: 13)),
-                ),
-              if (tag != null)
-                Padding(padding: const EdgeInsets.only(top: 8), child: tag),
-            ]),
-          ),
-        ]),
-        bottom,
-      ]),
-    );
-  }
-
-  Widget _discoverActions(Map<String, dynamic> ev, String? my, int going,
-      bool closed, bool cancelled, bool past, int id) {
-    final t = context.bu;
-    final busy = _rsvpBusy.contains(id);
-    Widget? action;
-    if (!past && !cancelled) {
-      if (my == 'GOING') {
-        action = EtkinlikPill(
-            label: context.l10n.eventListInMine,
-            icon: LucideIcons.calendarCheck,
-            bg: t.okSoft,
-            fg: t.ok,
-            onTap: _openMine);
-      } else if (closed) {
-        action = Text(context.l10n.eventListRegsClosed,
-            style: BuType.label.copyWith(color: t.mut));
-      } else {
-        action = Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              EtkinlikPill(
-                  label: context.l10n.eventListJoin,
-                  bg: t.pr,
-                  fg: t.onPr,
-                  busy: busy,
-                  onTap: busy ? null : () => _join(ev, 'GOING')),
-              if (my == 'INTERESTED')
-                EventStatusTag(context.l10n.eventListInterested,
-                    tone: EventTone.warn)
-              else
-                EtkinlikPill(
-                    label: context.l10n.eventListInterested,
-                    bg: t.sf2,
-                    fg: t.ink,
-                    onTap: busy ? null : () => _join(ev, 'INTERESTED')),
-            ]);
-      }
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(children: [
-        Expanded(
-            child: action == null
-                ? const SizedBox.shrink()
-                : Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: action)),
-        const SizedBox(width: 8),
-        EventAvatarStack(avatars: _avatarsOf(ev), total: going),
-      ]),
-    );
-  }
-
-  /// Etkinliklerim: katılımcı sayısı + ⋯ (Katılımdan ayrıl).
-  Widget _mineBar(Map<String, dynamic> ev, int going) {
-    final t = context.bu;
-    return Row(children: [
-      EventAvatarStack(avatars: _avatarsOf(ev), total: going),
-      const SizedBox(width: 6),
-      Expanded(
-          child:
-              Text(context.l10n.eventListGoing,
-                  style: BuType.caption.copyWith(color: t.mut))),
-      PopupMenuButton<String>(
-        tooltip: context.l10n.eventListOptions,
-        icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
-        onSelected: (_) => _leave(ev),
-        itemBuilder: (_) => [
-          PopupMenuItem(
-              value: 'leave', child: Text(context.l10n.eventListLeaveTitle))
-        ],
-      ),
-    ]);
-  }
-
-  /// Oluşturduklarım: katılımcı sayısı, katılımcılara bağlantı, hızlı eylemler.
-  Widget _createdBar(
-      Map<String, dynamic> ev, int going, bool cancelled, bool closed) {
-    final t = context.bu;
-    return Row(children: [
-      Icon(LucideIcons.users, size: 13.5, color: t.mut),
-      const SizedBox(width: 6),
-      // Büyük yazı ölçeğinde kesilmesin: sığmazsa alt satıra kayar.
-      Expanded(
-        child: Wrap(
-            spacing: 10,
-            runSpacing: 2,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(context.l10n.eventListAttendeeCount('$going'),
-                  style: BuType.label.copyWith(color: t.ink)),
-              GestureDetector(
-                onTap: () => _open(ev),
-                child: Text(context.l10n.eventListAttendees,
-                    style: BuType.label.copyWith(color: t.pr)),
+                      style: tx.titleLarge!.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                          color: cancelled ? t.mut : t.ink,
+                          decoration: cancelled ? TextDecoration.lineThrough : null)),
+                  if (time.isNotEmpty || (place != null && place.isNotEmpty))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Wrap(spacing: 16, runSpacing: 4, children: [
+                        if (time.isNotEmpty) _meta(LucideIcons.clock, time),
+                        if (place != null && place.isNotEmpty) _meta(LucideIcons.mapPin, place),
+                      ]),
+                    ),
+                ]),
               ),
             ]),
-      ),
-      if (!cancelled)
-        PopupMenuButton<String>(
-          tooltip: context.l10n.eventListOptions,
-          icon: Icon(LucideIcons.ellipsis, size: 18, color: t.ink),
-          onSelected: (a) => _manage(ev, a),
-          itemBuilder: (_) => [
-            PopupMenuItem(
-                value: 'edit', child: Text(context.l10n.eventListEdit)),
-            PopupMenuItem(
-                value: closed ? 'reopen' : 'close',
-                child: Text(closed
-                    ? context.l10n.eventListReopen
-                    : context.l10n.eventListClose)),
-            PopupMenuItem(
-                value: 'cancel',
-                child: Text(context.l10n.eventListCancelConfirm,
-                    style: TextStyle(color: t.danger))),
-          ],
+            if (rejected && reason != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                key: const ValueKey('ev-reject-reason'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(12)),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(LucideIcons.triangleAlert, size: 18, color: t.danger),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(l.evcRejectReason(reason),
+                        style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger, height: 1.4)),
+                  ),
+                ]),
+              ),
+            ],
+            if (!cancelled && !rejected && !pendingReview) ...[
+              const SizedBox(height: 12),
+              Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [
+                EventAvatarStack(avatars: _avatarsOf(ev), total: going),
+                if (pending != null && pending > 0)
+                  EventStatusTag(l.profilyardEventPendingCount('$pending'), tone: EventTone.warn, icon: LucideIcons.userPlus),
+                EtkinlikDetailLink(label: l.eventListAttendees, onTap: () => _open(ev)),
+              ]),
+            ],
+          ]),
         ),
-    ]);
+      ]),
+    );
   }
 }
 
 enum _Mode { discover, upcoming, past, created }
 
-/// Kaydırınca üstte sabit kalan segment çubuğu.
-class _PinnedBar extends SliverPersistentHeaderDelegate {
-  _PinnedBar({required this.child, required this.color});
+/// Başlık çubuğu hapı ("Yoklama"): nötr gri zemin + marka renkli simge; dar ekranda yalnız simge.
+class _HeaderPill extends StatelessWidget {
+  const _HeaderPill({required this.label, required this.icon, required this.onTap, required this.compact});
 
-  final Widget child;
-  final Color color;
-
-  @override
-  double get minExtent => 62;
-  @override
-  double get maxExtent => 62;
-
-  @override
-  Widget build(
-          BuildContext context, double shrinkOffset, bool overlapsContent) =>
-      Container(
-          color: color,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: child);
-
-  @override
-  bool shouldRebuild(covariant _PinnedBar old) => true;
-}
-
-/// Üç eşit parçalı segment; dar ekranda etiketler küçülür (kaydırma yok).
-class _Seg extends StatelessWidget {
-  const _Seg(
-      {required this.items, required this.index, required this.onChanged});
-
-  final List<String> items;
-  final int index;
-  final ValueChanged<int> onChanged;
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Container(
-      height: 46,
-      padding: const EdgeInsets.all(4),
-      decoration:
-          BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(23)),
-      // Sabit yükseklikli denetim: yazı ölçeği sınırlanır, böylece üç etiket de aynı boyutta kalır.
-      child: MediaQuery.withClampedTextScaling(
-        maxScaleFactor: 1.1,
-        child: Row(children: [
-          for (var i = 0; i < items.length; i++)
-            Expanded(
-              child: Semantics(
-                button: true,
-                selected: i == index,
-                excludeSemantics: true,
-                label: items[i],
-                onTap: () => onChanged(i),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onChanged(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: i == index ? t.sf : Colors.transparent,
-                      borderRadius: BorderRadius.circular(19),
-                      boxShadow: i == index
-                          ? [
-                              BoxShadow(
-                                  color: Colors.black.withValues(alpha: .12),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 1))
-                            ]
-                          : null,
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(items[i],
-                          maxLines: 1,
-                          style: BuType.label
-                              .copyWith(color: i == index ? t.ink : t.mut)),
-                    ),
-                  ),
-                ),
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: label,
+        child: BuPressable(
+          key: const ValueKey('events-checkin'),
+          onTap: onTap,
+          haptic: BuHaptic.selection,
+          child: Container(
+            constraints: BoxConstraints(minHeight: 48, minWidth: compact ? 48 : 0),
+            alignment: Alignment.center,
+            child: Container(
+              height: 40,
+              padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14),
+              decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, size: 18, color: t.pr),
+                if (!compact) ...[
+                  const SizedBox(width: 8),
+                  Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                ],
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Başlık çubuğu "+" düğmesi: koyu mürekkep daire.
+class _PlusButton extends StatelessWidget {
+  const _PlusButton({required this.tooltip, required this.onTap});
+
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: tooltip,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        child: BuPressable(
+          key: const ValueKey('events-create'),
+          onTap: onTap,
+          haptic: BuHaptic.light,
+          scale: .92,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+                child: Icon(LucideIcons.plus, size: 22, color: t.bg),
               ),
             ),
-        ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+/// Yükleniyor iskeleti: (Keşfet'te) takvim kartı + etkinlik kartları; küçük "Yükleniyor" etiketi.
+class _EventSkeleton extends StatelessWidget {
+  const _EventSkeleton({this.count = 3, this.padding = const EdgeInsets.fromLTRB(16, 8, 16, 0), this.calendar = false});
+
+  final int count;
+  final EdgeInsetsGeometry padding;
+  final bool calendar;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    Widget card(Widget child) => Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+          child: child,
+        );
+    return Semantics(
+      label: context.l10n.eventListLoading,
+      liveRegion: true,
+      container: true,
+      child: BuSkeletonScope(
+        child: Padding(
+          padding: padding,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            if (calendar) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, left: 4),
+                child: Text(context.l10n.eventListLoading, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut)),
+              ),
+              card(Column(children: [
+                const Row(children: [
+                  BuSkeleton(width: 112, height: 22, radius: 8),
+                  SizedBox(width: 10),
+                  BuSkeleton(width: 40, height: 22, radius: 11),
+                  Spacer(),
+                  BuSkeleton.circle(32),
+                  SizedBox(width: 8),
+                  BuSkeleton.circle(32),
+                ]),
+                const SizedBox(height: 16),
+                for (var r = 0; r < 4; r++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      for (var c = 0; c < 7; c++) r == 0 ? const BuSkeleton(width: 28, height: 10, radius: 5) : const BuSkeleton.circle(36),
+                    ]),
+                  ),
+              ])),
+              const SizedBox(height: 18),
+            ],
+            for (var i = 0; i < count; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: card(const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    BuSkeleton(width: 56, height: 56, radius: 16),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        BuSkeleton(width: 110, height: 14, radius: 7),
+                        SizedBox(height: 10),
+                        BuSkeleton.line(height: 16),
+                        SizedBox(height: 8),
+                        BuSkeleton.line(width: 160),
+                      ]),
+                    ),
+                  ]),
+                  SizedBox(height: 14),
+                  Row(children: [
+                    Expanded(child: BuSkeleton(height: 44, radius: 14)),
+                    SizedBox(width: 10),
+                    Expanded(child: BuSkeleton(height: 44, radius: 14)),
+                  ]),
+                ])),
+              ),
+          ]),
+        ),
       ),
     );
   }

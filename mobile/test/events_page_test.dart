@@ -2,6 +2,8 @@ import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:bu_kampus/features/events/etkinlik_parts.dart';
+import 'package:bu_kampus/features/events/event_parts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -97,7 +99,6 @@ void main() {
 
     testWidgets('resmi etkinlik ayri sade satir, Katil dugmesi yok', (tester) async {
       await _open(tester, _backend());
-      expect(find.text('Resmi'), findsOneWidget);
       expect(find.text('Resmi duyuru etkinliği'), findsOneWidget);
       expect(find.text('Katıl'), findsOneWidget); // yalnizca kullanici etkinligi
       await unmount(tester);
@@ -138,7 +139,7 @@ void main() {
       await _tapText(tester, 'Katıl');
       expect(find.text('Bu etkinliğin kayıtları kapalı.'), findsOneWidget);
       expect(find.text('Etkinliklerimde'), findsNothing);
-      expect(find.text('Kayıtlar kapalı'), findsOneWidget);
+      expect(find.text('Kayıt kapalı'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -180,7 +181,7 @@ void main() {
       await _tapText(tester, 'Oluşturduklarım');
       expect(find.text('Benim etkinliğim'), findsOneWidget);
       expect(find.text('Açık'), findsOneWidget);
-      expect(find.text('4 katılımcı'), findsOneWidget);
+      expect(find.byType(EventAvatarStack), findsOneWidget);
       expect(find.text('Katılımcılar'), findsOneWidget);
 
       await _menu(tester);
@@ -213,10 +214,22 @@ void main() {
     testWidgets('Olusturduklarim bos: olustur dugmesi', (tester) async {
       final b = FakeBackend()
         ..on('/events/calendar*', <Object>[])
+        ..on('/me/communities*', {'items': [{'id': 7, 'name': 'K', 'myRole': 'OWNER', 'myStatus': 'ACTIVE'}]})
         ..on('/me/events*', _page([]));
       await _open(tester, b, tab: 2);
       expect(find.text('Henüz bir etkinlik oluşturmadın.'), findsOneWidget);
-      expect(find.text('Etkinlik oluştur'), findsOneWidget);
+      expect(find.text('Etkinlik oluştur'), findsWidgets); // başlık düğmesi + boş durum düğmesi
+      await unmount(tester);
+    });
+
+    testWidgets('Olusturduklarim bos + kulup yok: "kulubun yoneticisi olmalisin" karti', (tester) async {
+      final b = FakeBackend()
+        ..on('/events/calendar*', <Object>[])
+        ..on('/me/communities*', {'items': <Object>[]})
+        ..on('/me/events*', _page([]));
+      await _open(tester, b, tab: 2);
+      expect(find.text('Etkinlik oluşturmak için bir kulübün yöneticisi olmalısın'), findsOneWidget);
+      expect(find.text('Kulüplere göz at'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -285,16 +298,10 @@ void main() {
       await openDetail(tester, b);
       expect(find.text('Etkinliklerimde'), findsWidgets);
       expect(find.text('Katılıyorsun'), findsNothing);
-      await tester.tap(find.text('Etkinliklerimde').last); // alttaki sabit cubuk
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
-      expect(find.byType(EventsPage), findsOneWidget);
-      await tester.tap(find.byTooltip('Geri'));
-      await settle(tester, const Duration(milliseconds: 500));
-      await tester.ensureVisible(find.text('Katılımı yönet'));
-      await tester.tap(find.text('Katılımı yönet'));
+      // Etkinliklerimde hapı bilgi amaçlıdır; ayrılmak alttaki sabit "Katılımdan ayrıl" düğmesiyle, onayla yapılır.
+      await tester.tap(find.byKey(const ValueKey('detail-leave')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
+      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse); // onay bekler
       await tester.tap(find.text('Ayrıl'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.requests, contains('DELETE /events/5/rsvp'));
@@ -305,7 +312,9 @@ void main() {
       final b = backend(closed: true);
       await openDetail(tester, b);
       expect(find.text('Kayıtlar kapalı'), findsWidgets);
-      expect(find.text('Katıl'), findsNothing);
+      // Kayıtlar kapalıyken iki düğme de pasif (tek "Kayıtlar kapandı" düğmesi yok).
+      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-join'))).onTap, isNull);
+      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-interested'))).onTap, isNull);
       final b2 = backend()
         ..fail('/events/5/rsvp', status: 409, code: 'EVENT_REGISTRATION_CLOSED', message: 'Bu etkinliğin kayıtları kapalı.');
       await unmount(tester);
@@ -337,7 +346,7 @@ void main() {
 
   group('ana sayfa karti', () {
     testWidgets('Katil -> Etkinliklerimde, DELETE yok', (tester) async {
-      useScreen(tester, kPhoneMedium);
+      useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()..on('/events/featured', {..._ev(5), 'capacity': 50});
       await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 1));

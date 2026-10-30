@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../core/typography.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
+import '../events/etkinlik_parts.dart';
+import '../events/event_cover.dart';
 import '../events/event_detail_page.dart';
-import 'profil_widgets.dart' show ProfilCard, ProfilSection;
-import 'profily_widgets.dart';
+import '../events/event_parts.dart';
+import '../events/events_page.dart';
 
 /// Etkinliklerim: Katıldıklarım (yaklaşan + geçmiş) / Oluşturduklarım (GET /me/events?mode=...).
 /// Katılımdan ayrılma etkinlik ayrıntı sayfasındadır.
@@ -33,6 +32,7 @@ class _Feed {
 
 class _MyEventsPageState extends State<MyEventsPage> {
   int _tab = 0;
+  int _sub = 0; // Katıldıklarım: 0 Yaklaşan, 1 Geçmiş
   final _scroll = ScrollController();
   final Map<String, _Feed> _feeds = {'up': _Feed(), 'past': _Feed(), 'created': _Feed()};
 
@@ -153,6 +153,16 @@ class _MyEventsPageState extends State<MyEventsPage> {
     if (mounted) _loadTab(silent: true);
   }
 
+  void _discover() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session)));
+  }
+
+  void _setSub(int i) {
+    if (i == _sub) return;
+    setState(() => _sub = i);
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+  }
+
   void _switch(int i) {
     if (i == _tab) return;
     setState(() => _tab = i);
@@ -162,136 +172,288 @@ class _MyEventsPageState extends State<MyEventsPage> {
     }
   }
 
+  /// İstek ya da katılım geri çekilir (DELETE /events/{id}/rsvp), onaydan sonra.
+  Future<void> _withdraw(Map<String, dynamic> e, {required bool request}) async {
+    final l = context.l10n;
+    final id = (e['id'] as num?)?.toInt();
+    if (id == null) return;
+    final ok = await confirmEventDialog(
+      context,
+      title: request ? l.etkinlik2WithdrawTitle : l.eventListLeaveTitle,
+      message: request ? l.etkinlik2WithdrawMessage : l.eventListLeaveMsg,
+      confirmLabel: request ? l.etkinlik2Withdraw : l.eventListLeave,
+      danger: true,
+      icon: LucideIcons.calendarX,
+    );
+    if (!ok || !mounted) return;
+    try {
+      await widget.session.api.delete('/events/$id/rsvp');
+      if (!mounted) return;
+      BuToast.show(context, request ? l.etkinlik2WithdrawnToast : l.eventListLeft, kind: BuToastKind.success);
+      _loadTab(silent: true);
+    } catch (err) {
+      if (mounted) BuToast.show(context, errorText(err), kind: BuToastKind.error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final l = context.l10n;
-    final fs = [for (final k in _keys) _feeds[k]!];
-    final loading = fs.any((f) => f.loading && !f.loaded);
-    final failed = fs.where((f) => f.error != null && f.items.isEmpty).firstOrNull;
-    final empty = fs.every((f) => f.items.isEmpty);
+    final key = _tab == 0 ? (_sub == 1 ? 'past' : 'up') : 'created';
+    final f = _feeds[key]!;
+    final loading = f.loading && !f.loaded;
+    final failed = f.error != null && !f.loaded;
 
-    Widget body;
-    if (loading && empty) {
-      body = const LoadingView();
-    } else if (failed != null && empty) {
-      body = ErrorView(error: failed.error!, onRetry: () => _loadTab());
-    } else if (empty) {
-      body = _scrollable(children: [
-        ProfilyEmptyCard(
-          horizontal: true,
-          icon: LucideIcons.calendar,
-          title: l.profilyardEventsEmptyTitle,
-          body: l.profilyardEventsEmptyBody,
+    return BuStaggerScope(
+      child: BuPageScaffold(
+        title: l.profileMyEvents,
+        large: false,
+        controller: _scroll,
+        onRefresh: () async => _loadTab(silent: true),
+        bottomInset: 32,
+        state: loading ? BuViewState.loading : (failed ? BuViewState.error : BuViewState.ready),
+        error: f.error,
+        onRetry: () => _loadTab(),
+        loading: const BuSkeletonList(variant: BuSkeletonVariant.card, itemCount: 3, shrinkWrap: true),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 8),
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.15,
+              child: BuSegmented(
+                items: [l.profilyardEventsAttended, l.profilyardEventsCreated],
+                index: _tab,
+                onChanged: _switch,
+              ),
+            ),
+          ),
         ),
-      ]);
-    } else {
-      final first = _tab == 0 && _feeds['up']!.items.isNotEmpty;
-      body = _scrollable(children: [
-        if (_tab == 0) ...[
-          if (_feeds['up']!.items.isNotEmpty) ...[
-            ProfilSection(l.profilyardEventsUpcoming, top: 0),
-            ProfilCard(children: [for (final e in _feeds['up']!.items) _row(e)]),
-          ],
-          if (_feeds['past']!.items.isNotEmpty) ...[
-            ProfilSection(l.profilyardEventsPast, top: first ? 22 : 0),
-            ProfilCard(children: [for (final e in _feeds['past']!.items) _row(e)]),
-          ],
-        ] else
-          ProfilCard(children: [for (final e in _feeds['created']!.items) _row(e)]),
-        if (fs.any((f) => f.more))
-          const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
-      ]);
-    }
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(children: [
-        BuHeader(title: l.profileMyEvents, onBack: () => Navigator.pop(context)),
-        const SizedBox(height: 8),
-        ProfilyTabs(
-          labels: [l.profilyardEventsAttended, l.profilyardEventsCreated],
-          index: _tab,
-          onChanged: _switch,
-        ),
-        Expanded(child: body),
-      ]),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            sliver: SliverList.list(children: [
+              if (_tab == 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: EtkinlikSubChips(
+                    labels: [l.profilyardEventsUpcoming, l.profilyardEventsPast],
+                    selected: _sub,
+                    onSelected: _setSub,
+                  ),
+                ),
+              if (f.items.isEmpty)
+                _tab == 0
+                    ? EtkinlikEmptyCard(
+                        icon: LucideIcons.calendarX,
+                        title: l.profilyardEventsEmptyTitle,
+                        body: l.profilyardEventsEmptyBody,
+                        action: BuButton(label: l.eventListDiscover, icon: LucideIcons.compass, onPressed: _discover),
+                      )
+                    : EtkinlikEmptyCard(
+                        icon: LucideIcons.calendarPlus,
+                        title: l.eventListEmptyCreated,
+                        body: l.p14EmptyCreatedBody2,
+                      ),
+            ]),
+          ),
+          if (f.items.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList.builder(
+                itemCount: f.items.length,
+                itemBuilder: (_, i) => BuStaggerItem(
+                  index: i,
+                  child: Padding(padding: const EdgeInsets.only(bottom: 12), child: _row(f.items[i])),
+                ),
+              ),
+            ),
+          if (f.more)
+            const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 1, shrinkWrap: true)),
+        ],
+      ),
     );
   }
 
-  Widget _scrollable({required List<Widget> children}) => RefreshIndicator(
-        color: context.bu.pr,
-        onRefresh: () async => _loadTab(silent: true),
-        child: ListView(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-          children: children,
-        ),
-      );
-
-  String _month(int m) {
+  /// Durum etiketi (katılım türü / bekleyen istek / iptal).
+  Widget? _tag(Map<String, dynamic> e) {
     final l = context.l10n;
-    return [
-      l.eventListMon1, l.eventListMon2, l.eventListMon3, l.eventListMon4,
-      l.eventListMon5, l.eventListMon6, l.eventListMon7, l.eventListMon8,
-      l.eventListMon9, l.eventListMon10, l.eventListMon11, l.eventListMon12,
-    ][m - 1];
-  }
-
-  String _upper(String s) => Localizations.localeOf(context).languageCode == 'tr' ? trUpper(s) : s.toUpperCase();
-
-  Widget? _pill(Map<String, dynamic> e) {
-    final l = context.l10n;
-    if (e['status'] == 'CANCELLED') return ProfilyPill(l.eventListCancelled, tone: ProfilyTone.red);
+    if (e['status'] == 'CANCELLED') {
+      return EventStatusTag(l.eventListCancelled, tone: EventTone.danger, icon: LucideIcons.calendarX);
+    }
     if (_tab == 1) {
       final n = [e['pendingRequestCount'], e['pendingRequests'], e['pendingCount']].whereType<num>().firstOrNull?.toInt();
-      return (n != null && n > 0) ? ProfilyPill(l.profilyardEventPendingCount('$n'), tone: ProfilyTone.red) : null;
+      return (n != null && n > 0)
+          ? EventStatusTag(l.profilyardEventPendingCount('$n'), tone: EventTone.warn, icon: LucideIcons.userPlus)
+          : null;
     }
     return switch (e['myRsvp']) {
-      'GOING' => ProfilyPill(l.profilyardEventGoing, tone: ProfilyTone.green),
-      'INTERESTED' => ProfilyPill(l.profilyardEventInterested, tone: ProfilyTone.violet),
-      'REQUESTED' || 'PENDING' => ProfilyPill(l.profilyardEventRequested, tone: ProfilyTone.amber),
+      'GOING' => EventStatusTag(l.profilyardEventGoing, tone: EventTone.brand, dot: true),
+      'INTERESTED' => EventStatusTag(l.profilyardEventInterested, tone: EventTone.brand, icon: LucideIcons.star),
+      'REQUESTED' || 'PENDING' => EventStatusTag(l.profilyardEventRequested, tone: EventTone.neutral, icon: LucideIcons.hourglass),
       _ => null,
     };
   }
 
   Widget _row(Map<String, dynamic> e) {
     final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final start = _start(e);
+    final end = _end(e);
     final place = (e['location'] as String?)?.trim();
-    final hm = start == null
-        ? ''
-        : '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
-    final sub = [if (place != null && place.isNotEmpty) place, if (hm.isNotEmpty) hm].join(' · ');
-    return ProfilyRow(
-      minHeight: 76,
+    final org = (e['communityName'] as String?)?.trim();
+    final cover = fileUrl(e['coverUrl'] as String?);
+    final time = start == null ? '' : (end != null ? '‎${eventHm(start)} – ${eventHm(end)}' : eventHm(start));
+    final tag = _tag(e);
+    final id = (e['id'] as num?)?.toInt() ?? 0;
+    final cancelled = e['status'] == 'CANCELLED';
+    final past = _isPast(e) || cancelled;
+    final my = e['myRsvp'];
+    final requested = _tab == 0 && (my == 'REQUESTED' || my == 'PENDING');
+    final canLeave = _tab == 0 && !past && (my == 'GOING' || my == 'INTERESTED');
+
+    final meta = <Widget>[
+      if (time.isNotEmpty) _line(LucideIcons.clock, time),
+      if (place != null && place.isNotEmpty) _line(LucideIcons.mapPin, place),
+    ];
+
+    return BuCard(
+      key: ValueKey('my-ev-$id'),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 6, 12),
+      radius: 20,
       onTap: () => _open(e),
-      child: Row(children: [
-        ExcludeSemantics(
-          child: Container(
-            width: 50,
-            height: 54,
-            decoration: BoxDecoration(
-              color: t.bg,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: t.bd),
-            ),
-            child: start == null
-                ? Icon(LucideIcons.calendar, size: 20, color: t.mut)
-                : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(start.day.toString().padLeft(2, '0'),
-                        style: BuType.heading.copyWith(fontSize: 18, fontWeight: FontWeight.w800, height: 1.1, color: t.ink)),
-                    Text(_upper(_month(start.month)),
-                        maxLines: 1,
-                        style: BuType.caption.copyWith(fontSize: 11, fontWeight: FontWeight.w700, height: 1.1, color: t.pr)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          start == null
+              ? Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
+                  child: Icon(LucideIcons.calendar, size: 22, color: t.mut),
+                )
+              : EtkinlikDateBlock(
+                  month: eventMonthShortOf(context, start.month),
+                  day: '${start.day}',
+                  tone: past ? EtkinlikBlockTone.grey : EtkinlikBlockTone.blue,
+                  size: 48),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (org != null && org.isNotEmpty)
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    ExcludeSemantics(child: Icon(LucideIcons.users, size: 13, color: past ? t.mut : t.pr)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(org,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: past ? t.mut : t.pr)),
+                    ),
                   ]),
+                const SizedBox(height: 2),
+                Text('${e['title'] ?? ''}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.titleMedium!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                        color: past ? t.mut : t.ink,
+                        decoration: cancelled ? TextDecoration.lineThrough : null)),
+              ]),
+            ),
           ),
+          if (canLeave)
+            PopupMenuButton<String>(
+              tooltip: l.eventListOptions,
+              icon: Icon(LucideIcons.ellipsisVertical, size: 20, color: t.ink),
+              onSelected: (_) => _withdraw(e, request: false),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                    value: 'leave',
+                    child: Row(children: [
+                      Icon(LucideIcons.logOut, size: 18, color: t.danger),
+                      const SizedBox(width: 10),
+                      Text(l.eventListLeaveTitle),
+                    ])),
+              ],
+            )
+          else
+            const SizedBox(width: 8),
+        ]),
+        if (cover != null) ...[
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: AspectRatio(
+                aspectRatio: 16 / 7,
+                child: Stack(fit: StackFit.expand, children: [
+                  EventCoverImage(url: cover),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, t.scrim.withValues(alpha: .65)],
+                          stops: const [.4, 1],
+                        ),
+                      ),
+                    ),
+                  ),
+                  PositionedDirectional(
+                    start: 12,
+                    end: 12,
+                    bottom: 10,
+                    child: Row(children: [
+                      Icon(LucideIcons.clock, size: 14, color: t.onMedia),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          [if (time.isNotEmpty) time, if (place != null && place.isNotEmpty) place].join(' • '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ]),
+              ),
+            ),
+          ),
+        ] else if (meta.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8),
+            child: Wrap(spacing: 14, runSpacing: 4, children: meta),
+          ),
+        ],
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 2, top: 6),
+          child: Row(children: [
+            if (tag != null) Flexible(child: tag),
+            const Spacer(),
+            if (requested)
+              EtkinlikDetailLink(label: l.p14WithdrawRequest, onTap: () => _withdraw(e, request: true), muted: false)
+            else
+              EtkinlikDetailLink(label: l.p14Detail, onTap: () => _open(e), muted: true),
+          ]),
         ),
-        const SizedBox(width: 12),
-        Expanded(child: ProfilyTitleBlock(title: '${e['title'] ?? ''}', sub: sub, pill: _pill(e), titleSize: 14.5)),
-        const SizedBox(width: 6),
-        Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
       ]),
     );
+  }
+
+  Widget _line(IconData icon, String text) {
+    final t = context.bu;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      ExcludeSemantics(child: Icon(icon, size: 14, color: t.mut)),
+      const SizedBox(width: 6),
+      Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut))),
+    ]);
   }
 }

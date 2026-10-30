@@ -8853,4 +8853,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String p15AttendeesLine(String going, String interested) {
     return '$going kişi katılıyor · $interested ilgileniyor';
   }
+
+  @override
+  String get p13SuppFaqHeading => 'Sık sorulan sorular';
+
+  @override
+  String get p13SuppToday => 'Bugün';
+
+  @override
+  String get p23GroupNameHint => 'Örn. Mühendislik Proje Ekibi...';
+
+  @override
+  String get p23NoneText =>
+      'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.';
+
+  @override
+  String p09GradeYear(String n) {
+    return '$n. Sınıf';
+  }
 }

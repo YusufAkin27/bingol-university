@@ -4542,5 +4542,11 @@
       "going": {"type": "String"},
       "interested": {"type": "String"}
     }
-  }
+  },
+  "p13SuppFaqHeading": "Sık sorulan sorular",
+  "p13SuppToday": "Bugün",
+  "p23GroupNameHint": "Örn. Mühendislik Proje Ekibi...",
+  "p23NoneText": "Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.",
+  "p09GradeYear": "{n}. Sınıf",
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
 }

@@ -8886,4 +8886,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String p15AttendeesLine(String going, String interested) {
     return '$going going · $interested interested';
   }
+
+  @override
+  String get p13SuppFaqHeading => 'Frequently asked questions';
+
+  @override
+  String get p13SuppToday => 'Today';
+
+  @override
+  String get p23GroupNameHint => 'E.g. Engineering Project Team...';
+
+  @override
+  String get p23NoneText =>
+      'None of your contacts use the app with a Bingöl University email.';
+
+  @override
+  String p09GradeYear(String n) {
+    return 'Year $n';
+  }
 }

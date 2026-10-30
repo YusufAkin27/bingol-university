@@ -487,14 +487,7 @@ class _EventFormPageState extends State<EventFormPage> {
       if (!mounted) return;
       if (!_editing && status == 'PENDING_REVIEW') {
         // Onaya düştü: kullanıcıya açık bilgi, sonra liste (Oluşturduklarım'da rozetli).
-        await BuDialog.show<void>(
-          context,
-          builder: (c) => BuDialog(
-            title: c.l10n.evcSubmittedTitle,
-            message: c.l10n.evcSubmittedBody,
-            actions: [BuDialogAction(label: c.l10n.evcOk, kind: BuDialogActionKind.primary, onPressed: () => Navigator.pop(c))],
-          ),
-        );
+        await BuDialog.show<void>(context, builder: (c) => const _SubmittedDialog());
         if (!mounted) return;
         nav.pop(true);
         return;
@@ -1657,6 +1650,70 @@ class _FormSkeleton extends StatelessWidget {
           BuSkeleton(height: 52, radius: 16),
           SizedBox(height: 22),
           BuSkeleton(height: 120, radius: 16),
+        ]),
+      ),
+    );
+  }
+}
+
+/// "Onaya gönderildi": koyu daire içinde onay + köşede kırmızı saat rozeti, başlık, gövde, koyu "Tamam" düğmesi.
+class _SubmittedDialog extends StatelessWidget {
+  const _SubmittedDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ExcludeSemantics(
+            child: SizedBox(
+              width: 84,
+              height: 84,
+              child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle, boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .18), blurRadius: 0, spreadRadius: 6)]),
+                  child: Icon(LucideIcons.check, size: 34, color: t.bg),
+                ),
+                PositionedDirectional(
+                  end: 2,
+                  bottom: 2,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 3)),
+                    child: Icon(LucideIcons.clock, size: 15, color: t.onPr),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Semantics(header: true, child: Text(l.evcSubmittedTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+          const SizedBox(height: 8),
+          Text(l.evcSubmittedBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.mut)),
+          const SizedBox(height: 20),
+          Semantics(
+            button: true,
+            label: l.evcOk,
+            excludeSemantics: true,
+            onTap: () => Navigator.pop(context),
+            child: BuPressable(
+              onTap: () => Navigator.pop(context),
+              haptic: BuHaptic.light,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 54),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(BuRadius.md)),
+                child: Text(l.evcOk, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg)),
+              ),
+            ),
+          ),
         ]),
       ),
     );

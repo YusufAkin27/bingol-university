@@ -2750,5 +2750,11 @@
       "going": {"type": "String"},
       "interested": {"type": "String"}
     }
-  }
+  },
+  "p13SuppFaqHeading": "الأسئلة الشائعة",
+  "p13SuppToday": "اليوم",
+  "p23GroupNameHint": "مثال: فريق مشروع الهندسة...",
+  "p23NoneText": "لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.",
+  "p09GradeYear": "السنة {n}",
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
 }

@@ -16116,6 +16116,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{going} kişi katılıyor · {interested} ilgileniyor'**
   String p15AttendeesLine(String going, String interested);
+
+  /// No description provided for @p13SuppFaqHeading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sık sorulan sorular'**
+  String get p13SuppFaqHeading;
+
+  /// No description provided for @p13SuppToday.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün'**
+  String get p13SuppToday;
+
+  /// No description provided for @p23GroupNameHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. Mühendislik Proje Ekibi...'**
+  String get p23GroupNameHint;
+
+  /// No description provided for @p23NoneText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.'**
+  String get p23NoneText;
+
+  /// No description provided for @p09GradeYear.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n}. Sınıf'**
+  String p09GradeYear(String n);
 }
 
 class _AppLocalizationsDelegate

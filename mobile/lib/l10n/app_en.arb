@@ -2750,5 +2750,11 @@
       "going": {"type": "String"},
       "interested": {"type": "String"}
     }
-  }
+  },
+  "p13SuppFaqHeading": "Frequently asked questions",
+  "p13SuppToday": "Today",
+  "p23GroupNameHint": "E.g. Engineering Project Team...",
+  "p23NoneText": "None of your contacts use the app with a Bingöl University email.",
+  "p09GradeYear": "Year {n}",
+  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}}
 }

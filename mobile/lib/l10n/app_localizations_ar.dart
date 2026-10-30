@@ -8793,4 +8793,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String p15AttendeesLine(String going, String interested) {
     return '$going مشارك · $interested مهتم';
   }
+
+  @override
+  String get p13SuppFaqHeading => 'الأسئلة الشائعة';
+
+  @override
+  String get p13SuppToday => 'اليوم';
+
+  @override
+  String get p23GroupNameHint => 'مثال: فريق مشروع الهندسة...';
+
+  @override
+  String get p23NoneText =>
+      'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.';
+
+  @override
+  String p09GradeYear(String n) {
+    return 'السنة $n';
+  }
 }
