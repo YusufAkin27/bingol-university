@@ -271,14 +271,17 @@ public class EventAdmissionService implements EventAdmissionHooks {
         Set<Long> hideAvatar = blocks.hiddenFrom(a.id()); // engel iliskisi olanin avatari gorunmez
         return Paging.map(rows, s, EventApplication::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(EventApplication::getUserId).toList());
+            // Bolum / sinif: basvuranin profil gizlilik ayarina gore (tek sorgu); e-posta yalniz showEmail=true ise
+            Map<Long, CommunityService.ProfileExtra> extras = communities.profileExtras(a.id(), users.values(), hideAvatar);
             return items.stream().map(x -> {
                 User u = users.get(x.getUserId());
+                CommunityService.ProfileExtra pe = extras.getOrDefault(x.getUserId(), CommunityService.ProfileExtra.NONE);
+                boolean visible = u != null && !hideAvatar.contains(x.getUserId());
                 return new ApplicantView(x.getId(), x.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
                         u == null || hideAvatar.contains(x.getUserId()) ? null : u.getAvatarUrl(),
-                        u == null ? null : u.getDepartment(), x.getStatus(),
+                        pe.department(), x.getStatus(),
                         x.getNote(), x.answers(), x.getQueuedAt(), x.getCreatedAt(), x.getUpdatedAt(),
-                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getEmail(),
-                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getClassYear());
+                        visible && u.isShowEmail() ? u.getEmail() : null, pe.classYear());
             }).toList();
         });
     }

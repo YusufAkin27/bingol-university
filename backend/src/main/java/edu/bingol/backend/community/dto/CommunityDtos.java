@@ -75,10 +75,9 @@ public final class CommunityDtos {
     }
 
     /** authorRole: yazarin kulup ici rolu (OWNER | ADMIN | MODERATOR | MEMBER); artik uye degilse null (gonderilmez). */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PostView(Long id, Long communityId, Long authorId, String authorName, String authorAvatarUrl,
                            String text, String imageUrl, boolean pinned, Instant createdAt, boolean canDelete,
-                           String authorRole) {
+                           @JsonInclude(JsonInclude.Include.NON_NULL) String authorRole) {
         public PostView(Long id, Long communityId, Long authorId, String authorName, String authorAvatarUrl,
                         String text, String imageUrl, boolean pinned, Instant createdAt, boolean canDelete) {
             this(id, communityId, authorId, authorName, authorAvatarUrl, text, imageUrl, pinned, createdAt, canDelete, null);

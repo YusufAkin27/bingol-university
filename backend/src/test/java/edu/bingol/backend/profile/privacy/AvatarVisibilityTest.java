@@ -47,6 +47,34 @@ class AvatarVisibilityTest {
     }
 
     @Test
+    void viewersAmongUsesOneBatchedSharedQueryForSharedContext() {
+        ProfilePrivacy p = ProfilePrivacy.defaults(OWNER);
+        p.setAvatarAudience(Audience.SHARED_CONTEXT);
+        when(repo.findById(OWNER)).thenReturn(java.util.Optional.of(p));
+        when(shared.viewersSharingWith(OWNER, List.of(10L, 11L, 12L))).thenReturn(Set.of(11L));
+
+        assertEquals(Set.of(11L), vis.viewersAmong(OWNER, List.of(10L, 11L, 12L), Field.AVATAR));
+        verify(shared).viewersSharingWith(any(), any());
+        verify(shared, never()).sharedWith(any(), any()); // bakan basina sorgu yok
+    }
+
+    @Test
+    void viewersAmongHandlesEveryoneOnlyMeHiddenAndNoRow() {
+        when(repo.findById(OWNER)).thenReturn(java.util.Optional.empty());
+        assertEquals(Set.of(10L, 11L), vis.viewersAmong(OWNER, List.of(10L, 11L), Field.AVATAR));
+
+        ProfilePrivacy p = ProfilePrivacy.defaults(OWNER);
+        p.setAvatarAudience(Audience.ONLY_ME);
+        when(repo.findById(OWNER)).thenReturn(java.util.Optional.of(p));
+        assertEquals(Set.of(), vis.viewersAmong(OWNER, List.of(10L, 11L), Field.AVATAR));
+
+        p.setAvatarAudience(Audience.EVERYONE);
+        p.setAvatarHidden(true); // moderasyon gizlemesi
+        assertEquals(Set.of(), vis.viewersAmong(OWNER, List.of(10L, 11L), Field.AVATAR));
+        verify(shared, never()).viewersSharingWith(any(), any());
+    }
+
+    @Test
     void noRowMeansEveryone() {
         when(repo.findByUserIdIn(any())).thenReturn(List.of());
         assertEquals("u.png", vis.avatarFor(VIEWER, OWNER, "u.png"));

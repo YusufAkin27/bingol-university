@@ -90,7 +90,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
               AND COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
                                      WHEN 'communities' THEN p.communities
-                                     WHEN 'polls' THEN p.polls WHEN 'academic_announcements' THEN p.academic_announcements ELSE TRUE END, TRUE)
+                                     WHEN 'polls' THEN (p.polls AND p.announcements)
+                                     WHEN 'academic_announcements' THEN (p.academic_announcements AND p.announcements) ELSE TRUE END, TRUE)
             """, nativeQuery = true)
     int insertForAll(@Param("type") String type, @Param("title") String title, @Param("body") String body,
                      @Param("data") String data, @Param("col") String prefColumn);
@@ -106,7 +107,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
               AND COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                                      WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
                                      WHEN 'communities' THEN p.communities
-                                     WHEN 'polls' THEN p.polls WHEN 'academic_announcements' THEN p.academic_announcements ELSE TRUE END, TRUE)
+                                     WHEN 'polls' THEN (p.polls AND p.announcements)
+                                     WHEN 'academic_announcements' THEN (p.academic_announcements AND p.announcements) ELSE TRUE END, TRUE)
             """, nativeQuery = true)
     int insertForLang(@Param("type") String type, @Param("title") String title, @Param("body") String body,
                       @Param("data") String data, @Param("col") String prefColumn, @Param("lang") String lang);

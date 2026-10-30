@@ -114,11 +114,11 @@ public class AvatarVisibility {
         if (field == Field.AVATAR && p.isAvatarHidden()) {
             return out;
         }
+        Audience a = field.of(p);
+        // SHARED_CONTEXT: ortak baglami olan bakanlar tek toplu sorguyla (bakan basina sorgu yok)
+        Set<Long> sharedOk = a == Audience.SHARED_CONTEXT ? shared.viewersSharingWith(ownerId, viewers) : Set.of();
         for (Long v : viewers) {
-            Audience a = field.of(p);
-            boolean ok = a == Audience.SHARED_CONTEXT ? shared.sharedWith(v, Set.of(ownerId)).contains(ownerId)
-                    : allowed(a, v.equals(ownerId), false);
-            if (ok) {
+            if (allowed(a, v.equals(ownerId), sharedOk.contains(v))) {
                 out.add(v);
             }
         }

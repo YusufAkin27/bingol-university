@@ -287,6 +287,36 @@ class EventAdmissionServiceTest {
         assertNotNull(a.getQueuedAt());
     }
 
+    // ---- basvuran gizliligi (KVKK) ----
+
+    @Test
+    void applicantEmailOnlyWhenShowEmailAndDepartmentClassYearFollowPrivacy() {
+        users.get(1L).setEmail("bir@bingol.edu.tr");
+        users.get(1L).setShowEmail(true);
+        users.get(2L).setEmail("iki@bingol.edu.tr");
+        users.get(2L).setShowEmail(false);
+        users.get(2L).setDepartment("Gizli Bolum");
+        users.get(2L).setClassYear((short) 4);
+        EventApplication a1 = app(10L, 1L, Status.PENDING);
+        EventApplication a2 = app(11L, 2L, Status.PENDING);
+        when(apps.pageByStatus(eq(EVENT_ID), eq(Status.PENDING), anyLong(), any(Pageable.class)))
+                .thenReturn(List.of(a1, a2));
+        // Gizlilik karari CommunityService.profileExtras'ta: kullanici 1 acik, kullanici 2'nin alanlari kapali (bos)
+        when(communities.profileExtras(eq(ORGANIZER), anyCollection(), any())).thenReturn(
+                Map.of(1L, new CommunityService.ProfileExtra("Bilgisayar", (short) 3)));
+
+        var page = svc.list(organizer, EVENT_ID, Status.PENDING, null, 20);
+
+        var one = page.items().get(0);
+        var two = page.items().get(1);
+        assertEquals("bir@bingol.edu.tr", one.email());
+        assertEquals("Bilgisayar", one.department());
+        assertEquals(Short.valueOf((short) 3), one.classYear());
+        assertEquals(null, two.email()); // showEmail=false: organizator bile gormez
+        assertEquals(null, two.department()); // gizlilik ayari kapali: ham profil degeri sizmaz
+        assertEquals(null, two.classYear());
+    }
+
     // ---- yetkiler ----
 
     @Test

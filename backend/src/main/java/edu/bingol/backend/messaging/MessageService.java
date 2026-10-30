@@ -383,12 +383,13 @@ public class MessageService {
             Set<Long> related = avatarOk.isEmpty() ? Set.of() : blocks.hiddenFrom(senderId);
             for (Long id : offline) {
                 if (!inactive.contains(id)) {
-                    Map<String, String> perUser = data;
                     if (avatarOk.contains(id) && !related.contains(id)) {
-                        perUser = new java.util.HashMap<>(data);
-                        perUser.put("senderAvatarUrl", avatar);
+                        // Avatar yalniz push yukunde; bildirim kutusuna (kalici data) yazilmaz
+                        notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id),
+                                Map.of("senderAvatarUrl", avatar));
+                    } else {
+                        notifications.sendNewMessage(id, title, preview, data, !foreground.contains(id));
                     }
-                    notifications.sendNewMessage(id, title, preview, perUser, !foreground.contains(id));
                 }
             }
         } catch (RuntimeException e) {

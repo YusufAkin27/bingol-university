@@ -89,7 +89,7 @@ public class OpenApiConfig {
     }
 
     /** Birden fazla pakette bulunan DTO adlari (yeni cakisma olursa test: scripts/openapi-check.js belgesiz alan bulur). */
-    private static final Set<String> COLLIDING = Set.of("MemberView", "RoleRequest");
+    private static final Set<String> COLLIDING = Set.of("MemberView", "RoleRequest", "PostView");
 
     @Bean
     OpenAPI bingolOpenApi() {

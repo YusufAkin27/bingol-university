@@ -9,6 +9,7 @@ import edu.bingol.backend.event.EventRsvpRepository;
 import edu.bingol.backend.event.EventService;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.UserEventRepository;
+import edu.bingol.backend.event.dto.EventDtos.EventView;
 import edu.bingol.backend.event.extras.CoOrganizer;
 import edu.bingol.backend.event.extras.CoOrganizerRepository;
 import edu.bingol.backend.messaging.room.RoomConversations;
@@ -216,17 +217,17 @@ public class EventChatService implements EventChatHooks {
      * MEMBERS (katilimci olunca acilir). Yalniz tek etkinlik (detay) icin cagrilir.
      */
     @Transactional(readOnly = true)
-    public String chatAccess(Actor a, Long eventId) {
-        UserEvent e = events.loadVisible(a, eventId);
-        if (e.getStatus() != UserEvent.Status.ACTIVE || e.getEndsAt().plus(Duration.ofDays(closeDays)).isBefore(Instant.now())) {
+    public String chatAccess(EventView v) {
+        // Yuklu EventView'dan hesaplanir (olusturan / ortak organizator / kulup yetkilisi = canManage, GOING = myRsvp):
+        // etkinligi yeniden yuklemez; tek ek sorgu oda aramasidir.
+        if (v.status() != UserEvent.Status.ACTIVE || v.endsAt().plus(Duration.ofDays(closeDays)).isBefore(Instant.now())) {
             return "LOCKED";
         }
-        RoomInfo info = rooms.find(RoomKind.EVENT, eventId).orElse(null);
-        boolean manage = events.canManage(a, e);
-        if (info == null ? !manage : info.closed()) {
+        RoomInfo info = rooms.find(RoomKind.EVENT, v.id()).orElse(null);
+        if (info == null ? !v.canManage() : info.closed()) {
             return "LOCKED";
         }
-        return eligible(a, e) ? "OPEN" : "MEMBERS";
+        return v.canManage() || v.myRsvp() == EventRsvp.Status.GOING ? "OPEN" : "MEMBERS";
     }
 
     private void requireOpenable(UserEvent e) {

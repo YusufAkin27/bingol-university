@@ -31,10 +31,35 @@ public class SharedContextRepository {
             ) o
             """;
 
+    /** SHARED'in ters yonu: tek bir sahip (owner) ile ortak baglami olan bakanlar (viewers icinden), tek sorgu. */
+    private static final String SHARED_VIEWERS = """
+            SELECT DISTINCT o.uid FROM (
+              SELECT a.user_id AS uid FROM community_member a JOIN community_member b
+                ON a.community_id = b.community_id
+               WHERE b.user_id = :owner AND a.status = 'ACTIVE' AND b.status = 'ACTIVE' AND a.user_id IN (:viewers)
+              UNION
+              SELECT a.user_id FROM conversation_member a JOIN conversation_member b
+                ON a.conversation_id = b.conversation_id
+               WHERE b.user_id = :owner AND a.left_at IS NULL AND b.left_at IS NULL AND a.user_id IN (:viewers)
+              UNION
+              SELECT a.user_id FROM event_rsvp a JOIN event_rsvp b ON a.event_id = b.event_id
+               WHERE b.user_id = :owner AND a.user_id IN (:viewers)
+            ) o
+            """;
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public SharedContextRepository(NamedParameterJdbcTemplate jdbc) {
         this.jdbc = jdbc;
+    }
+
+    /** viewers icinden, owner ile ortak baglami olanlar (toplu; bakan basina sorgu yok). */
+    public Set<Long> viewersSharingWith(Long ownerId, Collection<Long> viewers) {
+        if (viewers.isEmpty()) {
+            return Set.of();
+        }
+        return new HashSet<>(jdbc.queryForList(SHARED_VIEWERS,
+                new MapSqlParameterSource(Map.of("owner", ownerId, "viewers", viewers)), Long.class));
     }
 
     /** owners icinden, viewer ile ortak baglami olanlar. */

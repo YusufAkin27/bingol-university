@@ -96,32 +96,44 @@ public class NotificationService {
 
     /** push=false: yalniz uygulama ici kayit (alici uygulamayi on planda kullaniyor; canli olay zaten gitti). */
     public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data, boolean push) {
+        sendNewMessage(userId, title, pushPreview, data, push, null);
+    }
+
+    /**
+     * pushExtra: yalniz push yukune eklenen anahtarlar (ornek gonderen avatari); bildirim satirinin data JSON'una
+     * YAZILMAZ (avatar sonradan gizlenirse eski kayitta URL kalmasin).
+     */
+    public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data, boolean push,
+                               Map<String, String> pushExtra) {
         String stored = i18n.msg("notif.message.new", i18n.langOf(userId));
         String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
         NotificationSubtype sub = data == null || data.get("conversationType") == null ? null
                 : "GROUP".equals(data.get("conversationType")) ? NotificationSubtype.MESSAGE_GROUP
                 : NotificationSubtype.MESSAGE_DIRECT;
         doSend(userId, NotificationType.MESSAGE, sub, key, title, stored,
-                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push);
+                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra);
     }
 
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
-        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true);
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null);
     }
 
     private void doSend(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
-                        String title, String body, String pushBody, Map<String, String> data, boolean push) {
+                        String title, String body, String pushBody, Map<String, String> data, boolean push,
+                        Map<String, String> pushExtra) {
         try {
             // Askidaki/silinmis hesaba bildirim yok (SYSTEM = hesap/moderasyon bildirimleri istisna).
             if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
                 return;
             }
             NotificationPref pref = prefs.findById(userId).orElse(null);
-            boolean allowed = subtype != null && subtype.flagBacked()
-                    ? pref == null || subtype.flag(pref) // kendi bayragi olan alt tur: ana tur bayragina bakilmaz
-                    : enabled(pref, type) && subtypeEnabled(userId, type, subtype);
+            // Kendi bayragi olan alt tur (anket / akademik duyuru): ana tur bayragi DA acik olmali (eski tercihler korunur)
+            boolean allowed = enabled(pref, type)
+                    && (subtype != null && subtype.flagBacked()
+                            ? pref == null || subtype.flag(pref)
+                            : subtypeEnabled(userId, type, subtype));
             if (!allowed) {
                 return;
             }
@@ -176,7 +188,12 @@ public class NotificationService {
             }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int badge = (int) notifications.countByUserIdAndReadAtIsNull(userId);
-            push(tokens, pTitle, pBody, type, subtype, data, count, key, badge);
+            Map<String, String> pushData = data;
+            if (pushExtra != null && !pushExtra.isEmpty()) {
+                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
+                pushData.putAll(pushExtra);
+            }
+            push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }

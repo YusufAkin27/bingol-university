@@ -114,7 +114,7 @@ public class EventController {
     public EventView get(@PathVariable Long id) {
         Actor a = Actor.current();
         EventView v = events.get(a, id);
-        return chat == null ? v : v.withChatAccess(chat.chatAccess(a, id));
+        return chat == null ? v : v.withChatAccess(chat.chatAccess(v));
     }
 
     @PatchMapping("/events/{id}")

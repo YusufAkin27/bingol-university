@@ -3405,6 +3405,47 @@
           }
         }
       },
+      "CommunityDtosPostView" : {
+        "properties" : {
+          "authorAvatarUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "authorId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "authorName" : {
+            "type" : [ "string", "null" ]
+          },
+          "authorRole" : {
+            "type" : [ "string", "null" ]
+          },
+          "canDelete" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "communityId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "imageUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "pinned" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "text" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "CommunityDtosRoleRequest" : {
         "properties" : {
           "role" : {
@@ -4632,6 +4673,20 @@
           }
         }
       },
+      "CursorPageCommunityDtosPostView" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CommunityDtosPostView"
+            },
+            "type" : "array"
+          },
+          "nextCursor" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "CursorPageCommunityView" : {
         "properties" : {
           "items" : {
@@ -4707,20 +4762,6 @@
           "items" : {
             "items" : {
               "$ref" : "#/components/schemas/MessageView"
-            },
-            "type" : "array"
-          },
-          "nextCursor" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          }
-        }
-      },
-      "CursorPagePostView" : {
-        "properties" : {
-          "items" : {
-            "items" : {
-              "$ref" : "#/components/schemas/PostView"
             },
             "type" : "array"
           },
@@ -5730,7 +5771,7 @@
           },
           "items" : {
             "items" : {
-              "$ref" : "#/components/schemas/PostView"
+              "$ref" : "#/components/schemas/PostDtosPostView"
             },
             "type" : "array"
           },
@@ -8766,6 +8807,54 @@
           }
         }
       },
+      "PostDtosPostView" : {
+        "properties" : {
+          "author" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/AuthorView"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "canDelete" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "canEdit" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "editedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "likeCount" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "likedByMe" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "media" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MediaView"
+            },
+            "type" : "array"
+          },
+          "mine" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "text" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "PostEditRequest" : {
         "properties" : {
           "reason" : {
@@ -8850,54 +8939,6 @@
           "openReportCount" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
-          },
-          "text" : {
-            "type" : [ "string", "null" ]
-          }
-        }
-      },
-      "PostView" : {
-        "properties" : {
-          "author" : {
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/AuthorView"
-            }, {
-              "type" : "null"
-            } ]
-          },
-          "canDelete" : {
-            "type" : [ "boolean", "null" ]
-          },
-          "canEdit" : {
-            "type" : [ "boolean", "null" ]
-          },
-          "createdAt" : {
-            "format" : "date-time",
-            "type" : [ "string", "null" ]
-          },
-          "editedAt" : {
-            "format" : "date-time",
-            "type" : [ "string", "null" ]
-          },
-          "id" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          },
-          "likeCount" : {
-            "format" : "int32",
-            "type" : [ "integer", "null" ]
-          },
-          "likedByMe" : {
-            "type" : [ "boolean", "null" ]
-          },
-          "media" : {
-            "items" : {
-              "$ref" : "#/components/schemas/MediaView"
-            },
-            "type" : "array"
-          },
-          "mine" : {
-            "type" : [ "boolean", "null" ]
           },
           "text" : {
             "type" : [ "string", "null" ]
@@ -41519,7 +41560,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/CursorPagePostView"
+                  "$ref" : "#/components/schemas/CursorPageCommunityDtosPostView"
                 }
               }
             },
@@ -41577,7 +41618,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PostView"
+                  "$ref" : "#/components/schemas/CommunityDtosPostView"
                 }
               }
             },
@@ -50317,7 +50358,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PostView"
+                  "$ref" : "#/components/schemas/PostDtosPostView"
                 }
               }
             },
@@ -50681,7 +50722,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PostView"
+                  "$ref" : "#/components/schemas/PostDtosPostView"
                 }
               }
             },
@@ -50739,7 +50780,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PostView"
+                  "$ref" : "#/components/schemas/PostDtosPostView"
                 }
               }
             },

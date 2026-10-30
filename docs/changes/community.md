@@ -94,6 +94,6 @@ Yeni hata kodu eklenmedi.
 ## B1: üye/başvuru/gönderi alanları
 
 - `MemberView` (`/members`, `/members/search`) ve `JoinRequestView` (`/requests`) satırlarına `department`, `classYear` (profil gizlilik ayarı `DEPARTMENT`/`CLASS_YEAR` bakana izin veriyorsa; tek `AvatarVisibility.visibleOwners` sorgusu; engel ilişkisinde `null`). `JoinRequestView.requestedAt` = başvuru zamanı (`joinedAt`, PENDING kaydın oluşma anı).
-- `PostView.authorRole` (`OWNER|ADMIN|MODERATOR|MEMBER`): sayfadaki yazarların aktif üyelik rolü tek sorguda (`findByCommunityIdAndUserIdIn`); aktif üye değilse alan yok (`NON_NULL`). Kulüp gönderilerinde beğeni modeli olmadığından `likeCount/liked` eklenmedi.
+- `PostView.authorRole` (alan düzeyinde `NON_NULL`; `authorAvatarUrl`/`imageUrl` null iken eskisi gibi JSON'da `null` gelir; OpenAPI şema adı `CommunityDtosPostView`, Keşfet gönderisi `PostDtosPostView`) (`OWNER|ADMIN|MODERATOR|MEMBER`): sayfadaki yazarların aktif üyelik rolü tek sorguda (`findByCommunityIdAndUserIdIn`); aktif üye değilse alan yok (`NON_NULL`). Kulüp gönderilerinde beğeni modeli olmadığından `likeCount/liked` eklenmedi.
 - `CommunityView.requestedAt`: yalnız `PENDING_REVIEW` kulüpte (= `createdAt`), `NON_NULL`; `/api/me/communities` bekleyen satırı için.
 - `SearchHit` COMMUNITY: `memberCount` (aktif üye sayısı, toplu), `category`, `myStatus` (`ACTIVE|PENDING|NONE`; BANNED `NONE` gösterilir). POSTS için `likeCount` (`post.like_count` sayacı).
