@@ -19,7 +19,8 @@ String chatInfoAccusative(String name, String lang) {
   for (final r in n.runes.toList().reversed) {
     final ch = String.fromCharCode(r);
     if (vowels.contains(ch)) {
-      last = ch.toLowerCase();
+      // Büyük harfli adlar (ALİ, IŞIL): İ/I Türkçe kurallarıyla küçültülür.
+      last = ch == 'İ' ? 'i' : (ch == 'I' ? 'ı' : ch.toLowerCase());
       break;
     }
   }
@@ -34,28 +35,47 @@ String chatInfoAccusative(String name, String lang) {
   return "$n'${endsWithVowel ? 'y' : ''}$suffix";
 }
 
-TextStyle _s(BuildContext c, TextStyle base, {double? size, FontWeight? w, Color? color, double? height}) =>
-    base.copyWith(fontSize: size, fontWeight: w, color: color, height: height);
+/// Arama için Türkçe duyarlı katlama: İ/I doğru küçülür, ı→i ve Türkçe harfler ASCII'ye iner
+/// ("ilker" araması "İlker" ve "ILKER" adlarını bulur).
+String chatInfoFold(String s) {
+  final b = StringBuffer();
+  for (final r in s.runes) {
+    final ch = String.fromCharCode(r);
+    b.write(switch (ch) {
+      'İ' || 'I' || 'ı' => 'i',
+      'Ş' || 'ş' => 's',
+      'Ç' || 'ç' => 'c',
+      'Ğ' || 'ğ' => 'g',
+      'Ö' || 'ö' => 'o',
+      'Ü' || 'ü' => 'u',
+      _ => ch.toLowerCase(),
+    });
+  }
+  return b.toString();
+}
 
-/// 16/600 satır başlığı (referans title-md).
+TextStyle _s(BuildContext c, TextStyle base, {FontWeight? w, Color? color, double? height}) =>
+    base.copyWith(fontWeight: w, color: color, height: height);
+
+/// Satır başlığı: titleMedium rolü, 600 (referans title-md).
 TextStyle chatInfoTitle16(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.titleMedium!, size: 16, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.375);
+    _s(c, Theme.of(c).textTheme.titleMedium!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.375);
 
-/// 14/600 düğme/bağlantı yazısı (referans label-lg).
+/// Düğme/bağlantı yazısı: labelLarge rolü, 600 (referans label-lg).
 TextStyle chatInfoLabel14(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.labelLarge!, size: 14, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.43);
+    _s(c, Theme.of(c).textTheme.labelLarge!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.43);
 
-/// 12/600 küçük etiket (referans label-md).
+/// Küçük etiket: labelMedium rolü, 600 (referans label-md).
 TextStyle chatInfoLabel12(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.labelMedium!, size: 12, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.33);
+    _s(c, Theme.of(c).textTheme.labelMedium!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.33);
 
-/// 14/400 gövde (referans body-md).
+/// Gövde: bodyMedium rolü (referans body-md).
 TextStyle chatInfoBody14(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.bodyMedium!, size: 14, w: FontWeight.w400, color: color ?? c.bu.mut, height: 1.43);
+    _s(c, Theme.of(c).textTheme.bodyMedium!, w: FontWeight.w400, color: color ?? c.bu.mut, height: 1.43);
 
-/// 12/400 alt satır (referans body-sm).
+/// Alt satır: bodySmall rolü (referans body-sm).
 TextStyle chatInfoBody12(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.bodySmall!, size: 12, w: FontWeight.w400, color: color ?? c.bu.mut, height: 1.33);
+    _s(c, Theme.of(c).textTheme.bodySmall!, w: FontWeight.w400, color: color ?? c.bu.mut, height: 1.33);
 
 /// Üst çubuk: geri oku + 18/600 başlık, 56 dp (referans). Durum çubuğu payı üstte eklenir.
 class ChatInfoBar extends StatelessWidget {
@@ -152,6 +172,7 @@ class ChatInfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     this.value,
+    this.sub,
     this.onTap,
     this.danger = false,
     this.chevron = true,
@@ -166,6 +187,9 @@ class ChatInfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String? value;
+
+  /// Başlığın altında ikinci satır (uzun durum metinleri için; [value] kısa değerler içindir).
+  final String? sub;
   final VoidCallback? onTap;
   final bool danger;
   final bool chevron;
@@ -197,7 +221,12 @@ class ChatInfoRow extends StatelessWidget {
             child: Row(children: [
               ChatInfoIconDot(icon: icon, danger: danger, soft: soft, size: dotSize, iconSize: iconSize),
               const SizedBox(width: 12),
-              Expanded(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context, color: fg))),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context, color: fg)),
+                  if (sub != null) Text(sub!, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoBody12(context)),
+                ]),
+              ),
               if (value != null) ...[
                 const SizedBox(width: 8),
                 Flexible(
@@ -440,9 +469,9 @@ Future<bool> showChatInfoConfirm(
             ..._confirmHead(c, layout, icon, title, body, bold),
             const SizedBox(height: 20),
             Row(children: [
-              Expanded(child: _DialogButton(label: cancelLabel, onTap: () => Navigator.pop(c, false))),
+              Expanded(child: ChatDialogButton(label: cancelLabel, onTap: () => Navigator.pop(c, false))),
               const SizedBox(width: 8),
-              Expanded(child: _DialogButton(label: confirmLabel, icon: confirmIcon, destructive: true, onTap: () => Navigator.pop(c, true))),
+              Expanded(child: ChatDialogButton(label: confirmLabel, icon: confirmIcon, destructive: true, onTap: () => Navigator.pop(c, true))),
             ]),
           ]),
         ),
@@ -500,44 +529,54 @@ Widget _boldBody(BuildContext c, String body, String? bold, TextAlign align) {
   );
 }
 
-class _DialogButton extends StatelessWidget {
-  const _DialogButton({required this.label, required this.onTap, this.icon, this.destructive = false});
+/// Pencere düğmesi (tek tanım): ikincil zeminli ya da [destructive] dolu kırmızı; [onTap] null ise pasif.
+class ChatDialogButton extends StatelessWidget {
+  const ChatDialogButton({super.key, required this.label, required this.onTap, this.icon, this.destructive = false, this.minHeight = 50});
 
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData? icon;
   final bool destructive;
+  final double minHeight;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = destructive ? t.danger : t.sf2;
+    final off = onTap == null;
+    final bg = destructive ? (off ? t.danger.withValues(alpha: .5) : t.danger) : t.sf2;
     final fg = destructive ? Theme.of(context).colorScheme.onError : t.ink;
-    return BuPressable(
-      scale: .98,
-      child: Material(
-        color: bg,
-        borderRadius: BuRadius.bMd,
-        child: InkWell(
+    return Semantics(
+      button: true,
+      enabled: !off,
+      child: BuPressable(
+        scale: .98,
+        enabled: !off,
+        child: Material(
+          color: bg,
           borderRadius: BuRadius.bMd,
-          onTap: () {
-            buHaptic(BuHaptic.selection);
-            onTap();
-          },
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 50),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                if (icon != null) ...[Icon(icon, size: 18, color: fg), const SizedBox(width: 4)],
-                Flexible(
-                  child: Text(label,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: chatInfoLabel14(context, color: fg)),
-                ),
-              ]),
+          child: InkWell(
+            borderRadius: BuRadius.bMd,
+            onTap: off
+                ? null
+                : () {
+                    buHaptic(BuHaptic.selection);
+                    onTap!();
+                  },
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: minHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  if (icon != null) ...[Icon(icon, size: 18, color: fg), const SizedBox(width: 4)],
+                  Flexible(
+                    child: Text(label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: chatInfoLabel14(context, color: fg)),
+                  ),
+                ]),
+              ),
             ),
           ),
         ),

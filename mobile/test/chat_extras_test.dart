@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:bu_kampus/features/chat/sohbety_widgets.dart';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/realtime/chat_realtime.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
+import 'package:bu_kampus/features/chat/forward_sheet.dart';
 import 'package:bu_kampus/features/chat/chat_media.dart';
 import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
@@ -325,7 +325,9 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerSend')));
+      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('previewSend')));
       await settle(tester, const Duration(seconds: 2));
       final body = be.bodies['POST /conversations/1/messages'] as Map;
       expect(body.containsKey('viewOnce'), isFalse);
@@ -394,11 +396,11 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Grup 2'), findsOneWidget);
       // Arama
-      await tester.enterText(find.descendant(of: find.byType(SohbetyField), matching: find.byType(TextField)), 'grup 3');
+      await tester.enterText(find.descendant(of: find.byType(ForwardSheet), matching: find.byType(TextField)), 'grup 3');
       await tester.pump();
       expect(find.text('Grup 2'), findsNothing);
       expect(find.text('Grup 3'), findsOneWidget);
-      await tester.enterText(find.descendant(of: find.byType(SohbetyField), matching: find.byType(TextField)), '');
+      await tester.enterText(find.descendant(of: find.byType(ForwardSheet), matching: find.byType(TextField)), '');
       await tester.pump();
       // 6 seçim: ilk 5 alınır
       for (var i = 2; i <= 7; i++) {

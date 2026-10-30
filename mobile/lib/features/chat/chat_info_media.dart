@@ -187,7 +187,7 @@ class ChatInfoThumb extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
-                    child: Icon(LucideIcons.play, size: 16, color: t.onMedia),
+                    child: Icon(Icons.play_arrow_rounded, size: 22, color: t.onMedia),
                   ),
                 ),
                 if (durationMs != null)

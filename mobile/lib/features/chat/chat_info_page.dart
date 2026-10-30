@@ -620,7 +620,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   TextStyle _nameStyle(BuTokens t) => Theme.of(context)
       .textTheme
       .headlineSmall!
-      .copyWith(fontSize: 22, fontWeight: FontWeight.w600, height: 1.27, color: t.ink);
+      .copyWith(fontWeight: FontWeight.w600, height: 1.27, color: t.ink);
 
   // ---- Birebir ----
 
@@ -633,7 +633,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final year = (p?['classYear'] as num?)?.toInt();
     return [
       if (dept.isNotEmpty) dept,
-      if (year != null && year > 0) context.l10n.profileGradeYear(year.toString()),
+      if (year != null && year > 0) context.l10n.p09GradeYear(year.toString()),
     ].join(' · ');
   }
 
@@ -671,7 +671,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ChatInfoRow(
               icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
               label: l.chatInfoMuteNotifications,
-              value: _muteStatus(),
+              // Kısa "Açık" sağda, uzun "Sessiz · 8 saat sonra açılır" alt satırda.
+              value: _muted ? null : _muteStatus(),
+              sub: _muted ? _muteStatus() : null,
               onTap: _toggleMute),
         ]),
         ChatInfoRows(children: [

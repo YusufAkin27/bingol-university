@@ -374,61 +374,18 @@ class _RenameDialogState extends State<_RenameDialog> {
                   ),
                 const SizedBox(height: 16),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  Flexible(child: _DialogPill(label: l.chatInfoCancel, onTap: () => Navigator.pop(context))),
+                  Flexible(child: ChatDialogButton(label: l.chatInfoCancel, onTap: () => Navigator.pop(context), minHeight: 48)),
                   const SizedBox(width: 8),
                   Flexible(
-                      child: _DialogPill(
+                      child: ChatDialogButton(
                           label: l.chatInfoSave,
                           icon: LucideIcons.check,
-                          primary: true,
+                          destructive: true,
+                          minHeight: 48,
                           onTap: v.isEmpty ? null : () => Navigator.pop(context, v))),
                 ]),
               ]);
             },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DialogPill extends StatelessWidget {
-  const _DialogPill({required this.label, required this.onTap, this.icon, this.primary = false});
-
-  final String label;
-  final VoidCallback? onTap;
-  final IconData? icon;
-  final bool primary;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final off = onTap == null;
-    final bg = primary ? (off ? t.danger.withValues(alpha: .5) : t.danger) : t.sf2;
-    final fg = primary ? Theme.of(context).colorScheme.onError : t.ink;
-    return Semantics(
-      button: true,
-      enabled: !off,
-      child: Material(
-        color: bg,
-        borderRadius: BuRadius.bSm,
-        child: InkWell(
-          borderRadius: BuRadius.bSm,
-          onTap: off
-              ? null
-              : () {
-                  buHaptic(BuHaptic.selection);
-                  onTap!();
-                },
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48, minWidth: 80),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                if (icon != null) ...[Icon(icon, size: 18, color: fg), const SizedBox(width: 6)],
-                Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: fg))),
-              ]),
-            ),
           ),
         ),
       ),
@@ -529,18 +486,7 @@ Future<PhotoSource?> showChatPhotoSheet(
             ),
           ),
         const SizedBox(height: 16),
-        Material(
-          color: t.sf2,
-          borderRadius: BuRadius.bMd,
-          child: InkWell(
-            borderRadius: BuRadius.bMd,
-            onTap: () => Navigator.pop(c),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 54),
-              child: Center(child: Text(l.chatInfoCancel, style: chatInfoTitle16(c).copyWith(fontWeight: FontWeight.w700))),
-            ),
-          ),
-        ),
+        ChatDialogButton(label: l.chatInfoCancel, minHeight: 54, onTap: () => Navigator.pop(c)),
       ]);
     },
   );

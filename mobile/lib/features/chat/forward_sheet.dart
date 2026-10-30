@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/closed_conversations.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'chat_info_parts.dart';
@@ -66,7 +67,8 @@ class _ForwardSheetState extends State<ForwardSheet> {
       setState(() {
         _items
           ..clear()
-          ..addAll(list.where((c) => c['blocked'] != true));
+          // Engelli ve yönetici tarafından kapatılmış sohbetlere iletilemez.
+          ..addAll(list.where((c) => c['blocked'] != true && !_closed(c)));
         _loading = false;
       });
     } catch (e) {
@@ -77,6 +79,11 @@ class _ForwardSheetState extends State<ForwardSheet> {
       });
     }
   }
+
+  static bool _closed(Map<String, dynamic> c) =>
+      c['closed'] == true ||
+      (c['id'] is num &&
+          ClosedConversations.instance.isClosed((c['id'] as num).toInt()));
 
   static String titleOf(BuildContext context, Map<String, dynamic> c) {
     final peer = c['peer'];
@@ -121,35 +128,55 @@ class _ForwardSheetState extends State<ForwardSheet> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final query = _q.text.trim().toLowerCase();
+    final query = chatInfoFold(_q.text.trim());
     final shown = _items
-        .where((c) => query.isEmpty || titleOf(context, c).toLowerCase().contains(query))
+        .where((c) =>
+            query.isEmpty || chatInfoFold(titleOf(context, c)).contains(query))
         .toList();
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ChatSheetHeader(title: l.chatMiscForward),
-      const SizedBox(height: 4),
-      ChatSheetSearch(hint: l.chatMiscSearchChat, controller: _q, onChanged: (_) => setState(() {})),
-      const SizedBox(height: 8),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ChatSheetHint(l.chatMiscForwardMax(widget.max.toString()), warn: _limit),
-      ),
-      const SizedBox(height: 4),
-      Expanded(child: _list(shown)),
-      const SizedBox(height: 8),
-      BuButton(
-        label: _selected.isEmpty ? l.chatMiscSend : l.chatMiscSendCount(_selected.length.toString()),
-        icon: LucideIcons.share2,
-        onPressed: _selected.isEmpty ? null : () => Navigator.pop(context, List<int>.from(_selected)),
-      ),
-    ]);
+    return Transform.translate(
+      offset: const Offset(0, -12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ChatSheetHeader(title: l.chatMiscForward),
+        const SizedBox(height: 4),
+        ChatSheetSearch(
+            hint: l.chatMiscSearchChat,
+            controller: _q,
+            onChanged: (_) => setState(() {})),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: ChatSheetHint(l.chatMiscForwardMax(widget.max.toString()),
+              warn: _limit),
+        ),
+        const SizedBox(height: 4),
+        Expanded(child: _list(shown)),
+        const SizedBox(height: 8),
+        BuButton(
+          label: _selected.isEmpty
+              ? l.chatMiscSend
+              : l.chatMiscSendCount(_selected.length.toString()),
+          icon: LucideIcons.share2,
+          onPressed: _selected.isEmpty
+              ? null
+              : () => Navigator.pop(context, List<int>.from(_selected)),
+        ),
+        SizedBox(height: 12 + MediaQuery.paddingOf(context).bottom),
+      ]),
+    );
   }
 
   Widget _list(List<Map<String, dynamic>> shown) {
-    if (_loading) return const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6);
-    if (_error != null) return BuErrorState(error: _error!, onRetry: _load, compact: true);
+    if (_loading) {
+      return const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6);
+    }
+    if (_error != null) {
+      return BuErrorState(error: _error!, onRetry: _load, compact: true);
+    }
     if (shown.isEmpty) {
-      return BuEmptyState(illustration: BuIllustration.message, title: context.l10n.chatMiscChatNotFound, compact: true);
+      return BuEmptyState(
+          illustration: BuIllustration.message,
+          title: context.l10n.chatMiscChatNotFound,
+          compact: true);
     }
     return ListView.builder(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -159,7 +186,9 @@ class _ForwardSheetState extends State<ForwardSheet> {
         final title = titleOf(context, conv);
         final direct = (conv['type'] as String?) == 'DIRECT';
         final peer = conv['peer'];
-        final avatar = direct && peer is Map ? peer['avatarUrl'] as String? : conv['avatarUrl'] as String?;
+        final avatar = direct && peer is Map
+            ? peer['avatarUrl'] as String?
+            : conv['avatarUrl'] as String?;
         final on = _selected.contains(_id(conv));
         return Semantics(
           button: true,
@@ -170,15 +199,25 @@ class _ForwardSheetState extends State<ForwardSheet> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 76),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
                 child: Row(children: [
-                  ChatlistAvatar(name: title, url: avatar, group: !direct, circle: direct, size: 52),
+                  _ConvAvatar(conv: conv, title: title, url: avatar),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                      Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context)),
-                      Text(_sub(conv), maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoBody12(context)),
-                    ]),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: chatInfoTitle16(context)),
+                          Text(_sub(conv),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: chatInfoBody12(context)),
+                        ]),
                   ),
                   const SizedBox(width: 8),
                   ChatSheetCheck(on: on),
@@ -188,6 +227,41 @@ class _ForwardSheetState extends State<ForwardSheet> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Sohbet avatarı: fotoğraf varsa o; yoksa kişide baş harfli daire, grup/kulüp/etkinlikte simgeli tonlu daire (referans 21-6).
+class _ConvAvatar extends StatelessWidget {
+  const _ConvAvatar(
+      {required this.conv, required this.title, required this.url});
+
+  final Map<String, dynamic> conv;
+  final String title;
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = conv['type'] as String?;
+    final direct = type == 'DIRECT';
+    if (direct || (url != null && url!.isNotEmpty)) {
+      return ChatlistAvatar(
+          name: title, url: url, group: !direct, circle: true, size: 52);
+    }
+    final t = context.bu;
+    final tint = t.tint(((conv['id'] as num?)?.toInt() ?? 0));
+    final icon = switch (type) {
+      'EVENT' => LucideIcons.calendarDays,
+      'CLUB' => LucideIcons.graduationCap,
+      _ => LucideIcons.users,
+    };
+    return ExcludeSemantics(
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(color: tint.bg, shape: BoxShape.circle),
+        child: Icon(icon, size: 24, color: tint.fg),
+      ),
     );
   }
 }

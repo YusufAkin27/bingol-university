@@ -120,7 +120,7 @@ class ChatMemberListRow extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Wrap(spacing: 6, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   Text(name,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: chatInfoTitle16(context).copyWith(fontWeight: FontWeight.w400)),
                   if (me) ChatInfoTag(context.l10n.chatInfoYou, large: false),
@@ -135,7 +135,7 @@ class ChatMemberListRow extends StatelessWidget {
               ExcludeSemantics(child: Icon(LucideIcons.shield, size: 20, color: t.mut.withValues(alpha: .55))),
             ] else if (onRemove != null) ...[
               const SizedBox(width: 8),
-              _RemoveButton(onTap: onRemove!),
+              _RemoveButton(onTap: onRemove!, compact: MediaQuery.textScalerOf(context).scale(1) > 1.15),
             ],
           ]),
         ),
@@ -145,9 +145,12 @@ class ChatMemberListRow extends StatelessWidget {
 }
 
 class _RemoveButton extends StatelessWidget {
-  const _RemoveButton({required this.onTap});
+  const _RemoveButton({required this.onTap, this.compact = false});
 
   final VoidCallback onTap;
+
+  /// Büyük yazı ölçeğinde yalnız simge (48 dp), etiket erişilebilirlik adında kalır: ad satırı genişliği korunur.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -167,19 +170,19 @@ class _RemoveButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: tap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, maxWidth: 160),
+          constraints: BoxConstraints(minHeight: 48, minWidth: compact ? 48 : 0, maxWidth: 160),
           child: Center(
             widthFactor: 1,
             child: BuPressable(
               scale: .97,
               child: Container(
-                constraints: const BoxConstraints(minHeight: 36),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                constraints: BoxConstraints(minHeight: compact ? 44 : 36, minWidth: compact ? 44 : 0),
+                padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 12, vertical: 6),
                 decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bSm),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.userMinus, size: 16, color: t.onSoft),
-                  const SizedBox(width: 4),
-                  Flexible(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft).copyWith(fontWeight: FontWeight.w500))),
+                child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(LucideIcons.userMinus, size: compact ? 20 : 16, color: t.onSoft),
+                  if (!compact) const SizedBox(width: 4),
+                  if (!compact) Flexible(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft).copyWith(fontWeight: FontWeight.w500))),
                 ]),
               ),
             ),
@@ -269,10 +272,10 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final q = _q.trim().toLowerCase();
+    final q = chatInfoFold(_q.trim());
     final list = q.isEmpty
         ? _all
-        : _all.where((m) => ((m['displayName'] as String?) ?? '').toLowerCase().contains(q)).toList();
+        : _all.where((m) => chatInfoFold((m['displayName'] as String?) ?? '').contains(q)).toList();
     final Widget body;
     if (_loading) {
       body = const _MembersSkeleton();
@@ -310,7 +313,7 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
         ChatInfoBar(title: context.l10n.chatInfoMembersCount(_all.length.toString())),
         Expanded(
           child: ListView(
-            padding: EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, MediaQuery.paddingOf(context).bottom + 24),
+            padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 24),
             children: [
               _SearchBox(
                 controller: _ctl,
@@ -320,13 +323,16 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
               const SizedBox(height: 16),
               if (_failed && _all.isNotEmpty) ...[_MembersError(onRetry: _reload), const SizedBox(height: 16)],
               body,
-              if (widget.onAdd != null && !_loading) ...[
-                const SizedBox(height: 16),
-                BuButton(label: context.l10n.sohbetyAddMember, icon: LucideIcons.userPlus, onPressed: _add),
-              ],
             ],
           ),
         ),
+        // "Üye ekle" alt çubuğa sabit (referans 24-4).
+        if (widget.onAdd != null && !_loading)
+          Container(
+            color: t.bg,
+            padding: EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, MediaQuery.paddingOf(context).bottom + 12),
+            child: BuButton(label: context.l10n.sohbetyAddMember, icon: LucideIcons.userPlus, onPressed: _add),
+          ),
       ]),
     );
   }
@@ -357,7 +363,7 @@ class _SearchBox extends StatelessWidget {
             onChanged: onChanged,
             textInputAction: TextInputAction.search,
             cursorColor: t.pr,
-            style: tx.bodyMedium!.copyWith(color: t.ink, fontSize: 14),
+            style: tx.bodyMedium!.copyWith(color: t.ink),
             decoration: InputDecoration(
               isCollapsed: true,
               filled: false,
@@ -366,7 +372,7 @@ class _SearchBox extends StatelessWidget {
               focusedBorder: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 16),
               hintText: hint,
-              hintStyle: tx.bodyMedium!.copyWith(color: t.mut, fontSize: 14),
+              hintStyle: tx.bodyMedium!.copyWith(color: t.mut),
             ),
           ),
         ),

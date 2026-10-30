@@ -183,6 +183,8 @@ void main() {
                 {'id': 2, 'type': 'CLUB', 'title': 'Fotoğraf Kulübü'},
                 {'id': 3, 'type': 'EVENT', 'title': _long},
                 {'id': 4, 'type': 'GROUP', 'title': 'Proje Grubu'},
+                {'id': 5, 'type': 'GROUP', 'title': 'İlker Grubu'},
+                {'id': 6, 'type': 'CLUB', 'title': 'Kapalı Oda', 'closed': true},
               ],
               'nextCursor': null,
             });
@@ -196,6 +198,12 @@ void main() {
           expect(find.text('Kulüp'), findsOneWidget);
           expect(find.text('Etkinlik'), findsOneWidget);
           expect(find.text('En fazla 5 sohbet seçilebilir.'), findsOneWidget);
+          expect(find.text('Kapalı Oda'), findsNothing); // kapalı odaya iletilemez
+          await tester.enterText(find.byType(TextField), 'ilker');
+          await settle(tester);
+          expect(find.text('İlker Grubu'), findsOneWidget);
+          await tester.enterText(find.byType(TextField), '');
+          await settle(tester);
           await tester.tap(find.byKey(const ValueKey('fwd-1')));
           await tester.tap(find.byKey(const ValueKey('fwd-2')));
           await tester.pump();

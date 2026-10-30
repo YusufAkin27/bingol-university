@@ -106,6 +106,17 @@ void main() {
       expect(chatInfoAccusative('Gül', 'tr'), "Gül'ü");
       expect(chatInfoAccusative('Zeynep Arslan', 'tr'), "Zeynep Arslan'ı");
     });
+    test('büyük harfli adlar', () {
+      expect(chatInfoAccusative('ALİ', 'tr'), "ALİ'yi");
+      expect(chatInfoAccusative('IŞIL', 'tr'), "IŞIL'ı");
+      expect(chatInfoAccusative('ÖMER', 'tr'), "ÖMER'i");
+    });
+    test('arama katlaması: İ/I/ı ve Türkçe harfler', () {
+      expect(chatInfoFold('İlker'), 'ilker');
+      expect(chatInfoFold('ILKER'), 'ilker');
+      expect(chatInfoFold('Işıl Şahin'), 'isil sahin');
+      expect(chatInfoFold('ÇAĞLAR Öz'), 'caglar oz');
+    });
     test('diğer dillerde ad değişmez', () {
       expect(chatInfoAccusative('Mehmet Kaya', 'en'), 'Mehmet Kaya');
       expect(chatInfoAccusative('محمد', 'ar'), 'محمد');
@@ -267,7 +278,7 @@ void main() {
     expect(find.text('Açık'), findsOneWidget);
     expect(find.text("Mehmet Kaya'yı Engelle"), findsOneWidget);
     expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
-    expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+    expect(find.text('Bilgisayar Mühendisliği · 3. Sınıf'), findsOneWidget);
     expect(find.text('Üyeler'), findsNothing);
     expect(find.text('Sohbetten çık'), findsNothing);
     expect(find.text('Çevrimiçi'), findsNothing);
@@ -291,6 +302,7 @@ void main() {
     await settle(tester);
     expect(be.bodies['PUT /conversations/5/mute'], {'durationMinutes': 480});
     expect(find.text('Sessiz · 8 saat sonra açılır'), findsOneWidget);
+    expect(find.text('Açık'), findsNothing); // uzun durum başlığın altında, sağda değil
     expect(find.text('Sesi aç'), findsOneWidget);
     await tester.tap(find.text('Sesi aç'));
     await settle(tester);
@@ -419,6 +431,53 @@ void main() {
       await settle(tester);
       expect(find.byType(ChatMemberListRow), findsWidgets);
       await unmount(tester);
+    });
+
+    testWidgets('arama Türkçe İ/I duyarlı (ilker, isil)', (tester) async {
+      final ms = [..._manyMembers(5), {'userId': 20, 'displayName': 'İlker Şahin'}, {'userId': 21, 'displayName': 'Işıl Kaya'}];
+      await pump(tester, be, conv: _group(admin: false), members: ms);
+      await settle(tester);
+      await openAll(tester);
+      await tester.enterText(find.byType(TextField), 'ilker');
+      await settle(tester);
+      Finder row(String n) => find.descendant(of: find.byType(ChatMemberListRow), matching: find.text(n));
+      expect(row('İlker Şahin'), findsOneWidget);
+      expect(row('Işıl Kaya'), findsNothing);
+      await tester.enterText(find.byType(TextField), 'isil');
+      await settle(tester);
+      expect(row('Işıl Kaya'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('Üye ekle alt çubuğa sabit; büyük yazıda çıkar düğmesi yalnız simge', (tester) async {
+      final sem = tester.ensureSemantics();
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+        Builder(
+          builder: (c) => MediaQuery(
+            data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.3)),
+            child: ChatMembersPage(
+              members: _manyMembers(30),
+              selfId: 1,
+              onRemove: (m) async => true,
+              onAdd: () async => null,
+            ),
+          ),
+        ),
+        size: kPhoneMedium,
+      ));
+      await settle(tester);
+      final add = find.widgetWithText(BuButton, 'Üye ekle');
+      expect(add, findsOneWidget);
+      expect(tester.getBottomLeft(add).dy, greaterThan(kPhoneMedium.height - 80));
+      expect(find.text('Gruptan çıkar'), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('Gruptan çıkar')), findsWidgets);
+      await tester.drag(find.byType(ListView).last, const Offset(0, -600));
+      await settle(tester);
+      expect(tester.getBottomLeft(add).dy, greaterThan(kPhoneMedium.height - 80)); // kaydırınca yerinde
+      expect(tester.takeException(), isNull);
+      await unmount(tester);
+      sem.dispose();
     });
 
     testWidgets('yönetici: Gruptan çıkar onaylı, DELETE gider, toast çıkar; Üye ekle düğmesi var', (tester) async {
