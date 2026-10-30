@@ -54,9 +54,9 @@ void main() {
               size: size);
           await tester.pumpWidget(app);
           await settle(tester, const Duration(seconds: 1));
-          expect(find.text('Kulüplerim'), findsOneWidget);
-          expect(find.text('Tüm kulüpler'), findsOneWidget);
-          expect(find.text('Satranç Kulübü'), findsOneWidget); // şeritte, listede yok
+          expect(find.text('Keşfet'), findsOneWidget); // segment
+          expect(find.text('Kulüplerim'), findsOneWidget); // segment
+          expect(find.text('Satranç Kulübü'), findsOneWidget); // Keşfet listesinde (Üyesin)
           expect(find.text('Katıl'), findsWidgets);
           expect(find.text('İstek gönderildi'), findsOneWidget);
           expect(tester.takeException(), isNull);

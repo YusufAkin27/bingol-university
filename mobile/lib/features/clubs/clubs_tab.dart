@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
-import '../../widgets/bu_widgets.dart';
-import '../../widgets/common.dart';
+import '../../widgets/bu.dart';
+import '../../widgets/common.dart' show ErrorView;
 import 'club_categories.dart';
 import 'club_detail_page.dart';
 import 'club_form_page.dart';
@@ -23,6 +22,7 @@ class ClubsTab extends StatefulWidget {
 
 class _ClubsTabState extends State<ClubsTab> {
   String? _category; // null = Tümü
+  int _seg = 0; // 0 Keşfet, 1 Kulüplerim
   String _query = '';
   bool _searching = false;
   final _search = TextEditingController();
@@ -237,11 +237,7 @@ class _ClubsTabState extends State<ClubsTab> {
 
   int _id(Map<String, dynamic> c) => ((c['id'] as num?)?.toInt() ?? -1);
 
-  /// "Tüm kulüpler": üye olunanlar şeritte gösterilir, listede tekrarlanmaz.
-  List<Map<String, dynamic>> get _visible =>
-      _items.where((c) => c['myStatus'] != 'ACTIVE').toList();
-
-  /// "Kulüplerim" şeridi: /me/communities + keşfet listesindeki ACTIVE olanlar.
+  /// "Kulüplerim" sekmesi: /me/communities + keşfet listesindeki ACTIVE olanlar.
   List<Map<String, dynamic>> get _strip {
     final seen = <int>{};
     final out = <Map<String, dynamic>>[];
@@ -268,17 +264,25 @@ class _ClubsTabState extends State<ClubsTab> {
             title: context.l10n.clubMgmtClubsTitle,
             actions: [
               BuIconButton(
+                icon: _searching ? LucideIcons.x : LucideIcons.search,
+                tooltip: context.l10n.clubMgmtSearch,
+                onTap: _toggleSearch,
+              ),
+              BuIconButton(
                 icon: LucideIcons.plus,
                 tooltip: context.l10n.clubMgmtCreateTitle,
                 filled: true,
                 onTap: _create,
               ),
-              BuIconButton(
-                icon: _searching ? LucideIcons.x : LucideIcons.search,
-                tooltip: context.l10n.clubMgmtSearch,
-                onTap: _toggleSearch,
-              ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+            child: BuSegmented(
+              items: [context.l10n.clubMgmtTabDiscover, context.l10n.clubMgmtTabMine],
+              index: _seg,
+              onChanged: (i) => setState(() => _seg = i),
+            ),
           ),
           if (_searching)
             Padding(
@@ -293,7 +297,7 @@ class _ClubsTabState extends State<ClubsTab> {
                 },
               ),
             ),
-          if (cats.isNotEmpty)
+          if (cats.isNotEmpty && _seg == 0)
             Padding(
               padding: const EdgeInsets.only(top: 14),
               child: SizedBox(
@@ -324,66 +328,51 @@ class _ClubsTabState extends State<ClubsTab> {
   }
 
   Widget _body() {
-    if (_loading) return const LoadingView();
+    final l = context.l10n;
+    if (_loading) return const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6);
     if (_error != null && _items.isEmpty) {
       return ErrorView(error: _error!, onRetry: _reload);
     }
-    final list = _visible;
-    final strip = _strip;
-    if (list.isEmpty && strip.isEmpty) {
+    final mine = _seg == 1;
+    final list = mine ? _strip : _items;
+    if (list.isEmpty) {
+      final Widget empty = mine && _query.isEmpty
+          ? BuEmptyState(
+              illustration: BuIllustration.club,
+              title: l.clubMgmtEmptyMine,
+              actionLabel: l.kuluplerAllClubs,
+              onAction: () => setState(() => _seg = 0),
+            )
+          : BuEmptyState(
+              illustration: _query.isNotEmpty ? BuIllustration.search : BuIllustration.club,
+              title: l.clubMgmtNotFound,
+            );
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
-          children: [
-            SizedBox(
-              height: 360,
-              child: EmptyView(
-                icon: LucideIcons.users,
-                text: context.l10n.clubMgmtNotFound,
-              ),
-            ),
-          ],
+          children: [SizedBox(height: 420, child: empty)],
         ),
       );
     }
-    final l = context.l10n;
-    final hasStrip = strip.isNotEmpty;
-    final hasList = list.isNotEmpty;
-    // Öğeler: [şerit başlığı, şerit]? + [liste başlığı]? + kartlar + [yükleniyor]?
-    final lead = (hasStrip ? 2 : 0) + (hasList ? 1 : 0);
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView.builder(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: kNavInset),
-        itemCount: lead + list.length + (_more ? 1 : 0),
-        itemBuilder: (_, i) {
-          if (hasStrip) {
-            if (i == 0) return ClubsSectionTitle(l.clubMgmtTabMine, top: 18);
-            if (i == 1) return ClubsMineStrip(clubs: strip, onOpen: _open);
-          }
-          if (hasList && i == (hasStrip ? 2 : 0)) {
-            return ClubsSectionTitle(l.kuluplerAllClubs,
-                top: hasStrip ? 22 : 18);
-          }
-          final k = i - lead;
+        padding: const EdgeInsets.only(top: 14, bottom: kNavInset),
+        itemCount: list.length + (_more && !mine ? 1 : 0),
+        itemBuilder: (_, k) {
           if (k >= list.length) {
             return const Padding(
               padding: EdgeInsets.all(12),
-              child: Center(
-                  child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
             );
           }
           final c = list[k];
           return Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-                20, 0, 20, k == list.length - 1 ? 0 : 12),
+            padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, k == list.length - 1 ? 0 : 12),
             child: ClubsRowCard(
               club: c,
               busy: _joining.contains(_id(c)),

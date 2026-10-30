@@ -11,6 +11,7 @@ import 'package:bu_kampus/features/clubs/club_detail_page.dart';
 import 'package:bu_kampus/features/clubs/club_form_page.dart';
 import 'package:bu_kampus/features/clubs/club_members_page.dart';
 import 'package:bu_kampus/features/clubs/club_requests_page.dart';
+import 'package:bu_kampus/features/clubs/clubs_tab.dart';
 import 'package:bu_kampus/features/profile/my_clubs_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -195,6 +196,16 @@ FakeBackend _requestsBe({bool empty = false}) {
       ],
       'nextCursor': null,
     });
+}
+
+FakeBackend _tabBe({bool mine = true, bool empty = false}) {
+  Map<String, dynamic> c(int id, String name, String status, {String cat = 'teknoloji'}) =>
+      {'id': id, 'name': name, 'category': cat, 'description': 'Kampüste $name etkinlikleri düzenler.', 'memberCount': 40 + id, 'myStatus': status, 'joinPolicy': 'OPEN'};
+  final all = [c(7, 'Robotik Kulübü', mine ? 'ACTIVE' : 'NONE'), c(8, 'Doğa Sporları', 'NONE', cat: 'spor'), c(9, 'Tiyatro Kulübü', 'NONE', cat: 'sanat')];
+  return FakeBackend()
+    ..on('/communities/categories', _cats)
+    ..on('/me/communities*', {'items': mine ? [all.first] : [], 'nextCursor': null})
+    ..on('/communities*', {'items': empty ? [] : all, 'nextCursor': null});
 }
 
 FakeBackend _myClubs({bool empty = false}) {
@@ -383,6 +394,17 @@ final _shots = <_Shot>[
     await t.tap(find.text(_l.clubMgmtCreateButton).first);
     await t.pump(const Duration(milliseconds: 900));
   }),
+
+  // ---- 12: Kulupler sekmesi durumlari
+  _Shot('12_01_kesfet_liste', _tabBe, (b) => ClubsTab(session: makeSession(b))),
+  _Shot('12_04_kuluplerim_bos', () => _tabBe(mine: false), (b) => ClubsTab(session: makeSession(b)), after: (t, b) => _tapText(t, _l.clubMgmtTabMine)),
+  _Shot('12_05_arama_sonuc_yok', () => _tabBe(empty: true), (b) => ClubsTab(session: makeSession(b)), after: (t, b) async {
+    await _tapTip(t, _l.clubMgmtSearch);
+    await t.enterText(find.byType(TextField).first, 'xyz');
+    await t.testTextInput.receiveAction(TextInputAction.search);
+    await settle(t, const Duration(milliseconds: 700));
+  }),
+  _Shot('12_06_kuluplerim_liste', _tabBe, (b) => ClubsTab(session: makeSession(b)), after: (t, b) => _tapText(t, _l.clubMgmtTabMine)),
 
   // ---- 30: Kuluplerim
   _Shot('30_01_kuluplerim', _myClubs, (b) => MyClubsPage(session: makeSession(b)), height: 1050),
