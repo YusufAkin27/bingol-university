@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/typography.dart';
+import '../../widgets/bu.dart' show BuRadius;
 
 /// Eylem listesindeki tek satır.
 class MessageAction {
@@ -81,7 +83,7 @@ class _MessageActionsOverlay extends StatelessWidget {
 
   static const _barH = 52.0;
   static const _gap = 8.0;
-  static const _rowH = 44.0;
+  static const _rowH = 52.0;
   static const _cardPad = 6.0;
   static const _chip = 44.0;
   static const _edge = 12.0;
@@ -122,7 +124,7 @@ class _MessageActionsOverlay extends StatelessWidget {
             .toDouble();
 
     final barW = math.min(emojis.length * _chip + 8.0, size.width - _edge * 2);
-    final cardW = math.min(232.0, size.width - _edge * 2);
+    final cardW = math.min(248.0, size.width - _edge * 2);
 
     final scale = Tween<double>(begin: .86, end: 1)
         .chain(CurveTween(curve: Curves.easeOutCubic))
@@ -135,7 +137,7 @@ class _MessageActionsOverlay extends StatelessWidget {
 
     final shadow = [
       BoxShadow(
-          color: Colors.black.withValues(alpha: dark ? .25 : .07),
+          color: t.shadow.withValues(alpha: dark ? .35 : .12),
           blurRadius: 12,
           offset: const Offset(0, 3)),
     ];
@@ -154,8 +156,11 @@ class _MessageActionsOverlay extends StatelessWidget {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: close,
-                child: ColoredBox(
-                    color: Colors.black.withValues(alpha: dark ? .6 : .38)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: ColoredBox(
+                      color: t.scrim.withValues(alpha: dark ? .6 : .38)),
+                ),
               ),
             ),
           ),
@@ -240,13 +245,13 @@ class _MessageActionsOverlay extends StatelessWidget {
                     key: const ValueKey('msgActions.card'),
                     padding: const EdgeInsets.symmetric(vertical: _cardPad),
                     decoration: BoxDecoration(
-                      color: t.sf,
+                      color: t.sf3,
                       border: Border.all(color: t.bd),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: shadow,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Material(
                         type: MaterialType.transparency,
                         child: Column(children: [
@@ -324,7 +329,7 @@ class _ActionRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: _MessageActionsOverlay._rowH,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
         decoration: BoxDecoration(
             border: first
                 ? null
@@ -332,15 +337,25 @@ class _ActionRow extends StatelessWidget {
                     top: BorderSide(
                         color: t.bd.withValues(alpha: .5), width: .5))),
         child: Row(children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                  color: action.danger ? t.soft : t.sf2,
+                  borderRadius: BuRadius.bSm),
+              child: Icon(action.icon,
+                  size: 18, color: action.danger ? t.danger : t.ink),
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(action.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: BuType.body
+                style: BuType.bodyStrong
                     .copyWith(color: color, decoration: TextDecoration.none)),
           ),
-          const SizedBox(width: 10),
-          Icon(action.icon, size: 16, color: action.danger ? t.danger : t.mut),
         ]),
       ),
     );

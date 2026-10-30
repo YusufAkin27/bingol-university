@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
@@ -50,26 +52,18 @@ class _VideoPrepareDialog extends StatelessWidget {
     final t = context.bu;
     return PopScope(
       canPop: false,
-      child: AlertDialog(
-        key: const ValueKey('videoPrepare'),
-        content: ValueListenableBuilder<double>(
-          valueListenable: progress,
-          builder: (c, v, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(c.l10n.chatDetailVideoPreparing('${(v * 100).round()}'),
-                    style: BuType.bodyStrong.copyWith(color: t.ink)),
-                const SizedBox(height: 14),
-                LinearProgressIndicator(
-                    value: v > 0 ? v : null,
-                    color: t.pr,
-                    backgroundColor: t.sf2),
-              ]),
+      child: ValueListenableBuilder<double>(
+        valueListenable: progress,
+        builder: (c, v, _) => BuDialog(
+          key: const ValueKey('videoPrepare'),
+          title: c.l10n.chatDetailVideoPreparing('${(v * 100).round()}'),
+          content: LinearProgressIndicator(
+              value: v > 0 ? v : null, color: t.pr, backgroundColor: t.sf2),
+          actions: [
+            BuDialogAction(
+                label: c.l10n.chatDetailCancel, onPressed: cancel.cancel),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: cancel.cancel, child: Text(context.l10n.chatDetailCancel)),
-        ],
       ),
     );
   }
@@ -1297,8 +1291,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _deleteMessage(Map<String, dynamic> m) async {
     final l = context.l10n;
     final ok = await _confirm(
-        l.chatDetailDeleteTitle, l.chatDetailDeleteBody, l.chatDetailDelete);
-    if (ok != true) return;
+        l.chatDetailDeleteTitle, l.chatDetailDeleteBody, l.chatDetailDelete,
+        icon: LucideIcons.trash2);
+    if (!ok) return;
     try {
       await _api.delete('/messages/${(m['id'] as num).toInt()}');
       if (!mounted) return;
@@ -1324,30 +1319,27 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   // ---------- Yardımcılar ----------
 
-  void _toast(String msg) {
+  void _toast(String msg, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(msg)));
+    BuToast.show(context, msg, kind: kind);
   }
 
-  Future<bool?> _confirm(String title, String body, String action) {
-    return showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: Text(c.l10n.chatDetailNevermind)),
-          TextButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: Text(action, style: TextStyle(color: c.bu.danger)),
-          ),
-        ],
+  /// Silme / ayrılma / engelleme onayı: solda kırmızı simge karosu + başlık, gövde, iki tam genişlik düğme.
+  Future<bool> _confirm(String title, String body, String action,
+      {IconData? icon}) async {
+    final r = await BuDialog.show<bool>(
+      context,
+      builder: (c) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        child: _ChatConfirmDialog(
+            title: title,
+            body: body,
+            confirmLabel: action,
+            cancelLabel: c.l10n.chatDetailNevermind,
+            icon: icon),
       ),
     );
+    return r ?? false;
   }
 
   String _nameOf(int? id) {
@@ -1527,7 +1519,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       case 'copy':
         await Clipboard.setData(
             ClipboardData(text: (m['text'] as String?) ?? ''));
-        _toast(l.chatDetailCopied);
+        _toast(l.chatDetailCopied, kind: BuToastKind.success);
       case 'forward':
         await _forward(m);
       case 'edit':
@@ -1574,11 +1566,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       }
     }
     _changed = true;
-    _toast(failed == 0
-        ? l.chatDetailForwarded
-        : (failed == ids.length
-            ? l.chatDetailForwardFailedAll
-            : l.chatDetailForwardFailedSome(failed.toString())));
+    _toast(
+        failed == 0
+            ? l.chatDetailForwarded
+            : (failed == ids.length
+                ? l.chatDetailForwardFailedAll
+                : l.chatDetailForwardFailedSome(failed.toString())),
+        kind: failed == 0 ? BuToastKind.success : BuToastKind.error);
   }
 
   // ---------- Sohbet içi arama ----------
@@ -1660,64 +1654,133 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_matchPos >= 0) _jumpTo(_matches[_matchPos]);
   }
 
-  Future<void> _openChatMenu() async {
-    final l = context.l10n;
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      showDragHandle: true,
-      builder: (c) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          BuMenuRow(
-              icon: LucideIcons.search,
-              label: l.chatDetailSearchInChat,
-              showChevron: false,
-              onTap: () => Navigator.pop(c, 'search')),
-          if (_roomPage)
-            BuMenuRow(
-                icon: LucideIcons.arrowUpRight,
-                label: _type == 'CLUB'
-                    ? l.chatDetailClubPage
-                    : l.chatDetailEventPage,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'room')),
-          if (!_direct)
-            BuMenuRow(
-                icon: LucideIcons.users,
-                label: l.chatDetailMembers,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'members')),
-          if (!_direct && !_room)
-            BuMenuRow(
-                icon: LucideIcons.logOut,
-                label: l.chatDetailLeaveChat,
-                danger: true,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'leave')),
-          if (_direct && !_blocked)
-            BuMenuRow(
-                icon: LucideIcons.ban,
-                label: l.chatDetailBlock,
-                danger: true,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'block')),
-          if (_direct && _blocked)
-            BuMenuRow(
-                icon: LucideIcons.ban,
-                label: l.chatDetailUnblock,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'unblock')),
-          if (_direct)
-            BuMenuRow(
-                icon: LucideIcons.flag,
-                label: l.chatDetailReportUser,
-                danger: true,
-                showChevron: false,
-                onTap: () => Navigator.pop(c, 'report')),
-          const SizedBox(height: 8),
+  /// Sohbet menüsü satırı: solda 40 dp simge karosu, etiket, sonda ok (tehlikeli satırda kırmızı).
+  Widget _menuRow(BuildContext c,
+      {required IconData icon,
+      required String label,
+      required String id,
+      bool danger = false,
+      bool card = false}) {
+    final t = c.bu;
+    final tx = Theme.of(c).textTheme;
+    final color = danger ? t.danger : t.ink;
+    final row = InkWell(
+      key: ValueKey('menu-$id'),
+      borderRadius: BuRadius.bMd,
+      onTap: () => Navigator.pop(c, id),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
+        child: Row(children: [
+          ExcludeSemantics(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: danger ? t.soft : (card ? t.ink : t.sf2),
+                  borderRadius: BuRadius.bSm),
+              child: Icon(icon,
+                  size: 20, color: danger ? t.danger : (card ? t.bg : t.ink)),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tx.titleSmall!
+                    .copyWith(color: color, fontWeight: FontWeight.w700)),
+          ),
+          const SizedBox(width: 8),
+          if (card)
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
+              child: Icon(LucideIcons.arrowUpRight, size: 18, color: t.ink),
+            )
+          else
+            ExcludeSemantics(
+              child: Icon(
+                  danger
+                      ? buDirIcon(c, LucideIcons.arrowRight)
+                      : buDirIcon(c, LucideIcons.chevronRight),
+                  size: danger ? 18 : 16,
+                  color: danger ? t.danger.withValues(alpha: .7) : t.mut),
+            ),
         ]),
       ),
     );
+    if (!card) return row;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+      child: Material(type: MaterialType.transparency, child: row),
+    );
+  }
+
+  Future<void> _openChatMenu() async {
+    final l = context.l10n;
+    final action = await BuSheet.show<String>(
+      context,
+      builder: (c) => Material(
+        type: MaterialType.transparency,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _menuRow(c,
+              icon: LucideIcons.search,
+              label: l.chatDetailSearchInChat,
+              id: 'search'),
+          if (!_direct)
+            _menuRow(c,
+                icon: LucideIcons.users,
+                label: l.chatDetailMembers,
+                id: 'members'),
+          _menuRow(c,
+              icon: LucideIcons.image, label: l.chatDetailMedia, id: 'media'),
+          if (_roomPage)
+            _menuRow(c,
+                icon: _type == 'CLUB' ? LucideIcons.star : LucideIcons.calendar,
+                label: _type == 'CLUB'
+                    ? l.chatDetailClubPage
+                    : l.chatDetailEventPage,
+                id: 'room',
+                card: true),
+          _menuRow(c,
+              icon: LucideIcons.settings,
+              label: l.chatDetailSettings,
+              id: 'settings'),
+          _menuRow(c,
+              icon: LucideIcons.info, label: l.chatDetailChatInfo, id: 'about'),
+          if (_direct || !_room)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Divider(height: 3, thickness: 3, color: c.bu.sf2),
+            ),
+          if (!_direct && !_room)
+            _menuRow(c,
+                icon: LucideIcons.logOut,
+                label: l.chatDetailLeaveChat,
+                id: 'leave',
+                danger: true),
+          if (_direct)
+            _menuRow(c,
+                icon: LucideIcons.ban,
+                label: _blocked ? l.chatDetailUnblock : l.chatDetailBlock,
+                id: _blocked ? 'unblock' : 'block',
+                danger: !_blocked),
+          if (_direct)
+            _menuRow(c,
+                icon: LucideIcons.flag,
+                label: l.chatDetailReportUser,
+                id: 'report',
+                danger: true),
+        ]),
+      ),
+    );
+    if (action == 'media' || action == 'settings' || action == 'about') {
+      if (mounted) await _openInfo();
+      return;
+    }
     if (!mounted || action == null) return;
     final pid = (_peer?['id'] as num?)?.toInt();
     try {
@@ -1730,15 +1793,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           await _showMembers();
         case 'leave':
           final ok = await _confirm(l.chatDetailLeaveTitle,
-              l.chatDetailLeaveBody, l.chatDetailLeave);
-          if (ok != true) return;
+              l.chatDetailLeaveBody, l.chatDetailLeave,
+              icon: LucideIcons.logOut);
+          if (!ok) return;
           await _api.post('/conversations/$_cid/leave');
           if (mounted) Navigator.pop(context, true);
         case 'block':
           if (pid == null) return;
           final ok = await _confirm(l.chatDetailBlockTitle,
-              l.chatDetailBlockBody, l.chatDetailBlock);
-          if (ok != true) return;
+              l.chatDetailBlockBody, l.chatDetailBlock,
+              icon: LucideIcons.ban);
+          if (!ok) return;
           await _api.post('/users/$pid/block');
           _changed = true;
           if (mounted) setState(() => _conv['blocked'] = true);
@@ -1760,52 +1825,43 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _showMembers() async {
     if (_members.isEmpty) await _loadDetail();
     if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: context.bu.sf,
-      showDragHandle: true,
-      isScrollControlled: true,
+    await BuSheet.show<void>(
+      context,
+      title: context.l10n.chatDetailMembersTitle(_members.length.toString()),
       builder: (c) {
         final t = c.bu;
-        return SafeArea(
-          child: ConstrainedBox(
-            constraints:
-                BoxConstraints(maxHeight: MediaQuery.of(c).size.height * .7),
-            child: ListView(
-                shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                children: [
-                  Text(c.l10n.chatDetailMembersTitle(_members.length.toString()),
-                      style: BuType.heading.copyWith(color: t.ink)),
-                  const SizedBox(height: 10),
-                  if (_members.isEmpty)
-                    Text(c.l10n.chatDetailMembersLoadFailed,
-                        style: BuType.body.copyWith(color: t.mut)),
-                  for (final m in _members)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(children: [
-                        BuAvatar(
-                            name: m['displayName'] as String?,
-                            url: m['avatarUrl'] as String?,
-                            size: 40),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                              (m['displayName'] as String?) ??
-                                  c.l10n.chatDetailUserFallback,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BuType.bodyStrong.copyWith(color: t.ink)),
-                        ),
-                        if ((m['role'] as String?) == 'ADMIN' ||
-                            (m['role'] as String?) == 'OWNER')
-                          BuBadge(c.l10n.chatDetailAdmin),
-                      ]),
-                    ),
-                ]),
-          ),
-        );
+        final tx = Theme.of(c).textTheme;
+        if (_members.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(c.l10n.chatDetailMembersLoadFailed,
+                style: tx.bodyMedium!.copyWith(color: t.mut)),
+          );
+        }
+        return Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final m in _members)
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Row(children: [
+                BuAvatar(
+                    name: m['displayName'] as String?,
+                    url: m['avatarUrl'] as String?,
+                    size: 40),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                      (m['displayName'] as String?) ??
+                          c.l10n.chatDetailUserFallback,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleSmall!.copyWith(color: t.ink)),
+                ),
+                if ((m['role'] as String?) == 'ADMIN' ||
+                    (m['role'] as String?) == 'OWNER')
+                  BuBadge(c.l10n.chatDetailAdmin),
+              ]),
+            ),
+        ]);
       },
     );
   }
@@ -1833,9 +1889,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           Expanded(child: _body(t)),
           _closed
               ? _closedBar(t)
-              : (_direct && _blocked)
-                  ? _blockedBar(t)
-                  : _composer(t),
+              : _searching
+                  ? SizedBox(height: MediaQuery.paddingOf(context).bottom)
+                  : (_direct && _blocked)
+                      ? _blockedBar(t)
+                      : _composer(t),
         ]),
       ),
     );
@@ -2364,15 +2422,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   : ValueListenableBuilder<int?>(
                       valueListenable: _hi,
                       child: row,
-                      builder: (c, hi, child) => AnimatedContainer(
+                      builder: (c, hi, child) => _FocusFrame(
                         key: _rowKeys.putIfAbsent(id, GlobalKey.new),
-                        duration: const Duration(milliseconds: 300),
-                        decoration: BoxDecoration(
-                          color: hi == id
-                              ? t.pr.withValues(alpha: .12)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                        color: t.pr,
+                        active: hi == id,
                         child: child,
                       ),
                     ),
@@ -2769,6 +2822,191 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ]),
         ),
       ]),
+    );
+  }
+}
+
+/// Aranan/atlanan mesajın baloncuğuna 2 dp'lik çerçeve çizer (satır şeridi yerine). Çerçeve, çocuk
+/// ağacındaki ilk geniş (> 40 dp) köşeli kutuya (baloncuk gövdesi) oturur; bulunamazsa çizilmez.
+class _FocusFrame extends SingleChildRenderObjectWidget {
+  const _FocusFrame(
+      {super.key, required this.color, required this.active, super.child});
+
+  final Color color;
+  final bool active;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderFocusFrame(color, active);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderFocusFrame renderObject) {
+    renderObject
+      ..color = color
+      ..active = active;
+  }
+}
+
+class _RenderFocusFrame extends RenderProxyBox {
+  _RenderFocusFrame(this._color, this._active);
+
+  Color _color;
+  bool _active;
+
+  set color(Color v) {
+    if (v == _color) return;
+    _color = v;
+    markNeedsPaint();
+  }
+
+  set active(bool v) {
+    if (v == _active) return;
+    _active = v;
+    markNeedsPaint();
+  }
+
+  Rect? _bubbleRect() {
+    Rect? found;
+    void visit(RenderObject o) {
+      if (found != null) return;
+      if (o is RenderDecoratedBox && o.hasSize && o.size.width > 40) {
+        final d = o.decoration;
+        if (d is BoxDecoration && d.borderRadius != null) {
+          found = MatrixUtils.transformRect(
+              o.getTransformTo(this), Offset.zero & o.size);
+          return;
+        }
+      }
+      o.visitChildren(visit);
+    }
+
+    child?.visitChildren(visit);
+    return found;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    super.paint(context, offset);
+    if (!_active) return;
+    final r = _bubbleRect();
+    if (r == null) return;
+    context.canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            r.shift(offset).inflate(1), const Radius.circular(20)),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = _color);
+  }
+}
+
+/// Sohbet onay diyaloğu (referans 21/22): 28 dp köşe, başlık satırında simge karosu, tonal "Vazgeç" + kırmızı eylem.
+class _ChatConfirmDialog extends StatelessWidget {
+  const _ChatConfirmDialog({
+    required this.title,
+    required this.body,
+    required this.confirmLabel,
+    required this.cancelLabel,
+    this.icon,
+  });
+
+  final String title;
+  final String body;
+  final String confirmLabel;
+  final String cancelLabel;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    Widget button(String label, VoidCallback onTap,
+        {required bool primary, Key? key}) {
+      return Expanded(
+        child: Material(
+          color: primary ? t.danger : t.sf2,
+          borderRadius: BuRadius.bMd,
+          elevation: 0,
+          child: InkWell(
+            key: key,
+            borderRadius: BuRadius.bMd,
+            onTap: onTap,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 52),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              alignment: Alignment.center,
+              decoration: primary
+                  ? BoxDecoration(borderRadius: BuRadius.bMd, boxShadow: [
+                      BoxShadow(
+                          color: t.danger.withValues(alpha: .3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4)),
+                    ])
+                  : null,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (primary && icon != null) ...[
+                  Icon(icon, size: 18, color: t.onPr),
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleSmall!.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primary ? t.onPr : t.ink)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Dialog(
+      key: const ValueKey('chatConfirmDialog'),
+      backgroundColor: t.sf3,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bXl),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            if (icon != null) ...[
+              ExcludeSemantics(
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration:
+                      BoxDecoration(color: t.soft, borderRadius: BuRadius.bSm),
+                  child: Icon(icon, size: 22, color: t.danger),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(title,
+                  style: tx.titleLarge!
+                      .copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+            ),
+          ]),
+          const SizedBox(height: 14),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(body,
+                style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+          ),
+          const SizedBox(height: 22),
+          Row(children: [
+            button(cancelLabel, () => Navigator.pop(context, false),
+                primary: false, key: const ValueKey('chatConfirmCancel')),
+            const SizedBox(width: 12),
+            button(confirmLabel, () => Navigator.pop(context, true),
+                primary: true, key: const ValueKey('chatConfirmOk')),
+          ]),
+        ]),
+      ),
     );
   }
 }

@@ -176,6 +176,83 @@ final _scenarios = <_Sc>[
   ]),
 ];
 
+final _clubConv = {'id': 1, 'type': 'CLUB', 'title': 'Yazılım Kulübü', 'communityId': 5, 'memberCount': 86};
+final _clubMembers = [
+  {'userId': 1, 'displayName': 'Ayşe Yılmaz'},
+  {'userId': 11, 'displayName': 'Ahmet Yılmaz'},
+];
+
+final _menuScenarios = <_Sc>[
+  _Sc('21_01_baskasinin_mesaji', _direct('Ahmet Yılmaz'), msgs: [
+    _m(2, 1, 'Sunum slaytlarını kulüp panosuna yükledim, kontrol edebilirsiniz.', _today(14, 18)),
+    _m(1, 11, "Yarın saat 14:00'te C Blok kütüphane çalışma salonunda toplanıyor muyuz?", _today(13, 48),
+        extra: {'myReaction': '❤️', 'reactions': [{'emoji': '❤️', 'count': 1}]}),
+  ], after: (t) async {
+    await t.longPress(find.textContaining('Yarın saat 14:00'));
+    await settle(t, const Duration(milliseconds: 500));
+  }),
+  _Sc('21_02_kendi_mesajim', _direct('Ahmet Yılmaz'), msgs: [
+    _m(1, 11, 'Merhaba, nasılsın?', _today(14, 10)),
+    _m(2, 1, 'Sunum slaytlarını kulüp panosuna yükledim, kontrol edebilirsiniz.', _today(14, 18)),
+  ], after: (t) async {
+    await t.longPress(find.textContaining('Sunum slaytlarını'));
+    await settle(t, const Duration(milliseconds: 500));
+  }),
+  _Sc('21_02b_kopyalandi_toast', _direct('Ahmet Yılmaz'), msgs: [
+    _m(1, 1, 'Sunum slaytlarını kulüp panosuna yükledim.', _today(14, 18)),
+  ], after: (t) async {
+    await _longPressAct(t, 'Sunum slaytlarını kulüp panosuna yükledim.', 'copy');
+  }),
+  _Sc('21_03_gonderilemeyen', _direct('Ahmet Yılmaz'), msgs: [
+    _m(1, 11, 'Selam!', _today(14, 10)),
+    {
+      'id': null,
+      'conversationId': 1,
+      'senderId': 1,
+      'clientId': 'c1',
+      'text': 'Etkinlik kayıt listesini şimdi iletiyorum...',
+      'createdAt': _iso(_today(14, 20)),
+      '_state': 'failed',
+    },
+  ], after: (t) async {
+    await t.longPress(find.textContaining('Etkinlik kayıt listesini'));
+    await settle(t, const Duration(milliseconds: 500));
+  }),
+  _Sc('21_04_sohbet_menusu_kulup', _clubConv, members: _clubMembers, msgs: [
+    _m(1, 11, 'Selam!', _today(14, 10)),
+  ], after: (t) async {
+    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await settle(t, const Duration(milliseconds: 600));
+  }),
+  _Sc('21_04b_sohbet_menusu_birebir', _direct('Ahmet Yılmaz'), msgs: [
+    _m(1, 11, 'Selam!', _today(14, 10)),
+  ], after: (t) async {
+    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await settle(t, const Duration(milliseconds: 600));
+  }),
+  _Sc('21_05_silme_onayi', _direct('Ahmet Yılmaz'), msgs: [
+    _m(2, 1, 'Sunum slaytlarını kulüp panosuna yükledim.', _today(14, 18)),
+    _m(1, 11, 'Selam!', _today(14, 10)),
+  ], after: (t) async {
+    await _longPressAct(t, 'Sunum slaytlarını kulüp panosuna yükledim.', 'delete');
+  }),
+  _Sc('22_03_ayril_diyalogu', {'id': 1, 'type': 'GROUP', 'title': 'Kampüs Fotoğrafçıları', 'memberCount': 12},
+      members: _clubMembers,
+      msgs: [_m(1, 11, 'Selam!', _today(14, 10))],
+      after: (t) async {
+        await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+        await settle(t, const Duration(milliseconds: 500));
+        await t.tap(find.byKey(const ValueKey('menu-leave')));
+        await settle(t, const Duration(milliseconds: 500));
+      }),
+  _Sc('21_07_uyeler', _clubConv, members: _clubMembers, msgs: [_m(1, 11, 'Selam!', _today(14, 10))], after: (t) async {
+    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await settle(t, const Duration(milliseconds: 500));
+    await t.tap(find.byKey(const ValueKey('menu-members')));
+    await settle(t, const Duration(milliseconds: 600));
+  }),
+];
+
 Widget _app(Widget home, bool dark, GlobalKey key, double scale) => RepaintBoundary(
       key: key,
       child: MaterialApp(
@@ -223,7 +300,7 @@ FakeBackend _backend(_Sc s) {
               if (pid != null) {'userId': pid, 'displayName': (s.conv['peer'] as Map)['displayName']},
             ],
     })
-    ..on('/messages/reactions', {'emojis': ['👍', '❤️']});
+    ..on('/messages/reactions', {'emojis': ['👍', '❤️', '😂', '😮', '😢', '🙏']});
   if (pid != null) b.on('/users/$pid/presence', s.presence);
   return b;
 }
@@ -243,7 +320,7 @@ void main() {
   setUpAll(() => _loadFonts(_lang == 'ar'));
 
   for (final v in variants) {
-    for (final sc in _scenarios) {
+    for (final sc in [..._scenarios, ..._menuScenarios]) {
       if (only.isNotEmpty && !only.any((o) => sc.file.startsWith(o))) continue;
       final name = '${sc.file}${v.$1}_$_lang${_w == 390 ? '' : '_w${_w.toInt()}'}';
       testWidgets('k6 $name', skip: skip != null, (tester) async {

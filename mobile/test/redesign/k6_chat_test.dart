@@ -174,6 +174,61 @@ void main() {
     _ok(t);
   });
 
+
+  testWidgets('mesaj silme onayı: BuDialog benzeri onay, Sil çağrısı yapar; Vazgeç yapmaz', (t) async {
+    final b = _backend([_m(2, 1, 'Silinecek mesaj'), _m(1, 11, 'Selam')]);
+    await _pump(t, _page(b, _direct()));
+    Future<void> openDialog() async {
+      await t.longPress(find.text('Silinecek mesaj'));
+      await settle(t, const Duration(milliseconds: 500));
+      await t.tap(find.byKey(const ValueKey('act-delete')));
+      await settle(t, const Duration(milliseconds: 500));
+    }
+
+    await openDialog();
+    expect(find.byKey(const ValueKey('chatConfirmDialog')), findsOneWidget);
+    expect(find.text('Mesaj silinsin mi?'), findsOneWidget);
+    expect(find.text('Bu mesaj herkes için silinir.'), findsOneWidget);
+    await t.tap(find.byKey(const ValueKey('chatConfirmCancel')));
+    await settle(t, const Duration(milliseconds: 400));
+    expect(b.count('DELETE /messages/2'), 0);
+    await openDialog();
+    await t.tap(find.byKey(const ValueKey('chatConfirmOk')));
+    await settle(t, const Duration(milliseconds: 500));
+    expect(b.count('DELETE /messages/2'), 1);
+    await unmount(t);
+    _ok(t);
+  });
+
+  testWidgets('sohbet menüsü: satırlar, oda kartı; arama açılınca yazma alanı gizlenir', (t) async {
+    final club = {'id': 1, 'type': 'CLUB', 'title': 'Yazılım Kulübü', 'communityId': 5, 'memberCount': 86};
+    await _pump(t, _page(_backend([_m(1, 11, 'Selam')], peer: null), club));
+    await t.tap(find.byTooltip('Menü'));
+    await settle(t, const Duration(milliseconds: 500));
+    for (final k in ['search', 'members', 'media', 'room', 'settings', 'about']) {
+      expect(find.byKey(ValueKey('menu-$k')), findsOneWidget, reason: k);
+    }
+    expect(find.byKey(const ValueKey('menu-leave')), findsNothing);
+    await t.tap(find.byKey(const ValueKey('menu-search')));
+    await settle(t, const Duration(milliseconds: 500));
+    expect(find.byKey(const ValueKey('chatSearchField')), findsOneWidget);
+    expect(find.byKey(const ValueKey('composerField')), findsNothing);
+    await t.tap(find.byKey(const ValueKey('chatSearchClose')));
+    await settle(t, const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('composerField')), findsOneWidget);
+
+    // Birebir sohbette engelle + şikâyet satırları.
+    await unmount(t);
+    await _pump(t, _page(_backend([_m(1, 11, 'Selam')]), _direct()));
+    await t.tap(find.byTooltip('Menü'));
+    await settle(t, const Duration(milliseconds: 500));
+    expect(find.byKey(const ValueKey('menu-block')), findsOneWidget);
+    expect(find.byKey(const ValueKey('menu-report')), findsOneWidget);
+    expect(find.byKey(const ValueKey('menu-members')), findsNothing);
+    await unmount(t);
+    _ok(t);
+  });
+
   testWidgets('boş sohbet: başlık + yönlendirme metni', (t) async {
     await _pump(t, _page(_backend([]), _direct()));
     expect(find.text('Henüz mesaj yok'), findsOneWidget);
