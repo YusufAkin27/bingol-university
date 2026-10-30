@@ -75,6 +75,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
         controller: _feedController,
         scope: _scope,
         header: _header(context),
+        onCompose: _compose,
       ),
     );
   }

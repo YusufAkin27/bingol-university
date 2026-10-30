@@ -210,6 +210,20 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     const SizedBox(height: 12),
                     _textField(t),
                     ..._errors(t),
+                    if (_photo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(LucideIcons.info, size: 16, color: t.mut),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(context.l10n.gonderiPhotoHint,
+                                key: const ValueKey('composeSingleHint'),
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: t.mut)),
+                          ),
+                        ]),
+                      ),
                   ],
                 ),
               ),
@@ -458,7 +472,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     final l = context.l10n;
     Widget row(IconData icon, Widget child, {Color? color}) => Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Icon(icon, size: 18, color: color ?? t.ink),
             const SizedBox(width: 8),
             Expanded(child: child),

@@ -17,13 +17,14 @@ class CropSpec {
     this.previewCaption,
     this.previewTitle,
     this.previewSubtitle,
+    this.previewDate,
     this.allowChange = false,
     this.allowRemove = false,
   });
 
   /// Profil fotoğrafı: 1:1, daire önizleme.
   const CropSpec.profile({String? previewName})
-      : this(kind: CropKind.profile, aspect: 1, maxEdge: 1024, circle: true, previewName: previewName);
+      : this(kind: CropKind.profile, aspect: 1, maxEdge: 512, circle: true, previewName: previewName);
 
   /// Gönderi fotoğrafı: 4:5 dikey tek biçim. [previewName]/[previewCaption] akış kartı önizlemesinde görünür.
   const CropSpec.post({String? previewName, String? previewCaption, bool allowChange = false})
@@ -40,13 +41,14 @@ class CropSpec {
       : this(kind: CropKind.logo, aspect: 1, maxEdge: 512, circle: true, previewName: previewName);
 
   /// Kulüp/etkinlik kapağı: 16:9. [previewTitle] etkinlik/kulüp başlığı, [previewSubtitle] kulüp adı.
-  const CropSpec.cover({String? previewTitle, String? previewSubtitle, bool allowRemove = false})
+  const CropSpec.cover({String? previewTitle, String? previewSubtitle, String? previewDate, bool allowRemove = false})
       : this(
             kind: CropKind.cover,
             aspect: 16 / 9,
             maxEdge: 1280,
             previewTitle: previewTitle,
             previewSubtitle: previewSubtitle,
+            previewDate: previewDate,
             allowRemove: allowRemove);
 
   /// Sohbet görseli: oran serbest (görselin kendi oranı; yalnız kaydır/yakınlaştır/döndür).
@@ -67,6 +69,9 @@ class CropSpec {
   final String? previewCaption;
   final String? previewTitle;
   final String? previewSubtitle;
+
+  /// Kapak önizlemesindeki tarih çipi metni (örn. "23 Mayıs"); null ise çip yok.
+  final String? previewDate;
 
   /// "Fotoğrafı değiştir" bağlantısı (post).
   final bool allowChange;

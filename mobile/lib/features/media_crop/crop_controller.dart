@@ -68,6 +68,12 @@ class CropController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Görseli çerçeveye ortalar (yakınlaştırma ve dönüş korunur).
+  void center() {
+    _offset = Offset.zero;
+    notifyListeners();
+  }
+
   void reset() {
     _turns = 0;
     _zoom = 1;

@@ -6,7 +6,7 @@ Tek giriş: `import '.../media_crop/media_crop.dart';`. Yeni paket yok: kaydır/
 
 | Biçim | Oran | Çıktı üst sınırı (uzun kenar) | Önizleme |
 |---|---|---|---|
-| `CropSpec.profile({previewName})` | 1:1 | 1024 | üstte "Profilde böyle görünecek": 96 px + 40 px daire (canlı) |
+| `CropSpec.profile({previewName})` | 1:1 | 512 (sunucu avatar sınırı) | üstte "Profilde böyle görünecek": 96 px + 40 px daire (canlı) |
 | `CropSpec.post({previewName, previewCaption, allowChange})` | 4:5 (tek sabit biçim) | 1350 | altta "Akışta böyle görünecek" akış kartı (+ "Fotoğrafı değiştir") |
 | `CropSpec.logo({previewName})` | 1:1 (daire kılavuzu) | 512 | "Kulüp sayfası" (daire) + "Kulüp kartı" (yuvarlak kare + ad) |
 | `CropSpec.cover({previewTitle, previewSubtitle, allowRemove})` | 16:9 | 1280 | etkinlik/kulüp kartı kapağı (+ "Kapağı kaldır") |
@@ -53,3 +53,10 @@ Referans 09/5 "Orijinal / Serbest" oran çipleri gösterir; serbest köşe sür�
 
 ## Dosyalar
 `crop_spec.dart` (biçimler, `CropOutcome`), `crop_controller.dart` (geometri, test edilebilir), `crop_engine.dart` (isolate'ta döndür + kes + JPEG), `crop_page.dart` (arayüz), `media_crop.dart` (genel API + kaynak sayfası). Testler: `mobile/test/redesign/k4_posts_test.dart`; ekran görüntüleri: `mobile/test/redesign/k4_yeni_shots_test.dart`.
+
+## Davranış notları (D12 düzeltmeleri)
+- Düzen: koyu tuval (çerçeve + "Sürükle ve yakınlaştır" hapı çerçevenin ALTINDA, köşelere binmez) üstte; altta kalan yüksekliği dolduran AÇIK yüzey: Döndür / Ortala / Sıfırla araçları, "Fotoğraf ölçeği 1.0x" kartı (− / + / kaydırıcı) ve türe göre önizleme; Vazgeç (nötr) + Kaydet/Kırp çubuğu en altta sabit.
+- Çıktı: JPEG q88, uzun kenar `CropSpec.maxEdge` (profil 512, logo 512, gönderi 1350, kapak 1280, sohbet 1600). Saydam PNG alanları beyaza boyanır. EXIF yönü motorda bir kez uygulanır (`bakeOrientation`); görüntüleme Flutter kodeğinin yönüyle aynıdır.
+- 6 MB üzeri kaynaklar önce 2400 px'e küçültülür. Kesme sırasında bellek/istisna hatasında sayfa kapanmaz: hata bildirimi çıkar, "Kaydet" yeniden denenebilir.
+- `CropSpec.cover(previewDate: '23 Mayıs')`: önizleme kartında tarih çipi; kulüp adı kulüp ikonuyla.
+- `showPhotoSourceSheet(errorTitle:, error:)`: sağ üstte kapat, ikon karolu satırlar + ayırıcılar, hata kartı başlığı.

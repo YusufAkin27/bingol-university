@@ -75,6 +75,7 @@ final _shots = <_Shot>[
   const _Shot('03_yukleniyor', state: 'loading'),
   const _Shot('04_bos', state: 'empty'),
   const _Shot('05_hata', state: 'error'),
+  const _Shot('05b_hata_ag', state: 'offline'),
   const _Shot('06_populer_cipi', after: _popular),
 ];
 
@@ -154,6 +155,9 @@ void main() {
             b.delay = const Duration(seconds: 4);
           case 'empty':
             b.on('/feed*', {'items': <Object>[], 'nextCursor': null, 'hint': null});
+            b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
+          case 'offline':
+            b.network('/feed');
             b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
           case 'error':
             b.fail('/feed', status: 500, code: 'SERVER_ERROR', message: 'Sunucu hatası');

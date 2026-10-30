@@ -30,9 +30,28 @@ Uint8List? cropJpegSync(Uint8List bytes,
   final w = rect.w.round().clamp(1, src.width - x);
   final h = rect.h.round().clamp(1, src.height - y);
   var out = img.copyCrop(src, x: x, y: y, width: w, height: h);
+  if (out.hasAlpha) {
+    // JPEG saydamlık taşımaz: saydam alanlar siyaha düşmesin diye beyaz zemine boyanır.
+    final bg = img.Image(width: out.width, height: out.height)..clear(img.ColorRgb8(255, 255, 255));
+    img.compositeImage(bg, out);
+    out = bg;
+  }
   final long = w >= h ? w : h;
   if (long > maxEdge) {
     out = w >= h ? img.copyResize(out, width: maxEdge) : img.copyResize(out, height: maxEdge);
   }
   return Uint8List.fromList(img.encodeJpg(out, quality: quality));
+}
+
+/// Çok büyük görseli (uzun kenar > [maxSide]) küçültüp JPEG'e çevirir; küçükse ya da bozuksa null (çağıran aynen kullanır).
+Future<Uint8List?> shrinkLarge(Uint8List bytes, {int maxSide = 2400}) {
+  return Isolate.run(() {
+    final src = img.decodeImage(bytes);
+    if (src == null) return null;
+    var b = img.bakeOrientation(src);
+    final long = b.width >= b.height ? b.width : b.height;
+    if (long <= maxSide) return null;
+    b = b.width >= b.height ? img.copyResize(b, width: maxSide) : img.copyResize(b, height: maxSide);
+    return Uint8List.fromList(img.encodeJpg(b, quality: 90));
+  });
 }

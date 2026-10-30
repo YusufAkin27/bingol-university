@@ -180,7 +180,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
-    final color = _liked ? BuColors.red600 : t.mut;
+    final color = _liked ? t.pr : t.mut;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
       TweenSequenceItem(tween: Tween(begin: 1.4, end: .92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
@@ -203,7 +203,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
             child: AnimatedBuilder(
               animation: _anim,
               builder: (c, _) => CustomPaint(
-                painter: _BurstPainter(progress: _anim.isAnimating ? _anim.value : 0, color: BuColors.red600),
+                painter: _BurstPainter(progress: _anim.isAnimating ? _anim.value : 0, color: t.pr),
                 child: Transform.scale(
                   scale: scale.value,
                   child: _HeartIcon(filled: _liked, color: color, size: size),
@@ -297,11 +297,12 @@ class _BurstPainter extends CustomPainter {
 /// (çağıran yalnız beğenilmemişse beğenmeli: [LikeController.like] bunu yapar). [onTap] verilirse tek dokunuş
 /// için kullanılır.
 class DoubleTapLike extends StatefulWidget {
-  const DoubleTapLike({super.key, required this.child, required this.onLike, this.onTap, this.radius = 0});
+  const DoubleTapLike({super.key, required this.child, required this.onLike, this.onTap, this.onLongPress, this.radius = 0});
 
   final Widget child;
   final VoidCallback onLike;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   /// Kararma katmanının köşe yarıçapı (çocuğun köşesiyle aynı olmalı).
   final double radius;
@@ -348,6 +349,7 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
       behavior: HitTestBehavior.opaque,
       onDoubleTap: _double,
       onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       child: Stack(alignment: Alignment.center, children: [
         widget.child,
         Positioned.fill(

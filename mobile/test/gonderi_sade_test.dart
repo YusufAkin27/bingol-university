@@ -224,7 +224,8 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(UserPostsPage(session: makeSession(b), userId: 12, name: 'Ayşe Yılmaz')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(PostCard), findsWidgets);
+      expect(find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key as ValueKey<String>).value.startsWith('upost-')), findsWidgets);
+      expect(find.byType(PostCard), findsNothing); // 3 sutun izgara, kart listesi degil
       expect(find.byIcon(Icons.bookmark_border), findsNothing);
       expect(b.requests.any((r) => r.contains('/comments') || r.contains('/stories') || r.contains('/hashtags')), isFalse);
       noErr(tester);

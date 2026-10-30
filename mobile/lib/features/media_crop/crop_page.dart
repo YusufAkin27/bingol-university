@@ -25,6 +25,7 @@ class CropPage extends StatefulWidget {
 
 class _CropPageState extends State<CropPage> {
   CropController? _c;
+  late Uint8List _src = widget.bytes;
   bool _failed = false;
   bool _busy = false;
 
@@ -41,7 +42,9 @@ class _CropPageState extends State<CropPage> {
 
   Future<void> _load() async {
     try {
-      final codec = await ui.instantiateImageCodec(widget.bytes);
+      // Çok büyük kaynaklar (>6 MB) önce küçültülür: bellek ve çözümleme süresi.
+      if (_src.length > 6 * 1024 * 1024) _src = await shrinkLarge(_src) ?? _src;
+      final codec = await ui.instantiateImageCodec(_src);
       final f = await codec.getNextFrame();
       final w = f.image.width, h = f.image.height;
       f.image.dispose();
@@ -63,13 +66,16 @@ class _CropPageState extends State<CropPage> {
     final c = _c;
     if (c == null || _busy) return;
     setState(() => _busy = true);
-    final out = await cropJpeg(widget.bytes, quarterTurns: c.quarterTurns, rect: c.toRect(), maxEdge: widget.spec.maxEdge);
+    Uint8List? out;
+    try {
+      out = await cropJpeg(_src, quarterTurns: c.quarterTurns, rect: c.toRect(), maxEdge: widget.spec.maxEdge);
+    } catch (_) {
+      out = null; // bellek yetersizliği / bozuk veri: hata verip yeniden denemeye izin ver
+    }
     if (!mounted) return;
     if (out == null) {
-      setState(() {
-        _busy = false;
-        _failed = true;
-      });
+      setState(() => _busy = false);
+      BuToast.show(context, context.l10n.p04CropError, kind: BuToastKind.error);
       return;
     }
     Navigator.of(context).pop(CropOutcome.cropped(out));
@@ -110,41 +116,51 @@ class _CropPageState extends State<CropPage> {
 
   Widget _body(BuildContext context, CropController c, BuTokens d, BuTokens t, AppLocalizations l) {
     final spec = widget.spec;
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
+    final hasPreview = spec.kind != CropKind.profile && spec.kind != CropKind.chat;
+    return CustomScrollView(
+      slivers: [
         if (spec.kind == CropKind.profile)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: _ProfilePanel(controller: c, bytes: widget.bytes),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: _ProfilePanel(controller: c, bytes: _src),
+            ),
           ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _Stage(
-            controller: c,
-            bytes: widget.bytes,
-            onScaleStart: (det) {
-              _startZoom = c.zoom;
-              _startOffset = c.offset;
-              _startFocal = det.localFocalPoint;
-            },
-            onScaleUpdate: (det) => c.gesture(
-              startZoom: _startZoom,
-              factor: det.scale,
-              startOffset: _startOffset,
-              delta: det.localFocalPoint - _startFocal,
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _Stage(
+              controller: c,
+              bytes: _src,
+              onScaleStart: (det) {
+                _startZoom = c.zoom;
+                _startOffset = c.offset;
+                _startFocal = det.localFocalPoint;
+              },
+              onScaleUpdate: (det) => c.gesture(
+                startZoom: _startZoom,
+                factor: det.scale,
+                startOffset: _startOffset,
+                delta: det.localFocalPoint - _startFocal,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        _Controls(controller: c),
-        const SizedBox(height: 8),
-        if (spec.kind != CropKind.profile && spec.kind != CropKind.chat)
-          DecoratedBox(
-          decoration: BoxDecoration(color: t.bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-            child: _Previews(controller: c, bytes: widget.bytes, onOutcome: (o) => Navigator.of(context).pop(o)),
+        // Açık alt yüzey kalan yüksekliği doldurur (ölü koyu boşluk kalmaz); araçlar + önizleme burada.
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: t.bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _Controls(controller: c),
+                if (hasPreview) ...[
+                  const SizedBox(height: 16),
+                  _Previews(controller: c, bytes: _src, onOutcome: (o) => Navigator.of(context).pop(o)),
+                ],
+              ]),
+            ),
           ),
         ),
       ],
@@ -229,8 +245,23 @@ class _ActionBar extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
           child: Row(children: [
             Expanded(
-              child: BuButton(
-                  key: const ValueKey('cropCancel'), label: l.postComposeCancel, kind: BuButtonKind.soft, onPressed: busy ? null : onCancel),
+              // Nötr (pembe değil): Vazgeç ikincil eylemdir.
+              child: Material(
+                key: const ValueKey('cropCancel'),
+                color: t.sf2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
+                child: InkWell(
+                  customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
+                  onTap: busy ? null : onCancel,
+                  child: SizedBox(
+                    height: 52,
+                    child: Center(
+                      child: Text(l.postComposeCancel,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -311,11 +342,14 @@ class _Stage extends StatelessWidget {
 
   static const pad = 28.0;
 
+  /// Çerçevenin altında ipucu hapına ayrılan boşluk (çerçeve köşelerine binmesin).
+  static const hintRoom = 36.0;
+
   @override
   Widget build(BuildContext context) {
     final c = controller;
     final f = c.frame;
-    final stage = Size(f.width + pad * 2, f.height + pad * 2);
+    final stage = Size(f.width + pad * 2, f.height + pad * 2 + hintRoom);
     const d = BuTokens.dark;
     final l = context.l10n;
     return ClipRRect(
@@ -336,7 +370,7 @@ class _Stage extends StatelessWidget {
                 onScaleUpdate: onScaleUpdate,
                 child: Stack(children: [
                   Positioned.fill(
-                    child: _Photo(controller: c, bytes: bytes, center: Offset(stage.width / 2, stage.height / 2) + c.offset),
+                    child: _Photo(controller: c, bytes: bytes, center: Offset(pad + f.width / 2, pad + f.height / 2) + c.offset),
                   ),
                   Positioned.fill(
                     child: IgnorePointer(
@@ -344,7 +378,7 @@ class _Stage extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    bottom: 12,
+                    bottom: 8,
                     left: 0,
                     right: 0,
                     child: IgnorePointer(
@@ -356,7 +390,7 @@ class _Stage extends StatelessWidget {
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(LucideIcons.hand, size: 14, color: d.onMedia),
                               const SizedBox(width: 6),
-                              Text(l.p04CropHint, style: TextStyle(color: d.onMedia, fontSize: 11, fontWeight: FontWeight.w600)),
+                              Text(l.p04CropHint, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: d.onMedia, fontWeight: FontWeight.w600)),
                             ]),
                           ),
                         ),
@@ -383,9 +417,9 @@ class _FramePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final all = Path()..addRect(Offset.zero & size);
     final hole = circle ? (Path()..addOval(frame)) : (Path()..addRect(frame));
-    canvas.drawPath(Path.combine(PathOperation.difference, all, hole), Paint()..color = const Color(0xFF000000).withValues(alpha: .58));
+    canvas.drawPath(Path.combine(PathOperation.difference, all, hole), Paint()..color = BuTokens.dark.scrim.withValues(alpha: .58));
     final line = Paint()
-      ..color = const Color(0xFFFFFFFF).withValues(alpha: .4)
+      ..color = BuTokens.dark.onMedia.withValues(alpha: .4)
       ..strokeWidth = 1;
     for (var i = 1; i <= 2; i++) {
       final x = frame.left + frame.width * i / 3, y = frame.top + frame.height * i / 3;
@@ -397,18 +431,18 @@ class _FramePainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1
-          ..color = const Color(0xFFFFFFFF).withValues(alpha: .7));
+          ..color = BuTokens.dark.onMedia.withValues(alpha: .7));
     if (circle) {
       canvas.drawOval(
           frame,
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.5
-            ..color = const Color(0xFFFFFFFF).withValues(alpha: .85));
+            ..color = BuTokens.dark.onMedia.withValues(alpha: .85));
     }
     // Köşe tutamaçları.
     final h = Paint()
-      ..color = const Color(0xFFFFFFFF)
+      ..color = BuTokens.dark.onMedia
       ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -432,7 +466,7 @@ class _FramePainter extends CustomPainter {
   bool shouldRepaint(_FramePainter o) => o.frame != frame || o.circle != circle;
 }
 
-/// Döndür / Sıfırla + yakınlaştırma çubuğu.
+/// Döndür / Ortala / Sıfırla araçları + "Fotoğraf ölçeği" kartı (açık yüzey).
 class _Controls extends StatelessWidget {
   const _Controls({required this.controller});
 
@@ -441,10 +475,10 @@ class _Controls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = controller;
-    const d = BuTokens.dark;
+    final t = context.bu;
     final l = context.l10n;
     final tt = Theme.of(context).textTheme;
-    Widget tool(Key key, IconData icon, String label, VoidCallback onTap, {bool enabled = true}) => Expanded(
+    Widget tool(Key key, IconData icon, String label, VoidCallback onTap, {bool enabled = true, bool accent = false}) => Expanded(
           child: Semantics(
             button: true,
             label: label,
@@ -455,65 +489,65 @@ class _Controls extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: enabled ? onTap : null,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
+                constraints: const BoxConstraints(minHeight: 72),
                 child: Opacity(
                   opacity: enabled ? 1 : .45,
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(icon, size: 18, color: d.ink),
-                    const SizedBox(width: 6),
-                    Flexible(
-                        child: Text(label,
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: d.ink))),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(color: accent ? t.soft : t.sf2, shape: BoxShape.circle),
+                      child: Icon(icon, size: 20, color: accent ? t.onSoft : t.ink),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tt.labelMedium?.copyWith(color: accent ? t.onSoft : t.ink, fontWeight: FontWeight.w700)),
                   ]),
                 ),
               ),
             ),
           ),
         );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: d.sf, borderRadius: BorderRadius.circular(20)),
+    return Column(children: [
+      Row(children: [
+        tool(const ValueKey('cropRotate'), LucideIcons.rotateCw, l.p04CropRotate, c.rotate),
+        tool(const ValueKey('cropCenter'), LucideIcons.focus, l.p04CropCenter, c.center, enabled: c.offset != Offset.zero),
+        tool(const ValueKey('cropReset'), LucideIcons.rotateCcw, l.p04CropReset, c.reset, enabled: c.isDirty, accent: c.isDirty),
+      ]),
+      const SizedBox(height: 8),
+      DecoratedBox(
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.md), border: Border.all(color: t.bd)),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
           child: Column(children: [
             Row(children: [
-              tool(const ValueKey('cropRotate'), LucideIcons.rotateCw, l.p04CropRotate, c.rotate),
-              tool(const ValueKey('cropReset'), LucideIcons.rotateCcw, l.p04CropReset, c.reset, enabled: c.isDirty),
+              Icon(LucideIcons.zoomIn, size: 18, color: t.pr),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l.p04CropScale, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+              Text('${c.zoom.toStringAsFixed(1)}x',
+                  key: const ValueKey('cropZoomValue'), style: tt.labelLarge?.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
             ]),
             Row(children: [
               IconButton(
                 tooltip: l.p04CropScale,
                 onPressed: () => c.setZoom(c.zoom - .25),
-                icon: Icon(LucideIcons.zoomOut, size: 18, color: d.mut),
+                icon: Icon(LucideIcons.minus, size: 18, color: t.mut),
               ),
               Expanded(
-                child: Slider(
-                  key: const ValueKey('cropZoom'),
-                  value: c.zoom,
-                  min: 1,
-                  max: CropController.maxZoom,
-                  onChanged: c.setZoom,
-                ),
+                child: Slider(key: const ValueKey('cropZoom'), value: c.zoom, min: 1, max: CropController.maxZoom, onChanged: c.setZoom),
               ),
               IconButton(
                 tooltip: l.p04CropScale,
                 onPressed: () => c.setZoom(c.zoom + .25),
-                icon: Icon(LucideIcons.zoomIn, size: 18, color: d.mut),
+                icon: Icon(LucideIcons.plus, size: 18, color: t.mut),
               ),
-              SizedBox(
-                width: 40,
-                child: Text('${c.zoom.toStringAsFixed(1)}x',
-                    key: const ValueKey('cropZoomValue'),
-                    textAlign: TextAlign.end,
-                    style: tt.labelMedium?.copyWith(color: d.mut, fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 4),
             ]),
           ]),
         ),
       ),
-    );
+    ]);
   }
 }
 
@@ -694,13 +728,34 @@ class _Previews extends StatelessWidget {
                           colors: [t.scrim.withValues(alpha: .7), t.scrim.withValues(alpha: 0)]),
                     ),
                   ),
+                  if ((spec.previewDate ?? '').isNotEmpty)
+                    PositionedDirectional(
+                      top: 10,
+                      end: 10,
+                      child: DecoratedBox(
+                        key: const ValueKey('cropPreviewDate'),
+                        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(LucideIcons.calendar, size: 14, color: t.pr),
+                            const SizedBox(width: 6),
+                            Text(spec.previewDate!, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                          ]),
+                        ),
+                      ),
+                    ),
                   PositionedDirectional(
                     start: 14,
                     end: 14,
-                    bottom: 12,
+                    bottom: 8,
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                       if ((spec.previewSubtitle ?? '').isNotEmpty)
-                        Text(spec.previewSubtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelMedium?.copyWith(color: t.onMedia)),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(LucideIcons.users, size: 14, color: t.onMedia),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text(spec.previewSubtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelMedium?.copyWith(color: t.onMedia))),
+                        ]),
                       if ((spec.previewTitle ?? '').isNotEmpty)
                         Text(spec.previewTitle!,
                             maxLines: 2,

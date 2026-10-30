@@ -106,15 +106,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       onRefresh: _loadPost,
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(16, 4, 16,
+                        padding: EdgeInsets.fromLTRB(0, 4, 0,
                             MediaQuery.of(context).padding.bottom + 24),
                         children: [
                           if (p == null)
-                            Container(
-                              height: 320,
-                              decoration: BoxDecoration(
-                                  color: t.sf2,
-                                  borderRadius: BorderRadius.circular(20)),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: PostCardSkeleton(),
                             )
                           else
                             PostCard(

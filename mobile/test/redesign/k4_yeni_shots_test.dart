@@ -7,11 +7,13 @@ import 'dart:ui' as ui;
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_media_uploader.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
+import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -125,6 +127,66 @@ Future<void> _menu(WidgetTester t) async {
   await t.pump(const Duration(milliseconds: 300));
 }
 
+List<Map<String, dynamic>> _feedItems() {
+  final authors = [('Elif Yıldız', 'Bilgisayar Mühendisliği', 1), ('Mehmet Kaya', 'Makine Mühendisliği', 12), ('Zeynep Arslan', 'Kütüphane', 13), ('Kaan Çelik', 'Kafeterya', 14)];
+  return [
+    for (var i = 0; i < 4; i++)
+      () {
+        final a = authors[i];
+        final j = samplePost(
+          id: 500 - i,
+          media: [samplePostMedia(id: 40 + i, width: 1200, height: 900)],
+          text: const ['Bahar geldi kampüse', 'Güneşli ve huzurlu bir sonbahar günü', 'Vize haftasında sıcak bir kahve molası', 'Sabah antrenmanları devam ediyor'][i],
+          likeCount: const [128, 94, 189, 340][i],
+          mine: i == 0,
+          authorId: a.$3,
+          authorName: a.$1,
+          createdAt: DateTime.now().subtract(Duration(hours: 2 + i)).toUtc().toIso8601String(),
+        );
+        (j['author'] as Map)['department'] = a.$2;
+        return j;
+      }(),
+  ];
+}
+
+/// Kesfet sekmesi (arka plan) + sabit akis; [patch422]: PATCH /posts/{id} kufur hatasi.
+Widget _discover(FakeBackend b, Session s, {bool patch422 = false}) {
+  b.handlers.insert(0, (req, path) {
+    if (path == '/feed') return FakeResult.json({'items': _feedItems(), 'nextCursor': null, 'hint': null});
+    if (patch422 && req.method == 'PATCH' && path.startsWith('/posts/')) {
+      return const FakeResult.json({'code': 'CONTENT_PROFANITY', 'message': ''}, status: 422);
+    }
+    if (path == '/users/me/follow-suggestions') return const FakeResult.json({'items': <Object>[]});
+    if (req.method == 'DELETE' && path.startsWith('/posts/')) return const FakeResult.json(null, status: 204);
+    return null;
+  });
+  return DiscoverTab(session: s, typeRequest: ValueNotifier<String?>(null));
+}
+
+Future<void> _discoverMenu(WidgetTester t, int id) async {
+  final card = find.byKey(ValueKey('discover-post-$id'));
+  await t.ensureVisible(card);
+  await t.pump();
+  await t.tap(find.descendant(of: card, matching: find.byKey(const ValueKey('post-menu-button'))));
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 300));
+}
+
+void _gridPosts(FakeBackend b, {bool empty = false}) {
+  b.handlers.insert(0, (req, path) {
+    if (path == '/users/12/posts' || path == '/posts/mine') {
+      final items = empty
+          ? <Map<String, dynamic>>[]
+          : [
+              for (var i = 0; i < 9; i++)
+                samplePost(id: 700 - i, media: [samplePostMedia(id: 60 + i)], text: 'Gönderi', likeCount: const [129, 84, 210, 12, 56, 98, 7, 143, 61][i])
+            ];
+      return FakeResult.json({'items': items, 'nextCursor': null, 'hint': null});
+    }
+    return null;
+  });
+}
+
 final _shots = <_Shot>[
   // ---- 10 gonderi olustur / detay
   _Shot('g10_01_bos', (b, s) => _compose(s)),
@@ -199,6 +261,48 @@ final _shots = <_Shot>[
     await t.pump();
     await t.pump(const Duration(milliseconds: 400));
   }),
+  // ---- 11 Kesfet arka planli menu/diyaloglar (referans 11/1-4), sikayet sheet (11/5), kullanici gonderileri (11/6)
+  _Shot('g11k_01_menu_kendi', (b, s) => _discover(b, s), act: (t, b) => _discoverMenu(t, 500)),
+  _Shot('g11k_02_menu_baskasi', (b, s) => _discover(b, s), act: (t, b) => _discoverMenu(t, 499)),
+  _Shot('g11k_03_duzenle', (b, s) => _discover(b, s, patch422: true), act: (t, b) async {
+    await _discoverMenu(t, 500);
+    await t.tap(find.byKey(const ValueKey('post-act-edit')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    await t.enterText(find.byKey(const ValueKey('edit-post-text')), 'Uygunsuz not');
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('edit-post-save')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 600));
+  }),
+  _Shot('g11k_04_sil_ve_toast', (b, s) => _discover(b, s), act: (t, b) async {
+    await _discoverMenu(t, 500);
+    await t.tap(find.byKey(const ValueKey('post-act-delete')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.byKey(const ValueKey('post-dialog-confirm')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 100));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.pump(const Duration(milliseconds: 500));
+  }),
+  _Shot('g11k_05_sikayet', (b, s) => _discover(b, s), act: (t, b) async {
+    await _discoverMenu(t, 499);
+    await t.tap(find.byKey(const ValueKey('post-act-report')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 600));
+  }),
+  _Shot('g11u_01_izgara', (b, s) => UserPostsPage(session: s, userId: 12, name: 'Ayşe Yılmaz'), setup: (b) => _gridPosts(b), act: (t, b) async {
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+    await t.pump(const Duration(milliseconds: 300));
+  }),
+  _Shot('g11u_02_bos', (b, s) => UserPostsPage(session: s), setup: (b) => _gridPosts(b, empty: true)),
+  _Shot('g11u_03_hata', (b, s) => UserPostsPage(session: s, userId: 12), setup: (b) {
+    b.handlers.insert(0, (req, path) => path == '/users/12/posts' ? const FakeResult.json({'code': 'SERVER_ERROR', 'message': ''}, status: 500) : null);
+  }),
+  _Shot('g11u_04_iskelet', (b, s) => UserPostsPage(session: s, userId: 12), setup: (b) => b.delay = const Duration(seconds: 4), act: (t, b) async {
+    await t.pump(const Duration(milliseconds: 300));
+  }),
   // ---- 09 kirpma
   _Shot('g09_01_profil', (b, s) => _opener((c) => cropImage(c, _photo, const CropSpec.profile())), act: (t, b) => _openCrop(t), height: 1000),
   _Shot('g09_02_gonderi', (b, s) => _opener((c) => cropImage(c, _photo, const CropSpec.post(previewName: 'Elif Yıldız', previewCaption: 'Kütüphane önünde güzel bir gün', allowChange: true))),
@@ -207,7 +311,7 @@ final _shots = <_Shot>[
   _Shot('g09_04_kapak', (b, s) => _opener((c) => cropImage(c, _photo, const CropSpec.cover(previewTitle: 'Bahar Şenliği', previewSubtitle: 'Müzik Kulübü', allowRemove: true))),
       act: (t, b) => _openCrop(t), height: 1000),
   _Shot('g09_05_sohbet', (b, s) => _opener((c) => cropImage(c, _photo, const CropSpec.chat())), act: (t, b) => _openCrop(t)),
-  _Shot('g09_06_kaynak', (b, s) => _opener((c) => showPhotoSourceSheet(c, removable: true, error: 'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.')), act: (t, b) async {
+  _Shot('g09_06_kaynak', (b, s) => _opener((c) => showPhotoSourceSheet(c, removable: true, errorTitle: 'Dosya boyutu yüksek', error: 'Fotoğraf en fazla 2 MB olabilir. Daha küçük bir fotoğraf seçin.')), act: (t, b) async {
     await t.tap(find.byKey(const ValueKey('open')));
     await t.pump();
     await t.pump(const Duration(milliseconds: 500));

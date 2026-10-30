@@ -52,38 +52,61 @@ Future<Uint8List?> pickAndCrop(
 /// [showPhotoSourceSheet] sonucu.
 enum PhotoSource { gallery, camera, remove }
 
-/// "Fotoğraf" kaynak alt sayfası: Galeriden seç / Fotoğraf çek / (isteğe bağlı) Fotoğrafı kaldır. [error] verilirse
-/// altta kırmızı bir uyarı kartı gösterilir (örn. boyut hatası). İptalde null.
-Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable = false, String? error}) {
+/// "Fotoğraf" kaynak alt sayfası (referans 09/6): Galeriden seç / Fotoğraf çek / (isteğe bağlı) Fotoğrafı kaldır, sağ üstte
+/// kapat düğmesi. [error] verilirse altta kırmızı uyarı kartı (başlık [errorTitle], örn. "Dosya boyutu yüksek" + 2 MB metni).
+/// İptalde null.
+Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable = false, String? error, String? errorTitle}) {
   final l = context.l10n;
   return BuSheet.show<PhotoSource>(
     context,
-    title: l.p04SrcTitle,
     builder: (ctx) {
       final t = ctx.bu;
-      return Column(mainAxisSize: MainAxisSize.min, children: [
-        BuListTile(
-          key: const ValueKey('photoSrcGallery'),
-          title: l.p04SrcGallery,
-          leading: const Icon(LucideIcons.images),
-          showChevron: true,
-          onTap: () => Navigator.pop(ctx, PhotoSource.gallery),
-        ),
-        BuListTile(
-          key: const ValueKey('photoSrcCamera'),
-          title: l.p04SrcCamera,
-          leading: const Icon(LucideIcons.camera),
-          showChevron: true,
-          onTap: () => Navigator.pop(ctx, PhotoSource.camera),
-        ),
-        if (removable)
-          BuListTile(
-            key: const ValueKey('photoSrcRemove'),
-            title: l.p04SrcRemove,
-            leading: Icon(LucideIcons.trash2, color: t.danger),
-            danger: true,
-            onTap: () => Navigator.pop(ctx, PhotoSource.remove),
+      final tt = Theme.of(ctx).textTheme;
+      Widget row(Key key, IconData icon, String label, PhotoSource v, {bool danger = false, bool chevron = true}) => InkWell(
+            key: key,
+            borderRadius: BorderRadius.circular(BuRadius.md),
+            onTap: () => Navigator.pop(ctx, v),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 64),
+              child: Row(children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: danger ? t.danger.withValues(alpha: .12) : t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+                  child: Icon(icon, size: 22, color: danger ? t.danger : t.ink),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                    child: Text(label, style: tt.titleSmall?.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w700))),
+                Icon(danger ? LucideIcons.x : LucideIcons.chevronRight, size: 18, color: danger ? t.danger : t.mut),
+              ]),
+            ),
+          );
+      return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Expanded(child: Text(l.p04SrcTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+          Tooltip(
+            message: l.postComposeClose,
+            child: Material(
+              color: t.sf2,
+              shape: const CircleBorder(),
+              child: InkWell(
+                key: const ValueKey('photoSrcClose'),
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.pop(ctx),
+                child: SizedBox.square(dimension: 44, child: Icon(LucideIcons.x, size: 20, color: t.ink)),
+              ),
+            ),
           ),
+        ]),
+        const SizedBox(height: 8),
+        row(const ValueKey('photoSrcGallery'), LucideIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+        Divider(height: 1, color: t.bd),
+        row(const ValueKey('photoSrcCamera'), LucideIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        if (removable) ...[
+          Divider(height: 1, color: t.bd),
+          row(const ValueKey('photoSrcRemove'), LucideIcons.trash2, l.p04SrcRemove, PhotoSource.remove, danger: true),
+        ],
         if (error != null)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -92,10 +115,15 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
               decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.md)),
               child: Padding(
                 padding: const EdgeInsets.all(14),
-                child: Row(children: [
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(LucideIcons.circleAlert, size: 20, color: t.danger),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(error, style: Theme.of(ctx).textTheme.bodySmall?.copyWith(color: t.danger))),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      if (errorTitle != null) Text(errorTitle, style: tt.titleSmall?.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
+                      Text(error, style: tt.bodySmall?.copyWith(color: t.danger)),
+                    ]),
+                  ),
                 ]),
               ),
             ),

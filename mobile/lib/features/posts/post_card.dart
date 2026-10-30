@@ -44,7 +44,8 @@ class PostPhoto extends StatelessWidget {
               cacheWidth: 1000,
               fit: BoxFit.cover,
               gaplessPlayback: true,
-              errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)),
+              errorBuilder: (_, __, ___) =>
+                  Center(child: Icon(LucideIcons.image, color: t.mut)),
             ),
           ),
         ),
@@ -81,12 +82,16 @@ class PostCard extends StatefulWidget {
 
 /// Kartın ortak yüzeyi: beyaz, 20 köşe, hafif gölge (koyu temada tonal, çizgisiz).
 class _CardSurface extends StatelessWidget {
-  const _CardSurface({super.key, required this.child});
+  const _CardSurface({super.key, required this.child, this.flat = false});
 
   final Widget child;
 
+  /// Düz: yüzey ve gölge yok (gönderi detayı sayfa zeminine tam genişlikte oturur).
+  final bool flat;
+
   @override
   Widget build(BuildContext context) {
+    if (flat) return child;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: context.bu.sf,
@@ -125,76 +130,94 @@ class _PostCardState extends State<PostCard> {
     ].where((e) => e.isNotEmpty).join(' • ');
     final mine = p.mine || p.author.id == widget.session.userId;
     final hasMenu = !(mine && !p.canEdit && !p.canDelete);
+    final detail = widget.detail;
+    // Detay: fotoğraf ekran genişliğinde (kenarsız), metin satırları 16 kenar boşluklu (referans 10/5-6).
+    const sidePad = EdgeInsetsDirectional.symmetric(horizontal: BuSpace.lg);
     return _CardSurface(
       key: _cardKey,
+      flat: detail,
       child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.xl, BuSpace.xl, BuSpace.xl, BuSpace.lg),
+        padding: detail
+            ? const EdgeInsetsDirectional.only(bottom: BuSpace.lg)
+            : const EdgeInsetsDirectional.fromSTEB(
+                BuSpace.xl, BuSpace.xl, BuSpace.xl, BuSpace.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BuAvatar(
-                    name: p.author.displayName,
-                    url: p.author.avatarUrl,
-                    size: 44,
-                    headers: postAuthHeaders(widget.session)),
-                BuGap.w12,
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => openUserPosts(context, widget.session,
-                        userId: p.author.id, name: p.author.displayName),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.author.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600, height: 1.2)),
-                          if (meta.isNotEmpty)
-                            Text(meta,
+            Padding(
+              padding: detail ? sidePad : EdgeInsets.zero,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BuAvatar(
+                      name: p.author.displayName,
+                      url: p.author.avatarUrl,
+                      size: 44,
+                      headers: postAuthHeaders(widget.session)),
+                  BuGap.w12,
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => openUserPosts(context, widget.session,
+                          userId: p.author.id, name: p.author.displayName),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 44),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(p.author.displayName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: tt.bodySmall?.copyWith(color: t.mut)),
-                          if (p.editedAt != null) ...[
-                            BuGap.h4,
-                            DecoratedBox(
-                              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(6)),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                child: Text(context.l10n.postViewEdited,
-                                    key: const ValueKey('post-edited'),
-                                    maxLines: 1,
-                                    style: tt.labelSmall?.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                                style: tt.titleLarge?.copyWith(
+                                    color: t.ink,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.2)),
+                            if (meta.isNotEmpty)
+                              Text(meta,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: tt.bodySmall?.copyWith(color: t.mut)),
+                            if (p.editedAt != null) ...[
+                              BuGap.h4,
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                    color: t.sf2,
+                                    borderRadius: BorderRadius.circular(6)),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  child: Text(context.l10n.postViewEdited,
+                                      key: const ValueKey('post-edited'),
+                                      maxLines: 1,
+                                      style: tt.labelSmall?.copyWith(
+                                          color: t.mut,
+                                          fontWeight: FontWeight.w700)),
+                                ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (hasMenu)
-                  Align(
-                    alignment: AlignmentDirectional.topEnd,
-                    child: PostMenuButton(
-                      session: widget.session,
-                      post: p,
-                      onChanged: widget.onChanged,
-                      onDeleted: widget.onDeleted,
-                      active: _menuOpen,
-                      cardKey: _cardKey,
-                      onOpenChanged: (v) {
-                        if (mounted) setState(() => _menuOpen = v);
-                      },
+                  if (hasMenu)
+                    Align(
+                      alignment: AlignmentDirectional.topEnd,
+                      child: PostMenuButton(
+                        session: widget.session,
+                        post: p,
+                        onChanged: widget.onChanged,
+                        onDeleted: widget.onDeleted,
+                        active: _menuOpen,
+                        cardKey: _cardKey,
+                        onOpenChanged: (v) {
+                          if (mounted) setState(() => _menuOpen = v);
+                        },
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             if (p.photo != null) ...[
               BuGap.h16,
@@ -206,20 +229,32 @@ class _PostCardState extends State<PostCard> {
               ),
             ],
             Padding(
-              padding: const EdgeInsets.only(top: BuSpace.sm),
+              padding: EdgeInsets.only(
+                  top: BuSpace.sm,
+                  left: detail ? BuSpace.lg : 0,
+                  right: detail ? BuSpace.lg : 0),
               child: LikeButton(
-                  session: widget.session, post: p, controller: _like, onChanged: widget.onChanged),
+                  session: widget.session,
+                  post: p,
+                  controller: _like,
+                  onChanged: widget.onChanged),
             ),
             if (p.hasText)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                excludeFromSemantics: true, // fotoğrafın kendi dokunma hedefi var
-                onTap: _open,
-                child: Text(p.text!.trim(),
-                    key: const ValueKey('post-text'),
-                    maxLines: widget.detail ? null : 2,
-                    overflow: widget.detail ? TextOverflow.clip : TextOverflow.ellipsis,
-                    style: tt.bodyLarge?.copyWith(color: t.ink, height: 1.4)),
+              Padding(
+                padding: detail ? sidePad : EdgeInsets.zero,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics:
+                      true, // fotoğrafın kendi dokunma hedefi var
+                  onTap: _open,
+                  child: Text(p.text!.trim(),
+                      key: const ValueKey('post-text'),
+                      maxLines: widget.detail ? null : 2,
+                      overflow: widget.detail
+                          ? TextOverflow.clip
+                          : TextOverflow.ellipsis,
+                      style: tt.bodyLarge?.copyWith(color: t.ink, height: 1.4)),
+                ),
               ),
           ],
         ),
@@ -245,11 +280,13 @@ class PostCardSkeleton extends StatelessWidget {
                 BuSkeleton.circle(44),
                 BuGap.w12,
                 Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    BuSkeleton.line(width: 120, height: 12),
-                    BuGap.h8,
-                    BuSkeleton.line(width: 84, height: 10),
-                  ]),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BuSkeleton.line(width: 120, height: 12),
+                        BuGap.h8,
+                        BuSkeleton.line(width: 84, height: 10),
+                      ]),
                 ),
                 BuSkeleton.circle(28),
               ]),

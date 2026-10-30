@@ -6,8 +6,8 @@ import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../../widgets/common.dart';
 import '../posts/like_button.dart';
+import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
 import '../posts/post_card.dart';
 import '../posts/post_models.dart';
@@ -26,12 +26,15 @@ class DiscoverFeedController {
 /// kaydırma, çekip yenileme, iskelet / hata / boş durumları. Engelleme/gizlilik süzmesi sunucudadır (`/feed`).
 /// [header] akışla birlikte kayar (başlık, arama, çipler, öneriler). [scope] değişince akış baştan yüklenir.
 class DiscoverMasonryFeed extends StatefulWidget {
-  const DiscoverMasonryFeed({super.key, required this.session, this.controller, this.header, this.scope = 'top'});
+  const DiscoverMasonryFeed({super.key, required this.session, this.controller, this.header, this.scope = 'top', this.onCompose});
 
   final Session session;
   final DiscoverFeedController? controller;
   final Widget? header;
   final String scope;
+
+  /// Boş durumdaki "Gönderi oluştur" düğmesi.
+  final VoidCallback? onCompose;
 
   @override
   State<DiscoverMasonryFeed> createState() => _DiscoverMasonryFeedState();
@@ -175,6 +178,10 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     setState(() => _items[i] = p);
   }
 
+  void _removed(int id) {
+    if (mounted) setState(() => _items.removeWhere((e) => e.id == id));
+  }
+
   Future<void> _open(Post p) async {
     final r = await openPostDetail(context, widget.session, p.id, initial: p);
     if (r != null) _changed(r);
@@ -186,11 +193,9 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     if (!_loaded && _error == null) {
       body = const SliverToBoxAdapter(child: DiscoverFeedSkeleton());
     } else if (_error != null && !_loaded) {
-      body = SliverToBoxAdapter(child: SizedBox(height: 360, child: ErrorView(error: _error!, onRetry: _reload)));
+      body = SliverToBoxAdapter(child: DiscoverErrorCard(offline: _error is ApiError && (_error as ApiError).isNetwork, onRetry: _reload));
     } else if (_items.isEmpty) {
-      body = SliverToBoxAdapter(
-        child: SizedBox(height: 320, child: EmptyView(icon: LucideIcons.messageSquareText, text: context.l10n.postViewFeedEmpty)),
-      );
+      body = SliverToBoxAdapter(child: DiscoverEmptyCard(onCompose: widget.onCompose));
     } else {
       body = SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
@@ -205,6 +210,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
               post: p,
               onOpen: _open,
               onChanged: _changed,
+              onDeleted: _removed,
             );
           },
         ),
@@ -244,46 +250,44 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   }
 }
 
-/// Yükleniyor: tek sütun, iki gönderi kartı iskeleti (avatar + iki satır, 4:3 foto, beğeni + metin).
+/// Yükleniyor (referans 12/1): iki sütun, değişken yükseklikli beyaz iskelet kartları (foto bloğu + iki satır +
+/// avatar ve kalp çubuğu).
 class DiscoverFeedSkeleton extends StatelessWidget {
   const DiscoverFeedSkeleton({super.key});
 
+  static const _left = [180.0, 156.0, 200.0];
+  static const _right = [230.0, 164.0, 190.0];
+
   @override
   Widget build(BuildContext context) {
-    Widget card() => DecoratedBox(
-          decoration: BoxDecoration(
-            color: context.bu.sf,
-            borderRadius: BorderRadius.circular(BuRadius.lg),
-            boxShadow: BuElevation.of(context, 1),
+    final t = context.bu;
+    Widget card(double photo) => DecoratedBox(
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              BuSkeleton(height: photo, radius: BuRadius.md),
+              BuGap.h12,
+              const BuSkeleton.line(width: 100, height: 11),
+              BuGap.h6,
+              const BuSkeleton.line(width: 64, height: 10),
+              BuGap.h12,
+              const Row(children: [
+                BuSkeleton.circle(20),
+                BuGap.w6,
+                BuSkeleton.line(width: 46, height: 10),
+                Spacer(),
+                BuSkeleton.circle(14),
+                BuGap.w4,
+                BuSkeleton.line(width: 14, height: 10),
+              ]),
+            ]),
           ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(14),
-                child: Row(children: [
-                  BuSkeleton.circle(36),
-                  BuGap.w12,
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      BuSkeleton.line(width: 110, height: 12),
-                      BuGap.h6,
-                      BuSkeleton.line(width: 72, height: 10),
-                    ]),
-                  ),
-                ]),
-              ),
-              AspectRatio(aspectRatio: 4 / 3, child: BuSkeleton(height: double.infinity, radius: 0)),
-              Padding(
-                padding: EdgeInsets.all(BuSpace.lg),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BuSkeleton.line(width: 90, height: 12),
-                  BuGap.h12,
-                  BuSkeleton.line(height: 12),
-                ]),
-              ),
-            ],
-          ),
+        );
+    Widget col(List<double> hs) => Expanded(
+          child: Column(children: [
+            for (final h in hs) ...[card(h), BuGap.h12],
+          ]),
         );
     return Semantics(
       label: context.l10n.commonLoading,
@@ -292,10 +296,109 @@ class DiscoverFeedSkeleton extends StatelessWidget {
           child: Padding(
             key: const ValueKey('discoverSkeleton'),
             padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
-            child: Column(children: [card(), BuGap.h20, card()]),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [col(_left), BuGap.w12, col(_right)]),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Boş durum (referans 12/2): kamera dairesi, "Henüz gönderi yok. İlk gönderiyi sen paylaş!", Gönderi oluştur.
+class DiscoverEmptyCard extends StatelessWidget {
+  const DiscoverEmptyCard({super.key, this.onCompose});
+
+  final VoidCallback? onCompose;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+      child: DecoratedBox(
+        key: const ValueKey('discoverEmpty'),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.xl), boxShadow: BuElevation.of(context, 1)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+              child: Icon(LucideIcons.camera, size: 40, color: t.pr),
+            ),
+            BuGap.h20,
+            Text(l.postViewFeedEmpty, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+            if (onCompose != null) ...[
+              BuGap.h20,
+              BuButton(key: const ValueKey('discoverEmptyCompose'), label: l.discoverCompose, icon: LucideIcons.camera, compact: true, onPressed: onCompose),
+            ],
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Hata / çevrimdışı (referans 12/3): ince gri şerit ("İnternet bağlantısı yok · Kayıtlı veriler gösteriliyor", yalnız ağ
+/// hatasında) + sunucuya ulaşılamadı kartı ve Yeniden dene.
+class DiscoverErrorCard extends StatelessWidget {
+  const DiscoverErrorCard({super.key, required this.offline, required this.onRetry});
+
+  final bool offline;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+      child: Column(children: [
+        if (offline)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: DecoratedBox(
+              key: const ValueKey('discoverOfflineStrip'),
+              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 32),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(LucideIcons.wifiOff, size: 14, color: t.mut),
+                    BuGap.w6,
+                    Flexible(child: Text(l.p14OfflineStrip, textAlign: TextAlign.center, style: tt.labelSmall?.copyWith(color: t.ink))),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        DecoratedBox(
+          key: const ValueKey('discoverError'),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.xl), boxShadow: BuElevation.of(context, 1)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                child: Icon(LucideIcons.wifiOff, size: 28, color: t.pr),
+              ),
+              BuGap.h12,
+              Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              BuGap.h6,
+              Text(l.p04FeedErrBody, textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut)),
+              BuGap.h16,
+              BuButton(key: const ValueKey('discoverRetry'), label: l.postViewRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
+            ]),
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -309,6 +412,7 @@ class DiscoverPostCard extends StatefulWidget {
     required this.post,
     required this.onOpen,
     required this.onChanged,
+    this.onDeleted,
   });
 
   final Session session;
@@ -316,12 +420,40 @@ class DiscoverPostCard extends StatefulWidget {
   final ValueChanged<Post> onOpen;
   final ValueChanged<Post> onChanged;
 
+  /// Gönderi silinince/engellenince (⋯ menüsünden) çağrılır; akıştan çıkarılmalı.
+  final ValueChanged<int>? onDeleted;
+
   @override
   State<DiscoverPostCard> createState() => _DiscoverPostCardState();
 }
 
 class _DiscoverPostCardState extends State<DiscoverPostCard> {
   final _like = LikeController();
+  final _cardKey = GlobalKey();
+  final _menuKey = GlobalKey();
+  bool _menuOpen = false;
+
+  bool get _hasMenu {
+    final p = widget.post;
+    final mine = p.mine || p.author.id == widget.session.userId;
+    return !(mine && !p.canEdit && !p.canDelete);
+  }
+
+  /// Uzun basma: ⋯ düğmesine dokunmakla aynı menü (kart karartmanın üstünde kalır).
+  void _longPress() {
+    if (!_hasMenu) return;
+    final p = widget.post;
+    showPostActions(context,
+        session: widget.session,
+        post: p,
+        onEdited: widget.onChanged,
+        onDeleted: () => widget.onDeleted?.call(p.id),
+        anchorContext: _menuKey.currentContext,
+        cardContext: _cardKey.currentContext,
+        onOpenChanged: (v) {
+          if (mounted) setState(() => _menuOpen = v);
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -337,6 +469,7 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
     return Semantics(
       container: true,
       child: DecoratedBox(
+        key: _cardKey,
         decoration: BoxDecoration(
           color: t.sf,
           borderRadius: BorderRadius.circular(BuRadius.lg),
@@ -350,10 +483,11 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => openUserPosts(context, widget.session, userId: p.author.id, name: name),
+                onLongPress: _longPress,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 44),
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsetsDirectional.fromSTEB(14, 10, _hasMenu ? 6 : 14, 10),
                     child: Row(children: [
                       BuAvatar(name: name, url: p.author.avatarUrl, size: 36, headers: postAuthHeaders(widget.session)),
                       const SizedBox(width: 10),
@@ -392,6 +526,19 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                           ],
                         ),
                       ),
+                      if (_hasMenu)
+                        PostMenuButton(
+                          key: _menuKey,
+                          session: widget.session,
+                          post: p,
+                          onChanged: widget.onChanged,
+                          onDeleted: (id) => widget.onDeleted?.call(id),
+                          active: _menuOpen,
+                          cardKey: _cardKey,
+                          onOpenChanged: (v) {
+                            if (mounted) setState(() => _menuOpen = v);
+                          },
+                        ),
                     ]),
                   ),
                 ),
@@ -404,6 +551,7 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                   child: DoubleTapLike(
                     onLike: _like.like,
                     onTap: () => widget.onOpen(p),
+                    onLongPress: _hasMenu ? _longPress : null,
                     child: PostPhoto(session: widget.session, post: p, radius: 0, aspectRatio: 4 / 3),
                   ),
                 ),

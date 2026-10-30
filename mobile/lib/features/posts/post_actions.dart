@@ -248,7 +248,7 @@ class _EditDialogState extends State<_EditDialog> {
       if (!mounted) return;
       var msg = errorText(e);
       if (e is ApiError && e.code == 'CONTENT_PROFANITY' && e.message.isEmpty) {
-        msg = context.l10n.postComposeProfanityFallback;
+        msg = context.l10n.postComposeErrProfanity;
       }
       setState(() {
         _busy = false;
