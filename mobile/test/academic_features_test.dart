@@ -330,6 +330,35 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('resmi program: Bolumum/Tumu kapsam cipleri scope=all ister ve geri doner', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = FakeBackend();
+      final f = fakeAcademic(b);
+      f.official = [
+        {'id': 1, 'title': 'Fizik Final', 'type': 'FINAL', 'department': 'Fizik', 'startsAt': '2026-11-20T09:00:00+03:00'},
+      ];
+      f.officialAll = [
+        ...f.official,
+        {'id': 2, 'title': 'Kimya Final', 'type': 'FINAL', 'department': 'Kimya', 'startsAt': '2026-11-21T09:00:00+03:00'},
+      ];
+      await tester.pumpWidget(buildApp(ExamsPage(session: makeSession(b), initialTab: 1), size: kPhoneMedium));
+      await settle(tester);
+      expect(find.text('Bölümüm'), findsOneWidget);
+      expect(find.text('Tümü'), findsOneWidget);
+      expect(find.text('Fizik Final'), findsOneWidget);
+      expect(find.text('Kimya Final'), findsNothing);
+      expect(b.requests, contains('GET /exams/official'));
+      await tester.tap(find.text('Tümü'));
+      await settle(tester);
+      expect(b.requests, contains('GET /exams/official?scope=all'));
+      expect(find.text('Kimya Final'), findsOneWidget);
+      await tester.tap(find.text('Bölümüm'));
+      await settle(tester);
+      expect(find.text('Kimya Final'), findsNothing);
+      expect(find.text('Fizik Final'), findsOneWidget);
+      await unmount(tester);
+    });
+
     testWidgets('bos durum ve sinav ekleme formu', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();

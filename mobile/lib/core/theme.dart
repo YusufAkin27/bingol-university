@@ -133,12 +133,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
   ];
 
   static const light = BuTokens(
-    bg: Color(0xFFFAF6F3),
+    // Nötr yüzeyler Stitch design-system.txt'e hizalı (soğuk gri-mavi): bg=surface, sf=container-lowest,
+    // sf2=container, bd=container-high, mut=secondary. Marka kırmızısı ve tint aileleri değişmedi.
+    bg: Color(0xFFF8F9FC),
     sf: Color(0xFFFFFFFF),
-    sf2: Color(0xFFF3ECE7),
+    sf2: Color(0xFFEDEEF1),
     ink: Color(0xFF171E33),
-    mut: Color(0xFF5F6577),
-    bd: Color(0xFFE8DFD8),
+    mut: Color(0xFF575E76),
+    bd: Color(0xFFE7E8EB),
     pr: Color(0xFFC62A20),
     onPr: Color(0xFFFFFFFF),
     soft: Color(0xFFFDE7E4),

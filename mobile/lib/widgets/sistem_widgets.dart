@@ -13,7 +13,7 @@ abstract final class SistemTones {
 
   /// Seçilmemiş radyo halkası.
   static Color radioOff(BuildContext c) =>
-      Theme.of(c).brightness == Brightness.dark ? const Color(0xFF6B7288) : const Color(0xFFCDBFB6);
+      Theme.of(c).brightness == Brightness.dark ? const Color(0xFF6B7288) : const Color(0xFFC3C7D4);
 }
 
 /// Yumuşak zeminli köşeli ikon karosu (tasarımdaki `.tile` / `.big`).

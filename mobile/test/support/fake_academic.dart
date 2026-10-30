@@ -23,6 +23,9 @@ class FakeAcademic {
   final List<Map<String, dynamic>> courses = [];
   final List<Map<String, dynamic>> exams = [];
   List<Map<String, dynamic>> official = [];
+
+  /// `scope=all` (Tümü) yanıtı; boşsa `official` döner.
+  List<Map<String, dynamic>> officialAll = [];
   bool profileComplete = true;
   List<Map<String, dynamic>> events = [];
   final List<Map<String, dynamic>> announcements = [];
@@ -141,7 +144,7 @@ class FakeAcademic {
       return const FakeResult.json(null, status: 204);
     }
     if (path == '/exams/official') {
-      return _j({'items': q['scope'] == 'all' ? official : official, 'profileComplete': profileComplete});
+      return _j({'items': q['scope'] == 'all' && officialAll.isNotEmpty ? officialAll : official, 'profileComplete': profileComplete});
     }
     if (path == '/academic/calendar') return _j({'from': '2026-11-01', 'to': '2026-11-30', 'items': events});
     if (path == '/academic/calendar/next') return _j({'items': events});

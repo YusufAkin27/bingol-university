@@ -31,6 +31,7 @@ class _ExamsPageState extends State<ExamsPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
   late int _tab = widget.initialTab;
   String? _filter; // tür süzgeci (null = tümü)
+  bool _showAll = false; // resmi program kapsamı: false = Bölümüm, true = Tümü (GET /exams/official?scope=all)
 
   List<Exam> _mine = [];
   List<Course> _courses = [];
@@ -73,7 +74,7 @@ class _ExamsPageState extends State<ExamsPage> {
   Future<void> _loadOfficial() async {
     setState(() => _loadingOfficial = true);
     try {
-      final r = await _api.officialExams();
+      final r = await _api.officialExams(all: _showAll);
       if (!mounted) return;
       setState(() {
         _official = r.items;
@@ -89,6 +90,16 @@ class _ExamsPageState extends State<ExamsPage> {
         });
       }
     }
+  }
+
+  void _toggleAll(bool all) {
+    if (_showAll == all) return;
+    setState(() {
+      _showAll = all;
+      _official = []; // eski kapsamın listesi yeni kapsam yüklenirken görünmesin
+      _errOfficial = null;
+    });
+    _loadOfficial();
   }
 
   Future<void> _openForm([Exam? exam]) async {
@@ -115,6 +126,7 @@ class _ExamsPageState extends State<ExamsPage> {
           children: [
             if (mine && _mine.isNotEmpty) ...[_topRow(), const SizedBox(height: 14)],
             _segment(),
+            if (!mine) ...[const SizedBox(height: 10), _scopeChips()],
             const SizedBox(height: 14),
             ...(mine ? _mineBody() : _officialBody()),
           ],
@@ -176,6 +188,18 @@ class _ExamsPageState extends State<ExamsPage> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
       child: Row(children: [part(0, l.acadExamsTabMine), part(1, l.acadExamsTabOfficial)]),
+    );
+  }
+
+  /// Resmi program kapsamı (ürün kararı, referansta yok): tek satırlık küçük çip çifti, segmentin hemen altında.
+  Widget _scopeChips() {
+    final l = context.l10n;
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Wrap(spacing: 8, children: [
+        AkadChip(label: l.acadMyDept, selected: !_showAll, onTap: () => _toggleAll(false)),
+        AkadChip(label: l.acadAll, selected: _showAll, onTap: () => _toggleAll(true)),
+      ]),
     );
   }
 
