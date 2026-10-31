@@ -6,10 +6,14 @@
 ## 1. Tek içe aktarma
 
 ```dart
-import '../../widgets/bu.dart';   // belirteçler + TÜM ortak bileşenler (+ LucideIcons)
+import '../../widgets/bu.dart';   // belirteçler + TÜM ortak bileşenler (+ BuIcons)
 ```
 
 `bu.dart` şunları dışa aktarır: `core/theme.dart` (BuTokens, `context.bu`, BuTheme), `typography.dart` (BuType), `BuSpace/BuGap`, `BuRadius`, `BuMotion`, `BuElevation`, `bu_widgets` (eski + yeniden biçimlenen çekirdek), `bu_list`, `bu_state`, `bu_skeleton`, `bu_overlays`, `bu_pressable`, `bu_page_scaffold`, `bu_motion_widgets`, `bu_hero`, `bu_illustrations`, `bu_image`. Tarih/format yardımcıları ve `LoadingView/ErrorView/EmptyView` hâlâ `widgets/common.dart`'tadır.
+
+### 1.1 İkon kuralı (ICONS-MIGRATE, 2026-11-01)
+
+Uygulamanın TEK ikon kapısı `BuIcons` (`lib/core/icons/bu_icons.dart`, `widgets/bu.dart` ile gelir): `Icon(BuIcons.chevronRight, size: 18, color: t.mut)`. Sabitler `IconData`'dır (Hugeicons 4.4.0 glif verisinden üretilmiş `assets/fonts/BuIcons.ttf`, çalışma zamanında SVG yok). **Yeni ikon = `BuIcons`'a eklenir; doğrudan `LucideIcons.*` ya da `Icons.*` kullanılmaz** (iki istisna `BuIcons.delete`/`keyboard`, Lucide'e işaret eder). Eklemek için `mobile/tools/icons/README.md` (eşleme belgesine satır -> `parse_doc_map.py` -> `extract_hugeicons.py` -> `build_icons.py`; üretilen font/Dart elle düzenlenmez). Çizgi kalınlığı sabit 1.75. Dolu hâller (`heartFilled`, `starFilled`, `bookmarkFilled`, `bellFilled`, `playFilled`, `pauseFilled`, `circleCheckFilled`, `circleAlertFilled`, `triangleAlertFilled` vb.) yalnız durum göstergesi içindir (beğeni, kaydet, yıldız, oynat/duraklat, onay/uyarı); alt çubukta etkin sekme çizgi glif + `pr` rengi + yumuşak `soft` hap zemindir. RTL: yön okları (`arrowLeft/Right`, `chevronLeft/Right`) `buDirIcon` ile aynalanır (glifte `matchTextDirection` KULLANILMAZ). 14 dp altı boyut önerilmez (`BuIconSize.minLegible`). MIT lisans notu `registerBuIconLicenses()` ile lisans sayfasına eklenir.
 
 ## 2. Tasarım ilkeleri
 
@@ -261,12 +265,12 @@ Ayar grubu, onay, bildirim:
 
 ```dart
 BuGroup(dividerIndent: 66, children: [
-  BuSettingsTile(icon: LucideIcons.globe, title: l10n.language, value: _langName, tint: context.bu.tint(1), onTap: _pickLang),
-  BuSettingsTile.toggle(icon: LucideIcons.bell, title: l10n.notifications, value: _on, onChanged: _setOn),
-  BuSettingsTile(icon: LucideIcons.logOut, title: l10n.signOut, danger: true, onTap: _confirmSignOut),
+  BuSettingsTile(icon: BuIcons.globe, title: l10n.language, value: _langName, tint: context.bu.tint(1), onTap: _pickLang),
+  BuSettingsTile.toggle(icon: BuIcons.bell, title: l10n.notifications, value: _on, onChanged: _setOn),
+  BuSettingsTile(icon: BuIcons.logOut, title: l10n.signOut, danger: true, onTap: _confirmSignOut),
 ]);
 
-final ok = await BuDialog.confirm(context, title: l10n.signOutQ, confirmLabel: l10n.signOut, destructive: true, icon: LucideIcons.logOut);
+final ok = await BuDialog.confirm(context, title: l10n.signOutQ, confirmLabel: l10n.signOut, destructive: true, icon: BuIcons.logOut);
 BuToast.show(context, l10n.saved, kind: BuToastKind.success);
 ```
 

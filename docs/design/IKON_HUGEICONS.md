@@ -442,3 +442,25 @@ Kuru çalıştırma (`python -I -X utf8 mobile/tools/icons/migrate_usages.py --d
 
 Adımlar: (1) `widgets/bu.dart`'a `export '../core/icons/bu_icons.dart';` ekle; (2) `migrate_usages.py --apply`; (3) `bu_widgets.dart` `buDirIcon`'u `buIconDirection`'a yönlendir (veya bırak; `BuIcons` sabitleriyle zaten çalışır); (4) `main()`'e `registerBuIconLicenses()`; (5) `floating_nav.dart`, `like_button.dart`, `poll_parts.dart` gibi Material çiftli yerleri elle gözden geçir (script "elle gözden geçirilecek" listesi: alt bar `home`/`homeFilled` vb.); (6) `flutter analyze` + `flutter test` tamamı; (7) `lucide_icons_flutter` yalnız `BuIcons.delete/keyboard` için kalır; ayrı iş: o iki ikonu özel SVG/glifle çıkarıp bağımlılığı kaldırmak.
 Not: belge bölüm 8-9'daki `BuIcon` widget'ı, `BuIconData`, SVG önbelleği, 48 test dosyasında `findBuIcon` yardımcısı gereksizdir; `find.byIcon(BuIcons.x)` aynen çalışır.
+
+## 12. Geçiş tamamlandı (ICONS-MIGRATE-2) — 2026-11-01
+
+**Durum: mobil uygulamadaki tüm ikonlar `BuIcons` üzerinden.** Bölüm 11'deki 2. faz planı uygulandı.
+
+| Ölçü | Sayı |
+|---|---|
+| Değişen dosya | 187 (lib 145, test 42) + `main.dart`, `bu.dart`, `app_gate.dart` ve çözümleyici düzeltmeleri |
+| Değişim | `LucideIcons.*` 1082 + `Icons.*` 47 = **1129** (`Icon(` 350, `IconData` taşıyan parametre 660, `==` karşılaştırma 10, `find.byIcon` 109) |
+| `lib/` içinde kalan doğrudan `LucideIcons`/`Icons` | 0 (kural testi: `test/bu_icons_test.dart` "lib/ içinde doğrudan ... kullanılmaz") |
+| Import | 155 dosya `widgets/bu.dart` ihracıyla (`export '../core/icons/bu_icons.dart'`), 29 dosyada ayrı import; kullanılmayan `lucide`/`bu_widgets` importları düşürüldü |
+| `lucide_icons_flutter` | pubspec'te KALDI (yalnız `BuIcons.delete`/`keyboard` için) |
+
+Kararlar:
+- **Eşlemesiz test ikonları** (Lucide: mail, house, flame, moon, paperclip, terminal, gavel, key, signal, wifi, batteryFull; Material 20 ad: bookmark_border, mode_comment_outlined, send, share, ...) yalnız test dosyalarında ve ürün kodunda yoktur (çoğu `find.byIcon(...)`, `findsNothing` veya rastgele örnek ikon). Fontu şişirmemek için **eşleme eklenmedi**, testlerde olduğu gibi bırakıldı (`bu_widgets.dart` `LucideIcons`'u hâlâ ihraç eder). Ürüne yeni ikon girerse `BuIcons`'a eklenir (README).
+- **Alt bar** (`floating_nav.dart`): etkin sekme artık dolu glif değil, **aynı çizgi glif + `pr` rengi + mevcut `soft` hap göstergesi** (cam hap tasarımı aynen; `filled` alanı kaldırıldı). Tahta: `C:\bu_design\icons\migrate_kontrol_alt_bar.png`.
+- **Dolu hâller yalnız durum göstergesinde:** beğeni (`like_button.dart`: `heart` / `heartFilled`), kaydet (`news_tile`, `news_detail_page`: `bookmark` / `bookmarkFilled`), yıldız puanı (`poll_parts`: `star` / `starFilled`), onay/uyarı (`circleCheckFilled`, `circleAlertFilled`, `triangleAlertFilled`), oynat/duraklat (`playFilled` / `pauseFilled`).
+- **RTL:** `buDirIcon` (`bu_widgets.dart`) artık `BuIcons.arrowLeft/Right`, `chevronLeft/Right` çiftlerini değiştirir (mekanik dönüşümle); glifte `matchTextDirection` yok. Test: `bu_icons_test.dart` "yön yardımcıları".
+- **Küçük ikonlar:** 12-13 dp olan 10 yer 14 dp'ye çıkarıldı (chat_tab zil kapalı, chatd_parts video, message_bubble yeniden dene, club_detail_cards iğne, etkinlik2_settings bilgi, follow_widgets 3, my_events, academic_picker); 9-11 dp olan 4 yer (push_banner rozeti 9, media_picker oynat 10, club rozeti 11) kapsayıcı sabit boyutlu olduğundan DEĞİŞMEDİ. Çizgi kalınlığı 1.75 aynen.
+- **Test altyapısı:** `test/support/fake_app.dart` `loadIconFonts()` artık `BuIcons.ttf`'yi yükler (aksi hâlde ekran görüntüsünde kare çıkar). Ekran görüntüleri: `test/redesign/ikon_sonra_shots_test.dart` (`STORE_SHOTS_OUT=... flutter test ...`; yol: `C:\bu_qa\shots\tasarim\ikon_sonra\`, 9 ekran x açık/koyu).
+
+Yeniden üretim hatası (öğrenilen): `migrate_usages.py` `lib/core/icons/` ve `bu_icons_test.dart` dosyalarını DOKUNMAZ (aksi hâlde `BuIcons.delete = LucideIcons.delete` kendine işaret eder).

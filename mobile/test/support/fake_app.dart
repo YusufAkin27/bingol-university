@@ -343,6 +343,12 @@ Future<void> loadTestFonts() async {
 /// Lucide ikon yazı tipi (testte kare yerine gerçek ikon çizilsin diye). Paket varlığı `pubspec.lock`
 /// ile aynı sürümde pub önbelleğinden okunur; bulunamazsa sessizce atlanır.
 Future<void> loadIconFonts() async {
+  // BuIcons (Hugeicons glifleri, uygulamanin tek ikon yazi tipi): testte kare yerine gercek glif cizilsin.
+  final bu = File('assets/fonts/BuIcons.ttf');
+  if (bu.existsSync()) {
+    final l = FontLoader('BuIcons')..addFont(Future.value(ByteData.sublistView(bu.readAsBytesSync())));
+    await l.load();
+  }
   // Material ikonları (Icons.*) da kare yerine gerçek çizilsin.
   final root = Platform.environment['FLUTTER_ROOT'] ?? 'C:/src/flutter';
   final mi = File('$root/bin/cache/artifacts/material_fonts/materialicons-regular.otf');

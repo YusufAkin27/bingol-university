@@ -79,6 +79,23 @@ void main() {
       }
     });
 
+    test('lib/ içinde doğrudan LucideIcons.* ya da Material Icons.* kullanılmaz (tek kapı: BuIcons)', () {
+      final bad = <String>[];
+      final re = RegExp(r'(?<![A-Za-z0-9_])(LucideIcons|Icons)\.\w+');
+      for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
+        final path = f.path.replaceAll('\\', '/');
+        if (!path.endsWith('.dart') || path.contains('/core/icons/')) continue;
+        final lines = f.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          final line = lines[i];
+          if (line.trimLeft().startsWith('//')) continue;
+          final m = re.firstMatch(line);
+          if (m != null) bad.add('$path:${i + 1}: ${m.group(0)}');
+        }
+      }
+      expect(bad, isEmpty, reason: 'Yeni ikon BuIcons a eklenir (mobile/tools/icons/README.md)');
+    });
+
     test('karşılıksız iki ikon Lucide kalır', () {
       expect(BuIcons.delete, LucideIcons.delete);
       expect(BuIcons.keyboard, LucideIcons.keyboard);
