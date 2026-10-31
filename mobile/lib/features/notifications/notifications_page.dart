@@ -466,7 +466,6 @@ class _NotifFilterChip extends StatelessWidget {
           duration: BuMotion.of(context, BuMotion.short),
           constraints: const BoxConstraints(minHeight: BuSize.chip),
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: selected ? t.soft : t.sf,
             borderRadius: BorderRadius.circular(BuRadius.pill),
