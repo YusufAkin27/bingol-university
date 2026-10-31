@@ -4,6 +4,7 @@ import { ButtonLink } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { trustPoints } from './components/trustPoints';
 import infoStyles from './components/InfoPage.module.css';
 
 /** Çocuk Güvenliği İrtibat Noktası (Play beyanındaki iletişim); ad yazılmaz, rol olarak anılır. */
@@ -26,6 +27,7 @@ export default function ChildSafetyPage() {
       slug="childsafety"
       path={paths.site.childSafety}
       sections={CHILD_SAFETY_SECTIONS}
+      highlights={trustPoints(t, 'child', ['shield', 'flag', 'eye', 'mail'])}
       after={{
         s6: (
           <div className={infoStyles.actions}>

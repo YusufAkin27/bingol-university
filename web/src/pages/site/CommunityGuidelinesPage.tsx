@@ -4,6 +4,7 @@ import { ButtonLink } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { trustPoints } from './components/trustPoints';
 
 export const GUIDELINES_SECTIONS: SectionSpec[] = [
   { id: 's1', l: 4 },
@@ -20,6 +21,7 @@ export default function CommunityGuidelinesPage() {
       slug="guidelines"
       path={paths.site.guidelines}
       sections={GUIDELINES_SECTIONS}
+      highlights={trustPoints(t, 'guidelines', ['users', 'flag', 'bell', 'info'])}
       after={{
         s5: <ButtonLink to={paths.site.legal('COMMUNITY_RULES')}>{t('pg.guidelines.fullText')}</ButtonLink>,
       }}

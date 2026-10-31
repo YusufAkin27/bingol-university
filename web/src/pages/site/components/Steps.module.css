@@ -56,3 +56,18 @@
     gap: var(--space-6);
   }
 }
+
+/* stack: yan yana sütun yok; adımlar tek sütunda, aralarında ince çizgi (hesap silme gibi uzun cümleli yönergeler) */
+.steps.stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.stack .step {
+  padding-block: var(--space-4);
+}
+.stack > li:last-child .step {
+  border-block-end: 1px solid var(--border);
+}
+.stack .solo {
+  font-weight: 500;
+}

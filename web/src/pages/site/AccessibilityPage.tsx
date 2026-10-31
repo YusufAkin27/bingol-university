@@ -4,6 +4,7 @@ import { ButtonLink } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { trustPoints } from './components/trustPoints';
 
 export const ACCESSIBILITY_SECTIONS: SectionSpec[] = [
   { id: 's1', p: 1 },
@@ -20,6 +21,7 @@ export default function AccessibilityPage() {
       slug="accessibility"
       path={paths.site.accessibility}
       sections={ACCESSIBILITY_SECTIONS}
+      highlights={trustPoints(t, 'access', ['eye', 'check', 'globe', 'info'])}
       after={{ s4: <ButtonLink to={paths.site.contact}>{t('site.nav.contact')}</ButtonLink> }}
     />
   );

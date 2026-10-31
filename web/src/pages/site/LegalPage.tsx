@@ -103,7 +103,11 @@ function LegalDocPage({ type }: { type: LegalType }) {
             ))}
           {doc.data && <LegalDocument title={doc.data.title} content={doc.data.content} docLang={doc.data.lang} />}
 
-          {(type === 'PRIVACY' || type === 'KVKK') && <AdminAccessNotice />}
+          {(type === 'PRIVACY' || type === 'KVKK') && (
+            <div className={styles.notice}>
+              <AdminAccessNotice />
+            </div>
+          )}
 
           <div className={`${styles.more} ${styles.noPrint}`}>
             <section aria-labelledby="legal-versions">

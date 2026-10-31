@@ -98,6 +98,11 @@
   background: var(--surface-2);
   color: var(--primary);
 }
+.toc a:focus-visible,
+.tocBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 /* Okunaklı satır uzunluğu: ~66 karakter, tam genişlikte gövde */
 .article {
   display: grid;
@@ -106,14 +111,23 @@
   min-width: 0;
   max-width: 68ch;
   font-size: var(--text-base);
-  line-height: var(--leading-body);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+/* uzun metinde 17 px: satır ~68 karakterde kalır */
+@media (min-width: 640px) {
+  .article {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
 }
 .article section {
   min-width: 0;
 }
 .h2 {
   font-size: var(--text-xl);
-  margin-block-start: var(--space-5);
+  line-height: 1.25;
+  margin-block-start: var(--space-6);
   scroll-margin-block-start: calc(var(--header-h) + var(--space-4));
 }
 .h3 {
@@ -125,7 +139,8 @@
   grid-template-columns: minmax(0, 1fr);
   max-width: none;
   margin-block-start: var(--space-2);
-  font-size: var(--text-base);
+  font-size: inherit;
+  line-height: inherit;
 }
 .md > * {
   min-width: 0;

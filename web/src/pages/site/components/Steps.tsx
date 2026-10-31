@@ -10,15 +10,17 @@ export interface StepItem {
 
 /**
  * Sade "nasıl çalışır" adımları: numaralı sıralı liste (masaüstünde yan yana, mobilde alt alta).
- * Numara süstür (CSS sayacı); anlam <ol> ve metinde kalır.
+ * `stack`: her zaman tek sütun (uzun adım cümleleri için). Numara süstür (CSS sayacı); anlam <ol> ve metinde kalır.
  */
-export function Steps({ items }: { items: StepItem[] }) {
+export function Steps({ items, stack }: { items: StepItem[]; stack?: boolean }) {
+  // stack: tek sütun, başlıklar paragraf (uzun cümlelik adımlar bölüm başlığı sayılmaz; ekran okuyucu başlık listesi temiz kalır)
+  const Title = stack ? 'p' : 'h3';
   return (
-    <ol className={styles.steps}>
+    <ol className={`${styles.steps} ${stack ? styles.stack : ''}`}>
       {items.map((s, i) => (
         <li key={i}>
           <Reveal delay={i * 90} className={styles.step}>
-            <h3 className={`${styles.title} ${s.text ? '' : styles.solo}`}>{s.title}</h3>
+            <Title className={`${styles.title} ${s.text ? '' : styles.solo}`}>{s.title}</Title>
             {s.text && <p className={styles.text}>{s.text}</p>}
           </Reveal>
         </li>

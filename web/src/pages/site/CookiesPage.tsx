@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { useCookieChoice } from '../../lib/cookieConsent';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { trustPoints } from './components/trustPoints';
 import styles from './components/InfoPage.module.css';
 
 export const COOKIES_SECTIONS: SectionSpec[] = [
@@ -23,6 +24,7 @@ export default function CookiesPage() {
       slug="cookies"
       path={paths.site.cookies}
       sections={COOKIES_SECTIONS}
+      highlights={trustPoints(t, 'cookies', ['check', 'eyeOff', 'settings'])}
       after={{
         s4: (
           <div className={styles.actions}>

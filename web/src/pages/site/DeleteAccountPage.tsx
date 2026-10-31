@@ -9,6 +9,7 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { PhoneMockup } from './components/PhoneMockup';
 import infoStyles from './components/InfoPage.module.css';
 import styles from './DeleteAccountPage.module.css';
 
@@ -40,6 +41,7 @@ export default function DeleteAccountPage() {
       slug="delete"
       path={paths.site.deleteAccount}
       sections={DELETE_SECTIONS}
+      figure={{ s1: <PhoneMockup shot="delete" width="min(62vw, 240px)" tilt={-2} /> }}
       intro={
         <p className={styles.app} data-testid="delete-app-line">
           {operatorName

@@ -5,6 +5,7 @@ import { ButtonLink } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { InfoPage, type SectionSpec } from './components/InfoPage';
+import { trustPoints } from './components/trustPoints';
 
 export const SECURITY_SECTIONS: SectionSpec[] = [
   { id: 's1', l: 6 },
@@ -23,6 +24,7 @@ export default function SecurityPage() {
       slug="security"
       path={paths.site.security}
       sections={SECURITY_SECTIONS}
+      highlights={trustPoints(t, 'security', ['shield', 'eyeOff', 'check', 'alert'])}
       after={{
         s4: (
           <>
