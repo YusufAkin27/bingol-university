@@ -4648,5 +4648,44 @@
   "p60EmptyAction": "Bölüm ekle",
   "p60NoClassesToday": "Bugün dersin yok",
   "p60NoTimetable": "Ders programı eklenmemiş",
-  "p60ShortSearch": "Arama"
+  "p60ShortSearch": "Arama",
+  "p67ChatBgTitle": "Sohbet arka planı",
+  "p67ChatBgPattern": "Desen",
+  "p67ChatBgSoft": "Hafif",
+  "p67ChatBgStrong": "Orta",
+  "p67ChatBgPlain": "Düz",
+  "p67ChatBgPreviewIn": "Selam, derste görüşürüz.",
+  "p67ChatBgPreviewOut": "Tamam, görüşürüz.",
+  "p67SettingsChats": "Sohbetler",
+  "p67AttachAllowPhotos": "Fotoğraflara erişime izin ver",
+  "p67PickerSend": "Gönder ({n})",
+  "@p67PickerSend": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p66HelpPrompt": "Giriş yapamıyor musunuz?",
+  "p66HelpAction": "Yardım al",
+  "p66HelpSub": "Giriş yapamıyorsanız bize yazın. Doğrulama kodunu e-postanıza göndereceğiz.",
+  "p66FieldName": "Ad soyad",
+  "p66FieldEmail": "E-posta",
+  "p66FieldTopic": "Konu",
+  "p66FieldMessage": "Mesajınız",
+  "p66ErrName": "Ad soyadınızı girin.",
+  "p66ErrEmail": "Geçerli bir e-posta adresi girin.",
+  "p66ErrMsgShort": "Mesaj en az 10 karakter olmalı.",
+  "p66ErrMsgLong": "Mesaj en fazla 2000 karakter olabilir.",
+  "p66ReplyNote": "Yanıtı e-postanıza göndeririz.",
+  "p66CodeSix": "6 haneli kodu girin.",
+  "p66CodeBad": "Kod hatalı veya süresi dolmuş.",
+  "p66TrackTitle": "Talebiniz",
+  "p66TrackYou": "Siz",
+  "p66TrackStaff": "Destek ekibi",
+  "p66TrackHint": "Yanıtınızı yazın",
+  "p66TrackSend": "Gönder",
+  "p66TrackClosed": "Bu talep kapatıldı.",
+  "p66MyTicket": "Talebim",
+  "p66AboutBody": "Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır."
 }

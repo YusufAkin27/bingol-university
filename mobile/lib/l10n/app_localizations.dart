@@ -16650,6 +16650,198 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Arama'**
   String get p60ShortSearch;
+
+  /// No description provided for @p67ChatBgTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet arka planı'**
+  String get p67ChatBgTitle;
+
+  /// No description provided for @p67ChatBgPattern.
+  ///
+  /// In tr, this message translates to:
+  /// **'Desen'**
+  String get p67ChatBgPattern;
+
+  /// No description provided for @p67ChatBgSoft.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hafif'**
+  String get p67ChatBgSoft;
+
+  /// No description provided for @p67ChatBgStrong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orta'**
+  String get p67ChatBgStrong;
+
+  /// No description provided for @p67ChatBgPlain.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düz'**
+  String get p67ChatBgPlain;
+
+  /// No description provided for @p67ChatBgPreviewIn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Selam, derste görüşürüz.'**
+  String get p67ChatBgPreviewIn;
+
+  /// No description provided for @p67ChatBgPreviewOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamam, görüşürüz.'**
+  String get p67ChatBgPreviewOut;
+
+  /// No description provided for @p67SettingsChats.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbetler'**
+  String get p67SettingsChats;
+
+  /// No description provided for @p67AttachAllowPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflara erişime izin ver'**
+  String get p67AttachAllowPhotos;
+
+  /// No description provided for @p67PickerSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder ({n})'**
+  String p67PickerSend(String n);
+
+  /// No description provided for @p66HelpPrompt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yapamıyor musunuz?'**
+  String get p66HelpPrompt;
+
+  /// No description provided for @p66HelpAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yardım al'**
+  String get p66HelpAction;
+
+  /// No description provided for @p66HelpSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yapamıyorsanız bize yazın. Doğrulama kodunu e-postanıza göndereceğiz.'**
+  String get p66HelpSub;
+
+  /// No description provided for @p66FieldName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad soyad'**
+  String get p66FieldName;
+
+  /// No description provided for @p66FieldEmail.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta'**
+  String get p66FieldEmail;
+
+  /// No description provided for @p66FieldTopic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu'**
+  String get p66FieldTopic;
+
+  /// No description provided for @p66FieldMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajınız'**
+  String get p66FieldMessage;
+
+  /// No description provided for @p66ErrName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad soyadınızı girin.'**
+  String get p66ErrName;
+
+  /// No description provided for @p66ErrEmail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçerli bir e-posta adresi girin.'**
+  String get p66ErrEmail;
+
+  /// No description provided for @p66ErrMsgShort.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj en az 10 karakter olmalı.'**
+  String get p66ErrMsgShort;
+
+  /// No description provided for @p66ErrMsgLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj en fazla 2000 karakter olabilir.'**
+  String get p66ErrMsgLong;
+
+  /// No description provided for @p66ReplyNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtı e-postanıza göndeririz.'**
+  String get p66ReplyNote;
+
+  /// No description provided for @p66CodeSix.
+  ///
+  /// In tr, this message translates to:
+  /// **'6 haneli kodu girin.'**
+  String get p66CodeSix;
+
+  /// No description provided for @p66CodeBad.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod hatalı veya süresi dolmuş.'**
+  String get p66CodeBad;
+
+  /// No description provided for @p66TrackTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Talebiniz'**
+  String get p66TrackTitle;
+
+  /// No description provided for @p66TrackYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Siz'**
+  String get p66TrackYou;
+
+  /// No description provided for @p66TrackStaff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Destek ekibi'**
+  String get p66TrackStaff;
+
+  /// No description provided for @p66TrackHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtınızı yazın'**
+  String get p66TrackHint;
+
+  /// No description provided for @p66TrackSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get p66TrackSend;
+
+  /// No description provided for @p66TrackClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu talep kapatıldı.'**
+  String get p66TrackClosed;
+
+  /// No description provided for @p66MyTicket.
+  ///
+  /// In tr, this message translates to:
+  /// **'Talebim'**
+  String get p66MyTicket;
+
+  /// No description provided for @p66AboutBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.'**
+  String get p66AboutBody;
 }
 
 class _AppLocalizationsDelegate

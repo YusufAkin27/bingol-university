@@ -2853,5 +2853,44 @@
   "p60EmptyAction": "إضافة قسم",
   "p60NoClassesToday": "لا دروس اليوم",
   "p60NoTimetable": "لم تتم إضافة جدول دروس",
-  "p60ShortSearch": "بحث"
+  "p60ShortSearch": "بحث",
+  "p67ChatBgTitle": "خلفية المحادثة",
+  "p67ChatBgPattern": "نقش",
+  "p67ChatBgSoft": "خفيف",
+  "p67ChatBgStrong": "متوسط",
+  "p67ChatBgPlain": "سادة",
+  "p67ChatBgPreviewIn": "مرحبا، نراك في المحاضرة.",
+  "p67ChatBgPreviewOut": "حسنا، نراك لاحقا.",
+  "p67SettingsChats": "المحادثات",
+  "p67AttachAllowPhotos": "السماح بالوصول إلى الصور",
+  "p67PickerSend": "إرسال ({n})",
+  "@p67PickerSend": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p66HelpPrompt": "لا تستطيع تسجيل الدخول؟",
+  "p66HelpAction": "احصل على مساعدة",
+  "p66HelpSub": "إذا تعذّر عليك تسجيل الدخول فراسلنا. سنرسل رمز التحقق إلى بريدك الإلكتروني.",
+  "p66FieldName": "الاسم الكامل",
+  "p66FieldEmail": "البريد الإلكتروني",
+  "p66FieldTopic": "الموضوع",
+  "p66FieldMessage": "رسالتك",
+  "p66ErrName": "أدخل اسمك الكامل.",
+  "p66ErrEmail": "أدخل بريدًا إلكترونيًا صالحًا.",
+  "p66ErrMsgShort": "يجب ألا تقل الرسالة عن 10 أحرف.",
+  "p66ErrMsgLong": "يجب ألا تزيد الرسالة عن 2000 حرف.",
+  "p66ReplyNote": "سنرسل الرد إلى بريدك الإلكتروني.",
+  "p66CodeSix": "أدخل الرمز المكوّن من 6 أرقام.",
+  "p66CodeBad": "الرمز غير صحيح أو انتهت صلاحيته.",
+  "p66TrackTitle": "طلبك",
+  "p66TrackYou": "أنت",
+  "p66TrackStaff": "فريق الدعم",
+  "p66TrackHint": "اكتب ردّك",
+  "p66TrackSend": "إرسال",
+  "p66TrackClosed": "تم إغلاق هذا الطلب.",
+  "p66MyTicket": "طلبي",
+  "p66AboutBody": "تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول."
 }

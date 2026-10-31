@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/academic/reminders.dart';
+import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/home/home_layout.dart';
@@ -28,6 +29,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
+    ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }
 

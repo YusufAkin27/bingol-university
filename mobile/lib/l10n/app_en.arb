@@ -2853,5 +2853,44 @@
   "p60EmptyAction": "Add a section",
   "p60NoClassesToday": "No classes today",
   "p60NoTimetable": "No timetable yet",
-  "p60ShortSearch": "Search"
+  "p60ShortSearch": "Search",
+  "p67ChatBgTitle": "Chat background",
+  "p67ChatBgPattern": "Pattern",
+  "p67ChatBgSoft": "Subtle",
+  "p67ChatBgStrong": "Medium",
+  "p67ChatBgPlain": "Plain",
+  "p67ChatBgPreviewIn": "Hi, see you in class.",
+  "p67ChatBgPreviewOut": "Okay, see you.",
+  "p67SettingsChats": "Chats",
+  "p67AttachAllowPhotos": "Allow access to photos",
+  "p67PickerSend": "Send ({n})",
+  "@p67PickerSend": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p66HelpPrompt": "Can’t sign in?",
+  "p66HelpAction": "Get help",
+  "p66HelpSub": "If you can’t sign in, write to us. We will email you a verification code.",
+  "p66FieldName": "Full name",
+  "p66FieldEmail": "Email",
+  "p66FieldTopic": "Topic",
+  "p66FieldMessage": "Your message",
+  "p66ErrName": "Enter your full name.",
+  "p66ErrEmail": "Enter a valid email address.",
+  "p66ErrMsgShort": "The message must be at least 10 characters.",
+  "p66ErrMsgLong": "The message can be at most 2000 characters.",
+  "p66ReplyNote": "We will send the reply to your email.",
+  "p66CodeSix": "Enter the 6-digit code.",
+  "p66CodeBad": "The code is wrong or has expired.",
+  "p66TrackTitle": "Your request",
+  "p66TrackYou": "You",
+  "p66TrackStaff": "Support team",
+  "p66TrackHint": "Write your reply",
+  "p66TrackSend": "Send",
+  "p66TrackClosed": "This request is closed.",
+  "p66MyTicket": "My request",
+  "p66AboutBody": "An independent student app built for the students and staff of Bingöl University."
 }

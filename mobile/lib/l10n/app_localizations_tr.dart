@@ -9159,4 +9159,104 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p60ShortSearch => 'Arama';
+
+  @override
+  String get p67ChatBgTitle => 'Sohbet arka planı';
+
+  @override
+  String get p67ChatBgPattern => 'Desen';
+
+  @override
+  String get p67ChatBgSoft => 'Hafif';
+
+  @override
+  String get p67ChatBgStrong => 'Orta';
+
+  @override
+  String get p67ChatBgPlain => 'Düz';
+
+  @override
+  String get p67ChatBgPreviewIn => 'Selam, derste görüşürüz.';
+
+  @override
+  String get p67ChatBgPreviewOut => 'Tamam, görüşürüz.';
+
+  @override
+  String get p67SettingsChats => 'Sohbetler';
+
+  @override
+  String get p67AttachAllowPhotos => 'Fotoğraflara erişime izin ver';
+
+  @override
+  String p67PickerSend(String n) {
+    return 'Gönder ($n)';
+  }
+
+  @override
+  String get p66HelpPrompt => 'Giriş yapamıyor musunuz?';
+
+  @override
+  String get p66HelpAction => 'Yardım al';
+
+  @override
+  String get p66HelpSub =>
+      'Giriş yapamıyorsanız bize yazın. Doğrulama kodunu e-postanıza göndereceğiz.';
+
+  @override
+  String get p66FieldName => 'Ad soyad';
+
+  @override
+  String get p66FieldEmail => 'E-posta';
+
+  @override
+  String get p66FieldTopic => 'Konu';
+
+  @override
+  String get p66FieldMessage => 'Mesajınız';
+
+  @override
+  String get p66ErrName => 'Ad soyadınızı girin.';
+
+  @override
+  String get p66ErrEmail => 'Geçerli bir e-posta adresi girin.';
+
+  @override
+  String get p66ErrMsgShort => 'Mesaj en az 10 karakter olmalı.';
+
+  @override
+  String get p66ErrMsgLong => 'Mesaj en fazla 2000 karakter olabilir.';
+
+  @override
+  String get p66ReplyNote => 'Yanıtı e-postanıza göndeririz.';
+
+  @override
+  String get p66CodeSix => '6 haneli kodu girin.';
+
+  @override
+  String get p66CodeBad => 'Kod hatalı veya süresi dolmuş.';
+
+  @override
+  String get p66TrackTitle => 'Talebiniz';
+
+  @override
+  String get p66TrackYou => 'Siz';
+
+  @override
+  String get p66TrackStaff => 'Destek ekibi';
+
+  @override
+  String get p66TrackHint => 'Yanıtınızı yazın';
+
+  @override
+  String get p66TrackSend => 'Gönder';
+
+  @override
+  String get p66TrackClosed => 'Bu talep kapatıldı.';
+
+  @override
+  String get p66MyTicket => 'Talebim';
+
+  @override
+  String get p66AboutBody =>
+      'Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.';
 }

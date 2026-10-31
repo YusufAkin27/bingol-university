@@ -532,10 +532,16 @@ class RefTextField extends StatefulWidget {
     this.forceError,
     this.focusNode,
     this.labelAction,
+    this.minLines = 1,
+    this.maxLines = 1,
   });
 
   final TextEditingController controller;
   final String label;
+
+  /// Çok satırlı alan (ör. destek mesajı): [minLines]..[maxLines].
+  final int minLines;
+  final int maxLines;
 
   /// Soldaki simge; null ise simgesiz alan.
   final IconData? icon;
@@ -659,8 +665,10 @@ class _RefTextFieldState extends State<RefTextField> {
       focusNode: _focus,
       enabled: widget.enabled,
       obscureText: widget.obscureText,
-      keyboardType: widget.keyboardType,
-      textInputAction: widget.textInputAction,
+      minLines: widget.obscureText ? 1 : widget.minLines,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      keyboardType: widget.maxLines > 1 ? TextInputType.multiline : widget.keyboardType,
+      textInputAction: widget.maxLines > 1 ? TextInputAction.newline : widget.textInputAction,
       autofillHints: widget.autofillHints,
       autocorrect: widget.autocorrect,
       enableSuggestions: widget.autocorrect,

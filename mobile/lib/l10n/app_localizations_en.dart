@@ -9191,4 +9191,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p60ShortSearch => 'Search';
+
+  @override
+  String get p67ChatBgTitle => 'Chat background';
+
+  @override
+  String get p67ChatBgPattern => 'Pattern';
+
+  @override
+  String get p67ChatBgSoft => 'Subtle';
+
+  @override
+  String get p67ChatBgStrong => 'Medium';
+
+  @override
+  String get p67ChatBgPlain => 'Plain';
+
+  @override
+  String get p67ChatBgPreviewIn => 'Hi, see you in class.';
+
+  @override
+  String get p67ChatBgPreviewOut => 'Okay, see you.';
+
+  @override
+  String get p67SettingsChats => 'Chats';
+
+  @override
+  String get p67AttachAllowPhotos => 'Allow access to photos';
+
+  @override
+  String p67PickerSend(String n) {
+    return 'Send ($n)';
+  }
+
+  @override
+  String get p66HelpPrompt => 'Can’t sign in?';
+
+  @override
+  String get p66HelpAction => 'Get help';
+
+  @override
+  String get p66HelpSub =>
+      'If you can’t sign in, write to us. We will email you a verification code.';
+
+  @override
+  String get p66FieldName => 'Full name';
+
+  @override
+  String get p66FieldEmail => 'Email';
+
+  @override
+  String get p66FieldTopic => 'Topic';
+
+  @override
+  String get p66FieldMessage => 'Your message';
+
+  @override
+  String get p66ErrName => 'Enter your full name.';
+
+  @override
+  String get p66ErrEmail => 'Enter a valid email address.';
+
+  @override
+  String get p66ErrMsgShort => 'The message must be at least 10 characters.';
+
+  @override
+  String get p66ErrMsgLong => 'The message can be at most 2000 characters.';
+
+  @override
+  String get p66ReplyNote => 'We will send the reply to your email.';
+
+  @override
+  String get p66CodeSix => 'Enter the 6-digit code.';
+
+  @override
+  String get p66CodeBad => 'The code is wrong or has expired.';
+
+  @override
+  String get p66TrackTitle => 'Your request';
+
+  @override
+  String get p66TrackYou => 'You';
+
+  @override
+  String get p66TrackStaff => 'Support team';
+
+  @override
+  String get p66TrackHint => 'Write your reply';
+
+  @override
+  String get p66TrackSend => 'Send';
+
+  @override
+  String get p66TrackClosed => 'This request is closed.';
+
+  @override
+  String get p66MyTicket => 'My request';
+
+  @override
+  String get p66AboutBody =>
+      'An independent student app built for the students and staff of Bingöl University.';
 }

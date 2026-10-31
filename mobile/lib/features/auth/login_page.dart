@@ -8,6 +8,8 @@ import '../../core/pending_verification.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'forgot_password_page.dart';
+import 'help/about_page.dart';
+import 'help/help_form_page.dart';
 import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
@@ -269,7 +271,19 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       Center(
-                        child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                        child: RefFooterPrompt(
+                          prompt: l.p66HelpPrompt,
+                          action: l.p66HelpAction,
+                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
+                        ),
+                      ),
+                      // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
+                      Center(
+                        child: TextButton(
+                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
+                          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+                          child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                        ),
                       ),
                     ],
                   ),

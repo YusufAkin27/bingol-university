@@ -9091,4 +9091,104 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p60ShortSearch => 'بحث';
+
+  @override
+  String get p67ChatBgTitle => 'خلفية المحادثة';
+
+  @override
+  String get p67ChatBgPattern => 'نقش';
+
+  @override
+  String get p67ChatBgSoft => 'خفيف';
+
+  @override
+  String get p67ChatBgStrong => 'متوسط';
+
+  @override
+  String get p67ChatBgPlain => 'سادة';
+
+  @override
+  String get p67ChatBgPreviewIn => 'مرحبا، نراك في المحاضرة.';
+
+  @override
+  String get p67ChatBgPreviewOut => 'حسنا، نراك لاحقا.';
+
+  @override
+  String get p67SettingsChats => 'المحادثات';
+
+  @override
+  String get p67AttachAllowPhotos => 'السماح بالوصول إلى الصور';
+
+  @override
+  String p67PickerSend(String n) {
+    return 'إرسال ($n)';
+  }
+
+  @override
+  String get p66HelpPrompt => 'لا تستطيع تسجيل الدخول؟';
+
+  @override
+  String get p66HelpAction => 'احصل على مساعدة';
+
+  @override
+  String get p66HelpSub =>
+      'إذا تعذّر عليك تسجيل الدخول فراسلنا. سنرسل رمز التحقق إلى بريدك الإلكتروني.';
+
+  @override
+  String get p66FieldName => 'الاسم الكامل';
+
+  @override
+  String get p66FieldEmail => 'البريد الإلكتروني';
+
+  @override
+  String get p66FieldTopic => 'الموضوع';
+
+  @override
+  String get p66FieldMessage => 'رسالتك';
+
+  @override
+  String get p66ErrName => 'أدخل اسمك الكامل.';
+
+  @override
+  String get p66ErrEmail => 'أدخل بريدًا إلكترونيًا صالحًا.';
+
+  @override
+  String get p66ErrMsgShort => 'يجب ألا تقل الرسالة عن 10 أحرف.';
+
+  @override
+  String get p66ErrMsgLong => 'يجب ألا تزيد الرسالة عن 2000 حرف.';
+
+  @override
+  String get p66ReplyNote => 'سنرسل الرد إلى بريدك الإلكتروني.';
+
+  @override
+  String get p66CodeSix => 'أدخل الرمز المكوّن من 6 أرقام.';
+
+  @override
+  String get p66CodeBad => 'الرمز غير صحيح أو انتهت صلاحيته.';
+
+  @override
+  String get p66TrackTitle => 'طلبك';
+
+  @override
+  String get p66TrackYou => 'أنت';
+
+  @override
+  String get p66TrackStaff => 'فريق الدعم';
+
+  @override
+  String get p66TrackHint => 'اكتب ردّك';
+
+  @override
+  String get p66TrackSend => 'إرسال';
+
+  @override
+  String get p66TrackClosed => 'تم إغلاق هذا الطلب.';
+
+  @override
+  String get p66MyTicket => 'طلبي';
+
+  @override
+  String get p66AboutBody =>
+      'تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.';
 }
