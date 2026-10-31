@@ -311,10 +311,10 @@ class _DocRow extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final (icon, tint) = switch (type) {
       'TERMS' => (LucideIcons.gavel, t.tint(BuTintId.blue)),
-      'PRIVACY' => (LucideIcons.shield, t.tint(BuTintId.aqua)),
-      'KVKK' => (LucideIcons.lockKeyhole, t.tint(BuTintId.aqua)),
-      'COMMUNITY_RULES' => (LucideIcons.users, t.tint(BuTintId.green)),
-      _ => (LucideIcons.fileText, t.tint(BuTintId.slate)),
+      'PRIVACY' => (LucideIcons.shield, t.tint(BuTintId.blue)),
+      'KVKK' => (LucideIcons.lockKeyhole, t.tint(BuTintId.blue)),
+      'COMMUNITY_RULES' => (LucideIcons.users, t.tint(BuTintId.blue)),
+      _ => (LucideIcons.fileText, t.tint(BuTintId.blue)),
     };
     return Semantics(
       button: true,

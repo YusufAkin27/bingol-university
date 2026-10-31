@@ -77,7 +77,7 @@ class AuthResendRowState extends State<AuthResendRow> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
+      duration: BuMotion.of(context, BuMotion.short),
       child: _left > 0
           ? Row(
               key: const ValueKey('wait'),
@@ -146,7 +146,7 @@ class AuthPasswordGuide extends StatelessWidget {
             children: [
               Expanded(child: Text(l.p02PwStrengthTitle, style: tx.bodySmall!.copyWith(color: t.mut, fontWeight: FontWeight.w500))),
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
+                duration: BuMotion.of(context, BuMotion.short),
                 child: Text(
                   password.isEmpty ? '' : label,
                   key: ValueKey(password.isEmpty ? '' : label),
@@ -161,8 +161,8 @@ class AuthPasswordGuide extends StatelessWidget {
               for (var i = 0; i < 3; i++) ...[
                 Expanded(
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeOutCubic,
+                    duration: BuMotion.of(context, BuMotion.medium),
+                    curve: BuMotion.decelerate,
                     height: 6,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(3),
@@ -211,7 +211,7 @@ class _AuthRuleState extends State<AuthRule> {
     return Row(
       children: [
         AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
+          duration: BuMotion.of(context, BuMotion.medium),
           curve: Curves.easeOutBack,
           width: 22,
           height: 22,
@@ -221,7 +221,7 @@ class _AuthRuleState extends State<AuthRule> {
           ),
           child: AnimatedScale(
             scale: ok ? 1 : 0,
-            duration: const Duration(milliseconds: 260),
+            duration: BuMotion.of(context, BuMotion.medium),
             curve: Curves.easeOutBack,
             child: Icon(LucideIcons.check, size: 14, color: tint.fg),
           ),
@@ -229,7 +229,7 @@ class _AuthRuleState extends State<AuthRule> {
         const SizedBox(width: 12),
         Expanded(
           child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+            duration: BuMotion.of(context, BuMotion.short),
             style: tx.bodyMedium!.copyWith(color: ok ? t.ink : t.mut),
             child: Text(widget.label),
           ),

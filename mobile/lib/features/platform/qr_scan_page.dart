@@ -67,7 +67,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     if (!mounted) return;
     setState(() => _cam = ok);
     if (ok && !MediaQuery.disableAnimationsOf(context)) {
-      _sweep.repeat(reverse: true);
+      // Tarama çizgisi 3 gidiş-dönüş yapıp durur (sürekli döngü yok; pil ve dikkat dostu).
+      _sweep.repeat(reverse: true, count: 6);
     } else {
       _sweep.stop();
     }
@@ -113,6 +114,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
       _busy = false;
       _success = true;
     });
+    _sweep.stop();
+    buHaptic(BuHaptic.light);
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!mounted || _done) return;
     _done = true;
@@ -265,9 +268,16 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                 child: SizedBox(
                   width: 254,
                   height: 254,
-                  child: Stack(
+                  // Çerçeve: açılışta hafifçe içeri "oturur" (1,1 -> 1); okuma başarılıysa daralıp yeşile döner (kilitlenme)
+                  // ve ortada onay işareti belirir. Yalnız transform/opacity/renk; azalt açıkken anında.
+                  child: _FrameLock(
+                    success: _success,
+                    ok: t.ok,
+                    onOk: t.onMedia,
+                    child: Stack(
                     children: [
-                      Positioned.fill(child: CustomPaint(painter: _CornerPainter(t.onMedia))),
+                      Positioned.fill(child: _AnimatedCorners(color: _success ? t.ok : t.onMedia)),
+                      if (!_success)
                       AnimatedBuilder(
                         animation: _sweep,
                         builder: (_, __) => Align(
@@ -284,8 +294,9 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                         ),
                       ),
                     ],
+                    ),
                   ),
-                ),
+                  ),
               ),
             ),
             PositionedDirectional(
@@ -668,4 +679,64 @@ class _CornerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CornerPainter old) => old.color != color;
+}
+
+/// Köşe çizgilerinin rengi (beyaz -> yeşil) 150 ms'de yumuşakça değişir.
+class _AnimatedCorners extends StatelessWidget {
+  const _AnimatedCorners({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: color),
+      duration: BuMotion.of(context, BuMotion.short),
+      builder: (context, c, _) => CustomPaint(painter: _CornerPainter(c ?? color)),
+    );
+  }
+}
+
+/// Tarama çerçevesi: ilk görünümde 1,08 -> 1 ölçeğine oturur; [success] olunca 0,92'ye daralır ve ortada yeşil
+/// onay dairesi belirir (kilitlenme geri bildirimi).
+class _FrameLock extends StatelessWidget {
+  const _FrameLock({required this.success, required this.ok, required this.onOk, required this.child});
+
+  final bool success;
+  final Color ok;
+  final Color onOk;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = BuMotion.of(context, BuMotion.medium);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 1.08, end: success ? .92 : 1),
+      duration: d,
+      curve: BuMotion.emphasizedDecelerate,
+      builder: (context, v, ch) => Transform.scale(scale: v, child: ch),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          child,
+          AnimatedScale(
+            scale: success ? 1 : 0,
+            duration: d,
+            curve: Curves.easeOutBack,
+            child: AnimatedOpacity(
+              opacity: success ? 1 : 0,
+              duration: d,
+              child: Container(
+                key: const ValueKey('qr-lock-check'),
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(color: ok, shape: BoxShape.circle),
+                child: Icon(LucideIcons.check, size: 32, color: onOk),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

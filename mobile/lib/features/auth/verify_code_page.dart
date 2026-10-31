@@ -47,6 +47,9 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   String? _info;
   int _shake = 0;
 
+  /// Kod doğrulandı: kutular kısa süre yeşil gösterilir, sonra ekran kapanır.
+  bool _ok = false;
+
   @override
   void dispose() {
     _code.dispose();
@@ -81,6 +84,11 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     try {
       await widget.session.verifyEmail(widget.email, _code.text,
           password: _needsPassword ? _password.text : null);
+      if (!mounted) return;
+      // Başarı geri bildirimi: kutular yeşile döner (azalt açıkken beklemeden kapanır).
+      setState(() => _ok = true);
+      authHaptic(AuthHaptic.success);
+      if (!BuMotion.reduced(context)) await Future<void>.delayed(const Duration(milliseconds: 260));
       // Oturum açıldı: kök ekran ana sayfaya geçer, kimlik ekranlarını kapat.
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     } catch (e) {
@@ -148,11 +156,12 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                 controller: _code,
                 enabled: !_busy,
                 hasError: _error != null,
+                success: _ok,
                 shakeTrigger: _shake,
                 onCompleted: _verify,
               ),
               AnimatedSize(
-                duration: const Duration(milliseconds: 220),
+                duration: BuMotion.of(context, BuMotion.short),
                 alignment: Alignment.topCenter,
                 child: _error != null
                     ? Padding(

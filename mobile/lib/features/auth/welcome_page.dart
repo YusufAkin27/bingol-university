@@ -19,9 +19,10 @@ class WelcomePage extends StatelessWidget {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final features = <(IconData, Color, Color, String, String)>[
+      // Üç satır tek vurgu tonunda (sade): marka kırmızısının yumuşak zemini.
       (LucideIcons.newspaper, t.soft, t.pr, l.welcomeNews, l.p02WelcomeNewsSub),
-      (LucideIcons.utensils, t.tint(1).bg, t.tint(1).fg, l.welcomeMenu, l.p02WelcomeMenuSub),
-      (LucideIcons.users, t.sf2, t.pr, l.welcomeClubs, l.p02WelcomeClubsSub),
+      (LucideIcons.utensils, t.soft, t.pr, l.welcomeMenu, l.p02WelcomeMenuSub),
+      (LucideIcons.users, t.soft, t.pr, l.welcomeClubs, l.p02WelcomeClubsSub),
     ];
     return RefPage(
       showBack: false,

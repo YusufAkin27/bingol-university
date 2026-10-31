@@ -15,6 +15,7 @@ class OtpCodeBoxes extends StatefulWidget {
     required this.onCompleted,
     this.enabled = true,
     this.hasError = false,
+    this.success = false,
     this.shakeTrigger = 0,
     this.showPaste = true,
   });
@@ -23,6 +24,9 @@ class OtpCodeBoxes extends StatefulWidget {
   final VoidCallback onCompleted;
   final bool enabled;
   final bool hasError;
+
+  /// Kod doğrulandı: kutular yeşile döner ve bir kez hafifçe büyüyüp oturur.
+  final bool success;
 
   /// Artınca kutular sarsılır (yanlış kod).
   final int shakeTrigger;
@@ -107,35 +111,45 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                             final text = widget.controller.text;
                             final focused = _focus.hasFocus && widget.enabled;
                             final activeIndex = text.length < 6 ? text.length : 5;
-                            return Row(
+                            return BuPop(
+                              trigger: widget.success,
+                              peak: 1.04,
+                              child: Row(
                               children: List.generate(6, (i) {
                                 final active = focused && i == activeIndex;
                                 final ch = i < text.length ? text[i] : '';
                                 final filled = ch.isNotEmpty;
                                 // Yanlış kod: kutular alan hatasıyla aynı dilde (hafif kırmızı dolgu + ince çerçeve).
-                                final err = widget.hasError && widget.enabled;
+                                final err = widget.hasError && widget.enabled && !widget.success;
+                                final ok = widget.success;
                                 return Expanded(
                                   child: AnimatedContainer(
                                     duration: BuMotion.of(context, BuMotion.short),
                                     curve: Curves.easeOut,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: err ? Color.alphaBlend(t.danger.withValues(alpha: .09), t.sf2) : (active ? t.sf : t.sf2),
+                                      color: ok ? t.okSoft : (err ? Color.alphaBlend(t.danger.withValues(alpha: .09), t.sf2) : (active ? t.sf : t.sf2)),
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: err ? t.danger.withValues(alpha: .55) : (active ? t.pr : Colors.transparent),
-                                        width: err || active ? 1.5 : 0,
+                                        color: ok ? t.ok : (err ? t.danger.withValues(alpha: .55) : (active ? t.pr : Colors.transparent)),
+                                        width: ok || err || active ? 1.5 : 0,
                                       ),
                                       boxShadow: active && !err ? BuElevation.of(context, 2) : const [],
                                     ),
+                                    // Yeni rakam küçükten yerine oturur (yaylanma); silinince solar.
                                     child: filled
-                                        ? Text(ch, style: tx.headlineSmall!.copyWith(color: err ? t.danger : t.ink, fontWeight: FontWeight.w800))
+                                        ? _OtpDigit(
+                                            key: ValueKey('otp-digit-$i-$ch'),
+                                            ch: ch,
+                                            style: tx.headlineSmall!.copyWith(color: ok ? t.onOkSoft : (err ? t.danger : t.ink), fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()]),
+                                          )
                                         : (active
                                             ? Container(width: 2, height: 24, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1)))
                                             : null),
                                   ),
                                 );
                               }).expand((w) => [w, const SizedBox(width: 8)]).toList()..removeLast(),
+                              ),
                             );
                           },
                         ),
@@ -178,6 +192,50 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Kutudaki rakam: ilk çizimde 0,6 -> 1 ölçeğine (150 ms) oturur ve belirir; yalnız `transform`/`opacity`.
+/// "Animasyonları azalt" açıksa anında.
+class _OtpDigit extends StatefulWidget {
+  const _OtpDigit({super.key, required this.ch, required this.style});
+
+  final String ch;
+  final TextStyle style;
+
+  @override
+  State<_OtpDigit> createState() => _OtpDigitState();
+}
+
+class _OtpDigitState extends State<_OtpDigit> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: BuMotion.short);
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (BuMotion.reduced(context)) {
+      _c.value = 1;
+    } else {
+      _c.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = CurvedAnimation(parent: _c, curve: Curves.easeOutBack);
+    return FadeTransition(
+      opacity: _c,
+      child: ScaleTransition(scale: Tween<double>(begin: .6, end: 1).animate(a), child: Text(widget.ch, style: widget.style)),
     );
   }
 }

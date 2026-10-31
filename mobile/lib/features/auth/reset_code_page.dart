@@ -4,6 +4,7 @@ import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../widgets/bu.dart';
 import 'new_password_page.dart';
 import 'otp_code_boxes.dart';
 import 'widgets/auth_controls.dart';
@@ -28,6 +29,9 @@ class _ResetCodePageState extends State<ResetCodePage> {
   String? _error;
   String? _info;
   int _shake = 0;
+
+  /// Kod doğrulandı: kutular kısa süre yeşil gösterilir, sonra yeni şifre ekranı açılır.
+  bool _ok = false;
 
   @override
   void dispose() {
@@ -59,6 +63,10 @@ class _ResetCodePageState extends State<ResetCodePage> {
       final token =
           await widget.session.verifyResetCode(widget.email, _code.text);
       if (!mounted) return;
+      setState(() => _ok = true);
+      authHaptic(AuthHaptic.success);
+      if (!BuMotion.reduced(context)) await Future<void>.delayed(const Duration(milliseconds: 260));
+      if (!mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -76,7 +84,12 @@ class _ResetCodePageState extends State<ResetCodePage> {
         }
       }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _ok = false;
+        });
+      }
     }
   }
 
@@ -111,11 +124,12 @@ class _ResetCodePageState extends State<ResetCodePage> {
                 controller: _code,
                 enabled: !_busy,
                 hasError: _error != null,
+                success: _ok,
                 shakeTrigger: _shake,
                 onCompleted: _verify,
               ),
               AnimatedSize(
-                duration: const Duration(milliseconds: 220),
+                duration: BuMotion.of(context, BuMotion.short),
                 alignment: Alignment.topCenter,
                 child: _error != null
                     ? Padding(

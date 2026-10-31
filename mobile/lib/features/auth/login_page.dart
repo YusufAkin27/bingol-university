@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
+  int _shake = 0;
 
   /// 429: bandın ikinci satırı ("40 sn sonra tekrar deneyin.").
   String? _retry;
@@ -73,6 +74,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _error = text;
       _retry = retry;
+      _shake++;
     });
   }
 
@@ -241,23 +243,27 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: _submit,
                     ),
                     AnimatedSize(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
+                      duration: BuMotion.of(context, BuMotion.short),
+                      curve: BuMotion.decelerate,
                       alignment: Alignment.topCenter,
                       child: _error == null
                           ? const SizedBox(width: double.infinity)
                           : Padding(
                               padding: const EdgeInsets.only(top: 16),
-                              child: RefBanner(
-                                _error!,
-                                key: ValueKey('login-error-$_error'),
-                                icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
-                                sub: _retry,
-                                subIcon: LucideIcons.hourglass,
-                                onClose: () => setState(() {
-                                  _error = null;
-                                  _retry = null;
-                                }),
+                              // Yeni hatada bant hafifçe sarsılır (azalt açıkken sarsılmaz).
+                              child: AuthShake(
+                                trigger: _shake,
+                                child: RefBanner(
+                                  _error!,
+                                  key: ValueKey('login-error-$_error'),
+                                  icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
+                                  sub: _retry,
+                                  subIcon: LucideIcons.hourglass,
+                                  onClose: () => setState(() {
+                                    _error = null;
+                                    _retry = null;
+                                  }),
+                                ),
                               ),
                             ),
                     ),

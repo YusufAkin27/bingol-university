@@ -39,6 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _back = false;
   bool _busy = false;
   String? _error;
+  int _shake = 0;
 
   /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): e-posta alanının altında gösterilir.
   String? _emailFieldError;
@@ -149,12 +150,18 @@ class _RegisterPageState extends State<RegisterPage> {
         WidgetsBinding.instance.addPostFrameCallback((_) => _form.currentState?.validate());
       } else {
         authHaptic(AuthHaptic.error);
-        setState(() => _error = errorText(e));
+        setState(() {
+          _error = errorText(e);
+          _shake++;
+        });
       }
     } catch (e) {
       if (mounted) {
         authHaptic(AuthHaptic.error);
-        setState(() => _error = errorText(e));
+        setState(() {
+          _error = errorText(e);
+          _shake++;
+        });
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -338,25 +345,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(height: 6),
-                ExcludeSemantics(
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < _steps; i++) ...[
-                        Expanded(
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 260),
-                            height: 6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(3),
-                              color: i <= _step ? t.pr : t.sf2,
-                            ),
-                          ),
-                        ),
-                        if (i < _steps - 1) const SizedBox(width: 6),
-                      ],
-                    ],
-                  ),
-                ),
+                ExcludeSemantics(child: AuthStepBar(step: _step, steps: _steps)),
               ],
             ),
           ),
@@ -373,10 +362,18 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           const SizedBox(height: 24),
           _section(context),
-          if (_error != null) ...[
-            RefBanner(_error!, key: ValueKey('reg-error-$_error')),
-            const SizedBox(height: 16),
-          ],
+          // Hata bandı yumuşakça açılır; yeni hatada hafifçe sarsılır.
+          AnimatedSize(
+            duration: BuMotion.of(context, BuMotion.short),
+            curve: BuMotion.decelerate,
+            alignment: Alignment.topCenter,
+            child: _error == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: AuthShake(trigger: _shake, child: RefBanner(_error!, key: ValueKey('reg-error-$_error'))),
+                  ),
+          ),
           Form(
             key: _form,
             child: AutofillGroup(

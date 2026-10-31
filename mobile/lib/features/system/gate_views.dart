@@ -62,15 +62,51 @@ class _GateLayout extends StatelessWidget {
 
 /// Tüm durum ekranlarının ortak simge karosu (88 dp, aynı köşe): [neutral] sakin gri (bakım, çevrimdışı),
 /// aksi halde marka tonu (güncelleme, erişim engeli). Dekoratiftir; ekran okuyucudan gizlenir.
-class _GateIcon extends StatelessWidget {
-  const _GateIcon({required this.icon, this.neutral = false});
+class _GateIcon extends StatefulWidget {
+  const _GateIcon({required this.icon, this.neutral = false, this.breathe = false});
 
   final IconData icon;
   final bool neutral;
 
+  /// Bakım / çevrimdışı: simge girişten sonra iki kez ince "nefes" alır (1 -> 1,06), sonra durur.
+  /// Sürekli döngü yoktur; yalnız `transform`; "animasyonları azalt" açıksa hiç oynamaz.
+  final bool breathe;
+
+  @override
+  State<_GateIcon> createState() => _GateIconState();
+}
+
+class _GateIconState extends State<_GateIcon> with SingleTickerProviderStateMixin {
+  AnimationController? _c;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_c != null || !widget.breathe || BuMotion.reduced(context)) return;
+    // Giriş animasyonu (400 ms) bitince başlar.
+    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))
+      ..repeat(reverse: true, count: 4, period: const Duration(milliseconds: 1600));
+  }
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final icon = widget.icon;
+    final neutral = widget.neutral;
+    final c = _c;
+    Widget glyph = Icon(icon, size: 40, color: neutral ? t.mut : t.pr);
+    if (c != null) {
+      glyph = ScaleTransition(
+        scale: Tween<double>(begin: 1, end: 1.06).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut)),
+        child: glyph,
+      );
+    }
     return BuStaggerItem(
       index: 0,
       child: ExcludeSemantics(
@@ -79,7 +115,7 @@ class _GateIcon extends StatelessWidget {
           height: 88,
           alignment: Alignment.center,
           decoration: BoxDecoration(color: neutral ? t.sf2 : t.soft, borderRadius: BuRadius.bXl),
-          child: Icon(icon, size: 40, color: neutral ? t.mut : t.pr),
+          child: RepaintBoundary(child: glyph),
         ),
       ),
     );
@@ -270,7 +306,7 @@ class MaintenanceScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: LucideIcons.wrench, neutral: true),
+            const _GateIcon(icon: LucideIcons.wrench, neutral: true, breathe: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiMaintTitle, body: message ?? l.sistemuiMaintBody),
           ],
@@ -297,7 +333,7 @@ class OfflineScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: LucideIcons.cloudOff, neutral: true),
+            const _GateIcon(icon: LucideIcons.cloudOff, neutral: true, breathe: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiOfflineTitle, body: l.sistemuiOfflineBody),
           ],

@@ -32,3 +32,22 @@ Uygulanmayanlar ve ortak dosya önerileri:
 - Welcome: "check-in" sözcüğünün tireden bölünmesi (`p02WelcomeClubsSub`, EN) metin kaynağında (ARB) çözülür (bölünmez tire); ARB kilidi/arkadaş ajanlar nedeniyle dokunulmadı.
 - `main.dart`: oturum durumu değişiminde (`loading -> signedIn`) `home` anahtarının `AnimatedSwitcher` ile solması splash -> ilk ekran geçişini pürüzsüzleştirir (dosya kapsam dışı).
 - `widgets/*` ortak dosyalar değiştirilmedi.
+
+## Tur 2 (P2-DA): ince detay + animasyon
+
+Kural: yalnız transform/opacity, 150-300 ms, sürekli döngü yok, "animasyonları azalt" açıkken anında, renk yalnız `context.bu`, bir ekranda en çok iki vurgu tonu. Test: `test/redesign/p48_da_motion_test.dart`.
+
+| Ekran | Eklenen | Not |
+|---|---|---|
+| Kayıt adım çubuğu | `AuthStepBar`: her parça soldan (RTL'de sağdan) dolar, geri gidince boşalır (ScaleX, 250 ms) | eski renk değişimi yerine; çubuk Semantics dışı |
+| Tüm kimlik alanları (`RefTextField`) | Hata ilk kez belirince alan hafif sarsılır (`AuthShake`); hata metni solarak belirir, kalkarken anında kalkar; çerçeve/dolgu geçişi azalt'a saygılı | düzelten kullanıcı beklemez |
+| `RefButton` | Etiket <-> yükleniyor içeriği 150 ms çapraz solar (busy iken dokunma kapalı) | |
+| Giriş / Kayıt | Sunucu hatası bandı yumuşak açılır + yeni hatada sarsılır; hata `AnimatedSize` süresi azalt'a saygılı | |
+| OTP kutuları | Yeni rakam 0,6 -> 1 yaylanır (tekrar oynamaz); rakamlar tabular; `success`: kutular yeşil dolgu + yeşil çerçeve + hafif pop | doğrulama/şifre sıfırlama kodu sayfaları başarıda 260 ms yeşil gösterir (azalt: beklemez) + hafif titreşim |
+| Parola göstergesi, kural satırı, yeniden gönder | Süreler `BuMotion` + azalt'a saygılı | |
+| Bakım / Çevrimdışı | Simge karosunda ince "nefes" (1 -> 1,06), yalnız 2 nefes (6,4 sn) sonra durur | sürekli döngü yok; azalt: hiç yok; güncelleme/erişim engeli: yok |
+| QR tarama | Çerçeve 1,08 -> 1 oturur; tarama çizgisi 3 gidiş-dönüşle sınırlı; başarıda çerçeve 0,92'ye daralır, köşeler yeşile döner, ortada onay dairesi belirir, çizgi gizlenir, hafif titreşim | |
+| Karşılama | Üç özellik satırı tek vurgu tonu (marka yumuşak zemini); önceki üç farklı ton sadeleşti | |
+| Sözleşmeler (liste + yeniden onay) | Dört belge rengi (mavi/aqua/yeşil/gri) tek tona (mavi) indi | |
+
+Uygulanmayanlar: Splash -> kök geçişi ve Splash giriş animasyonu (main.dart M0'a ait; öneri: `home` anahtarı değişince `BuFadeThrough`); OTP imleç yanıp sönmesi (sürekli döngü yasağı); sözleşme listesi -> metin Hero/özel rota (platform geçişi ve geri hareketi korunur, gövde zaten `BuFadeThrough`); PushBanner/AppGate (incelendi, değişiklik gerekmedi).

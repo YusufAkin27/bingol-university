@@ -376,6 +376,7 @@ class RefButton extends StatelessWidget {
     );
     final content = busy
         ? Row(
+            key: const ValueKey('ref-btn-busy'),
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg)),
@@ -386,6 +387,7 @@ class RefButton extends StatelessWidget {
             ],
           )
         : Row(
+            key: const ValueKey('ref-btn-label'),
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
@@ -426,7 +428,11 @@ class RefButton extends StatelessWidget {
                 constraints: const BoxConstraints(minHeight: kRefFieldH),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                  child: Center(heightFactor: 1, child: content),
+                  // Etiket <-> çember yumuşak geçer (150 ms; azalt açıkken anında).
+                  child: Center(
+                    heightFactor: 1,
+                    child: AnimatedSwitcher(duration: BuMotion.of(context, BuMotion.short), child: content),
+                  ),
                 ),
               ),
             ),
@@ -586,6 +592,9 @@ class _RefTextFieldState extends State<RefTextField> {
   bool _focused = false;
   String? _error;
 
+  /// Hata ilk kez belirince alan hafifçe sarsılır (azalt açıkken sarsılmaz).
+  int _shake = 0;
+
   @override
   void initState() {
     super.initState();
@@ -624,6 +633,7 @@ class _RefTextFieldState extends State<RefTextField> {
 
   String? _validate(String? v) {
     final e = widget.validator?.call(v);
+    if (e != null && _error == null && mounted) _shake++;
     if (e != _error && mounted) {
       // Yapı (build) aşamasında setState yasak: o durumda çerçeve sonrasına ertele.
       if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
@@ -708,62 +718,74 @@ class _RefTextFieldState extends State<RefTextField> {
               ],
             ),
           ),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          constraints: BoxConstraints(minHeight: widget.innerLabel ? 68 : kRefFieldH),
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
-          decoration: BoxDecoration(
-            color: fill,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor, width: _focused || hasError ? 1.5 : 1),
-          ),
-          child: Row(
-            children: [
-              if (widget.icon != null) ...[
-                Icon(widget.icon, size: 22, color: iconColor),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: widget.innerLabel
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.label, style: tx.bodySmall!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 4),
-                          input,
-                        ],
-                      )
-                    : input,
-              ),
-              if (chip != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: widget.onCard && !hasError ? t.sf : (hasError ? t.sf : t.sf2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(chip, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+        AuthShake(
+          trigger: _shake,
+          child: AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            constraints: BoxConstraints(minHeight: widget.innerLabel ? 68 : kRefFieldH),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor, width: _focused || hasError ? 1.5 : 1),
+            ),
+            child: Row(
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(widget.icon, size: 22, color: iconColor),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: widget.innerLabel
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(widget.label, style: tx.bodySmall!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 4),
+                            input,
+                          ],
+                        )
+                      : input,
                 ),
+                if (chip != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: widget.onCard && !hasError ? t.sf : (hasError ? t.sf : t.sf2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(chip, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                  ),
+                ],
+                if (widget.trailing != null) widget.trailing!,
               ],
-              if (widget.trailing != null) widget.trailing!,
-            ],
+            ),
           ),
         ),
+        // Hata metni: alan yumuşakça uzar, metin solarak belirir (azalt açıkken anında).
         AnimatedSize(
-          duration: const Duration(milliseconds: 180),
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.decelerate,
           alignment: Alignment.topCenter,
+          // Kalkarken anında kalkar (düzelten kullanıcı beklemez); belirirken solarak gelir.
           child: hasError
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(err, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3))),
-                    ],
+              ? TweenAnimationBuilder<double>(
+                  key: ValueKey('ref-err-$err'),
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: BuMotion.of(context, BuMotion.short),
+                  builder: (context, v, child) => Opacity(opacity: v, child: child),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(err, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3))),
+                      ],
+                    ),
                   ),
                 )
               : const SizedBox(width: double.infinity),
