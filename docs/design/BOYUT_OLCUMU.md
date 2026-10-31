@@ -83,5 +83,21 @@ Kart iç boşluğu `BuCard` varsayılan 14 dp kaldı (Stitch `p-4` = 16'dan kü�
 
 ## 4. Doğrulama
 
-Aşağıdaki "Sonuç" bölümü uygulama sonrası ölçümlerle doldurulur.
+**Önce** (gerçek cihaz): Android emülatörü Redmi 13C eşdeğerine (`wm size 720x1600`, `wm density 320`) alınıp kurulu
+üretim sürümünden (2.0.4) görüntü alındı: `C:u_qa\shots	asarimoyut\onceki\` (Ana Sayfa, Keşfet, Kulüpler, Profil,
+Profil kaydırılmış, Bildirimler). Pikselden ölçülen (px / 2 = dp): Ana Sayfa arama kutusu ~51, menü kartı ~85, hızlı
+erişim karosu ~105, Kulüpler segmenti ~52, çip ~36, Bildirim süzgeç çipi ~47 (görünür), Profil satırı ~61, Çıkış
+düğmesi ~52, profil avatarı ~95, alt gezinme ~68.
+
+**Sonra** (aynı çözünürlükte bileşen ekranları; widget testi `test/redesign/size_shots_test.dart`, dpr 2, 360x800 ve
+411x891): `C:u_qa\shots	asarimoyut\sonra\{kesfet,kimlik}_{redmi360,pixel411}.png`. Pikselden ölçülen (px / 2):
+tam genişlik düğme 48, giriş alanı 52, segment 48, arama 48, çip ~34, yuvarlak simge düğmesi 40, alt gezinme 64.
+Bu ölçümler `test/size_fix_test.dart` ile 360 ve 411 dp'de otomatik doğrulanır (düğme 48, kompakt görünür 34 / hit >= 48,
+alan 52, çip görünür <= 36 / hit 48, simge düğmesi 40 / hit 48, segment 48, nav 64, `androidTapTargetGuideline`,
+320/360/411 dp x 3 dil x 2 tema x 1.3 yazı taşma matrisi).
+
+Doğrulanamayanlar: (1) gerçek Redmi 13C'de elle bakılmadı; (2) kurulu üretim sürümü farklı imzalı olduğundan
+(`INSTALL_FAILED_UPDATE_INCOMPATIBLE`) yeni derleme emülatöre kurulamadı (kaldırıp kurmak oturumu silerdi); bu yüzden
+"sonra" görüntüleri uygulama içi değil bileşen ekranlarıdır; (3) kalan ekranlarda elle yazılmış kutular (ör. özel
+satırlar) bu turda yalnız sabit yükseklik satırlarında token'a çevrildi, tam tarama bir sonraki cila turuna bırakıldı.
 
