@@ -5,6 +5,9 @@ import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
+import edu.bingol.backend.community.Paging;
+import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.EventRsvp;
 import edu.bingol.backend.event.EventRsvpRepository;
 import edu.bingol.backend.event.EventService;
@@ -27,7 +30,6 @@ import org.springframework.stereotype.Service;
 public class AnnouncementService {
 
     static final int DAILY_LIMIT = 3;
-    static final int MAX_RECIPIENTS = 1000;
     private static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
 
     private final EventService events;
@@ -65,11 +67,15 @@ public class AnnouncementService {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "ANNOUNCEMENT_LIMIT",
                     "Bir etkinlik için günde en fazla " + DAILY_LIMIT + " duyuru gönderilebilir.", String.valueOf(DAILY_LIMIT));
         }
+        Texts.requireNoInvisible(title);
+        // T-052: duyuru basligi kurum/yonetici taklidi olamaz (anlik push gider; onay akisi yok, reddedilir)
+        if (!a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(title)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "RESERVED_DISPLAY_NAME",
+                    "Bu başlık kullanılamaz (yönetici/destek adına benzer).");
+        }
         ContentGuard.clean(guard, Entity.ANNOUNCEMENT, "title", a.id(), title);
         ContentGuard.clean(guard, Entity.ANNOUNCEMENT, "message", a.id(), message);
-        List<Long> ids = rsvps.userIds(eventId, EventRsvp.Status.GOING, PageRequest.of(0, MAX_RECIPIENTS));
-        Map<Long, User> users = communities.usersById(ids);
-        int sent = 0;
         String t = title.trim();
         String m = message.trim();
         // Kayit once yazilir: es zamanli isteklerde bile hak tuketilir (sinir asilamaz hale gelmez).
@@ -78,17 +84,24 @@ public class AnnouncementService {
         rec.setSenderId(a.id());
         rec.setCreatedAt(now);
         log.save(rec);
-        for (Long uid : ids) {
-            User u = users.get(uid);
-            if (uid.equals(a.id()) || u == null || u.getStatus() != UserStatus.ACTIVE || blocks.isBlocked(a.id(), uid)) {
-                continue;
-            }
-            notifications.sendTemplate(uid, ExtrasTemplates.ANNOUNCEMENT, Map.of("eventId", eventId.toString()),
-                    null, e.getTitle(), t, m);
-            sent++;
-        }
-        rec.setRecipients(sent);
+        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 1000'de sessizce kesiliyordu
+        int[] sent = {0};
+        boolean truncated = Paging.forEachChunk(
+                (after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
+                ids -> {
+                    Map<Long, User> users = communities.usersById(ids);
+                    for (Long uid : ids) {
+                        User u = users.get(uid);
+                        if (uid.equals(a.id()) || u == null || u.getStatus() != UserStatus.ACTIVE || blocks.isBlocked(a.id(), uid)) {
+                            continue;
+                        }
+                        notifications.sendTemplate(uid, ExtrasTemplates.ANNOUNCEMENT, Map.of("eventId", eventId.toString()),
+                                null, e.getTitle(), t, m);
+                        sent[0]++;
+                    }
+                });
+        rec.setRecipients(sent[0]);
         log.save(rec);
-        return new AnnouncementResult(sent, (int) (DAILY_LIMIT - used - 1));
+        return new AnnouncementResult(sent[0], (int) (DAILY_LIMIT - used - 1), truncated);
     }
 }

@@ -60,9 +60,10 @@ public class CoOrganizerService {
         if (target == null || target.getStatus() != UserStatus.ACTIVE) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
-        if (blocks.isBlocked(a.id(), targetId)) {
+        if (blocks.hasBlocked(a.id(), targetId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
+        boolean shadow = blocks.isBlocked(a.id(), targetId); // T-029: beni engelleyen (benim engelledigim ustte 404)
         // T-041: kulup etkinliginde ortak organizator kulubun AKTIF uyesi olmali (kulup disi kisiye yetki verilemez)
         if (e.getCommunityId() != null && communities.roleOf(e.getCommunityId(), targetId).isEmpty()) {
             throw new ApiException(HttpStatus.CONFLICT, "CO_ORGANIZER_NOT_MEMBER",
@@ -74,6 +75,9 @@ public class CoOrganizerService {
         if (repo.countByEventId(eventId) >= MAX_CO_ORGANIZERS) {
             throw new ApiException(HttpStatus.CONFLICT, "CO_ORGANIZER_LIMIT",
                     "En fazla " + MAX_CO_ORGANIZERS + " ortak organizatör eklenebilir.", String.valueOf(MAX_CO_ORGANIZERS));
+        }
+        if (shadow) { // normal "eklendi" cevabi; kayit ve bildirim yok
+            return new CoOrganizerView(targetId, target.getDisplayName(), null, java.time.Instant.now());
         }
         CoOrganizer c = new CoOrganizer();
         c.setEventId(eventId);

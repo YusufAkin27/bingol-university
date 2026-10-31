@@ -18,7 +18,12 @@ public final class ExtrasDtos {
 
     public record AnnouncementRequest(@NotBlank @Size(max = 80) String title, @NotBlank @Size(max = 500) String message) {}
 
-    public record AnnouncementResult(int recipients, int remainingToday) {}
+    /** truncated: alici tavani (50.000) asildi ve kalanlara gonderilmedi (T-051). */
+    public record AnnouncementResult(int recipients, int remainingToday, boolean truncated) {
+        public AnnouncementResult(int recipients, int remainingToday) {
+            this(recipients, remainingToday, false);
+        }
+    }
 
     /** count = eklenecek ek tekrar sayisi (ilk etkinlik haric); en fazla 11 (toplam 12). */
     public record SeriesRequest(@NotNull @Min(1) @Max(11) Integer count) {}

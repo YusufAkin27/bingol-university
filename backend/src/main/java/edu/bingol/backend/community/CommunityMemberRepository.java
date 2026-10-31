@@ -35,6 +35,13 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
     List<Long> userIdsByStatus(@Param("cid") Long communityId, @Param("status") CommunityMember.Status status,
                                Pageable page);
 
+    /** Bildirim hedefleri, kimlik imecli (T-051): artan kullanici kimligi; sessiz kesme yok. */
+    @Query("SELECT m.userId FROM CommunityMember m WHERE m.communityId = :cid AND m.status = :status AND m.userId > :after"
+            + " AND m.userId IN (SELECT u.id FROM User u WHERE u.status <> edu.bingol.backend.user.UserStatus.DELETED)"
+            + " ORDER BY m.userId")
+    List<Long> userIdsByStatusAfter(@Param("cid") Long communityId, @Param("status") CommunityMember.Status status,
+                                    @Param("after") long after, Pageable page);
+
     /** Aktif moderator + sahip id'leri. */
     @Query("SELECT m.userId FROM CommunityMember m WHERE m.communityId = :cid AND m.status = :status AND m.role <> :member")
     List<Long> moderatorIds(@Param("cid") Long communityId, @Param("status") CommunityMember.Status status,

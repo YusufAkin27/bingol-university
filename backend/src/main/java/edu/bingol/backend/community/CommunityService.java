@@ -169,9 +169,13 @@ public class CommunityService {
         if (r.name().trim().length() < 3) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
         }
+        Texts.requireNoInvisible(r.name(), r.description(), r.category());
         ContentGuard.clean(guard, Entity.CLUB, "name", a.id(), r.name());
         ContentGuard.clean(guard, Entity.CLUB, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.CLUB, "category", a.id(), r.category());
+        // T-052: kurum/yonetici taklidi gibi gorunen ad aninda yayina girmez, yonetici onayina duser
+        boolean reservedName = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.name());
         // Sayim ile ekleme arasindaki yarisi kapatir: ayni kullanicinin istekleri bu satirda siralanir.
         communities.lockOwner(a.id());
         if (communities.countByOwnerIdAndStatusIn(a.id(), LIVE) >= MAX_OWNED) {
@@ -191,14 +195,15 @@ public class CommunityService {
         }
         c.setOwnerId(a.id());
         // auto-approve (varsayilan acik): kulup hemen yayinda; kapaliysa eski yonetici onayi akisi.
-        c.setStatus(autoApprove ? Community.Status.ACTIVE : Community.Status.PENDING_REVIEW);
+        boolean active = autoApprove && !reservedName;
+        c.setStatus(active ? Community.Status.ACTIVE : Community.Status.PENDING_REVIEW);
         try {
             communities.saveAndFlush(c);
         } catch (DataIntegrityViolationException e) {
             throw new ApiException(HttpStatus.CONFLICT, "SLUG_CONFLICT", "Topluluk adı çakıştı, tekrar deneyin.");
         }
         members.save(new CommunityMember(c.getId(), a.id(), Role.OWNER, CommunityMember.Status.ACTIVE));
-        if (autoApprove) {
+        if (active) {
             hooks.onCommunityActivated(c); // sohbet odasi kurulur, sahip odaya girer
         }
         return c;
@@ -249,12 +254,15 @@ public class CommunityService {
         media.release(cover);
         media.release(logo);
         audit.record(id, a.id(), null, ClubAuditService.COMMUNITY_DELETED, auditDetail);
-        // Uyelere haber (500 ile sinirli); silen kisi haric.
-        for (Long uid : members.userIdsByStatus(id, CommunityMember.Status.ACTIVE, PageRequest.of(0, 500))) {
-            if (!uid.equals(a.id())) {
-                notifications.sendTemplated(uid, NotificationType.COMMUNITY, notifKey, data(id), c.getName());
-            }
-        }
+        // Uyelere haber: tum aktif uyeler (T-051: imecli sayfalar, 500'de kesme yok); silen kisi haric.
+        Paging.forEachChunk((after, n) -> members.userIdsByStatusAfter(id, CommunityMember.Status.ACTIVE, after, PageRequest.of(0, n)),
+                ids -> {
+                    for (Long uid : ids) {
+                        if (!uid.equals(a.id())) {
+                            notifications.sendTemplated(uid, NotificationType.COMMUNITY, notifKey, data(id), c.getName());
+                        }
+                    }
+                });
         hooks.onCommunityDeleted(c);
     }
 
@@ -344,6 +352,14 @@ public class CommunityService {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Topluluk adı en az 3 karakter olmalı.");
             }
             renamed = !r.name().trim().equals(c.getName());
+            if (renamed) { // T-052: yayindaki kulup kurum/yonetici adina yeniden adlandirilamaz (yonetici muaf)
+                Texts.requireNoInvisible(r.name());
+                if (!a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                        && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.name())) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "RESERVED_DISPLAY_NAME",
+                            "Bu ad kullanılamaz (yönetici/destek adına benzer).");
+                }
+            }
             c.setName(r.name().trim());
         }
         if (r.description() != null) {

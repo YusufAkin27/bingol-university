@@ -74,6 +74,10 @@ public class UserEvent {
     @Column(length = 300)
     private String moderationReason;
 
+    /** Organizator iptalinde yazilan neden (isteğe bagli); RSVP'li katilimciya da gorunur (T-049). */
+    @Column(length = 300)
+    private String cancelReason;
+
     private Long moderatedBy;
 
     private Instant moderatedAt;

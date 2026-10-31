@@ -28,7 +28,6 @@ public class CommunityPostService {
 
     static final int MAX_PINNED = 3;
     /** Yeni yazi bildirimi tek istekte en fazla bu kadar uyeye gider (istegi yavaslatmamak icin). */
-    static final int NOTIFY_LIMIT = 500;
     static final String IMAGE_PREFIX = "/files/posts/";
     private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final long IMAGE_MAX_BYTES = 3L * 1024 * 1024;
@@ -75,15 +74,19 @@ public class CommunityPostService {
 
         PostView view = views(List.of(p), a, communities.can(a, cid, ClubPermission.MANAGE_POSTS)).get(0);
         Set<Long> hidden = blocks.hiddenFrom(a.id());
-        for (Long uid : members.userIdsByStatus(cid, CommunityMember.Status.ACTIVE, PageRequest.of(0, NOTIFY_LIMIT))) {
-            if (uid.equals(a.id()) || hidden.contains(uid)) {
-                continue;
-            }
-            // Alt tur COMMUNITY_POST (tercihle kapatilabilir) + kulup basina birlesme: okunmamis yazilar tek satir.
-            notifications.send(uid, NotificationType.COMMUNITY, edu.bingol.backend.notification.NotificationSubtype.COMMUNITY_POST,
-                    "commpost:" + cid, c.getName(), view.authorName() + ": " + preview(p.getContent()),
-                    Map.of("communityId", cid.toString(), "postId", p.getId().toString()));
-        }
+        // T-051: tum aktif uyeler (imecli sayfalar); eskiden ilk 500'de kesiliyordu
+        Paging.forEachChunk((after, n) -> members.userIdsByStatusAfter(cid, CommunityMember.Status.ACTIVE, after, PageRequest.of(0, n)),
+                ids -> {
+                    for (Long uid : ids) {
+                        if (uid.equals(a.id()) || hidden.contains(uid)) {
+                            continue;
+                        }
+                        // Alt tur COMMUNITY_POST (tercihle kapatilabilir) + kulup basina birlesme: okunmamis yazilar tek satir.
+                        notifications.send(uid, NotificationType.COMMUNITY, edu.bingol.backend.notification.NotificationSubtype.COMMUNITY_POST,
+                                "commpost:" + cid, c.getName(), view.authorName() + ": " + preview(p.getContent()),
+                                Map.of("communityId", cid.toString(), "postId", p.getId().toString()));
+                    }
+                });
         return view;
     }
 

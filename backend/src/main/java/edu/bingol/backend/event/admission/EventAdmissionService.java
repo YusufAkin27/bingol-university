@@ -61,7 +61,6 @@ public class EventAdmissionService implements EventAdmissionHooks {
     static final int MAX_QUESTION_LEN = 200;
     static final int MAX_ANSWER_LEN = 500;
     static final int MAX_NOTE_LEN = 500;
-    static final int NOTIFY_LIMIT = 500;
     static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
     private static final EnumSet<UserEvent.Status> OPEN_STATUSES =
             EnumSet.of(UserEvent.Status.ACTIVE, UserEvent.Status.PENDING_REVIEW);
@@ -151,7 +150,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
             List<Status> open = List.of(Status.PENDING, Status.WAITLISTED);
             List<Long> users = apps.userIdsByStatus(eventId, open);
             apps.closeAll(eventId, open, Status.CANCELLED, Instant.now());
-            for (Long uid : users.stream().limit(NOTIFY_LIMIT).toList()) {
+            for (Long uid : users) {
                 notifications.sendTemplated(uid, NotificationType.EVENT, "notif.admission.modeOpen", data(eventId, null),
                         e.getTitle());
             }
@@ -177,6 +176,14 @@ public class EventAdmissionService implements EventAdmissionHooks {
         }
         // Engel iliskisi varsa etkinligin varligi sizdirilmaz.
         if (blocks.isBlocked(e.getCreatedBy(), a.id())) {
+            // T-029: beni engelleyen organizator golge engeldir: normal "basvuru alindi" cevabi, kayit/bildirim yok
+            // (yanit dogrulamasi normal akisla ayni: gecersiz cevap yine 400 verir).
+            if (blocks.hasBlocked(e.getCreatedBy(), a.id()) && !blocks.hasBlocked(a.id(), e.getCreatedBy())) {
+                cleanAnswers(r == null ? null : r.answers(), c.questions());
+                Instant now = Instant.now();
+                return new ApplicationView(0L, eventId, e.getTitle(), Status.PENDING,
+                        r == null ? null : Texts.blankToNull(r.note()), List.of(), null, null, now, now);
+            }
             throw new ApiException(HttpStatus.NOT_FOUND, "EVENT_NOT_FOUND", "Etkinlik bulunamadı.");
         }
         String note = r == null ? null : Texts.blankToNull(r.note());
@@ -452,6 +459,12 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean hasApplication(Long eventId, Long userId) {
+        return apps.findByEventIdAndUserId(eventId, userId).isPresent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Map<Long, Long> pendingCounts(java.util.Collection<Long> eventIds) {
         Map<Long, Long> out = new java.util.HashMap<>();
         if (!eventIds.isEmpty()) {
@@ -538,7 +551,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
             return;
         }
         apps.closeAll(e.getId(), open, Status.CANCELLED, Instant.now());
-        for (Long uid : users.stream().limit(NOTIFY_LIMIT).toList()) {
+        for (Long uid : users) {
             notifications.sendTemplated(uid, NotificationType.EVENT, "notif.event.cancelled", data(e.getId(), null), e.getTitle());
         }
     }

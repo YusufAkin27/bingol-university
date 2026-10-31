@@ -63,7 +63,6 @@ public class EventService {
     static final Instant MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
     static final YearMonth MIN_MONTH = YearMonth.of(2000, 1);
     static final YearMonth MAX_MONTH = YearMonth.of(2100, 1);
-    static final int NOTIFY_LIMIT = 500;
 
     // Yazma yolundaki sinirlar (V550 oncesi kayitlar etkilenmez: yalniz olusturma/degisen alan denetlenir).
     @org.springframework.beans.factory.annotation.Value("${app.event.max-title-length:100}")
@@ -211,9 +210,13 @@ public class EventService {
         if (r.communityId() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EVENT_CLUB_REQUIRED", "Etkinlik bir kulüp adına açılmalıdır.");
         }
+        Texts.requireNoInvisible(r.title(), r.location());
         ContentGuard.clean(guard, Entity.EVENT, "title", a.id(), r.title());
         ContentGuard.clean(guard, Entity.EVENT, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.EVENT, "location", a.id(), r.location());
+        // T-052: kurum/yonetici taklidi gibi gorunen baslik onaysiz yayina girmez
+        boolean reservedTitle = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
         UserEvent e = new UserEvent();
         Community c = communities.load(r.communityId());
         if (c.getStatus() != Community.Status.ACTIVE) {
@@ -223,7 +226,7 @@ public class EventService {
         // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
         communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
         e.setCommunityId(c.getId());
-        e.setStatus(isStaff(a, c.getId()) ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
+        e.setStatus(isStaff(a, c.getId()) && !reservedTitle ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
         e.setTitle(r.title().trim());
         e.setDescription(Texts.blankToNull(r.description()));
         e.setStartsAt(r.startsAt());
@@ -293,8 +296,12 @@ public class EventService {
         // T-041: onayli (ACTIVE) kulup etkinliginin metnini sade uye (staff degil) degistirirse yeniden onaya duser
         boolean textChanged = changed(r.title(), e.getTitle()) != null || changed(r.description(), e.getDescription()) != null
                 || changed(r.location(), e.getLocation()) != null;
+        // T-052: baslik rezerve ifadeye cevrilirse (yonetici haric) staff da olsa yeniden onaya duser
+        boolean reservedNow = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE) && changed(r.title(), e.getTitle()) != null
+                && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
+        Texts.requireNoInvisible(changed(r.title(), e.getTitle()), changed(r.location(), e.getLocation()));
         boolean backToReview = e.getStatus() == UserEvent.Status.ACTIVE && textChanged && e.getCommunityId() != null
-                && !isStaff(a, e.getCommunityId());
+                && (reservedNow || !isStaff(a, e.getCommunityId()));
         if (r.title() != null && !r.title().isBlank()) {
             e.setTitle(r.title().trim());
         }
@@ -330,8 +337,25 @@ public class EventService {
     /** Silme = iptal (yumusak); katilimcilara haber verilir. */
     @Transactional
     public void delete(Actor a, Long id) {
+        delete(a, id, null);
+    }
+
+    /** Organizator iptali; reason (istege bagli, en cok 300) RSVP'li katilimciya detayda gosterilir (T-049). */
+    @Transactional
+    public void delete(Actor a, Long id, String reason) {
         UserEvent e = load(id);
         requireManager(a, e);
+        String r = Texts.blankToNull(reason);
+        if (r != null) {
+            r = r.trim();
+            if (r.length() > 300) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "İptal nedeni en fazla 300 karakter olabilir.");
+            }
+            ContentGuard.clean(guard, Entity.EVENT, "cancelReason", a.id(), r);
+            if (e.getStatus() != UserEvent.Status.CANCELLED) {
+                e.setCancelReason(r);
+            }
+        }
         cancelInternal(e);
     }
 
@@ -484,12 +508,12 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventView get(Actor a, Long id) {
-        return views(List.of(loadVisible(a, id)), a, true).get(0);
+        return views(List.of(loadReadable(a, id)), a, true).get(0);
     }
 
     /**
      * Etkinliklerim. mode: upcoming (yaklasan: RSVP'li + olusturduklarim) | going (yaklasan, yalniz GOING) |
-     * past (bitmis: RSVP'li + olusturduklarim, yeniden eskiye) | created (olusturduklarim, iptaller haric) |
+     * past (bitmis: RSVP'li + olusturduklarim, yeniden eskiye) | cancelled (RSVP'li oldugum iptal edilenler) | created (olusturduklarim, iptaller haric) |
      * attending (eski: yaklasan RSVP'liler; varsayilan, bilinmeyen modlar da) | organizing (created'in eski adi).
      * Imec = son kaydin id'si.
      */
@@ -500,6 +524,8 @@ public class EventService {
         String m = mode == null ? "attending" : mode;
         if ("organizing".equals(m) || "created".equals(m)) {
             rows = events.organizing(a.id(), UserEvent.Status.CANCELLED, Paging.descStart(cursor), PageRequest.of(0, s + 1));
+        } else if ("cancelled".equals(m)) { // T-049: RSVP'li oldugum iptal edilmis etkinlikler
+            rows = events.mineCancelled(a.id(), Paging.descStart(cursor), PageRequest.of(0, s + 1));
         } else if ("upcoming".equals(m) || "going".equals(m)) {
             Cursor c = cursorOf(cursor);
             rows = events.mineUpcoming(UserEvent.Status.ACTIVE, Instant.now(), c.start(), c.id(), a.id(),
@@ -666,7 +692,7 @@ public class EventService {
 
     @Transactional
     public void cancelRsvp(Actor a, Long id) {
-        UserEvent e = loadVisible(a, id);
+        UserEvent e = loadReadable(a, id);
         if (admission != null && admission.withdrawAccepted(a, e)) {
             // Istek geri cekildi / koltuk birakildi; kalan ilgileniyorum kaydi da silinir.
             rsvps.findByEventIdAndUserId(id, a.id()).filter(r -> r.getStatus() != EventRsvp.Status.GOING).ifPresent(rsvps::delete);
@@ -801,6 +827,24 @@ public class EventService {
         return e;
     }
 
+    /**
+     * Salt okunur erisim (T-049): {@link #loadVisible} kurali + iptal edilmis etkinlikte RSVP'si/basvurusu olan
+     * kullanici durumu (CANCELLED) ve nedeni gorur; boylece iptal bildiriminin derin baglantisi 404 vermez.
+     * Yalniz okuma/RSVP geri cekme yollarinda kullanilir; yazma/yoklama/sohbet yollari loadVisible'da kalir.
+     */
+    public UserEvent loadReadable(Actor a, Long id) {
+        UserEvent e = load(id);
+        if (e.getStatus() == UserEvent.Status.CANCELLED && !canManage(a, e) && involved(a.id(), e)) {
+            return e;
+        }
+        return ensureVisible(a, e);
+    }
+
+    private boolean involved(Long userId, UserEvent e) {
+        return rsvps.findByEventIdAndUserId(e.getId(), userId).isPresent()
+                || (admission != null && admission.hasApplication(e.getId(), userId));
+    }
+
     /** Yayindaki etkinlik (gizli topluluk kisitiyla) herkese; diger durumlar yalnizca organizatore, aksi halde 404. */
     public UserEvent loadVisible(Actor a, Long id) {
         return ensureVisible(a, load(id));
@@ -898,11 +942,16 @@ public class EventService {
     }
 
     private void notifyGoing(UserEvent e, String key) {
-        for (Long uid : rsvps.userIds(e.getId(), EventRsvp.Status.GOING, PageRequest.of(0, NOTIFY_LIMIT))) {
-            if (!uid.equals(e.getCreatedBy())) {
-                notifications.sendTemplated(uid, NotificationType.EVENT, key, Map.of("eventId", e.getId().toString()), e.getTitle());
-            }
-        }
+        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
+        Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(e.getId(), EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
+                ids -> {
+                    for (Long uid : ids) {
+                        if (!uid.equals(e.getCreatedBy())) {
+                            notifications.sendTemplated(uid, NotificationType.EVENT, key,
+                                    Map.of("eventId", e.getId().toString()), e.getTitle());
+                        }
+                    }
+                });
     }
 
     private List<EventView> views(List<UserEvent> list, Actor a, boolean detail) {
@@ -938,11 +987,22 @@ public class EventService {
                     manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null,
                     e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null
                             : clubs.get(e.getCommunityId()).getLogoUrl(),
-                    manageable.contains(e.getId()) && (e.getStatus() == UserEvent.Status.CANCELLED
-                            || e.getStatus() == UserEvent.Status.HIDDEN) ? e.getModerationReason() : null,
+                    cancelReasonFor(e, manageable.contains(e.getId()), mine.get(e.getId())),
                     manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null));
         }
         return out;
+    }
+
+    /**
+     * Iptal/gizleme nedeni: yonetene yonetici gerekcesi (yoksa organizator nedeni); iptal edilmis etkinlikte RSVP'si
+     * olana yalniz organizator nedeni (yonetici ic notu sizmaz). Aksi halde null (T-049).
+     */
+    private static String cancelReasonFor(UserEvent e, boolean manage, EventRsvp.Status myRsvp) {
+        boolean closed = e.getStatus() == UserEvent.Status.CANCELLED || e.getStatus() == UserEvent.Status.HIDDEN;
+        if (manage && closed) {
+            return e.getModerationReason() != null ? e.getModerationReason() : e.getCancelReason();
+        }
+        return e.getStatus() == UserEvent.Status.CANCELLED && myRsvp != null ? e.getCancelReason() : null;
     }
 
     /**

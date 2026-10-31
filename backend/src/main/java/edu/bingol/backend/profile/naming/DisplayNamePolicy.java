@@ -180,6 +180,35 @@ public final class DisplayNamePolicy {
         };
     }
 
+    /**
+     * T-052: kulup adi / etkinlik basligi / duyuru basligi icin kurum taklidi (rezerve ifade) denetimi.
+     * Eslesme reddi degil inceleme gerektirir; cagiran karar verir.
+     */
+    public static boolean looksReserved(String text) {
+        return text != null && isReserved(text);
+    }
+
+    /** Kontrol / bidi / sifir genislikli / gorunmez bosluk karakteri iceriyor mu (kulup adi, baslik gibi serbest adlar icin). */
+    public static boolean hasInvisible(String raw) {
+        if (raw == null) {
+            return false;
+        }
+        for (int i = 0; i < raw.length(); ) {
+            int cp = raw.codePointAt(i);
+            i += Character.charCount(cp);
+            int type = Character.getType(cp);
+            if (cp == '\n' || cp == '\r' || cp == '\t') {
+                continue;
+            }
+            if (Character.isISOControl(cp) || type == Character.FORMAT || type == Character.PRIVATE_USE
+                    || type == Character.LINE_SEPARATOR || type == Character.PARAGRAPH_SEPARATOR
+                    || INVISIBLE_LETTERS.contains(cp)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static boolean isReserved(String name) {
         String sk = skeleton(name);
         List<String> tokens = new ArrayList<>();

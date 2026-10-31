@@ -244,7 +244,7 @@ class EventQaTest {
         e.setCreatedBy(1L);
         e.setStartsAt(Instant.now().minus(Duration.ofHours(5)));
         e.setEndsAt(Instant.now().minus(Duration.ofHours(3)));
-        when(rsvps.userIds(eq(5L), any(), any())).thenReturn(List.of(50L));
+        when(rsvps.userIdsAfter(eq(5L), any(), eq(0L), any())).thenReturn(List.of(50L));
 
         svc.delete(stranger, 5L);
 
@@ -256,7 +256,7 @@ class EventQaTest {
     void cancellingUpcomingEventNotifiesGoingExceptOrganizer() {
         UserEvent e = event(UserEvent.Status.ACTIVE);
         e.setCreatedBy(1L);
-        when(rsvps.userIds(eq(5L), any(), any())).thenReturn(List.of(1L, 50L, 51L));
+        when(rsvps.userIdsAfter(eq(5L), any(), eq(0L), any())).thenReturn(List.of(1L, 50L, 51L));
 
         svc.delete(stranger, 5L);
 

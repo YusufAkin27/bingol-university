@@ -8,6 +8,7 @@ import edu.bingol.backend.event.dto.EventDtos.AttendeePreview;
 import edu.bingol.backend.event.dto.EventDtos.AttendeeView;
 import edu.bingol.backend.event.dto.EventDtos.BulkRequest;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
+import edu.bingol.backend.event.dto.EventDtos.CancelEventRequest;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
 import edu.bingol.backend.event.dto.EventDtos.CheckinCode;
 import edu.bingol.backend.event.dto.EventDtos.CheckinRequest;
@@ -172,10 +173,10 @@ public class EventController {
     /** Organizator: etkinligi iptal eder (DELETE /events/{id} ile ayni; katilimcilara bildirim, sohbet odasi kapanir). */
     @PostMapping("/events/{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cancel(@PathVariable Long id) {
+    public void cancel(@PathVariable Long id, @Valid @RequestBody(required = false) CancelEventRequest r) {
         Actor a = Actor.current();
         limiter.check("event-manage:user:" + a.id(), 60, Duration.ofHours(1));
-        events.delete(a, id);
+        events.delete(a, id, r == null ? null : r.reason());
     }
 
     /** Organizator: kayitlari kapatir (yeni RSVP yok; etkinlik gorunur kalir, mevcut RSVP'ler etkilenmez). Idempotent. */
@@ -212,7 +213,7 @@ public class EventController {
     }
 
     /**
-     * Etkinliklerim. mode: upcoming | going | past | created (eski: attending | organizing). Imecli.
+     * Etkinliklerim. mode: upcoming | going | past | cancelled | created (eski: attending | organizing). Imecli.
      * /events/me, /me/events'in takma adidir.
      */
     @GetMapping({"/me/events", "/events/me"})

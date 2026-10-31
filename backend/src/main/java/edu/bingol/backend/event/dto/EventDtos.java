@@ -85,6 +85,10 @@ public final class EventDtos {
         }
     }
 
+    /** Organizator iptali; reason istege bagli (en cok 300 karakter), RSVP'li katilimciya gosterilir. */
+    public record CancelEventRequest(@Size(max = 300) String reason) {
+    }
+
     public record RsvpRequest(@NotNull EventRsvp.Status status) {
     }
 

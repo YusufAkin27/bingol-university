@@ -33,6 +33,11 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
     @Query("SELECT r.userId FROM EventRsvp r WHERE r.eventId = :eid AND r.status = :status")
     List<Long> userIds(@Param("eid") Long eventId, @Param("status") EventRsvp.Status status, Pageable page);
 
+    /** Bildirim hedefleri, kimlik imecli (T-051): kullanici kimligine gore artan; sessiz kesme yok. */
+    @Query("SELECT r.userId FROM EventRsvp r WHERE r.eventId = :eid AND r.status = :status AND r.userId > :after ORDER BY r.userId")
+    List<Long> userIdsAfter(@Param("eid") Long eventId, @Param("status") EventRsvp.Status status,
+                            @Param("after") long after, Pageable page);
+
     /** Yoklama listesi icin: etkinlikteki tum GOING RSVP'ler (kapasite sinirli oldugundan kucuk). */
     List<EventRsvp> findByEventIdAndStatus(Long eventId, EventRsvp.Status status);
 

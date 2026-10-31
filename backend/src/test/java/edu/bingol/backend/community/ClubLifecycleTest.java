@@ -83,7 +83,7 @@ class ClubLifecycleTest {
     void ownerDeletesClub() {
         Community c = club(Community.Status.ACTIVE);
         when(communities.findById(10L)).thenReturn(Optional.of(c));
-        when(members.userIdsByStatus(eq(10L), eq(CommunityMember.Status.ACTIVE), any())).thenReturn(List.of(1L, 3L, 4L));
+        when(members.userIdsByStatusAfter(eq(10L), eq(CommunityMember.Status.ACTIVE), eq(0L), any())).thenReturn(List.of(1L, 3L, 4L));
 
         svc.delete(owner, 10L);
 

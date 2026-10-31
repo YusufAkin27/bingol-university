@@ -110,8 +110,22 @@ class CoOrganizerAndAnnouncementTest {
         when(communities.usersById(any())).thenReturn(Map.of(3L, user(3, UserStatus.SUSPENDED)));
         code(assertThrows(ApiException.class, () -> co.add(OWNER, 10L, 3L)), HttpStatus.NOT_FOUND, "USER_NOT_FOUND");
         when(communities.usersById(any())).thenReturn(Map.of(4L, user(4, UserStatus.ACTIVE)));
+        when(blocks.hasBlocked(1L, 4L)).thenReturn(true); // ben engelledim: bilgilendirici 404
         when(blocks.isBlocked(1L, 4L)).thenReturn(true);
         code(assertThrows(ApiException.class, () -> co.add(OWNER, 10L, 4L)), HttpStatus.NOT_FOUND, "USER_NOT_FOUND");
+    }
+
+    @Test
+    void addingSomeoneWhoBlockedMeIsAShadowNoOp() { // T-029: engellendigimi ogrenmem, kayit/bildirim yok
+        when(events.load(10L)).thenReturn(event());
+        when(communities.usersById(any())).thenReturn(Map.of(4L, user(4, UserStatus.ACTIVE)));
+        when(blocks.isBlocked(1L, 4L)).thenReturn(true);
+        when(blocks.hasBlocked(1L, 4L)).thenReturn(false);
+
+        co.add(OWNER, 10L, 4L);
+
+        verify(coRepo, org.mockito.Mockito.never()).saveAndFlush(any());
+        org.mockito.Mockito.verifyNoInteractions(notifications);
     }
 
     @Test
@@ -152,7 +166,7 @@ class CoOrganizerAndAnnouncementTest {
         when(events.load(10L)).thenReturn(e);
         when(events.requireManager(OWNER, e)).thenReturn(e);
         when(log.countByEventIdAndCreatedAtGreaterThanEqual(anyLong(), any())).thenReturn(1L);
-        when(rsvps.userIds(eq(10L), eq(EventRsvp.Status.GOING), any(Pageable.class))).thenReturn(List.of(1L, 2L, 3L, 4L, 5L));
+        when(rsvps.userIdsAfter(eq(10L), eq(EventRsvp.Status.GOING), eq(0L), any(Pageable.class))).thenReturn(List.of(1L, 2L, 3L, 4L, 5L));
         when(communities.usersById(any())).thenReturn(Map.of(
                 1L, user(1, UserStatus.ACTIVE), 2L, user(2, UserStatus.ACTIVE), 3L, user(3, UserStatus.SUSPENDED),
                 4L, user(4, UserStatus.ACTIVE)));

@@ -141,7 +141,7 @@ class EventLifecycleTest {
         UserEvent e = event(false);
         e.setCommunityId(10L);
         when(events.liveIdsByCommunity(eq(10L), any(), any())).thenReturn(List.of(5L));
-        when(rsvps.userIds(eq(5L), eq(EventRsvp.Status.GOING), any())).thenReturn(List.of(1L, 2L));
+        when(rsvps.userIdsAfter(eq(5L), eq(EventRsvp.Status.GOING), eq(0L), any())).thenReturn(List.of(1L, 2L)); // T-051: imecli sayfa
 
         int n = svc.cancelForDeletedClub(10L);
 

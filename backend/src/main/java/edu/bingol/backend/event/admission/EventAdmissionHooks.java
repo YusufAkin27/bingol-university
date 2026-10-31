@@ -29,6 +29,11 @@ public interface EventAdmissionHooks {
     /** Kullanicinin istek durumlari: PENDING (bekleyen/bekleme listesi) ve REJECTED; baska durum haritada yok. */
     java.util.Map<Long, EventRsvp.Status> requestStates(Long userId, java.util.Collection<Long> eventIds);
 
+    /** Kullanicinin bu etkinlige herhangi bir durumda (iptal olmus dahil) basvurusu var mi (T-049: iptal sonrasi salt okunur erisim). */
+    default boolean hasApplication(Long eventId, Long userId) {
+        return false;
+    }
+
     /** Bekleyen istek sayilari (PENDING). Istek olmayan kimlik haritada yoktur. */
     java.util.Map<Long, Long> pendingCounts(java.util.Collection<Long> eventIds);
 

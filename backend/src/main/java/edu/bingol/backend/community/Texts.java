@@ -32,6 +32,16 @@ public final class Texts {
         return "%" + e + "%";
     }
 
+    /** T-052: ad/baslik gorunmez, bidi veya kontrol karakteri iceremez (400 INVALID_DISPLAY_NAME). */
+    public static void requireNoInvisible(String... texts) {
+        for (String t : texts) {
+            if (edu.bingol.backend.profile.naming.DisplayNamePolicy.hasInvisible(t)) {
+                throw new edu.bingol.backend.common.ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                        "INVALID_DISPLAY_NAME", "Geçersiz görünen ad.");
+            }
+        }
+    }
+
     /** Bos veya bosluk olan dizgiyi null yapar, aksi halde kirpar. */
     public static String blankToNull(String s) {
         return s == null || s.isBlank() ? null : s.trim();

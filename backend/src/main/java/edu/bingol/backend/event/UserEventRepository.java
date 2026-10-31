@@ -141,6 +141,15 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                              @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
                              Pageable page);
 
+    /** Etkinliklerim, iptal edilenler (mode cancelled): RSVP'li iptal edilmis etkinlikler; yeniden eskiye, imec = id. */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.status = edu.bingol.backend.event.UserEvent.Status.CANCELLED AND e.id < :cursor
+              AND e.id IN (SELECT r.eventId FROM EventRsvp r WHERE r.userId = :uid)
+            ORDER BY e.id DESC
+            """)
+    List<UserEvent> mineCancelled(@Param("uid") Long userId, @Param("cursor") long cursor, Pageable page);
+
     /** Kulubun bitmemis, verilen durumlardaki etkinlik kimlikleri (kulup silinince iptal icin). */
     /** Hesap silme: kullanicinin kulube bagli olmayan, bitmemis etkinlikleri. */
     @Query("SELECT e.id FROM UserEvent e WHERE e.createdBy = :uid AND e.communityId IS NULL AND e.status IN :statuses AND e.endsAt > :now")

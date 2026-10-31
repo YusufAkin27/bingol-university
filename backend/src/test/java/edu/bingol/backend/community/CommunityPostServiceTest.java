@@ -91,7 +91,7 @@ class CommunityPostServiceTest {
             return p;
         });
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of(3L));
-        when(members.userIdsByStatus(eq(10L), any(), any())).thenReturn(List.of(1L, 2L, 3L));
+        when(members.userIdsByStatusAfter(eq(10L), any(), eq(0L), any())).thenReturn(List.of(1L, 2L, 3L));
 
         svc.create(user, 10L, new CreatePostRequest("selam", "/files/posts/a.png"));
 
