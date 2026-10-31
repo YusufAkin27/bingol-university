@@ -116,8 +116,8 @@ const m = {
   'pg.delete.s1.h': 'Delete from inside the app',
   'pg.delete.s1.p1': 'The quickest way to delete your account is the app:',
   'pg.delete.s1.o1': 'Open the BÜ Kampüs app and sign in.',
-  'pg.delete.s1.o2': 'Go to your profile and settings.',
-  'pg.delete.s1.o3': 'Tap “Delete my account”.',
+  'pg.delete.s1.o2': 'Go to Settings > Privacy and data > My data.',
+  'pg.delete.s1.o3': 'Tap “Delete my account”, read the warning, tick the confirmation box and tap “Continue”.',
   'pg.delete.s1.o4': 'Confirm by entering your password.',
   'pg.delete.s2.h': 'What happens when you delete',
   'pg.delete.s2.l1':

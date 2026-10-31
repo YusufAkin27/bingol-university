@@ -117,8 +117,8 @@ const m = {
   'pg.delete.s1.h': 'Uygulama içinden silme',
   'pg.delete.s1.p1': 'Hesabı silmenin en hızlı yolu uygulamadır:',
   'pg.delete.s1.o1': 'BÜ Kampüs uygulamasını açın ve hesabınızla giriş yapın.',
-  'pg.delete.s1.o2': 'Profil ve ayarlar bölümüne gidin.',
-  'pg.delete.s1.o3': '“Hesabımı sil” seçeneğine dokunun.',
+  'pg.delete.s1.o2': 'Ayarlar > Gizlilik ve veriler > Verilerim bölümüne gidin.',
+  'pg.delete.s1.o3': '“Hesabımı sil” seçeneğine dokunun, uyarıyı okuyup onay kutusunu işaretleyin ve “Devam et” deyin.',
   'pg.delete.s1.o4': 'Şifrenizi girerek işlemi onaylayın.',
   'pg.delete.s2.h': 'Silinince ne olur?',
   'pg.delete.s2.l1':

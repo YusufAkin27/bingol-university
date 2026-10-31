@@ -8,5 +8,6 @@ import pages from '../ar/pages';
 import supportPublic from '../ar/support-public';
 import seo from '../ar/seo';
 import childSafety from '../ar/child-safety';
+import siteTrust from '../ar/site-trust';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust };

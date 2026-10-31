@@ -4,6 +4,7 @@
 import type { TranslationKey } from '../../../i18n';
 import academic from '../../../assets/site/app-academic.webp';
 import chat from '../../../assets/site/app-chat.webp';
+import deleteAccount from '../../../assets/site/app-delete.webp';
 import clubs from '../../../assets/site/app-clubs.webp';
 import discover from '../../../assets/site/app-discover.webp';
 import events from '../../../assets/site/app-events.webp';
@@ -11,8 +12,9 @@ import home from '../../../assets/site/app-home.webp';
 import menu from '../../../assets/site/app-menu.webp';
 import poll from '../../../assets/site/app-poll.webp';
 import qr from '../../../assets/site/app-qr.webp';
+import support from '../../../assets/site/app-support.webp';
 
-export type ShotId = 'home' | 'discover' | 'chat' | 'clubs' | 'events' | 'qr' | 'menu' | 'poll' | 'academic';
+export type ShotId = 'home' | 'discover' | 'chat' | 'clubs' | 'events' | 'qr' | 'menu' | 'poll' | 'academic' | 'delete';
 
 export interface Shot {
   src: string;
@@ -33,5 +35,7 @@ export const SHOTS: Record<ShotId, Shot> = {
   qr: { src: qr, width: 600, height: 940, peek: true, alt: 'site.shot.qr.alt' },
   menu: { src: menu, width: 600, height: 900, peek: true, alt: 'site.shot.menu.alt' },
   poll: { src: poll, width: 600, height: 920, peek: true, alt: 'site.shot.poll.alt' },
+  support: { src: support, width: 600, height: 1298, peek: false, alt: 'site.shot.support.alt' },
   academic: { src: academic, width: 600, height: 860, peek: true, alt: 'site.shot.academic.alt' },
+  delete: { src: deleteAccount, width: 600, height: 1298, peek: false, alt: 'site.shot.delete.alt' },
 };
