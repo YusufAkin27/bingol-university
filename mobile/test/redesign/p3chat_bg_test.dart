@@ -236,18 +236,31 @@ void main() {
         addTearDown(tester.view.reset);
         await tester.pumpWidget(p00App(const ChatBackgroundSettingsPage(), scale: scale, scaffold: false));
         await tester.pump(const Duration(milliseconds: 400));
-        for (final k in ['pattern', 'soft', 'strong', 'plain']) {
-          expect(find.byKey(ValueKey('chatBg-$k')), findsOneWidget);
-          expect(tester.getSize(find.byKey(ValueKey('chatBg-$k'))).height, greaterThanOrEqualTo(48));
-        }
-        await tester.tap(find.byKey(const ValueKey('chatBg-plain')));
-        await tester.pump(const Duration(milliseconds: 300));
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.plain);
+        // Stitch düzeni: segment Desen | Düz, Yoğunluk Hafif | Orta (yalnız Desen'de), Uygula, Varsayılana dön.
+        expect(find.byKey(const ValueKey('chatBgMode')), findsOneWidget);
+        expect(find.byKey(const ValueKey('chatBgDensity')), findsOneWidget);
+        expect(find.text('Yoğunluk'), findsOneWidget);
+        expect(find.text('Uygula'), findsOneWidget);
+        expect(find.text('Varsayılana dön'), findsOneWidget);
+        expect(tester.getSize(find.byKey(const ValueKey('chatBgApply'))).height, greaterThanOrEqualTo(48));
+        // Düz seç: yoğunluk kalkar; Uygula'ya basmadan kayıt değişmez.
+        await tester.tap(find.text('Düz'));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byKey(const ValueKey('chatBgDensity')), findsNothing);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.pattern);
         expect(find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper'))), findsNothing);
-        await tester.tap(find.byKey(const ValueKey('chatBg-strong')));
+        // Desen + Orta: önizleme desenli, Uygula kaydeder.
+        await tester.tap(find.text('Desen'));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text('Orta'));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper'))), findsOneWidget);
+        await tester.runAsync(() async {
+          await tester.tap(find.byKey(const ValueKey('chatBgApply')));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        });
         await tester.pump(const Duration(milliseconds: 300));
         expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.strong);
-        expect(find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper'))), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.runAsync(() => ChatBackgroundPrefs.clear());
       });

@@ -160,7 +160,7 @@ class ChatWallpaper extends StatefulWidget {
   static double alphaOf(ChatBgStyle s, bool dark) => switch (s) {
         ChatBgStyle.pattern => dark ? .06 : .07,
         ChatBgStyle.soft => dark ? .04 : .045,
-        ChatBgStyle.strong => dark ? .09 : .11,
+        ChatBgStyle.strong => dark ? .10 : .12,
         _ => 0,
       };
 

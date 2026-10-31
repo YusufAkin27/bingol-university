@@ -9248,4 +9248,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get p64FeedOffline =>
       'أنت غير متصل. قد تكون المنشورات المعروضة قديمة.';
+
+  @override
+  String get p67ChatBgDensity => 'الكثافة';
+
+  @override
+  String get p67ChatBgApply => 'تطبيق';
+
+  @override
+  String get p67ChatBgReset => 'العودة إلى الافتراضي';
 }

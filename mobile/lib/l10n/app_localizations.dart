@@ -16950,6 +16950,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Çevrimdışısın. Gösterilen gönderiler eski olabilir.'**
   String get p64FeedOffline;
+
+  /// No description provided for @p67ChatBgDensity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoğunluk'**
+  String get p67ChatBgDensity;
+
+  /// No description provided for @p67ChatBgApply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygula'**
+  String get p67ChatBgApply;
+
+  /// No description provided for @p67ChatBgReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsayılana dön'**
+  String get p67ChatBgReset;
 }
 
 class _AppLocalizationsDelegate

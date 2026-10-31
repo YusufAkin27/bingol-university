@@ -4712,5 +4712,8 @@
   "p51DescHint": "Kulübünüzün amacını ve hedeflerini kısaca anlatın…",
   "p51AddJoinQuestion": "Katılma sorusu ekle",
   "p64CropDone": "Bitti",
-  "p64FeedOffline": "Çevrimdışısın. Gösterilen gönderiler eski olabilir."
+  "p64FeedOffline": "Çevrimdışısın. Gösterilen gönderiler eski olabilir.",
+  "p67ChatBgDensity": "Yoğunluk",
+  "p67ChatBgApply": "Uygula",
+  "p67ChatBgReset": "Varsayılana dön"
 }

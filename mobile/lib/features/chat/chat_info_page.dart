@@ -532,14 +532,15 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       padding: const EdgeInsets.symmetric(horizontal: kChatInfoMargin),
       child: child);
 
-  Widget _gap(List<Widget> cards) => _pad(Column(
+  /// Tam genişlik bantlar, aralarında 24 dp sayfa zemini (Stitch v3).
+  Widget _gap(List<Widget> cards) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(height: 16),
+          if (i > 0) const SizedBox(height: 24),
           cards[i],
         ],
-      ]));
+      ]);
 
   /// Ara · Sessize al · Arşivle.
   Widget _quickRow({required bool dense}) {
@@ -569,13 +570,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final tok = _api.tokens?.access;
     final au = _avatarUrl;
     final avatar = DecoratedBox(
-      decoration: BoxDecoration(
-          shape: BoxShape.circle, boxShadow: BuElevation.of(context, 2)),
+      decoration: const BoxDecoration(),
       child: ChatlistAvatar(
         name: _title,
         url: au,
         size: 96,
-        circle: true,
+        monogram: true,
+        cornerRadius: 20,
         group: !_direct,
         headers: (tok != null && au != null && au.startsWith('/api/'))
             ? {'Authorization': 'Bearer $tok'}
@@ -621,7 +622,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   TextStyle _nameStyle(BuTokens t) => Theme.of(context)
       .textTheme
       .headlineSmall!
-      .copyWith(fontWeight: FontWeight.w600, height: 1.27, color: t.ink);
+      .copyWith(fontWeight: FontWeight.w700, fontSize: 22, height: 1.27, color: t.ink);
 
   // ---- Birebir ----
 

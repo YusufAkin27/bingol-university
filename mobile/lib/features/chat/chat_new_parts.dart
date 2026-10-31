@@ -43,7 +43,10 @@ class NcHeader extends StatelessWidget {
 
 /// Beyaz yuvarlatılmış kart (20 dp, ince çizgi).
 class NcCard extends StatelessWidget {
-  const NcCard({super.key, required this.child, this.padding = const EdgeInsets.all(16), this.radius = 20, this.onTap, this.color, this.flat = false});
+  const NcCard({super.key, required this.child, this.padding = const EdgeInsets.all(16), this.radius = 20, this.onTap, this.color, this.flat = false, this.bottomLine = false});
+
+  /// Kartsız satırda altta 1 dp `bd` ayırıcı (Stitch v3 kişi listesi).
+  final bool bottomLine;
 
   /// true: kartsız bölüm (zemin ve çerçeve yok; yalnız iç boşluk).
   final bool flat;
@@ -59,7 +62,7 @@ class NcCard extends StatelessWidget {
     final box = Container(
       width: double.infinity,
       padding: padding,
-      decoration: flat ? const BoxDecoration(color: Colors.transparent) : BoxDecoration(color: color ?? t.sf, borderRadius: BorderRadius.circular(radius), border: Border.all(color: t.bd)),
+      decoration: flat ? BoxDecoration(color: Colors.transparent, border: bottomLine ? Border(bottom: BorderSide(color: t.bd)) : null) : BoxDecoration(color: color ?? t.sf, borderRadius: BorderRadius.circular(radius), border: Border.all(color: t.bd)),
       child: child,
     );
     return onTap == null ? box : BuPressable(onTap: onTap, scale: .99, child: box);
@@ -148,6 +151,7 @@ class NcPersonRow extends StatelessWidget {
       key: rowKey,
       onTap: onTap,
       flat: true,
+      bottomLine: true,
       padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 48),

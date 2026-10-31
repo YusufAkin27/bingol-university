@@ -165,7 +165,15 @@ class ChatlistAvatar extends StatelessWidget {
     this.circle = false,
     this.headers,
     this.heroTag,
+    this.monogram = false,
+    this.cornerRadius,
   });
+
+  /// Köşe yarıçapını sabitler (varsayılan: boyutun %34'ü; büyük avatarda 20 dp).
+  final double? cornerRadius;
+
+  /// true: fotoğraf yoksa varsayılan görsel yerine baş harfler (Stitch v3 konuşma ekranı: `sf2` zemin, `ink` metin).
+  final bool monogram;
 
   /// Liste -> konuşma geçişinde paylaşılan avatar uçuşu etiketi (`chat-avatar-<id>`); null: Hero yok.
   final Object? heroTag;
@@ -219,12 +227,22 @@ class ChatlistAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final radius = circle ? size / 2 : size * .34;
+    final radius = circle ? size / 2 : (cornerRadius ?? size * .34);
     // Varsayılan profil görseli her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.
-    final fallback = ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BuDefaultAvatar(seed: name, size: size, group: group),
-    );
+    final fallback = monogram
+        ? Container(
+            width: size,
+            height: size,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(radius)),
+            child: Text(initials(name),
+                maxLines: 1,
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700, fontSize: size * .36, height: 1)),
+          )
+        : ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: BuDefaultAvatar(seed: name, size: size, group: group),
+          );
     final full = fileUrl(url);
     final Widget base;
     if (full == null) {

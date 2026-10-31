@@ -9,21 +9,25 @@ import 'package:flutter/widgets.dart';
 /// Ölçüm, çocuk metnin gerçek yerleşiminden (son satırın genişliği) alınır; RTL'de meta sola, metin sağa yaslanır.
 /// İlk çocuk metin ([Text] ya da [RichText]; `textWidthBasis: longestLine` önerilir), ikincisi [meta]'dır.
 class BubbleTextMeta extends MultiChildRenderObjectWidget {
-  BubbleTextMeta({super.key, required Widget text, required Widget meta, this.gap = 8})
+  BubbleTextMeta({super.key, required Widget text, required Widget meta, this.gap = 8, this.stacked = false})
       : super(children: [text, meta]);
+
+  /// true: meta HER ZAMAN metnin altında sağda (Stitch v3 referansı; kısa tek satırlık balonda da).
+  final bool stacked;
 
   /// Metin ile meta arasındaki en küçük yatay boşluk.
   final double gap;
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      RenderBubbleTextMeta(textDirection: Directionality.of(context), gap: gap);
+      RenderBubbleTextMeta(textDirection: Directionality.of(context), gap: gap, stacked: stacked);
 
   @override
   void updateRenderObject(BuildContext context, RenderBubbleTextMeta renderObject) {
     renderObject
       ..textDirection = Directionality.of(context)
-      ..gap = gap;
+      ..gap = gap
+      ..stacked = stacked;
   }
 }
 
@@ -31,9 +35,17 @@ class _MetaParentData extends ContainerBoxParentData<RenderBox> {}
 
 class RenderBubbleTextMeta extends RenderBox
     with ContainerRenderObjectMixin<RenderBox, _MetaParentData>, RenderBoxContainerDefaultsMixin<RenderBox, _MetaParentData> {
-  RenderBubbleTextMeta({required TextDirection textDirection, required double gap})
+  RenderBubbleTextMeta({required TextDirection textDirection, required double gap, bool stacked = false})
       : _textDirection = textDirection,
-        _gap = gap;
+        _gap = gap,
+        _stacked = stacked;
+
+  bool _stacked;
+  set stacked(bool v) {
+    if (v == _stacked) return;
+    _stacked = v;
+    markNeedsLayout();
+  }
 
   TextDirection _textDirection;
   TextDirection get textDirection => _textDirection;
@@ -86,7 +98,7 @@ class RenderBubbleTextMeta extends RenderBox
 
   @override
   double computeMaxIntrinsicWidth(double height) =>
-      _text.getMaxIntrinsicWidth(height) + _gap + _meta.getMaxIntrinsicWidth(height);
+      _stacked ? math.max(_text.getMaxIntrinsicWidth(height), _meta.getMaxIntrinsicWidth(height)) : _text.getMaxIntrinsicWidth(height) + _gap + _meta.getMaxIntrinsicWidth(height);
 
   @override
   double computeMinIntrinsicHeight(double width) =>
@@ -101,7 +113,7 @@ class RenderBubbleTextMeta extends RenderBox
     final loose = BoxConstraints(maxWidth: constraints.maxWidth);
     final t = _text.getDryLayout(loose);
     final m = _meta.getDryLayout(loose);
-    final inline = t.width + _gap + m.width <= constraints.maxWidth;
+    final inline = !_stacked && t.width + _gap + m.width <= constraints.maxWidth;
     return constraints.constrain(Size(
       inline ? t.width + _gap + m.width : math.max(t.width, m.width),
       inline ? math.max(t.height, m.height) : t.height + m.height,
@@ -121,7 +133,7 @@ class RenderBubbleTextMeta extends RenderBox
 
     final p = _paragraphOf(_text);
     final lastW = p == null ? tw : _lastLineExtent(p, tw);
-    final inline = lastW + _gap + mw <= maxW + 0.01;
+    final inline = !_stacked && lastW + _gap + mw <= maxW + 0.01;
 
     final w = math.min(maxW, math.max(tw, inline ? lastW + _gap + mw : mw));
     final h = inline ? math.max(th, mh) : th + mh;

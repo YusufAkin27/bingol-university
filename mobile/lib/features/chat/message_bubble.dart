@@ -201,7 +201,7 @@ class MessageBubble extends StatelessWidget {
     final textSpan = _span(text, textStyle, highlight, t.warnSoft, t.onWarnSoft);
     Widget textWithMeta() {
       final tw = Text.rich(textSpan, textWidthBasis: TextWidthBasis.longestLine);
-      final inner = hasMeta ? BubbleTextMeta(text: tw, meta: metaRow(metaColor)) : tw;
+      final inner = hasMeta ? BubbleTextMeta(text: tw, meta: metaRow(metaColor), stacked: true) : tw;
       if (!ghost) return inner;
       // Silinen/kaldırılan: solda küçük simge (metin düz kalır, böylece metin aramaları bozulmaz).
       return Row(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

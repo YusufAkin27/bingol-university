@@ -119,7 +119,7 @@ class ChatInfoBar extends StatelessWidget {
   }
 }
 
-/// Beyaz kart: 16 köşe, hafif gölge (koyu temada ince çizgi).
+/// Tam genişlik beyaz bant: üst/alt 1 dp `bd` çizgi, köşe ve gölge yok (Stitch v3 sohbet bilgisi).
 class ChatInfoCard extends StatelessWidget {
   const ChatInfoCard({super.key, required this.child, this.padding = EdgeInsets.zero, this.color});
 
@@ -130,15 +130,11 @@ class ChatInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      clipBehavior: Clip.antiAlias,
       padding: padding,
       decoration: BoxDecoration(
         color: color ?? t.sf,
-        borderRadius: BuRadius.bMd,
-        border: dark ? Border.all(color: t.bd) : null,
-        boxShadow: BuElevation.of(context, 1),
+        border: Border.symmetric(horizontal: BorderSide(color: t.bd)),
       ),
       child: child,
     );
@@ -157,7 +153,7 @@ class ChatInfoRows extends StatelessWidget {
     return ChatInfoCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         for (var i = 0; i < children.length; i++) ...[
-          if (i > 0) Divider(height: 1, thickness: 1, color: t.sf2),
+          if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
           children[i],
         ],
       ]),
@@ -219,11 +215,13 @@ class ChatInfoRow extends StatelessWidget {
           child: Padding(
             padding: EdgeInsetsDirectional.symmetric(horizontal: padding, vertical: 8),
             child: Row(children: [
-              ChatInfoIconDot(icon: icon, danger: danger, soft: soft, size: dotSize, iconSize: iconSize),
-              const SizedBox(width: 12),
+              if (soft) ...[
+                ChatInfoIconDot(icon: icon, danger: danger, soft: soft, size: dotSize, iconSize: iconSize),
+                const SizedBox(width: 12),
+              ],
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context, color: fg)),
+                  Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoTitle16(context, color: fg).copyWith(fontWeight: FontWeight.w400)),
                   if (sub != null) Text(sub!, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoBody12(context)),
                 ]),
               ),
@@ -294,21 +292,16 @@ class ChatInfoQuickAction extends StatelessWidget {
       child: BuPressable(
         onTap: onTap,
         haptic: BuHaptic.selection,
-        child: ChatInfoCard(
-          padding: EdgeInsets.all(dense ? 8 : 12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-              child: Icon(icon, size: 22, color: t.ink),
-            ),
-            SizedBox(height: dense ? 4 : 8),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: BuSize.touch + 16),
+          child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, size: 24, color: t.ink),
+            const SizedBox(height: 8),
             Text(label,
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: dense ? chatInfoLabel12(context) : chatInfoLabel14(context)),
+                style: chatInfoLabel12(context).copyWith(fontWeight: FontWeight.w500, color: t.ink)),
           ]),
         ),
       ),

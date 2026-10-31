@@ -9317,4 +9317,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p64FeedOffline =>
       'Çevrimdışısın. Gösterilen gönderiler eski olabilir.';
+
+  @override
+  String get p67ChatBgDensity => 'Yoğunluk';
+
+  @override
+  String get p67ChatBgApply => 'Uygula';
+
+  @override
+  String get p67ChatBgReset => 'Varsayılana dön';
 }

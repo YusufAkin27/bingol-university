@@ -399,11 +399,11 @@ void main() {
   group('Saat ve metin cakismasi', () {
     Map<String, dynamic> mine(String text, {String status = 'READ'}) => _msg(5, 1, text, extra: {'status': status});
 
-    testWidgets('kisa mesaj: saat metnin yaninda (ayni satir)', (tester) async {
+    testWidgets('kisa mesaj: saat HER ZAMAN metnin altinda sagda (Stitch v3 referansi)', (tester) async {
       useScreen(tester, kPhoneSmall);
       await tester.pumpWidget(_harness(mine('Selam')));
       await tester.pump();
-      expect(_expectNoOverlap(tester, reason: 'kisa'), isTrue); // yan yana
+      expect(_expectNoOverlap(tester, reason: 'kisa'), isFalse); // altta
       _ok(tester);
     });
 
@@ -429,14 +429,14 @@ void main() {
             await tester.pumpWidget(_harness(mine(text, status: n.isEven ? 'DELIVERED' : 'READ'), rtl: rtl, b: b));
             await tester.pump();
             final side = _expectNoOverlap(tester, reason: 'n=$n');
-            side ? wrapped++ : inline++;
+            side ? inline++ : wrapped++;
           }
           for (var k = 5; k <= 70; k += 5) {
             await tester.pumpWidget(_harness(mine('x' * k), rtl: rtl, b: b));
             await tester.pump();
             _expectNoOverlap(tester, reason: 'x*$k');
           }
-          expect(inline, greaterThan(0));
+          expect(inline, 0, reason: 'saat hicbir uzunlukta metnin yanina gelmez');
           expect(wrapped, greaterThan(0));
           _ok(tester);
         });

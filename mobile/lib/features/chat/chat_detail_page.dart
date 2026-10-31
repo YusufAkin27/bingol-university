@@ -2373,7 +2373,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final status = _statusText();
-    final online = _direct && _presence?['online'] == true;
     final openHeader = _direct
         ? () => _openProfileOf((_peer?['id'] as num?)?.toInt())
         : _openInfo;
@@ -2386,7 +2385,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         SizedBox(
           height: 64,
           child: Padding(
-            padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
+            padding: const EdgeInsetsDirectional.only(start: 2, end: 10),
             child: Row(children: [
               Tooltip(
                 message: l.chatDetailBack,
@@ -2421,7 +2420,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               Expanded(
                 child: InkWell(
                   onTap: _openInfo,
@@ -2447,16 +2446,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                 child: Row(
                                   key: ValueKey(typing),
                                   children: [
-                                if (online && !typing) ...[
-                                  Container(
-                                    key: const ValueKey('onlineDot'),
-                                    width: 7,
-                                    height: 7,
-                                    decoration: BoxDecoration(
-                                        color: t.ok, shape: BoxShape.circle),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
+                                // Stitch v3: durum satırı yalın metin ("çevrimiçi"), yeşil nokta yok.
                                 Flexible(
                                   child: Text(text,
                                       maxLines: 1,
@@ -2516,6 +2506,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         url: _avatarUrl,
         size: 40,
         group: !_direct,
+        monogram: true,
         headers: _avatarHeaders(_avatarUrl),
         heroTag: _conv['id'] is num ? 'chat-avatar-$_cid' : null,
       );
@@ -2882,7 +2873,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           controller: _scroll,
           reverse: true,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           itemCount: _msgs.length + 1,
           findChildIndexCallback: (key) {
             if (key is ValueKey<String>) return indexOf[key.value];
@@ -2960,7 +2951,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final bubble =
         _bubble(m, peerRead, first: _firstOfRun(i), last: _lastOfRun(i));
     final mine = _isMine(m) || m['_state'] != null;
-    if (mine) return bubble;
+    // Birebir sohbette gelen mesajların yanında avatar YOK (Stitch v3 referansı); grup/kulüp/etkinlikte gönderen avatarı.
+    if (mine || _direct) return bubble;
     final sid = _direct
         ? (_peer?['id'] as num?)?.toInt()
         : (m['senderId'] as num?)?.toInt();
@@ -2974,7 +2966,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 key: ValueKey('sender-avatar-${m['id']}'),
                 onTap: () => _openProfileOf(sid),
                 child: ChatlistAvatar(
-                    name: name, url: url, size: 28, circle: true))
+                    name: name, url: url, size: 28, monogram: true))
             : null,
       ),
       const SizedBox(width: 8),
@@ -3242,11 +3234,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
         Padding(
           padding: EdgeInsetsDirectional.fromSTEB(
-              12, 8, 20, 8 + MediaQuery.paddingOf(context).bottom),
+              6, 8, 12, 8 + MediaQuery.paddingOf(context).bottom),
           child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
             if (_editing == null) ...[
               _plusButton(t),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
             ] else
               const SizedBox(width: 8),
             Expanded(

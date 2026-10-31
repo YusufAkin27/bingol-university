@@ -98,9 +98,9 @@ void main() {
       for (final rtl in [false, true]) {
         testWidgets('${size.width.toInt()} dp ${b.name}${rtl ? ' rtl' : ''}: yeni balonlar, tasma yok', (tester) async {
           await _pump(tester, size, b, rtl: rtl);
-          // Üst çubukta çevrimiçi noktası; gelen mesajlarda 28 px avatar (birebir sohbette de).
-          expect(find.byKey(const ValueKey('onlineDot')), findsOneWidget);
-          expect(find.byKey(const ValueKey('sender-avatar-6')), findsOneWidget);
+          // Stitch v3: üst çubukta yalın "Çevrimiçi" metni (nokta yok); birebir sohbette gelen mesajların yanında avatar YOK.
+          expect(find.byKey(const ValueKey('onlineDot')), findsNothing);
+          expect(find.byKey(const ValueKey('sender-avatar-6')), findsNothing);
           // Tek gösterimlik: kilitli kart, açıldı hapı, gönderildi hapı.
           expect(find.text('Görüntüle'), findsOneWidget);
           expect(find.text('Fotoğraf · Açmak için dokun'), findsOneWidget);
