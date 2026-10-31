@@ -104,3 +104,8 @@ Yeni hata kodu eklenmedi.
 - Yetki gerçek üyelik/yetkiden değil yalnız sistem müdahalesinden geliyorsa `admin_audit`'e satır yazılır (`ClubPermissions.require`, kulüp silme): `target_type=COMMUNITY`, `summary=sistem-yonetici-mudahalesi: ...`. Kayıt ayrı işlemde yazılır, hata isteği bozmaz.
 - `DELETE /api/posts/{id}` (Keşfet gönderisi): başkasının gönderisini silmek için artık **`content.hide`** izni gerekir (FULL, EDITOR, MODERATOR); VIEWER/SUPPORT `403 POST_FORBIDDEN`. İzinli yönetici silişi `admin_audit`'e düşer (`target_type=POST`).
 - `MemberView.avatarUrl`, `PostView.authorAvatarUrl` (kulüp gönderileri), kulüp üye araması: avatar `CommunityService.avatarsFor` ile (engel + `ONLY_ME`/`SHARED_CONTEXT` + `avatar_hidden`); karar verilemezse avatar gönderilmez.
+
+## W2-D: kurum taklidi ve toplu bildirim (T-052, T-051)
+
+- Yeni kulüp adı rezerve ifade (bkz. `docs/changes/event.md` W2-D) taşıyorsa kulüp `app.community.auto-approve=true` olsa bile **PENDING_REVIEW** olur (sohbet odası onayda kurulur); yayındaki kulübün adı rezerve ifadeye çevrilemez (`400 RESERVED_DISPLAY_NAME`); kulüp adı/açıklama/kategoride görünmez karakter `400 INVALID_DISPLAY_NAME`.
+- Kulüp silinince tüm aktif üyelere (500 sınırı kalktı) ve kulüp yazısında tüm aktif üyelere bildirim gider (`CommunityMemberRepository.userIdsByStatusAfter`, kimlik imeçli).
