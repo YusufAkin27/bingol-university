@@ -17412,6 +17412,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Toplam {count} kişi'**
   String p51EvTotalPeople(String count);
+
+  /// No description provided for @p68TypeMulti.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çoklu'**
+  String get p68TypeMulti;
+
+  /// No description provided for @p68TypeRanked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralı'**
+  String get p68TypeRanked;
 }
 
 class _AppLocalizationsDelegate

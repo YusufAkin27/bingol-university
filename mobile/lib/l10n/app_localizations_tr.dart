@@ -9579,4 +9579,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String p51EvTotalPeople(String count) {
     return 'Toplam $count kişi';
   }
+
+  @override
+  String get p68TypeMulti => 'Çoklu';
+
+  @override
+  String get p68TypeRanked => 'Sıralı';
 }

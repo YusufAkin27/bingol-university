@@ -9510,4 +9510,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String p51EvTotalPeople(String count) {
     return 'الإجمالي $count شخص';
   }
+
+  @override
+  String get p68TypeMulti => 'متعدد';
+
+  @override
+  String get p68TypeRanked => 'مرتّب';
 }

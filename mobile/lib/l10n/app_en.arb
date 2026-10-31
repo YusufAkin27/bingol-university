@@ -3049,5 +3049,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "p68TypeMulti": "Multiple",
+  "p68TypeRanked": "Ranked"
 }

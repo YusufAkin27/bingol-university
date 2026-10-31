@@ -3049,5 +3049,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "p68TypeMulti": "متعدد",
+  "p68TypeRanked": "مرتّب"
 }

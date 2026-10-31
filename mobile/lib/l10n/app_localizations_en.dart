@@ -9612,4 +9612,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String p51EvTotalPeople(String count) {
     return 'Total $count people';
   }
+
+  @override
+  String get p68TypeMulti => 'Multiple';
+
+  @override
+  String get p68TypeRanked => 'Ranked';
 }
