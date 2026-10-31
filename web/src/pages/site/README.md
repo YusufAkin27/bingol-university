@@ -28,3 +28,11 @@ Kaynak: uygulamanın kendi ekran çıktıları `C:\bu_qa\shots\tasarim\...` (REN
 | `app-menu.webp` | `p3/birebir/menu/10_yemek_tr.png` (alt boşluk kırpılmış) |
 | `app-poll.webp` | `pollsup/a02_oy_verme_tr.png` (alt boşluk kırpılmış) |
 | `app-academic.webp` | `acad/birebir_akademik/01_hub_tr.png` (alt boşluk kırpılmış) |
+
+## Hukuki ve güven sayfaları (SITE3)
+
+- **`InfoPage`** (Güvenlik, Çocuk Güvenliği, Topluluk Kuralları, Erişilebilirlik, Çerezler, Hesap Silme): `PageHero` + isteğe bağlı `highlights` ("Kısaca": `PointList`, metinler `site.trust.<sayfa>.pt1..`, yalnız sayfanın kendi `pg.*` metinlerini özetler, `components/trustPoints.ts`) + okuma sütunu (~68 karakter) + bölümler ince çizgiyle ayrılır; >= 5 bölümde >= 1040 px yapışkan "Bu sayfada" içindekileri. `figure={{ s1: <PhoneMockup .../> }}` bir bölümün yanına (mobilde altına) görsel koyar; `after`/`intro`/`children` eskisi gibi.
+- **`Steps stack`**: tek sütun, adım cümleleri başlık değil paragraf (uzun yönergeler için; `o` numaralı listeler InfoPage'de bununla çizilir).
+- **Hesap silme** (`/delete-account`, Google Play için herkese açık URL): adımlar uygulamadaki gerçek yolu anlatır (Ayarlar > Gizlilik ve veriler > Verilerim > Hesabımı sil > onay kutusu > Devam et > şifre). Ekran görüntüsü `app-delete.webp` ← `C:/bu_qa/shots/tasarim/p3/profile/birebir_raw/11_hesap_sil_tr.png` (kişisel veri içermez).
+- **Sözleşme okuma** (`LegalPage`/`LegalDocument`): 17 px / 1.75 satır, ~68 karakter, mobilde açılır içindekiler, yazdırma stili (üst/alt bilgi gizli); yüklenirken sürüm satırı yer tutucudur ve iskelet >= 70vh'dir (CLS).
+
