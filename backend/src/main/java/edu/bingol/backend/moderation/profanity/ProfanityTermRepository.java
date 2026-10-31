@@ -12,6 +12,8 @@ public interface ProfanityTermRepository extends JpaRepository<ProfanityTerm, Lo
 
     long countByKind(ProfanityTerm.Kind kind);
 
+    long countByKindAndCategory(ProfanityTerm.Kind kind, ProfanityCategory category);
+
     List<ProfanityTerm> findAllByOrderByIdAsc();
 
     List<ProfanityTerm> findByKindOrderByIdAsc(ProfanityTerm.Kind kind);

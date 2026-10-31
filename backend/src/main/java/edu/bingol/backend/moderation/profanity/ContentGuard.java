@@ -32,11 +32,17 @@ public class ContentGuard {
         if (!props.enabled() || text == null || text.isBlank()) {
             return;
         }
-        if (!filter.check(text).blocked()) {
+        ProfanityMatcher.Result res = filter.check(text);
+        if (!res.blocked()) {
             return;
         }
         boolean block = props.mode() != ProfanityProperties.Mode.FLAG;
-        hits.record(entity.name(), field, userId, block ? "BLOCK" : "FLAG");
+        ProfanityCategory cat = filter.categoryOf(res);
+        if (cat == null || cat == ProfanityCategory.PROFANITY) {
+            hits.record(entity.name(), field, userId, block ? "BLOCK" : "FLAG");
+        } else {
+            hits.record(entity.name(), field, userId, block ? "BLOCK" : "FLAG", cat); // T-059: kategori de gunluge
+        }
         if (block) {
             throw new FieldApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTENT_PROFANITY",
                     "Bu alanda uygunsuz ifade kullanılamaz. Lütfen metni düzenleyin.", field);

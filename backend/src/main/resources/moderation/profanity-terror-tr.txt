@@ -1,0 +1,31 @@
+# Teror ovgusu / siddet tehdidi (TERROR) - Turkce. Soz dizimi: profanity-tr.txt basligina bakin.
+# Kategori: TERROR (V992). Baslangic kumesi; yonetici panelinden genisletilir.
+# Orgut ADI tek basina engellenmez (haber/akademik kullanim); ovgu, katilim cagrisi ve somut tehdit kaliplari engellenir.
+
+# --- Orgut ovgusu / katilim cagrisi ---
+pkk zindabad
+deaş zindabad
+daeş zindabad
+isid zindabad
+dhkp c zindabad
+fetö zindabad
+şehit pkk
+teröre katıl
+örgüte katıl
+dağa çık pkk
+terörist apo
+yaşasın deaş
+yaşasın pkk
+
+# --- Somut siddet tehdidi ---
+bomba koyacağım
+bombalayacağım
+okulu bombalayacağım
+üniversiteyi bombalayacağım
+herkesi öldüreceğim
+hepinizi öldüreceğim
+hepinizi vuracağım
+okulu basacağım
+canlı bomba olacağım
+canlı bomba olmak istiyorum
+kampüse bomba

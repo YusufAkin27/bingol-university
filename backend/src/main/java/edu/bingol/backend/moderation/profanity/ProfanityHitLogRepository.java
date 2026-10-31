@@ -13,6 +13,9 @@ public interface ProfanityHitLogRepository extends JpaRepository<ProfanityHitLog
             + "GROUP BY h.entity, h.field ORDER BY COUNT(h) DESC")
     List<Object[]> countsSince(@Param("since") Instant since);
 
+    @Query("SELECT h.category, COUNT(h) FROM ProfanityHitLog h WHERE h.at >= :since GROUP BY h.category ORDER BY COUNT(h) DESC")
+    List<Object[]> countsByCategorySince(@Param("since") Instant since);
+
     @Modifying
     @Query("DELETE FROM ProfanityHitLog h WHERE h.at < :cutoff")
     int deleteOlderThan(@Param("cutoff") Instant cutoff);

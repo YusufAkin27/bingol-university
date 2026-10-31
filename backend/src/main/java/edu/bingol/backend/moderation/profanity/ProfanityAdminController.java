@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.data.domain.PageRequest;
@@ -40,19 +43,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/profanity")
 public class ProfanityAdminController {
 
+    /** lang: TR | EN | AR | KU (Kurtce) | ALL; category bos = PROFANITY (T-059). */
     public record TermRequest(@NotBlank @Size(max = 80) String term, @NotNull ProfanityTerm.Kind kind,
-                              @Pattern(regexp = "(?i)TR|EN|AR|ALL") String lang, @Size(max = 200) String note) {}
+                              @Pattern(regexp = "(?i)TR|EN|AR|KU|ALL") String lang, @Size(max = 200) String note,
+                              ProfanityCategory category) {
+        /** Kategorisiz (eski) istemci / test cagrilari: PROFANITY. */
+        public TermRequest(String term, ProfanityTerm.Kind kind, String lang, String note) {
+            this(term, kind, lang, note, null);
+        }
+    }
 
     public record BulkRequest(@NotBlank @Size(max = 20000) String text, @NotNull ProfanityTerm.Kind kind,
-                              @Pattern(regexp = "(?i)TR|EN|AR|ALL") String lang) {}
+                              @Pattern(regexp = "(?i)TR|EN|AR|KU|ALL") String lang, ProfanityCategory category) {
+        public BulkRequest(String text, ProfanityTerm.Kind kind, String lang) {
+            this(text, kind, lang, null);
+        }
+    }
 
     public record CheckRequest(@NotBlank @Size(max = 20000) String text) {}
 
     public record TermView(Long id, String term, ProfanityTerm.Kind kind, String lang, String note, Long createdBy,
-                           Instant createdAt) {
+                           Instant createdAt, ProfanityCategory category) {
         static TermView of(ProfanityTerm t) {
             return new TermView(t.getId(), t.getTerm(), t.getKind(), t.getLang(), t.getNote(), t.getCreatedBy(),
-                    t.getCreatedAt());
+                    t.getCreatedAt(), t.getCategory());
         }
     }
 
@@ -60,15 +74,17 @@ public class ProfanityAdminController {
 
     public record BulkResult(int added, int skipped, int invalid) {}
 
-    public record CheckResult(boolean blocked, List<String> matches, String normalized) {}
+    public record CheckResult(boolean blocked, List<String> matches, String normalized, ProfanityCategory category) {}
 
     public record Settings(boolean enabled, String mode) {}
 
-    public record Info(ProfanityFilter.BuiltIn builtIn, long adminBlock, long adminAllow, Settings settings) {}
+    public record Info(ProfanityFilter.BuiltIn builtIn, long adminBlock, long adminAllow, Settings settings,
+                       Map<ProfanityCategory, Integer> builtInByCategory, Map<ProfanityCategory, Long> adminByCategory) {}
 
     public record StatRow(String entity, String field, long count) {}
 
-    public record StatWindow(long total, List<StatRow> byField) {}
+    /** byCategory: kategori -> engelleme sayisi (periyodik gozden gecirme; T-059). */
+    public record StatWindow(long total, List<StatRow> byField, Map<String, Long> byCategory) {}
 
     public record Stats(StatWindow last24h, StatWindow last7d) {}
 
@@ -101,8 +117,13 @@ public class ProfanityAdminController {
 
     @GetMapping("/info")
     public Info info() {
+        Map<ProfanityCategory, Long> admin = new EnumMap<>(ProfanityCategory.class);
+        for (ProfanityCategory c : ProfanityCategory.values()) {
+            admin.put(c, repo.countByKindAndCategory(ProfanityTerm.Kind.BLOCK, c));
+        }
         return new Info(filter.builtIn(), repo.countByKind(ProfanityTerm.Kind.BLOCK),
-                repo.countByKind(ProfanityTerm.Kind.ALLOW), new Settings(props.enabled(), props.mode().name()));
+                repo.countByKind(ProfanityTerm.Kind.ALLOW), new Settings(props.enabled(), props.mode().name()),
+                filter.builtInCategoryCounts(), admin);
     }
 
     @PostMapping
@@ -111,7 +132,7 @@ public class ProfanityAdminController {
     public TermView add(@Valid @RequestBody TermRequest r, Authentication auth) {
         Long admin = adminId(auth);
         limiter.check("prof:w:" + key(admin), 60, Duration.ofMinutes(1));
-        ProfanityTerm t = create(r.term(), r.kind(), r.lang(), r.note(), admin);
+        ProfanityTerm t = create(r.term(), r.kind(), r.lang(), r.note(), admin, r.category());
         filter.refresh();
         return TermView.of(t);
     }
@@ -134,7 +155,7 @@ public class ProfanityAdminController {
                 continue;
             }
             try {
-                create(line.strip(), r.kind(), r.lang(), null, admin);
+                create(line.strip(), r.kind(), r.lang(), null, admin, r.category());
                 added++;
             } catch (ApiException e) {
                 if ("PROFANITY_TERM_EXISTS".equals(e.code())) {
@@ -165,7 +186,8 @@ public class ProfanityAdminController {
     public CheckResult check(@Valid @RequestBody CheckRequest r, Authentication auth) {
         limiter.check("prof:c:" + key(adminId(auth)), 120, Duration.ofMinutes(1));
         ProfanityMatcher.Result res = filter.check(r.text());
-        return new CheckResult(res.blocked(), res.matches(), filter.normalized(r.text()));
+        return new CheckResult(res.blocked(), res.matches(), filter.normalized(r.text()),
+                res.blocked() ? filter.categoryOf(res) : null);
     }
 
     @GetMapping("/stats")
@@ -178,9 +200,10 @@ public class ProfanityAdminController {
     @GetMapping("/export.csv")
     public ResponseEntity<byte[]> export(@RequestParam(required = false) ProfanityTerm.Kind kind) {
         List<ProfanityTerm> rows = kind == null ? repo.findAllByOrderByIdAsc() : repo.findByKindOrderByIdAsc(kind);
-        StringBuilder sb = new StringBuilder("term,kind,lang,note,createdAt\n");
+        StringBuilder sb = new StringBuilder("term,kind,lang,category,note,createdAt\n");
         for (ProfanityTerm t : rows) {
             sb.append(cell(t.getTerm())).append(',').append(t.getKind()).append(',').append(t.getLang()).append(',')
+                    .append(t.getCategory()).append(',')
                     .append(cell(t.getNote())).append(',').append(t.getCreatedAt()).append('\n');
         }
         return ResponseEntity.ok()
@@ -191,7 +214,8 @@ public class ProfanityAdminController {
 
     // ---- yardimcilar ----
 
-    private ProfanityTerm create(String raw, ProfanityTerm.Kind kind, String lang, String note, Long admin) {
+    private ProfanityTerm create(String raw, ProfanityTerm.Kind kind, String lang, String note, Long admin,
+                                 ProfanityCategory category) {
         String term = raw == null ? "" : raw.strip();
         String canon = ProfanityMatcher.canonical(term);
         if (term.length() < 2 || term.length() > 80 || canon == null || canon.length() > 100) {
@@ -205,6 +229,7 @@ public class ProfanityAdminController {
         t.setTerm(term);
         t.setTermNormalized(canon);
         t.setKind(kind);
+        t.setCategory(category == null ? ProfanityCategory.PROFANITY : category);
         t.setLang(lang == null || lang.isBlank() ? "ALL" : lang.toUpperCase(Locale.ROOT));
         t.setNote(note == null || note.isBlank() ? null : note.strip());
         t.setCreatedBy(admin);
@@ -223,7 +248,11 @@ public class ProfanityAdminController {
             rows.add(new StatRow((String) r[0], (String) r[1], c));
             total += c;
         }
-        return new StatWindow(total, rows);
+        Map<String, Long> byCategory = new LinkedHashMap<>();
+        for (Object[] r : hits.countsByCategorySince(since)) {
+            byCategory.put((String) r[0], ((Number) r[1]).longValue());
+        }
+        return new StatWindow(total, rows, byCategory);
     }
 
     private static String cell(String v) {

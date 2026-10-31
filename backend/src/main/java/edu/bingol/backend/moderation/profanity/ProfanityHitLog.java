@@ -32,6 +32,10 @@ public class ProfanityHitLog {
     @Column(nullable = false, length = 8)
     private String action = "BLOCK";
 
+    /** Eslesen en siddetli kategori (V992); kelime yine SAKLANMAZ. */
+    @Column(nullable = false, length = 12)
+    private String category = "PROFANITY";
+
     @Column(name = "at", nullable = false)
     private Instant at = Instant.now();
 }

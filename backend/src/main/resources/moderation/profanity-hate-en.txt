@@ -1,0 +1,32 @@
+# Hate speech (HATE) - English. Syntax: see profanity-tr.txt header (=exact, *substring, spaced entry = phrase).
+# Category HATE (V992); starter set, extendable from the admin panel.
+
+# --- Slurs (exact word) ---
+=kike
+=chink
+=spic
+=wetback
+=gook
+=towelhead
+=raghead
+=sandnigger
+=paki
+=faggot
+=tranny
+
+# --- Eliminationist / supremacist phrases ---
+kill all jews
+kill all muslims
+kill all kurds
+kill all armenians
+kill all gays
+gas the jews
+death to jews
+death to muslims
+death to kurds
+heil hitler
+sieg heil
+white power
+white supremacy
+go back to africa
+jews will not replace us

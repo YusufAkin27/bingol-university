@@ -6,7 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,9 +28,11 @@ public class ProfanityFilter {
     /** Yerlesik liste ozeti (kelime sayilari). */
     public record BuiltIn(int tr, int en, int ar, int allow, String source) {}
 
-    private record Snapshot(ProfanityMatcher matcher, long loadedAt) {}
+    private record Snapshot(ProfanityMatcher matcher, long loadedAt, Map<String, ProfanityCategory> categories) {}
 
-    private record Defaults(List<String> tr, List<String> en, List<String> ar, List<String> allow) {}
+    /** Kategori listeleri (V992): kategori -> yerlesik satirlar (nefret/teror/kendine zarar tr+en; Kurtce PROFANITY'ye eklenir). */
+    private record Defaults(List<String> tr, List<String> en, List<String> ar, List<String> allow,
+                            Map<ProfanityCategory, List<String>> extra) {}
 
     private static volatile Defaults defaults;
 
@@ -61,12 +66,51 @@ public class ProfanityFilter {
         return new BuiltIn(count(d.tr), count(d.en), count(d.ar), count(d.allow), SOURCE);
     }
 
+    /** Yerlesik kategori basina kelime sayisi (kategori listeleri; PROFANITY'de Kurtce dosya dahil, ana listeler haric). */
+    public Map<ProfanityCategory, Integer> builtInCategoryCounts() {
+        Map<ProfanityCategory, Integer> m = new EnumMap<>(ProfanityCategory.class);
+        for (ProfanityCategory c : ProfanityCategory.values()) {
+            m.put(c, count(defaults().extra.getOrDefault(c, List.of())));
+        }
+        return m;
+    }
+
+    /** Eslesmenin en siddetli kategorisi (eslesme yoksa/bilinmiyorsa PROFANITY). */
+    public ProfanityCategory categoryOf(ProfanityMatcher.Result res) {
+        if (res == null || res.matches().isEmpty()) {
+            return ProfanityCategory.PROFANITY;
+        }
+        Map<String, ProfanityCategory> cats = current().categories;
+        ProfanityCategory best = ProfanityCategory.PROFANITY;
+        for (String name : res.matches()) {
+            ProfanityCategory c = cats.get(name);
+            if (c != null && c.severity() > best.severity()) {
+                best = c;
+            }
+        }
+        return best;
+    }
+
+    /** Matcher'in satirdan dondurdugu ad: baştaki =*! isaretleri atilmis kelime. */
+    static String wordOf(String line) {
+        String l = line.strip();
+        int i = 0;
+        while (i < l.length() && "=*!".indexOf(l.charAt(i)) >= 0) {
+            i++;
+        }
+        return l.substring(i).strip();
+    }
+
     /** Yonetici degisikliginden sonra hemen tazele. */
     public void refresh() {
         snap = build();
     }
 
     private ProfanityMatcher matcher() {
+        return current().matcher;
+    }
+
+    private Snapshot current() {
         Snapshot s = snap;
         if (s == null || System.currentTimeMillis() - s.loadedAt > ttlMs) {
             synchronized (this) {
@@ -77,7 +121,7 @@ public class ProfanityFilter {
                 }
             }
         }
-        return s.matcher;
+        return s;
     }
 
     private Snapshot build() {
@@ -86,18 +130,32 @@ public class ProfanityFilter {
         block.addAll(d.tr);
         block.addAll(d.en);
         block.addAll(d.ar);
+        Map<String, ProfanityCategory> cats = new HashMap<>();
+        // Kategori listeleri (V992): kelime -> kategori; en siddetli kategori kalir
+        d.extra.forEach((cat, lines) -> {
+            block.addAll(lines);
+            for (String l : lines) {
+                String w = wordOf(l);
+                if (!w.isEmpty() && !w.startsWith("#")) {
+                    cats.merge(w, cat, (a, b) -> a.severity() >= b.severity() ? a : b);
+                }
+            }
+        });
         List<String> allow = new ArrayList<>(d.allow);
         if (repo != null) {
             try {
                 for (ProfanityTerm t : repo.findAllByOrderByIdAsc()) {
                     (t.getKind() == ProfanityTerm.Kind.BLOCK ? block : allow).add(t.getTerm());
+                    if (t.getKind() == ProfanityTerm.Kind.BLOCK && t.getCategory() != null) {
+                        cats.merge(wordOf(t.getTerm()), t.getCategory(), (a, b) -> a.severity() >= b.severity() ? a : b);
+                    }
                 }
             } catch (RuntimeException e) {
                 // DB okunamazsa yerlesik liste ile devam; kelime/ayrinti log'a yazilmaz
                 log.warn("Ozel kelimeler okunamadi, yerlesik liste kullaniliyor: {}", e.getClass().getSimpleName());
             }
         }
-        return new Snapshot(ProfanityMatcher.build(block, allow), System.currentTimeMillis());
+        return new Snapshot(ProfanityMatcher.build(block, allow), System.currentTimeMillis(), cats);
     }
 
     private static int count(List<String> lines) {
@@ -118,6 +176,10 @@ public class ProfanityFilter {
             case "tr" -> d.tr;
             case "en" -> d.en;
             case "ar" -> d.ar;
+            case "ku" -> d.extra.get(ProfanityCategory.PROFANITY);
+            case "hate" -> d.extra.get(ProfanityCategory.HATE);
+            case "terror" -> d.extra.get(ProfanityCategory.TERROR);
+            case "selfharm" -> d.extra.get(ProfanityCategory.SELF_HARM);
             default -> d.allow;
         };
     }
@@ -125,11 +187,22 @@ public class ProfanityFilter {
     private static Defaults defaults() {
         Defaults d = defaults;
         if (d == null) {
+            Map<ProfanityCategory, List<String>> extra = new EnumMap<>(ProfanityCategory.class);
+            extra.put(ProfanityCategory.PROFANITY, read("profanity-ku.txt"));
+            extra.put(ProfanityCategory.HATE, concat(read("profanity-hate-tr.txt"), read("profanity-hate-en.txt")));
+            extra.put(ProfanityCategory.TERROR, concat(read("profanity-terror-tr.txt"), read("profanity-terror-en.txt")));
+            extra.put(ProfanityCategory.SELF_HARM, concat(read("profanity-selfharm-tr.txt"), read("profanity-selfharm-en.txt")));
             d = new Defaults(read("profanity-tr.txt"), read("profanity-en.txt"), read("profanity-ar.txt"),
-                    read("profanity-allow-tr.txt"));
+                    read("profanity-allow-tr.txt"), extra);
             defaults = d;
         }
         return d;
+    }
+
+    private static List<String> concat(List<String> a, List<String> b) {
+        List<String> out = new ArrayList<>(a);
+        out.addAll(b);
+        return out;
     }
 
     private static List<String> read(String name) {

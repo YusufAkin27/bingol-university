@@ -38,6 +38,11 @@ public class ProfanityTerm {
     @Column(nullable = false, length = 4)
     private String lang = "ALL";
 
+    /** Kategori (V992); varsayilan PROFANITY. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 12)
+    private ProfanityCategory category = ProfanityCategory.PROFANITY;
+
     @Column(length = 200)
     private String note;
 

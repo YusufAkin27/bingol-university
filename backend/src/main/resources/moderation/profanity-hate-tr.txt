@@ -1,0 +1,46 @@
+# Nefret soylemi (HATE) - Turkce. Soz dizimi icin profanity-tr.txt basligina bakin: =tam eslesme, *icinde gecme, bosluklu giris tamlama.
+# Kategori: HATE (V992). Bu dosya baslangic kumesidir; yonetici panelinden (Uygunsuz ifade filtresi > kategori HATE) genisletilir.
+# Yalnizca acik asagilama/insanliktan cikarma/oldurme cagrisi kalibi; tarihsel/haber/akademik tek sozcuk kullanimi bilerek ENGELLENMEZ.
+
+# --- Etnik/dini/cinsel yonelim asagilama (kalip: "<grup> pisligi/ortugu/ölsün") ---
+yahudi pisliği
+ermeni pisliği
+kürt pisliği
+arap pisliği
+rum pisliği
+çingene pisliği
+alevi pisliği
+laz pisliği
+suriyeli pisliği
+afgan pisliği
+zenci pisliği
+eşcinsel pisliği
+yahudiler ölsün
+ermeniler ölsün
+kürtler ölsün
+araplar ölsün
+rumlar ölsün
+çingeneler ölsün
+aleviler ölsün
+suriyeliler ölsün
+afganlar ölsün
+zenciler ölsün
+eşcinseller ölsün
+gayler ölsün
+türkler ölsün
+müslümanlar ölsün
+hristiyanlar ölsün
+yahudileri yakın
+kürtleri yakın
+ermenileri yakın
+eşcinselleri yakın
+=zenci
+=gavur
+
+# --- Nazi / aşırı sağ sloganları ---
+heil hitler
+sieg heil
+hitler haklıydı
+hitler yaşasaydı
+beyaz üstünlüğü
+ırkçılık yaşasın

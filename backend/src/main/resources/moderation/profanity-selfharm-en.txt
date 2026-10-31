@@ -1,0 +1,13 @@
+# Encouraging self-harm (SELF_HARM) - English. Syntax: see profanity-tr.txt header.
+# Category SELF_HARM (V992); starter set. Targets incitement of others, not first-person expressions of distress.
+
+kill yourself
+=kys
+go die
+you should die
+slit your wrists
+hang yourself
+how to commit suicide
+suicide methods
+easiest way to die
+end yourself

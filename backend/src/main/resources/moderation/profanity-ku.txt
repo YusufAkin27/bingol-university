@@ -1,0 +1,12 @@
+# Kurtce (Kurmanci/Zazaki) kufur ve hakaret - BASLANGIC KUMESI (kategori PROFANITY, lang KU; karar K-27).
+# Soz dizimi: profanity-tr.txt basligina bakin. Yalnizca yerel konusur tarafindan dogrulanabilen, acik hakaret
+# anlamli sozcukler yer alir. Bu liste KESINLIKLE EKSIKTIR: Bingol'de yaygin Kurmanci ve Zazaki hakaretler topluluk /
+# Bingol uzmani incelemesiyle yonetici panelinden (Uygunsuz ifade filtresi, dil KU) genisletilmelidir; yanlis pozitif
+# riski olan kisa sozcukler (ornegin gu) bilerek eklenmedi.
+
+=qehbe
+=qehpik
+=qahpik
+kurê qehbê
+kurê kûçikê
+kurê gû

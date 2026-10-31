@@ -24,12 +24,22 @@ public class ProfanityHitLogger {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(String entity, String field, Long userId, String action) {
+        save(entity, field, userId, action, ProfanityCategory.PROFANITY);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void record(String entity, String field, Long userId, String action, ProfanityCategory category) {
+        save(entity, field, userId, action, category);
+    }
+
+    private void save(String entity, String field, Long userId, String action, ProfanityCategory category) {
         try {
             ProfanityHitLog h = new ProfanityHitLog();
             h.setEntity(entity);
             h.setField(field);
             h.setUserId(userId);
             h.setAction(action);
+            h.setCategory(category == null ? "PROFANITY" : category.name());
             repo.save(h);
         } catch (RuntimeException e) {
             log.warn("Uygunsuz ifade gunlugu yazilamadi: {}", e.getClass().getSimpleName()); // kelime asla loglanmaz
