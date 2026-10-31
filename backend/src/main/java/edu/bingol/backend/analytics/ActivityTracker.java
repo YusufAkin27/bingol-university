@@ -39,8 +39,19 @@ public class ActivityTracker {
         this.clock = clock;
     }
 
+    /** Redis devre kesici (T-003): Redis kesikken bu istekte Redis'e gidilmez (is parcacigi bekletilmez). */
+    private edu.bingol.backend.common.RedisBreaker breaker;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBreaker(edu.bingol.backend.common.RedisBreaker breaker) {
+        this.breaker = breaker;
+    }
+
     /** Dogrulanmis bir kullanicinin istegi geldi. Genelde tek bir Redis cagrisiyla biter. */
     public void touch(Long userId) {
+        if (breaker != null && breaker.isOpen()) {
+            return;
+        }
         try {
             if (!Boolean.TRUE.equals(redis.opsForValue().setIfAbsent("seen:" + userId, "1", SEEN_INTERVAL))) {
                 return;
@@ -50,6 +61,9 @@ public class ActivityTracker {
                     redis.opsForValue().setIfAbsent("act:" + userId + ":" + day, "1", DAY_KEY_TTL));
             executor.execute(() -> write(userId, day, firstToday));
         } catch (RuntimeException e) {
+            if (breaker != null && edu.bingol.backend.common.RedisBreaker.isRedisFailure(e)) {
+                breaker.trip(e);
+            }
             log.debug("Aktiflik kaydi atlandi: {}", e.toString());
         }
     }

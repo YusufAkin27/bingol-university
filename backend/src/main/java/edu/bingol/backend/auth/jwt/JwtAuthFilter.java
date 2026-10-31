@@ -1,5 +1,6 @@
 package edu.bingol.backend.auth.jwt;
 
+import edu.bingol.backend.common.RedisBreaker;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,12 +39,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     public static final String ADMIN_PROFILE_ATTR = "auth.adminProfile";
     public static final String TOKEN_EMAIL_ATTR = "auth.tokenEmail";
 
+    /**
+     * Redis yokken (devre kesici acik / komut hatasi) kimlik DOGRULANAMADI: deger = Retry-After saniyesi (Long).
+     * Kimlik konmaz; kimlik isteyen uc giris noktasinda 503 REDIS_UNAVAILABLE alir (fail-closed: askiya alinmis ya da
+     * oturumu iptal edilmis kullanici Redis yokken gecmez). Herkese acik uclar etkilenmez.
+     */
+    public static final String REDIS_UNAVAILABLE_ATTR = "auth.redisUnavailable";
+
     private final JwtService jwt;
     private final StringRedisTemplate redis;
+    /** Istege bagli: yoksa (eski birim testleri) Redis hatasi aynen yukari atilir. */
+    private final RedisBreaker breaker;
 
     public JwtAuthFilter(JwtService jwt, StringRedisTemplate redis) {
+        this(jwt, redis, null);
+    }
+
+    public JwtAuthFilter(JwtService jwt, StringRedisTemplate redis, RedisBreaker breaker) {
         this.jwt = jwt;
         this.redis = redis;
+        this.breaker = breaker;
     }
 
     @Override
@@ -53,7 +68,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (h != null && h.startsWith("Bearer ")) {
             JwtService.Identity id = jwt.parse(h.substring(7).trim());
             if (id != null) {
-                Verdict v = check(id);
+                Verdict v = verdictOf(req, id);
+                if (v == Verdict.UNAVAILABLE) {
+                    chain.doFilter(req, res);
+                    return;
+                }
                 if (v == Verdict.OK) {
                     req.setAttribute(ADMIN_PROFILE_ATTR, id.adminProfile());
                     req.setAttribute(TOKEN_EMAIL_ATTR, id.email());
@@ -67,7 +86,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         chain.doFilter(req, res);
     }
 
-    private enum Verdict { OK, DENIED, REPLACED }
+    private enum Verdict { OK, DENIED, REPLACED, UNAVAILABLE }
+
+    /** Devre kesici aciksa Redis'e gitmeden, degilse kontrol ederek; Redis hatasinda devreyi acar. */
+    private Verdict verdictOf(HttpServletRequest req, JwtService.Identity id) {
+        if (breaker != null && breaker.isOpen()) {
+            req.setAttribute(REDIS_UNAVAILABLE_ATTR, breaker.retryAfterSeconds());
+            return Verdict.UNAVAILABLE;
+        }
+        try {
+            return check(id);
+        } catch (RuntimeException e) {
+            if (breaker == null || !RedisBreaker.isRedisFailure(e)) {
+                throw e;
+            }
+            breaker.trip(e);
+            req.setAttribute(REDIS_UNAVAILABLE_ATTR, breaker.retryAfterSeconds());
+            return Verdict.UNAVAILABLE;
+        }
+    }
 
     /** Tek Redis turunda askiya, rol degisimi ve oturum iptali (genel + mobil) kontrolu. */
     private Verdict check(JwtService.Identity id) {

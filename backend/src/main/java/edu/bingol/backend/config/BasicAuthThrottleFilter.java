@@ -1,6 +1,5 @@
 package edu.bingol.backend.config;
 
-import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.Hashing;
 import edu.bingol.backend.common.RateLimiter;
@@ -66,7 +65,8 @@ public class BasicAuthThrottleFilter extends OncePerRequestFilter {
             if (count(ipFail) >= IP_FAIL_MAX || count(userFail) >= USER_FAIL_MAX) {
                 throw new edu.bingol.backend.common.RateLimitedException(WINDOW.toSeconds());
             }
-        } catch (ApiException e) {
+        } catch (edu.bingol.backend.common.RateLimitedException e) {
+            // RedisUnavailableException (devre kesici) da ApiException ama 429 degil: asagidaki fail-closed dalina duser.
             res.setStatus(429);
             res.setContentType("application/json");
             res.getWriter().write("{\"code\":\"RATE_LIMITED\",\"message\":\"Too many attempts\"}");

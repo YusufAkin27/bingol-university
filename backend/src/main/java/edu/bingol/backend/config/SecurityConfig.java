@@ -25,7 +25,6 @@ import org.springframework.security.web.header.writers.DelegatingRequestMatcherH
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -71,22 +70,18 @@ public class SecurityConfig {
                                     edu.bingol.backend.common.ApiAuthenticationEntryPoint apiEntryPoint,
                                     edu.bingol.backend.common.RateLimiter limiter,
                                     edu.bingol.backend.common.ClientIp clientIp,
+                                    edu.bingol.backend.common.RedisBreaker redisBreaker,
                                     org.springframework.core.env.Environment env,
                                     @Value("${app.security.admin-basic.enabled:true}") boolean adminBasic,
                                     @Value("${app.security.admin-basic.fail-closed:true}") boolean failClosed)
             throws Exception {
-        // Basic kapaliyken /api/admin/** da kimliksiz isteklere {code,message} 401 doner (Basic zorlugu yok).
-        org.springframework.security.web.util.matcher.RequestMatcher apiMatcher = adminBasic
-                ? new AndRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/**"),
-                        new NegatedRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/api/admin/**")))
-                : PathPatternRequestMatcher.withDefaults().matcher("/api/**");
         http.csrf(AbstractHttpConfigurer::disable)
             // CORS yalnizca /api/** ve /files/** icin (CorsConfig); preflight (OPTIONS) kimlik dogrulamasindan once yanitlanir
             .cors(c -> c.configurationSource(cors))
             // Yetkisiz yonetici istekleri (403) denetim kaydina da yazilir
-            // Kimliksiz 401 govdesi {code,message} olsun (mobil icin); yonetici Basic auth zorlugu (WWW-Authenticate) korunur.
-            .exceptionHandling(e -> e.accessDeniedHandler(denied)
-                    .defaultAuthenticationEntryPointFor(apiEntryPoint, apiMatcher))
+            // TEK giris noktasi: /api/** ve /api/admin/** dahil her kimliksiz 401 {code,message,traceId} olur (T-004);
+            // WWW-Authenticate: Basic yalniz basliksiz Basic istemciye yazilir (bkz. ApiAuthenticationEntryPoint).
+            .exceptionHandling(e -> e.accessDeniedHandler(denied).authenticationEntryPoint(apiEntryPoint))
             // Guvenlik basliklari. HSTS yalnizca HTTPS isteklerde yazilir (proxy arkasinda forward-headers ile).
             // CSP yalnizca API/dosya yanitlari icin kisitli; Swagger arayuzu (dev) betik yukleyebilsin diye haric.
             .headers(h -> h
@@ -129,11 +124,12 @@ public class SecurityConfig {
                 // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .anyRequest().authenticated())
-            .addFilterBefore(new JwtAuthFilter(jwt, redis), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthFilter(jwt, redis, redisBreaker), UsernamePasswordAuthenticationFilter.class);
         // Yonetim uclari (/api/admin/**) icin Basic auth (spring.security.user.*): yalniz aciksa (prod'da varsayilan
         // kapali; yalniz JWT ROLE_ADMIN). Aciksa basarisiz deneme sayaci + fail-closed kisitlayici onunde calisir.
         if (adminBasic) {
-            http.httpBasic(Customizer.withDefaults())
+            // Yanlis Basic kimlik bilgisi de ayni zarfla 401 olur (Authorization basligi var: challenge yazilmaz).
+            http.httpBasic(b -> b.authenticationEntryPoint(apiEntryPoint))
                 .addFilterBefore(new BasicAuthThrottleFilter(limiter, clientIp, redis, failClosed),
                         org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class);
         }

@@ -33,12 +33,42 @@ public class RateLimiter {
     @Value("${app.ratelimit.overflow-multiplier:50}")
     private int overflowMultiplier = 50;
 
+    /** Redis devre kesici (T-003); yoksa (birim testleri) Redis hatasi aynen yukari atilir. */
+    private RedisBreaker breaker;
+
     public RateLimiter(StringRedisTemplate redis) {
         this.redis = redis;
     }
 
-    /** `key` icin pencere icinde `max` istegi asarsa 429 firlatir. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBreaker(RedisBreaker breaker) {
+        this.breaker = breaker;
+    }
+
+    /**
+     * `key` icin pencere icinde `max` istegi asarsa 429 firlatir. Redis kesikse (devre kesici) Redis'e gitmeden
+     * 503 REDIS_UNAVAILABLE doner; ilk Redis hatasi devreyi acar.
+     */
     public void check(String key, int max, Duration window) {
+        if (breaker == null) {
+            doCheck(key, max, window);
+            return;
+        }
+        if (breaker.isOpen()) {
+            throw new RedisUnavailableException(breaker.retryAfterSeconds());
+        }
+        try {
+            doCheck(key, max, window);
+        } catch (RuntimeException e) {
+            if (RedisBreaker.isRedisFailure(e)) {
+                breaker.trip(e);
+                throw new RedisUnavailableException(breaker.retryAfterSeconds());
+            }
+            throw e;
+        }
+    }
+
+    private void doCheck(String key, int max, Duration window) {
         String k = "rl:" + safeKey(key);
         Long n = redis.opsForValue().increment(k);
         if (n == null) {
