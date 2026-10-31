@@ -405,10 +405,23 @@ class AuthServiceTest {
     }
 
     @Test
-    void studentNumberRegistersAsUniversityEmail() {
+    void studentNumberAloneIsRejectedAtRegisterWithoutSendingCode() {
+        // Kayitta numara kisayolu yok: numara@bingol.edu.tr tahmini yapilmaz, kod gonderilmez.
+        for (String raw : new String[] {"226051015", "226 051 015", " 226-051-015 ", "ad.soyad"}) {
+            ApiException e = assertThrows(ApiException.class,
+                    () -> auth.register(raw, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
+            assertEquals("EMAIL_FULL_REQUIRED", e.code(), raw);
+            assertEquals(HttpStatus.BAD_REQUEST, e.status(), raw);
+        }
+        verify(verification, never()).issue(anyString(), any());
+        verify(pending, never()).save(anyString(), any(Pending.class));
+    }
+
+    @Test
+    void fullStudentEmailRegistersAsIs() {
         when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.empty());
 
-        auth.register("226 051 015", "Kx7-mQ2vLp9z", "Ali", Lang.TR);
+        auth.register(" 226051015@Bingol.edu.tr ", "Kx7-mQ2vLp9z", "Ali", Lang.TR);
 
         verify(verification).issue("226051015@bingol.edu.tr", Lang.TR);
         verify(pending).save(eq("226051015@bingol.edu.tr"), any(Pending.class));

@@ -184,3 +184,12 @@ Kapsam: `docs/audit/prompts/W1-A-kimlik-oturum.md`. Yeni Flyway migration YOK (V
 
 ### Yeni hata kodlari (auth*.properties, tr/en/ar)
 `PASSWORD_TOO_WEAK`, `ADMIN_CANNOT_SELF_DELETE`, `REDIS_UNAVAILABLE`, `INTERNAL_ERROR`, `METHOD_NOT_ALLOWED`, `NOT_ACCEPTABLE`, `UNSUPPORTED_MEDIA_TYPE`.
+
+## Kayitta tam e-posta zorunlu (REGMAIL, 2026-10-31)
+
+- **Sorun:** kayit formu yalniz okul numarasi kabul edip `<numara>@bingol.edu.tr` adresine kod gonderiyordu; gercek posta kutusu bu bicimde olmayan ogrencilerde kod kayboluyordu.
+- **Kural:** `POST /api/auth/register` govdesindeki `email` `@` icermiyorsa `400 EMAIL_FULL_REQUIRED` (`AuthService.register`, `normalizeEmail`'den ONCE; kod gitmez, bekleyen kayit yazilmaz). Bos deger eskisi gibi `VALIDATION_ERROR`. `+etiket` reddi, `bingol.edu.tr` kisiti ve `ADMIN_EMAILS` muafiyeti degismedi.
+- **Degismeyenler:** `login`, `resend-code`, `forgot-password`, `verify-email`, `verify-reset-code`, `reset-password` numarayi (`LoginIdentifier.normalize`) kabul etmeye devam eder (mevcut hesaplar numarayla giris yapar). Numarayla acilmis bekleyen kayit `resend-code`/`verify-email` ile tamamlanabilir.
+- Mobil: kayit alani `RefIdentifierField(allowStudentNumber: false)` + `validateRegisterEmail` (yalniz tam e-posta, `@bingol.edu.tr` hapi yok, yardimci metin e-posta ornegi). Giris ve sifre sifirlama alanlari degismedi.
+- Yeni hata kodu: `EMAIL_FULL_REQUIRED` (`auth.properties`, `_en`, `_ar`).
+- Testler: `AuthServiceTest.studentNumberAloneIsRejectedAtRegisterWithoutSendingCode`, `fullStudentEmailRegistersAsIs`; mobil `student_number_test.dart`.

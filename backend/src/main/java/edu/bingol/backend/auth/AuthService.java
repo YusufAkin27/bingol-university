@@ -142,6 +142,12 @@ public class AuthService {
     /** faculty/department/grade opsiyoneldir; verilenler katalogla dogrulanir (bos metin = verilmedi). */
     public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
                          String department, String grade) {
+        // Kayitta okul numarasi kisayolu yok: kod gidecek adres kullanicinin yazdigi TAM adres olmali (numara@ tahmini,
+        // gercek kutusu olmayan ogrencilerde kodun kaybolmasina yol aciyordu). Giris/sifre sifirlama numarayi kabul etmeye devam eder.
+        if (rawEmail != null && !rawEmail.isBlank() && rawEmail.indexOf('@') < 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_FULL_REQUIRED",
+                    "Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr");
+        }
         String email = normalizeEmail(rawEmail);
         // Tek istisna: yapilandirmadaki yonetici adresleri (app.admin.emails / ADMIN_EMAILS) alan adi kisitindan muaftir
         // (bagimsiz/gmail yonetici hesabi). Baska hicbir adres icin gevsemez; e-posta dogrulamasi ve diger kurallar aynidir.
